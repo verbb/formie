@@ -58,6 +58,10 @@
     font-size: 0.875rem;
     display: block;
 
+    p {
+        margin: 0;
+    }
+
     .fui-instructions-above-input &,
     .fui-instructions-fieldset-start & {
         margin-bottom: 0.5rem;
