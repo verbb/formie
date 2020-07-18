@@ -1,0 +1,111 @@
+{% extends 'formie/_layouts' %}
+
+{% set crumbs = [
+    { label: craft.formie.getPluginName() | t('formie'), url: url('formie') },
+    { label: 'Settings' | t('app'), url: url('formie/settings') },
+    { label: 'Statuses' | t('formie'), url: url('formie/settings#tab-statuses') },
+] %}
+
+{% set selectedSubnavItem = 'settings' %}
+
+{% set fullPageForm = true %}
+
+{% set selectedTab = 'settings' %}
+{% import '_includes/forms' as forms %}
+
+{% block content %}
+
+{{ actionInput('formie/statuses/save') }}
+{{ redirectInput('formie/settings/statuses') }}
+
+{% if status.id %}
+    {{ hiddenInput('id', status.id) }}
+    {{ hiddenInput('sortOrder', status.sortOrder) }}
+{% endif %}
+
+{{ forms.textField({
+    label: 'Name' | t('formie'),
+    first: true,
+    instructions: 'What this status will be called in the control panel.' | t('formie'),
+    id: 'name',
+    name: 'name',
+    value: status.name,
+    errors: status.getErrors('name'),
+    required: true,
+}) }}
+
+{{ forms.textField({
+    label: 'Handle' | t('formie'),
+    instructions: 'How you’ll refer to this status in the templates.' | t('formie'),
+    id: 'handle',
+    class: 'code',
+    name: 'handle',
+    value: status.handle,
+    errors: status.getErrors('handle'),
+    required: true,
+}) }}
+
+{{ forms.textField({
+    label: 'Description' | t('formie'),
+    instructions: 'A description for the status, only visible in the control panel.' | t('formie'),
+    id: 'description',
+    name: 'description',
+    value: status.description,
+    errors: status.getErrors('description'),
+}) }}
+
+{{ forms.hidden({
+    id: 'color',
+    name: 'color',
+    value: status.color,
+}) }}
+
+{% set colorField %}
+    <div>
+        <a id="color-menu-btn" class="btn menubtn" href="#">
+            <span class="status {{ status.color }}"></span>{{ status.color | t('formie') | title }}
+        </a>
+        <div class="menu">
+            <ul class="padded">
+                {% for color in ['green','orange', 'red', 'blue', 'yellow', 'pink', 'purple', 'turquoise', 'light', 'grey', 'black'] %}
+                    <li>
+                        <a data-val="{{ color }}" {% if status.color == color %}class="sel"{% endif %} href="#">
+                            <span class="status {{ color }}"></span>{{ color | t('formie') | title }}
+                        </a>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+{% endset %}
+
+{{ forms.field({
+    label: 'Color' | t('formie'),
+    instructions: 'Choose a color to represent the order’s status.' | t('formie'),
+}, colorField) }}
+
+{{ forms.lightswitchField({
+    label: 'Default Status' | t('formie'),
+    instructions: 'Whether this status should be used as the default for new submissions.' | t('formie'),
+    name: 'isDefault',
+    on: status.isDefault,
+}) }}
+
+{% endblock %}
+
+{% js %}
+    {% if not status.handle %}new Craft.HandleGenerator('#name', '#handle');{% endif %}
+
+    $(function () {
+        $colorSelect = $('#color-menu-btn');
+
+        new Garnish.MenuBtn($colorSelect, {
+            onOptionSelect: function(data) {
+                var val = $(data).data('val');
+                $('#color').val(val);
+                var html = '<span class="status ' + val + '"></span>' + Craft.uppercaseFirst(val);
+                $colorSelect.html(html);
+            }
+        });
+    });
+{% endjs %}

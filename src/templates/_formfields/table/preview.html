@@ -1,0 +1,23 @@
+<table class="editable fullwidth">
+    <thead>
+        <tr>
+            <th v-for="(column, index) in field.settings.columns" :key="index">${column.heading ? column.heading : '&nbsp'}</th>
+        </tr>
+    </thead>
+
+    <tbody v-if="field.settings.defaults && field.settings.defaults.length > 0">
+        <tr v-for="(defaultRow, i) in field.settings.defaults" :key="i">
+            <td class="singleline-cell textual" v-for="(column, index) in field.settings.columns" :key="index">
+                <textarea rows="1" style="min-height: 36px;" :placeholder="defaultRow[column.id]"></textarea>
+            </td>
+        </tr>
+    </tbody>
+
+    <tbody v-else>
+        <tr>
+            <td class="singleline-cell textual" v-for="(column, index) in field.settings.columns" :key="index">
+                <textarea rows="1" style="min-height: 36px;" :placeholder="column.heading"></textarea>
+            </td>
+        </tr>
+    </tbody>
+</table>

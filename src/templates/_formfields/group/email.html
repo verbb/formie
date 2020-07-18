@@ -1,0 +1,31 @@
+<div style="margin: 1em 0;">
+    {% if showName %}
+        <strong>{{ field.name }}</strong>
+    {% endif %}
+
+    {% set fields = field.getFieldLayout().getFields() %}
+
+    {% if value.exists() %}
+        <table style="width: 100%; margin: 1em 0; border-collapse: collapse;">
+            {% for row in value.all() %}
+                <tbody>
+                    {% for field in fields %}
+                        {% set fieldValue = (row ? row.getFieldValue(field.handle) : field.normalizeValue(null)) %}
+
+                        <tr>
+                            <th style="text-align: left; font-size: inherit; width: 30%; padding: 4px; border: 1px solid; background-color: rgba(0, 0, 0, 0.05);">
+                                {{ field.name | t('site') }}
+                            </th>
+
+                            <td style="padding: 4px; border: 1px solid;">
+                                {{ field.getEmailHtml(fieldValue, false) | raw }}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            {% endfor %}
+        </table>
+    {% else %}
+        <p>{{ 'No response.' | t('formie') }}</p>
+    {% endif %}
+</div>

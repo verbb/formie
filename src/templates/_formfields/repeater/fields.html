@@ -1,0 +1,28 @@
+{% set element = element ?? null %}
+{% set namespace = namespace is defined ? namespace : 'fields' %}
+
+{% namespace namespace %}
+    {% for field in fields %}
+        <div class="thin rowHeader">
+            <span class="heading-text {% if field.required %}required{% endif %}">
+                {{ field.name | t('site') }}
+
+                {% if field.instructions %}
+                    <span class="info">{{ field.instructions | t('site') | md | raw }}</span>
+                {% endif %}
+            </span>
+        </div>
+
+        <div class="repeater-layout-row-new-field">
+            {% include 'formie/_formfields/repeater/field' with {
+                field: field,
+                required: field.required,
+                element: element,
+                static: static ?? false,
+                registerDeltas: registerDeltas ?? false,
+            } only %}
+        </div>
+
+        <div class="blank-spacer"></div>
+    {% endfor %}
+{% endnamespace %}

@@ -1,0 +1,7 @@
+<p>
+    {% if showName %}
+        <strong>{{ field.name }}</strong><br>
+    {% endif %}
+
+    {{ value ? value | date('Y-m-d H:i:s') }}
+</p>

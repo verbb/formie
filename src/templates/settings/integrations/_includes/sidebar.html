@@ -1,0 +1,31 @@
+<div class="fui-integrations-sidebar-wrapper">
+    <div class="sidebar">
+        <nav class="fui-integrations-tabs" data-vui-tabs>
+            <ul>
+                <li class="heading"><span>{{ 'Captchas' | t('formie') }}</span></li>
+
+                {% for integration in integrations %}
+                    <li>
+                        <a id="tab-{{ loop.index }}" href="#tab-{{ integration.handle }}" class="tab {% if integration.handle == selectedItem %}sel{% endif %}">
+                            {% if integration.iconUrl %}
+                                <img class="formie-integration-icon" src="{{ integration.iconUrl }}">
+                            {% else %}
+                                <img class="formie-integration-icon" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'/%3E">
+                            {% endif %}
+
+                            <span class="label">{{ integration.getName() }}</span>
+
+                            {% set enabled = form.settings.integrations[integration.handle].enabled ?? integration.enabled ?? false %}
+
+                            {% if enabled %}
+                                <span class="status green"></span>
+                            {% else %}
+                                <span class="status"></span>
+                            {% endif %}
+                        </a>
+                    </li>
+                {% endfor %}
+            </ul>
+        </nav>
+    </div>
+</div>

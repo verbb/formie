@@ -1,0 +1,7 @@
+<p>
+    {% if showName %}
+        <strong>{{ field.name }}</strong><br>
+    {% endif %}
+
+    {{ value ? field.checkedValue : field.uncheckedValue }}
+</p>

@@ -1,0 +1,8 @@
+{
+  "name": "vue-accessible-tabs",
+  "version": "1.0.4",
+  "description": "An accessible, unstyled <Tabs> implementation",
+  "main": "src/index.js",
+  "author": "",
+  "license": "MIT"
+}

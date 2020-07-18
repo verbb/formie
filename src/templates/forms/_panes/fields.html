@@ -1,0 +1,69 @@
+{% import '_includes/forms' as forms %}
+{% import 'verbb-base/_macros' as macros %}
+
+<form-builder ref="formBuilder" inline-template>
+    <div class="fui-fields-pane">
+        <div class="fui-fields-wrapper">
+            <div v-if="false" class="fui-loading fui-loading-lg"></div>
+
+            <div v-cloak class="fui-tabs fui-field-tabs fui-editor-tabs">
+                <field-page-tabs v-model="activePage" />
+            </div>
+
+            <div v-cloak class="fui-fields-inner-wrapper">
+                <div class="fui-fields-scroll">
+                    <div
+                        v-for="(page, index) in pages"
+                        :id="'tab-fields-page-' + page.id"
+                        :key="page.id"
+                        class="fui-tab-page"
+                        :class="{ 'hidden': activePage != '#tab-fields-page-' + (index + 1) }"
+                    >
+                        <field-page ref="pages" :page-index="index" v-bind="page" />
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="fui-sidebar-wrapper">
+            <div v-if="false" class="fui-loading fui-loading-lg"></div>
+
+            <div v-cloak class="fui-sidebar-scroll">
+                <div v-if="existingFields && existingFields.length">
+                    <h6 class="sidebar-title">{{ 'Existing fields' | t('formie') }}</h6>
+
+                    <existing-field-modal ref="existingFieldModal"></existing-field-modal>
+
+                    <hr>
+                </div>
+
+                <div v-for="(group, index) in enabledFieldGroups" :key="index">
+                    <h6 class="sidebar-title">${ group.label }</h6>
+
+                    <div class="fui-row small-padding">
+                        <div v-for="(field, i) in group.fields" :key="i" class="fui-col-6">
+                            <field-pill :type="field.type" />
+                        </div>
+                    </div>
+
+                    <hr v-if="index != Object.keys(enabledFieldGroups).length - 1">
+                </div>
+            </div>
+        </div>
+
+        <portal-target name="modals" multiple></portal-target>
+    </div>
+</form-builder>
+
+{% js %}
+    new Craft.Formie({
+        isStencil: {{ stencil is defined ? 1 : 0 }},
+        config: {{ formConfig | json_encode | raw }},
+        fields: {{ fields | json_encode | raw }},
+        notifications: {{ notifications | json_encode | raw }},
+        emailTemplates: {{ emailTemplates | json_encode | raw }},
+        reservedHandles: {{ reservedHandles | json_encode | raw }},
+        formHandles: {{ formHandles | json_encode | raw }},
+        existingFields: {{ (existingFields is defined ? existingFields : []) | json_encode | raw }},
+    });
+{% endjs %}

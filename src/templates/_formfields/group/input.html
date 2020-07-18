@@ -1,0 +1,22 @@
+{% set element = element ?? null %}
+{% set namespace = namespace is defined ? namespace : 'fields' %}
+{% set fields = nestedField.getFieldLayout().getFields() %}
+
+{% namespace namespace %}
+    <div class="pane">
+        {% for row in rows %}
+            {% set rowId = row.id %}
+            {{ hiddenInput("#{name}[sortOrder][]", rowId) }}
+
+            {% for field in fields %}
+                {% include 'formie/_formfields/group/field' with {
+                    first: loop.first,
+                    field: field,
+                    required: field.required,
+                    element: row,
+                    registerDeltas: registerDeltas ?? false,
+                } only %}
+            {% endfor %}
+        {% endfor %}
+    </div>
+{% endnamespace %}

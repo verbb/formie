@@ -1,0 +1,106 @@
+{% apply spaceless %}
+    {% set attributes = {
+        id: 'formie-form-' ~ form.id,
+        class: [
+            'fui-form',
+            'fui-labels-' ~ form.settings.defaultLabelPosition,
+            form.settings.displayPageProgress ? 'fui-progress-' ~ form.settings.progressPosition,
+            form.settings.validationOnFocus ? 'fui-validate-on-focus',
+        ],
+        method: 'post',
+        enctype: 'multipart/form-data',
+        'accept-charset': 'utf-8',
+        novalidate: true,
+        data: {
+            'submit-method': form.settings.submitMethod ?: false,
+            'submit-action': form.settings.submitAction ?: false,
+            'loading-indicator': form.settings.loadingIndicator ?: false,
+            'loading-text': form.settings.loadingIndicatorText ?: false,
+            'redirect': form.getRedirectUrl() ?: false,
+        },
+    } %}
+
+    <div class="fui-i">
+        {% set submitted = craft.formie.plugin.service.getFlash(form.id, 'submitted') %}
+
+        {% if submission is defined and form.settings.submitAction == 'message' %}
+            {% set flashNotice = craft.formie.plugin.service.getFlash(form.id, 'notice') %}
+            {% set flashError = craft.formie.plugin.service.getFlash(form.id, 'error') %}
+
+            {% if flashNotice %}
+                <div class="fui-alert fui-alert-success" role="alert">
+                    {{ flashNotice }}
+                </div>
+            {% endif %}
+
+            {% if flashError %}
+                <div class="fui-alert fui-alert-error" role="alert">
+                    {{ flashError }}
+                </div>
+            {% endif %}
+        {% endif %}
+
+        {% set currentPage = form.getCurrentPage() %}
+
+        {% if not submitted or not form.settings.submitActionFormHide %}
+            <form {{ attr(attributes) }}>
+                {{ csrfInput() }}
+                {{ actionInput('formie/submissions/submit') }}
+                {{ hiddenInput('handle', form.handle) }}
+
+                {% if submission and submission.id %}
+                    {{ hiddenInput('submissionId', submission.id) }}
+                {% endif %}
+
+                {% if form.getRedirectUrl() %}
+                    {{ redirectInput(form.getRedirectUrl()) }}
+                {% endif %}
+
+                <div class="fui-form-container">
+                    {% hook 'formie.form.start' %}
+
+                    {% if form.settings.displayFormTitle %}
+                        <h2 class="fui-title">{{ form.title }}</h2>
+                    {% endif %}
+
+                    {% if form.settings.progressPosition == 'start' %}
+                        {% include '_progress' %}
+                    {% endif %}
+
+                    {% set errors = submission.getErrors('form') ?? null %}
+                    {% if errors %}
+                        {% include '_errors' %}
+                    {% endif %}
+
+                    {% include '_page-tabs' %}
+
+                    {% if form.settings.submitMethod == 'page-reload' %}
+                        {{ craft.formie.renderPage(form, null, options) }}
+                    {% else %}
+                        {% for page in form.pages %}
+                            {{ craft.formie.renderPage(form, page, options) }}
+                        {% endfor %}
+                    {% endif %}
+
+                    {% if form.settings.progressPosition == 'end' %}
+                        {% include '_progress' %}
+                    {% endif %}
+
+                    {% hook 'formie.form.end' %}
+                </div>
+            </form>
+        {% endif %}
+    </div>
+
+    {% do view.registerAssetBundle('verbb\\formie\\web\\assets\\frontend\\FrontEndBaseAsset') %}
+
+    {# Keep it lean #}
+    {% set jsVariables = {
+        formId: form.id,
+        submitMethod: form.settings.submitMethod,
+    } %}
+
+    {% js %}
+        new FormieBaseForm({{ jsVariables | json_encode | raw }});
+    {% endjs %}
+{% endapply %}

@@ -1,0 +1,12 @@
+{% extends '_layouts/elementindex' %}
+
+{% set crumbs = [
+    { label: craft.formie.getPluginName() | t('formie'), url: url('formie') },
+    { label: 'Submissions' | t('formie'), url: url('formie/submissions') },
+] %}
+
+{% set title = 'Submissions' | t('formie') %}
+{% set selectedSubnavItem = 'submissions' %}
+
+{% set docTitle = title ~ ' - Formie' %}
+{% set elementType = 'verbb\\formie\\elements\\Submission' %}

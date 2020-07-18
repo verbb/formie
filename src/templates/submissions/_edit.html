@@ -1,0 +1,211 @@
+{% extends '_layouts/cp' %}
+{% import '_includes/forms' as forms %}
+{% import 'verbb-base/_macros' as macros %}
+
+{% do view.registerAssetBundle('verbb\\formie\\web\\assets\\forms\\FormsAsset') %}
+{% do view.registerAssetBundle('verbb\\formie\\web\\assets\\cp\\CpAsset') -%}
+
+{% set crumbs = [
+    { label: craft.formie.getPluginName() | t('formie'), url: url('formie') },
+    { label: 'Submissions' | t('formie'), url: url('formie/submissions') },
+] %}
+
+{% if currentUser.can('formie-editSubmissions') %}
+    {% set fullPageForm = true %}
+    {% set saveShortcutRedirect = continueEditingUrl %}
+{% endif %}
+
+{% set bodyClass = 'fui-body fui-submission' %}
+{% set selectedSubnavItem = 'submissions' %}
+
+{% block actionButton %}
+
+{% if currentUser.can('formie-editSubmissions') %}
+    <div class="buttons">
+        <div class="btngroup submit">
+            <input type="submit" class="btn submit" value="{{ 'Save' | t('formie') }}">
+
+            <div class="btn submit menubtn"></div>
+            <div class="menu">
+                <ul>
+                    <li>
+                        <a class="formsubmit" data-redirect="{{ continueEditingUrl | hash }}">
+                            {{ "Save and continue editing" | t('formie') }}
+                            <span class="shortcut">⌘S</span>
+                        </a>
+                    </li>
+                </ul>
+
+                {% if submission.id %}
+                    <hr>
+                    <ul>
+                        <li><a class="formsubmit error" data-action="formie/submissions/delete-submission" data-confirm="{{ 'Are you sure you want to delete this submission?' | t('formie') }}" data-redirect="{{ 'formie/submissions' | hash }}">{{ 'Delete' | t('app') }}</a></li>
+                    </ul>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endif %}
+
+{% endblock %}
+
+{% block content %}
+
+<input type="hidden" name="action" value="formie/submissions/save-submission">
+<input type="hidden" name="handle" value="{{ submission.form.handle }}">
+{{ redirectInput('formie/submissions') }}
+{{ csrfInput() }}
+
+{% if submission.id %}
+    <input type="hidden" name="submissionId" value="{{ submission.id }}">
+{% endif %}
+
+{% if craft.app.getIsMultiSite() %}
+    <input type="hidden" name="siteId" value="{{ submission.siteId }}">
+{% endif %}
+
+<div id="fields">
+    {% set fieldLayout = submission.getFieldLayout() %}
+
+    {% for tab in fieldLayout.getTabs() %}
+        <div id="{{ tab.getHtmlId() }}"{% if not loop.first %} class="hidden"{% endif %}>
+            {% set rows = craft.formie.plugin.fields.groupIntoRows(tab.getFields()) %}
+
+            {% namespace 'fields' %}
+                {% for row in rows %}
+                    {% for field in row.fields %}
+                        {% include '_includes/field' with {
+                            field: field,
+                            element: submission,
+                            required: field.required,
+                        } %}
+                    {% endfor %}
+                {% endfor %}
+            {% endnamespace %}
+        </div>
+    {% endfor %}
+</div>
+
+{% endblock %}
+
+{% block details %}
+
+<div id="settings" class="meta">
+    <div class="field">
+        <div class="heading">
+            <label class="">{{ 'Form Name' | t('formie') }}</label>
+        </div>
+
+        <div class="input ltr">
+            <a href="{{ submission.form.cpEditUrl }}">{{ submission.form }}</a>
+        </div>
+    </div>
+
+    {{ forms.textField({
+        label: 'Title' | t('formie'),
+        id: 'title',
+        name: 'title',
+        value: submission.title,
+        placeholder: 'Enter title' | t('formie'),
+    }) }}
+
+    {% if submission.hasStatuses() and not submission.isIncomplete %}
+        {% set statuses = craft.formie.plugin.statuses.getAllStatuses() %}
+
+        {{ forms.hidden({
+            id: 'statusId',
+            name: 'statusId',
+            value: submission.statusId ?? null,
+        }) }}
+
+        {% set statusField %}
+            <div>
+                <a id="status-menu-btn" class="btn menubtn" href="javascript:;">
+                    <span class="status {{ submission.getStatus(true).color }}"></span>{{ submission.getStatus(true).name }}
+                </a>
+
+                <div class="menu" id="status-menu-select">
+                    <ul class="padded">
+                        {% for status in statuses %}
+                            <li>
+                                <a data-val="{{ status.id }}" data-label="{{ status.name }}" data-color="{{ status.color }}" {% if submission.statusId == status.id %}class="sel"{% endif %} href="javascript:;">
+                                    <span class="status {{ status.color }}"></span>{{ status.name }}
+                                </a>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        {% endset %}
+
+        {{ forms.field({
+            label: 'Status' | t('formie'),
+        }, statusField) }}
+    {% endif %}
+</div>
+
+<div id="meta-details" class="meta read-only">
+    {% block meta %}
+        {% if submission.isIncomplete %}
+            <div class="data">
+                <h5 class="heading">{{ 'Status' | t('app') }}</h5>
+                <div id="status-value" class="value"><span class="status"></span>{{ 'Incomplete' | t('formie') }}</div>
+            </div>
+        {% elseif submission.isSpam %}
+            <div class="data">
+                <h5 class="heading">{{ 'Status' | t('app') }}</h5>
+                <div id="status-value" class="value"><span class="status red"></span>{{ 'Spam' | t('formie') }} <span class="info">{{ submission.spamReason }}</span></div>
+            </div>
+        {% endif %}
+
+        <div class="data">
+            <h5 class="heading">{{ 'Created at' | t('app') }}</h5>
+            <div id="date-created-value" class="value">{{ submission.dateCreated | datetime('short') }}</div>
+        </div>
+
+        <div class="data">
+            <h5 class="heading">{{ 'Updated at' | t('app') }}</h5>
+            <div id="date-updated-value" class="value">{{ submission.dateUpdated | datetime('short') }}</div>
+        </div>
+
+        <div class="data">
+            <h5 class="heading">{{ 'IP Address' | t('app') }}</h5>
+            <div class="value">{{ submission.ipAddress }}</div>
+        </div>
+    {% endblock %}
+</div>
+
+{% endblock %}
+
+{% css %}
+
+#status-menu-btn {
+    background: none;
+    padding-left: 0;
+}
+
+#status-menu-btn:focus {
+    outline: none;
+}
+
+{% endcss %}
+
+{% js %}
+
+$(function () {
+    $colorSelect = $('#status-menu-btn');
+
+    new Garnish.MenuBtn($colorSelect, {
+        onOptionSelect: function(data) {
+            var val = $(data).data('val');
+            var label = $(data).data('label');
+            var color = $(data).data('color');
+            $('#statusId').val(val);
+
+            var html = '<span class="status ' + color + '"></span>' + label;
+            $colorSelect.html(html);
+        }
+    });
+});
+
+{% endjs %}

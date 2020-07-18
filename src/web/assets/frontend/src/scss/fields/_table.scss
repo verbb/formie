@@ -1,0 +1,26 @@
+// ==========================================================================
+// Fields - Table
+// ==========================================================================
+
+.fui-table {
+    width: 100%;
+    margin-bottom: 1rem;
+    border-collapse: collapse;
+
+    th {
+        text-align: inherit;
+    }
+
+    th,
+    td {
+        padding: 0.2rem;
+
+        &:first-child {
+            padding-left: 0;
+        }
+
+        &:last-child {
+            padding-right: 0;
+        }
+    }
+}

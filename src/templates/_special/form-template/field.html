@@ -1,0 +1,86 @@
+{% set id = (form.handle | kebab) ~ '-' ~ (field.handle | kebab) %}
+{% set labelId = id ~ '-label' %}
+{% set labelPosition = craft.formie.getLabelPosition(field, form) %}
+{% set subfieldLabelPosition = craft.formie.getLabelPosition(field, form, true) %}
+{% set instructionsPosition = craft.formie.getInstructionsPosition(field, form) %}
+
+{% set inputOptions = {
+    id: id,
+    labelId: labelId,
+    renderOptions: options,
+} %}
+
+{% set value = attribute(element, field.handle) ?? field.defaultValue ?? null %}
+{% set errors = element.getErrors(field.handle) ?? null %}
+
+{% set html %}
+    {% hook 'formie.field.field-before' %}
+
+    {% if field.renderLabel %}
+        <div class="fui-field-container">
+            {% hook 'formie.field.field-start' %}
+
+            {% include '_label' with { position: 'above' } %}
+
+            {% include '_instructions' with { position: 'above' } %}
+
+            {% hook 'formie.field.input-before' %}
+
+            <div class="fui-input-container">
+                {% hook 'formie.field.input-start' %}
+
+                {{ field.getFrontEndInputHtml(form, value, inputOptions) }}
+
+                {% hook 'formie.field.input-end' %}
+            </div>
+
+            {% hook 'formie.field.input-after' %}
+
+            {% include '_instructions' with { position: 'below' } %}
+
+            {% include '_label' with { position: 'below' } %}
+
+            {% if errors %}
+                {% include '_errors' %}
+            {% endif %}
+
+            {% hook 'formie.field.field-end' %}
+        </div>
+    {% else %}
+        {% hook 'formie.field.field-start' %}
+        {% hook 'formie.field.input-start' %}
+
+        {{ field.getFrontEndInputHtml(form, value, inputOptions) }}
+
+        {% hook 'formie.field.input-end' %}
+        {% hook 'formie.field.field-end' %}
+    {% endif %}
+
+    {% hook 'formie.field.field-after' %}
+{% endset %}
+
+{% set fieldOptions = craft.formie.getFieldOptions(field, options) %}
+{% set fieldAttributes = fieldOptions.attributes ?? {} %}
+{% set containerAttributes = field.getContainerAttributes() ?? {} %}
+
+{% set attributes = {
+    id: id ~  '-wrap',
+    class: [
+        'fui-field',
+        'fui-page-field',
+        'fui-type-' ~ field.displayName | kebab,
+        'fui-label-' ~ labelPosition,
+        'fui-subfield-label-' ~ subfieldLabelPosition,
+        'fui-instructions-' ~ instructionsPosition,
+        errors ? 'fui-field-error',
+        field.required ? 'fui-field-required',
+        field.isSelect ? 'fui-select-field',
+        field.isTextInput ? 'fui-text-input-field',
+        field.cssClasses ?? '',
+    ],
+    html: html,
+} | merge(fieldAttributes) | merge(containerAttributes) %}
+
+{% namespace field.namespace %}
+    {{ tag(fieldOptions.fieldTag ?? options.fieldTag ?? 'div', attributes) }}
+{% endnamespace %}

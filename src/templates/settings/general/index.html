@@ -1,0 +1,48 @@
+{% extends 'formie/_layouts/settings' %}
+
+{% import '_includes/forms' as forms %}
+{% import 'verbb-base/_macros' as macros %}
+
+{% block content %}
+
+<h2>{{ 'General Settings' | t('formie') }}</h2>
+
+<form action="" method="post" accept-charset="UTF-8" data-saveshortcut>
+    <input type="hidden" name="action" value="formie/settings/save-settings">
+    {{ redirectInput('formie/settings/general') }}
+    {{ csrfInput() }}
+
+    {% namespace 'settings' %}
+        {{ forms.textField({
+            first: true,
+            label: 'Plugin Name' | t('formie'),
+            instructions: 'Plugin name for the end user.' | t('formie'),
+            id: 'pluginName',
+            name: 'pluginName',
+            value: settings.pluginName,
+            autofocus: true,
+            warning: macros.configWarning('pluginName', 'formie'),
+        }) }}
+
+        {{ forms.selectField({
+            label: 'Default Page' | t('formie'),
+            instructions: 'Select the default sub-nav page to show when clicking on "Formie" in the main menu.' | t('formie'),
+            id: 'defaultPage',
+            name: 'defaultPage',
+            options: [{
+                label: 'Forms',
+                value: 'forms',
+            },
+            {
+                label: 'Submissions',
+                value: 'submissions',
+            }],
+            value: settings.defaultPage,
+            warning: macros.configWarning('defaultPage', 'formie'),
+        }) }}
+    {% endnamespace %}
+
+    <input type="submit" class="btn submit" value="{{ 'Save' | t('formie') }}">
+</form>
+
+{% endblock %}

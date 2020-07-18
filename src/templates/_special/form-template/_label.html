@@ -1,0 +1,20 @@
+{% set isFieldset = field.isFieldset ?? false %}
+{% set label = field.name ?? fieldName %}
+
+{% if not isFieldset and labelPosition.shouldDisplay(position) %}
+    {% set attributes = {
+        for: not isFieldset ? id,
+        id: labelId ?? null,
+        class: [ 'fui-label' ],
+    } | filter %}
+
+    {% if label %}
+        <label {{ attr(attributes) }}>
+            {{ label -}}
+
+            {%- if field.required ?? required ?? false -%}
+                &nbsp;<span class="fui-required">*</span>
+            {% endif %}
+        </label>
+    {% endif %}
+{% endif %}

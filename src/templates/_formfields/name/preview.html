@@ -1,0 +1,32 @@
+<div v-if="field.settings.useMultipleFields">
+    <div class="fui-row">
+        <div v-if="field.settings.prefixEnabled" class="fui-col-2">
+            <label class="fui-field-label">${ field.settings.prefixLabel } <span v-if="field.settings.prefixRequired" class="error">*</span></label>
+
+            <select class="fui-field-select" :value="field.settings.prefixDefaultValue">
+                <option value="" disabled selected>${ field.settings.prefixPlaceholder }</option>
+                <option v-for="prefix in fieldType.data.prefixOptions" :value="prefix.value">${ prefix.label }</option>
+            </select>
+        </div>
+
+        <div v-if="field.settings.firstNameEnabled" class="fui-col-auto">
+            <label class="fui-field-label">${ field.settings.firstNameLabel } <span v-if="field.settings.firstNameRequired" class="error">*</span></label>
+            <input type="text" class="fui-field-input" :placeholder="field.settings.firstNamePlaceholder" :value="field.settings.firstNameDefaultValue">
+        </div>
+
+        <div v-if="field.settings.middleNameEnabled" class="fui-col-auto">
+            <label class="fui-field-label">${ field.settings.middleNameLabel } <span v-if="field.settings.middleNameRequired" class="error">*</span></label>
+            <input type="text" class="fui-field-input" :placeholder="field.settings.middleNamePlaceholder" :value="field.settings.middleNameDefaultValue">
+        </div>
+
+        <div v-if="field.settings.lastNameEnabled" class="fui-col-auto">
+            <label class="fui-field-label">${ field.settings.lastNameLabel } <span v-if="field.settings.lastNameRequired" class="error">*</span></label>
+            <input type="text" class="fui-field-input" :placeholder="field.settings.lastNamePlaceholder" :value="field.settings.lastNameDefaultValue">
+        </div>
+    </div>
+</div>
+
+<div v-else>
+    <input type="text" class="fui-field-input" :placeholder="field.settings.placeholder" :value="field.settings.defaultValue">
+    <span class="fui-field-icon">{{ field.getSvgIcon() | raw }}</span>
+</div>

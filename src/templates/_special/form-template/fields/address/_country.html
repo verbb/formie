@@ -1,0 +1,20 @@
+{% set attributes = {
+    id: id,
+    class: [ 'fui-select' ],
+    name: handle | namespaceInputName(field.handle),
+    autocomplete: autocomplete,
+    required: required,
+    aria: {
+        required: required ? 'true' : 'false',
+    },
+} %}
+
+<select {{ attr(attributes) }}>
+    {% if field.countryPlaceholder %}
+        <option value="" disabled {{- not value ? ' selected' }}>{{ field.countryPlaceholder }}</option>
+    {% endif %}
+
+    {% for country in field.countries %}
+        <option value="{{ country.value }}" {{- country.value == value ? ' selected' }}>{{ country.label }}</option>
+    {% endfor %}
+</select>

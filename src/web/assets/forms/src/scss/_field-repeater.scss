@@ -1,0 +1,39 @@
+// ==========================================================================
+// Field Repeater
+// ==========================================================================
+
+.fui-field-preview {
+    &.fui-type-repeater {
+        pointer-events: auto;
+
+        .fui-field-label {
+            font-size: 13px;
+            color: #33475b;
+            margin-bottom: 0;
+        }
+    }
+
+    .dropzone-new-field {
+        margin: 0;
+    }
+}
+
+.fui-repeater-fields {
+    &:not(.fui-empty) {
+        padding: 10px 15px;
+        background-color: #fff;
+        border-radius: 4px;
+        border: 1px solid #e4ecf6;
+    }
+}
+
+.fui-repeater-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 15px 15px 10px;
+    padding: 8px;
+    border: 1px dashed #8aa2bd;
+    border-radius: 4px;
+    opacity: 0.5;
+}

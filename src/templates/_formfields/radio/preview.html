@@ -1,0 +1,6 @@
+<div :class="'fui-field-layout-' + field.settings.layout">
+    <div v-for="(option, index) in field.settings.options" :key="index" class="fui-field-radio">
+        <input :value="option.value" type="radio" :checked="option.isDefault" />
+        <label>${ option.label }</label>
+    </div>
+</div>

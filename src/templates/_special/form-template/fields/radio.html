@@ -1,0 +1,45 @@
+<fieldset class="fui-fieldset fui-layout-{{ field.settings.layout ?? 'vertical' }}" id="{{ options.id }}">
+    {% include '_legend' with { position: 'above' } %}
+
+    {% include '_instructions' with { position: 'fieldset-start' } %}
+
+    <div class="fui-layout-wrap">
+        {% for option in field.options %}
+            {% set optionId = options.id ~ '-' ~ option.value | kebab %}
+            {% set selected = value ? option.value in value : (option.isDefault ?? false) %}
+
+            <div class="fui-radio">
+                {% set attributes = {
+                    id: optionId,
+                    class: [
+                        'fui-input',
+                        'fui-radio-input',
+                    ],
+                    type: 'radio',
+                    name: field.handle,
+                    required: field.required ? true : false,
+                    value: option.value,
+                    checked: selected,
+                    aria: {
+                        required: field.required ? 'true' : 'false',
+                        checked: selected ? 'true' : 'false',
+                    },
+                } | merge(field.getInputAttributes()) %}
+
+                <input {{ attr(attributes) }} />
+                <label for="{{ optionId }}" class="fui-radio-label">{{ option.label }}</label>
+            </div>
+        {% endfor %}
+    </div>
+
+    {% include '_instructions' with { position: 'fieldset-end' } %}
+
+    {% include '_legend' with { position: 'below' } %}
+</fieldset>
+
+{% set jsFile = view.getAssetManager().getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/fields/checkbox-radio.js', true) %}
+{% do view.registerJsFile(jsFile) %}
+
+{% js %}
+    new FormieCheckboxRadio({{ { formId: form.id } | json_encode | raw }});
+{% endjs %}

@@ -1,0 +1,52 @@
+<div style="margin: 1em 0;">
+    {% if showName %}
+        <strong>{{ field.name }}</strong>
+    {% endif %}
+
+    {% set cellStyle = 'text-align: left; font-size: inherit; padding: 4px; border: 1px solid;' %}
+
+    <table style="width: 100%; margin: 1em 0; border-collapse: collapse;">
+        <thead>
+            <tr>
+                {% for colId, col in field.columns %}
+                    <th style="{{ cellStyle }} background-color: rgba(0, 0, 0, 0.05);">{{ col.heading }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for rowId, row in value %}
+                <tr>
+                    {% for colId, col in field.columns %}
+                        {% set cellValue = row[colId] ?? '' %}
+                        {% switch col.type %}
+                            {% case 'checkbox' %}
+                                <td style="{{ cellStyle }}">
+                                    {{ (row[colId] ?? false) ? '☑' : '☒' }}
+                                </td>
+                            {% case 'color' %}
+                                <td style="{{ cellStyle }}">
+                                    <span style="display: inline-block; vertical-align: middle; width: 10px; height: 10px; border-radius: 5px; background-color: {{ cellValue }};"></span>
+                                    {{ cellValue }}
+                                </td>
+                            {% case 'select' %}
+                                <td style="{{ cellStyle }}">
+                                    {% for option in col.options if option.value == cellValue %}
+                                        {{ option.label }}
+                                    {% endfor %}
+                                </td>
+                            {% case 'heading' %}
+                                <th style="{{ cellStyle }} background-color: rgba(0, 0, 0, 0.05);">
+                                    {{ cellValue }}
+                                </th>
+                            {% default %}
+                                <td style="{{ cellStyle }}">
+                                    {{ cellValue }}
+                                </td>
+                        {% endswitch %}
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>

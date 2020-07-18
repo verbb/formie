@@ -1,0 +1,51 @@
+{% if name is defined and name %}
+    {{ hiddenInput(name, '') }}
+{% endif -%}
+
+{% set elements = (elements is defined and elements ? elements : []) -%}
+{% set jsClass = (jsClass is defined and jsClass ? jsClass : 'Craft.BaseElementSelectInput') -%}
+{% set sources = (sources is defined and sources ? sources : null) -%}
+{% set criteria = (criteria is defined and criteria ? criteria : null) -%}
+{% set sourceElementId = (sourceElementId is defined and sourceElementId ? sourceElementId : null) -%}
+{% set storageKey = (storageKey is defined and storageKey ? storageKey : null) -%}
+{% set viewMode = (viewMode is defined ? viewMode : 'list') %}
+{% set sortable = (sortable is defined ? sortable : true) %}
+{% set prevalidate = prevalidate ?? false %}
+{% set fieldId = (fieldId is defined ? fieldId : null) %}
+
+<div id="{{ id }}" class="elementselect"
+        {%- if block('attr') is defined %} {{ block('attr') }}{% endif %}>
+    <div class="elements">
+        {% for element in elements %}
+            {% set context = 'field' %}
+            {% set size = (viewMode == 'large' ? 'large' : 'small') %}
+
+            {{ field.getCpElementHtml(_context) }}
+        {% endfor %}
+    </div>
+
+    <div class="btn add icon dashed">{{ selectionLabel is defined ? selectionLabel : "Choose"|t('app') }}</div>
+</div>
+
+{% set jsSettings = {
+    id: id|namespaceInputId,
+    name: name|namespaceInputName,
+    elementType: elementType,
+    sources: sources,
+    criteria: criteria,
+    allowSelfRelations: allowSelfRelations ?? false,
+    sourceElementId: sourceElementId,
+    disabledElementIds: disabledElementIds ?? null,
+    viewMode: viewMode,
+    limit: limit ?? null,
+    showSiteMenu: showSiteMenu ?? false,
+    modalStorageKey: storageKey,
+    fieldId: fieldId,
+    sortable: sortable,
+    prevalidate: prevalidate,
+    modalSettings: modalSettings ?? {},
+} %}
+
+{% js %}
+    new {{ jsClass }}({{ jsSettings|json_encode|raw }});
+{% endjs %}

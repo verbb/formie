@@ -1,0 +1,22 @@
+// ==========================================================================
+
+// Formie for Craft CMS
+// Author: Verbb - https://verbb.io/
+
+// ==========================================================================
+
+@import './integrations';
+@import './submission-index';
+
+
+// ==========================================================================
+// Plugin Settings
+// ==========================================================================
+
+.fui-settings-block {
+    padding: 16px;
+    background: #f3f7fc;
+    border-radius: 3px;
+    border: 1px solid #cbd6e2;
+    margin-bottom: 24px;
+}

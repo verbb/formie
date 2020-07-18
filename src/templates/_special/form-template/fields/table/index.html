@@ -1,0 +1,76 @@
+{% namespace field.handle %}
+    <fieldset class="fui-fieldset">
+        {% include '_legend' with { position: 'above' } %}
+
+        {% include '_instructions' with { position: 'fieldset-start' } %}
+
+        <table class="fui-table">
+            <thead>
+                <tr>
+                    {% for colId, col in field.columns %}
+                        <th
+                            data-handle="{{ col.handle }}"
+                            data-type="{{ col.type }}"
+                            {% if col.width %}width="{{ col.width }}"{% endif %}
+                        >{{ col.heading }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+
+            <tbody>
+                {% if value %}
+                    {% for rowId, row in value %}
+                        <tr class="fui-table-row">
+                            {% include 'fields/table/_row' with {
+                                index: rowId,
+                            } %}
+                        </tr>
+                    {% endfor %}
+                {% elseif field.defaults %}
+                    {% for default in field.defaults %}
+                        <tr class="fui-table-row">
+                            {% include 'fields/table/_row' with {
+                                index: loop.index0,
+                                row: default,
+                            } %}
+                        </tr>
+                    {% endfor %}
+                {% endif %}
+            </tbody>
+        </table>
+
+        {% if not field.static %}
+            {% set buttonAttributes = {
+                class: 'fui-btn',
+                type: 'button',
+                data: {
+                    'min-rows': field.minRows,
+                    'max-rows': field.maxRows,
+                    'add-table-row': field.handle,
+                }
+            } %}
+            <button {{ attr(buttonAttributes) }}>{{ field.addRowLabel }}</button>
+        {% endif %}
+
+        {% include '_instructions' with { position: 'fieldset-end' } %}
+
+        {% include '_legend' with { position: 'below' } %}
+    </fieldset>
+{% endnamespace %}
+
+{% if not field.static %}
+    <script type="text/template" data-table-template="{{ field.handle }}">
+        {% namespace field.handle %}
+            {% include 'fields/table/_row' with {
+                index: '__ROW__'
+            } %}
+        {% endnamespace %}
+    </script>
+
+    {% set jsFile = view.getAssetManager().getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/fields/table.js', true) %}
+    {% do view.registerJsFile(jsFile) %}
+
+    {% js %}
+        new FormieTable({{ { formId: form.id } | json_encode | raw }});
+    {% endjs %}
+{% endif %}

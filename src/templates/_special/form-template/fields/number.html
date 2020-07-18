@@ -1,0 +1,19 @@
+{% set attributes = {
+    type: 'number',
+    class: [ 'fui-input' ],
+    id: options.id,
+    name: field.handle,
+    placeholder: field.placeholder,
+    required: field.required ? true : false,
+    min: field.min ?? false,
+    max: field.max ?? false,
+    value: value,
+    data: {
+        'fui-message': field.settings.errorMessage,
+    },
+    aria: {
+        required: field.required ? 'true' : 'false',
+    },
+} | merge(field.getInputAttributes()) %}
+
+<input {{ attr(attributes) }} />

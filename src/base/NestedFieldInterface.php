@@ -1,0 +1,46 @@
+<?php
+namespace verbb\formie\base;
+
+use craft\base\ComponentInterface;
+use verbb\formie\models\FieldLayout;
+
+interface NestedFieldInterface extends ComponentInterface
+{
+    // Public Methods
+    // =========================================================================
+
+    /**
+     * Returns the rows from the field layout.
+     *
+     * @return array
+     */
+    public function getRows(): array;
+
+    /**
+     * Sets the field's field layout from an array of rows.
+     *
+     * @param array $rows
+     */
+    public function setRows(array $rows);
+
+    /**
+     * Returns the field's field layout.
+     *
+     * @return FieldLayout|null
+     */
+    public function getFieldLayout();
+
+    /**
+     * Sets the field's field layout.
+     *
+     * @param FieldLayout $fieldLayout
+     */
+    public function setFieldLayout(FieldLayout $fieldLayout);
+
+    /**
+     * Returns the field context.
+     *
+     * @return string
+     */
+    public function getFormFieldContext(): string;
+}

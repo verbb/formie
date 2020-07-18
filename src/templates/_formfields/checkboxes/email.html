@@ -1,0 +1,15 @@
+<p>
+    {% if showName %}
+        <strong>{{ field.name }}</strong><br>
+    {% endif %}
+
+    {% if value | length %}
+        <ul>
+            {% for item in value %}
+                <li>{{ item }}</li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        {{ 'None selected' | t('formie') }}
+    {% endif %}
+</p>

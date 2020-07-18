@@ -1,0 +1,34 @@
+<p>
+    {% if showName %}
+        <strong>{{ field.name }}</strong><br>
+    {% endif %}
+
+    {% if field.address1Enabled %}
+        <strong>{{ field.address1Label }}: </strong>{{ value.address1 ?? '' }}<br>
+    {% endif %}
+
+    {% if field.address2Enabled %}
+        <strong>{{ field.address2Label }}: </strong>{{ value.address2 ?? '' }}<br>
+    {% endif %}
+
+    {% if field.address3Enabled %}
+        <strong>{{ field.address3Label }}: </strong>{{ value.address3 ?? '' }}<br>
+    {% endif %}
+
+    {% if field.cityEnabled %}
+        <strong>{{ field.cityLabel }}: </strong>{{ value.city ?? '' }}<br>
+    {% endif %}
+
+    {% if field.stateEnabled %}
+        <strong>{{ field.stateLabel }}: </strong>{{ value.state ?? '' }}<br>
+    {% endif %}
+
+    {% if field.zipEnabled %}
+        <strong>{{ field.zipLabel }}: </strong>{{ value.zip ?? '' }}<br>
+    {% endif %}
+
+    {% if field.countryEnabled %}
+        <strong>{{ field.countryLabel }}: </strong>{{ value.country ?? '' }}<br>
+    {% endif %}
+</p>
+

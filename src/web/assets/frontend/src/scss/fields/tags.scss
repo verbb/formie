@@ -1,0 +1,18 @@
+$tags-border-color: #DADADA;
+$tags-hover-border-color: #CCC;
+$tags-focus-border-color: #3595f6;
+$tagMargin: 5px;
+$tag-pad: 0 0.5em;
+$tag-text-color: black;
+$tag-text-color--edit: black;
+$tag-bg: #E5E5E5;
+$tag-hover: #D3E2E2;
+$tag-remove: #D39494;
+$tag-remove-btn-bg: none;
+$tag-remove-btn-bg--hover: darken($tag-remove, 8);
+$tag-invalid-color: $tag-remove;
+$tag-invalid-bg: rgba($tag-remove, .5);
+$tag-inset-shadow-size: 1.1em;
+$placeholder-color: $tag-text-color;
+
+@import '~@yaireo/tagify/src/tagify';

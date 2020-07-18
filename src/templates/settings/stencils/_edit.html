@@ -1,0 +1,70 @@
+{% extends '_layouts/cp' %}
+{% import '_includes/forms' as forms %}
+{% import 'verbb-base/_macros' as macros %}
+
+{% do view.registerAssetBundle('verbb\\formie\\web\\assets\\forms\\FormsAsset') %}
+
+{% set crumbs = [
+    { label: craft.formie.getPluginName() | t('formie'), url: url('formie') },
+    { label: 'Settings' | t('app'), url: url('formie/settings') },
+    { label: 'Stencils' | t('formie'), url: url('formie/settings/stencils') },
+] %}
+
+{% set selectedSubnavItem = 'settings' %}
+
+{% set bodyClass = 'fui-body' %}
+
+{% block pageTitle %}
+    <div id="fui-page-title">
+        <h1 :title="form.title" v-cloak>${form.title}</h1>
+    </div>
+{% endblock %}
+
+{% block actionButton %}
+    <div id="fui-save-form-button">
+        <div class="btngroup submit first">
+            <a href="#" class="btn submit" :class="{ 'fui-loading fui-loading-sm': loading }" @click.prevent="onSave">
+                {{ 'Save' | t('app') }}
+            </a>
+
+            <div class="btn submit menubtn"></div>
+            <div class="menu">
+                <ul>
+                    {% if stencil.id %}
+                        <li>
+                            <a data-redirect="{{ stencil.cpEditUrl | hash }}" @click.prevent="onSaveAsNew">
+                                {{ 'Save as a new stencil' | t('formie') }}
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+
+                {% if stencil.id %}
+                    <hr>
+
+                    <ul>
+                        <li>
+                            <a class="error" data-redirect="{{ 'formie/settings/stencils' | hash }}" @click.prevent="onDelete">{{ 'Delete' | t('formie') }}</a>
+                        </li>
+                    </ul>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block content %}
+
+<form id="fui-forms" ref="formElem">
+    {% if stencil.id %}
+        <input type="hidden" name="stencilId" value="{{ stencil.id }}" />
+    {% endif %}
+
+    {% for tab in formTabs %}
+        <div id="{{ tab.url | trim('#') }}" class="{{ tab.tab is defined ? 'tab-form-fields' }} {{ not loop.first ? 'hidden' }}">
+            {% include ['formie/forms/_panes/' ~ tab.value, 'formie/forms/_panes/form-fields'] %}
+        </div>
+    {% endfor %}
+</form>
+
+{% endblock %}

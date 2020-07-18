@@ -1,0 +1,19 @@
+<fieldset class="fui-fieldset" aria-labelledby="{{ options.labelId }}">
+    {% include '_legend' with { position: 'above' } %}
+
+    {% include '_instructions' with { position: 'fieldset-start' } %}
+
+    <div class="fui-field-rows">
+        {% for row in field.getFrontEndSubfields() %}
+            <div class="fui-row">
+                {% for handle, autocomplete in row %}
+                    {% include 'fields/address/_field' %}
+                {% endfor %}
+            </div>
+        {% endfor %}
+    </div>
+
+    {% include '_instructions' with { position: 'fieldset-end' } %}
+
+    {% include '_legend' with { position: 'below' } %}
+</fieldset>

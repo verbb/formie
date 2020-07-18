@@ -1,0 +1,47 @@
+/* General Integrations */
+.fui-integrations-pane {
+    display: flex;
+    margin: -24px;
+    position: relative;
+    height: calc(100vh - 236px);
+}
+
+.fui-integrations-sidebar-wrapper {
+    position: relative;
+    background-color: #f3f7fc;
+    border-radius: 0 6px 6px 0;
+    border-left: 1px solid rgba(51, 64, 77, 0.1);
+    overflow: auto;
+}
+
+.fui-integrations-tabs li {
+    width: 100%;
+    max-width: 100% !important;
+}
+
+.fui-integrations-tabs .formie-integration-icon {
+    width: 20px;
+    height: 20px;
+    margin-right: 10px;
+}
+
+
+
+/* Forms Integrations */
+
+.fui-form-integrations-wrapper {
+    position: relative;
+    flex: 1;
+    overflow: auto;
+    height: 100%;
+}
+
+.fui-form-integrations-inner-wrapper {
+    padding: 24px;
+    overflow: hidden;
+}
+
+
+/* Settings Integrations */
+
+

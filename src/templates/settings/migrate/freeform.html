@@ -1,0 +1,80 @@
+{% import '_includes/forms' as forms %}
+{% import 'verbb-base/_macros' as macros %}
+
+{% extends 'formie/_layouts/settings' %}
+
+{% set bodyClass = 'formie-settings-migrate' %}
+{% set selectedTab = 'migrate/freeform' %}
+{% set fullPageForm = outputs is not defined %}
+
+{% block actionButton %}
+    {% if outputs is not defined %}
+        <input type="submit" class="btn submit" value="{{ 'Migrate Forms' | t('formie') }}">
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+
+    {{ actionInput('formie/migrations/freeform') }}
+    {{ redirectInput('formie/settings/freeform') }}
+
+    <h2>{{ 'Migrate Freeform' | t('formie') }}</h2>
+
+    {% if outputs is not defined %}
+        <p>{{ 'Select the forms you wish to migrate from Freeform. This will migrate all fields within the form, all settings (where applicable), notifications, and any submissions. Depending on how many entries the selected forms have, this could take some time.' | t('formie') }}</p>
+
+        <p>{{ 'Your original Freeform forms will remain un-touched.' | t('formie') }}</p>
+    {% endif %}
+
+    <hr>
+
+    {% if outputs is defined %}
+        {% for formId, output in outputs %}
+            <h3>{{ craft.freeform.form(formId).name }}</h3>
+
+            {{ output | raw }}
+        {% endfor %}
+
+        <hr>
+
+        <a class="btn submit" href="{{ cpUrl('formie/settings/migrate/freeform') }}">{{ 'Done' | t('formie') }}</a>
+    {% else %}
+        {% set forms = craft.freeform.forms() %}
+
+        {{ forms.checkboxGroupField({
+            label: 'Forms' | t('formie'),
+            name: 'formIds',
+            options: forms | map(form => {
+                label: form.name,
+                value: form.id,
+            })
+        }) }}
+    {% endif %}
+
+{% endblock %}
+
+{% css %}
+
+.log-label {
+    white-space: pre-wrap;
+}
+
+.log-label code {
+    white-space: normal;
+    font-size: 11px !important;
+    line-height: 18px;
+}
+
+.log-label.color-32 {
+    color: #27AE60;
+}
+
+.log-label.color-31 {
+    color: #D0021B;
+}
+
+.log-label.color-33 {
+    color: #F2842D;
+}
+
+{% endcss %}

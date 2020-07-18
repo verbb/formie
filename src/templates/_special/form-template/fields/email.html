@@ -1,0 +1,18 @@
+{% set attributes = {
+    type: 'email',
+    class: [ 'fui-input' ],
+    id: options.id,
+    name: field.handle,
+    placeholder: field.placeholder,
+    autocomplete: 'email',
+    required: field.required ? true : false,
+    value: value,
+    data: {
+        'fui-message': field.settings.errorMessage,
+    },
+    aria: {
+        required: field.required ? 'true' : 'false',
+    },
+} | merge(field.getInputAttributes()) %}
+
+<input {{ attr(attributes) }} />

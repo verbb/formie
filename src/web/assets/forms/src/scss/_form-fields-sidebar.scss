@@ -1,0 +1,44 @@
+// ==========================================================================
+// Form Edit (Fields Sidebar)
+// ==========================================================================
+
+.fui-sidebar-wrapper {
+    position: relative;
+    flex: 0 0 350px;
+    background-color: #f3f7fc;
+    border-radius: 0 6px 6px 0;
+    border-left: 1px solid rgba(51, 64, 77, 0.1);
+    overflow: auto;
+}
+
+.fui-sidebar-scroll {
+    padding: 15px;
+}
+
+.sidebar-title {
+    margin-bottom: 10px;
+    color: #33475b;
+    font-size: 11px;
+    opacity: 0.7;
+}
+
+.fui-sidebar-wrapper hr {
+    margin: 10px 0 15px 0 !important;
+}
+
+.fui-sidebar-wrapper .add.btn {
+    margin: 0 0 10px 0;
+    transition: all 0.3s ease;
+
+    &:hover {
+        background-color: #e3e9f1 !important;
+    }
+}
+
+.fui-sidebar-wrapper .fui-loading {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+

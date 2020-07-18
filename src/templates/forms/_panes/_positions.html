@@ -1,0 +1,19 @@
+{% import '_includes/forms' as forms %}
+
+<div id="appearance-positions">
+    {{ forms.selectField({
+        label: 'Default Label Position' | t('formie'),
+        instructions: 'Fields will by default have their label position set to this option.' | t('formie'),
+        name: 'settings[defaultLabelPosition]',
+        options: craft.formie.plugin.fields.getLabelPositionsArray(),
+        value: form.settings.defaultLabelPosition ?? 'above-input',
+    }) }}
+
+    {{ forms.selectField({
+        label: 'Default Instructions Position' | t('formie'),
+        instructions: 'Fields will by default have their instructions position set to this option.' | t('formie'),
+        name: 'settings[defaultInstructionsPosition]',
+        options: craft.formie.plugin.fields.getInstructionsPositionsArray(),
+        value: form.settings.defaultInstructionsPosition ?? 'below-input',
+    }) }}
+</div>

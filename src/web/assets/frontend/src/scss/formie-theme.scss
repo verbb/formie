@@ -1,0 +1,45 @@
+// ==========================================================================
+
+// Formie Theme for Craft CMS
+// Author: Verbb - https://verbb.io/
+
+// ==========================================================================
+
+$field-gutter: 0.5rem;
+$border-radius: 0.25rem;
+
+$primary-color: #516fea;
+$primary-color-hover: darken(#516fea, 10%);
+$error: #f56565;
+$gray-100: #F7FAFC;
+$gray-200: #EDF2F7;
+$gray-300: #E2E8F0;
+$gray-400: #CBD5E0;
+$gray-500: #A0AEC0;
+$gray-600: #718096;
+$gray-700: #4A5568;
+$gray-800: #2D3748;
+$gray-900: #1A202C;
+$border-color: $gray-400;
+
+$focus-border-color: #a4cafe;
+$focus-shadow: 0 0 0 3px rgba(164, 202, 254, 0.45);
+
+@import './formie-base';
+@import './framework';
+
+// Forms
+@import './forms/form';
+@import './forms/field';
+@import './forms/validation';
+
+// Form Fields
+@import './fields/check-radio';
+@import './fields/input';
+@import './fields/name';
+@import './fields/phone';
+@import './fields/repeater';
+@import './fields/section';
+@import './fields/select';
+@import './fields/table';
+@import './fields/group';

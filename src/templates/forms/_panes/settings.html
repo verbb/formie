@@ -1,0 +1,210 @@
+{% import '_includes/forms' as forms %}
+{% import 'verbb-base/_macros' as macros %}
+
+<h2>{{ 'Form Settings' | t('formie') }}</h2>
+
+{{ forms.textField({
+    first: true,
+    label: 'Name' | t('formie'),
+    instructions: 'What this form will be called in the control panel.' | t('formie'),
+    id: 'title',
+    name: 'title',
+    required: true,
+    value: form.title ?? '',
+    inputAttributes: {
+        ':value': 'form.title',
+        '@input': 'form.title = $event.target.value',
+    },
+}) }}
+
+<hr>
+
+<h2>{{ 'Submissions' | t('formie') }}</h2>
+
+{{ forms.hidden({
+    id: 'defaultStatusId',
+    name: 'defaultStatusId',
+    value: form.defaultStatus.id ?? null
+}) }}
+
+{% set statusField %}
+    <div>
+        <a id="status-menu-btn" class="btn menubtn" href="javascript:;">
+            <span class="status {{ form.defaultStatus.color }}"></span>{{ form.defaultStatus.name }}
+        </a>
+        
+        <div class="menu">
+            <ul class="padded">
+                {% for status in craft.formie.statuses %}
+                    <li>
+                        <a data-val="{{ status.id }}" data-label="{{ status.name }}" data-color="{{ status.color }}" {% if form.defaultStatus.id == status.id %}class="sel"{% endif %} href="javascript:;">
+                            <span class="status {{ status.color }}"></span>{{ status.name }}
+                        </a>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+{% endset %}
+
+{{ forms.field({
+    label: 'Default Status' | t('formie'),
+    instructions: 'The default status to be assigned to new submissions.' | t('formie')
+}, statusField) }}
+
+<formulate-input
+    type="variableText"
+    label="{{ 'Submission Title Format' | t('formie') }}"
+    help="{{ 'Enter the format of the auto-generated submission titles. If left blank, the date/time of submission will be used.' | t('formie') }}"
+    name="settings[submissionTitleFormat]"
+    v-model="form.settings.submissionTitleFormat"
+    variables="plainTextVariables"
+></formulate-input>
+
+<input
+    type="hidden"
+    name="settings[submissionTitleFormat]"
+    :value="form.settings.submissionTitleFormat"
+/>
+
+
+<hr>
+
+<h2>{{ 'Privacy' | t('formie') }}</h2>
+
+{{ forms.lightswitchField({
+    label: 'Collect IP Addresses' | t('formie'),
+    instructions: 'Whether this form should collect the users’ IP address.' | t('formie'),
+    id: 'collectIp',
+    name: 'settings[collectIp]',
+    on: form.settings.collectIp ?? false,
+}) }}
+
+{# TODO
+{{ forms.lightswitchField({
+    label: 'Store Submitted Data' | t('formie'),
+    instructions: 'Whether to store users’ form data to the database.' | t('formie'),
+    id: 'storeData',
+    name: 'settings[storeData]',
+    on: form.settings.storeData ?? true,
+}) }}
+
+{{ forms.selectField({
+    label: 'Data Retention' | t('formie'),
+    instructions: 'How long to retain form submission data for.' | t('formie'),
+    id: 'dataRetention',
+    name: 'dataRetention',
+    options: [{
+        label: 'Forever' | t('formie'),
+        value: 'forever',
+    },
+    {
+        label: 'Number of days' | t('formie'),
+        value: 'days',
+    },
+    {
+        label: 'Number of weeks' | t('formie'),
+        value: 'weeks',
+    },
+    {
+        label: 'Number of months' | t('formie'),
+        value: 'months',
+    },
+    {
+        label: 'Number of years' | t('formie'),
+        value: 'years',
+    }],
+    toggle: true,
+    targetPrefix: 'data-retention-',
+    value: form.dataRetention ?? null,
+}) }}
+
+<div id="data-retention-days" class="hidden">
+    {{ forms.textareaField({
+        label: 'Data Retention Value' | t('formie'),
+        instructions: 'The number of days to retain form submission data for. At this point submissions will be deleted.' | t('formie'),
+        id: 'dataRetentionValue',
+        name: 'dataRetentionValue',
+        value: form.dataRetentionValue ?? null,
+    }) }}
+</div>
+
+<div id="data-retention-weeks" class="hidden">
+    {{ forms.textareaField({
+        label: 'Data Retention Value' | t('formie'),
+        instructions: 'The number of weeks to retain form submission data for. At this point submissions will be deleted.' | t('formie'),
+        id: 'dataRetentionValue',
+        name: 'dataRetentionValue',
+        value: form.dataRetentionValue ?? null,
+    }) }}
+</div>
+
+<div id="data-retention-months" class="hidden">
+    {{ forms.textareaField({
+        label: 'Data Retention Value' | t('formie'),
+        instructions: 'The number of months to retain form submission data for. At this point submissions will be deleted.' | t('formie'),
+        id: 'dataRetentionValue',
+        name: 'dataRetentionValue',
+        value: form.dataRetentionValue ?? null,
+    }) }}
+</div>
+
+<div id="data-retention-years" class="hidden">
+    {{ forms.textareaField({
+        label: 'Data Retention Value' | t('formie'),
+        instructions: 'The number of years to retain form submission data for. At this point submissions will be deleted.' | t('formie'),
+        id: 'dataRetentionValue',
+        name: 'dataRetentionValue',
+        value: form.dataRetentionValue ?? null,
+    }) }}
+</div>
+
+{{ forms.selectField({
+    label: 'When a User is Deleted' | t('formie'),
+    instructions: 'Select how to handle submissions from users, when their user accounts are deleted.' | t('formie'),
+    id: 'userDeletedAction',
+    name: 'userDeletedAction',
+    options: [{
+        label: 'Retain Submissions' | t('formie'),
+        value: 'retain',
+    },
+    {
+        label: 'Delete Submissions' | t('formie'),
+        value: 'delete',
+    }],
+    value: form.userDeletedAction ?? 'retain',
+}) }}
+#}
+
+<hr>
+
+<h2>{{ 'Advanced' | t('formie') }}</h2>
+
+<formulate-input
+    type="handle"
+    label="Handle"
+    help="{{ 'How you’ll refer to this form in your templates. Use the refresh icon to re-generate this from your form name.' | t('formie') }}"
+    warning="{{ 'Changing this may result in your form not working as expected.' | t('formie') }}"
+    name="handle"
+    v-model="form.handle"
+    classes="code"
+    :source-value="form.title"
+    :required="true"
+    :collection="formHandles"
+></formulate-input>
+
+{% js %}
+    $(function () {
+        $colorSelect = $('#status-menu-btn');
+        new Garnish.MenuBtn($colorSelect, {
+            onOptionSelect: function(data) {
+                var val = $(data).data('val');
+                var label = $(data).data('label');
+                var color = $(data).data('color');
+                $('#defaultStatusId').val(val);
+                var html = '<span class="status ' + color + '"></span>' + label;
+                $colorSelect.html(html);
+            }
+        });
+    });
+{% endjs %}

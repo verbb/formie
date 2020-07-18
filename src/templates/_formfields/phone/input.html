@@ -1,0 +1,30 @@
+{% import '_includes/forms' as forms %}
+
+{% set type = 'tel' %}
+
+{% if field.countryEnabled %}
+    {% namespace field.handle %}
+        <div class="fui-row">
+            <div class="fui-col-auto" style="flex: 0;">
+                {{ forms.selectField({
+                    label: 'Country' | t('formie'),
+                    name: 'country',
+                    required: field.required ? true : false,
+                    options: field.countries,
+                    value: value.country ?? '',
+                }) }}
+            </div>
+
+            <div class="fui-col-auto">
+                {{ forms.textField({
+                    label: 'Number' | t('formie'),
+                    name: 'number',
+                    required: field.required ? true : false,
+                    value: value.number ?? '',
+                }) }}
+            </div>
+        </div>
+    {% endnamespace %}
+{% else %}
+    {% include '_includes/forms/text' %}
+{% endif %}

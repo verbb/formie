@@ -1,0 +1,54 @@
+{% namespace field.handle %}
+    <fieldset class="fui-fieldset">
+        {% include '_legend' with { position: 'above' } %}
+
+        {% include '_instructions' with { position: 'fieldset-start' } %}
+
+        <div class="fui-repeater-rows">
+            {% if value and value.exists() %}
+                {% for block in value.all() %}
+                    {% include 'fields/repeater/_row' with {
+                        id: block.id,
+                    } %}
+                {% endfor %}
+            {% else %}
+                {% include 'fields/repeater/_row' with {
+                    id: 'new1',
+                } %}
+            {% endif %}
+        </div>
+
+        {% set buttonAttributes = {
+            class: 'fui-btn fui-repeater-add-btn',
+            type: 'button',
+            data: {
+                'min-rows': field.minRows,
+                'max-rows': field.maxRows,
+                'add-repeater-row': field.handle,
+            }
+        } %}
+
+        <button {{ attr(buttonAttributes) }}>
+            {{ field.addLabel }}
+        </button>
+
+        {% include '_instructions' with { position: 'fieldset-end' } %}
+
+        {% include '_legend' with { position: 'below' } %}
+    </fieldset>
+{% endnamespace %}
+
+<script type="text/template" data-repeater-template="{{ field.handle }}">
+    {% namespace field.handle %}
+        {% include 'fields/repeater/_row' with {
+            id: '__ROW__'
+        } %}
+    {% endnamespace %}
+</script>
+
+{% set jsFile = view.getAssetManager().getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/fields/repeater.js', true) %}
+{% do view.registerJsFile(jsFile) %}
+
+{% js %}
+    new FormieRepeater({{ { formId: form.id } | json_encode | raw }});
+{% endjs %}

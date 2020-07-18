@@ -1,0 +1,9 @@
+{% if form.hasMultiplePages and form.settings.displayPageTabs %}
+    <div class="fui-tabs">
+        {% for p in form.pages %}
+            <div id="fui-tab-{{ p.id }}" class="fui-tab {{ (p.id == currentPage.id) ? 'fui-tab-active' }}">
+                <a href="{{ actionUrl('formie/submissions/set-page', { handle: form.handle, pageId: p.id }) }}">{{ p.name }}</a>
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}

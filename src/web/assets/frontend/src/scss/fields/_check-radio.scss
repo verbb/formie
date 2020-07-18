@@ -1,0 +1,105 @@
+// ==========================================================================
+// Fields - Checkbox, Radio
+// ==========================================================================
+
+.fui-checkbox,
+.fui-radio {
+    // Resets
+    position: relative;
+    font-family: inherit;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    margin: 0;
+    appearance: none;
+    user-select: none;
+    color-adjust: exact;
+
+    &:not(:last-child) {
+        margin-bottom: 0.25rem;
+    }
+
+    .fui-layout-horizontal .fui-layout-wrap > & {
+        margin-right: 1rem;
+    }
+
+    input {
+        clip: rect(0, 0, 0, 0);
+        height: 1px;
+        margin: -1px;
+        overflow: hidden;
+        position: absolute;
+        width: 1px;
+
+        &:focus + label::before {
+            border-color: $focus-border-color;
+            box-shadow: $focus-shadow;
+        }
+
+        &:checked + label::before {
+            background-color: $primary-color;
+            border-color: $primary-color;
+        }
+
+        &:active + label::before {
+            background-color: #f0f1f4;
+        }
+    }
+
+    label {
+        position: relative;
+        padding-left: 1.8rem;
+        line-height: 1.5rem; // rem is deliberate
+        display: inline-block;
+        transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+
+        &::before {
+            position: absolute;
+            top: 5px;
+            left: 0;
+            display: block;
+            width: 1rem;
+            height: 1rem;
+            content: '';
+            cursor: pointer;
+            border: 1px solid $border-color;
+            background-color: #fff;
+            background-repeat: no-repeat;
+            background-position: center center;
+            background-size: 50% 50%;
+            transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+    }
+}
+
+
+// ==========================================================================
+// Fields - Checkbox
+// ==========================================================================
+
+.fui-checkbox {
+    label::before {
+        border-radius: 2px;
+    }
+
+    input:checked + label::before {
+        background-image: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3E%3Cpath fill='%23fff' d='M6.564.75l-3.59 3.612-1.538-1.55L0 4.26 2.974 7.25 8 2.193z'/%3E%3C/svg%3E");
+        background-size: 8px auto;
+    }
+}
+
+
+// ==========================================================================
+// Fields - Radio
+// ==========================================================================
+
+.fui-radio {
+    label::before {
+        border-radius: 50%;
+    }
+
+    input:checked + label::before {
+        background-image: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3E%3Ccircle r='3' fill='%23fff'/%3E%3C/svg%3E");
+        background-size: 8px auto;
+    }
+}
+

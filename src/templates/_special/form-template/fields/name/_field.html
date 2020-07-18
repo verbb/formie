@@ -1,0 +1,77 @@
+{% set html %}
+    {% set labelPosition = craft.formie.getLabelPosition(field, form, true) %}
+    {% set inputId = handle | namespaceInputId(options.id) %}
+    {% set selected = attribute(value, handle) ?? attribute(field, handle ~ 'DefaultValue') ?? '' %}
+    {% set placeholder = attribute(field, handle ~ 'Placeholder') %}
+    {% set required = field.required ? field.required : attribute(field, handle ~ 'Required') %}
+
+    {% include '_label' with {
+        field: null,
+        id: inputId,
+        required: attribute(field, handle ~ 'Required'),
+        fieldName: attribute(field, handle ~ 'Label'),
+        position: 'above',
+    } %}
+
+    <div class="fui-name-container">
+        {% switch handle %}
+        {% case 'prefix' %}
+            {% set attributes = {
+                id: inputId,
+                class: [ 'fui-select' ],
+                name: handle | namespaceInputName(field.handle),
+                autocomplete: autocomplete,
+                required: required,
+                aria: {
+                    required: required ? 'true' : 'false',
+                },
+            } %}
+
+            <select {{ attr(attributes) }}>
+                {% if placeholder %}
+                    <option value="" disabled {{- not selected ? ' selected' }}>{{ placeholder }}</option>
+                {% endif %}
+
+                {% for prefix in field.prefixOptions %}
+                    <option value="{{ prefix.value }}" {{- prefix.value == selected ? ' selected' }}>{{ prefix.label }}</option>
+                {% endfor %}
+            </select>
+        {% default %}
+            {% set attributes = {
+                type: 'text',
+                id: inputId,
+                class: [ 'fui-input' ],
+                name: handle | namespaceInputName(field.handle),
+                placeholder: placeholder,
+                autocomplete: autocomplete,
+                required: required,
+                value: selected,
+                aria: {
+                    required: required ? 'true' : 'false',
+                },
+            } %}
+
+            <input {{ attr(attributes) }} />
+        {% endswitch %}
+    </div>
+
+    {% include '_label' with {
+        field: null,
+        id: inputId,
+        required: attribute(field, handle ~ 'Required'),
+        fieldName: attribute(field, handle ~ 'Label'),
+        position: 'below',
+    } %}
+{% endset %}
+
+{% set attributes = {
+    class: [
+        'fui-field',
+        'fui-name-field',
+        'fui-name-' ~ (handle | replace('/([A-Z])/', '-$1') | lower),
+        handle != 'prefix' ? 'fui-text-input-field' : 'fui-select-field',
+    ],
+    html: html,
+} %}
+
+{{ tag(options.renderOptions.fieldTag ?? 'div', attributes) }}

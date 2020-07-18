@@ -1,0 +1,372 @@
+{% import '_includes/forms' as forms %}
+{% import 'verbb-base/_macros' as macros %}
+
+<h2>{{ 'Form Submission' | t('formie') }}</h2>
+
+{% set submitMethod = form.settings.submitMethod ?? 'page-reload' %}
+{% set submitAction = form.settings.submitAction ?? 'message' %}
+
+{{ forms.selectField({
+    label: 'Submission Method' | t('formie'),
+    instructions: 'Whether to reload the page when this form is submitted, or use Ajax to send this form without reloading the page.' | t('formie'),
+    id: 'submitMethod',
+    name: 'settings[submitMethod]',
+    options: [{
+        label: 'Page Reload (Server-side)' | t('formie'),
+        value: 'page-reload',
+    },
+    {
+        label: 'Ajax (Client-side)' | t('formie'),
+        value: 'ajax',
+    }],
+    toggle: true,
+    targetPrefix: 'submit-method-',
+    value: submitMethod,
+}) }}
+
+<div class="fui-settings-wrap">
+    <div id="submit-method-page-reload" class="{{ submitMethod != 'page-reload' ? 'hidden' }}">
+        {{ forms.selectField({
+            label: 'Action on Submit' | t('formie'),
+            instructions: 'When a user submits this form, I want to:' | t('formie'),
+            id: 'submitAction',
+            name: 'settings[submitAction]',
+            disabled: (submitMethod == 'page-reload') ? false : true,
+            options: [{
+                label: 'Display a message' | t('formie'),
+                value: 'message',
+            },
+            {
+                label: 'Redirect to an entry' | t('formie'),
+                value: 'entry',
+            },
+            {
+                label: 'Redirect to a URL' | t('formie'),
+                value: 'url',
+            },
+            {
+                label: 'Reload the page' | t('formie'),
+                value: 'reload',
+            }],
+            toggle: true,
+            targetPrefix: 'submit-action-',
+            value: submitAction,
+        }) }}
+
+        {# Spacing fix #}
+        <div class="field"></div>
+    </div>
+
+    <div id="submit-method-ajax" class="{{ submitMethod != 'ajax' ? 'hidden' }}">
+        {{ forms.selectField({
+            label: 'Action on Submit' | t('formie'),
+            instructions: 'When a user submits this form, I want to:' | t('formie'),
+            id: 'submitAction',
+            name: 'settings[submitAction]',
+            disabled: (submitMethod == 'ajax') ? false : true,
+            options: [{
+                label: 'Display a message' | t('formie'),
+                value: 'message',
+            },
+            {
+                label: 'Redirect to an entry' | t('formie'),
+                value: 'entry',
+            },
+            {
+                label: 'Redirect to a URL' | t('formie'),
+                value: 'url',
+            },
+            {
+                label: 'Reset form values' | t('formie'),
+                value: 'reset',
+            }],
+            toggle: true,
+            targetPrefix: 'submit-action-',
+            value: submitAction,
+        }) }}
+
+        {# Spacing fix #}
+        <div class="field"></div>
+    </div>
+
+    <hr>
+
+    <div id="submit-action-message" class="{{ submitAction != 'message' ? 'hidden' }}">
+        {{ forms.lightswitchField({
+            label: 'Hide Form' | t('formie'),
+            instructions: 'Whether to hide the form and only show the success message.' | t('formie'),
+            id: 'submitActionFormHide',
+            name: 'settings[submitActionFormHide]',
+            on: form.settings.submitActionFormHide ?? false,
+        }) }}
+
+        {{ forms.textareaField({
+            label: 'Submission Message' | t('formie'),
+            instructions: 'This text will be shown after submission, as a success message. HTML and Markdown is supported.' | t('formie'),
+            id: 'submitActionMessage',
+            name: 'settings[submitActionMessage]',
+            value: form.settings.submitActionMessage ?? null,
+        }) }}
+
+        {{ forms.textField({
+            label: 'Submission Message Timeout' | t('formie'),
+            instructions: 'The number of seconds to automatically hide the message. Leave empty to disable hiding.' | t('formie'),
+            id: 'submitActionMessageTimeout',
+            name: 'settings[submitActionMessageTimeout]',
+            type: 'number',
+            size: 3,
+            value: form.settings.submitActionMessageTimeout ?? null,
+        }) }}
+    </div>
+
+    <div id="submit-action-entry" class="{{ submitAction != 'entry' ? 'hidden' }}">
+        {% if stencil is not defined %}
+            {{ forms.elementSelectField({
+                label: 'Redirect Entry' | t('formie'),
+                instructions: 'Select an entry for the user to be redirected to.' | t('formie'),
+                id: 'submitActionEntryId',
+                name: 'submitActionEntryId',
+                limit: 1,
+                elementType: 'craft\\elements\\Entry',
+                elements: form.redirectEntry ? [ form.redirectEntry ] : [],
+            }) }}
+        {% endif %}
+
+        {{ forms.selectField({
+            label: 'Redirect Option' | t('formie'),
+            instructions: 'How to redirect the user after submission, whether in the same tab, or a new tab.' | t('formie'),
+            id: 'submitActionTab',
+            name: 'settings[submitActionTab]',
+            disabled: (submitAction == 'entry') ? false : true,
+            options: [{
+                label: 'Redirect on the same tab' | t('formie'),
+                value: 'same-tab',
+            },
+            {
+                label: 'Redirect on a new tab' | t('formie'),
+                value: 'new-tab',
+            }],
+            value: form.settings.submitActionTab ?? 'same-tab',
+        }) }}
+    </div>
+
+    <div id="submit-action-url" class="{{ submitAction != 'url' ? 'hidden' }}">
+        {{ forms.textField({
+            label: 'Redirect URL' | t('formie'),
+            instructions: 'The full URL that the user to be redirected to.' | t('formie'),
+            id: 'submitActionUrl',
+            name: 'settings[submitActionUrl]',
+            value: form.settings.submitActionUrl ?? null,
+        }) }}
+
+        {{ forms.selectField({
+            label: 'Redirect Option' | t('formie'),
+            instructions: 'How to redirect the user after submission, whether in the same tab, or a new tab.' | t('formie'),
+            id: 'submitActionTab',
+            name: 'settings[submitActionTab]',
+            disabled: (submitAction == 'url') ? false : true,
+            options: [{
+                label: 'Redirect on the same tab' | t('formie'),
+                value: 'same-tab',
+            },
+            {
+                label: 'Redirect on a new tab' | t('formie'),
+                value: 'new-tab',
+            }],
+            value: form.settings.submitActionTab ?? 'same-tab',
+        }) }}
+    </div>
+
+    <div id="submit-action-reload" class="{{ submitAction != 'reload' ? 'hidden' }}">
+        <div class="field">
+            <div class="heading">
+                <div class="instructions">
+                    <p>{{ 'This will reload the page, clearing the form of values, and showing no success message.' | t('formie') }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="submit-action-reset" class="{{ submitAction != 'reset' ? 'hidden' }}">
+        <div class="field">
+            <div class="heading">
+                <div class="instructions">
+                    <p>{{ 'This will clear the form of values, and showing no success message.' | t('formie') }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{ forms.selectField({
+    label: 'Loading Indicator' | t('formie'),
+    instructions: 'Whether to show a loading indicator when submitting the form. This will be shown on the submit button.' | t('formie'),
+    id: 'loadingIndicator',
+    name: 'settings[loadingIndicator]',
+    options: [{
+        label: 'None' | t('formie'),
+        value: '',
+    },
+    {
+        label: 'Spinner' | t('formie'),
+        value: 'spinner',
+    },
+    {
+        label: 'Text' | t('formie'),
+        value: 'text',
+    }],
+    toggle: true,
+    targetPrefix: 'loading-indicator-',
+    value: form.settings.loadingIndicator ?? '',
+}) }}
+
+<div id="loading-indicator-text" class="hidden">
+    {{ forms.textField({
+        label: 'Loading Indicator Text' | t('formie'),
+        instructions: 'Text shown over the submit button, when in the loading state.' | t('formie'),
+        id: 'loadingIndicatorText',
+        name: 'settings[loadingIndicatorText]',
+        value: form.settings.loadingIndicatorText ?? null,
+    }) }}
+</div>
+
+<hr>
+
+<h2>{{ 'Validation' | t('formie') }}</h2>
+
+{{ forms.lightswitchField({
+    label: 'Validate Form on Submit' | t('formie'),
+    instructions: 'Whether to validate the form client-side, when the user submits the form. This will show errors as soon as the submit button is pressed. Forms will also always be validated server-side.' | t('formie'),
+    id: 'validationOnSubmit',
+    name: 'settings[validationOnSubmit]',
+    on: form.settings.validationOnSubmit ?? true,
+}) }}
+
+{{ forms.lightswitchField({
+    label: 'Validate When Typing' | t('formie'),
+    instructions: 'Whether to validate each field as the user types, so that errors will appear immediately.' | t('formie'),
+    id: 'validationOnFocus',
+    name: 'settings[validationOnFocus]',
+    on: form.settings.validationOnFocus ?? false,
+}) }}
+
+{# TODO
+<hr>
+
+<h2>{{ 'Autofill' | t('formie') }}</h2>
+
+<p>{{ 'Allow certain fields to be populated with user content. The below rules only apply to logged-in users.' | t('formie') }}</p>
+
+<div>
+    {{ 'Form does not have fields that can be autofilled.' | t('formie') }}
+</div>
+
+<hr>
+
+<h2>{{ 'Security' | t('formie') }}</h2>
+
+{{ forms.lightswitchField({
+    label: 'Require Logged-in User' | t('formie'),
+    instructions: 'Whether this form can only be submitted by a logged-in user. The form will still appear, but will only submit for logged-in users.' | t('formie'),
+    id: 'requireUser',
+    name: 'requireUser',
+    on: form.requireUser ?? false,
+}) }}
+
+<hr>
+
+<h2>{{ 'Availability' | t('formie') }}</h2>
+
+{{ forms.selectField({
+    label: 'Form Availability' | t('formie'),
+    instructions: 'Whether this form should be available for submissions.' | t('formie'),
+    id: 'availability',
+    name: 'availability',
+    options: [{
+        label: 'Always' | t('formie'),
+        value: 'always',
+    },
+    {
+        label: 'Until a date' | t('formie'),
+        value: 'date',
+    },
+    {
+        label: 'Up to a number of submissions' | t('formie'),
+        value: 'submissions',
+    }],
+    toggle: true,
+    targetPrefix: 'availability-',
+    value: form.availability ?? 'always',
+}) }}
+
+<div id="availability-date" class="hidden">
+    {{ forms.dateTimeField({
+        label: 'From Date' | t('formie'),
+        instructions: 'The minimum date required to enabled form submissions.' | t('formie'),
+        id: 'availabilityFrom',
+        name: 'availabilityFrom',
+        value: form.availabilityFrom ?? null,
+    }) }}
+
+    {{ forms.dateTimeField({
+        label: 'To Date' | t('formie'),
+        instructions: 'The maximum date required to enabled form submissions.' | t('formie'),
+        id: 'availabilityTo',
+        name: 'availabilityTo',
+        value: form.availabilityTo ?? null,
+    }) }}
+
+    {{ forms.textareaField({
+        label: 'Message' | t('formie'),
+        instructions: 'Text to be shown when this condition is met. HTML and Markdown is supported.' | t('formie'),
+        id: 'availabilityMessageDate',
+        name: 'settings[availabilityMessageDate]',
+        value: form.settings.availabilityMessage ?? null,
+    }) }}
+</div>
+
+<div id="availability-submissions" class="hidden">
+    {{ forms.textField({
+        label: 'Submissions' | t('formie'),
+        instructions: 'The number of submissions to allow before disabling submissions.' | t('formie'),
+        id: 'availabilitySubmissions',
+        name: 'availabilitySubmissions',
+        type: 'number',
+        value: form.availabilitySubmissions ?? null,
+    }) }}
+
+    {{ forms.textareaField({
+        label: 'Message' | t('formie'),
+        instructions: 'Text to be shown when this condition is met. HTML and Markdown is supported.' | t('formie'),
+        id: 'availabilityMessageSubmissions',
+        name: 'settings[availabilityMessageSubmissions]',
+        value: form.settings.availabilityMessage ?? null,
+    }) }}
+</div>
+#}
+
+{% js %}
+
+$('[name="settings[submitMethod]"]').on('change', function(e) {
+   // Toggle the disabled state of the respective dropdowns
+   var value = this.value;
+
+   $('#submitAction-field select').prop('disabled', true);
+   $('#submitAction-field .select').addClass('disabled');
+
+   $('#submit-method-' + value + ' select').prop('disabled', false);
+   $('#submit-method-' + value + ' .select').removeClass('disabled');
+});
+
+$('[name="settings[submitAction]"]').on('change', function(e) {
+   // Toggle the disabled state of the respective dropdowns
+   var value = this.value;
+
+   $('#submitActionTab-field select').prop('disabled', true);
+   $('#submitActionTab-field .select').addClass('disabled');
+
+   $('#submit-action-' + value + ' #submitActionTab-field select').prop('disabled', false);
+   $('#submit-action-' + value + ' #submitActionTab-field .select').removeClass('disabled');
+});
+
+{% endjs %}

@@ -1,0 +1,18 @@
+{% set attributes = {
+    type: 'tel',
+    id: options.id,
+    class: [ 'fui-input' ],
+    name: 'number' | namespaceInputName(field.handle),
+    placeholder: field.placeholder,
+    required: field.required ? true : false,
+    autocomplete: 'tel-national',
+    value: value.number ?? null,
+    data: {
+        'fui-message': field.settings.errorMessage,
+    },
+    aria: {
+        required: field.required ? 'true' : 'false',
+    },
+} | merge(field.getInputAttributes()) %}
+
+<input {{ attr(attributes) }} />

@@ -1,0 +1,15 @@
+{% set attributes = {
+    type: 'text',
+    id: id,
+    class: [ 'fui-input' ],
+    name: handle | namespaceInputName(field.handle),
+    placeholder: placeholder,
+    autocomplete: autocomplete,
+    required: required,
+    value: value,
+    aria: {
+        required: required ? 'true' : 'false',
+    },
+} | merge(field.getInputAttributes()) %}
+
+<input {{ attr(attributes) }} />

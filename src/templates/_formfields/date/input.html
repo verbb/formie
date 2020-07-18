@@ -1,0 +1,78 @@
+{% import '_includes/forms' as forms %}
+
+{% if field.displayType == 'calendar' %}
+    {% include '_includes/forms/date' %}
+{% endif %}
+
+{% if field.displayType == 'dropdowns' %}
+    {% namespace field.handle %}
+        <div class="fui-row">
+            {% for char, attrs in field.getFrontEndSubfields()[0] %}
+                <div class="fui-col-auto" style="flex: 0;">
+                    {% set options = [{
+                        label: attribute(field, attrs.handle ~ 'Placeholder'),
+                        value: '',
+                    }] %}
+
+                    {% if attrs.options is defined %}
+                        {% set options = options | merge(attrs.options) %}
+                    {% else %}
+                        {% for i in attrs.min..attrs.max %}
+                            {% set options = options | merge([{
+                                label: i,
+                                value: i,
+                            }]) %}
+                        {% endfor %}
+                    {% endif %}
+
+                    {{ forms.selectField({
+                        label: attribute(field, attrs.handle ~ 'Label'),
+                        name: char,
+                        required: field.required ? true : false,
+                        options: options,
+                        value: attrs.handle == 'ampm' ? (value | date(char)) : (value ? (value | date(char)) * 1),
+                    }) }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endnamespace %}
+{% endif %}
+
+{% if field.displayType == 'inputs' %}
+    {% namespace field.handle %}
+        <div class="fui-row">
+            {% for char, attrs in field.getFrontEndSubfields()[0] %}
+                {% switch attrs.handle %}
+                    {% case 'ampm' %}
+                        <div class="fui-col-auto">
+                            {{ forms.selectField({
+                                label: attribute(field, attrs.handle ~ 'Label'),
+                                name: char,
+                                required: field.required ? true : false,
+                                options: [{
+                                    label: attribute(field, attrs.handle ~ 'Placeholder'),
+                                    value: '',
+                                }] | merge(attrs.options),
+                                value: attrs.handle == 'ampm' ? (value | date(char)) : (value ? (value | date(char)) * 1),
+                            }) }}
+                        </div>
+                    {% default %}
+                        <div class="fui-col-auto">
+                            {{ forms.textField({
+                                label: attribute(field, attrs.handle ~ 'Label'),
+                                name: char,
+                                type: 'number',
+                                min: attrs.min,
+                                max: attrs.max,
+                                step: 1,
+                                pattern: '[0-9]+',
+                                placeholder: attribute(field, attrs.handle ~ 'Placeholder'),
+                                required: field.required ? true : false,
+                                value: value ? (value | date(char)),
+                            }) }}
+                        </div>
+                {% endswitch %}
+            {% endfor %}
+        </div>
+    {% endnamespace %}
+{% endif %}

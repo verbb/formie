@@ -1,0 +1,21 @@
+{% extends 'formie/_layouts/elementindex' %}
+
+{% set crumbs = [
+    { label: craft.formie.getPluginName() | t('formie'), url: url('formie') },
+    { label: 'Forms' | t('formie'), url: url('formie/forms') },
+] %}
+
+{% set title = 'Forms' | t('formie') %}
+
+{% set docTitle = title ~ ' - Formie' %}
+{% set elementType = 'verbb\\formie\\elements\\Form' %}
+{% set selectedSubnavItem = 'forms' %}
+
+{% block actionButton %}
+    <div class="buttons">
+        <a class="btn submit add icon" href="{{ url('formie/forms/new') }}">
+            {{- 'New Form' | t('formie') -}}
+        </a>
+    </div>
+{% endblock %}
+

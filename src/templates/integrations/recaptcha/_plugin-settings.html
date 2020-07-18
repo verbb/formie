@@ -1,0 +1,129 @@
+{% import '_includes/forms' as forms %}
+{% import 'verbb-base/_macros' as macros %}
+
+{% set type = integration.settings.type ?? 'v3' %}
+
+{{ forms.selectField({
+    label: 'reCAPTCHA Type' | t('formie'),
+    instructions: 'Select the type of reCAPTCHA to use.' | t('formie'),
+    name: 'type',
+    required: true,
+    toggle: true,
+    targetPrefix: 'settings-',
+    value: type,
+    options: [
+        {
+            value: 'v3',
+            label: 'reCAPTCHA V3' | t('formie'),
+        },
+        {
+            value: 'v2_checkbox',
+            label: 'reCAPTCHA V2 - Checkbox' | t('formie'),
+        },
+        {
+            value: 'v2_invisible',
+            label: 'reCAPTCHA V2 - Invisible' | t('formie'),
+        }
+    ],
+    warning: macros.configWarning('type', 'formie'),
+}) }}
+
+{{ forms.textField({
+    label: 'reCAPTCHA Site Key' | t('formie'),
+    name: 'siteKey',
+    required: true,
+    value: integration.settings.siteKey ?? '',
+    warning: macros.configWarning('siteKey', 'formie'),
+}) }}
+
+{{ forms.textField({
+    label: 'reCAPTCHA Secret Key' | t('v'),
+    name: 'secretKey',
+    required: true,
+    value: integration.settings.secretKey ?? '',
+    warning: macros.configWarning('secretKey', 'formie'),
+}) }}
+
+<div id="settings-v2_checkbox"{% if type != 'v2_checkbox' %} class="hidden"{% endif %}>
+    {{ forms.selectField({
+        label: 'Theme' | t('formie'),
+        instructions: 'Select the theme for reCAPTCHA to use.' | t('formie'),
+        name: 'theme',
+        value: integration.settings.theme ?? 'light',
+        options: [{
+            value: 'light',
+            label: 'Light' | t('formie'),
+        }, {
+            value: 'dark',
+            label: 'Dark' | t('formie'),
+        }],
+        warning: macros.configWarning('theme', 'formie'),
+    }) }}
+
+    {{ forms.selectField({
+        label: 'Size' | t('formie'),
+        instructions: 'Select the size of reCAPTCHA to use.' | t('formie'),
+        name: 'size',
+        value: integration.settings.size ?? 'normal',
+        options: [{
+            value: 'normal',
+            label: 'Normal' | t('formie'),
+        }, {
+            value: 'compact',
+            label: 'Compact' | t('formie'),
+        }],
+        warning: macros.configWarning('size', 'formie'),
+    }) }}
+</div>
+
+<div id="settings-v2_invisible"{% if type != 'v2_invisible' %} class="hidden"{% endif %}>
+    {{ forms.selectField({
+        label: 'Badge Type' | t('formie'),
+        instructions: 'Select the type of badge to display.' | t('formie'),
+        name: 'badge',
+        value: integration.settings.badge ?? 'bottomright',
+        options: [{
+            value: 'bottomright',
+            label: 'Bottom-right' | t('formie'),
+        }, {
+            value: 'bottomleft',
+            label: 'Bottom-left' | t('formie'),
+        }, {
+            value: 'inline',
+            label: 'Inline' | t('formie'),
+        }],
+        warning: macros.configWarning('badge', 'formie'),
+    }) }}
+</div>
+
+<div id="settings-v3"{% if type != 'v3' %} class="hidden"{% endif %}>
+    {{ forms.selectField({
+        label: 'Minimum Score' | t('formie'),
+        instructions: 'Enter the minimum score needed to pass the reCAPTCHA test.' | t('formie'),
+        name: 'minScore',
+        value: integration.settings.minScore ?? '0.5',
+        options: {
+            '0.0': '0.0',
+            '0.1': '0.1',
+            '0.2': '0.2',
+            '0.3': '0.3',
+            '0.4': '0.4',
+            '0.5': '0.5',
+            '0.6': '0.6',
+            '0.7': '0.7',
+            '0.8': '0.8',
+            '0.9': '0.9',
+            '1.0': '1.0',
+        },
+        warning: macros.configWarning('badge', 'formie'),
+    }) }}
+</div>
+
+{{ forms.selectField({
+    label: 'Language' | t('formie'),
+    instructions: 'Force a specific language when displaying reCAPTCHA. Choose "Auto" for Formie to automatically match your site\'s language.' | t('formie'),
+    name: 'language',
+    value: integration.settings.language ?? 'auto',
+    options: languageOptions,
+    warning: macros.configWarning('language', 'formie'),
+}) }}

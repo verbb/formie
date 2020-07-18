@@ -1,0 +1,7 @@
+<select class="fui-field-select" :multiple="field.settings.multiple">
+    <option
+        v-for="(option, index) in field.settings.options"
+        :key="index"
+        :selected="option.isDefault"
+    >${ option.label }</option>
+</select>

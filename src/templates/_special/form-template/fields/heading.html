@@ -1,0 +1,7 @@
+{{ tag(field.headingSize, {
+    class: [
+        'fui-heading',
+        'fui-heading-' ~ field.headingSize,
+    ],
+    text: field.name,
+} | merge(field.getInputAttributes())) }}

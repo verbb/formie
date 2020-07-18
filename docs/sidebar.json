@@ -1,0 +1,88 @@
+[
+    {
+        "title": "Get Started",
+        "collapsable": false,
+        "children": [
+            "get-started/installation-setup",
+            "get-started/requirements",
+            "get-started/configuration"
+        ]
+    },
+    {
+        "title": "Feature Tour",
+        "collapsable": false,
+        "children": [
+            "feature-tour/forms",
+            "feature-tour/multi-page",
+            "feature-tour/fields",
+            "feature-tour/synced-fields",
+            "feature-tour/existing-fields",
+            "feature-tour/email-notifications",
+            "feature-tour/submissions",
+            "feature-tour/integrations",
+            "feature-tour/stencils",
+            "feature-tour/spam-protection",
+            "feature-tour/form-templates",
+            "feature-tour/email-templates"
+        ]
+    },
+    {
+        "title": "Template Guides",
+        "collapsable": false,
+        "children": [
+            "template-guides/available-variables",
+            "template-guides/rendering-forms",
+            "template-guides/rendering-pages",
+            "template-guides/rendering-fields",
+            "template-guides/form-templates",
+            "template-guides/email-templates"
+        ]
+    },
+    {
+        "title": "Getting Elements",
+        "collapsable": false,
+        "children": [
+            "getting-elements/form-queries",
+            "getting-elements/submission-queries"
+        ]
+    },
+    {
+        "title": "Integrations",
+        "collapsable": false,
+        "children": [
+            "integrations/captchas"
+        ]
+    },
+    {
+        "title": "Developers",
+        "collapsable": false,
+        "children": [
+            "developers/events",
+            "developers/form",
+            "developers/page",
+            "developers/row",
+            "developers/field",
+            "developers/submission",
+            "developers/notification",
+            "developers/custom-field",
+            "developers/custom-integration",
+            "developers/front-end-css",
+            "developers/front-end-js"
+        ]
+    },
+    {
+        "title": "Guides",
+        "collapsable": false,
+        "children": [
+            "guides/migrating-from-freeform",
+            "guides/migrating-from-sprout-forms"
+        ]
+    },
+    {
+        "title": "Support",
+        "collapsable": false,
+        "children": [
+            "support/get-support"
+        ]
+    }
+]

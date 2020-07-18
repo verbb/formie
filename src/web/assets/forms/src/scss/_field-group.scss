@@ -1,0 +1,28 @@
+// ==========================================================================
+// Field - Group
+// ==========================================================================
+
+.fui-field-preview {
+    &.fui-type-group {
+        pointer-events: auto;
+
+        .fui-field-label {
+            font-size: 13px;
+            color: #33475b;
+            margin-bottom: 0;
+        }
+    }
+
+    .dropzone-new-field {
+        margin: 0;
+    }
+}
+
+.fui-group-fields {
+    &:not(.fui-empty) {
+        padding: 10px 15px;
+        background-color: #fff;
+        border-radius: 4px;
+        border: 1px solid #e4ecf6;
+    }
+}

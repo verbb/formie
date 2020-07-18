@@ -1,0 +1,72 @@
+{% import '_includes/forms' as forms %}
+{% import 'verbb-base/_macros' as macros %}
+
+{% set selectedItem = '' %}
+
+{% do view.registerAssetBundle('verbb\\formie\\web\\assets\\cp\\CpAsset') -%}
+
+{% if integrations %}
+    <div class="fui-integrations-pane">
+        {% include 'formie/settings/integrations/_includes/sidebar' %}
+
+        <div class="fui-form-integrations-wrapper">
+            <div class="fui-form-integrations-inner-wrapper">
+                {% for integration in integrations %}
+                    <div id="tab-{{ integration.handle }}" class="integration-pane {% if not loop.first %}hidden{% endif %}">
+                        <h2>{{ integration.getName() }}</h2>
+
+                        {{ integration.getDescription() | md }}
+
+                        <hr>
+
+                        {% namespace 'settings[integrations][' ~ integration.handle ~ ']' %}
+                            {% set enabled = form.settings.integrations[integration.handle].enabled ?? integration.enabled ?? false %}
+                            
+                            {{ forms.lightswitchField({
+                                label: 'Enabled' | t('formie'),
+                                instructions: 'Whether this integration should be enabled.' | t('formie'),
+                                name: 'enabled',
+                                on: enabled,
+                            }) }}
+
+                            {{ forms.lightswitchField({
+                                label: 'Show on All Pages' | t('formie'),
+                                instructions: 'For multi-page forms, choose whether to show the captcha on all pages of the form, or only on the final page of the form.' | t('formie'),
+                                name: 'showAllPages',
+                                on: form.settings.integrations[integration.handle].showAllPages ?? false,
+                            }) }}
+
+                            {{ integration.getFormSettingsHtml(form) | raw }}
+                        {% endnamespace %}
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+{% else %}
+    <div class="zilch">
+        {{ 'No integrations available.' | t('formie') }}
+    </div>
+{% endif %}
+
+{% js %}
+
+$('[data-vui-tabs] a:first').addClass('sel');
+
+$('[data-vui-tabs] a').on('click', function(e) {
+    e.preventDefault();
+
+    var href = $(this).attr('href');
+    var $pane = $(href);
+
+    $(this).parents('[data-vui-tabs]').find('a').removeClass('sel');
+    $(this).addClass('sel');
+
+    if ($pane) {
+        $('.integration-pane').addClass('hidden');
+
+        $pane.removeClass('hidden');
+    }
+});
+
+{% endjs %}

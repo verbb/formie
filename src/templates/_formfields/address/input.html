@@ -1,0 +1,97 @@
+{% import '_includes/forms' as forms %}
+
+{% namespace field.handle %}
+    {% if field.address1Enabled %}
+        <div class="fui-row">
+            <div class="fui-col">
+                {{ forms.textField({
+                    label: field.address1Label,
+                    name: 'address1',
+                    required: field.address1Required,
+                    value: value.address1 ?? '',
+                }) }}
+            </div>
+        </div>
+    {% endif %}
+
+    {% if field.address2Enabled %}
+        <div class="fui-row">
+            <div class="fui-col">
+                {{ forms.textField({
+                    label: field.address2Label,
+                    name: 'address2',
+                    required: field.address2Required,
+                    value: value.address2 ?? '',
+                }) }}
+            </div>
+        </div>
+    {% endif %}
+
+    {% if field.address3Enabled %}
+        <div class="fui-row">
+            <div class="fui-col">
+                {{ forms.textField({
+                    label: field.address3Label,
+                    name: 'address3',
+                    required: field.address3Required,
+                    value: value.address3 ?? '',
+                }) }}
+            </div>
+        </div>
+    {% endif %}
+
+    {% if field.cityEnabled or field.stateEnabled %}
+        <div class="fui-row">
+            {% if field.cityEnabled %}
+                <div class="fui-col-auto">
+                    {{ forms.textField({
+                        label: field.cityLabel,
+                        name: 'city',
+                        required: field.cityRequired,
+                        value: value.city ?? '',
+                    }) }}
+                </div>
+            {% endif %}
+
+            {% if field.stateEnabled %}
+                <div class="fui-col-auto">
+                    {{ forms.textField({
+                        label: field.stateLabel,
+                        name: 'state',
+                        required: field.stateRequired,
+                        value: value.state ?? '',
+                    }) }}
+                </div>
+            {% endif %}
+        </div>
+    {% endif %}
+
+    {% if field.zipEnabled or field.countryEnabled %}
+        <div class="fui-row">
+            {% if field.zipEnabled %}
+                <div class="fui-col-auto">
+                    {{ forms.textField({
+                        label: field.zipLabel,
+                        name: 'zip',
+                        required: field.zipRequired,
+                        value: value.zip ?? '',
+                    }) }}
+                </div>
+            {% endif %}
+
+            {% if field.countryEnabled %}
+                <div class="fui-col-auto">
+                    {% set countries = [{ label: 'Select an option' | t('formie'), value: '' }] | merge(field.countries) %}
+
+                    {{ forms.selectField({
+                        label: field.countryLabel,
+                        name: 'country',
+                        required: field.countryRequired,
+                        options: countries,
+                        value: value.country ?? '',
+                    }) }}
+                </div>
+            {% endif %}
+        </div>
+    {% endif %}
+{% endnamespace %}

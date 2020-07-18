@@ -1,0 +1,17 @@
+{% set attributes = {
+    type: 'text',
+    id: options.id,
+    class: [ 'fui-input' ],
+    name: field.handle,
+    placeholder: field.placeholder,
+    required: field.required ? true : false,
+    value: value,
+    data: {
+        'fui-message': field.settings.errorMessage,
+    },
+    aria: {
+        required: field.required ? 'true' : 'false',
+    },
+} %}
+
+<input {{ attr(attributes) }} />

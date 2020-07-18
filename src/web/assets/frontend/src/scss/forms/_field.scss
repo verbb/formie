@@ -1,0 +1,90 @@
+// ==========================================================================
+// Field Layout
+// ==========================================================================
+
+.fui-field {
+    padding-left: $field-gutter;
+    padding-right: $field-gutter;
+}
+
+.fui-label-left-input {
+    .fui-input-container {
+        margin-left: $field-gutter;
+    }
+}
+
+.fui-label-right-input {
+    .fui-input-container {
+        margin-right: $field-gutter;
+    }
+}
+
+
+// ==========================================================================
+// Field Labels
+// ==========================================================================
+
+.fui-label,
+.fui-legend {
+    font-size: 0.875rem;
+    line-height: 1.25;
+    font-weight: 500;
+    display: block;
+    padding: 0;
+    color: $gray-800;
+
+    .fui-label-above-input &,
+    .fui-subfield-label-above-input & {
+        margin-bottom: 0.5rem;
+    }
+
+    .fui-label-below-input &,
+    .fui-subfield-label-below-input & {
+        margin-top: 0.5rem;
+    }
+
+    .fui-error & {
+        color: #771d1d;
+        border-color: #f8b4b4;
+    }
+}
+
+.fui-required {
+    color: $error;
+}
+
+.fui-instructions {
+    color: $gray-600;
+    font-size: 0.875rem;
+    display: block;
+
+    .fui-instructions-above-input &,
+    .fui-instructions-fieldset-start & {
+        margin-bottom: 0.5rem;
+    }
+
+    .fui-instructions-below-input &,
+    .fui-instructions-fieldset-end & {
+        margin-top: 0.5rem;
+    }
+}
+
+
+// ==========================================================================
+// Fieldsets
+// ==========================================================================
+
+.fui-fieldset {
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
+
+// ==========================================================================
+// ReCAPTCHA
+// ==========================================================================
+
+.formie-recaptcha-placeholder > * {
+    margin-top: 1rem;
+}

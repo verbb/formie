@@ -1,0 +1,17 @@
+{% set elements = value.all() %}
+
+<p>
+    {% if showName %}
+        <strong>{{ field.name }}</strong><br>
+    {% endif %}
+
+    {% if elements | length %}
+        <ul>
+            {% for element in elements %}
+                <li>{{ element.link }}</li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        {{ 'None selected' | t('formie') }}
+    {% endif %}
+</p>

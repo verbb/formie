@@ -1,0 +1,60 @@
+{% import '_includes/forms' as forms %}
+{% import 'verbb-base/_macros' as macros %}
+
+{% extends 'formie/_layouts/settings' %}
+
+{% set bodyClass = 'formie-settings-integrations' %}
+{% set selectedItem = integrations[0].handle ?? '' %}
+
+{% if integrations %}
+    {% set fullPageForm = true %}
+{% endif %}
+
+{% do view.registerAssetBundle('verbb\\formie\\web\\assets\\cp\\CpAsset') -%}
+
+{% block content %}
+
+{% if integrations %}
+    {{ actionInput('formie/integrations/save-settings') }}
+    {{ redirectInput('formie/settings/integrations') }}
+
+    <div class="fui-integrations-pane">
+        {% include 'formie/settings/integrations/_includes/sidebar' %}
+
+        <div class="fui-form-integrations-wrapper">
+            <div class="fui-form-integrations-inner-wrapper">
+                {% for integration in integrations %}
+                    <div id="tab-{{ integration.handle }}" {% if not loop.first %}class="hidden"{% endif %}>
+                        <h2>{{ integration.getName() }} {{ 'Settings' | t('formie') }}</h2>
+
+                        {{ integration.getDescription() | md }}
+
+                        <hr>
+
+                        {{ forms.lightswitchField({
+                            first: true,
+                            label: 'Enabled' | t('formie'),
+                            instructions: 'Whether to enable this integration.' | t('formie'),
+                            id: 'enabled',
+                            name: 'integrations[' ~ integration.handle ~ '][enabled]',
+                            value: 1,
+                            on: integration.enabled ?? false,
+                            warning: macros.configWarning('enabled', 'formie'),
+                        }) }}
+
+                        {% namespace 'integrations[' ~ integration.handle ~ '][settings]' %}
+                            {{ integration.getSettingsHtml() | raw }}
+                        {% endnamespace %}
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+{% else %}
+    <div class="zilch">
+        {{ 'No integrations available.' | t('formie') }}
+    </div>
+{% endif %}
+
+{% endblock %}
+

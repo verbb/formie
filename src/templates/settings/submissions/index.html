@@ -1,0 +1,32 @@
+{% extends 'formie/_layouts/settings' %}
+
+{% import '_includes/forms' as forms %}
+{% import 'verbb-base/_macros' as macros %}
+
+{% block content %}
+
+<h2>{{ 'Submissions' | t('formie') }}</h2>
+
+<form action="" method="post" accept-charset="UTF-8" data-saveshortcut>
+    <input type="hidden" name="action" value="formie/settings/save-settings">
+    {{ redirectInput('formie/settings/submissions') }}
+    {{ csrfInput() }}
+
+    {% namespace 'settings' %}
+        {{ forms.textField({
+            first: true,
+            type: 'number',
+            label: 'Maximum Incomplete Submission Age' | t('formie'),
+            instructions: 'The maximum age of an incomplete submission in days before it is deleted in garbage collection. Set to 0 to disable automatic deletion.' | t('formie'),
+            id: 'maxIncompleteSubmissionAge',
+            name: 'maxIncompleteSubmissionAge',
+            value: settings.maxIncompleteSubmissionAge,
+            autofocus: true,
+            warning: macros.configWarning('maxIncompleteSubmissionAge', 'formie'),
+        }) }}
+    {% endnamespace %}
+
+    <input type="submit" class="btn submit" value="{{ 'Save' | t('formie') }}">
+</form>
+
+{% endblock %}

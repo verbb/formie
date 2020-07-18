@@ -1,0 +1,42 @@
+{% set html %}
+    {% set labelPosition = craft.formie.getLabelPosition(field, form, true) %}
+    {% set inputId = handle | namespaceInputId(options.id) %}
+
+    <div class="fui-field-wrapper">
+        {% include '_label' with {
+            field: null,
+            id: inputId,
+            required: field.required,
+            fieldName: attribute(field, handle ~ 'Label'),
+            position: 'above',
+        } %}
+
+        {% include ['fields/phone/_' ~ handle, 'fields/phone/_input'] with {
+            autocomplete: autocomplete,
+            placeholder: attribute(field, handle ~ 'Placeholder'),
+            required: field.required ? true : false,
+            value: attribute(value, handle) ?? attribute(field, handle ~ 'DefaultValue') ?? '',
+            id: inputId,
+        } %}
+
+        {% include '_label' with {
+            field: null,
+            id: inputId,
+            required: field.required,
+            fieldName: attribute(field, handle ~ 'Label'),
+            position: 'below',
+        } %}
+    </div>
+{% endset %}
+
+{% set attributes = {
+    class: [
+        'fui-field',
+        'fui-phone-field',
+        'fui-phone-' ~ handle,
+        handle != 'country' ? 'fui-text-input-field' : 'fui-select-field',
+    ],
+    html: html,
+} %}
+
+{{ tag(options.renderOptions.fieldTag ?? 'div', attributes) }}

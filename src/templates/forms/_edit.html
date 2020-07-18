@@ -1,0 +1,82 @@
+{% extends '_layouts/cp' %}
+{% import '_includes/forms' as forms %}
+{% import 'verbb-base/_macros' as macros %}
+
+{% do view.registerAssetBundle('verbb\\formie\\web\\assets\\forms\\FormsAsset') %}
+{% do view.registerAssetBundle('craft\\web\\assets\\timepicker\\TimepickerAsset') -%}
+
+{% set crumbs = [
+    { label: craft.formie.getPluginName() | t('formie'), url: url('formie') },
+    { label: 'Forms' | t('formie'), url: url('formie/forms') },
+] %}
+
+{% set selectedSubnavItem = 'forms' %}
+
+{% set bodyClass = 'fui-body' %}
+
+{% block pageTitle %}
+    <div id="fui-page-title">
+        <h1 :title="form.title" v-cloak>${form.title}</h1>
+    </div>
+{% endblock %}
+
+{% block actionButton %}
+
+{% if currentUser.can('formie-editForms') %}
+    <div id="fui-save-form-button">
+        <div class="btngroup submit first">
+            <a href="#" class="btn submit" :class="{ 'fui-loading fui-loading-sm': loading }" @click.prevent="onSave">
+                {{ 'Save' | t('app') }}
+            </a>
+
+            <div class="btn submit menubtn"></div>
+            <div class="menu">
+                <ul>
+                    {% if form.id %}
+                        <li>
+                            <a data-redirect="{{ continueEditingUrl | hash }}" @click.prevent="onSaveAsNew">
+                                {{ 'Save as a new form' | t('formie') }}
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+
+                {% if form.id %}
+                    <hr>
+
+                    <ul>
+                        <li>
+                            <a class="error" data-redirect="{{ 'formie/forms' | hash }}" @click.prevent="onDelete">{{ 'Delete' | t('formie') }}</a>
+                        </li>
+                    </ul>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endif %}
+
+{% endblock %}
+
+{% block content %}
+
+<form id="fui-forms" ref="formElem">
+    {% if form.id %}
+        <input type="hidden" name="formId" value="{{ form.id }}" />
+    {% endif %}
+
+    {% if craft.app.getIsMultiSite() %}
+        <input type="hidden" name="siteId" value="{{ form.siteId }}" />
+    {% endif %}
+
+    {% if form.fieldLayoutId %}
+        <input type="hidden" name="fieldLayoutId" value="{{ form.fieldLayoutId }}" />
+    {% endif %}
+
+    {% for tab in formTabs %}
+        <div id="{{ tab.url | trim('#') }}" class="{{ tab.tab is defined ? 'tab-form-fields' }} {{ not loop.first ? 'hidden' }}">
+            {% include ['formie/forms/_panes/' ~ tab.value, 'formie/forms/_panes/form-fields'] %}
+        </div>
+    {% endfor %}
+</form>
+
+{% endblock %}

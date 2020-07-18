@@ -1,0 +1,29 @@
+{% set sizeLimit = field.sizeLimit ?? 0 %}
+{% set limitFiles = field.limitFiles ?? 1 %}
+
+{% set attributes = {
+    type: 'file',
+    class: [ 'fui-input' ],
+    id: options.id,
+    name: field.handle,
+    required: field.required ? true : false,
+    multiple: limitFiles > 1,
+    accept: field.accept,
+    data: {
+        'size-limit': field.sizeLimit,
+        'file-limit': limitFiles,
+        'fui-message': field.settings.errorMessage,
+    },
+    aria: {
+        required: field.required ? 'true' : 'false',
+    },
+} | merge(field.getInputAttributes()) %}
+
+<input {{ attr(attributes) }} />
+
+{% set jsFile = view.getAssetManager().getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/fields/file-upload.js', true) %}
+{% do view.registerJsFile(jsFile) %}
+
+{% js %}
+    new FormieFileUpload({{ form.settings | merge({ formId: form.id }) | json_encode | raw }});
+{% endjs %}

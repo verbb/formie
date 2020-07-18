@@ -1,0 +1,49 @@
+{% extends 'formie/_layouts/settings' %}
+
+{% block actionButton %}
+    <a href="{{ url('formie/settings/form-templates/new') }}" class="btn submit add icon">{{ 'New Template' | t('formie') }}</a>
+{% endblock %}
+
+{% block content %}
+    <div id="form-templates-vue-admin-table"></div>
+{% endblock %}
+
+{% set tableData = [] %}
+{% for template in formTemplates %}
+    {% set tableData = tableData | merge([{
+        id: template.id,
+        labelHtml: {
+            url: template.cpEditUrl,
+            html: template.name,
+        },
+        title: template.name | t('site'),
+        url: template.cpEditUrl,
+        handle: template.handle | e,
+        _showDelete: template.canDelete(),
+    }]) %}
+{% endfor %}
+
+{% js %}
+    var columns = [
+        {
+            name: 'labelHtml',
+            title: Craft.t('app', 'Name'),
+            callback: function(value) {
+                return '<a class="cell-bold" href="' + value.url + '">' + value.html + '</a>';
+            }
+        },
+        { name: '__slot:handle', title: Craft.t('app', 'Handle') }
+    ];
+
+    new Craft.VueAdminTable({
+        columns: columns,
+        container: '#form-templates-vue-admin-table',
+        deleteAction: 'formie/form-templates/delete',
+        padded: true,
+        reorderAction: 'formie/form-templates/reorder',
+        reorderSuccessMessage: Craft.t('formie', 'Templates reordered.'),
+        reorderFailMessage: Craft.t('formie', 'Couldn’t reorder templates.'),
+        tableData: {{ tableData | json_encode | raw }},
+    });
+{% endjs %}
+

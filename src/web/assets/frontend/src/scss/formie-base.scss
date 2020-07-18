@@ -1,0 +1,72 @@
+// ==========================================================================
+
+// Formie Base for Craft CMS
+// Author: Verbb - https://verbb.io/
+
+// ==========================================================================
+
+// ==========================================================================
+// Framework - Instance
+// ==========================================================================
+
+.fui-hidden {
+    display: none;
+}
+
+.fui-sr-only {
+    clip: rect(0,0,0,0);
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    position: absolute;
+    width: 1px;
+}
+
+// ==========================================================================
+// Field Layout
+// ==========================================================================
+
+.fui-field {
+    flex: 1;
+}
+
+.fui-label-left-input,
+.fui-label-right-input {
+    .fui-field-container {
+        display: flex;
+        align-items: baseline;
+    }
+
+    .fui-input-container {
+        flex: 1;
+    }
+}
+
+.fui-label-above-input {
+    // This causes alignment issues with errors in columns
+    // align-self: flex-end;
+}
+
+.fui-label-below-input {
+    // Force legends to display in the correct position.
+    > .fui-field-container > .fui-input-container > .fui-fieldset > .fui-legend {
+        display: block;
+        float: left;
+        clear: both;
+        width: 100%;
+    }
+}
+
+.fui-layout-horizontal .fui-layout-wrap {
+    display: flex;
+}
+
+// ==========================================================================
+// Forms - Layout
+// ==========================================================================
+
+.fui-row {
+    display: flex;
+    flex-wrap: wrap;
+}
+

@@ -1,0 +1,60 @@
+{% set attributes = {
+    id: 'formie-p-' ~ page.id,
+    class: [
+        'fui-page',
+        form.hasMultiplePages and form.settings.submitMethod == 'ajax' and page != form.getCurrentPage() ? 'fui-hidden',
+    ],
+} %}
+
+<div {{ attr(attributes) }}>
+    {% set html %}
+        {% hook 'formie.page.start' %}
+
+        {% set displayCurrentPageTitle = form.settings.displayCurrentPageTitle %}
+
+        {% if displayCurrentPageTitle %}
+            <legend class="fui-page-title">{{ page.name }}</legend>
+        {% endif %}
+
+        {% for row in page.rows %}
+            <div class="fui-row fui-page-row">
+                {% for field in row.fields %}
+                    {{ craft.formie.renderField(form, field, options) }}
+                {% endfor %}
+            </div>
+        {% endfor %}
+
+        {% hook 'formie.page.end' %}
+    {% endset %}
+
+    {{ tag(displayCurrentPageTitle ? 'fieldset' : 'div', {
+        class: [
+            'fui-page-container',
+            displayCurrentPageTitle ? 'fui-fieldset',
+        ],
+        html: html,
+    }) }}
+
+    {% hook 'formie.form.beforeSubmit' %}
+
+    {% set nextPage = form.getNextPage(page) %}
+    {% set prevPage = form.getPreviousPage(page) %}
+
+    <div class="fui-btn-container fui-btn-{{ page.settings.buttonsPosition }}">
+        {% if page.settings.showBackButton and prevPage %}
+            <button
+                class="fui-btn fui-prev"
+                type="submit"
+                name="goToPageId"
+                value="{{ prevPage.id }}"
+                onclick="this.form.goToPage = this.value;"
+            >
+                {{ page.settings.backButtonLabel }}
+            </button>
+        {% endif %}
+
+        <button class="fui-btn fui-submit" type="submit">
+            {{ page.settings.submitButtonLabel }}
+        </button>
+    </div>
+</div>

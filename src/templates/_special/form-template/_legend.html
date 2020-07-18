@@ -1,0 +1,15 @@
+{% set legendPosition = (labelPosition ?? craft.formie.getLabelPosition(field, form)) %}
+
+{% if legendPosition.shouldDisplay(position) %}
+    {% set attributes = {
+        class: [ 'fui-legend' ],
+    } | filter %}
+
+    <legend {{ attr(attributes) }}>
+        {{ field.name }}
+
+        {% if field.required %}
+            <span class="fui-required">*</span>
+        {% endif %}
+    </legend>
+{% endif %}

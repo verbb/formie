@@ -1,0 +1,36 @@
+// ==========================================================================
+// Form Edit (Start)
+// ==========================================================================
+
+.fui-body-start #content-container {
+    display: flex;
+}
+
+.fui-start {
+    min-width: 550px;
+    margin: auto;
+    padding: 40px;
+}
+
+.fui-start .intro {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.fui-start h1 {
+    color: #fb6853;
+    font-size: 28px;
+    margin: 0;
+    font-weight: 300;
+}
+
+.fui-start .intro p {
+    color: #7b8793;
+    margin: 10px;
+}
+
+.fui-start .buttons {
+    display: flex;
+    justify-content: space-between;
+}
+

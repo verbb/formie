@@ -1,0 +1,38 @@
+{% set attributes = {
+    id: options.id,
+    class: [ 'fui-select' ],
+    name: field.handle ~ (field.multiple ? '[]'),
+    multiple: field.multiple ? true : false,
+    required: field.required ? true : false,
+    data: {
+        'fui-message': field.settings.errorMessage,
+    },
+    aria: {
+        required: field.required ? 'true' : 'false',
+    },
+} | merge(field.getInputAttributes()) %}
+
+{% set hasOptgroups = false %}
+
+<select {{ attr(attributes) }}>
+    <option value="">{{ field.placeholder }}</option>
+    
+    {% for option in field.options %}
+        {% if option.optgroup is defined %}
+            {% if hasOptgroups %}
+                </optgroup>
+            {% else %}
+                {% set hasOptgroups = true %}
+            {% endif %}
+
+            <optgroup label="{{ option.optgroup }}">
+        {% else %}
+            {% set selected = value ? option.value in value : (option.isDefault ?? false) %}
+            <option value="{{ option.value }}" {{ selected ? ' selected' }}>{{ option.label }}</option>
+        {% endif %}
+    {% endfor %}
+
+    {% if hasOptgroups %}
+        </optgroup>
+    {% endif %}
+</select>

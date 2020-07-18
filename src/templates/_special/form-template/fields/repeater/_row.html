@@ -1,0 +1,46 @@
+{% set html %}
+    <fieldset class="fui-fieldset">
+        {% namespace 'rows[' ~ id ~ ']' %}
+            {% set renderOptions = (options.renderOptions ?? {}) | merge({
+                element: block ?? null,
+            }) %}
+
+            {# There will only ever be 1 page. #}
+            {% set page = field.fieldLayout.pages[0] ?? null %}
+            {% if page %}
+                <div class="fui-field-rows">
+                    {% for row in page.rows %}
+                        <div class="fui-row fui-page-row">
+                            {% for field in row.fields %}
+                                {{ craft.formie.renderField(form, field, renderOptions) }}
+                            {% endfor %}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endnamespace %}
+
+        {% set buttonAttributes = {
+            class: 'fui-btn fui-repeater-remove-btn',
+            type: 'button',
+            data: {
+                'remove-repeater-row': field.handle,
+            }
+        } %}
+
+        <button {{ attr(buttonAttributes) }}>
+            {{ 'Remove' | t('formie') }}
+        </button>
+
+        {{ hiddenInput('sortOrder[]', id) }}
+    </fieldset>
+{% endset %}
+
+{% set fieldOptions = craft.formie.getFieldOptions(field, options.renderOptions) %}
+{% set rowTag = fieldOptions.rowTag ?? 'div' %}
+{% set rowAttributes = fieldOptions.rowAttributes ?? {} %}
+
+{{ tag(rowTag, {
+    class: 'fui-repeater-row',
+    html: html,
+} | merge(rowAttributes)) }}

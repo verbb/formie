@@ -1,0 +1,62 @@
+// ==========================================================================
+// Fields - Inputs
+// ==========================================================================
+
+.fui-input,
+.fui-select {
+    // Resets
+    font-family: inherit;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    margin: 0;
+    appearance: none;
+    color-adjust: exact;
+
+    width: 100%;
+    display: block;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid $border-color;
+    border-radius: $border-radius;
+    background-color: #fff;
+    transition-property: background-color, border-color, color, fill, stroke, opacity, box-shadow, transform;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 0.15s;
+
+    &:focus {
+        outline: 0;
+        border-color: $focus-border-color;
+        box-shadow: $focus-shadow;
+    }
+
+    &.fui-error {
+        color: #771d1d;
+        border-color: #f8b4b4;
+    }
+
+    &.fui-error:focus {
+        box-shadow: 0 0 0 3px rgba(248, 180, 180, 0.45);
+    }
+
+    &::placeholder {
+        color: $gray-500;
+    }
+
+
+    //
+    // Input types
+    //
+
+    &[type="file"] {
+        height: auto;
+    }
+
+    &[type="color"] {
+        height: 39px;
+        padding: 0.1rem;
+    }
+
+    // Fix for iOS devices and zooming on focus - must be 16px specifically
+    @media (max-width: 639px) {
+        font-size: 16px;
+    }
+}

@@ -1,0 +1,46 @@
+{% set limitType = field.limitType ?? '' %}
+{% set limitAmount = field.limitAmount ?? false %}
+{% set limit = (field.limit ?? false) and limitAmount %}
+{% set maxlength = limit and limitType == 'characters' ? limitAmount %}
+{% set wordlimit = limit and limitType == 'words' ? limitAmount %}
+
+{% set attributes = {
+    type: 'text',
+    id: options.id,
+    class: [ 'fui-input' ],
+    name: field.handle,
+    placeholder: field.placeholder,
+    required: field.required ? true : false,
+    value: value,
+    maxlength: maxlength ?: false,
+    data: {
+        wordlimit: wordlimit ?: false,
+        'fui-message': field.settings.errorMessage,
+    },
+    aria: {
+        required: field.required ? 'true' : 'false',
+    },
+} | merge(field.getInputAttributes()) %}
+
+<input {{ attr(attributes) }} />
+
+{% if maxlength or wordlimit %}
+    {% if maxlength %}
+        <small class="fui-instructions" id="{{ options.id }}-max" data-max-chars="{{ maxlength }}">
+            {{ '{num} characters left' | t('formie', { num: maxlength }) | raw }}
+        </small>
+    {% endif %}
+
+    {% if wordlimit %}
+        <small class="fui-instructions" id="{{ options.id }}-max" data-max-words="{{ wordlimit }}">
+            {{ '{num} words left' | t('formie', { num: wordlimit }) | raw }}
+        </small>
+    {% endif %}
+
+    {% set jsFile = view.getAssetManager().getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/fields/text-limit.js', true) %}
+    {% do view.registerJsFile(jsFile) %}
+
+    {% js %}
+        new FormieTextLimit({{ { formId: form.id, fieldId: options.id } | json_encode | raw }});
+    {% endjs %}
+{% endif %}

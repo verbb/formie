@@ -1,0 +1,57 @@
+{% import '_includes/forms' as forms %}
+
+{% if field.settings.useMultipleFields %}
+
+    {% namespace field.handle %}
+        <div class="fui-row">
+            {% if field.prefixEnabled %}
+                <div class="fui-col-2">
+                    {{ forms.selectField({
+                        label: field.prefixLabel,
+                        value: value.prefix ?? '',
+                        name: 'prefix',
+                        required: field.prefixRequired,
+                        options: field.getPrefixOptions(),
+                    }) }}
+                </div>
+            {% endif %}
+
+            {% if field.firstNameEnabled %}
+                <div class="fui-col-auto">
+                    {{ forms.textField({
+                        label: field.firstNameLabel,
+                        name: 'firstName',
+                        required: field.firstNameRequired,
+                        value: value.firstName ?? '',
+                    }) }}
+                </div>
+            {% endif %}
+
+            {% if field.middleNameEnabled %}
+                <div class="fui-col-auto">
+                    {{ forms.textField({
+                        label: field.middleNameLabel,
+                        name: 'middleName',
+                        required: field.middleNameRequired,
+                        value: value.middleName ?? '',
+                    }) }}
+                </div>
+            {% endif %}
+
+            {% if field.lastNameEnabled %}
+                <div class="fui-col-auto">
+                    {{ forms.textField({
+                        label: field.lastNameLabel,
+                        name: 'lastName',
+                        required: field.lastNameRequired,
+                        value: value.lastName ?? '',
+                    }) }}
+                </div>
+            {% endif %}
+        </div>
+    {% endnamespace %}
+
+{% else %}
+    {% include '_includes/forms/text' %}
+{% endif %}
+
