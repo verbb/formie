@@ -232,6 +232,8 @@ class SubmissionsController extends Controller
     {
         $this->requirePostRequest();
         $request = Craft::$app->getRequest();
+
+        /* @var Settings $settings */
         $formieSettings = Formie::$plugin->getSettings();
 
         $handle = $request->getRequiredBodyParam('handle');
@@ -277,6 +279,12 @@ class SubmissionsController extends Controller
 
         if ($form->settings->collectIp) {
             $submission->ipAddress = Craft::$app->getRequest()->userIP;
+        }
+
+        if ($form->settings->collectUser) {
+            if ($user = Craft::$app->getUser()->getIdentity()) {
+                $submission->setUser($user);
+            }
         }
 
         $submission->title = Variables::getParsedValue(

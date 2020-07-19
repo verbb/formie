@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\elements;
 
+use craft\elements\User;
 use verbb\formie\Formie;
 use verbb\formie\actions\SetSubmissionStatus;
 use verbb\formie\base\FormField;
@@ -39,6 +40,7 @@ class Submission extends Element
     public $id;
     public $formId;
     public $statusId;
+    public $userId;
     public $ipAddress;
     public $isIncomplete = false;
     public $isSpam = false;
@@ -59,6 +61,11 @@ class Submission extends Element
      * @var Status
      */
     private $_status;
+
+    /**
+     * @var User|null
+     */
+    private $_user;
 
 
     // Static
@@ -422,6 +429,35 @@ class Submission extends Element
     {
         $this->_status = $status;
         $this->statusId = $status->id;
+    }
+
+    /**
+     * Returns the user who created the submission.
+     *
+     * @return User|null
+     */
+    public function getUser()
+    {
+        if (!$this->userId) {
+            return null;
+        }
+
+        if ($this->_user) {
+            return $this->_user;
+        }
+
+        return $this->_user = Craft::$app->getUsers()->getUserById($this->userId);
+    }
+
+    /**
+     * Sets the submission's user.
+     *
+     * @param User $user
+     */
+    public function setUser(User $user)
+    {
+        $this->_user = $user;
+        $this->userId = $user->id;
     }
 
     /**

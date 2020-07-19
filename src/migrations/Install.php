@@ -146,6 +146,7 @@ class Install extends Migration
             'title' => $this->string(255)->notNull(),
             'formId' => $this->integer()->notNull(),
             'statusId' => $this->integer(),
+            'userId' => $this->integer(),
             'isIncomplete' => $this->boolean()->defaultValue(false),
             'isSpam' => $this->boolean()->defaultValue(false),
             'spamReason' => $this->text(),
@@ -252,6 +253,7 @@ class Install extends Migration
         $this->createIndex(null, '{{%formie_syncfields}}', ['syncId', 'fieldId'], true);
         $this->createIndex(null, '{{%formie_submissions}}', 'formId', false);
         $this->createIndex(null, '{{%formie_submissions}}', 'statusId', false);
+        $this->createIndex(null, '{{%formie_submissions}}', 'userId', false);
         $this->createIndex(null, '{{%formie_stencils}}', 'templateId', false);
         $this->createIndex(null, '{{%formie_stencils}}', 'defaultStatusId', false);
         $this->createIndex(null, '{{%formie_formtemplates}}', 'fieldLayoutId', false);
@@ -280,6 +282,7 @@ class Install extends Migration
         $this->addForeignKey(null, '{{%formie_submissions}}', ['id'], '{{%elements}}', ['id'], 'CASCADE', null);
         $this->addForeignKey(null, '{{%formie_submissions}}', ['formId'], '{{%formie_forms}}', ['id'], 'CASCADE', null);
         $this->addForeignKey(null, '{{%formie_submissions}}', ['statusId'], '{{%formie_statuses}}', ['id'], 'SET NULL', null);
+        $this->addForeignKey(null, '{{%formie_submissions}}', ['userId'], '{{%users}}', ['id'], 'SET NULL', null);
         $this->addForeignKey(null, '{{%formie_stencils}}', ['templateId'], '{{%formie_formtemplates}}', ['id'], 'SET NULL', null);
         $this->addForeignKey(null, '{{%formie_stencils}}', ['defaultStatusId'], '{{%formie_statuses}}', ['id'], 'SET NULL', null);
         $this->addForeignKey(null, '{{%formie_formtemplates}}', ['fieldLayoutId'], '{{%fieldlayouts}}', ['id'], 'CASCADE', null);

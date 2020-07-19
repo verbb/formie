@@ -30,6 +30,7 @@ class FormSettings extends Model
     public $validationOnFocus;
     public $submissionTitleFormat = '{timestamp}';
     public $collectIp;
+    public $collectUser;
     public $storeData;
     public $availabilityMessage;
     public $availabilityMessageDate;
@@ -38,10 +39,6 @@ class FormSettings extends Model
     public $defaultInstructionsPosition;
     public $progressPosition = 'end';
     public $integrations = [];
-
-    // TODO: remove once we've re-saved forms
-    public $displayPageTitles;
-    public $submitButtonText;
 
 
     // Public Methods
@@ -98,6 +95,7 @@ class FormSettings extends Model
                     'validationOnFocus' => AttributeTypecastBehavior::TYPE_BOOLEAN,
                     'submissionTitleFormat' => AttributeTypecastBehavior::TYPE_STRING,
                     'collectIp' => AttributeTypecastBehavior::TYPE_BOOLEAN,
+                    'collectUser' => AttributeTypecastBehavior::TYPE_BOOLEAN,
                     'storeData' => AttributeTypecastBehavior::TYPE_BOOLEAN,
                     'availabilityMessage' => AttributeTypecastBehavior::TYPE_STRING,
                     'defaultLabelPosition' => AttributeTypecastBehavior::TYPE_STRING,

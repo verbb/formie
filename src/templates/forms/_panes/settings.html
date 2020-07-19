@@ -32,7 +32,7 @@
         <a id="status-menu-btn" class="btn menubtn" href="javascript:;">
             <span class="status {{ form.defaultStatus.color }}"></span>{{ form.defaultStatus.name }}
         </a>
-        
+
         <div class="menu">
             <ul class="padded">
                 {% for status in craft.formie.statuses %}
@@ -78,6 +78,14 @@
     id: 'collectIp',
     name: 'settings[collectIp]',
     on: form.settings.collectIp ?? false,
+}) }}
+
+{{ forms.lightswitchField({
+    label: 'Collect User' | t('formie'),
+    instructions: 'Whether this form should keep a record of the logged-in user.' | t('formie'),
+    id: 'collectUser',
+    name: 'settings[collectUser]',
+    on: form.settings.collectUser ?? false,
 }) }}
 
 {# TODO

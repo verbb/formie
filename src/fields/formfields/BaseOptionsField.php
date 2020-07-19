@@ -85,7 +85,6 @@ abstract class BaseOptionsField extends CraftBaseOptionsField
             $label = (string)$option['label'];
             $value = (string)$option['value'];
 
-            // TODO: do we need to enforce unique labels
             if (isset($labels[$optgroup][$label])) {
                 $option['hasDuplicateLabels'] = true;
                 $hasDuplicateLabels = true;

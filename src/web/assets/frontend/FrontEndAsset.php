@@ -1,10 +1,10 @@
 <?php
 namespace verbb\formie\web\assets\frontend;
 
-use Craft;
 use craft\helpers\Json;
 use craft\web\AssetBundle;
 use craft\web\View;
+use verbb\formie\elements\Form;
 
 class FrontEndAsset extends AssetBundle
 {

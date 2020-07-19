@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\elements\db;
 
+use craft\elements\User;
 use verbb\formie\Formie;
 use verbb\formie\elements\Form;
 use verbb\formie\models\Status;
@@ -20,6 +21,7 @@ class SubmissionQuery extends ElementQuery
     public $siteId;
     public $formId;
     public $statusId;
+    public $userId;
     public $isIncomplete = false;
     public $isSpam = false;
 
@@ -33,7 +35,6 @@ class SubmissionQuery extends ElementQuery
      * Sets the [[formId]] property.
      *
      * @param Form|string|null $value The property value
-     *
      * @return static self reference
      */
     public function form($value)
@@ -57,7 +58,6 @@ class SubmissionQuery extends ElementQuery
      * Sets the [[formId]] property.
      *
      * @param int
-     *
      * @return static self reference
      */
     public function formId($value)
@@ -68,8 +68,10 @@ class SubmissionQuery extends ElementQuery
     }
 
     /**
+     * Sets the [[statusId]] property.
+     *
      * @param Status|string|null $value
-     * @return $this
+     * @return static self reference
      */
     public function status($value)
     {
@@ -88,6 +90,12 @@ class SubmissionQuery extends ElementQuery
         return $this;
     }
 
+    /**
+     * Sets the [[statusId]] property.
+     *
+     * @param int
+     * @return static self reference
+     */
     public function statusId($value)
     {
         $this->statusId = $value;
@@ -96,8 +104,43 @@ class SubmissionQuery extends ElementQuery
     }
 
     /**
+     * Sets the [[userId]] property.
+     *
+     * @param User|string|null $value
+     * @return static self reference
+     */
+    public function user($value)
+    {
+        if ($value instanceof User) {
+            $this->userId = $value->id;
+        } else if ($value !== null) {
+            $user = Craft::$app->getUsers()->getUserByUsernameOrEmail($value);
+            $this->userId = $user ? $user->id : false;
+        } else {
+            $this->userId = null;
+        }
+
+        return $this;
+    }
+
+    /**
+     * Sets the [[userId]] property.
+     *
+     * @param int
+     * @return static self reference
+     */
+    public function userId($value)
+    {
+        $this->userId = $value;
+
+        return $this;
+    }
+
+    /**
+     * Sets the [[isIncomplete]] property.
+     *
      * @param bool|null $value
-     * @return $this
+     * @return static self reference
      */
     public function isIncomplete($value)
     {
@@ -106,8 +149,10 @@ class SubmissionQuery extends ElementQuery
     }
 
     /**
+     * Sets the [[isSpam]] property.
+     *
      * @param bool|null $value
-     * @return $this
+     * @return static self reference
      */
     public function isSpam($value)
     {
@@ -153,6 +198,7 @@ class SubmissionQuery extends ElementQuery
             'formie_submissions.title',
             'formie_submissions.formId',
             'formie_submissions.statusId',
+            'formie_submissions.userId',
             'formie_submissions.isIncomplete',
             'formie_submissions.isSpam',
         ]);
@@ -163,6 +209,14 @@ class SubmissionQuery extends ElementQuery
 
         if ($this->statusId) {
             $this->subQuery->andWhere(Db::parseParam('formie_submissions.statusId', $this->statusId));
+        }
+
+        if ($this->userId !== null) {
+            if (is_numeric($this->userId)) {
+                $this->subQuery->andWhere(Db::parseParam('formie_submissions.userId', $this->userId));
+            } else {
+                return false;
+            }
         }
 
         if ($this->isIncomplete !== null) {
