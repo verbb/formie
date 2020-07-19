@@ -3,14 +3,13 @@ namespace verbb\formie\services;
 
 use verbb\formie\Formie;
 use verbb\formie\controllers\SubmissionsController;
-use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\SubmissionEvent;
 use verbb\formie\events\SendNotificationEvent;
+use verbb\formie\jobs\SendNotification;
 use verbb\formie\models\Settings;
 
 use Craft;
-use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 
 use yii\base\Component;
@@ -140,7 +139,7 @@ class Submissions extends Component
 
             $submissions = Submission::find()
                 ->limit(null)
-                ->offset($spamLimit)
+                ->offset($settings->spamLimit)
                 ->isSpam(true)
                 ->orderBy(['dateCreated' => SORT_DESC])
                 ->all();
@@ -155,8 +154,14 @@ class Submissions extends Component
         }
     }
 
+    /**
+     * Performs spam checks on a submission.
+     *
+     * @param Submission $submission
+     */
     public function spamChecks(Submission $submission)
     {
+        /* @var Settings $settings */
         $settings = Formie::$plugin->getSettings();
 
         // Is it already spam? Return
@@ -189,6 +194,11 @@ class Submissions extends Component
         }
     }
 
+    /**
+     * Logs spam to the Formie log.
+     *
+     * @param Submission $submission
+     */
     public function logSpam(Submission $submission)
     {
         $fieldValues = $submission->getSerializedFieldValues();
@@ -206,6 +216,12 @@ class Submissions extends Component
     // Private Methods
     // =========================================================================
 
+    /**
+     * Converts a multiline string to an array.
+     *
+     * @param $string
+     * @return array
+     */
     private function _getArrayFromMultiline($string)
     {
         $array = [];
@@ -217,6 +233,12 @@ class Submissions extends Component
         return $array;
     }
 
+    /**
+     * Converts a field value to a string.
+     *
+     * @param $submission
+     * @return string
+     */
     private function _getContentAsString($submission)
     {
         $fieldValues = [];
