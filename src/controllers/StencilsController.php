@@ -7,11 +7,12 @@ use craft\helpers\DateTimeHelper;
 use craft\helpers\Json;
 use craft\web\Controller;
 
-use Throwable;
 use verbb\formie\Formie;
+use verbb\formie\helpers\Variables;
 use verbb\formie\models\Stencil;
-
 use verbb\formie\models\StencilData;
+
+use Throwable;
 use yii\web\HttpException;
 use yii\web\Response;
 
@@ -93,6 +94,7 @@ class StencilsController extends Controller
 
         $variables['formConfig'] = $config;
         $variables['notifications'] = $notifications;
+        $variables['variables'] = Variables::getVariablesArray();
         $variables['fields'] = Formie::$plugin->getFields()->getRegisteredFieldGroups();
         $variables['emailTemplates'] = Formie::$plugin->getEmailTemplates()->getAllTemplates();
         $variables['reservedHandles'] = Formie::$plugin->getFields()->getReservedHandles();

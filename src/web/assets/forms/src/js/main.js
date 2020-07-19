@@ -42,6 +42,7 @@ Craft.Formie = Garnish.Base.extend({
     init(settings) {
         // Initialise our Vuex stores with data
         store.dispatch('form/setFormConfig', settings.config);
+        store.dispatch('form/setVariables', settings.variables);
         store.dispatch('fieldtypes/setFieldtypes', settings.fields);
         store.dispatch('fieldGroups/setFieldGroups', settings.fields);
         store.dispatch('notifications/setNotifications', settings.notifications);

@@ -61,15 +61,15 @@ const actions = {
 // Getters are primarily used to perform some calculation/manipulation to store state
 // before having that information accessible to components.
 const getters = {
-    reservedHandles: (state) => (type) => {
+    reservedHandles: (state) => () => {
         return state.reservedHandles;
     },
 
-    emailTemplates: (state) => (type) => {
+    emailTemplates: (state) => () => {
         return state.emailTemplates;
     },
 
-    existingFields: (state) => (type) => {
+    existingFields: (state) => () => {
         return state.existingFields;
     },
 };

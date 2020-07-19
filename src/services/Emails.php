@@ -339,8 +339,13 @@ class Emails extends Component
     {
         $emails = str_replace(';', ',', $emails);
         $emails = preg_split('/[\s,]+/', $emails);
+        $emailsEnv = [];
 
-        return array_filter($emails);
+        foreach (array_filter($emails) as $email) {
+            $emailsEnv[] = Craft::parseEnv($email);
+        }
+
+        return $emailsEnv;
     }
 
     private function _attachFilesToEmail(Message $message, Submission $submission)

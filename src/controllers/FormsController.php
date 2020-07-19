@@ -2,36 +2,22 @@
 namespace verbb\formie\controllers;
 
 use Craft;
-use craft\base\Field;
-use craft\errors\MissingComponentException;
-use craft\errors\SiteNotFoundException;
 use craft\helpers\ArrayHelper;
-use craft\helpers\DateTimeHelper;
 use craft\helpers\StringHelper;
 use craft\helpers\UrlHelper;
 use craft\models\Site;
-use craft\validators\HandleValidator;
 use craft\web\Controller;
 
-use ReflectionException;
-use Twig\Error\LoaderError;
-use Twig\Error\RuntimeError;
-use Twig\Error\SyntaxError;
-
 use yii\base\Exception;
-use yii\base\InvalidConfigException;
-use yii\web\BadRequestHttpException;
 use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
 use yii\web\Response;
 
-use ReflectionClass;
 use Throwable;
 
 use verbb\formie\Formie;
 use verbb\formie\elements\Form;
-use verbb\formie\models\FormSettings;
-use verbb\formie\fields\formfields\SingleLineText;
+use verbb\formie\helpers\Variables;
 
 class FormsController extends Controller
 {
@@ -360,6 +346,7 @@ class FormsController extends Controller
 
         $variables['formConfig'] = $form->getFormConfig();
         $variables['notifications'] = $notificationsConfig;
+        $variables['variables'] = Variables::getVariablesArray();
         $variables['fields'] = Formie::$plugin->getFields()->getRegisteredFieldGroups();
         $variables['existingFields'] = Formie::$plugin->getFields()->getExistingFields($form);
         $variables['emailTemplates'] = Formie::$plugin->getEmailTemplates()->getAllTemplates();

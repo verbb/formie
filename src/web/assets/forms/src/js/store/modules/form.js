@@ -250,6 +250,10 @@ const mutations = {
 
         Vue.set(rows[rowIndex].fields[columnIndex], prop, value);
     },
+
+    SET_VARIABLES(state, config) {
+        Vue.set(state, 'variables', config);
+    },
 };
 
 // Actions exist to call mutations. Actions are also responsible in performing any
@@ -312,6 +316,10 @@ const actions = {
     setFieldProp(context, payload) {
         context.commit('SET_FIELD_PROP', payload);
     },
+
+    setVariables(context, config) {
+        context.commit('SET_VARIABLES', config);
+    },
 };
 
 // Getters are to a Vuex store what computed properties are to a Vue component.
@@ -355,29 +363,18 @@ const getters = {
     },
 
     generalFields: state => {
-        return [
-            { label: Craft.t('formie', 'Form'), heading: true },
-            { label: Craft.t('formie', 'All Form Fields'), value: '{allFields}' },
-            { label: Craft.t('formie', 'All Non Empty Fields'), value: '{allContentFields}' },
-            { label: Craft.t('formie', 'Form Name'), value: '{formName}' },
-            { label: Craft.t('formie', 'General'), heading: true },
-            { label: Craft.t('formie', 'Site Name'), value: '{siteName}' },
-            { label: Craft.t('formie', 'System Email'), value: '{systemEmail}' },
-            { label: Craft.t('formie', 'System Reply-To'), value: '{systemReplyTo}' },
-            { label: Craft.t('formie', 'System Sender Name'), value: '{systemName}' },
-            { label: Craft.t('formie', 'Date/Time'), heading: true },
-            { label: Craft.t('formie', 'Timestamp (yyyy-mm-dd hh:mm:ss)'), value: '{timestamp}' },
-            { label: Craft.t('formie', 'Date (mm/dd/yyyy)'), value: '{dateUs}' },
-            { label: Craft.t('formie', 'Date (dd/mm/yyyy)'), value: '{dateInt}' },
-            { label: Craft.t('formie', 'Time (12h)'), value: '{time12}' },
-            { label: Craft.t('formie', 'Time (24h)'), value: '{time24}' },
-            { label: Craft.t('formie', 'Users'), heading: true },
-            { label: Craft.t('formie', 'User IP Address'), value: '{userIp}' },
-            { label: Craft.t('formie', 'User ID'), value: '{userId}' },
-            { label: Craft.t('formie', 'User Email'), value: '{userEmail}' },
-            { label: Craft.t('formie', 'Username'), value: '{username}' },
-            { label: Craft.t('formie', 'User Full Name'), value: '{userFullName}' },
-        ];
+        let fields = [];
+
+        for (const key in state.variables) {
+            if (Object.hasOwnProperty.call(state.variables, key)) {
+                fields = [
+                    ...fields,
+                    ...state.variables[key],
+                ];
+            }
+        }
+
+        return fields;
     },
 
     emailFields: (state, getters) => (includeGeneral = false) => {
@@ -404,11 +401,7 @@ const getters = {
         if (includeGeneral) {
             fields = fields.concat(getters.generalFields);
         } else {
-            fields = fields.concat([
-                { label: Craft.t('formie', 'General'), heading: true },
-                { label: Craft.t('formie', 'System Email'), value: '{systemEmail}' },
-                { label: Craft.t('formie', 'System Reply-To'), value: '{systemReplyTo}' },
-            ]);
+            fields = fields.concat(state.variables.email);
         }
 
         return fields;

@@ -430,7 +430,7 @@ class Fields extends Component
     }
 
     /**
-     * Get's a field's config for rendering form builder.
+     * Gets a field's config for rendering form builder.
      *
      * @param FormFieldInterface $field
      * @return array

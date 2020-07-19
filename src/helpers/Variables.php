@@ -25,17 +25,43 @@ class Variables
     // =========================================================================
 
     /**
-     * Returns a list of available variables.
+     * Returns a list of form variables.
      *
      * @return array
      */
-    public static function getVariables(): array
+    public static function getFormVariables(): array
     {
         return [
             [ 'label' => Craft::t('formie', 'Form'), 'heading' => true ],
             [ 'label' => Craft::t('formie', 'All Form Fields'), 'value' => '{allFields}' ],
             [ 'label' => Craft::t('formie', 'All Non Empty Fields'), 'value' => '{allContentFields}' ],
             [ 'label' => Craft::t('formie', 'Form Name'), 'value' => '{formName}' ],
+            [ 'label' => Craft::t('formie', 'Submission URL'), 'value' => '{submissionUrl}' ],
+        ];
+    }
+
+    /**
+     * Returns a list of email variables.
+     *
+     * @return array
+     */
+    public static function getEmailVariables(): array
+    {
+        return [
+            [ 'label' => Craft::t('formie', 'Email'), 'heading' => true ],
+            [ 'label' => Craft::t('formie', 'System Email'), 'value' => '{systemEmail}' ],
+            [ 'label' => Craft::t('formie', 'System Reply-To'), 'value' => '{systemReplyTo}' ],
+        ];
+    }
+
+    /**
+     * Returns a list of general variables.
+     *
+     * @return array
+     */
+    public static function getGeneralVariables(): array
+    {
+        return [
             [ 'label' => Craft::t('formie', 'General'), 'heading' => true ],
             [ 'label' => Craft::t('formie', 'Site Name'), 'value' => '{siteName}' ],
             [ 'label' => Craft::t('formie', 'Timestamp'), 'value' => '{timestamp}' ],
@@ -43,6 +69,17 @@ class Variables
             [ 'label' => Craft::t('formie', 'Date (dd/mm/yyyy)'), 'value' => '{dateInt}' ],
             [ 'label' => Craft::t('formie', 'Time (12h)'), 'value' => '{time12}' ],
             [ 'label' => Craft::t('formie', 'Time (24h)'), 'value' => '{time24}' ],
+        ];
+    }
+
+    /**
+     * Returns a list of users variables.
+     *
+     * @return array
+     */
+    public static function getUsersVariables(): array
+    {
+        return [
             [ 'label' => Craft::t('formie', 'Users'), 'heading' => true ],
             [ 'label' => Craft::t('formie', 'User IP Address'), 'value' => '{userIp}' ],
             [ 'label' => Craft::t('formie', 'User ID'), 'value' => '{userId}' ],
@@ -52,6 +89,35 @@ class Variables
         ];
     }
 
+    /**
+     * Returns a list of all available variables.
+     *
+     * @return array
+     */
+    public static function getVariables(): array
+    {
+        return array_merge(
+            static::getFormVariables(),
+            static::getGeneralVariables(),
+            static::getEmailVariables(),
+            static::getUsersVariables()
+        );
+    }
+
+    /**
+     * Returns a list of all available variables.
+     *
+     * @return array
+     */
+    public static function getVariablesArray(): array
+    {
+        return [
+            'form' => static::getFormVariables(),
+            'general' => static::getGeneralVariables(),
+            'email' => static::getEmailVariables(),
+            'users' => static::getUsersVariables(),
+        ];
+    }
 
     /**
      * Renders and returns an object template, or null if it fails.
@@ -120,6 +186,7 @@ class Variables
                 'allFields' => $fieldHtml,
                 'allContentFields' => $fieldContentHtml,
                 'formName' => $formName,
+                'submissionUrl' => $submission->getCpEditUrl(),
 
                 'siteName' => $siteName,
                 'systemEmail' => $systemEmail,
