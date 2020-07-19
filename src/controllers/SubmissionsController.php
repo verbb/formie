@@ -475,7 +475,7 @@ class SubmissionsController extends Controller
 
         if ($request->getAcceptsJson()) {
             return $this->asJson([
-                'success' => $success,
+                'success' => true,
             ]);
         }
 

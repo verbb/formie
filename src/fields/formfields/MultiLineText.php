@@ -28,9 +28,9 @@ class MultiLineText extends FormField
     /**
      * @inheritDoc
      */
-    public static function getTemplatePath(): string
+    public static function getEmailTemplatePath(): string
     {
-        return 'fields/multi-line-text';
+        return '';
     }
 
     /**

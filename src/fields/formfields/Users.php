@@ -20,7 +20,7 @@ class Users extends CraftUsers implements FormFieldInterface
     // =========================================================================
 
     use FormFieldTrait {
-        getFrontendInputOptions as traitGetFrontendInputOptions;
+        getFrontEndInputOptions as traitGetFrontendInputOptions;
     }
     use RelationFieldTrait;
 
@@ -54,14 +54,6 @@ class Users extends CraftUsers implements FormFieldInterface
     /**
      * @inheritDoc
      */
-    public static function getTemplatePath(): string
-    {
-        return 'fields/users';
-    }
-
-    /**
-     * @inheritDoc
-     */
     public static function getSvgIconPath(): string
     {
         return 'formie/_formfields/users/icon.svg';
@@ -77,7 +69,7 @@ class Users extends CraftUsers implements FormFieldInterface
     public function getExtraBaseFieldConfig(): array
     {
         $options = $this->getSourceOptions();
-        
+
         return [
             'sourceOptions' => $options,
             'warning' => count($options) < 2 ? Craft::t('formie', 'No user groups available. View [user group settings]({link}).', ['link' => UrlHelper::cpUrl('settings/users') ]) : false,
@@ -115,24 +107,12 @@ class Users extends CraftUsers implements FormFieldInterface
     /**
      * @inheritDoc
      */
-    public function getFrontendInputOptions(Form $form, $value, array $options = null): array
+    public function getFrontEndInputOptions(Form $form, $value, array $options = null): array
     {
         $inputOptions = $this->traitGetFrontendInputOptions($form, $value, $options);
         $inputOptions['usersQuery'] = $this->getUsersQuery();
 
         return $inputOptions;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getEmailHtml($value, $showName = true)
-    {
-        return Craft::$app->getView()->renderTemplate('formie/_formfields/users/email', [
-            'field' => $this,
-            'value' => $value,
-            'showName' => $showName,
-        ]);
     }
 
     /**

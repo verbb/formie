@@ -10,6 +10,8 @@ use Twig\Markup;
 
 use verbb\formie\elements\Form;
 
+use verbb\formie\elements\Submission;
+use verbb\formie\models\Notification;
 use yii\base\Exception;
 
 interface FormFieldInterface extends ComponentInterface
@@ -44,7 +46,14 @@ interface FormFieldInterface extends ComponentInterface
      *
      * @return string
      */
-    public static function getTemplatePath(): string;
+    public static function getFrontEndInputTemplatePath(): string;
+
+    /**
+     * Returns the template path for the frontend email HTML.
+     *
+     * @return string
+     */
+    public static function getEmailTemplatePath(): string;
 
     /**
      * Returns the nice submission value for this field.
@@ -158,6 +167,16 @@ interface FormFieldInterface extends ComponentInterface
     public function getPreviewInputHtml(): string;
 
     /**
+     * Returns an array of options that will be passed into the render function.
+     *
+     * @param Form $form
+     * @param mixed $value
+     * @param array|null $options
+     * @return array
+     */
+    public function getFrontEndInputOptions(Form $form, $value, array $options = null): array;
+
+    /**
      * Returns the frontend input HTML.
      *
      * @param Form $form
@@ -170,25 +189,22 @@ interface FormFieldInterface extends ComponentInterface
     /**
      * Returns an array of options that will be passed into the render function.
      *
-     * @param Form $form
+     * @param Submission $submission
      * @param mixed $value
      * @param array|null $options
      * @return array
      */
-    public function getFrontendInputOptions(Form $form, $value, array $options = null): array;
+    public function getEmailOptions(Submission $submission, $value, array $options = null): array;
 
     /**
      * Gets the email HTML for this field.
      *
+     * @param Submission $submission
      * @param mixed $value
-     * @param bool $showName
-     * @return string
-     * @throws LoaderError
-     * @throws RuntimeError
-     * @throws SyntaxError
-     * @throws Exception
+     * @param array|null $options
+     * @return Markup
      */
-    public function getEmailHtml($value, $showName = true);
+    public function getEmailHtml(Submission $submission, $value, array $options = null);
 
     /**
      * Returns the namespace for this field.
@@ -224,4 +240,9 @@ interface FormFieldInterface extends ComponentInterface
      * @return array
      */
     public function defineAdvancedSchema(): array;
+
+    /**
+     * Called after a field is created.
+     */
+    public function afterCreateField();
 }

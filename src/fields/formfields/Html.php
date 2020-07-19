@@ -2,6 +2,7 @@
 namespace verbb\formie\fields\formfields;
 
 use verbb\formie\base\FormField;
+use verbb\formie\elements\Submission;
 use verbb\formie\helpers\SchemaHelper;
 
 use Craft;
@@ -26,14 +27,6 @@ class Html extends FormField
     public static function displayName(): string
     {
         return Craft::t('formie', 'HTML');
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public static function getTemplatePath(): string
-    {
-        return 'fields/html';
     }
 
     /**
@@ -78,7 +71,10 @@ class Html extends FormField
         ]);
     }
 
-    public function getEmailHtml($value, $showName = true)
+    /**
+     * @inheritDoc
+     */
+    public function getEmailHtml(Submission $submission, $value, array $options = null)
     {
         return false;
     }

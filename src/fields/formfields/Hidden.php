@@ -29,9 +29,9 @@ class Hidden extends FormField
     /**
      * @inheritDoc
      */
-    public static function getTemplatePath(): string
+    public static function getEmailTemplatePath(): string
     {
-        return 'fields/hidden-field';
+        return '';
     }
 
     /**
@@ -89,9 +89,9 @@ class Hidden extends FormField
     /**
      * @inheritDoc
      */
-    public function getFrontendInputOptions(Form $form, $value, array $options = null): array
+    public function getFrontEndInputOptions(Form $form, $value, array $options = null): array
     {
-        $inputOptions = parent::getFrontendInputOptions($form, $value, $options);
+        $inputOptions = parent::getFrontEndInputOptions($form, $value, $options);
 
         try {
             $defaultValue = Craft::$app->getView()->renderString(

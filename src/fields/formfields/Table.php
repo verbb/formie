@@ -58,14 +58,6 @@ class Table extends CraftTable implements FormFieldInterface
     /**
      * @inheritDoc
      */
-    public static function getTemplatePath(): string
-    {
-        return 'fields/table';
-    }
-
-    /**
-     * @inheritDoc
-     */
     public static function getSvgIconPath(): string
     {
         return 'formie/_formfields/table/icon.svg';
@@ -199,18 +191,6 @@ class Table extends CraftTable implements FormFieldInterface
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/table/preview', [
             'field' => $this
-        ]);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getEmailHtml($value, $showName = true)
-    {
-        return Craft::$app->getView()->renderTemplate('formie/_formfields/table/email', [
-            'field' => $this,
-            'value' => $value,
-            'showName' => $showName,
         ]);
     }
 

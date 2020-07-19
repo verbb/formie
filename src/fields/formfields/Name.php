@@ -75,14 +75,6 @@ class Name extends FormField implements SubfieldInterface
     /**
      * @inheritDoc
      */
-    public static function getTemplatePath(): string
-    {
-        return 'fields/name';
-    }
-
-    /**
-     * @inheritDoc
-     */
     public static function getSvgIconPath(): string
     {
         return 'formie/_formfields/name/icon.svg';
@@ -302,18 +294,6 @@ class Name extends FormField implements SubfieldInterface
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/name/preview', [
             'field' => $this
-        ]);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getEmailHtml($value, $showName = true)
-    {
-        return Craft::$app->getView()->renderTemplate('formie/_formfields/name/email', [
-            'field' => $this,
-            'value' => $value,
-            'showName' => $showName,
         ]);
     }
 

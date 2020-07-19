@@ -34,14 +34,6 @@ class Group extends FormField implements NestedFieldInterface, EagerLoadingField
     /**
      * @inheritDoc
      */
-    public static function getTemplatePath(): string
-    {
-        return 'fields/group';
-    }
-
-    /**
-     * @inheritDoc
-     */
     public static function getSvgIconPath(): string
     {
         return 'formie/_formfields/group/icon.svg';
@@ -99,18 +91,6 @@ class Group extends FormField implements NestedFieldInterface, EagerLoadingField
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/group/preview', [
             'field' => $this
-        ]);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getEmailHtml($value, $showName = true)
-    {
-        return Craft::$app->getView()->renderTemplate('formie/_formfields/group/email', [
-            'field' => $this,
-            'value' => $value,
-            'showName' => $showName,
         ]);
     }
 

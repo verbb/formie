@@ -38,9 +38,9 @@ class Number extends FormField
     /**
      * @inheritDoc
      */
-    public static function getTemplatePath(): string
+    public static function getEmailTemplatePath(): string
     {
-        return 'fields/number';
+        return '';
     }
 
     /**

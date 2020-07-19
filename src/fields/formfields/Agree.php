@@ -34,14 +34,6 @@ class Agree extends FormField
     /**
      * @inheritDoc
      */
-    public static function getTemplatePath(): string
-    {
-        return 'fields/agree';
-    }
-
-    /**
-     * @inheritDoc
-     */
     public static function getSvgIconPath(): string
     {
         return 'formie/_formfields/agree/icon.svg';
@@ -108,18 +100,6 @@ class Agree extends FormField
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/agree/preview', [
             'field' => $this
-        ]);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getEmailHtml($value, $showName = true)
-    {
-        return Craft::$app->getView()->renderTemplate('formie/_formfields/agree/email', [
-            'field' => $this,
-            'value' => $value,
-            'showName' => $showName,
         ]);
     }
 

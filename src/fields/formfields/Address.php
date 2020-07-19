@@ -92,14 +92,6 @@ class Address extends FormField implements SubfieldInterface
     /**
      * @inheritDoc
      */
-    public static function getTemplatePath(): string
-    {
-        return 'fields/address';
-    }
-
-    /**
-     * @inheritDoc
-     */
     public static function getSvgIconPath(): string
     {
         return 'formie/_formfields/address/icon.svg';
@@ -374,18 +366,6 @@ class Address extends FormField implements SubfieldInterface
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/address/preview', [
             'field' => $this
-        ]);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getEmailHtml($value, $showName = true)
-    {
-        return Craft::$app->getView()->renderTemplate('formie/_formfields/address/email', [
-            'field' => $this,
-            'value' => $value,
-            'showName' => $showName,
         ]);
     }
 

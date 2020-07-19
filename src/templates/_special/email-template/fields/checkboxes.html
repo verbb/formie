@@ -1,14 +1,12 @@
-{% set elements = value.all() %}
-
 <p>
-    {% if showName %}
+    {% if not (options.hideName ?? false) %}
         <strong>{{ field.name }}</strong><br>
     {% endif %}
 
-    {% if elements | length %}
+    {% if value | length %}
         <ul>
-            {% for element in elements %}
-                <li>{{ element.link }}</li>
+            {% for item in value %}
+                <li>{{ item }}</li>
             {% endfor %}
         </ul>
     {% else %}

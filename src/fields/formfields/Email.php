@@ -23,9 +23,9 @@ class Email extends FormField
     /**
      * @inheritDoc
      */
-    public static function getTemplatePath(): string
+    public static function getEmailTemplatePath(): string
     {
-        return 'fields/email';
+        return '';
     }
 
     /**

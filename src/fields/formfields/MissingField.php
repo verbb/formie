@@ -1,12 +1,13 @@
 <?php
 namespace verbb\formie\fields\formfields;
 
-use verbb\formie\base\FormField;
-
 use Craft;
 use craft\base\ElementInterface;
 use craft\base\MissingComponentTrait;
 use craft\base\MissingComponentInterface;
+
+use verbb\formie\base\FormField;
+use verbb\formie\elements\Submission;
 
 class MissingField extends FormField implements MissingComponentInterface
 {
@@ -30,7 +31,7 @@ class MissingField extends FormField implements MissingComponentInterface
     /**
      * @inheritDoc
      */
-    public static function getTemplatePath(): string
+    public static function getFrontEndInputTemplatePath(): string
     {
         return '';
     }
@@ -80,7 +81,7 @@ class MissingField extends FormField implements MissingComponentInterface
     /**
      * @inheritDoc
      */
-    public function getEmailHtml($value, $showName = true)
+    public function getEmailHtml(Submission $submission, $value, array $options = null)
     {
         return false;
     }

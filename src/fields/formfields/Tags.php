@@ -10,10 +10,8 @@ use verbb\formie\helpers\SchemaHelper;
 
 use Craft;
 use craft\base\ElementInterface;
-use craft\elements\db\ElementQueryInterface;
 use craft\elements\Tag;
 use craft\fields\Tags as CraftTags;
-use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 use craft\helpers\StringHelper;
 use craft\helpers\UrlHelper;
@@ -27,7 +25,7 @@ class Tags extends CraftTags implements FormFieldInterface
     // =========================================================================
 
     use FormFieldTrait {
-        getFrontendInputOptions as traitGetFrontendInputOptions;
+        getFrontEndInputOptions as traitGetFrontendInputOptions;
     }
     use RelationFieldTrait;
 
@@ -56,14 +54,6 @@ class Tags extends CraftTags implements FormFieldInterface
     public static function displayName(): string
     {
         return Craft::t('formie', 'Tags');
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public static function getTemplatePath(): string
-    {
-        return 'fields/tags';
     }
 
     /**
@@ -142,7 +132,7 @@ class Tags extends CraftTags implements FormFieldInterface
     public function getExtraBaseFieldConfig(): array
     {
         $options = $this->getSourceOptions();
-        
+
         return [
             'sourceOptions' => $options,
             'warning' => count($options) === 1 ? Craft::t('formie', 'No tag groups available. View [tag settings]({link}).', ['link' => UrlHelper::cpUrl('settings/tags') ]) : false,
@@ -180,24 +170,12 @@ class Tags extends CraftTags implements FormFieldInterface
     /**
      * @inheritDoc
      */
-    public function getFrontendInputOptions(Form $form, $value, array $options = null): array
+    public function getFrontEndInputOptions(Form $form, $value, array $options = null): array
     {
         $inputOptions = $this->traitGetFrontendInputOptions($form, $value, $options);
         $inputOptions['tags'] = $this->getTags();
 
         return $inputOptions;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getEmailHtml($value, $showName = true)
-    {
-        return Craft::$app->getView()->renderTemplate('formie/_formfields/tags/email', [
-            'field' => $this,
-            'value' => $value,
-            'showName' => $showName,
-        ]);
     }
 
     /**

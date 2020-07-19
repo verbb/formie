@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\models;
 
+use verbb\formie\Formie;
 use verbb\formie\helpers\VariableNode;
 use verbb\formie\prosemirror\Renderer;
 
@@ -30,6 +31,12 @@ class Notification extends Model
     public $content;
     public $attachFiles;
     public $uid;
+
+
+    // Private Properties
+    // =========================================================================
+
+    private $_template;
 
 
     // Public Methods
@@ -116,5 +123,38 @@ class Notification extends Model
             'type' => 'doc',
             'content' => $content,
         ]);
+    }
+
+    /**
+     * Returns the notification's template, or null if not set.
+     *
+     * @return EmailTemplate|null
+     */
+    public function getTemplate()
+    {
+        if (!$this->_template) {
+            if ($this->templateId) {
+                $this->_template = Formie::$plugin->getEmailTemplates()->getTemplateById($this->templateId);
+            } else {
+                return null;
+            }
+        }
+
+        return $this->_template;
+    }
+
+    /**
+     * Sets the form template.
+     *
+     * @param EmailTemplate|null $template
+     */
+    public function setTemplate($template)
+    {
+        if ($template) {
+            $this->_template = $template;
+            $this->templateId = $template->id;
+        } else {
+            $this->_template = $this->templateId = null;
+        }
     }
 }

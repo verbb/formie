@@ -20,7 +20,7 @@ class Variants extends CommerceVariants implements FormFieldInterface
     // =========================================================================
 
     use FormFieldTrait {
-        getFrontendInputOptions as traitGetFrontendInputOptions;
+        getFrontEndInputOptions as traitGetFrontendInputOptions;
     }
     use RelationFieldTrait;
 
@@ -51,14 +51,6 @@ class Variants extends CommerceVariants implements FormFieldInterface
     /**
      * @inheritDoc
      */
-    public static function getTemplatePath(): string
-    {
-        return 'fields/variants';
-    }
-
-    /**
-     * @inheritDoc
-     */
     public static function getSvgIconPath(): string
     {
         return 'formie/_formfields/variants/icon.svg';
@@ -74,7 +66,7 @@ class Variants extends CommerceVariants implements FormFieldInterface
     public function getExtraBaseFieldConfig(): array
     {
         $options = $this->getSourceOptions();
-        
+
         return [
             'sourceOptions' => $options,
             'warning' => count($options) === 1 ? Craft::t('formie', 'No product types available. View [product type settings]({link}).', ['link' => UrlHelper::cpUrl('commerce/settings/producttypes') ]) : false,
@@ -105,24 +97,12 @@ class Variants extends CommerceVariants implements FormFieldInterface
     /**
      * @inheritDoc
      */
-    public function getFrontendInputOptions(Form $form, $value, array $options = null): array
+    public function getFrontEndInputOptions(Form $form, $value, array $options = null): array
     {
         $inputOptions = $this->traitGetFrontendInputOptions($form, $value, $options);
         $inputOptions['variantsQuery'] = $this->getVariantsQuery();
 
         return $inputOptions;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getEmailHtml($value, $showName = true)
-    {
-        return Craft::$app->getView()->renderTemplate('formie/_formfields/variants/email', [
-            'field' => $this,
-            'value' => $value,
-            'showName' => $showName,
-        ]);
     }
 
     /**

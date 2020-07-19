@@ -25,7 +25,7 @@ class Entries extends CraftEntries implements FormFieldInterface
     // =========================================================================
 
     use FormFieldTrait {
-        getFrontendInputOptions as traitGetFrontendInputOptions;
+        getFrontEndInputOptions as traitGetFrontendInputOptions;
     }
     use RelationFieldTrait;
 
@@ -50,14 +50,6 @@ class Entries extends CraftEntries implements FormFieldInterface
     /**
      * @inheritDoc
      */
-    public static function getTemplatePath(): string
-    {
-        return 'fields/entries';
-    }
-
-    /**
-     * @inheritDoc
-     */
     public static function getSvgIconPath(): string
     {
         return 'formie/_formfields/entries/icon.svg';
@@ -73,7 +65,7 @@ class Entries extends CraftEntries implements FormFieldInterface
     public function getExtraBaseFieldConfig(): array
     {
         $options = $this->getSourceOptions();
-        
+
         return [
             'sourceOptions' => $options,
             'warning' => count($options) < 2 ? Craft::t('formie', 'No sections available. View [section settings]({link}).', ['link' => UrlHelper::cpUrl('settings/sections') ]) : false,
@@ -104,24 +96,12 @@ class Entries extends CraftEntries implements FormFieldInterface
     /**
      * @inheritDoc
      */
-    public function getFrontendInputOptions(Form $form, $value, array $options = null): array
+    public function getFrontEndInputOptions(Form $form, $value, array $options = null): array
     {
         $inputOptions = $this->traitGetFrontendInputOptions($form, $value, $options);
         $inputOptions['entriesQuery'] = $this->getEntriesQuery();
 
         return $inputOptions;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getEmailHtml($value, $showName = true)
-    {
-        return Craft::$app->getView()->renderTemplate('formie/_formfields/entries/email', [
-            'field' => $this,
-            'value' => $value,
-            'showName' => $showName,
-        ]);
     }
 
     /**

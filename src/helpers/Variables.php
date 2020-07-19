@@ -126,7 +126,6 @@ class Variables
      * @param Submission $submission
      * @param Form $form
      * @return string|null
-     * @noinspection PhpDocMissingThrowsInspection
      */
     public static function getParsedValue($value, Submission $submission, Form $form = null)
     {
@@ -244,7 +243,7 @@ class Variables
                 continue;
             }
 
-            $html = $field->getEmailHtml($value);
+            $html = $field->getEmailHtml($submission, $value);
 
             if ($html === false) {
                 continue;

@@ -25,7 +25,7 @@ In both bases, our `FormField` class itself extends from Craft's [Field]() class
 Method | Description
 --- | ---
 `displayName()` | Returns the name to be used for the field.
-`getTemplatePath()` | Returns the path to the front-end template for this field. This path is relative to the path set in your [Form Template](), if you are using a custom template.
+`getFrontEndInputTemplatePath()` | Returns the path to the front-end template for this field. This path is relative to the path set in your [Form Template](), if you are using a custom template.
 `getSvgIconPath()` | Returns the path to the SVG icon used as the field type in the control panel.
 `getIsTextInput()` | Whether this is a text-based input or not.
 `getFrontEndInputHtml()` | Returns the HTML for a the front-end template for a field.
@@ -263,25 +263,22 @@ There are also a number of templates fields use. These are namely:
 
 These are defined in functions, which are respectively:
 
-- `getEmailHtml()`
-- `getTemplatePath()`
 - `getPreviewInputHtml()`
+- `getFrontEndInputTemplatePath()`
 - `getInputHtml()`
+- `getEmailTemplatePath()`
+- `getEmailHtml()`
 
 ```php
 
-public static function getTemplatePath(): string
+public static function getFrontEndInputTemplatePath(): string
 {
     return 'my-module/my-field';
 }
 
-public function getEmailHtml($value, $showName = true)
+public static function getEmailTemplatePath(): string
 {
-    return Craft::$app->getView()->renderTemplate('my-module/my-field/email', [
-        'field' => $this,
-        'value' => $value,
-        'showName' => $showName,
-    ]);
+    return 'my-module/my-field';
 }
 
 public function getPreviewInputHtml(): string
@@ -302,6 +299,6 @@ public function getInputHtml($value, ElementInterface $element = null): string
 }
 ```
 
-You'll notice the special-case for `getTemplatePath()`. Whilst there is a `getFrontEndInputHtml()` function, it should not be overwritten in most cases. This is because Formie will determine where to look for this front-end HTML field, either in its own default templates, or the folder where custom templates are defined. As such, defining `getTemplatePath()` to the path of Twig file.
+You'll notice special-cases for `getFrontEndInputTemplatePath()` and `getEmailTemplatePath()`. Whilst there are `getFrontEndInputHtml()` and `getEmailHtml()` functions, they should not be overwritten in most cases. This is because Formie will determine where to look for these templates, either in its own default templates, or the folder where custom templates are defined. As such, defining `getFrontEndInputTemplatePath()` and `getEmailTemplatePath()` to the path of Twig files is all that is needed.
 
 In simple terms - if you are creating a third-party field for Formie, for general distribution, do not alter `getFrontEndInputHtml()`. If you are using a custom field just on your project, it may be a valid case.

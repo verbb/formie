@@ -20,7 +20,7 @@ class Categories extends CraftCategories implements FormFieldInterface
     // =========================================================================
 
     use FormFieldTrait {
-        getFrontendInputOptions as traitGetFrontendInputOptions;
+        getFrontEndInputOptions as traitGetFrontendInputOptions;
     }
     use RelationFieldTrait;
 
@@ -49,14 +49,6 @@ class Categories extends CraftCategories implements FormFieldInterface
     public static function displayName(): string
     {
         return Craft::t('formie', 'Categories');
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public static function getTemplatePath(): string
-    {
-        return 'fields/categories';
     }
 
     /**
@@ -123,7 +115,7 @@ class Categories extends CraftCategories implements FormFieldInterface
     /**
      * @inheritDoc
      */
-    public function getFrontendInputOptions(Form $form, $value, array $options = null): array
+    public function getFrontEndInputOptions(Form $form, $value, array $options = null): array
     {
         $inputOptions = $this->traitGetFrontendInputOptions($form, $value, $options);
         $inputOptions['categoriesQuery'] = $this->getCategoriesQuery();
@@ -131,18 +123,6 @@ class Categories extends CraftCategories implements FormFieldInterface
         $inputOptions['allowMultiple'] = $this->branchLimit > 1;
 
         return $inputOptions;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getEmailHtml($value, $showName = true)
-    {
-        return Craft::$app->getView()->renderTemplate('formie/_formfields/categories/email', [
-            'field' => $this,
-            'value' => $value,
-            'showName' => $showName,
-        ]);
     }
 
     /**

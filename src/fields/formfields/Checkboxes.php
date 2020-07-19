@@ -39,14 +39,6 @@ class Checkboxes extends BaseOptionsField implements FormFieldInterface
     /**
      * @inheritDoc
      */
-    public static function getTemplatePath(): string
-    {
-        return 'fields/checkboxes';
-    }
-
-    /**
-     * @inheritDoc
-     */
     public static function getSvgIconPath(): string
     {
         return 'formie/_formfields/checkboxes/icon.svg';
@@ -104,18 +96,6 @@ class Checkboxes extends BaseOptionsField implements FormFieldInterface
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/checkboxes/preview', [
             'field' => $this
-        ]);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getEmailHtml($value, $showName = true)
-    {
-        return Craft::$app->getView()->renderTemplate('formie/_formfields/checkboxes/email', [
-            'field' => $this,
-            'value' => $value,
-            'showName' => $showName,
         ]);
     }
 

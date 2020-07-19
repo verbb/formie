@@ -1,12 +1,13 @@
 <?php
 namespace verbb\formie\fields\formfields;
 
-use craft\helpers\Html;
 use verbb\formie\base\FormField;
+use verbb\formie\elements\Submission;
 use verbb\formie\helpers\SchemaHelper;
 
 use Craft;
 use craft\base\ElementInterface;
+use craft\helpers\Html;
 use craft\helpers\StringHelper;
 
 class Section extends FormField
@@ -28,14 +29,6 @@ class Section extends FormField
     public static function displayName(): string
     {
         return Craft::t('formie', 'Section');
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public static function getTemplatePath(): string
-    {
-        return 'fields/section';
     }
 
     /**
@@ -111,7 +104,7 @@ class Section extends FormField
     /**
      * @inheritDoc
      */
-    public function getEmailHtml($value, $showName = true)
+    public function getEmailHtml(Submission $submission, $value, array $options = null)
     {
         return Html::tag('hr');
     }

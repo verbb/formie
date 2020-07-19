@@ -16,7 +16,7 @@ abstract class BaseOptionsField extends CraftBaseOptionsField
     // =========================================================================
 
     use FormFieldTrait {
-        getFrontendInputOptions as traitGetFrontendInputOptions;
+        getFrontEndInputOptions as traitGetFrontendInputOptions;
     }
 
 

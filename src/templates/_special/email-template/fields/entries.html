@@ -1,7 +1,7 @@
 {% set elements = value.all() %}
 
 <p>
-    {% if showName %}
+    {% if not (options.hideName ?? false) %}
         <strong>{{ field.name }}</strong><br>
     {% endif %}
 

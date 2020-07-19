@@ -34,7 +34,7 @@ Method | Description
 `getContainerAttributes()` | Returns an array of options for container attributes.
 `getInputAttributes()` | Returns an array of options for input attributes.
 `getFrontEndInputHtml()` | Returns the HTML for a the front-end template for a field.
-`getFrontendInputOptions()` | Returns an object of variables that can be used for front-end fields.
+`getFrontEndInputOptions()` | Returns an object of variables that can be used for front-end fields.
 `getEmailHtml()` | Returns the HTML for an email notification for a field.
 `afterCreateField()` | A function called after a field has been created in the control panel.
 

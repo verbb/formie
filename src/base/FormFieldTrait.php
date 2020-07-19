@@ -3,14 +3,17 @@ namespace verbb\formie\base;
 
 use verbb\formie\Formie;
 use verbb\formie\elements\Form;
+use verbb\formie\elements\Submission;
 use verbb\formie\fields\formfields\BaseOptionsField;
 use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\models\Notification;
 
 use Craft;
 use craft\base\ElementInterface;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Html;
 use craft\helpers\Template;
+use craft\helpers\StringHelper;
 use craft\validators\HandleValidator;
 
 use Twig\Markup;
@@ -62,6 +65,22 @@ trait FormFieldTrait
 
     // Static Methods
     // =========================================================================
+
+    /**
+     * @inheritDoc
+     */
+    public static function getFrontEndInputTemplatePath(): string
+    {
+        return 'fields/' . static::_getKebabName();
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public static function getEmailTemplatePath(): string
+    {
+        return 'fields/' . static::_getKebabName();
+    }
 
     /**
      * @inheritDoc
@@ -432,17 +451,17 @@ trait FormFieldTrait
      */
     public function getFrontEndInputHtml(Form $form, $value, array $options = null): Markup
     {
-        if (!static::getTemplatePath()) {
+        if (!static::getFrontEndInputTemplatePath()) {
             return Template::raw('');
         }
 
         $view = Craft::$app->getView();
         $oldTemplatesPath = $view->getTemplatesPath();
-        $templatesPath = Formie::$plugin->getRendering()->getComponentTemplatePath($form, static::getTemplatePath());
+        $templatesPath = Formie::$plugin->getRendering()->getFormComponentTemplatePath($form, static::getFrontEndInputTemplatePath());
         $view->setTemplatesPath($templatesPath);
 
-        $inputOptions = $this->getFrontendInputOptions($form, $value, $options);
-        $html = Craft::$app->getView()->renderTemplate(static::getTemplatePath(), $inputOptions);
+        $inputOptions = $this->getFrontEndInputOptions($form, $value, $options);
+        $html = Craft::$app->getView()->renderTemplate(static::getFrontEndInputTemplatePath(), $inputOptions);
 
         $view->setTemplatesPath($oldTemplatesPath);
 
@@ -452,7 +471,7 @@ trait FormFieldTrait
     /**
      * @inheritDoc
      */
-    public function getFrontendInputOptions(Form $form, $value, array $options = null): array
+    public function getFrontEndInputOptions(Form $form, $value, array $options = null): array
     {
         return [
             'form' => $form,
@@ -466,21 +485,50 @@ trait FormFieldTrait
     /**
      * @inheritDoc
      */
-    public function getEmailHtml($value, $showName = true)
+    public function getEmailHtml(Submission $submission, $value, array $options = null)
     {
-        // Nice an simple for most cases - no need for a template file
-        try {
-            $content = (string)$value;
-            if ($showName) {
-                $content = Html::tag('strong', $this->name) . '<br>' . $content;
+        if (!static::getEmailTemplatePath()) {
+            // Nice an simple for most cases - no need for a template file
+            try {
+                $content = (string)$value;
+                $hideName = $options['hideName'] ?? false;
+                if (!$hideName) {
+                    $content = Html::tag('strong', $this->name) . '<br>' . $content;
+                }
+
+                return Html::tag('p', $content);
+            } catch (Throwable $e) {
+                Formie::error('Failed to render email field content: ' . $e->getMessage());
             }
 
-            return Html::tag('p', $content);
-        } catch (Throwable $e) {
-            Formie::error('Failed to render email field content: ' . $e->getMessage());
+            return '';
         }
 
-        return '';
+        $view = Craft::$app->getView();
+        $oldTemplatesPath = $view->getTemplatesPath();
+        $templatesPath = Formie::$plugin->getRendering()->getEmailComponentTemplatePath($submission->notification, static::getEmailTemplatePath());
+        $view->setTemplatesPath($templatesPath);
+
+        $inputOptions = $this->getEmailOptions($submission, $value, $options);
+        $html = Craft::$app->getView()->renderTemplate(static::getEmailTemplatePath(), $inputOptions);
+
+        $view->setTemplatesPath($oldTemplatesPath);
+
+        return Template::raw($html);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getEmailOptions(Submission $submission, $value, array $options = null): array
+    {
+        return [
+            'submission' => $submission,
+            'name' => $this->handle,
+            'value' => $value,
+            'field' => $this,
+            'options' => $options,
+        ];
     }
 
     /**
@@ -515,8 +563,28 @@ trait FormFieldTrait
         return [];
     }
 
+    /**
+     * @inheritDoc
+     */
     public function afterCreateField()
     {
 
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    /**
+     * Returns the kebab-case name of the field class.
+     *
+     * @return string
+     */
+    private static function _getKebabName()
+    {
+        $classNameParts = explode('\\', static::class);
+        $end = array_pop($classNameParts);
+
+        return StringHelper::toKebabCase($end);
     }
 }

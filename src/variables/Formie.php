@@ -174,7 +174,6 @@ class Formie
      * @param Submission $submission
      * @param Form $form
      * @return string|null
-     * @noinspection PhpDocMissingThrowsInspection
      */
     public function getParsedValue($value, Submission $submission, Form $form = null)
     {

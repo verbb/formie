@@ -7,6 +7,7 @@ use verbb\formie\base\FormFieldInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\events\ModifyRenderEvent;
 use verbb\formie\models\FieldLayoutPage;
+use verbb\formie\models\Notification;
 use verbb\formie\web\assets\frontend\FrontEndAsset;
 
 use Craft;
@@ -62,7 +63,7 @@ class Rendering extends Component
 
         $view = Craft::$app->getView();
 
-        $templatePath = $this->getComponentTemplatePath($form, 'form');
+        $templatePath = $this->getFormComponentTemplatePath($form, 'form');
         $view->setTemplatesPath($templatePath);
 
         // Get the active submission.
@@ -109,7 +110,7 @@ class Rendering extends Component
             return null;
         }
 
-        $templatePath = $this->getComponentTemplatePath($form, 'page');
+        $templatePath = $this->getFormComponentTemplatePath($form, 'page');
         $oldTemplatesPath = $view->getTemplatesPath();
         $view->setTemplatesPath($templatePath);
 
@@ -160,7 +161,7 @@ class Rendering extends Component
             }
         }
 
-        $templatePath = $this->getComponentTemplatePath($form, 'field');
+        $templatePath = $this->getFormComponentTemplatePath($form, 'field');
 
         $oldTemplatePath = $view->getTemplatesPath();
         $view->setTemplatesPath($templatePath);
@@ -197,7 +198,7 @@ class Rendering extends Component
      * @throws Exception
      * @throws LoaderError
      */
-    public function getComponentTemplatePath(Form $form, string $component): string
+    public function getFormComponentTemplatePath(Form $form, string $component): string
     {
         $view = Craft::$app->getView();
         $oldTemplatePath = $view->getTemplatesPath();
@@ -206,6 +207,36 @@ class Rendering extends Component
         $templatePath = Craft::getAlias('@verbb/formie/templates/_special/form-template');
 
         if (($template = $form->getTemplate()) && $template->useCustomTemplates && $template->template) {
+            $path = $template->template . DIRECTORY_SEPARATOR . $component;
+
+            if ($view->resolveTemplate($path, View::TEMPLATE_MODE_SITE)) {
+                $templatePath = Craft::$app->getPath()->getSiteTemplatesPath() . DIRECTORY_SEPARATOR . $template->template;
+            }
+        }
+
+        $view->setTemplatesPath($oldTemplatePath);
+
+        return $templatePath;
+    }
+
+    /**
+     * Returns the template path for an email component.
+     *
+     * @param Notification|null $notification
+     * @param string $component can be 'form', 'page' or 'field'.
+     * @return string
+     * @throws Exception
+     * @throws LoaderError
+     */
+    public function getEmailComponentTemplatePath($notification, string $component): string
+    {
+        $view = Craft::$app->getView();
+        $oldTemplatePath = $view->getTemplatesPath();
+        $view->setTemplatesPath(Craft::$app->path->getSiteTemplatesPath());
+
+        $templatePath = Craft::getAlias('@verbb/formie/templates/_special/email-template');
+
+        if ($notification && ($template = $notification->getTemplate()) && $template->template) {
             $path = $template->template . DIRECTORY_SEPARATOR . $component;
 
             if ($view->resolveTemplate($path, View::TEMPLATE_MODE_SITE)) {

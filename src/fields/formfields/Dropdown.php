@@ -32,14 +32,6 @@ class Dropdown extends BaseOptionsField implements FormFieldInterface
     /**
      * @inheritDoc
      */
-    public static function getTemplatePath(): string
-    {
-        return 'fields/dropdown';
-    }
-
-    /**
-     * @inheritDoc
-     */
     public static function getSvgIconPath(): string
     {
         return 'formie/_formfields/dropdown/icon.svg';
@@ -80,18 +72,6 @@ class Dropdown extends BaseOptionsField implements FormFieldInterface
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/dropdown/preview', [
             'field' => $this
-        ]);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getEmailHtml($value, $showName = true)
-    {
-        return Craft::$app->getView()->renderTemplate('formie/_formfields/dropdown/email', [
-            'field' => $this,
-            'value' => $value,
-            'showName' => $showName,
         ]);
     }
 

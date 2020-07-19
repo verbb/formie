@@ -8,11 +8,9 @@ use verbb\formie\elements\Form;
 use verbb\formie\helpers\SchemaHelper;
 
 use Craft;
-use craft\base\ElementInterface;
 use craft\helpers\UrlHelper;
 use craft\commerce\elements\Product;
 use craft\commerce\Plugin;
-use craft\elements\db\ElementQueryInterface;
 use craft\commerce\fields\Products as CommerceProducts;
 
 class Products extends CommerceProducts implements FormFieldInterface
@@ -21,7 +19,7 @@ class Products extends CommerceProducts implements FormFieldInterface
     // =========================================================================
 
     use FormFieldTrait {
-        getFrontendInputOptions as traitGetFrontendInputOptions;
+        getFrontEndInputOptions as traitGetFrontendInputOptions;
     }
     use RelationFieldTrait;
 
@@ -46,14 +44,6 @@ class Products extends CommerceProducts implements FormFieldInterface
     /**
      * @inheritDoc
      */
-    public static function getTemplatePath(): string
-    {
-        return 'fields/products';
-    }
-
-    /**
-     * @inheritDoc
-     */
     public static function getSvgIconPath(): string
     {
         return 'formie/_formfields/products/icon.svg';
@@ -69,7 +59,7 @@ class Products extends CommerceProducts implements FormFieldInterface
     public function getExtraBaseFieldConfig(): array
     {
         $options = $this->getSourceOptions();
-        
+
         return [
             'sourceOptions' => $options,
             'warning' => count($options) < 2 ? Craft::t('formie', 'No product types available. View [product type settings]({link}).', ['link' => UrlHelper::cpUrl('commerce/settings/producttypes') ]) : false,
@@ -100,24 +90,12 @@ class Products extends CommerceProducts implements FormFieldInterface
     /**
      * @inheritDoc
      */
-    public function getFrontendInputOptions(Form $form, $value, array $options = null): array
+    public function getFrontEndInputOptions(Form $form, $value, array $options = null): array
     {
         $inputOptions = $this->traitGetFrontendInputOptions($form, $value, $options);
         $inputOptions['productsQuery'] = $this->getProductsQuery();
 
         return $inputOptions;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getEmailHtml($value, $showName = true)
-    {
-        return Craft::$app->getView()->renderTemplate('formie/_formfields/products/email', [
-            'field' => $this,
-            'value' => $value,
-            'showName' => $showName,
-        ]);
     }
 
     /**
@@ -156,7 +134,7 @@ class Products extends CommerceProducts implements FormFieldInterface
     public function defineGeneralSchema(): array
     {
         $options = $this->getSourceOptions();
-        
+
         return [
             SchemaHelper::labelField(),
             SchemaHelper::textField([

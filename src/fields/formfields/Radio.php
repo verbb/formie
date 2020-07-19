@@ -30,9 +30,9 @@ class Radio extends BaseOptionsField implements FormFieldInterface
     /**
      * @inheritDoc
      */
-    public static function getTemplatePath(): string
+    public static function getEmailTemplatePath(): string
     {
-        return 'fields/radio';
+        return '';
     }
 
     /**

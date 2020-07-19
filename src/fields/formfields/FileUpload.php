@@ -5,6 +5,7 @@ use craft\elements\Asset;
 use verbb\formie\base\FormFieldInterface;
 use verbb\formie\base\FormFieldTrait;
 use verbb\formie\base\RelationFieldTrait;
+use verbb\formie\elements\Submission;
 use verbb\formie\helpers\SchemaHelper;
 
 use Craft;
@@ -19,7 +20,7 @@ class FileUpload extends CraftAssets implements FormFieldInterface
     // =========================================================================
 
     use FormFieldTrait {
-        getFrontendInputOptions as traitGetFrontendInputOptions;
+        getFrontEndInputOptions as traitGetFrontendInputOptions;
     }
     use RelationFieldTrait;
 
@@ -51,14 +52,6 @@ class FileUpload extends CraftAssets implements FormFieldInterface
     public static function displayName(): string
     {
         return Craft::t('formie', 'File Upload');
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public static function getTemplatePath(): string
-    {
-        return 'fields/file-upload';
     }
 
     /**
@@ -189,7 +182,7 @@ class FileUpload extends CraftAssets implements FormFieldInterface
     /**
      * @inheritDoc
      */
-    public function getEmailHtml($value, $showName = true)
+    public function getEmailHtml(Submission $submission, $value, array $options = null)
     {
         return false;
     }

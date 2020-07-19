@@ -1,5 +1,5 @@
 <div style="margin: 1em 0;">
-    {% if showName %}
+    {% if not (options.hideName ?? false) %}
         <strong>{{ field.name }}</strong>
     {% endif %}
 
@@ -8,20 +8,6 @@
     {% if value.exists() %}
         <table style="width: 100%; margin: 1em 0; border-collapse: collapse;">
             {% for row in value.all() %}
-                <thead>
-                    {% if not loop.first %}
-                        <tr>
-                            <th colspan="2">&nbsp;</th>
-                        </tr>
-                    {% endif %}
-
-                    <tr>
-                        <th style="text-align: left; font-size: inherit; padding: 4px; border: 1px solid;" colspan="2">
-                            {{- 'Row #{row}' | t('formie', { row: loop.index }) -}}
-                        </th>
-                    </tr>
-                </thead>
-
                 <tbody>
                     {% for field in fields %}
                         {% set fieldValue = (row ? row.getFieldValue(field.handle) : field.normalizeValue(null)) %}
@@ -32,7 +18,9 @@
                             </th>
 
                             <td style="padding: 4px; border: 1px solid;">
-                                {{ field.getEmailHtml(fieldValue, false) | raw }}
+                                {{ field.getEmailHtml(submission, fieldValue, {
+                                    hideName: true,
+                                }) | raw }}
                             </td>
                         </tr>
                     {% endfor %}

@@ -53,6 +53,8 @@ class Emails extends Component
 
     public function sendEmail(Notification $notification, Submission $submission): bool
     {
+        $submission->notification = $notification;
+
         // Set Craft to the site template mode
         $view = Craft::$app->getView();
         $oldTemplateMode = $view->getTemplateMode();
@@ -232,7 +234,7 @@ class Emails extends Component
                 $body = $view->renderTemplate($templatePath, $renderVariables);
             } else {
                 $view->setTemplateMode($view::TEMPLATE_MODE_CP);
-                $body = $view->renderTemplate('formie/_special/email-templates', $renderVariables);
+                $body = $view->renderTemplate('formie/_special/email-template', $renderVariables);
                 $view->setTemplateMode($view::TEMPLATE_MODE_SITE);
             }
 
