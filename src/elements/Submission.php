@@ -538,6 +538,7 @@ class Submission extends Element
         $record->title = $this->title;
         $record->formId = $this->formId;
         $record->statusId = $this->statusId;
+        $record->userId = $this->userId;
         $record->isIncomplete = $this->isIncomplete;
         $record->isSpam = $this->isSpam;
         $record->spamReason = $this->spamReason;

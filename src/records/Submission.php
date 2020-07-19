@@ -13,6 +13,7 @@ use yii\db\ActiveQueryInterface;
  * @property string $title
  * @property int $formId
  * @property int $statusId
+ * @property int $userId
  * @property boolean $isIncomplete
  * @property boolean $isSpam
  * @property boolean $spamReason
