@@ -551,6 +551,20 @@ class Submission extends Element
         parent::afterSave($isNew);
     }
 
+    /**
+     * @inheritDoc
+     */
+    public function beforeDelete(): bool
+    {
+        $form = $this->getForm();
+
+        if ($form->getCurrentSubmission() === $this) {
+            $form->resetCurrentSubmission();
+        }
+
+        return parent::beforeDelete();
+    }
+
 
     // Protected methods
     // =========================================================================

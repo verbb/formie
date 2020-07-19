@@ -491,11 +491,14 @@ class Form extends Element
         $pages = $this->getPages();
 
         if ($pages) {
-            // Check if there's a session variable
-            $pageId = Craft::$app->getSession()->get('formie:' . $this->id . ':pageId');
+            // Only set the current page if there is a submission.
+            if ($this->getCurrentSubmission()) {
+                // Check if there's a session variable
+                $pageId = Craft::$app->getSession()->get('formie:' . $this->id . ':pageId');
 
-            if ($pageId) {
-                $currentPage = ArrayHelper::firstWhere($pages, 'id', $pageId);
+                if ($pageId) {
+                    $currentPage = ArrayHelper::firstWhere($pages, 'id', $pageId);
+                }
             }
 
             // Separate check from the above. Maybe we're trying to fetch a page that doesn't
@@ -705,6 +708,7 @@ class Form extends Element
             return;
         }
 
+        $this->resetCurrentPage();
         Craft::$app->getSession()->remove('formie:' . $this->id . ':submissionId');
     }
 
