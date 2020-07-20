@@ -7,8 +7,8 @@ A Notification object stores information about your email notification. Each not
 Attribute | Description
 --- | ---
 `id` | ID of the notification.
-`formId` | The [Form]() ID this notification belongs to.
-`templateId` | The [Email Template]() used by this notification.
+`formId` | The [Form](docs:developers/form) ID this notification belongs to.
+`templateId` | The [Email Template](docs:feature-tour/email-templates) used by this notification.
 `name` | The control panel name for this notification.
 `enabled` | Whether the notification is enabled.
 `subject` | The subject for the email.

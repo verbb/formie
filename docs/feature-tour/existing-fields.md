@@ -15,4 +15,4 @@ Formie provides additional options for adding an existing field.
 Selecting this option when adding an existing field will copy the field(s) original settings, and create a new one. Any edits to this new field will be completely independant of the original field.
 
 ## Adding as a Synced Field
-In contrast to adding an existing field as a new field, you can add existing fields as a [Synced Fields](). This maintains a reference to the original field, and any changes to either field will by synchronized. See [Synced Fields]() for more.
+In contrast to adding an existing field as a new field, you can add existing fields as a [Synced Fields](docs:feature-tour/synced-fields). This maintains a reference to the original field, and any changes to either field will by synchronized. See [Synced Fields](docs:feature-tour/synced-fields) for more.

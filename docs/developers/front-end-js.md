@@ -1,6 +1,6 @@
 # Front-end JS
 
-The default [Form Template]() used by Formie uses custom JS when rendering the form. This is to provide out-of-the-box functionality for forms, so you don't need to worry about things like validation, multi-page setup and Ajax submissions.
+The default [Form Template](docs:template-guide/form-templates) used by Formie uses custom JS when rendering the form. This is to provide out-of-the-box functionality for forms, so you don't need to worry about things like validation, multi-page setup and Ajax submissions.
 
 The default JS is rendered alongside the form and placed before the `</body>` tag at the end of the page. It is split into two parts:
 
@@ -44,17 +44,17 @@ This helper provides functionality to create tags for a Tag field. It uses [Tagi
 For Single-line Text and Multi-line text fields, and if the `Limit` options are set, this will display a counter for either characters or words to limit the text for these fields. It will also prevent typing past these limits.
 
 ## Disabling JS
-To disable the Theme JS from being output, create a new [Form Template]() and turn off `Output JavaScript`. Ensure your form uses this new template.
+To disable the Theme JS from being output, create a new [Form Template](docs:template-guide/form-templates) and turn off `Output JavaScript`. Ensure your form uses this new template.
 
-It is worth noting that the [Base JS]() cannot be disabled for a form template, as it is critical to the functionality of a form. However, creating your own custom Twig templates to use in your [Form Template]() will not include this JS, and is completely up to you on how to handle all aspects of the form. 
+It is worth noting that the [Base JS](docs:developers/front-end-js) cannot be disabled for a form template, as it is critical to the functionality of a form. However, creating your own custom Twig templates to use in your [Form Template](docs:template-guide/form-templates) will not include this JS, and is completely up to you on how to handle all aspects of the form. 
 
 Please be aware of other dependent features like Captchas (particularly ReCAPTCHA) will not work, and it will be also up to you to implement these.
 
 
 ## Base JS Events
-The [Base JS]() file provides a number of event hooks for the form and fields, which you can hook into in your own JS files.
+The [Base JS](docs:developers/front-end-js) file provides a number of event hooks for the form and fields, which you can hook into in your own JS files.
 
-Our JS hijacks the native submit handler of a form, and wraps it in a number of [Custom Events]() that give you more fine-grained control over the flow of the form submission. This is used mostly for validation, and captcha support, but you can make use of these for your own needs.
+Our JS hijacks the native submit handler of a form, and wraps it in a number of custom events that give you more fine-grained control over the flow of the form submission. This is used mostly for validation, and captcha support, but you can make use of these for your own needs.
 
 ### The `onBeforeFormieSubmit` event
 The event that is triggered before a form is submitted, and before validation is triggered. You can cancel a submission by using `preventDefault()`.
@@ -184,7 +184,7 @@ function onValidate(e) {
 ```
 
 ## Theme JS Events
-The [Theme JS]() file provides some event hooks for the form.
+The [Theme JS](docs:developers/front-end-js) file provides some event hooks for the form.
 
 ### The `registerFormieValidation` event
 The event that is triggered to register or modify validation messages and rules.
