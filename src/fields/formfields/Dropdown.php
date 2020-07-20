@@ -44,6 +44,18 @@ class Dropdown extends BaseOptionsField implements FormFieldInterface
     /**
      * @inheritDoc
      */
+    public function init()
+    {
+        if ($this->multiple) {
+            $this->multi = true;
+        }
+
+        parent::init();
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function getFieldDefaults(): array
     {
         return [
