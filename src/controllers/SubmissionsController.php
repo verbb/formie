@@ -361,7 +361,9 @@ class SubmissionsController extends Controller
         $success = Craft::$app->getElements()->saveElement($submission, false);
 
         // Run this regardless of the success state
-        Formie::$plugin->getSubmissions()->onAfterSubmission($success, $submission);
+        if (!$submission->isIncomplete) {
+            Formie::$plugin->getSubmissions()->onAfterSubmission($success, $submission);
+        }
 
         // If this submission is marked as spam, there will be errors - so choose how we treat feedback
         if ($submission->isSpam) {
