@@ -32,15 +32,86 @@ Check out the raw templates on [Formie's Github]() - they'll be the most up to d
 ## Overriding Form Templates
 To override the form template, provide a file named `form.html`.
 
+### Available Template Variables
+Field templates have access to the following variables:
+
+Variable | Description
+--- | ---
+`form` | A [Form]() object, for the form instance this template is for.
+`options` | A collection of additional options.
+`submission` | The current [Submission]() object this this form may or may not have.
+
 ## Overriding Page Templates
 To override the page template, provide a file named `page.html`.
 
-## Overriding Field Templates
+### Available Template Variables
+Field templates have access to the following variables:
+
+Variable | Description
+--- | ---
+`form` | A [Form]() object that this field belongs to.
+`page` | A [Page]() object, for the page instance this template is for.
+`options` | A collection of additional options.
+
+## Overriding Field Wrapper Templates
 To override the field template, provide a file named `field.html`. This is the wrapper template around all fields. You can also override individual field types' templates, rather than changing the template for every field, regardless of type.
 
-You'll notice in the above structure the `fields/` directory. Inside this directory are a mixture of folder and individual files. Folders are mostly reserved for complex fields that have multiple templates. Your custom templates must mimic this structure. You do not need to include the individual includes.
+### Available Template Variables
+Field templates have access to the following variables:
 
-For example, if you want to override the Address field, which has the following templates:
+Variable | Description
+--- | ---
+`form` | A [Form]() object that this field belongs to.
+`field` | A [Field]() object, for the field instance this template is for.
+`handle` | The handle of the field.
+`options` | A collection of additional options, available for some fields.
+`element` | The current [Submission]() object this this form may or may not have.
+
+## Overriding Field Templates
+You'll notice the above structure includes the `fields/` directory. Inside this directory are a mixture of folder and individual files, each representing a template that you're able to override.
+
+First, you'll need to identify the template's name. It's derived from the PHP class name for the field, converted to a "kebab" string. For easy reference, you can use the below table.
+
+Class Name | Template
+--- | ---
+`Address` | `address.html`
+`Agree` | `agree.html`
+`Categories` | `categories.html`
+`Checkboxes` | `checkboxes.html`
+`Date` | `date.html`
+`Dropdown` | `dropdown.html`
+`Email` | `email.html`
+`Entries` | `entries.html`
+`FileUpload` | `file-upload.html`
+`Group` | `group.html`
+`Heading` | `heading.html`
+`Hidden` | `hidden.html`
+`Html` | `html.html`
+`MultiLineText` | `multi-line-text.html`
+`Name` | `name.html`
+`Number` | `number.html`
+`Phone` | `phone.html`
+`Products` | `products.html`
+`Radio` | `radio.html`
+`Repeater` | `repeater.html`
+`Section` | `section.html`
+`SingleLineText` | `single-line-text.html`
+`Table` | `table.html`
+`Tags` | `tags.html`
+`Users` | `users.html`
+`Variants` | `variants.html`
+
+Adding a template file in your specified template directory will use that template file over the ones Formie provide.
+
+You might also have noticed we've shown `address` in a folder. Due to how Twig resolves templates, the below are equivalent:
+
+```
+fields/address.html - Is the same as - fields/address/index.html
+```
+
+For complex fields that have multiple templates, we've used folders to organise multiple templates in a single folder. You're welcome to follow this same pattern, but you're not forced to.
+
+For example, the Address field, has the following templates in a folder:
 
 - `fields/address/_country.html`
 - `fields/address/_field.html`
@@ -48,8 +119,6 @@ For example, if you want to override the Address field, which has the following 
 - `fields/address/index.html`
 
 This is because the address field has many parts, and is complex. If you want to override the templates for this field, you just need to alter the `index.html` file. You can use the includes (denoted by `_`), or you don't have to.
-
-For other templates like the Agree field, replacing `fields/agree.html` is all that's required.
 
 ## CSS & JS
 Some field contain JS related to their specific field type. This is included in the field template. For instance, the Repeater field contains JS to allow adding and removing of repeater elements. If you override the field templates for fields that contain JS, you'll need to either include this, or come up with your own solution.

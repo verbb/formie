@@ -18,9 +18,9 @@ Let's take an example template:
 </html>
 ```
 
-Here, we've created a new template - let's call it `email.html`. Place this in the following path `templates/_emails/formie/email.html`.
+Here, we've created a new template - let's name this file `index.html`, and place this in the following path `templates/_emails/index.html`.
 
-Then, navigate to Formie → Settings → Email Templates and select "+ New Template". Give it an appropriate name, and enter `_emails/formie/email` in the "HTML Template" field.
+Then, navigate to Formie → Settings → Email Templates and select "+ New Template". Give it an appropriate name, and enter `_emails` in the "HTML Template" field. This is because we want to set the templates to a folder that contains all email-related templates.
 
 :::tip
 You'll notice there's a "Copy Templates" field. You can use this to copy the default template into the provided folder to get off to an even quicker start to customise the template.
@@ -50,7 +50,7 @@ Peter
 **Last Name:**
 Sherman
 
-**Email**
+**Email Address**
 psherman@wallaby.com
 
 **Message**
@@ -64,8 +64,54 @@ Don't forget, Formie will automatically generate a plain-text version of your HT
 # Custom Templates
 In addition to providing a template for the overall email, you can customise the content for each field.
 
-TODO
+:::tip
+Be sure to check out [Overriding Field Templates]() which is largely the same process, and applies to overriding email field templates.
+:::
 
+Keeping with the same example, we can create templates for individual fields in a `fields` folder. So our template folder would look like:
 
+- `_emails`
+    - `email.html`
+    - `fields`
+        - 'email.html'
+        - 'name.html'
+        - 'single-line-text.html'
+        - `...`
 
+Here, we've provided template override files for `email`, `name` and `single-line-text` fields. Formie will use the content of these files to render the HTML for the field in an email.
 
+:::tip
+Don't forget, you don't need to override **all** field templates, just the ones you want to alter.
+:::
+
+For example, you might want to alter the content of an email address field. Take Formie's example HTML:
+
+```twig
+<p>
+    <strong>{{ field.name }}</strong><br>
+    {{ value }}
+</p>
+
+{# Would generate... #}
+<p>
+    <strong>Email Address</strong><br>
+    psherman@wallaby.com
+</p>
+```
+
+We can change this to:
+
+```twig
+<i>{{ field.name }}: </i>{{ value }}<br>
+```
+
+### Available Template Variables
+Your templates have access to the following variables:
+
+Variable | Description
+--- | ---
+`field` | A [Field]() object, for the field instance this template is for.
+`submission` | A [Submission]() object, for what the email is notifying about.
+`name` | The handle of the field.
+`value` | The content for this field, stored on the [Submission](). The format of this will depend on the field's content model.
+`options` | A collection of additional options, available for some fields.
