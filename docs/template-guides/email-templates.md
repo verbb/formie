@@ -73,9 +73,9 @@ Keeping with the same example, we can create templates for individual fields in 
 - `_emails`
     - `email.html`
     - `fields`
-        - 'email.html'
-        - 'name.html'
-        - 'single-line-text.html'
+        - `email.html`
+        - `name.html`
+        - `single-line-text.html`
         - `...`
 
 Here, we've provided template override files for `email`, `name` and `single-line-text` fields. Formie will use the content of these files to render the HTML for the field in an email.
