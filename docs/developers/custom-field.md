@@ -254,7 +254,7 @@ SchemaHelper::textField([
 ```
 
 ## Templates
-There are also a number of templates fields use. These are namely:
+There are also a number of templates fields custom fields should provide. These are namely:
 
 - Twig template for when shown in an email.
 - Twig template for the front-end.
@@ -263,11 +263,10 @@ There are also a number of templates fields use. These are namely:
 
 These are defined in functions, which are respectively:
 
-- `getPreviewInputHtml()`
 - `getFrontEndInputTemplatePath()`
-- `getInputHtml()`
 - `getEmailTemplatePath()`
-- `getEmailHtml()`
+- `getPreviewInputHtml()`
+- `getInputHtml()`
 
 ```php
 
@@ -299,6 +298,6 @@ public function getInputHtml($value, ElementInterface $element = null): string
 }
 ```
 
-You'll notice special-cases for `getFrontEndInputTemplatePath()` and `getEmailTemplatePath()`. Whilst there are `getFrontEndInputHtml()` and `getEmailHtml()` functions, they should not be overwritten in most cases. This is because Formie will determine where to look for these templates, either in its own default templates, or the folder where custom templates are defined. As such, defining `getFrontEndInputTemplatePath()` and `getEmailTemplatePath()` to the path of Twig files is all that is needed.
+You'll notice special-cases for `getFrontEndInputTemplatePath()` and `getEmailTemplatePath()` where they return a path, instead of HTML. Whilst there are `getFrontEndInputHtml()` and `getEmailHtml()` functions, they should not be overwritten in most cases. This is because Formie will determine where to look for these templates, either in its own default templates, or the folder where custom templates are defined. As such, defining `getFrontEndInputTemplatePath()` and `getEmailTemplatePath()` to the path of Twig files is all that is needed.
 
-In simple terms - if you are creating a third-party field for Formie, for general distribution, do not alter `getFrontEndInputHtml()`. If you are using a custom field just on your project, it may be a valid case.
+In simple terms - if you are creating a third-party field for Formie, for general distribution, do not alter `getFrontEndInputHtml()` or `getEmailHtml()` functions. If you are using a custom field just on your project, it may be a valid case, and is totally fine.
