@@ -15,8 +15,6 @@
 {% set hasOptgroups = false %}
 
 <select {{ attr(attributes) }}>
-    <option value="">{{ field.placeholder }}</option>
-
     {% for option in field.options %}
         {% if option.optgroup is defined %}
             {% if hasOptgroups %}
