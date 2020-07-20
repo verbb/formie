@@ -59,7 +59,7 @@ export default {
         },
 
         columns() {
-            var columns = this._getSlotProp('columns');
+            const columns = this._getSlotProp('columns');
 
             if (typeof columns === 'string') {
                 return get(this.$editingField.field, columns);
@@ -147,7 +147,7 @@ export default {
 
             // Always increment the total cols. We don't want to reuse deleted cols
             if (this.useColumnIds) {
-                newRowDefaults.id = 'col' + ++this.totalColumns;
+                newRowDefaults.id = 'row' + ++this.totalColumns;
             }
 
             if (Array.isArray(this.context.model)) {
