@@ -1,15 +1,25 @@
 {% set html %}
-    {% set labelPosition = craft.formie.getLabelPosition(field, form, true) %}
     {% set inputId = handle | namespaceInputId(options.id) %}
 
-    <div class="fui-field-wrapper">
-        {% include '_label' with {
-            field: null,
-            id: inputId,
-            required: field.required,
-            fieldName: attribute(field, handle ~ 'Label'),
-            position: 'above',
-        } %}
+    {% set labelPosition = craft.formie.getLabelPosition(field, form, true) %}
+    {% set labelOptions = {
+        field: null,
+        id: inputId,
+        required: field.required,
+        fieldName: attribute(field, handle ~ 'Label'),
+        labelPosition: labelPosition,
+    } %}
+
+    {% hook 'formie.subfield.field-start' %}
+
+    {% include '_label' with labelOptions | merge({
+        position: 'above',
+    }) %}
+
+    {% hook 'formie.subfield.input-before' %}
+
+    <div class="fui-input-container">
+        {% hook 'formie.subfield.input-start' %}
 
         {% include ['fields/phone/_' ~ handle, 'fields/phone/_input'] with {
             autocomplete: autocomplete,
@@ -19,14 +29,16 @@
             id: inputId,
         } %}
 
-        {% include '_label' with {
-            field: null,
-            id: inputId,
-            required: field.required,
-            fieldName: attribute(field, handle ~ 'Label'),
-            position: 'below',
-        } %}
+        {% hook 'formie.subfield.input-end' %}
     </div>
+
+    {% hook 'formie.subfield.input-after' %}
+
+    {% include '_label' with labelOptions | merge({
+        position: 'below',
+    }) %}
+
+    {% hook 'formie.subfield.field-end' %}
 {% endset %}
 
 {% set attributes = {
