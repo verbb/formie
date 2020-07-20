@@ -999,7 +999,7 @@ class Fields extends Component
                 'fieldlayouttabs.sortOrder',
                 'fieldlayouttabs.uid'
             ])
-            ->from([CraftTable::FIELDLAYOUTTABS])
+            ->from([CraftTable::FIELDLAYOUTTABS . ' fieldlayouttabs'])
             ->orderBy(['sortOrder' => SORT_ASC]);
     }
 }
