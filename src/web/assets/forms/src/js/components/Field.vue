@@ -220,6 +220,7 @@ export default {
                 'verbb\\formie\\fields\\formfields\\Address': false,
                 'verbb\\formie\\fields\\formfields\\Heading': false,
                 'verbb\\formie\\fields\\formfields\\Hidden': false,
+                'verbb\\formie\\fields\\formfields\\Html': false,
                 'verbb\\formie\\fields\\formfields\\Repeater': false,
                 'verbb\\formie\\fields\\formfields\\Section': false,
                 'verbb\\formie\\fields\\formfields\\Name': field => {
