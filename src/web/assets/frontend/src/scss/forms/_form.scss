@@ -13,6 +13,10 @@
         justify-content: flex-end;
     }
 
+    &.fui-btn-center {
+        justify-content: center;
+    }
+
     .fui-btn {
         margin-left: 0.5rem;
         margin-right: 0.5rem;
@@ -30,7 +34,7 @@
         border-left-color: #fff;
     }
 
-    &:hover{
+    &:hover {
         color: #fff;
         background-color: $primary-color-hover;
     }
