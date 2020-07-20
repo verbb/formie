@@ -19,7 +19,7 @@ See [Submission Queries](docs:getting-elements/submission-queries)
 
 
 ### `craft.formie.renderForm(form)`
-Renders the entire form, taking into account custom [Form Templates](). The `form` parameter can be a [Form]() object, or the handle of a form.
+Renders the entire form, taking into account custom [Form Templates](docs:feature-tour/form-templates). The `form` parameter can be a [Form](docs:developers/form) object, or the handle of a form.
 
 ```twig
 {{ craft.formie.renderForm('contactForm') }}
@@ -27,7 +27,7 @@ Renders the entire form, taking into account custom [Form Templates](). The `for
 
 
 ### `craft.formie.renderPage(form, page)`
-Renders a single page, taking into account custom [Form Templates](). This will also include captchas (if enabled) and submit button(s).
+Renders a single page, taking into account custom [Form Templates](docs:feature-tour/form-templates). This will also include captchas (if enabled) and submit button(s).
 
 ```twig
 {% set form = craft.formie.forms({ handle: 'contactForm' }).one() %}
@@ -39,7 +39,7 @@ Renders a single page, taking into account custom [Form Templates](). This will 
 
 
 ### `craft.formie.renderField(form, field)`
-Renders a single field, taking into account custom [Form Templates]().
+Renders a single field, taking into account custom [Form Templates](docs:feature-tour/form-templates).
 
 ```twig
 {% set form = craft.formie.forms({ handle: 'contactForm' }).one() %}

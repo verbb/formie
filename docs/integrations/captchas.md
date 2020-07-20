@@ -29,4 +29,4 @@ This captcha checks if the user has Javascript enabled, and flags as spam if the
 For multi-page forms, you have the open to enable captchas to be shown and validate on each step of the form submission process, or at the very end. This is through the "Show on All Pages" setting.
 
 # Custom Captchas
-If you are a developer and looking to create your own captchas, head to the [Custom Integration]() docs.
+If you are a developer and looking to create your own captchas, head to the [Custom Integration](docs:developers/custom-integration) docs.

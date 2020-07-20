@@ -13,4 +13,4 @@ When a submission is marked as spam, you can select what behaviour to perform fo
 If a submission contains any of these words (in any field), it will be marked as spam. This field supports multiple words or phrases, along with IP addresses. It will also match words within other words (eg. 'craft' will match 'crafty') and is case insensitive.
 
 ## Captchas
-Formie also provides 4 integrations for blocking spam, in the form of [Captchas]().
+Formie also provides 4 integrations for blocking spam, in the form of [Captchas](docs:integration/captchas).

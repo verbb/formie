@@ -8,9 +8,9 @@ Attribute | Description
 --- | ---
 `id` | ID of the submission.
 `formId` | The form ID this submission was made on.
-`form` | The [Form]() this submission was made on.
+`form` | The [Form](docs:developers/form) this submission was made on.
 `statusId` | The status ID this submission is set to.
-`status` | The [Status]() this submission is set to.
+`status` | The status this submission is set to.
 `userId` | The user ID of the user that created the submission (if enabled on the form).
 `user` | The [User](https://docs.craftcms.com/api/v3/craft-elements-user.html) that created the submission (if enabled on the form).
 `ipAddress` | If set to capture IP addresses, this will be the IP address of the submitter.

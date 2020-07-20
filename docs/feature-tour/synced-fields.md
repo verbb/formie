@@ -13,8 +13,10 @@ Instead, you could create the Email Address field once, then on subsequent forms
 
 Each synced field will have a yellow marker next to its label, denoting that it's a synced field. In addition, when editing the field, a warning banner will show that editing this field will be editing it across multiple fields - so to be careful.
 
+<img src="https://verbb.io/uploads/plugins/formie/formie-synced-field.png" />
+
 ## Adding a Synced Field
-To add a synced field, navigate to the form builder by editing a form. You can use the [Existing Fields]() modal window to add a synced field to your form.
+To add a synced field, navigate to the form builder by editing a form. You can use the [Existing Fields](docs:feature-tour/existing-fields) modal window to add a synced field to your form.
 
 You are unable to un-sync a synced field. Instead, you'll need to create a new field.
 

@@ -1,5 +1,5 @@
 # Rendering Forms
-Showing the form in your templates is the first step in getting Formie's forms working with your site. Rendering an entire form will include all pages, rows, columns, fields, buttons, captchas and more. Combined with the [Form Templates](), it should be the only Twig code you need to get forms showing on your site.
+Showing the form in your templates is the first step in getting Formie's forms working with your site. Rendering an entire form will include all pages, rows, columns, fields, buttons, captchas and more. Combined with the [Form Templates](docs:feature-tour/form-templates), it should be the only Twig code you need to get forms showing on your site.
 
 The easiest way to output your form is to use the handle of a form:
 
@@ -7,7 +7,7 @@ The easiest way to output your form is to use the handle of a form:
 {{ craft.formie.renderForm('contactForm') }}
 ```
 
-You can optionally provide a [Form]() object in the same way.
+You can optionally provide a [Form](docs:developers/form) object in the same way.
 
 ```twig
 {% set form = craft.formie.forms({ handle: 'contactForm' }).one() %}
@@ -25,4 +25,4 @@ If you are using custom templates, you can also pass in a number of options to t
 {{ craft.formie.renderForm('contactForm', options) }}
 ```
 
-For more fine-grained control over rendering of a form, see [Rendering Pages]() and [Rendering Fields]()
+For more fine-grained control over rendering of a form, see [Rendering Pages](docs:template-guide/rendering-pages) and [Rendering Fields](docs:template-guide/rendering-fields)

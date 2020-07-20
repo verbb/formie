@@ -60,10 +60,10 @@ class Dropdown extends BaseOptionsField implements FormFieldInterface
     {
         return [
             'options' => [[
-                'label' => 'Select an option',
+                'label' => Craft::t('formie', 'Select an option'),
                 'value' => '',
                 'isOptgroup' => false,
-                'isDefault' => false,
+                'isDefault' => true,
             ]],
         ];
     }
@@ -153,11 +153,6 @@ class Dropdown extends BaseOptionsField implements FormFieldInterface
     {
         return [
             SchemaHelper::labelField(),
-            SchemaHelper::textField([
-                'label' => Craft::t('formie', 'Placeholder'),
-                'help' => Craft::t('formie', 'The option shown initially, when no option is selected.'),
-                'name' => 'placeholder',
-            ]),
             SchemaHelper::lightswitchField([
                 'label' => Craft::t('formie', 'Allow Multiple'),
                 'help' => Craft::t('formie', 'Whether this field should allow multiple options to be selected.'),

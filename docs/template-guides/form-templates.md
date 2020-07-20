@@ -1,5 +1,5 @@
 # Form Templates
-Formie comes with all the required Twig templates to make your forms look great. Additionally, we provide CSS and JS outputted alongside to form to ensure you can use forms out-of-the-box with no configuration. Read more about [Form Templates]().
+Formie comes with all the required Twig templates to make your forms look great. Additionally, we provide CSS and JS outputted alongside to form to ensure you can use forms out-of-the-box with no configuration. Read more about [Form Templates](docs:feature-tour/form-templates).
 
 # Custom Templates
 While Formie's default templates suit most needs, you can of course roll your own templates, so you have total control over the form, field, layout and more.
@@ -26,7 +26,7 @@ We're using the `.html` extension here for clarity. You can use `.twig` or whate
 Let's start with the top-level templates.
 
 :::tip
-Check out the raw templates on [Formie's Github]() - they'll be the most up to date.
+Check out the raw templates on [Formie's Github](https://github.com/verbb/formie/tree/craft-3/src/templates/_special) - they'll be the most up to date.
 :::
 
 ## Overriding Form Templates
@@ -37,9 +37,9 @@ Field templates have access to the following variables:
 
 Variable | Description
 --- | ---
-`form` | A [Form]() object, for the form instance this template is for.
+`form` | A [Form](docs:developers/form) object, for the form instance this template is for.
 `options` | A collection of additional options.
-`submission` | The current [Submission]() object this this form may or may not have.
+`submission` | The current [Submission](docs:developers/submission) object this this form may or may not have.
 
 ## Overriding Page Templates
 To override the page template, provide a file named `page.html`.
@@ -49,8 +49,8 @@ Field templates have access to the following variables:
 
 Variable | Description
 --- | ---
-`form` | A [Form]() object that this field belongs to.
-`page` | A [Page]() object, for the page instance this template is for.
+`form` | A [Form](docs:developers/form) object that this field belongs to.
+`page` | A [Page](docs:developers/page) object, for the page instance this template is for.
 `options` | A collection of additional options.
 
 ## Overriding Field Wrapper Templates
@@ -61,11 +61,11 @@ Field templates have access to the following variables:
 
 Variable | Description
 --- | ---
-`form` | A [Form]() object that this field belongs to.
-`field` | A [Field]() object, for the field instance this template is for.
+`form` | A [Form](docs:developers/form) object that this field belongs to.
+`field` | A [Field](docs:developers/field) object, for the field instance this template is for.
 `handle` | The handle of the field.
 `options` | A collection of additional options, available for some fields.
-`element` | The current [Submission]() object this this form may or may not have.
+`element` | The current [Submission](docs:developers/submission) object this this form may or may not have.
 
 ## Overriding Field Templates
 You'll notice the above structure includes the `fields/` directory. Inside this directory are a mixture of folder and individual files, each representing a template that you're able to override.

@@ -1,7 +1,7 @@
 # Rendering Fields
 You can render a specific field completely on its own, outside of a `<form>` element context. This can be useful if you want complete control over your form layout. Due to this, you are required to provide your own template code for the `<form>` element, in order for submissions to actually work.
 
-The `renderField()` reqiures both a [Form]() object and a [Field]() object.
+The `renderField()` reqiures both a [Form](docs:developers/form) object and a [Field](docs:developers/field) object.
 
 ```twig
 {% set form = craft.formie.forms({ handle: 'contactForm' }).one() %}
@@ -75,4 +75,4 @@ You can also render fields in the layout you build in the form builder, with pag
 </form>
 ```
 
-Here we have a completely custom layout, with Formie handling the rendering of the field. For more information on what properties are available, consult the [Page](), [Row]() and [Field]() docs.
+Here we have a completely custom layout, with Formie handling the rendering of the field. For more information on what properties are available, consult the [Page](docs:developers/page), [Row](docs:developers/row) and [Field](docs:developers/field) docs.

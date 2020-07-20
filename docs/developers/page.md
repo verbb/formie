@@ -16,8 +16,8 @@ Attribute | Description
 
 Method | Description
 --- | ---
-`getRows()` | Returns an array of [Row]() objects for this page.
-`getFields()` | Returns an array of [Field]() objects for this page.
+`getRows()` | Returns an array of [Row](docs:developers/row) objects for this page.
+`getFields()` | Returns an array of [Field](docs:developers/field) objects for this page.
 
 
 # Page Setttings

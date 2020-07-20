@@ -1,23 +1,25 @@
 # Email Notifications
 Email notifications are an important part of any form, to both notify the user their submission has been received, and to notfy admin's of their submission so they can action.
 
+<img src="https://verbb.io/uploads/plugins/formie/formie-email-notification.png" />
+
 Each notification is form-specific, and you can create as many notifications as required. There are a number of fields for a notification:
 
 - Enabled - Whether the notification should be sent.
 - Name - An internal name to call this notification in the control panel.
 - Recipients - A list of email addresses that this notification should go to.
 - Subject - The subject line for the email.
-- Email Content - The full body of the email. See [Email Content]().
+- Email Content - The full body of the email. See [Email Content](#email-content).
 - From Name - Set the name attribute that the email is shown to have come from.
 - From Email - The senders email address.
 - Reply-To Email - The reply-to email address for the email.
 - CC - The cc email address for the email.
 - BCC - The bcc email address for the email.
 - Attach File Uploads - Whether to attach any user-uploaded files to the email.
-- Email Template - To select a custom [Email Template]().
+- Email Template - To select a custom [Email Template](docs:feature-tour/email-templates).
 
 ## Email Content
-The email content field is a rich-text field providing basic formatting functionality. Due to the complexities of email rendering, this is kept simple on purpose. If you wish to build custom templates for your emails, read the [Email Templates]() docs.
+The email content field is a rich-text field providing basic formatting functionality. Due to the complexities of email rendering, this is kept simple on purpose. If you wish to build custom templates for your emails, read the [Email Templates](docs:feature-tour/email-templates) docs.
 
 One feature of this field is the variable select field. This allows you to pull in dynamic content from Craft, or from the submission this email notification is made on. Commonly, you'll want to use the "All Fields" option to generate a full list of field's and their content, producing similar content to:
 

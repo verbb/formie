@@ -4,9 +4,11 @@ Forms are the core feature of Formie, and likely where you'll head first! They a
 # Form Builder
 The form builder is a powerful and intuitive drag-and-drop interface to allow you to quickly build a form. To get started, drag a field from the right-hand sidebar onto the left-hand pane. A large dropzone will appear for new forms as a prompt to where to drop the field. For forms with existing fields, light blue dropzones will appear suggesting where to place a field.
 
+<img src="https://verbb.io/uploads/plugins/formie/formie-form-builder.png" />
+
 Fields can be laid out in a series of columns and rows. For more complex forms, you can create additional pages, splitting fields over multiple pages. Fields can also be dragged-and-dropped to other pages.
 
-To ease the use of having lots of fields, you can also select [existing fields]() to add to your form. From these existing fields, you can choose whether to add the field as a copy of the original field, or maintain a link to the original field as a [synced field]().
+To ease the use of having lots of fields, you can also select [Existing Fields](docs:feature-tour/existing-fields) to add to your form. From these existing fields, you can choose whether to add the field as a copy of the original field, or maintain a link to the original field as a [Synced Field](docs:feature-tour/sycned-field).
 
 Hovering over any field will show a settings icon in the top-right of a field. Clicking this provides quick options for a field, such as editing, cloning, requiring, or deleting the field. Cloning a field will create a new field directly below it.
 
@@ -47,7 +49,7 @@ The behaviour section provides options on how the form and submission behaves to
 ## Email Notifications
 Email notifications are an important part of forms, to both notify the user their submission has been received, and to notfy admin's of their submission so they can action.
 
-Each notification is form-specific, and you can create as many notifications as required. Refer to [Email Notifications]()
+Each notification is form-specific, and you can create as many notifications as required. Refer to [Email Notifications](docs:feature-tour/email-notifications)
 
 ## Integrations
 All available integration will be listed for a form. Each integration can be enabled or disabled for a specific form. By default, these will use their globally enabled or disabled state, set at the plugin level. Any additional settings for your integrations for a form can be found here.

@@ -3,6 +3,8 @@ When creating a new form, you'll have a single page, named "Page 1". For short f
 
 For more complex forms however, you may need to create additional pages, splitting fields over multiple pages. This is what's called a Multi-page form. For each page, users are required to fill out the pages' fields, including any required fields, and proceed to the next page. Each step saves the users' content before proceeding on to the next, so their content won't be forgotten.
 
+<img src="https://verbb.io/uploads/plugins/formie/formie-pages.png" />
+
 Submissions are set to `isIncomplete` at this point, and are not shown in the control panel by default. You can use the dropdown in the Submissions element index to show these as required.
 
 Navigating to previous or next pages is possible with Formie, in case users want to skip ahead, or go back to previous pages. At the final step of the form however, Formie will ensure all pages validate, just in case the user goes back to previous pages and changes a required field's value.

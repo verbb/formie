@@ -65,7 +65,7 @@ Don't forget, Formie will automatically generate a plain-text version of your HT
 In addition to providing a template for the overall email, you can customise the content for each field.
 
 :::tip
-Be sure to check out [Overriding Field Templates]() which is largely the same process, and applies to overriding email field templates.
+Be sure to check out [Overriding Field Templates](docs:template-guides/form-templates) which is largely the same process, and applies to overriding email field templates.
 :::
 
 Keeping with the same example, we can create templates for individual fields in a `fields` folder. So our template folder would look like:
@@ -110,8 +110,8 @@ Your templates have access to the following variables:
 
 Variable | Description
 --- | ---
-`field` | A [Field]() object, for the field instance this template is for.
-`submission` | A [Submission]() object, for what the email is notifying about.
+`field` | A [Field](docs:developers/field) object, for the field instance this template is for.
+`submission` | A [Submission](docs:developers/submission) object, for what the email is notifying about.
 `name` | The handle of the field.
-`value` | The content for this field, stored on the [Submission](). The format of this will depend on the field's content model.
+`value` | The content for this field, stored on the [Submission](docs:developers/submission). The format of this will depend on the field's content model.
 `options` | A collection of additional options, available for some fields.

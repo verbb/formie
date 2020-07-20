@@ -3,8 +3,10 @@ Fields are arguably the core of a form, providing users the means to input actua
 
 Each field varies by its type, allowing for different functionality and behaviour depending on the field.
 
+<img src="https://verbb.io/uploads/plugins/formie/formie-address.png" />
+
 :::tip
-Looking for custom fields? Developers can create their own custom fields to extend the functionality of Formie. Read the [Custom Field]() docs for more.
+Looking for custom fields? Developers can create their own custom fields to extend the functionality of Formie. Read the [Custom Field](docs:developers/custom-field) docs for more.
 :::
 
 # Settings
@@ -23,7 +25,7 @@ CSS Classes | Add classes to be outputted on this field’s container.
 Container Attributes | Add attributes to be outputted on this field’s container.
 Input Atributes | Add attributes to be outputted on this field’s input.
 
-See the full [Field]() documentation for more.
+See the full [Field](docs:developers/field) documentation for more.
 
 In addition some fields have some additional specific settings, described below.
 
