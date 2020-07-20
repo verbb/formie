@@ -558,7 +558,7 @@ class Submission extends Element
     {
         $form = $this->getForm();
 
-        if ($form->getCurrentSubmission() === $this) {
+        if (($submission = $form->getCurrentSubmission()) && $submission->id == $this->id) {
             $form->resetCurrentSubmission();
         }
 

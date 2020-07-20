@@ -491,14 +491,11 @@ class Form extends Element
         $pages = $this->getPages();
 
         if ($pages) {
-            // Only set the current page if there is a submission.
-            if ($this->getCurrentSubmission()) {
-                // Check if there's a session variable
-                $pageId = Craft::$app->getSession()->get('formie:' . $this->id . ':pageId');
+            // Check if there's a session variable
+            $pageId = Craft::$app->getSession()->get('formie:' . $this->id . ':pageId');
 
-                if ($pageId) {
-                    $currentPage = ArrayHelper::firstWhere($pages, 'id', $pageId);
-                }
+            if ($pageId) {
+                $currentPage = ArrayHelper::firstWhere($pages, 'id', $pageId);
             }
 
             // Separate check from the above. Maybe we're trying to fetch a page that doesn't
