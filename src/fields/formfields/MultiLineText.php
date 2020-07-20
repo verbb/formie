@@ -28,14 +28,6 @@ class MultiLineText extends FormField
     /**
      * @inheritDoc
      */
-    public static function getEmailTemplatePath(): string
-    {
-        return '';
-    }
-
-    /**
-     * @inheritDoc
-     */
     public static function getSvgIconPath(): string
     {
         return 'formie/_formfields/multi-line-text/icon.svg';

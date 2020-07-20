@@ -31,14 +31,6 @@ class SingleLineText extends FormField
     /**
      * @inheritDoc
      */
-    public static function getEmailTemplatePath(): string
-    {
-        return '';
-    }
-
-    /**
-     * @inheritDoc
-     */
     public static function getSvgIconPath(): string
     {
         return 'formie/_formfields/single-line-text/icon.svg';

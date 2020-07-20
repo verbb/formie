@@ -1,6 +1,8 @@
 <?php
 namespace verbb\formie\base;
 
+use Exception;
+use Twig\Error\LoaderError as TwigLoaderError;
 use verbb\formie\Formie;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
@@ -487,7 +489,18 @@ trait FormFieldTrait
      */
     public function getEmailHtml(Submission $submission, $value, array $options = null)
     {
-        if (!static::getEmailTemplatePath()) {
+        $view = Craft::$app->getView();
+        $oldTemplatesPath = $view->getTemplatesPath();
+
+        try {
+            $templatesPath = Formie::$plugin->getRendering()->getEmailComponentTemplatePath($submission->notification, static::getEmailTemplatePath());
+
+            $view->setTemplatesPath($templatesPath);
+
+            $inputOptions = $this->getEmailOptions($submission, $value, $options);
+            $html = Craft::$app->getView()->renderTemplate(static::getEmailTemplatePath(), $inputOptions);
+            $html = Template::raw($html);
+        } catch (Exception $e) {
             // Nice an simple for most cases - no need for a template file
             try {
                 $content = (string)$value;
@@ -496,25 +509,15 @@ trait FormFieldTrait
                     $content = Html::tag('strong', $this->name) . '<br>' . $content;
                 }
 
-                return Html::tag('p', $content);
+                $html = Html::tag('p', $content);
             } catch (Throwable $e) {
+                $html = '';
                 Formie::error('Failed to render email field content: ' . $e->getMessage());
             }
-
-            return '';
         }
 
-        $view = Craft::$app->getView();
-        $oldTemplatesPath = $view->getTemplatesPath();
-        $templatesPath = Formie::$plugin->getRendering()->getEmailComponentTemplatePath($submission->notification, static::getEmailTemplatePath());
-        $view->setTemplatesPath($templatesPath);
-
-        $inputOptions = $this->getEmailOptions($submission, $value, $options);
-        $html = Craft::$app->getView()->renderTemplate(static::getEmailTemplatePath(), $inputOptions);
-
         $view->setTemplatesPath($oldTemplatesPath);
-
-        return Template::raw($html);
+        return $html;
     }
 
     /**
