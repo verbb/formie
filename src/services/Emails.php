@@ -229,14 +229,19 @@ class Emails extends Component
             // Add it to our render variables
             $renderVariables['contentHtml'] = Template::raw($parsedContent);
 
-            // We need to do a little more work here to deal with the default template, if picked
+            $view->setTemplateMode($view::TEMPLATE_MODE_CP);
+
             if ($templatePath) {
+                // We need to do a little more work here to deal with a template, if picked
+                $oldTemplatesPath = $view->getTemplatesPath();
+                $view->setTemplatesPath(Craft::$app->getPath()->getSiteTemplatesPath());
                 $body = $view->renderTemplate($templatePath, $renderVariables);
+                $view->setTemplatesPath($oldTemplatesPath);
             } else {
-                $view->setTemplateMode($view::TEMPLATE_MODE_CP);
                 $body = $view->renderTemplate('formie/_special/email-template', $renderVariables);
-                $view->setTemplateMode($view::TEMPLATE_MODE_SITE);
             }
+
+            $view->setTemplateMode($view::TEMPLATE_MODE_SITE);
 
             $newEmail->setHtmlBody($body);
 
