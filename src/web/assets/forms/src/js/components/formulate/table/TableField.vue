@@ -147,7 +147,7 @@ export default {
 
             // Always increment the total cols. We don't want to reuse deleted cols
             if (this.useColumnIds) {
-                newRowDefaults.id = 'row' + ++this.totalColumns;
+                newRowDefaults.id = 'col' + ++this.totalColumns;
             }
 
             if (Array.isArray(this.context.model)) {
