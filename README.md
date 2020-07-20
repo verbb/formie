@@ -1,6 +1,6 @@
 # Formie Plugin for Craft CMS
 
-<img width="500" src="https://verbb.io/uploads/plugins/formie/_800x455_crop_center-center/formie-social-card.png">
+<img width="500" src="https://verbb.io/uploads/plugins/formie/formie-social-card.png">
 
 Formie is a Craft CMS plugin for creating user-friendly forms that your content editors will love. With over 25 fields available, a drag-and-drop form builder, multi-page support, and more!
 
