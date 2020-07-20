@@ -54,3 +54,17 @@
         <portal-target name="modals" multiple></portal-target>
     </div>
 </form-builder>
+
+{% js %}
+    new Craft.Formie({
+        isStencil: {{ stencil is defined ? 1 : 0 }},
+        config: {{ formConfig | json_encode | raw }},
+        fields: {{ fields | json_encode | raw }},
+        notifications: {{ notifications | json_encode | raw }},
+        variables: {{ variables | json_encode | raw }},
+        emailTemplates: {{ emailTemplates | json_encode | raw }},
+        reservedHandles: {{ reservedHandles | json_encode | raw }},
+        formHandles: {{ formHandles | json_encode | raw }},
+        existingFields: {{ (existingFields is defined ? existingFields : []) | json_encode | raw }},
+    });
+{% endjs %}
