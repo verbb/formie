@@ -104,7 +104,7 @@ class SchemaHelper
     {
         return array_merge([
             'component' => 'table-block',
-            'validation' => 'min:1,length|uniqueLabels|uniqueValues|requiredLabels|requiredValues',
+            'validation' => 'min:1,length|uniqueLabels|uniqueValues|requiredLabels',
         ], $config);
     }
 
