@@ -8,7 +8,7 @@
     <div class="fui-layout-wrap">
         {% for option in field.options %}
             {% set optionId = options.id ~ '-' ~ option.value | kebab %}
-            {% set selected = value ? option.value in value : (option.isDefault ?? false) %}
+            {% set selected = value ? value.contains(option.value) : (option.isDefault ?? false) %}
 
             <div class="fui-checkbox">
                 {% set attributes = {

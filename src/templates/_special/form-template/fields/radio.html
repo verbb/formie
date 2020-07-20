@@ -6,7 +6,7 @@
     <div class="fui-layout-wrap">
         {% for option in field.options %}
             {% set optionId = options.id ~ '-' ~ option.value | kebab %}
-            {% set selected = value ? option.value in value : (option.isDefault ?? false) %}
+            {% set selected = value and value.value ? option.value == value.value : (option.isDefault ?? false) %}
 
             <div class="fui-radio">
                 {% set attributes = {
