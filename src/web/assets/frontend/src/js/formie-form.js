@@ -99,6 +99,10 @@ class FormieForm {
 
             var $error = $field.parentNode.querySelector('.fui-error-message');
 
+            // Move the error out of the .fui-input-container node.
+            // Only the input itself should be in here.
+            $error.parentNode.parentNode.appendChild($error);
+
             if ($error && message) {
                 $error.textContent = message;
             }
@@ -159,7 +163,7 @@ class FormieForm {
             this.$form.submit();
         }
     }
-    
+
     onSubmitError(e) {
         this.onFormError();
     }

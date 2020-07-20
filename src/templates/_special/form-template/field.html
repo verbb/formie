@@ -50,7 +50,9 @@
         {% hook 'formie.field.field-start' %}
         {% hook 'formie.field.input-start' %}
 
-        {{ field.getFrontEndInputHtml(form, value, inputOptions) }}
+        <div class="fui-input-container">
+            {{ field.getFrontEndInputHtml(form, value, inputOptions) }}
+        </div>
 
         {% hook 'formie.field.input-end' %}
         {% hook 'formie.field.field-end' %}
