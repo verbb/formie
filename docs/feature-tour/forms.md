@@ -1,6 +1,10 @@
 # Forms
 Forms are the core feature of Formie, and likely where you'll head first! They are a collection of fields, where you can define the layout, behaviour, appearance and even email notifications.
 
+:::tip
+Looking to make the switch to Formie? Read our [blog post](https://verbb.io/blog/introducing-formie) on why we built Formie.
+:::
+
 # Form Builder
 The form builder is a powerful and intuitive drag-and-drop interface to allow you to quickly build a form. To get started, drag a field from the right-hand sidebar onto the left-hand pane. A large dropzone will appear for new forms as a prompt to where to drop the field. For forms with existing fields, light blue dropzones will appear suggesting where to place a field.
 
