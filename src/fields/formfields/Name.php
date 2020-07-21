@@ -38,6 +38,7 @@ class Name extends FormField implements SubfieldInterface
     public $prefixPlaceholder;
     public $prefixDefaultValue;
     public $prefixRequired;
+    public $prefixErrorMessage;
 
     public $firstNameEnabled;
     public $firstNameCollapsed;
@@ -45,6 +46,7 @@ class Name extends FormField implements SubfieldInterface
     public $firstNamePlaceholder;
     public $firstNameDefaultValue;
     public $firstNameRequired;
+    public $firstNameErrorMessage;
 
     public $middleNameEnabled;
     public $middleNameCollapsed;
@@ -52,6 +54,7 @@ class Name extends FormField implements SubfieldInterface
     public $middleNamePlaceholder;
     public $middleNameDefaultValue;
     public $middleNameRequired;
+    public $middleNameErrorMessage;
 
     public $lastNameEnabled;
     public $lastNameCollapsed;
@@ -59,6 +62,7 @@ class Name extends FormField implements SubfieldInterface
     public $lastNamePlaceholder;
     public $lastNameDefaultValue;
     public $lastNameRequired;
+    public $lastNameErrorMessage;
 
 
     // Static Methods

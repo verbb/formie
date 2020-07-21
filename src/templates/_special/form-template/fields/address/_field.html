@@ -1,5 +1,6 @@
 {% set html %}
     {% set inputId = handle | namespaceInputId(options.id) %}
+    {% set errorMessage = attribute(field, handle ~ 'ErrorMessage') %}
     {% set required = field.required ? field.required : attribute(field, handle ~ 'Required') %}
 
     {% set labelPosition = craft.formie.getLabelPosition(field, form, true) %}
@@ -27,6 +28,9 @@
             placeholder: attribute(field, handle ~ 'Placeholder'),
             required: required,
             value: attribute(value, handle) ?? attribute(field, handle ~ 'DefaultValue') ?? '',
+            data: {
+                'fui-message': errorMessage,
+            },
             id: inputId,
         } %}
 

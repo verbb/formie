@@ -34,6 +34,7 @@ class Address extends FormField implements SubfieldInterface
     public $address1Placeholder;
     public $address1DefaultValue;
     public $address1Required;
+    public $address1ErrorMessage;
 
     public $address2Enabled;
     public $address2Collapsed;
@@ -41,6 +42,7 @@ class Address extends FormField implements SubfieldInterface
     public $address2Placeholder;
     public $address2DefaultValue;
     public $address2Required;
+    public $address2ErrorMessage;
 
     public $address3Enabled;
     public $address3Collapsed;
@@ -48,6 +50,7 @@ class Address extends FormField implements SubfieldInterface
     public $address3Placeholder;
     public $address3DefaultValue;
     public $address3Required;
+    public $address3ErrorMessage;
 
     public $cityEnabled;
     public $cityCollapsed;
@@ -55,6 +58,7 @@ class Address extends FormField implements SubfieldInterface
     public $cityPlaceholder;
     public $cityDefaultValue;
     public $cityRequired;
+    public $cityErrorMessage;
 
     public $stateEnabled;
     public $stateCollapsed;
@@ -62,6 +66,7 @@ class Address extends FormField implements SubfieldInterface
     public $statePlaceholder;
     public $stateDefaultValue;
     public $stateRequired;
+    public $stateErrorMessage;
 
     public $zipEnabled;
     public $zipCollapsed;
@@ -69,6 +74,7 @@ class Address extends FormField implements SubfieldInterface
     public $zipPlaceholder;
     public $zipDefaultValue;
     public $zipRequired;
+    public $zipErrorMessage;
 
     public $countryEnabled;
     public $countryCollapsed;
@@ -76,6 +82,7 @@ class Address extends FormField implements SubfieldInterface
     public $countryPlaceholder;
     public $countryDefaultValue;
     public $countryRequired;
+    public $countryErrorMessage;
 
 
     // Static Methods
