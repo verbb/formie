@@ -34,7 +34,7 @@
                 <ul>
                     {% if form.id %}
                         <li>
-                            <a data-redirect="{{ continueEditingUrl | hash }}" @click.prevent="onSaveAsNew">
+                            <a data-redirect="{{ continueEditingUrl | hash }}" @click.prevent="onSaveAsNew({ duplicate: true })">
                                 {{ 'Save as a new form' | t('formie') }}
                             </a>
                         </li>

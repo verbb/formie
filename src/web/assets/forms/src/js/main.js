@@ -104,11 +104,11 @@ Craft.Formie = Garnish.Base.extend({
                         });
                     },
 
-                    onSaveAsNew() {
+                    onSaveAsNew(params) {
                         this.loading = true;
 
                         this.$nextTick(() => {
-                            this.$events.$emit('formie:save-form', { duplicateStencil: true });
+                            this.$events.$emit('formie:save-form', params);
                         });
                     },
 
