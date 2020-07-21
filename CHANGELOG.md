@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.0.2 - 2020-07-21
+
+### Added
+- Added subfield hooks for name and date fields.
+
+### Changed
+- Move field errors outside of input containers.
+- Hide required option for HTML field.
+
+### Fixed
+- Added missing style for left/right submit buttons.
+- Fixed template theme CSS from being outputted when the layout is disabled.
+
 ## 1.0.1 - 2020-07-21
 
 ### Added
