@@ -17,6 +17,10 @@
         justify-content: center;
     }
 
+    &.fui-btn-left-right {
+        justify-content: space-between;
+    }
+
     .fui-btn {
         margin-left: 0.5rem;
         margin-right: 0.5rem;
