@@ -1,26 +1,29 @@
 <?php
 namespace verbb\formie\base;
 
-use Exception;
-use Twig\Error\LoaderError as TwigLoaderError;
 use verbb\formie\Formie;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\fields\formfields\BaseOptionsField;
 use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\gql\types\generators\KeyValueGenerator;
 use verbb\formie\models\Notification;
 
 use Craft;
 use craft\base\ElementInterface;
+use craft\gql\types\DateTime as DateTimeType;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Html;
 use craft\helpers\Template;
 use craft\helpers\StringHelper;
 use craft\validators\HandleValidator;
 
-use Twig\Markup;
+use Exception;
+use GraphQL\Type\Definition\Type;
 use ReflectionClass;
 use Throwable;
+use Twig\Error\LoaderError as TwigLoaderError;
+use Twig\Markup;
 
 trait FormFieldTrait
 {
@@ -574,6 +577,36 @@ trait FormFieldTrait
 
     }
 
+    /**
+     * @inheritDoc
+     */
+    public function getSettingGqlTypes()
+    {
+        // Prepare a key-value of handle and type settings for GQL
+        $fieldSchema = $this->getFieldSchema();
+
+        // Now we have our Schema-based types, we should convert those to GQL types
+        $fieldTypes = SchemaHelper::extractFieldInfoFromSchema($fieldSchema['fields']);
+        $gqlSettingTypes = [];
+
+        foreach ($this->getSettings() as $attribute => $setting) {
+            $fieldInfo = $fieldTypes[$attribute] ?? [];
+            $schemaType = $fieldInfo['type'] ?? $fieldInfo['component'] ?? 'text';
+
+            $gqlSettingTypes[$attribute] = [
+                'name' => $attribute,
+                'type' => $this->getSettingGqlType($attribute, $schemaType, $fieldInfo),
+            ];
+        }
+
+        return $gqlSettingTypes;
+    }
+
+    public function getGqlTypeName()
+    {
+        return 'Field_' . $this->displayName();
+    }
+
 
     // Private Methods
     // =========================================================================
@@ -589,5 +622,53 @@ trait FormFieldTrait
         $end = array_pop($classNameParts);
 
         return StringHelper::toKebabCase($end);
+    }
+
+    /**
+     * Returns the GraphQL-equivalent datatype based on a provided field's handle or schema type
+     */
+    private function getSettingGqlType($attribute, $type, $fieldInfo)
+    {
+        if ($type === 'lightswitch') {
+            return Type::boolean();
+        }
+
+        if ($type === 'date') {
+            return DateTimeType::getType();
+        }
+
+        if ($type === 'table-block') {
+            $columns = [
+                'label' => Type::string(),
+                'heading' => Type::string(),
+                'value' => Type::string(),
+                'handle' => Type::string(),
+                'width' => Type::string(),
+                'type' => Type::string(),
+                'isOptgroup' => Type::boolean(),
+                'optgroup' => Type::boolean(),
+                'isDefault' => Type::boolean(),
+                'default' => Type::boolean(),
+            ];
+
+            $fieldColumns = $fieldInfo['columns'] ?? [];
+
+            // Figure something out with table defaults. It almost can't be done because we're
+            // getting this information from the class, not an instance of the field.
+            if (!is_array($fieldColumns)) {
+
+            }
+
+            $typeArray = KeyValueGenerator::generateTypes($this, $columns);
+
+            return Type::listOf(array_pop($typeArray));
+        }
+
+        // Special case for these as they're not schema-defined fields
+        if (strstr($attribute, 'Enabled') || strstr($attribute, 'Collapsed')) {
+            return Type::boolean();
+        }
+
+        return Type::string();
     }
 }
