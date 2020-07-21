@@ -1,19 +1,29 @@
 {% set html %}
-    {% set labelPosition = craft.formie.getLabelPosition(field, form, true) %}
     {% set inputId = handle | namespaceInputId(options.id) %}
     {% set selected = attribute(value, handle) ?? attribute(field, handle ~ 'DefaultValue') ?? '' %}
     {% set placeholder = attribute(field, handle ~ 'Placeholder') %}
     {% set required = field.required ? field.required : attribute(field, handle ~ 'Required') %}
 
-    {% include '_label' with {
+    {% set labelPosition = craft.formie.getLabelPosition(field, form, true) %}
+    {% set labelOptions = {
         field: null,
         id: inputId,
-        required: attribute(field, handle ~ 'Required'),
+        required: required,
         fieldName: attribute(field, handle ~ 'Label'),
-        position: 'above',
+        labelPosition: labelPosition,
     } %}
 
-    <div class="fui-name-container">
+    {% hook 'formie.subfield.field-start' %}
+
+    {% include '_label' with labelOptions | merge({
+        position: 'above',
+    }) %}
+
+    {% hook 'formie.subfield.input-before' %}
+
+    <div class="fui-input-container">
+        {% hook 'formie.subfield.input-start' %}
+
         {% switch handle %}
         {% case 'prefix' %}
             {% set attributes = {
@@ -53,15 +63,17 @@
 
             <input {{ attr(attributes) }} />
         {% endswitch %}
+
+        {% hook 'formie.subfield.input-end' %}
     </div>
 
-    {% include '_label' with {
-        field: null,
-        id: inputId,
-        required: attribute(field, handle ~ 'Required'),
-        fieldName: attribute(field, handle ~ 'Label'),
+    {% hook 'formie.subfield.input-after' %}
+
+    {% include '_label' with labelOptions | merge({
         position: 'below',
-    } %}
+    }) %}
+
+    {% hook 'formie.subfield.field-end' %}
 {% endset %}
 
 {% set attributes = {
@@ -69,6 +81,7 @@
         'fui-field',
         'fui-name-field',
         'fui-name-' ~ (handle | replace('/([A-Z])/', '-$1') | lower),
+        'fui-label-' ~ labelPosition,
         handle != 'prefix' ? 'fui-text-input-field' : 'fui-select-field',
     ],
     html: html,
