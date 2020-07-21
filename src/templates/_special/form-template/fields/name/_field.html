@@ -2,6 +2,7 @@
     {% set inputId = handle | namespaceInputId(options.id) %}
     {% set selected = attribute(value, handle) ?? attribute(field, handle ~ 'DefaultValue') ?? '' %}
     {% set placeholder = attribute(field, handle ~ 'Placeholder') %}
+    {% set errorMessage = attribute(field, handle ~ 'ErrorMessage') %}
     {% set required = field.required ? field.required : attribute(field, handle ~ 'Required') %}
 
     {% set labelPosition = craft.formie.getLabelPosition(field, form, true) %}
@@ -32,6 +33,9 @@
                 name: handle | namespaceInputName(field.handle),
                 autocomplete: autocomplete,
                 required: required,
+                data: {
+                    'fui-message': errorMessage,
+                },
                 aria: {
                     required: required ? 'true' : 'false',
                 },
@@ -56,6 +60,9 @@
                 autocomplete: autocomplete,
                 required: required,
                 value: selected,
+                data: {
+                    'fui-message': errorMessage,
+                },
                 aria: {
                     required: required ? 'true' : 'false',
                 },
