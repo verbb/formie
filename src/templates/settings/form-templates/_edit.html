@@ -97,7 +97,7 @@
         toggle: 'output-css-theme',
     }) }}
 
-    <div id="output-css-theme">
+    <div id="output-css-theme" class="{{ not template.outputCssLayout ? 'hidden' }}">
         {{ forms.lightswitchField({
             label: 'Output Theme' | t('formie'),
             instructions: 'Enable this option to output the default Formie CSS theme when rending forms using this template.' | t('formie'),

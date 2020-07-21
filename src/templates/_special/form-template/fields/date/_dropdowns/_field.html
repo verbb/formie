@@ -10,15 +10,26 @@
         {% set selected = value ? (value | date(char) * 1) : null %}
     {% endif %}
 
-    {% include '_label' with {
+    {% set labelPosition = craft.formie.getLabelPosition(field, form, true) %}
+    {% set labelOptions = {
         field: null,
         id: inputId,
         required: field.required ? true : false,
         fieldName: attribute(field, handle ~ 'Label'),
-        position: 'above',
+        labelPosition: labelPosition,
     } %}
 
-    <div class="fui-name-container">
+    {% hook 'formie.subfield.field-start' %}
+
+    {% include '_label' with labelOptions | merge({
+        position: 'above',
+    }) %}
+
+    {% hook 'formie.subfield.input-before' %}
+
+    <div class="fui-input-container">
+        {% hook 'formie.subfield.input-start' %}
+
         {% set attributes = {
             id: inputId,
             class: [ 'fui-select' ],
@@ -44,15 +55,17 @@
                 {% endfor %}
             {% endif %}
         </select>
+
+        {% hook 'formie.subfield.input-end' %}
     </div>
 
-    {% include '_label' with {
-        field: null,
-        id: inputId,
-        required: field.required ? true : false,
-        fieldName: attribute(field, handle ~ 'Label'),
+    {% hook 'formie.subfield.input-after' %}
+
+    {% include '_label' with labelOptions | merge({
         position: 'below',
-    } %}
+    }) %}
+
+    {% hook 'formie.subfield.field-end' %}
 {% endset %}
 
 {% set attributes = {
@@ -61,6 +74,8 @@
         'fui-select-field',
         'fui-date-field',
         'fui-date-' ~ (handle | replace('/([A-Z])/', '-$1') | lower),
+        'fui-label-' ~ labelPosition,
+        handle != 'ampm' ? 'fui-text-input-field' : 'fui-select-field',
     ],
     html: html,
 } %}
