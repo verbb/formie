@@ -132,15 +132,7 @@ class Form extends Element
      */
     public static function gqlTypeNameByContext($context): string
     {
-        return $context->handle . '_Form';
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public static function gqlScopesByContext($context): array
-    {
-        return ['forms.' . $context->uid];
+        return 'Form';
     }
 
     /**
@@ -845,6 +837,14 @@ class Form extends Element
         $this->trigger(self::EVENT_MODIFY_FORM_CAPTCHAS, $event);
 
         return $event->captchas;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getGqlTypeName(): string
+    {
+        return static::gqlTypeNameByContext($this);
     }
 
 

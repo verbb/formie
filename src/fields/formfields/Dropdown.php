@@ -1,12 +1,12 @@
 <?php
 namespace verbb\formie\fields\formfields;
 
-use craft\helpers\ArrayHelper;
 use verbb\formie\base\FormFieldInterface;
 use verbb\formie\helpers\SchemaHelper;
 
 use Craft;
 use craft\base\ElementInterface;
+use craft\helpers\ArrayHelper;
 
 class Dropdown extends BaseOptionsField implements FormFieldInterface
 {

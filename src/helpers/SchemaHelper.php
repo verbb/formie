@@ -277,6 +277,21 @@ class SchemaHelper
         return $names;
     }
 
+    public static function extractFieldInfoFromSchema($fieldSchema, &$names = [])
+    {
+        foreach ($fieldSchema as $field) {
+            if (isset($field['name'])) {
+                $names[$field['name']] = $field;
+            }
+
+            if (isset($field['children'])) {
+                self::extractFieldInfoFromSchema($field['children'], $names);
+            }
+        }
+
+        return $names;
+    }
+
     public static function setFieldValidationName(&$fieldSchema)
     {
         foreach ($fieldSchema as &$field) {

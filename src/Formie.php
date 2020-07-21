@@ -5,11 +5,14 @@ use Craft;
 use craft\base\Plugin;
 use craft\events\FieldLayoutEvent;
 use craft\events\RegisterComponentTypesEvent;
+use craft\events\RegisterGqlQueriesEvent;
+use craft\events\RegisterGqlTypesEvent;
 use craft\events\RegisterUserPermissionsEvent;
 use craft\events\RebuildConfigEvent;
 use craft\services\Gc;
 use craft\services\Elements;
 use craft\services\Fields;
+use craft\services\Gql;
 use craft\services\ProjectConfig;
 use craft\services\UserPermissions;
 use craft\helpers\UrlHelper;
@@ -24,6 +27,12 @@ use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\fields\Forms;
 use verbb\formie\fields\Submissions;
+use verbb\formie\gql\interfaces\FieldInterface;
+use verbb\formie\gql\interfaces\FormInterface;
+use verbb\formie\gql\interfaces\PageInterface;
+use verbb\formie\gql\interfaces\PageSettingsInterface;
+use verbb\formie\gql\interfaces\RowInterface;
+use verbb\formie\gql\queries\FormQuery;
 use verbb\formie\helpers\ProjectConfigHelper;
 use verbb\formie\models\Settings;
 use verbb\formie\services\Statuses as StatusesService;
@@ -67,6 +76,7 @@ class Formie extends Plugin
         $this->_registerVariable();
         $this->_registerElementTypes();
         $this->_registerGarbageCollection();
+        $this->_registerGraphQl();
         $this->_registerProjectConfigEventListeners();
 
         // Add default captcha integrations
@@ -201,6 +211,25 @@ class Formie extends Plugin
 
             // Delete leftover content tables, for deleted forms
             $this->getForms()->pruneContentTables();
+        });
+    }
+
+    private function _registerGraphQl()
+    {
+        Event::on(Gql::class, Gql::EVENT_REGISTER_GQL_TYPES, function(RegisterGqlTypesEvent $event) {
+            $event->types[] = FormInterface::class;
+            $event->types[] = PageInterface::class;
+            $event->types[] = PageSettingsInterface::class;
+            $event->types[] = RowInterface::class;
+            $event->types[] = FieldInterface::class;
+        });
+
+        Event::on(Gql::class, Gql::EVENT_REGISTER_GQL_QUERIES, function(RegisterGqlQueriesEvent $event) {
+            $queries = FormQuery::getQueries();
+            
+            foreach ($queries as $key => $value) {
+                $event->queries[$key] = $value;
+            }
         });
     }
 

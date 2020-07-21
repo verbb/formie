@@ -197,6 +197,17 @@ trait NestedFieldTrait
     }
 
     /**
+     * @return FieldInterface[]
+     * @throws InvalidConfigException
+     */
+    public function getNestedRows()
+    {
+        /* @var FormFieldInterface[] $pageFields */
+        $pageFields = $this->getFields();
+        return Formie::$plugin->getFields()->groupIntoRows($pageFields);
+    }
+
+    /**
      * Gets all nested fields.
      *
      * @return FieldInterface[]|null
