@@ -5,10 +5,6 @@
 ### Added
 - Added subfield hooks for name and date fields.
 
-### Changed
-- Move field errors outside of input containers.
-- Hide required option for HTML field.
-
 ### Fixed
 - Added missing style for left/right submit buttons.
 - Fixed template theme CSS from being outputted when the layout is disabled.
