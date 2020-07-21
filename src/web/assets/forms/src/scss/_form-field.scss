@@ -116,7 +116,7 @@
 }
 
 .fui-field-info {
-    position: relative;
+    // position: relative;
     display: flex;
     flex: 1;
     align-items: center;
@@ -163,10 +163,10 @@
 .fui-field-actions {
     opacity: 0;
     position: absolute;
-    top: 0;
-    right: 0;
+    top: 5px;
+    right: 5px;
     margin-left: auto;
-    margin-right: -10px;
+    // margin-right: -10px;
     transition: all 0.2s ease;
 
     .fui-submit-block & {
