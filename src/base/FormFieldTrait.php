@@ -604,7 +604,10 @@ trait FormFieldTrait
 
     public function getGqlTypeName()
     {
-        return 'Field_' . $this->displayName();
+        $classNameParts = explode('\\', static::class);
+        $end = array_pop($classNameParts);
+        
+        return 'Field_' . $end;
     }
 
 

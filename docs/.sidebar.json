@@ -67,7 +67,8 @@
             "developers/custom-field",
             "developers/custom-integration",
             "developers/front-end-css",
-            "developers/front-end-js"
+            "developers/front-end-js",
+            "developers/graphql"
         ]
     },
     {
