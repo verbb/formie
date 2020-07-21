@@ -52,7 +52,7 @@ class FrontEndAsset extends AssetBundle
             $this->css[] = 'css/formie-base.css';
         }
 
-        if ($outputCssTheme) {
+        if ($outputCssLayout && $outputCssTheme) {
             $this->css[] = 'css/formie-theme.css';
         }
 
