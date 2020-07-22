@@ -75,6 +75,7 @@
             suggestEnvVars: false,
             value: template.template,
             errors: template.getErrors('template'),
+            warning: 'If you use custom templates, you will not receive template improvements and bug fixes. If possible, it is suggested to use the default template and create your own style.' | t('formie'),
         }) }}
 
         {% if not template.id %}
