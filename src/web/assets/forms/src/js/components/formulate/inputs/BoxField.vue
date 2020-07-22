@@ -1,8 +1,5 @@
 <template>
-    <div
-        :class="`formulate-input-element formulate-input-element--${context.type}`"
-        :data-type="context.type"
-    >
+    <div :class="context.classes.element" :data-type="context.type">
         <!--
       This explicit break out of types is due to a Vue bug that causes IE11 to
       not when using v-model + dynamic :type + :value (thanks @Christoph-Wagner)
@@ -27,10 +24,8 @@
             v-on="$listeners"
             @blur="context.blurHandler"
         >
-        <label
-            class="formulate-input-element-decorator"
-            :for="context.id"
-        ></label>
+
+        <component :is="`label`" :class="context.classes.decorator" :for="context.id" />
     </div>
 </template>
 
