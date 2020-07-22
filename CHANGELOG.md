@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.0.3 - 2020-07-22
+
+### Added
+- Add GraphQL support. See [docs](https://verbb.io/craft-plugins/formie/docs/developers/graphql).
+- Added class to word and character limit text.
+
+### Changed
+- Cleaned up form and email templates, changing minor text, fixing some translations, typos and better field feedback.
+
+### Fixed
+- Fix minor CSS causing field edit modal not to show when when clicking on the field label.
+- Fixed missing error messages on name and address fields.
+- Fixed “Save as a new form” button not saving a new form.
+- Fix checkbox-select Vue component not working correctly.
+
 ## 1.0.2 - 2020-07-21
 
 ### Added
