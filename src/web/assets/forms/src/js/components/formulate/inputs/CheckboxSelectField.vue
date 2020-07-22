@@ -2,15 +2,16 @@
     <div class="checkbox-select">
         <div v-for="(option, index) in options" :key="index">
             <input
-                v-if="option.value === '*' || context.value !== '*'"
+                v-if="option.value === '*' || context.model !== '*'"
                 :id="context.id + '-' + index"
-                v-model="context.model"
+                :checked="checked(option.value)"
                 class="checkbox"
                 :class="{ 'all': option.value === '*' }"
                 type="checkbox"
                 :name="`${context.name}[]`"
                 :value="option.value"
                 v-on="$listeners"
+                @input="onInput"
             >
 
             <input
@@ -38,6 +39,7 @@ export default {
     mixins: [FormulateInputMixin],
 
     computed: {
+
         options() {
             let options = [];
 
@@ -62,6 +64,46 @@ export default {
             });
 
             return options;
+        },
+    },
+
+    methods: {
+        checked(value) {
+            if (this.context.model === '*') {
+                return true;
+            }
+
+            if (Array.isArray(this.context.model) && this.context.model.includes(value)) {
+                return true;
+            }
+
+            return false;
+        },
+
+        onInput(e) {
+            let { checked, value } = e.target;
+
+            if (value === '*') {
+                if (checked) {
+                    this.context.model = '*';
+                } else {
+                    this.context.model = [];
+                }
+            } else {
+                if (!Array.isArray(this.context.model)) {
+                    this.context.model = [];
+                }
+
+                if (checked) {
+                    this.context.model.push(value);
+                } else {
+                    const index = this.context.model.indexOf(value);
+
+                    if (index > -1) {
+                        this.context.model.splice(index, 1);
+                    }
+                }
+            }
         },
     },
 };
