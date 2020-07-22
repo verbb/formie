@@ -47,6 +47,13 @@ class SchemaHelper
 
     public static function checkboxSelectField($config = [])
     {
+        // Might be a bug in Formulate, getting `Duplicate keys detected: 'formulate-global-2'.`
+        if (isset($config['options'])) {
+            foreach ($config['options'] as $key => $option) {
+                $config['options'][$key]['id'] = $option['value'];
+            }
+        }
+
         return array_merge([
             'type' => 'checkboxSelect',
         ], $config);

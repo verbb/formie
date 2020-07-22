@@ -1,6 +1,6 @@
 {% set html %}
     <fieldset class="fui-fieldset">
-        {% namespace "'rows[#{id}]'" %}
+        {% namespace "rows[#{id}]" %}
             {% set renderOptions = (options.renderOptions ?? {}) | merge({
                 element: block ?? null,
             }) %}
