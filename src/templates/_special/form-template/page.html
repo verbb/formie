@@ -35,31 +35,58 @@
         html: html,
     }) }}
 
-    {% hook 'formie.form.beforeSubmit' %}
+    {% hook 'formie.buttons.before' %}
 
     {% set nextPage = form.getNextPage(page) %}
     {% set prevPage = form.getPreviousPage(page) %}
 
     <div class="fui-btn-container fui-btn-{{ page.settings.buttonsPosition }}">
+        {% hook 'formie.buttons.start' %}
+
         {#
             Next button goes first.
             https://stackoverflow.com/a/1963285
         #}
 
-        <button class="fui-btn fui-submit" type="submit">
+        {% set submitAttributes = {
+            class: [
+                'fui-btn',
+                'fui-submit',
+            ],
+            type: 'submit',
+        } | merge(options.buttons.submit ?? {}) %}
+
+        <button {{ attr(submitAttributes) }}>
+            {% hook 'formie.buttons.submit-start' %}
+
             {{ page.settings.submitButtonLabel }}
+
+            {% hook 'formie.buttons.submit-end' %}
         </button>
 
         {% if page.settings.showBackButton and prevPage %}
-            <button
-                class="fui-btn fui-prev"
-                type="submit"
-                name="goToPageId"
-                value="{{ prevPage.id }}"
-                onclick="this.form.goToPage = this.value;"
-            >
+            {% set prevAttributes = {
+                class: [
+                    'fui-btn',
+                    'fui-prev',
+                ],
+                type: 'submit',
+                name: 'goToPageId',
+                value: prevPage.id,
+                onclick: 'this.form.goToPage = this.value;'
+            } | merge(options.buttons.prev ?? {}) %}
+
+            <button {{ attr(prevAttributes) }}>
+                {% hook 'formie.buttons.prev-start' %}
+
                 {{ page.settings.backButtonLabel }}
+
+                {% hook 'formie.buttons.prev-end' %}
             </button>
         {% endif %}
+
+        {% hook 'formie.buttons.end' %}
     </div>
+
+    {% hook 'formie.buttons.after' %}
 </div>
