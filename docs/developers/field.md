@@ -61,7 +61,6 @@ Setting | Description
 `address1ErrorMessage` | The error message for the Address 1 sub-field.
 `address1Collapsed` | Whether the Address 1 sub-field is collapsed in the control panel.
 `address1Enabled` | The error message for the Address 1 sub-field.
-
 `address2Label` | The label for the Address 2 sub-field.
 `address2Placeholder` | The placeholder for the Address 2 sub-field.
 `address2DefaultValue` | The default value for the Address 2 sub-field.
@@ -69,7 +68,6 @@ Setting | Description
 `address2ErrorMessage` | The error message for the Address 2 sub-field.
 `address2Collapsed` | Whether the Address 2 sub-field is collapsed in the control panel.
 `address2Enabled` | The error message for the Address 2 sub-field.
-
 `address3Label` | The label for the Address 3 sub-field.
 `address3Placeholder` | The placeholder for the Address 3 sub-field.
 `address3DefaultValue` | The default value for the Address 3 sub-field.
@@ -77,7 +75,6 @@ Setting | Description
 `address3ErrorMessage` | The error message for the Address 3 sub-field.
 `address3Collapsed` | Whether the Address 3 sub-field is collapsed in the control panel.
 `address3Enabled` | The error message for the Address 3 sub-field.
-
 `cityLabel` | The label for the City sub-field.
 `cityPlaceholder` | The placeholder for the City sub-field.
 `cityDefaultValue` | The default value for the City sub-field.
@@ -85,7 +82,6 @@ Setting | Description
 `cityErrorMessage` | The error message for the City sub-field.
 `cityCollapsed` | Whether the City sub-field is collapsed in the control panel.
 `cityEnabled` | The error message for the City sub-field.
-
 `stateLabel` | The label for the State sub-field.
 `statePlaceholder` | The placeholder for the State sub-field.
 `stateDefaultValue` | The default value for the State sub-field.
@@ -93,7 +89,6 @@ Setting | Description
 `stateErrorMessage` | The error message for the State sub-field.
 `stateCollapsed` | Whether the State sub-field is collapsed in the control panel.
 `stateEnabled` | The error message for the State sub-field.
-
 `zipLabel` | The label for the Zip sub-field.
 `zipPlaceholder` | The placeholder for the Zip sub-field.
 `zipDefaultValue` | The default value for the Zip sub-field.
@@ -101,7 +96,6 @@ Setting | Description
 `zipErrorMessage` | The error message for the Zip sub-field.
 `zipCollapsed` | Whether the Zip sub-field is collapsed in the control panel.
 `zipEnabled` | The error message for the Zip sub-field.
-
 `countryLabel` | The label for the Country sub-field.
 `countryPlaceholder` | The placeholder for the Country sub-field.
 `countryDefaultValue` | The default value for the Country sub-field.
@@ -123,56 +117,55 @@ Setting | Description
 ## Categories
 Setting | Description
 --- | ---
-Placeholder | The option shown initially, when no option is selected.
-Source | Which source do you want to select categories from?
-Branch Limit | Limit the number of selectable category branches.
+`placeholder` | The option shown initially, when no option is selected.
+`source` | Which source do you want to select categories from?
+`branchLimit` | Limit the number of selectable category branches.
 
 
 ## Checkboxes
 Setting | Description
 --- | ---
-Options | Define the available options for users to select from.
-Layout | Select which layout to use for these fields.
+`options` | Define the available options for users to select from.
+`layout` | Select which layout to use for these fields.
 
 
 ## Date/Time
 Setting | Description
 --- | ---
-Include Time | Whether this field should include the time.
-Default Value | Entering a default value will place the value in the field when it loads.
-Display Type | Set different display layouts for this field.
+`includeTime` | Whether this field should include the time.
+`defaultValue` | Entering a default value will place the value in the field when it loads.
+`displayType` | Set different display layouts for this field.
 
 
 ## Dropdown
 Setting | Description
 --- | ---
-Placeholder | The option shown initially, when no option is selected.
-Allow Multiple | Whether this field should allow multiple options to be selected.
-Options | Define the available options for users to select from.
+`multiple` | Whether this field should allow multiple options to be selected.
+`options` | Define the available options for users to select from.
 
 
 ## Email Address
 Setting | Description
 --- | ---
-Placeholder | The text that will be shown if the field doesn’t have a value.
-Default Value | Entering a default value will place the value in the field when it loads.
+`placeholder` | The text that will be shown if the field doesn’t have a value.
+`defaultValue` | Entering a default value will place the value in the field when it loads.
 
 
 ## Entries
 Setting | Description
 --- | ---
-Placeholder | The option shown initially, when no option is selected.
-Sources | Which sources do you want to select entries from?
-Limit | Limit the number of selectable entries.
+`placeholder` | The option shown initially, when no option is selected.
+`sources` | Which sources do you want to select entries from?
+`limit` | Limit the number of selectable entries.
 
 
 ## File Upload
 Setting | Description
 --- | ---
-Upload Location | 
-Limit Number of Files | Limit the number of files a user can upload.
-Limit File Size | Limit the size of the files a user can upload.
-Restrict allowed file types | 
+`uploadLocationSource` | 
+`limitFiles` | Limit the number of files a user can upload.
+`sizeLimit` | Limit the size of the files a user can upload.
+`allowedKinds` | 
 
 ## Group
 
@@ -180,40 +173,34 @@ Restrict allowed file types |
 ## Heading
 Setting | Description
 --- | ---
-Heading Size | Choose the size for the heading.
+`headingSize` | Choose the size for the heading.
 
 ## Hidden
 Setting | Description
 --- | ---
-Default Value | |Entering a default value will place the value in the field when it loads.
+`defaultValue` | |Entering a default value will place the value in the field when it loads.
 
 
 ## Html
 Setting | Description
 --- | ---
-HTML Content | Enter HTML content to be rendered for this field.
+`htmlContent` | Enter HTML content to be rendered for this field.
 
 
 ## Multi-Line Text
 Setting | Description
 --- | ---
-Placeholder | The text that will be shown if the field doesn’t have a value.
-Default Value | Entering a default value will place the value in the field when it loads.
-Limit Field Content | Whether to limit the content of this field.
-Limit | Enter the number of characters or words to limit this field by.
+`placeholder` | The text that will be shown if the field doesn’t have a value.
+`defaultValue` | Entering a default value will place the value in the field when it loads.
+`limit` | Whether to limit the content of this field.
+`limitType` | Either `words` or `characters`.
+`limitAmount` | The number of character or words to limit this field by.
+
 
 ## Name
-
-- Prefix
-- First Name
-- Middle Name
-- Last Name
-
-### Settings
 Setting | Description
 --- | ---
 `useMultipleFields` | Whether this field should use multiple fields for users to enter their details.
-
 `prefixLabel` | The label for the Prefix sub-field.
 `prefixPlaceholder` | The placeholder for the Prefix sub-field.
 `prefixDefaultValue` | The default value for the Prefix sub-field.
@@ -221,7 +208,6 @@ Setting | Description
 `prefixErrorMessage` | The error message for the Prefix sub-field.
 `prefixCollapsed` | Whether the Prefix sub-field is collapsed in the control panel.
 `prefixEnabled` | The error message for the Prefix sub-field.
-
 `firstNameLabel` | The label for the First Name sub-field.
 `firstNamePlaceholder` | The placeholder for the First Name sub-field.
 `firstNameDefaultValue` | The default value for the First Name sub-field.
@@ -229,7 +215,6 @@ Setting | Description
 `firstNameErrorMessage` | The error message for the First Name sub-field.
 `firstNameCollapsed` | Whether the First Name sub-field is collapsed in the control panel.
 `firstNameEnabled` | The error message for the First Name sub-field.
-
 `middleNameLabel` | The label for the Middle Name sub-field.
 `middleNamePlaceholder` | The placeholder for the Middle Name sub-field.
 `middleNameDefaultValue` | The default value for the Middle Name sub-field.
@@ -237,7 +222,6 @@ Setting | Description
 `middleNameErrorMessage` | The error message for the Middle Name sub-field.
 `middleNameCollapsed` | Whether the Middle Name sub-field is collapsed in the control panel.
 `middleNameEnabled` | The error message for the Middle Name sub-field.
-
 `lastNameLabel` | The label for the Last Name sub-field.
 `lastNamePlaceholder` | The placeholder for the Last Name sub-field.
 `lastNameDefaultValue` | The default value for the Last Name sub-field.
@@ -250,87 +234,99 @@ Setting | Description
 ## Number
 Setting | Description
 --- | ---
-Placeholder | The text that will be shown if the field doesn’t have a value.
-Default Value | Entering a default value will place the value in the field when it loads.
-Limit Numbers | Whether to limit the numbers for this field.
-Decimal Points | Set the number of decimal points to format the field value.
+`placeholder` | The text that will be shown if the field doesn’t have a value.
+`defaultValue` | Entering a default value will place the value in the field when it loads.
+`limit` | Whether to limit the numbers for this field.
+`min` | The minimum number that can be entered for this field.
+`max` | The maximum number that can be entered for this field.
+`decimals` | Set the number of decimal points to format the field value.
 
 
 ## Phone
 Setting | Description
 --- | ---
-Show Country Code Dropdown | Whether to show an additional dropdown for selecting the country code.
+`showCountryCode` | Whether to show an additional dropdown for selecting the country code.
+`countryLabel` | The label for the Last Name sub-field.
+`countryPlaceholder` | The placeholder for the Last Name sub-field.
+`countryDefaultValue` | The default value for the Last Name sub-field.
+`countryCollapsed` | Whether the Last Name sub-field is collapsed in the control panel.
+`countryEnabled` | The error message for the Last Name sub-field.
+`numberLabel` | The label for the Last Name sub-field.
+`numberPlaceholder` | The placeholder for the Last Name sub-field.
+`numberDefaultValue` | The default value for the Last Name sub-field.
+`numberCollapsed` | Whether the Last Name sub-field is collapsed in the control panel.
 
 
 ## Products
 Setting | Description
 --- | ---
-Placeholder | The option shown initially, when no option is selected.
-Sources | Which sources do you want to select products from?
-Limit | Limit the number of selectable products.
+`placeholder` | The option shown initially, when no option is selected.
+`sources` | Which sources do you want to select products from?
+`limit` | Limit the number of selectable products.
 
 
 ## Radio
 Setting | Description
 --- | ---
-Options | Define the available options for users to select from.
-Layout | Select which layout to use for these fields.
+`options` | Define the available options for users to select from.
+`layout` | Select which layout to use for these fields.
 
 
 ## Repeater
 Setting | Description
 --- | ---
-Add Label | The label for the button that adds another instance.
-Minimum instances | The minimum required number of instances of this repeater's fields that must be completed.
-Maximum instances | The maximum required number of instances of this repeater's fields that must be completed.
+`addLabel` | The label for the button that adds another instance.
+`minRows` | The minimum required number of instances of this repeater's fields that must be completed.
+`maxRows` | The maximum required number of instances of this repeater's fields that must be completed.
 
 
 ## Section
 Setting | Description
 --- | ---
-Border | Add a border to this section.
-Border Width | Set the border width (in pixels).
-Border Color | Set the border color.
+`border` | Add a border to this section.
+`borderWidth` | Set the border width (in pixels).
+`borderColor` | Set the border color.
 
 
 ## Single-Line Text
 Setting | Description
 --- | ---
-Placeholder | The text that will be shown if the field doesn’t have a value.
-Default Value | Entering a default value will place the value in the field when it loads.
-Limit Field Content | Whether to limit the content of this field.
-Limit | Enter the number of characters or words to limit this field by.
+`placeholder` | The text that will be shown if the field doesn’t have a value.
+`defaultValue` | Entering a default value will place the value in the field when it loads.
+`limit` | Whether to limit the content of this field.
+`limitType` | Either `words` or `characters`.
+`limitAmount` | The number of character or words to limit this field by.
 
 
 ## Table
 Setting | Description
 --- | ---
-Table Columns | Define the columns your table should have.
-Default Values | Define the default values for the field.
-Add Row Label | The label for the button that adds another row.
-Static | Whether this field should disallow adding more rows, showing only the default rows.
-Minimum instances | The minimum required number of rows in this table that must be completed.
-Maximum instances | The maximum required number of rows in this table that must be completed.
+`columns` | Define the columns your table should have.
+`defaults` | Define the default values for the field.
+`addRowLabel` | The label for the button that adds another row.
+`static` | Whether this field should disallow adding more rows, showing only the default rows.
+`minRows` | The minimum required number of rows in this table that must be completed.
+`maxRows` | The maximum required number of rows in this table that must be completed.
 
 
 ## Tags
 Setting | Description
 --- | ---
-Placeholder | The option shown initially, when no option is selected.
-Source | Which source do you want to select tags from?
+`placeholder` | The option shown initially, when no option is selected.
+`source` | Which source do you want to select tags from?
 
 
 ## Users
 Setting | Description
 --- | ---
-Placeholder | The option shown initially, when no option is selected.
-Sources | Which sources do you want to select users from?
-Limit | Limit the number of selectable users.
+`placeholder` | The option shown initially, when no option is selected.
+`sources` | Which sources do you want to select users from?
+`limit` | Limit the number of selectable users.
 
 
 ## Variants
 Setting | Description
 --- | ---
-Placeholder | The option shown initially, when no option is selected.
-Source | Which source do you want to select variants from?
-Limit | Limit the number of selectable variants.
+`placeholder` | The option shown initially, when no option is selected.
+`source `| Which source do you want to select variants from?
+`limit` | Limit the number of selectable variants.
