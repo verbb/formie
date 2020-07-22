@@ -1,5 +1,5 @@
 {% set attributes = {
-    id: 'formie-p-' ~ page.id,
+    id: "formie-p-#{page.id}",
     class: [
         'fui-page',
         form.hasMultiplePages and form.settings.submitMethod == 'ajax' and page != form.getCurrentPage() ? 'fui-hidden',
@@ -52,11 +52,11 @@
 
         {% if page.settings.showBackButton and prevPage %}
             <button
-                    class="fui-btn fui-prev"
-                    type="submit"
-                    name="goToPageId"
-                    value="{{ prevPage.id }}"
-                    onclick="this.form.goToPage = this.value;"
+                class="fui-btn fui-prev"
+                type="submit"
+                name="goToPageId"
+                value="{{ prevPage.id }}"
+                onclick="this.form.goToPage = this.value;"
             >
                 {{ page.settings.backButtonLabel }}
             </button>

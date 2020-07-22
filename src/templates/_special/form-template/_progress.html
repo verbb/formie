@@ -3,7 +3,7 @@
     {% set progress = (pageIndex / form.pages | length) * 100 | round %}
 
     {% set attributes = {
-        style: 'width: ' ~ progress ~ '%',
+        style: "width: #{progress}%",
         class: 'fui-progress-bar',
         role: 'progressbar',
         aria: {

@@ -4,31 +4,31 @@
     {% endif %}
 
     {% if field.address1Enabled %}
-        <strong>{{ field.address1Label }}: </strong>{{ value.address1 ?? '' }}<br>
+        <strong>{{ field.address1Label }}: </strong>{{ value.address1 ?? ('No response.' | t('formie')) }}<br>
     {% endif %}
 
     {% if field.address2Enabled %}
-        <strong>{{ field.address2Label }}: </strong>{{ value.address2 ?? '' }}<br>
+        <strong>{{ field.address2Label }}: </strong>{{ value.address2 ?? ('No response.' | t('formie')) }}<br>
     {% endif %}
 
     {% if field.address3Enabled %}
-        <strong>{{ field.address3Label }}: </strong>{{ value.address3 ?? '' }}<br>
+        <strong>{{ field.address3Label }}: </strong>{{ value.address3 ?? ('No response.' | t('formie')) }}<br>
     {% endif %}
 
     {% if field.cityEnabled %}
-        <strong>{{ field.cityLabel }}: </strong>{{ value.city ?? '' }}<br>
+        <strong>{{ field.cityLabel }}: </strong>{{ value.city ?? ('No response.' | t('formie')) }}<br>
     {% endif %}
 
     {% if field.stateEnabled %}
-        <strong>{{ field.stateLabel }}: </strong>{{ value.state ?? '' }}<br>
+        <strong>{{ field.stateLabel }}: </strong>{{ value.state ?? ('No response.' | t('formie')) }}<br>
     {% endif %}
 
     {% if field.zipEnabled %}
-        <strong>{{ field.zipLabel }}: </strong>{{ value.zip ?? '' }}<br>
+        <strong>{{ field.zipLabel }}: </strong>{{ value.zip ?? ('No response.' | t('formie')) }}<br>
     {% endif %}
 
     {% if field.countryEnabled %}
-        <strong>{{ field.countryLabel }}: </strong>{{ value.country ?? '' }}<br>
+        <strong>{{ field.countryLabel }}: </strong>{{ value.country ?? ('No response.' | t('formie')) }}<br>
     {% endif %}
 </p>
 
