@@ -1,5 +1,5 @@
 {% set id = (form.handle | kebab) ~ '-' ~ (field.handle | kebab) %}
-{% set labelId = id ~ '-label' %}
+{% set labelId = "#{id}-label" %}
 {% set labelPosition = craft.formie.getLabelPosition(field, form) %}
 {% set subfieldLabelPosition = craft.formie.getLabelPosition(field, form, true) %}
 {% set instructionsPosition = craft.formie.getInstructionsPosition(field, form) %}
@@ -66,14 +66,14 @@
 {% set containerAttributes = field.getContainerAttributes() ?? {} %}
 
 {% set attributes = {
-    id: id ~  '-wrap',
+    id: "#{id}-wrap",
     class: [
         'fui-field',
         'fui-page-field',
-        'fui-type-' ~ field.displayName | kebab,
-        'fui-label-' ~ labelPosition,
-        'fui-subfield-label-' ~ subfieldLabelPosition,
-        'fui-instructions-' ~ instructionsPosition,
+        "fui-type-#{field.displayName | kebab}",
+        "fui-label-#{labelPosition}",
+        "fui-subfield-label-#{subfieldLabelPosition}",
+        "fui-instructions-#{instructionsPosition}",
         errors ? 'fui-field-error',
         field.required ? 'fui-field-required',
         field.isSelect ? 'fui-select-field',

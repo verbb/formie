@@ -1,5 +1,5 @@
 {% for colId, col in field.columns %}
-    {% set rowId = 'row-' ~ index ~ '-' ~ colId %}
+    {% set rowId = "row-#{index}-#{colId}" %}
 
     {% switch col.type %}
         {% case 'checkbox' %}
@@ -8,7 +8,7 @@
                     type="hidden"
                     aria-checked="false"
                     aria-hidden="true"
-                    name="{{ index ~ '[' ~ colId ~ ']' }}"
+                    name="{{ "#{index}[#{colId}]" }}"
                     value=""
                 >
 
@@ -22,7 +22,7 @@
                         ],
                         value: '1',
                         checked: (row[colId] ?? false) ? true : false,
-                        name: index ~ '[' ~ colId ~ ']',
+                        name: "#{index}[#{colId}]",
                     }) }}>
 
                     <label for="{{ rowId }}" class="fui-checkbox-label">
@@ -37,7 +37,7 @@
                     type: 'color',
                     class: 'fui-input',
                     value: row[colId] ?? '',
-                    name: index ~ '[' ~ colId ~ ']',
+                    name: "#{index}[#{colId}]",
                 }) }}>
             </td>
         {% case 'date' %}
@@ -47,12 +47,12 @@
                     type: 'date',
                     class: 'fui-input',
                     value: row[colId] ?? '',
-                    name: index ~ '[' ~ colId ~ ']',
+                    name: "#{index}[#{colId}]",
                 }) }} />
             </td>
         {% case 'select' %}
             <td data-col="{{ colId }}">
-                <select class="fui-select" name="{{ index ~ '[' ~ colId ~ ']' }}">
+                <select class="fui-select" name="{{ "#{index}[#{colId}]" }}">
                     {% for option in col.options %}
                         <option value="{{ option.value }}" {{ option.value == (row[colId] ?? '') ? 'selected' }}>{{ option.label }}</option>
                     {% endfor %}
@@ -65,12 +65,12 @@
                     type: 'email',
                     class: 'fui-input',
                     value: row[colId] ?? '',
-                    name: index ~ '[' ~ colId ~ ']',
+                    name: "#{index}[#{colId}]",
                 }) }}>
             </td>
         {% case 'heading' %}
             <th data-col="{{ colId }}">
-                <input type="hidden" name="{{ index ~ '[' ~ colId ~ ']' }}" value="{{ row[colId] ?? '' }}">
+                <input type="hidden" name="{{ "#{index}[#{colId}]" }}" value="{{ row[colId] ?? '' }}">
                 {{ row[colId] ?? '' }}
             </th>
         {% case 'multiline' %}
@@ -78,7 +78,7 @@
                 <textarea {{ attr({
                     id: rowId,
                     class: 'fui-input',
-                    name: index ~ '[' ~ colId ~ ']',
+                    name: "#{index}[#{colId}]",
                 }) }}>{{ row[colId] ?? '' }}</textarea>
             </td>
         {% case 'number' %}
@@ -88,7 +88,7 @@
                     type: 'number',
                     class: 'fui-input',
                     value: row[colId] ?? '',
-                    name: index ~ '[' ~ colId ~ ']',
+                    name: "#{index}[#{colId}]",
                 }) }}>
             </td>
         {% case 'time' %}
@@ -98,7 +98,7 @@
                     type: 'time',
                     class: 'fui-input',
                     value: row[colId] ?? '',
-                    name: index ~ '[' ~ colId ~ ']',
+                    name: "#{index}[#{colId}]",
                 }) }}>
             </td>
         {% case 'url' %}
@@ -108,7 +108,7 @@
                     type: 'url',
                     class: 'fui-input',
                     value: row[colId] ?? '',
-                    name: index ~ '[' ~ colId ~ ']',
+                    name: "#{index}[#{colId}]",
                 }) }}>
             </td>
         {% default %}
@@ -118,7 +118,7 @@
                     type: 'text',
                     class: 'fui-input',
                     value: row[colId] ?? '',
-                    name: index ~ '[' ~ colId ~ ']',
+                    name: "#{index}[#{colId}]",
                 }) }}>
             </td>
     {% endswitch %}
