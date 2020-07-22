@@ -839,7 +839,7 @@ class Fields extends Component
             $record->row = $field->rowIndex;
             $record->fieldLayoutId = $fieldLayout->id;
             $record->fieldLayoutFieldId = (new Query())->select(['id'])
-                ->from('{{%fieldlayoutfields}}')
+                ->from(CraftTable::FIELDLAYOUTFIELDS)
                 ->where([
                     'layoutId' => $fieldLayout->id,
                     'fieldId' => $field->id,
@@ -960,7 +960,7 @@ class Fields extends Component
                 'fields.settings',
                 'fields.uid',
             ])
-            ->from(['{{%fields}} fields'])
+            ->from([CraftTable::FIELDS . ' fields'])
             ->orderBy([
                 'fields.name' => SORT_ASC,
                 'fields.handle' => SORT_ASC
