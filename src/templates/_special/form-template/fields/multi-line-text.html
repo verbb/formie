@@ -22,13 +22,13 @@
 
 {% if maxlength or wordlimit %}
     {% if maxlength %}
-        <small class="fui-instructions" id="{{ options.id }}-max" data-max-chars="{{ maxlength }}">
+        <small class="fui-instructions fui-limit" id="{{ options.id }}-max" data-max-chars="{{ maxlength }}">
             {{ '{num} characters left' | t('formie', { num: maxlength }) | raw }}
         </small>
     {% endif %}
 
     {% if wordlimit %}
-        <small class="fui-instructions" id="{{ options.id }}-max" data-max-words="{{ wordlimit }}">
+        <small class="fui-instructions fui-limit" id="{{ options.id }}-max" data-max-words="{{ wordlimit }}">
             {{ '{num} words left' | t('formie', { num: wordlimit }) | raw }}
         </small>
     {% endif %}
