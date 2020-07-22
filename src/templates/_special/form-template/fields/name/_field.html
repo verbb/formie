@@ -1,16 +1,16 @@
 {% set html %}
     {% set inputId = handle | namespaceInputId(options.id) %}
-    {% set selected = attribute(value, handle) ?? attribute(field, handle ~ 'DefaultValue') ?? '' %}
-    {% set placeholder = attribute(field, handle ~ 'Placeholder') %}
-    {% set errorMessage = attribute(field, handle ~ 'ErrorMessage') %}
-    {% set required = field.required ? field.required : attribute(field, handle ~ 'Required') %}
+    {% set selected = attribute(value, handle) ?? attribute(field, "#{handle}DefaultValue") ?? '' %}
+    {% set placeholder = attribute(field, "#{handle}Placeholder") %}
+    {% set errorMessage = attribute(field, "#{handle}ErrorMessage") %}
+    {% set required = field.required ? field.required : attribute(field, "#{handle}Required") %}
 
     {% set labelPosition = craft.formie.getLabelPosition(field, form, true) %}
     {% set labelOptions = {
         field: null,
         id: inputId,
         required: required,
-        fieldName: attribute(field, handle ~ 'Label'),
+        fieldName: attribute(field, "#{handle}Label"),
         labelPosition: labelPosition,
     } %}
 
@@ -87,8 +87,8 @@
     class: [
         'fui-field',
         'fui-name-field',
-        'fui-name-' ~ (handle | replace('/([A-Z])/', '-$1') | lower),
-        'fui-label-' ~ labelPosition,
+        "fui-name-#{handle | kebab}",
+        "fui-label-#{labelPosition}",
         handle != 'prefix' ? 'fui-text-input-field' : 'fui-select-field',
     ],
     html: html,

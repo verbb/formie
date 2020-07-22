@@ -2,7 +2,7 @@
     {% set handle = attrs.handle %}
     {% set labelPosition = craft.formie.getLabelPosition(field, form, true) %}
     {% set inputId = handle | namespaceInputId(options.id) %}
-    {% set placeholder = attribute(field, handle ~ 'Placeholder') %}
+    {% set placeholder = attribute(field, "#{handle}Placeholder") %}
 
     {% if handle == 'ampm' %}
         {% set selected = value %}
@@ -15,7 +15,7 @@
         field: null,
         id: inputId,
         required: field.required ? true : false,
-        fieldName: attribute(field, handle ~ 'Label'),
+        fieldName: attribute(field, "#{handle}Label"),
         labelPosition: labelPosition,
     } %}
 
@@ -73,8 +73,8 @@
         'fui-field',
         'fui-select-field',
         'fui-date-field',
-        'fui-date-' ~ (handle | replace('/([A-Z])/', '-$1') | lower),
-        'fui-label-' ~ labelPosition,
+        "fui-date-#{handle | kebab}",
+        "fui-label-#{labelPosition}",
         handle != 'ampm' ? 'fui-text-input-field' : 'fui-select-field',
     ],
     html: html,

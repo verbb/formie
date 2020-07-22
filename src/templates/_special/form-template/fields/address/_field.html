@@ -1,14 +1,14 @@
 {% set html %}
     {% set inputId = handle | namespaceInputId(options.id) %}
-    {% set errorMessage = attribute(field, handle ~ 'ErrorMessage') %}
-    {% set required = field.required ? field.required : attribute(field, handle ~ 'Required') %}
+    {% set errorMessage = attribute(field, "#{handle}ErrorMessage") %}
+    {% set required = field.required ? field.required : attribute(field, "#{handle}Required") %}
 
     {% set labelPosition = craft.formie.getLabelPosition(field, form, true) %}
     {% set labelOptions = {
         field: null,
         id: inputId,
         required: required,
-        fieldName: attribute(field, handle ~ 'Label'),
+        fieldName: attribute(field, "#{handle}Label"),
         labelPosition: labelPosition,
     } %}
 
@@ -23,11 +23,11 @@
     <div class="fui-input-container">
         {% hook 'formie.subfield.input-start' %}
 
-        {% include ['fields/address/_' ~ handle, 'fields/address/_input'] with {
+        {% include ["fields/address/_#{handle}", 'fields/address/_input'] with {
             autocomplete: autocomplete,
-            placeholder: attribute(field, handle ~ 'Placeholder'),
+            placeholder: attribute(field, "#{handle}Placeholder"),
             required: required,
-            value: attribute(value, handle) ?? attribute(field, handle ~ 'DefaultValue') ?? '',
+            value: attribute(value, handle) ?? attribute(field, "#{handle}DefaultValue") ?? '',
             data: {
                 'fui-message': errorMessage,
             },
@@ -50,8 +50,8 @@
     class: [
         'fui-field',
         'fui-address-field',
-        'fui-address-' ~ handle,
-        'fui-label-' ~ labelPosition,
+        "fui-address-#{handle | kebab}",
+        "fui-label-#{labelPosition}",
         handle != 'country' ? 'fui-text-input-field' : 'fui-select-field',
     ],
     html: html,

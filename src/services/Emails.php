@@ -190,7 +190,7 @@ class Emails extends Component
             $subject = Variables::getParsedValue((string)$notification->subject, $submission, $form);
             $newEmail->setSubject($subject);
         } catch (Throwable $e) {
-                Formie::error(Craft::t('formie', 'Notification email parse error for Subject: {value}”. Template error: “{message}” {file}:{line}', [
+            Formie::error(Craft::t('formie', 'Notification email parse error for Subject: {value}”. Template error: “{message}” {file}:{line}', [
                 'value' => $notification->subject,
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),

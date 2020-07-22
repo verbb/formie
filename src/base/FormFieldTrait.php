@@ -506,7 +506,7 @@ trait FormFieldTrait
         } catch (Exception $e) {
             // Nice an simple for most cases - no need for a template file
             try {
-                $content = (string)$value;
+                $content = (string)($value ? $value : Craft::t('formie', 'No response.'));
                 $hideName = $options['hideName'] ?? false;
                 if (!$hideName) {
                     $content = Html::tag('strong', $this->name) . '<br>' . $content;
@@ -606,7 +606,7 @@ trait FormFieldTrait
     {
         $classNameParts = explode('\\', static::class);
         $end = array_pop($classNameParts);
-        
+
         return 'Field_' . $end;
     }
 

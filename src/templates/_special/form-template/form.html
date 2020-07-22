@@ -1,10 +1,10 @@
 {% apply spaceless %}
     {% set attributes = {
-        id: 'formie-form-' ~ form.id,
+        id: "formie-form-#{form.id}",
         class: [
             'fui-form',
-            'fui-labels-' ~ form.settings.defaultLabelPosition,
-            form.settings.displayPageProgress ? 'fui-progress-' ~ form.settings.progressPosition,
+            "fui-labels-#{form.settings.defaultLabelPosition}",
+            form.settings.displayPageProgress ? "fui-progress-#{form.settings.progressPosition}",
             form.settings.validationOnFocus ? 'fui-validate-on-focus',
         ],
         method: 'post',

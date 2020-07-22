@@ -6,7 +6,7 @@
         field: null,
         id: inputId,
         required: field.required,
-        fieldName: attribute(field, handle ~ 'Label'),
+        fieldName: attribute(field, "#{handle}Label"),
         labelPosition: labelPosition,
     } %}
 
@@ -21,11 +21,11 @@
     <div class="fui-input-container">
         {% hook 'formie.subfield.input-start' %}
 
-        {% include ['fields/phone/_' ~ handle, 'fields/phone/_input'] with {
+        {% include ["fields/phone/_#{handle}", 'fields/phone/_input'] with {
             autocomplete: autocomplete,
-            placeholder: attribute(field, handle ~ 'Placeholder'),
+            placeholder: attribute(field, "#{handle}Placeholder"),
             required: field.required ? true : false,
-            value: attribute(value, handle) ?? attribute(field, handle ~ 'DefaultValue') ?? '',
+            value: attribute(value, handle) ?? attribute(field, "#{handle}DefaultValue") ?? '',
             id: inputId,
         } %}
 
@@ -45,8 +45,8 @@
     class: [
         'fui-field',
         'fui-phone-field',
-        'fui-phone-' ~ handle,
-        'fui-label-' ~ labelPosition,
+        "fui-phone-#{handle | kebab}",
+        "fui-label-#{labelPosition}",
         handle != 'country' ? 'fui-text-input-field' : 'fui-select-field',
     ],
     html: html,
