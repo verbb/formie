@@ -38,8 +38,6 @@ Formie supports accessing [Form](docs:developers/form) objects via GraphQL. Be s
         }
     }
 }
-
-
 ```
 
 ### The response
@@ -201,3 +199,26 @@ This is the interface implemented by all fields. Note that as settings are speci
 
 Once using the necessary [Inline Fragments](https://graphql.org/learn/queries/#inline-fragments) for each field type, you'll have access to the same variables as described on the [Field](docs:developers/field) docs.
 
+#### Nested Fields
+For nested fields like Group and Repeater, you have access to `nestedRows` and `fields`.
+
+```
+{
+    form (handle: "contactForm") {
+        title
+        handle
+        
+        fields {
+            name
+
+            ... on Field_Group {
+                nestedRows {
+                    fields {
+                        name
+                    }
+                }
+            }
+        }
+    }
+}
+```
