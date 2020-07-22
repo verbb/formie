@@ -30,45 +30,6 @@ class FormTemplate extends BaseTemplate
     // =========================================================================
 
     /**
-     * @inheritDoc
-     */
-    public function defineRules(): array
-    {
-        $rules = parent::defineRules();
-
-        $rules[] = ['template', function($attribute, $params, Validator $validator) {
-            $templatesPath = Craft::$app->getPath()->getSiteTemplatesPath();
-
-            $view = Craft::$app->getView();
-            $oldTemplatesPath = $view->getTemplatesPath();
-            $view->setTemplatesPath($templatesPath);
-
-            if (Craft::$app->getView()->resolveTemplate($this->$attribute) !== false) {
-                $validator->addError(
-                    $this,
-                    $attribute,
-                    Craft::t('formie', 'The template should be a directory, not a file.')
-                );
-            } else {
-                $path = Craft::$app->getPath()->getSiteTemplatesPath() . DIRECTORY_SEPARATOR . $this->$attribute;
-                $path = FileHelper::normalizePath($path);
-
-                if (!is_dir($path)) {
-                    $validator->addError(
-                        $this,
-                        $attribute,
-                        Craft::t('formie', 'The template directory does not exist.')
-                    );
-                }
-            }
-
-            $view->setTemplatesPath($oldTemplatesPath);
-        }];
-
-        return $rules;
-    }
-
-    /**
      * Returns the CP URL for editing the template.
      *
      * @return string
