@@ -5,9 +5,11 @@ use Craft;
 use craft\base\Model;
 use craft\db\ActiveRecord;
 use craft\db\SoftDeleteTrait;
+use craft\helpers\FileHelper;
 use craft\validators\HandleValidator;
 use craft\validators\UniqueValidator;
 use yii\behaviors\AttributeTypecastBehavior;
+use yii\validators\Validator;
 
 abstract class BaseTemplate extends Model
 {
@@ -73,6 +75,34 @@ abstract class BaseTemplate extends Model
             UniqueValidator::class,
             'targetClass' => $this->getRecordClass(),
         ];
+        $rules[] = ['template', function($attribute, $params, Validator $validator) {
+            $templatesPath = Craft::$app->getPath()->getSiteTemplatesPath();
+
+            $view = Craft::$app->getView();
+            $oldTemplatesPath = $view->getTemplatesPath();
+            $view->setTemplatesPath($templatesPath);
+
+            if (Craft::$app->getView()->resolveTemplate($this->$attribute) !== false) {
+                $validator->addError(
+                    $this,
+                    $attribute,
+                    Craft::t('formie', 'The template should be a directory, not a file.')
+                );
+            } else {
+                $path = Craft::$app->getPath()->getSiteTemplatesPath() . DIRECTORY_SEPARATOR . $this->$attribute;
+                $path = FileHelper::normalizePath($path);
+
+                if (!is_dir($path)) {
+                    $validator->addError(
+                        $this,
+                        $attribute,
+                        Craft::t('formie', 'The template directory does not exist.')
+                    );
+                }
+            }
+
+            $view->setTemplatesPath($oldTemplatesPath);
+        }];
 
         return $rules;
     }
