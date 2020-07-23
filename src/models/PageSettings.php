@@ -15,6 +15,7 @@ class PageSettings extends Model
     public $backButtonLabel;
     public $showBackButton = false;
     public $buttonsPosition = 'left';
+    public $cssClasses;
 
 
     // Public Methods
@@ -41,6 +42,7 @@ class PageSettings extends Model
                     'backButtonLabel' => AttributeTypecastBehavior::TYPE_STRING,
                     'showBackButton' => AttributeTypecastBehavior::TYPE_BOOLEAN,
                     'buttonsPosition' => AttributeTypecastBehavior::TYPE_STRING,
+                    'cssClasses' => AttributeTypecastBehavior::TYPE_STRING,
                 ]
             ]
         ];
