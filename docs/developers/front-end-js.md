@@ -1,6 +1,6 @@
 # Front-end JS
 
-The default [Form Template](docs:template-guide/form-templates) used by Formie uses custom JS when rendering the form. This is to provide out-of-the-box functionality for forms, so you don't need to worry about things like validation, multi-page setup and Ajax submissions.
+The default [Form Template](docs:template-guides/form-templates) used by Formie uses custom JS when rendering the form. This is to provide out-of-the-box functionality for forms, so you don't need to worry about things like validation, multi-page setup and Ajax submissions.
 
 The default JS is rendered alongside the form and placed before the `</body>` tag at the end of the page. It is split into two parts:
 
@@ -44,9 +44,9 @@ This helper provides functionality to create tags for a Tag field. It uses [Tagi
 For Single-line Text and Multi-line text fields, and if the `Limit` options are set, this will display a counter for either characters or words to limit the text for these fields. It will also prevent typing past these limits.
 
 ## Disabling JS
-To disable the Theme JS from being output, create a new [Form Template](docs:template-guide/form-templates) and turn off `Output JavaScript`. Ensure your form uses this new template.
+To disable the Theme JS from being output, create a new [Form Template](docs:template-guides/form-templates) and turn off `Output JavaScript`. Ensure your form uses this new template.
 
-It is worth noting that the [Base JS](docs:developers/front-end-js) cannot be disabled for a form template, as it is critical to the functionality of a form. However, creating your own custom Twig templates to use in your [Form Template](docs:template-guide/form-templates) will not include this JS, and is completely up to you on how to handle all aspects of the form. 
+It is worth noting that the [Base JS](docs:developers/front-end-js) cannot be disabled for a form template, as it is critical to the functionality of a form. However, creating your own custom Twig templates to use in your [Form Template](docs:template-guides/form-templates) will not include this JS, and is completely up to you on how to handle all aspects of the form. 
 
 Please be aware of other dependent features like Captchas (particularly ReCAPTCHA) will not work, and it will be also up to you to implement these.
 

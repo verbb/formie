@@ -97,4 +97,4 @@ You can also use some additional functions for multi-page forms:
 
 Each function will return a [Page](docs:developers/page) object. When there aren't next or previous pages, `null` will be returned.
 
-For more fine-grained control over rendering of a form, see [Rendering Fields](docs:template-guide/rendering-fields)
+For more fine-grained control over rendering of a form, see [Rendering Fields](docs:template-guides/rendering-fields)

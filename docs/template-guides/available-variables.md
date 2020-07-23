@@ -18,8 +18,8 @@ See [Submission Queries](docs:getting-elements/submission-queries)
 ```
 
 
-### `craft.formie.renderForm(form)`
-Renders the entire form, taking into account custom [Form Templates](docs:feature-tour/form-templates). The `form` parameter can be a [Form](docs:developers/form) object, or the handle of a form.
+### `craft.formie.renderForm(form, options = {})`
+Renders the entire form, taking into account custom [Form Templates](docs:feature-tour/form-templates). The `form` parameter can be a [Form](docs:developers/form) object, or the handle of a form. For details on the options you can pass into the `options` parameter, see [Rendering Options](docs:template-guides/rendering-options).
 
 ```twig
 {{ craft.formie.renderForm('contactForm') }}
