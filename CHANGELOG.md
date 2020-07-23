@@ -1,19 +1,38 @@
 # Changelog
 
+## 1.0.4 - 2020-07-23
+
+### Added
+- Added warning to form template if using custom template.
+- Added page button hooks and [docs](https://verbb.io/craft-plugins/formie/docs/developers/hooks).
+- Added page index to page data attributes.
+- Added `craft.formie.registerAssets` for template-cached forms. See [docs](https://verbb.io/craft-plugins/formie/docs/template-guides/cached-forms).
+
+### Changed
+- Moved template validation rule to base template so both email and form templates are validated.
+
+### Fixed
+- Fixed incorrect hooks on label-less fields (such as hidden field).
+- Fixed missing button container classes.
+- Fixed adding existing field always adding to first page.
+- Fixed page spacing issue on multi-page Ajax forms.
+- Fixed ajax-based multi-page forms validating entire form.
+- Fixed CSS/JS issue with forms, when using the `{% cache %}` tag.
+
 ## 1.0.3 - 2020-07-22
 
 ### Added
-- Add GraphQL support. See [docs](https://verbb.io/craft-plugins/formie/docs/developers/graphql).
+- Added GraphQL support. See [docs](https://verbb.io/craft-plugins/formie/docs/developers/graphql).
 - Added class to word and character limit text.
 
 ### Changed
 - Cleaned up form and email templates, changing minor text, fixing some translations, typos and better field feedback.
 
 ### Fixed
-- Fix minor CSS causing field edit modal not to show when when clicking on the field label.
+- Fixed minor CSS causing field edit modal not to show when when clicking on the field label.
 - Fixed missing error messages on name and address fields.
 - Fixed “Save as a new form” button not saving a new form.
-- Fix checkbox-select Vue component not working correctly.
+- Fixed checkbox-select Vue component not working correctly.
 
 ## 1.0.2 - 2020-07-21
 
