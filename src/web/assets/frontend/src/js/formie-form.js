@@ -8,6 +8,8 @@ class FormieForm {
         this.validationOnSubmit = !!this.settings.validationOnSubmit;
         this.validationOnFocus = !!this.settings.validationOnFocus;
 
+        this.setCurrentPage(this.settings.currentPageId);
+
         if (this.$form) {
             this.initValidator();
 
@@ -196,7 +198,13 @@ class FormieForm {
             return true;
         }
 
-        var invalidFields = this.validator.validateAll(this.$form);
+        var $fieldset = this.$form;
+
+        if (this.$currentPage) {
+            $fieldset = this.$currentPage;
+        }
+
+        var invalidFields = this.validator.validateAll($fieldset);
 
         // If there are errors, focus on the first one
         if (invalidFields.length > 0) {
@@ -498,6 +506,14 @@ class FormieForm {
                 $tab.classList.remove('fui-tab-active');
             }
         });
+
+        // Update the current page
+        this.setCurrentPage(data.nextPageId);
+    }
+
+    setCurrentPage(pageId) {
+        this.currentPageId = `#formie-p-${pageId}`;
+        this.$currentPage = document.querySelector(this.currentPageId);
     }
 }
 

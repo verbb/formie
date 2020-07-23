@@ -59,6 +59,7 @@ class FrontEndAsset extends AssetBundle
         // TODO: maybe refactor this so there's less mucking around
         $settings = $this->form->settings->toArray();
         $settings['redirectEntry'] = $this->form->getRedirectEntry()->url ?? '';
+        $settings['currentPageId'] = $this->form->getCurrentPage()->id ?? '';
 
         if ($outputJs) {
             $this->js[] = 'js/formie-form.js';
