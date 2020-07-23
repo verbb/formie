@@ -90,7 +90,7 @@ export default {
                         'cssClasses',
                     ],
                 },
-                
+
             ];
         },
 
@@ -160,7 +160,7 @@ export default {
                             class: 'text fullwidth',
                             autocomplete: 'off',
                             label: this.$options.filters.t('CSS Classes', 'formie'),
-                            help: this.$options.filters.t('Add classes that will be output on submit button container..', 'formie'),
+                            help: this.$options.filters.t('Add classes that will be output on submit button container.', 'formie'),
                             name: 'cssClasses',
                         },
                     ],
@@ -189,15 +189,15 @@ export default {
         },
 
         cssAlignment() {
-            if (this.settings.buttonsPosition == 'right') {
+            if (this.settings.buttonsPosition === 'right') {
                 return 'flex-end';
             }
 
-            if (this.settings.buttonsPosition == 'center') {
+            if (this.settings.buttonsPosition === 'center') {
                 return 'center';
             }
 
-            if (this.settings.buttonsPosition == 'left-right') {
+            if (this.settings.buttonsPosition === 'left-right') {
                 return 'space-between';
             }
 

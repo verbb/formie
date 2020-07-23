@@ -1,5 +1,5 @@
 # Rendering Options
-There are a number of options you can pass into the [`craft.formie.renderForm`](docs:template-guides/rendering-options) function.
+There are a number of options you can pass into the [`craft.formie.renderForm()`](docs:template-guides/rendering-forms) function.
 
 
 ## Base Options
