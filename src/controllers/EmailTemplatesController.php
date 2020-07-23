@@ -31,7 +31,7 @@ class EmailTemplatesController extends Controller
     public function actionIndex(): Response
     {
         $emailTemplates = Formie::$plugin->getEmailTemplates()->getAllTemplates();
-        
+
         return $this->renderTemplate('formie/settings/email-templates', compact('emailTemplates'));
     }
 
@@ -89,7 +89,7 @@ class EmailTemplatesController extends Controller
 
         $template->name = $request->getBodyParam('name');
         $template->handle = $request->getBodyParam('handle');
-        $template->template = $request->getBodyParam('template');
+        $template->template = preg_replace('/\/index(?:\.html|\.twig)?$/', '', $request->getBodyParam('template'));
 
         // Save it
         if (Formie::$plugin->getEmailTemplates()->saveTemplate($template)) {

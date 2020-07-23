@@ -90,7 +90,7 @@ class FormTemplatesController extends Controller
 
         $template->name = $request->getBodyParam('name');
         $template->handle = $request->getBodyParam('handle');
-        $template->template = $request->getBodyParam('template');
+        $template->template = preg_replace('/\/index(?:\.html|\.twig)?$/', '', $request->getBodyParam('template'));
         $template->useCustomTemplates = $request->getBodyParam('useCustomTemplates');
         $template->outputCssLayout = $request->getBodyParam('outputCssLayout');
         $template->outputCssTheme = $request->getBodyParam('outputCssTheme');
