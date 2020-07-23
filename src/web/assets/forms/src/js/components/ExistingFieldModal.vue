@@ -189,8 +189,8 @@ export default {
             this.selectedKey = this.existingFields[0].key;
         }
 
-        this.$events.$on('formie:page-selected', selectedTab => {
-            this.pageIndex = selectedTab.pageIndex;
+        this.$events.$on('formie:page-selected', pageIndex => {
+            this.pageIndex = pageIndex;
         });
     },
 

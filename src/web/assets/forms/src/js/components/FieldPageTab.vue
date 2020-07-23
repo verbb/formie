@@ -85,13 +85,15 @@ export default {
     mounted() {
         // Trigger the event if there's a history state
         if (document.location.hash === this.hash) {
-            this.$emit('selected', this.hash);
+            this.selectTab();
         }
     },
 
     methods: {
         selectTab(event) {
             this.$emit('selected', this.hash);
+
+            this.$events.$emit('formie:page-selected', this.pageIndex);
         },
 
         dragEnter(data, event) {
