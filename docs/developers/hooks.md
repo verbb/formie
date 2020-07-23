@@ -1,9 +1,9 @@
 # Hooks
 Rather than maintaining a full form template, we recommend using Formie's default form template along with your own style using the existing classes and structure.
-We provide many template hooks in the form template so that if needed, you can add additional functionality to the form while receiving bug fixes and improvements.
+
+We provide many [template hooks](https://docs.craftcms.com/v3/extend/template-hooks.html) in the form template so that if needed, you can add additional functionality to the form while receiving bug fixes and improvements.
 
 For a full list of available hooks, please refer to the list below.
-
 
 ## Form
 
@@ -14,6 +14,18 @@ Hook | Description
 `formie.form.start` | The start of the form element, before the form title (if shown).
 `formie.form.end` | The end of the form element.
 
+### Example
+
+```php
+Craft::$app->view->hook('formie.form.start', function(array &$context) {
+    // Add a variable to be accessible in the context object.
+    $context['foo'] = 'bar';
+
+    // Optionally return a string
+    return '<p>Hey!</p>';
+});
+```
+
 
 ## Page
 
@@ -23,6 +35,18 @@ Hook | Description
 --- | ---
 `formie.page.start` | The start of the page, before the page legend (if shown).
 `formie.page.end` | The end of the page.
+
+### Example
+
+```php
+Craft::$app->view->hook('formie.page.start', function(array &$context) {
+    // Add a variable to be accessible in the context object.
+    $context['foo'] = 'bar';
+
+    // Optionally return a string
+    return '<p>Hey!</p>';
+});
+```
 
 
 ## Buttons
@@ -39,6 +63,18 @@ Hook | Description
 `formie.buttons.submit-end` |  The end of the submit/next page button.
 `formie.buttons.prev-start` |  The start of the previous page button (if shown).
 `formie.buttons.prev-end` |  The end of the previous page button (if shown).
+
+### Example
+
+```php
+Craft::$app->view->hook('formie.buttons.before', function(array &$context) {
+    // Add a variable to be accessible in the context object.
+    $context['foo'] = 'bar';
+
+    // Optionally return a string
+    return '<p>Hey!</p>';
+});
+```
 
 
 ## Field
@@ -60,3 +96,15 @@ Hook | Description
 `formie.subfield.input-after` | After the subfield input container.
 `formie.subfield.input-start` | The start of the subfield input container.
 `formie.subfield.input-end` | The end of the subfield input container.
+
+### Example
+
+```php
+Craft::$app->view->hook('formie.field.field-before', function(array &$context) {
+    // Add a variable to be accessible in the context object.
+    $context['foo'] = 'bar';
+
+    // Optionally return a string
+    return '<p>Hey!</p>';
+});
+```
