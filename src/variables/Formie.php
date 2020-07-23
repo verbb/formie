@@ -122,6 +122,19 @@ class Formie
     }
 
     /**
+     * Registers assets for a form. This will not output anything.
+     *
+     * @param Form|string $form
+     * @param array|null $options
+     * @return null
+     * @noinspection PhpDocMissingThrowsInspection
+     */
+    public function registerAssets($form, array $options = null)
+    {
+        return FormiePlugin::$plugin->getRendering()->registerAssets($form, $options);
+    }
+
+    /**
      * Gets a field's options from the main options array.
      *
      * @param FormFieldInterface|FormFieldTrait $field

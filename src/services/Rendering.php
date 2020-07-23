@@ -190,6 +190,23 @@ class Rendering extends Component
     }
 
     /**
+     * Renders and returns a form's HTML.
+     *
+     * @param Form|string $form
+     * @param array $options
+     * @return null
+     */
+    public function registerAssets($form, array $options = null)
+    {
+        // So we can easily re-use code, we just call the `renderForm` function
+        // This will register any assets, and should be included outside of cached areas.
+        // It should be called like `{% do craft.formie.registerAssets(handle) %}`
+        $this->renderForm($form, $options);
+
+        return null;
+    }
+
+    /**
      * Returns the template path for a form component.
      *
      * @param Form $form
