@@ -82,23 +82,15 @@ abstract class BaseTemplate extends Model
             $oldTemplatesPath = $view->getTemplatesPath();
             $view->setTemplatesPath($templatesPath);
 
-            if (Craft::$app->getView()->resolveTemplate($this->$attribute) !== false) {
+            $path = Craft::$app->getPath()->getSiteTemplatesPath() . DIRECTORY_SEPARATOR . $this->$attribute;
+            $path = FileHelper::normalizePath($path);
+
+            if (!is_dir($path)) {
                 $validator->addError(
                     $this,
                     $attribute,
-                    Craft::t('formie', 'The template should be a directory, not a file.')
+                    Craft::t('formie', 'The template directory does not exist.')
                 );
-            } else {
-                $path = Craft::$app->getPath()->getSiteTemplatesPath() . DIRECTORY_SEPARATOR . $this->$attribute;
-                $path = FileHelper::normalizePath($path);
-
-                if (!is_dir($path)) {
-                    $validator->addError(
-                        $this,
-                        $attribute,
-                        Craft::t('formie', 'The template directory does not exist.')
-                    );
-                }
             }
 
             $view->setTemplatesPath($oldTemplatesPath);
