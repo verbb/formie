@@ -36,7 +36,8 @@
             "template-guides/rendering-fields",
             "template-guides/rendering-options",
             "template-guides/form-templates",
-            "template-guides/email-templates"
+            "template-guides/email-templates",
+            "template-guides/cached-forms"
         ]
     },
     {
