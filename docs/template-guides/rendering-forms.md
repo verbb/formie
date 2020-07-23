@@ -15,7 +15,7 @@ You can optionally provide a [Form](docs:developers/form) object in the same way
 {{ craft.formie.renderForm(form) }}
 ```
 
-If you are using custom templates, you can also pass in a number of options to the rendering function. These don't have any effect on the default templates, but provide a means to pass additional data to your templates.
+If you are using custom templates, you can also pass in a number of options to the rendering function. For help on how these options should be structured, refer to the [Rendering Options](docs:template-guides/rendering-options).
 
 ```twig
 {% set options = {
@@ -25,4 +25,4 @@ If you are using custom templates, you can also pass in a number of options to t
 {{ craft.formie.renderForm('contactForm', options) }}
 ```
 
-For more fine-grained control over rendering of a form, see [Rendering Pages](docs:template-guide/rendering-pages) and [Rendering Fields](docs:template-guide/rendering-fields)
+For more fine-grained control over rendering of a form, see [Rendering Pages](docs:template-guides/rendering-pages) and [Rendering Fields](docs:template-guides/rendering-fields)

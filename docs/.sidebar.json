@@ -34,6 +34,7 @@
             "template-guides/rendering-forms",
             "template-guides/rendering-pages",
             "template-guides/rendering-fields",
+            "template-guides/rendering-options",
             "template-guides/form-templates",
             "template-guides/email-templates"
         ]
@@ -58,6 +59,7 @@
         "collapsable": false,
         "children": [
             "developers/events",
+            "developers/hooks",
             "developers/form",
             "developers/page",
             "developers/row",
