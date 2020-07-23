@@ -40,7 +40,7 @@
     {% set nextPage = form.getNextPage(page) %}
     {% set prevPage = form.getPreviousPage(page) %}
 
-    <div class="fui-btn-container fui-btn-{{ page.settings.buttonsPosition }}">
+    <div class="fui-btn-container fui-btn-{{ page.settings.buttonsPosition }} {{ page.settings.cssClasses }}">
         {% hook 'formie.buttons.start' %}
 
         {#
