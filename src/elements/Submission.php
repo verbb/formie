@@ -542,6 +542,7 @@ class Submission extends Element
         $record->userId = $this->userId;
         $record->isIncomplete = $this->isIncomplete;
         $record->isSpam = $this->isSpam;
+        $record->ipAddress = $this->ipAddress;
         $record->spamReason = $this->spamReason;
         $record->dateCreated = $this->dateCreated;
         $record->dateUpdated = $this->dateUpdated;
