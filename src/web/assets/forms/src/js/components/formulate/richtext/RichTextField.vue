@@ -124,7 +124,12 @@ export default {
         this.json = this.editor.getJSON().content;
         this.html = this.editor.getHTML();
 
-        this.$nextTick(() => this.mounted = true);
+        this.$nextTick(() => {
+            this.mounted = true;
+
+            // Trigger an update in case fields are listening to what TipTap generates
+            this.context.model = this.contentToValue(this.json);
+        });
     },
 
     created() {
