@@ -333,7 +333,7 @@ class MigrateFreeform extends Migration
         foreach ($layout->getPages() as $pageIndex => $page) {
             $newPage = new FieldLayoutPage();
             $newPage->name = $page->getLabel();
-            $newPage->sortOrder = $pageIndex;
+            $newPage->sortOrder = '' . $pageIndex;
 
             $pageFields = [];
             $fieldHashes = [];

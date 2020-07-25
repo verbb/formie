@@ -341,7 +341,7 @@ class MigrateSproutForms extends Migration
             foreach ($sproutFieldLayout->getTabs() as $tabIndex => $tab) {
                 $newPage = new FieldLayoutPage();
                 $newPage->name = $tab->name;
-                $newPage->sortOrder = $tabIndex;
+                $newPage->sortOrder = '' . $tabIndex;
 
                 $pageFields = [];
 

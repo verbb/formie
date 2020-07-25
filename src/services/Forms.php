@@ -108,7 +108,7 @@ class Forms extends Component
             }
 
             $allFields = Formie::$plugin->getFields()->getAllFields();
-            $allFieldIds = $fieldLayout->getFieldIds();
+            $allFieldIds = ArrayHelper::getColumn($fieldLayout->getFields(), 'id');
             $syncsService = Formie::$plugin->getSyncs();
 
             // Get the original field context for later.
@@ -160,7 +160,7 @@ class Forms extends Component
                 $syncsService->syncField($field);
             }
 
-            $fieldsService->saveLayout($fieldLayout);
+            $success = $fieldsService->saveLayout($fieldLayout);
 
             // Set content table back to original value.
             $contentService->fieldContext = $originalFieldContext;
@@ -274,7 +274,7 @@ class Forms extends Component
             $fieldLayout->setPages([
                 new FieldLayoutPage([
                     'name' => Craft::t('site', 'Page 1'),
-                    'sortOrder' => 0,
+                    'sortOrder' => '0',
                 ])
             ]);
 
@@ -421,7 +421,7 @@ class Forms extends Component
 
             $page = new FieldLayoutPage();
             $page->name = urldecode($pageData['label']);
-            $page->sortOrder = $pageIndex;
+            $page->sortOrder = '' . $pageIndex;
             $page->setFields($pageFields);
 
             // Set page settings.

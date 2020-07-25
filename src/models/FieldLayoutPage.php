@@ -1,8 +1,11 @@
 <?php
 namespace verbb\formie\models;
 
+use Craft;
 use craft\base\Field;
 use craft\base\FieldInterface;
+use craft\fieldlayoutelements\CustomField;
+use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 use craft\models\FieldLayout as CraftFieldLayout;
 use craft\models\FieldLayoutTab as CraftFieldLayoutTab;
@@ -112,7 +115,21 @@ class FieldLayoutPage extends CraftFieldLayoutTab
      */
     public function setFields(array $fields)
     {
+        ArrayHelper::multisort($fields, 'sortOrder');
         $this->_fields = $fields;
+
+        // TODO: remove after next version breakpoint
+        if (version_compare(Craft::$app->getVersion(), '3.5.0-RC1.0', '>=')) {
+            $this->elements = [];
+            foreach ($this->_fields as $field) {
+                $this->elements[] = Craft::createObject([
+                    'class' => CustomField::class,
+                    'required' => $field->required,
+                ], [
+                    $field,
+                ]);
+            }
+        }
     }
 
     /**
