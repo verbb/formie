@@ -4,9 +4,6 @@ namespace verbb\formie\migrations;
 use Craft;
 use craft\db\Migration;
 
-/**
- * m200724_000000_submissions_ipAddress migration.
- */
 class m200724_000000_submissions_ipAddress extends Migration
 {
     /**

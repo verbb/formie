@@ -150,7 +150,7 @@
         "displayFormTitle":"",
         "displayPageProgress":"",
         "displayPageTabs":"",
-        "errorMessage":"Couldn’t save submission due to errors.",
+        "errorMessage":[{"type":"paragraph","content":[{"type":"text","text":"Couldn’t save submission due to errors."}]}],
         "loadingIndicator":"spinner",
         "loadingIndicatorText":"",
         "progressPosition":"end",

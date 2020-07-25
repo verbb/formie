@@ -11,7 +11,7 @@ use craft\helpers\Db;
 use craft\helpers\Json;
 use craft\helpers\StringHelper;
 
-class m200725_000000_convert_success_message extends Migration
+class m200725_100000_convert_error_message extends Migration
 {
     /**
      * @inheritdoc
@@ -26,8 +26,8 @@ class m200725_000000_convert_success_message extends Migration
         foreach ($forms as $form) {
             $settings = Json::decode($form['settings']);
 
-            $submitActionMessage = (new Renderer)->render('<p>' . $settings['submitActionMessage'] . '</p>');
-            $settings['submitActionMessage'] = $submitActionMessage['content'];
+            $errorMessage = (new Renderer)->render('<p>' . $settings['errorMessage'] . '</p>');
+            $settings['errorMessage'] = $errorMessage['content'];
             
             $this->db->createCommand()
                 ->update('{{%formie_forms}}', [
@@ -40,7 +40,7 @@ class m200725_000000_convert_success_message extends Migration
         $projectConfig = Craft::$app->getProjectConfig();
         $schemaVersion = $projectConfig->get('plugins.formie.schemaVersion', true);
         
-        if (version_compare($schemaVersion, '1.0.2', '>=')) {
+        if (version_compare($schemaVersion, '1.0.3', '>=')) {
             return;
         }
 
@@ -50,8 +50,8 @@ class m200725_000000_convert_success_message extends Migration
         foreach ($stencils as $key => $stencil) {
             $data = $stencil['data'];
             
-            $submitActionMessage = (new Renderer)->render('<p>' . $data['settings']['submitActionMessage'] . '</p>');
-            $data['settings']['submitActionMessage'] = Json::encode($submitActionMessage['content']);
+            $errorMessage = (new Renderer)->render('<p>' . $data['settings']['errorMessage'] . '</p>');
+            $data['settings']['errorMessage'] = Json::encode($errorMessage['content']);
 
             $projectConfig->set('formie.stencils.' . $key . '.data', $data);
         }
@@ -63,7 +63,7 @@ class m200725_000000_convert_success_message extends Migration
      */
     public function safeDown()
     {
-        echo "m200725_000000_convert_success_message cannot be reverted.\n";
+        echo "m200725_100000_convert_error_message cannot be reverted.\n";
         return false;
     }
 }

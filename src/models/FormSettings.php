@@ -57,7 +57,9 @@ class FormSettings extends Model
         parent::init();
 
         if (!$this->errorMessage) {
-            $this->errorMessage = Craft::t('formie', 'Couldn’t save submission due to errors.');
+            $errorMessage = (new ProseMirrorRenderer)->render('<p>' . Craft::t('formie', 'Couldn’t save submission due to errors.') . '</p>');
+
+            $this->errorMessage = $errorMessage['content'];
         }
 
         if (!$this->submitActionMessage) {
@@ -118,7 +120,26 @@ class FormSettings extends Model
      */
     public function getSubmitActionMessage()
     {
-        $content = Json::decode($this->submitActionMessage);
+        return $this->_getHtmlContent($this->submitActionMessage);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getErrorMessage()
+    {
+        return $this->_getHtmlContent($this->errorMessage);
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    private function _getHtmlContent($content)
+    {
+        if (is_string($content)) {
+            $content = Json::decode($content);
+        }
 
         $renderer = new HtmlRenderer();
 
@@ -126,5 +147,6 @@ class FormSettings extends Model
             'type' => 'doc',
             'content' => $content,
         ]);
+
     }
 }

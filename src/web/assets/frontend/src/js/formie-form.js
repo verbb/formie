@@ -266,6 +266,9 @@ class FormieForm {
     showFormAlert(text, type) {
         var $alert = this.$form.parentNode.querySelector('.fui-alert');
 
+        // Strip <p> tags
+        text = text.replace(/<p[^>]*>/g, '').replace(/<\/p>/g, '');
+
         if ($alert) {
             if ($alert.innerHTML !== text) {
                 $alert.innerHTML = $alert.innerHTML + '<br>' + text;
