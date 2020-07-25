@@ -1,6 +1,6 @@
 {
     "/cp/dist/js/formie-cp.js": "/cp/dist/js/formie-cp.js?id=1592bc0cf7a36aba8372",
-    "/forms/dist/js/main.js": "/forms/dist/js/main.js?id=ff82502c53e26dce835c",
+    "/forms/dist/js/main.js": "/forms/dist/js/main.js?id=9079f0af16d49162a9ec",
     "/forms/dist/css/style.css": "/forms/dist/css/style.css?id=c1ef2d79bb086e1a76bb",
     "/repeater/dist/css/style.css": "/repeater/dist/css/style.css?id=878cdd98ce56c13b9c78",
     "/frontend/dist/css/formie-base.css": "/frontend/dist/css/formie-base.css?id=889b2aecb6c4427b54e9",
@@ -14,7 +14,7 @@
     "/frontend/dist/js/fields/tags.js": "/frontend/dist/js/fields/tags.js?id=b938c09b480faa63fd1c",
     "/frontend/dist/js/fields/text-limit.js": "/frontend/dist/js/fields/text-limit.js?id=09a038b97dcfe956dce8",
     "/frontend/dist/js/formie-base-form.js": "/frontend/dist/js/formie-base-form.js?id=12b70d8c5d0c798b2494",
-    "/frontend/dist/js/formie-form.js": "/frontend/dist/js/formie-form.js?id=5da19d31de75adf17765",
+    "/frontend/dist/js/formie-form.js": "/frontend/dist/js/formie-form.js?id=dbd1f556aeef100e9c14",
     "/recaptcha/dist/js/recaptcha-v2-checkbox.js": "/recaptcha/dist/js/recaptcha-v2-checkbox.js?id=bdb8078ba23e6a26a5b4",
     "/recaptcha/dist/js/recaptcha-v2-invisible.js": "/recaptcha/dist/js/recaptcha-v2-invisible.js?id=087fb19e650f26b17b4d",
     "/recaptcha/dist/js/recaptcha-v3.js": "/recaptcha/dist/js/recaptcha-v3.js?id=568f214078c2772679b9",
