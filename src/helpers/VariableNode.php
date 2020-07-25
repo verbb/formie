@@ -1,7 +1,7 @@
 <?php
 namespace verbb\formie\helpers;
 
-use verbb\formie\prosemirror\Nodes\Node;
+use verbb\formie\prosemirror\tohtml\Nodes\Node;
 
 class VariableNode extends Node
 {

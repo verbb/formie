@@ -3,7 +3,7 @@ namespace verbb\formie\models;
 
 use verbb\formie\Formie;
 use verbb\formie\helpers\VariableNode;
-use verbb\formie\prosemirror\Renderer;
+use verbb\formie\prosemirror\tohtml\Renderer;
 
 use craft\base\Model;
 use craft\helpers\Json;

@@ -1,10 +1,15 @@
 <?php
 namespace verbb\formie\models;
 
-use Craft;
-use craft\base\Model;
 use verbb\formie\positions\AboveInput;
 use verbb\formie\positions\BelowInput;
+use verbb\formie\prosemirror\toprosemirror\Renderer as ProseMirrorRenderer;
+use verbb\formie\prosemirror\tohtml\Renderer as HtmlRenderer;
+
+use Craft;
+use craft\base\Model;
+use craft\helpers\Json;
+
 use yii\behaviors\AttributeTypecastBehavior;
 
 class FormSettings extends Model
@@ -56,7 +61,9 @@ class FormSettings extends Model
         }
 
         if (!$this->submitActionMessage) {
-            $this->submitActionMessage = Craft::t('formie', 'Submission saved.');
+            $submitActionMessage = (new ProseMirrorRenderer)->render('<p>' . Craft::t('formie', 'Submission saved.') . '</p>');
+
+            $this->submitActionMessage = $submitActionMessage['content'];
         }
 
         if (!$this->defaultLabelPosition) {
@@ -104,5 +111,20 @@ class FormSettings extends Model
                 ]
             ]
         ];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getSubmitActionMessage()
+    {
+        $content = Json::decode($this->submitActionMessage);
+
+        $renderer = new HtmlRenderer();
+
+        return $renderer->render([
+            'type' => 'doc',
+            'content' => $content,
+        ]);
     }
 }

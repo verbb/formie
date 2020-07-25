@@ -1,6 +1,6 @@
 <template>
     <div>
-        <div class="fui-rich-text">
+        <div class="fui-rich-text" :class="'fui-rows-' + rows">
             <editor-menu-bar :editor="editor">
                 <div slot-scope="" class="fui-toolbar">
                     <component
@@ -12,10 +12,16 @@
                         :field="_self"
                         :editor="editor"
                     />
+
+                    <button v-if="allowSource" v-tooltip="$options.filters.t('Show HTML Source', 'formie')" class="btn fui-toolbar-btn has-tooltip" @click.prevent="showSource = !showSource">
+                        <i class="fal fa-code"></i>
+                    </button>
                 </div>
             </editor-menu-bar>
 
-            <editor-content class="fui-editor" :class="{ errors: false }" :editor="editor" />
+            <editor-content v-show="!showSource" class="fui-editor" :class="{ errors: false }" :editor="editor" />
+
+            <!-- <editor-source v-if="showSource" :html="html" /> -->
         </div>
 
         <div class="hidden">
@@ -32,6 +38,7 @@ import { Editor, EditorContent, EditorMenuBar } from 'tiptap';
 import { Blockquote, Heading, OrderedList, BulletList, ListItem, Bold, Italic, Strike, Underline, Table, TableHeader, TableCell, TableRow } from 'tiptap-extensions';
 import VariableTag from '../variables/VariableTag';
 import Link from './Link';
+import EditorSource from './EditorSource.vue';
 
 import RichTextToolbarButton from './RichTextToolbarButton.vue';
 import VariableTagToolbarButton from './VariableTagToolbarButton.vue';
@@ -46,6 +53,7 @@ export default {
         RichTextToolbarButton,
         VariableTagToolbarButton,
         LinkToolbarButton,
+        EditorSource,
     },
 
     props: {
@@ -60,6 +68,7 @@ export default {
             isOpen: false,
             mounted: false,
             variables: {},
+            showSource: false,
             availableButtons: [],
             editor: null,
             json: null,
@@ -78,6 +87,14 @@ export default {
 
         buttons() {
             return this.context.attributes.buttons;
+        },
+
+        allowSource() {
+            return this.context.attributes['allow-source'] || false;
+        },
+
+        rows() {
+            return this.context.attributes.rows || 10;
         },
     },
 
@@ -261,7 +278,14 @@ export default {
                 return null;
             }
 
-            value = JSON.parse(value);
+            // If already an array, easy.
+            if (!Array.isArray(value)) {
+                try {
+                    value = JSON.parse(value);
+                } catch (e) {
+                    console.log(e);
+                }
+            }
 
             return value.length ? { type: 'doc', content: value } : null;
         },
@@ -319,6 +343,12 @@ export default {
 
     .ProseMirror-focused {
         @include input-focused-styles;
+    }
+}
+
+@for $i from 1 to 10 {
+    .fui-rich-text.fui-rows-#{$i} .ProseMirror {
+        min-height: 1rem * $i;
     }
 }
 

@@ -103,7 +103,9 @@ class FormieForm {
 
             // Move the error out of the .fui-input-container node.
             // Only the input itself should be in here.
-            $error.parentNode.parentNode.appendChild($error);
+            if ($error && $error.parentNode.parentNode) {
+                $error.parentNode.parentNode.appendChild($error);
+            }
 
             if ($error && message) {
                 $error.textContent = message;
@@ -265,14 +267,14 @@ class FormieForm {
         var $alert = this.$form.parentNode.querySelector('.fui-alert');
 
         if ($alert) {
-            if ($alert.textContent !== text) {
-                $alert.innerHTML = $alert.textContent + '<br>' + text;
+            if ($alert.innerHTML !== text) {
+                $alert.innerHTML = $alert.innerHTML + '<br>' + text;
             }
         } else {
             $alert = document.createElement('div');
             $alert.className = 'fui-alert fui-alert-' + type;
             $alert.setAttribute('role' , 'alert');
-            $alert.textContent = text;
+            $alert.innerHTML = text;
 
             this.$form.parentNode.insertBefore($alert, this.$form);
         }
