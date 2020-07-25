@@ -25,7 +25,7 @@
         }
     ],
     "require": {
-        "craftcms/cms": "^3.5.0-RC1.1",
+        "craftcms/cms": "^3.4.0",
         "verbb/base": "^1.0.0",
         "commerceguys/addressing": "^1.0",
         "giggsey/libphonenumber-for-php": "^8.12",
