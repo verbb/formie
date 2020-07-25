@@ -257,7 +257,7 @@ class SubmissionsController extends Controller
 
         $settings = $form->settings;
         $defaultStatus = $form->getDefaultStatus();
-        $errorMessage = $form->settings->errorMessage;
+        $errorMessage = $form->settings->getErrorMessage();
 
         if ($submissionId = $request->getBodyParam('submissionId')) {
             $submission = Submission::find()

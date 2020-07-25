@@ -100,13 +100,21 @@
             on: form.settings.submitActionFormHide ?? false,
         }) }}
 
-        {{ forms.textareaField({
-            label: 'Submission Message' | t('formie'),
-            instructions: 'This text will be shown after submission, as a success message. HTML and Markdown is supported.' | t('formie'),
-            id: 'submitActionMessage',
-            name: 'settings[submitActionMessage]',
-            value: form.settings.submitActionMessage ?? null,
-        }) }}
+        <formulate-input
+            type="richText"
+            label="{{ 'Submission Message' | t('formie') }}"
+            help="{{ 'This text will be shown after submission, as a success message.' | t('formie') }}"
+            name="settings[submitActionMessage]"
+            v-model="form.settings.submitActionMessage"
+            :buttons="['bold', 'italic']"
+            :rows="3"
+        ></formulate-input>
+
+        <input
+            type="hidden"
+            name="settings[submitActionMessage]"
+            :value="form.settings.submitActionMessage"
+        />
 
         {{ forms.textField({
             label: 'Submission Message Timeout' | t('formie'),
@@ -249,6 +257,27 @@
     name: 'settings[validationOnFocus]',
     on: form.settings.validationOnFocus ?? false,
 }) }}
+
+<formulate-input
+    type="richText"
+    label="{{ 'Error Message' | t('formie') }}"
+    help="{{ 'This text will be shown when an error on the submission occurs.' | t('formie') }}"
+    name="settings[errorMessage]"
+    v-model="form.settings.errorMessage"
+    :buttons="['bold', 'italic']"
+    :rows="3"
+></formulate-input>
+
+<input
+    type="hidden"
+    name="settings[errorMessage]"
+    :value="form.settings.errorMessage"
+/>
+
+
+
+
+
 
 {# TODO
 <hr>
