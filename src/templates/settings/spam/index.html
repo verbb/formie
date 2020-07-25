@@ -57,7 +57,7 @@
         <div id="submit-behaviour-showMessage" class="field {{ settings.spamBehaviour != 'showMessage' ? 'hidden' }}">
             {{ forms.textareaField({
                 label: 'Submission Message' | t('formie'),
-                instructions: 'This text will be shown as an error after submission. HTML and Markdown is supported.' | t('formie'),
+                instructions: 'This text will be shown as an error after submission.' | t('formie'),
                 name: 'spamBehaviourMessage',
                 value: settings.spamBehaviourMessage,
                 warning: macros.configWarning('spamBehaviourMessage', 'formie'),

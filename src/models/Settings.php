@@ -2,6 +2,7 @@
 namespace verbb\formie\models;
 
 use verbb\formie\Formie;
+use verbb\formie\prosemirror\toprosemirror\Renderer as ProseMirrorRenderer;
 
 use Craft;
 use craft\base\Model;

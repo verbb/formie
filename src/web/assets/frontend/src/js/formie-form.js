@@ -258,8 +258,13 @@ class FormieForm {
         }
     }
 
-    onFormError() {
-        this.showFormAlert(this.settings.errorMessage, 'error');
+    onFormError(errorMessage) {
+        if (errorMessage) {
+            this.showFormAlert(errorMessage, 'error');
+        } else {
+            this.showFormAlert(this.settings.errorMessage, 'error');
+        }
+
         this.removeLoading();
     }
 
@@ -333,7 +338,7 @@ class FormieForm {
                     const response = JSON.parse(xhr.responseText);
 
                     if (response.errors) {
-                        this.onAjaxError(response.errors);
+                        this.onAjaxError(response.errors, response.errorMessage);
                     } else {
                         this.onAjaxSuccess(response);
                     }
@@ -355,8 +360,8 @@ class FormieForm {
         this.updateSubmissionInput(response);
     }
 
-    onAjaxError(response) {
-        this.onFormError();
+    onAjaxError(response, errorMessage = '') {
+        this.onFormError(errorMessage);
 
         this.afterAjaxSubmit(response);
 
