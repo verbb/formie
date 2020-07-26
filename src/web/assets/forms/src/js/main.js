@@ -104,7 +104,7 @@ Craft.Formie = Garnish.Base.extend({
                         });
                     },
 
-                    onSaveAsNew(params) {
+                    onSaveAs(params) {
                         this.loading = true;
 
                         this.$nextTick(() => {
@@ -275,7 +275,16 @@ Craft.Formie = Garnish.Base.extend({
                     if (isValid) {
                         const data = this.getFormData(options);
 
-                        const actionUrl = settings.isStencil ? 'formie/stencils/save' : 'formie/forms/save';
+                        let actionUrl = 'formie/forms/save';
+
+                        if (settings.isStencil) {
+                            actionUrl = 'formie/stencils/save';
+                        }
+
+                        if (options.saveAsStencil) {
+                            actionUrl = 'formie/forms/save-as-stencil';
+                        }
+
                         this.$axios.post(Craft.getActionUrl(actionUrl), data).then(({ data }) => {
                             if (data && data.config) {
                                 store.dispatch('form/setFormConfig', data.config);
@@ -299,7 +308,14 @@ Craft.Formie = Garnish.Base.extend({
                 onSuccess(data) {
                     const { formBuilder } = this.$refs;
 
-                    if (!settings.isStencil) {
+                    // Update the saved hash to prevent browser warnings
+                    formBuilder.saveUpdatedHash();
+
+                    if (data.redirect) {
+                        Craft.cp.displayNotice(Craft.t('formie', data.redirectMessage));
+
+                        return window.location = data.redirect;
+                    } else if (!settings.isStencil) {
                         history.replaceState({}, '', Craft.getUrl(`formie/forms/edit/${data.id}${location.hash}`));
 
                         this.addInput('formId', data.id);
@@ -309,9 +325,6 @@ Craft.Formie = Garnish.Base.extend({
 
                         this.addInput('stencilId', data.id);
                     }
-
-                    // Update the saved hash to prevent browser warnings
-                    formBuilder.saveUpdatedHash();
 
                     Craft.cp.displayNotice(Craft.t('formie', 'Form saved.'));
                     this.$events.$emit('formie:save-form-loading', false);

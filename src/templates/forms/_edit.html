@@ -34,8 +34,14 @@
                 <ul>
                     {% if form.id %}
                         <li>
-                            <a data-redirect="{{ continueEditingUrl | hash }}" @click.prevent="onSaveAsNew({ duplicate: true })">
+                            <a data-redirect="{{ continueEditingUrl | hash }}" @click.prevent="onSaveAs({ duplicate: true })">
                                 {{ 'Save as a new form' | t('formie') }}
+                            </a>
+                        </li>
+
+                        <li>
+                            <a data-redirect="{{ continueEditingUrl | hash }}" @click.prevent="onSaveAs({ saveAsStencil: true })">
+                                {{ 'Save as a new Stencil' | t('formie') }}
                             </a>
                         </li>
                     {% endif %}

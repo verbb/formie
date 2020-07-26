@@ -3,6 +3,8 @@ namespace verbb\formie\controllers;
 
 use Craft;
 use craft\helpers\ArrayHelper;
+use craft\helpers\DateTimeHelper;
+use craft\helpers\Json;
 use craft\helpers\StringHelper;
 use craft\helpers\UrlHelper;
 use craft\models\Site;
@@ -17,7 +19,10 @@ use Throwable;
 
 use verbb\formie\Formie;
 use verbb\formie\elements\Form;
+use verbb\formie\helpers\HandleHelper;
 use verbb\formie\helpers\Variables;
+use verbb\formie\models\Stencil;
+use verbb\formie\models\StencilData;
 
 class FormsController extends Controller
 {
@@ -157,6 +162,113 @@ class FormsController extends Controller
         Craft::$app->getSession()->setNotice(Craft::t('formie', 'Form saved.'));
 
         return $this->redirectToPostedUrl($form);
+    }
+
+    /**
+     * Creates a new Stencil from a form.
+     *
+     * @return Response|null
+     * @throws Throwable
+     */
+    public function actionSaveAsStencil()
+    {
+        $this->requirePostRequest();
+        $request = Craft::$app->getRequest();
+
+        $stencils = Formie::$plugin->getStencils()->getAllStencils();
+        $stencilHandles = ArrayHelper::getColumn($stencils, 'handle');
+        $handle = $request->getParam('handle');
+        
+        $stencil = new Stencil();
+        $stencil->name = $request->getParam('title');
+
+        // Resolve the handle, in case it already exists
+        $stencil->handle = HandleHelper::getUniqueHandle($stencilHandles, $handle);
+        
+        if ($templateId = $request->getParam('templateId')) {
+            $template = Formie::$plugin->getFormTemplates()->getTemplateById($templateId);
+            $stencil->setTemplate($template);
+        }
+
+        if ($statusId = $request->getParam('defaultStatusId')) {
+            $status = Formie::$plugin->getStatuses()->getStatusById($statusId);
+            $stencil->setDefaultStatus($status);
+        }
+
+        if ($settings = $request->getParam('settings')) {
+            $pages = Json::decode($request->getParam('pages'));
+            $notifications = Json::decode($request->getParam('notifications'));
+
+            // Set form data.
+            $stencil->data = new StencilData(compact('settings', 'pages', 'notifications'));
+            $stencil->data->requireUser = $request->getParam('requireUser', $stencil->data->requireUser);
+            $stencil->data->availability = $request->getParam('availability', $stencil->data->availability);
+            $stencil->data->userDeletedAction = $request->getParam('userDeletedAction', $stencil->data->userDeletedAction);
+            $stencil->data->dataRetention = $request->getParam('dataRetention', $stencil->data->dataRetention);
+            $stencil->data->dataRetentionValue = $request->getParam('dataRetentionValue', $stencil->data->dataRetentionValue);
+            $stencil->data->availabilitySubmissions = $request->getParam('availabilitySubmissions', $stencil->data->availabilitySubmissions);
+            $stencil->data->availabilityFrom = (($date = $request->getParam('availabilityFrom')) !== false ? (DateTimeHelper::toDateTime($date) ?: null) : $stencil->data->availabilityFrom);
+            $stencil->data->availabilityTo = (($date = $request->getParam('availabilityTo')) !== false ? (DateTimeHelper::toDateTime($date) ?: null) : $stencil->data->availabilityTo);
+
+            // Build temp form for validation.
+            $form = Formie::$plugin->getForms()->buildFormFromPost();
+
+            // Don't validate the handle.
+            $form->handle .= rand();
+
+            $form->validate();
+
+            $formHasErrors = $form->hasErrors();
+            $formErrors = $form->getErrors();
+        } else {
+            $formHasErrors = false;
+            $formErrors = [];
+        }
+
+        // Save it
+        if ($formHasErrors || !Formie::$plugin->getStencils()->saveStencil($stencil)) {
+            $config = $stencil->getConfig();
+            $notifications = ArrayHelper::remove($config, 'notifications', []);
+
+            if ($request->getAcceptsJson()) {
+                return $this->asJson([
+                    'id' => $stencil->id,
+                    'config' => $config,
+                    'notifications' => $notifications,
+                    'errors' => ArrayHelper::merge($formErrors, $stencil->getErrors()),
+                    'success' => !$formHasErrors && !$stencil->hasErrors(),
+                ]);
+            }
+
+            Craft::$app->getSession()->setError(Craft::t('formie', 'Couldn’t save stencil.'));
+
+            Craft::$app->getUrlManager()->setRouteParams([
+                'form' => $stencil,
+                'stencil' => $stencil,
+                'errors' => ArrayHelper::merge($formErrors, $stencil->getErrors()),
+            ]);
+
+            return null;
+        }
+
+        $config = $stencil->getConfig();
+        $notifications = ArrayHelper::remove($config, 'notifications', []);
+
+        if ($request->getAcceptsJson()) {
+            return $this->asJson([
+                'id' => $stencil->id,
+                'config' => $config,
+                'notifications' => $notifications,
+                'errors' => ArrayHelper::merge($formErrors, $stencil->getErrors()),
+                'success' => !$formHasErrors && !$stencil->hasErrors(),
+                'redirect' => $stencil->cpEditUrl,
+                'redirectMessage' => Craft::t('formie', 'Stencil saved.'),
+            ]);
+        }
+
+        Craft::$app->getSession()->setNotice(Craft::t('formie', 'Stencil saved.'));
+
+        return $this->redirectToPostedUrl($stencil);
     }
 
     /**

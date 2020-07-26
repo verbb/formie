@@ -43,6 +43,7 @@ class StencilsController extends Controller
         $stencilHandles = ArrayHelper::getColumn($stencils, 'handle');
 
         $variables = compact('stencilHandles', 'stencil');
+        
         if (!$variables['stencil']) {
             $variables['stencil'] = new Stencil();
         }
