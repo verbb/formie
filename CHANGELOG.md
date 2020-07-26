@@ -1,13 +1,25 @@
 # Changelog
 
+## 1.0.5 - 2020-07-26
 
 ### Added
-- Added Rich Text field configuration plugin-wide. Provide a config object for available buttons, like you might for [Redactor](). See [](docs).
-- Added error message rich text field for each form/stencil.
+- Added Rich Text field configuration plugin-wide. Provide a config object for available buttons, like you might for [Redactor](https://plugins.craftcms.com/redactor). See [docs](https://verbb.io/craft-plugins/formie/docs/get-started/configuration#rich-text-configuration).
+- Added error message rich text field for form/stencil settings.
+- Added GtaphQL support for Submissions.
+- Added support for “Save as new stencil” from a form.
 
 ### Changed
 - Form/stencil submission message now support rich text.
 - Form/stencil submission message is now stored as a prosemirror-compatible object.
+
+### Fixed
+- Fixed IP Address not saving for submissions.
+- Fixed form change warning when submitting an ajax form and redirecting.
+- Fixed submissions query and `form` parameter not working correctly.
+- Fixed “Save as new form” not redirecting to the newly created form.
+- Fixed “Save as new stencil” new stencil generates a sequential handle, rather than a random handle.
+- Fixed “Submission Message” error message not appearing.
+- Fixed rich text fields not having their model values (resulting JSON) populated immediately.
 
 ## 1.0.4 - 2020-07-23
 
