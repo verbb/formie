@@ -123,6 +123,7 @@ class FormsController extends Controller
         $this->requirePermission('formie-editForms');
 
         $form = Formie::$plugin->getForms()->buildFormFromPost();
+        $duplicate = $request->getParam('duplicate');
 
         if (!Formie::$plugin->getForms()->saveForm($form)) {
             if ($request->getAcceptsJson()) {
@@ -156,6 +157,8 @@ class FormsController extends Controller
                 'errors' => $form->getErrors(),
                 'success' => !$form->hasErrors(),
                 'fieldLayoutId' => $form->fieldLayoutId,
+                'redirect' => ($duplicate) ? $form->cpEditUrl : null,
+                'redirectMessage' => Craft::t('formie', 'Form saved.'),
             ]);
         }
 
