@@ -46,7 +46,7 @@ class SubmissionQuery extends ElementQuery
                 ->select(['id'])
                 ->from(['{{%formie_forms}}'])
                 ->where(Db::parseParam('handle', $value))
-                ->column();
+                ->scalar();
         } else {
             $this->formId = null;
         }
@@ -82,7 +82,7 @@ class SubmissionQuery extends ElementQuery
                 ->select(['id'])
                 ->from(['{{%formie_statuses}}'])
                 ->where(Db::parseParam('handle', $value))
-                ->column();
+                ->scalar();
         } else {
             $this->statusId = null;
         }
