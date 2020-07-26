@@ -1,6 +1,7 @@
 <template>
     <button v-tooltip="button.text" class="btn fui-toolbar-btn" :class="{ active }" @click.prevent="editor.commands[button.command](button.args)">
-        <i class="far" :class="'fa-' + button.icon"></i>
+        <i v-if="button.icon" class="far" :class="'fa-' + button.icon"></i>
+        <div v-if="button.html" class="flex flex-nowrap items-center" v-html="button.html"></div>
     </button>
 </template>
 
@@ -58,6 +59,10 @@ export default {
 
     &:hover {
         background-color: #edf3fa;
+    }
+
+    sup {
+        vertical-align: text-top;
     }
 }
 

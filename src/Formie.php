@@ -40,6 +40,7 @@ use verbb\formie\services\Stencils as StencilsService;
 use verbb\formie\services\FormTemplates as FormTemplatesService;
 use verbb\formie\services\EmailTemplates as EmailTemplatesService;
 use verbb\formie\variables\Formie as FormieVariable;
+use verbb\formie\web\twig\Extension;
 
 class Formie extends Plugin
 {
@@ -70,6 +71,7 @@ class Formie extends Plugin
         $this->_setPluginComponents();
         $this->_setLogging();
         $this->_registerCpRoutes();
+        $this->_registerTwigExtensions();
         $this->_registerFieldsEvents();
         $this->_registerFieldTypes();
         $this->_registerPermissions();
@@ -137,6 +139,11 @@ class Formie extends Plugin
 
     // Private Methods
     // =========================================================================
+
+    private function _registerTwigExtensions()
+    {
+        Craft::$app->view->registerTwigExtension(new Extension);
+    }
 
     private function _registerPermissions()
     {

@@ -106,8 +106,7 @@
             help="{{ 'This text will be shown after submission, as a success message.' | t('formie') }}"
             name="settings[submitActionMessage]"
             v-model="form.settings.submitActionMessage"
-            :buttons="['bold', 'italic']"
-            :rows="3"
+            v-bind="{{ getRichTextConfig('forms.submitActionMessage') | json_encode }}"
         ></formulate-input>
 
         <input
@@ -264,8 +263,7 @@
     help="{{ 'This text will be shown when an error on the submission occurs.' | t('formie') }}"
     name="settings[errorMessage]"
     v-model="form.settings.errorMessage"
-    :buttons="['bold', 'italic']"
-    :rows="3"
+    v-bind="{{ getRichTextConfig('forms.errorMessage') | json_encode }}"
 ></formulate-input>
 
 <input
@@ -273,7 +271,6 @@
     name="settings[errorMessage]"
     :value="form.settings.errorMessage"
 />
-
 
 
 

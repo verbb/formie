@@ -4,6 +4,7 @@ namespace verbb\formie\services;
 use verbb\formie\Formie;
 use verbb\formie\elements\Form;
 use verbb\formie\events\NotificationEvent;
+use verbb\formie\helpers\RichTextHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\Notification;
 use verbb\formie\records\Notification as NotificationRecord;
@@ -353,15 +354,14 @@ class Notifications extends Component
                 'required' => true,
                 'variables' => 'plainTextVariables',
             ]),
-            SchemaHelper::richTextField([
+            SchemaHelper::richTextField(array_merge([
                 'label' => Craft::t('formie', 'Email Content'),
                 'help' => Craft::t('formie', 'The body content for this notification.'),
                 'name' => 'content',
                 'validation' => 'required',
                 'required' => true,
-                'buttons' => ['bold', 'italic', 'variableTag'],
                 'variables' => 'plainTextVariables',
-            ]),
+            ], RichTextHelper::getRichTextConfig('notifications.content'))),
         ];
     }
 

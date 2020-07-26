@@ -86,7 +86,7 @@ export default {
         },
 
         buttons() {
-            return this.context.attributes.buttons;
+            return this.context.attributes.buttons || [];
         },
 
         allowSource() {
@@ -172,7 +172,7 @@ export default {
                 extensions.push(new Underline());
             }
 
-            if (buttons.includes('anchor')) {
+            if (buttons.includes('link')) {
                 extensions.push(new Link({ vm: this }));
             }
 
@@ -242,12 +242,12 @@ export default {
         // TODO: Add this somewhere global
         richTextButtons() {
             return [
-                { name: 'h1', text: Craft.t('formie', 'Heading 1'), command: 'heading', args: { level: 1 }, html: '<i class="fa fa-header"><sup>1</sup></i>' },
-                { name: 'h2', text: Craft.t('formie', 'Heading 2'), command: 'heading', args: { level: 2 }, html: '<i class="fa fa-header"><sup>2</sup></i>' },
-                { name: 'h3', text: Craft.t('formie', 'Heading 3'), command: 'heading', args: { level: 3 }, html: '<i class="fa fa-header"><sup>3</sup></i>' },
-                { name: 'h4', text: Craft.t('formie', 'Heading 4'), command: 'heading', args: { level: 4 }, html: '<i class="fa fa-header"><sup>4</sup></i>' },
-                { name: 'h5', text: Craft.t('formie', 'Heading 5'), command: 'heading', args: { level: 5 }, html: '<i class="fa fa-header"><sup>5</sup></i>' },
-                { name: 'h6', text: Craft.t('formie', 'Heading 6'), command: 'heading', args: { level: 6 }, html: '<i class="fa fa-header"><sup>6</sup></i>' },
+                { name: 'h1', text: Craft.t('formie', 'Heading 1'), command: 'heading', args: { level: 1 }, html: '<i class="far fa-heading"><sup>1</sup></i>' },
+                { name: 'h2', text: Craft.t('formie', 'Heading 2'), command: 'heading', args: { level: 2 }, html: '<i class="far fa-heading"><sup>2</sup></i>' },
+                { name: 'h3', text: Craft.t('formie', 'Heading 3'), command: 'heading', args: { level: 3 }, html: '<i class="far fa-heading"><sup>3</sup></i>' },
+                { name: 'h4', text: Craft.t('formie', 'Heading 4'), command: 'heading', args: { level: 4 }, html: '<i class="far fa-heading"><sup>4</sup></i>' },
+                { name: 'h5', text: Craft.t('formie', 'Heading 5'), command: 'heading', args: { level: 5 }, html: '<i class="far fa-heading"><sup>5</sup></i>' },
+                { name: 'h6', text: Craft.t('formie', 'Heading 6'), command: 'heading', args: { level: 6 }, html: '<i class="far fa-heading"><sup>6</sup></i>' },
                 { name: 'bold', text: Craft.t('formie', 'Bold'), command: 'bold', icon: 'bold' },
                 { name: 'italic', text: Craft.t('formie', 'Italic'), command: 'italic', icon: 'italic' },
                 { name: 'underline', text: Craft.t('formie', 'Underline'), command: 'underline', icon: 'underline' },
@@ -256,7 +256,7 @@ export default {
                 { name: 'orderedlist', text: Craft.t('formie', 'Ordered List'), command: 'ordered_list', icon: 'list-ol' },
                 { name: 'quote', text: Craft.t('formie', 'Blockquote'), command: 'blockquote', icon: 'quote-right' },
                 { name: 'link', text: Craft.t('formie', 'Link'), command: 'link', icon: 'link', component: 'LinkToolbarButton' },
-                { name: 'table', text: Craft.t('formie', 'Table'), command: 'createTable', args: { rowsCount: 3, colsCount: 3, withHeaderRow: false }, svg: 'add-table' },
+                { name: 'table', text: Craft.t('formie', 'Table'), command: 'createTable', args: { rowsCount: 3, colsCount: 3, withHeaderRow: false }, icon: 'table' },
                 { name: 'variableTag', text: Craft.t('formie', 'Variables'), command: 'variableTag', icon: 'plus-circle', component: 'VariableTagToolbarButton' },
             ];
         },

@@ -1,8 +1,8 @@
 <template>
     <div class="fui-link-toolbar">
-        <div class="">
-            <div class="">
-                <div class="link-container">
+        <div class="fui-link-toolbar-wrap">
+            <div class="fui-link-toolbar-inner">
+                <div class="fui-link-container">
                     <a
                         v-show="!isEditing"
                         :href="actualLinkHref"
@@ -17,29 +17,29 @@
                         ref="input"
                         v-model="linkInput"
                         type="text"
-                        class=""
+                        class="input"
                         @keydown.enter.prevent="commit"
                     >
                 </div>
             </div>
 
             <div class="fui-link-toolbar-buttons">
-                <button v-show="!isEditing" v-tooltip="$options.filters.t('Edit Link', 'formie')" @click="edit">
-                    <span class="icon icon-pencil"></span>
+                <button v-show="!isEditing" v-tooltip="$options.filters.t('Edit Link', 'formie')" class="btn fui-link-btn" @click.prevent="edit">
+                    <span class="fas fa-pencil"></span>
                 </button>
 
-                <button v-show="hasLink && isEditing" v-tooltip="$options.filters.t('Remove Link', 'formie')" @click="remove">
-                    <span class="icon icon-trash"></span>
+                <button v-show="hasLink && isEditing" v-tooltip="$options.filters.t('Remove Link', 'formie')" class="btn fui-link-btn" @click.prevent="remove">
+                    <span class="fas fa-trash"></span>
                 </button>
 
-                <button v-show="isEditing" v-tooltip="$options.filters.t('Done', 'formie')" @click="commit">
-                    <span class="icon icon-check"></span>
+                <button v-show="isEditing" v-tooltip="$options.filters.t('Done', 'formie')" class="btn fui-link-btn" @click.prevent="commit">
+                    <span class="fas fa-check"></span>
                 </button>
             </div>
         </div>
 
-        <div v-show="isEditing" class="">
-            <label class="">
+        <div v-show="isEditing" class="fui-link-footer">
+            <label class="fui-link-footer-label">
                 <input v-model="targetBlank" class="" type="checkbox">
                 {{ $options.filters.t('Open in new window', 'formie') }}
             </label>
@@ -48,14 +48,10 @@
 </template>
 
 <script>
-
 export default {
-    props: {
-        config: {
-            type: Object,
-            default: () => {},
-        },
+    name: 'LinkToolbar',
 
+    props: {
         initialLinkAttrs: {
             type: Object,
             default: () => {},
@@ -152,6 +148,86 @@ export default {
     z-index: 100;
     width: 300px;
     top: 100%;
+    color: #fff;
+
+    &::before {
+        content: "";
+        border: 6px solid transparent;
+        border-bottom-color: #000;
+        position: absolute;
+        bottom: 100%;
+        left: 10px;
+    }
+}
+
+.fui-link-btn {
+    background: transparent;
+    color: #fff;
+    font-size: 14px;
+    height: 25px;
+    width: 25px;
+    padding: 0;
+
+    &:hover {
+        background: transparent;
+    }
+}
+
+.fui-link-toolbar-wrap {
+    padding: 0 0.75rem;
+    align-items: center;
+    display: flex;
+    height: 40px;
+}
+
+.fui-link-toolbar-inner {
+    min-width: 0;
+    flex: 1 1 0%;
+}
+
+.fui-link-container {
+    width: 100%;
+    overflow: hidden;
+    color: #fff;
+    line-height: 1.5;
+    text-overflow: ellipsis;
+
+    .link {
+        color: #fff;
+        font-size: 13px;
+    }
+}
+
+.fui-link-toolbar .input {
+    padding: 0;
+    font-size: 13px;
+    color: #fff;
+    height: 40px;
+    background-color: transparent;
+    box-shadow: none;
+    border-style: none;
+    width: 240px;
+    outline: none;
+    flex: 1 1 0%;
+    line-height: normal;
+}
+
+
+
+.fui-link-footer {
+    padding: 0.75rem 0.75rem;
+    border-top: 1px solid white;
+}
+
+.fui-link-footer-label {
+    font-size: 12px;
+    color: #fff;
+    align-items: center;
+    display: flex;
+
+    input {
+        margin-right: 5px;
+    }
 }
 
 </style>
