@@ -392,12 +392,12 @@ class FormieForm {
 
         this.afterAjaxSubmit(data);
 
+        // Reset the form hash, as all has been saved
+        this.savedFormHash = this.hashForm();
+
         // Check if we need to proceed to the next page
         if (data.nextPageId) {
             this.removeLoading();
-
-            // Reset the form hash, as all has been saved
-            this.savedFormHash = this.hashForm();
 
             this.togglePage(data);
 
