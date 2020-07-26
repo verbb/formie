@@ -8,6 +8,7 @@ use craft\helpers\Json;
 use craft\web\Controller;
 
 use verbb\formie\Formie;
+use verbb\formie\helpers\HandleHelper;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\Stencil;
 use verbb\formie\models\StencilData;
@@ -43,7 +44,7 @@ class StencilsController extends Controller
         $stencilHandles = ArrayHelper::getColumn($stencils, 'handle');
 
         $variables = compact('stencilHandles', 'stencil');
-        
+
         if (!$variables['stencil']) {
             $variables['stencil'] = new Stencil();
         }
@@ -135,7 +136,10 @@ class StencilsController extends Controller
             $stencil->id = null;
             $stencil->uid = null;
             $stencil->name .= ' ' . Craft::t('formie', 'Copy');
-            $stencil->handle .= rand();
+
+            $stencils = Formie::$plugin->getStencils()->getAllStencils();
+            $stencilHandles = ArrayHelper::getColumn($stencils, 'handle');
+            $stencil->handle = HandleHelper::getUniqueHandle($stencilHandles, $stencil->handle);
         }
 
         if ($templateId = $request->getParam('templateId')) {
@@ -216,6 +220,8 @@ class StencilsController extends Controller
                 'notifications' => $notifications,
                 'errors' => ArrayHelper::merge($formErrors, $stencil->getErrors()),
                 'success' => !$formHasErrors && !$stencil->hasErrors(),
+                'redirect' => ($duplicate) ? $stencil->cpEditUrl : null,
+                'redirectMessage' => Craft::t('formie', 'Stencil saved.'),
             ]);
         }
 

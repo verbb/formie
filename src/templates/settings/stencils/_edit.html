@@ -32,7 +32,7 @@
                 <ul>
                     {% if stencil.id %}
                         <li>
-                            <a data-redirect="{{ stencil.cpEditUrl | hash }}" @click.prevent="onSaveAsNew({ duplicateStencil: true })">
+                            <a data-redirect="{{ stencil.cpEditUrl | hash }}" @click.prevent="onSaveAs({ duplicateStencil: true })">
                                 {{ 'Save as a new stencil' | t('formie') }}
                             </a>
                         </li>
