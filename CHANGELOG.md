@@ -1,5 +1,14 @@
 # Changelog
 
+
+### Added
+- Added Rich Text field configuration plugin-wide. Provide a config object for available buttons, like you might for [Redactor](). See [](docs).
+- Added error message rich text field for each form/stencil.
+
+### Changed
+- Form/stencil submission message now support rich text.
+- Form/stencil submission message is now stored as a prosemirror-compatible object.
+
 ## 1.0.4 - 2020-07-23
 
 ### Added
