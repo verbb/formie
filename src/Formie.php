@@ -32,7 +32,9 @@ use verbb\formie\gql\interfaces\FormInterface;
 use verbb\formie\gql\interfaces\PageInterface;
 use verbb\formie\gql\interfaces\PageSettingsInterface;
 use verbb\formie\gql\interfaces\RowInterface;
+use verbb\formie\gql\interfaces\SubmissionInterface;
 use verbb\formie\gql\queries\FormQuery;
+use verbb\formie\gql\queries\SubmissionQuery;
 use verbb\formie\helpers\ProjectConfigHelper;
 use verbb\formie\models\Settings;
 use verbb\formie\services\Statuses as StatusesService;
@@ -229,13 +231,19 @@ class Formie extends Plugin
             $event->types[] = PageSettingsInterface::class;
             $event->types[] = RowInterface::class;
             $event->types[] = FieldInterface::class;
+            $event->types[] = SubmissionInterface::class;
         });
 
         Event::on(Gql::class, Gql::EVENT_REGISTER_GQL_QUERIES, function(RegisterGqlQueriesEvent $event) {
-            $queries = FormQuery::getQueries();
+            $queries = [
+                FormQuery::getQueries(),
+                SubmissionQuery::getQueries(),
+            ];
             
-            foreach ($queries as $key => $value) {
-                $event->queries[$key] = $value;
+            foreach ($queries as $k => $v) {
+                foreach ($v as $key => $value) {
+                    $event->queries[$key] = $value;
+                }
             }
         });
     }

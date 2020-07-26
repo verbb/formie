@@ -1,6 +1,6 @@
 # GraphQL
 
-Formie supports accessing [Form](docs:developers/form) objects via GraphQL. Be sure to read about [Craft's GraphQL support](https://docs.craftcms.com/v3/graphql.html).
+Formie supports accessing [Form](docs:developers/form) and [Submission](docs:developers/submission) objects via GraphQL. Be sure to read about [Craft's GraphQL support](https://docs.craftcms.com/v3/graphql.html).
 
 ## Forms
 
@@ -97,10 +97,6 @@ Formie supports accessing [Form](docs:developers/form) objects via GraphQL. Be s
     }
 }
 ```
-
-
-
-
 
 ### The `forms` query
 This query is used to query for [Form](docs:developers/form) objects. You can also use the singular `form` to fetch a single form. There are also `formieForms` and `formieForm` aliases.
@@ -222,3 +218,62 @@ For nested fields like Group and Repeater, you have access to `nestedRows` and `
     }
 }
 ```
+
+## Submissions
+
+### Query payload
+
+```
+{
+    submissions (form: "contactForm") {
+        title
+
+        ... on contactForm_Submission {
+            yourName
+            emailAddress
+            message
+        }
+    }
+}
+```
+
+### The response
+
+```
+{
+    "data": {
+        "submissions": [
+            {
+                "title": "2020-07-24 22:01:59",
+                "yourName": "Peter Sherman",
+                "emailAddress": "psherman@wallaby.com",
+                "message": "Just wanted to say hi!"
+            }
+        ]
+    }
+}
+```
+
+### The `submissions` query
+This query is used to query for [Submission](docs:developers/submission) objects. You can also use the singular `submission` to fetch a single submission. There are also `formieSubmissions` and `formieSubmission` aliases.
+
+| Argument | Type | Description
+| - | - | -
+| `id`| `[QueryArgument]` | Narrows the query results based on the elements’ IDs.
+| `uid`| `[String]` | Narrows the query results based on the elements’ UIDs.
+| `archived`| `Boolean` | Narrows the query results to only elements that have been archived.
+| `trashed`| `Boolean` | Narrows the query results to only elements that have been soft-deleted.
+| `unique`| `Boolean` | Determines whether only elements with unique IDs should be returned by the query.
+| `title`| `[String]` | Narrows the query results based on the elements’ titles.
+| `search`| `String` | Narrows the query results to only elements that match a search query.
+| `relatedTo`| `[Int]` | Narrows the query results to elements that relate to *any* of the provided element IDs. This argument is ignored, if `relatedToAll` is also used.
+| `relatedToAll`| `[Int]` | Narrows the query results to elements that relate to *all* of the provided element IDs. Using this argument will cause `relatedTo` argument to be ignored.
+| `ref`| `[String]` | Narrows the query results based on a reference string.
+| `fixedOrder`| `Boolean` | Causes the query results to be returned in the order specified by the `id` argument.
+| `inReverse`| `Boolean` | Causes the query results to be returned in reverse order.
+| `dateCreated`| `[String]` | Narrows the query results based on the elements’ creation dates.
+| `dateUpdated`| `[String]` | Narrows the query results based on the elements’ last-updated dates.
+| `offset`| `Int` | Sets the offset for paginated results.
+| `limit`| `Int` | Sets the limit for paginated results.
+| `orderBy`| `String` | Sets the field the returned elements should be ordered by.
+| `form`| `[String]` | Narrows the query results based on the form’s handle.

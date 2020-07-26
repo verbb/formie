@@ -140,7 +140,7 @@ class Submission extends Element
     }
 
     /**
-     * @inheritDoc
+     * @inheritdoc
      */
     public static function gqlScopesByContext($context): array
     {
@@ -478,6 +478,14 @@ class Submission extends Element
         }
 
         return $values;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getGqlTypeName(): string
+    {
+        return static::gqlTypeNameByContext($this->getForm());
     }
 
 
