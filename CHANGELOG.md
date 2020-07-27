@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.0.6 - 2020-07-27
+
+### Fixed
+- Allow deleting last stencil.
+- Ensure form/email templates are processed in project config before stencils, preventing project config errors when applying stencils.
+- Only allow “Save as a new stencil” if `allowAdminChanges` is enabled.
+
 ## 1.0.5 - 2020-07-26
 
 ### Added
