@@ -39,11 +39,13 @@
                             </a>
                         </li>
 
-                        <li>
-                            <a data-redirect="{{ continueEditingUrl | hash }}" @click.prevent="onSaveAs({ saveAsStencil: true })">
-                                {{ 'Save as a new stencil' | t('formie') }}
-                            </a>
-                        </li>
+                        {% if craft.app.config.general.allowAdminChanges %}
+                            <li>
+                                <a data-redirect="{{ continueEditingUrl | hash }}" @click.prevent="onSaveAs({ saveAsStencil: true })">
+                                    {{ 'Save as a new stencil' | t('formie') }}
+                                </a>
+                            </li>
+                        {% endif %}
                     {% endif %}
                 </ul>
 
