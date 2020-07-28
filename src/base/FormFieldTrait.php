@@ -572,7 +572,7 @@ trait FormFieldTrait
     /**
      * @inheritDoc
      */
-    public function afterCreateField()
+    public function afterCreateField(array $data)
     {
 
     }

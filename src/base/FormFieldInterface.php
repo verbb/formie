@@ -243,6 +243,8 @@ interface FormFieldInterface extends ComponentInterface
 
     /**
      * Called after a field is created.
+     *
+     * @param array $data
      */
-    public function afterCreateField();
+    public function afterCreateField(array $data);
 }
