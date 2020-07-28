@@ -8,8 +8,6 @@ use verbb\formie\helpers\SchemaHelper;
 use Craft;
 use craft\base\ElementInterface;
 
-use HtmlSanitizer\Sanitizer;
-
 class Html extends FormField
 {
     // Public Properties
@@ -117,16 +115,5 @@ class Html extends FormField
             SchemaHelper::cssClasses(),
             SchemaHelper::containerAttributesField(),
         ];
-    }
-
-    /**
-     * Sanitises the HTML so script and style tags don't get injected into the CP.
-     *
-     * @return string
-     */
-    public function getSanitizedHtml()
-    {
-        $sanitizer = Sanitizer::create(['extensions' => ['basic']]);
-        return $sanitizer->sanitize($this->htmlContent);
     }
 }

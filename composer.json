@@ -30,8 +30,7 @@
         "commerceguys/addressing": "^1.0",
         "giggsey/libphonenumber-for-php": "^8.12",
         "html2text/html2text": "^4.3",
-        "ext-json": "*",
-        "tgalopin/html-sanitizer": "^1.4"
+        "ext-json": "*"
     },
     "autoload": {
         "psr-4": {
