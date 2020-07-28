@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.7 - 2020-07-28
+
+### Fixed
+- Remove unused `HtmlSanitizer` package.
+- Fixed installation issue on PHP 7.0.
+
 ## 1.0.6 - 2020-07-27
 
 ### Fixed
