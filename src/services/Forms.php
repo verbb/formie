@@ -409,7 +409,7 @@ class Forms extends Component
 
                     if ($field instanceof NestedFieldInterface) {
                         /* @var NestedFieldInterface|NestedFieldTrait $field */
-                        $field->setRows($fieldData['rows']);
+                        $field->setRows($fieldData['rows'], $duplicate);
                     }
 
                     $field->sortOrder = $fieldIndex;

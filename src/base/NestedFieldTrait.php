@@ -180,14 +180,14 @@ trait NestedFieldTrait
     /**
      * @inheritDoc
      */
-    public function setRows(array $rows)
+    public function setRows(array $rows, $duplicate = false)
     {
         $fieldLayout = Formie::$plugin->getForms()->buildFieldLayout([
             [
                 'label' => 'Fields',
                 'rows' => $rows,
             ]
-        ], static::class);
+        ], static::class, $duplicate);
 
         if ($oldFieldLayout = $this->getFieldLayout()) {
             $fieldLayout->id = $oldFieldLayout->id;

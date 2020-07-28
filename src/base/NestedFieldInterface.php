@@ -20,8 +20,9 @@ interface NestedFieldInterface extends ComponentInterface
      * Sets the field's field layout from an array of rows.
      *
      * @param array $rows
+     * @param bool $duplicate
      */
-    public function setRows(array $rows);
+    public function setRows(array $rows, $duplicate = false);
 
     /**
      * Returns the field's field layout.
