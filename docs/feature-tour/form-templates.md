@@ -15,6 +15,10 @@ For each form template, you can also add custom fields, which will be added to t
 ## Custom Templates
 You can provide your own custom templates to control every aspect of the form's output. Create a new form template, and assign the "HTML Template" field to the template directory your custom templates sit. For example, if your templates exist in `templates/_forms`, you would enter `_forms`.
 
+:::warning
+By overriding template files, you will no longer receive bug fixes and improvements. For more information on how to customize templates without overriding template files, please refer to the [hooks documentation](docs:developers/hooks).
+:::
+
 You can choose to use Formie's provided CSS and JS, or provide your own.
 
 :::tip

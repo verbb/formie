@@ -1,3 +1,17 @@
+{#
+    Default Formie Template
+
+    Any templates for forms, pages and fields contained in this directory will
+    be used instead of the default formie template. You can delete and template
+    file not prefixed by an underscore, and the default template for that component
+    will be used instead.
+
+    Warning: By overriding template files, you will no longer receive bug fixes
+    and improvements. For more information on how to customize templates without
+    overriding template files, please refer to the Formie documentation:
+    https://verbb.io/craft-plugins/formie/docs/developers/hooks
+#}
+
 {% apply spaceless %}
     {% set defaultLabelPosition = create(form.settings.defaultLabelPosition) %}
 
