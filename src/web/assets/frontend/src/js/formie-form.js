@@ -97,18 +97,24 @@ class FormieForm {
         // In future updates, we can probably remove this
         document.addEventListener('bouncerShowError', (e) => {
             var $field = e.target;
+            var $fieldContainer = $field.closest('.fui-field-container');
             var message = $field.getAttribute('data-fui-message');
 
-            var $error = $field.parentNode.querySelector('.fui-error-message');
-
-            // Move the error out of the .fui-input-container node.
+            // Check if we need to move the error out of the .fui-input-container node.
             // Only the input itself should be in here.
-            if ($error && $error.parentNode.parentNode) {
-                $error.parentNode.parentNode.appendChild($error);
+            var $errorToMove = $field.parentNode.querySelector('.fui-error-message');
+
+            if ($errorToMove && $errorToMove.parentNode.parentNode) {
+                $errorToMove.parentNode.parentNode.appendChild($errorToMove);
             }
 
-            if ($error && message) {
-                $error.textContent = message;
+            // The error has been moved, find it again
+            if ($fieldContainer) {
+                var $error = $fieldContainer.querySelector('.fui-error-message');
+
+                if ($error && message) {
+                    $error.textContent = message;
+                }
             }
         }, false);
     }
