@@ -431,6 +431,8 @@ class SubmissionsController extends Controller
 
         if ($form->settings->submitAction == 'message') {
             Formie::$plugin->getService()->setNotice($form->id, $form->settings->getSubmitActionMessage());
+
+            return $this->refresh();
         }
 
         return $this->redirectToPostedUrl($submission);
