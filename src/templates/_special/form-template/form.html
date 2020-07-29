@@ -1,9 +1,11 @@
 {% apply spaceless %}
+    {% set defaultLabelPosition = create(form.settings.defaultLabelPosition) ?? null %}
+
     {% set attributes = {
         id: "formie-form-#{form.id}",
         class: [
             'fui-form',
-            "fui-labels-#{form.settings.defaultLabelPosition}",
+            "fui-labels-#{defaultLabelPosition}",
             form.settings.displayPageProgress ? "fui-progress-#{form.settings.progressPosition}",
             form.settings.validationOnFocus ? 'fui-validate-on-focus',
         ],
