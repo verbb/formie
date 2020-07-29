@@ -21,5 +21,5 @@ You can choose to use Formie's provided CSS and JS, or provide your own.
 You'll notice there's a "Copy Templates" field. You can use this to copy the default template into the provided folder to get off to an even quicker start to customize the template.
 :::
 
-For more information about the actual templating for form templates, head to our [Form Templates](docs:feature-tour/form-templates) templating guide.
+For more information about the actual templating for form templates, head to our [Form Templates](docs:template-guides/form-templates) templating guide.
 
