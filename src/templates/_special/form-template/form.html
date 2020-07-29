@@ -1,5 +1,5 @@
 {% apply spaceless %}
-    {% set defaultLabelPosition = create(form.settings.defaultLabelPosition) ?? null %}
+    {% set defaultLabelPosition = create(form.settings.defaultLabelPosition) %}
 
     {% set attributes = {
         id: "formie-form-#{form.id}",
