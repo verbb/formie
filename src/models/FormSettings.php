@@ -143,10 +143,14 @@ class FormSettings extends Model
 
         $renderer = new HtmlRenderer();
 
-        return $renderer->render([
+        $html = $renderer->render([
             'type' => 'doc',
             'content' => $content,
         ]);
 
+        // Strip out paragraphs
+        $html = str_replace(['<p>', '</p>'], ['', ''], $html);
+        
+        return $html;
     }
 }

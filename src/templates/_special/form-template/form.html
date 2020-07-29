@@ -31,13 +31,13 @@
 
             {% if flashNotice %}
                 <div class="fui-alert fui-alert-success" role="alert">
-                    {{ flashNotice }}
+                    {{ flashNotice | raw }}
                 </div>
             {% endif %}
 
             {% if flashError %}
                 <div class="fui-alert fui-alert-error" role="alert">
-                    {{ flashError }}
+                    {{ flashError | raw }}
                 </div>
             {% endif %}
         {% endif %}

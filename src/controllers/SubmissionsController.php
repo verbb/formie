@@ -430,7 +430,7 @@ class SubmissionsController extends Controller
         Formie::$plugin->getService()->setFlash($form->id, 'submitted', true);
 
         if ($form->settings->submitAction == 'message') {
-            Formie::$plugin->getService()->setNotice($form->id, $form->settings->submitActionMessage);
+            Formie::$plugin->getService()->setNotice($form->id, $form->settings->getSubmitActionMessage());
         }
 
         return $this->redirectToPostedUrl($submission);
