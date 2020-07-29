@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.0.8 - 2020-07-30
+
+### Fixed
+- Fixed issue where “Save form as” did not properly clone repeater subfields.
+- Fixed default label position class on form.
+- Fixed raw submit action message being rendered for non-ajax forms.
+- Ensure query string in URL is preserved when showing a success message for a form.
+- Fixed front-end field error messages being overwritten on subsequent checks.
+
 ## 1.0.7 - 2020-07-28
 
 ### Fixed
