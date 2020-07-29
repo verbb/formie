@@ -4,6 +4,10 @@ Formie comes with all the required Twig templates to make your forms look great.
 # Custom Templates
 While Formie's default templates suit most needs, you can of course roll your own templates, so you have total control over the form, field, layout and more.
 
+:::warning
+By overriding template files, you will no longer receive bug fixes and improvements. For more information on how to customize templates without overriding template files, please refer to the [hooks documentation](docs:developers/hooks).
+:::
+
 The great thing about Formie's custom templates is that it doesn't have to be all-or-nothing. You can choose to override a single template, or all. For instance, you might have very specific markup needs to a Select field. You can override just the template for the select field, and nothing else.
 
 To get started, it's worth taking the time to understand the structure of how templates go together.
