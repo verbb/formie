@@ -125,7 +125,7 @@ Some field contain JS related to their specific field type. This is included in 
 
 For example, the repeater field contains the following in its template:
 
-``twig
+```twig
 {% set jsFile = view.getAssetManager().getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/fields/repeater.js', true) %}
 {% do view.registerJsFile(jsFile) %}
 
