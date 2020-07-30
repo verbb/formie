@@ -2,40 +2,36 @@
     <div>
         <notification ref="newNotification" class="hidden" :schema="schema" :notification="newNotificationModel" />
 
-        <div v-if="notifications.length">
-            <div class="tableview">
-                <div class="tablepane vue-admin-tablepane">
-                    <table class="vuetable data fullwidth">
-                        <thead>
-                            <tr>
-                                <th>{{ 'Name' | t('formie') }}</th>
-                                <th>{{ 'Subject' | t('formie') }}</th>
-                                <th class="thin"></th>
-                            </tr>
-                        </thead>
+        <div :class="{ 'zilch': !notifications.length }">
+            <template v-if="notifications.length">
+                <div class="tableview">
+                    <div class="tablepane vue-admin-tablepane">
+                        <table class="vuetable data fullwidth">
+                            <thead>
+                                <tr>
+                                    <th>{{ 'Name' | t('formie') }}</th>
+                                    <th>{{ 'Subject' | t('formie') }}</th>
+                                    <th class="thin"></th>
+                                </tr>
+                            </thead>
 
-                        <tbody class="vuetable-body">
-                            <notification v-for="(notification) in notifications" :key="notification.id" ref="notification" :notification="notification" :schema="schema" />
-                        </tbody>
-                    </table>
+                            <tbody class="vuetable-body">
+                                <notification v-for="(notification) in notifications" :key="notification.id" ref="notification" :notification="notification" :schema="schema" />
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
-            </div>
 
-            <hr>
+                <hr>
+            </template>
+
+            <template v-else>
+                <p>{{ 'No notifications created.' | t('formie') }}</p>
+            </template>
 
             <a class="btn submit add icon new-btn " href="#" @click.prevent="newNotification">
                 {{ 'New Notification' | t('formie') }}
             </a>
-        </div>
-
-        <div v-else>
-            <div class="zilch">
-                <p>{{ 'No notifications created.' | t('formie') }}</p>
-
-                <a class="btn submit add icon new-btn " href="#" @click.prevent="newNotification">
-                    {{ 'New Notification' | t('formie') }}
-                </a>
-            </div>
         </div>
     </div>
 </template>
