@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.9.1 - 2020-07-30
+
+### Fixed
+- Fixed another instance where multiple forms on the same page weren't working.
+
 ## 1.0.9 - 2020-07-30
 
 ### Added
