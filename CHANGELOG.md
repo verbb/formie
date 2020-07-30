@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.0.9 - 2020-07-30
+
+### Added
+- Added the ability to select existing notifications, made on other forms.
+
+### Fixed
+- Fixed JS error when multiple forms are on the same page.
+- Fixed error messages showing for multiple forms on a single page.
+- Fixed submission data not working correctly for multiple forms on a single page.
+
 ## 1.0.8 - 2020-07-30
 
 ### Fixed
