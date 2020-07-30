@@ -652,7 +652,8 @@ class Form extends Element
         // See if there's a submission on routeParams - an error has occurred.
         $params = Craft::$app->getUrlManager()->getRouteParams();
 
-        if (isset($params['submission'])) {
+        // Make sure to check the right submission
+        if (isset($params['submission']) && $params['submission']->form->id == $this->id) {
             return $params['submission'];
         }
 
