@@ -848,6 +848,37 @@ class Form extends Element
         return static::gqlTypeNameByContext($this);
     }
 
+    /**
+     * @inheritdoc
+     */
+    public function getFrontEndJsVariables(): array
+    {
+        $settings = $this->settings->toArray();
+        $settings['redirectEntry'] = $this->getRedirectEntry()->url ?? '';
+        $settings['currentPageId'] = $this->getCurrentPage()->id ?? '';
+        $settings['submitActionMessage'] = $this->settings->getSubmitActionMessage() ?? '';
+        $settings['errorMessage'] = $this->settings->getErrorMessage() ?? '';
+
+        return [
+            'formId' => $this->id,
+            'settings' => $settings,
+        ];
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getFrontEndOutputJs(): bool
+    {
+        $outputJs = true;
+
+        if ($template = $this->getTemplate()) {
+            $outputJs = $template->outputJs;
+        }
+
+        return $outputJs;
+    }
+
 
     // Events
     // =========================================================================

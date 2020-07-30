@@ -59,8 +59,6 @@ class Rendering extends Component
             return null;
         }
 
-        /* @var $form Form */
-
         $view = Craft::$app->getView();
 
         $templatePath = $this->getFormComponentTemplatePath($form, 'form');
@@ -69,10 +67,16 @@ class Rendering extends Component
         // Get the active submission.
         $submission = $form->getCurrentSubmission();
 
+        // Setup JS Variables
+        $jsVariables = $form->getFrontEndJsVariables();
+        $outputJs = $form->getFrontEndOutputJs();
+
         $html = $view->renderTemplate('form', [
             'form' => $form,
             'options' => $options,
             'submission' => $submission,
+            'jsVariables' => $jsVariables,
+            'outputJs' => $outputJs,
         ], View::TEMPLATE_MODE_SITE);
 
         /* @var FrontEndAsset $bundle */

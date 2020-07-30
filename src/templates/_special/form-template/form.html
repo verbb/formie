@@ -111,13 +111,11 @@
 
     {% do view.registerAssetBundle('verbb\\formie\\web\\assets\\frontend\\FrontEndBaseAsset') %}
 
-    {# Keep it lean #}
-    {% set jsVariables = {
-        formId: form.id,
-        submitMethod: form.settings.submitMethod,
-    } %}
-
     {% js %}
         new FormieBaseForm({{ jsVariables | json_encode | raw }});
+
+        {% if outputJs %}
+            new FormieForm({{ jsVariables | json_encode | raw }});
+        {% endif %}
     {% endjs %}
 {% endapply %}
