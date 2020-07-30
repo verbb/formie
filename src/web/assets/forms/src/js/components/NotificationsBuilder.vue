@@ -1,5 +1,7 @@
 <template>
     <div>
+        <existing-notification-modal ref="existingNotification" />
+
         <notification ref="newNotification" class="hidden" :schema="schema" :notification="newNotificationModel" />
 
         <div :class="{ 'zilch': !notifications.length }">
@@ -29,9 +31,24 @@
                 <p>{{ 'No notifications created.' | t('formie') }}</p>
             </template>
 
-            <a class="btn submit add icon new-btn " href="#" @click.prevent="newNotification">
-                {{ 'New Notification' | t('formie') }}
-            </a>
+            <div class="fui-new-notification-buttons">
+                <div class="btngroup submit first">
+                    <a href="#" class="btn submit add icon" @click.prevent="newNotification">
+                        {{ 'New Notification' | t('formie') }}
+                    </a>
+
+                    <div class="btn submit menubtn"></div>
+                    <div class="menu">
+                        <ul>
+                            <li>
+                                <a href="#" @click.prevent="existingNotification">
+                                    {{ 'Select existing notification' | t('formie') }}
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </template>
@@ -41,12 +58,14 @@ import Vue from 'vue';
 import { mapState } from 'vuex';
 
 import Notification from './Notification.vue';
+import ExistingNotificationModal from './ExistingNotificationModal.vue';
 
 export default {
     name: 'NotificationsBuilder',
 
     components: {
         Notification,
+        ExistingNotificationModal,
     },
 
     props: {
@@ -77,17 +96,25 @@ export default {
 
             this.$refs.newNotification.editNotification();
         },
+
+        existingNotification() {
+            this.$refs.existingNotification.showModal();
+        },
     },
 
 };
 
 </script>
 
-<style>
+<style lang="scss">
 
-.new-btn {
+.fui-new-notification-buttons {
     font-size: 14px;
     line-height: 20px;
+}
+
+.zilch .fui-new-notification-buttons .btngroup {
+    justify-content: center;
 }
 
 </style>

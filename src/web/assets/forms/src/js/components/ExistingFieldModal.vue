@@ -2,7 +2,7 @@
     <component :is="'div'">
         <div class="btn add icon dashed" @click="showModal">{{ 'Add existing fields' | t('formie') }}</div>
 
-        <modal ref="modal" :modal-class="['fui-edit-field-modal', 'fui-existing-field-modal']">
+        <modal ref="modal" :modal-class="['fui-edit-field-modal', 'fui-existing-item-modal']">
             <template slot="header">
                 <h3 class="fui-modal-title">{{ 'Add Existing Field' | t('formie') }}</h3>
 
@@ -42,8 +42,8 @@
                         <div v-if="filteredExistingFields.length">
                             <div v-for="(form, formIndex) in filteredExistingFields" :key="formIndex" :class="{ hidden: selectedKey !== form.key }">
                                 <div v-for="(page, pIndex) in form.pages" :key="pIndex">
-                                    <div class="fui-existing-field-heading-wrap">
-                                        <div class="fui-existing-field-heading">{{ page.label }}</div>
+                                    <div class="fui-existing-item-heading-wrap">
+                                        <div class="fui-existing-item-heading">{{ page.label }}</div>
                                     </div>
 
                                     <div class="fui-row small-padding">

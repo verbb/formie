@@ -379,7 +379,6 @@ class Fields extends Component
         return $event->fields;
     }
 
-
     /**
      * Returns all formie fields.
      *

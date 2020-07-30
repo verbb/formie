@@ -464,6 +464,7 @@ class FormsController extends Controller
         $variables['variables'] = Variables::getVariablesArray();
         $variables['fields'] = Formie::$plugin->getFields()->getRegisteredFieldGroups();
         $variables['existingFields'] = Formie::$plugin->getFields()->getExistingFields($form);
+        $variables['existingNotifications'] = Formie::$plugin->getNotifications()->getExistingNotifications($form);
         $variables['emailTemplates'] = Formie::$plugin->getEmailTemplates()->getAllTemplates();
         $variables['reservedHandles'] = Formie::$plugin->getFields()->getReservedHandles();
         $variables['integrations'] = Formie::$plugin->getintegrations()->getAllIntegrations();

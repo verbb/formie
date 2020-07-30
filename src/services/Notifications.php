@@ -4,6 +4,7 @@ namespace verbb\formie\services;
 use verbb\formie\Formie;
 use verbb\formie\elements\Form;
 use verbb\formie\events\NotificationEvent;
+use verbb\formie\events\ModifyExistingNotificationsEvent;
 use verbb\formie\helpers\RichTextHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\Notification;
@@ -25,6 +26,7 @@ class Notifications extends Component
     const EVENT_AFTER_SAVE_NOTIFICATION = 'afterSaveNotification';
     const EVENT_BEFORE_DELETE_NOTIFICATION = 'beforeDeleteNotification';
     const EVENT_AFTER_DELETE_NOTIFICATION = 'afterDeleteNotification';
+    const EVENT_MODIFY_EXISTING_NOTIFICATIONS = 'modifyExistingNotifications';
 
 
     // Public Methods
@@ -253,6 +255,58 @@ class Notifications extends Component
         }
 
         return $notificationsConfig;
+    }
+
+    /**
+     * Returns an array of existing form notifications.
+     *
+     * @param Form|null $excludeForm
+     * @return array
+     * @throws InvalidConfigException
+     */
+    public function getExistingNotifications($excludeForm = null): array
+    {
+        $query = Form::find()->orderBy('title ASC');
+
+        // Exclude the current form.
+        if ($excludeForm) {
+            $query = $query->id("not {$excludeForm->id}");
+        }
+
+        /* @var Form[] $forms */
+        $forms = $query->all();
+
+        $notifications = Formie::$plugin->getNotifications()->getAllNotifications();
+        $allNotifications = $this->getNotificationsConfig($notifications);
+        $existingNotifications = [];
+
+        $notifications = [];
+
+        $existingNotifications[] = [
+            'key' => '*',
+            'label' => Craft::t('formie', 'All notifications'),
+            'notifications' => $allNotifications,
+        ];
+
+        foreach ($forms as $form) {
+            $formNotifications = $this->getNotificationsConfig($form->getNotifications());
+
+            if ($formNotifications) {
+                $existingNotifications[] = [
+                    'key' => $form->handle,
+                    'label' => $form->title,
+                    'notifications' => $formNotifications,
+                ];
+            }
+        }
+
+        // Fire a 'modifyExistingNotifications' event
+        $event = new ModifyExistingNotificationsEvent([
+            'notifications' => $existingNotifications,
+        ]);
+        $this->trigger(self::EVENT_MODIFY_EXISTING_NOTIFICATIONS, $event);
+
+        return $event->notifications;
     }
 
     /**

@@ -66,5 +66,6 @@
         reservedHandles: {{ reservedHandles | json_encode | raw }},
         formHandles: {{ formHandles | json_encode | raw }},
         existingFields: {{ (existingFields is defined ? existingFields : []) | json_encode | raw }},
+        existingNotifications: {{ (existingNotifications is defined ? existingNotifications : []) | json_encode | raw }},
     });
 {% endjs %}

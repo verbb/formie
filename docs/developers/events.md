@@ -471,6 +471,20 @@ Event::on(Notifications::class, Notifications::EVENT_AFTER_DELETE_NOTIFICATION, 
 });
 ```
 
+### The `modifyExistingNotifications` event
+The event that is triggered to allow modifying of available existing notifications to select from.
+
+```php
+use verbb\formie\events\ModifyExistingNotificationsEvent;
+use verbb\formie\services\Notifications;
+use yii\base\Event;
+
+Event::on(Notifications::class, Notifications::EVENT_MODIFY_EXISTING_NOTIFICATIONS, function(ModifyExistingNotificationsEvent $event) {
+    $notifications = $event->notifications;
+    // ...
+});
+```
+
 
 
 ## Email Events

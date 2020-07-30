@@ -47,6 +47,7 @@ Craft.Formie = Garnish.Base.extend({
         store.dispatch('fieldGroups/setFieldGroups', settings.fields);
         store.dispatch('notifications/setNotifications', settings.notifications);
         store.dispatch('formie/setExistingFields', settings.existingFields);
+        store.dispatch('formie/setExistingNotifications', settings.existingNotifications);
         store.dispatch('formie/setEmailTemplates', settings.emailTemplates);
         store.dispatch('formie/setReservedHandles', settings.reservedHandles);
 
