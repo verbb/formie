@@ -4,7 +4,7 @@ class FormieBaseForm {
     constructor(settings = {}) {
         this.formId = `#formie-form-${settings.formId}`;
         this.$form = document.querySelector(this.formId);
-        this.settings = settings;
+        this.settings = settings.settings;
 
         if (!this.$form) {
             return;
