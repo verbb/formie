@@ -29,6 +29,7 @@ class Date extends FormField implements SubfieldInterface
     public $timeFormat = 'H:i';
     public $displayType = 'calendar';
     public $includeTime = false;
+    public $defaultOption;
     public $dayLabel;
     public $dayPlaceholder;
     public $monthLabel;
@@ -72,12 +73,16 @@ class Date extends FormField implements SubfieldInterface
     {
         parent::init();
 
-        if ($this->defaultValue && !$this->defaultValue instanceof DateTime) {
-            $defaultValue = DateTimeHelper::toDateTime($this->defaultValue);
+        if ($this->defaultOption === 'date') {
+            if ($this->defaultValue && !$this->defaultValue instanceof DateTime) {
+                $defaultValue = DateTimeHelper::toDateTime($this->defaultValue);
 
-            if ($defaultValue) {
-                $this->defaultValue = $defaultValue;
+                if ($defaultValue) {
+                    $this->defaultValue = $defaultValue;
+                }
             }
+        } elseif ($this->defaultOption === 'today') {
+            $this->defaultValue = DateTimeHelper::toDateTime(new DateTime());
         }
     }
 
@@ -142,6 +147,7 @@ class Date extends FormField implements SubfieldInterface
             'timeFormat' => 'H:i',
             'displayType' => 'calendar',
             'defaultValue' => null,
+            'defaultOption' => '',
             'includeTime' => true,
             'dayLabel' => Craft::t('formie', 'Day'),
             'dayPlaceholder' => '',
@@ -373,10 +379,22 @@ class Date extends FormField implements SubfieldInterface
                 'help' => Craft::t('formie', 'Whether this field should include the time.'),
                 'name' => 'includeTime',
             ]),
-            SchemaHelper::dateField([
+            SchemaHelper::selectField([
                 'label' => Craft::t('formie', 'Default Value'),
-                'help' => Craft::t('formie', 'Entering a default value will place the value in the field when it loads.'),
-                'name' => 'defaultValue',
+                'help' => Craft::t('formie', 'Select a default value for this field.'),
+                'name' => 'defaultOption',
+                'options' => [
+                    [ 'label' => Craft::t('formie', 'None'), 'value' => '' ],
+                    [ 'label' => Craft::t('formie', 'Today\'s Date/Time'), 'value' => 'today' ],
+                    [ 'label' => Craft::t('formie', 'Specific Date/Time'), 'value' => 'date' ],
+                ],
+            ]),
+            SchemaHelper::toggleContainer('settings.defaultOption=date', [
+                SchemaHelper::dateField([
+                    'label' => Craft::t('formie', 'Default Date/Time'),
+                    'help' => Craft::t('formie', 'Entering a default value will place the value in the field when it loads.'),
+                    'name' => 'defaultValue',
+                ]),
             ]),
             SchemaHelper::selectField([
                 'label' => Craft::t('formie', 'Display Type'),
