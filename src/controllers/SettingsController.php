@@ -55,7 +55,7 @@ class SettingsController extends Controller
         if (!$settings->validate()) {
             Craft::$app->getSession()->setError(Craft::t('formie', 'Couldn’t save settings.'));
 
-            return $this->renderTemplate('formie/settings/general/index', compact('settings'));
+            return null;
         }
 
         $pluginSettingsSaved = Craft::$app->getPlugins()->savePluginSettings(Formie::$plugin, $settings->toArray());
@@ -63,7 +63,7 @@ class SettingsController extends Controller
         if (!$pluginSettingsSaved) {
             Craft::$app->getSession()->setError(Craft::t('formie', 'Couldn’t save settings.'));
 
-            return $this->renderTemplate('formie/settings/general/index', compact('settings'));
+            return null;
         }
 
         Craft::$app->getSession()->setNotice(Craft::t('formie', 'Settings saved.'));
