@@ -25,10 +25,13 @@ import FieldRepeater from './components/FieldRepeater.vue';
 import FieldGroup from './components/FieldGroup.vue';
 import DatePreview from './components/DatePreview.vue';
 import NotificationsBuilder from './components/NotificationsBuilder.vue';
+import NotificationPreview from './components/NotificationPreview.vue';
 
-Vue.component('field-repeater', FieldRepeater);
-Vue.component('field-group', FieldGroup);
-Vue.component('date-preview', DatePreview);
+// Globally register components
+Vue.component('FieldRepeater', FieldRepeater);
+Vue.component('FieldGroup', FieldGroup);
+Vue.component('DatePreview', DatePreview);
+Vue.component('NotificationPreview', NotificationPreview);
 
 //
 // Start Vue Apps

@@ -51,21 +51,20 @@ class Emails extends Component
     // Public Methods
     // =========================================================================
 
-    public function sendEmail(Notification $notification, Submission $submission): bool
+    public function renderEmail(Notification $notification, Submission $submission)
     {
         $submission->notification = $notification;
 
         // Set Craft to the site template mode
         $view = Craft::$app->getView();
-        $oldTemplateMode = $view->getTemplateMode();
         $view->setTemplateMode($view::TEMPLATE_MODE_SITE);
-        $option = 'email';
 
         $form = $submission->getForm();
 
         $renderVariables = compact('notification', 'submission', 'form');
 
         $mailer = Craft::$app->getMailer();
+
         /** @var Message $newEmail */
         $newEmail = Craft::createObject(['class' => $mailer->messageClass, 'mailer' => $mailer]);
 
@@ -95,26 +94,20 @@ class Emails extends Component
                 $newEmail->setTo($to);
             }
         } catch (Throwable $e) {
-            Formie::error(Craft::t('formie', 'Notification email parse error for “To: {value}”. Template error: “{message}” {file}:{line}', [
+            $error = Craft::t('formie', 'Notification email parse error for “To: {value}”. Template error: “{message}” {file}:{line}', [
                 'value' => $notification->to,
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
-            ]));
+            ]);
 
-            Craft::$app->language = $originalLanguage;
-            $view->setTemplateMode($oldTemplateMode);
-
-            return false;
+            return ['error' => $error];
         }
 
         if (!$newEmail->getTo()) {
-            Formie::error(Craft::t('formie', 'Notification email error. No recipient email address found.'));
+            $error = Craft::t('formie', 'Notification email error. No recipient email address found.');
 
-            Craft::$app->language = $originalLanguage;
-            $view->setTemplateMode($oldTemplateMode);
-
-            return false;
+            return ['error' => $error];
         }
 
         // BCC:
@@ -127,17 +120,14 @@ class Emails extends Component
                     $newEmail->setBcc($bcc);
                 }
             } catch (Throwable $e) {
-                Formie::error(Craft::t('formie', 'Notification email parse error for “BCC: {value}”. Template error: “{message}” {file}:{line}', [
+                $error = Craft::t('formie', 'Notification email parse error for “BCC: {value}”. Template error: “{message}” {file}:{line}', [
                     'value' => $notification->bcc,
                     'message' => $e->getMessage(),
                     'file' => $e->getFile(),
                     'line' => $e->getLine(),
-                ]));
+                ]);
 
-                Craft::$app->language = $originalLanguage;
-                $view->setTemplateMode($oldTemplateMode);
-
-                return false;
+                return ['error' => $error];
             }
         }
 
@@ -151,17 +141,14 @@ class Emails extends Component
                     $newEmail->setCc($cc);
                 }
             } catch (Throwable $e) {
-                Formie::error(Craft::t('formie', 'Notification email parse error for CC: {value}”. Template error: “{message}” {file}:{line}', [
+                $error = Craft::t('formie', 'Notification email parse error for CC: {value}”. Template error: “{message}” {file}:{line}', [
                     'value' => $notification->cc,
                     'message' => $e->getMessage(),
                     'file' => $e->getFile(),
                     'line' => $e->getLine()
-                ]));
+                ]);
 
-                Craft::$app->language = $originalLanguage;
-                $view->setTemplateMode($oldTemplateMode);
-
-                return false;
+                return ['error' => $error];
             }
         }
 
@@ -171,17 +158,14 @@ class Emails extends Component
                 $replyTo = Variables::getParsedValue((string)$notification->replyTo, $submission, $form);
                 $newEmail->setReplyTo($replyTo);
             } catch (Throwable $e) {
-                Formie::error(Craft::t('formie', 'Notification email parse error for ReplyTo: {value}”. Template error: “{message}” {file}:{line}', [
+                $error = Craft::t('formie', 'Notification email parse error for ReplyTo: {value}”. Template error: “{message}” {file}:{line}', [
                     'value' => $notification->replyTo,
                     'message' => $e->getMessage(),
                     'file' => $e->getFile(),
                     'line' => $e->getLine()
-                ]));
+                ]);
 
-                Craft::$app->language = $originalLanguage;
-                $view->setTemplateMode($oldTemplateMode);
-
-                return false;
+                return ['error' => $error];
             }
         }
 
@@ -190,17 +174,14 @@ class Emails extends Component
             $subject = Variables::getParsedValue((string)$notification->subject, $submission, $form);
             $newEmail->setSubject($subject);
         } catch (Throwable $e) {
-            Formie::error(Craft::t('formie', 'Notification email parse error for Subject: {value}”. Template error: “{message}” {file}:{line}', [
+            $error = Craft::t('formie', 'Notification email parse error for Subject: {value}”. Template error: “{message}” {file}:{line}', [
                 'value' => $notification->subject,
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine()
-            ]));
+            ]);
 
-            Craft::$app->language = $originalLanguage;
-            $view->setTemplateMode($oldTemplateMode);
-
-            return false;
+            return ['error' => $error];
         }
 
         // Fetch the emil template for the notification - if we're using one
@@ -213,6 +194,7 @@ class Emails extends Component
         if ($emailTemplate) {
             // Check to see the template is valid
             if (!$view->doesTemplateExist($emailTemplate->template)) {
+                // Let's press on if we can't find the template - use the default
                 Formie::error(Craft::t('formie', 'Notification email template does not exist at “{templatePath}”.', [
                     'templatePath' => $templatePath,
                 ]));
@@ -250,18 +232,41 @@ class Emails extends Component
 
             $newEmail->setTextBody($plainTextBody);
         } catch (Throwable $e) {
-            Formie::error(Craft::t('formie', 'Notification email template parse error for “{value}”. Template error: “{message}” {file}:{line}', [
+            $error = Craft::t('formie', 'Notification email template parse error for “{value}”. Template error: “{message}” {file}:{line}', [
                 'value' => $templatePath,
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine()
-            ]));
+            ]);
+
+            return ['error' => $error];
+        }
+
+        return ['error' => false, 'email' => $newEmail];
+    }
+
+    public function sendEmail(Notification $notification, Submission $submission): bool
+    {
+        // Set Craft to the site template mode
+        $view = Craft::$app->getView();
+        $oldTemplateMode = $view->getTemplateMode();
+        $view->setTemplateMode($view::TEMPLATE_MODE_SITE);
+
+        // Render the email
+        $emailRender = $this->renderEmail($notification, $submission);
+
+        // Check if there were any errors. It's split this was so calling `render()` can return errors for previews
+        // But in our case, we want to log the errors and bail.
+        if (isset($emailRender['error']) && $emailRender['error']) {
+            Formie::error($emailRender['error']);
 
             Craft::$app->language = $originalLanguage;
             $view->setTemplateMode($oldTemplateMode);
 
             return false;
         }
+
+        $newEmail = $emailRender['email'];
 
         // Attach any file uploads
         if ($notification->attachFiles) {

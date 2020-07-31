@@ -17,7 +17,14 @@
                         </tab-list>
                     </div>
 
-                    <FormulateForm ref="fieldForm" v-model="proxy" :schema="fieldsSchema" @submit="submitHandler" @validation="validateForm" />
+                    <FormulateForm
+                        ref="fieldForm"
+                        v-model="proxy"
+                        :notification="proxy"
+                        :schema="fieldsSchema"
+                        @submit="submitHandler"
+                        @validation="validateForm"
+                    />
                 </tabs>
             </template>
 

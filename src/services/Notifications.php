@@ -334,6 +334,8 @@ class Notifications extends Component
             $definedTabs[] = 'Templates';
         }
 
+        $definedTabs[] = 'Preview';
+
         foreach ($definedTabs as $definedTab) {
             $methodName = 'define' . $definedTab . 'Schema';
 
@@ -488,6 +490,20 @@ class Notifications extends Component
                 'name' => 'templateId',
                 'options' => $options,
             ]),
+        ];
+    }
+
+    /**
+     * Defines the templates preview schema.
+     *
+     * @return array
+     */
+    public function definePreviewSchema(): array
+    {
+        return [
+            [
+                'component' => 'notification-preview',
+            ]
         ];
     }
 

@@ -6,6 +6,7 @@ use verbb\formie\controllers\SubmissionsController;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\SubmissionEvent;
 use verbb\formie\events\SendNotificationEvent;
+use verbb\formie\fields\formfields;
 use verbb\formie\jobs\SendNotification;
 use verbb\formie\models\Settings;
 
@@ -16,6 +17,7 @@ use yii\base\Component;
 use DateInterval;
 use DateTime;
 use Throwable;
+use Faker;
 
 class Submissions extends Component
 {
@@ -210,6 +212,79 @@ class Submissions extends Component
         ]);
 
         Formie::log($error);
+    }
+
+    public function populateFakeSubmission(Submission $submission)
+    {
+        $fields = $submission->getFieldLayout()->getFields();
+        $fieldContent = [];
+
+        $faker = Faker\Factory::create();
+
+        foreach ($fields as $key => $field) {
+            switch (get_class($field)) {
+                case formfields\Address::class:
+                    $fieldContent[$field->handle]['address1'] = $faker->address;
+                    $fieldContent[$field->handle]['address2'] = $faker->buildingNumber;
+                    $fieldContent[$field->handle]['address3'] = $faker->streetSuffix;
+                    $fieldContent[$field->handle]['city'] = $faker->city;
+                    $fieldContent[$field->handle]['zip'] = $faker->postcode;
+                    $fieldContent[$field->handle]['state'] = $faker->state;
+                    $fieldContent[$field->handle]['country'] = $faker->country;
+
+                    break;
+                case formfields\Checkboxes::class:
+                    $values = $faker->randomElement($field->options)['value'] ?? '';
+                    $fieldContent[$field->handle] = [$values];
+
+                    break;
+                case formfields\Date::class:
+                    $fieldContent[$field->handle] = $faker->iso8601;
+
+                    break;
+                case formfields\Dropdown::class:
+                    $fieldContent[$field->handle] = $faker->randomElement($field->options)['value'] ?? '';
+
+                    break;
+                case formfields\Email::class:
+                    $fieldContent[$field->handle] = $faker->email;
+
+                    break;
+                case formfields\Name::class:
+                    if ($field->useMultipleFields) {
+                        $fieldContent[$field->handle]['prefix'] = $faker->title;
+                        $fieldContent[$field->handle]['firstName'] = $faker->firstName;
+                        $fieldContent[$field->handle]['middleName'] = $faker->firstName;
+                        $fieldContent[$field->handle]['lastName'] = $faker->lastName;
+                    } else {
+                        $fieldContent[$field->handle] = $faker->name;
+                    }
+
+                    break;
+                case formfields\MultiLineText::class:
+                    $fieldContent[$field->handle] = $faker->realText;
+
+                    break;
+                case formfields\Number::class:
+                    $fieldContent[$field->handle] = $faker->randomDigit;
+
+                    break;
+                case formfields\Phone::class:
+                    $fieldContent[$field->handle] = $faker->phoneNumber;
+
+                    break;
+                case formfields\Radio::class:
+                    $fieldContent[$field->handle] = $faker->randomElement($field->options)['value'] ?? '';
+
+                    break;
+                default:
+                    $fieldContent[$field->handle] = $faker->text;
+
+                    break;
+            }
+        }
+
+        $submission->setFieldValues($fieldContent);
     }
 
 

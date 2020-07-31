@@ -26,11 +26,12 @@
     ],
     "require": {
         "craftcms/cms": "^3.4.0",
-        "verbb/base": "^1.0.0",
         "commerceguys/addressing": "^1.0",
+        "ext-json": "*",
+        "fzaninotto/faker": "^1.9",
         "giggsey/libphonenumber-for-php": "^8.12",
         "html2text/html2text": "^4.3",
-        "ext-json": "*"
+        "verbb/base": "^1.0.0"
     },
     "autoload": {
         "psr-4": {
