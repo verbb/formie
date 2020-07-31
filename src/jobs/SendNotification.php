@@ -48,6 +48,9 @@ class SendNotification extends BaseJob
         $error = $sentResponse['error'] ?? false;
 
         if ($error) {
+            // Check if should send the nominated admin(s) an email about this error.
+            Formie::$plugin->getEmails()->sendFailAlertEmail($notification, $submission, $sentResponse);
+
             throw new \Exception('Failed to send notification email.');
         }
 

@@ -4,16 +4,18 @@ namespace verbb\formie;
 use Craft;
 use craft\base\Plugin;
 use craft\events\FieldLayoutEvent;
+use craft\events\RebuildConfigEvent;
 use craft\events\RegisterComponentTypesEvent;
+use craft\events\RegisterEmailMessagesEvent;
 use craft\events\RegisterGqlQueriesEvent;
 use craft\events\RegisterGqlTypesEvent;
 use craft\events\RegisterUserPermissionsEvent;
-use craft\events\RebuildConfigEvent;
 use craft\services\Gc;
 use craft\services\Elements;
 use craft\services\Fields;
 use craft\services\Gql;
 use craft\services\ProjectConfig;
+use craft\services\SystemMessages;
 use craft\services\UserPermissions;
 use craft\helpers\UrlHelper;
 use craft\web\twig\variables\CraftVariable;
@@ -82,6 +84,7 @@ class Formie extends Plugin
         $this->_registerGarbageCollection();
         $this->_registerGraphQl();
         $this->_registerProjectConfigEventListeners();
+        $this->_registerEmailMessages();
 
         // Add default captcha integrations
         Craft::$app->view->hook('formie.form.beforeSubmit', static function(array &$context) {
@@ -278,6 +281,20 @@ class Formie extends Plugin
 
         Event::on(ProjectConfig::class, ProjectConfig::EVENT_REBUILD, function(RebuildConfigEvent $event) {
             $event->config['formie'] = ProjectConfigHelper::rebuildProjectConfig();
+        });
+    }
+
+    private function _registerEmailMessages()
+    {
+        Event::on(SystemMessages::class, SystemMessages::EVENT_REGISTER_MESSAGES, function(RegisterEmailMessagesEvent $event) {
+            $event->messages = array_merge($event->messages, [
+                [
+                    'key' => 'formie_failed_notification',
+                    'heading' => Craft::t('formie', 'formie_failed_notification_heading'),
+                    'subject' => Craft::t('formie', 'formie_failed_notification_subject'),
+                    'body' => Craft::t('formie', 'formie_failed_notification_body'),
+                ],
+            ]);
         });
     }
 }

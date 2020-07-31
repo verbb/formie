@@ -19,6 +19,7 @@ use craft\helpers\Assets;
 use craft\helpers\DateTimeHelper;
 use craft\helpers\Db;
 use craft\helpers\FileHelper;
+use craft\helpers\Json;
 use craft\helpers\StringHelper;
 use craft\helpers\Template;
 use craft\mail\Message;
@@ -68,7 +69,6 @@ class Emails extends Component
         /** @var Message $newEmail */
         $newEmail = Craft::createObject(['class' => $mailer->messageClass, 'mailer' => $mailer]);
 
-        $originalLanguage = Craft::$app->language;
         $craftMailSettings = App::mailSettings();
 
         $fromEmail = Variables::getParsedValue((string)$notification->from, $submission, $form) ?: $craftMailSettings->fromEmail;
@@ -344,6 +344,57 @@ class Emails extends Component
         $this->_tempAttachments = [];
 
         return ['success' => true];
+    }
+
+    public function sendFailAlertEmail(Notification $notification, Submission $submission, $emailResponse)
+    {
+        $settings = Formie::$plugin->getSettings();
+
+        $view = Craft::$app->getView();
+
+        // Check our settings are all in order first.
+        if (!$settings->sendEmailAlerts) {
+            $error = Craft::t('formie', 'Fail alert not configured to send.');
+
+            Formie::log($error);
+
+            return ['error' => $error];
+        }
+
+        if (!$settings->validate()) {
+            $error = Craft::t('formie', 'Fail alert settings are invalid: “{errors}”.', [
+                'errors' => Json::encode($settings->getErrors()),
+            ]);
+
+            Formie::error($error);
+
+            return ['error' => $error];
+        }
+
+        $form = $submission->getForm();
+
+        $renderVariables = compact('notification', 'submission', 'form', 'emailResponse');
+
+        foreach ($settings->alertEmails as $alertEmail) {
+            try {
+                $mail = Craft::$app->getMailer()
+                    ->composeFromKey('formie_failed_notification', $renderVariables)
+                    ->setTo($alertEmail[1]);
+
+                $mail->send();
+            } catch (Throwable $e) {
+                $error = Craft::t('formie', 'Failure alert email could not be sent for submission “{submission}”. Error: {error} {file}:{line}', [
+                    'error' => $e->getMessage(),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'submission' => $submission->id,
+                ]);
+
+                Formie::error($error);
+
+                return ['error' => $error];
+            }
+        }
     }
 
 

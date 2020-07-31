@@ -7,6 +7,8 @@ use verbb\formie\prosemirror\toprosemirror\Renderer as ProseMirrorRenderer;
 use Craft;
 use craft\base\Model;
 
+use yii\validators\EmailValidator;
+
 class Settings extends Model
 {
     // Constants
@@ -42,11 +44,16 @@ class Settings extends Model
      */
     public $maxIncompleteSubmissionAge = 30;
 
+    // Spam
     public $saveSpam = false;
     public $spamLimit = 500;
     public $spamBehaviour = self::SPAM_BEHAVIOUR_SUCCESS;
     public $spamKeywords = '';
     public $spamBehaviourMessage = '';
+
+    // Notifications
+    public $sendEmailAlerts = false;
+    public $alertEmails;
 
 
     // Public Methods
@@ -62,7 +69,35 @@ class Settings extends Model
         $rules[] = [['pluginName', 'defaultPage', 'maxIncompleteSubmissionAge'], 'required'];
         $rules[] = [['pluginName'], 'string', 'max' => 52];
         $rules[] = [['maxIncompleteSubmissionAge'], 'number', 'integerOnly' => true];
+        $rules[] = [['alertEmails'], 'validateAlertEmails'];
 
         return $rules;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function validateAlertEmails($attribute)
+    {
+        if ($this->sendEmailAlerts) {
+            if (empty($this->alertEmails)) {
+                $this->addError($attribute, Craft::t('formie', 'You must enter at least one name and email.'));
+                return;
+            }
+
+            foreach ($this->alertEmails as $fromNameEmail) {
+                if ($fromNameEmail[0] === '' || $fromNameEmail[1] === '') {
+                    $this->addError($attribute, Craft::t('formie', 'The name and email cannot be blank.'));
+                    return;
+                }
+
+                $emailValidator = new EmailValidator();
+
+                if (!$emailValidator->validate($fromNameEmail[1])) {
+                    $this->addError($attribute, Craft::t('formie', 'An invalid email was entered.'));
+                    return;
+                }
+            }
+        }
     }
 }

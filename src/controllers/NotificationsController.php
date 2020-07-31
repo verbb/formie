@@ -15,7 +15,8 @@ class NotificationsController extends Controller
 
     public function actionIndex(): Response
     {
-        return $this->renderTemplate('formie/settings/notifications', []);
-    }
+        $settings = Formie::$plugin->getSettings();
 
+        return $this->renderTemplate('formie/settings/notifications', compact('settings'));
+    }
 }
