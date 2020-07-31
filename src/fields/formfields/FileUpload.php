@@ -265,6 +265,10 @@ class FileUpload extends CraftAssets implements FormFieldInterface
      */
     public function defineSettingsSchema(): array
     {
+        $configLimit = Craft::$app->getConfig()->getGeneral()->maxUploadFileSize;
+        $phpLimit = (max((int)ini_get('post_max_size'), (int)ini_get('upload_max_filesize'))) * 1048576;
+        $maxUpload = $this->humanFilesize(max($phpLimit, $configLimit));
+
         return [
             SchemaHelper::lightswitchField([
                 'label' => Craft::t('formie', 'Required Field'),
@@ -295,6 +299,7 @@ class FileUpload extends CraftAssets implements FormFieldInterface
                 'type' => 'textWithSuffix',
                 'suffix' => Craft::t('formie', 'MB'),
                 'validation' => 'optional|number|min:0',
+                'warning' => Craft::t('formie', 'Maxiumum allowed upload size is {size}.', ['size' => $maxUpload]),
             ]),
             SchemaHelper::checkboxField([
                 'label' => Craft::t('formie', 'Restrict allowed file types?'),
@@ -332,5 +337,14 @@ class FileUpload extends CraftAssets implements FormFieldInterface
             SchemaHelper::containerAttributesField(),
             SchemaHelper::inputAttributesField(),
         ];
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    private function humanFilesize($size, $precision = 2) {
+        for ($i = 0; ($size / 1024) > 0.9; $i++, $size /= 1024) {}
+        return round($size, $precision).['B','kB','MB','GB','TB','PB','EB','ZB','YB'][$i];
     }
 }
