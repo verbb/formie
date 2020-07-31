@@ -33,7 +33,7 @@
 
         <div v-else-if="field.settings.displayType === 'dropdowns'">
             <div class="fui-row">
-                <div v-for="subfield in fields" :key="subfield.char" class="fui-col-auto">
+                <div v-for="(subfield, index) in fields" :key="index" class="fui-col-auto">
                     <div class="fui-field-preview">
                         <label class="fui-field-label">{{ subfield.label }}</label>
 
@@ -49,7 +49,7 @@
 
         <div v-else-if="field.settings.displayType === 'inputs'">
             <div class="fui-row">
-                <div v-for="subfield in fields" :key="subfield.char" class="fui-col-auto">
+                <div v-for="(subfield, index) in fields" :key="index" class="fui-col-auto">
                     <div class="fui-field-preview">
                         <label class="fui-field-label">{{ subfield.label }}</label>
 
