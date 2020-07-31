@@ -242,15 +242,17 @@ class Emails extends Component
             return ['error' => $error];
         }
 
-        return ['error' => false, 'email' => $newEmail];
+        return ['success' => true, 'email' => $newEmail];
     }
 
-    public function sendEmail(Notification $notification, Submission $submission): bool
+    public function sendEmail(Notification $notification, Submission $submission)
     {
         // Set Craft to the site template mode
         $view = Craft::$app->getView();
         $oldTemplateMode = $view->getTemplateMode();
         $view->setTemplateMode($view::TEMPLATE_MODE_SITE);
+
+        $originalLanguage = Craft::$app->language;
 
         // Render the email
         $emailRender = $this->renderEmail($notification, $submission);
@@ -258,12 +260,14 @@ class Emails extends Component
         // Check if there were any errors. It's split this was so calling `render()` can return errors for previews
         // But in our case, we want to log the errors and bail.
         if (isset($emailRender['error']) && $emailRender['error']) {
-            Formie::error($emailRender['error']);
+            $error = $emailRender['error'];
+
+            Formie::error($error);
 
             Craft::$app->language = $originalLanguage;
             $view->setTemplateMode($oldTemplateMode);
 
-            return false;
+            return ['error' => $error];
         }
 
         $newEmail = $emailRender['email'];
@@ -280,38 +284,44 @@ class Emails extends Component
             $this->trigger(self::EVENT_BEFORE_SEND_MAIL, $event);
 
             if (!$event->isValid) {
-                Formie::error(Craft::t('formie', 'Notification email for submission "{submission}" was cancelled by Formie.', [
+                $error = Craft::t('formie', 'Notification email for submission "{submission}" was cancelled by Formie.', [
                     'submission' => $submission->id,
-                ]));
+                ]);
+
+                Formie::error($error);
 
                 Craft::$app->language = $originalLanguage;
                 $view->setTemplateMode($oldTemplateMode);
 
-                return false;
+                return ['error' => $error];
             }
 
             if (!Craft::$app->getMailer()->send($newEmail)) {
-                Formie::error(Craft::t('formie', 'Notification email could not be sent for submission “{submission}”.', [
+                $error = Craft::t('formie', 'Notification email could not be sent for submission “{submission}”.', [
                     'submission' => $submission->id,
-                ]));
+                ]);
+
+                Formie::error($error);
 
                 Craft::$app->language = $originalLanguage;
                 $view->setTemplateMode($oldTemplateMode);
 
-                return false;
+                return ['error' => $error];
             }
         } catch (Throwable $e) {
-            Formie::error(Craft::t('formie', 'Notification email could not be sent for submission “{submission}”. Error: {error} {file}:{line}', [
+            $error = Craft::t('formie', 'Notification email could not be sent for submission “{submission}”. Error: {error} {file}:{line}', [
                 'error' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
                 'submission' => $submission->id,
-            ]));
+            ]);
+
+            Formie::error($error);
 
             Craft::$app->language = $originalLanguage;
             $view->setTemplateMode($oldTemplateMode);
 
-            return false;
+            return ['error' => $error];
         }
 
         // Raise an 'afterSendEmail' event
@@ -333,7 +343,7 @@ class Emails extends Component
 
         $this->_tempAttachments = [];
 
-        return true;
+        return ['success' => true];
     }
 
 

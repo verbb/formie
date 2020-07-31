@@ -15,21 +15,15 @@ class EmailController extends Controller
 
     public function actionPreview()
     {
+        $this->requirePostRequest();
+
         $request = Craft::$app->getRequest();
-        $formId = $request->getParam('formId');
 
-        // Create a new Notification model from this - it'll be a serialized array from Vue
         $notification = new Notification();
-        $notification->setAttributes($request->getParam('notification'), false);
-
-        $form = Formie::$plugin->getForms()->getFormById($formId);
-
-        // Create a fake submission for this form.
         $submission = new Submission();
-        $submission->setForm($form);
 
-        // Populate all fields with fake content
-        Formie::$plugin->getSubmissions()->populateFakeSubmission($submission);
+        // Populate the submission and notification
+        $this->_populateFromPost($notification, $submission);
 
         $emailRender = Formie::$plugin->getEmails()->renderEmail($notification, $submission);
 
@@ -62,5 +56,53 @@ class EmailController extends Controller
             'subject' => $email->getSubject(),
             'body' => $htmlBody,
         ]);
+    }
+
+    public function actionSendTestEmail()
+    {
+        $this->requirePostRequest();
+
+        $request = Craft::$app->getRequest();
+
+        $notification = new Notification();
+        $submission = new Submission();
+
+        // Populate the submission and notification
+        $this->_populateFromPost($notification, $submission);
+
+        // Override the 'to' field
+        $notification->to = $request->getParam('to');
+
+        $sentResponse = Formie::$plugin->getEmails()->sendEmail($notification, $submission);
+        $success = $sentResponse['success'] ?? false;
+        $error = $sentResponse['error'] ?? false;
+
+        return $this->asJson([
+            'success' => $success,
+            'error' => $error,
+        ]);
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    private function _populateFromPost($notification, $submission)
+    {
+        $request = Craft::$app->getRequest();
+        $formId = $request->getParam('formId');
+
+        // Create a new Notification model from this - it'll be a serialized array from Vue
+        $notification->setAttributes($request->getParam('notification'), false);
+
+        $form = Formie::$plugin->getForms()->getFormById($formId);
+
+        // Create a fake submission for this form.
+        $submission->setForm($form);
+
+        // Populate all fields with fake content
+        Formie::$plugin->getSubmissions()->populateFakeSubmission($submission);
+
+        return $submission;
     }
 }

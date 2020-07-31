@@ -43,7 +43,11 @@ class SendNotification extends BaseJob
         $notification = Formie::$plugin->getNotifications()->getNotificationById($this->notificationId);
         $submission = Formie::$plugin->getSubmissions()->getSubmissionById($this->submissionId);
 
-        if (!Formie::$plugin->getEmails()->sendEmail($notification, $submission)) {
+        $sentResponse = Formie::$plugin->getEmails()->sendEmail($notification, $submission);
+        $success = $sentResponse['success'] ?? false;
+        $error = $sentResponse['error'] ?? false;
+
+        if ($error) {
             throw new \Exception('Failed to send notification email.');
         }
 

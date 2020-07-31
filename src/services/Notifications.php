@@ -503,7 +503,14 @@ class Notifications extends Component
         return [
             [
                 'component' => 'notification-preview',
-            ]
+            ],
+            [
+                'component' => 'hr',
+            ],
+            [
+                'component' => 'notification-test',
+                'user-email' => Craft::$app->getUser()->getIdentity()->email ?? '',
+            ],
         ];
     }
 

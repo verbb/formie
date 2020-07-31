@@ -26,12 +26,14 @@ import FieldGroup from './components/FieldGroup.vue';
 import DatePreview from './components/DatePreview.vue';
 import NotificationsBuilder from './components/NotificationsBuilder.vue';
 import NotificationPreview from './components/NotificationPreview.vue';
+import NotificationTest from './components/NotificationTest.vue';
 
 // Globally register components
 Vue.component('FieldRepeater', FieldRepeater);
 Vue.component('FieldGroup', FieldGroup);
 Vue.component('DatePreview', DatePreview);
 Vue.component('NotificationPreview', NotificationPreview);
+Vue.component('NotificationTest', NotificationTest);
 
 //
 // Start Vue Apps

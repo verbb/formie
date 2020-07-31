@@ -115,7 +115,6 @@ export default {
                 this.loading = false;
 
                 if (response.data.error) {
-                    this.loading = false;
                     this.error = true;
 
                     this.errorMessage = this.$options.filters.t('An error occurred.', 'formie');
