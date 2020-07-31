@@ -14,6 +14,7 @@
                                     <th>{{ 'Name' | t('formie') }}</th>
                                     <th>{{ 'Subject' | t('formie') }}</th>
                                     <th class="thin"></th>
+                                    <th class="thin"></th>
                                 </tr>
                             </thead>
 
