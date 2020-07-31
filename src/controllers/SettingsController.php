@@ -55,6 +55,10 @@ class SettingsController extends Controller
         if (!$settings->validate()) {
             Craft::$app->getSession()->setError(Craft::t('formie', 'Couldn’t save settings.'));
 
+            Craft::$app->getUrlManager()->setRouteParams([
+                'settings' => $settings,
+            ]);
+
             return null;
         }
 
@@ -62,6 +66,10 @@ class SettingsController extends Controller
 
         if (!$pluginSettingsSaved) {
             Craft::$app->getSession()->setError(Craft::t('formie', 'Couldn’t save settings.'));
+
+            Craft::$app->getUrlManager()->setRouteParams([
+                'settings' => $settings,
+            ]);
 
             return null;
         }
