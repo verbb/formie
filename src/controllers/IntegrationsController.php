@@ -19,8 +19,9 @@ class IntegrationsController extends Controller
     public function actionIndex(): Response
     {
         $integrations = Formie::$plugin->getintegrations()->getAllIntegrations();
+        $groupedIntegrations = Formie::$plugin->getintegrations()->getAllGroupedIntegrations();
         
-        return $this->renderTemplate('formie/settings/integrations', compact('integrations'));
+        return $this->renderTemplate('formie/settings/integrations', compact('integrations', 'groupedIntegrations'));
     }
 
     public function actionSaveSettings()

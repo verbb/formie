@@ -49,23 +49,22 @@ abstract class Integration extends Model implements IntegrationInterface
     }
 
     /**
-     * Returns the frontend HTML.
-     *
-     * @param Form $form
-     * @return string
-     */
-    public function getFrontEndHtml(Form $form): string
-    {
-        return '';
-    }
-
-    /**
      * Validates the submission.
      *
      * @param Submission $submission
      * @return bool
      */
     public function validateSubmission(Submission $submission): bool
+    {
+        return true;
+    }
+
+    /**
+     * Whether this integration has settings editable for the whole form.
+     *
+     * @return bool
+     */
+    public function hasFormSettings(): bool
     {
         return true;
     }

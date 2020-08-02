@@ -38,7 +38,7 @@ class Duplicate extends Captcha
      */
     public function getIconUrl(): string
     {
-        return Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/cp/dist/img/duplicate.svg', true);
+        return Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/captchas/dist/img/duplicate.svg', true);
     }
 
     /**

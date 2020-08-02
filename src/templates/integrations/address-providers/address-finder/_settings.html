@@ -1,0 +1,44 @@
+{% import '_includes/forms' as forms %}
+{% import 'verbb-base/_macros' as macros %}
+
+{{ forms.textField({
+    label: 'API Key' | t('formie'),
+    name: 'apiKey',
+    required: true,
+    value: integration.settings.apiKey ?? '',
+    warning: macros.configWarning('apiKey', 'formie'),
+}) }}
+
+{{ forms.selectField({
+    label: 'Country Code' | t('formie'),
+    name: 'countryCode',
+    required: true,
+    value: integration.settings.countryCode ?? '',
+    warning: macros.configWarning('countryCode', 'formie'),
+    options: [
+        { label: 'Select an option' | t('formie'), value: '' },
+        { label: 'Australia' | t('formie'), value: 'AU' },
+        { label: 'New Zealand' | t('formie'), value: 'NZ' },
+    ],
+}) }}
+
+{{ forms.editableTableField({
+    label: 'Widget Options' | t('formie'),
+    instructions: 'Provide any additional options, as per the [Address Finder docs](https://addressfinder.com.au/docs/widget_docs).' | t('formie'),
+    id: 'widgetOptions',
+    name: 'widgetOptions',
+    cols: [
+        {
+            type: 'singleline',
+            heading: 'Option' | t('formie'),
+            width: '25%',
+        },
+        {
+            type: 'singleline',
+            heading: 'Value' | t('formie'),
+        },
+    ],
+    rows: integration.settings.widgetOptions ?? [],
+    addRowLabel: 'Add an option' | t('formie'),
+    warning: macros.configWarning('widgetOptions', 'formie'),
+}) }}

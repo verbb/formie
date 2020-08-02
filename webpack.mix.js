@@ -26,6 +26,7 @@ mix.js(assetsPath + '/forms/src/js/main.js', assetsPath + '/forms/dist/js');
 // Directly copy over some folders
 mix.copy(assetsPath + '/forms/src/fonts', assetsPath + '/forms/dist/fonts');
 
+
 //
 // Repeater
 //
@@ -58,13 +59,16 @@ mix.js(assetsPath + '/frontend/src/js/fields/text-limit.js', assetsPath + '/fron
 
 
 //
-// reCAPTCHA
+// Integrations
 //
 
 // Setup and configure JS
-mix.js(assetsPath + '/recaptcha/src/js/recaptcha-v2-checkbox.js', assetsPath + '/recaptcha/dist/js');
-mix.js(assetsPath + '/recaptcha/src/js/recaptcha-v2-invisible.js', assetsPath + '/recaptcha/dist/js');
-mix.js(assetsPath + '/recaptcha/src/js/recaptcha-v3.js', assetsPath + '/recaptcha/dist/js');
+mix.js(assetsPath + '/addressproviders/src/js/algolia-places.js', assetsPath + '/addressproviders/dist/js');
+mix.js(assetsPath + '/addressproviders/src/js/google-address.js', assetsPath + '/addressproviders/dist/js');
+mix.js(assetsPath + '/addressproviders/src/js/address-finder.js', assetsPath + '/addressproviders/dist/js');
+mix.js(assetsPath + '/captchas/src/js/recaptcha-v2-checkbox.js', assetsPath + '/captchas/dist/js');
+mix.js(assetsPath + '/captchas/src/js/recaptcha-v2-invisible.js', assetsPath + '/captchas/dist/js');
+mix.js(assetsPath + '/captchas/src/js/recaptcha-v3.js', assetsPath + '/captchas/dist/js');
 
 
 //
@@ -82,7 +86,8 @@ mix.sass(assetsPath + '/cp/src/scss/formie-cp.scss', assetsPath + '/cp/dist/css'
 // Optimise images and SVGs
 mix.imagemin([
     { from: assetsPath + '/forms/src/img', to: 'forms/dist/img' },
-    { from: assetsPath + '/cp/src/img', to: 'cp/dist/img' },
+    { from: assetsPath + '/addressproviders/src/img', to: 'addressproviders/dist/img' },
+    { from: assetsPath + '/captchas/src/img', to: 'captchas/dist/img' },
 ], {}, {
     gifsicle: { interlaced: true },
     mozjpeg: { progressive: true, arithmetic: false },

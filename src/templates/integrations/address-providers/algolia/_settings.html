@@ -1,0 +1,39 @@
+{% import '_includes/forms' as forms %}
+{% import 'verbb-base/_macros' as macros %}
+
+{{ forms.textField({
+    label: 'App ID' | t('formie'),
+    name: 'appId',
+    required: true,
+    value: integration.settings.appId ?? '',
+    warning: macros.configWarning('appId', 'formie'),
+}) }}
+
+{{ forms.textField({
+    label: 'API Key' | t('formie'),
+    name: 'apiKey',
+    required: true,
+    value: integration.settings.apiKey ?? '',
+    warning: macros.configWarning('apiKey', 'formie'),
+}) }}
+
+{{ forms.editableTableField({
+    label: 'Reconfigurable Options' | t('formie'),
+    instructions: 'Provide any additional options, as per the [Algolia Places docs](https://community.algolia.com/places/documentation.html#api-options-type).' | t('formie'),
+    id: 'reconfigurableOptions',
+    name: 'reconfigurableOptions',
+    cols: [
+        {
+            type: 'singleline',
+            heading: 'Option' | t('formie'),
+            width: '25%',
+        },
+        {
+            type: 'singleline',
+            heading: 'Value' | t('formie'),
+        },
+    ],
+    rows: integration.settings.reconfigurableOptions ?? [],
+    addRowLabel: 'Add an option' | t('formie'),
+    warning: macros.configWarning('reconfigurableOptions', 'formie'),
+}) }}

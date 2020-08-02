@@ -100,7 +100,8 @@ class StencilsController extends Controller
         $variables['fields'] = Formie::$plugin->getFields()->getRegisteredFieldGroups();
         $variables['emailTemplates'] = Formie::$plugin->getEmailTemplates()->getAllTemplates();
         $variables['reservedHandles'] = Formie::$plugin->getFields()->getReservedHandles();
-        $variables['integrations'] = Formie::$plugin->getintegrations()->getAllIntegrations();
+        $variables['integrations'] = Formie::$plugin->getintegrations()->getAllFormIntegrations();
+        $variables['groupedIntegrations'] = Formie::$plugin->getintegrations()->getAllGroupedIntegrations(true);
         $variables['formHandles'] = ArrayHelper::getColumn($allStencils, 'handle');
 
         $variables['notificationsSchema'] = Formie::$plugin->getNotifications()->getNotificationsSchema();

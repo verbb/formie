@@ -4,9 +4,9 @@ namespace verbb\formie\integrations\captchas;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\base\Captcha;
-use verbb\formie\web\assets\recaptcha\RecaptchaV2CheckboxAsset;
-use verbb\formie\web\assets\recaptcha\RecaptchaV2InvisibleAsset;
-use verbb\formie\web\assets\recaptcha\RecaptchaV3Asset;
+use verbb\formie\web\assets\captchas\RecaptchaV2CheckboxAsset;
+use verbb\formie\web\assets\captchas\RecaptchaV2InvisibleAsset;
+use verbb\formie\web\assets\captchas\RecaptchaV3Asset;
 
 use Craft;
 use craft\helpers\ArrayHelper;
@@ -44,7 +44,7 @@ class Recaptcha extends Captcha
      */
     public function getIconUrl(): string
     {
-        return Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/cp/dist/img/recaptcha.svg', true);
+        return Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/captchas/dist/img/recaptcha.svg', true);
     }
 
     /**
@@ -60,7 +60,7 @@ class Recaptcha extends Captcha
      */
     public function getSettingsHtml(): string
     {
-        return Craft::$app->getView()->renderTemplate('formie/integrations/recaptcha/_plugin-settings', [
+        return Craft::$app->getView()->renderTemplate('formie/integrations/captchas/recaptcha/_plugin-settings', [
             'integration' => $this,
             'languageOptions' => $this->_getLanguageOptions(),
         ]);
@@ -71,7 +71,7 @@ class Recaptcha extends Captcha
      */
     public function getFormSettingsHtml(Form $form): string
     {
-        return Craft::$app->getView()->renderTemplate('formie/integrations/recaptcha/_form-settings', [
+        return Craft::$app->getView()->renderTemplate('formie/integrations/captchas/recaptcha/_form-settings', [
             'integration' => $this,
         ]);
     }

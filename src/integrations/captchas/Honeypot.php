@@ -37,7 +37,7 @@ class Honeypot extends Captcha
      */
     public function getIconUrl(): string
     {
-        return Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/cp/dist/img/honeypot.svg', true);
+        return Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/captchas/dist/img/honeypot.svg', true);
     }
 
     /**

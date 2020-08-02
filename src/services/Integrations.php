@@ -7,6 +7,9 @@ use verbb\formie\elements\Form;
 use verbb\formie\events\IntegrationEvent;
 use verbb\formie\events\ModifyIntegrationsEvent;
 use verbb\formie\events\RegisterIntegrationsEvent;
+use verbb\formie\integrations\addressproviders\AddressFinder;
+use verbb\formie\integrations\addressproviders\Algolia;
+use verbb\formie\integrations\addressproviders\Google;
 use verbb\formie\integrations\captchas\Duplicate;
 use verbb\formie\integrations\captchas\Honeypot;
 use verbb\formie\integrations\captchas\Javascript;
@@ -49,6 +52,12 @@ class Integrations extends Component
      */
     public function getRegisteredIntegrations(): array
     {
+        $addressProviders = [
+            Google::class,
+            Algolia::class,
+            AddressFinder::class,
+        ];
+
         $captchas = [
             Recaptcha::class,
             Duplicate::class,
@@ -57,12 +66,16 @@ class Integrations extends Component
         ];
 
         $event = new RegisterIntegrationsEvent([
+            'addressProviders' => $addressProviders,
             'captchas' => $captchas,
         ]);
 
         $this->trigger(self::EVENT_REGISTER_INTEGRATIONS, $event);
 
-        return ['captcha' => $event->captchas];
+        return [
+            'addressProvider' => $event->addressProviders,
+            'captcha' => $event->captchas,
+        ];
     }
 
     /**
@@ -105,6 +118,48 @@ class Integrations extends Component
     }
 
     /**
+     * Returns all integrations, grouped by their type.
+     *
+     * @return array
+     */
+    public function getAllGroupedIntegrations($formOnly = false)
+    {
+        $grouped = [];
+
+        if ($formOnly) {
+            $integrations = $this->getAllFormIntegrations();
+        } else {
+            $integrations = $this->getAllIntegrations();
+        }
+
+        foreach ($integrations as $key => $integration) {
+            $grouped[$integration->type][] = $integration;
+        }
+
+        return $grouped;
+    }
+
+    /**
+     * Returns all integrations allowed to be used on a form element.
+     *
+     * @return array
+     */
+    public function getAllFormIntegrations()
+    {
+        $integrations = [];
+
+        foreach ($this->getAllIntegrations() as $key => $integration) {
+            if (!$integration->hasFormSettings()) {
+                continue;
+            }
+
+            $integrations[] = $integration;
+        }
+
+        return $integrations;
+    }
+
+    /**
      * Returns an integration by it's handle.
      *
      * @param $handle
@@ -143,6 +198,26 @@ class Integrations extends Component
     public function getAllEnabledCaptchas(): array
     {
         return ArrayHelper::where($this->getAllEnabledIntegrations(), 'type', 'captcha', false);
+    }
+
+    /**
+     * Returns all address integrations.
+     *
+     * @return IntegrationInterface[]
+     */
+    public function getAllAddressProviders(): array
+    {
+        return ArrayHelper::where($this->getAllIntegrations(), 'type', 'addressProvider', false);
+    }
+
+    /**
+     * Returns all enabled address integrations.
+     *
+     * @return IntegrationInterface[]
+     */
+    public function getAllEnabledAddressProviders(): array
+    {
+        return ArrayHelper::where($this->getAllEnabledIntegrations(), 'type', 'addressProvider', false);
     }
 
     /**

@@ -1,20 +1,20 @@
 <?php
-namespace verbb\formie\web\assets\recaptcha;
+namespace verbb\formie\web\assets\addressproviders;
 
 use Craft;
 use craft\web\AssetBundle;
 
-class RecaptchaV3Asset extends AssetBundle
+class AlgoliaPlacesAsset extends AssetBundle
 {
     // Public Methods
     // =========================================================================
 
     public function init()
     {
-        $this->sourcePath = '@verbb/formie/web/assets/recaptcha/dist';
+        $this->sourcePath = '@verbb/formie/web/assets/addressproviders/dist';
 
         $this->js = [
-            'js/recaptcha-v3.js',
+            'js/algolia-places.js',
         ];
 
         parent::init();

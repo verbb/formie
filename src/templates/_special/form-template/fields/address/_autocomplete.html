@@ -1,0 +1,9 @@
+{{ field.getAutocompleteHtml({
+    autocomplete: autocomplete,
+    placeholder: attribute(field, "#{handle}Placeholder"),
+    required: required,
+    value: attribute(value, handle) ?? attribute(field, "#{handle}DefaultValue") ?? '',
+    data: data,
+    id: inputId,
+    formId: form.id,
+}) | raw }}

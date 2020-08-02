@@ -7,12 +7,10 @@ use craft\helpers\UrlHelper;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 
-abstract class Captcha extends Integration implements IntegrationInterface
+abstract class AddressProvider extends Integration implements IntegrationInterface
 {
     // Properties
     // =========================================================================
-
-    public $showAllPages = false;
 
 
     // Static Methods
@@ -43,21 +41,18 @@ abstract class Captcha extends Integration implements IntegrationInterface
     }
 
     /**
-     * Returns the frontend HTML.
-     *
-     * @param Form $form
-     * @return string
-     */
-    public function getFrontEndHtml(Form $form): string
-    {
-        return '';
-    }
-
-    /**
      * @inheritDoc
      */
     public function hasValidSettings(): bool
     {
         return true;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function hasFormSettings(): bool
+    {
+        return false;
     }
 }

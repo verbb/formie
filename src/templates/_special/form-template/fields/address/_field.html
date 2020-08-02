@@ -30,6 +30,7 @@
             value: attribute(value, handle) ?? attribute(field, "#{handle}DefaultValue") ?? '',
             data: {
                 'fui-message': errorMessage,
+                (handle): '',
             },
             id: inputId,
         } %}

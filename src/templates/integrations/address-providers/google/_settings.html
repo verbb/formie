@@ -1,0 +1,43 @@
+{% import '_includes/forms' as forms %}
+{% import 'verbb-base/_macros' as macros %}
+
+<div class="fui-settings-block">
+    <p>{{ 'In order to use the Google Auto-complete field, following the steps below.' | t('formie') }}</p>
+
+    <ol>
+        <li>{{ 'Go to the [Google Cloud Platform Console](https://console.cloud.google.com/project/_/apiui/apis/enabled).' | t('formie') | md | raw }}</li>
+        <li>{{ 'Click the **Select a project** button. Either create a new project, or select an existing one.' | t('formie') | md | raw }}</li>
+        <li>{{ 'Select **Credentials** from the left side menu, and click **+ Create Credentials**, selecting **API Key**.' | t('formie') | md | raw }}</li>
+        <li>{{ 'From the left side menu, select **Library**..' | t('formie') | md | raw }}</li>
+        <li>{{ 'From the list of APIs enable both **Places API** and **Maps JavaScript API**.' | t('formie') | md | raw }}</li>
+    </ol>
+</div>
+
+{{ forms.textField({
+    label: 'API Key' | t('formie'),
+    name: 'apiKey',
+    required: true,
+    value: integration.settings.apiKey ?? '',
+    warning: macros.configWarning('apiKey', 'formie'),
+}) }}
+
+{{ forms.editableTableField({
+    label: 'Reconfigurable Options' | t('formie'),
+    instructions: 'Provide any additional options, as per the [Google Places docs](https://developers.google.com/maps/documentation/javascript/places-autocomplete#add-autocomplete).' | t('formie'),
+    id: 'options',
+    name: 'options',
+    cols: [
+        {
+            type: 'singleline',
+            heading: 'Option' | t('formie'),
+            width: '25%',
+        },
+        {
+            type: 'singleline',
+            heading: 'Value' | t('formie'),
+        },
+    ],
+    rows: integration.settings.options ?? [],
+    addRowLabel: 'Add an option' | t('formie'),
+    warning: macros.configWarning('options', 'formie'),
+}) }}
