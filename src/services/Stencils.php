@@ -203,13 +203,18 @@ class Stencils extends Component
         $projectConfig = Craft::$app->getProjectConfig();
         $formTemplates = $projectConfig->get(FormTemplates::CONFIG_TEMPLATES_KEY, true) ?? [];
         $emailTemplates = $projectConfig->get(EmailTemplates::CONFIG_TEMPLATES_KEY, true) ?? [];
-    
+        $statuses = $projectConfig->get(Statuses::CONFIG_STATUSES_KEY, true) ?? [];
+
         foreach ($formTemplates as $formTemplateUid => $formTemplateData) {
             $projectConfig->processConfigChanges(FormTemplates::CONFIG_TEMPLATES_KEY . '.' . $formTemplateUid);
         }
 
         foreach ($emailTemplates as $emailTemplateUid => $emailTemplateData) {
             $projectConfig->processConfigChanges(EmailTemplates::CONFIG_TEMPLATES_KEY . '.' . $emailTemplateUid);
+        }
+
+        foreach ($statuses as $statusUid => $statusData) {
+            $projectConfig->processConfigChanges(Statuses::CONFIG_STATUSES_KEY . '.' . $statusUid);
         }
 
         $transaction = Craft::$app->getDb()->beginTransaction();
