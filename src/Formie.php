@@ -87,7 +87,7 @@ class Formie extends Plugin
         $this->_registerEmailMessages();
 
         // Add default captcha integrations
-        Craft::$app->view->hook('formie.form.beforeSubmit', static function(array &$context) {
+        Craft::$app->view->hook('formie.buttons.before', static function(array &$context) {
             return Formie::$plugin->getForms()->handleBeforeSubmitHook($context);
         });
     }
