@@ -51,6 +51,17 @@ class Honeypot extends Captcha
     /**
      * @inheritDoc
      */
+    public function getFormSettingsHtml(Form $form): string
+    {
+        return Craft::$app->getView()->renderTemplate('formie/integrations/captchas/_form-settings', [
+            'integration' => $this,
+            'form' => $form,
+        ]);
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function getFrontEndHtml(Form $form, $page = null): string
     {
         $uniqueId = uniqid(self::HONEYPOT_INPUT_NAME, false);

@@ -326,6 +326,10 @@ const actions = {
 // Getters are primarily used to perform some calculation/manipulation to store state
 // before having that information accessible to components.
 const getters = {
+    config: (state) => {
+        return state;
+    },
+
     formHash: (state) => {
         return md5Hex(JSON.stringify(state.pages));
     },
@@ -442,6 +446,18 @@ const getters = {
         if (includeGeneral) {
             fields = fields.concat(getters.generalFields);
         }
+
+        return fields;
+    },
+
+    fieldsForType: (state, getters) => (type) => {
+        let fields = [];
+        
+        fields = fields.concat(getters.fields.filter(field => {
+            return field.type === type;
+        }).map(field => {
+            return { label: field.label, value: '{' + field.handle + '}' };
+        }));
 
         return fields;
     },

@@ -108,6 +108,7 @@ export default {
 
             const payload = {
                 formId: this.form.id,
+                handle: this.form.handle,
                 notification: this.notification,
             };
 

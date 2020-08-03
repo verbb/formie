@@ -1,5 +1,7 @@
 import Vue from 'vue';
 import config from './config.js';
+import get from 'lodash/get';
+import isEmpty from 'lodash/isEmpty';
 
 // Apply our config settings, which do most of the grunt work
 Vue.use(config);
@@ -27,6 +29,7 @@ import DatePreview from './components/DatePreview.vue';
 import NotificationsBuilder from './components/NotificationsBuilder.vue';
 import NotificationPreview from './components/NotificationPreview.vue';
 import NotificationTest from './components/NotificationTest.vue';
+import ElementMapping from './components/ElementMapping.vue';
 
 // Globally register components
 Vue.component('FieldRepeater', FieldRepeater);
@@ -34,6 +37,7 @@ Vue.component('FieldGroup', FieldGroup);
 Vue.component('DatePreview', DatePreview);
 Vue.component('NotificationPreview', NotificationPreview);
 Vue.component('NotificationTest', NotificationTest);
+Vue.component('ElementMapping', ElementMapping);
 
 //
 // Start Vue Apps
@@ -184,6 +188,18 @@ Craft.Formie = Garnish.Base.extend({
             },
 
             methods: {
+                getFieldsForType(type) {
+                    return this.$store.getters['form/fieldsForType'](type);
+                },
+
+                get(object, key) {
+                    return get(object, key);
+                },
+
+                isEmpty(object) {
+                    return isEmpty(object);
+                },
+                
                 getFormData(options = {}) {
                     const { formElem } = this.$refs;
 
@@ -236,9 +252,11 @@ Craft.Formie = Garnish.Base.extend({
 
                     let $fieldsTab = document.querySelector('a[href="#tab-fields"]');
                     let $notificationsTab = document.querySelector('a[href="#tab-notifications"]');
+                    let $integrationsTab = document.querySelector('a[href="#tab-integrations"]');
 
                     $fieldsTab.classList.remove('error');
                     $notificationsTab.classList.remove('error');
+                    $integrationsTab.classList.remove('error');
 
                     const { formBuilder, notificationBuilder } = this.$refs;
 
@@ -343,6 +361,7 @@ Craft.Formie = Garnish.Base.extend({
                     // TODO: Clean this up...
                     let $fieldsTab = document.querySelector('a[href="#tab-fields"]');
                     let $notificationsTab = document.querySelector('a[href="#tab-notifications"]');
+                    let $integrationsTab = document.querySelector('a[href="#tab-integrations"]');
 
                     if (data && data.config) {
                         data.config.pages.forEach(page => {
@@ -354,6 +373,17 @@ Craft.Formie = Garnish.Base.extend({
                                 });
                             });
                         });
+
+                        // Check for integration errors
+                        if (data.config.settings.integrations) {
+                            Object.keys(data.config.settings.integrations).forEach(handle => {
+                                let integration = data.config.settings.integrations[handle];
+                            
+                                if (integration.errors) {
+                                    $integrationsTab.classList.add('error');
+                                }
+                            });
+                        }
                     }
 
                     if (data && data.notifications) {

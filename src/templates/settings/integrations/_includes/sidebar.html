@@ -7,7 +7,7 @@
 
                     {% for integration in integrations %}
                         <li>
-                            <a id="tab-{{ loop.index }}" href="#tab-{{ integration.handle }}" class="tab {% if integration.handle == selectedItem %}sel{% endif %}">
+                            <a id="tab-{{ loop.index }}" href="#tab-{{ integration.handle }}" class="tab {% if integration.handle == selectedItem %}sel{% endif %}" :class="{ 'error': !isEmpty(get(form, 'settings.integrations.{{ integration.handle }}.errors')) }">
                                 {% if integration.iconUrl %}
                                     <img class="formie-integration-icon" src="{{ integration.iconUrl }}">
                                 {% else %}

@@ -56,6 +56,7 @@ mix.js(assetsPath + '/frontend/src/js/fields/table.js', assetsPath + '/frontend/
 mix.js(assetsPath + '/frontend/src/js/fields/tags.js', assetsPath + '/frontend/dist/js/fields');
 mix.js(assetsPath + '/frontend/src/js/fields/checkbox-radio.js', assetsPath + '/frontend/dist/js/fields');
 mix.js(assetsPath + '/frontend/src/js/fields/text-limit.js', assetsPath + '/frontend/dist/js/fields');
+mix.js(assetsPath + '/frontend/src/js/fields/rich-text.js', assetsPath + '/frontend/dist/js/fields');
 
 
 //
@@ -88,6 +89,7 @@ mix.imagemin([
     { from: assetsPath + '/forms/src/img', to: 'forms/dist/img' },
     { from: assetsPath + '/addressproviders/src/img', to: 'addressproviders/dist/img' },
     { from: assetsPath + '/captchas/src/img', to: 'captchas/dist/img' },
+    { from: assetsPath + '/elements/src/img', to: 'elements/dist/img' },
 ], {}, {
     gifsicle: { interlaced: true },
     mozjpeg: { progressive: true, arithmetic: false },

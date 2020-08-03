@@ -10,4 +10,5 @@ class RegisterIntegrationsEvent extends Event
 
     public $addressProviders = [];
     public $captchas = [];
+    public $elements = [];
 }

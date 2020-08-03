@@ -6,8 +6,10 @@ use verbb\formie\controllers\SubmissionsController;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\SubmissionEvent;
 use verbb\formie\events\SendNotificationEvent;
+use verbb\formie\events\TriggerElementEvent;
 use verbb\formie\fields\formfields;
 use verbb\formie\jobs\SendNotification;
+use verbb\formie\jobs\TriggerIntegration;
 use verbb\formie\models\Settings;
 
 use Craft;
@@ -26,6 +28,7 @@ class Submissions extends Component
 
     const EVENT_AFTER_SUBMISSION = 'afterSubmission';
     const EVENT_BEFORE_SEND_NOTIFICATION = 'beforeSendNotification';
+    const EVENT_BEFORE_TRIGGER_ELEMENT = 'beforeTriggerElement';
 
 
     // Public Methods
@@ -69,6 +72,9 @@ class Submissions extends Component
         if ($event->success) {
             // Send off some emails, if all good!
             $this->sendNotifications($event->submission);
+
+            // Trigger any integrations
+            $this->triggerIntegrations($event->submission);
         }
     }
 
@@ -102,6 +108,39 @@ class Submissions extends Component
 
             // TODO: Make this a config setting
             // Formie::$plugin->getEmails()->sendEmail($event->notification, $event->submission);
+        }
+    }
+
+    /**
+     * Triggers any enabled element integrations.
+     *
+     * @param Submission $submission
+     */
+    public function triggerIntegrations(Submission $submission)
+    {
+        $form = $submission->getForm();
+
+        $elements = Formie::$plugin->getIntegrations()->getAllEnabledIntegrationsForForm($form, 'element');
+
+        foreach ($elements as $element) {
+            // Fire a 'beforeTriggerElement' event
+            $event = new TriggerElementEvent([
+                'submission' => $submission,
+                'element' => $element,
+            ]);
+            $this->trigger(self::EVENT_BEFORE_TRIGGER_ELEMENT, $event);
+
+            if (!$event->isValid) {
+                continue;
+            }
+
+            Craft::$app->getQueue()->push(new TriggerIntegration([
+                'submissionId' => $event->submission->id,
+                'element' => $event->element,
+            ]));
+
+            // TODO: Make this a config setting
+            // $element->saveElement($event->submission);
         }
     }
 

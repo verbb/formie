@@ -1,13 +1,14 @@
 <?php
 namespace verbb\formie\events;
 
-use yii\base\Event;
+use craft\events\CancelableEvent;
 
-class ModifyFormCaptchasEvent extends Event
+class TriggerElementEvent extends CancelableEvent
 {
     // Properties
     // =========================================================================
 
-    public $captchas;
+    public $submission;
+    public $element;
     
 }

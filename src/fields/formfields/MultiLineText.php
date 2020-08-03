@@ -14,6 +14,13 @@ use Twig\Markup;
 
 class MultiLineText extends FormField
 {
+    // Properties
+    // =========================================================================
+
+    public $useRichText;
+    public $richTextButtons;
+
+
     // Static Methods
     // =========================================================================
 
@@ -57,6 +64,16 @@ class MultiLineText extends FormField
         return Craft::$app->getView()->renderTemplate('formie/_formfields/multi-line-text/preview', [
             'field' => $this
         ]);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getFieldDefaults(): array
+    {
+        return [
+            'richTextButtons' => ['bold', 'italic'],
+        ];
     }
 
     /**
@@ -140,6 +157,35 @@ class MultiLineText extends FormField
     public function defineAppearanceSchema(): array
     {
         return [
+            SchemaHelper::lightswitchField([
+                'label' => Craft::t('formie', 'Use Rich Text Field'),
+                'help' => Craft::t('formie', 'Whether to display this field with a rich text editor for users to enter their content with.'),
+                'name' => 'useRichText',
+            ]),
+            SchemaHelper::toggleContainer('settings.useRichText', [
+                SchemaHelper::checkboxSelectField([
+                    'label' => Craft::t('formie', 'Rich Text Buttons'),
+                    'help' => Craft::t('formie', 'Select which formatting buttons available for users to use.'),
+                    'name' => 'richTextButtons',
+                    'showAllOption' => false,
+                    'options' => [
+                        ['label' => Craft::t('formie', 'Bold'), 'value' => 'bold'],
+                        ['label' => Craft::t('formie', 'Italic'), 'value' => 'italic'],
+                        ['label' => Craft::t('formie', 'Underline'), 'value' => 'underline'],
+                        ['label' => Craft::t('formie', 'Strike-through'), 'value' => 'strikethrough'],
+                        ['label' => Craft::t('formie', 'Heading 1'), 'value' => 'heading1'],
+                        ['label' => Craft::t('formie', 'Heading 2'), 'value' => 'heading2'],
+                        ['label' => Craft::t('formie', 'Paragraph'), 'value' => 'paragraph'],
+                        ['label' => Craft::t('formie', 'Quote'), 'value' => 'quote'],
+                        ['label' => Craft::t('formie', 'Ordered List'), 'value' => 'olist'],
+                        ['label' => Craft::t('formie', 'Unordered List'), 'value' => 'ulist'],
+                        ['label' => Craft::t('formie', 'Code'), 'value' => 'code'],
+                        ['label' => Craft::t('formie', 'Horizontal Rule'), 'value' => 'line'],
+                        ['label' => Craft::t('formie', 'Link'), 'value' => 'link'],
+                        ['label' => Craft::t('formie', 'Image'), 'value' => 'image'],
+                    ],
+                ]),
+            ]),
             SchemaHelper::labelPosition($this),
             SchemaHelper::instructions(),
             SchemaHelper::instructionsPosition($this),

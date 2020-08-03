@@ -52,7 +52,9 @@
         "title": "Integrations",
         "collapsable": false,
         "children": [
-            "integrations/captchas"
+            "integrations/address-providers",
+            "integrations/captchas",
+            "integrations/elements"
         ]
     },
     {

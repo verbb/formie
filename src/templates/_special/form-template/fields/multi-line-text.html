@@ -18,7 +18,24 @@
     },
 } | merge(field.getInputAttributes()) %}
 
-<textarea {{ attr(attributes) }}>{{ value }}</textarea>
+{% if field.useRichText %}
+    {% set containerId = 'fui-rich-text-' ~ form.id ~ '-' ~ field.id ~ '-' ~ random() %}
+
+    <div id="{{ containerId }}" class="fui-rich-text"></div>
+
+    <div style="display: none !important;">
+        <textarea {{ attr(attributes) }}>{{ value }}</textarea>
+    </div>
+
+    {% set jsFile = view.getAssetManager().getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/fields/rich-text.js', true) %}
+    {% do view.registerJsFile(jsFile) %}
+
+    {% js %}
+        new FormieRichText({{ { formId: form.id, fieldId: options.id, containerId: containerId, buttons: field.richTextButtons } | json_encode | raw }});
+    {% endjs %}
+{% else %}
+    <textarea {{ attr(attributes) }}>{{ value }}</textarea>
+{% endif %}
 
 {% if maxlength or wordlimit %}
     {% if maxlength %}
@@ -39,4 +56,5 @@
     {% js %}
         new FormieTextLimit({{ { formId: form.id, fieldId: options.id } | json_encode | raw }});
     {% endjs %}
+
 {% endif %}

@@ -56,3 +56,13 @@ Formie uses Craft's Queue system to send out email notifications. The reason for
 For this reason, we highly recommend you read the following guides on ensuring your Craft install is [properly configured for email delivery](https://craftcms.com/guides/why-doesnt-craft-send-emails#setting-up-email), and your [runQueueAutomatically](https://docs.craftcms.com/v3/config/config-settings.html#runqueueautomatically) config setting.
 
 For further information about the best-practices with queues, we recommend reading [Robust queue job handling in Craft CMS](https://nystudio107.com/blog/robust-queue-job-handling-in-craft-cms).
+
+## Email Preview
+The content of an email notification can be previewed in the "Preview" tab, when editing a notification. This will use the settings you've defined in your notifications, and the field in your form to render a preview of how your email notification will look.
+
+Dummy content will be generated for fields.
+
+<img src="https://verbb.io/uploads/plugins/formie/formie-email-preview.png" />
+
+## Send Test Email
+Emails can be sent as a test to a nominated email. This will essentially send the content as shown in the Email Preview to the email address, and is considerably useful for testing email deliverability and other issues.

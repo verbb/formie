@@ -9,7 +9,7 @@ use verbb\formie\Formie;
 use verbb\formie\base\FormFieldInterface;
 use verbb\formie\behaviors\FieldLayoutBehavior;
 use verbb\formie\elements\db\FormQuery;
-use verbb\formie\events\ModifyFormCaptchasEvent;
+use verbb\formie\events\ModifyFormIntegrationsEvent;
 use verbb\formie\models\FormTemplate;
 use verbb\formie\models\Notification;
 use verbb\formie\models\Status;
@@ -39,7 +39,7 @@ class Form extends Element
     // Constants
     // =========================================================================
 
-    const EVENT_MODIFY_FORM_CAPTCHAS = 'modifyFormCaptchas';
+    const EVENT_MODIFY_FORM_INTEGRATIONS = 'modifyFormIntegrations';
 
 
     // Public Properties
@@ -806,38 +806,39 @@ class Form extends Element
     }
 
     /**
-     * Returns all captchas.
+     * Returns all integrations for a given type.
      *
      * @return IntegrationInterface[]
      */
-    public function getCaptchas()
+    public function getIntegrations($type)
     {
-        $formCaptchas = [];
-        $captchas = Formie::$plugin->getIntegrations()->getAllCaptchas();
+        $formIntegrations = [];
+        $integrations = Formie::$plugin->getIntegrations()->getAllIntegrationsByType($type);
 
-        foreach ($captchas as $captcha) {
-            $captchaSettings = $this->settings->integrations[$captcha->handle] ?? [];
+        foreach ($integrations as $integration) {
+            $integrationSettings = $this->settings->integrations[$integration->handle] ?? [];
 
-            if ($captchaSettings) {
-                $captcha = Formie::$plugin->getIntegrations()->getIntegrationByHandle($captcha->handle);
-                $captcha->setAttributes($captchaSettings, false);
+            if ($integrationSettings) {
+                $integration = Formie::$plugin->getIntegrations()->getIntegrationByHandle($integration->handle);
+                $integration->setAttributes($integrationSettings, false);
 
                 // Special case for enabled
-                $captcha->enabled = $captchaSettings['enabled'] ?? $captcha->enabled;
+                $integration->enabled = $integrationSettings['enabled'] ?? $integration->enabled;
 
-                $formCaptchas[] = $captcha;
+                $formIntegrations[] = $integration;
             }
         }
 
-        $formCaptchas = array_filter($formCaptchas);
+        $formIntegrations = array_filter($formIntegrations);
 
-        // Fire a 'modifyFormCaptchas' event
-        $event = new ModifyFormCaptchasEvent([
-            'captchas' => $formCaptchas,
+        // Fire a 'modifyFormIntegrations' event
+        $event = new ModifyFormIntegrationsEvent([
+            'integrations' => $formIntegrations,
+            'type' => $type,
         ]);
-        $this->trigger(self::EVENT_MODIFY_FORM_CAPTCHAS, $event);
+        $this->trigger(self::EVENT_MODIFY_FORM_INTEGRATIONS, $event);
 
-        return $event->captchas;
+        return $event->integrations;
     }
 
     /**

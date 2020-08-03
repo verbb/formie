@@ -121,7 +121,7 @@
 
 {{ forms.selectField({
     label: 'Language' | t('formie'),
-    instructions: 'Force a specific language when displaying reCAPTCHA. Choose "Auto" for Formie to automatically match your site\'s language.' | t('formie'),
+    instructions: 'Force a specific language when displaying reCAPTCHA. Choose "Auto" for Formie to automatically match your site’s language.' | t('formie'),
     name: 'language',
     value: integration.settings.language ?? 'auto',
     options: languageOptions,

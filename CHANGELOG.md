@@ -1,5 +1,32 @@
 # Changelog
 
+## 1.1.0 - 2020-08-03
+
+### Added
+- Added email notification testing.
+- Added email notification preview.
+- Added support for email notification duplication.
+- Added Rich Text front-end appearance option for multi-text fields.
+- Added preset options to hidden field.
+- Added Element integration support.
+- Added Entry element integration support.
+- Added Address Providers integrations.
+- Added Google Places, Algolia and Address Finder Address Providers.
+- Added email alerts for failed email notifications.
+- Added warning to file upload field for server-set upload limit.
+- Added Ability to set "Today" as the default date for Date/Time fields.
+
+### Changed
+- HTML fields now have their content purified when output.
+
+### Fixed
+- Fixed HTML field showing ‘null’ or ‘undefined’ when no value set
+- Fixed missing status when applying stencil from project config.
+- Fixed incorrect email template crumb.
+- Fixed issue where captchas weren't working.
+- Ensure we return the current settings for failed plugin saving.
+- Fix incorrect redirection when an error occured saving the plugin settings.
+
 ## 1.0.9.1 - 2020-07-30
 
 ### Fixed

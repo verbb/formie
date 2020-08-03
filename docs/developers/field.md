@@ -179,7 +179,9 @@ Setting | Description
 ## Hidden
 Setting | Description
 --- | ---
-`defaultValue` | Entering a default value will place the value in the field when it loads.
+`defaultOption` | The selected option for the preset default value chosen.
+`defaultValue` | Entering a default value will place the value in the field when it loads. This will be dependant on the value chosen for the `defaultOption`.
+`queryParameter` | If `query` string is selected for the `defaultOption`, this will contain the query string parameter to look up.
 
 
 ## Html
@@ -196,6 +198,8 @@ Setting | Description
 `limit` | Whether to limit the content of this field.
 `limitType` | Either `words` or `characters`.
 `limitAmount` | The number of character or words to limit this field by.
+`useRichText` | Whether the front-end of the field should use a Rich Text editor. This is powered by [Pell](https://github.com/jaredreich/pell).
+`richTextButtons` | An array of available buttons the Rich Text field should use. Consult the [Pell](https://github.com/jaredreich/pell) docs for these options.
 
 
 ## Name

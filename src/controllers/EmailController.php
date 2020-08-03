@@ -2,6 +2,7 @@
 namespace verbb\formie\controllers;
 
 use verbb\formie\Formie;
+use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\models\Notification;
 
@@ -91,11 +92,20 @@ class EmailController extends Controller
     {
         $request = Craft::$app->getRequest();
         $formId = $request->getParam('formId');
+        $handle = $request->getParam('handle');
 
         // Create a new Notification model from this - it'll be a serialized array from Vue
         $notification->setAttributes($request->getParam('notification'), false);
 
-        $form = Formie::$plugin->getForms()->getFormById($formId);
+        // If a stencil, creata a fake form
+        if (!$formId) {
+            $form = new Form();
+            $stencil = Formie::$plugin->getStencils()->getStencilByHandle($handle);
+
+            Formie::$plugin->getStencils()->applyStencil($form, $stencil);
+        } else {
+            $form = Formie::$plugin->getForms()->getFormById($formId);
+        }
 
         // Create a fake submission for this form.
         $submission->setForm($form);
