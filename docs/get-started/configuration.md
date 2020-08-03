@@ -17,23 +17,29 @@ return [
         'spamBehaviour' => 'showSuccess',
         'spamKeywords' => '',
         'spamBehaviourMessage' => '',
+
+        // Alerts
+        'sendEmailAlerts' => false,
+        'alertEmails',
     ]
 ];
 ```
 
 ### Configuration options
-
 - `pluginName` - Set a custom name for the plugin.
 - `defaultPage` - Set the default sub-page navigated to when clicking "Formie" in the main menu.
 - `maxIncompleteSubmissionAge` - The maximum age of an incomplete submission in days before it is deleted in garbage collection. Set to 0 to disable automatic deletion.
 
 #### Spam
-
 - `saveSpam` - Whether to save spam submissions to the database.
 - `spamLimit` - If saving spam, set a suitable limit for how many to keep. Spam submissions past this limit will be deleted.
 - `spamBehaviour` - Set to either `showSuccess` or `showMessage` to set the submission behaviour when a spam submission is detected.
 - `spamKeywords` - Set keywords that if matched in the submission, will be marked as spam.
 - `spamBehaviourMessage` - This text will be shown as an error after submission. HTML and Markdown is supported.
+
+### Alerts
+- `sendEmailAlerts` - Whether an email alert should be sent to a nominated email when an email notification fails to send.
+- `alertEmails` - A collection of emails that alerts should be sent to.
 
 ## Control Panel
 

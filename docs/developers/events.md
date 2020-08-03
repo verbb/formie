@@ -133,6 +133,23 @@ Event::on(Submissions::class, Submissions::EVENT_BEFORE_SEND_NOTIFICATION, funct
 });
 ```
 
+### The `beforeTriggerElement` event
+The event that is triggered before an element integration is triggered (the element created).
+
+The `isValid` event property can be set to `false` to prevent the element integration from proceeding.
+
+```php
+use verbb\formie\events\SendNotificationEvent;
+use verbb\formie\services\Submissions;
+use yii\base\Event;
+
+Event::on(Submissions::class, Submissions::EVENT_BEFORE_TRIGGER_ELEMENT, function(SendNotificationEvent $event) {
+    $submissionId = $event->submissionId;
+    $element = $event->element;
+    // ...
+});
+```
+
 
 
 ## Field Events
@@ -725,6 +742,20 @@ use yii\base\Event;
 
 Event::on(Integrations::class, Integrations::EVENT_AFTER_SAVE_INTEGRATION, function(IntegrationEvent $event) {
     $integration = $event->integration;
+    // ...
+});
+```
+
+### The `afterSaveIntegration` event
+The event that is triggered after an address provider has its HTML generated. You are able to modify its HTML.
+
+```php
+use verbb\formie\events\ModifyAddressProviderHtmlEvent;
+use verbb\formie\integrations\addressproviders\AddressFinder;
+use yii\base\Event;
+
+Event::on(AddressFinder::class, AddressFinder::EVENT_MODIFY_ADDRESS_PROVIDER_HTML, function(ModifyAddressProviderHtmlEvent $event) {
+    $html = $event->html;
     // ...
 });
 ```

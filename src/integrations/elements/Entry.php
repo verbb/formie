@@ -198,14 +198,12 @@ class Entry extends Element
             return false;
         }
 
-        // try {
+        try {
             $entryType = Craft::$app->getSections()->getEntryTypeById($this->entryTypeId);
 
             $entry = new EntryElement();
             $entry->typeId = $entryType->id;
             $entry->sectionId = $entryType->sectionId;
-
-            $view = Craft::$app->getView();
 
             foreach ($this->attributeMapping as $entryFieldHandle => $formFieldHandle) {
                 if ($formFieldHandle) {
@@ -246,18 +244,18 @@ class Entry extends Element
                 
                 return false;
             }
-        // } catch (\Throwable $e) {
-        //     $error = Craft::t('formie', 'Element integration failed for submission “{submission}”. Error: {error} {file}:{line}', [
-        //         'error' => $e->getMessage(),
-        //         'file' => $e->getFile(),
-        //         'line' => $e->getLine(),
-        //         'submission' => $submission->id,
-        //     ]);
+        } catch (\Throwable $e) {
+            $error = Craft::t('formie', 'Element integration failed for submission “{submission}”. Error: {error} {file}:{line}', [
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'submission' => $submission->id,
+            ]);
 
-        //     Formie::error($error);
+            Formie::error($error);
 
-        //     return false;
-        // }
+            return false;
+        }
 
         return true;
     }

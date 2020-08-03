@@ -1,5 +1,5 @@
 # Captchas
-Captchas are one of the provided integrations with Formie., and are primarily used to prevent spam submissions.
+Captchas are one of the provided integrations with Formie, and are primarily used to prevent spam submissions.
 
 Captchas have settings at the plugin level, as well as per-form, allowing you to customise their behaviour for particular forms, or globally for all forms.
 
