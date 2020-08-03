@@ -56,6 +56,7 @@ mix.js(assetsPath + '/frontend/src/js/fields/table.js', assetsPath + '/frontend/
 mix.js(assetsPath + '/frontend/src/js/fields/tags.js', assetsPath + '/frontend/dist/js/fields');
 mix.js(assetsPath + '/frontend/src/js/fields/checkbox-radio.js', assetsPath + '/frontend/dist/js/fields');
 mix.js(assetsPath + '/frontend/src/js/fields/text-limit.js', assetsPath + '/frontend/dist/js/fields');
+mix.js(assetsPath + '/frontend/src/js/fields/rich-text.js', assetsPath + '/frontend/dist/js/fields');
 
 
 //
