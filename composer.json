@@ -28,6 +28,7 @@
         "craftcms/cms": "^3.4.0",
         "commerceguys/addressing": "^1.0",
         "ext-json": "*",
+        "ezyang/htmlpurifier": "^4.13",
         "fzaninotto/faker": "^1.9",
         "giggsey/libphonenumber-for-php": "^8.12",
         "html2text/html2text": "^4.3",

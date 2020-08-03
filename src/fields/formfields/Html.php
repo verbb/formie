@@ -8,6 +8,9 @@ use verbb\formie\helpers\SchemaHelper;
 use Craft;
 use craft\base\ElementInterface;
 
+use HTMLPurifier_Config;
+use HTMLPurifier;
+
 class Html extends FormField
 {
     // Public Properties
@@ -46,6 +49,17 @@ class Html extends FormField
 
     // Public Methods
     // =========================================================================
+
+    public function init()
+    {
+        parent::init();
+
+        if ($this->htmlContent) {
+            $config = HTMLPurifier_Config::createDefault();
+            $purifier = new HTMLPurifier($config);
+            $this->htmlContent = $purifier->purify($this->htmlContent);
+        }
+    }
 
     /**
      * @inheritDoc
