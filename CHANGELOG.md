@@ -25,7 +25,7 @@
 - Fixed incorrect email template crumb.
 - Fixed issue where captchas weren't working.
 - Ensure we return the current settings for failed plugin saving.
-- Fix incorrect redirection when an error occured saving the plugin settings.
+- Fix incorrect redirection when an error occurred saving the plugin settings.
 
 ## 1.0.9.1 - 2020-07-30
 
