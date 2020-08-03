@@ -73,6 +73,7 @@ class Recaptcha extends Captcha
     {
         return Craft::$app->getView()->renderTemplate('formie/integrations/captchas/recaptcha/_form-settings', [
             'integration' => $this,
+            'form' => $form,
         ]);
     }
 

@@ -14,6 +14,7 @@ use verbb\formie\integrations\captchas\Duplicate;
 use verbb\formie\integrations\captchas\Honeypot;
 use verbb\formie\integrations\captchas\Javascript;
 use verbb\formie\integrations\captchas\Recaptcha;
+use verbb\formie\integrations\elements\Entry;
 
 use Craft;
 use craft\helpers\ArrayHelper;
@@ -65,9 +66,14 @@ class Integrations extends Component
             Javascript::class,
         ];
 
+        $elements = [
+            Entry::class,
+        ];
+
         $event = new RegisterIntegrationsEvent([
             'addressProviders' => $addressProviders,
             'captchas' => $captchas,
+            'elements' => $elements,
         ]);
 
         $this->trigger(self::EVENT_REGISTER_INTEGRATIONS, $event);
@@ -75,6 +81,7 @@ class Integrations extends Component
         return [
             'addressProvider' => $event->addressProviders,
             'captcha' => $event->captchas,
+            'element' => $event->elements,
         ];
     }
 
@@ -171,6 +178,20 @@ class Integrations extends Component
     }
 
     /**
+     * Returns all CAPTCHA integrations.
+     *
+     * @return IntegrationInterface[]
+     */
+    public function getAllIntegrationsByType($type): array
+    {
+        if ($type) {
+            return ArrayHelper::where($this->getAllIntegrations(), 'type', $type, false);
+        }
+
+        return $this->getAllIntegrations();
+    }
+
+    /**
      * Returns all enabled integrations.
      *
      * @return IntegrationInterface[]
@@ -221,6 +242,26 @@ class Integrations extends Component
     }
 
     /**
+     * Returns all element integrations.
+     *
+     * @return IntegrationInterface[]
+     */
+    public function getAllElements(): array
+    {
+        return ArrayHelper::where($this->getAllIntegrations(), 'type', 'element', false);
+    }
+
+    /**
+     * Returns all enabled element integrations.
+     *
+     * @return IntegrationInterface[]
+     */
+    public function getAllEnabledElements(): array
+    {
+        return ArrayHelper::where($this->getAllEnabledIntegrations(), 'type', 'element', false);
+    }
+
+    /**
      * Returns all enabled captchas for the provided form.
      *
      * @param Form $form
@@ -232,7 +273,7 @@ class Integrations extends Component
 
         // If captchas are disabled globally, they aren't available at all, so check per-form
         $captchas = $this->getAllEnabledCaptchas();
-        $formCaptchas = $form->getCaptchas();
+        $formCaptchas = $form->getIntegrations('captcha');
 
         foreach ($captchas as $captcha) {
             // Check if this is a multi-page form, because by default, we want to only show it
@@ -279,6 +320,39 @@ class Integrations extends Component
         }
 
         return $html;
+    }
+
+    /**
+     * Returns all enabled integrations for the provided form and type.
+     *
+     * @param Form $form
+     * @return string
+     */
+    public function getAllEnabledIntegrationsForForm(Form $form, $type = null): array
+    {
+        $enabledIntegrations = [];
+
+        // If integrations are disabled globally, they aren't available at all, so check per-form
+        $integrations = $this->getAllIntegrationsByType($type);
+        $formIntegrations = $form->getIntegrations($type);
+        
+        foreach ($integrations as $integration) {
+            // Add all global integrations
+            if ($integration->enabled) {
+                $enabledIntegrations[$integration->handle] = $integration;
+            }
+
+            // Then check if there are any form integration settings, which override
+            foreach ($formIntegrations as $formIntegration) {
+                if (!$formIntegration->enabled) {
+                    unset($enabledIntegrations[$formIntegration->handle]);
+                }
+            }
+        }
+
+        $enabledIntegrations = array_values($enabledIntegrations);
+
+        return $enabledIntegrations;
     }
 
     /**

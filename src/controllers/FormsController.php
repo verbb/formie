@@ -131,11 +131,11 @@ class FormsController extends Controller
                 $notificationsConfig = Formie::$plugin->getNotifications()->getNotificationsConfig($notifications);
 
                 return $this->asJson([
+                    'success' => false,
                     'id' => $form->id,
                     'config' => $form->getFormConfig(),
                     'notifications' => $notificationsConfig,
                     'errors' => $form->getErrors(),
-                    'success' => !$form->hasErrors(),
                     'fieldLayoutId' => $form->fieldLayoutId,
                 ]);
             }
@@ -152,10 +152,10 @@ class FormsController extends Controller
 
         if ($request->getAcceptsJson()) {
             return $this->asJson([
+                'success' => true,
                 'id' => $form->id,
                 'config' => $form->getFormConfig(),
                 'errors' => $form->getErrors(),
-                'success' => !$form->hasErrors(),
                 'fieldLayoutId' => $form->fieldLayoutId,
                 'redirect' => ($duplicate) ? $form->cpEditUrl : null,
                 'redirectMessage' => Craft::t('formie', 'Form saved.'),

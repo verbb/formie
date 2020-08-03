@@ -3,12 +3,12 @@ namespace verbb\formie\events;
 
 use yii\base\Event;
 
-class RegisterIntegrationsEvent extends Event
+class ModifyFormIntegrationsEvent extends Event
 {
     // Properties
     // =========================================================================
 
-    public $addressProviders = [];
-    public $captchas = [];
-    public $elements = [];
+    public $integrations;
+    public $type;
+    
 }

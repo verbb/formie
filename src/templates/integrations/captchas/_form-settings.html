@@ -1,0 +1,9 @@
+{% import '_includes/forms' as forms %}
+{% import 'verbb-base/_macros' as macros %}
+
+{{ forms.lightswitchField({
+    label: 'Show on All Pages' | t('formie'),
+    instructions: 'For multi-page forms, choose whether to show the captcha on all pages of the form, or only on the final page of the form.' | t('formie'),
+    name: 'showAllPages',
+    on: form.settings.integrations[integration.handle].showAllPages ?? false,
+}) }}

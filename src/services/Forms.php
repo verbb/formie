@@ -160,6 +160,18 @@ class Forms extends Component
                 $syncsService->syncField($field);
             }
 
+            // Validate any enabled integrations
+            $integrations = Formie::$plugin->getIntegrations()->getAllEnabledIntegrationsForForm($form);
+
+            foreach ($integrations as $integration) {
+                if (!$integration->validate()) {
+                    // Add any errors to the form's settings - maybe move this to the form settings model?
+                    $form->settings->integrations[$integration->handle]['errors'] = $integration->getErrors();
+
+                    return false;
+                }
+            }
+
             $success = $fieldsService->saveLayout($fieldLayout);
 
             // Set content table back to original value.

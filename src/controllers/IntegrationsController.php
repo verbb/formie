@@ -53,4 +53,21 @@ class IntegrationsController extends Controller
         return $this->redirectToPostedUrl();
     }
 
+    public function actionElementFields()
+    {
+        $this->requirePostRequest();
+
+        $request = Craft::$app->getRequest();
+        $handle = $request->getParam('integration');
+
+        if (!$handle) {
+            return $this->asErrorJson(Craft::t('formie', 'Unknown integration: “{handle}”', ['handle' => $handle]));
+        }
+
+        $integration = Formie::$plugin->getIntegrations()->getIntegrationByHandle($handle);
+
+        // Handball to the integration class to deal with the return
+        return $this->asJson($integration->getElementFieldsFromRequest($request));
+    }
+
 }
