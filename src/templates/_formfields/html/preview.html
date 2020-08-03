@@ -1,1 +1,3 @@
-<div class="fui-field-input fui-field-html" v-html="$sanitize(field.settings.htmlContent)"></div>
+<div class="fui-field-input fui-field-html" >
+    <div v-if="field.settings.htmlContent" v-html="$sanitize(field.settings.htmlContent)"></div>
+</div>
