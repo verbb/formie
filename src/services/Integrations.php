@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\services;
 
+use verbb\formie\base\Captcha;
 use verbb\formie\base\Integration;
 use verbb\formie\base\IntegrationInterface;
 use verbb\formie\elements\Form;
@@ -19,6 +20,7 @@ use verbb\formie\integrations\elements\Entry;
 use Craft;
 use craft\helpers\ArrayHelper;
 
+use verbb\formie\models\FieldLayoutPage;
 use yii\base\Component;
 use yii\base\ErrorException;
 use yii\base\Exception;
@@ -127,6 +129,7 @@ class Integrations extends Component
     /**
      * Returns all integrations, grouped by their type.
      *
+     * @param bool $formOnly
      * @return array
      */
     public function getAllGroupedIntegrations($formOnly = false)
@@ -169,7 +172,7 @@ class Integrations extends Component
     /**
      * Returns an integration by it's handle.
      *
-     * @param $handle
+     * @param string $handle
      * @return IntegrationInterface|null
      */
     public function getIntegrationByHandle($handle)
@@ -180,6 +183,7 @@ class Integrations extends Component
     /**
      * Returns all CAPTCHA integrations.
      *
+     * @param string|int|null $type
      * @return IntegrationInterface[]
      */
     public function getAllIntegrationsByType($type): array
@@ -265,13 +269,15 @@ class Integrations extends Component
      * Returns all enabled captchas for the provided form.
      *
      * @param Form $form
-     * @return string
+     * @param FieldLayoutPage|null $page
+     * @return array
      */
     public function getAllEnabledCaptchasForForm(Form $form, $page = null): array
     {
         $enabledCaptchas = [];
 
         // If captchas are disabled globally, they aren't available at all, so check per-form
+        /* @var Captcha[] $captchas */
         $captchas = $this->getAllEnabledCaptchas();
         $formCaptchas = $form->getIntegrations('captcha');
 
@@ -307,6 +313,7 @@ class Integrations extends Component
      * Returns CAPTCHA HTML for the provided form.
      *
      * @param Form $form
+     * @param FieldLayoutPage|null $page
      * @return string
      */
     public function getCaptchasHtmlForForm(Form $form, $page = null)
@@ -326,7 +333,8 @@ class Integrations extends Component
      * Returns all enabled integrations for the provided form and type.
      *
      * @param Form $form
-     * @return string
+     * @param string|null $type
+     * @return array
      */
     public function getAllEnabledIntegrationsForForm(Form $form, $type = null): array
     {
@@ -335,7 +343,7 @@ class Integrations extends Component
         // If integrations are disabled globally, they aren't available at all, so check per-form
         $integrations = $this->getAllIntegrationsByType($type);
         $formIntegrations = $form->getIntegrations($type);
-        
+
         foreach ($integrations as $integration) {
             // Add all global integrations
             if ($integration->enabled) {
