@@ -285,7 +285,7 @@ class Emails extends Component
 
             if (!$event->isValid) {
                 $error = Craft::t('formie', 'Notification email for submission "{submission}" was cancelled by Formie.', [
-                    'submission' => $submission->id,
+                    'submission' => $submission->id ?? 'new',
                 ]);
 
                 Formie::error($error);
@@ -298,7 +298,7 @@ class Emails extends Component
 
             if (!Craft::$app->getMailer()->send($newEmail)) {
                 $error = Craft::t('formie', 'Notification email could not be sent for submission “{submission}”.', [
-                    'submission' => $submission->id,
+                    'submission' => $submission->id ?? 'new',
                 ]);
 
                 Formie::error($error);
@@ -313,7 +313,7 @@ class Emails extends Component
                 'error' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
-                'submission' => $submission->id,
+                'submission' => $submission->id ?? 'new',
             ]);
 
             Formie::error($error);
@@ -387,7 +387,7 @@ class Emails extends Component
                     'error' => $e->getMessage(),
                     'file' => $e->getFile(),
                     'line' => $e->getLine(),
-                    'submission' => $submission->id,
+                    'submission' => $submission->id ?? 'new',
                 ]);
 
                 Formie::error($error);

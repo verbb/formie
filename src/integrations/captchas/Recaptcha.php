@@ -11,6 +11,7 @@ use verbb\formie\web\assets\captchas\RecaptchaV3Asset;
 use Craft;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
+use craft\web\View;
 
 class Recaptcha extends Captcha
 {
@@ -99,7 +100,7 @@ class Recaptcha extends Captcha
 
         if ($type === self::RECAPTCHA_TYPE_V3) {
             $view->registerAssetBundle(RecaptchaV3Asset::class);
-            $view->registerJs('new FormieRecaptchaV3(' . $settings . ');');
+            $view->registerJs('new FormieRecaptchaV3(' . $settings . ');', View::POS_END);
 
             // We don't technically need this for V3, but we use it to control whether we should validate
             // based on the specific page they're on, and if the user wants a captcha on each page.
@@ -109,14 +110,14 @@ class Recaptcha extends Captcha
 
         if ($type === self::RECAPTCHA_TYPE_V2_CHECKBOX) {
             $view->registerAssetBundle(RecaptchaV2CheckboxAsset::class);
-            $view->registerJs('new FormieRecaptchaV2Checkbox(' . $settings . ');');
+            $view->registerJs('new FormieRecaptchaV2Checkbox(' . $settings . ');', View::POS_END);
 
             return '<div class="formie-recaptcha-placeholder"></div>';
         }
 
         if ($type === self::RECAPTCHA_TYPE_V2_INVISIBLE) {
             $view->registerAssetBundle(RecaptchaV2InvisibleAsset::class);
-            $view->registerJs('new FormieRecaptchaV2Invisible(' . $settings . ');');
+            $view->registerJs('new FormieRecaptchaV2Invisible(' . $settings . ');', View::POS_END);
 
             return '<div class="formie-recaptcha-placeholder"></div>';
         }

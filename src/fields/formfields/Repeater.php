@@ -1,8 +1,6 @@
 <?php
 namespace verbb\formie\fields\formfields;
 
-use craft\helpers\Html;
-use craft\validators\ArrayValidator;
 use verbb\formie\base\FormField;
 use verbb\formie\base\NestedFieldInterface;
 use verbb\formie\base\NestedFieldTrait;
@@ -15,8 +13,11 @@ use Craft;
 use craft\base\EagerLoadingFieldInterface;
 use craft\base\Element;
 use craft\base\ElementInterface;
-
+use craft\helpers\Html;
 use craft\helpers\Json;
+use craft\validators\ArrayValidator;
+use craft\web\View;
+
 use Throwable;
 
 class Repeater extends FormField implements NestedFieldInterface, EagerLoadingFieldInterface
@@ -165,7 +166,7 @@ class Repeater extends FormField implements NestedFieldInterface, EagerLoadingFi
             }
         }
 
-        $view->registerJs($js);
+        $view->registerJs($js, View::POS_END);
 
         return $view->renderTemplate('formie/_formfields/repeater/input', [
             'id' => $id,
