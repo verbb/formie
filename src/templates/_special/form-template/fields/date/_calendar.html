@@ -1,32 +1,60 @@
 <div class="fui-field-rows">
     <div class="fui-row">
         <div class="fui-field">
-            <input {{ attr({
-                type: 'date',
-                id: options.id,
-                class: [ 'fui-input' ],
-                name: 'date' | namespaceInputName(field.handle),
-                required: field.required ? true : false,
-                value: value ? (value | date('Y-m-d')) : null,
-                aria: {
-                    required: field.required ? 'true' : 'false',
-                },
-            } | merge(field.getInputAttributes())) }} />
-        </div>
+            {% hook 'formie.subfield.field-start' %}
 
-        {% if field.includeTime %}
-            <div class="fui-field">
+            {% hook 'formie.subfield.input-before' %}
+
+            <div class="fui-input-container">
+                {% hook 'formie.subfield.input-start' %}
+
                 <input {{ attr({
-                    type: 'time',
+                    type: 'date',
                     id: options.id,
                     class: [ 'fui-input' ],
-                    name: 'time' | namespaceInputName(field.handle),
+                    name: 'date' | namespaceInputName(field.handle),
                     required: field.required ? true : false,
-                    value: value ? (value | date('H:i:s')) : null,
+                    value: value ? (value | date('Y-m-d')) : null,
                     aria: {
                         required: field.required ? 'true' : 'false',
                     },
                 } | merge(field.getInputAttributes())) }} />
+
+                {% hook 'formie.subfield.input-end' %}
+            </div>
+
+            {% hook 'formie.subfield.input-after' %}
+
+            {% hook 'formie.subfield.field-end' %}
+        </div>
+
+        {% if field.includeTime %}
+            <div class="fui-field">
+                {% hook 'formie.subfield.field-start' %}
+
+                {% hook 'formie.subfield.input-before' %}
+
+                <div class="fui-input-container">
+                    {% hook 'formie.subfield.input-start' %}
+
+                    <input {{ attr({
+                        type: 'time',
+                        id: options.id,
+                        class: [ 'fui-input' ],
+                        name: 'time' | namespaceInputName(field.handle),
+                        required: field.required ? true : false,
+                        value: value ? (value | date('H:i:s')) : null,
+                        aria: {
+                            required: field.required ? 'true' : 'false',
+                        },
+                    } | merge(field.getInputAttributes())) }} />
+
+                    {% hook 'formie.subfield.input-end' %}
+                </div>
+
+                {% hook 'formie.subfield.input-after' %}
+
+                {% hook 'formie.subfield.field-end' %}
             </div>
         {% endif %}
     </div>
