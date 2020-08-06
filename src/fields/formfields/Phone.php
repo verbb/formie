@@ -185,10 +185,10 @@ class Phone extends FormField implements SubfieldInterface
      */
     public function validateRequiredFields(ElementInterface $element)
     {
-        if ($this->countryEnabled && $this->required) {
+        if ($this->required) {
             $value = $element->getFieldValue($this->handle);
 
-            if (StringHelper::isBlank($value->country)) {
+            if ($this->countryEnabled && StringHelper::isBlank($value->country)) {
                 $element->addError(
                     $this->handle,
                     Craft::t('formie', '"{label}" cannot be blank.', [
