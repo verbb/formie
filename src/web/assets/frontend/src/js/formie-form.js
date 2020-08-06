@@ -281,7 +281,8 @@ class FormieForm {
         text = text.replace(/<p[^>]*>/g, '').replace(/<\/p>/g, '');
 
         if ($alert) {
-            if ($alert.innerHTML !== text) {
+            // We have to cater for HTML entities - quick-n-dirty
+            if ($alert.innerHTML !== this.decodeHtml(text)) {
                 $alert.innerHTML = $alert.innerHTML + '<br>' + text;
             }
         } else {
@@ -292,6 +293,12 @@ class FormieForm {
 
             this.$form.parentNode.insertBefore($alert, this.$form);
         }
+    }
+
+    decodeHtml(html) {
+        var txt = document.createElement('textarea');
+        txt.innerHTML = html;
+        return txt.value;
     }
 
     removeFormAlert() {
