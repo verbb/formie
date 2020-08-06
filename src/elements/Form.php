@@ -874,7 +874,7 @@ class Form extends Element
         $outputJs = true;
 
         if ($template = $this->getTemplate()) {
-            $outputJs = $template->outputJs;
+            $outputJs = (bool)$template->outputJs;
         }
 
         return $outputJs;
