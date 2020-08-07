@@ -183,7 +183,10 @@ class FormTemplates extends Component
                 'useCustomTemplates' => $template->useCustomTemplates,
                 'outputCssTheme' => $template->outputCssTheme,
                 'outputCssLayout' => $template->outputCssLayout,
-                'outputJs' => $template->outputJs,
+                'outputJsBase' => $template->outputJsBase,
+                'outputJsTheme' => $template->outputJsTheme,
+                'outputCssLocation' => $template->outputCssLocation,
+                'outputJsLocation' => $template->outputJsLocation,
                 'sortOrder' => (int)($template->sortOrder ?? 99),
             ];
 
@@ -240,7 +243,10 @@ class FormTemplates extends Component
             $templateRecord->useCustomTemplates = $data['useCustomTemplates'];
             $templateRecord->outputCssLayout = $data['outputCssLayout'];
             $templateRecord->outputCssTheme = $data['outputCssTheme'];
-            $templateRecord->outputJs = $data['outputJs'];
+            $templateRecord->outputJsBase = $data['outputJsBase'];
+            $templateRecord->outputJsTheme = $data['outputJsTheme'];
+            $templateRecord->outputCssLocation = $data['outputCssLocation'];
+            $templateRecord->outputJsLocation = $data['outputJsLocation'];
             $templateRecord->sortOrder = $data['sortOrder'] ?? 99;
             $templateRecord->uid = $templateUid;
 
@@ -379,7 +385,10 @@ class FormTemplates extends Component
                 'useCustomTemplates',
                 'outputCssLayout',
                 'outputCssTheme',
-                'outputJs',
+                'outputJsBase',
+                'outputJsTheme',
+                'outputCssLocation',
+                'outputJsLocation',
                 'sortOrder',
                 'fieldLayoutId',
                 'dateDeleted',

@@ -1,6 +1,6 @@
 import { Bouncer } from './utils/bouncer';
 
-class FormieForm {
+export class FormieForm {
     constructor(settings = {}) {
         this.formId = `#formie-form-${settings.formId}`;
         this.$form = document.querySelector(this.formId);
@@ -10,22 +10,26 @@ class FormieForm {
 
         this.setCurrentPage(this.settings.currentPageId);
 
-        if (this.$form) {
-            this.initValidator();
-
-            // Check if this is a success page and if we need to hide the notice
-            // This is for non-ajax forms, where the page has reloaded
-            this.hideSuccess();
-
-            // Hijack the form's submit handler, in case we need to do something
-            this.addSubmitEventListener();
-
-            // Save the form's current state so we can tell if its changed later on
-            this.savedFormHash = this.hashForm();
-
-            // Listen to form changes if the user tries to reload
-            this.addFormUnloadEventListener();
+        if (!this.$form) {
+            return;
         }
+        
+        this.$form.form = this;
+
+        this.initValidator();
+
+        // Check if this is a success page and if we need to hide the notice
+        // This is for non-ajax forms, where the page has reloaded
+        this.hideSuccess();
+
+        // Hijack the form's submit handler, in case we need to do something
+        this.addSubmitEventListener();
+
+        // Save the form's current state so we can tell if its changed later on
+        this.savedFormHash = this.hashForm();
+
+        // Listen to form changes if the user tries to reload
+        this.addFormUnloadEventListener();
     }
 
     initValidator() {
@@ -539,6 +543,3 @@ class FormieForm {
         this.$currentPage = document.querySelector(this.currentPageId);
     }
 }
-
-window.FormieForm = FormieForm;
-

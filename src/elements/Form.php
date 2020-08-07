@@ -859,9 +859,11 @@ class Form extends Element
         $settings['currentPageId'] = $this->getCurrentPage()->id ?? '';
         $settings['submitActionMessage'] = $this->settings->getSubmitActionMessage() ?? '';
         $settings['errorMessage'] = $this->settings->getErrorMessage() ?? '';
+        $settings['outputJsTheme'] = $this->getFrontEndTemplateOption('outputJsTheme');
 
         return [
             'formId' => $this->id,
+            'formHandle' => $this->handle,
             'settings' => $settings,
         ];
     }
@@ -869,15 +871,35 @@ class Form extends Element
     /**
      * @inheritdoc
      */
-    public function getFrontEndOutputJs(): bool
+    public function getFrontEndTemplateOption($option): bool
     {
-        $outputJs = true;
+        $output = true;
 
         if ($template = $this->getTemplate()) {
-            $outputJs = (bool)$template->outputJs;
+            $output = (bool)$template->$option;
         }
 
-        return $outputJs;
+        return $output;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getFrontEndTemplateLocation($location)
+    {
+        if ($location === 'outputCssLocation') {
+            $output = FormTemplate::PAGE_HEADER;
+        }
+
+        if ($location === 'outputJsLocation') {
+            $output = FormTemplate::PAGE_FOOTER;
+        }
+
+        if ($template = $this->getTemplate()) {
+            $output = $template->$location;
+        }
+
+        return $output;
     }
 
 

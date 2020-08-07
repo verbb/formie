@@ -105,7 +105,10 @@ class ProjectConfigHelper
                 'useCustomTemplates',
                 'outputCssLayout',
                 'outputCssTheme',
-                'outputJs',
+                'outputJsBase',
+                'outputJsTheme',
+                'outputCssLocation',
+                'outputJsLocation',
                 'sortOrder',
                 'fieldLayoutId',
             ])

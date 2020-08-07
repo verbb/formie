@@ -17,6 +17,7 @@ use verbb\formie\elements\db\FormQuery;
 use verbb\formie\elements\db\SubmissionQuery;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\FieldLayoutPage;
+use verbb\formie\services\Rendering;
 
 class Formie
 {
@@ -132,6 +133,16 @@ class Formie
     public function registerAssets($form, array $options = null)
     {
         return FormiePlugin::$plugin->getRendering()->registerAssets($form, $options);
+    }
+
+    public function renderFormCss($form, $attributes = [])
+    {
+        return FormiePlugin::$plugin->getRendering()->renderFormAssets($form, Rendering::RENDER_TYPE_CSS, $attributes);
+    }
+
+    public function renderFormJs($form, $attributes = [])
+    {
+        return FormiePlugin::$plugin->getRendering()->renderFormAssets($form, Rendering::RENDER_TYPE_JS, $attributes);
     }
 
     /**

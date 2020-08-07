@@ -16,6 +16,14 @@ use verbb\formie\records\FormTemplate as FormTemplateRecord;
 
 class FormTemplate extends BaseTemplate
 {
+    // Constants
+    // =========================================================================
+
+    const PAGE_HEADER = 'page-header';
+    const PAGE_FOOTER = 'page-footer';
+    const INSIDE_FORM = 'inside-form';
+    const MANUAL = 'manual';
+
     // Public Properties
     // =========================================================================
 
@@ -23,7 +31,10 @@ class FormTemplate extends BaseTemplate
     public $useCustomTemplates = false;
     public $outputCssLayout = true;
     public $outputCssTheme = true;
-    public $outputJs = true;
+    public $outputJsBase = true;
+    public $outputJsTheme = true;
+    public $outputCssLocation = self::PAGE_HEADER;
+    public $outputJsLocation = self::PAGE_FOOTER;
 
 
     // Public Methods
@@ -87,8 +98,10 @@ class FormTemplate extends BaseTemplate
         ];
 
         $typecastBehavior = $behaviors['typecast'];
-        $typecastBehavior['attributeTypes']['outputCss'] = AttributeTypecastBehavior::TYPE_BOOLEAN;
-        $typecastBehavior['attributeTypes']['outputJs'] = AttributeTypecastBehavior::TYPE_BOOLEAN;
+        $typecastBehavior['attributeTypes']['outputCssLayout'] = AttributeTypecastBehavior::TYPE_BOOLEAN;
+        $typecastBehavior['attributeTypes']['outputCssTheme'] = AttributeTypecastBehavior::TYPE_BOOLEAN;
+        $typecastBehavior['attributeTypes']['outputJsBase'] = AttributeTypecastBehavior::TYPE_BOOLEAN;
+        $typecastBehavior['attributeTypes']['outputJsTheme'] = AttributeTypecastBehavior::TYPE_BOOLEAN;
 
         return $behaviors;
     }

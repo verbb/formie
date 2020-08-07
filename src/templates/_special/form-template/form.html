@@ -108,14 +108,4 @@
             </form>
         {% endif %}
     </div>
-
-    {% do view.registerAssetBundle('verbb\\formie\\web\\assets\\frontend\\FrontEndBaseAsset') %}
-
-    {% js %}
-        new FormieBaseForm({{ jsVariables | json_encode | raw }});
-
-        {% if outputJs %}
-            new FormieForm({{ jsVariables | json_encode | raw }});
-        {% endif %}
-    {% endjs %}
 {% endapply %}

@@ -1,6 +1,8 @@
 const globals = require('./utils/globals');
 
-class FormieBaseForm {
+import { FormieForm } from './formie-form';
+
+export class FormieBaseForm {
     constructor(settings = {}) {
         this.formId = `#formie-form-${settings.formId}`;
         this.$form = document.querySelector(this.formId);
@@ -10,7 +12,11 @@ class FormieBaseForm {
             return;
         }
 
-        this.$form._baseForm = this;
+        this.$form.baseForm = this;
+
+        if (this.settings.outputJsTheme) {
+            this.form = new FormieForm(settings);
+        }
 
         // Add helper classes to fields when their inputs are focused, have values etc.
         this.registerFieldEvents(this.$form);
@@ -135,6 +141,3 @@ class FormieBaseForm {
         });
     }
 }
-
-window.FormieBaseForm = FormieBaseForm;
-

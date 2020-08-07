@@ -7,11 +7,12 @@ use verbb\formie\base\FormFieldInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\events\ModifyRenderEvent;
 use verbb\formie\models\FieldLayoutPage;
+use verbb\formie\models\FormTemplate;
 use verbb\formie\models\Notification;
-use verbb\formie\web\assets\frontend\FrontEndAsset;
 
 use Craft;
 use craft\base\Component;
+use craft\helpers\Html;
 use craft\helpers\Json;
 use craft\helpers\Template as TemplateHelper;
 use craft\web\View;
@@ -32,6 +33,14 @@ class Rendering extends Component
     const EVENT_MODIFY_RENDER_FORM = 'modifyRenderForm';
     const EVENT_MODIFY_RENDER_PAGE = 'modifyRenderPage';
     const EVENT_MODIFY_RENDER_FIELD = 'modifyRenderField';
+    const RENDER_TYPE_CSS = 'css';
+    const RENDER_TYPE_JS = 'js';
+
+
+    // Properties
+    // =========================================================================
+
+    private $_renderedJs = false;
 
 
     // Public Methods
@@ -67,21 +76,11 @@ class Rendering extends Component
         // Get the active submission.
         $submission = $form->getCurrentSubmission();
 
-        // Setup JS Variables
-        $jsVariables = $form->getFrontEndJsVariables();
-        $outputJs = $form->getFrontEndOutputJs();
-
         $html = $view->renderTemplate('form', [
             'form' => $form,
             'options' => $options,
             'submission' => $submission,
-            'jsVariables' => $jsVariables,
-            'outputJs' => $outputJs,
         ], View::TEMPLATE_MODE_SITE);
-
-        /* @var FrontEndAsset $bundle */
-        $bundle = $view->registerAssetBundle(FrontEndAsset::class);
-        $bundle->form = $form;
 
         $view->setTemplatesPath(Craft::$app->path->getSiteTemplatesPath());
 
@@ -91,7 +90,26 @@ class Rendering extends Component
         ]);
         $this->trigger(self::EVENT_MODIFY_RENDER_FORM, $event);
 
-        return $event->html;
+        $output = $event->html;
+
+        // We might need to output CSS and JS inline, or at the head/footer. `renderFormAssets`
+        // will sort this out, but we don't want to do anything if rendering manually
+        $outputCssLocation = $form->getFrontEndTemplateLocation('outputCssLocation');
+        $outputJsLocation = $form->getFrontEndTemplateLocation('outputJsLocation');
+
+        if ($outputCssLocation !== FormTemplate::MANUAL) {
+            $css = $this->renderFormAssets($form, self::RENDER_TYPE_CSS);
+
+            $output = TemplateHelper::raw($output . $css);
+        }
+
+        if ($outputJsLocation !== FormTemplate::MANUAL) {
+            $js = $this->renderFormAssets($form, self::RENDER_TYPE_JS);
+
+            $output = TemplateHelper::raw($output . $js);
+        }
+
+        return $output;
     }
 
     /**
@@ -194,7 +212,9 @@ class Rendering extends Component
     }
 
     /**
-     * Renders and returns a form's HTML.
+     * Registers a form's assets (CSS/JS), to be output to the page, as per the form template
+     * settings. This should be used for cached forms, as their assets will not be output
+     * when inside a cache tag. See `renderFormJs` and `renderFormCss` for more controlled output.
      *
      * @param Form|string $form
      * @param array $options
@@ -208,6 +228,125 @@ class Rendering extends Component
         $this->renderForm($form, $options);
 
         return null;
+    }
+
+    /**
+     * Render the assets for a given form. Depending on the form template settings, this will
+     * either add the JS/CSS to the head/footer of the page, or directly return the CSS/JS strings
+     * for use when manually calling this function through render variable tags.
+     *
+     * @param Form|string $form
+     * @param array $options
+     * @return null
+     */
+    public function renderFormAssets($form, $type = null, $attributes = [])
+    {
+        if (is_string($form)) {
+            $form = Form::find()->handle($form)->one();
+        }
+
+        if (!$form) {
+            return null;
+        }
+
+        $view = Craft::$app->getView();
+        $jsVariables = $form->getFrontEndJsVariables();
+
+        $outputCssLayout = $form->getFrontEndTemplateOption('outputCssLayout');
+        $outputCssTheme = $form->getFrontEndTemplateOption('outputCssTheme');
+        $outputJsBase = $form->getFrontEndTemplateOption('outputJsBase');
+        $outputJsTheme = $form->getFrontEndTemplateOption('outputJsTheme');
+        $outputCssLocation = $form->getFrontEndTemplateLocation('outputCssLocation');
+        $outputJsLocation = $form->getFrontEndTemplateLocation('outputJsLocation');
+
+        $assetPath = '@verbb/formie/web/assets/frontend/dist/';
+        $jsFile = Craft::$app->getAssetManager()->getPublishedUrl($assetPath . 'js/formie.js', true);
+        $cssLayout = Craft::$app->getAssetManager()->getPublishedUrl($assetPath . 'css/formie-base.css', true);
+        $cssTheme = Craft::$app->getAssetManager()->getPublishedUrl($assetPath . 'css/formie-theme.css', true);
+
+        $output = [];
+
+        if ($type !== self::RENDER_TYPE_JS) {
+            // Only output this if we're not showing the theme. We bundle the two together
+            // during build, so we don't have to serve two stylesheets.
+            if ($outputCssLayout && !$outputCssTheme) {
+                if ($outputCssLocation === FormTemplate::PAGE_HEADER) {
+                    $view->registerCssFile($cssLayout);
+                } else {
+                    $output[] = Html::cssFile($cssLayout, $attributes);
+                }
+            }
+
+            if ($outputCssLayout && $outputCssTheme) {
+                if ($outputCssLocation === FormTemplate::PAGE_HEADER) {
+                    $view->registerCssFile($cssTheme);
+                } else {
+                    $output[] = Html::cssFile($cssTheme, $attributes);
+                }
+            }
+        }
+
+        if ($type !== self::RENDER_TYPE_CSS) {
+            // Only output this file once. It's applicable to all forms on a page.
+            if (!$this->_renderedJs) {
+                if ($outputJsLocation === FormTemplate::PAGE_FOOTER) {
+                    $view->registerJsFile($jsFile, array_merge(['defer' => true], $attributes));
+                } else {
+                    $output[] = Html::jsFile($jsFile, array_merge(['defer' => true], $attributes));
+                }
+
+                // Add locale definition JS variables
+                $jsString = 'window.FormieTranslations=' . Json::encode($this->getFrontEndJsTranslations()) . ';';
+
+                if ($outputJsLocation === FormTemplate::PAGE_FOOTER) {
+                    $view->registerJs($jsString, View::POS_END);
+                } else {
+                    $output[] = Html::script($jsString, ['type' => 'text/javascript']);
+                }
+
+                $this->_renderedJs = true;
+            }
+
+            // Output our per-form JS inline to the global config variable.
+            $jsString = 'window.FormieForms=window.FormieForms||[];window.FormieForms.push(' . Json::encode($jsVariables) . ');';
+
+            if ($outputJsLocation === FormTemplate::PAGE_FOOTER) {
+                $view->registerJs($jsString, View::POS_END);
+            } else {
+                $output[] = Html::script($jsString, ['type' => 'text/javascript']);
+            }
+        }
+
+        return TemplateHelper::raw(implode(PHP_EOL, $output));
+    }
+
+    public function getFrontEndJsTranslations()
+    {
+        return $this->_getTranslatedStrings([
+            'File {filename} must be smaller than {filesize} MB.',
+            'Choose up to {files} files.',
+
+            // Error messages
+            'This field is required.',
+            'Please select a value.',
+            'Please select a value.',
+            'Please select at least one value.',
+            'Please fill out this field.',
+            'Please enter a valid email address.',
+            'Please enter a URL.',
+            'Please enter a number',
+            'Please match the following format: #rrggbb',
+            'Please use the YYYY-MM-DD format',
+            'Please use the 24-hour time format. Ex. 23:00',
+            'Please use the YYYY-MM format',
+            'Please match the requested format.',
+            'Please select a value that is no more than {max}.',
+            'Please select a value that is no less than {min}.',
+            'Please shorten this text to no more than {maxLength} characters. You are currently using {length} characters.',
+            'Please lengthen this text to {minLength} characters or more. You are currently using {length} characters.',
+
+            'Unable to parse response `{e}`.',
+        ]);
     }
 
     /**
@@ -268,5 +407,20 @@ class Rendering extends Component
         $view->setTemplatesPath($oldTemplatePath);
 
         return $templatePath;
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    private function _getTranslatedStrings($array)
+    {
+        $strings = [];
+
+        foreach ($array as $item) {
+            $strings[$item] = Craft::t('formie', $item);
+        }
+
+        return $strings;
     }
 }

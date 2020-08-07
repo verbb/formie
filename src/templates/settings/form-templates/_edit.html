@@ -89,9 +89,13 @@
         {% endif %}
     </div>
 
+    <hr>
+
+    <h2>{{ 'CSS Options' | t('formie') }}</h2>
+
     {{ forms.lightswitchField({
         label: 'Output CSS' | t('formie'),
-        instructions: 'Enable this option to output basic layout CSS for row and column support when rending forms using this template.' | t('formie'),
+        instructions: 'Enable this option to output basic layout CSS for row and column support when rendering forms using this template.' | t('formie'),
         name: 'outputCssLayout',
         on: template.outputCssLayout,
         errors: template.getErrors('outputCssLayout'),
@@ -101,20 +105,62 @@
     <div id="output-css-theme" class="{{ not template.outputCssLayout ? 'hidden' }}">
         {{ forms.lightswitchField({
             label: 'Output Theme' | t('formie'),
-            instructions: 'Enable this option to output the default Formie CSS theme when rending forms using this template.' | t('formie'),
+            instructions: 'Enable this option to output the default Formie CSS theme when rendering forms using this template.' | t('formie'),
             name: 'outputCssTheme',
             on: template.outputCssTheme,
             errors: template.getErrors('outputCssTheme'),
         }) }}
+
+        {{ forms.selectField({
+            label: 'CSS Render Location' | t('formie'),
+            instructions: 'Determine where to render the CSS output for the form.' | t('formie'),
+            name: 'outputCssLocation',
+            value: template.outputCssLocation,
+            errors: template.getErrors('outputCssLocation'),
+            options: [
+                { label: 'Page Header' | t('formie'), value: 'page-header' },
+                { label: 'Inside Form' | t('formie'), value: 'inside-form' },
+                { label: 'Manual' | t('formie'), value: 'manual' },
+            ],
+        }) }}
     </div>
 
+    <hr>
+
+    <h2>{{ 'JavaScript Options' | t('formie') }}</h2>
+
     {{ forms.lightswitchField({
-        label: 'Output JavaScript' | t('formie'),
-        instructions: 'Enable this option to output the default Formie JavaScript when rending forms using this template.' | t('formie'),
-        name: 'outputJs',
-        on: template.outputJs,
+        label: 'Output Base JavaScript' | t('formie'),
+        instructions: 'Enable this option to output the base Formie JavaScript when rendering forms using this template. This provides event listeners for forms, ensuring captcha integrations work. Read the [docs]() for more information.' | t('formie'),
+        name: 'outputJsBase',
+        on: template.outputJsBase,
         errors: template.getErrors('outputJs'),
+        toggle: 'output-js-base',
+        warning: 'Ensure you understand the implications of disabling Formie‘s JavaScript. Read the [docs]() for more information.' | t('formie'),
     }) }}
+
+    <div id="output-js-base" class="{{ not template.outputJsBase ? 'hidden' }}">
+        {{ forms.lightswitchField({
+            label: 'Output Theme' | t('formie'),
+            instructions: 'Enable this option to output the themed JavaScript when rendering forms using this template. This provides client-side validation, multi-page support, and lots more. Read the [docs]() for more information.' | t('formie'),
+            name: 'outputJsTheme',
+            on: template.outputJsTheme,
+            errors: template.getErrors('outputJsTheme'),
+        }) }}
+
+        {{ forms.selectField({
+            label: 'JavaScript Render Location' | t('formie'),
+            instructions: 'Determine where to render the JavaScript output for the form.' | t('formie'),
+            name: 'outputJsLocation',
+            value: template.outputJsLocation,
+            errors: template.getErrors('outputJsLocation'),
+            options: [
+                { label: 'Page Footer' | t('formie'), value: 'page-footer' },
+                { label: 'Inside Form' | t('formie'), value: 'inside-form' },
+                { label: 'Manual' | t('formie'), value: 'manual' },
+            ],
+        }) }}
+    </div>
 </div>
 
 <div id="form-fields" class="hidden">

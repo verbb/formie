@@ -48,6 +48,7 @@ mix.sass(assetsPath + '/frontend/src/scss/formie-theme.scss', assetsPath + '/fro
 mix.sass(assetsPath + '/frontend/src/scss/fields/tags.scss', assetsPath + '/frontend/dist/css/fields');
 
 // Setup and configure JS
+mix.js(assetsPath + '/frontend/src/js/formie.js', assetsPath + '/frontend/dist/js');
 mix.js(assetsPath + '/frontend/src/js/formie-base-form.js', assetsPath + '/frontend/dist/js');
 mix.js(assetsPath + '/frontend/src/js/formie-form.js', assetsPath + '/frontend/dist/js');
 mix.js(assetsPath + '/frontend/src/js/fields/file-upload.js', assetsPath + '/frontend/dist/js/fields');

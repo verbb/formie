@@ -94,8 +94,11 @@ class FormTemplatesController extends Controller
         $template->useCustomTemplates = $request->getBodyParam('useCustomTemplates');
         $template->outputCssLayout = $request->getBodyParam('outputCssLayout');
         $template->outputCssTheme = $request->getBodyParam('outputCssTheme');
-        $template->outputJs = $request->getBodyParam('outputJs');
-
+        $template->outputJsBase = $request->getBodyParam('outputJsBase');
+        $template->outputJsTheme = $request->getBodyParam('outputJsTheme');
+        $template->outputCssLocation = $request->getBodyParam('outputCssLocation');
+        $template->outputJsLocation = $request->getBodyParam('outputJsLocation');
+        
         // Set the form field layout
         $fieldLayout = Craft::$app->getFields()->assembleLayoutFromPost();
         $fieldLayout->type = Form::class;
