@@ -853,13 +853,26 @@ class Form extends Element
      * @inheritdoc
      */
     public function getFrontEndJsVariables(): array
-    {
-        $settings = $this->settings->toArray();
-        $settings['redirectEntry'] = $this->getRedirectEntry()->url ?? '';
-        $settings['currentPageId'] = $this->getCurrentPage()->id ?? '';
-        $settings['submitActionMessage'] = $this->settings->getSubmitActionMessage() ?? '';
-        $settings['errorMessage'] = $this->settings->getErrorMessage() ?? '';
-        $settings['outputJsTheme'] = $this->getFrontEndTemplateOption('outputJsTheme');
+    {   
+        // Only provide what we need, both for security/privacy but also DOM size
+        $settings = [
+            'submitMethod' => $this->settings->submitMethod,
+            'submitActionMessage' => $this->settings->getSubmitActionMessage() ?? '',
+            'submitActionMessageTimeout' => $this->settings->submitActionMessageTimeout,
+            'submitActionFormHide' => $this->settings->submitActionFormHide,
+            'submitAction' => $this->settings->submitAction,
+            'submitActionTab' => $this->settings->submitActionTab,
+            'submitActionUrl' => $this->settings->submitActionUrl,
+            'errorMessage' => $this->settings->getErrorMessage() ?? '',
+            'loadingIndicator' => $this->settings->loadingIndicator,
+            'loadingIndicatorText' => $this->settings->loadingIndicatorText,
+            'validationOnSubmit' => $this->settings->validationOnSubmit,
+            'validationOnFocus' => $this->settings->validationOnFocus,
+
+            'redirectEntry' => $this->getRedirectEntry()->url ?? '',
+            'currentPageId' => $this->getCurrentPage()->id ?? '',
+            'outputJsTheme' => $this->getFrontEndTemplateOption('outputJsTheme'),
+        ];
 
         return [
             'formId' => $this->id,

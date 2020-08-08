@@ -76,10 +76,13 @@ class Rendering extends Component
         // Get the active submission.
         $submission = $form->getCurrentSubmission();
 
+        $jsVariables = $form->getFrontEndJsVariables();
+
         $html = $view->renderTemplate('form', [
             'form' => $form,
             'options' => $options,
             'submission' => $submission,
+            'jsVariables' => $jsVariables,
         ], View::TEMPLATE_MODE_SITE);
 
         $view->setTemplatesPath(Craft::$app->path->getSiteTemplatesPath());
@@ -305,15 +308,6 @@ class Rendering extends Component
                 }
 
                 $this->_renderedJs = true;
-            }
-
-            // Output our per-form JS inline to the global config variable.
-            $jsString = 'window.FormieForms=window.FormieForms||[];window.FormieForms.push(' . Json::encode($jsVariables) . ');';
-
-            if ($outputJsLocation === FormTemplate::PAGE_FOOTER) {
-                $view->registerJs($jsString, View::POS_END);
-            } else {
-                $output[] = Html::script($jsString, ['type' => 'text/javascript']);
             }
         }
 

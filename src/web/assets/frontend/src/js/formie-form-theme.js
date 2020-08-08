@@ -1,10 +1,11 @@
 import { Bouncer } from './utils/bouncer';
 
-export class FormieForm {
-    constructor(settings = {}) {
-        this.formId = `#formie-form-${settings.formId}`;
+export class FormieFormTheme {
+    constructor(config = {}) {
+        this.formId = `#formie-form-${config.formId}`;
         this.$form = document.querySelector(this.formId);
-        this.settings = settings.settings;
+        this.config = config;
+        this.settings = config.settings;
         this.validationOnSubmit = !!this.settings.validationOnSubmit;
         this.validationOnFocus = !!this.settings.validationOnFocus;
 
@@ -14,7 +15,7 @@ export class FormieForm {
             return;
         }
         
-        this.$form.form = this;
+        this.$form.formTheme = this;
 
         this.initValidator();
 

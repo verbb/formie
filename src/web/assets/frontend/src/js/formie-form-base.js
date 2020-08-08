@@ -1,21 +1,23 @@
 const globals = require('./utils/globals');
 
-import { FormieForm } from './formie-form';
+// TODO: Dynamic import when I can figure it out with cpresources
+import { FormieFormTheme } from './formie-form-theme';
 
-export class FormieBaseForm {
-    constructor(settings = {}) {
-        this.formId = `#formie-form-${settings.formId}`;
+export class FormieFormBase {
+    constructor(config = {}) {
+        this.formId = `#formie-form-${config.formId}`;
         this.$form = document.querySelector(this.formId);
-        this.settings = settings.settings;
+        this.config = config;
+        this.settings = config.settings;
 
         if (!this.$form) {
             return;
         }
 
-        this.$form.baseForm = this;
+        this.$form.form = this;
 
         if (this.settings.outputJsTheme) {
-            this.form = new FormieForm(settings);
+            this.formTheme = new FormieFormTheme(this.config);
         }
 
         // Add helper classes to fields when their inputs are focused, have values etc.
