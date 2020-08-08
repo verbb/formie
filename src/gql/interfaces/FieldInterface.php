@@ -80,7 +80,7 @@ class FieldInterface extends BaseInterfaceType
             ],
             'columnWidth' => [
                 'name' => 'columnWidth',
-                'type' => Type::int(),
+                'type' => Type::string(),
                 'description' => 'The width of the field’s column.'
             ],
             'type' => [
