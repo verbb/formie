@@ -1,5 +1,9 @@
 const globals = require('./utils/globals');
 
+// TODO: Dynamic import when I can figure it out with cpresources
+import { FormieFormTheme } from './formie-form-theme';
+// const FormieFormTheme = () => import(/* webpackChunkName: "frontend/dist/js/formie-form-theme" */'./formie-form-theme');
+
 export class FormieFormBase {
     constructor(config = {}) {
         this.formId = `#formie-form-${config.formId}`;
@@ -13,19 +17,8 @@ export class FormieFormBase {
 
         this.$form.form = this;
 
-        // Lazy-load the theme JS, if enabled
         if (this.settings.outputJsTheme) {
-            // Check for race-condition
-            this.checkElement('[data-fui-scripts="' + config.formId + '"]').then((element) => {
-                var $script = document.createElement('script');
-                $script.src = this.settings.jsThemeFile;
-                $script.defer = true;
-                $script.onload = () => {
-                    new FormieFormTheme(this.config);
-                };
-
-                this.$registeredJs.appendChild($script);
-            });
+            this.formTheme = new FormieFormTheme(this.config);
         }
 
         // Add helper classes to fields when their inputs are focused, have values etc.
@@ -64,14 +57,6 @@ export class FormieFormBase {
                 this.submitForm();
             }, 300);
         }, false);
-    }
-
-    async checkElement(selector) {
-        while (document.querySelector(selector) === null) {
-            await new Promise(resolve => requestAnimationFrame(resolve));
-        }
-
-        return document.querySelector(selector);
     }
 
     submitForm() {
@@ -159,5 +144,3 @@ export class FormieFormBase {
         });
     }
 }
-
-window.FormieFormBase = FormieFormBase;

@@ -544,5 +544,3 @@ export class FormieFormTheme {
         this.$currentPage = document.querySelector(this.currentPageId);
     }
 }
-
-window.FormieFormTheme = FormieFormTheme;
