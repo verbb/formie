@@ -27,7 +27,7 @@ Let's start with an explanation of how Formie's JavaScript is put together. When
 This contains everything Formie needs to get started, including the [Form Base](docs:developers/front-end-js) and [Form Theme](docs:developers/front-end-js). It's also only included once on a page, even if there are multiple forms on a single page.
 
 :::tip
-We're loaded using `defer` to ensure loading doesn't block the page render. Be sure to look at the `onFormieInit` event if you want to wait until this file has been loaded.
+We're loading using `defer` to ensure loading doesn't block the page render. Be sure to look at the `onFormieInit` event if you want to wait until this file has been loaded.
 :::
 
 ### Form Factory
@@ -84,7 +84,7 @@ let $form = document.getElementById("formie-form-1");
 let form = $form.form;
 ```
 
-Consult the [JS Class]() for more on what you have access to.
+Consult the [JS Class](https://github.com/verbb/formie/blob/craft-3/src/web/assets/frontend/src/js/formie-form-base.js) for more on what you have access to.
 
 ### Form Theme
 Accessible from the `FormieFormBase` class, this contains the bulk "business logic" of Formie's JS, including validation, mutli-page handling and more.
@@ -96,7 +96,7 @@ let $form = document.getElementById("formie-form-1");
 let form = $form.form.formTheme;
 ```
 
-Consult the [JS Class]() for more on what you have access to.
+Consult the [JS Class](https://github.com/verbb/formie/blob/craft-3/src/web/assets/frontend/src/js/formie-form-theme.js) for more on what you have access to.
 
 ### Additional JS
 For some forms, they might contain additional fields, like a Repeater, or a captcha like reCAPTCHA. These have critical JavaScript associated with them in order for them to function. Rather than bundle this JS into the `formie.js` code for every form, they a lazy-loaded only if the form contains this module. This can be seen in the `registeredJs` property in the Form Config.
