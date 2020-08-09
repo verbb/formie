@@ -58,8 +58,44 @@ Used to specifically register the CSS and JS for a form. Takes the same argument
 ```
 
 
+### `craft.formie.renderFormCss(form)`
+Allows specific placement of a form's CSS on the page. Takes the same arguments as `craft.formie.renderForm`
+
+```twig
+{{ craft.formie.renderFormCss('contactForm') }}
+
+<div class="form-wrap">
+    {{ craft.formie.renderForm('contactForm') }}
+</div>
+```
+
+
+### `craft.formie.renderFormJs(form)`
+Allows specific placement of a form's JS on the page. Takes the same arguments as `craft.formie.renderForm`
+
+```twig
+<div class="form-wrap">
+    {{ craft.formie.renderForm('contactForm') }}
+</div>
+
+{{ craft.formie.renderFormJs('contactForm') }}
+```
+
+
 ### `craft.formie.getFieldOptions(field)`
 Returns a field's render options from the main options array.
+
+
+### `craft.formie.getLabelPosition(field)`
+Returns the label position for a field.
+
+```twig
+{% set labelPosition = craft.formie.getLabelPosition(field, form) %}
+
+{% if labelPosition.shouldDisplay('above') %}
+    <label>...</label>
+    ...
+```
 
 
 ### `craft.formie.getLabelPosition(field)`

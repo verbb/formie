@@ -14,3 +14,31 @@ The theme CSS is a set of opinionated styles meant to provide sane defaults for 
 
 ## Disabling CSS
 To disable all CSS from being output, create a new [Form Template](docs:template-guides/form-templates) and turn off `Output CSS`, `Output Theme`, or both. Ensure your form uses this new template.
+
+## Render Location
+By default, Formie will render a single CSS file in the `<head>` tag. You can choose to either render it `Inside Form`, or `Manual` - Manual essentially disabling rendering.
+
+### Manual Render
+You can select exactly where you'd like the CSS for forms to be output on the page, using `craft.formie.renderFormCss()`
+
+```twig
+{{ craft.formie.renderFormCss('myForm') }}
+
+<div class="form-wrap">
+    {{ craft.formie.renderForm('myForm') }}
+</div>
+```
+
+You could also use a Form object instead of the handle.
+
+```twig
+{% set form = craft.formie.forms({ handle: 'myForm' }).one() %}
+
+{{ craft.formie.renderFormCss(form) }}
+
+<div class="form-wrap">
+    {{ craft.formie.renderForm(form) }}
+</div>
+```
+
+Here, we have split the rendering of the form to firstly the CSS, then the HTML for the form.
