@@ -872,6 +872,9 @@ class Form extends Element
             'redirectEntry' => $this->getRedirectEntry()->url ?? '',
             'currentPageId' => $this->getCurrentPage()->id ?? '',
             'outputJsTheme' => $this->getFrontEndTemplateOption('outputJsTheme'),
+    
+            // Theme JS is lazy-loaded
+            'jsThemeFile' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/formie-form-theme.js', true),
         ];
 
         $registeredJs = [];

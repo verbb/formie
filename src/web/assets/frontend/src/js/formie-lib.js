@@ -39,15 +39,15 @@ export class Formie {
         // Create the form class, save it to our collection
         var form = new FormieFormBase(formConfig);
 
+        // Create a container to add these items to, so we can destroy them later
+        form.$registeredJs = document.createElement('div');
+        form.$registeredJs.setAttribute('data-fui-scripts', formConfig.formId);
+        document.body.appendChild(form.$registeredJs);
+
         this.forms.push(form);
 
         // Is there any additional JS config registered for this form?
         if (registeredJs.length) {
-            // Create a container to add these items to, so we can destroy them later
-            form.$registeredJs = document.createElement('div');
-            form.$registeredJs.setAttribute('data-fui-scripts', formConfig.formId);
-            document.body.appendChild(form.$registeredJs);
-
             // Create a `<script>` for each registered JS
             registeredJs.forEach((config) => {
                 var $script = document.createElement('script');

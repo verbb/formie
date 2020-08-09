@@ -49,6 +49,7 @@ mix.sass(assetsPath + '/frontend/src/scss/fields/tags.scss', assetsPath + '/fron
 
 // Setup and configure JS
 mix.js(assetsPath + '/frontend/src/js/formie.js', assetsPath + '/frontend/dist/js');
+mix.js(assetsPath + '/frontend/src/js/formie-form-theme.js', assetsPath + '/frontend/dist/js');
 mix.js(assetsPath + '/frontend/src/js/fields/file-upload.js', assetsPath + '/frontend/dist/js/fields');
 mix.js(assetsPath + '/frontend/src/js/fields/repeater.js', assetsPath + '/frontend/dist/js/fields');
 mix.js(assetsPath + '/frontend/src/js/fields/table.js', assetsPath + '/frontend/dist/js/fields');
