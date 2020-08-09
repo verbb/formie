@@ -1,5 +1,5 @@
 # JavaScript API
-In addition to being "hands-off", Formie's JavaScript can be interacted with for all manner of advanced scenarios, such as lazy-loading, async-loading, Vue.js, React.js, and more.
+In addition to being "hands-off", Formie's JavaScript can be interacted with for all manner of advanced scenarios, such as lazy-loading, async-loading, module importing in Vue.js, React.js, and more.
 
 :::tip
 Be sure to read up on the general [JavaScript docs](docs:developers/front-end-js) first before proceeding.
