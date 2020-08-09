@@ -9,6 +9,7 @@ use verbb\formie\helpers\SchemaHelper;
 
 use Craft;
 use craft\base\ElementInterface;
+use craft\helpers\Json;
 use craft\helpers\Template;
 
 use yii\db\Schema;
@@ -145,6 +146,24 @@ class SingleLineText extends FormField
         return Craft::$app->getView()->renderTemplate('formie/_formfields/single-line-text/preview', [
             'field' => $this
         ]);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getFrontEndJs(Form $form)
+    {
+        $limit = $this->limit ?? '';
+
+        $src = Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/fields/text-limit.js', true);
+        $onload = 'new FormieTextLimit(' . Json::encode(['formId' => $form->id]) . ');';
+
+        if ($limit) {
+            return [
+                'src' => $src,
+                'onload' => $onload,
+            ];
+        }
     }
 
     /**

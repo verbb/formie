@@ -36,11 +36,4 @@
             {{ '{num} words left' | t('formie', { num: wordlimit }) | raw }}
         </small>
     {% endif %}
-
-    {% set jsFile = view.getAssetManager().getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/fields/text-limit.js', true) %}
-    {% do view.registerJsFile(jsFile) %}
-
-    {% js %}
-        new FormieTextLimit({{ { formId: form.id, fieldId: options.id } | json_encode | raw }});
-    {% endjs %}
 {% endif %}

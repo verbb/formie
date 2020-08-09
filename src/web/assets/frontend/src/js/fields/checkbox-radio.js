@@ -1,4 +1,4 @@
-class FormieCheckboxRadio {
+export class FormieCheckboxRadio {
     constructor(settings = {}) {
         this.formId = '#formie-form-' + settings.formId;
         this.$form = document.querySelector(this.formId);

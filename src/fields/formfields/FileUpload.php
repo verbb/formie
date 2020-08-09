@@ -1,18 +1,20 @@
 <?php
 namespace verbb\formie\fields\formfields;
 
-use craft\elements\Asset;
 use verbb\formie\base\FormFieldInterface;
 use verbb\formie\base\FormFieldTrait;
 use verbb\formie\base\RelationFieldTrait;
+use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\SchemaHelper;
 
 use Craft;
 use craft\base\ElementInterface;
 use craft\base\Volume;
+use craft\elements\Asset;
 use craft\fields\Assets as CraftAssets;
 use craft\helpers\Assets;
+use craft\helpers\Json;
 
 class FileUpload extends CraftAssets implements FormFieldInterface
 {
@@ -226,6 +228,20 @@ class FileUpload extends CraftAssets implements FormFieldInterface
         }
 
         return $volumes;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getFrontEndJs(Form $form)
+    {
+        $src = Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/fields/file-upload.js', true);
+        $onload = 'new FormieFileUpload(' . Json::encode(['formId' => $form->id]) . ');';
+
+        return [
+            'src' => $src,
+            'onload' => $onload,
+        ];
     }
 
     /**

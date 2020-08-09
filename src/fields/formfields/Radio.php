@@ -2,11 +2,13 @@
 namespace verbb\formie\fields\formfields;
 
 use verbb\formie\base\FormFieldInterface;
+use verbb\formie\elements\Form;
 use verbb\formie\helpers\SchemaHelper;
 
 use Craft;
 use craft\base\ElementInterface;
 use craft\fields\data\SingleOptionFieldData;
+use craft\helpers\Json;
 
 class Radio extends BaseOptionsField implements FormFieldInterface
 {
@@ -86,6 +88,20 @@ class Radio extends BaseOptionsField implements FormFieldInterface
         return Craft::$app->getView()->renderTemplate('formie/_formfields/radio/preview', [
             'field' => $this
         ]);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getFrontEndJs(Form $form)
+    {
+        $src = Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/fields/checkbox-radio.js', true);
+        $onload = 'new FormieCheckboxRadio(' . Json::encode(['formId' => $form->id]) . ');';
+
+        return [
+            'src' => $src,
+            'onload' => $onload,
+        ];
     }
 
     /**

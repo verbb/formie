@@ -66,11 +66,4 @@
             } %}
         {% endnamespace %}
     </script>
-
-    {% set jsFile = view.getAssetManager().getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/fields/table.js', true) %}
-    {% do view.registerJsFile(jsFile) %}
-
-    {% js %}
-        new FormieTable({{ { formId: form.id } | json_encode | raw }});
-    {% endjs %}
 {% endif %}

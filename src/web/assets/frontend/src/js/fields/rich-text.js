@@ -1,6 +1,6 @@
 import pell from 'pell';
 
-class FormieRichText {
+export class FormieRichText {
     constructor(settings = {}) {
         this.formId = '#formie-form-' + settings.formId;
         this.fieldId = '#fields-' + settings.fieldId;
@@ -13,6 +13,8 @@ class FormieRichText {
 
         if (this.$form && this.$field && this.$container) {
             this.initEditor();
+        } else {
+            console.error('Unable to find ' + this.formId + ' ' + this.fieldId + ' ' + this.containerId);
         }
     }
 

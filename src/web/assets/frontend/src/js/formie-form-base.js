@@ -2,6 +2,7 @@ const globals = require('./utils/globals');
 
 // TODO: Dynamic import when I can figure it out with cpresources
 import { FormieFormTheme } from './formie-form-theme';
+// const FormieFormTheme = () => import(/* webpackChunkName: "frontend/dist/js/formie-form-theme" */'./formie-form-theme');
 
 export class FormieFormBase {
     constructor(config = {}) {

@@ -874,9 +874,40 @@ class Form extends Element
             'outputJsTheme' => $this->getFrontEndTemplateOption('outputJsTheme'),
         ];
 
+        $registeredJs = [];
+
+        // Add any JS per-field
+        foreach ($this->getFields() as $field) {
+            $js = $field->getFrontEndJs($this);
+
+            // Handle multiple registrations
+            if (isset($js[0])) {
+                $registeredJs = array_merge($registeredJs, $js);
+            } else {
+                $registeredJs[] = $js;
+            }
+        }
+
+        // Add any JS for enabled captchas
+        foreach ($this->getIntegrations('captcha') as $key => $captcha) {
+            if ($captcha->enabled) {
+                $js = $captcha->getFrontEndJs($this);
+
+                if (isset($js[0])) {
+                    $registeredJs = array_merge($registeredJs, $js);
+                } else {
+                    $registeredJs[] = $js;
+                }
+            }
+        }
+
+        // Cleanup
+        $registeredJs = array_values(array_filter($registeredJs));
+
         return [
             'formId' => $this->id,
             'formHandle' => $this->handle,
+            'registeredJs' => $registeredJs,
             'settings' => $settings,
         ];
     }

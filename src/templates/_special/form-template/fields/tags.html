@@ -21,12 +21,5 @@
 
 <input {{ attr(attributes) }} />
 
-{% set jsFile = view.getAssetManager().getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/fields/tags.js', true) %}
-{% do view.registerJsFile(jsFile) %}
-
 {% set cssFile = view.getAssetManager().getPublishedUrl('@verbb/formie/web/assets/frontend/dist/css/fields/tags.css', true) %}
 {% do view.registerCssFile(cssFile) %}
-
-{% js %}
-    new FormieTags({{ { formId: form.id } | json_encode | raw }});
-{% endjs %}

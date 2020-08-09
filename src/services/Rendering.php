@@ -253,12 +253,9 @@ class Rendering extends Component
         }
 
         $view = Craft::$app->getView();
-        $jsVariables = $form->getFrontEndJsVariables();
 
         $outputCssLayout = $form->getFrontEndTemplateOption('outputCssLayout');
         $outputCssTheme = $form->getFrontEndTemplateOption('outputCssTheme');
-        $outputJsBase = $form->getFrontEndTemplateOption('outputJsBase');
-        $outputJsTheme = $form->getFrontEndTemplateOption('outputJsTheme');
         $outputCssLocation = $form->getFrontEndTemplateLocation('outputCssLocation');
         $outputJsLocation = $form->getFrontEndTemplateLocation('outputJsLocation');
 

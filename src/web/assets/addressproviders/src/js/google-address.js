@@ -1,4 +1,4 @@
-class FormieGoogleAddress {
+export class FormieGoogleAddress {
     constructor(settings = {}) {
         this.appId = settings.appId;
         this.apiKey = settings.apiKey;
@@ -31,7 +31,7 @@ class FormieGoogleAddress {
             return;
         }
 
-        document.addEventListener('DOMContentLoaded', this.initScript.bind(this));
+        this.initScript();
     }
 
     componentMap() {

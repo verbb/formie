@@ -1,6 +1,6 @@
 const places = require('places.js');
 
-class FormieAlgoliaPlaces {
+export class FormieAlgoliaPlaces {
     constructor(settings = {}) {
         this.appId = settings.appId;
         this.apiKey = settings.apiKey;

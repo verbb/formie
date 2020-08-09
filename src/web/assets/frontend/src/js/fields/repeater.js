@@ -1,8 +1,8 @@
-class FormieRepeater {
+export class FormieRepeater {
     constructor(settings = {}) {
         this.formId = '#formie-form-' + settings.formId;
         this.$form = document.querySelector(this.formId);
-
+        
         if (this.$form) {
             this.initRepeaters();
         }

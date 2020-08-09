@@ -1,4 +1,4 @@
-class FormieAddressFinder {
+export class FormieAddressFinder {
     constructor(settings = {}) {
         this.apiKey = settings.apiKey;
         this.countryCode = settings.countryCode;
@@ -31,7 +31,7 @@ class FormieAddressFinder {
             return;
         }
 
-        document.addEventListener('DOMContentLoaded', this.downloadAF.bind(this));
+        this.downloadAF();
     }
 
     downloadAF() {

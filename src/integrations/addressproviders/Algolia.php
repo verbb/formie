@@ -5,7 +5,6 @@ use verbb\formie\base\AddressProvider;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyAddressProviderHtmlEvent;
-use verbb\formie\web\assets\addressproviders\AlgoliaPlacesAsset;
 
 use Craft;
 use craft\helpers\Json;
@@ -25,10 +24,21 @@ class Algolia extends AddressProvider
     // =========================================================================
 
     public $handle = 'algolia';
+    private $uniqueId;
 
 
     // Public Methods
     // =========================================================================
+
+    /**
+     * @inheritDoc
+     */
+    public function init()
+    {
+        parent::init();
+
+        $this->uniqueId = uniqid(self::ALGOLIA_INPUT_NAME, false);
+    }
 
     /**
      * @inheritDoc
@@ -71,30 +81,16 @@ class Algolia extends AddressProvider
     {
         $view = Craft::$app->getView();
         $oldTemplatesPath = $view->getTemplatesPath();
-        $view->registerAssetBundle(AlgoliaPlacesAsset::class);
-
-        $uniqueId = uniqid(self::ALGOLIA_INPUT_NAME, false);
 
         if (!$this->hasValidSettings()) {
             return '';
         }
 
-        $settings = Json::encode([
-            'appId' => $this->settings['appId'],
-            'apiKey' => $this->settings['apiKey'],
-            'container' => $uniqueId,
-            'reconfigurableOptions' => $this->_getOptions(),
-            'fieldContainer' => 'data-address-id-' . $field->id,
-            'formId' => 'formie-form-' . $options['formId'] ?? '',
-        ]);
-
-        $view->registerJs('new FormieAlgoliaPlaces(' . $settings . ');', View::POS_END);
-
         $view->setTemplateMode($view::TEMPLATE_MODE_CP);
 
         $html = Craft::$app->getView()->renderTemplate('formie/integrations/address-providers/algolia/_input', [
             'field' => $field,
-            'data' => $uniqueId,
+            'data' => $this->uniqueId,
             'options' => $options,
         ]);
 
@@ -107,6 +103,33 @@ class Algolia extends AddressProvider
         $this->trigger(self::EVENT_MODIFY_ADDRESS_PROVIDER_HTML, $event);
 
         return $event->html;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getFrontEndJs(Form $form, $field = null)
+    {
+        if (!$this->hasValidSettings()) {
+            return null;
+        }
+        
+        $settings = [
+            'appId' => $this->settings['appId'],
+            'apiKey' => $this->settings['apiKey'],
+            'container' => $this->uniqueId,
+            'reconfigurableOptions' => $this->_getOptions(),
+            'fieldContainer' => 'data-address-id-' . $field->id,
+            'formId' => 'formie-form-' . $form->id,
+        ];
+
+        $src = Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/addressproviders/dist/js/algolia-places.js', true);
+        $onload = 'new FormieAlgoliaPlaces(' . Json::encode($settings) . ');';
+
+        return [
+            'src' => $src,
+            'onload' => $onload,
+        ];
     }
 
     /**

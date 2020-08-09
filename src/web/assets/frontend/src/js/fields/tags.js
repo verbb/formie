@@ -1,6 +1,6 @@
 import Tagify from '@yaireo/tagify';
 
-class FormieTags {
+export class FormieTags {
     constructor(settings = {}) {
         this.formId = '#formie-form-' + settings.formId;
         this.$form = document.querySelector(this.formId);

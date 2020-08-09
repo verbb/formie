@@ -1,7 +1,7 @@
 import recaptcha from './inc/recaptcha';
 import { isVisible } from './inc/visible';
 
-class FormieRecaptchaV3 {
+export class FormieRecaptchaV3 {
     constructor(settings = {}) {
         this.formId = settings.formId;
         this.siteKey = settings.siteKey;

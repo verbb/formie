@@ -68,4 +68,8 @@ abstract class Integration extends Model implements IntegrationInterface
     {
         return true;
     }
+
+    public function getFrontEndJs(Form $form, $page = null) {
+        return null;
+    }
 }

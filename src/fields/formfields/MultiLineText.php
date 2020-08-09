@@ -2,10 +2,13 @@
 namespace verbb\formie\fields\formfields;
 
 use verbb\formie\base\FormField;
+use verbb\formie\elements\Form;
 use verbb\formie\helpers\SchemaHelper;
 
 use Craft;
 use craft\base\ElementInterface;
+use craft\helpers\Json;
+use craft\helpers\StringHelper;
 use craft\helpers\Template;
 
 use yii\db\Schema;
@@ -64,6 +67,48 @@ class MultiLineText extends FormField
         return Craft::$app->getView()->renderTemplate('formie/_formfields/multi-line-text/preview', [
             'field' => $this
         ]);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getFrontEndJs(Form $form)
+    {
+        $modules = [];
+        $limit = $this->limit ?? '';
+        $fieldId = StringHelper::toKebabCase($form->handle) . '-' . StringHelper::toKebabCase($this->handle);
+
+        if ($limit) {
+            $src = Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/fields/text-limit.js', true);
+
+            $settings = [
+                'formId' => $form->id,
+                'fieldId' => $fieldId,
+            ];
+
+            $modules[] = [
+                'src' => $src,
+                'onload' => 'new FormieTextLimit(' . Json::encode($settings) . ');',
+            ];
+        }
+
+        if ($this->useRichText) {
+            $src = Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/fields/rich-text.js', true);
+
+            $settings = [
+                'formId' => $form->id,
+                'fieldId' => $fieldId,
+                'containerId' => 'fui-rich-text-' . $form->id . '-' . $this->id,
+                'buttons' => $this->richTextButtons,
+            ];
+
+            $modules[] = [
+                'src' => $src,
+                'onload' => 'new FormieRichText(' . Json::encode($settings) . ');',
+            ];
+        }
+
+        return $modules;
     }
 
     /**

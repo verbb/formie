@@ -490,6 +490,14 @@ trait FormFieldTrait
     /**
      * @inheritDoc
      */
+    public function getFrontEndJs(Form $form)
+    {
+        return null;
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function getEmailHtml(Submission $submission, $value, array $options = null)
     {
         $view = Craft::$app->getView();

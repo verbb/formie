@@ -5,6 +5,7 @@ use verbb\formie\base\SubfieldInterface;
 use verbb\formie\base\SubfieldTrait;
 use verbb\formie\base\FormField;
 use verbb\formie\Formie;
+use verbb\formie\elements\Form;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\Address as AddressModel;
 
@@ -417,6 +418,24 @@ class Address extends FormField implements SubfieldInterface
         }
 
         return $integration->getFrontEndHtml($this, $options);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getFrontEndJs(Form $form)
+    {
+        if (!$this->enableAutocomplete || !$this->autocompleteIntegration) {
+            return null;
+        }
+
+        $integration = Formie::$plugin->getIntegrations()->getIntegrationByHandle($this->autocompleteIntegration);
+
+        if (!$integration) {
+            return null;
+        }
+
+        return $integration->getFrontEndJs($form, $this);
     }
 
     /**

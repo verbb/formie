@@ -36,10 +36,3 @@
 
     {% include '_legend' with { position: 'below' } %}
 </fieldset>
-
-{% set jsFile = view.getAssetManager().getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/fields/checkbox-radio.js', true) %}
-{% do view.registerJsFile(jsFile) %}
-
-{% js %}
-    new FormieCheckboxRadio({{ { formId: form.id } | json_encode | raw }});
-{% endjs %}

@@ -5,7 +5,6 @@ use verbb\formie\base\AddressProvider;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyAddressProviderHtmlEvent;
-use verbb\formie\web\assets\addressproviders\AddressFinderAsset;
 
 use Craft;
 use craft\helpers\Json;
@@ -25,10 +24,21 @@ class AddressFinder extends AddressProvider
     // =========================================================================
 
     public $handle = 'addressFinder';
+    private $uniqueId;
 
 
     // Public Methods
     // =========================================================================
+
+    /**
+     * @inheritDoc
+     */
+    public function init()
+    {
+        parent::init();
+
+        $this->uniqueId = uniqid(self::AF_INPUT_NAME, false);
+    }
 
     /**
      * @inheritDoc
@@ -72,30 +82,16 @@ class AddressFinder extends AddressProvider
     {
         $view = Craft::$app->getView();
         $oldTemplatesPath = $view->getTemplatesPath();
-        $view->registerAssetBundle(AddressFinderAsset::class);
-
-        $uniqueId = uniqid(self::AF_INPUT_NAME, false);
 
         if (!$this->hasValidSettings()) {
             return '';
         }
 
-        $settings = Json::encode([
-            'apiKey' => $this->settings['apiKey'],
-            'countryCode' => $this->settings['countryCode'],
-            'container' => $uniqueId,
-            'widgetOptions' => $this->_getOptions(),
-            'fieldContainer' => 'data-address-id-' . $field->id,
-            'formId' => 'formie-form-' . $options['formId'] ?? '',
-        ]);
-
-        $view->registerJs('new FormieAddressFinder(' . $settings . ');', View::POS_END);
-
         $view->setTemplateMode($view::TEMPLATE_MODE_CP);
 
         $html = Craft::$app->getView()->renderTemplate('formie/integrations/address-providers/address-finder/_input', [
             'field' => $field,
-            'data' => $uniqueId,
+            'data' => $this->uniqueId,
             'options' => $options,
         ]);
 
@@ -108,6 +104,33 @@ class AddressFinder extends AddressProvider
         $this->trigger(self::EVENT_MODIFY_ADDRESS_PROVIDER_HTML, $event);
 
         return $event->html;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getFrontEndJs(Form $form, $field = null)
+    {
+        if (!$this->hasValidSettings()) {
+            return null;
+        }
+        
+        $settings = [
+            'apiKey' => $this->settings['apiKey'],
+            'countryCode' => $this->settings['countryCode'],
+            'container' => $this->uniqueId,
+            'widgetOptions' => $this->_getOptions(),
+            'fieldContainer' => 'data-address-id-' . $field->id,
+            'formId' => 'formie-form-' . $form->id,
+        ];
+
+        $src = Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/addressproviders/dist/js/address-finder.js', true);
+        $onload = 'new FormieAddressFinder(' . Json::encode($settings) . ');';
+
+        return [
+            'src' => $src,
+            'onload' => $onload,
+        ];
     }
 
     /**

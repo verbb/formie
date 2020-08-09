@@ -4,6 +4,7 @@ namespace verbb\formie\fields\formfields;
 use verbb\formie\base\FormField;
 use verbb\formie\base\NestedFieldInterface;
 use verbb\formie\base\NestedFieldTrait;
+use verbb\formie\elements\Form;
 use verbb\formie\elements\db\NestedFieldRowQuery;
 use verbb\formie\elements\NestedFieldRow;
 use verbb\formie\helpers\SchemaHelper;
@@ -184,6 +185,20 @@ class Repeater extends FormField implements NestedFieldInterface, EagerLoadingFi
         return Craft::$app->getView()->renderTemplate('formie/_formfields/repeater/preview', [
             'field' => $this
         ]);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getFrontEndJs(Form $form)
+    {
+        $src = Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/fields/repeater.js', true);
+        $onload = 'new FormieRepeater(' . Json::encode(['formId' => $form->id]) . ');';
+
+        return [
+            'src' => $src,
+            'onload' => $onload,
+        ];
     }
 
     /**

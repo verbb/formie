@@ -1,12 +1,9 @@
 <?php
 namespace verbb\formie\integrations\captchas;
 
+use verbb\formie\base\Captcha;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
-use verbb\formie\base\Captcha;
-use verbb\formie\web\assets\captchas\RecaptchaV2CheckboxAsset;
-use verbb\formie\web\assets\captchas\RecaptchaV2InvisibleAsset;
-use verbb\formie\web\assets\captchas\RecaptchaV3Asset;
 
 use Craft;
 use craft\helpers\ArrayHelper;
@@ -85,7 +82,32 @@ class Recaptcha extends Captcha
     {
         $type = $this->settings['type'] ?? 'v3';
 
-        $settings = Json::encode([
+        if ($type === self::RECAPTCHA_TYPE_V3) {
+            // We don't technically need this for V3, but we use it to control whether we should validate
+            // based on the specific page they're on, and if the user wants a captcha on each page.
+            // We're doing this for V2, so we might as well copy that.
+            return '<div class="formie-recaptcha-placeholder"></div>';
+        }
+
+        if ($type === self::RECAPTCHA_TYPE_V2_CHECKBOX) {
+            return '<div class="formie-recaptcha-placeholder"></div>';
+        }
+
+        if ($type === self::RECAPTCHA_TYPE_V2_INVISIBLE) {
+            return '<div class="formie-recaptcha-placeholder"></div>';
+        }
+
+        return '';
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getFrontEndJs(Form $form, $page = null)
+    {
+        $type = $this->settings['type'] ?? 'v3';
+
+        $settings = [
             'siteKey' => $this->settings['siteKey'],
             'formId' => 'formie-form-' . $form->id,
             'theme' => $this->settings['theme'] ?? 'light',
@@ -94,35 +116,39 @@ class Recaptcha extends Captcha
             'language' => $this->_getMatchedLanguageId() ?? 'en',
             'submitMethod' => $form->settings->submitMethod ?? 'page-reload',
             'hasMultiplePages' => $form->hasMultiplePages() ?? false,
-        ]);
-
-        $view = Craft::$app->getView();
+        ];
 
         if ($type === self::RECAPTCHA_TYPE_V3) {
-            $view->registerAssetBundle(RecaptchaV3Asset::class);
-            $view->registerJs('new FormieRecaptchaV3(' . $settings . ');', View::POS_END);
+            $src = Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/captchas/dist/js/recaptcha-v3.js', true);
+            $onload = 'new FormieRecaptchaV3(' . Json::encode($settings) . ');';
 
-            // We don't technically need this for V3, but we use it to control whether we should validate
-            // based on the specific page they're on, and if the user wants a captcha on each page.
-            // We're doing this for V2, so we might as well copy that.
-            return '<div class="formie-recaptcha-placeholder"></div>';
+            return [
+                'src' => $src,
+                'onload' => $onload,
+            ];
         }
 
         if ($type === self::RECAPTCHA_TYPE_V2_CHECKBOX) {
-            $view->registerAssetBundle(RecaptchaV2CheckboxAsset::class);
-            $view->registerJs('new FormieRecaptchaV2Checkbox(' . $settings . ');', View::POS_END);
+            $src = Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/captchas/dist/js/recaptcha-v2-checkbox.js', true);
+            $onload = 'new FormieRecaptchaV2Checkbox(' . Json::encode($settings) . ');';
 
-            return '<div class="formie-recaptcha-placeholder"></div>';
+            return [
+                'src' => $src,
+                'onload' => $onload,
+            ];
         }
 
         if ($type === self::RECAPTCHA_TYPE_V2_INVISIBLE) {
-            $view->registerAssetBundle(RecaptchaV2InvisibleAsset::class);
-            $view->registerJs('new FormieRecaptchaV2Invisible(' . $settings . ');', View::POS_END);
+            $src = Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/captchas/dist/js/recaptcha-v2-invisible.js', true);
+            $onload = 'new FormieRecaptchaV2Invisible(' . Json::encode($settings) . ');';
 
-            return '<div class="formie-recaptcha-placeholder"></div>';
+            return [
+                'src' => $src,
+                'onload' => $onload,
+            ];
         }
 
-        return '';
+        return null;
     }
 
     /**

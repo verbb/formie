@@ -1,19 +1,21 @@
 <?php
 namespace verbb\formie\fields\formfields;
 
+use verbb\formie\base\FormFieldInterface;
+use verbb\formie\base\FormFieldTrait;
+use verbb\formie\elements\Form;
+use verbb\formie\helpers\SchemaHelper;
+
 use Craft;
 use craft\base\Element;
+use craft\base\ElementInterface;
 use craft\fields\data\ColorData;
 use craft\fields\Table as CraftTable;
-use craft\base\ElementInterface;
+use craft\helpers\Json;
 use craft\helpers\ArrayHelper;
 use craft\validators\ArrayValidator;
 use craft\validators\ColorValidator;
 use craft\validators\UrlValidator;
-
-use verbb\formie\helpers\SchemaHelper;
-use verbb\formie\base\FormFieldInterface;
-use verbb\formie\base\FormFieldTrait;
 
 use yii\db\Schema;
 use yii\validators\EmailValidator;
@@ -192,6 +194,20 @@ class Table extends CraftTable implements FormFieldInterface
         return Craft::$app->getView()->renderTemplate('formie/_formfields/table/preview', [
             'field' => $this
         ]);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getFrontEndJs(Form $form)
+    {
+        $src = Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/fields/table.js', true);
+        $onload = 'new FormieTable(' . Json::encode(['formId' => $form->id]) . ');';
+
+        return [
+            'src' => $src,
+            'onload' => $onload,
+        ];
     }
 
     /**

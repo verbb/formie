@@ -47,10 +47,3 @@
         } %}
     {% endnamespace %}
 </script>
-
-{% set jsFile = view.getAssetManager().getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/fields/repeater.js', true) %}
-{% do view.registerJsFile(jsFile) %}
-
-{% js %}
-    new FormieRepeater({{ { formId: form.id } | json_encode | raw }});
-{% endjs %}

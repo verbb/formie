@@ -20,10 +20,3 @@
 } | merge(field.getInputAttributes()) %}
 
 <input {{ attr(attributes) }} />
-
-{% set jsFile = view.getAssetManager().getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/fields/file-upload.js', true) %}
-{% do view.registerJsFile(jsFile) %}
-
-{% js %}
-    new FormieFileUpload({{ form.settings | merge({ formId: form.id }) | json_encode | raw }});
-{% endjs %}

@@ -1,4 +1,4 @@
-class FormieFileUpload {
+export class FormieFileUpload {
     constructor(settings = {}) {
         this.formId = '#formie-form-' + settings.formId;
         this.$form = document.querySelector(this.formId);
