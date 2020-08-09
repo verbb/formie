@@ -405,4 +405,45 @@ $('#formie-form-1').on('registerFormieValidation', function(e) {
 
 
 ## JavaScript for Custom Fields
+If your custom field, or integration requires JavaScript on the front-end, you'll need to provide it in a specific way. This is so Formie can correctly place and initialise it, for the variety of different scenarios and use-cases required.
 
+For example, let's look at the Repeater Field, which has the following function:
+
+```php
+public function getFrontEndJs(Form $form)
+{
+    $src = Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/fields/repeater.js', true);
+    $onload = 'new FormieRepeater(' . Json::encode(['formId' => $form->id]) . ');';
+
+    return [
+        'src' => $src,
+        'onload' => $onload,
+    ];
+}
+```
+
+The `getFrontEndJs()` should return an array. The `src` key should provide the full URL to the JS asset containing the main code for your field - if required. The `onload` key should provide JavaScript code that is executed once the JS file has been loaded.
+
+The above shows the `repeater.js` field needs to be loaded. This contains a `FormieRepeater` JS class that contains all functionality required to make the Repeater field work. We also need to provide a means to actually initialise this class, through the `onload function`. We're also passing some options to the constructor of this JS class.
+
+This content is then lazy-loaded once the `formie.js` factory has loaded, and the form is initialised.
+
+Similarly, for an integration like a Captcha, it looks much the same:
+
+```php
+public function getFrontEndJs(Form $form)
+{
+    $settings = [
+        'siteKey' => $this->settings['siteKey'],
+        ...
+    ];
+    
+    $src = Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/captchas/dist/js/recaptcha-v3.js', true);
+    $onload = 'new FormieRecaptchaV3(' . Json::encode($settings) . ');';
+
+    return [
+        'src' => $src,
+        'onload' => $onload,
+    ];
+}
+```

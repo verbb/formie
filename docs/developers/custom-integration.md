@@ -36,6 +36,8 @@ Method | Description
 `getIconUrl()` | Returns the icon to show in the control panel, if applicable.
 `getDescription()` | Returns the description for the captcha.
 `getFormSettingsHtml()` | Returns the HTML for the settings for this captcha, as shown when editing a form.
+`getFrontEndHtml()` | Returns the HTML for the captcha, as shown on the front-end.
+`getFormSettingsJs()` | Returns the JS for the captcha, as shown on the front-end.
 `getSettingsHtml()` | Returns the HTML for the settings for this captcha, as shown in Formie's settings.
 `validateSubmission()` | Returns true/false on whether a submission is valid.
 
@@ -75,6 +77,17 @@ class ExampleCaptcha extends Captcha
         return '<input type="hidden" name="example-captcha" value="Testing captcha" />';
     }
 
+    public function getFrontEndJs(Form $form, $page = null): string
+    {
+        $src = Craft::$app->getAssetManager()->getPublishedUrl('path-to-js.js', true);
+        $onload = 'new MyCustomFunction();';
+
+        return [
+            'src' => $src,
+            'onload' => $onload,
+        ];
+    }
+
     public function validateSubmission(Submission $submission): bool
     {
         // Check the provided value
@@ -107,6 +120,7 @@ Method | Description
 `getIconUrl()` | Returns the icon to show in the control panel, if applicable.
 `getDescription()` | Returns the description for the integration.
 `getFrontEndHtml()` | Returns the HTML for the front-end field.
+`getFormSettingsJs()` | Returns the JS for the front-end field.
 `getSettingsHtml()` | Returns the HTML for the settings for this integration, as shown in Formie's settings.
 
 ### Example
@@ -143,6 +157,17 @@ class ExampleAddressProvider extends AddressProvider
     public function getFrontEndHtml($field, $options): string
     {
         return '<input type="hidden" />';
+    }
+
+    public function getFrontEndJs(Form $form, $page = null): string
+    {
+        $src = Craft::$app->getAssetManager()->getPublishedUrl('path-to-js.js', true);
+        $onload = 'new MyCustomFunction();';
+
+        return [
+            'src' => $src,
+            'onload' => $onload,
+        ];
     }
 }
 ```
