@@ -10,7 +10,7 @@
 - Form templates can now control where CSS and JS is outputted on the page.
 - Added `craft.formie.renderFormCss()` to manually render a form's CSS in your templates.
 - Added `craft.formie.renderFormJs()` to manually render a form's JS in your templates.
-- Added JavaScript API's and [documentation](https://verbb.io/craft-plugins/formie/docs/developers/advanced-js). Better handling with Vue.js/React.js and more.
+- Added JavaScript API's and [documentation](https://verbb.io/craft-plugins/formie/docs/developers/javascript-api). Better handling with Vue.js/React.js and more.
 - Allow Formie's JS to be imported into JavaScript modules.
 - Improve JavaScript loading performance, by lazy-loading JS.
 - Improve JavaScript by loading a single file - `formie.js`.
