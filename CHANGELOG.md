@@ -26,7 +26,7 @@
 - Fixed multiple form error messages appearing in some cases.
 - Fixed phone number field not validating server-side.
 - Fixed form JS not initialising when using Vue.js as an async module.
-- Fixed incorrect columnWidth GraphQL type.
+- Fixed incorrect `columnWidth` GraphQL type.
 - Fixed Form and Submission fields for GraphQL queries.
 
 ## 1.1.0 - 2020-08-03
