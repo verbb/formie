@@ -1,5 +1,34 @@
 # Changelog
 
+## 1.1.1 - 2020-08-10
+
+### Added
+- Added `outputJsBase` option for form templates.
+- Added `outputJsTheme` option for form templates.
+- Added `outputCssLocation` option for form templates.
+- Added `outputJsLocation` option for form templates.
+- Form templates can now control where CSS and JS is outputted on the page.
+- Added `craft.formie.renderFormCss()` to manually render a form's CSS in your templates.
+- Added `craft.formie.renderFormJs()` to manually render a form's JS in your templates.
+- Added JavaScript API's and [documentation](https://verbb.io/craft-plugins/formie/docs/developers/advanced-js). Better handling with Vue.js/React.js and more.
+- Allow Formie's JS to be imported into JavaScript modules.
+- Improve JavaScript loading performance, by lazy-loading JS.
+- Improve JavaScript by loading a single file - `formie.js`.
+
+### Changed
+- Update form template select to show correct loading indicator.
+
+### Fixed
+- Fixed reCAPTCHA JS not loading in some circumstances.
+- Slightly improve email testing error message.
+- Fixed date field missing subfield classes and hooks.
+- Fixed error when “Output JavaScript” is set to false for a custom form template.
+- Fixed multiple form error messages appearing in some cases.
+- Fixed phone number field not validating server-side.
+- Fixed form JS not initialising when using Vue.js as an async module.
+- Fixed incorrect columnWidth GraphQL type.
+- Fixed Form and Submission fields for GraphQL queries.
+
 ## 1.1.0 - 2020-08-03
 
 ### Added
