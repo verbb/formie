@@ -146,6 +146,7 @@ Craft.Formie = Garnish.Base.extend({
 
             data() {
                 return {
+                    formTemplateLoading: false,
                     formHandles: settings.formHandles,
                 };
             },
@@ -412,7 +413,7 @@ Craft.Formie = Garnish.Base.extend({
                 },
 
                 reloadTabs() {
-                    this.$events.$emit('formie:save-form-loading', true);
+                    this.formTemplateLoading = true;
 
                     const { formElem } = this.$refs;
 
@@ -433,10 +434,11 @@ Craft.Formie = Garnish.Base.extend({
                         Craft.appendFootHtml(data.bodyHtml);
                         Craft.cp.initTabs();
 
-                        this.$events.$emit('formie:save-form-loading', false);
+                        this.formTemplateLoading = false;
                     }).catch(e => {
                         console.error(e);
-                        this.$events.$emit('formie:save-form-loading', false);
+
+                        this.formTemplateLoading = false;
                     });
                 },
 

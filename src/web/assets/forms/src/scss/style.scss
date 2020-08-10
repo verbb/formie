@@ -58,3 +58,16 @@
     border-radius: 3px;
     border: 1px solid #cbd6e2;
 }
+
+.fui-form-template-spinner {
+    margin-top: -18px;
+    display: flex;
+    align-items: center;
+    margin-bottom: 14px;
+    font-weight: 600;
+    color: #9ba5b1;
+
+    .spinner {
+        margin-right: 10px;
+    }
+}

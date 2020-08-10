@@ -73,4 +73,10 @@
     },
 }) }}
 
+<div v-cloak :class="{ 'hidden': !formTemplateLoading }">
+    <div class="fui-form-template-spinner">
+        <span class="spinner"></span> {{ 'Loading template' | t('formie') }}
+    </div>
+</div>
+
 {% include 'formie/forms/_panes/_positions' %}
