@@ -2,7 +2,7 @@
 
 The default [Form Template](docs:template-guides/form-templates) used by Formie uses custom JS when rendering the form. This is to provide out-of-the-box functionality for forms, so you don't need to worry about things like validation, multi-page setup and Ajax submissions.
 
-The default JavaScript is split into two files, and can be disabled in your [Form Templates](docs:template-guides/form-templates), should you wish to implement your own JavaScript for functionality. Both files are bundled in a single JS file. The gzipped size of this file is roughly 20kb, and comes with all required polyfills to support [90% browser coverage](https://browserl.ist/?q=defaults).
+The default JavaScript is split into two files, and can be disabled in your [Form Templates](docs:template-guides/form-templates) should you wish to implement your own JavaScript for functionality. Both files are bundled in a single JS file. The gzipped size of this file is roughly 20kb, and comes with all required polyfills to support [90% browser coverage](https://browserl.ist/?q=defaults).
 
 It is also loaded using `defer` to ensure loading doesn't block the page render.
 
