@@ -139,10 +139,7 @@ class Variables
             return '';
         }
 
-        // Parse aliases
-        $value = Craft::getAlias($value);
-
-        // Parse env vars
+        // Parse aliases and env variables
         $value = Craft::parseEnv($value);
 
         // Check to see if we have these already calculated for the request
