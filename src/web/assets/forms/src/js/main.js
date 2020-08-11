@@ -200,7 +200,7 @@ Craft.Formie = Garnish.Base.extend({
                 isEmpty(object) {
                     return isEmpty(object);
                 },
-                
+
                 getFormData(options = {}) {
                     const { formElem } = this.$refs;
 
@@ -257,7 +257,10 @@ Craft.Formie = Garnish.Base.extend({
 
                     $fieldsTab.classList.remove('error');
                     $notificationsTab.classList.remove('error');
-                    $integrationsTab.classList.remove('error');
+
+                    if ($integrationsTab) {
+                        $integrationsTab.classList.remove('error');
+                    }
 
                     const { formBuilder, notificationBuilder } = this.$refs;
 
@@ -379,8 +382,8 @@ Craft.Formie = Garnish.Base.extend({
                         if (data.config.settings.integrations) {
                             Object.keys(data.config.settings.integrations).forEach(handle => {
                                 let integration = data.config.settings.integrations[handle];
-                            
-                                if (integration.errors) {
+
+                                if ($integrationsTab && integration.errors) {
                                     $integrationsTab.classList.add('error');
                                 }
                             });
