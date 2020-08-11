@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.1.1.1 - 2020-08-11
+
+### Fixed
+- Fixed stencils not saving.
+
 ## 1.1.1 - 2020-08-10
 
 ### Added
