@@ -100,13 +100,16 @@ class Rendering extends Component
         $outputCssLocation = $form->getFrontEndTemplateLocation('outputCssLocation');
         $outputJsLocation = $form->getFrontEndTemplateLocation('outputJsLocation');
 
-        if ($outputCssLocation !== FormTemplate::MANUAL) {
+        $outputCss = $form->getFrontEndTemplateOption('outputCssLayout');
+        $outputJs = $form->getFrontEndTemplateOption('outputJsBase');
+
+        if ($outputCssLocation !== FormTemplate::MANUAL && $outputCss) {
             $css = $this->renderFormAssets($form, self::RENDER_TYPE_CSS);
 
             $output = TemplateHelper::raw($output . $css);
         }
 
-        if ($outputJsLocation !== FormTemplate::MANUAL) {
+        if ($outputJsLocation !== FormTemplate::MANUAL && $outputJs) {
             $js = $this->renderFormAssets($form, self::RENDER_TYPE_JS);
 
             $output = TemplateHelper::raw($output . $js);
