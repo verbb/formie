@@ -33,11 +33,13 @@
         } %}
 
         {# Disable the button straight away if we're making it static #}
-        {% if field.minRows == field.maxRows %}
-            {% set buttonAttributes = buttonAttributes | merge({
-                class: buttonAttributes.class ~ ' fui-disabled',
-                disabled: true,
-            }) %}
+        {% if field.minRows != '' and field.maxRows != '' %}
+            {% if field.minRows == field.maxRows %}
+                {% set buttonAttributes = buttonAttributes | merge({
+                    class: buttonAttributes.class ~ ' fui-disabled',
+                    disabled: true,
+                }) %}
+            {% endif %}
         {% endif %}
 
         <button {{ attr(buttonAttributes) }}>
