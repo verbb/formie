@@ -6,6 +6,7 @@ use craft\base\Plugin;
 use craft\events\FieldLayoutEvent;
 use craft\events\RebuildConfigEvent;
 use craft\events\RegisterComponentTypesEvent;
+use craft\events\RegisterElementExportersEvent;
 use craft\events\RegisterEmailMessagesEvent;
 use craft\events\RegisterGqlQueriesEvent;
 use craft\events\RegisterGqlTypesEvent;
@@ -27,6 +28,7 @@ use verbb\formie\base\PluginTrait;
 use verbb\formie\base\Routes;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
+use verbb\formie\elements\exporters\SubmissionExport;
 use verbb\formie\fields\Forms;
 use verbb\formie\fields\Submissions;
 use verbb\formie\gql\interfaces\FieldInterface;
@@ -85,6 +87,7 @@ class Formie extends Plugin
         $this->_registerGraphQl();
         $this->_registerProjectConfigEventListeners();
         $this->_registerEmailMessages();
+        $this->_registerElementExports();
 
         // Add default captcha integrations
         Craft::$app->view->hook('formie.buttons.before', static function(array &$context) {
@@ -295,6 +298,26 @@ class Formie extends Plugin
                     'body' => Craft::t('formie', 'formie_failed_notification_body'),
                 ],
             ]);
+        });
+    }
+
+    private function _registerElementExports()
+    {
+        Event::on(Submission::class, Submission::EVENT_REGISTER_EXPORTERS, function(RegisterElementExportersEvent $e) {
+            // Remove defaults, but allow third-party ones
+            foreach ($e->exporters as $key => $exporter) {
+                if ($exporter === \craft\elements\exporters\Raw::class) {
+                    unset($e->exporters[$key]);
+                }
+
+                if ($exporter === \craft\elements\exporters\Expanded::class) {
+                    unset($e->exporters[$key]);
+                }
+            }
+
+            $e->exporters = array_values($e->exporters);
+
+            $e->exporters[] = SubmissionExport::class;
         });
     }
 }
