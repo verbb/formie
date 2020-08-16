@@ -6,7 +6,7 @@ The `renderField()` reqiures both a [Form](docs:developers/form) object and a [F
 ```twig
 {% set form = craft.formie.forms({ handle: 'contactForm' }).one() %}
 
-<form id="formie-form-{{ form.id }}" method="post" data-config="{{ form.getFrontEndJsVariables | json_encode }}">
+<form id="{{ form.formId }}" method="post" data-config="{{ form.configJson }}">
     {{ csrfInput() }}
     {{ actionInput('formie/submissions/submit') }}
     {{ hiddenInput('handle', form.handle) }}
@@ -24,7 +24,7 @@ Let's run through a few things of note:
 - Some additional Twig content in the `<form>` element, such as `csrfInput()`, `actionInput()`. This is to ensure Formie can process the content of the form and create a submission from it.
 
 :::tip
-Make sure to use `formie-form-{id}` in your `id` attribute, and `data-config`. These are the only two things Formie needs to hook us the JavaScript used to handle forms, and are required if you're writing the `<form>` element in your templates.
+Make sure to use `{{ form.formId }}` for the `id` attribute, and `{{ form.configJson }}` for the `data-config` attribute. These are the only two things Formie needs to hook us the JavaScript used to handle forms, and are required if you're writing the `<form>` element in your templates.
 :::
 
 You can also use the handle of the field, for direct-access to the field you require.
@@ -32,7 +32,7 @@ You can also use the handle of the field, for direct-access to the field you req
 ```twig
 {% set form = craft.formie.forms({ handle: 'contactForm' }).one() %}
 
-<form id="formie-form-{{ form.id }}" method="post" data-config="{{ form.getFrontEndJsVariables | json_encode }}">
+<form id="{{ form.formId }}" method="post" data-config="{{ form.configJson }}">
     {{ csrfInput() }}
     {{ actionInput('formie/submissions/submit') }}
     {{ hiddenInput('handle', form.handle) }}
@@ -62,7 +62,7 @@ You can also render fields in the layout you build in the form builder, with pag
 ```twig
 {% set form = craft.formie.forms({ handle: 'contactForm' }).one() %}
 
-<form id="formie-form-{{ form.id }}" method="post" data-config="{{ form.getFrontEndJsVariables | json_encode }}">
+<form id="{{ form.formId }}" method="post" data-config="{{ form.configJson }}">
     {{ csrfInput() }}
     {{ actionInput('formie/submissions/submit') }}
     {{ hiddenInput('handle', form.handle) }}
