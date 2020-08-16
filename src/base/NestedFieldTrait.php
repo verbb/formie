@@ -437,6 +437,22 @@ trait NestedFieldTrait
     }
 
     /**
+     * @inheritDoc
+     */
+    public function serializeValueForExport($value, ElementInterface $element = null)
+    {
+        $values = [];
+
+        foreach ($value->all() as $rowId => $row) {
+            foreach ($row->getSerializedFieldValues() as $fieldHandle => $field) {
+                $values[$this->handle . '_' . $fieldHandle][$rowId] = $field;
+            }
+        }
+
+        return $values;
+    }
+
+    /**
      * @inheritdoc
      */
     public function modifyElementsQuery(ElementQueryInterface $query, $value)

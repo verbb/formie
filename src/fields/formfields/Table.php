@@ -130,6 +130,22 @@ class Table extends CraftTable implements FormFieldInterface
     /**
      * @inheritDoc
      */
+    public function serializeValueForExport($value, ElementInterface $element = null)
+    {
+        $values = [];
+
+        foreach ($value as $rowId => $row) {
+            foreach ($this->columns as $colId => $col) {
+                $values[$this->handle . '_' . $col['handle']][$rowId] = $row[$col['handle']] ?? null;
+            }
+        }
+
+        return $values;
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function getInputHtml($value, ElementInterface $element = null): string
     {
         /** @var Element $element */

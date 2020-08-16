@@ -188,6 +188,22 @@ class Address extends FormField implements SubfieldInterface
     /**
      * @inheritDoc
      */
+    public function serializeValueForExport($value, ElementInterface $element = null)
+    {
+        $values = [];
+
+        foreach ($this->getSubfieldOptions() as $subField) {
+            if ($this->{$subField['handle'] . 'Enabled'}) {
+                $values[$this->handle . '_' . $subField['handle']] = $value[$subField['handle']] ?? '';
+            }
+        }
+
+        return $values;
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function getExtraBaseFieldConfig(): array
     {
         return [
