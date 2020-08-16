@@ -34,7 +34,7 @@
             'loading-indicator': form.settings.loadingIndicator ?: false,
             'loading-text': form.settings.loadingIndicatorText ?: false,
             'redirect': form.getRedirectUrl() ?: false,
-            'config': jsVariables,
+            'config': form.getFrontEndJsVariables() | json_encode,
         },
     } %}
 
