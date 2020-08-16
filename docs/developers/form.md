@@ -15,6 +15,8 @@ Attribute | Description
 `submitActionEntryId` | If chosen to have a entry be the redirect action for a form, this will be the [Entry](https://docs.craftcms.com/api/v3/craft-elements-entry.html) ID.
 `defaultStatus` | The default status for the submission made on this form.
 `defaultStatusId` | The default status ID for the submission made on this form.
+`formId` | This will output the ID for a form, in the format `formie-form-{id}`. This is required for JavaScript-enabled forms.
+`configJson` | This will output encoded JSON to be output in the `<form>` element. This is required for JavaScript-enabled forms.
 
 ## Methods
 
