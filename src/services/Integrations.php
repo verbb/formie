@@ -16,6 +16,23 @@ use verbb\formie\integrations\captchas\Honeypot;
 use verbb\formie\integrations\captchas\Javascript;
 use verbb\formie\integrations\captchas\Recaptcha;
 use verbb\formie\integrations\elements\Entry;
+use verbb\formie\integrations\emailmarketing\ActiveCampaign;
+use verbb\formie\integrations\emailmarketing\Autopilot;
+use verbb\formie\integrations\emailmarketing\AWeber;
+use verbb\formie\integrations\emailmarketing\Benchmark;
+use verbb\formie\integrations\emailmarketing\CampaignMonitor;
+use verbb\formie\integrations\emailmarketing\ConstantContact;
+use verbb\formie\integrations\emailmarketing\ConvertKit;
+use verbb\formie\integrations\emailmarketing\Drip;
+use verbb\formie\integrations\emailmarketing\GetResponse;
+use verbb\formie\integrations\emailmarketing\iContact;
+use verbb\formie\integrations\emailmarketing\Mailchimp;
+use verbb\formie\integrations\emailmarketing\MailerLite;
+use verbb\formie\integrations\emailmarketing\Moosend;
+use verbb\formie\integrations\emailmarketing\Omnisend;
+use verbb\formie\integrations\emailmarketing\Ontraport;
+use verbb\formie\integrations\emailmarketing\Sender;
+use verbb\formie\integrations\emailmarketing\Sendinblue;
 
 use Craft;
 use craft\helpers\ArrayHelper;
@@ -72,10 +89,31 @@ class Integrations extends Component
             Entry::class,
         ];
 
+        $emailMarketing = [
+            ActiveCampaign::class,
+            Autopilot::class,
+            AWeber::class,
+            Benchmark::class,
+            CampaignMonitor::class,
+            ConstantContact::class,
+            ConvertKit::class,
+            Drip::class,
+            GetResponse::class,
+            iContact::class,
+            Mailchimp::class,
+            MailerLite::class,
+            Moosend::class,
+            Omnisend::class,
+            Ontraport::class,
+            Sender::class,
+            Sendinblue::class,
+        ];
+
         $event = new RegisterIntegrationsEvent([
             'addressProviders' => $addressProviders,
             'captchas' => $captchas,
             'elements' => $elements,
+            'emailMarketing' => $emailMarketing,
         ]);
 
         $this->trigger(self::EVENT_REGISTER_INTEGRATIONS, $event);
@@ -84,6 +122,7 @@ class Integrations extends Component
             'addressProvider' => $event->addressProviders,
             'captcha' => $event->captchas,
             'element' => $event->elements,
+            'emailMarketing' => $event->emailMarketing,
         ];
     }
 
@@ -98,9 +137,7 @@ class Integrations extends Component
 
         $projectConfig = Craft::$app->getProjectConfig();
 
-        if ($this->_integrations !== null) {
-            return $this->_integrations;
-        }
+        $integrations = [];
 
         foreach ($registeredIntegrations as $type => $registeredIntegration) {
             foreach ($registeredIntegration as $integrationClass) {
@@ -113,13 +150,13 @@ class Integrations extends Component
                 $integration->enabled = $data['enabled'] ?? false;
                 $integration->settings = $data['settings'] ?? [];
 
-                $this->_integrations[] = $integration;
+                $integrations[] = $integration;
             }
         }
 
         // Fire a 'modifyIntegrations' event
         $event = new ModifyIntegrationsEvent([
-            'integrations' => $this->_integrations,
+            'integrations' => $integrations,
         ]);
         $this->trigger(self::EVENT_MODIFY_INTEGRATIONS, $event);
 
@@ -266,6 +303,26 @@ class Integrations extends Component
     }
 
     /**
+     * Returns all email marketing integrations.
+     *
+     * @return IntegrationInterface[]
+     */
+    public function getAllEmailMarketing(): array
+    {
+        return ArrayHelper::where($this->getAllIntegrations(), 'type', 'emailMarketing', false);
+    }
+
+    /**
+     * Returns all enabled email marketing integrations.
+     *
+     * @return IntegrationInterface[]
+     */
+    public function getAllEnabledEmailMarketing(): array
+    {
+        return ArrayHelper::where($this->getAllEnabledIntegrations(), 'type', 'emailMarketing', false);
+    }
+
+    /**
      * Returns all enabled captchas for the provided form.
      *
      * @param Form $form
@@ -347,7 +404,16 @@ class Integrations extends Component
         foreach ($integrations as $integration) {
             // Add all global integrations
             if ($integration->enabled) {
-                $enabledIntegrations[$integration->handle] = $integration;
+                // Find the form settings, and use that firstly, then merge in settings at the plugin-level
+                foreach ($formIntegrations as $formIntegration) {
+                    if ($formIntegration->handle == $integration->handle) {
+                        $settings = array_merge($integration->settings, $formIntegration->settings);
+
+                        // Combine all attributes and settings at form-level and plugin-level
+                        $enabledIntegrations[$integration->handle] = $formIntegration;
+                        $enabledIntegrations[$integration->handle]->settings = $settings;
+                    }
+                }
             }
 
             // Then check if there are any form integration settings, which override
@@ -382,6 +448,11 @@ class Integrations extends Component
             $this->trigger(self::EVENT_BEFORE_SAVE_INTEGRATION, new IntegrationEvent([
                 'integration' => $integration,
             ]));
+        }
+
+        // Allow integrations to perform actions before their settings are saved
+        if (!$integration->beforeSave()) {
+            return false;
         }
 
         $configData = [

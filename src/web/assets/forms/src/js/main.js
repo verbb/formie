@@ -30,6 +30,7 @@ import NotificationsBuilder from './components/NotificationsBuilder.vue';
 import NotificationPreview from './components/NotificationPreview.vue';
 import NotificationTest from './components/NotificationTest.vue';
 import ElementMapping from './components/ElementMapping.vue';
+import ListSelect from './components/ListSelect.vue';
 
 // Globally register components
 Vue.component('FieldRepeater', FieldRepeater);
@@ -38,6 +39,7 @@ Vue.component('DatePreview', DatePreview);
 Vue.component('NotificationPreview', NotificationPreview);
 Vue.component('NotificationTest', NotificationTest);
 Vue.component('ElementMapping', ElementMapping);
+Vue.component('ListSelect', ListSelect);
 
 //
 // Start Vue Apps

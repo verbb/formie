@@ -2,6 +2,7 @@
 namespace verbb\formie\jobs;
 
 use verbb\formie\Formie;
+use verbb\formie\base\Element;
 
 use Craft;
 use craft\queue\BaseJob;
@@ -11,15 +12,8 @@ class TriggerIntegration extends BaseJob
     // Public Properties
     // =========================================================================
 
-    /**
-     * @var int
-     */
     public $submissionId;
-
-    /**
-     * @var int
-     */
-    public $element;
+    public $integration;
 
 
     // Public Methods
@@ -30,7 +24,7 @@ class TriggerIntegration extends BaseJob
      */
     public function getDescription(): string
     {
-        return Craft::t('formie', 'Triggering form “{handle}” integration.', ['handle' => $this->element->handle]);
+        return Craft::t('formie', 'Triggering form “{handle}” integration.', ['handle' => $this->integration->handle]);
     }
 
     /**
@@ -42,7 +36,11 @@ class TriggerIntegration extends BaseJob
 
         $submission = Formie::$plugin->getSubmissions()->getSubmissionById($this->submissionId);
 
-        $response = $this->element->saveElement($submission);
+        if ($this->integration instanceof Element) {
+            $response = $this->integration->saveElement($submission);
+        } else {
+            $response = $this->integration->sendPayLoad($submission);
+        }
 
         if (!$response) {
             throw new \Exception('Failed to trigger integration.');

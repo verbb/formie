@@ -1,11 +1,13 @@
 <?php
 namespace verbb\formie\base;
 
-use craft\base\Model;
-use craft\helpers\UrlHelper;
-
+use verbb\formie\Formie;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
+use verbb\formie\errors\IntegrationException;
+
+use craft\base\Model;
+use craft\helpers\UrlHelper;
 
 abstract class Integration extends Model implements IntegrationInterface
 {
@@ -17,7 +19,7 @@ abstract class Integration extends Model implements IntegrationInterface
     public $settings;
 
 
-    // Public Methods
+    // Static Methods
     // =========================================================================
 
     /**
@@ -27,6 +29,44 @@ abstract class Integration extends Model implements IntegrationInterface
     {
         return static::getName();
     }
+
+    /**
+     * Whether this integration supports connections (checking to see if the API is connected).
+     *
+     * @return bool
+     */
+    public static function supportsConnection(): bool
+    {
+        return false;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public static function log($integration, $message, $throwError = false)
+    {
+        Formie::log($integration->name . ': ' . $message);
+
+        if ($throwError) {
+            throw new IntegrationException($message);
+        }
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public static function error($integration, $message, $throwError = false)
+    {
+        Formie::error($integration->name . ': ' . $message);
+
+        if ($throwError) {
+            throw new IntegrationException($message);
+        }
+    }
+
+
+    // Public Methods
+    // =========================================================================
 
     /**
      * Returns the control panel edit url for the integration.
@@ -69,7 +109,28 @@ abstract class Integration extends Model implements IntegrationInterface
         return true;
     }
 
+    /**
+     * Returns the front-end JS.
+     *
+     * @return string
+     */
     public function getFrontEndJs(Form $form, $page = null) {
         return null;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function beforeSave(): bool
+    {
+        return true;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function afterSave()
+    {
+
     }
 }

@@ -77,6 +77,7 @@ mix.js(assetsPath + '/captchas/src/js/recaptcha-v3.js', assetsPath + '/captchas/
 
 // Setup and configure JS
 mix.js(assetsPath + '/cp/src/js/formie-cp.js', assetsPath + '/cp/dist/js');
+mix.js(assetsPath + '/cp/src/js/integration-settings.js', assetsPath + '/cp/dist/js');
 
 // Setup and configure Sass
 mix.sass(assetsPath + '/cp/src/scss/formie-cp.scss', assetsPath + '/cp/dist/css');
@@ -89,6 +90,7 @@ mix.imagemin([
     { from: assetsPath + '/addressproviders/src/img', to: 'addressproviders/dist/img' },
     { from: assetsPath + '/captchas/src/img', to: 'captchas/dist/img' },
     { from: assetsPath + '/elements/src/img', to: 'elements/dist/img' },
+    { from: assetsPath + '/emailmarketing/src/img', to: 'emailmarketing/dist/img' },
 ], {}, {
     gifsicle: { interlaced: true },
     mozjpeg: { progressive: true, arithmetic: false },

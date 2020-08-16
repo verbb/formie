@@ -59,13 +59,28 @@
     }
 }
 
+.fui-loading.fui-loading-tiny {
+    min-height: 0.5rem;
+
+    &::after {
+        height: 0.5rem;
+        width: 0.5rem;
+        margin-top: -6px;
+        margin-left: -6px;
+    }
+}
+
 
 
 .btn.submit.fui-loading {
     color: transparent !important;
 }
 
-.btn.fui-loading::after {
+.btn.submit.fui-loading::after {
     border-bottom-color: #fff;
     border-left-color: #fff;
+}
+
+.btn.fui-loading {
+    color: transparent !important;
 }

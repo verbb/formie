@@ -11,6 +11,7 @@
 {% endif %}
 
 {% do view.registerAssetBundle('verbb\\formie\\web\\assets\\cp\\CpAsset') -%}
+{% do view.registerAssetBundle('verbb\\formie\\web\\assets\\cp\\IntegrationSettingsAsset') -%}
 
 {% block content %}
 
@@ -18,16 +19,28 @@
     {{ actionInput('formie/integrations/save-settings') }}
     {{ redirectInput('formie/settings/integrations') }}
 
-    <div class="fui-integrations-pane">
+    <div id="fui-integrations-settings" class="fui-integrations-pane">
         {% include 'formie/settings/integrations/_includes/sidebar' %}
 
         <div class="fui-form-integrations-wrapper">
             <div class="fui-form-integrations-inner-wrapper">
                 {% for integration in integrations %}
                     <div id="tab-{{ integration.handle }}" {% if not loop.first %}class="hidden"{% endif %}>
-                        <h2>{{ integration.getName() }} {{ 'Settings' | t('formie') }}</h2>
+                        <div class="fui-integrations-header">
+                            <h2>{{ integration.getName() }} {{ 'Settings' | t('formie') }}</h2>
 
-                        {{ integration.getDescription() | md }}
+                            {% if integration.supportsConnection() %}
+                                <integration-check
+                                    class="fui-integrations-check"
+                                    handle="{{ integration.handle }}"
+                                    status="{{ integration.getConnectionStatus() }}"
+                                ></integration-check>
+                            {% endif %}
+                        </div>
+
+                        <div class="">
+                            {{ integration.getDescription() | md }}
+                        </div>
 
                         <hr>
 
@@ -49,6 +62,8 @@
                 {% endfor %}
             </div>
         </div>
+
+        <portal-target name="integrations-modals" multiple></portal-target>
     </div>
 {% else %}
     <div class="zilch">

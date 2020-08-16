@@ -3,6 +3,47 @@
     display: flex;
     margin: -24px;
     position: relative;
+
+    .sidebar {
+        padding: 0 0 14px;
+    }
+
+    .sidebar .heading {
+        margin: 0;
+        width: auto;
+        padding: 14px 14px 2px;
+    }
+
+    .sidebar nav li a {
+        padding: 7px 14px !important;
+    }
+
+    .sidebar .status {
+        margin: 0 !important;
+    }
+}
+
+.fui-integrations-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 14px;
+
+    h2 {
+        margin: 0;
+    }
+}
+
+.fui-integrations-check-wrap {
+    display: flex;
+    align-items: center;
+
+    .btn {
+        margin-left: 10px;
+    }
+}
+
+// Form Integrations
+#tab-integrations .fui-integrations-pane {
     height: calc(100vh - 236px);
 }
 

@@ -64,7 +64,6 @@ class AddressFinder extends AddressProvider
         return Craft::t('formie', 'Use [Address Finder](https://addressfinder.com.au/) to suggest Australian and New Zealand addresses, for address fields.');
     }
 
-
     /**
      * @inheritDoc
      */

@@ -2,11 +2,12 @@
 namespace verbb\formie\services;
 
 use verbb\formie\Formie;
+use verbb\formie\base\Element;
 use verbb\formie\controllers\SubmissionsController;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\SubmissionEvent;
 use verbb\formie\events\SendNotificationEvent;
-use verbb\formie\events\TriggerElementEvent;
+use verbb\formie\events\TriggerIntegrationEvent;
 use verbb\formie\fields\formfields;
 use verbb\formie\jobs\SendNotification;
 use verbb\formie\jobs\TriggerIntegration;
@@ -121,12 +122,16 @@ class Submissions extends Component
         $form = $submission->getForm();
 
         $elements = Formie::$plugin->getIntegrations()->getAllEnabledIntegrationsForForm($form, 'element');
+        $emailMarketings = Formie::$plugin->getIntegrations()->getAllEnabledIntegrationsForForm($form, 'emailMarketing');
 
-        foreach ($elements as $element) {
+        $integrations = array_merge($elements, $emailMarketings);
+
+        foreach ($integrations as $integration) {
             // Fire a 'beforeTriggerElement' event
-            $event = new TriggerElementEvent([
+            $event = new TriggerIntegrationEvent([
                 'submission' => $submission,
-                'element' => $element,
+                'type' => get_class($integration),
+                'integration' => $integration,
             ]);
             $this->trigger(self::EVENT_BEFORE_TRIGGER_ELEMENT, $event);
 
@@ -136,11 +141,15 @@ class Submissions extends Component
 
             Craft::$app->getQueue()->push(new TriggerIntegration([
                 'submissionId' => $event->submission->id,
-                'element' => $event->element,
+                'integration' => $event->integration,
             ]));
 
             // TODO: Make this a config setting
-            // $element->saveElement($event->submission);
+            // if ($integration instanceof Element) {
+            //     $integration->saveElement($event->submission);
+            // } else {
+            //     $integration->sendPayLoad($event->submission);
+            // }
         }
     }
 

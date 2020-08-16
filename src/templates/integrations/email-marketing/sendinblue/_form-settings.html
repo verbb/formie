@@ -1,0 +1,42 @@
+{% import '_includes/forms' as forms %}
+
+{% set enabled = form.settings.integrations[integration.handle].enabled ?? '' %}
+{% set listId = form.settings.integrations[integration.handle].listId ?? '' %}
+
+{% set eventKey = 'formie:integration-' ~ integration.handle ~ '-listId' %}
+
+<list-select
+    :first="true"
+    label="{{ 'List' | t('formie') }}"
+    instructions="{{ 'Select your {name} list to create contacts on.' | t('formie', { name: integration.name }) }}"
+    id="listId"
+    name="listId"
+    name-raw="listId"
+    handle="{{ integration.handle }}"
+    :required="true"
+    value="{{ listId }}"
+    :options="{{ listOptions | json_encode }}"
+></list-select>
+
+<ul v-if="!isEmpty(get(form, 'settings.integrations.{{ integration.handle }}.errors.listId'))" class="errors" v-cloak>
+    <li v-for="(error, index) in get(form, 'settings.integrations.{{ integration.handle }}.errors.listId')" :key="index">
+        ${ error }
+    </li>
+</ul>
+
+<element-mapping
+    label="{{ 'Field Mapping' | t('formie') }}"
+    instructions="{{ 'Choose how your form fields should map to your {name} fields.' | t('formie', { name: integration.name }) }}"
+    id="field-mapping"
+    name="fieldMapping"
+    refresh-listener="{{ eventKey }}"
+    refresh-action="formie/integrations/element-fields"
+    :value="get(form, 'settings.integrations.{{ integration.handle }}.fieldMapping')"
+    :rows="{{ integration.getListFields(listId) | json_encode }}"
+></element-mapping>
+
+<ul v-if="!isEmpty(get(form, 'settings.integrations.{{ integration.handle }}.errors.fieldMapping'))" class="errors" v-cloak>
+    <li v-for="(error, index) in get(form, 'settings.integrations.{{ integration.handle }}.errors.fieldMapping')" :key="index">
+        ${ error }
+    </li>
+</ul>
