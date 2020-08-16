@@ -45,9 +45,9 @@ export class FormieRepeater {
         const handle = button.getAttribute('data-add-repeater-row');
         const maxRows = parseInt(button.getAttribute('data-max-rows'));
         const template = document.querySelector(`[data-repeater-template="${handle}"]`);
+        const numRows = this.getNumRows($repeater);
 
         if (template) {
-            const numRows = this.getNumRows($repeater);
             if (numRows >= maxRows) {
                 return;
             }
@@ -62,12 +62,7 @@ export class FormieRepeater {
             $repeater.querySelector('.fui-repeater-rows').appendChild($newRow);
 
             setTimeout(() => {
-                if (this.getNumRows($repeater) >= maxRows) {
-                    button.className += ' fui-disabled';
-                    button.setAttribute('disabled', 'disabled');
-
-                    return;
-                }
+                this.updateButton($repeater);
 
                 const event = new CustomEvent('append', {
                     bubbles: true,
@@ -86,9 +81,20 @@ export class FormieRepeater {
     removeRow(e) {
         const button = e.target;
         const $row = button.closest('.fui-repeater-row');
+        const $repeater = button.closest('.fui-type-repeater');
 
-        if ($row) {
+        if ($row && $repeater) {
+            const $addButton = $repeater.querySelector('[data-add-repeater-row]');
+            const minRows = parseInt($addButton.getAttribute('data-min-rows'));
+            const numRows = this.getNumRows($repeater);
+
+            if (numRows <= minRows) {
+                return;
+            }
+
             $row.parentNode.removeChild($row);
+
+            this.updateButton($repeater);
         }
     }
 
@@ -108,6 +114,19 @@ export class FormieRepeater {
 
     getNumRows($repeater) {
         return this.getRows($repeater).length;
+    }
+
+    updateButton($repeater) {
+        const $addButton = $repeater.querySelector('[data-add-repeater-row]');
+        const maxRows = parseInt($addButton.getAttribute('data-max-rows'));
+
+        if (this.getNumRows($repeater) >= maxRows) {
+            $addButton.classList.add = 'fui-disabled';
+            $addButton.setAttribute('disabled', 'disabled');
+        } else {
+            $addButton.classList.remove = 'fui-disabled';
+            $addButton.removeAttribute('disabled');
+        }
     }
 }
 

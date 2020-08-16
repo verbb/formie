@@ -7,6 +7,7 @@
 
             {# There will only ever be 1 page. #}
             {% set page = field.fieldLayout.pages[0] ?? null %}
+            
             {% if page %}
                 <div class="fui-field-rows">
                     {% for row in page.rows %}
