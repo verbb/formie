@@ -235,11 +235,25 @@ class Table extends CraftTable implements FormFieldInterface
 
         // Translate the columns options into an array of objects, rather than just a collection of objects
         // Vue can't really deal with that, but let's keep it the same as Craft's Table field
-        foreach ($settings['columns'] as $key => &$column) {
-            $column['id'] = $key;
-        }
 
-        $settings['columns'] = array_values($settings['columns']);
+        // But - DON'T do this if there are field errors! We want to keep it in a Vue-format to continue editing before a save.
+        if (!$this->hasErrors()) {
+            foreach ($settings['columns'] as $key => &$column) {
+                $column['id'] = $key;
+            }
+
+            $settings['columns'] = array_values($settings['columns']);
+        } else {
+            // If there are errors though, Craft's table field validation may very likely return an array 
+            // for some attributes. We don't want that, so remove them back to single values.
+            foreach ($settings['columns'] as $colId => &$column) {
+                foreach ($column as $key => $col) {
+                    if (is_array($col)) {
+                        $settings['columns'][$colId][$key] = $col['value'] ?? '';
+                    }
+                }
+            }
+        }
 
         return $settings;
     }
