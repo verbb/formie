@@ -78,50 +78,51 @@ class SubmissionExport extends ElementExporter
 
         // We might have to do some post-processing for CSV's and nested fields like Table/Repeater
         // We want to split the rows of these fields into new lines, which is a bit tedious..
-        $format = Craft::$app->getRequest()->getBodyParam('format', 'csv');
+        // Comment out for the moment...
+        // $format = Craft::$app->getRequest()->getBodyParam('format', 'csv');
 
-        if ($format === 'csv') {
-            $csvData = [];
-            $rowIndex = 0;
+        // if ($format === 'csv') {
+        //     $csvData = [];
+        //     $rowIndex = 0;
 
-            foreach ($data as $i => $column) {
-                $extraRows = [];
+        //     foreach ($data as $i => $column) {
+        //         $extraRows = [];
 
-                foreach ($column as $j => $value) {
-                    if (is_array($value)) {
-                        // Split out each row into extra rows to add later.
-                        foreach ($value as $k => $v) {
-                            // Add this first value here though.
-                            if ($k === 0) {
-                                $csvData[$rowIndex][$j] = $v;
-                            } else {
-                                $extraRows[$k][$j] = $v;
-                            }
-                        }
-                    } else {
-                        $csvData[$rowIndex][$j] = $value;
-                    }
-                }
+        //         foreach ($column as $j => $value) {
+        //             if (is_array($value)) {
+        //                 // Split out each row into extra rows to add later.
+        //                 foreach ($value as $k => $v) {
+        //                     // Add this first value here though.
+        //                     if ($k === 0) {
+        //                         $csvData[$rowIndex][$j] = $v;
+        //                     } else {
+        //                         $extraRows[$k][$j] = $v;
+        //                     }
+        //                 }
+        //             } else {
+        //                 $csvData[$rowIndex][$j] = $value;
+        //             }
+        //         }
 
-                if ($extraRows) {
-                    $rowIndex++;
+        //         if ($extraRows) {
+        //             $rowIndex++;
 
-                    // We have to loop through each existing column to add blank column values
-                    foreach ($extraRows as $ii => $extraRow) {
-                        foreach ($column as $j => $value) {
-                            $csvData[$rowIndex][$j] = isset($extraRow[$j]) ? $extraRow[$j] : '';
-                        }
+        //             // We have to loop through each existing column to add blank column values
+        //             foreach ($extraRows as $ii => $extraRow) {
+        //                 foreach ($column as $j => $value) {
+        //                     $csvData[$rowIndex][$j] = isset($extraRow[$j]) ? $extraRow[$j] : '';
+        //                 }
 
-                        // Increment to cater for all the new rows
-                        $rowIndex++;
-                    }
-                }
+        //                 // Increment to cater for all the new rows
+        //                 $rowIndex++;
+        //             }
+        //         }
 
-                $rowIndex++;
-            }
+        //         $rowIndex++;
+        //     }
 
-            return $csvData;
-        }
+        //     return $csvData;
+        // }
 
         return $data;
     }

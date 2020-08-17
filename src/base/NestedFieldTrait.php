@@ -445,7 +445,7 @@ trait NestedFieldTrait
 
         foreach ($value->all() as $rowId => $row) {
             foreach ($row->getSerializedFieldValues() as $fieldHandle => $field) {
-                $values[$this->handle . '_' . $fieldHandle][$rowId] = $field;
+                $values[$this->handle . '_row' . ($rowId + 1) . '_' . $fieldHandle] = $field;
             }
         }
 

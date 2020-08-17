@@ -136,7 +136,7 @@ class Table extends CraftTable implements FormFieldInterface
 
         foreach ($value as $rowId => $row) {
             foreach ($this->columns as $colId => $col) {
-                $values[$this->handle . '_' . $col['handle']][$rowId] = $row[$col['handle']] ?? null;
+                $values[$this->handle . '_row' . ($rowId + 1) . '_' . $col['handle']] = $row[$col['handle']] ?? null;
             }
         }
 
