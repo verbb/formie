@@ -6,7 +6,7 @@ Formie supports accessing [Form](docs:developers/form) and [Submission](docs:dev
 
 ### Query payload
 
-```
+```json
 {
     form (handle: "contactForm") {
         title
@@ -42,7 +42,7 @@ Formie supports accessing [Form](docs:developers/form) and [Submission](docs:dev
 
 ### The response
 
-```
+```json
 {
     "data": {
         "form": {
@@ -198,7 +198,7 @@ Once using the necessary [Inline Fragments](https://graphql.org/learn/queries/#i
 #### Nested Fields
 For nested fields like Group and Repeater, you have access to `nestedRows` and `fields`.
 
-```
+```json
 {
     form (handle: "contactForm") {
         title
@@ -223,7 +223,7 @@ For nested fields like Group and Repeater, you have access to `nestedRows` and `
 
 ### Query payload
 
-```
+```json
 {
     submissions (form: "contactForm") {
         title
@@ -239,7 +239,7 @@ For nested fields like Group and Repeater, you have access to `nestedRows` and `
 
 ### The response
 
-```
+```json
 {
     "data": {
         "submissions": [
@@ -277,3 +277,76 @@ This query is used to query for [Submission](docs:developers/submission) objects
 | `limit`| `Int` | Sets the limit for paginated results.
 | `orderBy`| `String` | Sets the field the returned elements should be ordered by.
 | `form`| `[String]` | Narrows the query results based on the form’s handle.
+
+## Mutations
+Mutations in GraphQL provide a way of modifying data. The actual mutations will vary depending on the schema. There are some common mutations per GraphQL object type as well as type-specific mutations.
+
+Be sure to read the [GraphQL docs](https://craftcms.com/docs/3.x/graphql.html#mutations).
+
+### Submissions
+
+#### Saving a submission
+
+To create or update a submission use the form-specific mutation, which will have the name in the form of `save_<formHandle>_Submission`.
+
+<!-- BEGIN SUBMISSION MUTATION ARGS -->
+
+| Argument | Type | Description
+| - | - | -
+| `id`| `ID` | Set the element’s ID.
+| `uid`| `String` | Set the element’s UID.
+| `enabled`| `Boolean` | Whether the element should be enabled.
+| `...`|  | More arguments depending on the field layout for the type
+
+<!-- END SUBMISSION MUTATION ARGS -->
+
+The below shows an example request to create a new submission. For this form, we have a single-line text field with the handle `yourName`. In our query variables, we pass the values(s) we want to use in the query.
+
+```json
+// Query
+mutation saveSubmission($yourName:String) {
+    save_contactForm_Submission(yourName: $yourName) {
+        title
+        yourName
+    }
+}
+
+// Query Variables
+{
+    "yourName": "Peter Sherman"
+}
+```
+
+With the resulting output:
+
+```json
+{
+    "data": {
+        "save_contactForm_Submission": {
+            "title": "2020-08-18 10:29:06",
+            "yourName": "Peter Sherman"
+        }
+    }
+}
+```
+
+#### Deleting a submission
+
+To delete a submission use the `deleteSubmission` mutation, which requires the `id` of the submission that must be deleted. It returns a boolean value as the result to indicate whether the operation was successful.
+
+```json
+// Query to delete a submission with ID of `1110`.
+mutation deleteSubmission {
+    deleteSubmission(id:1110)
+}
+```
+
+With the resulting output:
+
+```json
+{
+    "data": {
+        "deleteSubmission": true
+    }
+}
+```

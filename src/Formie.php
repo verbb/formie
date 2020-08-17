@@ -1,29 +1,6 @@
 <?php
 namespace verbb\formie;
 
-use Craft;
-use craft\base\Plugin;
-use craft\events\FieldLayoutEvent;
-use craft\events\RebuildConfigEvent;
-use craft\events\RegisterComponentTypesEvent;
-use craft\events\RegisterElementExportersEvent;
-use craft\events\RegisterEmailMessagesEvent;
-use craft\events\RegisterGqlQueriesEvent;
-use craft\events\RegisterGqlTypesEvent;
-use craft\events\RegisterUserPermissionsEvent;
-use craft\services\Gc;
-use craft\services\Elements;
-use craft\services\Fields;
-use craft\services\Gql;
-use craft\services\ProjectConfig;
-use craft\services\SystemMessages;
-use craft\services\UserPermissions;
-use craft\helpers\UrlHelper;
-use craft\web\twig\variables\CraftVariable;
-
-use verbb\formie\models\FieldLayout;
-use yii\base\Event;
-
 use verbb\formie\base\PluginTrait;
 use verbb\formie\base\Routes;
 use verbb\formie\elements\Form;
@@ -37,9 +14,11 @@ use verbb\formie\gql\interfaces\PageInterface;
 use verbb\formie\gql\interfaces\PageSettingsInterface;
 use verbb\formie\gql\interfaces\RowInterface;
 use verbb\formie\gql\interfaces\SubmissionInterface;
+use verbb\formie\gql\mutations\SubmissionMutation;
 use verbb\formie\gql\queries\FormQuery;
 use verbb\formie\gql\queries\SubmissionQuery;
 use verbb\formie\helpers\ProjectConfigHelper;
+use verbb\formie\models\FieldLayout;
 use verbb\formie\models\Settings;
 use verbb\formie\services\Statuses as StatusesService;
 use verbb\formie\services\Stencils as StencilsService;
@@ -47,6 +26,29 @@ use verbb\formie\services\FormTemplates as FormTemplatesService;
 use verbb\formie\services\EmailTemplates as EmailTemplatesService;
 use verbb\formie\variables\Formie as FormieVariable;
 use verbb\formie\web\twig\Extension;
+
+use Craft;
+use craft\base\Plugin;
+use craft\events\FieldLayoutEvent;
+use craft\events\RebuildConfigEvent;
+use craft\events\RegisterComponentTypesEvent;
+use craft\events\RegisterElementExportersEvent;
+use craft\events\RegisterEmailMessagesEvent;
+use craft\events\RegisterGqlMutationsEvent;
+use craft\events\RegisterGqlQueriesEvent;
+use craft\events\RegisterGqlTypesEvent;
+use craft\events\RegisterUserPermissionsEvent;
+use craft\services\Gc;
+use craft\services\Elements;
+use craft\services\Fields;
+use craft\services\Gql;
+use craft\services\ProjectConfig;
+use craft\services\SystemMessages;
+use craft\services\UserPermissions;
+use craft\helpers\UrlHelper;
+use craft\web\twig\variables\CraftVariable;
+
+use yii\base\Event;
 
 class Formie extends Plugin
 {
@@ -249,6 +251,18 @@ class Formie extends Plugin
             foreach ($queries as $k => $v) {
                 foreach ($v as $key => $value) {
                     $event->queries[$key] = $value;
+                }
+            }
+        });
+
+        Event::on(Gql::class, Gql::EVENT_REGISTER_GQL_MUTATIONS, function(RegisterGqlMutationsEvent $event) {
+            $mutations = [
+                SubmissionMutation::getMutations(),
+            ];
+
+            foreach ($mutations as $k => $v) {
+                foreach ($v as $key => $value) {
+                    $event->mutations[$key] = $value;
                 }
             }
         });
