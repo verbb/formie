@@ -76,6 +76,23 @@ class SubmissionExport extends ElementExporter
             $data[] = $row;
         }
 
+        // Normalise the columns. Due to repeaters/table fields, some rows might not have the correct columns.
+        // We need to have all rows have the same column definitions. Run through once to build all possible keys.
+        $keys = [];
+        foreach ($data as $key => $value) {
+            $keys = array_merge($keys, array_keys($value));
+        }
+        $keys = array_values(array_unique($keys));
+
+        // Then, fill in any gaps in rows with empty columns, so they all have the same columns
+        foreach ($data as $rowIndex => &$columns) {
+            foreach ($keys as $key) {
+                if (!isset($columns[$key])) {
+                    $columns[$key] = '';
+                }
+            }
+        }
+
         // We might have to do some post-processing for CSV's and nested fields like Table/Repeater
         // We want to split the rows of these fields into new lines, which is a bit tedious..
         // Comment out for the moment...
