@@ -3,7 +3,7 @@
 ## 1.1.4 - 2020-08-18
 
 ### Added
-- Added GraphQL mutation support for submissions. [See docs]().
+- Added GraphQL mutation support for submissions. [See docs](https://verbb.io/craft-plugins/formie/docs/developers/graphql#mutations).
 
 ### Changed
 - Update exports to not split repeater/table into new rows.
