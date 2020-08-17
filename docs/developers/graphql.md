@@ -296,11 +296,11 @@ To create or update a submission use the form-specific mutation, which will have
 | `id`| `ID` | Set the element’s ID.
 | `uid`| `String` | Set the element’s UID.
 | `enabled`| `Boolean` | Whether the element should be enabled.
-| `...`|  | More arguments depending on the field layout for the type
+| `...`|  | More arguments depending on the field layout for the form
 
 <!-- END SUBMISSION MUTATION ARGS -->
 
-The below shows an example request to create a new submission. For this form, we have a single-line text field with the handle `yourName`. In our query variables, we pass the values(s) we want to use in the query.
+The below shows an example request to create a new submission. For this form, we have a single-line text field with the handle `yourName`. In our query variables, we pass the value(s) we want to use in the query.
 
 ```json
 // Query

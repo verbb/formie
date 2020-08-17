@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.1.4 - 2020-08-18
+
+### Added
+- Added GraphQL mutation support for submissions. [See docs]().
+
+### Changed
+- Update exports to not split repeater/table into new rows.
+
+### Fixed
+- Fixed table field columns getting incorrect format when re-saving after a validation error.
+
 ## 1.1.3 - 2020-08-17
 
 ### Added
