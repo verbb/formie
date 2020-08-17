@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.1.4.1 - 2020-08-18
+
+### Fixed
+- Fixed submission exports not normalising columns for repeater/table fields across multiple submissions.
+
 ## 1.1.4 - 2020-08-18
 
 ### Added
