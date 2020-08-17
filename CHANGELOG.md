@@ -1,5 +1,38 @@
 # Changelog
 
+## 1.1.4.1 - 2020-08-18
+
+### Fixed
+- Fixed submission exports not normalising columns for repeater/table fields across multiple submissions.
+
+## 1.1.4 - 2020-08-18
+
+### Added
+- Added GraphQL mutation support for submissions. [See docs](https://verbb.io/craft-plugins/formie/docs/developers/graphql#mutations).
+
+### Changed
+- Update exports to not split repeater/table into new rows.
+
+### Fixed
+- Fixed table field columns getting incorrect format when re-saving after a validation error.
+
+## 1.1.3 - 2020-08-17
+
+### Added
+- Added `form.formId` and `form.configJson` shortcuts for templates.
+
+## 1.1.2 - 2020-08-16
+
+### Fixed
+- Fixed form outputting CSS and JS, even when disabled.
+- Fixed repeater field minimum instances not pre-populating the defined number of blocks.
+- Fixed repeater field allowing to go below the set minimum instances.
+- Fixed repeater field add block button not disabling when min and max instances are the same.
+- Fixed repeater field add block not toggling disabled state correctly.
+- Fixed submission exporting providing all values.
+- Fixed submission CSV exports not splitting sub-field-enabled fields (address, multi-name) into multiple columns for their sub-fields.
+- Fixed submission CSV exports not splitting complicated fields (repeater, table) into new rows to convey collection of data. JSON/XML exports are unchanged and show collections as arrays.
+
 ## 1.1.1.1 - 2020-08-11
 
 ### Fixed

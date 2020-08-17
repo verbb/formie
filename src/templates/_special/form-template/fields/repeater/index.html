@@ -13,10 +13,12 @@
                         id: block.id,
                     } %}
                 {% endfor %}
-            {% else %}
-                {% include 'fields/repeater/_row' with {
-                    id: 'new1',
-                } %}
+            {% elseif field.minRows > 0 %}
+                {% for i in 1..field.minRows %}
+                    {% include 'fields/repeater/_row' with {
+                        id: 'new' ~ i,
+                    } %}
+                {% endfor %}
             {% endif %}
         </div>
 
@@ -29,6 +31,16 @@
                 'add-repeater-row': field.handle,
             }
         } %}
+
+        {# Disable the button straight away if we're making it static #}
+        {% if field.minRows != '' and field.maxRows != '' %}
+            {% if field.minRows == field.maxRows %}
+                {% set buttonAttributes = buttonAttributes | merge({
+                    class: buttonAttributes.class ~ ' fui-disabled',
+                    disabled: true,
+                }) %}
+            {% endif %}
+        {% endif %}
 
         <button {{ attr(buttonAttributes) }}>
             {{ field.addLabel }}

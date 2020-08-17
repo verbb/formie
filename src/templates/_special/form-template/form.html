@@ -17,7 +17,7 @@
     {% set defaultLabelPosition = create(form.settings.defaultLabelPosition) %}
 
     {% set attributes = {
-        id: "formie-form-#{form.id}",
+        id: form.formId,
         class: [
             'fui-form',
             "fui-labels-#{defaultLabelPosition}",
@@ -34,7 +34,7 @@
             'loading-indicator': form.settings.loadingIndicator ?: false,
             'loading-text': form.settings.loadingIndicatorText ?: false,
             'redirect': form.getRedirectUrl() ?: false,
-            'config': jsVariables,
+            'config': form.configJson,
         },
     } %}
 

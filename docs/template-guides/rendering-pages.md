@@ -18,7 +18,7 @@ This may be particularly useful if you want control over the `<form>` element of
 ```twig
 {% set form = craft.formie.forms({ handle: 'contactForm' }).one() %}
 
-<form id="my-form" method="post">
+<form id="{{ form.formId }}" method="post" data-config="{{ form.configJson }}">
     {{ csrfInput() }}
     {{ actionInput('formie/submissions/submit') }}
     {{ hiddenInput('handle', form.handle) }}
@@ -31,7 +31,15 @@ This may be particularly useful if you want control over the `<form>` element of
 </form>
 ```
 
-Note the use of some additional Twig content in the `<form>` element. This is to ensure Formie can process the content of the form and create a submission from it.
+Let's run through a few things of note:
+
+- The `id` attribute is required, and Formie's JavaScript relies on this to initialise this form.
+- The `data-config` attribute is required, and Formie's JavaScript relies on this to initialise this form.
+- Some additional Twig content in the `<form>` element, such as `csrfInput()`, `actionInput()`. This is to ensure Formie can process the content of the form and create a submission from it.
+
+:::tip
+Make sure to use `{{ form.formId }}` for the `id` attribute, and `{{ form.configJson }}` for the `data-config` attribute. These are the only two things Formie needs to hook us the JavaScript used to handle forms, and are required if you're writing the `<form>` element in your templates.
+:::
 
 If you are using custom templates, you can also pass in a number of options to the rendering function. These don't have any effect on the default templates, but provide a means to pass additional data to your templates.
 
@@ -53,7 +61,7 @@ You can render rows for a page, rather than relying on the render function to ou
 ```twig
 {% set form = craft.formie.forms({ handle: 'contactForm' }).one() %}
 
-<form id="my-form" method="post">
+<form id="{{ form.formId }}" method="post" data-config="{{ form.configJson }}">
     {{ csrfInput() }}
     {{ actionInput('formie/submissions/submit') }}
     {{ hiddenInput('handle', form.handle) }}

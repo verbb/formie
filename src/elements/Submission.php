@@ -148,6 +148,14 @@ class Submission extends Element
     }
 
     /**
+     * @inheritdoc
+     */
+    public static function gqlMutationNameByContext($context): string
+    {
+        return 'save_' . $context->handle . '_Submission';
+    }
+
+    /**
      * @inheritDoc
      */
     public static function statuses(): array

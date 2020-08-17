@@ -1,12 +1,40 @@
 <?php
 namespace verbb\formie;
 
+use verbb\formie\base\PluginTrait;
+use verbb\formie\base\Routes;
+use verbb\formie\elements\Form;
+use verbb\formie\elements\Submission;
+use verbb\formie\elements\exporters\SubmissionExport;
+use verbb\formie\fields\Forms;
+use verbb\formie\fields\Submissions;
+use verbb\formie\gql\interfaces\FieldInterface;
+use verbb\formie\gql\interfaces\FormInterface;
+use verbb\formie\gql\interfaces\PageInterface;
+use verbb\formie\gql\interfaces\PageSettingsInterface;
+use verbb\formie\gql\interfaces\RowInterface;
+use verbb\formie\gql\interfaces\SubmissionInterface;
+use verbb\formie\gql\mutations\SubmissionMutation;
+use verbb\formie\gql\queries\FormQuery;
+use verbb\formie\gql\queries\SubmissionQuery;
+use verbb\formie\helpers\ProjectConfigHelper;
+use verbb\formie\models\FieldLayout;
+use verbb\formie\models\Settings;
+use verbb\formie\services\Statuses as StatusesService;
+use verbb\formie\services\Stencils as StencilsService;
+use verbb\formie\services\FormTemplates as FormTemplatesService;
+use verbb\formie\services\EmailTemplates as EmailTemplatesService;
+use verbb\formie\variables\Formie as FormieVariable;
+use verbb\formie\web\twig\Extension;
+
 use Craft;
 use craft\base\Plugin;
 use craft\events\FieldLayoutEvent;
 use craft\events\RebuildConfigEvent;
 use craft\events\RegisterComponentTypesEvent;
+use craft\events\RegisterElementExportersEvent;
 use craft\events\RegisterEmailMessagesEvent;
+use craft\events\RegisterGqlMutationsEvent;
 use craft\events\RegisterGqlQueriesEvent;
 use craft\events\RegisterGqlTypesEvent;
 use craft\events\RegisterUserPermissionsEvent;
@@ -20,31 +48,7 @@ use craft\services\UserPermissions;
 use craft\helpers\UrlHelper;
 use craft\web\twig\variables\CraftVariable;
 
-use verbb\formie\models\FieldLayout;
 use yii\base\Event;
-
-use verbb\formie\base\PluginTrait;
-use verbb\formie\base\Routes;
-use verbb\formie\elements\Form;
-use verbb\formie\elements\Submission;
-use verbb\formie\fields\Forms;
-use verbb\formie\fields\Submissions;
-use verbb\formie\gql\interfaces\FieldInterface;
-use verbb\formie\gql\interfaces\FormInterface;
-use verbb\formie\gql\interfaces\PageInterface;
-use verbb\formie\gql\interfaces\PageSettingsInterface;
-use verbb\formie\gql\interfaces\RowInterface;
-use verbb\formie\gql\interfaces\SubmissionInterface;
-use verbb\formie\gql\queries\FormQuery;
-use verbb\formie\gql\queries\SubmissionQuery;
-use verbb\formie\helpers\ProjectConfigHelper;
-use verbb\formie\models\Settings;
-use verbb\formie\services\Statuses as StatusesService;
-use verbb\formie\services\Stencils as StencilsService;
-use verbb\formie\services\FormTemplates as FormTemplatesService;
-use verbb\formie\services\EmailTemplates as EmailTemplatesService;
-use verbb\formie\variables\Formie as FormieVariable;
-use verbb\formie\web\twig\Extension;
 
 class Formie extends Plugin
 {
@@ -85,6 +89,7 @@ class Formie extends Plugin
         $this->_registerGraphQl();
         $this->_registerProjectConfigEventListeners();
         $this->_registerEmailMessages();
+        $this->_registerElementExports();
 
         // Add default captcha integrations
         Craft::$app->view->hook('formie.buttons.before', static function(array &$context) {
@@ -249,6 +254,18 @@ class Formie extends Plugin
                 }
             }
         });
+
+        Event::on(Gql::class, Gql::EVENT_REGISTER_GQL_MUTATIONS, function(RegisterGqlMutationsEvent $event) {
+            $mutations = [
+                SubmissionMutation::getMutations(),
+            ];
+
+            foreach ($mutations as $k => $v) {
+                foreach ($v as $key => $value) {
+                    $event->mutations[$key] = $value;
+                }
+            }
+        });
     }
 
     private function _registerProjectConfigEventListeners()
@@ -295,6 +312,26 @@ class Formie extends Plugin
                     'body' => Craft::t('formie', 'formie_failed_notification_body'),
                 ],
             ]);
+        });
+    }
+
+    private function _registerElementExports()
+    {
+        Event::on(Submission::class, Submission::EVENT_REGISTER_EXPORTERS, function(RegisterElementExportersEvent $e) {
+            // Remove defaults, but allow third-party ones
+            foreach ($e->exporters as $key => $exporter) {
+                if ($exporter === \craft\elements\exporters\Raw::class) {
+                    unset($e->exporters[$key]);
+                }
+
+                if ($exporter === \craft\elements\exporters\Expanded::class) {
+                    unset($e->exporters[$key]);
+                }
+            }
+
+            $e->exporters = array_values($e->exporters);
+
+            $e->exporters[] = SubmissionExport::class;
         });
     }
 }

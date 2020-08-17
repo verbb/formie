@@ -122,7 +122,6 @@ class Repeater extends FormField implements NestedFieldInterface, EagerLoadingFi
     public function getFieldDefaults(): array
     {
         return [
-            'minRows' => 0,
             'addLabel' => Craft::t('formie', 'Add another row'),
         ];
     }

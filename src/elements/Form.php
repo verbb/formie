@@ -441,6 +441,22 @@ class Form extends Element
     }
 
     /**
+     * @inheritDoc
+     */
+    public function getFormId()
+    {
+        return "formie-form-{$this->id}";
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getConfigJson()
+    {
+        return Json::encode($this->getFrontEndJsVariables());
+    }
+
+    /**
      * Returns the form’s pages.
      *
      * @return FieldLayoutPage[] The form’s pages.
