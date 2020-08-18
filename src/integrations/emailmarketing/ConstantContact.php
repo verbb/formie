@@ -21,8 +21,6 @@ class ConstantContact extends EmailMarketing
     // =========================================================================
 
     public $handle = 'constantContact';
-    public $listId;
-    public $fieldMapping;
 
 
     // Public Methods

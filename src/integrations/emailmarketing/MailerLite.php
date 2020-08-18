@@ -21,8 +21,6 @@ class MailerLite extends EmailMarketing
     // =========================================================================
 
     public $handle = 'mailerLite';
-    public $listId;
-    public $fieldMapping;
 
 
     // Public Methods

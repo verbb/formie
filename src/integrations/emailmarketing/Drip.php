@@ -21,8 +21,6 @@ class Drip extends EmailMarketing
     // =========================================================================
 
     public $handle = 'drip';
-    public $listId;
-    public $fieldMapping;
 
 
     // Public Methods

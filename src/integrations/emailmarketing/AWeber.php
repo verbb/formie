@@ -21,8 +21,6 @@ class AWeber extends EmailMarketing
     // =========================================================================
 
     public $handle = 'aweber';
-    public $listId;
-    public $fieldMapping;
 
 
     // Public Methods

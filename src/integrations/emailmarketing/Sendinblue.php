@@ -21,8 +21,6 @@ class Sendinblue extends EmailMarketing
     // =========================================================================
 
     public $handle = 'sendinblue';
-    public $listId;
-    public $fieldMapping;
 
 
     // Public Methods

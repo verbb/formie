@@ -225,7 +225,7 @@ class CampaignMonitor extends EmailMarketing
         try {
             $clientId = $this->settings['clientId'] ?? '';
 
-            $response = $this->_request('GET', '/clients/' . $clientId . '.json');
+            $response = $this->_request('GET', 'clients/' . $clientId . '.json');
             $error = $response['error'] ?? '';
             $apiKey = $response['ApiKey'] ?? '';
 

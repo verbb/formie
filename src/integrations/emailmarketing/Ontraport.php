@@ -21,8 +21,6 @@ class Ontraport extends EmailMarketing
     // =========================================================================
 
     public $handle = 'ontraport';
-    public $listId;
-    public $fieldMapping;
 
 
     // Public Methods

@@ -21,8 +21,6 @@ class iContact extends EmailMarketing
     // =========================================================================
 
     public $handle = 'icontact';
-    public $listId;
-    public $fieldMapping;
 
 
     // Public Methods

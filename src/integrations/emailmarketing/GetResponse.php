@@ -21,8 +21,6 @@ class GetResponse extends EmailMarketing
     // =========================================================================
 
     public $handle = 'getResponse';
-    public $listId;
-    public $fieldMapping;
 
 
     // Public Methods

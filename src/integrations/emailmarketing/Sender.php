@@ -21,8 +21,6 @@ class Sender extends EmailMarketing
     // =========================================================================
 
     public $handle = 'sender';
-    public $listId;
-    public $fieldMapping;
 
 
     // Public Methods

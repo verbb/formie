@@ -21,8 +21,6 @@ class Moosend extends EmailMarketing
     // =========================================================================
 
     public $handle = 'moosend';
-    public $listId;
-    public $fieldMapping;
 
 
     // Public Methods

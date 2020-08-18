@@ -21,8 +21,6 @@ class Benchmark extends EmailMarketing
     // =========================================================================
 
     public $handle = 'benchmark';
-    public $listId;
-    public $fieldMapping;
 
 
     // Public Methods

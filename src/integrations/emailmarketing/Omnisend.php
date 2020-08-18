@@ -21,8 +21,6 @@ class Omnisend extends EmailMarketing
     // =========================================================================
 
     public $handle = 'omnisend';
-    public $listId;
-    public $fieldMapping;
 
 
     // Public Methods

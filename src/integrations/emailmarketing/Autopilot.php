@@ -21,8 +21,6 @@ class Autopilot extends EmailMarketing
     // =========================================================================
 
     public $handle = 'autopilot';
-    public $listId;
-    public $fieldMapping;
 
 
     // Public Methods

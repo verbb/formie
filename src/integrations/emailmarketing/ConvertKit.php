@@ -21,8 +21,6 @@ class ConvertKit extends EmailMarketing
     // =========================================================================
 
     public $handle = 'convertKit';
-    public $listId;
-    public $fieldMapping;
 
 
     // Public Methods
