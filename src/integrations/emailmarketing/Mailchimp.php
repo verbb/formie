@@ -21,8 +21,6 @@ class Mailchimp extends EmailMarketing
     // =========================================================================
 
     public $handle = 'mailchimp';
-    public $listId;
-    public $fieldMapping;
     public $useDoubleOptIn = false;
 
 

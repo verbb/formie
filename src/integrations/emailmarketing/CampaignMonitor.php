@@ -21,8 +21,6 @@ class CampaignMonitor extends EmailMarketing
     // =========================================================================
 
     public $handle = 'campaignMonitor';
-    public $listId;
-    public $fieldMapping;
 
 
     // Public Methods

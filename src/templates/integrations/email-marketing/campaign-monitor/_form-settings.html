@@ -3,10 +3,17 @@
 {% set enabled = form.settings.integrations[integration.handle].enabled ?? '' %}
 {% set listId = form.settings.integrations[integration.handle].listId ?? '' %}
 
+<field-select
+    label="{{ 'Opt-In Field' | t('formie') }}"
+    instructions="{{ 'Choose a field to opt-in to {name}. For example, you might only wish to subscribe users if they provide a value for a field of your choice - commonly, a Agree field.' | t('formie', { name: integration.name }) }}"
+    id="opt-in-field"
+    name="optInField"
+    :value="get(form, 'settings.integrations.{{ integration.handle }}.optInField')"
+></field-select>
+
 {% set eventKey = 'formie:integration-' ~ integration.handle ~ '-listId' %}
 
 <list-select
-    :first="true"
     label="{{ 'List' | t('formie') }}"
     instructions="{{ 'Select your {name} list to create contacts on.' | t('formie', { name: integration.name }) }}"
     id="listId"

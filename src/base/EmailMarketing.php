@@ -24,6 +24,10 @@ abstract class EmailMarketing extends Integration implements IntegrationInterfac
     // Properties
     // =========================================================================
 
+    public $listId;
+    public $optInField;
+    public $fieldMapping;
+
     protected $_client;
 
 
@@ -278,6 +282,13 @@ abstract class EmailMarketing extends Integration implements IntegrationInterfac
             Integration::log($this, 'Sending payload cancelled by event hook.');
         }
 
+        // Also, check for opt-in fields. This allows the above event to potentially alter things
+        if (!$this->enforceOptInField($submission)) {
+            Integration::log($this, 'Sending payload cancelled by opt-in field.');
+
+            return false;
+        }
+
         return $event->isValid;
     }
 
@@ -298,5 +309,39 @@ abstract class EmailMarketing extends Integration implements IntegrationInterfac
         }
 
         return $event->isValid;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected function enforceOptInField(Submission $submission)
+    {
+        // Default is just always do it!
+        if (!$this->optInField) {
+            return true;
+        }
+
+        $fieldValues = $this->getFieldMappingValues($submission);
+        $fieldValue = $fieldValues[$this->optInField] ?? null;
+
+        if ($fieldValue === null) {
+            Integration::log($this, Craft::t('formie', 'Unable to find field “{field}” for opt-in in submission.', [
+                'field' => $this->optInField,
+            ]));
+
+            return false;
+        }
+
+        // Just a simple 'falsey' check is good enough
+        if (!$fieldValue) {
+            Integration::log($this, Craft::t('formie', 'Opting-out. Field “{field}” has value “{value}”.', [
+                'field' => $this->optInField,
+                'value' => $fieldValue,
+            ]));
+
+            return false;
+        }
+
+        return true;
     }
 }
