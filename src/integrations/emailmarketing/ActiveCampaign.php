@@ -209,7 +209,7 @@ class ActiveCampaign extends EmailMarketing
             ];
 
             // Allow events to cancel sending
-            if (!$this->beforeSendPayload($submission)) {
+            if (!$this->beforeSendPayload($submission, $payload)) {
                 return false;
             }
 
@@ -217,6 +217,11 @@ class ActiveCampaign extends EmailMarketing
             $response = $this->_request('POST', 'contact/sync', [
                 'json' => $payload,
             ]);
+
+            // Allow events to say the response is invalid
+            if (!$this->afterSendPayload($submission, $payload, $response)) {
+                return false;
+            }
 
             $contactId = $response['contact']['id'] ?? '';
 
@@ -228,33 +233,52 @@ class ActiveCampaign extends EmailMarketing
                 return false;
             }
 
+            $payload = [
+                'contactList' => [
+                    'list' => $this->listId,
+                    'contact' => $contactId,
+                    'status' => 1,
+                ],
+            ];
+
+            // Allow events to cancel sending
+            if (!$this->beforeSendPayload($submission, $payload)) {
+                return false;
+            }
+
             // Then add them to the list
             $response = $this->_request('POST', 'contactLists', [
-                'json' => [
-                    'contactList' => [
-                        'list' => $this->listId,
-                        'contact' => $contactId,
-                        'status' => 1,
-                    ],
-                ],
+                'json' => $payload,
             ]);
+
+            // Allow events to say the response is invalid
+            if (!$this->afterSendPayload($submission, $payload, $response)) {
+                return false;
+            }
 
             // Then finally sort out the custom fields, annoyingly, one at a time
             foreach ($fieldValues as $key => $value) {
-                $response = $this->_request('POST', 'fieldValues', [
-                    'json' => [
-                        'fieldValue' => [
-                            'contact' => $contactId,
-                            'field' => $key,
-                            'value' => $value,
-                        ],
+                $payload = [
+                    'fieldValue' => [
+                        'contact' => $contactId,
+                        'field' => $key,
+                        'value' => $value,
                     ],
-                ]);
-            }
+                ];
 
-            // Allow events to say the response is invalid
-            if (!$this->afterSendPayload($submission, $response)) {
-                return false;
+                // Allow events to cancel sending
+                if (!$this->beforeSendPayload($submission, $payload)) {
+                    return false;
+                }
+
+                $response = $this->_request('POST', 'fieldValues', [
+                    'json' => $payload,
+                ]);
+
+                // Allow events to say the response is invalid
+                if (!$this->afterSendPayload($submission, $payload, $response)) {
+                    return false;
+                }
             }
         } catch (\Throwable $e) {
             Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [

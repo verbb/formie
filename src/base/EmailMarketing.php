@@ -270,10 +270,11 @@ abstract class EmailMarketing extends Integration implements IntegrationInterfac
     /**
      * @inheritDoc
      */
-    protected function beforeSendPayload(Submission $submission)
+    protected function beforeSendPayload(Submission $submission, $payload)
     {
         $event = new SendIntegrationPayloadEvent([
             'submission' => $submission,
+            'payload' => $payload,
             'integration' => $this,
         ]);
         $this->trigger(self::EVENT_BEFORE_SEND_PAYLOAD, $event);
@@ -295,10 +296,11 @@ abstract class EmailMarketing extends Integration implements IntegrationInterfac
     /**
      * @inheritDoc
      */
-    protected function afterSendPayload(Submission $submission, $response)
+    protected function afterSendPayload(Submission $submission, $payload, $response)
     {
         $event = new SendIntegrationPayloadEvent([
             'submission' => $submission,
+            'payload' => $payload,
             'response' => $response,
             'integration' => $this,
         ]);

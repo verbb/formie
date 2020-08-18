@@ -10,6 +10,7 @@ class SendIntegrationPayloadEvent extends CancelableEvent
 
     public $submission;
     public $integration;
+    public $payload;
     public $response;
     
 }

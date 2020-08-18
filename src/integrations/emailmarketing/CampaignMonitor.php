@@ -191,7 +191,7 @@ class CampaignMonitor extends EmailMarketing
             ];
 
             // Allow events to cancel sending
-            if (!$this->beforeSendPayload($submission)) {
+            if (!$this->beforeSendPayload($submission, $payload)) {
                 return false;
             }
 
@@ -201,7 +201,7 @@ class CampaignMonitor extends EmailMarketing
             ]);
 
             // Allow events to say the response is invalid
-            if (!$this->afterSendPayload($submission, $response)) {
+            if (!$this->afterSendPayload($submission, $payload, $response)) {
                 return false;
             }
         } catch (\Throwable $e) {
