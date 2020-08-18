@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.1.5 - 2020-08-18
+
+### Fixed
+- Fixed error introduced in Craft 3.5.5 when editing a form.
+- Fixed repeater fields inner fields not using export-handling.
+
 ## 1.1.4.1 - 2020-08-18
 
 ### Fixed
