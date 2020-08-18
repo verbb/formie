@@ -2,7 +2,18 @@
 {% import 'verbb-base/_macros' as macros %}
 
 {{ forms.textField({
+    label: 'API URL' | t('formie'),
+    instructions: 'Enter your {name} API URL here.' | t('formie', { name: integration.name }),
+    name: 'apiUrl',
+    required: true,
+    value: integration.settings.apiUrl ?? '',
+    warning: macros.configWarning('apiUrl', 'formie'),
+    errors: integration.getErrors('apiUrl'),
+}) }}
+
+{{ forms.textField({
     label: 'API Key' | t('formie'),
+    instructions: 'Enter your {name} API key here.' | t('formie', { name: integration.name }),
     name: 'apiKey',
     required: true,
     value: integration.settings.apiKey ?? '',
