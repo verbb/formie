@@ -101,7 +101,7 @@ export default {
         },
 
         value: {
-            type: Object,
+            type: [Object, String],
             default: () => {
                 return {};
             },
@@ -121,6 +121,10 @@ export default {
     created() {
         this.proxyRows = this.rows;
         this.proxyValue = this.value;
+
+        if (!this.proxyValue) {
+            this.proxyValue = {};
+        }
 
         // Prepare an empty model, for new integrations
         if (!Object.keys(this.proxyValue).length) {

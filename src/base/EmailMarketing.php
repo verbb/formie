@@ -1,8 +1,10 @@
 <?php
 namespace verbb\formie\base;
 
+use verbb\formie\base\Integration;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
+use verbb\formie\events\SendIntegrationPayloadEvent;
 use verbb\formie\models\EmailMarketingList;
 
 use Craft;
@@ -243,19 +245,58 @@ abstract class EmailMarketing extends Integration implements IntegrationInterfac
     /**
      * @inheritDoc
      */
-    protected function getFieldMappingValues()
+    protected function getFieldMappingValues(Submission $submission)
     {
         $fieldValues = [];
 
         foreach ($this->fieldMapping as $tag => $formFieldHandle) {
             if ($formFieldHandle) {
                 $formFieldHandle = str_replace(['{', '}'], ['', ''], $formFieldHandle);
-                $fieldValue = $submission->{$formFieldHandle};
 
-                $fieldValues[$tag] = $fieldValue;
+                // Convert to string. We'll introduce more complex field handling in the future, but this will
+                // be controlled at the integration-level. Some providers might only handle an address as a string
+                // others might accept an array of content. The integration should handle this...
+                $fieldValues[$tag] = (string)$submission->getFieldValue($formFieldHandle);
             }
         }
 
         return $fieldValues;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected function beforeSendPayload(Submission $submission)
+    {
+        $event = new SendIntegrationPayloadEvent([
+            'submission' => $submission,
+            'integration' => $this,
+        ]);
+        $this->trigger(self::EVENT_BEFORE_SEND_PAYLOAD, $event);
+
+        if (!$event->isValid) {
+            Integration::log($this, 'Sending payload cancelled by event hook.');
+        }
+
+        return $event->isValid;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected function afterSendPayload(Submission $submission, $response)
+    {
+        $event = new SendIntegrationPayloadEvent([
+            'submission' => $submission,
+            'response' => $response,
+            'integration' => $this,
+        ]);
+        $this->trigger(self::EVENT_AFTER_SEND_PAYLOAD, $event);
+
+        if (!$event->isValid) {
+            Integration::log($this, 'Payload marked as invalid by event hook.');
+        }
+
+        return $event->isValid;
     }
 }

@@ -180,7 +180,7 @@ class Mailchimp extends EmailMarketing
     public function sendPayload(Submission $submission): bool
     {
         try {
-            $fieldValues = $this->getFieldMappingValues();
+            $fieldValues = $this->getFieldMappingValues($submission);
 
             // Pull out email, as it needs to be top level
             $email = ArrayHelper::remove($fieldValues, 'email_address');
@@ -193,32 +193,17 @@ class Mailchimp extends EmailMarketing
             ];
 
             // Allow events to cancel sending
-            $event = new SendIntegrationPayloadEvent([
-                'submission' => $submission,
-                'integration' => $this,
-            ]);
-            $this->trigger(EmailMarketing::EVENT_BEFORE_SEND_PAYLOAD, $event);
-
-            if (!$event->isValid) {
-                Integration::log($this, 'Sending payload cancelled by event hook.');
+            if (!$this->beforeSendPayload($submission)) {
                 return false;
             }
 
             // Add or update
-            $response = $this->_request('PUT', "lists/$this->listId/members/$emailHash", [
+            $response = $this->_request('PUT', "lists/{$this->listId}/members/$emailHash", [
                 'json' => $payload,
             ]);
 
             // Allow events to say the response is invalid
-            $event = new SendIntegrationPayloadEvent([
-                'submission' => $submission,
-                'integration' => $this,
-                'response' => $response,
-            ]);
-            $this->trigger(EmailMarketing::EVENT_AFTER_SEND_PAYLOAD, $event);
-
-            if (!$event->isValid) {
-                Integration::log($this, 'Payload marked as invalid by event hook.');
+            if (!$this->afterSendPayload($submission, $response)) {
                 return false;
             }
         } catch (\Throwable $e) {
