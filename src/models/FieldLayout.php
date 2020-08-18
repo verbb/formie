@@ -35,7 +35,7 @@ class FieldLayout extends CraftFieldLayout
     /**
      * @inheritDoc
      */
-    public function setFields(array $fields)
+    public function setFields(array $fields = null)
     {
         $this->_fields = $fields;
     }
