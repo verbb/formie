@@ -81,9 +81,15 @@ class CampaignMonitor extends EmailMarketing
     {
         if ($this->enabled) {
             $apiKey = $this->settings['apiKey'] ?? '';
+            $clientId = $this->settings['clientId'] ?? '';
 
             if (!$apiKey) {
                 $this->addError('apiKey', Craft::t('formie', 'API key is required.'));
+                return false;
+            }
+
+            if (!$clientId) {
+                $this->addError('clientId', Craft::t('formie', 'Client ID is required.'));
                 return false;
             }
         }
@@ -99,7 +105,42 @@ class CampaignMonitor extends EmailMarketing
         $allLists = [];
 
         try {
-            
+            $clientId = $this->settings['clientId'] ?? '';
+
+            $lists = $this->_request('GET', 'clients/' . $clientId . '/lists.json');
+
+            foreach ($lists as $list) {
+                // While we're at it, fetch the fields for the list
+                $fields = $this->_request('GET', 'lists/' . $list['ListID'] . '/customfields.json');
+
+                $listFields = [
+                    new EmailMarketingField([
+                        'tag' => 'Email',
+                        'name' => Craft::t('formie', 'Email'),
+                        'type' => 'email',
+                        'required' => true,
+                    ]),
+                    new EmailMarketingField([
+                        'tag' => 'Name',
+                        'name' => Craft::t('formie', 'Name'),
+                        'type' => 'name',
+                    ]),
+                ];
+
+                foreach ($fields as $field) {
+                    $listFields[] = new EmailMarketingField([
+                        'tag' => str_replace(['[', ']'], '', $field['Key']),
+                        'name' => $field['FieldName'],
+                        'type' => $field['DataType'],
+                    ]);
+                }
+
+                $allLists[] = new EmailMarketingList([
+                    'id' => $list['ListID'],
+                    'name' => $list['Name'],
+                    'fields' => $listFields,
+                ]);
+            }
         } catch (\Throwable $e) {
             Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [
                 'message' => $e->getMessage(),
@@ -117,7 +158,54 @@ class CampaignMonitor extends EmailMarketing
     public function sendPayload(Submission $submission): bool
     {
         try {
-            
+            $fieldValues = $this->getFieldMappingValues($submission);
+
+            // Pull out email, as it needs to be top level
+            $email = ArrayHelper::remove($fieldValues, 'Email');
+            $name = ArrayHelper::remove($fieldValues, 'Name');
+
+            // Format custom fields
+            $customFields = [];
+
+            foreach ($fieldValues as $key => $value) {
+                if (is_array($value)) {
+                    foreach ($value as $v) {
+                        $customFields[] = [
+                            'Key' => $key,
+                            'Value' => $v,
+                        ];
+                    }
+                } else {
+                    $customFields[] = [
+                        'Key' => $key,
+                        'Value' => $value,
+                    ];
+                }
+            }
+
+            $payload = [
+                'EmailAddress' => $email,
+                'Name' => $name,
+                'CustomFields' => $customFields,
+                'Resubscribe' => true,
+                'RestartSubscriptionBasedAutoresponders' => true,
+                'ConsentToTrack' => 'Yes',
+            ];
+
+            // Allow events to cancel sending
+            if (!$this->beforeSendPayload($submission)) {
+                return false;
+            }
+
+            // Add or update
+            $response = $this->_request('POST', "subscribers/{$this->listId}.json", [
+                'json' => $payload,
+            ]);
+
+            // Allow events to say the response is invalid
+            if (!$this->afterSendPayload($submission, $response)) {
+                return false;
+            }
         } catch (\Throwable $e) {
             Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [
                 'message' => $e->getMessage(),
@@ -137,8 +225,21 @@ class CampaignMonitor extends EmailMarketing
     public function fetchConnection(): bool
     {
         try {
-            
+            $clientId = $this->settings['clientId'] ?? '';
 
+            $response = $this->_request('GET', '/clients/' . $clientId . '.json');
+            $error = $response['error'] ?? '';
+            $apiKey = $response['ApiKey'] ?? '';
+
+            if ($error) {
+                Integration::error($this, $error, true);
+                return false;
+            }
+
+            if (!$apiKey) {
+                Integration::error($this, 'Unable to find “{ApiKey}” in response.', true);
+                return false;
+            }
         } catch (\Throwable $e) {
             Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [
                 'message' => $e->getMessage(),
@@ -165,12 +266,12 @@ class CampaignMonitor extends EmailMarketing
         $apiKey = $this->settings['apiKey'] ?? '';
 
         if (!$apiKey) {
-            Integration::error($this, 'Invalid API Key for Mailchimp', true);
+            Integration::error($this, 'Invalid API Key for Campaign Monitor', true);
         }
 
         return $this->_client = Craft::createGuzzleClient([
-            // 'base_uri' => 'https://' . $dataCenter . '.api.mailchimp.com/3.0/',
-            // 'auth' => ['apikey', $apiKey],
+            'base_uri' => 'https://api.createsend.com/api/v3.2/',
+            'auth' => [$apiKey, 'formie'],
         ]);
     }
 

@@ -9,3 +9,12 @@
     warning: macros.configWarning('apiKey', 'formie'),
     errors: integration.getErrors('apiKey'),
 }) }}
+
+{{ forms.textField({
+    label: 'Client ID' | t('formie'),
+    name: 'clientId',
+    required: true,
+    value: integration.settings.clientId ?? '',
+    warning: macros.configWarning('clientId', 'formie'),
+    errors: integration.getErrors('clientId'),
+}) }}
