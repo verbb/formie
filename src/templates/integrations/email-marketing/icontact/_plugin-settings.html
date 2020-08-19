@@ -2,11 +2,51 @@
 {% import 'verbb-base/_macros' as macros %}
 
 {{ forms.textField({
-    label: 'API Key' | t('formie'),
-    instructions: 'Enter your {name} API key here.' | t('formie', { name: integration.name }),
-    name: 'apiKey',
+    label: 'Application ID' | t('formie'),
+    instructions: 'Enter your {name} Application ID here.' | t('formie', { name: integration.name }),
+    name: 'appId',
     required: true,
-    value: integration.settings.apiKey ?? '',
-    warning: macros.configWarning('apiKey', 'formie'),
-    errors: integration.getErrors('apiKey'),
+    value: integration.settings.appId ?? '',
+    warning: macros.configWarning('appId', 'formie'),
+    errors: integration.getErrors('appId'),
+}) }}
+
+{{ forms.textField({
+    label: 'Username' | t('formie'),
+    instructions: 'Enter your {name} API username here.' | t('formie', { name: integration.name }),
+    name: 'username',
+    required: true,
+    value: integration.settings.username ?? '',
+    warning: macros.configWarning('username', 'formie'),
+    errors: integration.getErrors('username'),
+}) }}
+
+{{ forms.textField({
+    label: 'Password' | t('formie'),
+    instructions: 'Enter your {name} API password here. This is not your {name} account password.' | t('formie', { name: integration.name }),
+    name: 'password',
+    required: true,
+    value: integration.settings.password ?? '',
+    warning: macros.configWarning('password', 'formie'),
+    errors: integration.getErrors('password'),
+}) }}
+
+{{ forms.textField({
+    label: 'Account ID' | t('formie'),
+    instructions: 'Enter your {name} account ID here.' | t('formie', { name: integration.name }),
+    name: 'accountId',
+    required: true,
+    value: integration.settings.accountId ?? '',
+    warning: macros.configWarning('accountId', 'formie'),
+    errors: integration.getErrors('accountId'),
+}) }}
+
+{{ forms.textField({
+    label: 'Client Folder ID' | t('formie'),
+    instructions: 'Enter your {name} client folder ID here.' | t('formie', { name: integration.name }),
+    name: 'clientFolderId',
+    required: true,
+    value: integration.settings.clientFolderId ?? '',
+    warning: macros.configWarning('clientFolderId', 'formie'),
+    errors: integration.getErrors('clientFolderId'),
 }) }}
