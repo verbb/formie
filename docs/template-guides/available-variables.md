@@ -133,3 +133,18 @@ For parsing a variable-string against a submission. For example, you might have 
 ### `craft.formie.setCurrentSubmission(form, submission)`
 Sets the current submission for a particular form. This is mostly used for multi-page forms.
 
+
+### `craft.formie.populateFormValues(handle, values)`
+Populates the `defaultValue` of a field for a form. Note that this should be done before rendering the form.
+
+```twig
+{# Sets the field with handle `text` to "Some Value" for the form with a handle `contactForm` #}
+{% do craft.formie.populateFormValues('contactForm', { text: "Some Value" }) %}
+
+{# or use a `form` object #}
+{% set form = craft.formie.forms({ handle: 'contactForm' }).one() %}
+{% do craft.formie.populateFormValues(form, { text: "Some Value" }) %}
+
+{# Must be done before the `renderForm()` #}
+{{ craft.formie.renderForm('contactForm') }}
+```
