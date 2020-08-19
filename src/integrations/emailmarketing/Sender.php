@@ -67,7 +67,39 @@ class Sender extends EmailMarketing
         $allLists = [];
 
         try {
-            
+            $lists = $this->_request([
+                'method' => 'listGetAllLists',
+                'params' => [
+                    'api_key' => $this->settings['apiKey'] ?? '',
+                ],
+            ]);
+
+            foreach ($lists as $list) {
+                $listFields = [
+                    new EmailMarketingField([
+                        'tag' => 'email',
+                        'name' => Craft::t('formie', 'Email'),
+                        'type' => 'email',
+                        'required' => true,
+                    ]),
+                    new EmailMarketingField([
+                        'tag' => 'firstname',
+                        'name' => Craft::t('formie', 'First Name'),
+                        'type' => 'firstname',
+                    ]),
+                    new EmailMarketingField([
+                        'tag' => 'lastname',
+                        'name' => Craft::t('formie', 'Last Name'),
+                        'type' => 'lastname',
+                    ]),
+                ];
+
+                $allLists[] = new EmailMarketingList([
+                    'id' => (string)$list['id'],
+                    'name' => $list['title'],
+                    'fields' => $listFields,
+                ]);
+            }
         } catch (\Throwable $e) {
             Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [
                 'message' => $e->getMessage(),
@@ -85,7 +117,39 @@ class Sender extends EmailMarketing
     public function sendPayload(Submission $submission): bool
     {
         try {
-            
+            $fieldValues = $this->getFieldMappingValues($submission);
+
+            $payload = [
+                'method' => 'listSubscribe',
+                'params' => [
+                    'api_key' => $this->settings['apiKey'] ?? '',
+                    'list_id' => $this->listId,
+                    'emails' => $fieldValues,
+                ],
+            ];
+
+            // Allow events to cancel sending
+            if (!$this->beforeSendPayload($submission, $payload)) {
+                return false;
+            }
+
+            // Add or update
+            $response = $this->_request($payload);
+
+            // Allow events to say the response is invalid
+            if (!$this->afterSendPayload($submission, $payload, $response)) {
+                return false;
+            }
+
+            $contactId = $response['success'] ?? '';
+
+            if (!$contactId) {
+                Integration::error($this, Craft::t('formie', 'API error: “{response}”', [
+                    'response' => Json::encode($response),
+                ]));
+
+                return false;
+            }
         } catch (\Throwable $e) {
             Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [
                 'message' => $e->getMessage(),
@@ -105,8 +169,19 @@ class Sender extends EmailMarketing
     public function fetchConnection(): bool
     {
         try {
-            
+            $response = $this->_request([
+                'method' => 'listGetAllLists',
+                'params' => [
+                    'api_key' => $this->settings['apiKey'] ?? '',
+                ],
+            ]);
 
+            $accountId = $response[0]['id'] ?? '';
+
+            if (!$accountId) {
+                Integration::error($this, 'Unable to find “{id}” in response.', true);
+                return false;
+            }
         } catch (\Throwable $e) {
             Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [
                 'message' => $e->getMessage(),
@@ -124,28 +199,19 @@ class Sender extends EmailMarketing
     // Private Methods
     // =========================================================================
 
-    private function _getClient()
+    private function _request($data)
     {
-        if ($this->_client) {
-            return $this->_client;
-        }
+        $options = [
+            'http' => [
+                'method' => 'POST',
+                'header' => 'Content-Type: application/x-www-form-urlencoded',
+                'content' => http_build_query(['data' => Json::encode($data)]),
+            ]
+        ];
 
-        $apiKey = $this->settings['apiKey'] ?? '';
+        $context = stream_context_create($options);
+        $result = file_get_contents('https://app.sender.net/api', false, $context);
 
-        if (!$apiKey) {
-            Integration::error($this, 'Invalid API Key for Mailchimp', true);
-        }
-
-        return $this->_client = Craft::createGuzzleClient([
-            // 'base_uri' => 'https://' . $dataCenter . '.api.mailchimp.com/3.0/',
-            // 'auth' => ['apikey', $apiKey],
-        ]);
-    }
-
-    private function _request(string $method, string $uri, array $options = [])
-    {
-        $response = $this->_getClient()->request($method, trim($uri, '/'), $options);
-
-        return Json::decode((string)$response->getBody());
+        return Json::decode($result);
     }
 }
