@@ -50,6 +50,14 @@ class MultiLineText extends FormField
     /**
      * @inheritDoc
      */
+    public function getContentColumnType(): string
+    {
+        return Schema::TYPE_TEXT;
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function getInputHtml($value, ElementInterface $element = null): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/multi-line-text/input', [
