@@ -10,3 +10,13 @@
     warning: macros.configWarning('apiKey', 'formie'),
     errors: integration.getErrors('apiKey'),
 }) }}
+
+{{ forms.textField({
+    label: 'API Secret' | t('formie'),
+    instructions: 'Enter your {name} API secret here.' | t('formie', { name: integration.name }),
+    name: 'apiSecret',
+    required: true,
+    value: integration.settings.apiSecret ?? '',
+    warning: macros.configWarning('apiSecret', 'formie'),
+    errors: integration.getErrors('apiSecret'),
+}) }}

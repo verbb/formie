@@ -49,9 +49,15 @@ class ConvertKit extends EmailMarketing
     {
         if ($this->enabled) {
             $apiKey = $this->settings['apiKey'] ?? '';
+            $apiSecret = $this->settings['apiSecret'] ?? '';
 
             if (!$apiKey) {
                 $this->addError('apiKey', Craft::t('formie', 'API key is required.'));
+                return false;
+            }
+
+            if (!$apiSecret) {
+                $this->addError('apiSecret', Craft::t('formie', 'API secret is required.'));
                 return false;
             }
         }
@@ -67,7 +73,42 @@ class ConvertKit extends EmailMarketing
         $allLists = [];
 
         try {
+            $response = $this->_request('GET', 'forms');
+            $lists = $response['forms'] ?? [];
+
+            foreach ($lists as $list) {
+                // While we're at it, fetch the fields for the list
+                $response = $this->_request('GET', 'custom_fields');
+
+                $listFields = [
+                    new EmailMarketingField([
+                        'tag' => 'Email',
+                        'name' => Craft::t('formie', 'Email'),
+                        'type' => 'email',
+                        'required' => true,
+                    ]),
+                    new EmailMarketingField([
+                        'tag' => 'FirstName',
+                        'name' => Craft::t('formie', 'First Name'),
+                        'type' => 'FirstName',
+                    ]),
+                ];
+
+                $fields = $response['custom_fields'] ?? [];
             
+                foreach ($fields as $field) {
+                    $listFields[] = new EmailMarketingField([
+                        'tag' => $field['key'],
+                        'name' => $field['label'],
+                    ]);
+                }
+
+                $allLists[] = new EmailMarketingList([
+                    'id' => (string)$list['id'],
+                    'name' => $list['name'],
+                    'fields' => $listFields,
+                ]);
+            }
         } catch (\Throwable $e) {
             Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [
                 'message' => $e->getMessage(),
@@ -85,7 +126,32 @@ class ConvertKit extends EmailMarketing
     public function sendPayload(Submission $submission): bool
     {
         try {
-            
+            $fieldValues = $this->getFieldMappingValues($submission);
+
+            // Pull out email, as it needs to be top level
+            $email = ArrayHelper::remove($fieldValues, 'Email');
+            $firstName = ArrayHelper::remove($fieldValues, 'FirstName');
+
+            $payload = [
+                'email' => $email,
+                'first_name' => $firstName,
+                'fields' => $fieldValues,
+            ];
+
+            // Allow events to cancel sending
+            if (!$this->beforeSendPayload($submission, $payload)) {
+                return false;
+            }
+
+            // Add or update
+            $response = $this->_request('POST', "forms/{$this->listId}/subscribe", [
+                'json' => $payload,
+            ]);
+
+            // Allow events to say the response is invalid
+            if (!$this->afterSendPayload($submission, $payload, $response)) {
+                return false;
+            }
         } catch (\Throwable $e) {
             Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [
                 'message' => $e->getMessage(),
@@ -105,8 +171,13 @@ class ConvertKit extends EmailMarketing
     public function fetchConnection(): bool
     {
         try {
-            
+            $response = $this->_request('GET', 'account');
+            $accountId = $response['primary_email_address'] ?? '';
 
+            if (!$accountId) {
+                Integration::error($this, 'Unable to find “{primary_email_address}” in response.', true);
+                return false;
+            }
         } catch (\Throwable $e) {
             Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [
                 'message' => $e->getMessage(),
@@ -130,15 +201,15 @@ class ConvertKit extends EmailMarketing
             return $this->_client;
         }
 
-        $apiKey = $this->settings['apiKey'] ?? '';
+        $apiSecret = $this->settings['apiSecret'] ?? '';
 
-        if (!$apiKey) {
-            Integration::error($this, 'Invalid API Key for Mailchimp', true);
+        if (!$apiSecret) {
+            Integration::error($this, 'Invalid API Secret for ConvertKit', true);
         }
 
         return $this->_client = Craft::createGuzzleClient([
-            // 'base_uri' => 'https://' . $dataCenter . '.api.mailchimp.com/3.0/',
-            // 'auth' => ['apikey', $apiKey],
+            'base_uri' => 'https://api.convertkit.com/v3/',
+            'query' => ['api_secret' => $apiSecret],
         ]);
     }
 
