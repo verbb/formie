@@ -3,9 +3,10 @@ namespace verbb\formie\elements;
 
 use craft\elements\User;
 use verbb\formie\Formie;
-use verbb\formie\actions\SetSubmissionStatus;
 use verbb\formie\base\FormField;
 use verbb\formie\base\FormFieldTrait;
+use verbb\formie\elements\actions\SetSubmissionSpam;
+use verbb\formie\elements\actions\SetSubmissionStatus;
 use verbb\formie\elements\db\SubmissionQuery;
 use verbb\formie\events\SubmissionMarkedAsSpamEvent;
 use verbb\formie\events\SubmissionRulesEvent;
@@ -274,6 +275,10 @@ class Submission extends Element
         $actions[] = $elementsService->createAction([
             'type' => SetSubmissionStatus::class,
             'statuses' => Formie::$plugin->getStatuses()->getAllStatuses(),
+        ]);
+
+        $actions[] = $elementsService->createAction([
+            'type' => SetSubmissionSpam::class,
         ]);
 
         $actions[] = $elementsService->createAction([

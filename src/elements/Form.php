@@ -1,12 +1,9 @@
 <?php
 namespace verbb\formie\elements;
 
-use craft\db\Query;
-use craft\elements\Entry;
-use Throwable;
-use verbb\formie\base\IntegrationInterface;
 use verbb\formie\Formie;
 use verbb\formie\base\FormFieldInterface;
+use verbb\formie\base\IntegrationInterface;
 use verbb\formie\behaviors\FieldLayoutBehavior;
 use verbb\formie\elements\db\FormQuery;
 use verbb\formie\events\ModifyFormIntegrationsEvent;
@@ -20,6 +17,8 @@ use verbb\formie\records\Form as FormRecord;
 
 use Craft;
 use craft\base\Element;
+use craft\db\Query;
+use craft\elements\Entry;
 use craft\elements\actions\Delete;
 use craft\elements\actions\Restore;
 use craft\elements\db\ElementQueryInterface;
@@ -33,6 +32,7 @@ use craft\validators\HandleValidator;
 use yii\base\Exception;
 use yii\base\InvalidConfigException;
 use yii\validators\Validator;
+use Throwable;
 
 class Form extends Element
 {
