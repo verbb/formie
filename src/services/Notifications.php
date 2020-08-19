@@ -486,7 +486,7 @@ class Notifications extends Component
         return [
             SchemaHelper::selectField([
                 'label' => Craft::t('formie', 'Email Template'),
-                'help' => Craft::t('formie', 'Select a template to use for the Email, or leave empty to use Formie\'s default.'),
+                'help' => Craft::t('formie', 'Select a template to use for the Email, or leave empty to use Formie‘s default.'),
                 'name' => 'templateId',
                 'options' => $options,
             ]),

@@ -385,7 +385,7 @@ class Date extends FormField implements SubfieldInterface
                 'name' => 'defaultOption',
                 'options' => [
                     [ 'label' => Craft::t('formie', 'None'), 'value' => '' ],
-                    [ 'label' => Craft::t('formie', 'Today\'s Date/Time'), 'value' => 'today' ],
+                    [ 'label' => Craft::t('formie', 'Today‘s Date/Time'), 'value' => 'today' ],
                     [ 'label' => Craft::t('formie', 'Specific Date/Time'), 'value' => 'date' ],
                 ],
             ]),

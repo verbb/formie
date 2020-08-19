@@ -5,6 +5,7 @@ use verbb\formie\Formie;
 use verbb\formie\base\FormField;
 use verbb\formie\base\FormFieldInterface;
 use verbb\formie\elements\Form;
+use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyRenderEvent;
 use verbb\formie\models\FieldLayoutPage;
 use verbb\formie\models\FormTemplate;
@@ -401,6 +402,26 @@ class Rendering extends Component
         $view->setTemplatesPath($oldTemplatePath);
 
         return $templatePath;
+    }
+
+    public function populateFormValues($form, $values = [])
+    {
+        if (is_string($form)) {
+            $form = Form::find()->handle($form)->one();
+        }
+
+        if (!$form) {
+            return null;
+        }
+
+        // Try to populate fields with their default value
+        foreach ($values as $key => $value) {
+            try {
+                $form->getFieldByHandle($key)->defaultValue = $value;
+            } catch (\Throwable $e) {
+                continue;
+            }
+        }
     }
 
 

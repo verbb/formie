@@ -225,14 +225,14 @@ class Repeater extends FormField implements NestedFieldInterface, EagerLoadingFi
         return [
             SchemaHelper::textField([
                 'label' => Craft::t('formie', 'Minimum instances'),
-                'help' => Craft::t('formie', 'The minimum required number of instances of this repeater\'s fields that must be completed.'),
+                'help' => Craft::t('formie', 'The minimum required number of instances of this repeater‘s fields that must be completed.'),
                 'type' => 'number',
                 'name' => 'minRows',
                 'validation' => 'optional|number|min:0',
             ]),
             SchemaHelper::textField([
                 'label' => Craft::t('formie', 'Maximum instances'),
-                'help' => Craft::t('formie', 'The maximum required number of instances of this repeater\'s fields that must be completed.'),
+                'help' => Craft::t('formie', 'The maximum required number of instances of this repeater‘s fields that must be completed.'),
                 'type' => 'number',
                 'name' => 'maxRows',
                 'validation' => 'optional|number|min:0',

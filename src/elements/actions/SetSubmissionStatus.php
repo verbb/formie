@@ -1,5 +1,5 @@
 <?php
-namespace verbb\formie\actions;
+namespace verbb\formie\elements\actions;
 
 use Craft;
 use craft\base\ElementAction;

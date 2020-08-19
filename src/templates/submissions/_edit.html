@@ -144,17 +144,40 @@
     {% endif %}
 </div>
 
+{% if submission.isSpam %}
+    <div id="meta-details" class="meta">
+        <div class="field">
+            <div class="heading">
+                <label class="">{{ 'Status' | t('formie') }}</label>
+            </div>
+
+            <div class="input ltr">
+                <div id="status-value" class="value"><span class="status red"></span>{{ 'Spam' | t('formie') }} <span class="info">{{ submission.spamReason }}</span></div>
+            </div>
+        </div>
+
+        <div class="field">
+            <div class="heading">
+                <label class="">{{ 'Mark as Spam' | t('formie') }}</label>
+            </div>
+
+            <div>
+                {{ forms.lightswitchField({
+                    id: 'isSpam',
+                    name: 'isSpam',
+                    on: submission.isSpam,
+                }) }}
+            </div>
+        </div>
+    </div>
+{% endif %}
+
 <div id="meta-details" class="meta read-only">
     {% block meta %}
         {% if submission.isIncomplete %}
             <div class="data">
                 <h5 class="heading">{{ 'Status' | t('app') }}</h5>
                 <div id="status-value" class="value"><span class="status"></span>{{ 'Incomplete' | t('formie') }}</div>
-            </div>
-        {% elseif submission.isSpam %}
-            <div class="data">
-                <h5 class="heading">{{ 'Status' | t('app') }}</h5>
-                <div id="status-value" class="value"><span class="status red"></span>{{ 'Spam' | t('formie') }} <span class="info">{{ submission.spamReason }}</span></div>
             </div>
         {% endif %}
 
