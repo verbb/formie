@@ -67,7 +67,26 @@ class MailerLite extends EmailMarketing
         $allLists = [];
 
         try {
+            $lists = $this->_request('GET', 'groups');
+
+            foreach ($lists as $list) {
+                // While we're at it, fetch the fields for the list
+                $fields = $this->_request('GET', 'fields');
             
+                foreach ($fields as $field) {
+                    $listFields[] = new EmailMarketingField([
+                        'tag' => (string)$field['key'],
+                        'name' => $field['title'],
+                        'type' => $field['type'],
+                    ]);
+                }
+
+                $allLists[] = new EmailMarketingList([
+                    'id' => (string)$list['id'],
+                    'name' => $list['name'],
+                    'fields' => $listFields,
+                ]);
+            }
         } catch (\Throwable $e) {
             Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [
                 'message' => $e->getMessage(),
@@ -85,7 +104,43 @@ class MailerLite extends EmailMarketing
     public function sendPayload(Submission $submission): bool
     {
         try {
-            
+            $fieldValues = $this->getFieldMappingValues($submission);
+
+            // Pull out email, as it needs to be top level
+            $email = ArrayHelper::remove($fieldValues, 'email');
+            $name = ArrayHelper::remove($fieldValues, 'name');
+
+            $payload = [
+                'email' => $email,
+                'name' => $name,
+                'fields' => $fieldValues,
+                'resubscribe' => true,
+            ];
+
+            // Allow events to cancel sending
+            if (!$this->beforeSendPayload($submission, $payload)) {
+                return false;
+            }
+
+            // Add or update
+            $response = $this->_request('POST', "groups/{$this->listId}/subscribers", [
+                'json' => $payload,
+            ]);
+
+            // Allow events to say the response is invalid
+            if (!$this->afterSendPayload($submission, $payload, $response)) {
+                return false;
+            }
+
+            $contactId = $response['id'] ?? '';
+
+            if (!$contactId) {
+                Integration::error($this, Craft::t('formie', 'API error: “{response}”', [
+                    'response' => Json::encode($response),
+                ]));
+
+                return false;
+            }
         } catch (\Throwable $e) {
             Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [
                 'message' => $e->getMessage(),
@@ -105,8 +160,13 @@ class MailerLite extends EmailMarketing
     public function fetchConnection(): bool
     {
         try {
-            
+            $response = $this->_request('GET', 'me');
+            $accountId = $response['account']['id'] ?? '';
 
+            if (!$accountId) {
+                Integration::error($this, 'Unable to find “{instance_id}” in response.', true);
+                return false;
+            }
         } catch (\Throwable $e) {
             Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [
                 'message' => $e->getMessage(),
@@ -137,8 +197,8 @@ class MailerLite extends EmailMarketing
         }
 
         return $this->_client = Craft::createGuzzleClient([
-            // 'base_uri' => 'https://' . $dataCenter . '.api.mailchimp.com/3.0/',
-            // 'auth' => ['apikey', $apiKey],
+            'base_uri' => 'https://api.mailerlite.com/api/v2/',
+            'headers' => ['X-MailerLite-ApiKey' => $apiKey],
         ]);
     }
 
