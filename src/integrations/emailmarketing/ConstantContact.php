@@ -137,6 +137,7 @@ class ConstantContact extends EmailMarketing
                         'tag' => 'email',
                         'name' => Craft::t('formie', 'Email'),
                         'type' => 'email',
+                        'required' => true,
                     ]),
                     new EmailMarketingField([
                         'tag' => 'first_name',
@@ -236,6 +237,11 @@ class ConstantContact extends EmailMarketing
                 'json' => $payload,
             ]);
 
+            // Allow events to say the response is invalid
+            if (!$this->afterSendPayload($submission, $payload, $response)) {
+                return false;
+            }
+
             $contactId = $response['contact_id'] ?? '';
 
             if (!$contactId) {
@@ -243,11 +249,6 @@ class ConstantContact extends EmailMarketing
                     'response' => Json::encode($response),
                 ]));
 
-                return false;
-            }
-
-            // Allow events to say the response is invalid
-            if (!$this->afterSendPayload($submission, $payload, $response)) {
                 return false;
             }
         } catch (\Throwable $e) {
