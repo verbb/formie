@@ -2,6 +2,13 @@
 {% import 'verbb-base/_macros' as macros %}
 
 {{ forms.textField({
+    readonly: true,
+    label: 'Redirect URI' | t('formie'),
+    instructions: 'Use this URI when setting up your {name} app.' | t('formie', { name: integration.name }),
+    value: integration.getRedirectUri(),
+}) }}
+
+{{ forms.textField({
     label: 'API Key' | t('formie'),
     instructions: 'Enter your {name} API key here.' | t('formie', { name: integration.name }),
     name: 'apiKey',
@@ -9,4 +16,14 @@
     value: integration.settings.apiKey ?? '',
     warning: macros.configWarning('apiKey', 'formie'),
     errors: integration.getErrors('apiKey'),
+}) }}
+
+{{ forms.textField({
+    label: 'App Secret' | t('formie'),
+    instructions: 'Enter your {name} App Secret here.' | t('formie', { name: integration.name }),
+    name: 'appSecret',
+    required: true,
+    value: integration.settings.appSecret ?? '',
+    warning: macros.configWarning('appSecret', 'formie'),
+    errors: integration.getErrors('appSecret'),
 }) }}

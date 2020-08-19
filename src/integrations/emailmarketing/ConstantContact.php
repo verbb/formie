@@ -13,6 +13,7 @@ use verbb\formie\models\EmailMarketingList;
 use Craft;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
+use craft\web\Response;
 use craft\web\View;
 
 class ConstantContact extends EmailMarketing
@@ -21,6 +22,47 @@ class ConstantContact extends EmailMarketing
     // =========================================================================
 
     public $handle = 'constantContact';
+
+
+    // OAuth Methods
+    // =========================================================================
+
+    public function getAuthorizeUrl(): string
+    {
+        return 'https://api.cc.email/v3/idfed';
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getAccessTokenUrl(): string
+    {
+        return 'https://idfed.constantcontact.com/as/token.oauth2';
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getClientId(): string
+    {
+        return $this->settings['apiKey'] ?? '';
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getClientSecret(): string
+    {
+        return $this->settings['appSecret'] ?? '';
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getOauthScope(): array
+    {
+        return ['contact_data'];
+    }
 
 
     // Public Methods
@@ -79,9 +121,15 @@ class ConstantContact extends EmailMarketing
     {
         if ($this->enabled) {
             $apiKey = $this->settings['apiKey'] ?? '';
+            $appSecret = $this->settings['appSecret'] ?? '';
 
             if (!$apiKey) {
                 $this->addError('apiKey', Craft::t('formie', 'API key is required.'));
+                return false;
+            }
+
+            if (!$appSecret) {
+                $this->addError('appSecret', Craft::t('formie', 'App Secret is required.'));
                 return false;
             }
         }
@@ -122,27 +170,6 @@ class ConstantContact extends EmailMarketing
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
             ]));
-
-            return false;
-        }
-
-        return true;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function fetchConnection(): bool
-    {
-        try {
-            
-
-        } catch (\Throwable $e) {
-            Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [
-                'message' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-            ]), true);
 
             return false;
         }
