@@ -29,7 +29,29 @@
                         <div class="fui-integrations-header">
                             <h2>{{ integration.getName() }} {{ 'Settings' | t('formie') }}</h2>
 
-                            {% if integration.supportsConnection() %}
+                            {% if integration.supportsOauthConnection() %}
+                                {% if integration.getOauthConnected() %}
+                                    <div class="flex">
+                                        <div class="heading">
+                                            <span class="status on"></span>{{ 'Connected' | t('formie') }}
+                                        </div>
+
+                                        <div class="input ltr">
+                                            <a class="btn small formsubmit" data-action="formie/integrations/disconnect" data-param="handle" data-value="{{ integration.handle }}">{{ 'Disconnect' | t('formie') }}</a>
+                                        </div>
+                                    </div>
+                                {% else %}
+                                    <div class="flex">
+                                        <div class="heading">
+                                            <span class="status"></span><span class="light">{{ 'Not Connected' | t('formie') }}</span>
+                                        </div>
+
+                                        <div class="input ltr">
+                                            <a class="btn small formsubmit" data-action="formie/integrations/connect" data-param="handle" data-value="{{ integration.handle }}">{{ 'Connect' | t('formie') }}</a>
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            {% elseif integration.supportsConnection() %}
                                 <integration-check
                                     class="fui-integrations-check"
                                     handle="{{ integration.handle }}"

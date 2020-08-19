@@ -17,6 +17,7 @@ use verbb\formie\services\Statuses;
 use verbb\formie\services\Stencils;
 use verbb\formie\services\Submissions;
 use verbb\formie\services\Syncs;
+use verbb\formie\services\Tokens;
 use verbb\base\BaseHelper;
 
 use Craft;
@@ -113,6 +114,11 @@ trait PluginTrait
         return $this->get('syncs');
     }
 
+    public function getTokens(): Tokens
+    {
+        return $this->get('tokens');
+    }
+
     public static function log($message)
     {
         Craft::getLogger()->log($message, Logger::LEVEL_INFO, 'formie');
@@ -145,6 +151,7 @@ trait PluginTrait
             'stencils' => Stencils::class,
             'submissions' => Submissions::class,
             'syncs' => Syncs::class,
+            'tokens' => Tokens::class,
         ]);
 
         BaseHelper::registerModule();

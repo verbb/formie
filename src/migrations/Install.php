@@ -237,6 +237,18 @@ class Install extends Migration
             'dateUpdated' => $this->dateTime()->notNull(),
             'uid' => $this->uid(),
         ]);
+
+        $this->createTable('{{%formie_tokens}}', [
+            'id' => $this->primaryKey(),
+            'integrationHandle' => $this->string()->notNull(),
+            'accessToken' => $this->text(),
+            'secret' => $this->text(),
+            'endOfLife' => $this->string(),
+            'refreshToken' => $this->text(),
+            'dateCreated' => $this->dateTime()->notNull(),
+            'dateUpdated' => $this->dateTime()->notNull(),
+            'uid' => $this->uid(),
+        ]);
     }
 
     public function createIndexes()
@@ -364,6 +376,7 @@ class Install extends Migration
         $this->dropTableIfExists('{{%formie_statuses}}');
         $this->dropTableIfExists('{{%formie_formtemplates}}');
         $this->dropTableIfExists('{{%formie_emailtemplates}}');
+        $this->dropTableIfExists('{{%formie_tokens}}');
     }
 
     public function dropProjectConfig()

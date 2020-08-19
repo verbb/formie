@@ -470,6 +470,8 @@ class Integrations extends Component
             ]));
         }
 
+        $integration->afterSave();
+
         return true;
     }
 

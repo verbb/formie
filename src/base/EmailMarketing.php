@@ -1,15 +1,19 @@
 <?php
 namespace verbb\formie\base;
 
+use verbb\formie\Formie;
 use verbb\formie\base\Integration;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\SendIntegrationPayloadEvent;
+use verbb\formie\helpers\UrlHelper;
 use verbb\formie\models\EmailMarketingList;
 
 use Craft;
 use craft\base\Model;
-use craft\helpers\UrlHelper;
+use craft\helpers\UrlHelper as CraftUrlHelper;
+
+use League\OAuth2\Client\Provider\GenericProvider;
 
 abstract class EmailMarketing extends Integration implements IntegrationInterface
 {
@@ -46,6 +50,14 @@ abstract class EmailMarketing extends Integration implements IntegrationInterfac
      * @inheritDoc
      */
     public static function supportsConnection(): bool
+    {
+        return true;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public static function supportsOauthConnection(): bool
     {
         return true;
     }
@@ -224,6 +236,151 @@ abstract class EmailMarketing extends Integration implements IntegrationInterfac
         }
 
         return $options;
+    }
+
+
+    // OAuth Methods
+    // =========================================================================
+
+    /**
+     * @inheritDoc
+     */
+    public function getAuthorizeUrl(): string
+    {
+        return '';
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getAccessTokenUrl(): string
+    {
+        return '';
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getClientId(): string
+    {
+        return '';
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getClientSecret(): string
+    {
+        return '';
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getOauthScope(): array
+    {
+        return [];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function oauthVersion(): int
+    {
+        // For now, just support OAuth2
+        return 2;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function oauthConnect()
+    {
+        // For now, just support OAuth2
+        return $this->oauth2Connect();
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function oauthCallback()
+    {
+        // For now, just support OAuth2
+        return $this->oauth2Callback();
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getRedirectUri()
+    {
+        return UrlHelper::siteActionUrl('formie/integrations/callback');
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getOauthProvider()
+    {
+        return new GenericProvider([
+            'urlAuthorize' => $this->getAuthorizeUrl(),
+            'urlAccessToken' => $this->getAccessTokenUrl(),
+            'urlResourceOwnerDetails' => '',
+            'clientId' => $this->getClientId(),
+            'clientSecret' => $this->getClientSecret(),
+            'redirectUri' => $this->getRedirectUri(),
+            'scopes' => $this->getOauthScope(),
+        ]);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    private function oauth2Connect(): Response
+    {
+        $provider = $this->getOauthProvider();
+
+        Craft::$app->getSession()->set('formie.oauthState', $provider->getState());
+
+        $authorizationUrl = $provider->getAuthorizationUrl();
+
+        return Craft::$app->getResponse()->redirect($authorizationUrl);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    private function oauth2Callback(): array
+    {
+        $provider = $this->getOauthProvider();
+
+        $code = Craft::$app->getRequest()->getParam('code');
+
+        // Try to get an access token (using the authorization code grant)
+        $token = $provider->getAccessToken('authorization_code', [
+            'code' => $code,
+        ]);
+
+        return [
+            'success' => true,
+            'token' => $token
+        ];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getToken()
+    {
+        return Formie::$plugin->getTokens()->getLatestToken($this->handle);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getOauthConnected()
+    {
+        return $this->getToken();
     }
 
 
