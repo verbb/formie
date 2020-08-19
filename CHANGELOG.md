@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.1.6 - 2020-08-20
+
+### Added
+- Added `craft.formie.populateFormValues()`. See [docs](https://verbb.io/craft-plugins/formie/docs/template-guides/available-variables).
+- Added translation strings for all translatable text.
+- Added setting spam state element action for submissions.
+- Allow spam state to be toggled when editing a submission.
+
+### Fixed
+- Fixed GQL mutations error in Craft 3.4.
+- Fixed multi-line column limit not allowing for content greater than 255 characters. Please re-save any form that uses a multi-line text field to get this change.
+
 ## 1.1.5 - 2020-08-18
 
 ### Fixed
