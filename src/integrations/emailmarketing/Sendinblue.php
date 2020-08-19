@@ -67,7 +67,36 @@ class Sendinblue extends EmailMarketing
         $allLists = [];
 
         try {
-            
+            $response = $this->_request('GET', 'contacts/lists');
+
+            $lists = $response['lists'] ?? [];
+
+            foreach ($lists as $list) {
+                $listFields = [
+                    new EmailMarketingField([
+                        'tag' => 'email',
+                        'name' => Craft::t('formie', 'Email'),
+                        'type' => 'email',
+                        'required' => true,
+                    ]),
+                    new EmailMarketingField([
+                        'tag' => 'FIRSTNAME',
+                        'name' => Craft::t('formie', 'First Name'),
+                        'type' => 'FirstName',
+                    ]),
+                    new EmailMarketingField([
+                        'tag' => 'LASTNAME',
+                        'name' => Craft::t('formie', 'Last Name'),
+                        'type' => 'LastName',
+                    ]),
+                ];
+
+                $allLists[] = new EmailMarketingList([
+                    'id' => (string)$list['id'],
+                    'name' => $list['name'],
+                    'fields' => $listFields,
+                ]);
+            }
         } catch (\Throwable $e) {
             Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [
                 'message' => $e->getMessage(),
@@ -85,7 +114,32 @@ class Sendinblue extends EmailMarketing
     public function sendPayload(Submission $submission): bool
     {
         try {
-            
+            $fieldValues = $this->getFieldMappingValues($submission);
+
+            // Pull out email, as it needs to be top level
+            $email = ArrayHelper::remove($fieldValues, 'email');
+
+            $payload = [
+                'email' => $email,
+                'listIds' => [$this->listId],
+                'attributes' => $fieldValues,
+                'updateEnabled' => true,
+            ];
+
+            // Allow events to cancel sending
+            if (!$this->beforeSendPayload($submission, $payload)) {
+                return false;
+            }
+
+            // Add or update
+            $response = $this->_request('POST', 'contacts', [
+                'json' => $payload,
+            ]);
+
+            // Allow events to say the response is invalid
+            if (!$this->afterSendPayload($submission, $payload, $response)) {
+                return false;
+            }
         } catch (\Throwable $e) {
             Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [
                 'message' => $e->getMessage(),
@@ -105,8 +159,13 @@ class Sendinblue extends EmailMarketing
     public function fetchConnection(): bool
     {
         try {
-            
+            $response = $this->_request('GET', 'account');
+            $accountId = $response['email'] ?? '';
 
+            if (!$accountId) {
+                Integration::error($this, 'Unable to find “{email}” in response.', true);
+                return false;
+            }
         } catch (\Throwable $e) {
             Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [
                 'message' => $e->getMessage(),
@@ -133,12 +192,12 @@ class Sendinblue extends EmailMarketing
         $apiKey = $this->settings['apiKey'] ?? '';
 
         if (!$apiKey) {
-            Integration::error($this, 'Invalid API Key for Mailchimp', true);
+            Integration::error($this, 'Invalid API Key for Sendinblue', true);
         }
 
         return $this->_client = Craft::createGuzzleClient([
-            // 'base_uri' => 'https://' . $dataCenter . '.api.mailchimp.com/3.0/',
-            // 'auth' => ['apikey', $apiKey],
+            'base_uri' => 'https://api.sendinblue.com/v3/',
+            'headers' => ['api-key' => $apiKey],
         ]);
     }
 
