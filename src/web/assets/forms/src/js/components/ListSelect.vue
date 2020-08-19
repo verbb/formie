@@ -104,9 +104,13 @@ export default {
 
     methods: {
         onInput($event) {
+            this.emitEvent($event.target.value);
+        },
+
+        emitEvent(listId) {
             var eventKey = 'formie:integration-' + this.handle + '-' + this.nameRaw;
 
-            this.$events.$emit(eventKey, { listId: $event.target.value, integration: this.handle });
+            this.$events.$emit(eventKey, { listId, integration: this.handle });
         },
 
         refresh() {
@@ -134,6 +138,8 @@ export default {
                 }
 
                 this.proxyOptions = response.data.listOptions;
+
+                this.emitEvent(this.proxyValue);
             }).catch(error => {
                 this.loading = false;
                 this.error = true;
