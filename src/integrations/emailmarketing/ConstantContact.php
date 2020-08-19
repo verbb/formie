@@ -27,6 +27,17 @@ class ConstantContact extends EmailMarketing
     // OAuth Methods
     // =========================================================================
 
+    /**
+     * @inheritDoc
+     */
+    public static function supportsOauthConnection(): bool
+    {
+        return true;
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function getAuthorizeUrl(): string
     {
         return 'https://api.cc.email/v3/idfed';

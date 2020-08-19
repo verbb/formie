@@ -60,7 +60,7 @@ abstract class EmailMarketing extends Integration implements IntegrationInterfac
      */
     public static function supportsOauthConnection(): bool
     {
-        return true;
+        return false;
     }
 
 

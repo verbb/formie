@@ -31,7 +31,7 @@
 
                             {% if integration.supportsOauthConnection() %}
                                 {% if integration.getOauthConnected() %}
-                                    <div class="flex">
+                                    <div class="flex flex-nowrap">
                                         <div class="heading">
                                             <span class="status on"></span>{{ 'Connected' | t('formie') }}
                                         </div>
@@ -41,7 +41,7 @@
                                         </div>
                                     </div>
                                 {% else %}
-                                    <div class="flex">
+                                    <div class="flex flex-nowrap">
                                         <div class="heading">
                                             <span class="status"></span><span class="light">{{ 'Not Connected' | t('formie') }}</span>
                                         </div>
