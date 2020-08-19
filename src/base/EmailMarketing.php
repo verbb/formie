@@ -11,6 +11,7 @@ use verbb\formie\models\EmailMarketingList;
 
 use Craft;
 use craft\base\Model;
+use craft\helpers\StringHelper;
 use craft\helpers\UrlHelper as CraftUrlHelper;
 
 use League\OAuth2\Client\Provider\GenericProvider;
@@ -69,9 +70,23 @@ abstract class EmailMarketing extends Integration implements IntegrationInterfac
     /**
      * @inheritDoc
      */
+    public function getIconUrl(): string
+    {
+        $handle = StringHelper::toKebabCase($this->handle);
+
+        return Craft::$app->getAssetManager()->getPublishedUrl("@verbb/formie/web/assets/emailmarketing/dist/img/{$handle}.svg", true);
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function getSettingsHtml(): string
     {
-        return '';
+        $handle = StringHelper::toKebabCase($this->handle);
+
+        return Craft::$app->getView()->renderTemplate("formie/integrations/email-marketing/{$handle}/_plugin-settings", [
+            'integration' => $this,
+        ]);
     }
 
     /**
@@ -79,7 +94,13 @@ abstract class EmailMarketing extends Integration implements IntegrationInterfac
      */
     public function getFormSettingsHtml(Form $form): string
     {
-        return '';
+        $handle = StringHelper::toKebabCase($this->handle);
+
+        return Craft::$app->getView()->renderTemplate("formie/integrations/email-marketing/{$handle}/_form-settings", [
+            'integration' => $this,
+            'form' => $form,
+            'listOptions' => $this->getListOptions(),
+        ]);
     }
 
     /**

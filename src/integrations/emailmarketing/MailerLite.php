@@ -37,39 +37,9 @@ class MailerLite extends EmailMarketing
     /**
      * @inheritDoc
      */
-    public function getIconUrl(): string
-    {
-        return Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/emailmarketing/dist/img/mailer-lite.svg', true);
-    }
-
-    /**
-     * @inheritDoc
-     */
     public function getDescription(): string
     {
         return Craft::t('formie', 'Sign up users to your MailerLite lists to grow your audience for campaigns.');
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getSettingsHtml(): string
-    {
-        return Craft::$app->getView()->renderTemplate('formie/integrations/email-marketing/mailer-lite/_plugin-settings', [
-            'integration' => $this,
-        ]);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getFormSettingsHtml(Form $form): string
-    {
-        return Craft::$app->getView()->renderTemplate('formie/integrations/email-marketing/mailer-lite/_form-settings', [
-            'integration' => $this,
-            'form' => $form,
-            'listOptions' => $this->getListOptions(),
-        ]);
     }
 
     /**
