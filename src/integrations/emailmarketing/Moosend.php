@@ -216,7 +216,7 @@ class Moosend extends EmailMarketing
         $apiKey = $this->settings['apiKey'] ?? '';
 
         if (!$apiKey) {
-            Integration::error($this, 'Invalid API Key for Mailchimp', true);
+            Integration::error($this, 'Invalid API Key for Moosend', true);
         }
 
         return $this->_client = Craft::createGuzzleClient([

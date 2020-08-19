@@ -193,7 +193,7 @@ class MailerLite extends EmailMarketing
         $apiKey = $this->settings['apiKey'] ?? '';
 
         if (!$apiKey) {
-            Integration::error($this, 'Invalid API Key for Mailchimp', true);
+            Integration::error($this, 'Invalid API Key for MailerLite', true);
         }
 
         return $this->_client = Craft::createGuzzleClient([
