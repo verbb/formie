@@ -13,7 +13,6 @@ use verbb\formie\models\EmailMarketingList;
 use Craft;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
-use craft\web\Response;
 use craft\web\View;
 
 class ConstantContact extends EmailMarketing

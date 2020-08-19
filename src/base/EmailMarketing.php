@@ -13,6 +13,7 @@ use Craft;
 use craft\base\Model;
 use craft\helpers\StringHelper;
 use craft\helpers\UrlHelper as CraftUrlHelper;
+use craft\web\Response;
 
 use League\OAuth2\Client\Provider\GenericProvider;
 
