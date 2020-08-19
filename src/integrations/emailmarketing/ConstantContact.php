@@ -125,7 +125,67 @@ class ConstantContact extends EmailMarketing
         $allLists = [];
 
         try {
-            
+            $response = $this->_request('GET', 'contact_lists');
+            $lists = $response['lists'] ?? [];
+
+            foreach ($lists as $list) {
+                // While we're at it, fetch the fields for the list
+                $response = $this->_request('GET', 'contact_custom_fields');
+
+                $listFields = [
+                    new EmailMarketingField([
+                        'tag' => 'email',
+                        'name' => Craft::t('formie', 'Email'),
+                        'type' => 'email',
+                    ]),
+                    new EmailMarketingField([
+                        'tag' => 'first_name',
+                        'name' => Craft::t('formie', 'First Name'),
+                        'type' => 'firstName',
+                    ]),
+                    new EmailMarketingField([
+                        'tag' => 'last_name',
+                        'name' => Craft::t('formie', 'Last Name'),
+                        'type' => 'lastName',
+                    ]),
+                    new EmailMarketingField([
+                        'tag' => 'job_title',
+                        'name' => Craft::t('formie', 'Job Title'),
+                        'type' => 'jobTitle',
+                    ]),
+                    new EmailMarketingField([
+                        'tag' => 'company_name',
+                        'name' => Craft::t('formie', 'Company Name'),
+                        'type' => 'companyName',
+                    ]),
+                    new EmailMarketingField([
+                        'tag' => 'phone_number',
+                        'name' => Craft::t('formie', 'Phone Number'),
+                        'type' => 'phoneNumber',
+                    ]),
+                    new EmailMarketingField([
+                        'tag' => 'anniversary',
+                        'name' => Craft::t('formie', 'Anniversary'),
+                        'type' => 'anniversary',
+                    ]),
+                ];
+
+                $fields = $response['custom_fields'] ?? [];
+
+                foreach ($fields as $field) {
+                    $listFields[] = new EmailMarketingField([
+                        'tag' => $field['custom_field_id'],
+                        'name' => $field['label'],
+                        'type' => $field['type'],
+                    ]);
+                }
+
+                $allLists[] = new EmailMarketingList([
+                    'id' => $list['list_id'],
+                    'name' => $list['name'],
+                    'fields' => $listFields,
+                ]);
+            }
         } catch (\Throwable $e) {
             Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [
                 'message' => $e->getMessage(),
@@ -143,7 +203,53 @@ class ConstantContact extends EmailMarketing
     public function sendPayload(Submission $submission): bool
     {
         try {
-            
+            $fieldValues = $this->getFieldMappingValues($submission);
+
+            // Pull out email, as it needs to be top level
+            $email = ArrayHelper::remove($fieldValues, 'email');
+
+            // Deal with custom fields
+            $customFields = [];
+
+            foreach ($fieldValues as $key => $fieldValue) {
+                if (strstr($key, '-')) {
+                    $customFields[] = [
+                        'custom_field_id' => $key,
+                        'value' => ArrayHelper::remove($fieldValues, $key),
+                    ];
+                }
+            }
+
+            $payload = array_merge([
+                'email_address' => $email,
+                'list_memberships' => [$this->listId],
+                'custom_fields' => $customFields,
+            ], $fieldValues);
+
+            // Allow events to cancel sending
+            if (!$this->beforeSendPayload($submission, $payload)) {
+                return false;
+            }
+
+            // Add or update
+            $response = $this->_request('POST', 'contacts/sign_up_form', [
+                'json' => $payload,
+            ]);
+
+            $contactId = $response['contact_id'] ?? '';
+
+            if (!$contactId) {
+                Integration::error($this, Craft::t('formie', 'API error: “{response}”', [
+                    'response' => Json::encode($response),
+                ]));
+
+                return false;
+            }
+
+            // Allow events to say the response is invalid
+            if (!$this->afterSendPayload($submission, $payload, $response)) {
+                return false;
+            }
         } catch (\Throwable $e) {
             Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [
                 'message' => $e->getMessage(),
@@ -167,15 +273,12 @@ class ConstantContact extends EmailMarketing
             return $this->_client;
         }
 
-        $apiKey = $this->settings['apiKey'] ?? '';
-
-        if (!$apiKey) {
-            Integration::error($this, 'Invalid API Key for Mailchimp', true);
-        }
-
         return $this->_client = Craft::createGuzzleClient([
-            // 'base_uri' => 'https://' . $dataCenter . '.api.mailchimp.com/3.0/',
-            // 'auth' => ['apikey', $apiKey],
+            'base_uri' => 'https://api.cc.email/v3/',
+            'headers' => [
+                'Authorization' => 'Bearer ' . $this->getToken()->accessToken ?? '',
+                'Content-Type' => 'application/json',
+            ],
         ]);
     }
 
