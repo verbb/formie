@@ -15,6 +15,7 @@ use verbb\formie\integrations\captchas\Duplicate;
 use verbb\formie\integrations\captchas\Honeypot;
 use verbb\formie\integrations\captchas\Javascript;
 use verbb\formie\integrations\captchas\Recaptcha;
+use verbb\formie\integrations\crm\ActiveCampaign as ActiveCampaignCrm;
 use verbb\formie\integrations\elements\Entry;
 use verbb\formie\integrations\emailmarketing\ActiveCampaign;
 use verbb\formie\integrations\emailmarketing\Autopilot;
@@ -109,11 +110,16 @@ class Integrations extends Component
             Sendinblue::class,
         ];
 
+        $crm = [
+            ActiveCampaignCrm::class,
+        ];
+
         $event = new RegisterIntegrationsEvent([
             'addressProviders' => $addressProviders,
             'captchas' => $captchas,
             'elements' => $elements,
             'emailMarketing' => $emailMarketing,
+            'crm' => $crm,
         ]);
 
         $this->trigger(self::EVENT_REGISTER_INTEGRATIONS, $event);
@@ -123,6 +129,7 @@ class Integrations extends Component
             'captcha' => $event->captchas,
             'element' => $event->elements,
             'emailMarketing' => $event->emailMarketing,
+            'crm' => $event->crm,
         ];
     }
 

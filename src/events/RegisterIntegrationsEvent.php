@@ -12,5 +12,6 @@ class RegisterIntegrationsEvent extends Event
     public $captchas = [];
     public $elements = [];
     public $emailMarketing = [];
+    public $crm = [];
     
 }

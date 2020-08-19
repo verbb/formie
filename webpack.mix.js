@@ -91,6 +91,7 @@ mix.imagemin([
     { from: assetsPath + '/captchas/src/img', to: 'captchas/dist/img' },
     { from: assetsPath + '/elements/src/img', to: 'elements/dist/img' },
     { from: assetsPath + '/emailmarketing/src/img', to: 'emailmarketing/dist/img' },
+    { from: assetsPath + '/crm/src/img', to: 'crm/dist/img' },
 ], {}, {
     gifsicle: { interlaced: true },
     mozjpeg: { progressive: true, arithmetic: false },
