@@ -291,6 +291,14 @@ abstract class EmailMarketing extends Integration implements IntegrationInterfac
     /**
      * @inheritDoc
      */
+    public function getResourceOwner(): string
+    {
+        return '';
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function getClientSecret(): string
     {
         return '';
@@ -342,17 +350,25 @@ abstract class EmailMarketing extends Integration implements IntegrationInterfac
     /**
      * @inheritDoc
      */
-    public function getOauthProvider()
+    public function getOauthProviderConfig()
     {
-        return new GenericProvider([
+        return [
             'urlAuthorize' => $this->getAuthorizeUrl(),
             'urlAccessToken' => $this->getAccessTokenUrl(),
-            'urlResourceOwnerDetails' => '',
+            'urlResourceOwnerDetails' => $this->getResourceOwner(),
             'clientId' => $this->getClientId(),
             'clientSecret' => $this->getClientSecret(),
             'redirectUri' => $this->getRedirectUri(),
             'scopes' => $this->getOauthScope(),
-        ]);
+        ];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getOauthProvider()
+    {
+        return new GenericProvider($this->getOauthProviderConfig());
     }
 
     /**
