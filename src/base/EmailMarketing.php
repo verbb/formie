@@ -146,10 +146,22 @@ abstract class EmailMarketing extends Integration implements IntegrationInterfac
         return $success;
     }
 
+    /**
+     * @inheritDoc
+     */
     public function getConnectionStatus()
     {
+        // Just try and fetch from the cache
+        $cacheKey = 'formie-email-' . $this->handle . '-connection';
+        $cache = Craft::$app->getCache();
+
+        if ($cache->get($cacheKey)) {
+            // Lack of translation is deliberate
+            return 'Connected';
+        }
+
         // Lack of translation is deliberate
-        return $this->checkConnection() ? 'Connected' : 'Not connected';
+        return 'Not connected';
     }
 
     /**

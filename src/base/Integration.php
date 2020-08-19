@@ -43,6 +43,14 @@ abstract class Integration extends Model implements IntegrationInterface
     /**
      * @inheritDoc
      */
+    public static function supportsOauthConnection(): bool
+    {
+        return false;
+    }
+
+    /**
+     * @inheritDoc
+     */
     public static function log($integration, $message, $throwError = false)
     {
         Formie::log($integration->name . ': ' . $message);
