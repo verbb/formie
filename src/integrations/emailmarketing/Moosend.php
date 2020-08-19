@@ -67,7 +67,43 @@ class Moosend extends EmailMarketing
         $allLists = [];
 
         try {
-            
+            $response = $this->_request('GET', 'lists.json');
+
+            $lists = $response['Context']['MailingLists'] ?? [];
+
+            foreach ($lists as $list) {
+                // While we're at it, fetch the fields for the list
+                $listFields = [
+                    new EmailMarketingField([
+                        'tag' => 'Email',
+                        'name' => Craft::t('formie', 'Email'),
+                        'type' => 'email',
+                        'required' => true,
+                    ]),
+                    new EmailMarketingField([
+                        'tag' => 'Name',
+                        'name' => Craft::t('formie', 'Name'),
+                        'type' => 'Name',
+                    ]),
+                ];
+        
+                $fields = $list['CustomFieldsDefinition'] ?? [];
+
+                foreach ($fields as $field) {
+                    $listFields[] = new EmailMarketingField([
+                        'tag' => $field['Name'],
+                        'name' => $field['Name'],
+                        'type' => $field['Type'],
+                        'required' => $field['IsRequired'],
+                    ]);
+                }
+
+                $allLists[] = new EmailMarketingList([
+                    'id' => $list['ID'],
+                    'name' => $list['Name'],
+                    'fields' => $listFields,
+                ]);
+            }
         } catch (\Throwable $e) {
             Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [
                 'message' => $e->getMessage(),
@@ -85,7 +121,49 @@ class Moosend extends EmailMarketing
     public function sendPayload(Submission $submission): bool
     {
         try {
-            
+            $fieldValues = $this->getFieldMappingValues($submission);
+
+            // Pull out email, as it needs to be top level
+            $email = ArrayHelper::remove($fieldValues, 'Email');
+            $name = ArrayHelper::remove($fieldValues, 'Name');
+
+            // Format custom fields
+            $customFields = [];
+
+            foreach ($fieldValues as $key => $value) {
+                $customFields[] = $key . '=' . $value;
+            }
+
+            $payload = [
+                'Email' => $email,
+                'Name' => $name,
+                'CustomFields' => $customFields,
+            ];
+
+            // Allow events to cancel sending
+            if (!$this->beforeSendPayload($submission, $payload)) {
+                return false;
+            }
+
+            // Add or update
+            $response = $this->_request('POST', "subscribers/{$this->listId}/subscribe.json", [
+                'json' => $payload,
+            ]);
+
+            // Allow events to say the response is invalid
+            if (!$this->afterSendPayload($submission, $payload, $response)) {
+                return false;
+            }
+
+            $contactId = $response['Context']['ID'] ?? '';
+
+            if (!$contactId) {
+                Integration::error($this, Craft::t('formie', 'API error: “{response}”', [
+                    'response' => Json::encode($response),
+                ]));
+
+                return false;
+            }
         } catch (\Throwable $e) {
             Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [
                 'message' => $e->getMessage(),
@@ -105,8 +183,13 @@ class Moosend extends EmailMarketing
     public function fetchConnection(): bool
     {
         try {
-            
+            $response = $this->_request('GET', 'lists.json');
+            $accountId = $response['Context']['MailingLists'][0]['ID'] ?? '';
 
+            if (!$accountId) {
+                Integration::error($this, 'Unable to find “{instance_id}” in response.', true);
+                return false;
+            }
         } catch (\Throwable $e) {
             Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [
                 'message' => $e->getMessage(),
@@ -137,8 +220,8 @@ class Moosend extends EmailMarketing
         }
 
         return $this->_client = Craft::createGuzzleClient([
-            // 'base_uri' => 'https://' . $dataCenter . '.api.mailchimp.com/3.0/',
-            // 'auth' => ['apikey', $apiKey],
+            'base_uri' => 'http://api.moosend.com/v3/',
+            'query' => ['apikey' => $apiKey],
         ]);
     }
 
