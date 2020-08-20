@@ -16,6 +16,25 @@ use verbb\formie\integrations\captchas\Honeypot;
 use verbb\formie\integrations\captchas\Javascript;
 use verbb\formie\integrations\captchas\Recaptcha;
 use verbb\formie\integrations\crm\ActiveCampaign as ActiveCampaignCrm;
+use verbb\formie\integrations\crm\Avochato;
+use verbb\formie\integrations\crm\Creatio;
+use verbb\formie\integrations\crm\Freshdesk;
+use verbb\formie\integrations\crm\HubSpot;
+use verbb\formie\integrations\crm\Infusionsoft;
+use verbb\formie\integrations\crm\Insightly;
+use verbb\formie\integrations\crm\MethodCrm;
+use verbb\formie\integrations\crm\Monday;
+use verbb\formie\integrations\crm\NetSuite;
+use verbb\formie\integrations\crm\Pardot;
+use verbb\formie\integrations\crm\Pipedrive;
+use verbb\formie\integrations\crm\Pipeliner;
+use verbb\formie\integrations\crm\Salesflare;
+use verbb\formie\integrations\crm\Salesforce;
+use verbb\formie\integrations\crm\Scoro;
+use verbb\formie\integrations\crm\SharpSpring;
+use verbb\formie\integrations\crm\Vcita;
+use verbb\formie\integrations\crm\Zengine;
+use verbb\formie\integrations\crm\Zoho;
 use verbb\formie\integrations\elements\Entry;
 use verbb\formie\integrations\emailmarketing\ActiveCampaign;
 use verbb\formie\integrations\emailmarketing\Autopilot;
@@ -112,13 +131,32 @@ class Integrations extends Component
 
         $crm = [
             ActiveCampaignCrm::class,
+            Avochato::class,
+            Creatio::class,
+            Freshdesk::class,
+            HubSpot::class,
+            Infusionsoft::class,
+            Insightly::class,
+            MethodCrm::class,
+            Monday::class,
+            NetSuite::class,
+            Pardot::class,
+            Pipedrive::class,
+            Pipeliner::class,
+            Salesflare::class,
+            Salesforce::class,
+            Scoro::class,
+            SharpSpring::class,
+            Vcita::class,
+            Zengine::class,
+            Zoho::class,
         ];
 
         $event = new RegisterIntegrationsEvent([
-            'addressProviders' => $addressProviders,
-            'captchas' => $captchas,
-            'elements' => $elements,
-            'emailMarketing' => $emailMarketing,
+            // 'addressProviders' => $addressProviders,
+            // 'captchas' => $captchas,
+            // 'elements' => $elements,
+            // 'emailMarketing' => $emailMarketing,
             'crm' => $crm,
         ]);
 
@@ -190,7 +228,7 @@ class Integrations extends Component
             if ($enabledOnly && !$integration->enabled) {
                 continue;
             }
-            
+
             $grouped[$integration->type][] = $integration;
         }
 
