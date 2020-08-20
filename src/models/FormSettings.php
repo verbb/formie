@@ -126,7 +126,23 @@ class FormSettings extends Model
     /**
      * @inheritDoc
      */
+    public function getSubmitActionMessageHtml()
+    {
+        return $this->_getHtmlContent($this->submitActionMessage);
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function getErrorMessage()
+    {
+        return $this->_getHtmlContent($this->errorMessage);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getErrorMessageHtml()
     {
         return $this->_getHtmlContent($this->errorMessage);
     }
