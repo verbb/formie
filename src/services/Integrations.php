@@ -176,7 +176,7 @@ class Integrations extends Component
      * @param bool $formOnly
      * @return array
      */
-    public function getAllGroupedIntegrations($formOnly = false)
+    public function getAllGroupedIntegrations($formOnly = false, $enabledOnly = false)
     {
         $grouped = [];
 
@@ -187,6 +187,10 @@ class Integrations extends Component
         }
 
         foreach ($integrations as $key => $integration) {
+            if ($enabledOnly && !$integration->enabled) {
+                continue;
+            }
+            
             $grouped[$integration->type][] = $integration;
         }
 

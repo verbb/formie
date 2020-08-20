@@ -468,7 +468,7 @@ class FormsController extends Controller
         $variables['emailTemplates'] = Formie::$plugin->getEmailTemplates()->getAllTemplates();
         $variables['reservedHandles'] = Formie::$plugin->getFields()->getReservedHandles();
         $variables['integrations'] = Formie::$plugin->getintegrations()->getAllFormIntegrations();
-        $variables['groupedIntegrations'] = Formie::$plugin->getintegrations()->getAllGroupedIntegrations(true);
+        $variables['groupedIntegrations'] = Formie::$plugin->getintegrations()->getAllGroupedIntegrations(true, true);
         $variables['formHandles'] = ArrayHelper::getColumn(Form::find()->id('not ' . $form->id)->all(), 'handle');
     }
 }

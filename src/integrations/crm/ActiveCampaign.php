@@ -68,7 +68,7 @@ class ActiveCampaign extends Crm
         return Craft::$app->getView()->renderTemplate("formie/integrations/crm/active-campaign/_form-settings", [
             'integration' => $this,
             'form' => $form,
-            'listOptions' => $this->getListOptions(),
+            // 'listOptions' => $this->getListOptions(),
         ]);
     }
 

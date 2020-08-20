@@ -60,7 +60,7 @@ abstract class Crm extends ThirdPartyIntegration
         return Craft::$app->getView()->renderTemplate("formie/integrations/crm/{$handle}/_form-settings", [
             'integration' => $this,
             'form' => $form,
-            'listOptions' => $this->getListOptions(),
+            // 'listOptions' => $this->getListOptions(),
         ]);
     }
 }
