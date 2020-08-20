@@ -150,11 +150,15 @@ class FormsController extends Controller
             return null;
         }
 
+        $notifications = $form->getNotifications();
+        $notificationsConfig = Formie::$plugin->getNotifications()->getNotificationsConfig($notifications);
+
         if ($request->getAcceptsJson()) {
             return $this->asJson([
                 'success' => true,
                 'id' => $form->id,
                 'config' => $form->getFormConfig(),
+                'notifications' => $notificationsConfig,
                 'errors' => $form->getErrors(),
                 'fieldLayoutId' => $form->fieldLayoutId,
                 'redirect' => ($duplicate) ? $form->cpEditUrl : null,

@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.1.7 - 2020-08-20
+
+## Added
+- Added `form.settings` for GraphQL requests.
+- Added badge to new notifications to prompt the need to save the form.
+
+## Fixed
+- Fixed changed notifications not prompting for changed form when trying to navigate away.
+- Fixed newly created notifications getting out of sync when continuing to edit the form.
+
 ## 1.1.6 - 2020-08-20
 
 ### Added

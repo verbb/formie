@@ -5,6 +5,8 @@
                 <span class="status" :class="{ 'on': !!+notification.enabled }"></span>
                 <strong>{{ notification.name }}</strong>
             </a>
+            
+            <span v-if="isUnsaved" class="fui-unsaved-pill">{{ 'Unsaved' | t('formie') }}</span>
         </td>
 
         <td class="">
@@ -72,6 +74,10 @@ export default {
         isNew() {
             return (this.notification.id || '').toString() === '';
         },
+
+        isUnsaved() {
+            return (this.notification.id || '').toString().startsWith('new');
+        },
     },
 
     mounted() {
@@ -95,6 +101,9 @@ export default {
 
                 this.$store.dispatch('notifications/addNotification', payload);
             }
+
+            // Update the form state to trigger content-change warnings
+            this.$set(this.$store.state.form.pages[0], 'notificationFlag', true);
         },
 
         deleteNotification() {
@@ -107,6 +116,9 @@ export default {
                 };
 
                 this.$store.dispatch('notifications/deleteNotification', payload);
+
+                // Update the form state to trigger content-change warnings
+                this.$set(this.$store.state.form.pages[0], 'notificationFlag', true);
             }
         },
 
@@ -121,6 +133,9 @@ export default {
             this.$store.dispatch('notifications/addNotification', {
                 data: newNotification,
             });
+
+            // Update the form state to trigger content-change warnings
+            this.$set(this.$store.state.form.pages[0], 'notificationFlag', true);
         },
 
         onModalClose() {
@@ -149,6 +164,22 @@ export default {
     svg {
         display: block;
     }
+}
+
+.fui-unsaved-pill {
+    position: relative;
+    background-color: #e5edf6;
+    color: #92a3b7;
+    border-radius: 2px;
+    display: inline-flex;
+    padding: 0 5px;
+    margin: 0;
+    font-size: 12px;
+    white-space: nowrap;
+    text-transform: uppercase;
+    font-weight: 700;
+    border: 1px #c8d3e0 solid;
+    margin-left: 10px;
 }
 
 </style>

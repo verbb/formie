@@ -18,6 +18,10 @@ Each notification is form-specific, and you can create as many notifications as 
 - Attach File Uploads - Whether to attach any user-uploaded files to the email.
 - Email Template - To select a custom [Email Template](docs:feature-tour/email-templates).
 
+:::warning
+Clicking "Save" in the notification modal won't immediately save the notification. You'll need to save the form. A small "Unsaved" badge will display next to a brand-new notification to warn you. However, you'll also be prompted to save the form if you try and navigate away without saving the form.
+:::
+
 ## Email Content
 The email content field is a rich-text field providing basic formatting functionality. Due to the complexities of email rendering, this is kept simple on purpose. If you wish to build custom templates for your emails, read the [Email Templates](docs:feature-tour/email-templates) docs.
 

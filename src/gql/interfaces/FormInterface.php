@@ -6,6 +6,7 @@ use verbb\formie\gql\types\generators\FormGenerator;
 use verbb\formie\gql\arguments\FieldArguments;
 use verbb\formie\gql\arguments\FormArguments;
 use verbb\formie\gql\interfaces\FieldInterface;
+use verbb\formie\gql\interfaces\FormSettingsInterface;
 use verbb\formie\gql\interfaces\PageInterface;
 use verbb\formie\gql\interfaces\RowInterface;
 use verbb\formie\gql\interfaces\FormInterface as FormInterfaceLocal;
@@ -78,6 +79,11 @@ class FormInterface extends Element
                 'name' => 'fields',
                 'type' => Type::listOf(FieldInterface::getType()),
                 'description' => 'The form’s fields.'
+            ],
+            'settings' => [
+                'name' => 'settings',
+                'type' => FormSettingsInterface::getType(),
+                'description' => 'The form’s settings.'
             ],
         ]), self::getName());
     }

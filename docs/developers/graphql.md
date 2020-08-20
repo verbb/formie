@@ -11,6 +11,10 @@ Formie supports accessing [Form](docs:developers/form) and [Submission](docs:dev
     form (handle: "contactForm") {
         title
         handle
+
+        settings {
+            errorMessageHtml
+        }
         
         pages {
             name
@@ -48,6 +52,9 @@ Formie supports accessing [Form](docs:developers/form) and [Submission](docs:dev
         "form": {
             "title": "Contact Form",
             "handle": "contactForm",
+            "settings": {
+                "errorMessageHtml": "Couldn’t save submission due to errors."
+            },
             "pages": [
                 {
                     "name": "Page 1",
@@ -140,6 +147,33 @@ This is the interface implemented by all forms.
 | `pages`| `[PageInterface]` | The form’s pages.
 | `rows`| `[RowInterface]` | The form’s rows.
 | `fields`| `[FieldInterface]` | The form’s fields.
+| `settings`| `[FormSettingsInterface]` | The form’s settings.
+
+
+### The `FormSettingsInterface` interface
+This is the interface implemented by all forms.
+
+| Field | Type | Description
+| - | - | -
+| `displayFormTitle`| `Boolean` | Whether to show the form’s title.
+| `displayPageTabs`| `Boolean` | Whether to show the form’s page tabs.
+| `displayCurrentPageTitle`| `Boolean` | Whether to show the form’s current page title.
+| `displayPageProgress`| `Boolean` | Whether to show the form’s page progress.
+| `submitMethod`| `String` | The form’s submit method.
+| `submitAction`| `String` | The form’s submit action.
+| `submitActionTab`| `String` | The form’s submit redirect option (if in new tab or same tab).
+| `submitActionUrl`| `String` | The form’s submit action URL.
+| `submitActionFormHide`| `Boolean` | Whether to hide the form’s success message.
+| `submitActionMessageHtml`| `String` | The form’s submit success message.
+| `submitActionMessageTimeout`| `Integer` | The form’s submit success message timeout.
+| `errorMessageHtml`| `String` | The form’s submit error message.
+| `loadingIndicator`| `Boolean` | Whether to show the form’s loading indicator.
+| `loadingIndicatorText`| `String` | The form’s loading indicator text.
+| `validationOnSubmit`| `Boolean` | Whether to validate the form’s on submit.
+| `validationOnFocus`| `Boolean` | Whether to validate the form’s on focus.
+| `defaultLabelPosition`| `String` | The form’s default label position for fields.
+| `defaultInstructionsPosition`| `String` | The form’s default instructions position for fields.
+| `progressPosition`| `String` | The form’s progress bar position.
 
 
 ### The `PageInterface` interface
