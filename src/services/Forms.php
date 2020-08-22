@@ -353,7 +353,7 @@ class Forms extends Component
         // Set the settings.
         $settings = $request->getParam('settings');
         $form->settings = new FormSettings($settings);
-        $form->settings->integrations = $integrationSettings;
+        $form->settings->integrations = array_merge($integrationSettings, $form->settings->integrations);
 
         if ($duplicate) {
             $form->handle = $form->handle . rand();
