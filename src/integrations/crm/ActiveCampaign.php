@@ -101,7 +101,6 @@ class ActiveCampaign extends Crm
         return true;
     }
 
-
     /**
      * @inheritDoc
      */
@@ -175,44 +174,44 @@ class ActiveCampaign extends Crm
         ];
 
         try {
-            // $response = $this->_request('GET', 'fields');
-            // $fields = $response['fields'] ?? [];
+            $response = $this->_request('GET', 'fields');
+            $fields = $response['fields'] ?? [];
 
-            // // Don't use all fields, at least for the moment...
-            // $supportedFields = [
-            //     'text',
-            //     'textarea',
-            //     'hidden',
-            //     'dropdown',
-            //     'radio',
-            //     'date',
-            //     // 'checkbox',
-            //     // 'listbox',
-            // ];
+            // Don't use all fields, at least for the moment...
+            $supportedFields = [
+                'text',
+                'textarea',
+                'hidden',
+                'dropdown',
+                'radio',
+                'date',
+                // 'checkbox',
+                // 'listbox',
+            ];
 
-            // foreach ($fields as $field) {
-            //     if (in_array($field['type'], $supportedFields)) {
-            //         $settings['contact'][] = new IntegrationField([
-            //             'handle' => $field['id'],
-            //             'name' => $field['title'],
-            //             'type' => $field['type'],
-            //         ]);
-            //     }
-            // }
+            foreach ($fields as $field) {
+                if (in_array($field['type'], $supportedFields)) {
+                    $settings['contact'][] = new IntegrationField([
+                        'handle' => $field['id'],
+                        'name' => $field['title'],
+                        'type' => $field['type'],
+                    ]);
+                }
+            }
 
-            // // Fetch deal-specific fields
-            // $response = $this->_request('GET', 'dealCustomFieldMeta');
-            // $fields = $response['dealCustomFieldMeta'] ?? [];
+            // Fetch deal-specific fields
+            $response = $this->_request('GET', 'dealCustomFieldMeta');
+            $fields = $response['dealCustomFieldMeta'] ?? [];
 
-            // foreach ($fields as $field) {
-            //     if (in_array($field['type'], $supportedFields)) {
-            //         $settings['deal'][] = new IntegrationField([
-            //             'handle' => $field['id'],
-            //             'name' => $field['title'],
-            //             'type' => $field['type'],
-            //         ]);
-            //     }
-            // }
+            foreach ($fields as $field) {
+                if (in_array($field['type'], $supportedFields)) {
+                    $settings['deal'][] = new IntegrationField([
+                        'handle' => $field['id'],
+                        'name' => $field['title'],
+                        'type' => $field['type'],
+                    ]);
+                }
+            }
         } catch (\Throwable $e) {
             Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [
                 'message' => $e->getMessage(),

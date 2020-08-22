@@ -11,7 +11,7 @@
             <button class="btn" :class="{ 'fui-loading fui-loading-sm': loading }" data-icon="refresh" @click.prevent="refresh">{{ 'Refresh Integration' | t('formie') }}</button>
         </div>
 
-        <div v-if="error" class="error" style="margin-top: 10px;">
+        <div v-if="error" class="error" style="margin-top: 10px;" v-cloak>
             <span data-icon="alert"></span>
             <span v-html="errorMessage"></span>
         </div>
@@ -29,6 +29,7 @@
             <integration-field-mapping
                 label="{{ 'Contact Field Mapping' | t('formie') }}"
                 instructions="{{ 'Choose how your form fields should map to your {name} Contact fields.' | t('formie', { name: integration.name }) }}"
+                name-label="{{ integration.name }}"
                 id="contact-field-mapping"
                 name="contactFieldMapping"
                 :value="get(form, 'settings.integrations.{{ integration.handle }}.contactFieldMapping')"
@@ -49,6 +50,7 @@
             <integration-field-mapping
                 label="{{ 'Deal Field Mapping' | t('formie') }}"
                 instructions="{{ 'Choose how your form fields should map to your {name} Deal fields.' | t('formie', { name: integration.name }) }}"
+                name-label="{{ integration.name }}"
                 id="deal-field-mapping"
                 name="dealFieldMapping"
                 :value="get(form, 'settings.integrations.{{ integration.handle }}.dealFieldMapping')"
@@ -69,6 +71,7 @@
             <integration-field-mapping
                 label="{{ 'Organisation Field Mapping' | t('formie') }}"
                 instructions="{{ 'Choose how your form fields should map to your {name} Organisation fields.' | t('formie', { name: integration.name }) }}"
+                name-label="{{ integration.name }}"
                 id="organisation-field-mapping"
                 name="organisationFieldMapping"
                 :value="get(form, 'settings.integrations.{{ integration.handle }}.organisationFieldMapping')"

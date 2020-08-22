@@ -26,13 +26,20 @@
             <table :id="id" class="editable fullwidth">
                 <thead>
                     <tr>
-                        <th scope="col" class="singleline-cell textual">{{ 'Entry Field' | t('formie') }}</th>
+                        <th scope="col" class="singleline-cell textual">{{ '{name} Field' | t('formie', { name: nameLabel }) }}</th>
                         <th scope="col" class="select-cell">{{ 'Form Field' | t('formie') }}</th>
                     </tr>
                 </thead> 
 
                 <tbody>
-                    <tr v-for="(row, index) in rows" :key="index" data-id="0">
+                    <tr v-if="rows.length === 0">
+                        <td colspan="2">
+                            <div class="zilch">
+                                {{ 'No fields available.' | t('formie') }}
+                            </div>
+                        </td>
+                    </tr>
+                    <tr v-for="(row, index) in rows" v-else :key="index" data-id="0">
                         <td class="singleline-cell textual" style="width: 50%;">
                             <textarea v-model="row.name" rows="1" style="min-height: 36px;" readonly></textarea>
                         </td>
@@ -81,6 +88,11 @@ export default {
         },
 
         name: {
+            type: String,
+            default: '',
+        },
+
+        nameLabel: {
             type: String,
             default: '',
         },

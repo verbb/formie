@@ -34,7 +34,7 @@
             </ul>
         </div>
 
-        <div v-if="error" class="error" style="margin-top: 10px;">
+        <div v-if="error" class="error" style="margin-top: 10px;" v-cloak>
             <span data-icon="alert"></span>
             <span v-html="errorMessage"></span>
         </div>
@@ -54,6 +54,7 @@
         <integration-field-mapping
             label="{{ 'Entry Attribute Mapping' | t('formie') }}"
             instructions="{{ 'Choose how your form fields should map to your entry attributes.' | t('formie') }}"
+            name-label="{{ integration.name }}"
             id="attribute-mapping"
             name="attributeMapping"
             :value="get(form, 'settings.integrations.{{ integration.handle }}.attributeMapping')"
@@ -63,6 +64,7 @@
         <integration-field-mapping
             label="{{ 'Entry Field Mapping' | t('formie') }}"
             instructions="{{ 'Choose how your form fields should map to your entry fields.' | t('formie') }}"
+            name-label="{{ integration.name }}"
             id="field-mapping"
             name="fieldMapping"
             :value="get(form, 'settings.integrations.{{ integration.handle }}.fieldMapping')"

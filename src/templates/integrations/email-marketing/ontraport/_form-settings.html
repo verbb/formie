@@ -42,7 +42,7 @@
             </ul>
         </div>
 
-        <div v-if="error" class="error" style="margin-top: 10px;">
+        <div v-if="error" class="error" style="margin-top: 10px;" v-cloak>
             <span data-icon="alert"></span>
             <span v-html="errorMessage"></span>
         </div>
@@ -51,6 +51,7 @@
             label="{{ 'Field Mapping' | t('formie') }}"
             instructions="{{ 'Choose how your form fields should map to your {name} fields.' | t('formie', { name: integration.name }) }}"
             id="field-mapping"
+            name-label="{{ integration.name }}"
             name="fieldMapping"
             :value="get(form, 'settings.integrations.{{ integration.handle }}.fieldMapping')"
             :rows="getSourceFields('lists')"
