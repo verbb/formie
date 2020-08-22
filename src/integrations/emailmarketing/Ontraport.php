@@ -7,7 +7,7 @@ use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\errors\IntegrationException;
 use verbb\formie\events\SendIntegrationPayloadEvent;
-use verbb\formie\models\EmailMarketingField;
+use verbb\formie\models\IntegrationField;
 use verbb\formie\models\EmailMarketingList;
 
 use Craft;
@@ -68,9 +68,9 @@ class Ontraport extends EmailMarketing
     /**
      * @inheritDoc
      */
-    public function fetchLists()
+    public function fetchFormSettings()
     {
-        $allLists = [];
+        $settings = [];
 
         try {
             $response = $this->_request('GET', 'Groups');
@@ -79,90 +79,74 @@ class Ontraport extends EmailMarketing
 
             foreach ($lists as $list) {
                 $listFields = [
-                    new EmailMarketingField([
-                        'tag' => 'email',
+                    new IntegrationField([
+                        'handle' => 'email',
                         'name' => Craft::t('formie', 'Email'),
-                        'type' => 'email',
                         'required' => true,
                     ]),
-                    new EmailMarketingField([
-                        'tag' => 'firstname',
+                    new IntegrationField([
+                        'handle' => 'firstname',
                         'name' => Craft::t('formie', 'First Name'),
-                        'type' => 'firstname',
                     ]),
-                    new EmailMarketingField([
-                        'tag' => 'lastname',
+                    new IntegrationField([
+                        'handle' => 'lastname',
                         'name' => Craft::t('formie', 'Last Name'),
-                        'type' => 'lastname',
                     ]),
-                    new EmailMarketingField([
-                        'tag' => 'address',
+                    new IntegrationField([
+                        'handle' => 'address',
                         'name' => Craft::t('formie', 'Address'),
-                        'type' => 'address',
                     ]),
-                    new EmailMarketingField([
-                        'tag' => 'address2',
+                    new IntegrationField([
+                        'handle' => 'address2',
                         'name' => Craft::t('formie', 'Address 2'),
-                        'type' => 'address2',
                     ]),
-                    new EmailMarketingField([
-                        'tag' => 'city',
+                    new IntegrationField([
+                        'handle' => 'city',
                         'name' => Craft::t('formie', 'City'),
-                        'type' => 'city',
                     ]),
-                    new EmailMarketingField([
-                        'tag' => 'state',
+                    new IntegrationField([
+                        'handle' => 'state',
                         'name' => Craft::t('formie', 'State'),
-                        'type' => 'state',
                     ]),
-                    new EmailMarketingField([
-                        'tag' => 'zip',
+                    new IntegrationField([
+                        'handle' => 'zip',
                         'name' => Craft::t('formie', 'Zip'),
-                        'type' => 'zip',
                     ]),
-                    new EmailMarketingField([
-                        'tag' => 'country',
+                    new IntegrationField([
+                        'handle' => 'country',
                         'name' => Craft::t('formie', 'Country'),
-                        'type' => 'country',
                     ]),
-                    new EmailMarketingField([
-                        'tag' => 'birthday',
+                    new IntegrationField([
+                        'handle' => 'birthday',
                         'name' => Craft::t('formie', 'Birthday'),
-                        'type' => 'birthday',
                     ]),
-                    new EmailMarketingField([
-                        'tag' => 'status',
+                    new IntegrationField([
+                        'handle' => 'status',
                         'name' => Craft::t('formie', 'Status'),
-                        'type' => 'status',
                     ]),
-                    new EmailMarketingField([
-                        'tag' => 'home_phone',
+                    new IntegrationField([
+                        'handle' => 'home_phone',
                         'name' => Craft::t('formie', 'Home Phone'),
-                        'type' => 'home_phone',
                     ]),
-                    new EmailMarketingField([
-                        'tag' => 'office_phone',
+                    new IntegrationField([
+                        'handle' => 'office_phone',
                         'name' => Craft::t('formie', 'Office Phone'),
-                        'type' => 'office_phone',
                     ]),
-                    new EmailMarketingField([
-                        'tag' => 'fax',
+                    new IntegrationField([
+                        'handle' => 'fax',
                         'name' => Craft::t('formie', 'Fax'),
-                        'type' => 'fax',
                     ]),
-                    new EmailMarketingField([
-                        'tag' => 'company',
+                    new IntegrationField([
+                        'handle' => 'company',
                         'name' => Craft::t('formie', 'Company'),
-                        'type' => 'company',
                     ]),
-                    new EmailMarketingField([
-                        'tag' => 'website',
+                    new IntegrationField([
+                        'handle' => 'website',
                         'name' => Craft::t('formie', 'Website'),
-                        'type' => 'website',
                     ]),
                 ];
 
-                $allLists[] = new EmailMarketingList([
+                $settings['lists'][] = new EmailMarketingList([
                     'id' => $list['id'],
                     'name' => $list['name'],
                     'fields' => $listFields,
@@ -176,7 +160,7 @@ class Ontraport extends EmailMarketing
             ]));
         }
 
-        return $allLists;
+        return $settings;
     }
 
     /**

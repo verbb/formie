@@ -1,59 +1,78 @@
 {% import '_includes/forms' as forms %}
 
-{% set enabled = form.settings.integrations[integration.handle].enabled ?? '' %}
-{% set entryTypeId = form.settings.integrations[integration.handle].entryTypeId ?? '' %}
+{% set handle = integration.handle %}
+{% set formSettings = integration.getFormSettings() | json_encode %}
+{% set entryTypeId = form.settings.integrations[handle].entryTypeId ?? '' %}
 
-{% set eventKey = 'formie:integration-' ~ integration.handle ~ '-entryTypeId' %}
+<integration-form-settings handle="{{ handle }}" :form-settings="{{ formSettings }}" source="{{ entryTypeId }}" inline-template>
+    <div>
+        <div class="field">
+            <div class="heading">
+                <label id="sourceId-label" for="sourceId" class="required">{{ 'Entry Type' | t('formie') }}</label>
 
-<div id="integration-enabled" class="{{ not enabled ? 'hidden' }}">
-    {{ forms.selectField({
-        first: true,
-        label: 'Entry Type' | t('formie'),
-        instructions: 'Select an entry type to map content to. This will reflect the available fields to map to.' | t('formie'),
-        name: 'entryTypeId',
-        required: true,
-        value: entryTypeId,
-        options: sectionOptions,
-        inputAttributes: {
-            '@input': '$events.$emit("' ~ eventKey ~ '", { entryTypeId: $event.target.value, integration: "' ~ integration.handle ~ '" })',
-        },
-    }) }}
+                <div class="instructions">
+                    <p>{{ 'Select an entry type to map content to. This will reflect the available fields to map to.' | t('formie') }}</p>
+                </div>
+            </div>
 
-    <ul v-if="!isEmpty(get(form, 'settings.integrations.{{ integration.handle }}.errors.entryTypeId'))" class="errors" v-cloak>
-        <li v-for="(error, index) in get(form, 'settings.integrations.{{ integration.handle }}.errors.entryTypeId')" :key="index">
-            ${ error }
-        </li>
-    </ul>
+            <div class="input ltr">
+                <div class="select">
+                    <select v-model="sourceId" name="entryTypeId" required>
+                        <option value="">{{ 'Select an option' | t('formie') }}</option>
 
-    {{ forms.elementSelectField({
-        label: 'Default Entry Author' | t('formie'),
-        instructions: 'Select a user to be the default author for the created entry. An entry must always have an author.' | t('formie'),
-        id: 'defaultAuthorId',
-        name: 'defaultAuthorId',
-        elementType: 'craft\\elements\\User',
-        selectionLabel: 'Choose a User' | t('formie'),
-        limit: 1,
-        required: true,
-        elements: integration.getAuthor(form),
-    }) }}
+                        <optgroup v-for="(section, sectionIndex) in get(settings, 'elements')" :key="sectionIndex" :label="sectionIndex">
+                            <option v-for="(option, index) in section" :key="index" :value="option.id">${ option.name }</option>
+                        </optgroup>
+                    </select>
+                </div>
+            </div>
 
-    <element-mapping
-        label="{{ 'Entry Attribute Mapping' | t('formie') }}"
-        instructions="{{ 'Choose how your form fields should map to your entry attributes.' | t('formie') }}"
-        id="attribute-mapping"
-        name="attributeMapping"
-        :value="get(form, 'settings.integrations.{{ integration.handle }}.attributeMapping')"
-        :rows="{{ integration.getElementAttributes() | json_encode }}"
-    ></element-mapping>
+            <ul v-if="!isEmpty(get(form, 'settings.integrations.{{ integration.handle }}.errors.entryTypeId'))" class="errors" v-cloak>
+                <li v-for="(error, index) in get(form, 'settings.integrations.{{ integration.handle }}.errors.entryTypeId')" :key="index">
+                    ${ error }
+                </li>
+            </ul>
+        </div>
 
-    <element-mapping
-        label="{{ 'Entry Field Mapping' | t('formie') }}"
-        instructions="{{ 'Choose how your form fields should map to your entry fields.' | t('formie') }}"
-        id="field-mapping"
-        name="fieldMapping"
-        refresh-listener="{{ eventKey }}"
-        refresh-action="formie/integrations/element-fields"
-        :value="get(form, 'settings.integrations.{{ integration.handle }}.fieldMapping')"
-        :rows="{{ integration.getElementFields(entryTypeId) | json_encode }}"
-    ></element-mapping>
-</div>
+        <div v-if="error" class="error" style="margin-top: 10px;">
+            <span data-icon="alert"></span>
+            <span v-html="errorMessage"></span>
+        </div>
+
+        {{ forms.elementSelectField({
+            label: 'Default Entry Author' | t('formie'),
+            instructions: 'Select a user to be the default author for the created entry. An entry must always have an author.' | t('formie'),
+            id: 'defaultAuthorId',
+            name: 'defaultAuthorId',
+            elementType: 'craft\\elements\\User',
+            selectionLabel: 'Choose a User' | t('formie'),
+            limit: 1,
+            required: true,
+            elements: integration.getAuthor(form),
+        }) }}
+
+        <integration-field-mapping
+            label="{{ 'Entry Attribute Mapping' | t('formie') }}"
+            instructions="{{ 'Choose how your form fields should map to your entry attributes.' | t('formie') }}"
+            id="attribute-mapping"
+            name="attributeMapping"
+            :value="get(form, 'settings.integrations.{{ integration.handle }}.attributeMapping')"
+            :rows="{{ integration.getElementAttributes() | json_encode }}"
+        ></integration-field-mapping>
+
+        <integration-field-mapping
+            label="{{ 'Entry Field Mapping' | t('formie') }}"
+            instructions="{{ 'Choose how your form fields should map to your entry fields.' | t('formie') }}"
+            id="field-mapping"
+            name="fieldMapping"
+            :value="get(form, 'settings.integrations.{{ integration.handle }}.fieldMapping')"
+            :rows="getSourceFields('elements')"
+        ></integration-field-mapping>
+
+        <ul v-if="!isEmpty(get(form, 'settings.integrations.{{ integration.handle }}.errors.fieldMapping'))" class="errors" v-cloak>
+            <li v-for="(error, index) in get(form, 'settings.integrations.{{ integration.handle }}.errors.fieldMapping')" :key="index">
+                ${ error }
+            </li>
+        </ul>
+    </div>
+</integration-form-settings>

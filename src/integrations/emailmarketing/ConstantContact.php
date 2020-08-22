@@ -7,7 +7,7 @@ use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\errors\IntegrationException;
 use verbb\formie\events\SendIntegrationPayloadEvent;
-use verbb\formie\models\EmailMarketingField;
+use verbb\formie\models\IntegrationField;
 use verbb\formie\models\EmailMarketingList;
 
 use Craft;
@@ -120,9 +120,9 @@ class ConstantContact extends EmailMarketing
     /**
      * @inheritDoc
      */
-    public function fetchLists()
+    public function fetchFormSettings()
     {
-        $allLists = [];
+        $settings = [];
 
         try {
             $response = $this->_request('GET', 'contact_lists');
@@ -133,55 +133,48 @@ class ConstantContact extends EmailMarketing
                 $response = $this->_request('GET', 'contact_custom_fields');
 
                 $listFields = [
-                    new EmailMarketingField([
-                        'tag' => 'email',
+                    new IntegrationField([
+                        'handle' => 'email',
                         'name' => Craft::t('formie', 'Email'),
-                        'type' => 'email',
                         'required' => true,
                     ]),
-                    new EmailMarketingField([
-                        'tag' => 'first_name',
+                    new IntegrationField([
+                        'handle' => 'first_name',
                         'name' => Craft::t('formie', 'First Name'),
-                        'type' => 'firstName',
                     ]),
-                    new EmailMarketingField([
-                        'tag' => 'last_name',
+                    new IntegrationField([
+                        'handle' => 'last_name',
                         'name' => Craft::t('formie', 'Last Name'),
-                        'type' => 'lastName',
                     ]),
-                    new EmailMarketingField([
-                        'tag' => 'job_title',
+                    new IntegrationField([
+                        'handle' => 'job_title',
                         'name' => Craft::t('formie', 'Job Title'),
-                        'type' => 'jobTitle',
                     ]),
-                    new EmailMarketingField([
-                        'tag' => 'company_name',
+                    new IntegrationField([
+                        'handle' => 'company_name',
                         'name' => Craft::t('formie', 'Company Name'),
-                        'type' => 'companyName',
                     ]),
-                    new EmailMarketingField([
-                        'tag' => 'phone_number',
+                    new IntegrationField([
+                        'handle' => 'phone_number',
                         'name' => Craft::t('formie', 'Phone Number'),
-                        'type' => 'phoneNumber',
                     ]),
-                    new EmailMarketingField([
-                        'tag' => 'anniversary',
+                    new IntegrationField([
+                        'handle' => 'anniversary',
                         'name' => Craft::t('formie', 'Anniversary'),
-                        'type' => 'anniversary',
                     ]),
                 ];
 
                 $fields = $response['custom_fields'] ?? [];
 
                 foreach ($fields as $field) {
-                    $listFields[] = new EmailMarketingField([
-                        'tag' => $field['custom_field_id'],
+                    $listFields[] = new IntegrationField([
+                        'handle' => $field['custom_field_id'],
                         'name' => $field['label'],
                         'type' => $field['type'],
                     ]);
                 }
 
-                $allLists[] = new EmailMarketingList([
+                $settings['lists'][] = new EmailMarketingList([
                     'id' => $list['list_id'],
                     'name' => $list['name'],
                     'fields' => $listFields,
@@ -195,7 +188,7 @@ class ConstantContact extends EmailMarketing
             ]));
         }
 
-        return $allLists;
+        return $settings;
     }
 
     /**

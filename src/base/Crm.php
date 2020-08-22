@@ -19,12 +19,6 @@ use League\OAuth2\Client\Provider\GenericProvider;
 
 abstract class Crm extends ThirdPartyIntegration
 {
-    // Properties
-    // =========================================================================
-
-    public $listId;
-
-    
     // Public Methods
     // =========================================================================
 
@@ -60,7 +54,6 @@ abstract class Crm extends ThirdPartyIntegration
         return Craft::$app->getView()->renderTemplate("formie/integrations/crm/{$handle}/_form-settings", [
             'integration' => $this,
             'form' => $form,
-            // 'listOptions' => $this->getListOptions(),
         ]);
     }
 }

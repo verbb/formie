@@ -7,7 +7,7 @@ use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\errors\IntegrationException;
 use verbb\formie\events\SendIntegrationPayloadEvent;
-use verbb\formie\models\EmailMarketingField;
+use verbb\formie\models\IntegrationField;
 use verbb\formie\models\EmailMarketingList;
 
 use Craft;
@@ -62,9 +62,9 @@ class MailerLite extends EmailMarketing
     /**
      * @inheritDoc
      */
-    public function fetchLists()
+    public function fetchFormSettings()
     {
-        $allLists = [];
+        $settings = [];
 
         try {
             $lists = $this->_request('GET', 'groups');
@@ -74,14 +74,14 @@ class MailerLite extends EmailMarketing
                 $fields = $this->_request('GET', 'fields');
             
                 foreach ($fields as $field) {
-                    $listFields[] = new EmailMarketingField([
-                        'tag' => (string)$field['key'],
+                    $listFields[] = new IntegrationField([
+                        'handle' => (string)$field['key'],
                         'name' => $field['title'],
                         'type' => $field['type'],
                     ]);
                 }
 
-                $allLists[] = new EmailMarketingList([
+                $settings['lists'][] = new EmailMarketingList([
                     'id' => (string)$list['id'],
                     'name' => $list['name'],
                     'fields' => $listFields,
@@ -95,7 +95,7 @@ class MailerLite extends EmailMarketing
             ]));
         }
 
-        return $allLists;
+        return $settings;
     }
 
     /**

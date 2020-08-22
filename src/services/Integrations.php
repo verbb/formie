@@ -153,10 +153,10 @@ class Integrations extends Component
         ];
 
         $event = new RegisterIntegrationsEvent([
-            // 'addressProviders' => $addressProviders,
-            // 'captchas' => $captchas,
-            // 'elements' => $elements,
-            // 'emailMarketing' => $emailMarketing,
+            'addressProviders' => $addressProviders,
+            'captchas' => $captchas,
+            'elements' => $elements,
+            'emailMarketing' => $emailMarketing,
             'crm' => $crm,
         ]);
 

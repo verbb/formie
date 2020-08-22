@@ -7,7 +7,7 @@ use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\errors\IntegrationException;
 use verbb\formie\events\SendIntegrationPayloadEvent;
-use verbb\formie\models\EmailMarketingField;
+use verbb\formie\models\IntegrationField;
 use verbb\formie\models\EmailMarketingList;
 
 use Craft;
@@ -62,31 +62,28 @@ class Omnisend extends EmailMarketing
     /**
      * @inheritDoc
      */
-    public function fetchLists()
+    public function fetchFormSettings()
     {
-        $allLists = [];
+        $settings = [];
 
         try {
             $listFields = [
-                new EmailMarketingField([
-                    'tag' => 'email',
+                new IntegrationField([
+                    'handle' => 'email',
                     'name' => Craft::t('formie', 'Email'),
-                    'type' => 'email',
                     'required' => true,
                 ]),
-                new EmailMarketingField([
-                    'tag' => 'firstName',
+                new IntegrationField([
+                    'handle' => 'firstName',
                     'name' => Craft::t('formie', 'First Name'),
-                    'type' => 'FirstName',
                 ]),
-                new EmailMarketingField([
-                    'tag' => 'lastName',
+                new IntegrationField([
+                    'handle' => 'lastName',
                     'name' => Craft::t('formie', 'Last Name'),
-                    'type' => 'LastName',
                 ]),
             ];
 
-            $allLists[] = new EmailMarketingList([
+            $settings['lists'][] = new EmailMarketingList([
                 'id' => 'all',
                 'name' => 'All Contacts',
                 'fields' => $listFields,
@@ -99,7 +96,7 @@ class Omnisend extends EmailMarketing
             ]));
         }
 
-        return $allLists;
+        return $settings;
     }
 
     /**

@@ -139,17 +139,13 @@ class Submissions extends Component
                 continue;
             }
 
-            Craft::$app->getQueue()->push(new TriggerIntegration([
-                'submissionId' => $event->submission->id,
-                'integration' => $event->integration,
-            ]));
+            // Craft::$app->getQueue()->push(new TriggerIntegration([
+            //     'submissionId' => $event->submission->id,
+            //     'integration' => $event->integration,
+            // ]));
 
             // TODO: Make this a config setting
-            // if ($integration instanceof Element) {
-            //     $integration->saveElement($event->submission);
-            // } else {
-            //     $integration->sendPayLoad($event->submission);
-            // }
+            $integration->sendPayLoad($event->submission);
         }
     }
 

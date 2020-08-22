@@ -32,7 +32,7 @@
                 </thead> 
 
                 <tbody>
-                    <tr v-for="(row, index) in proxyRows" :key="index" data-id="0">
+                    <tr v-for="(row, index) in rows" :key="index" data-id="0">
                         <td class="singleline-cell textual" style="width: 50%;">
                             <textarea v-model="row.name" rows="1" style="min-height: 36px;" readonly></textarea>
                         </td>
@@ -62,7 +62,7 @@
 <script>
 
 export default {
-    name: 'ElementMapping',
+    name: 'IntegrationFieldMapping',
 
     props: {
         label: {
@@ -85,16 +85,6 @@ export default {
             default: '',
         },
 
-        refreshListener: {
-            type: String,
-            default: '',
-        },
-
-        refreshAction: {
-            type: String,
-            default: '',
-        },
-
         rows: {
             type: Array,
             default: () => [],
@@ -113,13 +103,19 @@ export default {
             error: false,
             errorMessage: '',
             loading: false,
-            proxyRows: [],
             proxyValue: {},
         };
     },
 
+    watch: {
+        rows(newValue) {
+            // Each time we modify the rows, be sure to populate the value,
+            // even with empty data so the dropdowns aren't blank...
+            this.resetValues();
+        },
+    },
+
     created() {
-        this.proxyRows = this.rows;
         this.proxyValue = this.value;
 
         if (!this.proxyValue) {
@@ -130,48 +126,14 @@ export default {
         if (!Object.keys(this.proxyValue).length) {
             this.resetValues();
         }
-
-        if (this.refreshListener) {
-            this.$events.$on(this.refreshListener, (payload) => {
-                this.loading = true;
-                this.error = false;
-                this.errorMessage = '';
-
-                this.$axios.post(Craft.getActionUrl(this.refreshAction), payload).then((response) => {
-                    this.loading = false;
-
-                    if (response.data.error) {
-                        this.error = true;
-
-                        this.errorMessage = this.$options.filters.t('An error occurred.', 'formie');
-                    
-                        if (response.data.error) {
-                            this.errorMessage += '<br><br><code>' + response.data.error + '</code>';
-                        }
-
-                        return;
-                    }
-
-                    this.proxyRows = response.data;
-                    this.resetValues();
-                }).catch(error => {
-                    this.loading = false;
-                    this.error = true;
-
-                    this.errorMessage = error;
-                    
-                    if (error.response.data.error) {
-                        this.errorMessage += '<br><br><code>' + error.response.data.error + '</code>';
-                    }
-                });
-            });
-        }
     },
 
     methods: {
         resetValues() {
             this.rows.forEach((row) => {
-                this.proxyValue[row.handle] = '';
+                if (!this.proxyValue[row.handle]) {
+                    this.proxyValue[row.handle] = '';
+                }
             });
         },
 
@@ -200,46 +162,3 @@ export default {
 };
 
 </script>
-
-<style lang="scss">
-
-.fui-element-mapping {
-    position: relative;
-}
-
-.fui-element-mapping .fui-error-pane,
-.fui-element-mapping .fui-loading-pane {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    top: 0;
-    left: 0;
-    z-index: 1;
-    background: rgba(255, 255, 255, 0.7);
-}
-
-.fui-element-mapping .fui-loading {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    background: #fff;
-}
-
-.fui-element-mapping .fui-error-pane {
-    align-items: center;
-    justify-content: center;
-    display: flex;
-
-    [data-icon] {
-        display: block;
-        font-size: 3em;
-        margin-bottom: 0.5rem;
-    }
-}
-
-.fui-element-mapping .fui-error-content {
-    text-align: center;
-    max-width: 35rem;
-}
-
-</style>

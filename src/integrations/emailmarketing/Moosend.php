@@ -7,7 +7,7 @@ use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\errors\IntegrationException;
 use verbb\formie\events\SendIntegrationPayloadEvent;
-use verbb\formie\models\EmailMarketingField;
+use verbb\formie\models\IntegrationField;
 use verbb\formie\models\EmailMarketingList;
 
 use Craft;
@@ -62,9 +62,9 @@ class Moosend extends EmailMarketing
     /**
      * @inheritDoc
      */
-    public function fetchLists()
+    public function fetchFormSettings()
     {
-        $allLists = [];
+        $settings = [];
 
         try {
             $response = $this->_request('GET', 'lists.json');
@@ -74,31 +74,28 @@ class Moosend extends EmailMarketing
             foreach ($lists as $list) {
                 // While we're at it, fetch the fields for the list
                 $listFields = [
-                    new EmailMarketingField([
-                        'tag' => 'Email',
+                    new IntegrationField([
+                        'handle' => 'Email',
                         'name' => Craft::t('formie', 'Email'),
-                        'type' => 'email',
                         'required' => true,
                     ]),
-                    new EmailMarketingField([
-                        'tag' => 'Name',
+                    new IntegrationField([
+                        'handle' => 'Name',
                         'name' => Craft::t('formie', 'Name'),
-                        'type' => 'Name',
                     ]),
                 ];
         
                 $fields = $list['CustomFieldsDefinition'] ?? [];
 
                 foreach ($fields as $field) {
-                    $listFields[] = new EmailMarketingField([
-                        'tag' => $field['Name'],
+                    $listFields[] = new IntegrationField([
+                        'handle' => $field['Name'],
                         'name' => $field['Name'],
-                        'type' => $field['Type'],
                         'required' => $field['IsRequired'],
                     ]);
                 }
 
-                $allLists[] = new EmailMarketingList([
+                $settings['lists'][] = new EmailMarketingList([
                     'id' => $list['ID'],
                     'name' => $list['Name'],
                     'fields' => $listFields,
@@ -112,7 +109,7 @@ class Moosend extends EmailMarketing
             ]));
         }
 
-        return $allLists;
+        return $settings;
     }
 
     /**

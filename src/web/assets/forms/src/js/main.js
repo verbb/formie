@@ -29,9 +29,9 @@ import DatePreview from './components/DatePreview.vue';
 import NotificationsBuilder from './components/NotificationsBuilder.vue';
 import NotificationPreview from './components/NotificationPreview.vue';
 import NotificationTest from './components/NotificationTest.vue';
-import ElementMapping from './components/ElementMapping.vue';
-import ListSelect from './components/ListSelect.vue';
 import FieldSelect from './components/FieldSelect.vue';
+import IntegrationFieldMapping from './components/IntegrationFieldMapping.vue';
+import IntegrationFormSettings from './components/IntegrationFormSettings.vue';
 
 // Globally register components
 Vue.component('FieldRepeater', FieldRepeater);
@@ -39,9 +39,9 @@ Vue.component('FieldGroup', FieldGroup);
 Vue.component('DatePreview', DatePreview);
 Vue.component('NotificationPreview', NotificationPreview);
 Vue.component('NotificationTest', NotificationTest);
-Vue.component('ElementMapping', ElementMapping);
-Vue.component('ListSelect', ListSelect);
 Vue.component('FieldSelect', FieldSelect);
+Vue.component('IntegrationFieldMapping', IntegrationFieldMapping);
+Vue.component('IntegrationFormSettings', IntegrationFormSettings);
 
 //
 // Start Vue Apps

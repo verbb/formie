@@ -7,7 +7,7 @@ use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\errors\IntegrationException;
 use verbb\formie\events\SendIntegrationPayloadEvent;
-use verbb\formie\models\EmailMarketingField;
+use verbb\formie\models\IntegrationField;
 use verbb\formie\models\EmailMarketingList;
 
 use Craft;
@@ -62,9 +62,9 @@ class Sender extends EmailMarketing
     /**
      * @inheritDoc
      */
-    public function fetchLists()
+    public function fetchFormSettings()
     {
-        $allLists = [];
+        $settings = [];
 
         try {
             $lists = $this->_request([
@@ -76,25 +76,22 @@ class Sender extends EmailMarketing
 
             foreach ($lists as $list) {
                 $listFields = [
-                    new EmailMarketingField([
-                        'tag' => 'email',
+                    new IntegrationField([
+                        'handle' => 'email',
                         'name' => Craft::t('formie', 'Email'),
-                        'type' => 'email',
                         'required' => true,
                     ]),
-                    new EmailMarketingField([
-                        'tag' => 'firstname',
+                    new IntegrationField([
+                        'handle' => 'firstname',
                         'name' => Craft::t('formie', 'First Name'),
-                        'type' => 'firstname',
                     ]),
-                    new EmailMarketingField([
-                        'tag' => 'lastname',
+                    new IntegrationField([
+                        'handle' => 'lastname',
                         'name' => Craft::t('formie', 'Last Name'),
-                        'type' => 'lastname',
                     ]),
                 ];
 
-                $allLists[] = new EmailMarketingList([
+                $settings['lists'][] = new EmailMarketingList([
                     'id' => (string)$list['id'],
                     'name' => $list['title'],
                     'fields' => $listFields,
@@ -108,7 +105,7 @@ class Sender extends EmailMarketing
             ]));
         }
 
-        return $allLists;
+        return $settings;
     }
 
     /**

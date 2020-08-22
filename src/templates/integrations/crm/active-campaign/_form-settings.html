@@ -1,0 +1,79 @@
+{% import '_includes/forms' as forms %}
+
+{% set enabled = form.settings.integrations[integration.handle].enabled ?? '' %}
+{% set mapToContact = form.settings.integrations[integration.handle].mapToContact ?? '' %}
+{% set mapToDeal = form.settings.integrations[integration.handle].mapToDeal ?? '' %}
+{% set mapToOrganisation = form.settings.integrations[integration.handle].mapToOrganisation ?? '' %}
+
+<integration-form-settings handle="{{ integration.handle }}" :form-settings="{{ integration.getFormSettings() | json_encode }}" name-raw="fields" inline-template>
+    <div>
+        <div class="field">
+            <button class="btn" :class="{ 'fui-loading fui-loading-sm': loading }" data-icon="refresh" @click.prevent="refresh">{{ 'Refresh Integration' | t('formie') }}</button>
+        </div>
+
+        <div v-if="error" class="error" style="margin-top: 10px;">
+            <span data-icon="alert"></span>
+            <span v-html="errorMessage"></span>
+        </div>
+
+        {{ forms.lightswitchField({
+            label: 'Map to Contact' | t('formie'),
+            instructions: 'Whether to map form data to {name} Contacts.' | t('formie', { name: integration.name }),
+            id: 'mapToContact',
+            name: 'mapToContact',
+            on: mapToContact,
+            toggle: 'map-to-contact',
+        }) }}
+
+        <div id="map-to-contact" class="{{ not mapToContact ? 'hidden' }}">
+            <integration-field-mapping
+                label="{{ 'Contact Field Mapping' | t('formie') }}"
+                instructions="{{ 'Choose how your form fields should map to your {name} Contact fields.' | t('formie', { name: integration.name }) }}"
+                id="contact-field-mapping"
+                name="contactFieldMapping"
+                :value="get(form, 'settings.integrations.{{ integration.handle }}.contactFieldMapping')"
+                :rows="get(settings, 'contact')"
+            ></integration-field-mapping>
+        </div>
+
+        {{ forms.lightswitchField({
+            label: 'Map to Deal' | t('formie'),
+            instructions: 'Whether to map form data to {name} Deals.' | t('formie', { name: integration.name }),
+            id: 'mapToDeal',
+            name: 'mapToDeal',
+            on: mapToDeal,
+            toggle: 'map-to-deal',
+        }) }}
+
+        <div id="map-to-deal" class="{{ not mapToDeal ? 'hidden' }}">
+            <integration-field-mapping
+                label="{{ 'Deal Field Mapping' | t('formie') }}"
+                instructions="{{ 'Choose how your form fields should map to your {name} Deal fields.' | t('formie', { name: integration.name }) }}"
+                id="deal-field-mapping"
+                name="dealFieldMapping"
+                :value="get(form, 'settings.integrations.{{ integration.handle }}.dealFieldMapping')"
+                :rows="get(settings, 'deal')"
+            ></integration-field-mapping>
+        </div>
+
+        {{ forms.lightswitchField({
+            label: 'Map to Organisation' | t('formie'),
+            instructions: 'Whether to map form data to {name} Organisations.' | t('formie', { name: integration.name }),
+            id: 'mapToOrganisation',
+            name: 'mapToOrganisation',
+            on: mapToOrganisation,
+            toggle: 'map-to-organisation',
+        }) }}
+
+        <div id="map-to-organisation" class="{{ not mapToOrganisation ? 'hidden' }}">
+            <integration-field-mapping
+                label="{{ 'Organisation Field Mapping' | t('formie') }}"
+                instructions="{{ 'Choose how your form fields should map to your {name} Organisation fields.' | t('formie', { name: integration.name }) }}"
+                id="organisation-field-mapping"
+                name="organisationFieldMapping"
+                :value="get(form, 'settings.integrations.{{ integration.handle }}.organisationFieldMapping')"
+                :rows="get(settings, 'organisation')"
+            ></integration-field-mapping>
+        </div>
+    </div>
+</integration-form-settings>

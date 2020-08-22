@@ -7,7 +7,7 @@ use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\errors\IntegrationException;
 use verbb\formie\events\SendIntegrationPayloadEvent;
-use verbb\formie\models\EmailMarketingField;
+use verbb\formie\models\IntegrationField;
 use verbb\formie\models\EmailMarketingList;
 
 use Craft;
@@ -62,9 +62,9 @@ class GetResponse extends EmailMarketing
     /**
      * @inheritDoc
      */
-    public function fetchLists()
+    public function fetchFormSettings()
     {
-        $allLists = [];
+        $settings = [];
             $lists = $this->_request('GET', 'campaigns');
 
             foreach ($lists as $list) {
@@ -72,28 +72,26 @@ class GetResponse extends EmailMarketing
                 $fields = $this->_request('GET', 'custom-fields');
 
                 $listFields = [
-                    new EmailMarketingField([
-                        'tag' => 'email',
+                    new IntegrationField([
+                        'handle' => 'email',
                         'name' => Craft::t('formie', 'Email'),
-                        'type' => 'email',
                         'required' => true,
                     ]),
-                    new EmailMarketingField([
-                        'tag' => 'name',
+                    new IntegrationField([
+                        'handle' => 'name',
                         'name' => Craft::t('formie', 'Name'),
-                        'type' => 'name',
                     ]),
                 ];
             
                 foreach ($fields as $field) {
-                    $listFields[] = new EmailMarketingField([
-                        'tag' => $field['customFieldId'],
+                    $listFields[] = new IntegrationField([
+                        'handle' => $field['customFieldId'],
                         'name' => $field['name'],
                         'type' => $field['fieldType'],
                     ]);
                 }
 
-                $allLists[] = new EmailMarketingList([
+                $settings['lists'][] = new EmailMarketingList([
                     'id' => $list['campaignId'],
                     'name' => $list['name'],
                     'fields' => $listFields,
@@ -109,7 +107,7 @@ class GetResponse extends EmailMarketing
             ]));
         }
 
-        return $allLists;
+        return $settings;
     }
 
     /**

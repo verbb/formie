@@ -7,7 +7,7 @@ use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\errors\IntegrationException;
 use verbb\formie\events\SendIntegrationPayloadEvent;
-use verbb\formie\models\EmailMarketingField;
+use verbb\formie\models\IntegrationField;
 use verbb\formie\models\EmailMarketingList;
 
 use Craft;
@@ -148,9 +148,9 @@ class AWeber extends EmailMarketing
     /**
      * @inheritDoc
      */
-    public function fetchLists()
+    public function fetchFormSettings()
     {
-        $allLists = [];
+        $settings = [];
 
         try {
             // Find the account first to fetch lists
@@ -168,30 +168,27 @@ class AWeber extends EmailMarketing
                 $response = $this->_request('GET', "{$listsUrl}/{$list['id']}/custom_fields");
 
                 $listFields = [
-                    new EmailMarketingField([
-                        'tag' => 'email',
+                    new IntegrationField([
+                        'handle' => 'email',
                         'name' => Craft::t('formie', 'Email'),
-                        'type' => 'email',
                         'required' => true,
                     ]),
-                    new EmailMarketingField([
-                        'tag' => 'name',
+                    new IntegrationField([
+                        'handle' => 'name',
                         'name' => Craft::t('formie', 'Name'),
-                        'type' => 'name',
                     ]),
                 ];
 
                 $fields = $response['entries'] ?? [];
 
                 foreach ($fields as $field) {
-                    $listFields[] = new EmailMarketingField([
-                        'tag' => $field['name'],
+                    $listFields[] = new IntegrationField([
+                        'handle' => $field['name'],
                         'name' => $field['name'],
-                        'type' => 'string',
                     ]);
                 }
 
-                $allLists[] = new EmailMarketingList([
+                $settings['lists'][] = new EmailMarketingList([
                     'id' => (string)$list['id'],
                     'name' => $list['name'],
                     'fields' => $listFields,
@@ -205,7 +202,7 @@ class AWeber extends EmailMarketing
             ]));
         }
 
-        return $allLists;
+        return $settings;
     }
 
     /**

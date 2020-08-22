@@ -7,7 +7,7 @@ use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\errors\IntegrationException;
 use verbb\formie\events\SendIntegrationPayloadEvent;
-use verbb\formie\models\EmailMarketingField;
+use verbb\formie\models\IntegrationField;
 use verbb\formie\models\EmailMarketingList;
 
 use Craft;
@@ -68,9 +68,9 @@ class ActiveCampaign extends EmailMarketing
     /**
      * @inheritDoc
      */
-    public function fetchLists()
+    public function fetchFormSettings()
     {
-        $allLists = [];
+        $settings = [];
 
         try {
             $response = $this->_request('GET', 'lists', [
@@ -92,26 +92,22 @@ class ActiveCampaign extends EmailMarketing
                 $fields = $response['fields'] ?? [];
 
                 $listFields = [
-                    new EmailMarketingField([
-                        'tag' => 'email',
+                    new IntegrationField([
+                        'handle' => 'email',
                         'name' => Craft::t('formie', 'Email'),
-                        'type' => 'email',
                         'required' => true,
                     ]),
-                    new EmailMarketingField([
-                        'tag' => 'firstName',
+                    new IntegrationField([
+                        'handle' => 'firstName',
                         'name' => Craft::t('formie', 'First Name'),
-                        'type' => 'firstName',
                     ]),
-                    new EmailMarketingField([
-                        'tag' => 'lastName',
+                    new IntegrationField([
+                        'handle' => 'lastName',
                         'name' => Craft::t('formie', 'Last Name'),
-                        'type' => 'lastName',
                     ]),
-                    new EmailMarketingField([
-                        'tag' => 'phone',
+                    new IntegrationField([
+                        'handle' => 'phone',
                         'name' => Craft::t('formie', 'Phone'),
-                        'type' => 'phone',
                     ]),
                 ];
 
@@ -129,15 +125,15 @@ class ActiveCampaign extends EmailMarketing
 
                 foreach ($fields as $field) {
                     if (in_array($field['type'], $supportedFields)) {
-                        $listFields[] = new EmailMarketingField([
-                            'tag' => $field['id'],
+                        $listFields[] = new IntegrationField([
+                            'handle' => $field['id'],
                             'name' => $field['title'],
                             'type' => $field['type'],
                         ]);
                     }
                 }
 
-                $allLists[] = new EmailMarketingList([
+                $settings['lists'][] = new EmailMarketingList([
                     'id' => $list['id'],
                     'name' => $list['name'],
                     'fields' => $listFields,
@@ -152,7 +148,7 @@ class ActiveCampaign extends EmailMarketing
             ]));
         }
 
-        return $allLists;
+        return $settings;
     }
 
     /**

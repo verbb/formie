@@ -7,7 +7,7 @@ use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\errors\IntegrationException;
 use verbb\formie\events\SendIntegrationPayloadEvent;
-use verbb\formie\models\EmailMarketingField;
+use verbb\formie\models\IntegrationField;
 use verbb\formie\models\EmailMarketingList;
 
 use Craft;
@@ -86,9 +86,9 @@ class iContact extends EmailMarketing
     /**
      * @inheritDoc
      */
-    public function fetchLists()
+    public function fetchFormSettings()
     {
-        $allLists = [];
+        $settings = [];
 
         try {
             $response = $this->_request('GET', 'lists');
@@ -100,90 +100,76 @@ class iContact extends EmailMarketing
                 $response = $this->_request('GET', 'customfields');
 
                 $listFields = [
-                    new EmailMarketingField([
-                        'tag' => 'email',
+                    new IntegrationField([
+                        'handle' => 'email',
                         'name' => Craft::t('formie', 'Email'),
-                        'type' => 'email',
                         'required' => true,
                     ]),
-                    new EmailMarketingField([
-                        'tag' => 'prefix',
+                    new IntegrationField([
+                        'handle' => 'prefix',
                         'name' => Craft::t('formie', 'Prefix'),
-                        'type' => 'prefix',
                     ]),
-                    new EmailMarketingField([
-                        'tag' => 'firstName',
+                    new IntegrationField([
+                        'handle' => 'firstName',
                         'name' => Craft::t('formie', 'First Name'),
-                        'type' => 'firstName',
                     ]),
-                    new EmailMarketingField([
-                        'tag' => 'lastName',
+                    new IntegrationField([
+                        'handle' => 'lastName',
                         'name' => Craft::t('formie', 'Last Name'),
-                        'type' => 'lastName',
                     ]),
-                    new EmailMarketingField([
-                        'tag' => 'suffix',
+                    new IntegrationField([
+                        'handle' => 'suffix',
                         'name' => Craft::t('formie', 'Suffix'),
-                        'type' => 'suffix',
                     ]),
-                    new EmailMarketingField([
-                        'tag' => 'street',
+                    new IntegrationField([
+                        'handle' => 'street',
                         'name' => Craft::t('formie', 'Street'),
-                        'type' => 'street',
                     ]),
-                    new EmailMarketingField([
-                        'tag' => 'street2',
+                    new IntegrationField([
+                        'handle' => 'street2',
                         'name' => Craft::t('formie', 'Street 2'),
-                        'type' => 'street2',
                     ]),
-                    new EmailMarketingField([
-                        'tag' => 'city',
+                    new IntegrationField([
+                        'handle' => 'city',
                         'name' => Craft::t('formie', 'City'),
-                        'type' => 'city',
                     ]),
-                    new EmailMarketingField([
-                        'tag' => 'state',
+                    new IntegrationField([
+                        'handle' => 'state',
                         'name' => Craft::t('formie', 'State'),
-                        'type' => 'state',
                     ]),
-                    new EmailMarketingField([
-                        'tag' => 'postalCode',
+                    new IntegrationField([
+                        'handle' => 'postalCode',
                         'name' => Craft::t('formie', 'Postal Code'),
-                        'type' => 'postalCode',
                     ]),
-                    new EmailMarketingField([
-                        'tag' => 'phone',
+                    new IntegrationField([
+                        'handle' => 'phone',
                         'name' => Craft::t('formie', 'Phone'),
-                        'type' => 'phone',
                     ]),
-                    new EmailMarketingField([
-                        'tag' => 'fax',
+                    new IntegrationField([
+                        'handle' => 'fax',
                         'name' => Craft::t('formie', 'Fax'),
-                        'type' => 'fax',
                     ]),
-                    new EmailMarketingField([
-                        'tag' => 'business',
+                    new IntegrationField([
+                        'handle' => 'business',
                         'name' => Craft::t('formie', 'Business Phone'),
-                        'type' => 'business',
                     ]),
-                    new EmailMarketingField([
-                        'tag' => 'status',
+                    new IntegrationField([
+                        'handle' => 'status',
                         'name' => Craft::t('formie', 'Status'),
-                        'type' => 'status',
                     ]),
                 ];
 
                 $fields = $response['customfields'] ?? [];
             
                 foreach ($fields as $field) {
-                    $listFields[] = new EmailMarketingField([
-                        'tag' => $field['customFieldId'] ,
+                    $listFields[] = new IntegrationField([
+                        'handle' => $field['customFieldId'] ,
                         'name' => $field['publicName'],
                         'type' => $field['fieldType'],
                     ]);
                 }
 
-                $allLists[] = new EmailMarketingList([
+                $settings['lists'][] = new EmailMarketingList([
                     'id' => $list['listId'],
                     'name' => $list['name'],
                     'fields' => $listFields,
@@ -197,7 +183,7 @@ class iContact extends EmailMarketing
             ]));
         }
 
-        return $allLists;
+        return $settings;
     }
 
     /**

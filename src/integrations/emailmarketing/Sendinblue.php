@@ -7,7 +7,7 @@ use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\errors\IntegrationException;
 use verbb\formie\events\SendIntegrationPayloadEvent;
-use verbb\formie\models\EmailMarketingField;
+use verbb\formie\models\IntegrationField;
 use verbb\formie\models\EmailMarketingList;
 
 use Craft;
@@ -62,9 +62,9 @@ class Sendinblue extends EmailMarketing
     /**
      * @inheritDoc
      */
-    public function fetchLists()
+    public function fetchFormSettings()
     {
-        $allLists = [];
+        $settings = [];
 
         try {
             $response = $this->_request('GET', 'contacts/lists');
@@ -73,25 +73,22 @@ class Sendinblue extends EmailMarketing
 
             foreach ($lists as $list) {
                 $listFields = [
-                    new EmailMarketingField([
-                        'tag' => 'email',
+                    new IntegrationField([
+                        'handle' => 'email',
                         'name' => Craft::t('formie', 'Email'),
-                        'type' => 'email',
                         'required' => true,
                     ]),
-                    new EmailMarketingField([
-                        'tag' => 'FIRSTNAME',
+                    new IntegrationField([
+                        'handle' => 'FIRSTNAME',
                         'name' => Craft::t('formie', 'First Name'),
-                        'type' => 'FirstName',
                     ]),
-                    new EmailMarketingField([
-                        'tag' => 'LASTNAME',
+                    new IntegrationField([
+                        'handle' => 'LASTNAME',
                         'name' => Craft::t('formie', 'Last Name'),
-                        'type' => 'LastName',
                     ]),
                 ];
 
-                $allLists[] = new EmailMarketingList([
+                $settings['lists'][] = new EmailMarketingList([
                     'id' => (string)$list['id'],
                     'name' => $list['name'],
                     'fields' => $listFields,
@@ -105,7 +102,7 @@ class Sendinblue extends EmailMarketing
             ]));
         }
 
-        return $allLists;
+        return $settings;
     }
 
     /**

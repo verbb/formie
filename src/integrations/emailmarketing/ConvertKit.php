@@ -7,7 +7,7 @@ use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\errors\IntegrationException;
 use verbb\formie\events\SendIntegrationPayloadEvent;
-use verbb\formie\models\EmailMarketingField;
+use verbb\formie\models\IntegrationField;
 use verbb\formie\models\EmailMarketingList;
 
 use Craft;
@@ -68,9 +68,9 @@ class ConvertKit extends EmailMarketing
     /**
      * @inheritDoc
      */
-    public function fetchLists()
+    public function fetchFormSettings()
     {
-        $allLists = [];
+        $settings = [];
 
         try {
             $response = $this->_request('GET', 'forms');
@@ -81,29 +81,27 @@ class ConvertKit extends EmailMarketing
                 $response = $this->_request('GET', 'custom_fields');
 
                 $listFields = [
-                    new EmailMarketingField([
-                        'tag' => 'Email',
+                    new IntegrationField([
+                        'handle' => 'Email',
                         'name' => Craft::t('formie', 'Email'),
-                        'type' => 'email',
                         'required' => true,
                     ]),
-                    new EmailMarketingField([
-                        'tag' => 'FirstName',
+                    new IntegrationField([
+                        'handle' => 'FirstName',
                         'name' => Craft::t('formie', 'First Name'),
-                        'type' => 'FirstName',
                     ]),
                 ];
 
                 $fields = $response['custom_fields'] ?? [];
             
                 foreach ($fields as $field) {
-                    $listFields[] = new EmailMarketingField([
-                        'tag' => $field['key'],
+                    $listFields[] = new IntegrationField([
+                        'handle' => $field['key'],
                         'name' => $field['label'],
                     ]);
                 }
 
-                $allLists[] = new EmailMarketingList([
+                $settings['lists'][] = new EmailMarketingList([
                     'id' => (string)$list['id'],
                     'name' => $list['name'],
                     'fields' => $listFields,
@@ -117,7 +115,7 @@ class ConvertKit extends EmailMarketing
             ]));
         }
 
-        return $allLists;
+        return $settings;
     }
 
     /**

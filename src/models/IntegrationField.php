@@ -4,12 +4,12 @@ namespace verbb\formie\models;
 use Craft;
 use craft\base\Model;
 
-class EmailMarketingField extends Model
+class IntegrationField extends Model
 {
     // Properties
     // =========================================================================
 
-    public $tag;
+    public $handle;
     public $name;
     public $type;
     public $required;

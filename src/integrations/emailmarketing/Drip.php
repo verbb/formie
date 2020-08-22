@@ -7,7 +7,7 @@ use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\errors\IntegrationException;
 use verbb\formie\events\SendIntegrationPayloadEvent;
-use verbb\formie\models\EmailMarketingField;
+use verbb\formie\models\IntegrationField;
 use verbb\formie\models\EmailMarketingList;
 
 use Craft;
@@ -112,9 +112,9 @@ class Drip extends EmailMarketing
     /**
      * @inheritDoc
      */
-    public function fetchLists()
+    public function fetchFormSettings()
     {
-        $allLists = [];
+        $settings = [];
 
         try {
             // Fetch the account first
@@ -125,67 +125,57 @@ class Drip extends EmailMarketing
             $fields = $response['custom_field_identifiers'] ?? [];
 
             $listFields = [
-                new EmailMarketingField([
-                    'tag' => 'email',
+                new IntegrationField([
+                    'handle' => 'email',
                     'name' => Craft::t('formie', 'Email'),
-                    'type' => 'email',
                     'required' => true,
                 ]),
-                new EmailMarketingField([
-                    'tag' => 'first_name',
+                new IntegrationField([
+                    'handle' => 'first_name',
                     'name' => Craft::t('formie', 'First Name'),
-                    'type' => 'firstName',
                 ]),
-                new EmailMarketingField([
-                    'tag' => 'last_name',
+                new IntegrationField([
+                    'handle' => 'last_name',
                     'name' => Craft::t('formie', 'Last Name'),
-                    'type' => 'lastName',
                 ]),
-                new EmailMarketingField([
-                    'tag' => 'address1',
+                new IntegrationField([
+                    'handle' => 'address1',
                     'name' => Craft::t('formie', 'Address 1'),
-                    'type' => 'address1',
                 ]),
-                new EmailMarketingField([
-                    'tag' => 'address2',
+                new IntegrationField([
+                    'handle' => 'address2',
                     'name' => Craft::t('formie', 'Address 2'),
-                    'type' => 'address2',
                 ]),
-                new EmailMarketingField([
-                    'tag' => 'city',
+                new IntegrationField([
+                    'handle' => 'city',
                     'name' => Craft::t('formie', 'City'),
-                    'type' => 'city',
                 ]),
-                new EmailMarketingField([
-                    'tag' => 'state',
+                new IntegrationField([
+                    'handle' => 'state',
                     'name' => Craft::t('formie', 'State'),
-                    'type' => 'state',
                 ]),
-                new EmailMarketingField([
-                    'tag' => 'zip',
+                new IntegrationField([
+                    'handle' => 'zip',
                     'name' => Craft::t('formie', 'Zip'),
-                    'type' => 'zip',
                 ]),
-                new EmailMarketingField([
-                    'tag' => 'country',
+                new IntegrationField([
+                    'handle' => 'country',
                     'name' => Craft::t('formie', 'Country'),
-                    'type' => 'country',
                 ]),
-                new EmailMarketingField([
-                    'tag' => 'phone',
+                new IntegrationField([
+                    'handle' => 'phone',
                     'name' => Craft::t('formie', 'Phone'),
-                    'type' => 'phone',
                 ]),
             ];
 
             foreach ($fields as $field) {
-                $listFields[] = new EmailMarketingField([
-                    'tag' => $field,
+                $listFields[] = new IntegrationField([
+                    'handle' => $field,
                     'name' => $field,
                 ]);
             }
 
-            $allLists[] = new EmailMarketingList([
+            $settings['lists'][] = new EmailMarketingList([
                 'id' => 'all',
                 'name' => 'All Subscribers',
                 'fields' => $listFields,
@@ -198,7 +188,7 @@ class Drip extends EmailMarketing
             ]));
         }
 
-        return $allLists;
+        return $settings;
     }
 
     /**

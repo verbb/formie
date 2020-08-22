@@ -7,7 +7,7 @@ use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\errors\IntegrationException;
 use verbb\formie\events\SendIntegrationPayloadEvent;
-use verbb\formie\models\EmailMarketingField;
+use verbb\formie\models\IntegrationField;
 use verbb\formie\models\EmailMarketingList;
 
 use Craft;
@@ -68,9 +68,9 @@ class CampaignMonitor extends EmailMarketing
     /**
      * @inheritDoc
      */
-    public function fetchLists()
+    public function fetchFormSettings()
     {
-        $allLists = [];
+        $settings = [];
 
         try {
             $clientId = $this->settings['clientId'] ?? '';
@@ -82,28 +82,26 @@ class CampaignMonitor extends EmailMarketing
                 $fields = $this->_request('GET', 'lists/' . $list['ListID'] . '/customfields.json');
 
                 $listFields = [
-                    new EmailMarketingField([
-                        'tag' => 'Email',
+                    new IntegrationField([
+                        'handle' => 'Email',
                         'name' => Craft::t('formie', 'Email'),
-                        'type' => 'email',
                         'required' => true,
                     ]),
-                    new EmailMarketingField([
-                        'tag' => 'Name',
+                    new IntegrationField([
+                        'handle' => 'Name',
                         'name' => Craft::t('formie', 'Name'),
-                        'type' => 'name',
                     ]),
                 ];
 
                 foreach ($fields as $field) {
-                    $listFields[] = new EmailMarketingField([
-                        'tag' => str_replace(['[', ']'], '', $field['Key']),
+                    $listFields[] = new IntegrationField([
+                        'handle' => str_replace(['[', ']'], '', $field['Key']),
                         'name' => $field['FieldName'],
                         'type' => $field['DataType'],
                     ]);
                 }
 
-                $allLists[] = new EmailMarketingList([
+                $settings['lists'][] = new EmailMarketingList([
                     'id' => $list['ListID'],
                     'name' => $list['Name'],
                     'fields' => $listFields,
@@ -117,7 +115,7 @@ class CampaignMonitor extends EmailMarketing
             ]));
         }
 
-        return $allLists;
+        return $settings;
     }
 
     /**

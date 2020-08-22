@@ -7,7 +7,7 @@ use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\errors\IntegrationException;
 use verbb\formie\events\SendIntegrationPayloadEvent;
-use verbb\formie\models\EmailMarketingField;
+use verbb\formie\models\IntegrationField;
 use verbb\formie\models\EmailMarketingList;
 
 use Craft;
@@ -62,9 +62,9 @@ class Benchmark extends EmailMarketing
     /**
      * @inheritDoc
      */
-    public function fetchLists()
+    public function fetchFormSettings()
     {
-        $allLists = [];
+        $settings = [];
 
         try {
             $response = $this->_request('GET', 'Contact/');
@@ -77,34 +77,31 @@ class Benchmark extends EmailMarketing
                 $listAttributes = $response['Response']['Data'] ?? [];
 
                 $listFields = [
-                    new EmailMarketingField([
-                        'tag' => 'Email',
+                    new IntegrationField([
+                        'handle' => 'Email',
                         'name' => Craft::t('formie', 'Email'),
-                        'type' => 'email',
                         'required' => true,
                     ]),
-                    new EmailMarketingField([
-                        'tag' => 'FirstName',
+                    new IntegrationField([
+                        'handle' => 'FirstName',
                         'name' => $listAttributes['FirstnameLabel'] ?? Craft::t('formie', 'First Name'),
-                        'type' => 'FirstName',
                     ]),
-                    new EmailMarketingField([
-                        'tag' => 'LastName',
+                    new IntegrationField([
+                        'handle' => 'LastName',
                         'name' => $listAttributes['LastnameLabel'] ?? Craft::t('formie', 'Last Name'),
-                        'type' => 'LastName',
                     ]),
                 ];
             
                 foreach ($listAttributes as $listKey => $listAttribute) {
                     if (strstr($listKey, 'Field') && strstr($listKey, 'Name')) {
-                        $listFields[] = new EmailMarketingField([
-                            'tag' => str_replace('Name', '', $listKey),
+                        $listFields[] = new IntegrationField([
+                            'handle' => str_replace('Name', '', $listKey),
                             'name' => $listAttribute,
                         ]);
                     }
                 }
 
-                $allLists[] = new EmailMarketingList([
+                $settings['lists'][] = new EmailMarketingList([
                     'id' => $list['ID'],
                     'name' => $list['Name'],
                     'fields' => $listFields,
@@ -118,7 +115,7 @@ class Benchmark extends EmailMarketing
             ]));
         }
 
-        return $allLists;
+        return $settings;
     }
 
     /**

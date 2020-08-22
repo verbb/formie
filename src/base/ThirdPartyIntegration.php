@@ -30,9 +30,6 @@ abstract class ThirdPartyIntegration extends Integration implements IntegrationI
     // Properties
     // =========================================================================
 
-    public $optInField;
-    public $fieldMapping;
-
     protected $_client;
 
 
@@ -115,7 +112,7 @@ abstract class ThirdPartyIntegration extends Integration implements IntegrationI
      */
     public function checkConnection($useCache = true): bool
     {
-        $cacheKey = 'formie-email-' . $this->handle . '-connection';
+        $cacheKey = 'formie-integration-' . $this->handle . '-connection';
         $cache = Craft::$app->getCache();
 
         if ($useCache && $status = $cache->get($cacheKey)) {
@@ -139,7 +136,7 @@ abstract class ThirdPartyIntegration extends Integration implements IntegrationI
     public function getConnectionStatus()
     {
         // Just try and fetch from the cache
-        $cacheKey = 'formie-email-' . $this->handle . '-connection';
+        $cacheKey = 'formie-integration-' . $this->handle . '-connection';
         $cache = Craft::$app->getCache();
 
         if ($cache->get($cacheKey)) {
@@ -149,6 +146,26 @@ abstract class ThirdPartyIntegration extends Integration implements IntegrationI
 
         // Lack of translation is deliberate
         return 'Not connected';
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getFormSettings($useCache = true)
+    {
+        $cacheKey = 'formie-integration-' . $this->handle . '-settings';
+        $cache = Craft::$app->getCache();
+
+        // If using the cache (the default), don't fetch it automatically. Just save API requests a tad.
+        if ($useCache) {
+            return $cache->get($cacheKey) ?: [];
+        }
+
+        $settings = $this->fetchFormSettings();
+
+        $cache->set($cacheKey, $settings);
+
+        return $settings;
     }
 
 
@@ -360,39 +377,5 @@ abstract class ThirdPartyIntegration extends Integration implements IntegrationI
         }
 
         return $event->isValid;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    protected function enforceOptInField(Submission $submission)
-    {
-        // Default is just always do it!
-        if (!$this->optInField) {
-            return true;
-        }
-
-        $fieldValues = $this->getFieldMappingValues($submission);
-        $fieldValue = $fieldValues[$this->optInField] ?? null;
-
-        if ($fieldValue === null) {
-            Integration::log($this, Craft::t('formie', 'Unable to find field “{field}” for opt-in in submission.', [
-                'field' => $this->optInField,
-            ]));
-
-            return false;
-        }
-
-        // Just a simple 'falsey' check is good enough
-        if (!$fieldValue) {
-            Integration::log($this, Craft::t('formie', 'Opting-out. Field “{field}” has value “{value}”.', [
-                'field' => $this->optInField,
-                'value' => $fieldValue,
-            ]));
-
-            return false;
-        }
-
-        return true;
     }
 }

@@ -5,6 +5,7 @@ use verbb\formie\Formie;
 use verbb\formie\base\Element;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
+use verbb\formie\models\IntegrationField;
 
 use Craft;
 use craft\elements\Entry as EntryElement;
@@ -24,7 +25,6 @@ class Entry extends Element
     public $entryTypeId;
     public $defaultAuthorId;
     public $attributeMapping;
-    public $fieldMapping;
 
 
     // Public Methods
@@ -36,14 +36,6 @@ class Entry extends Element
     public static function getName(): string
     {
         return Craft::t('formie', 'Entry');
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getIconUrl(): string
-    {
-        return Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/elements/dist/img/entry.svg', true);
     }
 
     /**
@@ -69,28 +61,6 @@ class Entry extends Element
     /**
      * @inheritDoc
      */
-    public function getSettingsHtml(): string
-    {
-        return Craft::$app->getView()->renderTemplate('formie/integrations/elements/entry/_plugin-settings', [
-            'integration' => $this,
-        ]);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getFormSettingsHtml(Form $form): string
-    {
-        return Craft::$app->getView()->renderTemplate('formie/integrations/elements/entry/_form-settings', [
-            'integration' => $this,
-            'form' => $form,
-            'sectionOptions' => $this->getSectionOptions(),
-        ]);
-    }
-
-    /**
-     * @inheritDoc
-     */
     public function getAuthor($form)
     {
         $defaultAuthorId = $form->settings->integrations[$this->handle]['defaultAuthorId'] ?? '';
@@ -109,41 +79,38 @@ class Entry extends Element
     /**
      * @inheritDoc
      */
-    public function getElementFields($entryTypeId = null)
+    public function getFormSettings()
     {
-        if (!$entryTypeId) {
-            $entryTypeId = $this->getEntryTypes()[0]->id ?? '';
+        $settings = [];
 
-            if (!$entryTypeId) {
-                return [];
+        $sections = Craft::$app->getSections()->getAllSections();
+
+        foreach ($sections as $section) {
+            if ($section->type === 'single') {
+                continue;
+            }
+
+            foreach ($section->getEntryTypes() as $entryType) {
+                $fields = [];
+
+                foreach ($entryType->getFields() as $field) {
+                    $fields[] = new IntegrationField([
+                        'handle' => $field->id,
+                        'name' => $field->name,
+                        'type' => get_class($field),
+                        'required' => $field->required,
+                    ]);
+                }
+
+                $settings['elements'][$section->name][] = [
+                    'id' => $entryType->id,
+                    'name' => $entryType->name,
+                    'fields' => $fields,
+                ];
             }
         }
 
-        $entryType = Craft::$app->getSections()->getEntryTypeById($entryTypeId);
-        $options = [];
-
-        foreach ($entryType->getFields() as $field) {
-            $options[] = [
-                'name' => $field->name,
-                'handle' => $field->handle,
-            ];
-        }
-
-        return $options;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getElementFieldsFromRequest($request)
-    {
-        $entryTypeId = $request->getParam('entryTypeId');
-
-        if (!$entryTypeId) {
-            return ['error' => Craft::t('formie', 'No “{entryTypeId}” provided.')];
-        }
-
-        return $this->getElementFields($entryTypeId);
+        return $settings;
     }
 
     /**
@@ -190,7 +157,7 @@ class Entry extends Element
     /**
      * @inheritDoc
      */
-    public function saveElement(Submission $submission)
+    public function sendPayload(Submission $submission)
     {
         if (!$this->entryTypeId) {
             Formie::error('Unable to save element integration. No `entryTypeId`.');
@@ -258,52 +225,5 @@ class Entry extends Element
         }
 
         return true;
-    }
-
-
-    // Private Methods
-    // =========================================================================
-
-    private function getEntryTypes(): array
-    {
-        $sections = Craft::$app->getSections()->getAllSections();
-        $entryTypes = [];
-
-        foreach ($sections as $section) {
-            if ($section->type === 'single') {
-                continue;
-            }
-
-            $entryTypes = array_merge($entryTypes, $section->getEntryTypes());
-        }
-
-        return $entryTypes;
-    }
-
-    private function getSectionOptions(): array
-    {
-        $sections = Craft::$app->getSections()->getAllSections();
-        $options = [
-            ['label' => Craft::t('formie', 'Select an option'), 'value' => ''],
-        ];
-
-        foreach ($sections as $section) {
-            if ($section->type === 'single') {
-                continue;
-            }
-
-            $entryTypes = $section->getEntryTypes();
-
-            $options[] = ['optgroup' => $section->name];
-
-            foreach ($entryTypes as $entryType) {
-                $options[] = [
-                    'label' => $entryType->name,
-                    'value' => $entryType->id,
-                ];
-            }
-        }
-
-        return $options;
     }
 }

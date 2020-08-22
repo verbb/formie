@@ -7,7 +7,7 @@ use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\errors\IntegrationException;
 use verbb\formie\events\SendIntegrationPayloadEvent;
-use verbb\formie\models\EmailMarketingField;
+use verbb\formie\models\IntegrationField;
 use verbb\formie\models\EmailMarketingList;
 
 use Craft;
@@ -62,9 +62,9 @@ class Autopilot extends EmailMarketing
     /**
      * @inheritDoc
      */
-    public function fetchLists()
+    public function fetchFormSettings()
     {
-        $allLists = [];
+        $settings = [];
 
         try {
             $response = $this->_request('GET', 'lists');
@@ -76,63 +76,54 @@ class Autopilot extends EmailMarketing
                 $fields = $this->_request('GET', 'contacts/custom_fields');
 
                 $listFields = [
-                    new EmailMarketingField([
-                        'tag' => 'Email',
+                    new IntegrationField([
+                        'handle' => 'Email',
                         'name' => Craft::t('formie', 'Email'),
-                        'type' => 'email',
                         'required' => true,
                     ]),
-                    new EmailMarketingField([
-                        'tag' => 'FirstName',
+                    new IntegrationField([
+                        'handle' => 'FirstName',
                         'name' => Craft::t('formie', 'First Name'),
-                        'type' => 'FirstName',
                     ]),
-                    new EmailMarketingField([
-                        'tag' => 'LastName',
+                    new IntegrationField([
+                        'handle' => 'LastName',
                         'name' => Craft::t('formie', 'Last Name'),
-                        'type' => 'LastName',
                     ]),
-                    new EmailMarketingField([
-                        'tag' => 'Company',
+                    new IntegrationField([
+                        'handle' => 'Company',
                         'name' => Craft::t('formie', 'Company'),
-                        'type' => 'Company',
                     ]),
-                    new EmailMarketingField([
-                        'tag' => 'Phone',
+                    new IntegrationField([
+                        'handle' => 'Phone',
                         'name' => Craft::t('formie', 'Phone'),
-                        'type' => 'Phone',
                     ]),
-                    new EmailMarketingField([
-                        'tag' => 'MobilePhone',
+                    new IntegrationField([
+                        'handle' => 'MobilePhone',
                         'name' => Craft::t('formie', 'Mobile Phone'),
-                        'type' => 'MobilePhone',
                     ]),
-                    new EmailMarketingField([
-                        'tag' => 'Website',
+                    new IntegrationField([
+                        'handle' => 'Website',
                         'name' => Craft::t('formie', 'Website'),
-                        'type' => 'Website',
                     ]),
-                    new EmailMarketingField([
-                        'tag' => 'LeadSource',
+                    new IntegrationField([
+                        'handle' => 'LeadSource',
                         'name' => Craft::t('formie', 'Lead Source'),
-                        'type' => 'LeadSource',
                     ]),
-                    new EmailMarketingField([
-                        'tag' => 'Status',
+                    new IntegrationField([
+                        'handle' => 'Status',
                         'name' => Craft::t('formie', 'Status'),
-                        'type' => 'Status',
                     ]),
                 ];
             
                 foreach ($fields as $field) {
-                    $listFields[] = new EmailMarketingField([
-                        'tag' => $field['fieldType'] . '--' . str_replace(' ', '--', $field['name']),
+                    $listFields[] = new IntegrationField([
+                        'handle' => $field['fieldType'] . '--' . str_replace(' ', '--', $field['name']),
                         'name' => $field['name'],
                         'type' => $field['fieldType'],
                     ]);
                 }
 
-                $allLists[] = new EmailMarketingList([
+                $settings['lists'][] = new EmailMarketingList([
                     'id' => $list['list_id'],
                     'name' => $list['title'],
                     'fields' => $listFields,
@@ -146,7 +137,7 @@ class Autopilot extends EmailMarketing
             ]));
         }
 
-        return $allLists;
+        return $settings;
     }
 
     /**

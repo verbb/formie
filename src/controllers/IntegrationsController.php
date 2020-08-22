@@ -73,26 +73,6 @@ class IntegrationsController extends Controller
         return $this->redirectToPostedUrl();
     }
 
-    public function actionRefreshList()
-    {
-        $this->requirePostRequest();
-
-        $request = Craft::$app->getRequest();
-        $handle = $request->getParam('integration');
-
-        if (!$handle) {
-            return $this->asErrorJson(Craft::t('formie', 'Unknown integration: “{handle}”', ['handle' => $handle]));
-        }
-
-        $integration = Formie::$plugin->getIntegrations()->getIntegrationByHandle($handle);
-
-        // Force getting all list options, re-generating cache
-        return $this->asJson([
-            'success' => true,
-            'listOptions' => $integration->getListOptions(false),
-        ]);
-    }
-
     public function actionCheckConnection()
     {
         $this->requirePostRequest();
@@ -127,7 +107,7 @@ class IntegrationsController extends Controller
         }
     }
 
-    public function actionElementFields()
+    public function actionFormSettings()
     {
         $this->requirePostRequest();
 
@@ -141,7 +121,7 @@ class IntegrationsController extends Controller
         $integration = Formie::$plugin->getIntegrations()->getIntegrationByHandle($handle);
 
         // Handball to the integration class to deal with the return
-        return $this->asJson($integration->getElementFieldsFromRequest($request));
+        return $this->asJson($integration->getFormSettings(false));
     }
 
 

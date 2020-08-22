@@ -23,6 +23,8 @@ abstract class EmailMarketing extends ThirdPartyIntegration
     // =========================================================================
 
     public $listId;
+    public $optInField;
+    public $fieldMapping;
 
     
     // Public Methods
@@ -60,51 +62,7 @@ abstract class EmailMarketing extends ThirdPartyIntegration
         return Craft::$app->getView()->renderTemplate("formie/integrations/email-marketing/{$handle}/_form-settings", [
             'integration' => $this,
             'form' => $form,
-            'listOptions' => $this->getListOptions(),
         ]);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getAllLists($useCache = true)
-    {
-        $cacheKey = 'formie-email-' . $this->handle . '-lists';
-        $cache = Craft::$app->getCache();
-
-        if ($useCache && $lists = $cache->get($cacheKey)) {
-            return $lists;
-        }
-
-        $lists = $this->fetchLists();
-
-        $cache->set($cacheKey, $lists);
-
-        return $lists;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getListFields($listId = null)
-    {
-        $fields = [];
-
-        if (!$listId) {
-            $listId = $this->listId;
-        }
-
-        $list = $this->getListById($listId);
-
-        foreach ($list->fields as $listField) {
-            $fields[] = [
-                'name' => $listField->name,
-                'handle' => $listField->tag,
-                'required' => $listField->required,
-            ];
-        }
-
-        return $fields;
     }
 
     /**
@@ -117,7 +75,7 @@ abstract class EmailMarketing extends ThirdPartyIntegration
             $list = $this->getListById($this->listId);
 
             foreach ($list->fields as $field) {
-                $value = $this->fieldMapping[$field->tag] ?? '';
+                $value = $this->fieldMapping[$field->handle] ?? '';
 
                 if ($field->required && $value === '') {
                     $this->addError($attribute, Craft::t('formie', '{name} must be mapped.', ['name' => $field->name]));
@@ -140,38 +98,6 @@ abstract class EmailMarketing extends ThirdPartyIntegration
         return $rules;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getElementFieldsFromRequest($request)
-    {
-        $listId = $request->getParam('listId');
-
-        if (!$listId) {
-            return ['error' => Craft::t('formie', 'No “{listId}” provided.')];
-        }
-
-        return $this->getListFields($listId);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getListOptions($useCache = true): array
-    {
-        $options = [
-            ['label' => Craft::t('formie', 'Select an option'), 'value' => ''],
-        ];
-
-        $lists = $this->getAllLists($useCache);
-
-        foreach ($lists as $list) {
-             $options[] = ['label' => $list->name, 'value' => $list->id];
-        }
-
-        return $options;
-    }
-
 
     // Protected Methods
     // =========================================================================
@@ -181,7 +107,8 @@ abstract class EmailMarketing extends ThirdPartyIntegration
      */
     protected function getListById($listId)
     {
-        $lists = $this->getAllLists();
+        $settings = $this->getFormSettings();
+        $lists = $settings['lists'] ?? [];
 
         foreach ($lists as $list) {
             if ($list->id === $listId) {
@@ -211,5 +138,39 @@ abstract class EmailMarketing extends ThirdPartyIntegration
         }
 
         return $fieldValues;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected function enforceOptInField(Submission $submission)
+    {
+        // Default is just always do it!
+        if (!$this->optInField) {
+            return true;
+        }
+
+        $fieldValues = $this->getFieldMappingValues($submission);
+        $fieldValue = $fieldValues[$this->optInField] ?? null;
+
+        if ($fieldValue === null) {
+            Integration::log($this, Craft::t('formie', 'Unable to find field “{field}” for opt-in in submission.', [
+                'field' => $this->optInField,
+            ]));
+
+            return false;
+        }
+
+        // Just a simple 'falsey' check is good enough
+        if (!$fieldValue) {
+            Integration::log($this, Craft::t('formie', 'Opting-out. Field “{field}” has value “{value}”.', [
+                'field' => $this->optInField,
+                'value' => $fieldValue,
+            ]));
+
+            return false;
+        }
+
+        return true;
     }
 }

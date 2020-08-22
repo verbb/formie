@@ -1,16 +1,20 @@
 <?php
 namespace verbb\formie\base;
 
-use craft\base\Model;
-use craft\helpers\UrlHelper;
-
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
+
+use Craft;
+use craft\base\Model;
+use craft\helpers\StringHelper;
+use craft\helpers\UrlHelper;
 
 abstract class Element extends Integration implements IntegrationInterface
 {
     // Properties
     // =========================================================================
+
+    public $fieldMapping;
 
 
     // Static Methods
@@ -24,12 +28,30 @@ abstract class Element extends Integration implements IntegrationInterface
         return false;
     }
 
+
+    // Public Methods
+    // =========================================================================
+
+    /**
+     * @inheritDoc
+     */
+    public function getIconUrl(): string
+    {
+        $handle = StringHelper::toKebabCase($this->handle);
+
+        return Craft::$app->getAssetManager()->getPublishedUrl("@verbb/formie/web/assets/elements/dist/img/{$handle}.svg", true);
+    }
+
     /**
      * @inheritDoc
      */
     public function getSettingsHtml(): string
     {
-        return '';
+        $handle = StringHelper::toKebabCase($this->handle);
+
+        return Craft::$app->getView()->renderTemplate("formie/integrations/elements/{$handle}/_plugin-settings", [
+            'integration' => $this,
+        ]);
     }
 
     /**
@@ -37,7 +59,12 @@ abstract class Element extends Integration implements IntegrationInterface
      */
     public function getFormSettingsHtml(Form $form): string
     {
-        return '';
+        $handle = StringHelper::toKebabCase($this->handle);
+
+        return Craft::$app->getView()->renderTemplate("formie/integrations/elements/{$handle}/_form-settings", [
+            'integration' => $this,
+            'form' => $form,
+        ]);
     }
 
     /**

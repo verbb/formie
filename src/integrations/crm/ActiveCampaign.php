@@ -7,7 +7,7 @@ use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\errors\IntegrationException;
 use verbb\formie\events\SendIntegrationPayloadEvent;
-use verbb\formie\models\EmailMarketingField;
+use verbb\formie\models\IntegrationField;
 use verbb\formie\models\EmailMarketingList;
 
 use Craft;
@@ -21,6 +21,13 @@ class ActiveCampaign extends Crm
     // =========================================================================
 
     public $handle = 'activeCampaignCrm';
+    public $mapToContact = false;
+    public $mapToDeal = false;
+    public $mapToOrganisation = false;
+    public $contactFieldMapping;
+    public $dealFieldMapping;
+    public $organisationFieldMapping;
+
 
 
     // Public Methods
@@ -68,7 +75,6 @@ class ActiveCampaign extends Crm
         return Craft::$app->getView()->renderTemplate("formie/integrations/crm/active-campaign/_form-settings", [
             'integration' => $this,
             'form' => $form,
-            // 'listOptions' => $this->getListOptions(),
         ]);
     }
 
@@ -95,85 +101,118 @@ class ActiveCampaign extends Crm
         return true;
     }
 
+
     /**
      * @inheritDoc
      */
-    public function fetchLists()
+    public function fetchFormSettings()
     {
-        $allLists = [];
+        $settings = [
+            'contact' => [
+                new IntegrationField([
+                    'handle' => 'mailing_list_id',
+                    'name' => Craft::t('formie', 'Mailing List ID'),
+                ]),
+                new IntegrationField([
+                    'handle' => 'email',
+                    'name' => Craft::t('formie', 'Email'),
+                ]),
+                new IntegrationField([
+                    'handle' => 'firstName',
+                    'name' => Craft::t('formie', 'First Name'),
+                ]),
+                new IntegrationField([
+                    'handle' => 'lastName',
+                    'name' => Craft::t('formie', 'Last Name'),
+                ]),
+                new IntegrationField([
+                    'handle' => 'phone',
+                    'name' => Craft::t('formie', 'Phone'),
+                ]),
+            ],
+
+            'deal' => [
+                new IntegrationField([
+                    'handle' => 'title',
+                    'name' => Craft::t('formie', 'Title'),
+                ]),
+                new IntegrationField([
+                    'handle' => 'description',
+                    'name' => Craft::t('formie', 'Description'),
+                ]),
+                new IntegrationField([
+                    'handle' => 'currency',
+                    'name' => Craft::t('formie', 'Currency'),
+                ]),
+                new IntegrationField([
+                    'handle' => 'group',
+                    'name' => Craft::t('formie', 'Group'),
+                ]),
+                new IntegrationField([
+                    'handle' => 'owner',
+                    'name' => Craft::t('formie', 'Owner'),
+                ]),
+                new IntegrationField([
+                    'handle' => 'percent',
+                    'name' => Craft::t('formie', 'Percent'),
+                ]),
+                new IntegrationField([
+                    'handle' => 'stage',
+                    'name' => Craft::t('formie', 'Stage'),
+                ]),
+                new IntegrationField([
+                    'handle' => 'status',
+                    'name' => Craft::t('formie', 'Status'),
+                ]),
+            ],
+
+            'organisation' => [
+                new IntegrationField([
+                    'handle' => 'name',
+                    'name' => Craft::t('formie', 'Name'),
+                ]),
+            ],
+        ];
 
         try {
-            $response = $this->_request('GET', 'lists', [
-                'query' => [
-                    'limit' => 100,
-                ],
-            ]);
+            // $response = $this->_request('GET', 'fields');
+            // $fields = $response['fields'] ?? [];
 
-            $lists = $response['lists'] ?? [];
+            // // Don't use all fields, at least for the moment...
+            // $supportedFields = [
+            //     'text',
+            //     'textarea',
+            //     'hidden',
+            //     'dropdown',
+            //     'radio',
+            //     'date',
+            //     // 'checkbox',
+            //     // 'listbox',
+            // ];
 
-            foreach ($lists as $list) {
-                // While we're at it, fetch the fields for the list
-                $response = $this->_request('GET', 'fields', [
-                    'query' => [
-                        'limit' => 100,
-                    ],
-                ]);
+            // foreach ($fields as $field) {
+            //     if (in_array($field['type'], $supportedFields)) {
+            //         $settings['contact'][] = new IntegrationField([
+            //             'handle' => $field['id'],
+            //             'name' => $field['title'],
+            //             'type' => $field['type'],
+            //         ]);
+            //     }
+            // }
 
-                $fields = $response['fields'] ?? [];
+            // // Fetch deal-specific fields
+            // $response = $this->_request('GET', 'dealCustomFieldMeta');
+            // $fields = $response['dealCustomFieldMeta'] ?? [];
 
-                $listFields = [
-                    new EmailMarketingField([
-                        'tag' => 'email',
-                        'name' => Craft::t('formie', 'Email'),
-                        'type' => 'email',
-                        'required' => true,
-                    ]),
-                    new EmailMarketingField([
-                        'tag' => 'firstName',
-                        'name' => Craft::t('formie', 'First Name'),
-                        'type' => 'firstName',
-                    ]),
-                    new EmailMarketingField([
-                        'tag' => 'lastName',
-                        'name' => Craft::t('formie', 'Last Name'),
-                        'type' => 'lastName',
-                    ]),
-                    new EmailMarketingField([
-                        'tag' => 'phone',
-                        'name' => Craft::t('formie', 'Phone'),
-                        'type' => 'phone',
-                    ]),
-                ];
-
-                // Don't use all fields, at least for the moment...
-                $supportedFields = [
-                    'text',
-                    'textarea',
-                    'hidden',
-                    'dropdown',
-                    'radio',
-                    'date',
-                    // 'checkbox',
-                    // 'listbox',
-                ];
-
-                foreach ($fields as $field) {
-                    if (in_array($field['type'], $supportedFields)) {
-                        $listFields[] = new EmailMarketingField([
-                            'tag' => $field['id'],
-                            'name' => $field['title'],
-                            'type' => $field['type'],
-                        ]);
-                    }
-                }
-
-                $allLists[] = new EmailMarketingList([
-                    'id' => $list['id'],
-                    'name' => $list['name'],
-                    'fields' => $listFields,
-                ]);
-            }
-            
+            // foreach ($fields as $field) {
+            //     if (in_array($field['type'], $supportedFields)) {
+            //         $settings['deal'][] = new IntegrationField([
+            //             'handle' => $field['id'],
+            //             'name' => $field['title'],
+            //             'type' => $field['type'],
+            //         ]);
+            //     }
+            // }
         } catch (\Throwable $e) {
             Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [
                 'message' => $e->getMessage(),
@@ -182,7 +221,7 @@ class ActiveCampaign extends Crm
             ]));
         }
 
-        return $allLists;
+        return $settings;
     }
 
     /**
