@@ -13,6 +13,10 @@
 // Plugin Settings
 // ==========================================================================
 
+[v-cloak] {
+    display: none !important;
+}
+
 .fui-settings-block {
     padding: 16px;
     background: #f3f7fc;

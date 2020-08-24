@@ -20,7 +20,7 @@ class GetResponse extends EmailMarketing
     // Properties
     // =========================================================================
 
-    public $handle = 'getResponse';
+    public $apiKey;
 
 
     // Public Methods
@@ -29,7 +29,7 @@ class GetResponse extends EmailMarketing
     /**
      * @inheritDoc
      */
-    public static function getName(): string
+    public static function displayName(): string
     {
         return Craft::t('formie', 'GetResponse');
     }
@@ -45,18 +45,13 @@ class GetResponse extends EmailMarketing
     /**
      * @inheritDoc
      */
-    public function beforeSave(): bool
+    public function defineRules(): array
     {
-        if ($this->enabled) {
-            $apiKey = $this->settings['apiKey'] ?? '';
+        $rules = parent::defineRules();
 
-            if (!$apiKey) {
-                $this->addError('apiKey', Craft::t('formie', 'API key is required.'));
-                return false;
-            }
-        }
+        $rules[] = [['apiKey'], 'required'];
 
-        return true;
+        return $rules;
     }
 
     /**
@@ -104,7 +99,7 @@ class GetResponse extends EmailMarketing
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
-            ]));
+            ]), true);
         }
 
         return $settings;
@@ -169,7 +164,7 @@ class GetResponse extends EmailMarketing
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
-            ]));
+            ]), true);
 
             return false;
         }
@@ -214,15 +209,9 @@ class GetResponse extends EmailMarketing
             return $this->_client;
         }
 
-        $apiKey = $this->settings['apiKey'] ?? '';
-
-        if (!$apiKey) {
-            Integration::error($this, 'Invalid API Key for GetResponse', true);
-        }
-
         return $this->_client = Craft::createGuzzleClient([
             'base_uri' => 'https://api.getresponse.com/v3/',
-            'headers' => ['X-Auth-Token' => 'api-key ' . $apiKey],
+            'headers' => ['X-Auth-Token' => 'api-key ' . $this->apiKey],
         ]);
     }
 

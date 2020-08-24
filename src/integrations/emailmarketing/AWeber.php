@@ -20,7 +20,8 @@ class AWeber extends EmailMarketing
     // Properties
     // =========================================================================
 
-    public $handle = 'aweber';
+    public $clientId;
+    public $clientSecret;
 
 
     // OAuth Methods
@@ -63,7 +64,7 @@ class AWeber extends EmailMarketing
      */
     public function getClientId(): string
     {
-        return $this->settings['clientId'] ?? '';
+        return $this->clientId;
     }
 
     /**
@@ -71,7 +72,7 @@ class AWeber extends EmailMarketing
      */
     public function getClientSecret(): string
     {
-        return $this->settings['clientSecret'] ?? '';
+        return $this->clientSecret;
     }
 
     /**
@@ -109,7 +110,7 @@ class AWeber extends EmailMarketing
     /**
      * @inheritDoc
      */
-    public static function getName(): string
+    public static function displayName(): string
     {
         return Craft::t('formie', 'AWeber');
     }
@@ -125,24 +126,13 @@ class AWeber extends EmailMarketing
     /**
      * @inheritDoc
      */
-    public function beforeSave(): bool
+    public function defineRules(): array
     {
-        if ($this->enabled) {
-            $clientId = $this->settings['clientId'] ?? '';
-            $clientSecret = $this->settings['clientSecret'] ?? '';
+        $rules = parent::defineRules();
 
-            if (!$clientId) {
-                $this->addError('clientId', Craft::t('formie', 'Client ID is required.'));
-                return false;
-            }
+        $rules[] = [['clientId', 'clientSecret'], 'required'];
 
-            if (!$clientSecret) {
-                $this->addError('clientSecret', Craft::t('formie', 'Client Secret is required.'));
-                return false;
-            }
-        }
-
-        return true;
+        return $rules;
     }
 
     /**
@@ -199,7 +189,7 @@ class AWeber extends EmailMarketing
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
-            ]));
+            ]), true);
         }
 
         return $settings;
@@ -243,7 +233,7 @@ class AWeber extends EmailMarketing
             if (!$listsUrl) {
                 Integration::error($this, Craft::t('formie', 'API error: “{response}”', [
                     'response' => Json::encode($response),
-                ]));
+                ]), true);
 
                 return false;
             }
@@ -262,7 +252,7 @@ class AWeber extends EmailMarketing
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
-            ]));
+            ]), true);
 
             return false;
         }
@@ -280,13 +270,37 @@ class AWeber extends EmailMarketing
             return $this->_client;
         }
 
-        return $this->_client = Craft::createGuzzleClient([
+        $token = $this->getToken();
+
+        $this->_client = Craft::createGuzzleClient([
             'base_uri' => 'https://api.aweber.com/1.0/',
             'headers' => [
-                'Authorization' => 'Bearer ' . $this->getToken()->accessToken ?? '',
+                'Authorization' => 'Bearer ' . $token->accessToken ?? '',
                 'Content-Type' => 'application/json',
             ],
         ]);
+
+        // Always provide an authenticated client - so check first.
+        // We can't always rely on the EOL of the token.
+        try {
+            $response = $this->_request('GET', 'accounts');
+        } catch (\Throwable $e) {
+            if ($e->getCode() === 401) {
+                // Force-refresh the token
+                Formie::$plugin->getTokens()->refreshToken($token, true);
+
+                // Then try again, with the new access token
+                $this->_client = Craft::createGuzzleClient([
+                    'base_uri' => 'https://api.aweber.com/1.0/',
+                    'headers' => [
+                        'Authorization' => 'Bearer ' . $token->accessToken ?? '',
+                        'Content-Type' => 'application/json',
+                    ],
+                ]);
+            }
+        }
+
+        return $this->_client;
     }
 
     private function _request(string $method, string $uri, array $options = [])

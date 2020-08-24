@@ -61,16 +61,6 @@ class Tokens extends Component
         return $result ? $this->_createToken($result) : null;
     }
 
-    public function getLatestToken($handle)
-    {
-        $result = $this->_createTokenQuery()
-            ->where(['integrationHandle' => $handle])
-            ->orderBy(['dateCreated' => SORT_DESC])
-            ->one();
-
-        return $result ? $this->_createToken($result) : null;
-    }
-
     public function saveToken(Token $token, bool $runValidation = true): bool
     {
         $isNewToken = !$token->id;
@@ -89,7 +79,7 @@ class Tokens extends Component
         }
 
         $tokenRecord = $this->_getTokenRecordById($token->id);
-        $tokenRecord->integrationHandle = $token->integrationHandle;
+        $tokenRecord->type = $token->type;
         $tokenRecord->accessToken = $token->accessToken;
         $tokenRecord->secret = $token->secret;
         $tokenRecord->endOfLife = $token->endOfLife;
@@ -123,25 +113,6 @@ class Tokens extends Component
         return $this->deleteToken($token);
     }
 
-    public function deleteTokenByHandle($handle): bool
-    {
-        $tokens = $this->_createTokenQuery()
-            ->where(['integrationHandle' => $handle])
-            ->all();
-
-        $success = true;
-
-        foreach ($tokens as $result) {
-            $token = $this->_createToken($result);
-
-            if (!$this->deleteToken($token)) {
-                $success = false;
-            }
-        }
-
-        return $success;
-    }
-
     public function deleteToken(Token $token): bool
     {
         // Fire a 'beforeDeleteToken' event
@@ -165,6 +136,15 @@ class Tokens extends Component
         return true;
     }
 
+    public function refreshToken(Token $token, $force = false)
+    {
+        if ($this->_refreshToken($token, $force)) {
+            $this->saveToken($token);
+        }
+
+        return $token;
+    }
+
 
     // Private Methods
     // =========================================================================
@@ -174,7 +154,7 @@ class Tokens extends Component
         return (new Query())
             ->select([
                 'id',
-                'integrationHandle',
+                'type',
                 'accessToken',
                 'secret',
                 'endOfLife',
@@ -212,17 +192,17 @@ class Tokens extends Component
         return $token;
     }
 
-    private function _refreshToken(Token $token)
+    private function _refreshToken(Token $token, $force = false)
     {
         $time = time();
 
-        $integration = Formie::$plugin->getIntegrations()->getIntegrationByHandle($token->integrationHandle);
+        $integration = Formie::$plugin->getIntegrations()->getIntegrationByTokenId($token->id);
 
         // Refreshing the token only applies to OAuth 2.0 providers
         if ($integration && $integration->oauthVersion() == 2) {
-            if ($token->endOfLife && $token->refreshToken) {
+            if ($token->endOfLife && $token->refreshToken || $force) {
                 // Has token expired ?
-                if ($time > $token->endOfLife) {
+                if ($time > $token->endOfLife || $force) {
                     $realToken = $token->getToken();
 
                     $refreshToken = $token->refreshToken;

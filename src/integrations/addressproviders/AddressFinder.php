@@ -23,7 +23,9 @@ class AddressFinder extends AddressProvider
     // Properties
     // =========================================================================
 
-    public $handle = 'addressFinder';
+    public $apiKey;
+    public $countryCode;
+    public $widgetOptions = [];
     private $uniqueId;
 
 
@@ -43,17 +45,9 @@ class AddressFinder extends AddressProvider
     /**
      * @inheritDoc
      */
-    public static function getName(): string
+    public static function displayName(): string
     {
         return Craft::t('formie', 'Address Finder');
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getIconUrl(): string
-    {
-        return Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/addressproviders/dist/img/address-finder.svg', true);
     }
 
     /**
@@ -67,11 +61,13 @@ class AddressFinder extends AddressProvider
     /**
      * @inheritDoc
      */
-    public function getSettingsHtml(): string
+    public function defineRules(): array
     {
-        return Craft::$app->getView()->renderTemplate('formie/integrations/address-providers/address-finder/_settings', [
-            'integration' => $this,
-        ]);
+        $rules = parent::defineRules();
+
+        $rules[] = [['apiKey', 'countryCode'], 'required'];
+
+        return $rules;
     }
 
     /**
@@ -108,15 +104,15 @@ class AddressFinder extends AddressProvider
     /**
      * @inheritDoc
      */
-    public function getFrontEndJs(Form $form, $field = null)
+    public function getFrontEndJsVariables(Form $form, $field = null)
     {
         if (!$this->hasValidSettings()) {
             return null;
         }
         
         $settings = [
-            'apiKey' => $this->settings['apiKey'],
-            'countryCode' => $this->settings['countryCode'],
+            'apiKey' => $this->apiKey,
+            'countryCode' => $this->countryCode,
             'container' => $this->uniqueId,
             'widgetOptions' => $this->_getOptions(),
             'fieldContainer' => 'data-address-id-' . $field->id,
@@ -137,10 +133,7 @@ class AddressFinder extends AddressProvider
      */
     public function hasValidSettings(): bool
     {
-        $countryCode = $this->settings['countryCode'] ?? null;
-        $apiKey = $this->settings['apiKey'] ?? null;
-
-        if ($countryCode && $apiKey) {
+        if ($this->countryCode && $this->apiKey) {
             return true;
         }
 
@@ -157,7 +150,7 @@ class AddressFinder extends AddressProvider
     private function _getOptions()
     {
         $options = [];
-        $optionsRaw = $this->settings['widgetOptions'] ?? [];
+        $optionsRaw = $this->widgetOptions;
 
         if (!is_array($optionsRaw)) {
             $optionsRaw = [];

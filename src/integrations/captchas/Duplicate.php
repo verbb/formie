@@ -28,17 +28,9 @@ class Duplicate extends Captcha
     /**
      * @inheritDoc
      */
-    public static function getName(): string
+    public function getName(): string
     {
         return Craft::t('formie', 'Duplicate');
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getIconUrl(): string
-    {
-        return Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/captchas/dist/img/duplicate.svg', true);
     }
 
     /**
@@ -47,17 +39,6 @@ class Duplicate extends Captcha
     public function getDescription(): string
     {
         return Craft::t('formie', 'Check for duplicate submissions, where bots might be submitting multiple times.');
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getFormSettingsHtml(Form $form): string
-    {
-        return Craft::$app->getView()->renderTemplate('formie/integrations/captchas/_form-settings', [
-            'integration' => $this,
-            'form' => $form,
-        ]);
     }
 
     /**

@@ -28,17 +28,9 @@ class Javascript extends Captcha
     /**
      * @inheritDoc
      */
-    public static function getName(): string
+    public function getName(): string
     {
         return Craft::t('formie', 'Javascript');
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getIconUrl(): string
-    {
-        return Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/captchas/dist/img/javascript.svg', true);
     }
 
     /**
@@ -47,17 +39,6 @@ class Javascript extends Captcha
     public function getDescription(): string
     {
         return Craft::t('formie', 'Check if the user has Javascript enabled, and flag as spam if they do not.');
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getFormSettingsHtml(Form $form): string
-    {
-        return Craft::$app->getView()->renderTemplate('formie/integrations/captchas/_form-settings', [
-            'integration' => $this,
-            'form' => $form,
-        ]);
     }
 
     /**

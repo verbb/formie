@@ -18,7 +18,7 @@
 
         {{ forms.lightswitchField({
             label: 'Map to Contact' | t('formie'),
-            instructions: 'Whether to map form data to {name} Contacts.' | t('formie', { name: integration.name }),
+            instructions: 'Whether to map form data to {name} Contacts.' | t('formie', { name: integration.displayName() }),
             id: 'mapToContact',
             name: 'mapToContact',
             on: mapToContact,
@@ -28,8 +28,8 @@
         <div id="map-to-contact" class="{{ not mapToContact ? 'hidden' }}">
             <integration-field-mapping
                 label="{{ 'Contact Field Mapping' | t('formie') }}"
-                instructions="{{ 'Choose how your form fields should map to your {name} Contact fields.' | t('formie', { name: integration.name }) }}"
-                name-label="{{ integration.name }}"
+                instructions="{{ 'Choose how your form fields should map to your {name} Contact fields.' | t('formie', { name: integration.displayName() }) }}"
+                name-label="{{ integration.displayName() }}"
                 id="contact-field-mapping"
                 name="contactFieldMapping"
                 :value="get(form, 'settings.integrations.{{ integration.handle }}.contactFieldMapping')"
@@ -39,7 +39,7 @@
 
         {{ forms.lightswitchField({
             label: 'Map to Deal' | t('formie'),
-            instructions: 'Whether to map form data to {name} Deals.' | t('formie', { name: integration.name }),
+            instructions: 'Whether to map form data to {name} Deals.' | t('formie', { name: integration.displayName() }),
             id: 'mapToDeal',
             name: 'mapToDeal',
             on: mapToDeal,
@@ -49,8 +49,8 @@
         <div id="map-to-deal" class="{{ not mapToDeal ? 'hidden' }}">
             <integration-field-mapping
                 label="{{ 'Deal Field Mapping' | t('formie') }}"
-                instructions="{{ 'Choose how your form fields should map to your {name} Deal fields.' | t('formie', { name: integration.name }) }}"
-                name-label="{{ integration.name }}"
+                instructions="{{ 'Choose how your form fields should map to your {name} Deal fields.' | t('formie', { name: integration.displayName() }) }}"
+                name-label="{{ integration.displayName() }}"
                 id="deal-field-mapping"
                 name="dealFieldMapping"
                 :value="get(form, 'settings.integrations.{{ integration.handle }}.dealFieldMapping')"
@@ -60,7 +60,7 @@
 
         {{ forms.lightswitchField({
             label: 'Map to Organisation' | t('formie'),
-            instructions: 'Whether to map form data to {name} Organisations.' | t('formie', { name: integration.name }),
+            instructions: 'Whether to map form data to {name} Organisations.' | t('formie', { name: integration.displayName() }),
             id: 'mapToOrganisation',
             name: 'mapToOrganisation',
             on: mapToOrganisation,
@@ -70,8 +70,8 @@
         <div id="map-to-organisation" class="{{ not mapToOrganisation ? 'hidden' }}">
             <integration-field-mapping
                 label="{{ 'Organisation Field Mapping' | t('formie') }}"
-                instructions="{{ 'Choose how your form fields should map to your {name} Organisation fields.' | t('formie', { name: integration.name }) }}"
-                name-label="{{ integration.name }}"
+                instructions="{{ 'Choose how your form fields should map to your {name} Organisation fields.' | t('formie', { name: integration.displayName() }) }}"
+                name-label="{{ integration.displayName() }}"
                 id="organisation-field-mapping"
                 name="organisationFieldMapping"
                 :value="get(form, 'settings.integrations.{{ integration.handle }}.organisationFieldMapping')"

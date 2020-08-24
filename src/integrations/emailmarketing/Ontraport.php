@@ -20,7 +20,8 @@ class Ontraport extends EmailMarketing
     // Properties
     // =========================================================================
 
-    public $handle = 'ontraport';
+    public $apiKey;
+    public $appId;
 
 
     // Public Methods
@@ -29,7 +30,7 @@ class Ontraport extends EmailMarketing
     /**
      * @inheritDoc
      */
-    public static function getName(): string
+    public static function displayName(): string
     {
         return Craft::t('formie', 'Ontraport');
     }
@@ -45,24 +46,13 @@ class Ontraport extends EmailMarketing
     /**
      * @inheritDoc
      */
-    public function beforeSave(): bool
+    public function defineRules(): array
     {
-        if ($this->enabled) {
-            $apiKey = $this->settings['apiKey'] ?? '';
-            $appId = $this->settings['appId'] ?? '';
+        $rules = parent::defineRules();
 
-            if (!$apiKey) {
-                $this->addError('apiKey', Craft::t('formie', 'API key is required.'));
-                return false;
-            }
+        $rules[] = [['apiKey', 'appId'], 'required'];
 
-            if (!$appId) {
-                $this->addError('appId', Craft::t('formie', 'App ID is required.'));
-                return false;
-            }
-        }
-
-        return true;
+        return $rules;
     }
 
     /**
@@ -157,7 +147,7 @@ class Ontraport extends EmailMarketing
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
-            ]));
+            ]), true);
         }
 
         return $settings;
@@ -193,7 +183,7 @@ class Ontraport extends EmailMarketing
             if (!$contactId) {
                 Integration::error($this, Craft::t('formie', 'API error: “{response}”', [
                     'response' => Json::encode($response),
-                ]));
+                ]), true);
 
                 return false;
             }
@@ -202,7 +192,7 @@ class Ontraport extends EmailMarketing
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
-            ]));
+            ]), true);
 
             return false;
         }
@@ -240,22 +230,11 @@ class Ontraport extends EmailMarketing
             return $this->_client;
         }
 
-        $apiKey = $this->settings['apiKey'] ?? '';
-        $appId = $this->settings['appId'] ?? '';
-
-        if (!$apiKey) {
-            Integration::error($this, 'Invalid API Key for Ontraport', true);
-        }
-
-        if (!$appId) {
-            Integration::error($this, 'Invalid App ID for Ontraport', true);
-        }
-
         return $this->_client = Craft::createGuzzleClient([
             'base_uri' => 'https://api.ontraport.com/1/',
             'headers' => [
-                'Api-Key' => $apiKey,
-                'Api-Appid' => $appId,
+                'Api-Key' => $this->apiKey,
+                'Api-Appid' => $this->appId,
             ],
         ]);
     }

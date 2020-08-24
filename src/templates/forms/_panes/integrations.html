@@ -1,38 +1,76 @@
 {% import '_includes/forms' as forms %}
 {% import 'verbb-base/_macros' as macros %}
 
-{% set selectedItem = '' %}
-
 {% do view.registerAssetBundle('verbb\\formie\\web\\assets\\cp\\CpAsset') -%}
 
-{% if integrations %}
+{% if groupedIntegrations %}
     <div class="fui-integrations-pane">
-        {% include 'formie/settings/integrations/_includes/sidebar' %}
+        <div class="fui-integrations-sidebar-wrapper">
+            <div class="sidebar">
+                <nav class="fui-integrations-tabs" data-vui-tabs>
+                    <ul>
+                        {% for name, integrations in groupedIntegrations %}
+                            <li class="heading"><span>{{ name }}</span></li>
+
+                            {% for integration in integrations %}
+                                {% set handle = integration.getHandle() %}
+                                {% set selectedItem = loop.first and loop.parent.loop.first ? true : false %}
+
+                                <li>
+                                    <a id="tab-{{ loop.index }}" href="#tab-{{ handle }}" class="tab {% if selectedItem %}sel{% endif %}" :class="{ 'error': !isEmpty(get(form, 'settings.integrations.{{ handle }}.errors')) }">
+                                        {% if integration.iconUrl %}
+                                            <img class="formie-integration-icon" src="{{ integration.iconUrl }}">
+                                        {% else %}
+                                            <img class="formie-integration-icon" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'/%3E">
+                                        {% endif %}
+
+                                        <span class="label">{{ integration.getName() }}</span>
+
+                                        {% set enabled = form.settings.integrations[handle].enabled ?? false %}
+
+                                        {% if enabled %}
+                                            <span class="status green"></span>
+                                        {% else %}
+                                            <span class="status"></span>
+                                        {% endif %}
+                                    </a>
+                                </li>
+                            {% endfor %}
+                        {% endfor %}
+                    </ul>
+                </nav>
+            </div>
+        </div>
 
         <div class="fui-form-integrations-wrapper">
             <div class="fui-form-integrations-inner-wrapper">
-                {% for integration in integrations %}
-                    <div id="tab-{{ integration.handle }}" class="integration-pane {% if not loop.first %}hidden{% endif %}">
-                        <h2>{{ integration.getName() }}</h2>
+                {% for integrations in groupedIntegrations %}
+                    {% for integration in integrations %}
+                        {% set selectedItem = loop.first and loop.parent.loop.first ? true : false %}
+                        {% set handle = integration.getHandle() %}
 
-                        {{ integration.getDescription() | md }}
+                        <div id="tab-{{ handle }}" class="integration-pane {% if not selectedItem %}hidden{% endif %}">
+                            <h2>{{ integration.getName() }}</h2>
 
-                        <hr>
+                            {{ integration.getDescription() | md }}
 
-                        {% namespace 'settings[integrations][' ~ integration.handle ~ ']' %}
-                            {% set enabled = form.settings.integrations[integration.handle].enabled ?? integration.enabled ?? false %}
-                            
-                            {{ forms.lightswitchField({
-                                label: 'Enabled' | t('formie'),
-                                instructions: 'Whether this integration should be enabled.' | t('formie'),
-                                name: 'enabled',
-                                on: enabled,
-                                toggle: 'integration-enabled',
-                            }) }}
+                            <hr>
 
-                            {{ integration.getFormSettingsHtml(form) | raw }}
-                        {% endnamespace %}
-                    </div>
+                            {% namespace 'settings[integrations][' ~ handle ~ ']' %}
+                                {% set enabled = form.settings.integrations[handle].enabled ?? false %}
+                                
+                                {{ forms.lightswitchField({
+                                    label: 'Enabled' | t('formie'),
+                                    instructions: 'Whether this integration should be enabled.' | t('formie'),
+                                    name: 'enabled',
+                                    on: enabled,
+                                    toggle: 'integration-enabled',
+                                }) }}
+
+                                {{ integration.getFormSettingsHtml(form) | raw }}
+                            {% endnamespace %}
+                        </div>
+                    {% endfor %}
                 {% endfor %}
             </div>
         </div>

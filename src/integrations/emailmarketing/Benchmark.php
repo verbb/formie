@@ -20,7 +20,7 @@ class Benchmark extends EmailMarketing
     // Properties
     // =========================================================================
 
-    public $handle = 'benchmark';
+    public $apiKey;
 
 
     // Public Methods
@@ -29,7 +29,7 @@ class Benchmark extends EmailMarketing
     /**
      * @inheritDoc
      */
-    public static function getName(): string
+    public static function displayName(): string
     {
         return Craft::t('formie', 'Benchmark');
     }
@@ -45,18 +45,13 @@ class Benchmark extends EmailMarketing
     /**
      * @inheritDoc
      */
-    public function beforeSave(): bool
+    public function defineRules(): array
     {
-        if ($this->enabled) {
-            $apiKey = $this->settings['apiKey'] ?? '';
+        $rules = parent::defineRules();
 
-            if (!$apiKey) {
-                $this->addError('apiKey', Craft::t('formie', 'API key is required.'));
-                return false;
-            }
-        }
+        $rules[] = [['apiKey'], 'required'];
 
-        return true;
+        return $rules;
     }
 
     /**
@@ -112,7 +107,7 @@ class Benchmark extends EmailMarketing
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
-            ]));
+            ]), true);
         }
 
         return $settings;
@@ -167,7 +162,7 @@ class Benchmark extends EmailMarketing
             if ($errors) {
                 Integration::error($this, Craft::t('formie', 'API error: “{response}”', [
                     'response' => Json::encode($response),
-                ]));
+                ]), true);
 
                 return false;
             }
@@ -176,7 +171,7 @@ class Benchmark extends EmailMarketing
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
-            ]));
+            ]), true);
 
             return false;
         }
@@ -191,7 +186,7 @@ class Benchmark extends EmailMarketing
     {
         try {
             $response = $this->_request('GET', 'Client/ProfileDetails');
-            $accountId = $response['email'] ?? '';
+            $accountId = $response['Response']['email'] ?? '';
 
             if (!$accountId) {
                 Integration::error($this, 'Unable to find “{email}” in response.', true);
@@ -220,15 +215,9 @@ class Benchmark extends EmailMarketing
             return $this->_client;
         }
 
-        $apiKey = $this->settings['apiKey'] ?? '';
-
-        if (!$apiKey) {
-            Integration::error($this, 'Invalid API Key for Benchmark', true);
-        }
-
         return $this->_client = Craft::createGuzzleClient([
             'base_uri' => 'https://clientapi.benchmarkemail.com/',
-            'headers' => ['AuthToken' => $apiKey],
+            'headers' => ['AuthToken' => $this->apiKey],
         ]);
     }
 

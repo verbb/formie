@@ -121,12 +121,13 @@ class Submissions extends Component
     {
         $form = $submission->getForm();
 
-        $elements = Formie::$plugin->getIntegrations()->getAllEnabledIntegrationsForForm($form, 'element');
-        $emailMarketings = Formie::$plugin->getIntegrations()->getAllEnabledIntegrationsForForm($form, 'emailMarketing');
-
-        $integrations = array_merge($elements, $emailMarketings);
+        $integrations = Formie::$plugin->getIntegrations()->getAllEnabledIntegrationsForForm($form);
 
         foreach ($integrations as $integration) {
+            if (!$integration->supportsPayloadSending()) {
+                continue;
+            }
+            
             // Fire a 'beforeTriggerElement' event
             $event = new TriggerIntegrationEvent([
                 'submission' => $submission,

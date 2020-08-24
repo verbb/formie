@@ -20,7 +20,7 @@ class Sender extends EmailMarketing
     // Properties
     // =========================================================================
 
-    public $handle = 'sender';
+    public $apiKey;
 
 
     // Public Methods
@@ -29,7 +29,7 @@ class Sender extends EmailMarketing
     /**
      * @inheritDoc
      */
-    public static function getName(): string
+    public static function displayName(): string
     {
         return Craft::t('formie', 'Sender');
     }
@@ -45,18 +45,13 @@ class Sender extends EmailMarketing
     /**
      * @inheritDoc
      */
-    public function beforeSave(): bool
+    public function defineRules(): array
     {
-        if ($this->enabled) {
-            $apiKey = $this->settings['apiKey'] ?? '';
+        $rules = parent::defineRules();
 
-            if (!$apiKey) {
-                $this->addError('apiKey', Craft::t('formie', 'API key is required.'));
-                return false;
-            }
-        }
+        $rules[] = [['apiKey'], 'required'];
 
-        return true;
+        return $rules;
     }
 
     /**
@@ -70,7 +65,7 @@ class Sender extends EmailMarketing
             $lists = $this->_request([
                 'method' => 'listGetAllLists',
                 'params' => [
-                    'api_key' => $this->settings['apiKey'] ?? '',
+                    'api_key' => $this->apiKey,
                 ],
             ]);
 
@@ -102,7 +97,7 @@ class Sender extends EmailMarketing
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
-            ]));
+            ]), true);
         }
 
         return $settings;
@@ -119,7 +114,7 @@ class Sender extends EmailMarketing
             $payload = [
                 'method' => 'listSubscribe',
                 'params' => [
-                    'api_key' => $this->settings['apiKey'] ?? '',
+                    'api_key' => $this->apiKey,
                     'list_id' => $this->listId,
                     'emails' => $fieldValues,
                 ],
@@ -143,7 +138,7 @@ class Sender extends EmailMarketing
             if (!$contactId) {
                 Integration::error($this, Craft::t('formie', 'API error: “{response}”', [
                     'response' => Json::encode($response),
-                ]));
+                ]), true);
 
                 return false;
             }
@@ -152,7 +147,7 @@ class Sender extends EmailMarketing
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
-            ]));
+            ]), true);
 
             return false;
         }
@@ -169,7 +164,7 @@ class Sender extends EmailMarketing
             $response = $this->_request([
                 'method' => 'listGetAllLists',
                 'params' => [
-                    'api_key' => $this->settings['apiKey'] ?? '',
+                    'api_key' => $this->apiKey,
                 ],
             ]);
 

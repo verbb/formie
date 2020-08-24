@@ -189,7 +189,7 @@ class Repeater extends FormField implements NestedFieldInterface, EagerLoadingFi
     /**
      * @inheritdoc
      */
-    public function getFrontEndJs(Form $form)
+    public function getFrontEndJsVariables(Form $form)
     {
         $src = Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/fields/repeater.js', true);
         $onload = 'new FormieRepeater(' . Json::encode(['formId' => $form->id]) . ');';

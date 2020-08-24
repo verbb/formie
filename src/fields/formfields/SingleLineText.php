@@ -151,7 +151,7 @@ class SingleLineText extends FormField
     /**
      * @inheritdoc
      */
-    public function getFrontEndJs(Form $form)
+    public function getFrontEndJsVariables(Form $form)
     {
         $limit = $this->limit ?? '';
 

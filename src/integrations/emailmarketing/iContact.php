@@ -15,12 +15,16 @@ use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 use craft\web\View;
 
-class iContact extends EmailMarketing
+class IContact extends EmailMarketing
 {
     // Properties
     // =========================================================================
 
-    public $handle = 'icontact';
+    public $appId;
+    public $password;
+    public $username;
+    public $accountId;
+    public $clientFolderId;
 
 
     // Public Methods
@@ -29,7 +33,7 @@ class iContact extends EmailMarketing
     /**
      * @inheritDoc
      */
-    public static function getName(): string
+    public static function displayName(): string
     {
         return Craft::t('formie', 'iContact');
     }
@@ -45,42 +49,13 @@ class iContact extends EmailMarketing
     /**
      * @inheritDoc
      */
-    public function beforeSave(): bool
+    public function defineRules(): array
     {
-        if ($this->enabled) {
-            $appId = $this->settings['appId'] ?? '';
-            $password = $this->settings['password'] ?? '';
-            $username = $this->settings['username'] ?? '';
-            $accountId = $this->settings['accountId'] ?? '';
-            $clientFolderId = $this->settings['clientFolderId'] ?? '';
+        $rules = parent::defineRules();
 
-            if (!$appId) {
-                $this->addError('appId', Craft::t('formie', 'Application ID is required.'));
-                return false;
-            }
+        $rules[] = [['appId', 'password', 'username', 'accountId', 'clientFolderId'], 'required'];
 
-            if (!$password) {
-                $this->addError('password', Craft::t('formie', 'Password is required.'));
-                return false;
-            }
-
-            if (!$username) {
-                $this->addError('username', Craft::t('formie', 'Username is required.'));
-                return false;
-            }
-
-            if (!$accountId) {
-                $this->addError('accountId', Craft::t('formie', 'Account ID is required.'));
-                return false;
-            }
-
-            if (!$clientFolderId) {
-                $this->addError('clientFolderId', Craft::t('formie', 'Client Folder ID is required.'));
-                return false;
-            }
-        }
-
-        return true;
+        return $rules;
     }
 
     /**
@@ -180,7 +155,7 @@ class iContact extends EmailMarketing
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
-            ]));
+            ]), true);
         }
 
         return $settings;
@@ -227,7 +202,7 @@ class iContact extends EmailMarketing
             if (!$contactId) {
                 Integration::error($this, Craft::t('formie', 'API error: “{response}”', [
                     'response' => Json::encode($response),
-                ]));
+                ]), true);
 
                 return false;
             }
@@ -260,7 +235,7 @@ class iContact extends EmailMarketing
             if ($failed) {
                 Integration::error($this, Craft::t('formie', 'API error: “{response}”', [
                     'response' => Json::encode($response),
-                ]));
+                ]), true);
 
                 return false;
             }
@@ -269,7 +244,7 @@ class iContact extends EmailMarketing
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
-            ]));
+            ]), true);
 
             return false;
         }
@@ -307,41 +282,15 @@ class iContact extends EmailMarketing
             return $this->_client;
         }
 
-        $appId = $this->settings['appId'] ?? '';
-        $username = $this->settings['username'] ?? '';
-        $password = $this->settings['password'] ?? '';
-        $accountId = $this->settings['accountId'] ?? '';
-        $clientFolderId = $this->settings['clientFolderId'] ?? '';
-
-        if (!$appId) {
-            Integration::error($this, 'Invalid Application ID for iContact', true);
-        }
-
-        if (!$username) {
-            Integration::error($this, 'Invalid Username for iContact', true);
-        }
-
-        if (!$password) {
-            Integration::error($this, 'Invalid Password for iContact', true);
-        }
-
-        if (!$accountId) {
-            Integration::error($this, 'Invalid Account ID for iContact', true);
-        }
-
-        if (!$clientFolderId) {
-            Integration::error($this, 'Invalid Client Folder ID for iContact', true);
-        }
-
         return $this->_client = Craft::createGuzzleClient([
-            'base_uri' => "https://app.icontact.com/icp/a/{$accountId}/c/{$clientFolderId}/",
+            'base_uri' => "https://app.icontact.com/icp/a/{$this->accountId}/c/{$this->clientFolderId}/",
             'headers' => [
                 'Accept' => 'application/json',
                 'Content-type' => 'application/json',
                 'Api-Version' => '2.2',
-                'API-AppId' => $appId,
-                'API-Username' => $username,
-                'API-Password' => $password,
+                'API-AppId' => $this->appId,
+                'API-Username' => $this->username,
+                'API-Password' => $this->password,
             ],
         ]);
     }

@@ -20,7 +20,8 @@ class ActiveCampaign extends Crm
     // Properties
     // =========================================================================
 
-    public $handle = 'activeCampaignCrm';
+    public $apiKey;
+    public $apiUrl;
     public $mapToContact = false;
     public $mapToDeal = false;
     public $mapToOrganisation = false;
@@ -29,14 +30,13 @@ class ActiveCampaign extends Crm
     public $organisationFieldMapping;
 
 
-
     // Public Methods
     // =========================================================================
 
     /**
      * @inheritDoc
      */
-    public static function getName(): string
+    public static function displayName(): string
     {
         return Craft::t('formie', 'ActiveCampaign');
     }
@@ -46,59 +46,19 @@ class ActiveCampaign extends Crm
      */
     public function getDescription(): string
     {
-        return Craft::t('formie', 'Sign up users to your ActiveCampaign lists to grow your audience for campaigns.');
+        return Craft::t('formie', 'Manage your ActiveCampaign customers by providing important information on their conversion on your site.');
     }
 
     /**
      * @inheritDoc
      */
-    public function getIconUrl(): string
+    public function defineRules(): array
     {
-        return Craft::$app->getAssetManager()->getPublishedUrl("@verbb/formie/web/assets/crm/dist/img/active-campaign.svg", true);
-    }
+        $rules = parent::defineRules();
 
-    /**
-     * @inheritDoc
-     */
-    public function getSettingsHtml(): string
-    {
-        return Craft::$app->getView()->renderTemplate("formie/integrations/crm/active-campaign/_plugin-settings", [
-            'integration' => $this,
-        ]);
-    }
+        $rules[] = [['apiKey', 'apiUrl'], 'required'];
 
-    /**
-     * @inheritDoc
-     */
-    public function getFormSettingsHtml(Form $form): string
-    {
-        return Craft::$app->getView()->renderTemplate("formie/integrations/crm/active-campaign/_form-settings", [
-            'integration' => $this,
-            'form' => $form,
-        ]);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function beforeSave(): bool
-    {
-        if ($this->enabled) {
-            $apiKey = $this->settings['apiKey'] ?? '';
-            $apiUrl = $this->settings['apiUrl'] ?? '';
-
-            if (!$apiKey) {
-                $this->addError('apiKey', Craft::t('formie', 'API key is required.'));
-                return false;
-            }
-
-            if (!$apiUrl) {
-                $this->addError('apiUrl', Craft::t('formie', 'API URL is required.'));
-                return false;
-            }
-        }
-
-        return true;
+        return $rules;
     }
 
     /**
@@ -361,20 +321,9 @@ class ActiveCampaign extends Crm
             return $this->_client;
         }
 
-        $apiKey = $this->settings['apiKey'] ?? '';
-        $apiUrl = $this->settings['apiUrl'] ?? '';
-
-        if (!$apiKey) {
-            Integration::error($this, 'Invalid API Key for Active Campaign', true);
-        }
-
-        if (!$apiUrl) {
-            Integration::error($this, 'Invalid API URL for Active Campaign', true);
-        }
-
         return $this->_client = Craft::createGuzzleClient([
-            'base_uri' => trim($apiUrl, '/') . '/api/3/',
-            'headers' => ['Api-Token' => $apiKey],
+            'base_uri' => trim($this->apiUrl, '/') . '/api/3/',
+            'headers' => ['Api-Token' => $this->apiKey],
         ]);
     }
 

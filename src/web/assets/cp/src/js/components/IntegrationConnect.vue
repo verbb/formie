@@ -1,24 +1,27 @@
 <template>
-    <div>
-        <div class="fui-integrations-check-wrap">
-            <span class="status" :class="statusClass"></span>{{ statusText | t('formie') }}
-
-            <button class="btn small" :class="{ 'fui-loading fui-loading-tiny': loading }" data-icon="refresh" title="$options.filters.t('Refresh', 'formie')" @click.prevent="refresh"></button>
+    <div class="field lightswitch-field">
+        <div class="heading">
+            <span class="status" :class="statusClass"></span>
+            <span>{{ statusText | t('formie') }}</span>
         </div>
 
-        <modal ref="modal" to="integrations-modals" :show-header="false" :show-footer="false" modal-class="fui-integration-error-modal">
-            <template slot="body">
-                <div class="fui-dialog-close" @click.prevent="hideModal"></div>
+        <div class="input ltr">
+            <button class="btn small" :class="{ 'fui-loading fui-loading-tiny': loading }" title="$options.filters.t('Refresh', 'formie')" @click.prevent="refresh">{{ 'Refresh' | t('formie') }}</button>
 
-                <div class="fui-error-pane error">
-                    <div class="fui-error-content">
-                        <span data-icon="alert"></span>
+            <modal ref="modal" to="integrations-modals" :show-header="false" :show-footer="false" modal-class="fui-integration-error-modal">
+                <template slot="body">
+                    <div class="fui-dialog-close" @click.prevent="hideModal"></div>
 
-                        <span class="error" v-html="errorMessage"></span>
+                    <div class="fui-error-pane error">
+                        <div class="fui-error-content">
+                            <span data-icon="alert"></span>
+
+                            <span class="error" v-html="errorMessage"></span>
+                        </div>
                     </div>
-                </div>
-            </template>
-        </modal>
+                </template>
+            </modal>
+        </div>
     </div>
 </template>
 
@@ -26,21 +29,15 @@
 import Modal from '../../../../forms/src/js/components/Modal.vue';
 
 export default {
-    name: 'IntegrationCheck',
+    name: 'IntegrationConnect',
 
     components: {
         Modal,
     },
 
     props: {
-        status: {
-            type: String,
-            required: true,
-        },
-
-        handle: {
-            type: String,
-            required: true,
+        connected: {
+            type: Boolean,
         },
     },
 
@@ -68,33 +65,42 @@ export default {
     },
 
     created() {
-        this.statusText = this.status;
+        this.statusText = this.connected ? 'Connected' : 'Not connected';
     },
 
     methods: {
+        getFormInputs() {
+            var inputs = [];
+
+            // Serialize the integration pane
+            var $form = document.getElementById('main-form');
+
+            if ($form) {
+                inputs = $form.querySelectorAll('input, select, textarea');
+            }
+
+            return inputs;
+        },
+
+        serializeForm() {
+            var values = {};
+
+            this.getFormInputs().forEach($inputElement => {
+                var attribute = $inputElement.getAttribute('name');
+
+                values[attribute] = $inputElement.value;
+            });
+
+            return values;
+        },
+
         refresh() {
             this.error = false;
             this.errorMessage = '';
             this.loading = true;
             this.statusText = 'Connecting...';
 
-            const payload = {
-                integration: this.handle,
-            };
-
-            // Serialize the integration pane
-            var $pane = document.getElementById('tab-' + this.handle);
-
-            if ($pane) {
-                var $inputElements = $pane.querySelectorAll('input, select, textarea');
-
-                // Populate the payload with any real-time settings
-                $inputElements.forEach($inputElement => {
-                    var attribute = $inputElement.getAttribute('name');
-
-                    payload[attribute] = $inputElement.value;
-                });
-            }
+            const payload = this.serializeForm();
 
             this.$axios.post(Craft.getActionUrl('formie/integrations/check-connection'), payload).then((response) => {
                 this.loading = false;
@@ -141,16 +147,12 @@ export default {
 
 <style lang="scss">
 
-#fui-integrations-settings {
-    .modal-shade {
-        position: absolute;
-    }
-
+.fui-integrations-settings {
     .modal {
         position: absolute;
-        width: 500px;
+        width: 45%;
         height: 350px;
-        min-width: auto;
+        min-width: 600px;
         min-height: auto;
         box-shadow: 0 0 20px rgba(63, 77, 90, 0.1);
         border: 1px solid #cdd8e4;

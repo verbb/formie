@@ -1,0 +1,106 @@
+{% import '_includes/forms' as forms %}
+{% import 'verbb-base/_macros' as macros %}
+
+{% extends 'formie/_layouts/settings' %}
+
+{% set bodyClass = 'formie-settings-integrations' %}
+
+{% if groupedIntegrations %}
+    {% set fullPageForm = true %}
+{% endif %}
+
+{% do view.registerAssetBundle('verbb\\formie\\web\\assets\\cp\\CpAsset') -%}
+
+{% block content %}
+
+{% if groupedIntegrations %}
+    {{ actionInput('formie/integration-settings/save-captchas') }}
+    {{ redirectInput('formie/settings/captchas') }}
+
+    <div id="fui-integrations-settings" class="fui-integrations-pane">
+        <div class="fui-integrations-sidebar-wrapper">
+            <div class="sidebar">
+                <nav class="fui-integrations-tabs" data-vui-tabs>
+                    <ul>
+                        {% for name, integrations in groupedIntegrations %}
+                            <li class="heading"><span>{{ name | kebab | replace('-', ' ') }}</span></li>
+
+                            {% for integration in integrations %}
+                                {% set handle = integration.getHandle() %}
+                                {% set selectedItem = loop.first and loop.parent.loop.first ? true : false %}
+
+                                <li>
+                                    <a id="tab-{{ loop.index }}" href="#tab-{{ handle }}" class="tab {% if selectedItem %}sel{% endif %}" :class="{ 'error': !isEmpty(get(form, 'settings.integrations.{{ handle }}.errors')) }">
+                                        {% if integration.iconUrl %}
+                                            <img class="formie-integration-icon" src="{{ integration.iconUrl }}">
+                                        {% else %}
+                                            <img class="formie-integration-icon" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'/%3E">
+                                        {% endif %}
+
+                                        <span class="label">{{ integration.displayName() }}</span>
+
+                                        {% set enabled = form.settings.integrations[handle].enabled ?? integration.enabled ?? false %}
+
+                                        {% if enabled %}
+                                            <span class="status green"></span>
+                                        {% else %}
+                                            <span class="status"></span>
+                                        {% endif %}
+                                    </a>
+                                </li>
+                            {% endfor %}
+                        {% endfor %}
+                    </ul>
+                </nav>
+            </div>
+        </div>
+
+        <div class="fui-form-integrations-wrapper">
+            <div class="fui-form-integrations-inner-wrapper">
+                {% for name, integrations in groupedIntegrations %}
+                    {% for integration in integrations %}
+                        {% set selectedItem = loop.first and loop.parent.loop.first ? true : false %}
+                        {% set handle = integration.getHandle() %}
+
+                        <div id="tab-{{ handle }}" {% if not selectedItem %}class="hidden"{% endif %}>
+                            <div class="fui-integrations-header">
+                                <h2>{{ integration.displayName() }} {{ 'Settings' | t('formie') }}</h2>
+                            </div>
+
+                            <div class="">
+                                {{ integration.getDescription() | md }}
+                            </div>
+
+                            <hr>
+
+                            {{ hiddenInput('integrations[' ~ handle ~ '][type]', className(integration)) }}
+
+                            {{ forms.lightswitchField({
+                                first: true,
+                                label: 'Enabled' | t('formie'),
+                                instructions: 'Whether to enable this integration.' | t('formie'),
+                                id: 'enabled',
+                                name: 'integrations[' ~ handle ~ '][enabled]',
+                                value: 1,
+                                on: integration.enabled ?? false,
+                                warning: macros.configWarning('enabled', 'formie'),
+                            }) }}
+
+                            {% namespace 'integrations[' ~ handle ~ '][settings]' %}
+                                {{ integration.getSettingsHtml() | raw }}
+                            {% endnamespace %}
+                        </div>
+                    {% endfor %}
+                {% endfor %}
+            </div>
+        </div>
+
+        <portal-target name="integrations-modals" multiple></portal-target>
+    </div>
+{% else %}
+    <div class="zilch">
+        {{ 'No integrations available.' | t('formie') }}
+    </div>
+{% endif %}
+
+{% endblock %}

@@ -20,7 +20,7 @@ class Sendinblue extends EmailMarketing
     // Properties
     // =========================================================================
 
-    public $handle = 'sendinblue';
+    public $apiKey;
 
 
     // Public Methods
@@ -29,7 +29,7 @@ class Sendinblue extends EmailMarketing
     /**
      * @inheritDoc
      */
-    public static function getName(): string
+    public static function displayName(): string
     {
         return Craft::t('formie', 'Sendinblue');
     }
@@ -45,18 +45,13 @@ class Sendinblue extends EmailMarketing
     /**
      * @inheritDoc
      */
-    public function beforeSave(): bool
+    public function defineRules(): array
     {
-        if ($this->enabled) {
-            $apiKey = $this->settings['apiKey'] ?? '';
+        $rules = parent::defineRules();
 
-            if (!$apiKey) {
-                $this->addError('apiKey', Craft::t('formie', 'API key is required.'));
-                return false;
-            }
-        }
+        $rules[] = [['apiKey'], 'required'];
 
-        return true;
+        return $rules;
     }
 
     /**
@@ -99,7 +94,7 @@ class Sendinblue extends EmailMarketing
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
-            ]));
+            ]), true);
         }
 
         return $settings;
@@ -142,7 +137,7 @@ class Sendinblue extends EmailMarketing
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
-            ]));
+            ]), true);
 
             return false;
         }
@@ -186,15 +181,9 @@ class Sendinblue extends EmailMarketing
             return $this->_client;
         }
 
-        $apiKey = $this->settings['apiKey'] ?? '';
-
-        if (!$apiKey) {
-            Integration::error($this, 'Invalid API Key for Sendinblue', true);
-        }
-
         return $this->_client = Craft::createGuzzleClient([
             'base_uri' => 'https://api.sendinblue.com/v3/',
-            'headers' => ['api-key' => $apiKey],
+            'headers' => ['api-key' => $this->apiKey],
         ]);
     }
 

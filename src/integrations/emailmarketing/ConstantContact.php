@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\integrations\emailmarketing;
 
+use verbb\formie\Formie;
 use verbb\formie\base\Integration;
 use verbb\formie\base\EmailMarketing;
 use verbb\formie\elements\Form;
@@ -20,7 +21,8 @@ class ConstantContact extends EmailMarketing
     // Properties
     // =========================================================================
 
-    public $handle = 'constantContact';
+    public $apiKey;
+    public $appSecret;
 
 
     // OAuth Methods
@@ -81,7 +83,7 @@ class ConstantContact extends EmailMarketing
     /**
      * @inheritDoc
      */
-    public static function getName(): string
+    public static function displayName(): string
     {
         return Craft::t('formie', 'Constant Contact');
     }
@@ -97,24 +99,13 @@ class ConstantContact extends EmailMarketing
     /**
      * @inheritDoc
      */
-    public function beforeSave(): bool
+    public function defineRules(): array
     {
-        if ($this->enabled) {
-            $apiKey = $this->settings['apiKey'] ?? '';
-            $appSecret = $this->settings['appSecret'] ?? '';
+        $rules = parent::defineRules();
 
-            if (!$apiKey) {
-                $this->addError('apiKey', Craft::t('formie', 'API key is required.'));
-                return false;
-            }
+        $rules[] = [['apiKey', 'appSecret'], 'required'];
 
-            if (!$appSecret) {
-                $this->addError('appSecret', Craft::t('formie', 'App Secret is required.'));
-                return false;
-            }
-        }
-
-        return true;
+        return $rules;
     }
 
     /**
@@ -185,7 +176,7 @@ class ConstantContact extends EmailMarketing
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
-            ]));
+            ]), true);
         }
 
         return $settings;
@@ -240,7 +231,7 @@ class ConstantContact extends EmailMarketing
             if (!$contactId) {
                 Integration::error($this, Craft::t('formie', 'API error: “{response}”', [
                     'response' => Json::encode($response),
-                ]));
+                ]), true);
 
                 return false;
             }
@@ -249,7 +240,7 @@ class ConstantContact extends EmailMarketing
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
-            ]));
+            ]), true);
 
             return false;
         }
@@ -267,13 +258,37 @@ class ConstantContact extends EmailMarketing
             return $this->_client;
         }
 
-        return $this->_client = Craft::createGuzzleClient([
+        $token = $this->getToken();
+
+        $this->_client = Craft::createGuzzleClient([
             'base_uri' => 'https://api.cc.email/v3/',
             'headers' => [
-                'Authorization' => 'Bearer ' . $this->getToken()->accessToken ?? '',
+                'Authorization' => 'Bearer ' . $token->accessToken ?? '',
                 'Content-Type' => 'application/json',
             ],
         ]);
+
+        // Always provide an authenticated client - so check first.
+        // We can't always rely on the EOL of the token.
+        try {
+            $response = $this->_request('GET', 'contact_lists');
+        } catch (\Throwable $e) {
+            if ($e->getCode() === 401) {
+                // Force-refresh the token
+                Formie::$plugin->getTokens()->refreshToken($token, true);
+
+                // Then try again, with the new access token
+                $this->_client = Craft::createGuzzleClient([
+                    'base_uri' => 'https://api.cc.email/v3/',
+                    'headers' => [
+                        'Authorization' => 'Bearer ' . $token->accessToken ?? '',
+                        'Content-Type' => 'application/json',
+                    ],
+                ]);
+            }
+        }
+
+        return $this->_client;
     }
 
     private function _request(string $method, string $uri, array $options = [])

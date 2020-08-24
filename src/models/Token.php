@@ -14,7 +14,7 @@ class Token extends Model
     // =========================================================================
 
     public $id;
-    public $integrationHandle;
+    public $type;
     public $accessToken;
     public $secret;
     public $endOfLife;
@@ -28,7 +28,7 @@ class Token extends Model
 
     public function getIntegration()
     {
-        return Formie::$plugin->getIntegrations()->getIntegrationByHandle($this->integrationHandle);
+        return Formie::$plugin->getIntegrations()->getIntegrationByTokenId($this->id);
     }
 
     public function getToken()

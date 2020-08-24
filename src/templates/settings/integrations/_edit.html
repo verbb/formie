@@ -1,0 +1,197 @@
+{% import '_includes/forms' as forms %}
+{% extends 'formie/_layouts' %}
+
+{% set crumbs = [
+    { label: craft.formie.getPluginName() | t('formie'), url: url('formie') },
+    { label: 'Settings' | t('app'), url: url('formie/settings') },
+    { label: typeName | t('formie'), url: url(baseUrl) },
+] %}
+
+{% do view.registerAssetBundle('verbb\\formie\\web\\assets\\cp\\CpAsset') -%}
+{% do view.registerAssetBundle('verbb\\formie\\web\\assets\\cp\\IntegrationSettingsAsset') -%}
+
+{% set bodyClass = 'fui-integrations-settings' %}
+{% set selectedSubnavItem = 'settings' %}
+{% set selectedTab = 'settings' %}
+
+{% set fullPageForm = true %}
+{% set saveShortcutRedirect = continueEditingUrl %}
+
+{% set formActions = [
+    {
+        label: 'Save and continue editing' | t('app'),
+        redirect: continueEditingUrl | hash,
+        shortcut: true,
+        retainScroll: true,
+    },
+    not isNewIntegration ? {
+        destructive: true,
+        label: 'Delete integration' | t('formie'),
+        action: 'formie/integrations/delete-integration',
+        redirect: baseUrl | hash,
+        confirm: 'Are you sure you want to delete this integration?' | t('formie'),
+    }
+] | filter %}
+
+{% block content %}
+
+<input type="hidden" name="action" value="formie/integrations/save-integration">
+{{ redirectInput(baseUrl) }}
+
+{% if not isNewIntegration %}
+    <input type="hidden" name="sortOrder" value="{{ integration.sortOrder }}">
+    <input type="hidden" name="id" value="{{ integration.id }}">
+{% endif %}
+
+{# Show an error when connecting to OAuth, instead of just in logs #}
+{% set message = craft.app.session.getFlash('formie-error') %}
+
+{% if message %}
+    <div class="code error" style="margin-bottom: 24px;">{{ message }}</div>
+{% endif %}
+
+<div id="settings">
+    {{ forms.textField({
+        first: true,
+        label: 'Name' | t('formie'),
+        instructions: 'What this integration will be called in the control panel.' | t('formie'),
+        id: 'name',
+        name: 'name',
+        value: (integration is defined ? integration.getName() : null),
+        errors: (integration is defined ? integration.getErrors('name') : null),
+        autofocus: true,
+        required: true,
+    }) }}
+
+    {{ forms.textField({
+        label: 'Handle' | t('formie'),
+        instructions: 'How you’ll refer to this integration in the templates.' | t('formie'),
+        id: 'handle',
+        name: 'handle',
+        class: 'code',
+        autocorrect: false,
+        autocapitalize: false,
+        value: (integration is defined ? integration.handle : null),
+        errors: (integration is defined ? integration.getErrors('handle') : null),
+        required: true,
+    }) }}
+
+    <hr>
+
+    {{ forms.selectField({
+        label: 'Integration Provider' | t('formie'),
+        instructions: 'Select the provider you wish to use for this integration.' | t('formie'),
+        id: 'type',
+        name: 'type',
+        options: integrationTypeOptions,
+        value: className(integration),
+        toggle: true,
+    }) }}
+
+    {{ missingIntegrationPlaceholder | raw }}
+
+    {% for integrationType in integrationTypes %}
+        {% set isCurrent = (integrationType == className(integration)) %}
+
+        <div id="{{ integrationType | id }}" {% if not isCurrent %}class="hidden"{% endif %}>
+            {% namespace 'types[' ~ integrationType ~ ']' %}
+                {% if isCurrent %}
+                    {{ integration.getSettingsHtml() | raw }}
+                {% else %}
+                    {{ integrationInstances[integrationType].getSettingsHtml() | raw }}
+                {% endif %}
+            {% endnamespace %}
+        </div>
+    {% endfor %}
+</div>
+
+{% endblock %}
+
+{% block details %}
+
+<div class="meta">
+    {{ forms.lightswitchField({
+        first: true,
+        label: 'Enabled' | t('formie'),
+        id: 'enabled',
+        name: 'enabled',
+        on: integration.enabled ?? true,
+    }) }}
+
+    {% if not isNewIntegration and integration.supportsConnection() %}
+        {% set connected = integration.getIsConnected() %}
+
+        {% if integration.supportsOauthConnection() %}
+            {% if connected %}
+                <div class="field lightswitch-field fui-connect">
+                    <div class="heading">
+                        <span class="status on"></span>{{ 'Connected' | t('formie') }}
+                    </div>
+
+                    <div class="input ltr">
+                        <a class="btn small formsubmit" data-action="formie/integrations/disconnect" data-param="integrationId" data-value="{{ integration.id }}">{{ 'Disconnect' | t('formie') }}</a>
+                    </div>
+                </div>
+            {% else %}
+                <div class="field lightswitch-field fui-connect">
+                    <div class="heading">
+                        <span class="status"></span>{{ 'Not connected' | t('formie') }}
+                    </div>
+
+                    <div class="input ltr">
+                        <a class="btn small formsubmit" data-action="formie/integrations/connect" data-param="integrationId" data-value="{{ integration.id }}">{{ 'Connect' | t('formie') }}</a>
+                    </div>
+                </div>
+            {% endif %}
+        {% elseif integration.supportsConnection() %}
+            {# Placeholder until Vue kicks in #}
+            <div class="field lightswitch-field fui-connect" v-if="false">
+                <div class="heading">
+                    <span class="status {{ connected ? 'on' : '' }}"></span>
+                    <span>{{ (connected ? 'Connected' : 'Not connected') | t('formie') }}</span>
+                </div>
+
+                <div class="input ltr">
+                    <button class="btn small" title="{{ 'Refresh' | t('formie') }}">{{ 'Refresh' | t('formie') }}</button>
+                </div>
+            </div>
+
+            <integration-connect class="fui-connect" :connected="{{ connected | json_encode }}" v-cloak></integration-connect>
+        {% endif %}
+    {% endif %}
+
+    <portal-target name="integrations-modals" multiple></portal-target>
+</div>
+
+{% if not isNewIntegration %}
+    <hr>
+
+    <div class="meta read-only">
+        <div class="data">
+            <h5 class="heading">{{ 'Date Created' | t('wishlist') }}</h5>
+            <div class="value">{{ integration.dateCreated | date('short') }} {{ integration.dateCreated | time('short') }}</div>
+        </div>
+
+        <div class="data">
+            <h5 class="heading">{{ 'Date Updated' | t('wishlist') }}</h5>
+            <div class="value">{{ integration.dateUpdated | date('short') }} {{ integration.dateUpdated | time('short') }}</div>
+        </div>
+    </div>
+{% endif %}
+
+{% endblock %}
+
+{% js %}
+
+{% if integration is not defined or not integration.handle %}
+    new Craft.HandleGenerator('#name', '#handle');
+{% endif %}
+
+// Add event listeners to all form inputs, to detect a change. Show a message to save when changed.
+$(document).ready(function() {
+    $('#main-form').find('input, select, textarea').on('input', function() {
+        $('.fui-connect').html('<div class="heading"><span class="warning with-icon">{{ 'Save this integration to connect.' | t('formie') }}</span></div>');
+    });
+});
+
+{% endjs %}

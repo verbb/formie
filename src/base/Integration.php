@@ -5,18 +5,53 @@ use verbb\formie\Formie;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\errors\IntegrationException;
+use verbb\formie\records\Integration as IntegrationRecord;
+use verbb\formie\events\SendIntegrationPayloadEvent;
+use verbb\formie\helpers\UrlHelper as FormieUrlHelper;
 
-use craft\base\Model;
-use craft\helpers\UrlHelper;
+use Craft;
+use craft\base\SavableComponent;
+use craft\validators\HandleValidator;
+use craft\validators\UniqueValidator;
+use craft\helpers\Json;
+use craft\helpers\StringHelper;
+use craft\web\Response;
 
-abstract class Integration extends Model implements IntegrationInterface
+use League\OAuth2\Client\Provider\GenericProvider;
+
+abstract class Integration extends SavableComponent implements IntegrationInterface
 {
+    // Constants
+    // =========================================================================
+
+    const EVENT_BEFORE_SEND_PAYLOAD = 'beforeSendPayload';
+    const EVENT_AFTER_SEND_PAYLOAD = 'afterSendPayload';
+    
+    const TYPE_ADDRESS_PROVIDER = 'addressProvider';
+    const TYPE_CAPTCHA = 'captcha';
+    const TYPE_ELEMENT = 'element';
+    const TYPE_EMAIL_MARKETING = 'emailMarketing';
+    const TYPE_CRM = 'crm';
+    const TYPE_WEBHOOK = 'webhook';
+
+    const SCENARIO_FORM = 'form';
+
+    const CONNECT_SUCCESS = 'success';
+
+
     // Properties
     // =========================================================================
 
-    public $enabled;
+    public $name;
+    public $handle;
     public $type;
-    public $settings;
+    public $enabled;
+    public $sortOrder;
+    public $cache = [];
+    public $tokenId;
+    public $uid;
+
+    protected $_client;
 
 
     // Static Methods
@@ -25,19 +60,17 @@ abstract class Integration extends Model implements IntegrationInterface
     /**
      * @inheritDoc
      */
-    public static function displayName(): string
+    public static function isSelectable(): bool
     {
-        return static::getName();
+        return false;
     }
 
     /**
-     * Whether this integration supports connections (checking to see if the API is connected).
-     *
-     * @return bool
+     * @inheritDoc
      */
     public static function supportsConnection(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -46,6 +79,22 @@ abstract class Integration extends Model implements IntegrationInterface
     public static function supportsOauthConnection(): bool
     {
         return false;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public static function supportsPayloadSending(): bool
+    {
+        return true;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public static function hasFormSettings(): bool
+    {
+        return true;
     }
 
     /**
@@ -77,19 +126,79 @@ abstract class Integration extends Model implements IntegrationInterface
     // =========================================================================
 
     /**
-     * Returns the control panel edit url for the integration.
-     *
-     * @return string
+     * @inheritDoc
      */
-    public function getCpEditUrl(): string
+    public function init()
     {
-        return UrlHelper::cpUrl('formie/settings/integrations/' . $this->handle);
+        parent::init();
+
+        if ($this->cache) {
+            $this->cache = Json::decodeIfJson($this->cache);
+        }
     }
 
     /**
-     * Returns the settings HTML.
-     *
-     * @return string
+     * @inheritdoc
+     */
+    public function scenarios()
+    {
+        $scenarios = parent::scenarios();
+        $scenarios[self::SCENARIO_FORM] = [];
+
+        return $scenarios;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    protected function defineRules(): array
+    {
+        $rules = parent::defineRules();
+        $rules[] = [['id'], 'number', 'integerOnly' => true];
+        $rules[] = [['handle'], UniqueValidator::class, 'targetClass' => IntegrationRecord::class];
+        $rules[] = [['name', 'handle'], 'string', 'max' => 255];
+        $rules[] = [['name', 'handle'], 'required'];
+        $rules[] = [
+            ['handle'],
+            HandleValidator::class,
+            'reservedWords' => [
+                'id',
+                'dateCreated',
+                'dateUpdated',
+                'uid',
+                'title',
+            ]
+        ];
+
+        return $rules;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getName(): string
+    {
+        return $this->name ?? '';
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getHandle(): string
+    {
+        return $this->handle ?? '';
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getIconUrl(): string
+    {
+        return '';
+    }
+
+    /**
+     * @inheritDoc
      */
     public function getSettingsHtml(): string
     {
@@ -97,48 +206,311 @@ abstract class Integration extends Model implements IntegrationInterface
     }
 
     /**
-     * Validates the submission.
-     *
-     * @param Submission $submission
-     * @return bool
+     * @inheritDoc
      */
-    public function validateSubmission(Submission $submission): bool
+    public function getFormSettingsHtml(Form $form): string
+    {
+        return '';
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function hasValidSettings(): bool
     {
         return true;
     }
 
     /**
-     * Whether this integration has settings editable for the whole form.
-     *
-     * @return bool
+     * @inheritDoc
      */
-    public function hasFormSettings(): bool
+    public function checkConnection($useCache = true): bool
     {
-        return true;
+        if ($useCache && $status = $this->getCache('connection')) {
+            if ($status === self::CONNECT_SUCCESS) {
+                return true;
+            }
+        }
+
+        $success = $this->fetchConnection();
+
+        if ($success) {
+            $this->setCache(['connection' => self::CONNECT_SUCCESS]);
+        }
+
+        return $success;
     }
 
     /**
-     * Returns the front-end JS.
-     *
-     * @return string
+     * @inheritDoc
      */
-    public function getFrontEndJs(Form $form, $page = null) {
+    public function getIsConnected()
+    {
+        if ($this->supportsOauthConnection()) {
+            return (bool)$this->getToken();
+        }
+
+        if ($this->supportsConnection()) {
+            return (bool)($this->getCache('connection') === self::CONNECT_SUCCESS);
+        }
+
+        return false;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getFormSettings($useCache = true)
+    {
+        // If using the cache (the default), don't fetch it automatically. Just save API requests a tad.
+        if ($useCache) {
+            return $this->getCache('settings') ?: [];
+        }
+
+        $settings = $this->fetchFormSettings();
+
+        $this->setCache(['settings' => $settings]);
+
+        return $settings;
+    }
+
+
+    // OAuth Methods
+    // =========================================================================
+
+    /**
+     * @inheritDoc
+     */
+    public function getAuthorizeUrl(): string
+    {
+        return '';
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getAccessTokenUrl(): string
+    {
+        return '';
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getClientId(): string
+    {
+        return '';
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getResourceOwner(): string
+    {
+        return '';
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getClientSecret(): string
+    {
+        return '';
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getOauthScope(): array
+    {
+        return [];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function oauthVersion(): int
+    {
+        // For now, just support OAuth2
+        return 2;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function oauthConnect()
+    {
+        // For now, just support OAuth2
+        return $this->oauth2Connect();
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function oauthCallback()
+    {
+        // For now, just support OAuth2
+        return $this->oauth2Callback();
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getRedirectUri()
+    {
+        return FormieUrlHelper::siteActionUrl('formie/integrations/callback');
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getOauthProviderConfig()
+    {
+        return [
+            'urlAuthorize' => $this->getAuthorizeUrl(),
+            'urlAccessToken' => $this->getAccessTokenUrl(),
+            'urlResourceOwnerDetails' => $this->getResourceOwner(),
+            'clientId' => $this->getClientId(),
+            'clientSecret' => $this->getClientSecret(),
+            'redirectUri' => $this->getRedirectUri(),
+            'scopes' => $this->getOauthScope(),
+        ];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getOauthProvider()
+    {
+        return new GenericProvider($this->getOauthProviderConfig());
+    }
+
+    /**
+     * @inheritDoc
+     */
+    private function oauth2Connect(): Response
+    {
+        $provider = $this->getOauthProvider();
+
+        Craft::$app->getSession()->set('formie.oauthState', $provider->getState());
+
+        $authorizationUrl = $provider->getAuthorizationUrl();
+
+        return Craft::$app->getResponse()->redirect($authorizationUrl);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    private function oauth2Callback(): array
+    {
+        $provider = $this->getOauthProvider();
+
+        $code = Craft::$app->getRequest()->getParam('code');
+
+        // Try to get an access token (using the authorization code grant)
+        $token = $provider->getAccessToken('authorization_code', [
+            'code' => $code,
+        ]);
+
+        return [
+            'success' => true,
+            'token' => $token
+        ];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getToken()
+    {
+        if ($this->tokenId) {
+            return Formie::$plugin->getTokens()->getTokenById($this->tokenId);
+        }
+
         return null;
     }
 
+
+    // Protected Methods
+    // =========================================================================
+
     /**
      * @inheritDoc
      */
-    public function beforeSave(): bool
+    protected function beforeSendPayload(Submission $submission, $payload)
     {
-        return true;
+        $event = new SendIntegrationPayloadEvent([
+            'submission' => $submission,
+            'payload' => $payload,
+            'integration' => $this,
+        ]);
+        $this->trigger(self::EVENT_BEFORE_SEND_PAYLOAD, $event);
+
+        if (!$event->isValid) {
+            Integration::log($this, 'Sending payload cancelled by event hook.');
+        }
+
+        // Also, check for opt-in fields. This allows the above event to potentially alter things
+        if (!$this->enforceOptInField($submission)) {
+            Integration::log($this, 'Sending payload cancelled by opt-in field.');
+
+            return false;
+        }
+
+        return $event->isValid;
     }
 
     /**
      * @inheritDoc
      */
-    public function afterSave()
+    protected function afterSendPayload(Submission $submission, $payload, $response)
     {
+        $event = new SendIntegrationPayloadEvent([
+            'submission' => $submission,
+            'payload' => $payload,
+            'response' => $response,
+            'integration' => $this,
+        ]);
+        $this->trigger(self::EVENT_AFTER_SEND_PAYLOAD, $event);
 
+        if (!$event->isValid) {
+            Integration::log($this, 'Payload marked as invalid by event hook.');
+        }
+
+        return $event->isValid;
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    /**
+     * @inheritDoc
+     */
+    private function setCache($values)
+    {
+        if ($this->cache === null) {
+            $this->cache = [];
+        }
+
+        $this->cache = array_merge($this->cache, $values);
+
+        // Direct DB update to keep it out of PC, plus speed
+        Craft::$app->getDb()->createCommand()
+            ->update('{{%formie_integrations}}', ['cache' => Json::encode($this->cache)], ['id' => $this->id])
+            ->execute();
+    }
+
+    /**
+     * @inheritDoc
+     */
+    private function getCache($key)
+    {
+        if ($this->cache === null) {
+            $this->cache = [];
+        }
+
+        return $this->cache[$key] ?? null;
     }
 }

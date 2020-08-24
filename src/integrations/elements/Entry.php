@@ -2,6 +2,7 @@
 namespace verbb\formie\integrations\elements;
 
 use verbb\formie\Formie;
+use verbb\formie\base\Integration;
 use verbb\formie\base\Element;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
@@ -21,7 +22,6 @@ class Entry extends Element
     // Properties
     // =========================================================================
 
-    public $handle = 'entry';
     public $entryTypeId;
     public $defaultAuthorId;
     public $attributeMapping;
@@ -33,7 +33,7 @@ class Entry extends Element
     /**
      * @inheritDoc
      */
-    public static function getName(): string
+    public static function displayName(): string
     {
         return Craft::t('formie', 'Entry');
     }
@@ -53,7 +53,8 @@ class Entry extends Element
     {
         $rules = parent::defineRules();
 
-        $rules[] = [['entryTypeId', 'defaultAuthorId'], 'required'];
+        // Validate the following when saving form settings
+        $rules[] = [['entryTypeId', 'defaultAuthorId'], 'required', 'on' => [Integration::SCENARIO_FORM]];
 
         return $rules;
     }
@@ -79,7 +80,7 @@ class Entry extends Element
     /**
      * @inheritDoc
      */
-    public function getFormSettings()
+    public function getFormSettings($useCache = true)
     {
         $settings = [];
 

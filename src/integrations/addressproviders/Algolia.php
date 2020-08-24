@@ -23,7 +23,9 @@ class Algolia extends AddressProvider
     // Properties
     // =========================================================================
 
-    public $handle = 'algolia';
+    public $apiKey;
+    public $appId;
+    public $reconfigurableOptions = [];
     private $uniqueId;
 
 
@@ -43,17 +45,9 @@ class Algolia extends AddressProvider
     /**
      * @inheritDoc
      */
-    public static function getName(): string
+    public static function displayName(): string
     {
         return Craft::t('formie', 'Algolia Places');
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getIconUrl(): string
-    {
-        return Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/addressproviders/dist/img/algolia.svg', true);
     }
 
     /**
@@ -67,11 +61,13 @@ class Algolia extends AddressProvider
     /**
      * @inheritDoc
      */
-    public function getSettingsHtml(): string
+    public function defineRules(): array
     {
-        return Craft::$app->getView()->renderTemplate('formie/integrations/address-providers/algolia/_settings', [
-            'integration' => $this,
-        ]);
+        $rules = parent::defineRules();
+
+        $rules[] = [['apiKey', 'appId'], 'required'];
+
+        return $rules;
     }
 
     /**
@@ -88,7 +84,7 @@ class Algolia extends AddressProvider
 
         $view->setTemplateMode($view::TEMPLATE_MODE_CP);
 
-        $html = Craft::$app->getView()->renderTemplate('formie/integrations/address-providers/algolia/_input', [
+        $html = Craft::$app->getView()->renderTemplate('formie/integrations/address-providers/algolia-places/_input', [
             'field' => $field,
             'data' => $this->uniqueId,
             'options' => $options,
@@ -108,15 +104,15 @@ class Algolia extends AddressProvider
     /**
      * @inheritDoc
      */
-    public function getFrontEndJs(Form $form, $field = null)
+    public function getFrontEndJsVariables(Form $form, $field = null)
     {
         if (!$this->hasValidSettings()) {
             return null;
         }
         
         $settings = [
-            'appId' => $this->settings['appId'],
-            'apiKey' => $this->settings['apiKey'],
+            'appId' => $this->appId,
+            'apiKey' => $this->apiKey,
             'container' => $this->uniqueId,
             'reconfigurableOptions' => $this->_getOptions(),
             'fieldContainer' => 'data-address-id-' . $field->id,
@@ -137,10 +133,7 @@ class Algolia extends AddressProvider
      */
     public function hasValidSettings(): bool
     {
-        $appId = $this->settings['appId'] ?? null;
-        $apiKey = $this->settings['apiKey'] ?? null;
-
-        if ($appId && $apiKey) {
+        if ($this->appId && $this->apiKey) {
             return true;
         }
 
@@ -157,7 +150,7 @@ class Algolia extends AddressProvider
     private function _getOptions()
     {
         $options = [];
-        $optionsRaw = $this->settings['reconfigurableOptions'] ?? [];
+        $optionsRaw = $this->reconfigurableOptions;
 
         if (!is_array($optionsRaw)) {
             $optionsRaw = [];

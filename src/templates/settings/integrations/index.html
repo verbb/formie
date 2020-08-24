@@ -1,97 +1,84 @@
-{% import '_includes/forms' as forms %}
-{% import 'verbb-base/_macros' as macros %}
-
 {% extends 'formie/_layouts/settings' %}
 
-{% set bodyClass = 'formie-settings-integrations' %}
-{% set selectedItem = integrations[0].handle ?? '' %}
-
-{% if integrations %}
-    {% set fullPageForm = true %}
-{% endif %}
-
-{% do view.registerAssetBundle('verbb\\formie\\web\\assets\\cp\\CpAsset') -%}
-{% do view.registerAssetBundle('verbb\\formie\\web\\assets\\cp\\IntegrationSettingsAsset') -%}
-
-{% block content %}
-
-{% if integrations %}
-    {{ actionInput('formie/integrations/save-settings') }}
-    {{ redirectInput('formie/settings/integrations') }}
-
-    <div id="fui-integrations-settings" class="fui-integrations-pane">
-        {% include 'formie/settings/integrations/_includes/sidebar' %}
-
-        <div class="fui-form-integrations-wrapper">
-            <div class="fui-form-integrations-inner-wrapper">
-                {% for integration in integrations %}
-                    <div id="tab-{{ integration.handle }}" {% if not loop.first %}class="hidden"{% endif %}>
-                        <div class="fui-integrations-header">
-                            <h2>{{ integration.getName() }} {{ 'Settings' | t('formie') }}</h2>
-
-                            {% if integration.supportsOauthConnection() %}
-                                {% if integration.getOauthConnected() %}
-                                    <div class="flex flex-nowrap">
-                                        <div class="heading">
-                                            <span class="status on"></span>{{ 'Connected' | t('formie') }}
-                                        </div>
-
-                                        <div class="input ltr">
-                                            <a class="btn small formsubmit" data-action="formie/integrations/disconnect" data-param="handle" data-value="{{ integration.handle }}">{{ 'Disconnect' | t('formie') }}</a>
-                                        </div>
-                                    </div>
-                                {% else %}
-                                    <div class="flex flex-nowrap">
-                                        <div class="heading">
-                                            <span class="status"></span><span class="light">{{ 'Not Connected' | t('formie') }}</span>
-                                        </div>
-
-                                        <div class="input ltr">
-                                            <a class="btn small formsubmit" data-action="formie/integrations/connect" data-param="handle" data-value="{{ integration.handle }}">{{ 'Connect' | t('formie') }}</a>
-                                        </div>
-                                    </div>
-                                {% endif %}
-                            {% elseif integration.supportsConnection() %}
-                                <integration-check
-                                    class="fui-integrations-check"
-                                    handle="{{ integration.handle }}"
-                                    status="{{ integration.getConnectionStatus() }}"
-                                ></integration-check>
-                            {% endif %}
-                        </div>
-
-                        <div class="">
-                            {{ integration.getDescription() | md }}
-                        </div>
-
-                        <hr>
-
-                        {{ forms.lightswitchField({
-                            first: true,
-                            label: 'Enabled' | t('formie'),
-                            instructions: 'Whether to enable this integration.' | t('formie'),
-                            id: 'enabled',
-                            name: 'integrations[' ~ integration.handle ~ '][enabled]',
-                            value: 1,
-                            on: integration.enabled ?? false,
-                            warning: macros.configWarning('enabled', 'formie'),
-                        }) }}
-
-                        {% namespace 'integrations[' ~ integration.handle ~ '][settings]' %}
-                            {{ integration.getSettingsHtml() | raw }}
-                        {% endnamespace %}
-                    </div>
-                {% endfor %}
-            </div>
-        </div>
-
-        <portal-target name="integrations-modals" multiple></portal-target>
-    </div>
-{% else %}
-    <div class="zilch">
-        {{ 'No integrations available.' | t('formie') }}
-    </div>
-{% endif %}
-
+{% block actionButton %}
+    <a href="{{ url("formie/settings/#{typeName | kebab}/new") }}" class="btn submit add icon">{{ 'New Integration' | t('formie') }}</a>
 {% endblock %}
 
+{% block content %}
+    <div id="integrations-vue-admin-table"></div>
+{% endblock %}
+
+{% set supportsConnection = false %}
+
+{% if integrations | length and integrations[0].supportsConnection() %}
+    {% set supportsConnection = true %}
+{% endif %}
+
+{% set tableData = [] %}
+{% for integration in integrations %}
+    {% set integrationIsMissing = false %}
+
+    {% if integration is missing %}
+        {% set integrationIsMissing = true %}
+    {% endif %}
+
+    {% set tableData = tableData | merge([{
+        id: integration.id,
+        title: integration.getName() | t('site'),
+        url: integration.cpEditUrl,
+        name: integration.getName() | t('site') | e,
+        enabled: integration.enabled,
+        connected: integration.getIsConnected(),
+        type: {
+            isMissing: integrationIsMissing,
+            label: integrationIsMissing ? integration.expectedType : integration.displayName(),
+            icon: integration.getIconUrl(),
+        },
+    }]) %}
+{% endfor %}
+
+{% js %}
+
+var columns = [
+    { name: '__slot:title', title: Craft.t('app', 'Name') },
+    { name: 'type', title: Craft.t('app', 'Type'), callback: function(value) {
+            if (value.isMissing) {
+                return '<span class="error">' + value.label + '</span>';
+            }
+
+            return '<div style="display: flex; align-items: center;">' + 
+                '<img src="' + value.icon + '" style="width: 20px; height: 20px; margin-right: 8px;">' + 
+                value.label
+            '</div>';
+        }
+    },
+    { name: 'enabled', title: Craft.t('formie', 'Enabled'), callback: function(value) {
+            if (value) {
+                return '<span class="status on"></span>' + Craft.t('formie', 'Enabled');
+            } else {
+                return '<span class="status"></span>' + Craft.t('formie', 'Disabled');
+            }
+        }
+    },
+    {% if supportsConnection %}
+    { name: 'connected', title: Craft.t('formie', 'Connected'), callback: function(value) {
+            if (value) {
+                return '<span class="status on"></span>' + Craft.t('formie', 'Connected');
+            } else {
+                return '<span class="status"></span>' + Craft.t('formie', 'Not connected');
+            }
+        }
+    },
+    {% endif %}
+];
+
+new Craft.VueAdminTable({
+    columns: columns,
+    container: '#integrations-vue-admin-table',
+    deleteAction: 'formie/integrations/delete-integration',
+    emptyMessage: Craft.t('formie', 'No integrations exist yet.'),
+    reorderAction: '{{ integrations | length > 1 ? 'formie/integrations/reorder-integrations' : ''}}',
+    tableData: {{ tableData | json_encode | raw }}
+});
+
+{% endjs %}

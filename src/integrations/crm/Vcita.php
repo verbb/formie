@@ -15,12 +15,12 @@ use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 use craft\web\View;
 
-class Vcita extends Crm
+class VCita extends Crm
 {
     // Properties
     // =========================================================================
 
-    public $handle = 'Vcita';
+    public $apiKey;
 
 
     // Public Methods
@@ -29,9 +29,9 @@ class Vcita extends Crm
     /**
      * @inheritDoc
      */
-    public static function getName(): string
+    public static function displayName(): string
     {
-        return Craft::t('formie', 'Vcita');
+        return Craft::t('formie', 'vCita');
     }
 
     /**
@@ -39,24 +39,19 @@ class Vcita extends Crm
      */
     public function getDescription(): string
     {
-        return Craft::t('formie', 'Sign up users to your Vcita lists to grow your audience for campaigns.');
+        return Craft::t('formie', 'Manage your vCita customers by providing important information on their conversion on your site.');
     }
 
     /**
      * @inheritDoc
      */
-    public function beforeSave(): bool
+    public function defineRules(): array
     {
-        if ($this->enabled) {
-            $apiKey = $this->settings['apiKey'] ?? '';
+        $rules = parent::defineRules();
 
-            if (!$apiKey) {
-                $this->addError('apiKey', Craft::t('formie', 'API key is required.'));
-                return false;
-            }
-        }
+        $rules[] = [['apiKey'], 'required'];
 
-        return true;
+        return $rules;
     }
 
     /**
@@ -129,15 +124,9 @@ class Vcita extends Crm
             return $this->_client;
         }
 
-        $apiKey = $this->settings['apiKey'] ?? '';
-
-        if (!$apiKey) {
-            Integration::error($this, 'Invalid API Key for Vcita', true);
-        }
-
         return $this->_client = Craft::createGuzzleClient([
             'base_uri' => '',
-            'headers' => ['Api-Token' => $apiKey],
+            'headers' => ['Api-Token' => $this->apiKey],
         ]);
     }
 

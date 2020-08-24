@@ -1,8 +1,8 @@
 <?php
 namespace verbb\formie\services;
 
-use craft\helpers\DateTimeHelper;
 use verbb\formie\Formie;
+use verbb\formie\base\Integration;
 use verbb\formie\base\NestedFieldInterface;
 use verbb\formie\base\NestedFieldTrait;
 use verbb\formie\base\FormField;
@@ -17,6 +17,7 @@ use Craft;
 use craft\base\Component;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Db;
+use craft\helpers\DateTimeHelper;
 use craft\helpers\Html;
 use craft\helpers\Json;
 use craft\helpers\MigrationHelper;
@@ -164,6 +165,8 @@ class Forms extends Component
             $integrations = Formie::$plugin->getIntegrations()->getAllEnabledIntegrationsForForm($form);
 
             foreach ($integrations as $integration) {
+                $integration->setScenario(Integration::SCENARIO_FORM);
+
                 if (!$integration->validate()) {
                     // Add any errors to the form's settings - maybe move this to the form settings model?
                     $form->settings->integrations[$integration->handle]['errors'] = $integration->getErrors();

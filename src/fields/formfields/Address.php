@@ -1,10 +1,11 @@
 <?php
 namespace verbb\formie\fields\formfields;
 
+use verbb\formie\Formie;
+use verbb\formie\base\FormField;
+use verbb\formie\base\Integration;
 use verbb\formie\base\SubfieldInterface;
 use verbb\formie\base\SubfieldTrait;
-use verbb\formie\base\FormField;
-use verbb\formie\Formie;
 use verbb\formie\elements\Form;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\Address as AddressModel;
@@ -439,7 +440,7 @@ class Address extends FormField implements SubfieldInterface
     /**
      * @inheritDoc
      */
-    public function getFrontEndJs(Form $form)
+    public function getFrontEndJsVariables(Form $form)
     {
         if (!$this->enableAutocomplete || !$this->autocompleteIntegration) {
             return null;
@@ -451,7 +452,7 @@ class Address extends FormField implements SubfieldInterface
             return null;
         }
 
-        return $integration->getFrontEndJs($form, $this);
+        return $integration->getFrontEndJsVariables($form, $this);
     }
 
     /**
@@ -460,10 +461,12 @@ class Address extends FormField implements SubfieldInterface
     public function defineGeneralSchema(): array
     {
         $addressProviderOptions = [];
-        $addressProviders = Formie::$plugin->getintegrations()->getAllEnabledAddressProviders();
+        $addressProviders = Formie::$plugin->getIntegrations()->getAllIntegrationsForType(Integration::TYPE_ADDRESS_PROVIDER);
 
         foreach ($addressProviders as $addressProvider) {
-            $addressProviderOptions[] = [ 'label' => $addressProvider->getName(), 'value' => $addressProvider->handle ];
+            if ($addressProvider->enabled) {
+                $addressProviderOptions[] = [ 'label' => $addressProvider->getName(), 'value' => $addressProvider->getHandle() ];
+            }
         }
 
         $fields = [

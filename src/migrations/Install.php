@@ -240,11 +240,27 @@ class Install extends Migration
 
         $this->createTable('{{%formie_tokens}}', [
             'id' => $this->primaryKey(),
-            'integrationHandle' => $this->string()->notNull(),
+            'type' => $this->string()->notNull(),
             'accessToken' => $this->text(),
             'secret' => $this->text(),
             'endOfLife' => $this->string(),
             'refreshToken' => $this->text(),
+            'dateCreated' => $this->dateTime()->notNull(),
+            'dateUpdated' => $this->dateTime()->notNull(),
+            'uid' => $this->uid(),
+        ]);
+
+        $this->createTable('{{%formie_integrations}}', [
+            'id' => $this->primaryKey(),
+            'name' => $this->string()->notNull(),
+            'handle' => $this->string(64)->notNull(),
+            'type' => $this->string()->notNull(),
+            'sortOrder' => $this->smallInteger()->unsigned(),
+            'enabled' => $this->boolean()->notNull()->defaultValue(true),
+            'settings' => $this->text(),
+            'cache' => $this->text(),
+            'tokenId' => $this->integer(),
+            'dateDeleted' => $this->dateTime(),
             'dateCreated' => $this->dateTime()->notNull(),
             'dateUpdated' => $this->dateTime()->notNull(),
             'uid' => $this->uid(),
@@ -377,6 +393,7 @@ class Install extends Migration
         $this->dropTableIfExists('{{%formie_formtemplates}}');
         $this->dropTableIfExists('{{%formie_emailtemplates}}');
         $this->dropTableIfExists('{{%formie_tokens}}');
+        $this->dropTableIfExists('{{%formie_integrations}}');
     }
 
     public function dropProjectConfig()

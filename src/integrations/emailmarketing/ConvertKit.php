@@ -20,7 +20,8 @@ class ConvertKit extends EmailMarketing
     // Properties
     // =========================================================================
 
-    public $handle = 'convertKit';
+    public $apiKey;
+    public $apiSecret;
 
 
     // Public Methods
@@ -29,7 +30,7 @@ class ConvertKit extends EmailMarketing
     /**
      * @inheritDoc
      */
-    public static function getName(): string
+    public static function displayName(): string
     {
         return Craft::t('formie', 'ConvertKit');
     }
@@ -45,24 +46,13 @@ class ConvertKit extends EmailMarketing
     /**
      * @inheritDoc
      */
-    public function beforeSave(): bool
+    public function defineRules(): array
     {
-        if ($this->enabled) {
-            $apiKey = $this->settings['apiKey'] ?? '';
-            $apiSecret = $this->settings['apiSecret'] ?? '';
+        $rules = parent::defineRules();
 
-            if (!$apiKey) {
-                $this->addError('apiKey', Craft::t('formie', 'API key is required.'));
-                return false;
-            }
+        $rules[] = [['apiKey', 'apiSecret'], 'required'];
 
-            if (!$apiSecret) {
-                $this->addError('apiSecret', Craft::t('formie', 'API secret is required.'));
-                return false;
-            }
-        }
-
-        return true;
+        return $rules;
     }
 
     /**
@@ -112,7 +102,7 @@ class ConvertKit extends EmailMarketing
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
-            ]));
+            ]), true);
         }
 
         return $settings;
@@ -155,7 +145,7 @@ class ConvertKit extends EmailMarketing
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
-            ]));
+            ]), true);
 
             return false;
         }
@@ -199,15 +189,9 @@ class ConvertKit extends EmailMarketing
             return $this->_client;
         }
 
-        $apiSecret = $this->settings['apiSecret'] ?? '';
-
-        if (!$apiSecret) {
-            Integration::error($this, 'Invalid API Secret for ConvertKit', true);
-        }
-
         return $this->_client = Craft::createGuzzleClient([
             'base_uri' => 'https://api.convertkit.com/v3/',
-            'query' => ['api_secret' => $apiSecret],
+            'query' => ['api_secret' => $this->apiSecret],
         ]);
     }
 

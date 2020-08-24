@@ -2,22 +2,16 @@
 namespace verbb\formie\base;
 
 use verbb\formie\Formie;
-use verbb\formie\base\ThirdPartyIntegration;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
-use verbb\formie\events\SendIntegrationPayloadEvent;
-use verbb\formie\helpers\UrlHelper;
 use verbb\formie\models\EmailMarketingList;
+use verbb\formie\models\IntegrationField;
 
 use Craft;
-use craft\base\Model;
 use craft\helpers\StringHelper;
-use craft\helpers\UrlHelper as CraftUrlHelper;
-use craft\web\Response;
+use craft\helpers\UrlHelper;
 
-use League\OAuth2\Client\Provider\GenericProvider;
-
-abstract class EmailMarketing extends ThirdPartyIntegration
+abstract class EmailMarketing extends Integration implements IntegrationInterface
 {
     // Properties
     // =========================================================================
@@ -27,6 +21,18 @@ abstract class EmailMarketing extends ThirdPartyIntegration
     public $fieldMapping;
 
     
+    // Static Methods
+    // =========================================================================
+    
+    /**
+     * @inheritDoc
+     */
+    public static function typeName(): string
+    {
+        return Craft::t('formie', 'Email Marketing');
+    }
+    
+
     // Public Methods
     // =========================================================================
 
@@ -35,7 +41,7 @@ abstract class EmailMarketing extends ThirdPartyIntegration
      */
     public function getIconUrl(): string
     {
-        $handle = StringHelper::toKebabCase($this->handle);
+        $handle = StringHelper::toKebabCase($this->displayName());
 
         return Craft::$app->getAssetManager()->getPublishedUrl("@verbb/formie/web/assets/emailmarketing/dist/img/{$handle}.svg", true);
     }
@@ -45,7 +51,7 @@ abstract class EmailMarketing extends ThirdPartyIntegration
      */
     public function getSettingsHtml(): string
     {
-        $handle = StringHelper::toKebabCase($this->handle);
+        $handle = StringHelper::toKebabCase($this->displayName());
 
         return Craft::$app->getView()->renderTemplate("formie/integrations/email-marketing/{$handle}/_plugin-settings", [
             'integration' => $this,
@@ -57,12 +63,20 @@ abstract class EmailMarketing extends ThirdPartyIntegration
      */
     public function getFormSettingsHtml(Form $form): string
     {
-        $handle = StringHelper::toKebabCase($this->handle);
+        $handle = StringHelper::toKebabCase($this->displayName());
 
         return Craft::$app->getView()->renderTemplate("formie/integrations/email-marketing/{$handle}/_form-settings", [
             'integration' => $this,
             'form' => $form,
         ]);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getCpEditUrl(): string
+    {
+        return UrlHelper::cpUrl('formie/settings/email-marketing/edit/' . $this->id);
     }
 
     /**
@@ -92,8 +106,9 @@ abstract class EmailMarketing extends ThirdPartyIntegration
     {
         $rules = parent::defineRules();
 
-        $rules[] = [['listId'], 'required'];
-        $rules[] = [['fieldMapping'], 'validateFieldMapping'];
+        // Validate the following when saving form settings
+        $rules[] = [['listId'], 'required', 'on' => [Integration::SCENARIO_FORM]];
+        $rules[] = [['fieldMapping'], 'validateFieldMapping', 'on' => [Integration::SCENARIO_FORM]];
 
         return $rules;
     }
@@ -110,8 +125,15 @@ abstract class EmailMarketing extends ThirdPartyIntegration
         $settings = $this->getFormSettings();
         $lists = $settings['lists'] ?? [];
 
-        foreach ($lists as $list) {
+        foreach ($lists as $listConfig) {
+            $list = new EmailMarketingList($listConfig);
+
             if ($list->id === $listId) {
+                // De-serialize JSON array data from cache. Might be a better way to do this?
+                foreach ($list->fields as $key => $fieldConfig) {
+                    $list->fields[$key] = new IntegrationField($fieldConfig);
+                }
+
                 return $list;
             }
         }

@@ -4,13 +4,13 @@
 {{ forms.textField({
     readonly: true,
     label: 'Redirect URI' | t('formie'),
-    instructions: 'Use this URI when setting up your {name} app.' | t('formie', { name: integration.name }),
+    instructions: 'Use this URI when setting up your {name} app.' | t('formie', { name: integration.displayName() }),
     value: integration.getRedirectUri(),
 }) }}
 
 {{ forms.textField({
     label: 'API Key' | t('formie'),
-    instructions: 'Enter your {name} API key here.' | t('formie', { name: integration.name }),
+    instructions: 'Enter your {name} API key here.' | t('formie', { name: integration.displayName() }),
     name: 'apiKey',
     required: true,
     value: integration.settings.apiKey ?? '',
@@ -20,7 +20,7 @@
 
 {{ forms.textField({
     label: 'App Secret' | t('formie'),
-    instructions: 'Enter your {name} App Secret here.' | t('formie', { name: integration.name }),
+    instructions: 'Enter your {name} App Secret here.' | t('formie', { name: integration.displayName() }),
     name: 'appSecret',
     required: true,
     value: integration.settings.appSecret ?? '',

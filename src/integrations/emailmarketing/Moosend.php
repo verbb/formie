@@ -20,7 +20,7 @@ class Moosend extends EmailMarketing
     // Properties
     // =========================================================================
 
-    public $handle = 'moosend';
+    public $apiKey;
 
 
     // Public Methods
@@ -29,7 +29,7 @@ class Moosend extends EmailMarketing
     /**
      * @inheritDoc
      */
-    public static function getName(): string
+    public static function displayName(): string
     {
         return Craft::t('formie', 'Moosend');
     }
@@ -45,18 +45,13 @@ class Moosend extends EmailMarketing
     /**
      * @inheritDoc
      */
-    public function beforeSave(): bool
+    public function defineRules(): array
     {
-        if ($this->enabled) {
-            $apiKey = $this->settings['apiKey'] ?? '';
+        $rules = parent::defineRules();
 
-            if (!$apiKey) {
-                $this->addError('apiKey', Craft::t('formie', 'API key is required.'));
-                return false;
-            }
-        }
+        $rules[] = [['apiKey'], 'required'];
 
-        return true;
+        return $rules;
     }
 
     /**
@@ -106,7 +101,7 @@ class Moosend extends EmailMarketing
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
-            ]));
+            ]), true);
         }
 
         return $settings;
@@ -157,7 +152,7 @@ class Moosend extends EmailMarketing
             if (!$contactId) {
                 Integration::error($this, Craft::t('formie', 'API error: “{response}”', [
                     'response' => Json::encode($response),
-                ]));
+                ]), true);
 
                 return false;
             }
@@ -166,7 +161,7 @@ class Moosend extends EmailMarketing
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
-            ]));
+            ]), true);
 
             return false;
         }
@@ -210,15 +205,9 @@ class Moosend extends EmailMarketing
             return $this->_client;
         }
 
-        $apiKey = $this->settings['apiKey'] ?? '';
-
-        if (!$apiKey) {
-            Integration::error($this, 'Invalid API Key for Moosend', true);
-        }
-
         return $this->_client = Craft::createGuzzleClient([
             'base_uri' => 'http://api.moosend.com/v3/',
-            'query' => ['apikey' => $apiKey],
+            'query' => ['apikey' => $this->apiKey],
         ]);
     }
 

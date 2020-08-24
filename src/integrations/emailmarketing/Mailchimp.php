@@ -20,7 +20,7 @@ class Mailchimp extends EmailMarketing
     // Properties
     // =========================================================================
 
-    public $handle = 'mailchimp';
+    public $apiKey;
     public $useDoubleOptIn = false;
 
 
@@ -30,7 +30,7 @@ class Mailchimp extends EmailMarketing
     /**
      * @inheritDoc
      */
-    public static function getName(): string
+    public static function displayName(): string
     {
         return Craft::t('formie', 'Mailchimp');
     }
@@ -46,23 +46,13 @@ class Mailchimp extends EmailMarketing
     /**
      * @inheritDoc
      */
-    public function beforeSave(): bool
+    public function defineRules(): array
     {
-        if ($this->enabled) {
-            $apiKey = $this->settings['apiKey'] ?? '';
+        $rules = parent::defineRules();
 
-            if (!$apiKey) {
-                $this->addError('apiKey', Craft::t('formie', 'API key is required.'));
-                return false;
-            }
+        $rules[] = [['apiKey'], 'required'];
 
-            if (!$dataCenter = $this->_getDataCenter()) {
-                $this->addError('apiKey', Craft::t('formie', 'API key may be invalid. Unable to parse data center.'));
-                return false;
-            }
-        }
-
-        return true;
+        return $rules;
     }
 
     /**
@@ -135,7 +125,7 @@ class Mailchimp extends EmailMarketing
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
-            ]));
+            ]), true);
         }
 
         return $settings;
@@ -178,7 +168,7 @@ class Mailchimp extends EmailMarketing
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
-            ]));
+            ]), true);
 
             return false;
         }
@@ -228,19 +218,13 @@ class Mailchimp extends EmailMarketing
             return $this->_client;
         }
 
-        $apiKey = $this->settings['apiKey'] ?? '';
-
-        if (!$apiKey) {
-            Integration::error($this, 'Invalid API Key for Mailchimp', true);
-        }
-
         if (!$dataCenter = $this->_getDataCenter()) {
             Integration::error($this, 'Could not find data center for Mailchimp', true);
         }
 
         return $this->_client = Craft::createGuzzleClient([
             'base_uri' => 'https://' . $dataCenter . '.api.mailchimp.com/3.0/',
-            'auth' => ['apikey', $apiKey],
+            'auth' => ['apikey', $this->apiKey],
         ]);
     }
 
@@ -253,9 +237,7 @@ class Mailchimp extends EmailMarketing
 
     private function _getDataCenter()
     {
-        $apiKey = $this->settings['apiKey'] ?? '';
-
-        if (preg_match('/([a-zA-Z]+[\d]+)$/', $apiKey, $matches)) {
+        if (preg_match('/([a-zA-Z]+[\d]+)$/', $this->apiKey, $matches)) {
             return $matches[1] ?? '';
         }
     }

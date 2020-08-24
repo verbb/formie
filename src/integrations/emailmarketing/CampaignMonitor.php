@@ -20,7 +20,8 @@ class CampaignMonitor extends EmailMarketing
     // Properties
     // =========================================================================
 
-    public $handle = 'campaignMonitor';
+    public $apiKey;
+    public $clientId;
 
 
     // Public Methods
@@ -29,7 +30,7 @@ class CampaignMonitor extends EmailMarketing
     /**
      * @inheritDoc
      */
-    public static function getName(): string
+    public static function displayName(): string
     {
         return Craft::t('formie', 'Campaign Monitor');
     }
@@ -45,24 +46,13 @@ class CampaignMonitor extends EmailMarketing
     /**
      * @inheritDoc
      */
-    public function beforeSave(): bool
+    public function defineRules(): array
     {
-        if ($this->enabled) {
-            $apiKey = $this->settings['apiKey'] ?? '';
-            $clientId = $this->settings['clientId'] ?? '';
+        $rules = parent::defineRules();
 
-            if (!$apiKey) {
-                $this->addError('apiKey', Craft::t('formie', 'API key is required.'));
-                return false;
-            }
+        $rules[] = [['apiKey', 'clientId'], 'required'];
 
-            if (!$clientId) {
-                $this->addError('clientId', Craft::t('formie', 'Client ID is required.'));
-                return false;
-            }
-        }
-
-        return true;
+        return $rules;
     }
 
     /**
@@ -73,9 +63,7 @@ class CampaignMonitor extends EmailMarketing
         $settings = [];
 
         try {
-            $clientId = $this->settings['clientId'] ?? '';
-
-            $lists = $this->_request('GET', 'clients/' . $clientId . '/lists.json');
+            $lists = $this->_request('GET', "clients/{$this->clientId}/lists.json");
 
             foreach ($lists as $list) {
                 // While we're at it, fetch the fields for the list
@@ -112,7 +100,7 @@ class CampaignMonitor extends EmailMarketing
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
-            ]));
+            ]), true);
         }
 
         return $settings;
@@ -177,7 +165,7 @@ class CampaignMonitor extends EmailMarketing
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
-            ]));
+            ]), true);
 
             return false;
         }
@@ -191,9 +179,7 @@ class CampaignMonitor extends EmailMarketing
     public function fetchConnection(): bool
     {
         try {
-            $clientId = $this->settings['clientId'] ?? '';
-
-            $response = $this->_request('GET', 'clients/' . $clientId . '.json');
+            $response = $this->_request('GET', "clients/{$this->clientId}.json");
             $error = $response['error'] ?? '';
             $apiKey = $response['ApiKey'] ?? '';
 
@@ -229,15 +215,9 @@ class CampaignMonitor extends EmailMarketing
             return $this->_client;
         }
 
-        $apiKey = $this->settings['apiKey'] ?? '';
-
-        if (!$apiKey) {
-            Integration::error($this, 'Invalid API Key for Campaign Monitor', true);
-        }
-
         return $this->_client = Craft::createGuzzleClient([
             'base_uri' => 'https://api.createsend.com/api/v3.2/',
-            'auth' => [$apiKey, 'formie'],
+            'auth' => [$this->apiKey, 'formie'],
         ]);
     }
 

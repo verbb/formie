@@ -20,10 +20,11 @@ use verbb\formie\gql\queries\SubmissionQuery;
 use verbb\formie\helpers\ProjectConfigHelper;
 use verbb\formie\models\FieldLayout;
 use verbb\formie\models\Settings;
+use verbb\formie\services\EmailTemplates as EmailTemplatesService;
+use verbb\formie\services\FormTemplates as FormTemplatesService;
+use verbb\formie\services\Integrations as IntegrationsService;
 use verbb\formie\services\Statuses as StatusesService;
 use verbb\formie\services\Stencils as StencilsService;
-use verbb\formie\services\FormTemplates as FormTemplatesService;
-use verbb\formie\services\EmailTemplates as EmailTemplatesService;
 use verbb\formie\variables\Formie as FormieVariable;
 use verbb\formie\web\twig\Extension;
 
@@ -55,7 +56,7 @@ class Formie extends Plugin
     // Public Properties
     // =========================================================================
 
-    public $schemaVersion = '1.0.8';
+    public $schemaVersion = '1.0.9';
     public $hasCpSettings = true;
     public $hasCpSection = true;
 
@@ -297,6 +298,12 @@ class Formie extends Plugin
             ->onAdd(EmailTemplatesService::CONFIG_TEMPLATES_KEY . '.{uid}', [$emailTemplatesService, 'handleChangedTemplate'])
             ->onUpdate(EmailTemplatesService::CONFIG_TEMPLATES_KEY . '.{uid}', [$emailTemplatesService, 'handleChangedTemplate'])
             ->onRemove(EmailTemplatesService::CONFIG_TEMPLATES_KEY . '.{uid}', [$emailTemplatesService, 'handleDeletedTemplate']);
+
+        $integrationsService = $this->getIntegrations();
+        $projectConfigService
+            ->onAdd(IntegrationsService::CONFIG_INTEGRATIONS_KEY . '.{uid}', [$integrationsService, 'handleChangedIntegration'])
+            ->onUpdate(IntegrationsService::CONFIG_INTEGRATIONS_KEY . '.{uid}', [$integrationsService, 'handleChangedIntegration'])
+            ->onRemove(IntegrationsService::CONFIG_INTEGRATIONS_KEY . '.{uid}', [$integrationsService, 'handleDeletedIntegration']);
 
         Event::on(ProjectConfig::class, ProjectConfig::EVENT_REBUILD, function(RebuildConfigEvent $event) {
             $event->config['formie'] = ProjectConfigHelper::rebuildProjectConfig();

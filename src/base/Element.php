@@ -1,11 +1,11 @@
 <?php
 namespace verbb\formie\base;
 
+use verbb\formie\Formie;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 
 use Craft;
-use craft\base\Model;
 use craft\helpers\StringHelper;
 use craft\helpers\UrlHelper;
 
@@ -23,7 +23,15 @@ abstract class Element extends Integration implements IntegrationInterface
     /**
      * @inheritDoc
      */
-    public static function isSelectable(): bool
+    public static function typeName(): string
+    {
+        return Craft::t('formie', 'Elements');
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public static function supportsConnection(): bool
     {
         return false;
     }
@@ -37,7 +45,7 @@ abstract class Element extends Integration implements IntegrationInterface
      */
     public function getIconUrl(): string
     {
-        $handle = StringHelper::toKebabCase($this->handle);
+        $handle = StringHelper::toKebabCase($this->displayName());
 
         return Craft::$app->getAssetManager()->getPublishedUrl("@verbb/formie/web/assets/elements/dist/img/{$handle}.svg", true);
     }
@@ -47,7 +55,7 @@ abstract class Element extends Integration implements IntegrationInterface
      */
     public function getSettingsHtml(): string
     {
-        $handle = StringHelper::toKebabCase($this->handle);
+        $handle = StringHelper::toKebabCase($this->displayName());
 
         return Craft::$app->getView()->renderTemplate("formie/integrations/elements/{$handle}/_plugin-settings", [
             'integration' => $this,
@@ -59,7 +67,7 @@ abstract class Element extends Integration implements IntegrationInterface
      */
     public function getFormSettingsHtml(Form $form): string
     {
-        $handle = StringHelper::toKebabCase($this->handle);
+        $handle = StringHelper::toKebabCase($this->displayName());
 
         return Craft::$app->getView()->renderTemplate("formie/integrations/elements/{$handle}/_form-settings", [
             'integration' => $this,
@@ -70,16 +78,24 @@ abstract class Element extends Integration implements IntegrationInterface
     /**
      * @inheritDoc
      */
-    public function getFrontEndHtml($field, $options): string
+    public function getCpEditUrl(): string
     {
-        return '';
+        return UrlHelper::cpUrl('formie/settings/elements/edit/' . $this->id);
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function hasValidSettings(): bool
-    {
-        return true;
-    }
+    // /**
+    //  * @inheritDoc
+    //  */
+    // public function getFrontEndHtml($field, $options): string
+    // {
+    //     return '';
+    // }
+
+    // /**
+    //  * @inheritDoc
+    //  */
+    // public function hasValidSettings(): bool
+    // {
+    //     return true;
+    // }
 }

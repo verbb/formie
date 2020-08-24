@@ -3,7 +3,7 @@
 
 {{ forms.textField({
     label: 'Application ID' | t('formie'),
-    instructions: 'Enter your {name} Application ID here.' | t('formie', { name: integration.name }),
+    instructions: 'Enter your {name} Application ID here.' | t('formie', { name: integration.displayName() }),
     name: 'appId',
     required: true,
     value: integration.settings.appId ?? '',
@@ -13,7 +13,7 @@
 
 {{ forms.textField({
     label: 'Username' | t('formie'),
-    instructions: 'Enter your {name} API username here.' | t('formie', { name: integration.name }),
+    instructions: 'Enter your {name} API username here.' | t('formie', { name: integration.displayName() }),
     name: 'username',
     required: true,
     value: integration.settings.username ?? '',
@@ -23,7 +23,7 @@
 
 {{ forms.textField({
     label: 'Password' | t('formie'),
-    instructions: 'Enter your {name} API password here. This is not your {name} account password.' | t('formie', { name: integration.name }),
+    instructions: 'Enter your {name} API password here. This is not your {name} account password.' | t('formie', { name: integration.displayName() }),
     name: 'password',
     required: true,
     value: integration.settings.password ?? '',
@@ -33,7 +33,7 @@
 
 {{ forms.textField({
     label: 'Account ID' | t('formie'),
-    instructions: 'Enter your {name} account ID here.' | t('formie', { name: integration.name }),
+    instructions: 'Enter your {name} account ID here.' | t('formie', { name: integration.displayName() }),
     name: 'accountId',
     required: true,
     value: integration.settings.accountId ?? '',
@@ -43,7 +43,7 @@
 
 {{ forms.textField({
     label: 'Client Folder ID' | t('formie'),
-    instructions: 'Enter your {name} client folder ID here.' | t('formie', { name: integration.name }),
+    instructions: 'Enter your {name} client folder ID here.' | t('formie', { name: integration.displayName() }),
     name: 'clientFolderId',
     required: true,
     value: integration.settings.clientFolderId ?? '',

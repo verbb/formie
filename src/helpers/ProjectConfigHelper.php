@@ -1,6 +1,8 @@
 <?php
 namespace verbb\formie\helpers;
 
+use verbb\formie\Formie;
+
 use Craft;
 use craft\db\Query;
 use craft\helpers\Json;
@@ -18,6 +20,7 @@ class ProjectConfigHelper
         $output['stencils'] = self::_getStencilsData();
         $output['formTemplates'] = self::_getFormTemplatesData();
         $output['emailTemplates'] = self::_getEmailTemplatesData();
+        $output['integrations'] = self::_getIntegrationsData();
 
         return $output;
     }
@@ -168,5 +171,18 @@ class ProjectConfigHelper
         }
 
         return $templatesData;
+    }
+
+    private static function _getIntegrationsData(): array
+    {
+        $data = [];
+
+        $integrationsService = Formie::$plugin->getIntegrations();
+
+        foreach ($integrationsService->getAllIntegrations() as $integration) {
+            $data[$integration->uid] = $integrationsService->createIntegrationConfig($integration);
+        }
+
+        return $data;
     }
 }

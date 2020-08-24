@@ -104,7 +104,7 @@ class Checkboxes extends BaseOptionsField implements FormFieldInterface
     /**
      * @inheritdoc
      */
-    public function getFrontEndJs(Form $form)
+    public function getFrontEndJsVariables(Form $form)
     {
         $src = Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/fields/checkbox-radio.js', true);
         $onload = 'new FormieCheckboxRadio(' . Json::encode(['formId' => $form->id]) . ');';

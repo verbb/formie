@@ -6,7 +6,6 @@ use verbb\formie\base\FormFieldInterface;
 use verbb\formie\base\IntegrationInterface;
 use verbb\formie\behaviors\FieldLayoutBehavior;
 use verbb\formie\elements\db\FormQuery;
-use verbb\formie\events\ModifyFormIntegrationsEvent;
 use verbb\formie\models\FormTemplate;
 use verbb\formie\models\Notification;
 use verbb\formie\models\Status;
@@ -36,12 +35,6 @@ use Throwable;
 
 class Form extends Element
 {
-    // Constants
-    // =========================================================================
-
-    const EVENT_MODIFY_FORM_INTEGRATIONS = 'modifyFormIntegrations';
-
-
     // Public Properties
     // =========================================================================
 
@@ -822,42 +815,6 @@ class Form extends Element
     }
 
     /**
-     * Returns all integrations for a given type.
-     *
-     * @return IntegrationInterface[]
-     */
-    public function getIntegrations($type)
-    {
-        $formIntegrations = [];
-        $integrations = Formie::$plugin->getIntegrations()->getAllIntegrationsByType($type);
-
-        foreach ($integrations as $integration) {
-            $integrationSettings = $this->settings->integrations[$integration->handle] ?? [];
-
-            if ($integrationSettings) {
-                $integration = Formie::$plugin->getIntegrations()->getIntegrationByHandle($integration->handle);
-                $integration->setAttributes($integrationSettings, false);
-
-                // Special case for enabled
-                $integration->enabled = $integrationSettings['enabled'] ?? $integration->enabled;
-
-                $formIntegrations[] = $integration;
-            }
-        }
-
-        $formIntegrations = array_filter($formIntegrations);
-
-        // Fire a 'modifyFormIntegrations' event
-        $event = new ModifyFormIntegrationsEvent([
-            'integrations' => $formIntegrations,
-            'type' => $type,
-        ]);
-        $this->trigger(self::EVENT_MODIFY_FORM_INTEGRATIONS, $event);
-
-        return $event->integrations;
-    }
-
-    /**
      * @inheritdoc
      */
     public function getGqlTypeName(): string
@@ -894,7 +851,7 @@ class Form extends Element
 
         // Add any JS per-field
         foreach ($this->getFields() as $field) {
-            $js = $field->getFrontEndJs($this);
+            $js = $field->getFrontEndJsVariables($this);
 
             // Handle multiple registrations
             if (isset($js[0])) {
@@ -904,16 +861,17 @@ class Form extends Element
             }
         }
 
-        // Add any JS for enabled captchas
-        foreach ($this->getIntegrations('captcha') as $key => $captcha) {
-            if ($captcha->enabled) {
-                $js = $captcha->getFrontEndJs($this);
+        // Add any JS for enabled captchas - force fetch because we're dealing with potential ajax forms
+        // Normally, this function returns only if the `showAllPages` property is set.
+        $captchas = Formie::$plugin->getIntegrations()->getAllEnabledCaptchasForForm($this, null, true);
 
-                if (isset($js[0])) {
-                    $registeredJs = array_merge($registeredJs, $js);
-                } else {
-                    $registeredJs[] = $js;
-                }
+        foreach ($captchas as $captcha) {
+            $js = $captcha->getFrontEndJsVariables($this);
+
+            if (isset($js[0])) {
+                $registeredJs = array_merge($registeredJs, $js);
+            } else {
+                $registeredJs[] = $js;
             }
         }
 
@@ -1126,10 +1084,6 @@ class Form extends Element
 
         parent::afterRestore();
     }
-
-
-    // Private Methods
-    // =========================================================================
 
 
     // Protected methods

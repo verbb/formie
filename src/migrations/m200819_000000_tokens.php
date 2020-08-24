@@ -16,7 +16,7 @@ class m200819_000000_tokens extends Migration
         if (!$this->db->tableExists('{{%formie_tokens}}')) {
             $this->createTable('{{%formie_tokens}}', [
                 'id' => $this->primaryKey(),
-                'integrationHandle' => $this->string()->notNull(),
+                'type' => $this->string()->notNull(),
                 'accessToken' => $this->text(),
                 'secret' => $this->text(),
                 'endOfLife' => $this->string(),

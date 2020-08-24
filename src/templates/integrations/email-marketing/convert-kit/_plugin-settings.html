@@ -3,7 +3,7 @@
 
 {{ forms.textField({
     label: 'API Key' | t('formie'),
-    instructions: 'Enter your {name} API key here.' | t('formie', { name: integration.name }),
+    instructions: 'Enter your {name} API key here.' | t('formie', { name: integration.displayName() }),
     name: 'apiKey',
     required: true,
     value: integration.settings.apiKey ?? '',
@@ -13,7 +13,7 @@
 
 {{ forms.textField({
     label: 'API Secret' | t('formie'),
-    instructions: 'Enter your {name} API secret here.' | t('formie', { name: integration.name }),
+    instructions: 'Enter your {name} API secret here.' | t('formie', { name: integration.displayName() }),
     name: 'apiSecret',
     required: true,
     value: integration.settings.apiSecret ?? '',

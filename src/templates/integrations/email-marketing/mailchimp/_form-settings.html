@@ -6,7 +6,7 @@
 
 <field-select
     label="{{ 'Opt-In Field' | t('formie') }}"
-    instructions="{{ 'Choose a field to opt-in to {name}. For example, you might only wish to subscribe users if they provide a value for a field of your choice - commonly, a Agree field.' | t('formie', { name: integration.name }) }}"
+    instructions="{{ 'Choose a field to opt-in to {name}. For example, you might only wish to subscribe users if they provide a value for a field of your choice - commonly, an Agree field.' | t('formie', { name: integration.displayName() }) }}"
     id="opt-in-field"
     name="optInField"
     :value="get(form, 'settings.integrations.{{ integration.handle }}.optInField')"
@@ -19,7 +19,7 @@
                 <label id="sourceId-label" for="sourceId" class="required">{{ 'List' | t('formie') }}</label>
 
                 <div class="instructions">
-                    <p>{{ 'Select your {name} list to create contacts on.' | t('formie', { name: integration.name }) }}</p>
+                    <p>{{ 'Select your {name} list to create contacts on.' | t('formie', { name: integration.displayName() }) }}</p>
                 </div>
             </div>
 
@@ -49,9 +49,9 @@
 
         <integration-field-mapping
             label="{{ 'Field Mapping' | t('formie') }}"
-            instructions="{{ 'Choose how your form fields should map to your {name} fields.' | t('formie', { name: integration.name }) }}"
+            instructions="{{ 'Choose how your form fields should map to your {name} fields.' | t('formie', { name: integration.displayName() }) }}"
             id="field-mapping"
-            name-label="{{ integration.name }}"
+            name-label="{{ integration.displayName() }}"
             name="fieldMapping"
             :value="get(form, 'settings.integrations.{{ integration.handle }}.fieldMapping')"
             :rows="getSourceFields('lists')"

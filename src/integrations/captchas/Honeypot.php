@@ -27,17 +27,9 @@ class Honeypot extends Captcha
     /**
      * @inheritDoc
      */
-    public static function getName(): string
+    public function getName(): string
     {
         return Craft::t('formie', 'Honeypot');
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getIconUrl(): string
-    {
-        return Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/captchas/dist/img/honeypot.svg', true);
     }
 
     /**
@@ -46,17 +38,6 @@ class Honeypot extends Captcha
     public function getDescription(): string
     {
         return Craft::t('formie', 'Check for bots that auto-fill forms, by providing an additional hidden field that should be left blank.');
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getFormSettingsHtml(Form $form): string
-    {
-        return Craft::$app->getView()->renderTemplate('formie/integrations/captchas/_form-settings', [
-            'integration' => $this,
-            'form' => $form,
-        ]);
     }
 
     /**

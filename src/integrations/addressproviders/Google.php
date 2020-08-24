@@ -23,7 +23,8 @@ class Google extends AddressProvider
     // Properties
     // =========================================================================
 
-    public $handle = 'googleAddress';
+    public $apiKey;
+    public $options = [];
     private $uniqueId;
 
 
@@ -43,17 +44,9 @@ class Google extends AddressProvider
     /**
      * @inheritDoc
      */
-    public static function getName(): string
+    public static function displayName(): string
     {
         return Craft::t('formie', 'Google Places');
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getIconUrl(): string
-    {
-        return Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/addressproviders/dist/img/google-address.svg', true);
     }
 
     /**
@@ -64,15 +57,16 @@ class Google extends AddressProvider
         return Craft::t('formie', 'Use [Google Places Autocomplete](https://developers.google.com/maps/documentation/javascript/places-autocomplete) to suggest addresses, for address fields.');
     }
 
-
     /**
      * @inheritDoc
      */
-    public function getSettingsHtml(): string
+    public function defineRules(): array
     {
-        return Craft::$app->getView()->renderTemplate('formie/integrations/address-providers/google/_settings', [
-            'integration' => $this,
-        ]);
+        $rules = parent::defineRules();
+
+        $rules[] = [['apiKey'], 'required'];
+
+        return $rules;
     }
 
     /**
@@ -89,7 +83,7 @@ class Google extends AddressProvider
 
         $view->setTemplateMode($view::TEMPLATE_MODE_CP);
 
-        $html = Craft::$app->getView()->renderTemplate('formie/integrations/address-providers/google/_input', [
+        $html = Craft::$app->getView()->renderTemplate('formie/integrations/address-providers/google-places/_input', [
             'field' => $field,
             'data' => $this->uniqueId,
             'options' => $options,
@@ -109,14 +103,14 @@ class Google extends AddressProvider
     /**
      * @inheritDoc
      */
-    public function getFrontEndJs(Form $form, $field = null)
+    public function getFrontEndJsVariables(Form $form, $field = null)
     {
         if (!$this->hasValidSettings()) {
             return null;
         }
 
         $settings = [
-            'apiKey' => $this->settings['apiKey'],
+            'apiKey' => $this->apiKey,
             'container' => $this->uniqueId,
             'options' => $this->_getOptions(),
             'fieldContainer' => 'data-address-id-' . $field->id,
@@ -137,9 +131,7 @@ class Google extends AddressProvider
      */
     public function hasValidSettings(): bool
     {
-        $apiKey = $this->settings['apiKey'] ?? null;
-
-        if ($apiKey) {
+        if ($this->apiKey) {
             return true;
         }
 
@@ -156,7 +148,7 @@ class Google extends AddressProvider
     private function _getOptions()
     {
         $options = [];
-        $optionsRaw = $this->settings['options'] ?? [];
+        $optionsRaw = $this->options;
 
         if (!is_array($optionsRaw)) {
             $optionsRaw = [];

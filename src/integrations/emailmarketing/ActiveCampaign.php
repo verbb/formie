@@ -20,7 +20,8 @@ class ActiveCampaign extends EmailMarketing
     // Properties
     // =========================================================================
 
-    public $handle = 'activeCampaign';
+    public $apiKey;
+    public $apiUrl;
 
 
     // Public Methods
@@ -29,7 +30,7 @@ class ActiveCampaign extends EmailMarketing
     /**
      * @inheritDoc
      */
-    public static function getName(): string
+    public static function displayName(): string
     {
         return Craft::t('formie', 'ActiveCampaign');
     }
@@ -45,24 +46,13 @@ class ActiveCampaign extends EmailMarketing
     /**
      * @inheritDoc
      */
-    public function beforeSave(): bool
+    public function defineRules(): array
     {
-        if ($this->enabled) {
-            $apiKey = $this->settings['apiKey'] ?? '';
-            $apiUrl = $this->settings['apiUrl'] ?? '';
+        $rules = parent::defineRules();
 
-            if (!$apiKey) {
-                $this->addError('apiKey', Craft::t('formie', 'API key is required.'));
-                return false;
-            }
+        $rules[] = [['apiKey', 'apiUrl'], 'required'];
 
-            if (!$apiUrl) {
-                $this->addError('apiUrl', Craft::t('formie', 'API URL is required.'));
-                return false;
-            }
-        }
-
-        return true;
+        return $rules;
     }
 
     /**
@@ -145,7 +135,7 @@ class ActiveCampaign extends EmailMarketing
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
-            ]));
+            ]), true);
         }
 
         return $settings;
@@ -194,7 +184,7 @@ class ActiveCampaign extends EmailMarketing
             if (!$contactId) {
                 Integration::error($this, Craft::t('formie', 'Missing return “contactId” {response}', [
                     'response' => Json::encode($response),
-                ]));
+                ]), true);
 
                 return false;
             }
@@ -251,7 +241,7 @@ class ActiveCampaign extends EmailMarketing
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
-            ]));
+            ]), true);
 
             return false;
         }
@@ -304,20 +294,9 @@ class ActiveCampaign extends EmailMarketing
             return $this->_client;
         }
 
-        $apiKey = $this->settings['apiKey'] ?? '';
-        $apiUrl = $this->settings['apiUrl'] ?? '';
-
-        if (!$apiKey) {
-            Integration::error($this, 'Invalid API Key for Active Campaign', true);
-        }
-
-        if (!$apiUrl) {
-            Integration::error($this, 'Invalid API URL for Active Campaign', true);
-        }
-
         return $this->_client = Craft::createGuzzleClient([
-            'base_uri' => trim($apiUrl, '/') . '/api/3/',
-            'headers' => ['Api-Token' => $apiKey],
+            'base_uri' => trim($this->apiUrl, '/') . '/api/3/',
+            'headers' => ['Api-Token' => $this->apiKey],
         ]);
     }
 

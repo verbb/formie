@@ -445,7 +445,6 @@ return [
     'Created at' => 'Created at',
     'Updated at' => 'Updated at',
     'IP Address' => 'IP Address',
-    'Save and continue editing' => 'Save and continue editing',
     'Email Address' => 'Email Address',
     'Placeholder' => 'Placeholder',
     'The text that will be shown if the field doesn’t have a value.' => 'The text that will be shown if the field doesn’t have a value.',

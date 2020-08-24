@@ -1,11 +1,13 @@
 <?php
 namespace verbb\formie\base;
 
-use craft\base\Model;
-use craft\helpers\UrlHelper;
-
+use verbb\formie\Formie;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
+
+use Craft;
+use craft\helpers\StringHelper;
+use craft\helpers\UrlHelper;
 
 abstract class AddressProvider extends Integration implements IntegrationInterface
 {
@@ -19,9 +21,47 @@ abstract class AddressProvider extends Integration implements IntegrationInterfa
     /**
      * @inheritDoc
      */
-    public static function isSelectable(): bool
+    public static function typeName(): string
+    {
+        return Craft::t('formie', 'Address Providers');
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public static function supportsConnection(): bool
     {
         return false;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public static function supportsPayloadSending(): bool
+    {
+        return false;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public static function hasFormSettings(): bool
+    {
+        return false;
+    }
+
+
+    // Public Methods
+    // =========================================================================
+
+    /**
+     * @inheritDoc
+     */
+    public function getIconUrl(): string
+    {
+        $handle = StringHelper::toKebabCase($this->displayName());
+
+        return Craft::$app->getAssetManager()->getPublishedUrl("@verbb/formie/web/assets/addressproviders/dist/img/{$handle}.svg", true);
     }
 
     /**
@@ -29,30 +69,39 @@ abstract class AddressProvider extends Integration implements IntegrationInterfa
      */
     public function getSettingsHtml(): string
     {
-        return '';
+        $handle = StringHelper::toKebabCase($this->displayName());
+
+        return Craft::$app->getView()->renderTemplate("formie/integrations/address-providers/{$handle}/_settings", [
+            'integration' => $this,
+        ]);
     }
 
     /**
      * @inheritDoc
      */
-    public function getFormSettingsHtml(Form $form): string
+    public function getCpEditUrl(): string
+    {
+        return UrlHelper::cpUrl('formie/settings/address-providers/edit/' . $this->id);
+    }
+
+    /**
+     * Returns the frontend HTML.
+     *
+     * @param Form $form
+     * @return string
+     */
+    public function getFrontEndHtml($field, $options): string
     {
         return '';
     }
 
     /**
-     * @inheritDoc
+     * Returns the front-end JS.
+     *
+     * @return string
      */
-    public function hasValidSettings(): bool
+    public function getFrontEndJsVariables(Form $form, $field = null)
     {
-        return true;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function hasFormSettings(): bool
-    {
-        return false;
+        return null;
     }
 }

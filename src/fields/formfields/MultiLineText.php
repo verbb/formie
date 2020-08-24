@@ -80,7 +80,7 @@ class MultiLineText extends FormField
     /**
      * @inheritdoc
      */
-    public function getFrontEndJs(Form $form)
+    public function getFrontEndJsVariables(Form $form)
     {
         $modules = [];
         $limit = $this->limit ?? '';

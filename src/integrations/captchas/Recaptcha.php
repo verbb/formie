@@ -24,6 +24,14 @@ class Recaptcha extends Captcha
     // =========================================================================
 
     public $handle = 'recaptcha';
+    public $secretKey;
+    public $siteKey;
+    public $type = 'v3';
+    public $size = 'normal';
+    public $theme = 'light';
+    public $badge = 'bottomright';
+    public $language = 'en';
+    public $minScore = 0.5;
 
 
     // Public Methods
@@ -32,17 +40,9 @@ class Recaptcha extends Captcha
     /**
      * @inheritDoc
      */
-    public static function getName(): string
+    public function getName(): string
     {
         return Craft::t('formie', 'reCAPTCHA');
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getIconUrl(): string
-    {
-        return Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/captchas/dist/img/recaptcha.svg', true);
     }
 
     /**
@@ -80,20 +80,18 @@ class Recaptcha extends Captcha
      */
     public function getFrontEndHtml(Form $form, $page = null): string
     {
-        $type = $this->settings['type'] ?? 'v3';
-
-        if ($type === self::RECAPTCHA_TYPE_V3) {
+        if ($this->type === self::RECAPTCHA_TYPE_V3) {
             // We don't technically need this for V3, but we use it to control whether we should validate
             // based on the specific page they're on, and if the user wants a captcha on each page.
             // We're doing this for V2, so we might as well copy that.
             return '<div class="formie-recaptcha-placeholder"></div>';
         }
 
-        if ($type === self::RECAPTCHA_TYPE_V2_CHECKBOX) {
+        if ($this->type === self::RECAPTCHA_TYPE_V2_CHECKBOX) {
             return '<div class="formie-recaptcha-placeholder"></div>';
         }
 
-        if ($type === self::RECAPTCHA_TYPE_V2_INVISIBLE) {
+        if ($this->type === self::RECAPTCHA_TYPE_V2_INVISIBLE) {
             return '<div class="formie-recaptcha-placeholder"></div>';
         }
 
@@ -103,22 +101,20 @@ class Recaptcha extends Captcha
     /**
      * @inheritDoc
      */
-    public function getFrontEndJs(Form $form, $page = null)
+    public function getFrontEndJsVariables(Form $form, $page = null)
     {
-        $type = $this->settings['type'] ?? 'v3';
-
         $settings = [
-            'siteKey' => $this->settings['siteKey'],
+            'siteKey' => $this->siteKey,
             'formId' => 'formie-form-' . $form->id,
-            'theme' => $this->settings['theme'] ?? 'light',
-            'size' => $this->settings['size'] ?? 'normal',
-            'badge' => $this->settings['badge'] ?? 'bottomright',
+            'theme' => $this->theme,
+            'size' => $this->size,
+            'badge' => $this->badge,
             'language' => $this->_getMatchedLanguageId() ?? 'en',
             'submitMethod' => $form->settings->submitMethod ?? 'page-reload',
             'hasMultiplePages' => $form->hasMultiplePages() ?? false,
         ];
 
-        if ($type === self::RECAPTCHA_TYPE_V3) {
+        if ($this->type === self::RECAPTCHA_TYPE_V3) {
             $src = Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/captchas/dist/js/recaptcha-v3.js', true);
             $onload = 'new FormieRecaptchaV3(' . Json::encode($settings) . ');';
 
@@ -128,7 +124,7 @@ class Recaptcha extends Captcha
             ];
         }
 
-        if ($type === self::RECAPTCHA_TYPE_V2_CHECKBOX) {
+        if ($this->type === self::RECAPTCHA_TYPE_V2_CHECKBOX) {
             $src = Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/captchas/dist/js/recaptcha-v2-checkbox.js', true);
             $onload = 'new FormieRecaptchaV2Checkbox(' . Json::encode($settings) . ');';
 
@@ -138,7 +134,7 @@ class Recaptcha extends Captcha
             ];
         }
 
-        if ($type === self::RECAPTCHA_TYPE_V2_INVISIBLE) {
+        if ($this->type === self::RECAPTCHA_TYPE_V2_INVISIBLE) {
             $src = Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/captchas/dist/js/recaptcha-v2-invisible.js', true);
             $onload = 'new FormieRecaptchaV2Invisible(' . Json::encode($settings) . ');';
 
@@ -166,7 +162,7 @@ class Recaptcha extends Captcha
 
         $response = $client->post('https://www.google.com/recaptcha/api/siteverify', [
             'form_params' => [
-                'secret' => $this->settings['secretKey'],
+                'secret' => $this->secretKey,
                 'response' => $response,
                 'remoteip' => Craft::$app->request->getRemoteIP(),
             ],
@@ -175,9 +171,7 @@ class Recaptcha extends Captcha
         $result = Json::decode((string)$response->getBody(), true);
 
         if (isset($result['score'])) {
-            $minScore = $this->settings['minScore'] ?? 0.5;
-
-            return ($result['score'] >= $minScore);
+            return ($result['score'] >= $this->minScore);
         }
 
         return $result['success'] ?? false;
@@ -188,10 +182,7 @@ class Recaptcha extends Captcha
      */
     public function hasValidSettings(): bool
     {
-        $siteKey = $this->settings['siteKey'] ?? null;
-        $secretKey = $this->settings['secretKey'] ?? null;
-
-        if ($siteKey && $secretKey) {
+        if ($this->siteKey && $this->secretKey) {
             return true;
         }
 
@@ -204,10 +195,8 @@ class Recaptcha extends Captcha
 
     public function _getMatchedLanguageId()
     {
-        $language = $this->settings['language'] ?? null;
-
-        if ($language && $language != 'auto') {
-            return $language;
+        if ($this->language && $this->language != 'auto') {
+            return $this->language;
         }
 
         $currentLanguageId = Craft::$app->getLocale()->getLanguageID();

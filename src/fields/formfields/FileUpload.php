@@ -233,7 +233,7 @@ class FileUpload extends CraftAssets implements FormFieldInterface
     /**
      * @inheritdoc
      */
-    public function getFrontEndJs(Form $form)
+    public function getFrontEndJsVariables(Form $form)
     {
         $src = Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/fields/file-upload.js', true);
         $onload = 'new FormieFileUpload(' . Json::encode(['formId' => $form->id]) . ');';

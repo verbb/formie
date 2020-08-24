@@ -20,7 +20,7 @@ class MailerLite extends EmailMarketing
     // Properties
     // =========================================================================
 
-    public $handle = 'mailerLite';
+    public $apiKey;
 
 
     // Public Methods
@@ -29,7 +29,7 @@ class MailerLite extends EmailMarketing
     /**
      * @inheritDoc
      */
-    public static function getName(): string
+    public static function displayName(): string
     {
         return Craft::t('formie', 'MailerLite');
     }
@@ -45,18 +45,13 @@ class MailerLite extends EmailMarketing
     /**
      * @inheritDoc
      */
-    public function beforeSave(): bool
+    public function defineRules(): array
     {
-        if ($this->enabled) {
-            $apiKey = $this->settings['apiKey'] ?? '';
+        $rules = parent::defineRules();
 
-            if (!$apiKey) {
-                $this->addError('apiKey', Craft::t('formie', 'API key is required.'));
-                return false;
-            }
-        }
+        $rules[] = [['apiKey'], 'required'];
 
-        return true;
+        return $rules;
     }
 
     /**
@@ -92,7 +87,7 @@ class MailerLite extends EmailMarketing
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
-            ]));
+            ]), true);
         }
 
         return $settings;
@@ -137,7 +132,7 @@ class MailerLite extends EmailMarketing
             if (!$contactId) {
                 Integration::error($this, Craft::t('formie', 'API error: “{response}”', [
                     'response' => Json::encode($response),
-                ]));
+                ]), true);
 
                 return false;
             }
@@ -146,7 +141,7 @@ class MailerLite extends EmailMarketing
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
-            ]));
+            ]), true);
 
             return false;
         }
@@ -190,15 +185,9 @@ class MailerLite extends EmailMarketing
             return $this->_client;
         }
 
-        $apiKey = $this->settings['apiKey'] ?? '';
-
-        if (!$apiKey) {
-            Integration::error($this, 'Invalid API Key for MailerLite', true);
-        }
-
         return $this->_client = Craft::createGuzzleClient([
             'base_uri' => 'https://api.mailerlite.com/api/v2/',
-            'headers' => ['X-MailerLite-ApiKey' => $apiKey],
+            'headers' => ['X-MailerLite-ApiKey' => $this->apiKey],
         ]);
     }
 

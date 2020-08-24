@@ -490,7 +490,7 @@ trait FormFieldTrait
     /**
      * @inheritDoc
      */
-    public function getFrontEndJs(Form $form)
+    public function getFrontEndJsVariables(Form $form)
     {
         return null;
     }
