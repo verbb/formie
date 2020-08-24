@@ -7,6 +7,7 @@ use craft\helpers\StringHelper;
 
 class Address extends Model
 {
+    public $autocomplete;
     public $address1;
     public $address2;
     public $address3;
