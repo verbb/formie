@@ -118,6 +118,9 @@ class Monday extends Crm
     // Private Methods
     // =========================================================================
 
+    /**
+     * @inheritDoc
+     */
     private function _getClient()
     {
         if ($this->_client) {
@@ -130,6 +133,9 @@ class Monday extends Crm
         ]);
     }
 
+    /**
+     * @inheritDoc
+     */
     private function _request(string $method, string $uri, array $options = [])
     {
         $response = $this->_getClient()->request($method, trim($uri, '/'), $options);

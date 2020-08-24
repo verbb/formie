@@ -159,7 +159,7 @@ class Ontraport extends EmailMarketing
     public function sendPayload(Submission $submission): bool
     {
         try {
-            $fieldValues = $this->getFieldMappingValues($submission);
+            $fieldValues = $this->getFieldMappingValues($submission, $this->fieldMapping);
 
             $payload = $fieldValues;
 
@@ -224,6 +224,9 @@ class Ontraport extends EmailMarketing
     // Private Methods
     // =========================================================================
 
+    /**
+     * @inheritDoc
+     */
     private function _getClient()
     {
         if ($this->_client) {
@@ -239,6 +242,9 @@ class Ontraport extends EmailMarketing
         ]);
     }
 
+    /**
+     * @inheritDoc
+     */
     private function _request(string $method, string $uri, array $options = [])
     {
         $response = $this->_getClient()->request($method, trim($uri, '/'), $options);

@@ -114,6 +114,9 @@ class Webhook extends BaseWebhook
     // Private Methods
     // =========================================================================
 
+    /**
+     * @inheritDoc
+     */
     private function _getClient()
     {
         if ($this->_client) {
@@ -126,6 +129,9 @@ class Webhook extends BaseWebhook
         ]);
     }
 
+    /**
+     * @inheritDoc
+     */
     private function _request(string $method, string $uri, array $options = [])
     {
         $response = $this->_getClient()->request($method, trim($uri, '/'), $options);

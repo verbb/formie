@@ -147,7 +147,7 @@ class ActiveCampaign extends EmailMarketing
     public function sendPayload(Submission $submission): bool
     {
         try {
-            $fieldValues = $this->getFieldMappingValues($submission);
+            $fieldValues = $this->getFieldMappingValues($submission, $this->fieldMapping);
 
             // Pull out email, as it needs to be top level
             $email = ArrayHelper::remove($fieldValues, 'email');
@@ -158,9 +158,10 @@ class ActiveCampaign extends EmailMarketing
             $payload = [
                 'contact' => [
                     'email' => $email,
-                    'first_name' => $firstName,
-                    'last_name' => $lastName,
+                    'firstName' => $firstName,
+                    'lastName' => $lastName,
                     'phone' => $phone,
+                    'fieldValues' => $this->_prepCustomFields($fieldValues),
                 ],
             ];
 
@@ -210,31 +211,6 @@ class ActiveCampaign extends EmailMarketing
             // Allow events to say the response is invalid
             if (!$this->afterSendPayload($submission, $payload, $response)) {
                 return false;
-            }
-
-            // Then finally sort out the custom fields, annoyingly, one at a time
-            foreach ($fieldValues as $key => $value) {
-                $payload = [
-                    'fieldValue' => [
-                        'contact' => $contactId,
-                        'field' => $key,
-                        'value' => $value,
-                    ],
-                ];
-
-                // Allow events to cancel sending
-                if (!$this->beforeSendPayload($submission, $payload)) {
-                    return false;
-                }
-
-                $response = $this->_request('POST', 'fieldValues', [
-                    'json' => $payload,
-                ]);
-
-                // Allow events to say the response is invalid
-                if (!$this->afterSendPayload($submission, $payload, $response)) {
-                    return false;
-                }
             }
         } catch (\Throwable $e) {
             Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [
@@ -288,6 +264,9 @@ class ActiveCampaign extends EmailMarketing
     // Private Methods
     // =========================================================================
 
+    /**
+     * @inheritDoc
+     */
     private function _getClient()
     {
         if ($this->_client) {
@@ -300,10 +279,30 @@ class ActiveCampaign extends EmailMarketing
         ]);
     }
 
+    /**
+     * @inheritDoc
+     */
     private function _request(string $method, string $uri, array $options = [])
     {
         $response = $this->_getClient()->request($method, trim($uri, '/'), $options);
 
         return Json::decode((string)$response->getBody());
+    }
+
+    /**
+     * @inheritDoc
+     */
+    private function _prepCustomFields($fields)
+    {
+        $customFields = [];
+
+        foreach ($fields as $key => $value) {
+            $customFields[] = [
+                'field' => $key,
+                'value' => $value,
+            ];
+        }
+
+        return $customFields;
     }
 }

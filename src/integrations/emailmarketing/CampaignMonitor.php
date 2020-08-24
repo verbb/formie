@@ -112,7 +112,7 @@ class CampaignMonitor extends EmailMarketing
     public function sendPayload(Submission $submission): bool
     {
         try {
-            $fieldValues = $this->getFieldMappingValues($submission);
+            $fieldValues = $this->getFieldMappingValues($submission, $this->fieldMapping);
 
             // Pull out email, as it needs to be top level
             $email = ArrayHelper::remove($fieldValues, 'Email');
@@ -209,6 +209,9 @@ class CampaignMonitor extends EmailMarketing
     // Private Methods
     // =========================================================================
 
+    /**
+     * @inheritDoc
+     */
     private function _getClient()
     {
         if ($this->_client) {
@@ -221,6 +224,9 @@ class CampaignMonitor extends EmailMarketing
         ]);
     }
 
+    /**
+     * @inheritDoc
+     */
     private function _request(string $method, string $uri, array $options = [])
     {
         $response = $this->_getClient()->request($method, trim($uri, '/'), $options);
