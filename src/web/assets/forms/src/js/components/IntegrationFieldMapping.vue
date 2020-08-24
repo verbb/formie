@@ -41,7 +41,7 @@
                     </tr>
                     <tr v-for="(row, index) in rows" v-else :key="index" data-id="0">
                         <td class="singleline-cell textual" style="width: 50%;">
-                            <textarea v-model="row.name" rows="1" style="min-height: 36px;" readonly></textarea>
+                            <span class="fui-table-label" :class="{ 'required': row.required }">{{ row.name }}</span>
                         </td>
 
                         <td class="select-cell" style="width: 50%;">
@@ -50,7 +50,7 @@
                                     <select v-model="proxyValue[row.handle]" :name="name + '[' + row.handle + ']'">
                                         <option value="">{{ 'Don’t Include' | t('formie') }}</option>
 
-                                        <optgroup v-for="(optgroup, i) in getFieldOptions()" :key="i" :label="optgroup.label">
+                                        <optgroup v-for="(optgroup, i) in getFieldOptions(row.options)" :key="i" :label="optgroup.label">
                                             <option v-for="(option, j) in optgroup.options" :key="j" :value="option.value">
                                                 {{ option.label }}
                                             </option>
@@ -67,6 +67,7 @@
 </template>
 
 <script>
+import isEmpty from 'lodash/isEmpty';
 
 export default {
     name: 'IntegrationFieldMapping',
@@ -149,24 +150,28 @@ export default {
             });
         },
 
-        getFieldOptions() {
+        getFieldOptions(providerOptions) {
             var fields = this.$store.getters['form/fields'];
 
-            var options = [
-                {
-                    label: Craft.t('formie', 'Submission'),
-                    options: [
-                        { label: Craft.t('formie', 'Title'), value: '{title}' },
-                        { label: Craft.t('formie', 'ID'), value: '{id}' },
-                    ],
-                },
-                {
-                    label: Craft.t('formie', 'Fields'),
-                    options: fields.map(field => {
-                        return { label: field.label, value: '{' + field.handle + '}' };
-                    }),
-                },
-            ];
+            var options = [];
+
+            if (!isEmpty(providerOptions)) {
+                options.push(providerOptions);
+            }
+
+            options.push({
+                label: Craft.t('formie', 'Submission'),
+                options: [
+                    { label: Craft.t('formie', 'Title'), value: '{title}' },
+                    { label: Craft.t('formie', 'ID'), value: '{id}' },
+                ],
+            });
+            options.push({
+                label: Craft.t('formie', 'Fields'),
+                options: fields.map(field => {
+                    return { label: field.label, value: '{' + field.handle + '}' };
+                }),
+            });
 
             return options;
         },
@@ -174,3 +179,14 @@ export default {
 };
 
 </script>
+
+<style lang="scss">
+
+.fui-table-label {
+    min-height: 34px;
+    display: flex;
+    align-items: center;
+    margin: 0 10px;
+}
+
+</style>

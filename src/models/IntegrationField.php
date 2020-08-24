@@ -13,5 +13,6 @@ class IntegrationField extends Model
     public $name;
     public $type;
     public $required;
+    public $options = [];
 
 }
