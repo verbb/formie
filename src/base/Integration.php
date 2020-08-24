@@ -143,7 +143,9 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     public function scenarios()
     {
         $scenarios = parent::scenarios();
-        $scenarios[self::SCENARIO_FORM] = [];
+
+        // Always have the form's scenario defined, but don't overwrite it
+        $scenarios[self::SCENARIO_FORM] = $scenarios[self::SCENARIO_FORM] ?? [];
 
         return $scenarios;
     }
@@ -272,6 +274,21 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         $this->setCache(['settings' => $settings]);
 
         return $settings;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function validateFieldMapping($attribute, $fields = [])
+    {
+        foreach ($fields as $field) {
+            $value = $this->$attribute[$field->handle] ?? '';
+
+            if ($field->required && $value === '') {
+                $this->addError($attribute, Craft::t('formie', '{name} must be mapped.', ['name' => $field->name]));
+                return;
+            }
+        }
     }
 
 

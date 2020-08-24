@@ -4,6 +4,7 @@ namespace verbb\formie\base;
 use verbb\formie\Formie;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
+use verbb\formie\models\IntegrationField;
 
 use Craft;
 use craft\helpers\StringHelper;
@@ -67,5 +68,22 @@ abstract class Crm extends Integration implements IntegrationInterface
     public function getCpEditUrl(): string
     {
         return UrlHelper::cpUrl('formie/settings/crm/edit/' . $this->id);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getFormSettings($useCache = true)
+    {
+        $settings = parent::getFormSettings($useCache);
+
+        // Convert back to models from the cache
+        foreach ($settings as $key => $setting) {
+            foreach ($setting as $k => $value) {
+                $settings[$key][$k] = new IntegrationField($value);
+            }
+        }
+
+        return $settings;
     }
 }

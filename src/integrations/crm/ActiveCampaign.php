@@ -58,6 +58,23 @@ class ActiveCampaign extends Crm
 
         $rules[] = [['apiKey', 'apiUrl'], 'required'];
 
+        $contact = $this->getFormSettings()['contact'] ?? [];
+        $deal = $this->getFormSettings()['deal'] ?? [];
+        $account = $this->getFormSettings()['account'] ?? [];
+
+        // Validate the following when saving form settings
+        $rules[] = [['contactFieldMapping'], 'validateFieldMapping', 'params' => $contact, 'when' => function($model) {
+            return $model->enabled && $model->mapToContact;
+        }, 'on' => [Integration::SCENARIO_FORM]];
+
+        $rules[] = [['dealFieldMapping'], 'validateFieldMapping', 'params' => $deal, 'when' => function($model) {
+            return $model->enabled && $model->mapToDeal;
+        }, 'on' => [Integration::SCENARIO_FORM]];
+
+        $rules[] = [['accountFieldMapping'], 'validateFieldMapping', 'params' => $account, 'when' => function($model) {
+            return $model->enabled && $model->mapToAccount;
+        }, 'on' => [Integration::SCENARIO_FORM]];
+
         return $rules;
     }
 

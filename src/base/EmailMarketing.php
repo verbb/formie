@@ -83,21 +83,26 @@ abstract class EmailMarketing extends Integration implements IntegrationInterfac
     /**
      * @inheritDoc
      */
-    public function validateFieldMapping($attribute)
+    public function getFormSettings($useCache = true)
     {
-        if ($this->enabled) {
-            // Ensure we check against any required fields
-            $list = $this->getListById($this->listId);
+        $settings = parent::getFormSettings($useCache);
 
-            foreach ($list->fields as $field) {
-                $value = $this->fieldMapping[$field->handle] ?? '';
+        // Convert back to models from the cache
+        foreach ($settings as $key => $setting) {
+            if ($key === 'lists') {
+                foreach ($setting as $k => $listConfig) {
+                    $list = new EmailMarketingList($listConfig);
 
-                if ($field->required && $value === '') {
-                    $this->addError($attribute, Craft::t('formie', '{name} must be mapped.', ['name' => $field->name]));
-                    return;
+                    foreach ($list->fields as $i => $fieldConfig) {
+                        $list->fields[$i] = new IntegrationField($fieldConfig);
+                    }
+
+                    $settings[$key][$k] = $list;
                 }
             }
         }
+
+        return $settings;
     }
 
     /**
@@ -109,7 +114,12 @@ abstract class EmailMarketing extends Integration implements IntegrationInterfac
 
         // Validate the following when saving form settings
         $rules[] = [['listId'], 'required', 'on' => [Integration::SCENARIO_FORM]];
-        $rules[] = [['fieldMapping'], 'validateFieldMapping', 'on' => [Integration::SCENARIO_FORM]];
+
+        $list = $this->getListById($this->listId);
+
+        $rules[] = [['fieldMapping'], 'validateFieldMapping', 'params' => $list->fields, 'when' => function($model) {
+            return $model->enabled;
+        }, 'on' => [Integration::SCENARIO_FORM]];
 
         return $rules;
     }
@@ -126,15 +136,8 @@ abstract class EmailMarketing extends Integration implements IntegrationInterfac
         $settings = $this->getFormSettings();
         $lists = $settings['lists'] ?? [];
 
-        foreach ($lists as $listConfig) {
-            $list = new EmailMarketingList($listConfig);
-
+        foreach ($lists as $list) {
             if ($list->id === $listId) {
-                // De-serialize JSON array data from cache. Might be a better way to do this?
-                foreach ($list->fields as $key => $fieldConfig) {
-                    $list->fields[$key] = new IntegrationField($fieldConfig);
-                }
-
                 return $list;
             }
         }

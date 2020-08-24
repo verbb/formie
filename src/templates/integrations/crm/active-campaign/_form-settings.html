@@ -35,6 +35,12 @@
                 :value="get(form, 'settings.integrations.{{ integration.handle }}.contactFieldMapping')"
                 :rows="get(settings, 'contact')"
             ></integration-field-mapping>
+
+            <ul v-if="!isEmpty(get(form, 'settings.integrations.{{ integration.handle }}.errors.contactFieldMapping'))" class="errors" v-cloak>
+                <li v-for="(error, index) in get(form, 'settings.integrations.{{ integration.handle }}.errors.contactFieldMapping')" :key="index">
+                    ${ error }
+                </li>
+            </ul>
         </div>
 
         {{ forms.lightswitchField({
@@ -56,6 +62,12 @@
                 :value="get(form, 'settings.integrations.{{ integration.handle }}.dealFieldMapping')"
                 :rows="get(settings, 'deal')"
             ></integration-field-mapping>
+
+            <ul v-if="!isEmpty(get(form, 'settings.integrations.{{ integration.handle }}.errors.dealFieldMapping'))" class="errors" v-cloak>
+                <li v-for="(error, index) in get(form, 'settings.integrations.{{ integration.handle }}.errors.dealFieldMapping')" :key="index">
+                    ${ error }
+                </li>
+            </ul>
         </div>
 
         {{ forms.lightswitchField({
@@ -77,6 +89,12 @@
                 :value="get(form, 'settings.integrations.{{ integration.handle }}.accountFieldMapping')"
                 :rows="get(settings, 'account')"
             ></integration-field-mapping>
+
+            <ul v-if="!isEmpty(get(form, 'settings.integrations.{{ integration.handle }}.errors.accountFieldMapping'))" class="errors" v-cloak>
+                <li v-for="(error, index) in get(form, 'settings.integrations.{{ integration.handle }}.errors.accountFieldMapping')" :key="index">
+                    ${ error }
+                </li>
+            </ul>
         </div>
     </div>
 </integration-form-settings>
