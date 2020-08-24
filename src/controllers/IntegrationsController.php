@@ -68,6 +68,7 @@ class IntegrationsController extends Controller
             'sortOrder' => $savedIntegration->sortOrder ?? null,
             'enabled' => $this->request->getParam('enabled'),
             'settings' => $this->request->getParam('types.' . $type),
+            'tokenId' => $savedIntegration->tokenId ?? null,
             'uid' => $savedIntegration->uid ?? null,
         ];
 
