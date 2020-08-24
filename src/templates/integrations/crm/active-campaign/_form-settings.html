@@ -3,7 +3,7 @@
 {% set enabled = form.settings.integrations[integration.handle].enabled ?? '' %}
 {% set mapToContact = form.settings.integrations[integration.handle].mapToContact ?? '' %}
 {% set mapToDeal = form.settings.integrations[integration.handle].mapToDeal ?? '' %}
-{% set mapToOrganisation = form.settings.integrations[integration.handle].mapToOrganisation ?? '' %}
+{% set mapToAccount = form.settings.integrations[integration.handle].mapToAccount ?? '' %}
 
 <integration-form-settings handle="{{ integration.handle }}" :form-settings="{{ integration.getFormSettings() | json_encode }}" name-raw="fields" inline-template>
     <div>
@@ -59,23 +59,23 @@
         </div>
 
         {{ forms.lightswitchField({
-            label: 'Map to Organisation' | t('formie'),
-            instructions: 'Whether to map form data to {name} Organisations.' | t('formie', { name: integration.displayName() }),
-            id: 'mapToOrganisation',
-            name: 'mapToOrganisation',
-            on: mapToOrganisation,
-            toggle: 'map-to-organisation',
+            label: 'Map to Account' | t('formie'),
+            instructions: 'Whether to map form data to {name} Accounts.' | t('formie', { name: integration.displayName() }),
+            id: 'mapToAccount',
+            name: 'mapToAccount',
+            on: mapToAccount,
+            toggle: 'map-to-account',
         }) }}
 
-        <div id="map-to-organisation" class="{{ not mapToOrganisation ? 'hidden' }}">
+        <div id="map-to-account" class="{{ not mapToAccount ? 'hidden' }}">
             <integration-field-mapping
-                label="{{ 'Organisation Field Mapping' | t('formie') }}"
-                instructions="{{ 'Choose how your form fields should map to your {name} Organisation fields.' | t('formie', { name: integration.displayName() }) }}"
+                label="{{ 'Account Field Mapping' | t('formie') }}"
+                instructions="{{ 'Choose how your form fields should map to your {name} Account fields.' | t('formie', { name: integration.displayName() }) }}"
                 name-label="{{ integration.displayName() }}"
-                id="organisation-field-mapping"
-                name="organisationFieldMapping"
-                :value="get(form, 'settings.integrations.{{ integration.handle }}.organisationFieldMapping')"
-                :rows="get(settings, 'organisation')"
+                id="account-field-mapping"
+                name="accountFieldMapping"
+                :value="get(form, 'settings.integrations.{{ integration.handle }}.accountFieldMapping')"
+                :rows="get(settings, 'account')"
             ></integration-field-mapping>
         </div>
     </div>

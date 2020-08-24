@@ -4,6 +4,7 @@ namespace verbb\formie\base;
 use verbb\formie\Formie;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
+use verbb\formie\events\SendIntegrationPayloadEvent;
 use verbb\formie\models\EmailMarketingList;
 use verbb\formie\models\IntegrationField;
 
@@ -144,22 +145,27 @@ abstract class EmailMarketing extends Integration implements IntegrationInterfac
     /**
      * @inheritDoc
      */
-    protected function getFieldMappingValues(Submission $submission)
+    protected function beforeSendPayload(Submission $submission, $payload)
     {
-        $fieldValues = [];
+        $event = new SendIntegrationPayloadEvent([
+            'submission' => $submission,
+            'payload' => $payload,
+            'integration' => $this,
+        ]);
+        $this->trigger(self::EVENT_BEFORE_SEND_PAYLOAD, $event);
 
-        foreach ($this->fieldMapping as $tag => $formFieldHandle) {
-            if ($formFieldHandle) {
-                $formFieldHandle = str_replace(['{', '}'], ['', ''], $formFieldHandle);
-
-                // Convert to string. We'll introduce more complex field handling in the future, but this will
-                // be controlled at the integration-level. Some providers might only handle an address as a string
-                // others might accept an array of content. The integration should handle this...
-                $fieldValues[$tag] = (string)$submission->getFieldValue($formFieldHandle);
-            }
+        if (!$event->isValid) {
+            Integration::log($this, 'Sending payload cancelled by event hook.');
         }
 
-        return $fieldValues;
+        // Also, check for opt-in fields. This allows the above event to potentially alter things
+        if (!$this->enforceOptInField($submission)) {
+            Integration::log($this, 'Sending payload cancelled by opt-in field.');
+
+            return false;
+        }
+
+        return $event->isValid;
     }
 
     /**

@@ -438,6 +438,44 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     /**
      * @inheritDoc
      */
+    protected function getFieldMappingValues(Submission $submission, $fieldMapping)
+    {
+        $fieldValues = [];
+
+        foreach ($fieldMapping as $tag => $formFieldHandle) {
+            // Don't let in un-mapped fields
+            if ($formFieldHandle !== '') {
+                // See if this is mapping a custom field
+                if (strstr($formFieldHandle, '{')) {
+                    $formFieldHandle = str_replace(['{', '}'], ['', ''], $formFieldHandle);
+
+                    // Convert to string. We'll introduce more complex field handling in the future, but this will
+                    // be controlled at the integration-level. Some providers might only handle an address as a string
+                    // others might accept an array of content. The integration should handle this...
+                    try {
+                        $fieldValues[$tag] = (string)$submission->getFieldValue($formFieldHandle);
+                    } catch (\Throwable $e) {
+                        continue;
+                    }
+
+                    try {
+                        $fieldValues[$tag] = (string)$submission->$formFieldHandle;
+                    } catch (\Throwable $e) {
+                        continue;
+                    }
+                } else {
+                    // Otherwise, might have passed in a direct value
+                    $fieldValues[$tag] = $formFieldHandle;
+                }
+            }
+        }
+
+        return $fieldValues;
+    }
+
+    /**
+     * @inheritDoc
+     */
     protected function beforeSendPayload(Submission $submission, $payload)
     {
         $event = new SendIntegrationPayloadEvent([
@@ -449,13 +487,6 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
 
         if (!$event->isValid) {
             Integration::log($this, 'Sending payload cancelled by event hook.');
-        }
-
-        // Also, check for opt-in fields. This allows the above event to potentially alter things
-        if (!$this->enforceOptInField($submission)) {
-            Integration::log($this, 'Sending payload cancelled by opt-in field.');
-
-            return false;
         }
 
         return $event->isValid;
