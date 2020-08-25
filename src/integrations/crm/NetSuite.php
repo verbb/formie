@@ -57,7 +57,7 @@ class NetSuite extends Crm
     /**
      * @inheritDoc
      */
-    public function fetchLists()
+    public function fetchFormSettings()
     {
         $allLists = [];
 
