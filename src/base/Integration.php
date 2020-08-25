@@ -503,7 +503,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
             return false;
         }
 
-        $response = $this->_request($method, $endpoint, [
+        $response = $this->request($method, $endpoint, [
             'json' => $payload,
         ]);
 
@@ -534,15 +534,11 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
                     // others might accept an array of content. The integration should handle this...
                     try {
                         $fieldValues[$tag] = (string)$submission->getFieldValue($formFieldHandle);
-                    } catch (\Throwable $e) {
-                        continue;
-                    }
+                    } catch (\Throwable $e) {}
 
                     try {
                         $fieldValues[$tag] = (string)$submission->$formFieldHandle;
-                    } catch (\Throwable $e) {
-                        continue;
-                    }
+                    } catch (\Throwable $e) {}
                 } else {
                     // Otherwise, might have passed in a direct value
                     $fieldValues[$tag] = $formFieldHandle;
