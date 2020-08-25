@@ -582,8 +582,8 @@ class Integrations extends Component
         foreach ($enabledFormSettings as $handle => $formSettings) {
             $integration = ArrayHelper::firstWhere($integrations, 'handle', $handle);
 
-            // Populate the settings
-            if ($integration) {
+            // If this disabled globally? Then don't include it, otherwise populate the settings
+            if ($integration && $integration->enabled) {
                 $integration->setAttributes($formSettings, false);
 
                 $enabledIntegrations[] = $integration;
