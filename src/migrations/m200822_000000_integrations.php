@@ -22,7 +22,7 @@ class m200822_000000_integrations extends Migration
                 'sortOrder' => $this->smallInteger()->unsigned(),
                 'enabled' => $this->boolean()->notNull()->defaultValue(true),
                 'settings' => $this->text(),
-                'cache' => $this->text(),
+                'cache' => $this->longText(),
                 'tokenId' => $this->integer(),
                 'dateDeleted' => $this->dateTime(),
                 'dateCreated' => $this->dateTime()->notNull(),
