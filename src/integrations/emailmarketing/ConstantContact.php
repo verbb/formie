@@ -116,12 +116,12 @@ class ConstantContact extends EmailMarketing
         $settings = [];
 
         try {
-            $response = $this->_request('GET', 'contact_lists');
+            $response = $this->request('GET', 'contact_lists');
             $lists = $response['lists'] ?? [];
 
             foreach ($lists as $list) {
                 // While we're at it, fetch the fields for the list
-                $response = $this->_request('GET', 'contact_custom_fields');
+                $response = $this->request('GET', 'contact_custom_fields');
 
                 $listFields = [
                     new IntegrationField([
@@ -211,18 +211,9 @@ class ConstantContact extends EmailMarketing
                 'custom_fields' => $customFields,
             ], $fieldValues);
 
-            // Allow events to cancel sending
-            if (!$this->beforeSendPayload($submission, $payload)) {
-                return false;
-            }
+            $response = $this->deliverPayload($submission, 'contacts/sign_up_form', $payload);
 
-            // Add or update
-            $response = $this->_request('POST', 'contacts/sign_up_form', [
-                'json' => $payload,
-            ]);
-
-            // Allow events to say the response is invalid
-            if (!$this->afterSendPayload($submission, $payload, $response)) {
+            if ($response === false) {
                 return false;
             }
 
@@ -274,7 +265,7 @@ class ConstantContact extends EmailMarketing
         // Always provide an authenticated client - so check first.
         // We can't always rely on the EOL of the token.
         try {
-            $response = $this->_request('GET', 'contact_lists');
+            $response = $this->request('GET', 'contact_lists');
         } catch (\Throwable $e) {
             if ($e->getCode() === 401) {
                 // Force-refresh the token
@@ -292,15 +283,5 @@ class ConstantContact extends EmailMarketing
         }
 
         return $this->_client;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    private function _request(string $method, string $uri, array $options = [])
-    {
-        $response = $this->_getClient()->request($method, trim($uri, '/'), $options);
-
-        return Json::decode((string)$response->getBody());
     }
 }

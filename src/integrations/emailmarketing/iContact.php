@@ -66,13 +66,13 @@ class IContact extends EmailMarketing
         $settings = [];
 
         try {
-            $response = $this->_request('GET', 'lists');
+            $response = $this->request('GET', 'lists');
 
             $lists = $response['lists'] ?? [];
 
             foreach ($lists as $list) {
                 // While we're at it, fetch the fields for the list
-                $response = $this->_request('GET', 'customfields');
+                $response = $this->request('GET', 'customfields');
 
                 $listFields = [
                     new IntegrationField([
@@ -182,18 +182,9 @@ class IContact extends EmailMarketing
                 'contact' => $fieldValues,
             ];
 
-            // Allow events to cancel sending
-            if (!$this->beforeSendPayload($submission, $payload)) {
-                return false;
-            }
+            $response = $this->deliverPayload($submission, 'contacts', $payload);
 
-            // Add or update
-            $response = $this->_request('POST', 'contacts', [
-                'json' => $payload,
-            ]);
-
-            // Allow events to say the response is invalid
-            if (!$this->afterSendPayload($submission, $payload, $response)) {
+            if ($response === false) {
                 return false;
             }
 
@@ -216,17 +207,9 @@ class IContact extends EmailMarketing
                 ],
             ];
 
-            // Allow events to cancel sending
-            if (!$this->beforeSendPayload($submission, $payload)) {
-                return false;
-            }
+            $response = $this->deliverPayload($submission, 'subscriptions', $payload);
 
-            $response = $this->_request('POST', 'subscriptions', [
-                'json' => $payload,
-            ]);
-
-            // Allow events to say the response is invalid
-            if (!$this->afterSendPayload($submission, $payload, $response)) {
+            if ($response === false) {
                 return false;
             }
 
@@ -258,7 +241,7 @@ class IContact extends EmailMarketing
     public function fetchConnection(): bool
     {
         try {
-            $response = $this->_request('GET', 'lists');
+            $response = $this->request('GET', 'lists');
         } catch (\Throwable $e) {
             Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [
                 'message' => $e->getMessage(),
@@ -296,15 +279,5 @@ class IContact extends EmailMarketing
                 'API-Password' => $this->password,
             ],
         ]);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    private function _request(string $method, string $uri, array $options = [])
-    {
-        $response = $this->_getClient()->request($method, trim($uri, '/'), $options);
-
-        return Json::decode((string)$response->getBody());
     }
 }

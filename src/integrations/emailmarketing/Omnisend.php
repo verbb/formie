@@ -120,18 +120,9 @@ class Omnisend extends EmailMarketing
                 ],
             ]);
 
-            // Allow events to cancel sending
-            if (!$this->beforeSendPayload($submission, $payload)) {
-                return false;
-            }
+            $response = $this->deliverPayload($submission, 'contacts', $payload);
 
-            // Add or update
-            $response = $this->_request('POST', 'contacts', [
-                'json' => $payload,
-            ]);
-
-            // Allow events to say the response is invalid
-            if (!$this->afterSendPayload($submission, $payload, $response)) {
+            if ($response === false) {
                 return false;
             }
 
@@ -163,7 +154,7 @@ class Omnisend extends EmailMarketing
     public function fetchConnection(): bool
     {
         try {
-            $response = $this->_request('GET', 'contacts');
+            $response = $this->request('GET', 'contacts');
         } catch (\Throwable $e) {
             Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [
                 'message' => $e->getMessage(),
@@ -194,15 +185,5 @@ class Omnisend extends EmailMarketing
             'base_uri' => 'https://api.omnisend.com/v3/',
             'headers' => ['X-API-KEY' => $this->apiKey],
         ]);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    private function _request(string $method, string $uri, array $options = [])
-    {
-        $response = $this->_getClient()->request($method, trim($uri, '/'), $options);
-
-        return Json::decode((string)$response->getBody());
     }
 }

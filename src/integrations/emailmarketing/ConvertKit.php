@@ -63,12 +63,12 @@ class ConvertKit extends EmailMarketing
         $settings = [];
 
         try {
-            $response = $this->_request('GET', 'forms');
+            $response = $this->request('GET', 'forms');
             $lists = $response['forms'] ?? [];
 
             foreach ($lists as $list) {
                 // While we're at it, fetch the fields for the list
-                $response = $this->_request('GET', 'custom_fields');
+                $response = $this->request('GET', 'custom_fields');
 
                 $listFields = [
                     new IntegrationField([
@@ -126,18 +126,9 @@ class ConvertKit extends EmailMarketing
                 'fields' => $fieldValues,
             ];
 
-            // Allow events to cancel sending
-            if (!$this->beforeSendPayload($submission, $payload)) {
-                return false;
-            }
+            $response = $this->deliverPayload($submission, "forms/{$this->listId}/subscribe", $payload);
 
-            // Add or update
-            $response = $this->_request('POST', "forms/{$this->listId}/subscribe", [
-                'json' => $payload,
-            ]);
-
-            // Allow events to say the response is invalid
-            if (!$this->afterSendPayload($submission, $payload, $response)) {
+            if ($response === false) {
                 return false;
             }
         } catch (\Throwable $e) {
@@ -159,7 +150,7 @@ class ConvertKit extends EmailMarketing
     public function fetchConnection(): bool
     {
         try {
-            $response = $this->_request('GET', 'account');
+            $response = $this->request('GET', 'account');
             $accountId = $response['primary_email_address'] ?? '';
 
             if (!$accountId) {
@@ -196,15 +187,5 @@ class ConvertKit extends EmailMarketing
             'base_uri' => 'https://api.convertkit.com/v3/',
             'query' => ['api_secret' => $this->apiSecret],
         ]);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    private function _request(string $method, string $uri, array $options = [])
-    {
-        $response = $this->_getClient()->request($method, trim($uri, '/'), $options);
-
-        return Json::decode((string)$response->getBody());
     }
 }

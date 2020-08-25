@@ -108,10 +108,10 @@ class Drip extends EmailMarketing
 
         try {
             // Fetch the account first
-            $response = $this->_request('GET', 'accounts');
+            $response = $this->request('GET', 'accounts');
             $accountId = $response['accounts'][0]['id'] ?? '';
 
-            $response = $this->_request('GET', "{$accountId}/custom_field_identifiers");
+            $response = $this->request('GET', "{$accountId}/custom_field_identifiers");
             $fields = $response['custom_field_identifiers'] ?? [];
 
             $listFields = [
@@ -226,16 +226,17 @@ class Drip extends EmailMarketing
             }
 
             // Fetch the account first
-            $response = $this->_request('GET', 'accounts');
+            $response = $this->request('GET', 'accounts');
             $accountId = $response['accounts'][0]['id'] ?? '';
-
-            // Add or update
-            $response = $this->_request('POST', "{$accountId}/subscribers", [
-                'json' => $payload,
-            ]);
 
             // Allow events to say the response is invalid
             if (!$this->afterSendPayload($submission, $payload, $response)) {
+                return false;
+            }
+
+            $response = $this->deliverPayload($submission, "{$accountId}/subscribers", $payload);
+
+            if ($response === false) {
                 return false;
             }
 
@@ -287,7 +288,7 @@ class Drip extends EmailMarketing
         // Always provide an authenticated client - so check first.
         // We can't always rely on the EOL of the token.
         try {
-            $response = $this->_request('GET', 'accounts');
+            $response = $this->request('GET', 'accounts');
         } catch (\Throwable $e) {
             if ($e->getCode() === 401) {
                 // Force-refresh the token
@@ -305,15 +306,5 @@ class Drip extends EmailMarketing
         }
 
         return $this->_client;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    private function _request(string $method, string $uri, array $options = [])
-    {
-        $response = $this->_getClient()->request($method, trim($uri, '/'), $options);
-
-        return Json::decode((string)$response->getBody());
     }
 }

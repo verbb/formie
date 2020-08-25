@@ -62,13 +62,13 @@ class Autopilot extends EmailMarketing
         $settings = [];
 
         try {
-            $response = $this->_request('GET', 'lists');
+            $response = $this->request('GET', 'lists');
 
             $lists = $response['lists'] ?? [];
 
             foreach ($lists as $list) {
                 // While we're at it, fetch the fields for the list
-                $fields = $this->_request('GET', 'contacts/custom_fields');
+                $fields = $this->request('GET', 'contacts/custom_fields');
 
                 $listFields = [
                     new IntegrationField([
@@ -170,18 +170,9 @@ class Autopilot extends EmailMarketing
                 'custom' => $fieldValues,
             ];
 
-            // Allow events to cancel sending
-            if (!$this->beforeSendPayload($submission, $payload)) {
-                return false;
-            }
+            $response = $this->deliverPayload($submission, 'contact', $payload);
 
-            // Add or update
-            $response = $this->_request('POST', 'contact', [
-                'json' => $payload,
-            ]);
-
-            // Allow events to say the response is invalid
-            if (!$this->afterSendPayload($submission, $payload, $response)) {
+            if ($response === false) {
                 return false;
             }
 
@@ -213,7 +204,7 @@ class Autopilot extends EmailMarketing
     public function fetchConnection(): bool
     {
         try {
-            $response = $this->_request('GET', 'account');
+            $response = $this->request('GET', 'account');
             $accountId = $response['instance_id'] ?? '';
 
             if (!$accountId) {
@@ -250,15 +241,5 @@ class Autopilot extends EmailMarketing
             'base_uri' => 'https://api2.autopilothq.com/v1/',
             'headers' => ['autopilotapikey' => $this->apiKey],
         ]);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    private function _request(string $method, string $uri, array $options = [])
-    {
-        $response = $this->_getClient()->request($method, trim($uri, '/'), $options);
-
-        return Json::decode((string)$response->getBody());
     }
 }

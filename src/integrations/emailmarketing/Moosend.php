@@ -62,7 +62,7 @@ class Moosend extends EmailMarketing
         $settings = [];
 
         try {
-            $response = $this->_request('GET', 'lists.json');
+            $response = $this->request('GET', 'lists.json');
 
             $lists = $response['Context']['MailingLists'] ?? [];
 
@@ -132,18 +132,9 @@ class Moosend extends EmailMarketing
                 'CustomFields' => $customFields,
             ];
 
-            // Allow events to cancel sending
-            if (!$this->beforeSendPayload($submission, $payload)) {
-                return false;
-            }
+            $response = $this->deliverPayload($submission, "subscribers/{$this->listId}/subscribe.json", $payload);
 
-            // Add or update
-            $response = $this->_request('POST', "subscribers/{$this->listId}/subscribe.json", [
-                'json' => $payload,
-            ]);
-
-            // Allow events to say the response is invalid
-            if (!$this->afterSendPayload($submission, $payload, $response)) {
+            if ($response === false) {
                 return false;
             }
 
@@ -175,7 +166,7 @@ class Moosend extends EmailMarketing
     public function fetchConnection(): bool
     {
         try {
-            $response = $this->_request('GET', 'lists.json');
+            $response = $this->request('GET', 'lists.json');
             $accountId = $response['Context']['MailingLists'][0]['ID'] ?? '';
 
             if (!$accountId) {
@@ -212,15 +203,5 @@ class Moosend extends EmailMarketing
             'base_uri' => 'http://api.moosend.com/v3/',
             'query' => ['apikey' => $this->apiKey],
         ]);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    private function _request(string $method, string $uri, array $options = [])
-    {
-        $response = $this->_getClient()->request($method, trim($uri, '/'), $options);
-
-        return Json::decode((string)$response->getBody());
     }
 }

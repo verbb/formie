@@ -144,18 +144,18 @@ class AWeber extends EmailMarketing
 
         try {
             // Find the account first to fetch lists
-            $response = $this->_request('GET', 'accounts');
+            $response = $this->request('GET', 'accounts');
             $accounts = $response['entries'] ?? [];
 
             $listsUrl = $accounts[0]['lists_collection_link'] ?? '';
             $listsUrl = str_replace('https://api.aweber.com/1.0/', '', $listsUrl);
 
-            $response = $this->_request('GET', $listsUrl);
+            $response = $this->request('GET', $listsUrl);
             $lists = $response['entries'] ?? [];
 
             foreach ($lists as $list) {
                 // While we're at it, fetch the fields for the list
-                $response = $this->_request('GET', "{$listsUrl}/{$list['id']}/custom_fields");
+                $response = $this->request('GET', "{$listsUrl}/{$list['id']}/custom_fields");
 
                 $listFields = [
                     new IntegrationField([
@@ -220,7 +220,7 @@ class AWeber extends EmailMarketing
             }
 
             // Find the account first to fetch lists
-            $response = $this->_request('GET', 'accounts');
+            $response = $this->request('GET', 'accounts');
             $accounts = $response['entries'] ?? [];
             $listsUrl = $accounts[0]['lists_collection_link'] ?? '';
             $listsUrl = str_replace('https://api.aweber.com/1.0/', '', $listsUrl);
@@ -238,13 +238,9 @@ class AWeber extends EmailMarketing
                 return false;
             }
 
-            // Add or update
-            $response = $this->_request('POST', "{$listsUrl}/{$this->listId}/subscribers", [
-                'json' => $payload,
-            ]);
+            $response = $this->deliverPayload($submission, "{$listsUrl}/{$this->listId}/subscribers", $payload);
 
-            // Allow events to say the response is invalid
-            if (!$this->afterSendPayload($submission, $payload, $response)) {
+            if ($response === false) {
                 return false;
             }
         } catch (\Throwable $e) {
@@ -286,7 +282,7 @@ class AWeber extends EmailMarketing
         // Always provide an authenticated client - so check first.
         // We can't always rely on the EOL of the token.
         try {
-            $response = $this->_request('GET', 'accounts');
+            $response = $this->request('GET', 'accounts');
         } catch (\Throwable $e) {
             if ($e->getCode() === 401) {
                 // Force-refresh the token
@@ -304,15 +300,5 @@ class AWeber extends EmailMarketing
         }
 
         return $this->_client;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    private function _request(string $method, string $uri, array $options = [])
-    {
-        $response = $this->_getClient()->request($method, trim($uri, '/'), $options);
-
-        return Json::decode((string)$response->getBody());
     }
 }

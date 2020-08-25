@@ -63,7 +63,7 @@ class Ontraport extends EmailMarketing
         $settings = [];
 
         try {
-            $response = $this->_request('GET', 'Groups');
+            $response = $this->request('GET', 'Groups');
 
             $lists = $response['data'] ?? [];
 
@@ -163,18 +163,9 @@ class Ontraport extends EmailMarketing
 
             $payload = $fieldValues;
 
-            // Allow events to cancel sending
-            if (!$this->beforeSendPayload($submission, $payload)) {
-                return false;
-            }
+            $response = $this->deliverPayload($submission, 'Contacts', $payload);
 
-            // Add or update
-            $response = $this->_request('POST', 'Contacts', [
-                'json' => $payload,
-            ]);
-
-            // Allow events to say the response is invalid
-            if (!$this->afterSendPayload($submission, $payload, $response)) {
+            if ($response === false) {
                 return false;
             }
 
@@ -206,7 +197,7 @@ class Ontraport extends EmailMarketing
     public function fetchConnection(): bool
     {
         try {
-            $response = $this->_request('GET', 'Groups');
+            $response = $this->request('GET', 'Groups');
         } catch (\Throwable $e) {
             Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [
                 'message' => $e->getMessage(),
@@ -240,15 +231,5 @@ class Ontraport extends EmailMarketing
                 'Api-Appid' => $this->appId,
             ],
         ]);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    private function _request(string $method, string $uri, array $options = [])
-    {
-        $response = $this->_getClient()->request($method, trim($uri, '/'), $options);
-
-        return Json::decode((string)$response->getBody());
     }
 }

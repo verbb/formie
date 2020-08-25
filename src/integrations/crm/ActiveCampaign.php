@@ -89,7 +89,7 @@ class ActiveCampaign extends Crm
 
         // Populate some options for some values
         try {
-            $response = $this->_request('GET', 'dealGroups');
+            $response = $this->request('GET', 'dealGroups');
             $dealGroups = $response['dealGroups'] ?? [];
             $dealStages = $response['dealStages'] ?? [];
 
@@ -107,7 +107,7 @@ class ActiveCampaign extends Crm
                 ];
             }
 
-            $response = $this->_request('GET', 'lists');
+            $response = $this->request('GET', 'lists');
             $lists = $response['lists'] ?? [];
 
             foreach ($lists as $list) {
@@ -233,7 +233,7 @@ class ActiveCampaign extends Crm
         ];
 
         try {
-            $response = $this->_request('GET', 'fields');
+            $response = $this->request('GET', 'fields');
             $fields = $response['fields'] ?? [];
 
             // Don't use all fields, at least for the moment...
@@ -259,7 +259,7 @@ class ActiveCampaign extends Crm
             }
 
             // Fetch deal-specific fields
-            $response = $this->_request('GET', 'dealCustomFieldMeta');
+            $response = $this->request('GET', 'dealCustomFieldMeta');
             $fields = $response['dealCustomFieldMeta'] ?? [];
 
             foreach ($fields as $field) {
@@ -273,7 +273,7 @@ class ActiveCampaign extends Crm
             }
 
             // Fetch account-specific fields
-            $response = $this->_request('GET', 'accountCustomFieldMeta');
+            $response = $this->request('GET', 'accountCustomFieldMeta');
             $fields = $response['accountCustomFieldMeta'] ?? [];
 
             foreach ($fields as $field) {
@@ -326,7 +326,7 @@ class ActiveCampaign extends Crm
                     ],
                 ];
 
-                $response = $this->_sendPayload($submission, 'contact/sync', $contactPayload);
+                $response = $this->deliverPayload($submission, 'contact/sync', $contactPayload);
 
                 if ($response === false) {
                     return false;
@@ -352,7 +352,7 @@ class ActiveCampaign extends Crm
                         ],
                     ];
 
-                    $response = $this->_sendPayload($submission, 'contactLists', $payload);
+                    $response = $this->deliverPayload($submission, 'contactLists', $payload);
 
                     if ($response === false) {
                         return false;
@@ -371,7 +371,7 @@ class ActiveCampaign extends Crm
                 ];
 
                 // Try to find the account first
-                $response = $this->_request('GET', 'accounts');
+                $response = $this->request('GET', 'accounts');
 
                 $accounts = $response['accounts'] ?? [];
                 $accountId = '';
@@ -384,7 +384,7 @@ class ActiveCampaign extends Crm
 
                 // If not found already, create it
                 if (!$accountId) {
-                    $response = $this->_sendPayload($submission, 'accounts', $accountPayload);
+                    $response = $this->deliverPayload($submission, 'accounts', $accountPayload);
 
                     if ($response === false) {
                         return false;
@@ -403,11 +403,11 @@ class ActiveCampaign extends Crm
                     ];
 
                     // Don't proceed with an update if already associated
-                    $response = $this->_request('GET', 'accountContacts');
+                    $response = $this->request('GET', 'accountContacts');
                     $accountContacts = $response['accountContacts'][0]['id'] ?? '';
 
                     if (!$accountContacts) {
-                        $response = $this->_sendPayload($submission, 'accountContacts', $payload);
+                        $response = $this->deliverPayload($submission, 'accountContacts', $payload);
 
                         if ($response === false) {
                             return false;
@@ -436,7 +436,7 @@ class ActiveCampaign extends Crm
                     ],
                 ];
 
-                $response = $this->_sendPayload($submission, 'deals', $dealPayload);
+                $response = $this->deliverPayload($submission, 'deals', $dealPayload);
 
                 if ($response === false) {
                     return false;
@@ -461,7 +461,7 @@ class ActiveCampaign extends Crm
     public function fetchConnection(): bool
     {
         try {
-            $response = $this->_request('GET', '');
+            $response = $this->request('GET', '');
         } catch (\Throwable $e) {
             Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [
                 'message' => $e->getMessage(),
@@ -492,38 +492,6 @@ class ActiveCampaign extends Crm
             'base_uri' => trim($this->apiUrl, '/') . '/api/3/',
             'headers' => ['Api-Token' => $this->apiKey],
         ]);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    private function _request(string $method, string $uri, array $options = [])
-    {
-        $response = $this->_getClient()->request($method, trim($uri, '/'), $options);
-
-        return Json::decode((string)$response->getBody());
-    }
-
-    /**
-     * @inheritDoc
-     */
-    private function _sendPayload($submission, $endpoint, $payload, $method = 'POST')
-    {
-        // Allow events to cancel sending
-        if (!$this->beforeSendPayload($submission, $payload)) {
-            return false;
-        }
-
-        $response = $this->_request($method, $endpoint, [
-            'json' => $payload,
-        ]);
-
-        // Allow events to say the response is invalid
-        if (!$this->afterSendPayload($submission, $payload, $response)) {
-            return false;
-        }
-
-        return $response;
     }
 
     /**

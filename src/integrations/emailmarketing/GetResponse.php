@@ -60,11 +60,11 @@ class GetResponse extends EmailMarketing
     public function fetchFormSettings()
     {
         $settings = [];
-            $lists = $this->_request('GET', 'campaigns');
+            $lists = $this->request('GET', 'campaigns');
 
             foreach ($lists as $list) {
                 // While we're at it, fetch the fields for the list
-                $fields = $this->_request('GET', 'custom-fields');
+                $fields = $this->request('GET', 'custom-fields');
 
                 $listFields = [
                     new IntegrationField([
@@ -145,18 +145,9 @@ class GetResponse extends EmailMarketing
                 'customFieldValues' => $customFields,
             ];
 
-            // Allow events to cancel sending
-            if (!$this->beforeSendPayload($submission, $payload)) {
-                return false;
-            }
+            $response = $this->deliverPayload($submission, 'contacts', $payload);
 
-            // Add or update
-            $response = $this->_request('POST', 'contacts', [
-                'json' => $payload,
-            ]);
-
-            // Allow events to say the response is invalid
-            if (!$this->afterSendPayload($submission, $payload, $response)) {
+            if ($response === false) {
                 return false;
             }
         } catch (\Throwable $e) {
@@ -178,7 +169,7 @@ class GetResponse extends EmailMarketing
     public function fetchConnection(): bool
     {
         try {
-            $response = $this->_request('GET', 'accounts');
+            $response = $this->request('GET', 'accounts');
             $accountId = $response['accountId'] ?? '';
 
             if (!$accountId) {
@@ -216,15 +207,5 @@ class GetResponse extends EmailMarketing
             'base_uri' => 'https://api.getresponse.com/v3/',
             'headers' => ['X-Auth-Token' => 'api-key ' . $this->apiKey],
         ]);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    private function _request(string $method, string $uri, array $options = [])
-    {
-        $response = $this->_getClient()->request($method, trim($uri, '/'), $options);
-
-        return Json::decode((string)$response->getBody());
     }
 }

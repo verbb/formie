@@ -62,7 +62,7 @@ class Sender extends EmailMarketing
         $settings = [];
 
         try {
-            $lists = $this->_request([
+            $lists = $this->request([
                 'method' => 'listGetAllLists',
                 'params' => [
                     'api_key' => $this->apiKey,
@@ -126,7 +126,7 @@ class Sender extends EmailMarketing
             }
 
             // Add or update
-            $response = $this->_request($payload);
+            $response = $this->request($payload);
 
             // Allow events to say the response is invalid
             if (!$this->afterSendPayload($submission, $payload, $response)) {
@@ -161,7 +161,7 @@ class Sender extends EmailMarketing
     public function fetchConnection(): bool
     {
         try {
-            $response = $this->_request([
+            $response = $this->request([
                 'method' => 'listGetAllLists',
                 'params' => [
                     'api_key' => $this->apiKey,
@@ -191,7 +191,7 @@ class Sender extends EmailMarketing
     // Private Methods
     // =========================================================================
 
-    private function _request($data)
+    private function request($data)
     {
         $options = [
             'http' => [

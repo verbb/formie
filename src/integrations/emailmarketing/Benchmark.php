@@ -62,13 +62,13 @@ class Benchmark extends EmailMarketing
         $settings = [];
 
         try {
-            $response = $this->_request('GET', 'Contact/');
+            $response = $this->request('GET', 'Contact/');
 
             $lists = $response['Response']['Data'] ?? [];
 
             foreach ($lists as $list) {
                 // While we're at it, fetch the fields for the list
-                $response = $this->_request('GET', "Contact/{$list['ID']}");
+                $response = $this->request('GET', "Contact/{$list['ID']}");
                 $listAttributes = $response['Response']['Data'] ?? [];
 
                 $listFields = [
@@ -135,19 +135,19 @@ class Benchmark extends EmailMarketing
             // Check if the email exists, API can't handle PUT or updating if it exists...
             $email = str_replace('+', '%2B', $fieldValues['Email']);
 
-            $response = $this->_request('GET', 'Contact/ContactDetails', [
+            $response = $this->request('GET', 'Contact/ContactDetails', [
                 'query' => ['Search' => $email],
             ]);
 
             $existingContact = $response['Response']['Data'][0] ?? [];
 
             if ($existingContact) {
-                $response = $this->_request('PATCH', "Contact/{$this->listId}/ContactDetails/{$existingContact['ID']}", [
+                $response = $this->request('PATCH', "Contact/{$this->listId}/ContactDetails/{$existingContact['ID']}", [
                     'json' => $payload,
                 ]);
 
             } else {
-                $response = $this->_request('POST', "Contact/{$this->listId}/ContactDetails", [
+                $response = $this->request('POST', "Contact/{$this->listId}/ContactDetails", [
                     'json' => $payload,
                 ]);
             }
@@ -185,7 +185,7 @@ class Benchmark extends EmailMarketing
     public function fetchConnection(): bool
     {
         try {
-            $response = $this->_request('GET', 'Client/ProfileDetails');
+            $response = $this->request('GET', 'Client/ProfileDetails');
             $accountId = $response['Response']['email'] ?? '';
 
             if (!$accountId) {
@@ -227,7 +227,7 @@ class Benchmark extends EmailMarketing
     /**
      * @inheritDoc
      */
-    private function _request(string $method, string $uri, array $options = [])
+    private function request(string $method, string $uri, array $options = [])
     {
         $response = $this->_getClient()->request($method, ltrim($uri, '/'), $options);
 

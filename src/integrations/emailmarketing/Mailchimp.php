@@ -63,7 +63,7 @@ class Mailchimp extends EmailMarketing
         $settings = [];
 
         try {
-            $response = $this->_request('GET', 'lists', [
+            $response = $this->request('GET', 'lists', [
                 'query' => [
                     'fields' => 'lists.id,lists.name',
                     'count' => 1000,
@@ -74,7 +74,7 @@ class Mailchimp extends EmailMarketing
 
             foreach ($lists as $list) {
                 // While we're at it, fetch the fields for the list
-                $response = $this->_request('GET', 'lists/' . $list['id'] . '/merge-fields', [
+                $response = $this->request('GET', 'lists/' . $list['id'] . '/merge-fields', [
                     'query' => [
                         'count' => 1000,
                     ],
@@ -149,18 +149,9 @@ class Mailchimp extends EmailMarketing
                 'merge_fields' => $fieldValues,
             ];
 
-            // Allow events to cancel sending
-            if (!$this->beforeSendPayload($submission, $payload)) {
-                return false;
-            }
+            $response = $this->deliverPayload($submission, "lists/{$this->listId}/members/$emailHash", $payload, 'PUT');
 
-            // Add or update
-            $response = $this->_request('PUT', "lists/{$this->listId}/members/$emailHash", [
-                'json' => $payload,
-            ]);
-
-            // Allow events to say the response is invalid
-            if (!$this->afterSendPayload($submission, $payload, $response)) {
+            if ($response === false) {
                 return false;
             }
         } catch (\Throwable $e) {
@@ -182,7 +173,7 @@ class Mailchimp extends EmailMarketing
     public function fetchConnection(): bool
     {
         try {
-            $response = $this->_request('GET', '/');
+            $response = $this->request('GET', '/');
             $error = $response['error'] ?? '';
             $accountId = $response['account_id'] ?? '';
 
@@ -229,16 +220,6 @@ class Mailchimp extends EmailMarketing
             'base_uri' => 'https://' . $dataCenter . '.api.mailchimp.com/3.0/',
             'auth' => ['apikey', $this->apiKey],
         ]);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    private function _request(string $method, string $uri, array $options = [])
-    {
-        $response = $this->_getClient()->request($method, trim($uri, '/'), $options);
-
-        return Json::decode((string)$response->getBody());
     }
 
     private function _getDataCenter()

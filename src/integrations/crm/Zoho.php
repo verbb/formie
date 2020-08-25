@@ -167,19 +167,19 @@ class Zoho extends Crm
         $settings = [];
 
         try {
-            $response = $this->_request('GET', 'settings/fields', ['query' => ['module' => 'Contacts']]);
+            $response = $this->request('GET', 'settings/fields', ['query' => ['module' => 'Contacts']]);
             $fields = $response['fields'] ?? [];
             $contactFields = $this->_getCustomFields($fields);
 
-            $response = $this->_request('GET', 'settings/fields', ['query' => ['module' => 'Deals']]);
+            $response = $this->request('GET', 'settings/fields', ['query' => ['module' => 'Deals']]);
             $fields = $response['fields'] ?? [];
             $dealFields = $this->_getCustomFields($fields);
 
-            $response = $this->_request('GET', 'settings/fields', ['query' => ['module' => 'Leads']]);
+            $response = $this->request('GET', 'settings/fields', ['query' => ['module' => 'Leads']]);
             $fields = $response['fields'] ?? [];
             $leadsFields = $this->_getCustomFields($fields);
 
-            $response = $this->_request('GET', 'settings/fields', ['query' => ['module' => 'Accounts']]);
+            $response = $this->request('GET', 'settings/fields', ['query' => ['module' => 'Accounts']]);
             $fields = $response['fields'] ?? [];
             $accountFields = $this->_getCustomFields($fields);
 
@@ -219,7 +219,7 @@ class Zoho extends Crm
                     'duplicate_check_fields' => ['Email'],
                 ];
 
-                $response = $this->_sendPayload($submission, 'Contacts/upsert', $contactPayload);
+                $response = $this->deliverPayload($submission, 'Contacts/upsert', $contactPayload);
 
                 if ($response === false) {
                     return false;
@@ -242,7 +242,7 @@ class Zoho extends Crm
                     'duplicate_check_fields' => ['Account_Name'],
                 ];
 
-                $response = $this->_sendPayload($submission, 'Accounts/upsert', $accountPayload);
+                $response = $this->deliverPayload($submission, 'Accounts/upsert', $accountPayload);
 
                 if ($response === false) {
                     return false;
@@ -264,7 +264,7 @@ class Zoho extends Crm
                     'data' => [$dealValues],
                 ];
 
-                $response = $this->_sendPayload($submission, 'Deals', $dealPayload);
+                $response = $this->deliverPayload($submission, 'Deals', $dealPayload);
 
                 if ($response === false) {
                     return false;
@@ -288,7 +288,7 @@ class Zoho extends Crm
                         ],
                     ];
 
-                    $response = $this->_sendPayload($submission, "/Contacts/{$contactId}/Deals/{$dealId}", $payload, 'PUT');
+                    $response = $this->deliverPayload($submission, "/Contacts/{$contactId}/Deals/{$dealId}", $payload, 'PUT');
 
                     if ($response === false) {
                         return false;
@@ -301,7 +301,7 @@ class Zoho extends Crm
                     'data' => [$leadValues],
                 ];
 
-                $response = $this->_sendPayload($submission, 'Leads', $leadPayload);
+                $response = $this->deliverPayload($submission, 'Leads', $leadPayload);
 
                 if ($response === false) {
                     return false;
@@ -360,7 +360,7 @@ class Zoho extends Crm
         // Always provide an authenticated client - so check first.
         // We can't always rely on the EOL of the token.
         try {
-            $response = $this->_request('GET', 'Deals');
+            $response = $this->request('GET', 'Deals');
         } catch (\Throwable $e) {
             if ($e->getCode() === 401) {
                 // Force-refresh the token
@@ -378,38 +378,6 @@ class Zoho extends Crm
         }
 
         return $this->_client;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    private function _request(string $method, string $uri, array $options = [])
-    {
-        $response = $this->_getClient()->request($method, trim($uri, '/'), $options);
-
-        return Json::decode((string)$response->getBody());
-    }
-
-    /**
-     * @inheritDoc
-     */
-    private function _sendPayload($submission, $endpoint, $payload, $method = 'POST')
-    {
-        // Allow events to cancel sending
-        if (!$this->beforeSendPayload($submission, $payload)) {
-            return false;
-        }
-
-        $response = $this->_request($method, $endpoint, [
-            'json' => $payload,
-        ]);
-
-        // Allow events to say the response is invalid
-        if (!$this->afterSendPayload($submission, $payload, $response)) {
-            return false;
-        }
-
-        return $response;
     }
 
     /**

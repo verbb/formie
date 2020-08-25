@@ -486,6 +486,38 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     /**
      * @inheritDoc
      */
+    protected function request(string $method, string $uri, array $options = [])
+    {
+        $response = $this->_getClient()->request($method, trim($uri, '/'), $options);
+
+        return Json::decode((string)$response->getBody());
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected function deliverPayload($submission, $endpoint, $payload, $method = 'POST')
+    {
+        // Allow events to cancel sending
+        if (!$this->beforeSendPayload($submission, $payload)) {
+            return false;
+        }
+
+        $response = $this->_request($method, $endpoint, [
+            'json' => $payload,
+        ]);
+
+        // Allow events to say the response is invalid
+        if (!$this->afterSendPayload($submission, $payload, $response)) {
+            return false;
+        }
+
+        return $response;
+    }
+
+    /**
+     * @inheritDoc
+     */
     protected function getFieldMappingValues(Submission $submission, $fieldMapping)
     {
         $fieldValues = [];

@@ -62,11 +62,11 @@ class MailerLite extends EmailMarketing
         $settings = [];
 
         try {
-            $lists = $this->_request('GET', 'groups');
+            $lists = $this->request('GET', 'groups');
 
             foreach ($lists as $list) {
                 // While we're at it, fetch the fields for the list
-                $fields = $this->_request('GET', 'fields');
+                $fields = $this->request('GET', 'fields');
             
                 foreach ($fields as $field) {
                     $listFields[] = new IntegrationField([
@@ -112,18 +112,9 @@ class MailerLite extends EmailMarketing
                 'resubscribe' => true,
             ];
 
-            // Allow events to cancel sending
-            if (!$this->beforeSendPayload($submission, $payload)) {
-                return false;
-            }
+            $response = $this->deliverPayload($submission, "groups/{$this->listId}/subscribers", $payload);
 
-            // Add or update
-            $response = $this->_request('POST', "groups/{$this->listId}/subscribers", [
-                'json' => $payload,
-            ]);
-
-            // Allow events to say the response is invalid
-            if (!$this->afterSendPayload($submission, $payload, $response)) {
+            if ($response === false) {
                 return false;
             }
 
@@ -155,7 +146,7 @@ class MailerLite extends EmailMarketing
     public function fetchConnection(): bool
     {
         try {
-            $response = $this->_request('GET', 'me');
+            $response = $this->request('GET', 'me');
             $accountId = $response['account']['id'] ?? '';
 
             if (!$accountId) {
@@ -192,15 +183,5 @@ class MailerLite extends EmailMarketing
             'base_uri' => 'https://api.mailerlite.com/api/v2/',
             'headers' => ['X-MailerLite-ApiKey' => $this->apiKey],
         ]);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    private function _request(string $method, string $uri, array $options = [])
-    {
-        $response = $this->_getClient()->request($method, trim($uri, '/'), $options);
-
-        return Json::decode((string)$response->getBody());
     }
 }

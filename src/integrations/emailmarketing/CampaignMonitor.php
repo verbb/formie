@@ -63,11 +63,11 @@ class CampaignMonitor extends EmailMarketing
         $settings = [];
 
         try {
-            $lists = $this->_request('GET', "clients/{$this->clientId}/lists.json");
+            $lists = $this->request('GET', "clients/{$this->clientId}/lists.json");
 
             foreach ($lists as $list) {
                 // While we're at it, fetch the fields for the list
-                $fields = $this->_request('GET', 'lists/' . $list['ListID'] . '/customfields.json');
+                $fields = $this->request('GET', 'lists/' . $list['ListID'] . '/customfields.json');
 
                 $listFields = [
                     new IntegrationField([
@@ -145,19 +145,10 @@ class CampaignMonitor extends EmailMarketing
                 'RestartSubscriptionBasedAutoresponders' => true,
                 'ConsentToTrack' => 'Yes',
             ];
+            
+            $response = $this->deliverPayload($submission, "subscribers/{$this->listId}.json", $payload);
 
-            // Allow events to cancel sending
-            if (!$this->beforeSendPayload($submission, $payload)) {
-                return false;
-            }
-
-            // Add or update
-            $response = $this->_request('POST', "subscribers/{$this->listId}.json", [
-                'json' => $payload,
-            ]);
-
-            // Allow events to say the response is invalid
-            if (!$this->afterSendPayload($submission, $payload, $response)) {
+            if ($response === false) {
                 return false;
             }
         } catch (\Throwable $e) {
@@ -179,7 +170,7 @@ class CampaignMonitor extends EmailMarketing
     public function fetchConnection(): bool
     {
         try {
-            $response = $this->_request('GET', "clients/{$this->clientId}.json");
+            $response = $this->request('GET', "clients/{$this->clientId}.json");
             $error = $response['error'] ?? '';
             $apiKey = $response['ApiKey'] ?? '';
 
@@ -222,15 +213,5 @@ class CampaignMonitor extends EmailMarketing
             'base_uri' => 'https://api.createsend.com/api/v3.2/',
             'auth' => [$this->apiKey, 'formie'],
         ]);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    private function _request(string $method, string $uri, array $options = [])
-    {
-        $response = $this->_getClient()->request($method, trim($uri, '/'), $options);
-
-        return Json::decode((string)$response->getBody());
     }
 }

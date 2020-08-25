@@ -128,14 +128,4 @@ class Trello extends Webhook
             'headers' => ['Api-Token' => $this->apiKey],
         ]);
     }
-
-    /**
-     * @inheritDoc
-     */
-    private function _request(string $method, string $uri, array $options = [])
-    {
-        $response = $this->_getClient()->request($method, trim($uri, '/'), $options);
-
-        return Json::decode((string)$response->getBody());
-    }
 }

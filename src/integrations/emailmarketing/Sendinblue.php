@@ -62,7 +62,7 @@ class Sendinblue extends EmailMarketing
         $settings = [];
 
         try {
-            $response = $this->_request('GET', 'contacts/lists');
+            $response = $this->request('GET', 'contacts/lists');
 
             $lists = $response['lists'] ?? [];
 
@@ -118,18 +118,9 @@ class Sendinblue extends EmailMarketing
                 'updateEnabled' => true,
             ];
 
-            // Allow events to cancel sending
-            if (!$this->beforeSendPayload($submission, $payload)) {
-                return false;
-            }
+            $response = $this->deliverPayload($submission, 'contacts', $payload);
 
-            // Add or update
-            $response = $this->_request('POST', 'contacts', [
-                'json' => $payload,
-            ]);
-
-            // Allow events to say the response is invalid
-            if (!$this->afterSendPayload($submission, $payload, $response)) {
+            if ($response === false) {
                 return false;
             }
         } catch (\Throwable $e) {
@@ -151,7 +142,7 @@ class Sendinblue extends EmailMarketing
     public function fetchConnection(): bool
     {
         try {
-            $response = $this->_request('GET', 'account');
+            $response = $this->request('GET', 'account');
             $accountId = $response['email'] ?? '';
 
             if (!$accountId) {
@@ -188,15 +179,5 @@ class Sendinblue extends EmailMarketing
             'base_uri' => 'https://api.sendinblue.com/v3/',
             'headers' => ['api-key' => $this->apiKey],
         ]);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    private function _request(string $method, string $uri, array $options = [])
-    {
-        $response = $this->_getClient()->request($method, trim($uri, '/'), $options);
-
-        return Json::decode((string)$response->getBody());
     }
 }

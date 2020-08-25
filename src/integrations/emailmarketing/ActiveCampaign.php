@@ -63,7 +63,7 @@ class ActiveCampaign extends EmailMarketing
         $settings = [];
 
         try {
-            $response = $this->_request('GET', 'lists', [
+            $response = $this->request('GET', 'lists', [
                 'query' => [
                     'limit' => 100,
                 ],
@@ -73,7 +73,7 @@ class ActiveCampaign extends EmailMarketing
 
             foreach ($lists as $list) {
                 // While we're at it, fetch the fields for the list
-                $response = $this->_request('GET', 'fields', [
+                $response = $this->request('GET', 'fields', [
                     'query' => [
                         'limit' => 100,
                     ],
@@ -165,18 +165,9 @@ class ActiveCampaign extends EmailMarketing
                 ],
             ];
 
-            // Allow events to cancel sending
-            if (!$this->beforeSendPayload($submission, $payload)) {
-                return false;
-            }
+            $response = $this->deliverPayload($submission, 'contact/sync', $payload);
 
-            // Create or update contact
-            $response = $this->_request('POST', 'contact/sync', [
-                'json' => $payload,
-            ]);
-
-            // Allow events to say the response is invalid
-            if (!$this->afterSendPayload($submission, $payload, $response)) {
+            if ($response === false) {
                 return false;
             }
 
@@ -198,18 +189,9 @@ class ActiveCampaign extends EmailMarketing
                 ],
             ];
 
-            // Allow events to cancel sending
-            if (!$this->beforeSendPayload($submission, $payload)) {
-                return false;
-            }
+            $response = $this->deliverPayload($submission, 'contactLists', $payload);
 
-            // Then add them to the list
-            $response = $this->_request('POST', 'contactLists', [
-                'json' => $payload,
-            ]);
-
-            // Allow events to say the response is invalid
-            if (!$this->afterSendPayload($submission, $payload, $response)) {
+            if ($response === false) {
                 return false;
             }
         } catch (\Throwable $e) {
@@ -233,7 +215,7 @@ class ActiveCampaign extends EmailMarketing
         try {
             $clientId = $this->settings['clientId'] ?? '';
 
-            $response = $this->_request('GET', 'lists');
+            $response = $this->request('GET', 'lists');
             $error = $response['error'] ?? '';
             $lists = $response['lists'] ?? '';
 
@@ -277,16 +259,6 @@ class ActiveCampaign extends EmailMarketing
             'base_uri' => trim($this->apiUrl, '/') . '/api/3/',
             'headers' => ['Api-Token' => $this->apiKey],
         ]);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    private function _request(string $method, string $uri, array $options = [])
-    {
-        $response = $this->_getClient()->request($method, trim($uri, '/'), $options);
-
-        return Json::decode((string)$response->getBody());
     }
 
     /**
