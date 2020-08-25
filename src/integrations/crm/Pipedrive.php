@@ -21,6 +21,16 @@ class Pipedrive extends Crm
     // =========================================================================
 
     public $apiKey;
+    public $mapToPerson = false;
+    public $mapToDeal = false;
+    public $mapToLead = false;
+    public $mapToOrganization = false;
+    public $mapToNote = false;
+    public $personFieldMapping;
+    public $dealFieldMapping;
+    public $leadFieldMapping;
+    public $organizationFieldMapping;
+    public $noteFieldMapping;
 
 
     // Public Methods
@@ -51,6 +61,33 @@ class Pipedrive extends Crm
 
         $rules[] = [['apiKey'], 'required'];
 
+        $person = $this->getFormSettings()['person'] ?? [];
+        $deal = $this->getFormSettings()['deal'] ?? [];
+        $lead = $this->getFormSettings()['lead'] ?? [];
+        $organization = $this->getFormSettings()['organization'] ?? [];
+        $note = $this->getFormSettings()['note'] ?? [];
+
+        // Validate the following when saving form settings
+        $rules[] = [['personFieldMapping'], 'validateFieldMapping', 'params' => $person, 'when' => function($model) {
+            return $model->enabled && $model->mapToPerson;
+        }, 'on' => [Integration::SCENARIO_FORM]];
+
+        $rules[] = [['dealFieldMapping'], 'validateFieldMapping', 'params' => $deal, 'when' => function($model) {
+            return $model->enabled && $model->mapToDeal;
+        }, 'on' => [Integration::SCENARIO_FORM]];
+
+        $rules[] = [['leadFieldMapping'], 'validateFieldMapping', 'params' => $lead, 'when' => function($model) {
+            return $model->enabled && $model->mapToLead;
+        }, 'on' => [Integration::SCENARIO_FORM]];
+
+        $rules[] = [['organizationFieldMapping'], 'validateFieldMapping', 'params' => $organization, 'when' => function($model) {
+            return $model->enabled && $model->mapToOrganization;
+        }, 'on' => [Integration::SCENARIO_FORM]];
+
+        $rules[] = [['noteFieldMapping'], 'validateFieldMapping', 'params' => $note, 'when' => function($model) {
+            return $model->enabled && $model->mapToNote;
+        }, 'on' => [Integration::SCENARIO_FORM]];
+
         return $rules;
     }
 
@@ -59,10 +96,57 @@ class Pipedrive extends Crm
      */
     public function fetchFormSettings()
     {
-        $allLists = [];
+        $settings = [];
 
         try {
+            // Get Person fields
+            $response = $this->request('GET', 'personFields');
+            $fields = $response['data'] ?? [];
+            $personFields = $this->_getCustomFields($fields);
+
+            // Get Deal fields
+            $response = $this->request('GET', 'dealFields');
+            $fields = $response['data'] ?? [];
+            $dealFields = $this->_getCustomFields($fields);
+
+            // Get Lead fields
+            $leadFields = [
+                new IntegrationField([
+                    'handle' => 'title',
+                    'name' => Craft::t('formie', 'Title'),
+                    'required' => true,
+                ]),
+                new IntegrationField([
+                    'handle' => 'owner_id',
+                    'name' => Craft::t('formie', 'Owner ID'),
+                ]),
+                new IntegrationField([
+                    'handle' => 'note',
+                    'name' => Craft::t('formie', 'Note'),
+                ]),
+                new IntegrationField([
+                    'handle' => 'value',
+                    'name' => Craft::t('formie', 'Value'),
+                ]),
+            ];
+
+            // Get Organization fields
+            $response = $this->request('GET', 'organizationFields');
+            $fields = $response['data'] ?? [];
+            $organizationFields = $this->_getCustomFields($fields);
             
+            // Get Note fields
+            $response = $this->request('GET', 'noteFields');
+            $fields = $response['data'] ?? [];
+            $noteFields = $this->_getCustomFields($fields);
+
+            $settings = [
+                'person' => $personFields,
+                'deal' => $dealFields,
+                'lead' => $leadFields,
+                'organization' => $organizationFields,
+                'note' => $noteFields,
+            ];
         } catch (\Throwable $e) {
             Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [
                 'message' => $e->getMessage(),
@@ -71,7 +155,7 @@ class Pipedrive extends Crm
             ]), true);
         }
 
-        return $allLists;
+        return $settings;
     }
 
     /**
@@ -80,7 +164,154 @@ class Pipedrive extends Crm
     public function sendPayload(Submission $submission): bool
     {
         try {
-            
+            $personValues = $this->getFieldMappingValues($submission, $this->personFieldMapping);
+            $dealValues = $this->getFieldMappingValues($submission, $this->dealFieldMapping);
+            $leadValues = $this->getFieldMappingValues($submission, $this->leadFieldMapping);
+            $organizationValues = $this->getFieldMappingValues($submission, $this->organizationFieldMapping);
+            $noteValues = $this->getFieldMappingValues($submission, $this->noteFieldMapping);
+
+            $organizationId = null;
+
+            if ($this->mapToOrganization) {
+                $organizationPayload = $organizationValues;
+
+                $response = $this->deliverPayload($submission, 'organizations', $organizationPayload);
+
+                if ($response === false) {
+                    return false;
+                }
+
+                $organizationId = $response['data']['id'] ?? '';
+
+                if (!$organizationId) {
+                    Integration::error($this, Craft::t('formie', 'Missing return “organizationId” {response}', [
+                        'response' => Json::encode($response),
+                    ]), true);
+
+                    return false;
+                }
+            }
+
+            $personId = null;
+
+            if ($this->mapToPerson) {
+                $personPayload = $personValues;
+
+                if ($organizationId) {
+                    $personPayload['org_id'] = $organizationId;
+                }
+
+                $response = $this->deliverPayload($submission, 'persons', $personPayload);
+
+                if ($response === false) {
+                    return false;
+                }
+
+                $personId = $response['data']['id'] ?? '';
+
+                if (!$personId) {
+                    Integration::error($this, Craft::t('formie', 'Missing return “personId” {response}', [
+                        'response' => Json::encode($response),
+                    ]), true);
+
+                    return false;
+                }
+            }
+
+            $dealId = null;
+
+            if ($this->mapToDeal) {
+                $dealPayload = $dealValues;
+
+                if ($organizationId) {
+                    $dealPayload['org_id'] = $organizationId;
+                }
+
+                if ($personId) {
+                    $dealPayload['person_id'] = $personId;
+                }
+
+                $response = $this->deliverPayload($submission, 'deals', $dealPayload);
+
+                if ($response === false) {
+                    return false;
+                }
+
+                $dealId = $response['data']['id'] ?? '';
+
+                if (!$dealId) {
+                    Integration::error($this, Craft::t('formie', 'Missing return “dealId” {response}', [
+                        'response' => Json::encode($response),
+                    ]), true);
+
+                    return false;
+                }
+            }
+
+            $leadId = null;
+
+            if ($this->mapToLead) {
+                $leadPayload = $leadValues;
+
+                if ($organizationId) {
+                    $leadPayload['organization_id'] = $organizationId;
+                }
+
+                if ($personId) {
+                    $leadPayload['person_id'] = $personId;
+                }
+
+                $response = $this->deliverPayload($submission, 'leads', $leadPayload);
+
+                if ($response === false) {
+                    return false;
+                }
+
+                $leadId = $response['data']['id'] ?? '';
+
+                if (!$leadId) {
+                    Integration::error($this, Craft::t('formie', 'Missing return “leadId” {response}', [
+                        'response' => Json::encode($response),
+                    ]), true);
+
+                    return false;
+                }
+            }
+
+            if ($this->mapToNote) {
+                $notePayload = $noteValues;
+
+                if ($organizationId) {
+                    $notePayload['org_id'] = $organizationId;
+                    $notePayload['pinned_to_organization_flag'] = '1';
+                }
+
+                if ($personId) {
+                    $notePayload['person_id'] = $personId;
+                    $notePayload['pinned_to_person_flag'] = '1';
+                }
+
+                if ($dealId) {
+                    $notePayload['deal_id'] = $dealId;
+                    $notePayload['pinned_to_deal_flag'] = '1';
+                }
+
+                $response = $this->deliverPayload($submission, 'notes', $notePayload);
+
+                if ($response === false) {
+                    return false;
+                }
+
+                $noteId = $response['data']['id'] ?? '';
+
+                if (!$noteId) {
+                    Integration::error($this, Craft::t('formie', 'Missing return “noteId” {response}', [
+                        'response' => Json::encode($response),
+                    ]), true);
+
+                    return false;
+                }
+            }
         } catch (\Throwable $e) {
             Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [
                 'message' => $e->getMessage(),
@@ -100,7 +331,16 @@ class Pipedrive extends Crm
     public function fetchConnection(): bool
     {
         try {
-            
+            $response = $this->request('GET', 'deals');
+            $success = $response['success'] ?? false;
+
+            if (!$success) {
+                Integration::error($this, Craft::t('formie', 'Missing return “success” {response}', [
+                    'response' => Json::encode($response),
+                ]), true);
+
+                return false;
+            }
         } catch (\Throwable $e) {
             Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [
                 'message' => $e->getMessage(),
@@ -128,8 +368,116 @@ class Pipedrive extends Crm
         }
 
         return $this->_client = Craft::createGuzzleClient([
-            'base_uri' => '',
-            'headers' => ['Api-Token' => $this->apiKey],
+            'base_uri' => 'https://api.pipedrive.com/v1/',
+            'query' => ['api_token' => $this->apiKey],
         ]);
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    /**
+     * @inheritDoc
+     */
+    private function _getCustomFields($fields, $excludeNames = [])
+    {
+        $customFields = [];
+
+        $supportedFields = [
+            'name',
+            'first_name',
+            'last_name',
+            'label',
+            'phone',
+            'email',
+            'title',
+            'value',
+            'currency',
+            'stage_id',
+            'status',
+            'probability',
+            'content',
+        ];
+
+        $requredFields = [
+            'name',
+            'title',
+            'content',
+        ];
+
+        foreach ($fields as $key => $field) {
+            // Try to fetch just the custom fields - not all of them
+            if (!preg_match('/[a-z0-9]{40}/i', $field['key']) && !in_array($field['key'], $supportedFields)) {
+                continue;
+            }
+
+            // Exclude any names
+            if (in_array($field['key'], $excludeNames)) {
+                 continue;
+            }
+
+            $required = $field['mandatory_flag'] ?? false;
+
+            if (in_array($field['key'], $requredFields)) {
+                $required = true;
+            }
+
+            $options = [];
+            $fieldOptions = $field['options'] ?? [];
+
+            foreach ($fieldOptions as $key => $fieldOption) {
+                $options[] = [
+                    'label' => $fieldOption['label'],
+                    'value' => $fieldOption['id'],
+                ];
+            }
+
+            // Populate some fields
+            if ($field['key'] === 'stage_id') {
+                $response = $this->request('GET', 'stages');
+                $stages = $response['data'] ?? [];
+
+                if ($stages) {
+                    foreach ($stages as $key => $stage) {
+                        $options[] = [
+                            'label' => $stage['name'],
+                            'value' => $stage['id'],
+                        ];
+                    }
+                }
+            }
+
+            if ($field['key'] === 'currency') {
+                $response = $this->request('GET', 'currencies');
+                $currencies = $response['data'] ?? [];
+
+                if ($currencies) {
+                    foreach ($currencies as $key => $currency) {
+                        $options[] = [
+                            'label' => $currency['name'],
+                            'value' => $currency['code'],
+                        ];
+                    }
+                }
+            }
+
+            if ($options) {
+                $options = [
+                    'label' => $field['name'],
+                    'options' => $options,
+                ];
+            }
+
+            $customFields[] = new IntegrationField([
+                'handle' => $field['key'],
+                'name' => $field['name'],
+                'type' => $field['field_type'],
+                'required' => $required,
+                'options' => $options,
+            ]);
+        }
+
+        return $customFields;
     }
 }
