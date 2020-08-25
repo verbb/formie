@@ -100,7 +100,7 @@ class Insightly extends Crm
     public function fetchConnection(): bool
     {
         try {
-            
+            $response = $this->request('GET', 'Instance');
         } catch (\Throwable $e) {
             Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [
                 'message' => $e->getMessage(),
@@ -115,21 +115,21 @@ class Insightly extends Crm
     }
 
 
-    // Private Methods
+    // Protected Methods
     // =========================================================================
 
     /**
      * @inheritDoc
      */
-    private function _getClient()
+    protected function getClient()
     {
         if ($this->_client) {
             return $this->_client;
         }
 
         return $this->_client = Craft::createGuzzleClient([
-            'base_uri' => '',
-            'headers' => ['Api-Token' => $this->apiKey],
+            'base_uri' => 'https://api.insightly.com/v3.1/',
+            'auth' => [$this->apiKey, ''],
         ]);
     }
 }

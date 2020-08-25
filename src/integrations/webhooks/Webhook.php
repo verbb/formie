@@ -117,7 +117,7 @@ class Webhook extends BaseWebhook
     /**
      * @inheritDoc
      */
-    private function _getClient()
+    protected function getClient()
     {
         if ($this->_client) {
             return $this->_client;

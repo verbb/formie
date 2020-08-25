@@ -200,13 +200,13 @@ class Mailchimp extends EmailMarketing
     }
 
 
-    // Private Methods
+    // Protected Methods
     // =========================================================================
 
     /**
      * @inheritDoc
      */
-    private function _getClient()
+    protected function getClient()
     {
         if ($this->_client) {
             return $this->_client;
@@ -222,6 +222,13 @@ class Mailchimp extends EmailMarketing
         ]);
     }
 
+
+    // Private Methods
+    // =========================================================================
+
+    /**
+     * @inheritDoc
+     */
     private function _getDataCenter()
     {
         if (preg_match('/([a-zA-Z]+[\d]+)$/', $this->apiKey, $matches)) {

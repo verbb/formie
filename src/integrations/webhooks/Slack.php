@@ -117,7 +117,7 @@ class Slack extends Webhook
     /**
      * @inheritDoc
      */
-    private function _getClient()
+    protected function getClient()
     {
         if ($this->_client) {
             return $this->_client;

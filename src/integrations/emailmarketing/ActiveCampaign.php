@@ -243,13 +243,13 @@ class ActiveCampaign extends EmailMarketing
     }
 
 
-    // Private Methods
+    // Protected Methods
     // =========================================================================
 
     /**
      * @inheritDoc
      */
-    private function _getClient()
+    protected function getClient()
     {
         if ($this->_client) {
             return $this->_client;
@@ -260,6 +260,10 @@ class ActiveCampaign extends EmailMarketing
             'headers' => ['Api-Token' => $this->apiKey],
         ]);
     }
+
+
+    // Private Methods
+    // =========================================================================
 
     /**
      * @inheritDoc
