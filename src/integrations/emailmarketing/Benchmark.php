@@ -223,14 +223,4 @@ class Benchmark extends EmailMarketing
             'headers' => ['AuthToken' => $this->apiKey],
         ]);
     }
-
-    /**
-     * @inheritDoc
-     */
-    private function request(string $method, string $uri, array $options = [])
-    {
-        $response = $this->_getClient()->request($method, ltrim($uri, '/'), $options);
-
-        return Json::decode((string)$response->getBody());
-    }
 }
