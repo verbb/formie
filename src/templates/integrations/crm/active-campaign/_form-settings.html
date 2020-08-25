@@ -16,21 +16,32 @@
             <span v-html="errorMessage"></span>
         </div>
 
-        <integration-field-mapping
-            label="{{ 'Contact Field Mapping' | t('formie') }}"
-            instructions="{{ 'Choose how your form fields should map to your {name} Contact fields.' | t('formie', { name: integration.displayName() }) }}"
-            name-label="{{ integration.displayName() }}"
-            id="contact-field-mapping"
-            name="contactFieldMapping"
-            :value="get(form, 'settings.integrations.{{ integration.handle }}.contactFieldMapping')"
-            :rows="get(settings, 'contact')"
-        ></integration-field-mapping>
+        {{ forms.lightswitchField({
+            label: 'Map to Contact' | t('formie'),
+            instructions: 'Whether to map form data to {name} Contacts.' | t('formie', { name: integration.displayName() }),
+            id: 'mapToContact',
+            name: 'mapToContact',
+            on: mapToContact,
+            toggle: 'map-to-contact',
+        }) }}
 
-        <ul v-if="!isEmpty(get(form, 'settings.integrations.{{ integration.handle }}.errors.contactFieldMapping'))" class="errors" v-cloak>
-            <li v-for="(error, index) in get(form, 'settings.integrations.{{ integration.handle }}.errors.contactFieldMapping')" :key="index">
-                ${ error }
-            </li>
-        </ul>
+        <div id="map-to-contact" class="{{ not mapToContact ? 'hidden' }}">
+            <integration-field-mapping
+                label="{{ 'Contact Field Mapping' | t('formie') }}"
+                instructions="{{ 'Choose how your form fields should map to your {name} Contact fields.' | t('formie', { name: integration.displayName() }) }}"
+                name-label="{{ integration.displayName() }}"
+                id="contact-field-mapping"
+                name="contactFieldMapping"
+                :value="get(form, 'settings.integrations.{{ integration.handle }}.contactFieldMapping')"
+                :rows="get(settings, 'contact')"
+            ></integration-field-mapping>
+
+            <ul v-if="!isEmpty(get(form, 'settings.integrations.{{ integration.handle }}.errors.contactFieldMapping'))" class="errors" v-cloak>
+                <li v-for="(error, index) in get(form, 'settings.integrations.{{ integration.handle }}.errors.contactFieldMapping')" :key="index">
+                    ${ error }
+                </li>
+            </ul>
+        </div>
 
         {{ forms.lightswitchField({
             label: 'Map to Deal' | t('formie'),

@@ -22,6 +22,7 @@ class ActiveCampaign extends Crm
 
     public $apiKey;
     public $apiUrl;
+    public $mapToContact = false;
     public $mapToDeal = false;
     public $mapToAccount = false;
     public $contactFieldMapping;
@@ -63,7 +64,7 @@ class ActiveCampaign extends Crm
 
         // Validate the following when saving form settings
         $rules[] = [['contactFieldMapping'], 'validateFieldMapping', 'params' => $contact, 'when' => function($model) {
-            return $model->enabled;
+            return $model->enabled && $model->mapToContact;
         }, 'on' => [Integration::SCENARIO_FORM]];
 
         $rules[] = [['dealFieldMapping'], 'validateFieldMapping', 'params' => $deal, 'when' => function($model) {
@@ -120,7 +121,7 @@ class ActiveCampaign extends Crm
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
-            ]));
+            ]), true);
         }
 
         $settings = [
@@ -289,7 +290,7 @@ class ActiveCampaign extends Crm
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
-            ]));
+            ]), true);
         }
 
         return $settings;
@@ -308,52 +309,54 @@ class ActiveCampaign extends Crm
             $accountId = null;
             $contactId = null;
 
-            $email = ArrayHelper::remove($contactValues, 'email');
-            $firstName = ArrayHelper::remove($contactValues, 'firstName');
-            $lastName = ArrayHelper::remove($contactValues, 'lastName');
-            $phone = ArrayHelper::remove($contactValues, 'phone');
-            $listId = ArrayHelper::remove($contactValues, 'listId');
+            if ($mapToContact) {
+                $email = ArrayHelper::remove($contactValues, 'email');
+                $firstName = ArrayHelper::remove($contactValues, 'firstName');
+                $lastName = ArrayHelper::remove($contactValues, 'lastName');
+                $phone = ArrayHelper::remove($contactValues, 'phone');
+                $listId = ArrayHelper::remove($contactValues, 'listId');
 
-            $contactPayload = [
-                'contact' => [
-                    'email' => $email,
-                    'firstName' => $firstName,
-                    'lastName' => $lastName,
-                    'phone' => $phone,
-                    'fieldValues' => $this->_prepCustomFields($contactValues),
-                ],
-            ];
-
-            $response = $this->_sendPayload($submission, 'contact/sync', $contactPayload);
-
-            if ($response === false) {
-                return false;
-            }
-
-            $contactId = $response['contact']['id'] ?? '';
-
-            if (!$contactId) {
-                Integration::error($this, Craft::t('formie', 'Missing return “contactId” {response}', [
-                    'response' => Json::encode($response),
-                ]), true);
-
-                return false;
-            }
-
-            // If we're wanting to add them to a mailing list as well...
-            if ($listId) {
-                $payload = [
-                    'contactList' => [
-                        'list' => $listId,
-                        'contact' => $contactId,
-                        'status' => 1,
+                $contactPayload = [
+                    'contact' => [
+                        'email' => $email,
+                        'firstName' => $firstName,
+                        'lastName' => $lastName,
+                        'phone' => $phone,
+                        'fieldValues' => $this->_prepCustomFields($contactValues),
                     ],
                 ];
 
-                $response = $this->_sendPayload($submission, 'contactLists', $payload);
+                $response = $this->_sendPayload($submission, 'contact/sync', $contactPayload);
 
                 if ($response === false) {
                     return false;
+                }
+
+                $contactId = $response['contact']['id'] ?? '';
+
+                if (!$contactId) {
+                    Integration::error($this, Craft::t('formie', 'Missing return “contactId” {response}', [
+                        'response' => Json::encode($response),
+                    ]), true);
+
+                    return false;
+                }
+
+                // If we're wanting to add them to a mailing list as well...
+                if ($listId) {
+                    $payload = [
+                        'contactList' => [
+                            'list' => $listId,
+                            'contact' => $contactId,
+                            'status' => 1,
+                        ],
+                    ];
+
+                    $response = $this->_sendPayload($submission, 'contactLists', $payload);
+
+                    if ($response === false) {
+                        return false;
+                    }
                 }
             }
 
@@ -444,7 +447,7 @@ class ActiveCampaign extends Crm
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
-            ]));
+            ]), true);
 
             return false;
         }

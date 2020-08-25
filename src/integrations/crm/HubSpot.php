@@ -21,6 +21,7 @@ class HubSpot extends Crm
     // =========================================================================
 
     public $apiKey;
+    public $mapToContact = false;
     public $mapToDeal = false;
     public $mapToCompany = false;
     public $contactFieldMapping;
@@ -62,7 +63,7 @@ class HubSpot extends Crm
 
         // Validate the following when saving form settings
         $rules[] = [['contactFieldMapping'], 'validateFieldMapping', 'params' => $contact, 'when' => function($model) {
-            return $model->enabled;
+            return $model->enabled && $model->mapToContact;
         }, 'on' => [Integration::SCENARIO_FORM]];
 
         $rules[] = [['dealFieldMapping'], 'validateFieldMapping', 'params' => $deal, 'when' => function($model) {
@@ -111,7 +112,7 @@ class HubSpot extends Crm
                     'name' => Craft::t('formie', 'Email'),
                     'required' => true,
                 ]),
-            ], $this->_getCustomFields($fields, ['email']));
+            ], $this->_getCustomFields($fields, ['email']), true);
 
             // Get Companies fields
             $response = $this->_request('GET', 'crm/v3/properties/companies');
@@ -123,7 +124,7 @@ class HubSpot extends Crm
                     'name' => Craft::t('formie', 'Name'),
                     'required' => true,
                 ]),
-            ], $this->_getCustomFields($fields, ['name']));
+            ], $this->_getCustomFields($fields, ['name']), true);
 
             // Get Deals fields
             $response = $this->_request('GET', 'crm/v3/properties/deals');
@@ -153,7 +154,7 @@ class HubSpot extends Crm
                         'options' => $dealStageOptions,
                     ],
                 ]),
-            ], $this->_getCustomFields($fields, ['dealname', 'pipeline', 'dealstage']));
+            ], $this->_getCustomFields($fields, ['dealname', 'pipeline', 'dealstage']), true);
 
             $settings = [
                 'contact' => $contactFields,
@@ -165,7 +166,7 @@ class HubSpot extends Crm
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
-            ]));
+            ]), true);
         }
 
         return $settings;
@@ -183,41 +184,47 @@ class HubSpot extends Crm
 
             $contactId = null;
 
-            $email = ArrayHelper::getValue($contactValues, 'email');
+            if ($mapToContact) {
+                $email = ArrayHelper::getValue($contactValues, 'email');
 
-            // Prepare the payload for HubSpot, required for v1 API
-            $contactPayload = [];
+                // Prepare the payload for HubSpot, required for v1 API
+                $contactPayload = [];
 
-            foreach ($contactValues as $key => $value) {
-                $contactPayload['properties'][] = [
-                    'property' => $key,
-                    'value' => $value,
-                ];
-            }
+                foreach ($contactValues as $key => $value) {
+                    $contactPayload['properties'][] = [
+                        'property' => $key,
+                        'value' => $value,
+                    ];
+                }
 
-            // Create or update the contact
-            $response = $this->_sendPayload($submission, "contacts/v1/contact/createOrUpdate/email/{$email}", $contactPayload);
+                // Create or update the contact
+                $response = $this->_sendPayload($submission, "contacts/v1/contact/createOrUpdate/email/{$email}", $contactPayload);
 
-            if ($response === false) {
-                return false;
-            }
+                if ($response === false) {
+                    return false;
+                }
 
-            $contactId = $response['vid'] ?? '';
+                $contactId = $response['vid'] ?? '';
 
-            if (!$contactId) {
-                Integration::error($this, Craft::t('formie', 'Missing return “contactId” {response}', [
-                    'response' => Json::encode($response),
-                ]), true);
+                if (!$contactId) {
+                    Integration::error($this, Craft::t('formie', 'Missing return “contactId” {response}', [
+                        'response' => Json::encode($response),
+                    ]), true);
 
-                return false;
+                    return false;
+                }
             }
 
             if ($this->mapToDeal) {
-                $dealPayload = [
-                    'associations' => [
-                        'associatedVids' => [$contactId],
-                    ],
-                ];
+                $dealPayload = [];
+
+                if ($contactId) {
+                    $dealPayload = [
+                        'associations' => [
+                            'associatedVids' => [$contactId],
+                        ],
+                    ];
+                }
 
                 foreach ($dealValues as $key => $value) {
                     $dealPayload['properties'][] = [
@@ -247,7 +254,7 @@ class HubSpot extends Crm
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
-            ]));
+            ]), true);
 
             return false;
         }
