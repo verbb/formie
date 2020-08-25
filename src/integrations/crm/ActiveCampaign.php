@@ -22,7 +22,6 @@ class ActiveCampaign extends Crm
 
     public $apiKey;
     public $apiUrl;
-    public $mapToContact = false;
     public $mapToDeal = false;
     public $mapToAccount = false;
     public $contactFieldMapping;
@@ -64,7 +63,7 @@ class ActiveCampaign extends Crm
 
         // Validate the following when saving form settings
         $rules[] = [['contactFieldMapping'], 'validateFieldMapping', 'params' => $contact, 'when' => function($model) {
-            return $model->enabled && $model->mapToContact;
+            return $model->enabled;
         }, 'on' => [Integration::SCENARIO_FORM]];
 
         $rules[] = [['dealFieldMapping'], 'validateFieldMapping', 'params' => $deal, 'when' => function($model) {
@@ -309,72 +308,52 @@ class ActiveCampaign extends Crm
             $accountId = null;
             $contactId = null;
 
-            if ($this->mapToContact) {
-                $email = ArrayHelper::remove($contactValues, 'email');
-                $firstName = ArrayHelper::remove($contactValues, 'firstName');
-                $lastName = ArrayHelper::remove($contactValues, 'lastName');
-                $phone = ArrayHelper::remove($contactValues, 'phone');
-                $listId = ArrayHelper::remove($contactValues, 'listId');
+            $email = ArrayHelper::remove($contactValues, 'email');
+            $firstName = ArrayHelper::remove($contactValues, 'firstName');
+            $lastName = ArrayHelper::remove($contactValues, 'lastName');
+            $phone = ArrayHelper::remove($contactValues, 'phone');
+            $listId = ArrayHelper::remove($contactValues, 'listId');
 
-                $contactPayload = [
-                    'contact' => [
-                        'email' => $email,
-                        'firstName' => $firstName,
-                        'lastName' => $lastName,
-                        'phone' => $phone,
-                        'fieldValues' => $this->_prepCustomFields($contactValues),
+            $contactPayload = [
+                'contact' => [
+                    'email' => $email,
+                    'firstName' => $firstName,
+                    'lastName' => $lastName,
+                    'phone' => $phone,
+                    'fieldValues' => $this->_prepCustomFields($contactValues),
+                ],
+            ];
+
+            $response = $this->_sendPayload($submission, 'contact/sync', $contactPayload);
+
+            if ($response === false) {
+                return false;
+            }
+
+            $contactId = $response['contact']['id'] ?? '';
+
+            if (!$contactId) {
+                Integration::error($this, Craft::t('formie', 'Missing return “contactId” {response}', [
+                    'response' => Json::encode($response),
+                ]), true);
+
+                return false;
+            }
+
+            // If we're wanting to add them to a mailing list as well...
+            if ($listId) {
+                $payload = [
+                    'contactList' => [
+                        'list' => $listId,
+                        'contact' => $contactId,
+                        'status' => 1,
                     ],
                 ];
 
-                // Allow events to cancel sending
-                if (!$this->beforeSendPayload($submission, $contactPayload)) {
+                $response = $this->_sendPayload($submission, 'contactLists', $payload);
+
+                if ($response === false) {
                     return false;
-                }
-
-                // Create or update contact
-                $response = $this->_request('POST', 'contact/sync', [
-                    'json' => $contactPayload,
-                ]);
-
-                // Allow events to say the response is invalid
-                if (!$this->afterSendPayload($submission, $contactPayload, $response)) {
-                    return false;
-                }
-
-                $contactId = $response['contact']['id'] ?? '';
-
-                if (!$contactId) {
-                    Integration::error($this, Craft::t('formie', 'Missing return “contactId” {response}', [
-                        'response' => Json::encode($response),
-                    ]), true);
-
-                    return false;
-                }
-
-                // If we're wanting to add them to a mailing list as well...
-                if ($listId) {
-                    $payload = [
-                        'contactList' => [
-                            'list' => $listId,
-                            'contact' => $contactId,
-                            'status' => 1,
-                        ],
-                    ];
-
-                    // Allow events to cancel sending
-                    if (!$this->beforeSendPayload($submission, $payload)) {
-                        return false;
-                    }
-
-                    // Then add them to the list
-                    $response = $this->_request('POST', 'contactLists', [
-                        'json' => $payload,
-                    ]);
-
-                    // Allow events to say the response is invalid
-                    if (!$this->afterSendPayload($submission, $payload, $response)) {
-                        return false;
-                    }
                 }
             }
 
@@ -388,18 +367,8 @@ class ActiveCampaign extends Crm
                     ],
                 ];
 
-                // Allow events to cancel sending
-                if (!$this->beforeSendPayload($submission, $accountPayload)) {
-                    return false;
-                }
-
                 // Try to find the account first
                 $response = $this->_request('GET', 'accounts');
-
-                // Allow events to say the response is invalid
-                if (!$this->afterSendPayload($submission, $accountPayload, $response)) {
-                    return false;
-                }
 
                 $accounts = $response['accounts'] ?? [];
                 $accountId = '';
@@ -412,17 +381,9 @@ class ActiveCampaign extends Crm
 
                 // If not found already, create it
                 if (!$accountId) {
-                    // Allow events to cancel sending
-                    if (!$this->beforeSendPayload($submission, $accountPayload)) {
-                        return false;
-                    }
+                    $response = $this->_sendPayload($submission, 'accounts', $accountPayload);
 
-                    $response = $this->_request('POST', 'accounts', [
-                        'json' => $accountPayload,
-                    ]);
-
-                    // Allow events to say the response is invalid
-                    if (!$this->afterSendPayload($submission, $accountPayload, $response)) {
+                    if ($response === false) {
                         return false;
                     }
 
@@ -438,24 +399,16 @@ class ActiveCampaign extends Crm
                         ],
                     ];
 
-                    // Allow events to cancel sending
-                    if (!$this->beforeSendPayload($submission, $payload)) {
-                        return false;
-                    }
-
                     // Don't proceed with an update if already associated
                     $response = $this->_request('GET', 'accountContacts');
                     $accountContacts = $response['accountContacts'][0]['id'] ?? '';
 
                     if (!$accountContacts) {
-                        $response = $this->_request('POST', 'accountContacts', [
-                            'json' => $payload,
-                        ]);
-                    }
+                        $response = $this->_sendPayload($submission, 'accountContacts', $payload);
 
-                    // Allow events to say the response is invalid
-                    if (!$this->afterSendPayload($submission, $payload, $response)) {
-                        return false;
+                        if ($response === false) {
+                            return false;
+                        }
                     }
                 }
             }
@@ -480,17 +433,9 @@ class ActiveCampaign extends Crm
                     ],
                 ];
 
-                // Allow events to cancel sending
-                if (!$this->beforeSendPayload($submission, $dealPayload)) {
-                    return false;
-                }
+                $response = $this->_sendPayload($submission, 'deals', $dealPayload);
 
-                $response = $this->_request('POST', 'deals', [
-                    'json' => $dealPayload,
-                ]);
-
-                // Allow events to say the response is invalid
-                if (!$this->afterSendPayload($submission, $dealPayload, $response)) {
+                if ($response === false) {
                     return false;
                 }
             }
@@ -554,6 +499,28 @@ class ActiveCampaign extends Crm
         $response = $this->_getClient()->request($method, trim($uri, '/'), $options);
 
         return Json::decode((string)$response->getBody());
+    }
+
+    /**
+     * @inheritDoc
+     */
+    private function _sendPayload($submission, $endpoint, $payload)
+    {
+        // Allow events to cancel sending
+        if (!$this->beforeSendPayload($submission, $payload)) {
+            return false;
+        }
+
+        $response = $this->_request('POST', $endpoint, [
+            'json' => $payload,
+        ]);
+
+        // Allow events to say the response is invalid
+        if (!$this->afterSendPayload($submission, $payload, $response)) {
+            return false;
+        }
+
+        return $response;
     }
 
     /**

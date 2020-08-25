@@ -7,8 +7,8 @@ use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\errors\IntegrationException;
 use verbb\formie\events\SendIntegrationPayloadEvent;
+use verbb\formie\models\CrmObject;
 use verbb\formie\models\IntegrationField;
-use verbb\formie\models\EmailMarketingList;
 
 use Craft;
 use craft\helpers\ArrayHelper;
@@ -21,6 +21,11 @@ class HubSpot extends Crm
     // =========================================================================
 
     public $apiKey;
+    public $mapToDeal = false;
+    public $mapToCompany = false;
+    public $contactFieldMapping;
+    public $dealFieldMapping;
+    public $companyFieldMapping;
 
 
     // Public Methods
@@ -51,18 +56,110 @@ class HubSpot extends Crm
 
         $rules[] = [['apiKey'], 'required'];
 
+        $contact = $this->getFormSettings()['contact'] ?? [];
+        $deal = $this->getFormSettings()['deal'] ?? [];
+        $company = $this->getFormSettings()['company'] ?? [];
+
+        // Validate the following when saving form settings
+        $rules[] = [['contactFieldMapping'], 'validateFieldMapping', 'params' => $contact, 'when' => function($model) {
+            return $model->enabled;
+        }, 'on' => [Integration::SCENARIO_FORM]];
+
+        $rules[] = [['dealFieldMapping'], 'validateFieldMapping', 'params' => $deal, 'when' => function($model) {
+            return $model->enabled && $model->mapToDeal;
+        }, 'on' => [Integration::SCENARIO_FORM]];
+
         return $rules;
     }
 
     /**
      * @inheritDoc
      */
-    public function fetchLists()
+    public function fetchFormSettings()
     {
-        $allLists = [];
+        $settings = [];
+        $dealPipelinesOptions = [];
+        $dealStageOptions = [];
 
         try {
-            
+            $response = $this->_request('GET', 'crm/v3/pipelines/deals');
+            $pipelines = $response['results'] ?? [];
+
+            foreach ($pipelines as $pipeline) {
+                $dealPipelinesOptions[] = [
+                    'label' => $pipeline['label'],
+                    'value' => $pipeline['id'],
+                ];
+
+                $stages = $pipeline['stages'] ?? [];
+
+                foreach ($stages as $stage) {
+                    $dealStageOptions[] = [
+                        'label' => $pipeline['label'] . ': ' . $stage['label'],
+                        'value' => $stage['id'],
+                    ];
+                }
+            }
+
+            // Get Contacts fields
+            $response = $this->_request('GET', 'crm/v3/properties/contacts');
+            $fields = $response['results'] ?? [];
+
+            $contactFields = array_merge([
+                new IntegrationField([
+                    'handle' => 'email',
+                    'name' => Craft::t('formie', 'Email'),
+                    'required' => true,
+                ]),
+            ], $this->_getCustomFields($fields, ['email']));
+
+            // Get Companies fields
+            $response = $this->_request('GET', 'crm/v3/properties/companies');
+            $fields = $response['results'] ?? [];
+
+            $companyFields = array_merge([
+                new IntegrationField([
+                    'handle' => 'name',
+                    'name' => Craft::t('formie', 'Name'),
+                    'required' => true,
+                ]),
+            ], $this->_getCustomFields($fields, ['name']));
+
+            // Get Deals fields
+            $response = $this->_request('GET', 'crm/v3/properties/deals');
+            $fields = $response['results'] ?? [];
+
+            $dealFields = array_merge([
+                new IntegrationField([
+                    'handle' => 'dealname',
+                    'name' => Craft::t('formie', 'Deal Name'),
+                    'required' => true,
+                ]),
+                new IntegrationField([
+                    'handle' => 'pipeline',
+                    'name' => Craft::t('formie', 'Deal Pipeline'),
+                    'required' => true,
+                    'options' => [
+                        'label' => Craft::t('formie', 'Pipelines'),
+                        'options' => $dealPipelinesOptions,
+                    ],
+                ]),
+                new IntegrationField([
+                    'handle' => 'dealstage',
+                    'name' => Craft::t('formie', 'Deal Stage'),
+                    'required' => true,
+                    'options' => [
+                        'label' => Craft::t('formie', 'Stages'),
+                        'options' => $dealStageOptions,
+                    ],
+                ]),
+            ], $this->_getCustomFields($fields, ['dealname', 'pipeline', 'dealstage']));
+
+            $settings = [
+                'contact' => $contactFields,
+                'deal' => $dealFields,
+                'company' => $companyFields,
+            ];
         } catch (\Throwable $e) {
             Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [
                 'message' => $e->getMessage(),
@@ -71,7 +168,7 @@ class HubSpot extends Crm
             ]));
         }
 
-        return $allLists;
+        return $settings;
     }
 
     /**
@@ -80,7 +177,71 @@ class HubSpot extends Crm
     public function sendPayload(Submission $submission): bool
     {
         try {
-            
+            $contactValues = $this->getFieldMappingValues($submission, $this->contactFieldMapping);
+            $dealValues = $this->getFieldMappingValues($submission, $this->dealFieldMapping);
+            $companyValues = $this->getFieldMappingValues($submission, $this->companyFieldMapping);
+
+            $contactId = null;
+
+            $email = ArrayHelper::getValue($contactValues, 'email');
+
+            // Prepare the payload for HubSpot, required for v1 API
+            $contactPayload = [];
+
+            foreach ($contactValues as $key => $value) {
+                $contactPayload['properties'][] = [
+                    'property' => $key,
+                    'value' => $value,
+                ];
+            }
+
+            // Create or update the contact
+            $response = $this->_sendPayload($submission, "contacts/v1/contact/createOrUpdate/email/{$email}", $contactPayload);
+
+            if ($response === false) {
+                return false;
+            }
+
+            $contactId = $response['vid'] ?? '';
+
+            if (!$contactId) {
+                Integration::error($this, Craft::t('formie', 'Missing return “contactId” {response}', [
+                    'response' => Json::encode($response),
+                ]), true);
+
+                return false;
+            }
+
+            if ($this->mapToDeal) {
+                $dealPayload = [
+                    'associations' => [
+                        'associatedVids' => [$contactId],
+                    ],
+                ];
+
+                foreach ($dealValues as $key => $value) {
+                    $dealPayload['properties'][] = [
+                        'name' => $key,
+                        'value' => $value,
+                    ];
+                }
+
+                $response = $this->_sendPayload($submission, 'deals/v1/deal', $dealPayload);
+
+                if ($response === false) {
+                    return false;
+                }
+
+                $dealId = $response['dealId'] ?? '';
+
+                if (!$contactId) {
+                    Integration::error($this, Craft::t('formie', 'Missing return dealId {response}', [
+                        'response' => Json::encode($response),
+                    ]), true);
+
+                    return false;
+                }
+            }
         } catch (\Throwable $e) {
             Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [
                 'message' => $e->getMessage(),
@@ -100,7 +261,7 @@ class HubSpot extends Crm
     public function fetchConnection(): bool
     {
         try {
-            
+            $response = $this->_request('GET', 'crm/v3/properties/contacts');
         } catch (\Throwable $e) {
             Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [
                 'message' => $e->getMessage(),
@@ -128,8 +289,8 @@ class HubSpot extends Crm
         }
 
         return $this->_client = Craft::createGuzzleClient([
-            'base_uri' => '',
-            'headers' => ['Api-Token' => $this->apiKey],
+            'base_uri' => 'https://api.hubapi.com/',
+            'query' => ['hapikey' => $this->apiKey],
         ]);
     }
 
@@ -141,5 +302,69 @@ class HubSpot extends Crm
         $response = $this->_getClient()->request($method, trim($uri, '/'), $options);
 
         return Json::decode((string)$response->getBody());
+    }
+
+    /**
+     * @inheritDoc
+     */
+    private function _sendPayload($submission, $endpoint, $payload)
+    {
+        // Allow events to cancel sending
+        if (!$this->beforeSendPayload($submission, $payload)) {
+            return false;
+        }
+
+        $response = $this->_request('POST', $endpoint, [
+            'json' => $payload,
+        ]);
+
+        // Allow events to say the response is invalid
+        if (!$this->afterSendPayload($submission, $payload, $response)) {
+            return false;
+        }
+
+        return $response;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    private function _getCustomFields($fields, $excludeNames = [])
+    {
+        $customFields = [];
+
+        $supportedFields = [
+            'string',
+            'enumeration',
+            'datetime',
+            'date',
+            'phone_number',
+            'bool',
+            'number',
+        ];
+
+        foreach ($fields as $key => $field) {
+            if ($field['modificationMetadata']['readOnlyValue'] || $field['hidden'] || $field['calculated']) {
+                continue;
+            }
+
+            // Only allow supported types
+            if (!in_array($field['type'], $supportedFields)) {
+                 continue;
+            }
+
+            // Exclude any names
+            if (in_array($field['name'], $excludeNames)) {
+                 continue;
+            }
+
+            $customFields[] = new IntegrationField([
+                'handle' => $field['name'],
+                'name' => $field['label'],
+                'type' => $field['type'],
+            ]);
+        }
+
+        return $customFields;
     }
 }
