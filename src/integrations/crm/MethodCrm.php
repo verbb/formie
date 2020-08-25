@@ -68,7 +68,7 @@ class MethodCrm extends Crm
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
-            ]));
+            ]), true);
         }
 
         return $allLists;
@@ -86,7 +86,7 @@ class MethodCrm extends Crm
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
-            ]));
+            ]), true);
 
             return false;
         }
