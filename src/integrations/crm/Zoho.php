@@ -156,6 +156,28 @@ class Zoho extends Crm
 
         $rules[] = [['clientId', 'clientSecret'], 'required'];
 
+        $contact = $this->getFormSettings()['contact'] ?? [];
+        $deal = $this->getFormSettings()['deal'] ?? [];
+        $lead = $this->getFormSettings()['lead'] ?? [];
+        $account = $this->getFormSettings()['account'] ?? [];
+
+        // Validate the following when saving form settings
+        $rules[] = [['contactFieldMapping'], 'validateFieldMapping', 'params' => $contact, 'when' => function($model) {
+            return $model->enabled && $model->mapToContact;
+        }, 'on' => [Integration::SCENARIO_FORM]];
+
+        $rules[] = [['dealFieldMapping'], 'validateFieldMapping', 'params' => $deal, 'when' => function($model) {
+            return $model->enabled && $model->mapToDeal;
+        }, 'on' => [Integration::SCENARIO_FORM]];
+
+        $rules[] = [['leadFieldMapping'], 'validateFieldMapping', 'params' => $lead, 'when' => function($model) {
+            return $model->enabled && $model->mapToLead;
+        }, 'on' => [Integration::SCENARIO_FORM]];
+
+        $rules[] = [['accountFieldMapping'], 'validateFieldMapping', 'params' => $account, 'when' => function($model) {
+            return $model->enabled && $model->mapToAccount;
+        }, 'on' => [Integration::SCENARIO_FORM]];
+
         return $rules;
     }
 
