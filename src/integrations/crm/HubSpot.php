@@ -241,8 +241,8 @@ class HubSpot extends Crm
 
                 $dealId = $response['dealId'] ?? '';
 
-                if (!$contactId) {
-                    Integration::error($this, Craft::t('formie', 'Missing return dealId {response}', [
+                if (!$dealId) {
+                    Integration::error($this, Craft::t('formie', 'Missing return “dealId” {response}', [
                         'response' => Json::encode($response),
                     ]), true);
 
@@ -314,14 +314,14 @@ class HubSpot extends Crm
     /**
      * @inheritDoc
      */
-    private function _sendPayload($submission, $endpoint, $payload)
+    private function _sendPayload($submission, $endpoint, $payload, $method = 'POST')
     {
         // Allow events to cancel sending
         if (!$this->beforeSendPayload($submission, $payload)) {
             return false;
         }
 
-        $response = $this->_request('POST', $endpoint, [
+        $response = $this->_request($method, $endpoint, [
             'json' => $payload,
         ]);
 

@@ -507,14 +507,14 @@ class ActiveCampaign extends Crm
     /**
      * @inheritDoc
      */
-    private function _sendPayload($submission, $endpoint, $payload)
+    private function _sendPayload($submission, $endpoint, $payload, $method = 'POST')
     {
         // Allow events to cancel sending
         if (!$this->beforeSendPayload($submission, $payload)) {
             return false;
         }
 
-        $response = $this->_request('POST', $endpoint, [
+        $response = $this->_request($method, $endpoint, [
             'json' => $payload,
         ]);
 

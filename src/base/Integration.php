@@ -314,7 +314,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     /**
      * @inheritDoc
      */
-    public function getClientId(): string
+    public function getResourceOwner(): string
     {
         return '';
     }
@@ -322,7 +322,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     /**
      * @inheritDoc
      */
-    public function getResourceOwner(): string
+    public function getClientId(): string
     {
         return '';
     }
@@ -339,6 +339,14 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
      * @inheritDoc
      */
     public function getOauthScope(): array
+    {
+        return [];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getOauthAuthorizationOptions(): array
     {
         return [];
     }
@@ -405,13 +413,32 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     /**
      * @inheritDoc
      */
+    public function beforeFetchAccessToken(&$provider)
+    {
+        return null;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function afterFetchAccessToken($token)
+    {
+        return null;
+    }
+
+    /**
+     * @inheritDoc
+     */
     private function oauth2Connect(): Response
     {
         $provider = $this->getOauthProvider();
 
         Craft::$app->getSession()->set('formie.oauthState', $provider->getState());
 
-        $authorizationUrl = $provider->getAuthorizationUrl();
+        $options = $this->getOauthAuthorizationOptions();
+        $options['scope'] = $this->getOauthScope();
+
+        $authorizationUrl = $provider->getAuthorizationUrl($options);
 
         return Craft::$app->getResponse()->redirect($authorizationUrl);
     }
@@ -425,14 +452,18 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
 
         $code = Craft::$app->getRequest()->getParam('code');
 
+        $this->beforeFetchAccessToken($provider);
+
         // Try to get an access token (using the authorization code grant)
         $token = $provider->getAccessToken('authorization_code', [
             'code' => $code,
         ]);
 
+        $this->afterFetchAccessToken($token);
+
         return [
             'success' => true,
-            'token' => $token
+            'token' => $token,
         ];
     }
 
