@@ -112,7 +112,7 @@ class HubSpot extends Crm
                     'name' => Craft::t('formie', 'Email'),
                     'required' => true,
                 ]),
-            ], $this->_getCustomFields($fields, ['email']), true);
+            ], $this->_getCustomFields($fields, ['email']));
 
             // Get Companies fields
             $response = $this->request('GET', 'crm/v3/properties/companies');
@@ -124,7 +124,7 @@ class HubSpot extends Crm
                     'name' => Craft::t('formie', 'Name'),
                     'required' => true,
                 ]),
-            ], $this->_getCustomFields($fields, ['name']), true);
+            ], $this->_getCustomFields($fields, ['name']));
 
             // Get Deals fields
             $response = $this->request('GET', 'crm/v3/properties/deals');
@@ -154,7 +154,7 @@ class HubSpot extends Crm
                         'options' => $dealStageOptions,
                     ],
                 ]),
-            ], $this->_getCustomFields($fields, ['dealname', 'pipeline', 'dealstage']), true);
+            ], $this->_getCustomFields($fields, ['dealname', 'pipeline', 'dealstage']));
 
             $settings = [
                 'contact' => $contactFields,
