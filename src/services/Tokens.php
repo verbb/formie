@@ -52,13 +52,13 @@ class Tokens extends Component
         return array_values($this->_tokensById);
     }
 
-    public function getTokenById(int $id)
+    public function getTokenById(int $id, $refresh = true)
     {
         $result = $this->_createTokenQuery()
             ->where(['id' => $id])
             ->one();
 
-        return $result ? $this->_createToken($result) : null;
+        return $result ? $this->_createToken($result, $refresh) : null;
     }
 
     public function saveToken(Token $token, bool $runValidation = true): bool
@@ -180,12 +180,12 @@ class Tokens extends Component
         return $tokenRecord;
     }
 
-    private function _createToken($config)
+    private function _createToken($config, $refresh = true)
     {
         $token = new Token($config);
 
         // Check if we need to refresh the token
-        if ($this->_refreshToken($token)) {
+        if ($refresh && $this->_refreshToken($token)) {
             $this->saveToken($token);
         }
 

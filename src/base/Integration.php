@@ -249,7 +249,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     public function getIsConnected()
     {
         if ($this->supportsOauthConnection()) {
-            return (bool)$this->getToken();
+            return (bool)$this->getToken(false);
         }
 
         if ($this->supportsConnection()) {
@@ -470,10 +470,10 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     /**
      * @inheritDoc
      */
-    public function getToken()
+    public function getToken($refresh = true)
     {
         if ($this->tokenId) {
-            return Formie::$plugin->getTokens()->getTokenById($this->tokenId);
+            return Formie::$plugin->getTokens()->getTokenById($this->tokenId, $refresh);
         }
 
         return null;
