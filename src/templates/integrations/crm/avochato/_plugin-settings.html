@@ -2,11 +2,21 @@
 {% import 'verbb-base/_macros' as macros %}
 
 {{ forms.textField({
-    label: 'API Key' | t('formie'),
-    instructions: 'Enter your {name} API key here.' | t('formie', { name: integration.displayName() }),
-    name: 'apiKey',
+    label: 'Auth ID' | t('formie'),
+    instructions: 'Enter your {name} Auth ID here.' | t('formie', { name: integration.displayName() }),
+    name: 'authId',
     required: true,
-    value: integration.settings.apiKey ?? '',
-    warning: macros.configWarning('apiKey', 'formie'),
-    errors: integration.getErrors('apiKey'),
+    value: integration.settings.authId ?? '',
+    warning: macros.configWarning('authId', 'formie'),
+    errors: integration.getErrors('authId'),
+}) }}
+
+{{ forms.textField({
+    label: 'Auth Secret' | t('formie'),
+    instructions: 'Enter your {name} Auth Secret here.' | t('formie', { name: integration.displayName() }),
+    name: 'authSecret',
+    required: true,
+    value: integration.settings.authSecret ?? '',
+    warning: macros.configWarning('authSecret', 'formie'),
+    errors: integration.getErrors('authSecret'),
 }) }}
