@@ -2,11 +2,41 @@
 {% import 'verbb-base/_macros' as macros %}
 
 {{ forms.textField({
-    label: 'API Key' | t('formie'),
-    instructions: 'Enter your {name} API key here.' | t('formie', { name: integration.displayName() }),
-    name: 'apiKey',
+    label: 'API Token' | t('formie'),
+    instructions: 'Enter your {name} API token here.' | t('formie', { name: integration.displayName() }),
+    name: 'apiToken',
     required: true,
-    value: integration.settings.apiKey ?? '',
-    warning: macros.configWarning('apiKey', 'formie'),
-    errors: integration.getErrors('apiKey'),
+    value: integration.settings.apiToken ?? '',
+    warning: macros.configWarning('apiToken', 'formie'),
+    errors: integration.getErrors('apiToken'),
+}) }}
+
+{{ forms.textField({
+    label: 'API Password' | t('formie'),
+    instructions: 'Enter your {name} API password here.' | t('formie', { name: integration.displayName() }),
+    name: 'apiPassword',
+    required: true,
+    value: integration.settings.apiPassword ?? '',
+    warning: macros.configWarning('apiPassword', 'formie'),
+    errors: integration.getErrors('apiPassword'),
+}) }}
+
+{{ forms.textField({
+    label: 'API Space ID' | t('formie'),
+    instructions: 'Enter your {name} API Space ID here.' | t('formie', { name: integration.displayName() }),
+    name: 'apiSpaceId',
+    required: true,
+    value: integration.settings.apiSpaceId ?? '',
+    warning: macros.configWarning('apiSpaceId', 'formie'),
+    errors: integration.getErrors('apiSpaceId'),
+}) }}
+
+{{ forms.textField({
+    label: 'API Service URL' | t('formie'),
+    instructions: 'Enter your {name} API Service URL here.' | t('formie', { name: integration.displayName() }),
+    name: 'apiServiceUrl',
+    required: true,
+    value: integration.settings.apiServiceUrl ?? '',
+    warning: macros.configWarning('apiServiceUrl', 'formie'),
+    errors: integration.getErrors('apiServiceUrl'),
 }) }}
