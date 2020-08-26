@@ -13,6 +13,7 @@ use verbb\formie\models\EmailMarketingList;
 use Craft;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
+use craft\helpers\StringHelper;
 use craft\web\View;
 
 class Insightly extends Crm
@@ -392,7 +393,7 @@ class Insightly extends Crm
             }
 
             $customFields[] = new IntegrationField([
-                'handle' => '__' . $field['FIELD_NAME'],
+                'handle' => 'custom:' . $field['FIELD_NAME'],
                 'name' => $field['FIELD_LABEL'],
                 'type' => $field['FIELD_TYPE'],
             ]);
@@ -409,11 +410,11 @@ class Insightly extends Crm
         $customFields = [];
 
         foreach ($fields as $key => $value) {
-            if (substr($key, 0, 2) === '__') {
+            if (StringHelper::startsWith($key, 'custom:')) {
                 $field = ArrayHelper::remove($fields, $key);
 
                 $customFields[] = [
-                    'FIELD_NAME' => str_replace('__', '', $key),
+                    'FIELD_NAME' => str_replace('custom:', '', $key),
                     'FIELD_VALUE' => $value,
                 ];
             }

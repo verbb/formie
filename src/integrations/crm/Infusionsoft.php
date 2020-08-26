@@ -13,6 +13,7 @@ use verbb\formie\models\EmailMarketingList;
 use Craft;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
+use craft\helpers\StringHelper;
 use craft\web\View;
 
 class Infusionsoft extends Crm
@@ -356,7 +357,7 @@ class Infusionsoft extends Crm
             }
 
             $customFields[] = new IntegrationField([
-                'handle' => '__' . $field['id'],
+                'handle' => 'custom:' . $field['id'],
                 'name' => $field['label'],
                 'type' => $field['field_type'],
             ]);
@@ -374,11 +375,11 @@ class Infusionsoft extends Crm
         $customFields = [];
 
         foreach ($payload as $key => $value) {
-            if (substr($key, 0, 2) === '__') {
+            if (StringHelper::startsWith($key, 'custom:')) {
                 $field = ArrayHelper::remove($payload, $key);
 
                 $payload['custom_fields'][] = [
-                    'id' => str_replace('__', '', $key),
+                    'id' => str_replace('custom:', '', $key),
                     'content' => $value,
                 ];
             }
