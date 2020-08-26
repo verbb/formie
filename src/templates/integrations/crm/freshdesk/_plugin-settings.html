@@ -10,3 +10,13 @@
     warning: macros.configWarning('apiKey', 'formie'),
     errors: integration.getErrors('apiKey'),
 }) }}
+
+{{ forms.textField({
+    label: 'Domain' | t('formie'),
+    instructions: 'Enter your full {name} Domain here. e.g. `https://example.freshdesk.com`' | t('formie', { name: integration.displayName() }) | md,
+    name: 'apiDomain',
+    required: true,
+    value: integration.settings.apiDomain ?? '',
+    warning: macros.configWarning('apiDomain', 'formie'),
+    errors: integration.getErrors('apiDomain'),
+}) }}
