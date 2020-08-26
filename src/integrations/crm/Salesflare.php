@@ -13,6 +13,7 @@ use verbb\formie\models\EmailMarketingList;
 use Craft;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
+use craft\helpers\StringHelper;
 use craft\web\View;
 
 class Salesflare extends Crm
@@ -21,6 +22,8 @@ class Salesflare extends Crm
     // =========================================================================
 
     public $apiKey;
+    public $mapToContact = false;
+    public $contactFieldMapping;
 
 
     // Public Methods
@@ -51,6 +54,13 @@ class Salesflare extends Crm
 
         $rules[] = [['apiKey'], 'required'];
 
+        $contact = $this->getFormSettings()['contact'] ?? [];
+
+        // Validate the following when saving form settings
+        $rules[] = [['contactFieldMapping'], 'validateFieldMapping', 'params' => $contact, 'when' => function($model) {
+            return $model->enabled && $model->mapToContact;
+        }, 'on' => [Integration::SCENARIO_FORM]];
+
         return $rules;
     }
 
@@ -59,10 +69,58 @@ class Salesflare extends Crm
      */
     public function fetchFormSettings()
     {
-        $allLists = [];
+        $settings = [];
 
         try {
-            
+            $fields = $this->request('GET', 'customfields/contacts');
+
+            $contactFields = array_merge([
+                new IntegrationField([
+                    'handle' => 'owner',
+                    'name' => Craft::t('formie', 'Owner'),
+                ]),
+                new IntegrationField([
+                    'handle' => 'email',
+                    'name' => Craft::t('formie', 'Email'),
+                    'required' => true,
+                ]),
+                new IntegrationField([
+                    'handle' => 'firstname',
+                    'name' => Craft::t('formie', 'First Name'),
+                ]),
+                new IntegrationField([
+                    'handle' => 'middle',
+                    'name' => Craft::t('formie', 'Middle Name'),
+                ]),
+                new IntegrationField([
+                    'handle' => 'lastname',
+                    'name' => Craft::t('formie', 'Last Name'),
+                ]),
+                new IntegrationField([
+                    'handle' => 'suffix',
+                    'name' => Craft::t('formie', 'Suffix'),
+                ]),
+                new IntegrationField([
+                    'handle' => 'name',
+                    'name' => Craft::t('formie', 'Name'),
+                ]),
+                new IntegrationField([
+                    'handle' => 'birth_date',
+                    'name' => Craft::t('formie', 'Date of Birth'),
+                ]),
+                new IntegrationField([
+                    'handle' => 'phone_number',
+                    'name' => Craft::t('formie', 'Phone Number'),
+                ]),
+                new IntegrationField([
+                    'handle' => 'mobile_phone_number',
+                    'name' => Craft::t('formie', 'Mobile Phone Number'),
+                ]),
+            ], $this->_getCustomFields($fields));
+
+            $settings = [
+                'contact' => $contactFields,
+            ];
         } catch (\Throwable $e) {
             Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [
                 'message' => $e->getMessage(),
@@ -71,7 +129,7 @@ class Salesflare extends Crm
             ]), true);
         }
 
-        return $allLists;
+        return $settings;
     }
 
     /**
@@ -80,7 +138,26 @@ class Salesflare extends Crm
     public function sendPayload(Submission $submission): bool
     {
         try {
-            
+            $contactValues = $this->getFieldMappingValues($submission, $this->contactFieldMapping);
+
+            // Special processing on this due to nested content in payload
+            $contactPayload = $this->_prepContactPayload($contactValues);
+
+            $response = $this->deliverPayload($submission, 'contacts', $contactPayload);
+
+            if ($response === false) {
+                return false;
+            }
+
+            $contactId = $response['id'] ?? '';
+
+            if (!$contactId) {
+                Integration::error($this, Craft::t('formie', 'Missing return “contactId” {response}', [
+                    'response' => Json::encode($response),
+                ]), true);
+
+                return false;
+            }
         } catch (\Throwable $e) {
             Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [
                 'message' => $e->getMessage(),
@@ -100,7 +177,7 @@ class Salesflare extends Crm
     public function fetchConnection(): bool
     {
         try {
-            
+            $response = $this->request('GET', 'contacts');
         } catch (\Throwable $e) {
             Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [
                 'message' => $e->getMessage(),
@@ -128,8 +205,52 @@ class Salesflare extends Crm
         }
 
         return $this->_client = Craft::createGuzzleClient([
-            'base_uri' => '',
-            'headers' => ['Api-Token' => $this->apiKey],
+            'base_uri' => 'https://api.salesflare.com/',
+            'headers' => [
+                'Authorization' => 'Bearer ' . $this->apiKey,
+                'Content-Type' => 'application/json',
+            ],
         ]);
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    /**
+     * @inheritDoc
+     */
+    private function _getCustomFields($fields, $excludeNames = [])
+    {
+        $customFields = [];
+
+        foreach ($fields as $key => $field) {
+            $customFields[] = new IntegrationField([
+                'handle' => 'custom:' . $field['id'],
+                'name' => $field['name'],
+                'type' => $field['type']['type'],
+                'required' => $field['required'],
+            ]);
+        }
+
+        return $customFields;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    private function _prepContactPayload($fields)
+    {
+        $payload = $fields;
+
+        foreach ($payload as $key => $value) {
+            if (StringHelper::startsWith($key, 'custom:')) {
+                $field = ArrayHelper::remove($payload, $key);
+
+                $payload['custom'][str_replace('custom:', '', $key)] = $value;
+            }
+        }
+
+        return $payload;
     }
 }
