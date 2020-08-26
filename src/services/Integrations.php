@@ -113,7 +113,6 @@ class Integrations extends Component
 
         $crm = [
             crm\ActiveCampaign::class,
-            crm\Creatio::class,
             crm\Freshdesk::class,
             crm\HubSpot::class,
             crm\Infusionsoft::class,
