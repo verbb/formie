@@ -66,6 +66,7 @@ trait FormFieldTrait
      * @var Form
      */
     private $_form;
+    private $_namespace = 'fields';
 
 
     // Static Methods
@@ -448,7 +449,15 @@ trait FormFieldTrait
      */
     public function getNamespace(): string
     {
-        return 'fields';
+        return $this->_namespace;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setNamespace($value)
+    {
+        $this->_namespace = $value;
     }
 
     /**
@@ -485,6 +494,19 @@ trait FormFieldTrait
             'field' => $this,
             'options' => $options,
         ];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function applyRenderOptions(array $options = null)
+    {
+        // Expand this as we allow more field options in render functions
+        $fieldNamespace = $options['fieldNamespace'] ?? null;
+
+        if ($fieldNamespace) {
+            $this->setNamespace($fieldNamespace);
+        }
     }
 
     /**
