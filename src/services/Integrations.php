@@ -120,7 +120,7 @@ class Integrations extends Component
             crm\Infusionsoft::class,
             crm\Insightly::class,
             // crm\MethodCrm::class,
-            // crm\Monday::class,
+            crm\Monday::class,
             // crm\NetSuite::class,
             // crm\Pardot::class,
             crm\Pipedrive::class,

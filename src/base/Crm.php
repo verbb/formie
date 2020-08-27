@@ -80,7 +80,14 @@ abstract class Crm extends Integration implements IntegrationInterface
         // Convert back to models from the cache
         foreach ($settings as $key => $setting) {
             foreach ($setting as $k => $value) {
-                $settings[$key][$k] = new IntegrationField($value);
+                // Probably re-structure this for CRM's, but check if its a 'field'
+                if (isset($value['handle'])) {
+                    $settings[$key][$k] = new IntegrationField($value);
+                } if (isset($value['fields'])) {
+                    foreach ($value['fields'] as $i => $fieldConfig) {
+                        $settings[$key][$k]['fields'][$i] = new IntegrationField($fieldConfig);
+                    }
+                }
             }
         }
 
