@@ -406,7 +406,7 @@ export class FormieFormTheme {
 
     onAjaxSuccess(data) {
         // Fire the event, because we've overridden the handler
-        this.submitHandler.formAfterSubmit();
+        this.submitHandler.formAfterSubmit(data);
 
         this.afterAjaxSubmit(data);
 

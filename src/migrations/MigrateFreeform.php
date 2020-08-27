@@ -657,6 +657,11 @@ class MigrateFreeform extends Migration
 
         if (method_exists($field, 'getValue')) {
             $newField->defaultValue = $field->getValue();
+
+            // Just use non-arrays for default values
+            if (is_array($newField->defaultValue)) {
+                $newField->defaultValue = null;
+            }
         }
 
         if (!$newField instanceof formfields\Address and !$newField instanceof formfields\Name) {

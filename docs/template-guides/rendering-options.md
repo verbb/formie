@@ -11,6 +11,7 @@ Option | Description
 `fields` | Affect the attributes of specific fields. Accepts a [Fields Options](#fields-options) object as the value.
 `buttons` | Affect the attributes of the submit/next page and previous page buttons. Accepts a [Buttons Options](#buttons-options) object as the value.
 `fieldTag` | Set the tag for the outer-most field container. This is `div` by default.
+`fieldNamespace` | Set the namespace used by all fields. This is `fields` by default.
 
 
 ## Buttons Options

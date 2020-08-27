@@ -195,6 +195,11 @@ class Rendering extends Component
         $oldTemplatePath = $view->getTemplatesPath();
         $view->setTemplatesPath($templatePath);
 
+        // Allow fields to apply any render options in their own way
+        if ($options) {
+            $field->applyRenderOptions($options);
+        }
+
         // Get the active submission.
         $element = $options['element'] ?? $form->getCurrentSubmission();
 

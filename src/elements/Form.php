@@ -669,7 +669,7 @@ class Form extends Element
         // Check if there's a session variable
         $submissionId = Craft::$app->getSession()->get('formie:' . $this->id . ':submissionId');
 
-        if ($submissionId && $submission = Submission::find()->id($submissionId)->isIncomplete(null)->one()) {
+        if ($submissionId && $submission = Submission::find()->id($submissionId)->isIncomplete(true)->one()) {
             return $submission;
         }
 

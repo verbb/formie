@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.1.8 - 2020-08-27
+
+### Added
+- Provide `onAfterFormieSubmit` event with content about each submission.
+- Added `fieldNamespace` render option for forms.
+
+### Fixed
+- Fixed freeform migration using an array for default value for email fields.
+- Fixed potential issue that a submission could get “stuck” in a completed form.
+
 ## 1.1.7 - 2020-08-20
 
 ## Added

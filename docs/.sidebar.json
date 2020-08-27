@@ -35,6 +35,7 @@
             "template-guides/rendering-pages",
             "template-guides/rendering-fields",
             "template-guides/rendering-options",
+            "template-guides/custom-rendering",
             "template-guides/form-templates",
             "template-guides/email-templates",
             "template-guides/cached-forms"
