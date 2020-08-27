@@ -276,6 +276,7 @@ let $form = document.querySelector('#formie-form-1');
 $form.addEventListener('onAfterFormieSubmit', (e) => {
     e.preventDefault();
 
+    let data = e.detail;
     // ...
 });
 
@@ -283,6 +284,7 @@ $form.addEventListener('onAfterFormieSubmit', (e) => {
 $('#formie-form-1').on('onAfterFormieSubmit', function(e) {
     e.preventDefault();
 
+    let data = e.detail;
     // ...
 });
 ```

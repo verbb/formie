@@ -86,9 +86,10 @@ export class FormieFormBase {
         }
     }
 
-    formAfterSubmit() {
+    formAfterSubmit(data = {}) {
         this.$form.dispatchEvent(new CustomEvent('onAfterFormieSubmit', {
             bubbles: true,
+            detail: data,
         }));
     }
 
