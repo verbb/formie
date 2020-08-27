@@ -24,7 +24,7 @@ Let's run through a few things of note:
 - Some additional Twig content in the `<form>` element, such as `csrfInput()`, `actionInput()`. This is to ensure Formie can process the content of the form and create a submission from it.
 
 :::tip
-Make sure to use `{{ form.formId }}` for the `id` attribute, and `{{ form.configJson }}` for the `data-config` attribute. These are the only two things Formie needs to hook us the JavaScript used to handle forms, and are required if you're writing the `<form>` element in your templates.
+Make sure to use `{{ form.formId }}` for the `id` attribute, and `{{ form.configJson }}` for the `data-config` attribute. These are the only two things Formie needs to hook up the JavaScript used to handle forms, and are required if you're writing the `<form>` element in your templates.
 :::
 
 You can also use the handle of the field, for direct-access to the field you require.

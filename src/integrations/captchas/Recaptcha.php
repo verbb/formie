@@ -108,7 +108,7 @@ class Recaptcha extends Captcha
         $type = $this->settings['type'] ?? 'v3';
 
         $settings = [
-            'siteKey' => $this->settings['siteKey'],
+            'siteKey' => $this->settings['siteKey'] ?? '',
             'formId' => 'formie-form-' . $form->id,
             'theme' => $this->settings['theme'] ?? 'light',
             'size' => $this->settings['size'] ?? 'normal',

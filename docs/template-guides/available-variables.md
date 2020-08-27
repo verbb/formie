@@ -51,7 +51,7 @@ Renders a single field, taking into account custom [Form Templates](docs:feature
 
 
 ### `craft.formie.registerAssets(form, options = {})`
-Used to specifically register the CSS and JS for a form. Takes the same arguments as `craft.formie.renderForm`. This is particular useful for [Cached Forms](docs:template-guides/cached-forms).
+Used to specifically register the CSS and JS for a form. Takes the same arguments as `craft.formie.renderForm`. This is particular useful for [Cached Forms](docs:template-guides/cached-forms) or [Custom Rendering](docs:template-guides/custom-rendering).
 
 ```twig
 {% do craft.formie.registerAssets('contactForm') %}

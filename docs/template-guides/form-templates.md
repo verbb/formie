@@ -123,19 +123,3 @@ For example, the Address field, has the following templates in a folder:
 - `fields/address/index.html`
 
 This is because the address field has many parts, and is complex. If you want to override the templates for this field, you just need to alter the `index.html` file. You can use the includes (denoted by `_`), or you don't have to.
-
-## CSS & JS
-Some field contain JS related to their specific field type. This is included in the field template. For instance, the Repeater field contains JS to allow adding and removing of repeater elements. If you override the field templates for fields that contain JS, you'll need to either include this, or come up with your own solution.
-
-For example, the repeater field contains the following in its template:
-
-```twig
-{% set jsFile = view.getAssetManager().getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/fields/repeater.js', true) %}
-{% do view.registerJsFile(jsFile) %}
-
-{% js %}
-    new FormieRepeater({{ { formId: form.id } | json_encode | raw }});
-{% endjs %}
-``` 
-
-Here, we're including a `repeater.js` file, which contains the logic to handling adding or removing items. You can choose to include this in your custom template, but know that you'll need to ensure your classes and other elements match up with the JS. Or choose to omit this JS and handle the required functionality yourself.
