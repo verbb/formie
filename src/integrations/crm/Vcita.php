@@ -128,7 +128,7 @@ class VCita extends Crm
         }
 
         return $this->_client = Craft::createGuzzleClient([
-            'base_uri' => '',
+            'base_uri' => 'https://api.vcita.biz/platform/v1',
             'headers' => ['Api-Token' => $this->apiKey],
         ]);
     }
