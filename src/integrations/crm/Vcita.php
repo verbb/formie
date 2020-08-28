@@ -153,8 +153,6 @@ class VCita extends Crm
             // Special processing on this due to nested content in payload
             $clientPayload = $clientValues;
 
-            Craft::dd($clientPayload);
-
             // Can't handle update and create, so check first
             $response = $this->request('GET', 'clients', ['query' => [
                 'search_by' => 'email',
