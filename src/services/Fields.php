@@ -11,6 +11,7 @@ use ReflectionException;
 
 use verbb\formie\base\NestedFieldInterface;
 use verbb\formie\base\NestedFieldTrait;
+use verbb\formie\base\SubFieldInterface;
 use verbb\formie\Formie;
 use verbb\formie\base\FormField;
 use verbb\formie\base\FormFieldInterface;
@@ -464,6 +465,11 @@ class Fields extends Component
         if ($config['supportsNested'] = $field instanceof NestedFieldInterface) {
             /* @var NestedFieldInterface|NestedFieldTrait $field */
             $config['rows'] = $field->getRows();
+        }
+
+        // Allow fields to provide sub-field options for mapping
+        if ($field instanceof SubFieldInterface) {
+            $config['subfieldOptions'] = $field->getSubfieldOptions();
         }
 
         // Fire a 'modifyFieldConfig' event

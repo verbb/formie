@@ -162,15 +162,29 @@ export default {
             options.push({
                 label: Craft.t('formie', 'Submission'),
                 options: [
-                    { label: Craft.t('formie', 'Title'), value: '{title}' },
-                    { label: Craft.t('formie', 'ID'), value: '{id}' },
+                    { label: Craft.t('formie', 'Title'), value: '{submission:title}' },
+                    { label: Craft.t('formie', 'ID'), value: '{submission:id}' },
                 ],
             });
+
+            var customFields = [];
+
+            fields.forEach(field => {
+                customFields.push({ label: field.label, value: '{' + field.handle + '}' });
+
+                if (field.subfieldOptions) {
+                    field.subfieldOptions.forEach(subfield => {
+                        customFields.push({
+                            label: field.label + ': ' + subfield.label,
+                            value: '{' + field.handle + '[' + subfield.handle + ']}',
+                        });
+                    });
+                }
+            });
+
             options.push({
                 label: Craft.t('formie', 'Fields'),
-                options: fields.map(field => {
-                    return { label: field.label, value: '{' + field.handle + '}' };
-                }),
+                options: customFields,
             });
 
             return options;

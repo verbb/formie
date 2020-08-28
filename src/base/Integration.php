@@ -577,23 +577,27 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
             if ($formFieldHandle !== '') {
                 // See if this is mapping a custom field
                 if (strstr($formFieldHandle, '{')) {
-                    $formFieldHandle = str_replace(['{', '}'], ['', ''], $formFieldHandle);
+                    try {
+                        $formFieldHandle = str_replace(['{', '}'], ['', ''], $formFieldHandle);
 
-                    // Check to see if this is a custom field, or an attribute on the submission
-                    // Then, allow the integration to control how to parse the field, from its type
-                    $integrationField = $integrationFields[$tag] ?? null;
+                        // Check to see if this is a custom field, or an attribute on the submission
+                        if (StringHelper::startsWith($formFieldHandle, 'submission:')) {
+                            $formFieldHandle = str_replace('submission:', '', $formFieldHandle);
 
-                    // try {
-                        $value = $submission->getFieldValue($formFieldHandle);
+                            $value = $submission->$formFieldHandle;
+                        } else {
+                            // This is a custom method that checks for nested field value lookups
+                            $value = $submission->getFieldValue($formFieldHandle);
+                        }
+
+                        // Then, allow the integration to control how to parse the field, from its type
+                        $integrationField = $integrationFields[$tag] ?? new IntegrationField();
                         $fieldValues[$tag] = $this->parseFieldMappedValue($integrationField, $value);
-                    // } catch (\Throwable $e) {}
+                    } catch (\Throwable $e) {
 
-                    // try {
-                        $value = $submission->$formFieldHandle;
-                        $fieldValues[$tag] = $this->parseFieldMappedValue($integrationField, $value);
-                    // } catch (\Throwable $e) {}
+                    }
                 } else {
-                    // Otherwise, might have passed in a direct value
+                    // Otherwise, might have passed in a direct, static value
                     $fieldValues[$tag] = $formFieldHandle;
                 }
             }
@@ -620,7 +624,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         }
 
         if ($integrationField->getType() === IntegrationField::TYPE_NUMBER) {
-            // If this field doesn't implement a toString, really can't reliably serialize it...
+            // If a non-plain value, and the field doesn't implement a __toString, can't reliably serialize it...
             if (is_array($value) || (is_object($value) && !method_exists($value, '__toString'))) {
                 return 0;
             }
@@ -629,7 +633,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         }
 
         if ($integrationField->getType() === IntegrationField::TYPE_STRING) {
-            // If this field doesn't implement a toString, really can't reliably serialize it...
+            // If a non-plain value, and the field doesn't implement a __toString, can't reliably serialize it...
             if (is_array($value) || (is_object($value) && !method_exists($value, '__toString'))) {
                 return '';
             }
@@ -638,7 +642,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         }
 
         if ($integrationField->getType() === IntegrationField::TYPE_BOOLEAN) {
-            // If this field doesn't implement a toString, really can't reliably serialize it...
+            // If a non-plain value, and the field doesn't implement a __toString, can't reliably serialize it...
             if (is_array($value) || (is_object($value) && !method_exists($value, '__toString'))) {
                 return false;
             }
