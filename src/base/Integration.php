@@ -608,11 +608,15 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     protected function parseFieldMappedValue(IntegrationField $integrationField, $value)
     {
         if ($integrationField->getType() === IntegrationField::TYPE_DATE) {
-            return DateTimeHelper::toDateTime($value)->format('Y-m-d');
+            if ($date = DateTimeHelper::toDateTime($value)) {
+                return $date->format('Y-m-d');
+            }
         }
 
         if ($integrationField->getType() === IntegrationField::TYPE_DATETIME) {
-            return DateTimeHelper::toDateTime($value)->format('Y-m-d H:i:s');
+            if ($date = DateTimeHelper::toDateTime($value)) {
+                return $date->format('Y-m-d H:i:s');
+            }
         }
 
         if ($integrationField->getType() === IntegrationField::TYPE_NUMBER) {
