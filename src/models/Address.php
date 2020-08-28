@@ -7,6 +7,9 @@ use craft\helpers\StringHelper;
 
 class Address extends Model
 {
+    // Properties
+    // =========================================================================
+
     public $autocomplete;
     public $address1;
     public $address2;
@@ -15,5 +18,27 @@ class Address extends Model
     public $state;
     public $zip;
     public $country;
+
+
+    // Public Methods
+    // =========================================================================
+
+    /**
+     * @return string
+     */
+    public function __toString()
+    {
+        $address = ArrayHelper::filterEmptyStringsFromArray([
+            StringHelper::trim($this->address1 ?? ''),
+            StringHelper::trim($this->address2 ?? ''),
+            StringHelper::trim($this->address3 ?? ''),
+            StringHelper::trim($this->city ?? ''),
+            StringHelper::trim($this->state ?? ''),
+            StringHelper::trim($this->zip ?? ''),
+            StringHelper::trim($this->country ?? ''),
+        ]);
+
+        return implode(', ', $address);
+    }
 
 }
