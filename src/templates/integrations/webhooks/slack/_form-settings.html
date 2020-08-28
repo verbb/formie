@@ -1,0 +1,108 @@
+{% import '_includes/forms' as forms %}
+
+{% set handle = integration.handle %}
+{% set formSettings = integration.getFormSettings() | json_encode %}
+{% set channelType = form.settings.integrations[handle].channelType ?? '' %}
+
+{% set values = {
+    channelId: form.settings.integrations[handle].channelId ?? '',
+    userId: form.settings.integrations[handle].userId ?? '',
+    message: form.settings.integrations[handle].message ?? '',
+} | json_encode %}
+
+<integration-form-settings handle="{{ handle }}" :form-settings="{{ formSettings }}" :values="{{ values }}" inline-template>
+    <div>
+        {{ forms.selectField({
+            label: 'Channel Type' | t('formie'),
+            instructions: 'Select what type of channel {name} will send the message to.' | t('formie', { name: integration.displayName() }),
+            name: 'channelType',
+            value: channelType,
+            toggle: true,
+            targetPrefix: 'channel-',
+            required: true,
+            options: [
+                { label: 'Select an option' | t('formie'), value: '' },
+                { label: 'Public Channel', value: 'public' },
+                { label: 'Direct Message', value: 'directMessage' },
+            ],
+        }) }}
+
+        <ul v-if="!isEmpty(get(form, 'settings.integrations.{{ integration.handle }}.errors.channelType'))" class="errors" v-cloak>
+            <li v-for="(error, index) in get(form, 'settings.integrations.{{ integration.handle }}.errors.channelType')" :key="index">
+                ${ error }
+            </li>
+        </ul>
+
+        <div id="channel-public" class="{{ channelType != 'public' ? 'hidden' }}">
+            <div class="field">
+                <div class="heading">
+                    <label id="channelId-label" for="channelId" class="required">{{ 'Channel' | t('formie') }}</label>
+
+                    <div class="instructions">
+                        <p>{{ 'Select which {name} channel to post a message to.' | t('formie', { name: integration.displayName() }) }}</p>
+                    </div>
+                </div>
+
+                <div class="input ltr">
+                    <div class="select">
+                        <select v-model="model.channelId" name="channelId" required>
+                            <option value="">{{ 'Select an option' | t('formie') }}</option>
+
+                            <option v-for="(option, index) in get(settings, 'channels')" :key="index" :value="option.id">${ option.name }</option>
+                        </select>
+                    </div>
+
+                    <button class="btn fui-btn-transparent" :class="{ 'fui-loading fui-loading-sm': loading }" data-icon="refresh" @click.prevent="refresh"></button>
+                </div>
+
+                <ul v-if="!isEmpty(get(form, 'settings.integrations.{{ integration.handle }}.errors.channelId'))" class="errors" v-cloak>
+                    <li v-for="(error, index) in get(form, 'settings.integrations.{{ integration.handle }}.errors.channelId')" :key="index">
+                        ${ error }
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div id="channel-directMessage" class="{{ channelType != 'directMessage' ? 'hidden' }}">
+            <div class="field">
+                <div class="heading">
+                    <label id="userId-label" for="userId" class="required">{{ 'Target User' | t('formie') }}</label>
+
+                    <div class="instructions">
+                        <p>{{ 'Select which {name} user to post a message to.' | t('formie', { name: integration.displayName() }) }}</p>
+                    </div>
+                </div>
+
+                <div class="input ltr">
+                    <div class="select">
+                        <select v-model="model.userId" name="userId" required>
+                            <option value="">{{ 'Select an option' | t('formie') }}</option>
+
+                            <option v-for="(option, index) in get(settings, 'members')" :key="index" :value="option.id">${ option.name }</option>
+                        </select>
+                    </div>
+
+                    <button class="btn fui-btn-transparent" :class="{ 'fui-loading fui-loading-sm': loading }" data-icon="refresh" @click.prevent="refresh"></button>
+                </div>
+
+                <ul v-if="!isEmpty(get(form, 'settings.integrations.{{ integration.handle }}.errors.userId'))" class="errors" v-cloak>
+                    <li v-for="(error, index) in get(form, 'settings.integrations.{{ integration.handle }}.errors.userId')" :key="index">
+                        ${ error }
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <formulate-input
+            type="richText"
+            label="{{ 'Submission Message' | t('formie') }}"
+            help="{{ 'This text will be shown after submission, as a success message.' | t('formie') }}"
+            v-model="model.message"
+            :required="true"
+            variables="plainTextVariables"
+            :buttons="['bold', 'italic', 'variableTag']"
+        ></formulate-input>
+
+        <input type="hidden" name="message" :value="model.message" />
+    </div>
+</integration-form-settings>

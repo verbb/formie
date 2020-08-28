@@ -20,6 +20,11 @@ export default {
             type: [Object, Array],
             default: () => {},
         },
+
+        values: {
+            type: Object,
+            default: () => {},
+        },
     },
 
     data() {
@@ -29,6 +34,7 @@ export default {
             errorMessage: '',
             settings: {},
             sourceId: '',
+            model: {},
         };
     },
 
@@ -41,6 +47,13 @@ export default {
     created() {
         this.settings = this.formSettings;
         this.sourceId = this.source;
+
+        // Create dynamic data variables based on whatever variables we pass in
+        if (this.values) {
+            Object.keys(this.values).forEach(prop => {
+                this.$set(this.model, prop, this.values[prop]);
+            });
+        }
     },
 
     methods: {
