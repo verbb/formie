@@ -375,7 +375,6 @@ class Freshdesk extends Crm
                 return false;
             }
         } catch (\Throwable $e) {
-            Craft::dd((string)$e->getResponse()->getBody());
             Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
