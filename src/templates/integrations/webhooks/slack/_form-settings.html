@@ -3,6 +3,7 @@
 {% set handle = integration.handle %}
 {% set formSettings = integration.getFormSettings() | json_encode %}
 {% set channelType = form.settings.integrations[handle].channelType ?? '' %}
+{% set webhook = form.settings.integrations[handle].webhook ?? '' %}
 
 {% set values = {
     channelId: form.settings.integrations[handle].channelId ?? '',
@@ -24,6 +25,7 @@
                 { label: 'Select an option' | t('formie'), value: '' },
                 { label: 'Public Channel', value: 'public' },
                 { label: 'Direct Message', value: 'directMessage' },
+                { label: 'Webhook', value: 'webhook' },
             ],
         }) }}
 
@@ -66,7 +68,7 @@
         <div id="channel-directMessage" class="{{ channelType != 'directMessage' ? 'hidden' }}">
             <div class="field">
                 <div class="heading">
-                    <label id="userId-label" for="userId" class="required">{{ 'Target User' | t('formie') }}</label>
+                    <label id="userId-label" for="userId" class="required">{{ 'User' | t('app') }}</label>
 
                     <div class="instructions">
                         <p>{{ 'Select which {name} user to post a message to.' | t('formie', { name: integration.displayName() }) }}</p>
@@ -91,6 +93,16 @@
                     </li>
                 </ul>
             </div>
+        </div>
+
+        <div id="channel-webhook" class="{{ channelType != 'webhook' ? 'hidden' }}">
+            {{ forms.textField({
+                label: 'Webhook URL' | t('formie'),
+                instructions: 'Enter the {name} webhook URL that will be triggered.' | t('formie', { name: integration.displayName() }),
+                name: 'webhook',
+                value: webhook,
+                required: true,
+            }) }}
         </div>
 
         <formulate-input

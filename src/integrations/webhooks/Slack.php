@@ -24,6 +24,7 @@ class Slack extends Webhook
 
     const TYPE_PUBLIC = 'public';
     const TYPE_DM = 'directMessage';
+    const TYPE_WEBHOOK = 'webhook';
 
 
     // Properties
@@ -35,6 +36,7 @@ class Slack extends Webhook
     public $userId;
     public $channelId;
     public $message;
+    public $webhook;
 
 
     // OAuth Methods
@@ -145,6 +147,10 @@ class Slack extends Webhook
             return $model->enabled && $model->channelType === self::TYPE_PUBLIC;
         }, 'on' => [Integration::SCENARIO_FORM]];
 
+        $rules[] = [['webhook'], 'required', 'when' => function($model) {
+            return $model->enabled && $model->channelType === self::TYPE_WEBHOOK;
+        }, 'on' => [Integration::SCENARIO_FORM]];
+
         return $rules;
     }
 
@@ -195,40 +201,51 @@ class Slack extends Webhook
     public function sendPayload(Submission $submission): bool
     {
         try {
-            $channel = null;
+            if ($this->channelType === self::TYPE_WEBHOOK) {
+                $payload = [
+                    'json' => [
+                        'texts' => $this->_renderMessage($submission),
+                    ],
+                ];
 
-            if ($this->channelType === self::TYPE_PUBLIC) {
-                $channel = $this->channelId;
-            } else if ($this->channelType === self::TYPE_DM) {
-                $channel = $this->userId;
-            }
+                $response = $this->getClient()->request('POST', $this->webhook, $payload);
+            } else {
 
-            if (!$channel) {
-                Integration::error($this, Craft::t('formie', '“channel” not configured.'), true);
+                $channel = null;
 
-                return false;
-            }
+                if ($this->channelType === self::TYPE_PUBLIC) {
+                    $channel = $this->channelId;
+                } else if ($this->channelType === self::TYPE_DM) {
+                    $channel = $this->userId;
+                }
 
-            $payload = [
-                'channel' => $channel,
-                'parse' => 'full',
-                'text' => $this->_renderMessage($submission),
-            ];
+                if (!$channel) {
+                    Integration::error($this, Craft::t('formie', '“channel” not configured.'), true);
 
-            $response = $this->deliverPayload($submission, 'chat.postMessage', $payload);
+                    return false;
+                }
 
-            if ($response === false) {
-                return false;
-            }
+                $payload = [
+                    'channel' => $channel,
+                    'parse' => 'full',
+                    'text' => $this->_renderMessage($submission),
+                ];
 
-            $isOkay = $response['ok'] ?? '';
+                $response = $this->deliverPayload($submission, 'chat.postMessage', $payload);
 
-            if (!$isOkay) {
-                Integration::error($this, Craft::t('formie', 'Reponse returned “not ok” {response}', [
-                    'response' => Json::encode($response),
-                ]), true);
+                if ($response === false) {
+                    return false;
+                }
 
-                return false;
+                $isOkay = $response['ok'] ?? '';
+
+                if (!$isOkay) {
+                    Integration::error($this, Craft::t('formie', 'Reponse returned “not ok” {response}', [
+                        'response' => Json::encode($response),
+                    ]), true);
+
+                    return false;
+                }
             }
         } catch (\Throwable $e) {
             Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [
