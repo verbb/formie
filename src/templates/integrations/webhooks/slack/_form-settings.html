@@ -107,8 +107,8 @@
 
         <formulate-input
             type="richText"
-            label="{{ 'Submission Message' | t('formie') }}"
-            help="{{ 'This text will be shown after submission, as a success message.' | t('formie') }}"
+            label="{{ 'Message' | t('formie') }}"
+            help="{{ 'This text will be sent to {name}.' | t('formie', { name: integration.displayName() }) }}"
             v-model="model.message"
             :required="true"
             variables="plainTextVariables"
