@@ -167,7 +167,7 @@ class IContact extends EmailMarketing
     public function sendPayload(Submission $submission): bool
     {
         try {
-            $fieldValues = $this->getFieldMappingValues($submission, $this->fieldMapping);
+            $fieldValues = $this->getFieldMappingValues($submission, $this->fieldMapping, 'lists');
 
             $validStatuses = ['normal', 'bounced', 'donotcontact', 'pending', 'invitable', 'deleted'];
 

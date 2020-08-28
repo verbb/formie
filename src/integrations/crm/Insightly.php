@@ -258,8 +258,8 @@ class Insightly extends Crm
     public function sendPayload(Submission $submission): bool
     {
         try {
-            $contactValues = $this->getFieldMappingValues($submission, $this->contactFieldMapping);
-            $leadValues = $this->getFieldMappingValues($submission, $this->leadFieldMapping);
+            $contactValues = $this->getFieldMappingValues($submission, $this->contactFieldMapping, 'contact');
+            $leadValues = $this->getFieldMappingValues($submission, $this->leadFieldMapping, 'lead');
 
             $customFields = $this->_prepCustomFields($contactValues);
 
@@ -363,6 +363,20 @@ class Insightly extends Crm
     /**
      * @inheritDoc
      */
+    private function _convertFieldType($fieldType)
+    {
+        $fieldTypes = [
+            'DATE' => IntegrationField::TYPE_DATETIME,
+            'BIT' => IntegrationField::TYPE_BOOLEAN,
+            'NUMERIC' => IntegrationField::TYPE_NUMBER,
+        ];
+
+        return $fieldTypes[$fieldType] ?? IntegrationField::TYPE_STRING;
+    }
+
+    /**
+     * @inheritDoc
+     */
     private function _getCustomFields($fields, $excludeNames = [])
     {
         $customFields = [];
@@ -395,7 +409,7 @@ class Insightly extends Crm
             $customFields[] = new IntegrationField([
                 'handle' => 'custom:' . $field['FIELD_NAME'],
                 'name' => $field['FIELD_LABEL'],
-                'type' => $field['FIELD_TYPE'],
+                'type' => $this->_convertFieldType($field['FIELD_TYPE']),
             ]);
         }
 

@@ -228,10 +228,10 @@ class Zoho extends Crm
     public function sendPayload(Submission $submission): bool
     {
         try {
-            $contactValues = $this->getFieldMappingValues($submission, $this->contactFieldMapping);
-            $dealValues = $this->getFieldMappingValues($submission, $this->dealFieldMapping);
-            $leadValues = $this->getFieldMappingValues($submission, $this->leadFieldMapping);
-            $accountValues = $this->getFieldMappingValues($submission, $this->accountFieldMapping);
+            $contactValues = $this->getFieldMappingValues($submission, $this->contactFieldMapping, 'contact');
+            $dealValues = $this->getFieldMappingValues($submission, $this->dealFieldMapping, 'deal');
+            $leadValues = $this->getFieldMappingValues($submission, $this->leadFieldMapping, 'lead');
+            $accountValues = $this->getFieldMappingValues($submission, $this->accountFieldMapping, 'account');
 
             $contactId = null;
 
@@ -409,6 +409,28 @@ class Zoho extends Crm
     /**
      * @inheritDoc
      */
+    private function _convertFieldType($fieldType)
+    {
+        $fieldTypes = [
+            'jsonobject' => IntegrationField::TYPE_ARRAY,
+            'date' => IntegrationField::TYPE_DATE,
+            'datetime' => IntegrationField::TYPE_DATETIME,
+            'timestamp' => IntegrationField::TYPE_DATETIME,
+            'boolean' => IntegrationField::TYPE_BOOLEAN,
+            'integer' => IntegrationField::TYPE_NUMBER,
+            'number' => IntegrationField::TYPE_NUMBER,
+            'bigint' => IntegrationField::TYPE_NUMBER,
+            'currency' => IntegrationField::TYPE_NUMBER,
+            'double' => IntegrationField::TYPE_NUMBER,
+            'decimal' => IntegrationField::TYPE_NUMBER,
+        ];
+
+        return $fieldTypes[$fieldType] ?? IntegrationField::TYPE_STRING;
+    }
+
+    /**
+     * @inheritDoc
+     */
     private function _getCustomFields($fields, $excludeNames = [])
     {
         $customFields = [];
@@ -445,7 +467,7 @@ class Zoho extends Crm
             $customFields[] = new IntegrationField([
                 'handle' => $field['api_name'],
                 'name' => $field['field_label'],
-                'type' => $fieldType,
+                'type' => $this->_convertFieldType($fieldType),
                 'required' => $field['system_mandatory'] ?? false,
                 'options' => $options,
             ]);

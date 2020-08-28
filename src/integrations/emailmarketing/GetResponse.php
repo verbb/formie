@@ -111,7 +111,7 @@ class GetResponse extends EmailMarketing
     public function sendPayload(Submission $submission): bool
     {
         try {
-            $fieldValues = $this->getFieldMappingValues($submission, $this->fieldMapping);
+            $fieldValues = $this->getFieldMappingValues($submission, $this->fieldMapping, 'lists');
 
             // Pull out email, as it needs to be top level
             $email = ArrayHelper::remove($fieldValues, 'email');

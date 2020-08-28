@@ -148,10 +148,12 @@ class VCita extends Crm
     public function sendPayload(Submission $submission): bool
     {
         try {
-            $clientValues = $this->getFieldMappingValues($submission, $this->clientFieldMapping);
+            $clientValues = $this->getFieldMappingValues($submission, $this->clientFieldMapping, 'client');
 
             // Special processing on this due to nested content in payload
             $clientPayload = $clientValues;
+
+            Craft::dd($clientPayload);
 
             // Can't handle update and create, so check first
             $response = $this->request('GET', 'clients', ['query' => [
@@ -242,6 +244,18 @@ class VCita extends Crm
     /**
      * @inheritDoc
      */
+    private function _convertFieldType($fieldType)
+    {
+        $fieldTypes = [
+            'datepicker' => IntegrationField::TYPE_DATE,
+        ];
+
+        return $fieldTypes[$fieldType] ?? IntegrationField::TYPE_STRING;
+    }
+
+    /**
+     * @inheritDoc
+     */
     private function _getCustomFields($fields, $excludeNames = [])
     {
         $customFields = [];
@@ -271,7 +285,7 @@ class VCita extends Crm
             $customFields[] = new IntegrationField([
                 'handle' => $field['label'],
                 'name' => $field['label'],
-                'type' => $field['type'],
+                'type' => $this->_convertFieldType($field['type']),
                 'required' => $field['required'],
             ]);
         }

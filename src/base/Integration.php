@@ -10,11 +10,14 @@ use verbb\formie\events\IntegrationConnectionEvent;
 use verbb\formie\events\IntegrationFormSettingsEvent;
 use verbb\formie\events\SendIntegrationPayloadEvent;
 use verbb\formie\helpers\UrlHelper as FormieUrlHelper;
+use verbb\formie\models\IntegrationField;
 
 use Craft;
 use craft\base\SavableComponent;
 use craft\validators\HandleValidator;
 use craft\validators\UniqueValidator;
+use craft\helpers\ArrayHelper;
+use craft\helpers\DateTimeHelper;
 use craft\helpers\Json;
 use craft\helpers\StringHelper;
 use craft\web\Response;
@@ -562,9 +565,12 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     /**
      * @inheritDoc
      */
-    protected function getFieldMappingValues(Submission $submission, $fieldMapping)
+    protected function getFieldMappingValues(Submission $submission, $fieldMapping, $fieldMappingNamespace)
     {
         $fieldValues = [];
+
+        // Fetch the field settings so we know what type of field we're dealing with
+        $integrationFields = $this->getFormSettingsFields($fieldMappingNamespace);
 
         foreach ($fieldMapping as $tag => $formFieldHandle) {
             // Don't let in un-mapped fields
@@ -573,16 +579,19 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
                 if (strstr($formFieldHandle, '{')) {
                     $formFieldHandle = str_replace(['{', '}'], ['', ''], $formFieldHandle);
 
-                    // Convert to string. We'll introduce more complex field handling in the future, but this will
-                    // be controlled at the integration-level. Some providers might only handle an address as a string
-                    // others might accept an array of content. The integration should handle this...
-                    try {
-                        $fieldValues[$tag] = (string)$submission->getFieldValue($formFieldHandle);
-                    } catch (\Throwable $e) {}
+                    // Check to see if this is a custom field, or an attribute on the submission
+                    // Then, allow the integration to control how to parse the field, from its type
+                    $integrationField = $integrationFields[$tag] ?? null;
 
-                    try {
-                        $fieldValues[$tag] = (string)$submission->$formFieldHandle;
-                    } catch (\Throwable $e) {}
+                    // try {
+                        $value = $submission->getFieldValue($formFieldHandle);
+                        $fieldValues[$tag] = $this->parseFieldMappedValue($integrationField, $value);
+                    // } catch (\Throwable $e) {}
+
+                    // try {
+                        $value = $submission->$formFieldHandle;
+                        $fieldValues[$tag] = $this->parseFieldMappedValue($integrationField, $value);
+                    // } catch (\Throwable $e) {}
                 } else {
                     // Otherwise, might have passed in a direct value
                     $fieldValues[$tag] = $formFieldHandle;
@@ -591,6 +600,53 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         }
 
         return $fieldValues;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected function parseFieldMappedValue(IntegrationField $integrationField, $value)
+    {
+        if ($integrationField->getType() === IntegrationField::TYPE_DATE) {
+            return DateTimeHelper::toDateTime($value)->format('Y-m-d');
+        }
+
+        if ($integrationField->getType() === IntegrationField::TYPE_DATETIME) {
+            return DateTimeHelper::toDateTime($value)->format('Y-m-d H:i:s');
+        }
+
+        if ($integrationField->getType() === IntegrationField::TYPE_NUMBER) {
+            // If this field doesn't implement a toString, really can't reliably serialize it...
+            if (is_array($value) || (is_object($value) && !method_exists($value, '__toString'))) {
+                return 0;
+            }
+
+            return intval($value);
+        }
+
+        if ($integrationField->getType() === IntegrationField::TYPE_STRING) {
+            // If this field doesn't implement a toString, really can't reliably serialize it...
+            if (is_array($value) || (is_object($value) && !method_exists($value, '__toString'))) {
+                return '';
+            }
+
+            return (string)$value;
+        }
+
+        if ($integrationField->getType() === IntegrationField::TYPE_BOOLEAN) {
+            // If this field doesn't implement a toString, really can't reliably serialize it...
+            if (is_array($value) || (is_object($value) && !method_exists($value, '__toString'))) {
+                return false;
+            }
+
+            return (bool)$value;
+        }
+
+        if ($integrationField->getType() === IntegrationField::TYPE_ARRAY) {
+            return (is_array($value)) ? $value : [$value];
+        }
+
+        return (string)$value;
     }
 
     /**

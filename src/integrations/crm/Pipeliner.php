@@ -192,7 +192,7 @@ class Pipeliner extends Crm
     public function sendPayload(Submission $submission): bool
     {
         try {
-            $contactValues = $this->getFieldMappingValues($submission, $this->contactFieldMapping);
+            $contactValues = $this->getFieldMappingValues($submission, $this->contactFieldMapping, 'contact');
 
             $contactPayload = $contactValues;
 

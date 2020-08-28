@@ -176,7 +176,7 @@ class Scoro extends Crm
     public function sendPayload(Submission $submission): bool
     {
         try {
-            $contactValues = $this->getFieldMappingValues($submission, $this->contactFieldMapping);
+            $contactValues = $this->getFieldMappingValues($submission, $this->contactFieldMapping, 'contact');
 
             // Special processing on this due to nested content in payload
             $contactPayload = [
@@ -257,6 +257,20 @@ class Scoro extends Crm
 
     // Private Methods
     // =========================================================================
+
+    /**
+     * @inheritDoc
+     */
+    private function _convertFieldType($fieldType)
+    {
+        $fieldTypes = [
+            'date' => IntegrationField::TYPE_DATE,
+            'datetime' => IntegrationField::TYPE_DATETIME,
+            'number' => IntegrationField::TYPE_NUMBER,
+        ];
+
+        return $fieldTypes[$fieldType] ?? IntegrationField::TYPE_STRING;
+    }
     
     /**
      * @inheritDoc
@@ -284,7 +298,7 @@ class Scoro extends Crm
             $customFields[] = new IntegrationField([
                 'handle' => 'custom:' . $field['id'],
                 'name' => $field['name'],
-                'type' => $field['type'],
+                'type' => $this->_convertFieldType($field['type']),
             ]);
         }
 

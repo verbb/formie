@@ -214,10 +214,10 @@ class Salesforce extends Crm
     public function sendPayload(Submission $submission): bool
     {
         try {
-            $contactValues = $this->getFieldMappingValues($submission, $this->contactFieldMapping);
-            $leadValues = $this->getFieldMappingValues($submission, $this->leadFieldMapping);
-            $opportunityValues = $this->getFieldMappingValues($submission, $this->opportunityFieldMapping);
-            $accountValues = $this->getFieldMappingValues($submission, $this->accountFieldMapping);
+            $contactValues = $this->getFieldMappingValues($submission, $this->contactFieldMapping, 'contact');
+            $leadValues = $this->getFieldMappingValues($submission, $this->leadFieldMapping, 'lead');
+            $opportunityValues = $this->getFieldMappingValues($submission, $this->opportunityFieldMapping, 'opportunity');
+            $accountValues = $this->getFieldMappingValues($submission, $this->accountFieldMapping, 'account');
 
             $accountId = null;
             $accountOwnerId = null;
@@ -441,6 +441,25 @@ class Salesforce extends Crm
     /**
      * @inheritDoc
      */
+    private function _convertFieldType($fieldType)
+    {
+        $fieldTypes = [
+            'boolean' => IntegrationField::TYPE_BOOLEAN,
+            'multipicklist' => IntegrationField::TYPE_ARRAY,
+            'int' => IntegrationField::TYPE_NUMBER,
+            'number' => IntegrationField::TYPE_NUMBER,
+            'currency' => IntegrationField::TYPE_NUMBER,
+            'double' => IntegrationField::TYPE_NUMBER,
+            'date' => IntegrationField::TYPE_DATE,
+            'datetime' => IntegrationField::TYPE_DATETIME,
+        ];
+
+        return $fieldTypes[$fieldType] ?? IntegrationField::TYPE_STRING;
+    }
+
+    /**
+     * @inheritDoc
+     */
     private function _getCustomFields($fields, $excludeNames = [])
     {
         $customFields = [];
@@ -508,7 +527,7 @@ class Salesforce extends Crm
             $customFields[] = new IntegrationField([
                 'handle' => $field['name'],
                 'name' => $field['label'],
-                'type' => $field['type'],
+                'type' => $this->_convertFieldType($field['type']),
                 'required' => !$field['nillable'],
                 'options' => $options,
             ]);

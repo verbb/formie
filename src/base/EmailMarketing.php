@@ -9,6 +9,7 @@ use verbb\formie\models\EmailMarketingList;
 use verbb\formie\models\IntegrationField;
 
 use Craft;
+use craft\helpers\ArrayHelper;
 use craft\helpers\StringHelper;
 use craft\helpers\UrlHelper;
 
@@ -108,6 +109,18 @@ abstract class EmailMarketing extends Integration implements IntegrationInterfac
     /**
      * @inheritDoc
      */
+    public function getFormSettingsFields($namespace)
+    {
+        $settings = $this->getFormSettings()[$namespace] ?? [];
+        $settings = $settings[0]->fields ?? [];
+        $integrationFields = ArrayHelper::index($settings, 'handle');
+
+        return $integrationFields;
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function defineRules(): array
     {
         $rules = parent::defineRules();
@@ -181,7 +194,7 @@ abstract class EmailMarketing extends Integration implements IntegrationInterfac
             return true;
         }
 
-        $fieldValues = $this->getFieldMappingValues($submission);
+        $fieldValues = $this->getFieldMappingValues($submission, $this->fieldMapping, 'lists');
         $fieldValue = $fieldValues[$this->optInField] ?? null;
 
         if ($fieldValue === null) {

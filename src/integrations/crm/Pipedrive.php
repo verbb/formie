@@ -164,11 +164,11 @@ class Pipedrive extends Crm
     public function sendPayload(Submission $submission): bool
     {
         try {
-            $personValues = $this->getFieldMappingValues($submission, $this->personFieldMapping);
-            $dealValues = $this->getFieldMappingValues($submission, $this->dealFieldMapping);
-            $leadValues = $this->getFieldMappingValues($submission, $this->leadFieldMapping);
-            $organizationValues = $this->getFieldMappingValues($submission, $this->organizationFieldMapping);
-            $noteValues = $this->getFieldMappingValues($submission, $this->noteFieldMapping);
+            $personValues = $this->getFieldMappingValues($submission, $this->personFieldMapping, 'person');
+            $dealValues = $this->getFieldMappingValues($submission, $this->dealFieldMapping, 'deal');
+            $leadValues = $this->getFieldMappingValues($submission, $this->leadFieldMapping, 'lead');
+            $organizationValues = $this->getFieldMappingValues($submission, $this->organizationFieldMapping, 'organization');
+            $noteValues = $this->getFieldMappingValues($submission, $this->noteFieldMapping, 'note');
 
             $organizationId = null;
 
@@ -380,6 +380,25 @@ class Pipedrive extends Crm
     /**
      * @inheritDoc
      */
+    private function _convertFieldType($fieldType)
+    {
+        $fieldTypes = [
+            'set' => IntegrationField::TYPE_ARRAY,
+            'phone' => IntegrationField::TYPE_ARRAY,
+            'int' => IntegrationField::TYPE_NUMBER,
+            'double' => IntegrationField::TYPE_NUMBER,
+            'monetary' => IntegrationField::TYPE_NUMBER,
+            'user' => IntegrationField::TYPE_NUMBER,
+            'org' => IntegrationField::TYPE_NUMBER,
+            'people' => IntegrationField::TYPE_NUMBER,
+        ];
+
+        return $fieldTypes[$fieldType] ?? IntegrationField::TYPE_STRING;
+    }
+
+    /**
+     * @inheritDoc
+     */
     private function _getCustomFields($fields, $excludeNames = [])
     {
         $customFields = [];
@@ -472,7 +491,7 @@ class Pipedrive extends Crm
             $customFields[] = new IntegrationField([
                 'handle' => $field['key'],
                 'name' => $field['name'],
-                'type' => $field['field_type'],
+                'type' => $this->_convertFieldType($field['field_type']),
                 'required' => $required,
                 'options' => $options,
             ]);

@@ -178,13 +178,13 @@ class HubSpot extends Crm
     public function sendPayload(Submission $submission): bool
     {
         try {
-            $contactValues = $this->getFieldMappingValues($submission, $this->contactFieldMapping);
-            $dealValues = $this->getFieldMappingValues($submission, $this->dealFieldMapping);
-            $companyValues = $this->getFieldMappingValues($submission, $this->companyFieldMapping);
+            $contactValues = $this->getFieldMappingValues($submission, $this->contactFieldMapping, 'contact');
+            $dealValues = $this->getFieldMappingValues($submission, $this->dealFieldMapping, 'deal');
+            $companyValues = $this->getFieldMappingValues($submission, $this->companyFieldMapping, 'company');
 
             $contactId = null;
 
-            if ($mapToContact) {
+            if ($this->mapToContact) {
                 $email = ArrayHelper::getValue($contactValues, 'email');
 
                 // Prepare the payload for HubSpot, required for v1 API
@@ -308,6 +308,19 @@ class HubSpot extends Crm
     /**
      * @inheritDoc
      */
+    private function _convertFieldType($fieldType)
+    {
+        $fieldTypes = [
+            'bool' => IntegrationField::TYPE_BOOLEAN,
+            'number' => IntegrationField::TYPE_NUMBER,
+        ];
+
+        return $fieldTypes[$fieldType] ?? IntegrationField::TYPE_STRING;
+    }
+
+    /**
+     * @inheritDoc
+     */
     private function _getCustomFields($fields, $excludeNames = [])
     {
         $customFields = [];
@@ -340,7 +353,7 @@ class HubSpot extends Crm
             $customFields[] = new IntegrationField([
                 'handle' => $field['name'],
                 'name' => $field['label'],
-                'type' => $field['type'],
+                'type' => $this->_convertFieldType($field['type']),
             ]);
         }
 

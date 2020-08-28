@@ -309,8 +309,8 @@ class Freshdesk extends Crm
     public function sendPayload(Submission $submission): bool
     {
         try {
-            $contactValues = $this->getFieldMappingValues($submission, $this->contactFieldMapping);
-            $ticketValues = $this->getFieldMappingValues($submission, $this->ticketFieldMapping);
+            $contactValues = $this->getFieldMappingValues($submission, $this->contactFieldMapping, 'contact');
+            $ticketValues = $this->getFieldMappingValues($submission, $this->ticketFieldMapping, 'ticket');
 
             // Directly modify the field values first
             $contactFields = $this->_prepCustomFields($contactValues);
@@ -436,6 +436,21 @@ class Freshdesk extends Crm
     /**
      * @inheritDoc
      */
+    private function _convertFieldType($fieldType)
+    {
+        $fieldTypes = [
+            'custom_date' => IntegrationField::TYPE_DATETIME,
+            'custom_checkbox' => IntegrationField::TYPE_BOOLEAN,
+            'custom_decimal' => IntegrationField::TYPE_NUMBER,
+            'custom_number' => IntegrationField::TYPE_NUMBER,
+        ];
+
+        return $fieldTypes[$fieldType] ?? IntegrationField::TYPE_STRING;
+    }
+
+    /**
+     * @inheritDoc
+     */
     private function _getCustomFields($fields, $excludeNames = [])
     {
         $customFields = [];
@@ -468,7 +483,7 @@ class Freshdesk extends Crm
             $customFields[] = new IntegrationField([
                 'handle' => 'custom:' . $field['name'],
                 'name' => $field['label'],
-                'type' => $field['type'],
+                'type' => $this->_convertFieldType($field['type']),
                 'required' => $field['required_for_customers'],
             ]);
         }

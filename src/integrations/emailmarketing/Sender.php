@@ -109,7 +109,7 @@ class Sender extends EmailMarketing
     public function sendPayload(Submission $submission): bool
     {
         try {
-            $fieldValues = $this->getFieldMappingValues($submission, $this->fieldMapping);
+            $fieldValues = $this->getFieldMappingValues($submission, $this->fieldMapping, 'lists');
 
             $payload = [
                 'method' => 'listSubscribe',

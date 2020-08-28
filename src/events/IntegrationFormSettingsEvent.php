@@ -1,9 +1,9 @@
 <?php
 namespace verbb\formie\events;
 
-use yii\base\Event;
+use craft\events\CancelableEvent;
 
-class IntegrationFormSettingsEvent extends Event
+class IntegrationFormSettingsEvent extends CancelableEvent
 {
     // Properties
     // =========================================================================

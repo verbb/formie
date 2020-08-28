@@ -141,7 +141,7 @@ class Monday extends Crm
     public function sendPayload(Submission $submission): bool
     {
         try {
-            $boardValues = $this->getFieldMappingValues($submission, $this->fieldMapping);
+            $boardValues = $this->getFieldMappingValues($submission, $this->fieldMapping, 'boards');
 
             $boardIds = explode(':', $this->boardId);
             $boardId = $boardIds[0];

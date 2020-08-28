@@ -241,7 +241,7 @@ class Infusionsoft extends Crm
     public function sendPayload(Submission $submission): bool
     {
         try {
-            $contactValues = $this->getFieldMappingValues($submission, $this->contactFieldMapping);
+            $contactValues = $this->getFieldMappingValues($submission, $this->contactFieldMapping, 'contact');
 
             // Special processing on this due to nested content in payload
             $contactPayload = $this->_prepContactPayload($contactValues);
@@ -327,6 +327,23 @@ class Infusionsoft extends Crm
     /**
      * @inheritDoc
      */
+    private function _convertFieldType($fieldType)
+    {
+        $fieldTypes = [
+            'ListBox' => IntegrationField::TYPE_ARRAY,
+            'Number' => IntegrationField::TYPE_NUMBER,
+            'WholeNumber' => IntegrationField::TYPE_NUMBER,
+            'Currency' => IntegrationField::TYPE_NUMBER,
+            'Date' => IntegrationField::TYPE_DATE,
+            'DateTime' => IntegrationField::TYPE_DATETIME,
+        ];
+
+        return $fieldTypes[$fieldType] ?? IntegrationField::TYPE_STRING;
+    }
+
+    /**
+     * @inheritDoc
+     */
     private function _getCustomFields($fields, $excludeNames = [])
     {
         $customFields = [];
@@ -359,7 +376,7 @@ class Infusionsoft extends Crm
             $customFields[] = new IntegrationField([
                 'handle' => 'custom:' . $field['id'],
                 'name' => $field['label'],
-                'type' => $field['field_type'],
+                'type' => $this->_convertFieldType($field['field_type']),
             ]);
         }
 

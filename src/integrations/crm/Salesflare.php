@@ -138,7 +138,7 @@ class Salesflare extends Crm
     public function sendPayload(Submission $submission): bool
     {
         try {
-            $contactValues = $this->getFieldMappingValues($submission, $this->contactFieldMapping);
+            $contactValues = $this->getFieldMappingValues($submission, $this->contactFieldMapping, 'contact');
 
             // Special processing on this due to nested content in payload
             $contactPayload = $this->_prepContactPayload($contactValues);
@@ -220,6 +220,18 @@ class Salesflare extends Crm
     /**
      * @inheritDoc
      */
+    private function _convertFieldType($fieldType)
+    {
+        $fieldTypes = [
+            'date' => IntegrationField::TYPE_DATE,
+        ];
+
+        return $fieldTypes[$fieldType] ?? IntegrationField::TYPE_STRING;
+    }
+
+    /**
+     * @inheritDoc
+     */
     private function _getCustomFields($fields, $excludeNames = [])
     {
         $customFields = [];
@@ -228,7 +240,7 @@ class Salesflare extends Crm
             $customFields[] = new IntegrationField([
                 'handle' => 'custom:' . $field['id'],
                 'name' => $field['name'],
-                'type' => $field['type']['type'],
+                'type' => $this->_convertFieldType($field['type']['type']),
                 'required' => $field['required'],
             ]);
         }

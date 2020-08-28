@@ -7,6 +7,7 @@ use verbb\formie\elements\Submission;
 use verbb\formie\models\IntegrationField;
 
 use Craft;
+use craft\helpers\ArrayHelper;
 use craft\helpers\StringHelper;
 use craft\helpers\UrlHelper;
 
@@ -92,5 +93,16 @@ abstract class Crm extends Integration implements IntegrationInterface
         }
 
         return $settings;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getFormSettingsFields($namespace)
+    {
+        $settings = $this->getFormSettings()[$namespace] ?? [];
+        $integrationFields = ArrayHelper::index($settings, 'handle');
+
+        return $integrationFields;
     }
 }

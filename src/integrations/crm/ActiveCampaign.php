@@ -116,16 +116,12 @@ class ActiveCampaign extends Crm
                     'value' => $list['id'],
                 ];
             }
-        } catch (\Throwable $e) {
-            Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [
-                'message' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-            ]), true);
-        }
 
-        $settings = [
-            'contact' => [
+            // Get Contacts fields
+            $response = $this->request('GET', 'fields');
+            $fields = $response['fields'] ?? [];
+
+            $contactFields = array_merge([
                 new IntegrationField([
                     'handle' => 'listId',
                     'name' => Craft::t('formie', 'List'),
@@ -151,9 +147,13 @@ class ActiveCampaign extends Crm
                     'handle' => 'phone',
                     'name' => Craft::t('formie', 'Phone'),
                 ]),
-            ],
+            ], $this->_getCustomFields($fields));
 
-            'deal' => [
+            // Get Deals fields
+            $response = $this->request('GET', 'dealCustomFieldMeta');
+            $fields = $response['dealCustomFieldMeta'] ?? [];
+
+            $dealFields = array_merge([
                 new IntegrationField([
                     'handle' => 'title',
                     'name' => Craft::t('formie', 'Title'),
@@ -221,70 +221,25 @@ class ActiveCampaign extends Crm
                         ],
                     ],
                 ]),
-            ],
+            ], $this->_getCustomFields($fields));
 
-            'account' => [
+            // Get Account fields
+            $response = $this->request('GET', 'accountCustomFieldMeta');
+            $fields = $response['accountCustomFieldMeta'] ?? [];
+
+            $accountFields = array_merge([
                 new IntegrationField([
                     'handle' => 'name',
                     'name' => Craft::t('formie', 'Name'),
                     'required' => true,
                 ]),
-            ],
-        ];
+            ], $this->_getCustomFields($fields));
 
-        try {
-            $response = $this->request('GET', 'fields');
-            $fields = $response['fields'] ?? [];
-
-            // Don't use all fields, at least for the moment...
-            $supportedFields = [
-                'text',
-                'textarea',
-                'hidden',
-                'dropdown',
-                'radio',
-                'date',
-                // 'checkbox',
-                // 'listbox',
+            $settings = [
+                'contact' => $contactFields,
+                'deal' => $dealFields,
+                'account' => $accountFields,
             ];
-
-            foreach ($fields as $field) {
-                if (in_array($field['type'], $supportedFields)) {
-                    $settings['contact'][] = new IntegrationField([
-                        'handle' => (string)$field['id'],
-                        'name' => $field['title'],
-                        'type' => $field['type'],
-                    ]);
-                }
-            }
-
-            // Fetch deal-specific fields
-            $response = $this->request('GET', 'dealCustomFieldMeta');
-            $fields = $response['dealCustomFieldMeta'] ?? [];
-
-            foreach ($fields as $field) {
-                if (in_array($field['fieldType'], $supportedFields)) {
-                    $settings['deal'][] = new IntegrationField([
-                        'handle' => (string)$field['id'],
-                        'name' => $field['fieldLabel'],
-                        'type' => $field['fieldType'],
-                    ]);
-                }
-            }
-
-            // Fetch account-specific fields
-            $response = $this->request('GET', 'accountCustomFieldMeta');
-            $fields = $response['accountCustomFieldMeta'] ?? [];
-
-            foreach ($fields as $field) {
-                if (in_array($field['fieldType'], $supportedFields)) {
-                    $settings['account'][] = new IntegrationField([
-                        'handle' => (string)$field['id'],
-                        'name' => $field['fieldLabel'],
-                        'type' => $field['fieldType'],
-                    ]);
-                }
-            }
         } catch (\Throwable $e) {
             Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [
                 'message' => $e->getMessage(),
@@ -302,14 +257,14 @@ class ActiveCampaign extends Crm
     public function sendPayload(Submission $submission): bool
     {
         try {
-            $contactValues = $this->getFieldMappingValues($submission, $this->contactFieldMapping);
-            $dealValues = $this->getFieldMappingValues($submission, $this->dealFieldMapping);
-            $accountValues = $this->getFieldMappingValues($submission, $this->accountFieldMapping);
+            $contactValues = $this->getFieldMappingValues($submission, $this->contactFieldMapping, 'contact');
+            $dealValues = $this->getFieldMappingValues($submission, $this->dealFieldMapping, 'deal');
+            $accountValues = $this->getFieldMappingValues($submission, $this->accountFieldMapping, 'account');
 
             $accountId = null;
             $contactId = null;
 
-            if ($mapToContact) {
+            if ($this->mapToContact) {
                 $email = ArrayHelper::remove($contactValues, 'email');
                 $firstName = ArrayHelper::remove($contactValues, 'firstName');
                 $lastName = ArrayHelper::remove($contactValues, 'lastName');
@@ -497,6 +452,65 @@ class ActiveCampaign extends Crm
 
     // Private Methods
     // =========================================================================
+
+    /**
+     * @inheritDoc
+     */
+    private function _convertFieldType($fieldType)
+    {
+        $fieldTypes = [
+            'dropdown' => IntegrationField::TYPE_ARRAY,
+            'multiselect' => IntegrationField::TYPE_ARRAY,
+            'checkbox' => IntegrationField::TYPE_ARRAY,
+            'date' => IntegrationField::TYPE_DATETIME,
+        ];
+
+        return $fieldTypes[$fieldType] ?? IntegrationField::TYPE_STRING;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    private function _getCustomFields($fields, $excludeNames = [])
+    {
+        $customFields = [];
+
+        // Don't use all fields, at least for the moment...
+        $supportedFields = [
+            'text',
+            'textarea',
+            'hidden',
+            'dropdown',
+            'radio',
+            'date',
+            // 'checkbox',
+            // 'listbox',
+        ];
+
+        foreach ($fields as $key => $field) {
+            // Some endpoints return different things!
+            $fieldName = $field['fieldLabel'] ?? $field['title'] ?? '';
+            $fieldType = $field['fieldType'] ?? $field['type'] ?? '';
+
+            // // Only allow supported types
+            if (!in_array($fieldType, $supportedFields)) {
+                 continue;
+            }
+
+            // Exclude any names
+            if (in_array($fieldName, $excludeNames)) {
+                 continue;
+            }
+
+            $customFields[] = new IntegrationField([
+                'handle' => (string)$field['id'],
+                'name' => $fieldName,
+                'type' => $this->_convertFieldType($fieldType),
+            ]);
+        }
+
+        return $customFields;
+    }
 
     /**
      * @inheritDoc
