@@ -6,6 +6,8 @@ use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\errors\IntegrationException;
 use verbb\formie\records\Integration as IntegrationRecord;
+use verbb\formie\events\IntegrationConnectionEvent;
+use verbb\formie\events\IntegrationFormSettingsEvent;
 use verbb\formie\events\SendIntegrationPayloadEvent;
 use verbb\formie\helpers\UrlHelper as FormieUrlHelper;
 
@@ -26,6 +28,10 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
 
     const EVENT_BEFORE_SEND_PAYLOAD = 'beforeSendPayload';
     const EVENT_AFTER_SEND_PAYLOAD = 'afterSendPayload';
+    const EVENT_BEFORE_CHECK_CONNECTION = 'beforeCheckConnection';
+    const EVENT_AFTER_CHECK_CONNECTION = 'afterCheckConnection';
+    const EVENT_BEFORE_FETCH_FORM_SETTINGS = 'beforeFetchFormSettings';
+    const EVENT_AFTER_FETCH_FORM_SETTINGS = 'afterFetchFormSettings';
     
     const TYPE_ADDRESS_PROVIDER = 'addressProvider';
     const TYPE_CAPTCHA = 'captcha';
@@ -234,13 +240,32 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
             }
         }
 
+        // Fire a 'beforeCheckConnection' event
+        $event = new IntegrationConnectionEvent([
+            'integration' => $this,
+        ]);
+        $this->trigger(self::EVENT_BEFORE_CHECK_CONNECTION, $event);
+
+        if (!$event->isValid) {
+            Integration::log($this, 'Checking connection cancelled by event hook.');
+
+            return false;
+        }
+
         $success = $this->fetchConnection();
 
-        if ($success) {
+        // Fire a 'afterCheckConnection' event
+        $event = new IntegrationConnectionEvent([
+            'integration' => $this,
+            'success' => $success,
+        ]);
+        $this->trigger(self::EVENT_AFTER_CHECK_CONNECTION, $event);
+
+        if ($event->success) {
             $this->setCache(['connection' => self::CONNECT_SUCCESS]);
         }
 
-        return $success;
+        return $event->success;
     }
 
     /**
@@ -269,7 +294,26 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
             return $this->getCache('settings') ?: [];
         }
 
+        // Fire a 'beforeFetchFormSettings' event
+        $event = new IntegrationFormSettingsEvent([
+            'integration' => $this,
+        ]);
+        $this->trigger(self::EVENT_BEFORE_FETCH_FORM_SETTINGS, $event);
+
+        if (!$event->isValid) {
+            Integration::log($this, 'Checking connection cancelled by event hook.');
+
+            return false;
+        }
+
         $settings = $this->fetchFormSettings();
+
+        // Fire a 'afterFetchFormSettings' event
+        $event = new IntegrationFormSettingsEvent([
+            'integration' => $this,
+            'settings' => $settings,
+        ]);
+        $this->trigger(self::EVENT_AFTER_FETCH_FORM_SETTINGS, $event);
 
         $this->setCache(['settings' => $settings]);
 
