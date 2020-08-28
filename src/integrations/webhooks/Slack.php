@@ -137,7 +137,7 @@ class Slack extends Webhook
         $rules[] = [['clientId', 'clientSecret'], 'required'];
 
         // Validate the following when saving form settings
-        $rules[] = [['channelType'], 'required', 'on' => [Integration::SCENARIO_FORM]];
+        $rules[] = [['channelType', 'message'], 'required', 'on' => [Integration::SCENARIO_FORM]];
 
         $rules[] = [['userId'], 'required', 'when' => function($model) {
             return $model->enabled && $model->channelType === self::TYPE_DM;
