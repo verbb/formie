@@ -342,9 +342,22 @@ class IntegrationsController extends Controller
 
         $token = new Token();
         $token->type = get_class($integration);
-        $token->accessToken = $response['token']->getToken();
-        $token->endOfLife = $response['token']->getExpires();
-        $token->refreshToken = $response['token']->getRefreshToken();
+
+        switch ($integration->oauthVersion()) {
+            case 1: {
+                $token->accessToken = $response['token']->getIdentifier();
+                $token->secret = $response['token']->getSecret();
+
+                break;
+            }
+            case 2: {
+                $token->accessToken = $response['token']->getToken();
+                $token->endOfLife = $response['token']->getExpires();
+                $token->refreshToken = $response['token']->getRefreshToken();
+
+                break;
+            }
+        }
 
         // Fire a 'afterOauthCallback' event
         if ($this->hasEventHandlers(self::EVENT_AFTER_OAUTH_CALLBACK)) {

@@ -403,7 +403,6 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
      */
     public function oauthVersion(): int
     {
-        // For now, just support OAuth2
         return 2;
     }
 
@@ -412,8 +411,14 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
      */
     public function oauthConnect()
     {
-        // For now, just support OAuth2
-        return $this->oauth2Connect();
+        switch ($this->oauthVersion()) {
+            case 1: {
+                return $this->oauth1Connect();
+            }
+            case 2: {
+                return $this->oauth2Connect();
+            }
+        }
     }
 
     /**
@@ -421,8 +426,14 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
      */
     public function oauthCallback()
     {
-        // For now, just support OAuth2
-        return $this->oauth2Callback();
+        switch ($this->oauthVersion()) {
+            case 1: {
+                return $this->oauth1Callback();
+            }
+            case 2: {
+                return $this->oauth2Callback();
+            }
+        }
     }
 
     /**
@@ -476,6 +487,25 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     /**
      * @inheritDoc
      */
+    private function oauth1Connect(): Response
+    {
+        $provider = $this->getOauthProvider();
+
+        // Obtain temporary credentials
+        $temporaryCredentials = $provider->getTemporaryCredentials();
+
+        // Store credentials in the session
+        Craft::$app->getSession()->set('oauth.temporaryCredentials', $temporaryCredentials);
+
+        // Redirect to login screen
+        $authorizationUrl = $provider->getAuthorizationUrl($temporaryCredentials);
+
+        return Craft::$app->getResponse()->redirect($authorizationUrl);
+    }
+
+    /**
+     * @inheritDoc
+     */
     private function oauth2Connect(): Response
     {
         $provider = $this->getOauthProvider();
@@ -488,6 +518,28 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         $authorizationUrl = $provider->getAuthorizationUrl($options);
 
         return Craft::$app->getResponse()->redirect($authorizationUrl);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    private function oauth1Callback(): array
+    {
+        $provider = $this->getOauthProvider();
+
+        $oauthToken = Craft::$app->getRequest()->getParam('oauth_token');
+        $oauthVerifier = Craft::$app->getRequest()->getParam('oauth_verifier');
+
+        // Retrieve the temporary credentials we saved before.
+        $temporaryCredentials = Craft::$app->getSession()->get('oauth.temporaryCredentials');
+
+        // Obtain token credentials from the server.
+        $token = $provider->getTokenCredentials($temporaryCredentials, $oauthToken, $oauthVerifier);
+
+        return [
+            'success' => true,
+            'token' => $token
+        ];
     }
 
     /**
