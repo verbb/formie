@@ -472,6 +472,9 @@ class Fields extends Component
             $config['subfieldOptions'] = $field->getSubfieldOptions();
         }
 
+        // Whether this field is nested inside another one
+        $config['isNested'] = $field->isNested;
+
         // Fire a 'modifyFieldConfig' event
         $event = new ModifyFieldConfigEvent([
             'config' => $config,
@@ -812,6 +815,13 @@ class Fields extends Component
             $fields = [];
 
             foreach ($row['fields'] as $fieldIndex => $field) {
+                // Set a flag on any field inside a nested field
+                if ($field instanceof NestedFieldInterface) {
+                    foreach ($field->getFields() as $key => $nestedField) {
+                        $nestedField->isNested = true;
+                    }
+                }
+
                 $fields[$fieldIndex] = Formie::$plugin->getFields()->getSavedFieldConfig($field);
             }
 

@@ -58,6 +58,11 @@ trait FormFieldTrait
      */
     public $rowIndex;
 
+    /**
+     * @var bool
+     */
+    public $isNested;
+
 
     // Private Properties
     // =========================================================================

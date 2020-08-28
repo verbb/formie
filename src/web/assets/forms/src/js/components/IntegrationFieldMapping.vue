@@ -170,15 +170,17 @@ export default {
             var customFields = [];
 
             fields.forEach(field => {
-                customFields.push({ label: field.label, value: '{' + field.handle + '}' });
+                if (!field.isNested) {
+                    customFields.push({ label: field.label, value: '{' + field.handle + '}' });
 
-                if (field.subfieldOptions) {
-                    field.subfieldOptions.forEach(subfield => {
-                        customFields.push({
-                            label: field.label + ': ' + subfield.label,
-                            value: '{' + field.handle + '[' + subfield.handle + ']}',
+                    if (field.subfieldOptions) {
+                        field.subfieldOptions.forEach(subfield => {
+                            customFields.push({
+                                label: field.label + ': ' + subfield.label,
+                                value: '{' + field.handle + '[' + subfield.handle + ']}',
+                            });
                         });
-                    });
+                    }
                 }
             });
 
