@@ -1,0 +1,44 @@
+{% import '_includes/forms' as forms %}
+
+{% set enabled = form.settings.integrations[integration.handle].enabled ?? '' %}
+{% set mapToClient = form.settings.integrations[integration.handle].mapToClient ?? '' %}
+
+<integration-form-settings handle="{{ integration.handle }}" :form-settings="{{ integration.getFormSettings() | json_encode }}" name-raw="fields" inline-template>
+    <div>
+        <div class="field">
+            <button class="btn" :class="{ 'fui-loading fui-loading-sm': loading }" data-icon="refresh" @click.prevent="refresh">{{ 'Refresh Integration' | t('formie') }}</button>
+        </div>
+
+        <div v-if="error" class="error" style="margin-top: 10px;" v-cloak>
+            <span data-icon="alert"></span>
+            <span v-html="errorMessage"></span>
+        </div>
+
+        {{ forms.lightswitchField({
+            label: 'Map to Client' | t('formie'),
+            instructions: 'Whether to map form data to {name} Clients.' | t('formie', { name: integration.displayName() }),
+            id: 'mapToClient',
+            name: 'mapToClient',
+            on: mapToClient,
+            toggle: 'map-to-client',
+        }) }}
+
+        <div id="map-to-client" class="{{ not mapToClient ? 'hidden' }}">
+            <integration-field-mapping
+                label="{{ 'Client Field Mapping' | t('formie') }}"
+                instructions="{{ 'Choose how your form fields should map to your {name} Client fields.' | t('formie', { name: integration.displayName() }) }}"
+                name-label="{{ integration.displayName() }}"
+                id="client-field-mapping"
+                name="clientFieldMapping"
+                :value="get(form, 'settings.integrations.{{ integration.handle }}.clientFieldMapping')"
+                :rows="get(settings, 'client')"
+            ></integration-field-mapping>
+
+            <ul v-if="!isEmpty(get(form, 'settings.integrations.{{ integration.handle }}.errors.clientFieldMapping'))" class="errors" v-cloak>
+                <li v-for="(error, index) in get(form, 'settings.integrations.{{ integration.handle }}.errors.clientFieldMapping')" :key="index">
+                    ${ error }
+                </li>
+            </ul>
+        </div>
+    </div>
+</integration-form-settings>

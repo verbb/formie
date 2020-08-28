@@ -127,9 +127,9 @@ class Integrations extends Component
             crm\Pipeliner::class,
             crm\Salesflare::class,
             crm\Salesforce::class,
-            // crm\Scoro::class,
+            crm\Scoro::class,
             // crm\SharpSpring::class,
-            // crm\VCita::class,
+            crm\VCita::class,
             // crm\Zengine::class,
             crm\Zoho::class,
         ];
