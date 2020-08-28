@@ -179,7 +179,11 @@ class Scoro extends Crm
             $contactValues = $this->getFieldMappingValues($submission, $this->contactFieldMapping);
 
             // Special processing on this due to nested content in payload
-            $contactPayload = $this->_prepContactPayload($contactValues);
+            $contactPayload = [
+                'request' => $this->_prepContactPayload($contactValues),
+                'apiKey' => $this->apiKey,
+                'company_account_id' => $this->_getCompanyAccountId(),
+            ];
 
             $response = $this->deliverPayload($submission, 'contacts/modify', $contactPayload);
 
@@ -187,7 +191,7 @@ class Scoro extends Crm
                 return false;
             }
 
-            $contactId = $response['id'] ?? '';
+            $contactId = $response['data']['contact_id'] ?? '';
 
             if (!$contactId) {
                 Integration::error($this, Craft::t('formie', 'Missing return “contactId” {response}', [
@@ -253,6 +257,21 @@ class Scoro extends Crm
 
     // Private Methods
     // =========================================================================
+    
+    /**
+     * @inheritDoc
+     */
+    private function _getCompanyAccountId()
+    {
+        if ($this->apiDomain) {
+            $parsedUrl = parse_url($this->apiDomain);
+            $host = explode('.', $parsedUrl['host']);
+
+            return $host[0] ?? '';
+        }
+
+        return '';
+    }
 
     /**
      * @inheritDoc
