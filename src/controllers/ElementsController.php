@@ -60,7 +60,7 @@ class ElementsController extends Controller
 
         $productTypes = [];
 
-        if (Craft::$app->getPlugins()->isPluginEnabled('commerce')) {
+        if (Craft::$app->getPlugins()->isPluginInstalled('commerce') && Craft::$app->getPlugins()->isPluginEnabled('commerce')) {
             $productTypes = Commerce::getInstance()->getProductTypes()->getAllProductTypes();
 
             // Reset keys so its an array

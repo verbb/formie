@@ -101,7 +101,7 @@ class Fields extends Component
             ]);
         }
 
-        if (Craft::$app->getPlugins()->isPluginEnabled('commerce')) {
+        if (Craft::$app->getPlugins()->isPluginInstalled('commerce') && Craft::$app->getPlugins()->isPluginEnabled('commerce')) {
             $elementFields = array_merge($elementFields, [
                 formfields\Products::class,
                 formfields\Variants::class,
@@ -227,7 +227,7 @@ class Fields extends Component
             ]);
         }
 
-        if (Craft::$app->getPlugins()->isPluginEnabled('commerce')) {
+        if (Craft::$app->getPlugins()->isPluginInstalled('commerce') && Craft::$app->getPlugins()->isPluginEnabled('commerce')) {
             $fields = array_merge($fields, [
                 formfields\Products::class,
                 formfields\Variants::class,
