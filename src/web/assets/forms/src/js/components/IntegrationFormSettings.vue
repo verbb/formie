@@ -81,12 +81,14 @@ export default {
                     });
                 } else {
                     Object.keys(sources).forEach(key => {
-                        sources[key].forEach(item => {
-                            if (item.id === this.sourceId) {
-                                // eslint-disable-next-line
-                                fields = item.fields;
-                            }
-                        });
+                        if (Array.isArray(sources[key])) {
+                            sources[key].forEach(item => {
+                                if (item.id === this.sourceId) {
+                                    // eslint-disable-next-line
+                                    fields = item.fields;
+                                }
+                            });
+                        }
                     });
                 }
             }
