@@ -1,0 +1,58 @@
+{% import '_includes/forms' as forms %}
+
+{% set handle = integration.handle %}
+{% set formSettings = integration.getFormSettings() | json_encode %}
+{% set sheetId = form.settings.integrations[handle].sheetId ?? '' %}
+
+<integration-form-settings handle="{{ handle }}" :form-settings="{{ formSettings }}" source="{{ sheetId }}" inline-template>
+    <div>
+        <div class="field">
+            <div class="heading">
+                <label id="sheetId-label" for="sheetId" class="required">{{ 'Sheet' | t('formie') }}</label>
+
+                <div class="instructions">
+                    <p>{{ 'Select which {name} sheet to add rows to.' | t('formie', { name: integration.displayName() }) }}</p>
+                </div>
+            </div>
+
+            <div class="input ltr">
+                <div class="select">
+                    <select v-model="sourceId" name="sheetId" required>
+                        <option value="">{{ 'Select an option' | t('formie') }}</option>
+
+                        <option v-for="(option, index) in get(settings, 'sheets')" :key="index" :value="option.id">${ option.name }</option>
+                    </select>
+                </div>
+
+                <button class="btn fui-btn-transparent" :class="{ 'fui-loading fui-loading-sm': loading }" data-icon="refresh" @click.prevent="refresh"></button>
+            </div>
+
+            <ul v-if="!isEmpty(get(form, 'settings.integrations.{{ integration.handle }}.errors.sheetId'))" class="errors" v-cloak>
+                <li v-for="(error, index) in get(form, 'settings.integrations.{{ integration.handle }}.errors.sheetId')" :key="index">
+                    ${ error }
+                </li>
+            </ul>
+        </div>
+
+        <div v-if="error" class="error" style="margin-top: 10px;" v-cloak>
+            <span data-icon="alert"></span>
+            <span v-html="errorMessage"></span>
+        </div>
+
+        <integration-field-mapping
+            label="{{ 'Field Mapping' | t('formie') }}"
+            instructions="{{ 'Choose how your form fields should map to your {name} columns.' | t('formie', { name: integration.displayName() }) }}"
+            id="field-mapping"
+            name-label="{{ integration.displayName() }}"
+            name="fieldMapping"
+            :value="get(form, 'settings.integrations.{{ integration.handle }}.fieldMapping')"
+            :rows="getSourceFields('sheets')"
+        ></integration-field-mapping>
+
+        <ul v-if="!isEmpty(get(form, 'settings.integrations.{{ integration.handle }}.errors.fieldMapping'))" class="errors" v-cloak>
+            <li v-for="(error, index) in get(form, 'settings.integrations.{{ integration.handle }}.errors.fieldMapping')" :key="index">
+                ${ error }
+            </li>
+        </ul>
+    </div>
+</integration-form-settings>

@@ -2,11 +2,47 @@
 {% import 'verbb-base/_macros' as macros %}
 
 {{ forms.textField({
-    label: 'API Key' | t('formie'),
-    instructions: 'Enter your {name} API key here.' | t('formie', { name: integration.displayName() }),
-    name: 'apiKey',
+    readonly: true,
+    label: 'Redirect URI' | t('formie'),
+    instructions: 'Use this URI when setting up your {name} app.' | t('formie', { name: integration.displayName() }),
+    value: integration.getRedirectUri(),
+}) }}
+
+{{ forms.lightswitchField({
+    label: 'Proxy Redirect URI' | t('formie'),
+    instructions: 'Whether to proxy the redirect URI through Verbb‘s servers. This should **only** be used for local testing. See [docs]() for more.' | t('formie') | md,
+    name: 'proxyRedirect',
+    on: integration.settings.proxyRedirect ?? false,
+    warning: macros.configWarning('proxyRedirect', 'formie'),
+    errors: integration.getErrors('proxyRedirect'),
+}) }}
+
+{{ forms.textField({
+    label: 'Client ID' | t('formie'),
+    instructions: 'Enter your {name} Client ID key here.' | t('formie', { name: integration.displayName() }),
+    name: 'clientId',
     required: true,
-    value: integration.settings.apiKey ?? '',
-    warning: macros.configWarning('apiKey', 'formie'),
-    errors: integration.getErrors('apiKey'),
+    value: integration.settings.clientId ?? '',
+    warning: macros.configWarning('clientId', 'formie'),
+    errors: integration.getErrors('clientId'),
+}) }}
+
+{{ forms.textField({
+    label: 'Client Secret' | t('formie'),
+    instructions: 'Enter your {name} Client Secret here.' | t('formie', { name: integration.displayName() }),
+    name: 'clientSecret',
+    required: true,
+    value: integration.settings.clientSecret ?? '',
+    warning: macros.configWarning('clientSecret', 'formie'),
+    errors: integration.getErrors('clientSecret'),
+}) }}
+
+{{ forms.textField({
+    label: 'Spreadsheet ID' | t('formie'),
+    instructions: 'Enter the {name} Spreadsheet ID here.' | t('formie', { name: integration.displayName() }),
+    name: 'spreadsheetId',
+    required: true,
+    value: integration.settings.spreadsheetId ?? '',
+    warning: macros.configWarning('spreadsheetId', 'formie'),
+    errors: integration.getErrors('spreadsheetId'),
 }) }}
