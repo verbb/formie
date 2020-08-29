@@ -23,33 +23,7 @@ use verbb\formie\events\ModifyFieldConfigEvent;
 use verbb\formie\events\ModifyFieldRowConfigEvent;
 use verbb\formie\events\RegisterFieldsEvent;
 use verbb\formie\events\RegisterFieldOptionsEvent;
-use verbb\formie\fields\formfields\Address;
-use verbb\formie\fields\formfields\Agree;
-use verbb\formie\fields\formfields\Categories;
-use verbb\formie\fields\formfields\Checkboxes;
-use verbb\formie\fields\formfields\Date;
-use verbb\formie\fields\formfields\Dropdown;
-use verbb\formie\fields\formfields\Email;
-use verbb\formie\fields\formfields\Entries;
-use verbb\formie\fields\formfields\FileUpload;
-use verbb\formie\fields\formfields\Group;
-use verbb\formie\fields\formfields\Heading;
-use verbb\formie\fields\formfields\Hidden;
-use verbb\formie\fields\formfields\Html;
-use verbb\formie\fields\formfields\MissingField;
-use verbb\formie\fields\formfields\MultiLineText;
-use verbb\formie\fields\formfields\Name;
-use verbb\formie\fields\formfields\Number;
-use verbb\formie\fields\formfields\Phone;
-use verbb\formie\fields\formfields\Products;
-use verbb\formie\fields\formfields\Radio;
-use verbb\formie\fields\formfields\Repeater;
-use verbb\formie\fields\formfields\Section;
-use verbb\formie\fields\formfields\SingleLineText;
-use verbb\formie\fields\formfields\Tags;
-use verbb\formie\fields\formfields\Table;
-use verbb\formie\fields\formfields\Users;
-use verbb\formie\fields\formfields\Variants;
+use verbb\formie\fields\formfields;
 use verbb\formie\models\FieldLayout;
 use verbb\formie\models\FieldLayoutPage;
 use verbb\formie\positions\AboveInput;
@@ -117,21 +91,21 @@ class Fields extends Component
     public function getRegisteredFieldGroups()
     {
         $elementFields = [
-            Entries::class,
-            Categories::class,
-            Tags::class,
+            formfields\Entries::class,
+            formfields\Categories::class,
+            formfields\Tags::class,
         ];
 
         if (Craft::$app->getEdition() === Craft::Pro) {
             $elementFields = array_merge($elementFields, [
-                Users::class,
+                formfields\Users::class,
             ]);
         }
 
-        if (Craft::$app->getPlugins()->isPluginEnabled('commerce')) {
+        if (Formie::$plugin->getService()->isPluginInstalledAndEnabled('commerce')) {
             $elementFields = array_merge($elementFields, [
-                Products::class,
-                Variants::class,
+                formfields\Products::class,
+                formfields\Variants::class,
             ]);
         }
 
@@ -139,37 +113,37 @@ class Fields extends Component
             [
                 'label' => Craft::t('formie', 'Internal'),
                 'fields' => [
-                    MissingField::class,
+                    formfields\MissingField::class,
                 ],
             ],
             [
                 'label' => Craft::t('formie', 'Common Fields'),
                 'fields' => [
-                    SingleLineText::class,
-                    MultiLineText::class,
-                    Radio::class,
-                    Checkboxes::class,
-                    Dropdown::class,
-                    Number::class,
-                    Name::class,
-                    Email::class,
-                    Phone::class,
-                    Agree::class,
+                    formfields\SingleLineText::class,
+                    formfields\MultiLineText::class,
+                    formfields\Radio::class,
+                    formfields\Checkboxes::class,
+                    formfields\Dropdown::class,
+                    formfields\Number::class,
+                    formfields\Name::class,
+                    formfields\Email::class,
+                    formfields\Phone::class,
+                    formfields\Agree::class,
                 ],
             ],
             [
                 'label' => Craft::t('formie', 'Advanced Fields'),
                 'fields' => [
-                    Date::class,
-                    Address::class,
-                    FileUpload::class,
-                    Hidden::class,
-                    Repeater::class,
-                    Table::class,
-                    Group::class,
-                    Heading::class,
-                    Section::class,
-                    Html::class,
+                    formfields\Date::class,
+                    formfields\Address::class,
+                    formfields\FileUpload::class,
+                    formfields\Hidden::class,
+                    formfields\Repeater::class,
+                    formfields\Table::class,
+                    formfields\Group::class,
+                    formfields\Heading::class,
+                    formfields\Section::class,
+                    formfields\Html::class,
                 ],
             ],
             [
@@ -222,42 +196,42 @@ class Fields extends Component
         }
 
         $fields = [
-            Address::class,
-            Agree::class,
-            Categories::class,
-            Checkboxes::class,
-            Date::class,
-            Dropdown::class,
-            Email::class,
-            Entries::class,
-            FileUpload::class,
-            Group::class,
-            Heading::class,
-            Hidden::class,
-            Html::class,
-            MissingField::class,
-            MultiLineText::class,
-            Name::class,
-            Number::class,
-            Phone::class,
-            Radio::class,
-            Repeater::class,
-            Section::class,
-            SingleLineText::class,
-            Table::class,
-            Tags::class,
+            formfields\Address::class,
+            formfields\Agree::class,
+            formfields\Categories::class,
+            formfields\Checkboxes::class,
+            formfields\Date::class,
+            formfields\Dropdown::class,
+            formfields\Email::class,
+            formfields\Entries::class,
+            formfields\FileUpload::class,
+            formfields\Group::class,
+            formfields\Heading::class,
+            formfields\Hidden::class,
+            formfields\Html::class,
+            formfields\MissingField::class,
+            formfields\MultiLineText::class,
+            formfields\Name::class,
+            formfields\Number::class,
+            formfields\Phone::class,
+            formfields\Radio::class,
+            formfields\Repeater::class,
+            formfields\Section::class,
+            formfields\SingleLineText::class,
+            formfields\Table::class,
+            formfields\Tags::class,
         ];
 
         if (Craft::$app->getEdition() === Craft::Pro) {
             $fields = array_merge($fields, [
-                Users::class,
+                formfields\Users::class,
             ]);
         }
 
-        if (Craft::$app->getPlugins()->isPluginEnabled('commerce')) {
+        if (Formie::$plugin->getService()->isPluginInstalledAndEnabled('commerce')) {
             $fields = array_merge($fields, [
-                Products::class,
-                Variants::class,
+                formfields\Products::class,
+                formfields\Variants::class,
             ]);
         }
 
@@ -931,7 +905,7 @@ class Fields extends Component
             $class = new ReflectionClass(Field::class);
             $method = $class->getMethod('defineRules');
             $method->setAccessible(true);
-            $rule = ArrayHelper::firstWhere($method->invoke(new SingleLineText()), function ($rule) {
+            $rule = ArrayHelper::firstWhere($method->invoke(new formfields\SingleLineText()), function ($rule) {
                 return $rule[1];
             }, HandleValidator::class);
 

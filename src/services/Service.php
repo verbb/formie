@@ -65,4 +65,15 @@ class Service extends Component
     {
         $this->setFlash($namespace, 'notice', $message);
     }
+
+    /**
+     * Checks if a plugin is both installed and enabled.
+     *
+     * @param string $plugin The plugin handle
+     * @return bool Whether the plugin is both installed and enabled
+     */
+    public function isPluginInstalledAndEnabled($plugin)
+    {
+        return Craft::$app->getPlugins()->isPluginInstalled($plugin) && Craft::$app->getPlugins()->isPluginEnabled($plugin);
+    }
 }
