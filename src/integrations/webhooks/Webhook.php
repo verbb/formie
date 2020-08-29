@@ -25,6 +25,14 @@ class Webhook extends BaseWebhook
     /**
      * @inheritDoc
      */
+    public static function supportsConnection(): bool
+    {
+        return false;
+    }
+
+    /**
+     * @inheritDoc
+     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'Webhook');
@@ -55,7 +63,36 @@ class Webhook extends BaseWebhook
      */
     public function fetchFormSettings()
     {
-        return [];
+        $settings = [];
+
+        try {
+            $formId = Craft::$app->getRequest()->getParam('formId');
+            $form = Formie::$plugin->getForms()->getFormById($formId);
+
+            // Generate and send a test payload to Zapier
+            $submission = new Submission();
+            $submission->setForm($form);
+
+            Formie::$plugin->getSubmissions()->populateFakeSubmission($submission);
+
+            $payload = $this->generatePayloadValues($submission);
+            $response = $this->getClient()->request('POST', $this->webhook, $payload);
+
+            $json = Json::decode((string)$response->getBody());
+
+            $settings = [
+                'response' => $response,
+                'json' => $json,
+            ];
+        } catch (\Throwable $e) {
+            Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]), true);
+        }
+
+        return $settings;
     }
 
     /**
@@ -64,47 +101,9 @@ class Webhook extends BaseWebhook
     public function sendPayload(Submission $submission): bool
     {
         try {
-            $submissionContent = [];
-            $submissionAttributes = $submission->getAttributes();
-
-
-            $formAttributes = $submission->getForm()->getAttributes();
-
-            // Trim the form settings a little
-            $formAttributes['settings'] = $formAttributes['settings']->toArray();
-            unset($formAttributes['settings']['integrations']);
-
-            foreach ($submission->getForm()->getFields() as $field) {
-                $value = $submission->getFieldValue($field->handle);
-                $submissionContent[$field->handle] = $field->serializeValue($value, $submission);
-            }
-
-            $payload = [
-                'submission' => array_merge($submissionAttributes, $submissionContent),
-                'form' => $formAttributes,
-            ];
+            $payload = $this->generatePayloadValues($submission);
 
             $response = $this->getClient()->request('POST', $this->webhook, $payload);
-        } catch (\Throwable $e) {
-            Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [
-                'message' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-            ]), true);
-
-            return false;
-        }
-
-        return true;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function fetchConnection(): bool
-    {
-        try {
-            $response = $this->getClient()->request('POST', $this->webhook, ['ping' => 1]);
         } catch (\Throwable $e) {
             Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [
                 'message' => $e->getMessage(),

@@ -68,4 +68,31 @@ abstract class Webhook extends Integration implements IntegrationInterface
     {
         return UrlHelper::cpUrl('formie/settings/webhooks/edit/' . $this->id);
     }
+
+    /**
+     * @inheritDoc
+     */
+    protected function generatePayloadValues(Submission $submission): array
+    {
+        $submissionContent = [];
+        $submissionAttributes = $submission->getAttributes();
+
+        $formAttributes = $submission->getForm()->getAttributes();
+
+        // Trim the form settings a little
+        $formAttributes['settings'] = $formAttributes['settings']->toArray();
+        unset($formAttributes['settings']['integrations']);
+
+        foreach ($submission->getForm()->getFields() as $field) {
+            $value = $submission->getFieldValue($field->handle);
+            $submissionContent[$field->handle] = $field->serializeValue($value, $submission);
+        }
+
+        return [
+            'json' => [
+                'submission' => array_merge($submissionAttributes, $submissionContent),
+                'form' => $formAttributes,
+            ],
+        ];
+    }
 }

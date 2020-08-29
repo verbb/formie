@@ -32,6 +32,7 @@ export default {
             loading: false,
             error: false,
             errorMessage: '',
+            success: false,
             settings: {},
             sourceId: '',
             model: {},
@@ -97,11 +98,13 @@ export default {
         },
                       
         refresh() {
+            this.success = false;
             this.error = false;
             this.errorMessage = '';
             this.loading = true;
 
             const payload = {
+                formId: this.form.id,
                 integration: this.handle,
             };
 
@@ -121,6 +124,7 @@ export default {
                 }
 
                 this.settings = response.data;
+                this.success = true;
             }).catch(error => {
                 this.loading = false;
                 this.error = true;
