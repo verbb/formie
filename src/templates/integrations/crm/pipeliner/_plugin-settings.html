@@ -1,6 +1,25 @@
 {% import '_includes/forms' as forms %}
 {% import 'verbb-base/_macros' as macros %}
 
+{% set instructions %}
+### Step 1. Connect to the {name} API
+
+1. Go to <a href="https://www.pipelinersales.com/" target="_blank">{name}</a> and login to your account.
+1. In the top main menu, click on **Menu** icon in the far-left of the screen (9 dots).
+1. In the top sub-menu, click on the **Obtain API Key**.
+1. Copy the **API Token** from {name} and paste in the **API Token** field below.
+1. Copy the **API Password** from {name} and paste in the **API Password** field below.
+1. Copy the **API Space ID** from {name} and paste in the **API Space ID** field below.
+
+### Step 2. Test Connection
+1. Save this integration.
+1. Click on the **Refresh** button in the right-hand sidebar.
+{% endset %}
+
+<div class="fui-settings-block">
+    {{ instructions | t('formie', { name: integration.displayName() }) | md }}
+</div>
+
 {{ forms.textField({
     label: 'API Token' | t('formie'),
     instructions: 'Enter your {name} API token here.' | t('formie', { name: integration.displayName() }),

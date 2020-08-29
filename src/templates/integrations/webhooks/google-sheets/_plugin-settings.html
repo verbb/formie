@@ -1,6 +1,24 @@
 {% import '_includes/forms' as forms %}
 {% import 'verbb-base/_macros' as macros %}
 
+{% set instructions %}
+### Connect to the {name} API
+
+1. Go to the <a href="https://console.developers.google.com/cloud-resource-manager" target="_blank">Google API Console</a>.
+1. Select an existing project or create a new one.
+1. Go to the **API Manager** and enable the **Google Drive API** and **Google Sheets API** for the project.
+1. Next, go to the **API Manager** → **Credentials** section.
+1. Click **Create Credentials** → **OAuth 2.0 client ID**.
+    1. In the popup select the **Application Type** as **Web application**.
+    1. In the field **Authorized redirect URI**, enter the value from the below **Redirect URI** field.
+    1. Then click the **Create Client ID** button, then navigate to API Keys section.
+1. After the popup closes copy the **Client ID** and **Client Secret** values and paste into the fields below.
+{% endset %}
+
+<div class="fui-settings-block">
+    {{ instructions | t('formie', { name: integration.displayName() }) | md }}
+</div>
+
 {{ forms.textField({
     readonly: true,
     label: 'Redirect URI' | t('formie'),
@@ -39,7 +57,7 @@
 
 {{ forms.textField({
     label: 'Spreadsheet ID' | t('formie'),
-    instructions: 'Enter the {name} Spreadsheet ID here.' | t('formie', { name: integration.displayName() }),
+    instructions: 'Enter your {name} Spreadsheet ID here.' | t('formie', { name: integration.displayName() }),
     name: 'spreadsheetId',
     required: true,
     value: integration.settings.spreadsheetId ?? '',

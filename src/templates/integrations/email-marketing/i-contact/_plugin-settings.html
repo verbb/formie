@@ -1,6 +1,28 @@
 {% import '_includes/forms' as forms %}
 {% import 'verbb-base/_macros' as macros %}
 
+{% set instructions %}
+### Step 1. Connect to the {name} API
+
+1. Go to <a href="https://www.icontact.com/" target="_blank">{name}</a> and login to your account.
+1. Click on your profile dropdown on the top-right of the screen, and select **Settings & Billing**.
+1. Click on **iContact Integrations**.
+1. Find the **Custom API Integrations** item and click the **Create** button.
+1. Copy the **Application ID (AppId)** from {name} and paste in the **Application ID** field below.
+1. Copy the **Username / Email Address** from {name} and paste in the **Username** field below.
+1. Copy the **Password** from {name} and paste in the **Password** field below.
+1. Copy the **Account ID** from {name} and paste in the **Account ID** field below.
+1. Copy the **Client Folder ID** from {name} and paste in the **Client Folder ID** field below.
+
+### Step 2. Test Connection
+1. Save this integration.
+1. Click on the **Refresh** button in the right-hand sidebar.
+{% endset %}
+
+<div class="fui-settings-block">
+    {{ instructions | t('formie', { name: integration.displayName() }) | md }}
+</div>
+
 {{ forms.textField({
     label: 'Application ID' | t('formie'),
     instructions: 'Enter your {name} Application ID here.' | t('formie', { name: integration.displayName() }),

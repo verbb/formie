@@ -1,6 +1,27 @@
 {% import '_includes/forms' as forms %}
 {% import 'verbb-base/_macros' as macros %}
 
+{% set instructions %}
+### Step 1. Connect to the {name} API
+
+1. Go to the <a href="https://v3.developer.constantcontact.com/login/index.html" target="_blank">{name}</a> application manager, and login to your account.
+1. In the top main menu, click on **My Applications**.
+1. Click on the **New Application** button at top-right.
+1. Enter a name in the popup window and click **Save**.
+1. In the **Redirect URI** field, enter the value from the below **Redirect URI** field.
+1. Copy the **API Key** from {name} and paste in the **API Key** field below.
+1. Click the **Generate Secret** button, copy the **App Secret** and paste it into the **App Secret** field below.
+
+### Step 2. Test Connection
+1. Save this integration.
+1. Click on the **Connect** button in the right-hand sidebar.
+1. You‘ll be redirected to {name}, where you must approve Formie to access your {name} account.
+{% endset %}
+
+<div class="fui-settings-block">
+    {{ instructions | t('formie', { name: integration.displayName() }) | md }}
+</div>
+
 {{ forms.textField({
     readonly: true,
     label: 'Redirect URI' | t('formie'),

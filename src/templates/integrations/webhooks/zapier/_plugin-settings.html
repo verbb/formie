@@ -1,6 +1,20 @@
 {% import '_includes/forms' as forms %}
 {% import 'verbb-base/_macros' as macros %}
 
+{% set instructions %}
+### Connect to the {name} API
+
+1. Go to <a href="https://zapier.com/app/zaps" target="_blank">Zapier</a> and create a new Zap.
+1. For the **Choose App & Event** value, enter **Webhooks by Zapier**.
+1. For the **Choose Trigger Event** value, enter **Catch Hook**.
+1. Click **Continue**.
+1. Copy the **Custom Webhook URL** into the **Webhook** field below.
+{% endset %}
+
+<div class="fui-settings-block">
+    {{ instructions | t('formie', { name: integration.displayName() }) | md }}
+</div>
+
 {{ forms.textField({
     label: 'Webhook URL' | t('formie'),
     instructions: 'Enter the {name} webhook URL that will be triggered when a submission is made.' | t('formie', { name: integration.displayName() }),

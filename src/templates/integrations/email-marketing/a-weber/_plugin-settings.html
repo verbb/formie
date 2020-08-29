@@ -1,6 +1,28 @@
 {% import '_includes/forms' as forms %}
 {% import 'verbb-base/_macros' as macros %}
 
+{% set instructions %}
+### Step 1. Connect to the {name} API
+
+1. Go to <a href="https://labs.aweber.com/" target="_blank">{name} Developer Center</a> and create a developer account.
+1. In the top main menu, click on **My Apps**.
+1. Click the **Create A New App** button.
+1. Fill in the required fields.
+    - For **Client Type** select **Confidential**.
+1. In the **OAuth Redirect URL** field, enter the value from the below **Redirect URI** field.
+1. Copy the **Client ID** from {name} and paste in the **Client ID** field below.
+1. Copy the **Client Secret** from {name} and paste in the **Client Secret** field below.
+
+### Step 2. Test Connection
+1. Save this integration.
+1. Click on the **Connect** button in the right-hand sidebar.
+1. You‘ll be redirected to {name}, where you must approve Formie to access your {name} account.
+{% endset %}
+
+<div class="fui-settings-block">
+    {{ instructions | t('formie', { name: integration.displayName() }) | md }}
+</div>
+
 {{ forms.textField({
     readonly: true,
     label: 'Redirect URI' | t('formie'),

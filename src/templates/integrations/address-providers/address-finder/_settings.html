@@ -1,12 +1,25 @@
 {% import '_includes/forms' as forms %}
 {% import 'verbb-base/_macros' as macros %}
 
+{% set instructions %}
+### Connect to the {name} API
+
+1. Login to your <a href="https://portal.addressfinder.net/sessions/login" target="_blank">AddressFinder</a> account.
+1. Click the account dropdown in the top-right corner of the screen, and select **Settings**.
+1. Under the **Account** section, copy the key into the **API Key** field below.
+{% endset %}
+
+<div class="fui-settings-block">
+    {{ instructions | t('formie', { name: integration.displayName() }) | md }}
+</div>
+
 {{ forms.textField({
     label: 'API Key' | t('formie'),
     name: 'apiKey',
     required: true,
     value: integration.settings.apiKey ?? '',
     warning: macros.configWarning('apiKey', 'formie'),
+    errors: integration.getErrors('apiKey'),
 }) }}
 
 {{ forms.selectField({
@@ -15,6 +28,7 @@
     required: true,
     value: integration.settings.countryCode ?? '',
     warning: macros.configWarning('countryCode', 'formie'),
+    errors: integration.getErrors('countryCode'),
     options: [
         { label: 'Select an option' | t('formie'), value: '' },
         { label: 'Australia' | t('formie'), value: 'AU' },
@@ -41,4 +55,5 @@
     rows: integration.settings.widgetOptions ?? [],
     addRowLabel: 'Add an option' | t('formie'),
     warning: macros.configWarning('widgetOptions', 'formie'),
+    errors: integration.getErrors('widgetOptions'),
 }) }}

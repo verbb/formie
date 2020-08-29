@@ -1,6 +1,24 @@
 {% import '_includes/forms' as forms %}
 {% import 'verbb-base/_macros' as macros %}
 
+{% set instructions %}
+### Step 1. Connect to the {name} API
+
+1. Go to <a href="http://mailchimp.com/" target="_blank">Mailchimp</a> and login to your account.
+1. Click on your profile dropdown on the top-right of the screen, and select **Account**.
+1. Click on **Extras** → **API keys**.
+1. Under the **Your API keys** section, click the **Create A Key** button.
+1. Copy the newly created key into the **API Key** field below.
+
+### Step 2. Test Connection
+1. Save this integration.
+1. Click on the **Refresh** button in the right-hand sidebar.
+{% endset %}
+
+<div class="fui-settings-block">
+    {{ instructions | t('formie', { name: integration.displayName() }) | md }}
+</div>
+
 {{ forms.textField({
     label: 'API Key' | t('formie'),
     instructions: 'Enter your {name} API key here.' | t('formie', { name: integration.displayName() }),

@@ -1,12 +1,26 @@
 {% import '_includes/forms' as forms %}
 {% import 'verbb-base/_macros' as macros %}
 
+{% set instructions %}
+### Connect to the {name} API
+
+1. Login to your <a href="https://portal.addressfinder.net/sessions/login" target="_blank">Algolia</a> account.
+1. In the left-hand sidebar, click **API Keys**.
+1. Copy the **Application ID** and enter this in the **App ID** field below.
+1. Copy the **Search-Only API Key** and enter this in the **API Key** field below.
+{% endset %}
+
+<div class="fui-settings-block">
+    {{ instructions | t('formie', { name: integration.displayName() }) | md }}
+</div>
+
 {{ forms.textField({
     label: 'App ID' | t('formie'),
     name: 'appId',
     required: true,
     value: integration.settings.appId ?? '',
     warning: macros.configWarning('appId', 'formie'),
+    errors: integration.getErrors('appId'),
 }) }}
 
 {{ forms.textField({
@@ -15,6 +29,7 @@
     required: true,
     value: integration.settings.apiKey ?? '',
     warning: macros.configWarning('apiKey', 'formie'),
+    errors: integration.getErrors('apiKey'),
 }) }}
 
 {{ forms.editableTableField({
@@ -36,4 +51,5 @@
     rows: integration.settings.reconfigurableOptions ?? [],
     addRowLabel: 'Add an option' | t('formie'),
     warning: macros.configWarning('reconfigurableOptions', 'formie'),
+    errors: integration.getErrors('reconfigurableOptions'),
 }) }}

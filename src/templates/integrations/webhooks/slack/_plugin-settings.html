@@ -1,6 +1,22 @@
 {% import '_includes/forms' as forms %}
 {% import 'verbb-base/_macros' as macros %}
 
+{% set instructions %}
+### Connect to the {name} API
+
+1. Go to the <a href="https://api.slack.com/apps?new_app=1" target="_blank">Slack App Center</a>.
+1. Create a new app, by entering an **App Name** and **Development Slack Workspace**.
+1. In the left-hand sidebar, under **Settings**, click **Basic Information**.
+1. Under the **App Credentials** section, copy the **Client ID** and **Client Secret** values and paste into the fields below.
+1. In the left-hand sidebar, under **Features**, click **OAuth & Permissions**.
+1. In the section **Redirect URLs**, click the **Add New Redirect URL** button and enter the value from the below **Redirect URI** field.
+1. Then click the **Add** button, then click the **Save URLs** button.
+{% endset %}
+
+<div class="fui-settings-block">
+    {{ instructions | t('formie', { name: integration.displayName() }) | md }}
+</div>
+
 {{ forms.textField({
     readonly: true,
     label: 'Redirect URI' | t('formie'),

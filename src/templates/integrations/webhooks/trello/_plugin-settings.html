@@ -1,6 +1,19 @@
 {% import '_includes/forms' as forms %}
 {% import 'verbb-base/_macros' as macros %}
 
+{% set instructions %}
+### Connect to the {name} API
+
+1. Go to the <a href="https://trello.com/app-key" target="_blank">Trello API Key</a> page.
+1. Under the **Developer API Keys** heading, copy the **Key** value into the **Client ID** field below.
+1. Under the **Allowed Origins** heading, enter the value from the below **Redirect URI** field into the text field under **New Allowed Origin** and hit **Submit**.
+1. Under the **OAuth** heading, copy the **Secret** value into the **Client Secret** field below.
+{% endset %}
+
+<div class="fui-settings-block">
+    {{ instructions | t('formie', { name: integration.displayName() }) | md }}
+</div>
+
 {{ forms.textField({
     readonly: true,
     label: 'Redirect URI' | t('formie'),

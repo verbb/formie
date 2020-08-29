@@ -1,6 +1,39 @@
 {% import '_includes/forms' as forms %}
 {% import 'verbb-base/_macros' as macros %}
 
+{% set instructions %}
+### Step 1. Connect to the {name} API
+
+1. Go to <a href="https://www.salesforce.com" target="_blank">{name}</a> and login to your account.
+1. In the main menu, on the top-right, click the **Settings** icon and select **Setup**.
+1. In the left-hand sidebar, click on **Apps** → **App Manager**.
+1. Click the **New Connected App** button.
+1. Fill out all required fields.
+1. In the **API (Enable OAuth Settings)** section, tick the **Enable OAuth Settings** checkbox.
+    - In the **Callback URL** field, enter the value from the below **Redirect URI** field.
+    - In the **Selected OAuth Scopes** field, select the following permissions from the list and click **Add** arrow button:
+        - **Allow access to your unique identifier (openid)**.
+        - **Perform requests on your behalf at any time (refresh_token, offline_access)**.
+1. Click the **Save** button.
+1. Copy the **Consumer Key** from {name} and paste in the **Consumer Key** field below.
+1. Copy the **AConsumer Secret** from {name} and paste in the **Consumer Secret** field below.
+1. Click on the **Manage** button.
+1. Click on the **Edit Policies** button.
+1. In the **OAuth policies** section:
+    - In the **Permitted Users** field, select **All users may self-authorize**.
+    - In the **IP Relaxation** field, select **Relaxed IP restrictions**.
+1. Click the **Save** button.
+
+### Step 2. Test Connection
+1. Save this integration.
+1. Click on the **Connect** button in the right-hand sidebar.
+1. You‘ll be redirected to {name}, where you must approve Formie to access your {name} account.
+{% endset %}
+
+<div class="fui-settings-block">
+    {{ instructions | t('formie', { name: integration.displayName() }) | md }}
+</div>
+
 {{ forms.textField({
     readonly: true,
     label: 'Redirect URI' | t('formie'),

@@ -1,6 +1,24 @@
 {% import '_includes/forms' as forms %}
 {% import 'verbb-base/_macros' as macros %}
 
+{% set instructions %}
+### Step 1. Connect to the {name} API
+
+1. Go to <a href="https://www.getresponse.com/" target="_blank">{name}</a> and login to your account.
+1. Click on the **Menu** dropdown on the top-left of the screen, and select **Integrations and API**.
+1. Click **API** in the menu.
+1. Click the **Generate API Key** button.
+1. Copy the **API Key** from {name} and paste in the **API Key** field below.
+
+### Step 2. Test Connection
+1. Save this integration.
+1. Click on the **Refresh** button in the right-hand sidebar.
+{% endset %}
+
+<div class="fui-settings-block">
+    {{ instructions | t('formie', { name: integration.displayName() }) | md }}
+</div>
+
 {{ forms.textField({
     label: 'API Key' | t('formie'),
     instructions: 'Enter your {name} API key here.' | t('formie', { name: integration.displayName() }),

@@ -110,9 +110,10 @@ class Algolia extends AddressProvider
             return null;
         }
         
+        // These are reversed on purpose!
         $settings = [
-            'appId' => $this->appId,
-            'apiKey' => $this->apiKey,
+            'appId' => $this->apiKey,
+            'apiKey' => $this->appId,
             'container' => $this->uniqueId,
             'reconfigurableOptions' => $this->_getOptions(),
             'fieldContainer' => 'data-address-id-' . $field->id,
