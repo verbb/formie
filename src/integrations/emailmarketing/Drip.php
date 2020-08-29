@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\integrations\emailmarketing;
 
+use verbb\formie\Formie;
 use verbb\formie\base\Integration;
 use verbb\formie\base\EmailMarketing;
 use verbb\formie\elements\Form;
