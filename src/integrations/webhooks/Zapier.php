@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\integrations\webhooks;
 
+use verbb\formie\Formie;
 use verbb\formie\base\Integration;
 use verbb\formie\base\Webhook;
 use verbb\formie\elements\Form;
@@ -16,11 +17,19 @@ class Zapier extends Webhook
     // Properties
     // =========================================================================
 
-    public $apiKey;
+    public $webhook;
 
 
     // Public Methods
     // =========================================================================
+
+    /**
+     * @inheritDoc
+     */
+    public static function supportsConnection(): bool
+    {
+        return false;
+    }
 
     /**
      * @inheritDoc
@@ -45,7 +54,7 @@ class Zapier extends Webhook
     {
         $rules = parent::defineRules();
 
-        $rules[] = [['apiKey'], 'required'];
+        $rules[] = [['webhook'], 'required'];
 
         return $rules;
     }
@@ -58,7 +67,24 @@ class Zapier extends Webhook
         $settings = [];
 
         try {
+            $formId = Craft::$app->getRequest()->getParam('formId');
+            $form = Formie::$plugin->getForms()->getFormById($formId);
 
+            // Generate and send a test payload to Zapier
+            $submission = new Submission();
+            $submission->setForm($form);
+
+            Formie::$plugin->getSubmissions()->populateFakeSubmission($submission);
+
+            $payload = $this->generatePayloadValues($submission);
+            $response = $this->getClient()->request('POST', $this->webhook, $payload);
+
+            $json = Json::decode((string)$response->getBody());
+
+            $settings = [
+                'response' => $response,
+                'json' => $json,
+            ];
         } catch (\Throwable $e) {
             Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [
                 'message' => $e->getMessage(),
@@ -76,27 +102,9 @@ class Zapier extends Webhook
     public function sendPayload(Submission $submission): bool
     {
         try {
-            
-        } catch (\Throwable $e) {
-            Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [
-                'message' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-            ]), true);
+            $payload = $this->generatePayloadValues($submission);
 
-            return false;
-        }
-
-        return true;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function fetchConnection(): bool
-    {
-        try {
-            
+            $response = $this->getClient()->request('POST', $this->webhook, $payload);
         } catch (\Throwable $e) {
             Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [
                 'message' => $e->getMessage(),
@@ -123,9 +131,6 @@ class Zapier extends Webhook
             return $this->_client;
         }
 
-        return $this->_client = Craft::createGuzzleClient([
-            'base_uri' => '',
-            'headers' => ['Api-Token' => $this->apiKey],
-        ]);
+        return $this->_client = Craft::createGuzzleClient();
     }
 }

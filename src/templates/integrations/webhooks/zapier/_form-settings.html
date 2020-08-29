@@ -1,0 +1,36 @@
+{% import '_includes/forms' as forms %}
+
+{% set handle = integration.handle %}
+{% set webhook = form.settings.integrations[handle].webhook ?? null %}
+
+{{ forms.textField({
+    label: 'Webhook URL' | t('formie'),
+    instructions: 'Enter the {name} webhook URL that will be triggered when a submission is made.' | t('formie', { name: integration.displayName() }),
+    name: 'webhook',
+    required: true,
+    value: webhook ?? integration.settings.webhook ?? '',
+    errors: integration.getErrors('webhook'),
+}) }}
+
+<integration-form-settings handle="{{ integration.handle }}" :form-settings="{{ integration.getFormSettings() | json_encode }}" name-raw="fields" inline-template>
+    <div>
+        <div class="field">
+            <button class="btn" :class="{ 'fui-loading fui-loading-sm': loading }" data-icon="refresh" @click.prevent="refresh">{{ 'Send Test Payload' | t('formie') }}</button>
+
+            <div style="padding-top: 10px;">
+                <span class="warning with-icon">{{ 'You must save your form before sending a test payload.' | t('formie') }}</span>
+            </div>
+        </div>
+
+        <div v-if="error" class="error" style="margin-top: 10px;" v-cloak>
+            <span data-icon="alert"></span>
+            <span v-html="errorMessage"></span>
+        </div>
+
+        <div v-if="success" class="success" style="margin-top: 10px;" v-cloak>
+            {{ 'Success!' | t('formie') }}<br>
+            <pre><code v-if="get(settings, 'json')">${ get(settings, 'json') }</code><br><code v-else="get(settings, 'response')">${ get(settings, 'response') }</code></pre>
+        </div>
+    </div>
+</integration-form-settings>
+
