@@ -16,7 +16,7 @@ class Webhook extends BaseWebhook
     // Properties
     // =========================================================================
 
-    public $apiKey;
+    public $webhook;
 
 
     // Public Methods
@@ -45,7 +45,7 @@ class Webhook extends BaseWebhook
     {
         $rules = parent::defineRules();
 
-        $rules[] = [['apiKey'], 'required'];
+        $rules[] = [['webhook'], 'required'];
 
         return $rules;
     }
@@ -55,19 +55,7 @@ class Webhook extends BaseWebhook
      */
     public function fetchFormSettings()
     {
-        $settings = [];
-
-        try {
-
-        } catch (\Throwable $e) {
-            Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [
-                'message' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-            ]), true);
-        }
-
-        return $settings;
+        return [];
     }
 
     /**
@@ -76,7 +64,27 @@ class Webhook extends BaseWebhook
     public function sendPayload(Submission $submission): bool
     {
         try {
-            
+            $submissionContent = [];
+            $submissionAttributes = $submission->getAttributes();
+
+
+            $formAttributes = $submission->getForm()->getAttributes();
+
+            // Trim the form settings a little
+            $formAttributes['settings'] = $formAttributes['settings']->toArray();
+            unset($formAttributes['settings']['integrations']);
+
+            foreach ($submission->getForm()->getFields() as $field) {
+                $value = $submission->getFieldValue($field->handle);
+                $submissionContent[$field->handle] = $field->serializeValue($value, $submission);
+            }
+
+            $payload = [
+                'submission' => array_merge($submissionAttributes, $submissionContent),
+                'form' => $formAttributes,
+            ];
+
+            $response = $this->getClient()->request('POST', $this->webhook, $payload);
         } catch (\Throwable $e) {
             Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [
                 'message' => $e->getMessage(),
@@ -96,7 +104,7 @@ class Webhook extends BaseWebhook
     public function fetchConnection(): bool
     {
         try {
-            
+            $response = $this->getClient()->request('POST', $this->webhook, ['ping' => 1]);
         } catch (\Throwable $e) {
             Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [
                 'message' => $e->getMessage(),
@@ -123,9 +131,6 @@ class Webhook extends BaseWebhook
             return $this->_client;
         }
 
-        return $this->_client = Craft::createGuzzleClient([
-            'base_uri' => '',
-            'headers' => ['Api-Token' => $this->apiKey],
-        ]);
+        return $this->_client = Craft::createGuzzleClient();
     }
 }

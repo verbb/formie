@@ -1,0 +1,13 @@
+{% import '_includes/forms' as forms %}
+
+{% set handle = integration.handle %}
+{% set webhook = form.settings.integrations[handle].webhook ?? '' %}
+
+{{ forms.textField({
+    label: 'Webhook URL' | t('formie'),
+    instructions: 'Enter the {name} webhook URL that will be triggered when a submission is made.' | t('formie', { name: integration.displayName() }),
+    name: 'webhook',
+    required: true,
+    value: integration.webhook ?? integration.settings.webhook ?? '',
+    errors: integration.getErrors('webhook'),
+}) }}

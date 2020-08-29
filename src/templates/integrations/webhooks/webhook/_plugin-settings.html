@@ -2,11 +2,11 @@
 {% import 'verbb-base/_macros' as macros %}
 
 {{ forms.textField({
-    label: 'API Key' | t('formie'),
-    instructions: 'Enter your {name} API key here.' | t('formie', { name: integration.displayName() }),
-    name: 'apiKey',
+    label: 'Webhook URL' | t('formie'),
+    instructions: 'Enter the {name} webhook URL that will be triggered when a submission is made.' | t('formie', { name: integration.displayName() }),
+    name: 'webhook',
     required: true,
-    value: integration.settings.apiKey ?? '',
-    warning: macros.configWarning('apiKey', 'formie'),
-    errors: integration.getErrors('apiKey'),
+    value: integration.settings.webhook ?? '',
+    warning: macros.configWarning('webhook', 'formie'),
+    errors: integration.getErrors('webhook'),
 }) }}
