@@ -146,8 +146,11 @@ class Mailchimp extends EmailMarketing
             $payload = [
                 'email_address' => $email,
                 'status' => (bool)$this->useDoubleOptIn ? 'pending' : 'subscribed',
-                'merge_fields' => $fieldValues,
             ];
+
+            if ($fieldValues) {
+                $payload['merge_fields'] = $fieldValues;
+            }
 
             $response = $this->deliverPayload($submission, "lists/{$this->listId}/members/$emailHash", $payload, 'PUT');
 
