@@ -617,12 +617,15 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     /**
      * @inheritDoc
      */
-    protected function getFieldMappingValues(Submission $submission, $fieldMapping, $fieldMappingNamespace)
+    protected function getFieldMappingValues(Submission $submission, $fieldMapping, $fieldMappingNamespace = '')
     {
         $fieldValues = [];
+        $integrationFields = [];
 
         // Fetch the field settings so we know what type of field we're dealing with
-        $integrationFields = $this->getFormSettingsFields($fieldMappingNamespace);
+        if ($fieldMappingNamespace) {
+            $integrationFields = $this->getFormSettingsFields($fieldMappingNamespace);
+        }
 
         foreach ($fieldMapping as $tag => $formFieldHandle) {
             // Don't let in un-mapped fields
