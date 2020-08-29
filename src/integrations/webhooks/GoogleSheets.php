@@ -152,6 +152,9 @@ class GoogleSheets extends Webhook
 
         $rules[] = [['clientId', 'clientSecret', 'spreadsheetId'], 'required'];
 
+        // Validate the following when saving form settings
+        $rules[] = [['sheetId'], 'required', 'on' => [Integration::SCENARIO_FORM]];
+
         return $rules;
     }
 
