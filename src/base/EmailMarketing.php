@@ -194,8 +194,14 @@ abstract class EmailMarketing extends Integration implements IntegrationInterfac
             return true;
         }
 
-        $fieldValues = $this->getFieldMappingValues($submission, $this->fieldMapping, 'lists');
-        $fieldValue = $fieldValues[$this->optInField] ?? null;
+        $fieldValue = null;
+        $fieldHandle = str_replace(['{', '}'], ['', ''], $this->optInField);
+
+        try {
+            $fieldValue = $submission->getFieldValue($fieldHandle);
+        } catch (\Throwable $e) {
+
+        }
 
         if ($fieldValue === null) {
             Integration::log($this, Craft::t('formie', 'Unable to find field “{field}” for opt-in in submission.', [
