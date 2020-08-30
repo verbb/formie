@@ -1,10 +1,11 @@
 {% import '_includes/forms' as forms %}
 
-{% set enabled = form.settings.integrations[integration.handle].enabled ?? '' %}
-{% set mapToContact = form.settings.integrations[integration.handle].mapToContact ?? '' %}
-{% set mapToLead = form.settings.integrations[integration.handle].mapToLead ?? '' %}
+{% set handle = integration.handle %}
+{% set formSettings = integration.getFormSettings() %}
+{% set mapToContact = form.settings.integrations[handle].mapToContact ?? '' %}
+{% set mapToLead = form.settings.integrations[handle].mapToLead ?? '' %}
 
-<integration-form-settings handle="{{ integration.handle }}" :form-settings="{{ integration.getFormSettings() | json_encode }}" name-raw="fields" inline-template>
+<integration-form-settings handle="{{ handle }}" :form-settings="{{ formSettings | json_encode }}" inline-template>
     <div>
         <div class="field">
             <button class="btn" :class="{ 'fui-loading fui-loading-sm': loading }" data-icon="refresh" @click.prevent="refresh">{{ 'Refresh Integration' | t('formie') }}</button>
@@ -31,12 +32,12 @@
                 name-label="{{ integration.displayName() }}"
                 id="contact-field-mapping"
                 name="contactFieldMapping"
-                :value="get(form, 'settings.integrations.{{ integration.handle }}.contactFieldMapping')"
+                :value="get(form, 'settings.integrations.{{ handle }}.contactFieldMapping')"
                 :rows="get(settings, 'contact')"
             ></integration-field-mapping>
 
-            <ul v-if="!isEmpty(get(form, 'settings.integrations.{{ integration.handle }}.errors.contactFieldMapping'))" class="errors" v-cloak>
-                <li v-for="(error, index) in get(form, 'settings.integrations.{{ integration.handle }}.errors.contactFieldMapping')" :key="index">
+            <ul v-if="!isEmpty(get(form, 'settings.integrations.{{ handle }}.errors.contactFieldMapping'))" class="errors" v-cloak>
+                <li v-for="(error, index) in get(form, 'settings.integrations.{{ handle }}.errors.contactFieldMapping')" :key="index">
                     ${ error }
                 </li>
             </ul>
@@ -58,12 +59,12 @@
                 name-label="{{ integration.displayName() }}"
                 id="lead-field-mapping"
                 name="leadFieldMapping"
-                :value="get(form, 'settings.integrations.{{ integration.handle }}.leadFieldMapping')"
+                :value="get(form, 'settings.integrations.{{ handle }}.leadFieldMapping')"
                 :rows="get(settings, 'lead')"
             ></integration-field-mapping>
 
-            <ul v-if="!isEmpty(get(form, 'settings.integrations.{{ integration.handle }}.errors.leadFieldMapping'))" class="errors" v-cloak>
-                <li v-for="(error, index) in get(form, 'settings.integrations.{{ integration.handle }}.errors.leadFieldMapping')" :key="index">
+            <ul v-if="!isEmpty(get(form, 'settings.integrations.{{ handle }}.errors.leadFieldMapping'))" class="errors" v-cloak>
+                <li v-for="(error, index) in get(form, 'settings.integrations.{{ handle }}.errors.leadFieldMapping')" :key="index">
                     ${ error }
                 </li>
             </ul>

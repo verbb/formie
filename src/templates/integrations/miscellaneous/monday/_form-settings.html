@@ -1,10 +1,10 @@
 {% import '_includes/forms' as forms %}
 
 {% set handle = integration.handle %}
-{% set formSettings = integration.getFormSettings() | json_encode %}
+{% set formSettings = integration.getFormSettings() %}
 {% set boardId = form.settings.integrations[handle].boardId ?? '' %}
 
-<integration-form-settings handle="{{ handle }}" :form-settings="{{ formSettings }}" source="{{ boardId }}" inline-template>
+<integration-form-settings handle="{{ handle }}" :form-settings="{{ formSettings | json_encode }}" source="{{ boardId }}" inline-template>
     <div>
         <div class="field">
             <div class="heading">
@@ -27,8 +27,8 @@
                 <button class="btn fui-btn-transparent" :class="{ 'fui-loading fui-loading-sm': loading }" data-icon="refresh" @click.prevent="refresh"></button>
             </div>
 
-            <ul v-if="!isEmpty(get(form, 'settings.integrations.{{ integration.handle }}.errors.boardId'))" class="errors" v-cloak>
-                <li v-for="(error, index) in get(form, 'settings.integrations.{{ integration.handle }}.errors.boardId')" :key="index">
+            <ul v-if="!isEmpty(get(form, 'settings.integrations.{{ handle }}.errors.boardId'))" class="errors" v-cloak>
+                <li v-for="(error, index) in get(form, 'settings.integrations.{{ handle }}.errors.boardId')" :key="index">
                     ${ error }
                 </li>
             </ul>
@@ -45,12 +45,12 @@
             id="field-mapping"
             name-label="{{ integration.displayName() }}"
             name="fieldMapping"
-            :value="get(form, 'settings.integrations.{{ integration.handle }}.fieldMapping')"
+            :value="get(form, 'settings.integrations.{{ handle }}.fieldMapping')"
             :rows="getSourceFields('boards')"
         ></integration-field-mapping>
 
-        <ul v-if="!isEmpty(get(form, 'settings.integrations.{{ integration.handle }}.errors.fieldMapping'))" class="errors" v-cloak>
-            <li v-for="(error, index) in get(form, 'settings.integrations.{{ integration.handle }}.errors.fieldMapping')" :key="index">
+        <ul v-if="!isEmpty(get(form, 'settings.integrations.{{ handle }}.errors.fieldMapping'))" class="errors" v-cloak>
+            <li v-for="(error, index) in get(form, 'settings.integrations.{{ handle }}.errors.fieldMapping')" :key="index">
                 ${ error }
             </li>
         </ul>

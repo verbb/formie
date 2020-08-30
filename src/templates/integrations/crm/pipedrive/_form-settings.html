@@ -1,13 +1,14 @@
 {% import '_includes/forms' as forms %}
 
-{% set enabled = form.settings.integrations[integration.handle].enabled ?? '' %}
-{% set mapToPerson = form.settings.integrations[integration.handle].mapToPerson ?? '' %}
-{% set mapToDeal = form.settings.integrations[integration.handle].mapToDeal ?? '' %}
-{% set mapToLead = form.settings.integrations[integration.handle].mapToLead ?? '' %}
-{% set mapToOrganization = form.settings.integrations[integration.handle].mapToOrganization ?? '' %}
-{% set mapToNote = form.settings.integrations[integration.handle].mapToNote ?? '' %}
+{% set handle = integration.handle %}
+{% set formSettings = integration.getFormSettings() %}
+{% set mapToPerson = form.settings.integrations[handle].mapToPerson ?? '' %}
+{% set mapToDeal = form.settings.integrations[handle].mapToDeal ?? '' %}
+{% set mapToLead = form.settings.integrations[handle].mapToLead ?? '' %}
+{% set mapToOrganization = form.settings.integrations[handle].mapToOrganization ?? '' %}
+{% set mapToNote = form.settings.integrations[handle].mapToNote ?? '' %}
 
-<integration-form-settings handle="{{ integration.handle }}" :form-settings="{{ integration.getFormSettings() | json_encode }}" name-raw="fields" inline-template>
+<integration-form-settings handle="{{ handle }}" :form-settings="{{ formSettings | json_encode }}" inline-template>
     <div>
         <div class="field">
             <button class="btn" :class="{ 'fui-loading fui-loading-sm': loading }" data-icon="refresh" @click.prevent="refresh">{{ 'Refresh Integration' | t('formie') }}</button>
@@ -34,12 +35,12 @@
                 name-label="{{ integration.displayName() }}"
                 id="person-field-mapping"
                 name="personFieldMapping"
-                :value="get(form, 'settings.integrations.{{ integration.handle }}.personFieldMapping')"
+                :value="get(form, 'settings.integrations.{{ handle }}.personFieldMapping')"
                 :rows="get(settings, 'person')"
             ></integration-field-mapping>
 
-            <ul v-if="!isEmpty(get(form, 'settings.integrations.{{ integration.handle }}.errors.personFieldMapping'))" class="errors" v-cloak>
-                <li v-for="(error, index) in get(form, 'settings.integrations.{{ integration.handle }}.errors.personFieldMapping')" :key="index">
+            <ul v-if="!isEmpty(get(form, 'settings.integrations.{{ handle }}.errors.personFieldMapping'))" class="errors" v-cloak>
+                <li v-for="(error, index) in get(form, 'settings.integrations.{{ handle }}.errors.personFieldMapping')" :key="index">
                     ${ error }
                 </li>
             </ul>
@@ -61,12 +62,12 @@
                 name-label="{{ integration.displayName() }}"
                 id="deal-field-mapping"
                 name="dealFieldMapping"
-                :value="get(form, 'settings.integrations.{{ integration.handle }}.dealFieldMapping')"
+                :value="get(form, 'settings.integrations.{{ handle }}.dealFieldMapping')"
                 :rows="get(settings, 'deal')"
             ></integration-field-mapping>
 
-            <ul v-if="!isEmpty(get(form, 'settings.integrations.{{ integration.handle }}.errors.dealFieldMapping'))" class="errors" v-cloak>
-                <li v-for="(error, index) in get(form, 'settings.integrations.{{ integration.handle }}.errors.dealFieldMapping')" :key="index">
+            <ul v-if="!isEmpty(get(form, 'settings.integrations.{{ handle }}.errors.dealFieldMapping'))" class="errors" v-cloak>
+                <li v-for="(error, index) in get(form, 'settings.integrations.{{ handle }}.errors.dealFieldMapping')" :key="index">
                     ${ error }
                 </li>
             </ul>
@@ -88,12 +89,12 @@
                 name-label="{{ integration.displayName() }}"
                 id="lead-field-mapping"
                 name="leadFieldMapping"
-                :value="get(form, 'settings.integrations.{{ integration.handle }}.leadFieldMapping')"
+                :value="get(form, 'settings.integrations.{{ handle }}.leadFieldMapping')"
                 :rows="get(settings, 'lead')"
             ></integration-field-mapping>
 
-            <ul v-if="!isEmpty(get(form, 'settings.integrations.{{ integration.handle }}.errors.leadFieldMapping'))" class="errors" v-cloak>
-                <li v-for="(error, index) in get(form, 'settings.integrations.{{ integration.handle }}.errors.leadFieldMapping')" :key="index">
+            <ul v-if="!isEmpty(get(form, 'settings.integrations.{{ handle }}.errors.leadFieldMapping'))" class="errors" v-cloak>
+                <li v-for="(error, index) in get(form, 'settings.integrations.{{ handle }}.errors.leadFieldMapping')" :key="index">
                     ${ error }
                 </li>
             </ul>
@@ -115,12 +116,12 @@
                 name-label="{{ integration.displayName() }}"
                 id="organization-field-mapping"
                 name="organizationFieldMapping"
-                :value="get(form, 'settings.integrations.{{ integration.handle }}.organizationFieldMapping')"
+                :value="get(form, 'settings.integrations.{{ handle }}.organizationFieldMapping')"
                 :rows="get(settings, 'organization')"
             ></integration-field-mapping>
 
-            <ul v-if="!isEmpty(get(form, 'settings.integrations.{{ integration.handle }}.errors.organizationFieldMapping'))" class="errors" v-cloak>
-                <li v-for="(error, index) in get(form, 'settings.integrations.{{ integration.handle }}.errors.organizationFieldMapping')" :key="index">
+            <ul v-if="!isEmpty(get(form, 'settings.integrations.{{ handle }}.errors.organizationFieldMapping'))" class="errors" v-cloak>
+                <li v-for="(error, index) in get(form, 'settings.integrations.{{ handle }}.errors.organizationFieldMapping')" :key="index">
                     ${ error }
                 </li>
             </ul>
@@ -142,12 +143,12 @@
                 name-label="{{ integration.displayName() }}"
                 id="note-field-mapping"
                 name="noteFieldMapping"
-                :value="get(form, 'settings.integrations.{{ integration.handle }}.noteFieldMapping')"
+                :value="get(form, 'settings.integrations.{{ handle }}.noteFieldMapping')"
                 :rows="get(settings, 'note')"
             ></integration-field-mapping>
 
-            <ul v-if="!isEmpty(get(form, 'settings.integrations.{{ integration.handle }}.errors.noteFieldMapping'))" class="errors" v-cloak>
-                <li v-for="(error, index) in get(form, 'settings.integrations.{{ integration.handle }}.errors.noteFieldMapping')" :key="index">
+            <ul v-if="!isEmpty(get(form, 'settings.integrations.{{ handle }}.errors.noteFieldMapping'))" class="errors" v-cloak>
+                <li v-for="(error, index) in get(form, 'settings.integrations.{{ handle }}.errors.noteFieldMapping')" :key="index">
                     ${ error }
                 </li>
             </ul>

@@ -1,7 +1,7 @@
 {% import '_includes/forms' as forms %}
 
 {% set handle = integration.handle %}
-{% set formSettings = integration.getFormSettings() | json_encode %}
+{% set formSettings = integration.getFormSettings() %}
 {% set listId = form.settings.integrations[handle].listId ?? '' %}
 
 <field-select
@@ -9,10 +9,10 @@
     instructions="{{ 'Choose a field to opt-in to {name}. For example, you might only wish to subscribe users if they provide a value for a field of your choice - commonly, an Agree field.' | t('formie', { name: integration.displayName() }) }}"
     id="opt-in-field"
     name="optInField"
-    :value="get(form, 'settings.integrations.{{ integration.handle }}.optInField')"
+    :value="get(form, 'settings.integrations.{{ handle }}.optInField')"
 ></field-select>
 
-<integration-form-settings handle="{{ handle }}" :form-settings="{{ formSettings }}" source="{{ listId }}" inline-template>
+<integration-form-settings handle="{{ handle }}" :form-settings="{{ formSettings | json_encode }}" source="{{ listId }}" inline-template>
     <div>
         <div class="field">
             <div class="heading">
@@ -35,8 +35,8 @@
                 <button class="btn fui-btn-transparent" :class="{ 'fui-loading fui-loading-sm': loading }" data-icon="refresh" @click.prevent="refresh"></button>
             </div>
 
-            <ul v-if="!isEmpty(get(form, 'settings.integrations.{{ integration.handle }}.errors.listId'))" class="errors" v-cloak>
-                <li v-for="(error, index) in get(form, 'settings.integrations.{{ integration.handle }}.errors.listId')" :key="index">
+            <ul v-if="!isEmpty(get(form, 'settings.integrations.{{ handle }}.errors.listId'))" class="errors" v-cloak>
+                <li v-for="(error, index) in get(form, 'settings.integrations.{{ handle }}.errors.listId')" :key="index">
                     ${ error }
                 </li>
             </ul>
@@ -53,12 +53,12 @@
             id="field-mapping"
             name-label="{{ integration.displayName() }}"
             name="fieldMapping"
-            :value="get(form, 'settings.integrations.{{ integration.handle }}.fieldMapping')"
+            :value="get(form, 'settings.integrations.{{ handle }}.fieldMapping')"
             :rows="getSourceFields('lists')"
         ></integration-field-mapping>
 
-        <ul v-if="!isEmpty(get(form, 'settings.integrations.{{ integration.handle }}.errors.fieldMapping'))" class="errors" v-cloak>
-            <li v-for="(error, index) in get(form, 'settings.integrations.{{ integration.handle }}.errors.fieldMapping')" :key="index">
+        <ul v-if="!isEmpty(get(form, 'settings.integrations.{{ handle }}.errors.fieldMapping'))" class="errors" v-cloak>
+            <li v-for="(error, index) in get(form, 'settings.integrations.{{ handle }}.errors.fieldMapping')" :key="index">
                 ${ error }
             </li>
         </ul>
@@ -70,5 +70,5 @@
     label: 'Use Double Opt in' | t('formie'),
     id: 'useDoubleOptIn',
     name: 'useDoubleOptIn',
-    on: form.settings.integrations[integration.handle].useDoubleOptIn ?? false,
+    on: form.settings.integrations[handle].useDoubleOptIn ?? false,
 }) }}

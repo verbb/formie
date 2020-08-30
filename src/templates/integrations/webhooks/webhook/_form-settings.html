@@ -1,6 +1,7 @@
 {% import '_includes/forms' as forms %}
 
 {% set handle = integration.handle %}
+{% set formSettings = integration.getFormSettings() %}
 {% set webhook = form.settings.integrations[handle].webhook ?? null %}
 
 {{ forms.textField({
@@ -12,7 +13,7 @@
     errors: integration.getErrors('webhook'),
 }) }}
 
-<integration-form-settings handle="{{ integration.handle }}" :form-settings="{{ integration.getFormSettings() | json_encode }}" name-raw="fields" inline-template>
+<integration-form-settings handle="{{ handle }}" :form-settings="{{ formSettings | json_encode }}" inline-template>
     <div>
         <div class="field">
             <button class="btn" :class="{ 'fui-loading fui-loading-sm': loading }" data-icon="refresh" @click.prevent="refresh">{{ 'Send Test Payload' | t('formie') }}</button>

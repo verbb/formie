@@ -1,7 +1,7 @@
 {% import '_includes/forms' as forms %}
 
 {% set handle = integration.handle %}
-{% set formSettings = integration.getFormSettings() | json_encode %}
+{% set formSettings = integration.getFormSettings() %}
 {% set channelType = form.settings.integrations[handle].channelType ?? '' %}
 {% set webhook = form.settings.integrations[handle].webhook ?? '' %}
 
@@ -11,7 +11,7 @@
     message: form.settings.integrations[handle].message ?? '',
 } | json_encode %}
 
-<integration-form-settings handle="{{ handle }}" :form-settings="{{ formSettings }}" :values="{{ values }}" inline-template>
+<integration-form-settings handle="{{ handle }}" :form-settings="{{ formSettings | json_encode }}" :values="{{ values }}" inline-template>
     <div>
         {{ forms.selectField({
             label: 'Channel Type' | t('formie'),
@@ -29,8 +29,8 @@
             ],
         }) }}
 
-        <ul v-if="!isEmpty(get(form, 'settings.integrations.{{ integration.handle }}.errors.channelType'))" class="errors" v-cloak>
-            <li v-for="(error, index) in get(form, 'settings.integrations.{{ integration.handle }}.errors.channelType')" :key="index">
+        <ul v-if="!isEmpty(get(form, 'settings.integrations.{{ handle }}.errors.channelType'))" class="errors" v-cloak>
+            <li v-for="(error, index) in get(form, 'settings.integrations.{{ handle }}.errors.channelType')" :key="index">
                 ${ error }
             </li>
         </ul>
@@ -57,8 +57,8 @@
                     <button class="btn fui-btn-transparent" :class="{ 'fui-loading fui-loading-sm': loading }" data-icon="refresh" @click.prevent="refresh"></button>
                 </div>
 
-                <ul v-if="!isEmpty(get(form, 'settings.integrations.{{ integration.handle }}.errors.channelId'))" class="errors" v-cloak>
-                    <li v-for="(error, index) in get(form, 'settings.integrations.{{ integration.handle }}.errors.channelId')" :key="index">
+                <ul v-if="!isEmpty(get(form, 'settings.integrations.{{ handle }}.errors.channelId'))" class="errors" v-cloak>
+                    <li v-for="(error, index) in get(form, 'settings.integrations.{{ handle }}.errors.channelId')" :key="index">
                         ${ error }
                     </li>
                 </ul>
@@ -87,8 +87,8 @@
                     <button class="btn fui-btn-transparent" :class="{ 'fui-loading fui-loading-sm': loading }" data-icon="refresh" @click.prevent="refresh"></button>
                 </div>
 
-                <ul v-if="!isEmpty(get(form, 'settings.integrations.{{ integration.handle }}.errors.userId'))" class="errors" v-cloak>
-                    <li v-for="(error, index) in get(form, 'settings.integrations.{{ integration.handle }}.errors.userId')" :key="index">
+                <ul v-if="!isEmpty(get(form, 'settings.integrations.{{ handle }}.errors.userId'))" class="errors" v-cloak>
+                    <li v-for="(error, index) in get(form, 'settings.integrations.{{ handle }}.errors.userId')" :key="index">
                         ${ error }
                     </li>
                 </ul>

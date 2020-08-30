@@ -1,9 +1,10 @@
 {% import '_includes/forms' as forms %}
 
-{% set enabled = form.settings.integrations[integration.handle].enabled ?? '' %}
-{% set mapToClient = form.settings.integrations[integration.handle].mapToClient ?? '' %}
+{% set handle = integration.handle %}
+{% set formSettings = integration.getFormSettings() %}
+{% set mapToClient = form.settings.integrations[handle].mapToClient ?? '' %}
 
-<integration-form-settings handle="{{ integration.handle }}" :form-settings="{{ integration.getFormSettings() | json_encode }}" name-raw="fields" inline-template>
+<integration-form-settings handle="{{ handle }}" :form-settings="{{ formSettings | json_encode }}" inline-template>
     <div>
         <div class="field">
             <button class="btn" :class="{ 'fui-loading fui-loading-sm': loading }" data-icon="refresh" @click.prevent="refresh">{{ 'Refresh Integration' | t('formie') }}</button>
@@ -30,12 +31,12 @@
                 name-label="{{ integration.displayName() }}"
                 id="client-field-mapping"
                 name="clientFieldMapping"
-                :value="get(form, 'settings.integrations.{{ integration.handle }}.clientFieldMapping')"
+                :value="get(form, 'settings.integrations.{{ handle }}.clientFieldMapping')"
                 :rows="get(settings, 'client')"
             ></integration-field-mapping>
 
-            <ul v-if="!isEmpty(get(form, 'settings.integrations.{{ integration.handle }}.errors.clientFieldMapping'))" class="errors" v-cloak>
-                <li v-for="(error, index) in get(form, 'settings.integrations.{{ integration.handle }}.errors.clientFieldMapping')" :key="index">
+            <ul v-if="!isEmpty(get(form, 'settings.integrations.{{ handle }}.errors.clientFieldMapping'))" class="errors" v-cloak>
+                <li v-for="(error, index) in get(form, 'settings.integrations.{{ handle }}.errors.clientFieldMapping')" :key="index">
                     ${ error }
                 </li>
             </ul>
