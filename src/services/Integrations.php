@@ -47,7 +47,6 @@ class Integrations extends Component
     // =========================================================================
 
     const EVENT_REGISTER_INTEGRATIONS = 'registerFormieIntegrations';
-    const EVENT_MODIFY_INTEGRATIONS = 'modifyIntegrations';
     const EVENT_MODIFY_FORM_INTEGRATIONS = 'modifyFormIntegrations';
     const EVENT_BEFORE_SAVE_INTEGRATION = 'beforeSaveIntegration';
     const EVENT_AFTER_SAVE_INTEGRATION = 'afterSaveIntegration';
