@@ -3,14 +3,13 @@
 
 {% set instructions %}
 ### Step 1. Connect to the {name} API
-
 1. Go to <a href="https://www.salesforce.com" target="_blank">{name}</a> and login to your account.
 1. In the main menu, on the top-right, click the **Settings** icon and select **Setup**.
 1. In the left-hand sidebar, click on **Apps** → **App Manager**.
 1. Click the **New Connected App** button.
 1. Fill out all required fields.
 1. In the **API (Enable OAuth Settings)** section, tick the **Enable OAuth Settings** checkbox.
-    - In the **Callback URL** field, enter the value from the below **Redirect URI** field.
+    - In the **Callback URL** field, enter the value from the **Redirect URI** field below.
     - In the **Selected OAuth Scopes** field, select the following permissions from the list and click **Add** arrow button:
         - **Allow access to your unique identifier (openid)**.
         - **Perform requests on your behalf at any time (refresh_token, offline_access)**.
