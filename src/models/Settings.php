@@ -44,6 +44,10 @@ class Settings extends Model
      */
     public $maxIncompleteSubmissionAge = 30;
 
+    // Submissions
+    public $useQueueForNotifications = true;
+    public $useQueueForIntegrations = true;
+
     // Spam
     public $saveSpam = false;
     public $spamLimit = 500;

@@ -29,7 +29,7 @@ class Submissions extends Component
 
     const EVENT_AFTER_SUBMISSION = 'afterSubmission';
     const EVENT_BEFORE_SEND_NOTIFICATION = 'beforeSendNotification';
-    const EVENT_BEFORE_TRIGGER_ELEMENT = 'beforeTriggerElement';
+    const EVENT_BEFORE_TRIGGER_INTEGRATION = 'beforeTriggerIntegration';
 
 
     // Public Methods
@@ -86,6 +86,8 @@ class Submissions extends Component
      */
     public function sendNotifications(Submission $submission)
     {
+        $settings = Formie::$plugin->getSettings();
+
         // Get all enabled notifications, and push them to the queue for performance
         $form = $submission->getForm();
         $notifications = $form->getEnabledNotifications();
@@ -102,13 +104,14 @@ class Submissions extends Component
                 continue;
             }
 
-            Craft::$app->getQueue()->push(new SendNotification([
-                'submissionId' => $event->submission->id,
-                'notificationId' => $event->notification->id,
-            ]));
-
-            // TODO: Make this a config setting
-            // Formie::$plugin->getEmails()->sendEmail($event->notification, $event->submission);
+            if ($settings->useQueueForNotifications) {
+                Craft::$app->getQueue()->push(new SendNotification([
+                    'submissionId' => $event->submission->id,
+                    'notificationId' => $event->notification->id,
+                ]));
+            } else {
+                Formie::$plugin->getEmails()->sendEmail($event->notification, $event->submission);
+            }
         }
     }
 
@@ -119,6 +122,8 @@ class Submissions extends Component
      */
     public function triggerIntegrations(Submission $submission)
     {
+        $settings = Formie::$plugin->getSettings();
+
         $form = $submission->getForm();
 
         $integrations = Formie::$plugin->getIntegrations()->getAllEnabledIntegrationsForForm($form);
@@ -128,25 +133,26 @@ class Submissions extends Component
                 continue;
             }
             
-            // Fire a 'beforeTriggerElement' event
+            // Fire a 'beforeTriggerIntegration' event
             $event = new TriggerIntegrationEvent([
                 'submission' => $submission,
                 'type' => get_class($integration),
                 'integration' => $integration,
             ]);
-            $this->trigger(self::EVENT_BEFORE_TRIGGER_ELEMENT, $event);
+            $this->trigger(self::EVENT_BEFORE_TRIGGER_INTEGRATION, $event);
 
             if (!$event->isValid) {
                 continue;
             }
 
-            // Craft::$app->getQueue()->push(new TriggerIntegration([
-            //     'submissionId' => $event->submission->id,
-            //     'integration' => $event->integration,
-            // ]));
-
-            // TODO: Make this a config setting
-            $integration->sendPayLoad($event->submission);
+            if ($settings->useQueueForIntegrations) {
+                Craft::$app->getQueue()->push(new TriggerIntegration([
+                    'submissionId' => $event->submission->id,
+                    'integration' => $event->integration,
+                ]));
+            } else {
+                $integration->sendPayLoad($event->submission);
+            }
         }
     }
 

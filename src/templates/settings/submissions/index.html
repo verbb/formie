@@ -24,6 +24,24 @@
             autofocus: true,
             warning: macros.configWarning('maxIncompleteSubmissionAge', 'formie'),
         }) }}
+
+        {{ forms.lightswitchField({
+            label: 'Use Queue for Notifications' | t('formie'),
+            instructions: 'Whether to use Craft‘s queue system to trigger emails. This is highly recommended to prevent slow submissions for your users.' | t('formie'),
+            id: 'useQueueForNotifications',
+            name: 'useQueueForNotifications',
+            on: settings.useQueueForNotifications,
+            warning: macros.configWarning('useQueueForNotifications', 'formie'),
+        }) }}
+
+        {{ forms.lightswitchField({
+            label: 'Use Queue for Integrations' | t('formie'),
+            instructions: 'Whether to use Craft‘s queue system to trigger integrations. This is highly recommended to prevent slow submissions for your users.' | t('formie'),
+            id: 'useQueueForIntegrations',
+            name: 'useQueueForIntegrations',
+            on: settings.useQueueForIntegrations,
+            warning: macros.configWarning('useQueueForIntegrations', 'formie'),
+        }) }}
     {% endnamespace %}
 
     <hr>
