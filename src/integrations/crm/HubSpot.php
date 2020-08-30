@@ -57,9 +57,9 @@ class HubSpot extends Crm
 
         $rules[] = [['apiKey'], 'required'];
 
-        $contact = $this->getFormSettings()['contact'] ?? [];
-        $deal = $this->getFormSettings()['deal'] ?? [];
-        $company = $this->getFormSettings()['company'] ?? [];
+        $contact = $this->getFormSettingValue('contact');
+        $deal = $this->getFormSettingValue('deal');
+        $company = $this->getFormSettingValue('company');
 
         // Validate the following when saving form settings
         $rules[] = [['contactFieldMapping'], 'validateFieldMapping', 'params' => $contact, 'when' => function($model) {
@@ -169,7 +169,7 @@ class HubSpot extends Crm
             ]), true);
         }
 
-        return $settings;
+        return new IntegrationFormSettings($settings);
     }
 
     /**

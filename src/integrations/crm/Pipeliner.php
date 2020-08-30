@@ -7,8 +7,9 @@ use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\errors\IntegrationException;
 use verbb\formie\events\SendIntegrationPayloadEvent;
+use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
-use verbb\formie\models\EmailMarketingList;
+use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
 use craft\helpers\ArrayHelper;
@@ -56,7 +57,7 @@ class Pipeliner extends Crm
 
         $rules[] = [['apiToken', 'apiPassword', 'apiSpaceId', 'apiServiceUrl'], 'required'];
 
-        $contact = $this->getFormSettings()['contact'] ?? [];
+        $contact = $this->getFormSettingValue('contact');
 
         // Validate the following when saving form settings
         $rules[] = [['contactFieldMapping'], 'validateFieldMapping', 'params' => $contact, 'when' => function($model) {
@@ -183,7 +184,7 @@ class Pipeliner extends Crm
             ]), true);
         }
 
-        return $settings;
+        return new IntegrationFormSettings($settings);
     }
 
     /**

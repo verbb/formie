@@ -7,8 +7,9 @@ use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\errors\IntegrationException;
 use verbb\formie\events\SendIntegrationPayloadEvent;
+use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
-use verbb\formie\models\EmailMarketingList;
+use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
 use craft\helpers\ArrayHelper;
@@ -55,45 +56,14 @@ class Monday extends Miscellaneous
 
         $rules[] = [['apiKey'], 'required'];
 
-        $boards = $this->getFormSettings()['boards'] ?? [];
-        $boardFields = [];
-
-        foreach ($boards as $board) {
-            if ($board['id'] === $this->boardId) {
-                $boardFields = $board['fields'];
-            }
-        }
+        $fields = $this->_getBoardSettings()->fields ?? [];
 
         // Validate the following when saving form settings
-        $rules[] = [['fieldMapping'], 'validateFieldMapping', 'params' => $boardFields, 'when' => function($model) {
+        $rules[] = [['fieldMapping'], 'validateFieldMapping', 'params' => $fields, 'when' => function($model) {
             return $model->enabled;
         }, 'on' => [Integration::SCENARIO_FORM]];
 
         return $rules;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getFormSettings($useCache = true)
-    {
-        $settings = parent::getFormSettings($useCache);
-
-        // Convert back to models from the cache
-        foreach ($settings as $key => $setting) {
-            foreach ($setting as $k => $value) {
-                // Probably re-structure this for CRM's, but check if its a 'field'
-                if (isset($value['handle'])) {
-                    $settings[$key][$k] = new IntegrationField($value);
-                } if (isset($value['fields'])) {
-                    foreach ($value['fields'] as $i => $fieldConfig) {
-                        $settings[$key][$k]['fields'][$i] = new IntegrationField($fieldConfig);
-                    }
-                }
-            }
-        }
-
-        return $settings;
     }
 
     /**
@@ -156,7 +126,7 @@ class Monday extends Miscellaneous
             ]), true);
         }
 
-        return $settings;
+        return new IntegrationFormSettings($settings);
     }
 
     /**
@@ -165,7 +135,8 @@ class Monday extends Miscellaneous
     public function sendPayload(Submission $submission): bool
     {
         try {
-            $boardValues = $this->getFieldMappingValues($submission, $this->fieldMapping, 'boards');
+            $fields = $this->_getBoardSettings()->fields ?? [];
+            $boardValues = $this->getFieldMappingValues($submission, $this->fieldMapping, $fields);
 
             $boardIds = explode(':', $this->boardId);
             $boardId = $boardIds[0];
@@ -373,5 +344,19 @@ class Monday extends Miscellaneous
         }
 
         return Json::encode($newColumns);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    private function _getBoardSettings()
+    {
+        $boards = $this->getFormSettingValue('boards');
+
+        if ($board = ArrayHelper::firstWhere($boards, 'id', $this->boardId)) {
+            return $board;
+        }
+
+        return [];
     }
 }

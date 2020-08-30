@@ -6,7 +6,9 @@ use verbb\formie\base\Integration;
 use verbb\formie\base\Element;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
+use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
+use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
 use craft\elements\Entry as EntryElement;
@@ -56,33 +58,22 @@ class Entry extends Element
         // Validate the following when saving form settings
         $rules[] = [['entryTypeId', 'defaultAuthorId'], 'required', 'on' => [Integration::SCENARIO_FORM]];
 
+        // Find the field for the entry type - a little trickier due to nested in sections
+        $fields = $this->_getEntryTypeSettings()->fields ?? [];
+
+        $rules[] = [['fieldMapping'], 'validateFieldMapping', 'params' => $fields, 'when' => function($model) {
+            return $model->enabled;
+        }, 'on' => [Integration::SCENARIO_FORM]];
+
         return $rules;
     }
 
     /**
      * @inheritDoc
      */
-    public function getAuthor($form)
+    public function fetchFormSettings()
     {
-        $defaultAuthorId = $form->settings->integrations[$this->handle]['defaultAuthorId'] ?? '';
-
-        if (!$defaultAuthorId) {
-            $defaultAuthorId = $this->defaultAuthorId;
-        }
-
-        if ($defaultAuthorId) {
-            return User::find()->id($defaultAuthorId)->all();
-        }
-
-        return [Craft::$app->getUser()->getIdentity()];
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getFormSettings($useCache = true)
-    {
-        $settings = [];
+        $customFields = [];
 
         $sections = Craft::$app->getSections()->getAllSections();
 
@@ -94,24 +85,27 @@ class Entry extends Element
             foreach ($section->getEntryTypes() as $entryType) {
                 $fields = [];
 
-                foreach ($entryType->getFields() as $field) {
+                foreach ($entryType->getFieldLayout()->getFields() as $field) {
                     $fields[] = new IntegrationField([
-                        'handle' => $field->id,
+                        'handle' => $field->handle,
                         'name' => $field->name,
                         'type' => get_class($field),
-                        'required' => $field->required,
+                        'required' => (bool)$field->required,
                     ]);
                 }
 
-                $settings['elements'][$section->name][] = [
+                $customFields[$section->name][] = new IntegrationCollection([
                     'id' => $entryType->id,
                     'name' => $entryType->name,
                     'fields' => $fields,
-                ];
+                ]);
             }
         }
 
-        return $settings;
+        return new IntegrationFormSettings([
+            'elements' => $customFields,
+            'attributes' => $this->getElementAttributes(),
+        ]);
     }
 
     /**
@@ -120,38 +114,44 @@ class Entry extends Element
     public function getElementAttributes()
     {
         return [
-            [
+            new IntegrationField([
                 'name' => Craft::t('app', 'Title'),
                 'handle' => 'title',
-            ],
-            [
+            ]),
+            new IntegrationField([
                 'name' => Craft::t('app', 'Slug'),
                 'handle' => 'slug',
-            ],
-            [
+            ]),
+            new IntegrationField([
                 'name' => Craft::t('app', 'Author'),
                 'handle' => 'author',
-            ],
-            [
+                'type' => IntegrationField::TYPE_ARRAY,
+            ]),
+            new IntegrationField([
                 'name' => Craft::t('app', 'Post Date'),
                 'handle' => 'postDate',
-            ],
-            [
+                'type' => IntegrationField::TYPE_DATETIME,
+            ]),
+            new IntegrationField([
                 'name' => Craft::t('app', 'Expiry Date'),
                 'handle' => 'expiryDate',
-            ],
-            [
+                'type' => IntegrationField::TYPE_DATETIME,
+            ]),
+            new IntegrationField([
                 'name' => Craft::t('app', 'Enabled'),
                 'handle' => 'enabled',
-            ],
-            [
+                'type' => IntegrationField::TYPE_BOOLEAN,
+            ]),
+            new IntegrationField([
                 'name' => Craft::t('app', 'Date Created'),
                 'handle' => 'dateCreated',
-            ],
-            [
+                'type' => IntegrationField::TYPE_DATETIME,
+            ]),
+            new IntegrationField([
                 'name' => Craft::t('app', 'Date Updated'),
                 'handle' => 'dateUpdated',
-            ],
+                'type' => IntegrationField::TYPE_DATETIME,
+            ]),
         ];
     }
 
@@ -173,27 +173,20 @@ class Entry extends Element
             $entry->typeId = $entryType->id;
             $entry->sectionId = $entryType->sectionId;
 
-            foreach ($this->attributeMapping as $entryFieldHandle => $formFieldHandle) {
-                if ($formFieldHandle) {
-                    $formFieldHandle = str_replace(['{', '}'], ['', ''], $formFieldHandle);
-                    $fieldValue = $submission->{$formFieldHandle};
-
-                    if ($entryFieldHandle === 'author') {
-                        $entry->authorId = $fieldValue->one()->id ?? '';
-                    } else {
-                        $entry->{$entryFieldHandle} = $fieldValue;
-                    }
+            $attributeValues = $this->getFieldMappingValues($submission, $this->attributeMapping, $this->getElementAttributes());
+            
+            foreach ($attributeValues as $entryFieldHandle => $fieldValue) {
+                if ($entryFieldHandle === 'author') {
+                    $entry->authorId = $fieldValue[0]->one()->id ?? '';
+                } else {
+                    $entry->{$entryFieldHandle} = $fieldValue;
                 }
             }
 
-            foreach ($this->fieldMapping as $entryFieldHandle => $formFieldHandle) {
-                if ($formFieldHandle) {
-                    $formFieldHandle = str_replace(['{', '}'], ['', ''], $formFieldHandle);
-                    $fieldValue = $submission->{$formFieldHandle};
+            $fields = $this->_getEntryTypeSettings()->fields ?? [];
+            $fieldValues = $this->getFieldMappingValues($submission, $this->fieldMapping, $fields);
 
-                    $entry->setFieldValue($entryFieldHandle, $fieldValue);
-                }
-            }
+            $entry->setFieldValues($fieldValues);
 
             if (!$entry->validate()) {
                 Formie::error('Unable to validate “{type}” element integration. Error: {error}.', [
@@ -226,5 +219,43 @@ class Entry extends Element
         }
 
         return true;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getAuthor($form)
+    {
+        $defaultAuthorId = $form->settings->integrations[$this->handle]['defaultAuthorId'] ?? '';
+
+        if (!$defaultAuthorId) {
+            $defaultAuthorId = $this->defaultAuthorId;
+        }
+
+        if ($defaultAuthorId) {
+            return User::find()->id($defaultAuthorId)->all();
+        }
+
+        return [Craft::$app->getUser()->getIdentity()];
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    /**
+     * @inheritDoc
+     */
+    private function _getEntryTypeSettings()
+    {
+        $entryTypes = $this->getFormSettingValue('elements');
+
+        foreach ($entryTypes as $key => $entryType) {
+            if ($collection = ArrayHelper::firstWhere($entryType, 'id', $this->entryTypeId)) {
+                return $collection;
+            }
+        }
+
+        return [];
     }
 }

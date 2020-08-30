@@ -7,8 +7,9 @@ use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\errors\IntegrationException;
 use verbb\formie\events\SendIntegrationPayloadEvent;
+use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
-use verbb\formie\models\EmailMarketingList;
+use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
 use craft\helpers\ArrayHelper;
@@ -83,7 +84,7 @@ class Sendinblue extends EmailMarketing
                     ]),
                 ];
 
-                $settings['lists'][] = new EmailMarketingList([
+                $settings['lists'][] = new IntegrationCollection([
                     'id' => (string)$list['id'],
                     'name' => $list['name'],
                     'fields' => $listFields,
@@ -97,7 +98,7 @@ class Sendinblue extends EmailMarketing
             ]), true);
         }
 
-        return $settings;
+        return new IntegrationFormSettings($settings);
     }
 
     /**
@@ -106,7 +107,7 @@ class Sendinblue extends EmailMarketing
     public function sendPayload(Submission $submission): bool
     {
         try {
-            $fieldValues = $this->getFieldMappingValues($submission, $this->fieldMapping, 'lists');
+            $fieldValues = $this->getFieldMappingValues($submission, $this->fieldMapping);
 
             // Pull out email, as it needs to be top level
             $email = ArrayHelper::remove($fieldValues, 'email');

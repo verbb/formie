@@ -7,8 +7,9 @@ use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\errors\IntegrationException;
 use verbb\formie\events\SendIntegrationPayloadEvent;
+use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
-use verbb\formie\models\EmailMarketingList;
+use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
 use craft\helpers\ArrayHelper;
@@ -54,7 +55,7 @@ class VCita extends Crm
 
         $rules[] = [['apiKey'], 'required'];
 
-        $client = $this->getFormSettings()['client'] ?? [];
+        $client = $this->getFormSettingValue('client');
 
         // Validate the following when saving form settings
         $rules[] = [['clientFieldMapping'], 'validateFieldMapping', 'params' => $client, 'when' => function($model) {
@@ -139,7 +140,7 @@ class VCita extends Crm
             ]), true);
         }
 
-        return $settings;
+        return new IntegrationFormSettings($settings);
     }
 
     /**

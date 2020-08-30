@@ -1,7 +1,7 @@
 {% import '_includes/forms' as forms %}
 
 {% set handle = integration.handle %}
-{% set formSettings = integration.getFormSettings() %}
+{% set formSettings = integration.getFormSettings().getSettings() %}
 {% set mapToContact = form.settings.integrations[handle].mapToContact ?? '' %}
 {% set mapToDeal = form.settings.integrations[handle].mapToDeal ?? '' %}
 {% set mapToAccount = form.settings.integrations[handle].mapToAccount ?? '' %}

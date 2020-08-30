@@ -148,7 +148,7 @@ class IntegrationsController extends Controller
         $integration = Formie::$plugin->getIntegrations()->getIntegrationByHandle($handle);
 
         // Handball to the integration class to deal with the return
-        return $this->asJson($integration->getFormSettings(false));
+        return $this->asJson($integration->getFormSettings(false)->getSettings());
     }
 
     /**

@@ -1,7 +1,7 @@
 {% import '_includes/forms' as forms %}
 
 {% set handle = integration.handle %}
-{% set formSettings = integration.getFormSettings() %}
+{% set formSettings = integration.getFormSettings().getSettings() %}
 {% set webhook = form.settings.integrations[handle].webhook ?? null %}
 
 {{ forms.textField({

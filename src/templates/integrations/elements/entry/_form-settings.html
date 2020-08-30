@@ -1,7 +1,7 @@
 {% import '_includes/forms' as forms %}
 
 {% set handle = integration.handle %}
-{% set formSettings = integration.getFormSettings() %}
+{% set formSettings = integration.getFormSettings().getSettings() %}
 {% set entryTypeId = form.settings.integrations[handle].entryTypeId ?? '' %}
 
 <integration-form-settings handle="{{ handle }}" :form-settings="{{ formSettings | json_encode }}" source="{{ entryTypeId }}" inline-template>

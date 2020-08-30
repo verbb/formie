@@ -8,6 +8,9 @@ use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\VariableNode;
 use verbb\formie\helpers\Variables;
+use verbb\formie\models\IntegrationCollection;
+use verbb\formie\models\IntegrationField;
+use verbb\formie\models\IntegrationFormSettings;
 use verbb\formie\prosemirror\toprosemirror\Renderer as ProseMirrorRenderer;
 use verbb\formie\prosemirror\tohtml\Renderer as HtmlRenderer;
 
@@ -193,7 +196,7 @@ class Slack extends Miscellaneous
             ]), true);
         }
 
-        return $settings;
+        return new IntegrationFormSettings($settings);
     }
 
     /**

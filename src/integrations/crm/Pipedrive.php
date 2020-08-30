@@ -7,8 +7,9 @@ use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\errors\IntegrationException;
 use verbb\formie\events\SendIntegrationPayloadEvent;
+use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
-use verbb\formie\models\EmailMarketingList;
+use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
 use craft\helpers\ArrayHelper;
@@ -61,11 +62,11 @@ class Pipedrive extends Crm
 
         $rules[] = [['apiKey'], 'required'];
 
-        $person = $this->getFormSettings()['person'] ?? [];
-        $deal = $this->getFormSettings()['deal'] ?? [];
-        $lead = $this->getFormSettings()['lead'] ?? [];
-        $organization = $this->getFormSettings()['organization'] ?? [];
-        $note = $this->getFormSettings()['note'] ?? [];
+        $person = $this->getFormSettingValue('person');
+        $deal = $this->getFormSettingValue('deal');
+        $lead = $this->getFormSettingValue('lead');
+        $organization = $this->getFormSettingValue('organization');
+        $note = $this->getFormSettingValue('note');
 
         // Validate the following when saving form settings
         $rules[] = [['personFieldMapping'], 'validateFieldMapping', 'params' => $person, 'when' => function($model) {
@@ -155,7 +156,7 @@ class Pipedrive extends Crm
             ]), true);
         }
 
-        return $settings;
+        return new IntegrationFormSettings($settings);
     }
 
     /**

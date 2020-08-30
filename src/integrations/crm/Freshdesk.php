@@ -7,8 +7,9 @@ use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\errors\IntegrationException;
 use verbb\formie\events\SendIntegrationPayloadEvent;
+use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
-use verbb\formie\models\EmailMarketingList;
+use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
 use craft\helpers\ArrayHelper;
@@ -57,8 +58,8 @@ class Freshdesk extends Crm
 
         $rules[] = [['apiKey', 'apiDomain'], 'required'];
 
-        $contact = $this->getFormSettings()['contact'] ?? [];
-        $ticket = $this->getFormSettings()['ticket'] ?? [];
+        $contact = $this->getFormSettingValue('contact');
+        $ticket = $this->getFormSettingValue('ticket');
 
         // Validate the following when saving form settings
         $rules[] = [['contactFieldMapping'], 'validateFieldMapping', 'params' => $contact, 'when' => function($model) {
@@ -300,7 +301,7 @@ class Freshdesk extends Crm
             ]), true);
         }
 
-        return $settings;
+        return new IntegrationFormSettings($settings);
     }
 
     /**

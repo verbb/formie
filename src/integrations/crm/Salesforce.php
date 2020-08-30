@@ -8,8 +8,9 @@ use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\errors\IntegrationException;
 use verbb\formie\events\SendIntegrationPayloadEvent;
+use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
-use verbb\formie\models\EmailMarketingList;
+use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
 use craft\helpers\ArrayHelper;
@@ -124,10 +125,10 @@ class Salesforce extends Crm
 
         $rules[] = [['clientId', 'clientSecret'], 'required'];
 
-        $contact = $this->getFormSettings()['contact'] ?? [];
-        $lead = $this->getFormSettings()['lead'] ?? [];
-        $opportunity = $this->getFormSettings()['opportunity'] ?? [];
-        $account = $this->getFormSettings()['account'] ?? [];
+        $contact = $this->getFormSettingValue('contact');
+        $lead = $this->getFormSettingValue('lead');
+        $opportunity = $this->getFormSettingValue('opportunity');
+        $account = $this->getFormSettingValue('account');
 
         // Validate the following when saving form settings
         $rules[] = [['contactFieldMapping'], 'validateFieldMapping', 'params' => $contact, 'when' => function($model) {
@@ -205,7 +206,7 @@ class Salesforce extends Crm
             ]), true);
         }
 
-        return $settings;
+        return new IntegrationFormSettings($settings);
     }
 
     /**

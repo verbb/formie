@@ -10,7 +10,9 @@ use verbb\formie\events\IntegrationConnectionEvent;
 use verbb\formie\events\IntegrationFormSettingsEvent;
 use verbb\formie\events\SendIntegrationPayloadEvent;
 use verbb\formie\helpers\UrlHelper as FormieUrlHelper;
+use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
+use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
 use craft\base\SavableComponent;
@@ -295,7 +297,14 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     {
         // If using the cache (the default), don't fetch it automatically. Just save API requests a tad.
         if ($useCache) {
-            return $this->getCache('settings') ?: [];
+            $settings = $this->getCache('settings') ?: [];
+            
+            // De-serialize it from the cache back into full, nested class objects
+            $formSettings = new IntegrationFormSettings();
+            $formSettings->unserialize($settings);
+
+            // Always deal with a `IntegrationFormSettings` model
+            return $formSettings;
         }
 
         // Fire a 'beforeFetchFormSettings' event
@@ -319,9 +328,19 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         ]);
         $this->trigger(self::EVENT_AFTER_FETCH_FORM_SETTINGS, $event);
 
-        $this->setCache(['settings' => $settings]);
-
+        // Save a serialised version to the cache, that retains classes
+        $this->setCache(['settings' => $settings->serialize()]);
+        
+        // Always deal with a `IntegrationFormSettings` model
         return $settings;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getFormSettingValue($key)
+    {
+        return $this->getFormSettings()->getSettingsByKey($key);
     }
 
     /**
@@ -618,44 +637,39 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     /**
      * @inheritDoc
      */
-    protected function getFieldMappingValues(Submission $submission, $fieldMapping, $fieldMappingNamespace = '')
+    protected function getFieldMappingValues(Submission $submission, $fieldMapping, $fieldSettings = [])
     {
         $fieldValues = [];
-        $integrationFields = [];
-
-        // Fetch the field settings so we know what type of field we're dealing with
-        if ($fieldMappingNamespace) {
-            $integrationFields = $this->getFormSettingsFields($fieldMappingNamespace);
-        }
 
         foreach ($fieldMapping as $tag => $formFieldHandle) {
             // Don't let in un-mapped fields
-            if ($formFieldHandle !== '') {
-                // See if this is mapping a custom field
-                if (strstr($formFieldHandle, '{')) {
-                    try {
-                        $formFieldHandle = str_replace(['{', '}'], ['', ''], $formFieldHandle);
+            if ($formFieldHandle === '') {
+                continue;
+            }
 
-                        // Check to see if this is a custom field, or an attribute on the submission
-                        if (StringHelper::startsWith($formFieldHandle, 'submission:')) {
-                            $formFieldHandle = str_replace('submission:', '', $formFieldHandle);
+            if (strstr($formFieldHandle, '{')) {
+                try {
+                    $formFieldHandle = str_replace(['{', '}'], ['', ''], $formFieldHandle);
 
-                            $value = $submission->$formFieldHandle;
-                        } else {
-                            // This is a custom method that checks for nested field value lookups
-                            $value = $submission->getFieldValue($formFieldHandle);
-                        }
+                    // Check to see if this is a custom field, or an attribute on the submission
+                    if (StringHelper::startsWith($formFieldHandle, 'submission:')) {
+                        $formFieldHandle = str_replace('submission:', '', $formFieldHandle);
 
-                        // Then, allow the integration to control how to parse the field, from its type
-                        $integrationField = $integrationFields[$tag] ?? new IntegrationField();
-                        $fieldValues[$tag] = $this->parseFieldMappedValue($integrationField, $value);
-                    } catch (\Throwable $e) {
-
+                        $value = $submission->$formFieldHandle;
+                    } else {
+                        // This is a custom method that checks for nested field value lookups
+                        $value = $submission->getFieldValue($formFieldHandle);
                     }
-                } else {
-                    // Otherwise, might have passed in a direct, static value
-                    $fieldValues[$tag] = $formFieldHandle;
+
+                    // Then, allow the integration to control how to parse the field, from its type
+                    $integrationField = ArrayHelper::firstWhere($fieldSettings, 'handle', $tag) ?? new IntegrationField();
+                    $fieldValues[$tag] = $this->parseFieldMappedValue($integrationField, $value);
+                } catch (\Throwable $e) {
+
                 }
+            } else {
+                // Otherwise, might have passed in a direct, static value
+                $fieldValues[$tag] = $formFieldHandle;
             }
         }
 

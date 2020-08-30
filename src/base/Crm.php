@@ -4,7 +4,9 @@ namespace verbb\formie\base;
 use verbb\formie\Formie;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
+use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
+use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
 use craft\helpers\ArrayHelper;
@@ -71,38 +73,18 @@ abstract class Crm extends Integration implements IntegrationInterface
         return UrlHelper::cpUrl('formie/settings/crm/edit/' . $this->id);
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getFormSettings($useCache = true)
-    {
-        $settings = parent::getFormSettings($useCache);
 
-        // Convert back to models from the cache
-        foreach ($settings as $key => $setting) {
-            foreach ($setting as $k => $value) {
-                // Probably re-structure this for CRM's, but check if its a 'field'
-                if (isset($value['handle'])) {
-                    $settings[$key][$k] = new IntegrationField($value);
-                } if (isset($value['fields'])) {
-                    foreach ($value['fields'] as $i => $fieldConfig) {
-                        $settings[$key][$k]['fields'][$i] = new IntegrationField($fieldConfig);
-                    }
-                }
-            }
-        }
-
-        return $settings;
-    }
+    // Protected Methods
+    // =========================================================================
 
     /**
      * @inheritDoc
      */
-    public function getFormSettingsFields($namespace)
+    protected function getFieldMappingValues(Submission $submission, $fieldMapping, $fieldSettings = [])
     {
-        $settings = $this->getFormSettings()[$namespace] ?? [];
-        $integrationFields = ArrayHelper::index($settings, 'handle');
+        // A quick shortcut to keep CRM's simple, just pass in a string to the namespace
+        $fields = $this->getFormSettingValue($fieldSettings);
 
-        return $integrationFields;
+        return parent::getFieldMappingValues($submission, $fieldMapping, $fields);
     }
 }

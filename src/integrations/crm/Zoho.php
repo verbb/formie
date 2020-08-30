@@ -8,8 +8,9 @@ use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\errors\IntegrationException;
 use verbb\formie\events\SendIntegrationPayloadEvent;
+use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
-use verbb\formie\models\EmailMarketingList;
+use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
 use craft\helpers\ArrayHelper;
@@ -156,10 +157,10 @@ class Zoho extends Crm
 
         $rules[] = [['clientId', 'clientSecret'], 'required'];
 
-        $contact = $this->getFormSettings()['contact'] ?? [];
-        $deal = $this->getFormSettings()['deal'] ?? [];
-        $lead = $this->getFormSettings()['lead'] ?? [];
-        $account = $this->getFormSettings()['account'] ?? [];
+        $contact = $this->getFormSettingValue('contact');
+        $deal = $this->getFormSettingValue('deal');
+        $lead = $this->getFormSettingValue('lead');
+        $account = $this->getFormSettingValue('account');
 
         // Validate the following when saving form settings
         $rules[] = [['contactFieldMapping'], 'validateFieldMapping', 'params' => $contact, 'when' => function($model) {
@@ -219,7 +220,7 @@ class Zoho extends Crm
             ]), true);
         }
 
-        return $settings;
+        return new IntegrationFormSettings($settings);
     }
 
     /**

@@ -5,8 +5,9 @@ use verbb\formie\Formie;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\SendIntegrationPayloadEvent;
-use verbb\formie\models\EmailMarketingList;
+use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
+use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
 use craft\helpers\ArrayHelper;
@@ -84,43 +85,6 @@ abstract class EmailMarketing extends Integration implements IntegrationInterfac
     /**
      * @inheritDoc
      */
-    public function getFormSettings($useCache = true)
-    {
-        $settings = parent::getFormSettings($useCache);
-
-        // Convert back to models from the cache
-        foreach ($settings as $key => $setting) {
-            if ($key === 'lists') {
-                foreach ($setting as $k => $listConfig) {
-                    $list = new EmailMarketingList($listConfig);
-
-                    foreach ($list->fields as $i => $fieldConfig) {
-                        $list->fields[$i] = new IntegrationField($fieldConfig);
-                    }
-
-                    $settings[$key][$k] = $list;
-                }
-            }
-        }
-
-        return $settings;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getFormSettingsFields($namespace)
-    {
-        $settings = $this->getFormSettings()[$namespace] ?? [];
-        $settings = $settings[0]->fields ?? [];
-        $integrationFields = ArrayHelper::index($settings, 'handle');
-
-        return $integrationFields;
-    }
-
-    /**
-     * @inheritDoc
-     */
     public function defineRules(): array
     {
         $rules = parent::defineRules();
@@ -128,9 +92,9 @@ abstract class EmailMarketing extends Integration implements IntegrationInterfac
         // Validate the following when saving form settings
         $rules[] = [['listId'], 'required', 'on' => [Integration::SCENARIO_FORM]];
 
-        $list = $this->getListById($this->listId);
+        $fields = $this->_getListSettings()->fields ?? [];
 
-        $rules[] = [['fieldMapping'], 'validateFieldMapping', 'params' => $list->fields, 'when' => function($model) {
+        $rules[] = [['fieldMapping'], 'validateFieldMapping', 'params' => $fields, 'when' => function($model) {
             return $model->enabled;
         }, 'on' => [Integration::SCENARIO_FORM]];
 
@@ -144,18 +108,12 @@ abstract class EmailMarketing extends Integration implements IntegrationInterfac
     /**
      * @inheritDoc
      */
-    protected function getListById($listId)
+    protected function getFieldMappingValues(Submission $submission, $fieldMapping, $fieldSettings = [])
     {
-        $settings = $this->getFormSettings();
-        $lists = $settings['lists'] ?? [];
+        // A quick shortcut as all email marketing integrations are the same field mapping-wise
+        $fields = $this->_getListSettings()->fields ?? [];
 
-        foreach ($lists as $list) {
-            if ($list->id === $listId) {
-                return $list;
-            }
-        }
-
-        return new EmailMarketingList();
+        return parent::getFieldMappingValues($submission, $fieldMapping, $fields);
     }
 
     /**
@@ -222,5 +180,23 @@ abstract class EmailMarketing extends Integration implements IntegrationInterfac
         }
 
         return true;
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    /**
+     * @inheritDoc
+     */
+    private function _getListSettings()
+    {
+        $lists = $this->getFormSettingValue('lists');
+
+        if ($list = ArrayHelper::firstWhere($lists, 'id', $this->listId)) {
+            return $list;
+        }
+
+        return [];
     }
 }

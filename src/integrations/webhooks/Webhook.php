@@ -6,6 +6,9 @@ use verbb\formie\base\Integration;
 use verbb\formie\base\Webhook as BaseWebhook;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
+use verbb\formie\models\IntegrationCollection;
+use verbb\formie\models\IntegrationField;
+use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
 use craft\helpers\ArrayHelper;
@@ -93,7 +96,7 @@ class Webhook extends BaseWebhook
             ]), true);
         }
 
-        return $settings;
+        return new IntegrationFormSettings($settings);
     }
 
     /**

@@ -6,6 +6,7 @@ use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 
 use Craft;
+use craft\helpers\ArrayHelper;
 use craft\helpers\StringHelper;
 use craft\helpers\UrlHelper;
 
@@ -83,19 +84,12 @@ abstract class Element extends Integration implements IntegrationInterface
         return UrlHelper::cpUrl('formie/settings/elements/edit/' . $this->id);
     }
 
-    // /**
-    //  * @inheritDoc
-    //  */
-    // public function getFrontEndHtml($field, $options): string
-    // {
-    //     return '';
-    // }
-
-    // /**
-    //  * @inheritDoc
-    //  */
-    // public function hasValidSettings(): bool
-    // {
-    //     return true;
-    // }
+    /**
+     * @inheritDoc
+     */
+    public function getFormSettings($useCache = true)
+    {
+        // Always fetch, no real need for cache
+        return $this->fetchFormSettings();
+    }
 }
