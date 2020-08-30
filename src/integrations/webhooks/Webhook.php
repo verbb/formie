@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\integrations\webhooks;
 
+use verbb\formie\Formie;
 use verbb\formie\base\Integration;
 use verbb\formie\base\Webhook as BaseWebhook;
 use verbb\formie\elements\Form;
