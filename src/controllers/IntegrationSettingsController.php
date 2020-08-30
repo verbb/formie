@@ -182,6 +182,30 @@ class IntegrationSettingsController extends Controller
         return $this->_editIntegration($integrationId, $integration, 'Webhooks', Integration::TYPE_WEBHOOK);
     }
 
+    /**
+     * @return Response
+     */
+    public function actionMiscellaneousIndex(): Response
+    {
+        $integrations = Formie::$plugin->getIntegrations()->getAllIntegrationsForType(Integration::TYPE_MISC);
+        $typeName = 'Miscellaneous';
+
+        return $this->renderTemplate('formie/settings/integrations', compact('integrations', 'typeName'));
+    }
+
+    /**
+     * Edit an integration.
+     *
+     * @param int|null $integrationId The integrations’s ID, if editing an existing integration.
+     * @param IntegrationInterface|null $integration The integration being edited, if there were any validation errors.
+     * @return Response
+     * @throws NotFoundHttpException if the requested integration cannot be found
+     */
+    public function actionEditMiscellaneous(int $integrationId = null, IntegrationInterface $integration = null): Response
+    {
+        return $this->_editIntegration($integrationId, $integration, 'Miscellaneous', Integration::TYPE_MISC);
+    }
+
 
     // Private Methods
     // =========================================================================

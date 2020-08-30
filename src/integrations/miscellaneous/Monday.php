@@ -1,8 +1,8 @@
 <?php
-namespace verbb\formie\integrations\crm;
+namespace verbb\formie\integrations\miscellaneous;
 
-use verbb\formie\base\Crm;
 use verbb\formie\base\Integration;
+use verbb\formie\base\Miscellaneous;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\errors\IntegrationException;
@@ -17,7 +17,7 @@ use craft\helpers\Json;
 use craft\helpers\StringHelper;
 use craft\web\View;
 
-class Monday extends Crm
+class Monday extends Miscellaneous
 {
     // Properties
     // =========================================================================
@@ -70,6 +70,30 @@ class Monday extends Crm
         }, 'on' => [Integration::SCENARIO_FORM]];
 
         return $rules;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getFormSettings($useCache = true)
+    {
+        $settings = parent::getFormSettings($useCache);
+
+        // Convert back to models from the cache
+        foreach ($settings as $key => $setting) {
+            foreach ($setting as $k => $value) {
+                // Probably re-structure this for CRM's, but check if its a 'field'
+                if (isset($value['handle'])) {
+                    $settings[$key][$k] = new IntegrationField($value);
+                } if (isset($value['fields'])) {
+                    foreach ($value['fields'] as $i => $fieldConfig) {
+                        $settings[$key][$k]['fields'][$i] = new IntegrationField($fieldConfig);
+                    }
+                }
+            }
+        }
+
+        return $settings;
     }
 
     /**

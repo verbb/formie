@@ -1,8 +1,8 @@
 <?php
-namespace verbb\formie\integrations\webhooks;
+namespace verbb\formie\integrations\miscellaneous;
 
 use verbb\formie\base\Integration;
-use verbb\formie\base\Webhook;
+use verbb\formie\base\Miscellaneous;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\VariableNode;
@@ -22,7 +22,7 @@ use League\OAuth1\Client\Server\Trello as TrelloProvider;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Subscriber\Oauth\Oauth1;
 
-class Trello extends Webhook
+class Trello extends Miscellaneous
 {
     // Properties
     // =========================================================================

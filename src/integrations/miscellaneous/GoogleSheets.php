@@ -1,9 +1,9 @@
 <?php
-namespace verbb\formie\integrations\webhooks;
+namespace verbb\formie\integrations\miscellaneous;
 
 use verbb\formie\Formie;
 use verbb\formie\base\Integration;
-use verbb\formie\base\Webhook;
+use verbb\formie\base\Miscellaneous;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\models\IntegrationField;
@@ -15,7 +15,7 @@ use craft\web\View;
 
 use League\OAuth2\Client\Provider\Google as GoogleProvider;
 
-class GoogleSheets extends Webhook
+class GoogleSheets extends Miscellaneous
 {
     // Properties
     // =========================================================================

@@ -14,6 +14,7 @@ use verbb\formie\integrations\captchas;
 use verbb\formie\integrations\crm;
 use verbb\formie\integrations\elements;
 use verbb\formie\integrations\emailmarketing;
+use verbb\formie\integrations\miscellaneous;
 use verbb\formie\integrations\webhooks;
 use verbb\formie\models\MissingIntegration;
 use verbb\formie\records\Integration as IntegrationRecord;
@@ -120,7 +121,6 @@ class Integrations extends Component
             crm\Infusionsoft::class,
             crm\Insightly::class,
             // crm\MethodCrm::class,
-            crm\Monday::class,
             // crm\NetSuite::class,
             // crm\Pardot::class,
             crm\Pipedrive::class,
@@ -135,11 +135,15 @@ class Integrations extends Component
         ];
 
         $webhooks = [
-            webhooks\GoogleSheets::class,
-            webhooks\Slack::class,
-            webhooks\Trello::class,
             webhooks\Webhook::class,
             webhooks\Zapier::class,
+        ];
+
+        $miscellaneous = [
+            miscellaneous\GoogleSheets::class,
+            miscellaneous\Monday::class,
+            miscellaneous\Slack::class,
+            miscellaneous\Trello::class,
         ];
 
         $event = new RegisterIntegrationsEvent([
@@ -149,6 +153,7 @@ class Integrations extends Component
             'emailMarketing' => $emailMarketing,
             'crm' => $crm,
             'webhooks' => $webhooks,
+            'miscellaneous' => $miscellaneous,
         ]);
 
         $this->trigger(self::EVENT_REGISTER_INTEGRATIONS, $event);
@@ -160,6 +165,7 @@ class Integrations extends Component
             Integration::TYPE_EMAIL_MARKETING => $event->emailMarketing,
             Integration::TYPE_CRM => $event->crm,
             Integration::TYPE_WEBHOOK => $event->webhooks,
+            Integration::TYPE_MISC => $event->miscellaneous,
         ];
     }
 

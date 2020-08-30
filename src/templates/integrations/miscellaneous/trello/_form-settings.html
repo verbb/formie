@@ -76,6 +76,12 @@
             value: values.cardName ?? '',
         }) }}
 
+        <ul v-if="!isEmpty(get(form, 'settings.integrations.{{ integration.handle }}.errors.cardName'))" class="errors" v-cloak>
+            <li v-for="(error, index) in get(form, 'settings.integrations.{{ integration.handle }}.errors.cardName')" :key="index">
+                ${ error }
+            </li>
+        </ul>
+
         <formulate-input
             type="richText"
             label="{{ 'Card Description' | t('formie') }}"
@@ -87,5 +93,11 @@
         ></formulate-input>
 
         <input type="hidden" name="cardDescription" :value="model.cardDescription" />
+
+        <ul v-if="!isEmpty(get(form, 'settings.integrations.{{ integration.handle }}.errors.cardDescription'))" class="errors" v-cloak>
+            <li v-for="(error, index) in get(form, 'settings.integrations.{{ integration.handle }}.errors.cardDescription')" :key="index">
+                ${ error }
+            </li>
+        </ul>
     </div>
 </integration-form-settings>

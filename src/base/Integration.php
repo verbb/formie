@@ -42,6 +42,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     const TYPE_EMAIL_MARKETING = 'emailMarketing';
     const TYPE_CRM = 'crm';
     const TYPE_WEBHOOK = 'webhook';
+    const TYPE_MISC = 'miscellaneous';
 
     const SCENARIO_FORM = 'form';
 

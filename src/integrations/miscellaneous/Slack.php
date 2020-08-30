@@ -1,9 +1,9 @@
 <?php
-namespace verbb\formie\integrations\webhooks;
+namespace verbb\formie\integrations\miscellaneous;
 
 use verbb\formie\Formie;
 use verbb\formie\base\Integration;
-use verbb\formie\base\Webhook;
+use verbb\formie\base\Miscellaneous;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\VariableNode;
@@ -18,7 +18,7 @@ use craft\web\View;
 
 use League\HTMLToMarkdown\HtmlConverter;
 
-class Slack extends Webhook
+class Slack extends Miscellaneous
 {
     // Constants
     // =========================================================================
