@@ -2,6 +2,7 @@
 
 {% set handle = integration.handle %}
 {% set formSettings = integration.getFormSettings() | json_encode %}
+{% set cardName = form.settings.integrations[handle].cardName ?? '' %}
 
 {% set values = {
     boardId: form.settings.integrations[handle].boardId ?? '',
@@ -73,7 +74,7 @@
             instructions: 'This text will be sent to {name}.' | t('formie', { name: integration.displayName() }),
             name: 'cardName',
             required: true,
-            value: values.cardName ?? '',
+            value: cardName ?? '',
         }) }}
 
         <ul v-if="!isEmpty(get(form, 'settings.integrations.{{ integration.handle }}.errors.cardName'))" class="errors" v-cloak>
