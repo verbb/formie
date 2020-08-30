@@ -66,7 +66,7 @@ trait Routes
             $event->rules['formie/settings/crm/edit/<integrationId:\d+>'] = 'formie/integration-settings/edit-crm';
             $event->rules['formie/settings/webhooks'] = 'formie/integration-settings/webhook-index';
             $event->rules['formie/settings/webhooks/new'] = 'formie/integration-settings/edit-webhook';
-            $event->rules['formie/settings/miscellaneous/edit/<integrationId:\d+>'] = 'formie/integration-settings/edit-webhook';
+            $event->rules['formie/settings/webhooks/edit/<integrationId:\d+>'] = 'formie/integration-settings/edit-webhook';
             $event->rules['formie/settings/miscellaneous'] = 'formie/integration-settings/miscellaneous-index';
             $event->rules['formie/settings/miscellaneous/new'] = 'formie/integration-settings/edit-miscellaneous';
             $event->rules['formie/settings/miscellaneous/edit/<integrationId:\d+>'] = 'formie/integration-settings/edit-miscellaneous';
