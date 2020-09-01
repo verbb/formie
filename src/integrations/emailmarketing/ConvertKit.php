@@ -70,6 +70,7 @@ class ConvertKit extends EmailMarketing
             foreach ($lists as $list) {
                 // While we're at it, fetch the fields for the list
                 $response = $this->request('GET', 'custom_fields');
+                $fields = $response['custom_fields'] ?? [];
 
                 $listFields = [
                     new IntegrationField([
@@ -82,8 +83,6 @@ class ConvertKit extends EmailMarketing
                         'name' => Craft::t('formie', 'First Name'),
                     ]),
                 ];
-
-                $fields = $response['custom_fields'] ?? [];
             
                 foreach ($fields as $field) {
                     $listFields[] = new IntegrationField([

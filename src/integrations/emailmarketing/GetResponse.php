@@ -67,7 +67,7 @@ class GetResponse extends EmailMarketing
                 // While we're at it, fetch the fields for the list
                 $fields = $this->request('GET', 'custom-fields');
 
-                $listFields = [
+                $listFields = array_merge([
                     new IntegrationField([
                         'handle' => 'email',
                         'name' => Craft::t('formie', 'Email'),
@@ -77,16 +77,8 @@ class GetResponse extends EmailMarketing
                         'handle' => 'name',
                         'name' => Craft::t('formie', 'Name'),
                     ]),
-                ];
+                ], $this->_getCustomFields($fields));
             
-                foreach ($fields as $field) {
-                    $listFields[] = new IntegrationField([
-                        'handle' => $field['customFieldId'],
-                        'name' => $field['name'],
-                        'type' => $field['fieldType'],
-                    ]);
-                }
-
                 $settings['lists'][] = new IntegrationCollection([
                     'id' => $list['campaignId'],
                     'name' => $list['name'],
@@ -208,5 +200,47 @@ class GetResponse extends EmailMarketing
             'base_uri' => 'https://api.getresponse.com/v3/',
             'headers' => ['X-Auth-Token' => 'api-key ' . $this->apiKey],
         ]);
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    /**
+     * @inheritDoc
+     */
+    private function _convertFieldType($fieldType)
+    {
+        $fieldTypes = [
+            'checkbox' => IntegrationField::TYPE_ARRAY,
+            'multi_select' => IntegrationField::TYPE_ARRAY,
+            'date' => IntegrationField::TYPE_DATE,
+            'datetime' => IntegrationField::TYPE_DATETIME,
+        ];
+
+        return $fieldTypes[$fieldType] ?? IntegrationField::TYPE_STRING;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    private function _getCustomFields($fields, $excludeNames = [])
+    {
+        $customFields = [];
+
+        foreach ($fields as $key => $field) {
+            // Exclude any names
+            if (in_array($field['name'], $excludeNames)) {
+                 continue;
+            }
+
+            $customFields[] = new IntegrationField([
+                'handle' => $field['customFieldId'],
+                'name' => $field['name'],
+                'type' => $this->_convertFieldType($field['fieldType']),
+            ]);
+        }
+
+        return $customFields;
     }
 }

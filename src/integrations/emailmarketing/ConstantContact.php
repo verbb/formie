@@ -123,8 +123,9 @@ class ConstantContact extends EmailMarketing
             foreach ($lists as $list) {
                 // While we're at it, fetch the fields for the list
                 $response = $this->request('GET', 'contact_custom_fields');
+                $fields = $response['custom_fields'] ?? [];
 
-                $listFields = [
+                $listFields = array_merge([
                     new IntegrationField([
                         'handle' => 'email',
                         'name' => Craft::t('formie', 'Email'),
@@ -154,17 +155,7 @@ class ConstantContact extends EmailMarketing
                         'handle' => 'anniversary',
                         'name' => Craft::t('formie', 'Anniversary'),
                     ]),
-                ];
-
-                $fields = $response['custom_fields'] ?? [];
-
-                foreach ($fields as $field) {
-                    $listFields[] = new IntegrationField([
-                        'handle' => $field['custom_field_id'],
-                        'name' => $field['label'],
-                        'type' => $field['type'],
-                    ]);
-                }
+                ], $this->_getCustomFields($fields));
 
                 $settings['lists'][] = new IntegrationCollection([
                     'id' => $list['list_id'],
@@ -284,5 +275,44 @@ class ConstantContact extends EmailMarketing
         }
 
         return $this->_client;
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    /**
+     * @inheritDoc
+     */
+    private function _convertFieldType($fieldType)
+    {
+        $fieldTypes = [
+            'date' => IntegrationField::TYPE_DATETIME,
+        ];
+
+        return $fieldTypes[$fieldType] ?? IntegrationField::TYPE_STRING;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    private function _getCustomFields($fields, $excludeNames = [])
+    {
+        $customFields = [];
+
+        foreach ($fields as $key => $field) {
+            // Exclude any names
+            if (in_array($field['label'], $excludeNames)) {
+                 continue;
+            }
+
+            $customFields[] = new IntegrationField([
+                'handle' => $field['custom_field_id'],
+                'name' => $field['label'],
+                'type' => $this->_convertFieldType($field['type']),
+            ]);
+        }
+
+        return $customFields;
     }
 }

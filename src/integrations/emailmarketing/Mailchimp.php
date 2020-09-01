@@ -81,41 +81,15 @@ class Mailchimp extends EmailMarketing
                     ],
                 ]);
 
-                $listFields = [
+                $fields = $response['merge_fields'] ?? [];
+
+                $listFields = array_merge([
                     new IntegrationField([
                         'handle' => 'email_address',
                         'name' => Craft::t('formie', 'Email'),
                         'required' => true,
                     ]),
-                ];
-
-                $fields = $response['merge_fields'] ?? [];
-
-                // Don't use all fields, at least for the moment...
-                $supportedFields = [
-                    'text',
-                    'number',
-                    // 'address',
-                    'phone',
-                    'date',
-                    'url',
-                    // 'imageurl',
-                    'radio',
-                    'dropdown',
-                    // 'birthday',
-                    'zip',
-                ];
-
-                foreach ($fields as $field) {
-                    if (in_array($field['type'], $supportedFields)) {
-                        $listFields[] = new IntegrationField([
-                            'handle' => $field['tag'],
-                            'name' => $field['name'],
-                            'type' => $field['type'],
-                            'required' => $field['required'],
-                        ]);
-                    }
-                }
+                ], $this->_getCustomFields($fields));
 
                 $settings['lists'][] = new IntegrationCollection([
                     'id' => $list['id'],
@@ -240,5 +214,62 @@ class Mailchimp extends EmailMarketing
         if (preg_match('/([a-zA-Z]+[\d]+)$/', $this->apiKey, $matches)) {
             return $matches[1] ?? '';
         }
+    }
+
+    /**
+     * @inheritDoc
+     */
+    private function _convertFieldType($fieldType)
+    {
+        $fieldTypes = [
+            'number' => IntegrationField::TYPE_NUMBER,
+            'phone' => IntegrationField::TYPE_NUMBER,
+        ];
+
+        return $fieldTypes[$fieldType] ?? IntegrationField::TYPE_STRING;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    private function _getCustomFields($fields, $excludeNames = [])
+    {
+        $customFields = [];
+
+        // Don't use all fields, at least for the moment...
+        $supportedFields = [
+            'text',
+            'number',
+            // 'address',
+            'phone',
+            'date',
+            'url',
+            // 'imageurl',
+            'radio',
+            'dropdown',
+            // 'birthday',
+            'zip',
+        ];
+
+        foreach ($fields as $key => $field) {
+            // // Only allow supported types
+            if (!in_array($field['type'], $supportedFields)) {
+                 continue;
+            }
+
+            // Exclude any names
+            if (in_array($field['name'], $excludeNames)) {
+                 continue;
+            }
+
+            $customFields[] = new IntegrationField([
+                'handle' => $field['tag'],
+                'name' => $field['name'],
+                'type' => $this->_convertFieldType($field['type']),
+                'required' => $field['required'],
+            ]);
+        }
+
+        return $customFields;
     }
 }

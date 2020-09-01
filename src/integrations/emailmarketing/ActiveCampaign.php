@@ -64,25 +64,15 @@ class ActiveCampaign extends EmailMarketing
         $settings = [];
 
         try {
-            $response = $this->request('GET', 'lists', [
-                'query' => [
-                    'limit' => 100,
-                ],
-            ]);
-
+            $response = $this->request('GET', 'lists');
             $lists = $response['lists'] ?? [];
 
             foreach ($lists as $list) {
                 // While we're at it, fetch the fields for the list
-                $response = $this->request('GET', 'fields', [
-                    'query' => [
-                        'limit' => 100,
-                    ],
-                ]);
-
+                $response = $this->request('GET', 'fields');
                 $fields = $response['fields'] ?? [];
 
-                $listFields = [
+                $listFields = array_merge([
                     new IntegrationField([
                         'handle' => 'email',
                         'name' => Craft::t('formie', 'Email'),
@@ -100,29 +90,7 @@ class ActiveCampaign extends EmailMarketing
                         'handle' => 'phone',
                         'name' => Craft::t('formie', 'Phone'),
                     ]),
-                ];
-
-                // Don't use all fields, at least for the moment...
-                $supportedFields = [
-                    'text',
-                    'textarea',
-                    'hidden',
-                    'dropdown',
-                    'radio',
-                    'date',
-                    // 'checkbox',
-                    // 'listbox',
-                ];
-
-                foreach ($fields as $field) {
-                    if (in_array($field['type'], $supportedFields)) {
-                        $listFields[] = new IntegrationField([
-                            'handle' => $field['id'],
-                            'name' => $field['title'],
-                            'type' => $field['type'],
-                        ]);
-                    }
-                }
+                ], $this->_getCustomFields($fields));
 
                 $settings['lists'][] = new IntegrationCollection([
                     'id' => $list['id'],
@@ -130,7 +98,6 @@ class ActiveCampaign extends EmailMarketing
                     'fields' => $listFields,
                 ]);
             }
-            
         } catch (\Throwable $e) {
             Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [
                 'message' => $e->getMessage(),
@@ -214,22 +181,7 @@ class ActiveCampaign extends EmailMarketing
     public function fetchConnection(): bool
     {
         try {
-            $clientId = $this->settings['clientId'] ?? '';
-
-            $response = $this->request('GET', 'lists');
-            $error = $response['error'] ?? '';
-            $lists = $response['lists'] ?? '';
-
-            if ($error) {
-                Integration::error($this, $error, true);
-                return false;
-            }
-
-            if (!$lists) {
-                Integration::error($this, 'Unable to find “{lists}” in response.', true);
-                return false;
-            }
-
+            $response = $this->request('GET', '');
         } catch (\Throwable $e) {
             Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [
                 'message' => $e->getMessage(),
@@ -265,6 +217,64 @@ class ActiveCampaign extends EmailMarketing
 
     // Private Methods
     // =========================================================================
+
+    /**
+     * @inheritDoc
+     */
+    private function _convertFieldType($fieldType)
+    {
+        $fieldTypes = [
+            'multiselect' => IntegrationField::TYPE_ARRAY,
+            'checkbox' => IntegrationField::TYPE_ARRAY,
+            'date' => IntegrationField::TYPE_DATETIME,
+        ];
+
+        return $fieldTypes[$fieldType] ?? IntegrationField::TYPE_STRING;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    private function _getCustomFields($fields, $excludeNames = [])
+    {
+        $customFields = [];
+
+        // Don't use all fields, at least for the moment...
+        $supportedFields = [
+            'text',
+            'textarea',
+            'hidden',
+            'dropdown',
+            'radio',
+            'date',
+            // 'checkbox',
+            // 'listbox',
+        ];
+
+        foreach ($fields as $key => $field) {
+            // Some endpoints return different things!
+            $fieldName = $field['fieldLabel'] ?? $field['title'] ?? '';
+            $fieldType = $field['fieldType'] ?? $field['type'] ?? '';
+
+            // // Only allow supported types
+            if (!in_array($fieldType, $supportedFields)) {
+                 continue;
+            }
+
+            // Exclude any names
+            if (in_array($fieldName, $excludeNames)) {
+                 continue;
+            }
+
+            $customFields[] = new IntegrationField([
+                'handle' => (string)$field['id'],
+                'name' => $fieldName,
+                'type' => $this->_convertFieldType($fieldType),
+            ]);
+        }
+
+        return $customFields;
+    }
 
     /**
      * @inheritDoc

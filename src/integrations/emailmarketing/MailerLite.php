@@ -69,13 +69,7 @@ class MailerLite extends EmailMarketing
                 // While we're at it, fetch the fields for the list
                 $fields = $this->request('GET', 'fields');
             
-                foreach ($fields as $field) {
-                    $listFields[] = new IntegrationField([
-                        'handle' => (string)$field['key'],
-                        'name' => $field['title'],
-                        'type' => $field['type'],
-                    ]);
-                }
+                $listFields = $this->_getCustomFields($fields);
 
                 $settings['lists'][] = new IntegrationCollection([
                     'id' => (string)$list['id'],
@@ -184,5 +178,45 @@ class MailerLite extends EmailMarketing
             'base_uri' => 'https://api.mailerlite.com/api/v2/',
             'headers' => ['X-MailerLite-ApiKey' => $this->apiKey],
         ]);
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    /**
+     * @inheritDoc
+     */
+    private function _convertFieldType($fieldType)
+    {
+        $fieldTypes = [
+            'NUMBER' => IntegrationField::TYPE_NUMBER,
+            'DATE' => IntegrationField::TYPE_DATE,
+        ];
+
+        return $fieldTypes[$fieldType] ?? IntegrationField::TYPE_STRING;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    private function _getCustomFields($fields, $excludeNames = [])
+    {
+        $customFields = [];
+
+        foreach ($fields as $key => $field) {
+            // Exclude any names
+            if (in_array($field['title'], $excludeNames)) {
+                 continue;
+            }
+
+            $customFields[] = new IntegrationField([
+                'handle' => (string)$field['key'],
+                'name' => $field['title'],
+                'type' => $this->_convertFieldType($field['type']),
+            ]);
+        }
+
+        return $customFields;
     }
 }

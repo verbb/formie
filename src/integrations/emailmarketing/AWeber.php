@@ -158,6 +158,7 @@ class AWeber extends EmailMarketing
             foreach ($lists as $list) {
                 // While we're at it, fetch the fields for the list
                 $response = $this->request('GET', "{$listsUrl}/{$list['id']}/custom_fields");
+                $fields = $response['entries'] ?? [];
 
                 $listFields = [
                     new IntegrationField([
@@ -170,8 +171,6 @@ class AWeber extends EmailMarketing
                         'name' => Craft::t('formie', 'Name'),
                     ]),
                 ];
-
-                $fields = $response['entries'] ?? [];
 
                 foreach ($fields as $field) {
                     $listFields[] = new IntegrationField([
