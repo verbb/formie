@@ -1,4 +1,4 @@
-# CRM Integrations
+# CRM
 CRM integrations are one of the provided integrations with Formie, and are used for a variety of different needs. Mostly commonly, this integration pushes data related to “Contacts” and “Leads”. Each provider will have different names and available data available to be mapped. For instance, you might want to add someone to a “Potentials” list in your CRM, so you can follow up with later, or build complex automations.
 
 Formie uses Craft‘s Queue system to send data to third-party providers. When a submission is successful a job is added to the queue so that it can be processed asynchronously.

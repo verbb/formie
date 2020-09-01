@@ -1,4 +1,4 @@
-# Email Marketing Integrations
+# Email Marketing
 Email Marketing integrations are one of the provided integrations with Formie, and are used to subscribe a user to a third-party email marketing provider. For instance, you might want to add someone to your newsletter when they submit a form.
 
 Formie uses Craft‘s Queue system to send data to third-party providers. When a submission is successful a job is added to the queue so that it can be processed asynchronously.

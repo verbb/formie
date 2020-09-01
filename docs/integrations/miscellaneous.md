@@ -1,4 +1,4 @@
-# Miscellaneous Integrations
+# Miscellaneous
 Miscellaneous integrations are one of the provided integrations with Formie, and are used for a variety of different needs. These are integrations that don't otherwise fit into any other category.
 
 Formie uses Craft‘s Queue system to send data to third-party providers. When a submission is successful a job is added to the queue so that it can be processed asynchronously.
