@@ -86,7 +86,7 @@ Event::on(Submission::class, Submission::EVENT_DEFINE_RULES, function(Submission
 ### The `beforeMarkedAsSpam` event
 The event that is triggered before the submission which has been marked as spam, is marked as spam.
 
-The `isValid` event property can be set to `true` to prevent the submission from being marked as spam.
+The `isValid` event property can be set to `false` to prevent the submission from being marked as spam.
 
 ```php
 use verbb\formie\elements\Submission;
@@ -133,19 +133,19 @@ Event::on(Submissions::class, Submissions::EVENT_BEFORE_SEND_NOTIFICATION, funct
 });
 ```
 
-### The `beforeTriggerElement` event
-The event that is triggered before an element integration is triggered (the element created).
+### The `beforeTriggerIntegration` event
+The event that is triggered before an integration is triggered.
 
-The `isValid` event property can be set to `false` to prevent the element integration from proceeding.
+The `isValid` event property can be set to `false` to prevent the integration from proceeding.
 
 ```php
 use verbb\formie\events\SendNotificationEvent;
 use verbb\formie\services\Submissions;
 use yii\base\Event;
 
-Event::on(Submissions::class, Submissions::EVENT_BEFORE_TRIGGER_ELEMENT, function(SendNotificationEvent $event) {
+Event::on(Submissions::class, Submissions::EVENT_BEFORE_TRIGGER_INTEGRATION, function(SendNotificationEvent $event) {
     $submissionId = $event->submissionId;
-    $element = $event->element;
+    $integration = $event->integration;
     // ...
 });
 ```
@@ -704,20 +704,6 @@ Event::on(Integrations::class, Integrations::EVENT_REGISTER_INTEGRATIONS, functi
 });
 ```
 
-### The `modifyIntegrations` event
-The event that is triggered allowing modification of integrations.
-
-```php
-use verbb\formie\events\ModifyIntegrationsEvent
-use verbb\formie\services\Integrations;
-use yii\base\Event;
-
-Event::on(Integrations::class, Integrations::EVENT_MODIFY_INTEGRATIONS, function(ModifyIntegrationsEvent $event) {
-    $integrations = $event->integrations;
-    // ...
-});
-```
-
 ### The `beforeSaveIntegration` event
 The event that is triggered before an integration is saved.
 
@@ -728,6 +714,7 @@ use yii\base\Event;
 
 Event::on(Integrations::class, Integrations::EVENT_BEFORE_SAVE_INTEGRATION, function(IntegrationEvent $event) {
     $integration = $event->integration;
+    $isNew = $event->isNew;
     // ...
 });
 ```
@@ -742,11 +729,249 @@ use yii\base\Event;
 
 Event::on(Integrations::class, Integrations::EVENT_AFTER_SAVE_INTEGRATION, function(IntegrationEvent $event) {
     $integration = $event->integration;
+    $isNew = $event->isNew;
     // ...
 });
 ```
 
-### The `afterSaveIntegration` event
+### The `beforeDeleteIntegration` event
+The event that is triggered before an integration is deleted
+
+```php
+use verbb\formie\events\IntegrationEvent;
+use verbb\formie\services\Integrations;
+use yii\base\Event;
+
+Event::on(Integrations::class, Integrations::EVENT_BEFORE_DELETE_INTEGRATION, function(IntegrationEvent $event) {
+    $integration = $event->integration;
+    // ...
+});
+```
+
+### The `beforeApplyIntegrationDelete` event
+The event that is triggered before a integration delete is applied to the database.
+
+```php
+use verbb\formie\events\IntegrationEvent;
+use verbb\formie\services\Integrations;
+use yii\base\Event;
+
+Event::on(Integrations::class, Integrations::EVENT_BEFORE_APPLY_INTEGRATION_DELETE, function(IntegrationEvent $event) {
+    $integration = $event->integration;
+    // ...
+});
+```
+
+### The `afterDeleteIntegration` event
+The event that is triggered after an integration is deleted
+
+```php
+use verbb\formie\events\IntegrationEvent;
+use verbb\formie\services\Integrations;
+use yii\base\Event;
+
+Event::on(Integrations::class, Integrations::EVENT_AFTER_DELETE_INTEGRATION, function(IntegrationEvent $event) {
+    $integration = $event->integration;
+    // ...
+});
+```
+
+
+
+## Integration Payload Events
+
+The below events an example using the `Mailchimp` class, but any class that inherits from the `verbb\formie\base\Integration` class can use these events.
+
+### The `beforeSendPayload` event
+The event that is triggered before an integration sends its payload.
+
+The `isValid` event property can be set to `false` to prevent the payload from being sent.
+
+```php
+use verbb\formie\events\SendIntegrationPayloadEvent;
+use verbb\formie\integrations\emailmarketing\Mailchimp;
+use yii\base\Event;
+
+Event::on(Mailchimp::class, Mailchimp::EVENT_BEFORE_SEND_PAYLOAD, function(SendIntegrationPayloadEvent $event) {
+    $submission = $event->submission;
+    $payload = $event->payload;
+    $integration = $event->integration;
+    // ...
+});
+```
+
+### The `afterSendPayload` event
+The event that is triggered after an integration sends its payload.
+
+The `isValid` event property can be set to `false` to flag a payload-sending response.
+
+```php
+use verbb\formie\events\SendIntegrationPayloadEvent;
+use verbb\formie\integrations\emailmarketing\Mailchimp;
+use yii\base\Event;
+
+Event::on(Mailchimp::class, Mailchimp::EVENT_AFTER_SEND_PAYLOAD, function(SendIntegrationPayloadEvent $event) {
+    $submission = $event->submission;
+    $payload = $event->payload;
+    $integration = $event->integration;
+    $response = $event->response;
+    // ...
+});
+```
+
+
+
+## Integration Connection Events
+
+The below events an example using the `Mailchimp` class, but any class that inherits from the `verbb\formie\base\Integration` class can use these events.
+
+### The `beforeCheckConnection` event
+The event that is triggered before an integration has checked its connection.
+
+The `isValid` event property can be set to `false` to prevent the payload from being sent.
+
+```php
+use verbb\formie\events\IntegrationConnectionEvent;
+use verbb\formie\integrations\emailmarketing\Mailchimp;
+use yii\base\Event;
+
+Event::on(Mailchimp::class, Mailchimp::EVENT_BEFORE_CHECK_CONNECTION, function(IntegrationConnectionEvent $event) {
+    $integration = $event->integration;
+    // ...
+});
+```
+
+### The `afterCheckConnection` event
+The event that is triggered after an integration has checked its connection.
+
+```php
+use verbb\formie\events\IntegrationConnectionEvent;
+use verbb\formie\integrations\emailmarketing\Mailchimp;
+use yii\base\Event;
+
+Event::on(Mailchimp::class, Mailchimp::EVENT_AFTER_CHECK_CONNECTION, function(IntegrationConnectionEvent $event) {
+    $integration = $event->integration;
+    $success = $event->success;
+    // ...
+});
+```
+
+
+
+## Integration Form Settings Events
+
+The below events an example using the `Mailchimp` class, but any class that inherits from the `verbb\formie\base\Integration` class can use these events.
+
+### The `beforeFetchFormSettings` event
+The event that is triggered before an integration fetches its available settings for the form settings.
+
+The `isValid` event property can be set to `false` to prevent the payload from being sent.
+
+```php
+use verbb\formie\events\IntegrationFormSettingsEvent;
+use verbb\formie\integrations\emailmarketing\Mailchimp;
+use yii\base\Event;
+
+Event::on(Mailchimp::class, Mailchimp::EVENT_BEFORE_FETCH_FORM_SETTINGS, function(IntegrationFormSettingsEvent $event) {
+    $integration = $event->integration;
+    // ...
+});
+```
+
+### The `afterFetchFormSettings` event
+The event that is triggered after an integration fetches its available settings for the form settings.
+
+```php
+use verbb\formie\events\IntegrationFormSettingsEvent;
+use verbb\formie\integrations\emailmarketing\Mailchimp;
+use yii\base\Event;
+
+Event::on(Mailchimp::class, Mailchimp::EVENT_AFTER_FETCH_FORM_SETTINGS, function(IntegrationFormSettingsEvent $event) {
+    $integration = $event->integration;
+    $settings = $event->settings;
+    // ...
+});
+```
+
+
+## Integration OAuth Events
+
+### The `afterOauthCallback` event
+
+```php
+use verbb\formie\controllers\IntegrationsController;
+use verbb\formie\events\OauthTokenEvent;
+use yii\base\Event;
+
+Event::on(IntegrationsController::class, IntegrationsController::EVENT_AFTER_OAUTH_CALLBACK, function(OauthTokenEvent $event) {
+    $token = $event->token;
+    // ...
+});
+```
+
+### The `beforeSaveToken` event
+The event that is triggered before an integration token is saved.
+
+```php
+use verbb\formie\events\TokenEvent;
+use verbb\formie\services\Tokens;
+use yii\base\Event;
+
+Event::on(Tokens::class, Tokens::EVENT_BEFORE_SAVE_TOKEN, function(TokenEvent $event) {
+    $token = $event->token;
+    $isNew = $event->isNew;
+    // ...
+});
+```
+
+### The `afterSaveToken` event
+The event that is triggered after an integration token is saved.
+
+```php
+use verbb\formie\events\TokenEvent;
+use verbb\formie\services\Tokens;
+use yii\base\Event;
+
+Event::on(Tokens::class, Tokens::EVENT_AFTER_SAVE_TOKEN, function(TokenEvent $event) {
+    $token = $event->token;
+    $isNew = $event->isNew;
+    // ...
+});
+```
+
+### The `beforeDeleteToken` event
+The event that is triggered before an integration token is deleted.
+
+```php
+use verbb\formie\events\TokenEvent;
+use verbb\formie\services\Tokens;
+use yii\base\Event;
+
+Event::on(Tokens::class, Tokens::EVENT_BEFORE_DELETE_TOKEN, function(TokenEvent $event) {
+    $token = $event->token;
+    // ...
+});
+```
+
+### The `afterDeleteToken` event
+The event that is triggered after an integration token is deleted.
+
+```php
+use verbb\formie\events\TokenEvent;
+use verbb\formie\services\Tokens;
+use yii\base\Event;
+
+Event::on(Tokens::class, Tokens::EVENT_AFTER_DELETE_TOKEN, function(TokenEvent $event) {
+    $token = $event->token;
+    // ...
+});
+```
+
+
+
+## Address Provider Integration Events
+
+### The `modifyAddressProviderHtml` event
 The event that is triggered after an address provider has its HTML generated. You are able to modify its HTML.
 
 ```php

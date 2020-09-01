@@ -2,6 +2,8 @@
 
 Create an `formie.php` file under your `/config` directory with the following options available to you. You can also use multi-environment options to change these per environment.
 
+The below shows the defaults already used by Formie.
+
 ```php
 <?php
 
@@ -9,7 +11,11 @@ return [
     '*' => [
         'pluginName' => 'Formie',
         'defaultPage' => 'forms',
+
+        // Submissions
         'maxIncompleteSubmissionAge' => 30,
+        'useQueueForNotifications' => true,
+        'useQueueForIntegrations' => true,
 
         // Spam
         'saveSpam' => false,
@@ -28,7 +34,11 @@ return [
 ### Configuration options
 - `pluginName` - Set a custom name for the plugin.
 - `defaultPage` - Set the default sub-page navigated to when clicking "Formie" in the main menu.
+
+#### Submissions
 - `maxIncompleteSubmissionAge` - The maximum age of an incomplete submission in days before it is deleted in garbage collection. Set to 0 to disable automatic deletion.
+- `useQueueForNotifications` - Whether to use Craft‘s queue system to trigger emails. This is highly, **highly** recommended to prevent slow submissions for your users. This may be useful to disable for local development.
+- `useQueueForIntegrations` - Whether to use Craft‘s queue system to trigger integrations. This is highly, **highly** recommended to prevent slow submissions for your users. This may be useful to disable for local development.
 
 #### Spam
 - `saveSpam` - Whether to save spam submissions to the database.

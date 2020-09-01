@@ -55,7 +55,11 @@
         "children": [
             "integrations/address-providers",
             "integrations/captchas",
-            "integrations/elements"
+            "integrations/elements",
+            "integrations/email-marketing",
+            "integrations/crm",
+            "integrations/webhooks",
+            "integrations/miscellaneous"
         ]
     },
     {
