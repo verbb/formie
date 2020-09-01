@@ -52,12 +52,17 @@ class IntegrationsController extends Controller
         $type = $this->request->getParam('type');
         $integrationId = $this->request->getParam('id') ?: null;
 
+        $settings = $this->request->getParam('types.' . $type);
+
         if ($integrationId) {
             $savedIntegration = $integrationsService->getIntegrationById($integrationId);
 
             if (!$savedIntegration) {
                 throw new BadRequestHttpException("Invalid integration ID: $integrationId");
             }
+
+            // Be sure to merge with any existing settings
+            $settings = array_merge($savedIntegration->settings, $settings);
         }
 
         $integrationData = [
@@ -67,7 +72,7 @@ class IntegrationsController extends Controller
             'type' => $type,
             'sortOrder' => $savedIntegration->sortOrder ?? null,
             'enabled' => $this->request->getParam('enabled'),
-            'settings' => $this->request->getParam('types.' . $type),
+            'settings' => $settings,
             'tokenId' => $savedIntegration->tokenId ?? null,
             'uid' => $savedIntegration->uid ?? null,
         ];
