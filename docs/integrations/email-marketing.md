@@ -63,7 +63,7 @@ Follow the below steps to connect to the ActiveCampaign API.
 ### Step 3. Form Setting
 1. Go to the form you want to enable this integration on.
 1. Click the **Integrations** tab.
-1. In the left-hand sidebar, select the name you give the integration.
+1. In the left-hand sidebar, select the name you gave the integration.
 1. Enable the integration and fill out all required fields.
 1. Click **Save** to save the form.
 
@@ -84,7 +84,7 @@ Follow the below steps to connect to the Autopilot API.
 ### Step 3. Form Setting
 1. Go to the form you want to enable this integration on.
 1. Click the **Integrations** tab.
-1. In the left-hand sidebar, select the name you give the integration.
+1. In the left-hand sidebar, select the name you gave the integration.
 1. Enable the integration and fill out all required fields.
 1. Click **Save** to save the form.
 
@@ -110,7 +110,7 @@ Follow the below steps to connect to the AWeber API.
 ### Step 3. Form Setting
 1. Go to the form you want to enable this integration on.
 1. Click the **Integrations** tab.
-1. In the left-hand sidebar, select the name you give the integration.
+1. In the left-hand sidebar, select the name you gave the integration.
 1. Enable the integration and fill out all required fields.
 1. Click **Save** to save the form.
 
@@ -131,7 +131,7 @@ Follow the below steps to connect to the Benchmark API.
 ### Step 3. Form Setting
 1. Go to the form you want to enable this integration on.
 1. Click the **Integrations** tab.
-1. In the left-hand sidebar, select the name you give the integration.
+1. In the left-hand sidebar, select the name you gave the integration.
 1. Enable the integration and fill out all required fields.
 1. Click **Save** to save the form.
 
@@ -154,7 +154,7 @@ Follow the below steps to connect to the Campaign Monitor API.
 ### Step 3. Form Setting
 1. Go to the form you want to enable this integration on.
 1. Click the **Integrations** tab.
-1. In the left-hand sidebar, select the name you give the integration.
+1. In the left-hand sidebar, select the name you gave the integration.
 1. Enable the integration and fill out all required fields.
 1. Click **Save** to save the form.
 
@@ -179,7 +179,7 @@ Follow the below steps to connect to the Constant Contact API.
 ### Step 3. Form Setting
 1. Go to the form you want to enable this integration on.
 1. Click the **Integrations** tab.
-1. In the left-hand sidebar, select the name you give the integration.
+1. In the left-hand sidebar, select the name you gave the integration.
 1. Enable the integration and fill out all required fields.
 1. Click **Save** to save the form.
 
@@ -199,7 +199,7 @@ Follow the below steps to connect to the ConvertKit API.
 ### Step 3. Form Setting
 1. Go to the form you want to enable this integration on.
 1. Click the **Integrations** tab.
-1. In the left-hand sidebar, select the name you give the integration.
+1. In the left-hand sidebar, select the name you gave the integration.
 1. Enable the integration and fill out all required fields.
 1. Click **Save** to save the form.
 
@@ -224,7 +224,7 @@ Follow the below steps to connect to the Drip API.
 ### Step 3. Form Setting
 1. Go to the form you want to enable this integration on.
 1. Click the **Integrations** tab.
-1. In the left-hand sidebar, select the name you give the integration.
+1. In the left-hand sidebar, select the name you gave the integration.
 1. Enable the integration and fill out all required fields.
 1. Click **Save** to save the form.
 
@@ -246,7 +246,7 @@ Follow the below steps to connect to the GetResponse API.
 ### Step 3. Form Setting
 1. Go to the form you want to enable this integration on.
 1. Click the **Integrations** tab.
-1. In the left-hand sidebar, select the name you give the integration.
+1. In the left-hand sidebar, select the name you gave the integration.
 1. Enable the integration and fill out all required fields.
 1. Click **Save** to save the form.
 
@@ -272,7 +272,7 @@ Follow the below steps to connect to the iContact API.
 ### Step 3. Form Setting
 1. Go to the form you want to enable this integration on.
 1. Click the **Integrations** tab.
-1. In the left-hand sidebar, select the name you give the integration.
+1. In the left-hand sidebar, select the name you gave the integration.
 1. Enable the integration and fill out all required fields.
 1. Click **Save** to save the form.
 
@@ -294,7 +294,7 @@ Follow the below steps to connect to the Mailchimp API.
 ### Step 3. Form Setting
 1. Go to the form you want to enable this integration on.
 1. Click the **Integrations** tab.
-1. In the left-hand sidebar, select the name you give the integration.
+1. In the left-hand sidebar, select the name you gave the integration.
 1. Enable the integration and fill out all required fields.
 1. Click **Save** to save the form.
 
@@ -315,7 +315,7 @@ Follow the below steps to connect to the MailerLite API.
 ### Step 3. Form Setting
 1. Go to the form you want to enable this integration on.
 1. Click the **Integrations** tab.
-1. In the left-hand sidebar, select the name you give the integration.
+1. In the left-hand sidebar, select the name you gave the integration.
 1. Enable the integration and fill out all required fields.
 1. Click **Save** to save the form.
 
@@ -335,7 +335,7 @@ Follow the below steps to connect to the Moosend API.
 ### Step 3. Form Setting
 1. Go to the form you want to enable this integration on.
 1. Click the **Integrations** tab.
-1. In the left-hand sidebar, select the name you give the integration.
+1. In the left-hand sidebar, select the name you gave the integration.
 1. Enable the integration and fill out all required fields.
 1. Click **Save** to save the form.
 
@@ -357,7 +357,7 @@ Follow the below steps to connect to the Omnisend API.
 ### Step 3. Form Setting
 1. Go to the form you want to enable this integration on.
 1. Click the **Integrations** tab.
-1. In the left-hand sidebar, select the name you give the integration.
+1. In the left-hand sidebar, select the name you gave the integration.
 1. Enable the integration and fill out all required fields.
 1. Click **Save** to save the form.
 
@@ -382,7 +382,7 @@ Follow the below steps to connect to the Ontraport API.
 ### Step 3. Form Setting
 1. Go to the form you want to enable this integration on.
 1. Click the **Integrations** tab.
-1. In the left-hand sidebar, select the name you give the integration.
+1. In the left-hand sidebar, select the name you gave the integration.
 1. Enable the integration and fill out all required fields.
 1. Click **Save** to save the form.
 
@@ -403,7 +403,7 @@ Follow the below steps to connect to the Sender API.
 ### Step 3. Form Setting
 1. Go to the form you want to enable this integration on.
 1. Click the **Integrations** tab.
-1. In the left-hand sidebar, select the name you give the integration.
+1. In the left-hand sidebar, select the name you gave the integration.
 1. Enable the integration and fill out all required fields.
 1. Click **Save** to save the form.
 
@@ -424,7 +424,7 @@ Follow the below steps to connect to the Sendinblue API.
 ### Step 3. Form Setting
 1. Go to the form you want to enable this integration on.
 1. Click the **Integrations** tab.
-1. In the left-hand sidebar, select the name you give the integration.
+1. In the left-hand sidebar, select the name you gave the integration.
 1. Enable the integration and fill out all required fields.
 1. Click **Save** to save the form.
 

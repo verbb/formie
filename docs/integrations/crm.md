@@ -57,7 +57,7 @@ Follow the below steps to connect to the ActiveCampaign API.
 ### Step 3. Form Setting
 1. Go to the form you want to enable this integration on.
 1. Click the **Integrations** tab.
-1. In the left-hand sidebar, select the name you give the integration.
+1. In the left-hand sidebar, select the name you gave the integration.
 1. Enable the integration and fill out all required fields.
 1. Click **Save** to save the form.
 
@@ -79,7 +79,7 @@ Follow the below steps to connect to the Avochato API.
 ### Step 3. Form Setting
 1. Go to the form you want to enable this integration on.
 1. Click the **Integrations** tab.
-1. In the left-hand sidebar, select the name you give the integration.
+1. In the left-hand sidebar, select the name you gave the integration.
 1. Enable the integration and fill out all required fields.
 1. Click **Save** to save the form.
 
@@ -99,7 +99,7 @@ Follow the below steps to connect to the Freshdesk API.
 ### Step 3. Form Setting
 1. Go to the form you want to enable this integration on.
 1. Click the **Integrations** tab.
-1. In the left-hand sidebar, select the name you give the integration.
+1. In the left-hand sidebar, select the name you gave the integration.
 1. Enable the integration and fill out all required fields.
 1. Click **Save** to save the form.
 
@@ -120,7 +120,7 @@ Follow the below steps to connect to the HubSpot API.
 ### Step 3. Form Setting
 1. Go to the form you want to enable this integration on.
 1. Click the **Integrations** tab.
-1. In the left-hand sidebar, select the name you give the integration.
+1. In the left-hand sidebar, select the name you gave the integration.
 1. Enable the integration and fill out all required fields.
 1. Click **Save** to save the form.
 
@@ -145,7 +145,7 @@ Follow the below steps to connect to the Infusionsoft API.
 ### Step 3. Form Setting
 1. Go to the form you want to enable this integration on.
 1. Click the **Integrations** tab.
-1. In the left-hand sidebar, select the name you give the integration.
+1. In the left-hand sidebar, select the name you gave the integration.
 1. Enable the integration and fill out all required fields.
 1. Click **Save** to save the form.
 
@@ -165,7 +165,7 @@ Follow the below steps to connect to the Insightly API.
 ### Step 3. Form Setting
 1. Go to the form you want to enable this integration on.
 1. Click the **Integrations** tab.
-1. In the left-hand sidebar, select the name you give the integration.
+1. In the left-hand sidebar, select the name you gave the integration.
 1. Enable the integration and fill out all required fields.
 1. Click **Save** to save the form.
 
@@ -186,7 +186,7 @@ Follow the below steps to connect to the Pipedrive API.
 ### Step 3. Form Setting
 1. Go to the form you want to enable this integration on.
 1. Click the **Integrations** tab.
-1. In the left-hand sidebar, select the name you give the integration.
+1. In the left-hand sidebar, select the name you gave the integration.
 1. Enable the integration and fill out all required fields.
 1. Click **Save** to save the form.
 
@@ -209,7 +209,7 @@ Follow the below steps to connect to the Pipeliner API.
 ### Step 3. Form Setting
 1. Go to the form you want to enable this integration on.
 1. Click the **Integrations** tab.
-1. In the left-hand sidebar, select the name you give the integration.
+1. In the left-hand sidebar, select the name you gave the integration.
 1. Enable the integration and fill out all required fields.
 1. Click **Save** to save the form.
 
@@ -231,7 +231,7 @@ Follow the below steps to connect to the Salesflare API.
 ### Step 3. Form Setting
 1. Go to the form you want to enable this integration on.
 1. Click the **Integrations** tab.
-1. In the left-hand sidebar, select the name you give the integration.
+1. In the left-hand sidebar, select the name you gave the integration.
 1. Enable the integration and fill out all required fields.
 1. Click **Save** to save the form.
 
@@ -268,7 +268,7 @@ Follow the below steps to connect to the Salesforce API.
 ### Step 3. Form Setting
 1. Go to the form you want to enable this integration on.
 1. Click the **Integrations** tab.
-1. In the left-hand sidebar, select the name you give the integration.
+1. In the left-hand sidebar, select the name you gave the integration.
 1. Enable the integration and fill out all required fields.
 1. Click **Save** to save the form.
 
@@ -290,7 +290,7 @@ Follow the below steps to connect to the Scoro API.
 ### Step 3. Form Setting
 1. Go to the form you want to enable this integration on.
 1. Click the **Integrations** tab.
-1. In the left-hand sidebar, select the name you give the integration.
+1. In the left-hand sidebar, select the name you gave the integration.
 1. Enable the integration and fill out all required fields.
 1. Click **Save** to save the form.
 
@@ -312,7 +312,7 @@ Follow the below steps to connect to the vCita API.
 ### Step 3. Form Setting
 1. Go to the form you want to enable this integration on.
 1. Click the **Integrations** tab.
-1. In the left-hand sidebar, select the name you give the integration.
+1. In the left-hand sidebar, select the name you gave the integration.
 1. Enable the integration and fill out all required fields.
 1. Click **Save** to save the form.
 
@@ -336,7 +336,7 @@ Follow the below steps to connect to the ActiveCampaign API.
 ### Step 3. Form Setting
 1. Go to the form you want to enable this integration on.
 1. Click the **Integrations** tab.
-1. In the left-hand sidebar, select the name you give the integration.
+1. In the left-hand sidebar, select the name you gave the integration.
 1. Enable the integration and fill out all required fields.
 1. Click **Save** to save the form.
 

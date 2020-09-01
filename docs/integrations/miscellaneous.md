@@ -39,7 +39,7 @@ Follow the below steps to connect to the Google Sheets API.
 ### Step 3. Form Setting
 1. Go to the form you want to enable this integration on.
 1. Click the **Integrations** tab.
-1. In the left-hand sidebar, select the name you give the integration.
+1. In the left-hand sidebar, select the name you gave the integration.
 1. Enable the integration and fill out all required fields.
 1. Click **Save** to save the form.
 
@@ -60,7 +60,7 @@ Follow the below steps to connect to the Monday API.
 ### Step 3. Form Setting
 1. Go to the form you want to enable this integration on.
 1. Click the **Integrations** tab.
-1. In the left-hand sidebar, select the name you give the integration.
+1. In the left-hand sidebar, select the name you gave the integration.
 1. Enable the integration and fill out all required fields.
 1. Click **Save** to save the form.
 
@@ -85,7 +85,7 @@ Follow the below steps to connect to the Slack API.
 ### Step 3. Form Setting
 1. Go to the form you want to enable this integration on.
 1. Click the **Integrations** tab.
-1. In the left-hand sidebar, select the name you give the integration.
+1. In the left-hand sidebar, select the name you gave the integration.
 1. Enable the integration and fill out all required fields.
 1. Click **Save** to save the form.
 
@@ -107,7 +107,7 @@ Follow the below steps to connect to the Trello API.
 ### Step 3. Form Setting
 1. Go to the form you want to enable this integration on.
 1. Click the **Integrations** tab.
-1. In the left-hand sidebar, select the name you give the integration.
+1. In the left-hand sidebar, select the name you gave the integration.
 1. Enable the integration and fill out all required fields.
 1. Click **Save** to save the form.
 
