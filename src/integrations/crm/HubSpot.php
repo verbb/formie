@@ -7,8 +7,9 @@ use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\errors\IntegrationException;
 use verbb\formie\events\SendIntegrationPayloadEvent;
-use verbb\formie\models\CrmObject;
+use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
+use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
 use craft\helpers\ArrayHelper;
