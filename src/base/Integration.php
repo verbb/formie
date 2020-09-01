@@ -607,7 +607,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
      */
     protected function request(string $method, string $uri, array $options = [])
     {
-        $response = $this->getClient()->request($method, trim($uri, '/'), $options);
+        $response = $this->getClient()->request($method, ltrim($uri, '/'), $options);
 
         return Json::decode((string)$response->getBody());
     }
