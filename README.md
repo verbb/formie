@@ -16,8 +16,7 @@ Formie is a Craft CMS plugin for creating user-friendly forms that your content 
 - Multiple options to control how forms submit. Show a success message, redirect to an entry, or stay on the same page.
 - Switch form submissions to be page-reload (POST), or async (Ajax).
 - Spam protection - Fight spam with our in-built keyword blocking and submission behaviour control.
-- Integrations API - Captchas for the moment, with more on their way.
-- Captchas - reCAPTCHA (v2 and v3), duplicate, honeypot and Javascript.
+- Integrations API - Captchas, Address Providers, Elements, Email Marketing, CRM, Webhooks, Miscellanous.
 - Migrate from Solspace Freeform or Sprout forms with our handy migration assistants. 
 
 ### Fields
@@ -36,6 +35,8 @@ Formie is a Craft CMS plugin for creating user-friendly forms that your content 
 - Full-range of email settings including multiple recipients, reply-to, cc, bcc and more.
 - Add user-uploaded attachements to your email notifications.
 - Auto plain text conversion of HTML emails.
+- Preview your emails, so you're 100% certain how they'll look.
+- Send test emails, for delivery troubleshooting and real-world previews.
 
 ### Templates
 - Out-of-the-box templates, including CSS styles and JS functionality. Show great-looking forms that are user-friendly and follow best-practices with a single line of Twig.
@@ -68,6 +69,82 @@ Formie is a Craft CMS plugin for creating user-friendly forms that your content 
 - Tags
 - Users
 - Commerce Variants
+
+### Integrations
+Extend Formie's behaviour, and integrate with third-party providers. Easily create your own custom Integrations through the Integrations API.
+
+#### Captchas
+Protect your site against spam!
+
+- reCAPTCHA v2 (checkbox and invisible)
+- reCAPTCHA v3
+- Duplicate
+- Honeypot
+- Javascript
+
+#### Address Providers
+Provide autocomplete behaviour for your address fields. Drastically reduce user errors.
+
+- Google Places
+- Algolia Places
+- Address Finder (AU/NZ)
+
+#### Elements
+Create elements from form submission data.
+
+- Entries
+
+#### Email Marketing
+Add users who fill out your forms directly to your mailing lists.
+
+- ActiveCampaign
+- Autopilot
+- AWeber
+- Benchmark
+- Campaign Monitor
+- Constant Contact
+- ConvertKit
+- Drip
+- GetResponse
+- iContact
+- Mailchimp
+- MailerLite
+- Moosend
+- Omnisend
+- Ontraport
+- Sender
+- Sendinblue
+
+#### CRM
+Build your customer relationship data with ease, mapping form fields to contacts, leads and more.
+
+- ActiveCampaign
+- Avochato
+- Freshdesk
+- HubSpot
+- Infusionsoft
+- Insightly
+- Pipedrive
+- Pipeliner
+- Salesflare
+- Salesforce
+- Scoro
+- vCita
+- Zoho
+
+#### Webhooks
+Send form data to URLs or Webhook providers for processing on their end.
+
+- Generic Webhook
+- Zapier
+
+#### Miscellaneous
+For any other categories that just don't fit into the above!
+
+- Google Sheets
+- Monday
+- Slack
+- Trello
  
 ## Documentation
 
