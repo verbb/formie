@@ -1,5 +1,21 @@
 # Changelog
 
+## 1.2.0 - 2020-09-01
+
+### Added
+- Added Email Marketing integrations category.
+- Added ActiveCampaign, Autopilot, AWeber, Benchmark, Campaign Monitor, Constant Contact, ConvertKit, Drip, GetResponse, iContact, Mailchimp, MailerLite, Moosend, Omnisend, Ontraport, Sender, Sendinblue Email Marketing integrations.
+- Added CRM integrations category.
+- Added ActiveCampaign, Avochato, Freshdesk, HubSpot, Infusionsoft, Insightly, Pipedrive, Pipeliner, Salesflare, Salesforce, Scoro, vCita, Zoho CRM integrations.
+- Added Webhooks integrations category.
+- Added Generic Webhook, Zapier Webhooks integrations.
+- Added Miscellaneous integrations category.
+- Added Google Sheets, Monday, Slack, Trello Miscellaneous integrations.
+- Added `useQueueForNotifications` and `useQueueForIntegrations` plugin settings, to control if queue jobs should be used to send emails and trigger integrations.
+
+### Changed
+- Element and Address Provider integrations can now have multiple instances created with different settings.
+
 ## 1.1.8 - 2020-08-27
 
 ### Added
