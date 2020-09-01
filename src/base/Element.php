@@ -15,6 +15,7 @@ abstract class Element extends Integration implements IntegrationInterface
     // Properties
     // =========================================================================
 
+    public $attributeMapping;
     public $fieldMapping;
 
 

@@ -26,7 +26,6 @@ class Entry extends Element
 
     public $entryTypeId;
     public $defaultAuthorId;
-    public $attributeMapping;
 
 
     // Public Methods
