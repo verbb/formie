@@ -203,8 +203,6 @@ class Tokens extends Component
             if ($token->endOfLife && $token->refreshToken || $force) {
                 // Has token expired ?
                 if ($time > $token->endOfLife || $force) {
-                    $realToken = $token->getToken();
-
                     $refreshToken = $token->refreshToken;
 
                     $grant = new RefreshToken();
