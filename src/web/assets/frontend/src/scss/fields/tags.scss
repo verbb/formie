@@ -16,3 +16,13 @@ $tag-inset-shadow-size: 1.1em;
 $placeholder-color: $tag-text-color;
 
 @import '~@yaireo/tagify/src/tagify';
+
+.fui-input.tagify {
+    display: flex;
+    padding: 0;
+}
+
+.tagify__input::before {
+    height: auto;
+    line-height: inherit;
+}
