@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.2.2 - 2020-09-02
+
+### Fixed
+- Fixed rendering issue for category fields with children.
+- Fixed rendering issue for tags fields.
+- Fixed JS error when rendering a tag field.
+- Fixed JS error when rendering a repeater field.
+
 ## 1.2.1 - 2020-09-02
 
 ### Added
