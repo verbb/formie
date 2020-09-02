@@ -36,7 +36,7 @@
 
                 <div class="buttons right">
                     <div class="btn" role="button" @click.prevent="onCancel">{{ 'Cancel' | t('app') }}</div>
-                    <div class="btn submit" role="button" @click.prevent="onSave">{{ 'Save' | t('app') }}</div>
+                    <div class="btn submit" role="button" @click.prevent="onSave">{{ 'Apply' | t('app') }}</div>
                     <div class="spinner" :class="{ hidden: !saveLoading }"></div>
                 </div>
             </template>

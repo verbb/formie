@@ -30,7 +30,7 @@
             <template slot="footer">
                 <div class="buttons right">
                     <div class="btn" role="button" @click.prevent="onModalCancel">{{ 'Close' | t('app') }}</div>
-                    <div class="btn submit" role="button" @click.prevent="savePages">{{ 'Save' | t('formie') }}</div>
+                    <div class="btn submit" role="button" @click.prevent="savePages">{{ 'Apply' | t('app') }}</div>
                     <div class="spinner hidden"></div>
                 </div>
             </template>
