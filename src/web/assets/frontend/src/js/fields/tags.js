@@ -17,7 +17,7 @@ export class FormieTags {
             $input.setAttribute('type', 'hidden');
 
             // Maximum compatibility.
-            const tags = JSON.parse(input.getAttribute('data-formie-tags'));
+            const tags = JSON.parse($input.getAttribute('data-formie-tags'));
 
             $input.tagify = new Tagify($input, {
                 whitelist: tags,

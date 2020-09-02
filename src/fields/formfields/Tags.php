@@ -184,7 +184,7 @@ class Tags extends CraftTags implements FormFieldInterface
     public function getFrontEndJsVariables(Form $form)
     {
         $src = Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/fields/tags.js', true);
-        $onload = 'new FormieFormieTagsTable(' . Json::encode(['formId' => $form->id]) . ');';
+        $onload = 'new FormieTags(' . Json::encode(['formId' => $form->id]) . ');';
 
         return [
             'src' => $src,
