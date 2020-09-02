@@ -23,7 +23,7 @@ export class FormieRichText {
             this.buttons = ['bold', 'italic'];
         }
 
-        pell.init({
+        this.editor = pell.init({
             element: this.$container,
             defaultParagraphSeparator: 'p',
             styleWithCSS: true,
@@ -38,6 +38,9 @@ export class FormieRichText {
                 selected: 'fui-rich-text-selected',
             },
         });
+
+        // Populate any values initially set
+        this.editor.content.innerHTML = this.$field.textContent;
     }
 }
 

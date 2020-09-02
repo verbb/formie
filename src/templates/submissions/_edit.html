@@ -51,39 +51,42 @@
 
 {% block content %}
 
-<input type="hidden" name="action" value="formie/submissions/save-submission">
-<input type="hidden" name="handle" value="{{ submission.form.handle }}">
-{{ redirectInput('formie/submissions') }}
-{{ csrfInput() }}
+{# Helps with JS, that would otherwise only apply for the front-end #}
+<div id="{{ submission.form.formId }}">
+    <input type="hidden" name="action" value="formie/submissions/save-submission">
+    <input type="hidden" name="handle" value="{{ submission.form.handle }}">
+    {{ redirectInput('formie/submissions') }}
+    {{ csrfInput() }}
 
-{% if submission.id %}
-    <input type="hidden" name="submissionId" value="{{ submission.id }}">
-{% endif %}
+    {% if submission.id %}
+        <input type="hidden" name="submissionId" value="{{ submission.id }}">
+    {% endif %}
 
-{% if craft.app.getIsMultiSite() %}
-    <input type="hidden" name="siteId" value="{{ submission.siteId }}">
-{% endif %}
+    {% if craft.app.getIsMultiSite() %}
+        <input type="hidden" name="siteId" value="{{ submission.siteId }}">
+    {% endif %}
 
-<div id="fields">
-    {% set fieldLayout = submission.getFieldLayout() %}
+    <div id="fields">
+        {% set fieldLayout = submission.getFieldLayout() %}
 
-    {% for tab in fieldLayout.getTabs() %}
-        <div id="{{ tab.getHtmlId() }}"{% if not loop.first %} class="hidden"{% endif %}>
-            {% set rows = craft.formie.plugin.fields.groupIntoRows(tab.getFields()) %}
+        {% for tab in fieldLayout.getTabs() %}
+            <div id="{{ tab.getHtmlId() }}"{% if not loop.first %} class="hidden"{% endif %}>
+                {% set rows = craft.formie.plugin.fields.groupIntoRows(tab.getFields()) %}
 
-            {% namespace 'fields' %}
-                {% for row in rows %}
-                    {% for field in row.fields %}
-                        {% include '_includes/field' with {
-                            field: field,
-                            element: submission,
-                            required: field.required,
-                        } %}
+                {% namespace 'fields' %}
+                    {% for row in rows %}
+                        {% for field in row.fields %}
+                            {% include '_includes/field' with {
+                                field: field,
+                                element: submission,
+                                required: field.required,
+                            } %}
+                        {% endfor %}
                     {% endfor %}
-                {% endfor %}
-            {% endnamespace %}
-        </div>
-    {% endfor %}
+                {% endnamespace %}
+            </div>
+        {% endfor %}
+    </div>
 </div>
 
 {% endblock %}

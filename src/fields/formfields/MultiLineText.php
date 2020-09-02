@@ -3,6 +3,7 @@ namespace verbb\formie\fields\formfields;
 
 use verbb\formie\base\FormField;
 use verbb\formie\elements\Form;
+use verbb\formie\elements\Submission;
 use verbb\formie\helpers\SchemaHelper;
 
 use Craft;
@@ -60,10 +61,20 @@ class MultiLineText extends FormField
      */
     public function getInputHtml($value, ElementInterface $element = null): string
     {
+        $jsVariables = [];
+        $form = null;
+
+        if ($element instanceof Submission) {
+            $form = $element->getForm();
+            $jsVariables = $this->getFrontEndJsVariables($form);
+        }
+
         return Craft::$app->getView()->renderTemplate('formie/_formfields/multi-line-text/input', [
             'name' => $this->handle,
             'value' => $value,
             'field' => $this,
+            'form' => $form,
+            'jsVariables' => $jsVariables,
         ]);
     }
 
