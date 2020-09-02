@@ -197,6 +197,7 @@ export default {
     font-weight: 700;
     color: #b2bac1;
     margin-right: 8px;
+    flex: 0 0 auto;
 }
 
 .fui-email-body {
