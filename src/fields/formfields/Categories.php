@@ -173,9 +173,11 @@ class Categories extends CraftCategories implements FormFieldInterface
      */
     public function getIsMultiLevel(): bool
     {
-        $query = $this->getCategoriesQuery();
+        // $query = $this->getCategoriesQuery();
 
-        return $query->hasDescendants()->exists();
+        // return $query->hasDescendants()->exists();
+        
+        return false;
     }
 
     /**
