@@ -1,5 +1,23 @@
 # Changelog
 
+## 1.2.1 - 2020-09-02
+
+### Added
+- Entry fields now support custom element sources when outputting their list of available elements.
+- Category fields now support custom element sources when outputting their list of available elements.
+- Product fields now support custom element sources when outputting their list of available elements.
+- User fields now support custom element sources when outputting their list of available elements.
+- Variant fields now support custom element sources when outputting their list of available elements.
+- Added `EVENT_MODIFY_ELEMENT_QUERY` to allow modification of the query used by element fields.
+
+### Changed
+- Update modal edit windows to show “Apply” instead of “Save” - as actions aren’t immediately saved until you save the form.
+
+### Fixed
+- Fixed a minor layout issue for the email notification preview with long text values.
+- Fixed rich text-enabled multi-line text fields showing raw HTML in submission.
+- Fixed rich text-enabled multi-line text fields not retaining their value after an error.
+
 ## 1.2.0 - 2020-09-01
 
 ### Added
