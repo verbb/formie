@@ -496,20 +496,20 @@ class Submission extends Element
     /**
      * Override the `getFieldValue` to allow for selection of subfields
      */
-    public function getFieldValue($handle)
+    public function getFieldValue(string $fieldHandle)
     {
         // Do we have nested fields we're trying to select?
-        if (strstr($handle, '[')) {
-            $handles = explode('.', str_replace(['[', ']'], ['.', ''], $handle));
-            $handle = ArrayHelper::remove($handles, 0);
+        if (strstr($fieldHandle, '[')) {
+            $handles = explode('.', str_replace(['[', ']'], ['.', ''], $fieldHandle));
+            $fieldHandle = ArrayHelper::remove($handles, 0);
             $nestedPath = implode('.', $handles);
 
-            $fieldValue = parent::getFieldValue($handle);
+            $fieldValue = parent::getFieldValue($fieldHandle);
 
             return ArrayHelper::getValue($fieldValue, $nestedPath);
         }
 
-        return parent::getFieldValue($handle);
+        return parent::getFieldValue($fieldHandle);
     }
 
     /**
