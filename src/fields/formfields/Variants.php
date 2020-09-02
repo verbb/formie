@@ -5,10 +5,13 @@ use verbb\formie\base\FormFieldInterface;
 use verbb\formie\base\FormFieldTrait;
 use verbb\formie\base\RelationFieldTrait;
 use verbb\formie\elements\Form;
+use verbb\formie\events\ModifyElementFieldQueryEvent;
 use verbb\formie\helpers\SchemaHelper;
 
 use Craft;
+use craft\helpers\ArrayHelper;
 use craft\helpers\UrlHelper;
+
 use craft\commerce\elements\Variant;
 use craft\commerce\models\ProductType;
 use craft\commerce\Plugin;
@@ -23,6 +26,12 @@ class Variants extends CommerceVariants implements FormFieldInterface
         getFrontEndInputOptions as traitGetFrontendInputOptions;
     }
     use RelationFieldTrait;
+
+
+    // Constants
+    // =========================================================================
+
+    const EVENT_MODIFY_ELEMENT_QUERY = 'modifyElementQuery';
 
 
     // Properties
@@ -114,11 +123,28 @@ class Variants extends CommerceVariants implements FormFieldInterface
     {
         $query = Variant::find();
 
-        if ($type = $this->_getProductType()) {
-            $query = $query->typeId($type->id);
+        // Get all available sources for the element
+        $elementSources = Craft::$app->getElementIndexes()->getSources(Variant::class);
+
+        if ($this->source !== '*') {
+            // Try to find the criteria we're restricting by - if any
+            $elementSource = ArrayHelper::firstWhere($elementSources, 'key', $this->source);
+            $criteria = $elementSource['criteria'] ?? [];
+
+            // Apply the criteria on our query
+            Craft::configure($query, $criteria);
         }
 
-        return $query;
+        $query->orderBy('title ASC');
+
+        // Fire a 'modifyElementFieldQuery' event
+        $event = new ModifyElementFieldQueryEvent([
+            'query' => $query,
+            'field' => $this,
+        ]);
+        $this->trigger(self::EVENT_MODIFY_ELEMENT_QUERY, $event);
+
+        return $event->query;
     }
 
     /**

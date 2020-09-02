@@ -5,6 +5,7 @@ use verbb\formie\base\FormFieldInterface;
 use verbb\formie\base\FormFieldTrait;
 use verbb\formie\base\RelationFieldTrait;
 use verbb\formie\elements\Form;
+use verbb\formie\events\ModifyElementFieldQueryEvent;
 use verbb\formie\helpers\SchemaHelper;
 
 use Craft;
@@ -12,6 +13,7 @@ use craft\base\ElementInterface;
 use craft\elements\Entry;
 use craft\elements\db\ElementQueryInterface;
 use craft\fields\Entries as CraftEntries;
+use craft\helpers\ArrayHelper;
 use craft\helpers\UrlHelper;
 
 use Twig\Error\LoaderError;
@@ -28,6 +30,12 @@ class Entries extends CraftEntries implements FormFieldInterface
         getFrontEndInputOptions as traitGetFrontendInputOptions;
     }
     use RelationFieldTrait;
+
+
+    // Constants
+    // =========================================================================
+
+    const EVENT_MODIFY_ELEMENT_QUERY = 'modifyElementQuery';
 
 
     // Properties
@@ -113,25 +121,30 @@ class Entries extends CraftEntries implements FormFieldInterface
     {
         $query = Entry::find();
 
+        // Get all available sources for the element
+        $elementSources = Craft::$app->getElementIndexes()->getSources(Entry::class);
+
         if ($this->sources !== '*') {
-            $sectionHandles = [];
-
+            // Try to find the criteria we're restricting by - if any
             foreach ($this->sources as $source) {
-                list(, $uid) = explode(':', $source);
-
-                if ($section = Craft::$app->getSections()->getSectionByUid($uid)) {
-                    $sectionHandles[] = $section->handle;
-                }
+                $elementSource = ArrayHelper::firstWhere($elementSources, 'key', $source);
+                $criteria = $elementSource['criteria'] ?? [];
+                
+                // Apply the criteria on our query
+                Craft::configure($query, $criteria);
             }
-
-            if (empty($sectionHandles)) {
-                return [];
-            }
-
-            $query->section($sectionHandles);
         }
 
-        return $query->orderBy('title ASC');
+        $query->orderBy('title ASC');
+
+        // Fire a 'modifyElementFieldQuery' event
+        $event = new ModifyElementFieldQueryEvent([
+            'query' => $query,
+            'field' => $this,
+        ]);
+        $this->trigger(self::EVENT_MODIFY_ELEMENT_QUERY, $event);
+
+        return $event->query;
     }
 
     /**

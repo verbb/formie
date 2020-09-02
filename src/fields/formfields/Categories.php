@@ -5,11 +5,13 @@ use verbb\formie\base\FormFieldInterface;
 use verbb\formie\base\FormFieldTrait;
 use verbb\formie\base\RelationFieldTrait;
 use verbb\formie\elements\Form;
+use verbb\formie\events\ModifyElementFieldQueryEvent;
 use verbb\formie\helpers\SchemaHelper;
 
 use Craft;
 use craft\elements\Category;
 use craft\fields\Categories as CraftCategories;
+use craft\helpers\ArrayHelper;
 use craft\helpers\UrlHelper;
 
 use craft\models\CategoryGroup;
@@ -23,6 +25,12 @@ class Categories extends CraftCategories implements FormFieldInterface
         getFrontEndInputOptions as traitGetFrontendInputOptions;
     }
     use RelationFieldTrait;
+
+
+    // Constants
+    // =========================================================================
+
+    const EVENT_MODIFY_ELEMENT_QUERY = 'modifyElementQuery';
 
 
     // Properties
@@ -132,9 +140,30 @@ class Categories extends CraftCategories implements FormFieldInterface
      */
     public function getCategoriesQuery()
     {
-        $group = $this->_getCategoryGroup();
+        $query = Category::find();
 
-        return Category::find()->group($group)->orderBy('title ASC');
+        // Get all available sources for the element
+        $elementSources = Craft::$app->getElementIndexes()->getSources(Category::class);
+
+        if ($this->source !== '*') {
+            // Try to find the criteria we're restricting by - if any
+            $elementSource = ArrayHelper::firstWhere($elementSources, 'key', $this->source);
+            $criteria = $elementSource['criteria'] ?? [];
+
+            // Apply the criteria on our query
+            Craft::configure($query, $criteria);
+        }
+
+        $query->orderBy('title ASC');
+
+        // Fire a 'modifyElementFieldQuery' event
+        $event = new ModifyElementFieldQueryEvent([
+            'query' => $query,
+            'field' => $this,
+        ]);
+        $this->trigger(self::EVENT_MODIFY_ELEMENT_QUERY, $event);
+
+        return $event->query;
     }
 
     /**
@@ -144,9 +173,9 @@ class Categories extends CraftCategories implements FormFieldInterface
      */
     public function getIsMultiLevel(): bool
     {
-        $group = $this->_getCategoryGroup();
+        $query = $this->getCategoriesQuery();
 
-        return Category::find()->group($group)->hasDescendants()->exists();
+        return $query->hasDescendants()->exists();
     }
 
     /**
@@ -239,28 +268,5 @@ class Categories extends CraftCategories implements FormFieldInterface
             SchemaHelper::cssClasses(),
             SchemaHelper::containerAttributesField(),
         ];
-    }
-
-
-    // Private Methods
-    // =========================================================================
-
-    /**
-     * Returns the category group.
-     *
-     * @return CategoryGroup|null
-     */
-    private function _getCategoryGroup()
-    {
-        if ($this->source === '*') {
-            return null;
-        }
-
-        if (!$this->_categoryGroup && is_array($this->source)) {
-            list(, $uid) = explode(':', $this->source);
-            return Craft::$app->getCategories()->getGroupByUid($uid);
-        }
-
-        return $this->_categoryGroup;
     }
 }

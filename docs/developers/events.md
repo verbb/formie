@@ -319,6 +319,24 @@ Event::on(Phone::class, Phone::EVENT_MODIFY_PHONE_COUNTRIES, function(ModifyPhon
 ```
 
 
+## Element Field Events
+
+### The `modifyElementFieldQuery` event
+The event that is triggered to modify the query for element fields, for when rendering options on the front-end.
+
+```php
+use verbb\formie\events\ModifyElementFieldQueryEvent;
+use verbb\formie\fields\formfields\Entries;
+use yii\base\Event;
+
+Event::on(Entries::class, Entries::EVENT_MODIFY_ELEMENT_QUERY, function(ModifyElementFieldQueryEvent $event) {
+    $query = $event->query;
+    $field = $event->field;
+    // ...
+});
+```
+
+
 
 ## Synced Field Events
 

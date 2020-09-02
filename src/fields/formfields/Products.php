@@ -5,10 +5,13 @@ use verbb\formie\base\FormFieldInterface;
 use verbb\formie\base\FormFieldTrait;
 use verbb\formie\base\RelationFieldTrait;
 use verbb\formie\elements\Form;
+use verbb\formie\events\ModifyElementFieldQueryEvent;
 use verbb\formie\helpers\SchemaHelper;
 
 use Craft;
+use craft\helpers\ArrayHelper;
 use craft\helpers\UrlHelper;
+
 use craft\commerce\elements\Product;
 use craft\commerce\Plugin;
 use craft\commerce\fields\Products as CommerceProducts;
@@ -22,6 +25,12 @@ class Products extends CommerceProducts implements FormFieldInterface
         getFrontEndInputOptions as traitGetFrontendInputOptions;
     }
     use RelationFieldTrait;
+
+
+    // Constants
+    // =========================================================================
+
+    const EVENT_MODIFY_ELEMENT_QUERY = 'modifyElementQuery';
 
 
     // Properties
@@ -107,25 +116,30 @@ class Products extends CommerceProducts implements FormFieldInterface
     {
         $query = Product::find();
 
+        // Get all available sources for the element
+        $elementSources = Craft::$app->getElementIndexes()->getSources(Product::class);
+
         if ($this->sources !== '*') {
-            $typeHandles = [];
-
+            // Try to find the criteria we're restricting by - if any
             foreach ($this->sources as $source) {
-                list(, $uid) = explode(':', $source);
-
-                if ($type = Plugin::getInstance()->getProductTypes()->getProductTypeByUid($uid)) {
-                    $typeHandles[] = $type->handle;
-                }
+                $elementSource = ArrayHelper::firstWhere($elementSources, 'key', $source);
+                $criteria = $elementSource['criteria'] ?? [];
+                
+                // Apply the criteria on our query
+                Craft::configure($query, $criteria);
             }
-
-            if (empty($typeHandles)) {
-                return [];
-            }
-
-            $query->type($typeHandles);
         }
 
-        return $query->orderBy('title ASC');
+        $query->orderBy('title ASC');
+
+        // Fire a 'modifyElementFieldQuery' event
+        $event = new ModifyElementFieldQueryEvent([
+            'query' => $query,
+            'field' => $this,
+        ]);
+        $this->trigger(self::EVENT_MODIFY_ELEMENT_QUERY, $event);
+
+        return $event->query;
     }
 
     /**

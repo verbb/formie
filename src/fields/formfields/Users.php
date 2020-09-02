@@ -5,11 +5,13 @@ use verbb\formie\base\FormFieldInterface;
 use verbb\formie\base\FormFieldTrait;
 use verbb\formie\base\RelationFieldTrait;
 use verbb\formie\elements\Form;
+use verbb\formie\events\ModifyElementFieldQueryEvent;
 use verbb\formie\helpers\SchemaHelper;
 
 use Craft;
 use craft\elements\User;
 use craft\fields\Users as CraftUsers;
+use craft\helpers\ArrayHelper;
 use craft\helpers\UrlHelper;
 
 use craft\models\UserGroup;
@@ -23,6 +25,12 @@ class Users extends CraftUsers implements FormFieldInterface
         getFrontEndInputOptions as traitGetFrontendInputOptions;
     }
     use RelationFieldTrait;
+
+
+    // Constants
+    // =========================================================================
+
+    const EVENT_MODIFY_ELEMENT_QUERY = 'modifyElementQuery';
 
 
     // Properties
@@ -122,9 +130,30 @@ class Users extends CraftUsers implements FormFieldInterface
      */
     public function getUsersQuery()
     {
-        $group = $this->_getUserGroup();
+        $query = User::find();
 
-        return User::find()->group($group);
+        // Get all available sources for the element
+        $elementSources = Craft::$app->getElementIndexes()->getSources(User::class);
+
+        if ($this->source !== '*') {
+            // Try to find the criteria we're restricting by - if any
+            $elementSource = ArrayHelper::firstWhere($elementSources, 'key', $this->source);
+            $criteria = $elementSource['criteria'] ?? [];
+
+            // Apply the criteria on our query
+            Craft::configure($query, $criteria);
+        }
+
+        $query->orderBy('title ASC');
+
+        // Fire a 'modifyElementFieldQuery' event
+        $event = new ModifyElementFieldQueryEvent([
+            'query' => $query,
+            'field' => $this,
+        ]);
+        $this->trigger(self::EVENT_MODIFY_ELEMENT_QUERY, $event);
+
+        return $event->query;
     }
 
     /**
@@ -209,28 +238,5 @@ class Users extends CraftUsers implements FormFieldInterface
             SchemaHelper::containerAttributesField(),
             SchemaHelper::inputAttributesField(),
         ];
-    }
-
-
-    // Private Methods
-    // =========================================================================
-
-    /**
-     * Returns the user group.
-     *
-     * @return UserGroup|null
-     */
-    private function _getUserGroup()
-    {
-        if ($this->source === '*') {
-            return null;
-        }
-
-        if (!$this->_userGroup && is_array($this->source)) {
-            list(, $uid) = explode(':', $this->source);
-            return Craft::$app->getUsers()->getGroupByUid($uid);
-        }
-
-        return $this->_userGroup;
     }
 }
