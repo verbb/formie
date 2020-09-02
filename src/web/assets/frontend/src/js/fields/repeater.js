@@ -31,12 +31,14 @@ export class FormieRepeater {
     }
 
     initRows($row) {
-        const $removeButton = $row.querySelector('[data-remove-repeater-row]');
+        if ($row) {
+            const $removeButton = $row.querySelector('[data-remove-repeater-row]');
 
-        if ($removeButton) {
-            $removeButton.addEventListener('click', e => {
-                this.removeRow(e);
-            });
+            if ($removeButton) {
+                $removeButton.addEventListener('click', e => {
+                    this.removeRow(e);
+                });
+            }
         }
     }
 
@@ -74,7 +76,7 @@ export class FormieRepeater {
                 $repeater.dispatchEvent(event);
 
                 this.initRows(event.detail.row);
-            }, 0);
+            }, 50);
         }
     }
 
