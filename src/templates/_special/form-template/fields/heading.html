@@ -3,5 +3,5 @@
         'fui-heading',
         "fui-heading-#{field.headingSize}",
     ],
-    text: field.name,
+    text: field.name | t,
 } | merge(field.getInputAttributes())) }}

@@ -16,7 +16,7 @@
         {% set displayCurrentPageTitle = form.settings.displayCurrentPageTitle %}
 
         {% if displayCurrentPageTitle %}
-            <legend class="fui-page-title">{{ page.name }}</legend>
+            <legend class="fui-page-title">{{ page.name | t }}</legend>
         {% endif %}
 
         {% for row in page.rows %}
@@ -62,7 +62,7 @@
         <button {{ attr(submitAttributes) }}>
             {% hook 'formie.buttons.submit-start' %}
 
-            {{ page.settings.submitButtonLabel }}
+            {{ page.settings.submitButtonLabel | t }}
 
             {% hook 'formie.buttons.submit-end' %}
         </button>
@@ -82,7 +82,7 @@
             <button {{ attr(prevAttributes) }}>
                 {% hook 'formie.buttons.prev-start' %}
 
-                {{ page.settings.backButtonLabel }}
+                {{ page.settings.backButtonLabel | t }}
 
                 {% hook 'formie.buttons.prev-end' %}
             </button>

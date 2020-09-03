@@ -27,7 +27,7 @@
                 } | merge(field.getInputAttributes()) %}
 
                 <input {{ attr(attributes) }} />
-                <label for="{{ optionId }}" class="fui-radio-label">{{ option.label }}</label>
+                <label for="{{ optionId }}" class="fui-radio-label">{{ option.label | t }}</label>
             </div>
         {% endfor %}
     </div>

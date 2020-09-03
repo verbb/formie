@@ -1,6 +1,6 @@
 <div style="margin: 1em 0;">
     {% if not (options.hideName ?? false) %}
-        <strong>{{ field.name }}</strong>
+        <strong>{{ field.name | t }}</strong>
     {% endif %}
 
     {% set fields = field.getFieldLayout().getFields() %}

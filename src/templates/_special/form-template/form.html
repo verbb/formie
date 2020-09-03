@@ -47,13 +47,13 @@
 
             {% if flashNotice %}
                 <div class="fui-alert fui-alert-success" role="alert">
-                    {{ flashNotice | raw }}
+                    {{ flashNotice | t | raw }}
                 </div>
             {% endif %}
 
             {% if flashError %}
                 <div class="fui-alert fui-alert-error" role="alert">
-                    {{ flashError | raw }}
+                    {{ flashError | t | raw }}
                 </div>
             {% endif %}
         {% endif %}
@@ -78,7 +78,7 @@
                     {% hook 'formie.form.start' %}
 
                     {% if form.settings.displayFormTitle %}
-                        <h2 class="fui-title">{{ form.title }}</h2>
+                        <h2 class="fui-title">{{ form.title | t }}</h2>
                     {% endif %}
 
                     {% if form.settings.progressPosition == 'start' %}

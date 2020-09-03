@@ -12,10 +12,14 @@
 
 <select {{ attr(attributes) }}>
     {% if field.countryPlaceholder %}
-        <option value="" disabled {{- not value ? ' selected' }}>{{ field.countryPlaceholder }}</option>
+        <option value="" disabled {{- not value ? ' selected' }}>
+            {{ field.countryPlaceholder | t }}
+        </option>
     {% endif %}
 
     {% for country in field.countries %}
-        <option value="{{ country.value }}" {{- country.value == value ? ' selected' }}>{{ country.label }}</option>
+        <option value="{{ country.value }}" {{- country.value == value ? ' selected' }}>
+            {{ country.label | t }}
+        </option>
     {% endfor %}
 </select>

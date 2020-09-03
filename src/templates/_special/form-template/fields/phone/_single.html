@@ -3,12 +3,12 @@
     id: options.id,
     class: [ 'fui-input' ],
     name: 'number' | namespaceInputName(field.handle),
-    placeholder: field.placeholder,
+    placeholder: field.placeholder | t,
     required: field.required ? true : false,
     autocomplete: 'tel-national',
     value: value.number ?? null,
     data: {
-        'fui-message': field.settings.errorMessage,
+        'fui-message': field.settings.errorMessage | t,
     },
     aria: {
         required: field.required ? 'true' : 'false',

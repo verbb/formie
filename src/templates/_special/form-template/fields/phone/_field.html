@@ -6,7 +6,7 @@
         field: null,
         id: inputId,
         required: field.required,
-        fieldName: attribute(field, "#{handle}Label"),
+        fieldName: attribute(field, "#{handle}Label") | t,
         labelPosition: labelPosition,
     } %}
 
@@ -23,7 +23,7 @@
 
         {% include ["fields/phone/_#{handle}", 'fields/phone/_input'] with {
             autocomplete: autocomplete,
-            placeholder: attribute(field, "#{handle}Placeholder"),
+            placeholder: attribute(field, "#{handle}Placeholder") | t,
             required: field.required ? true : false,
             value: attribute(value, handle) ?? attribute(field, "#{handle}DefaultValue") ?? '',
             id: inputId,

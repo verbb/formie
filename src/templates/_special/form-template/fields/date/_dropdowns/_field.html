@@ -2,7 +2,7 @@
     {% set handle = attrs.handle %}
     {% set labelPosition = craft.formie.getLabelPosition(field, form, true) %}
     {% set inputId = handle | namespaceInputId(options.id) %}
-    {% set placeholder = attribute(field, "#{handle}Placeholder") %}
+    {% set placeholder = attribute(field, "#{handle}Placeholder") | t %}
 
     {% if handle == 'ampm' %}
         {% set selected = value %}
@@ -15,7 +15,7 @@
         field: null,
         id: inputId,
         required: field.required ? true : false,
-        fieldName: attribute(field, "#{handle}Label"),
+        fieldName: attribute(field, "#{handle}Label") | t,
         labelPosition: labelPosition,
     } %}
 
@@ -47,7 +47,9 @@
 
             {% if attrs.options is defined %}
                 {% for option in attrs.options %}
-                    <option value="{{ option.value }}" {{- option.value == selected ? ' selected' }}>{{ option.label }}</option>
+                    <option value="{{ option.value }}" {{- option.value == selected ? ' selected' }}>
+                        {{ option.label | t }}
+                    </option>
                 {% endfor %}
             {% else %}
                 {% for i in attrs.min..attrs.max %}

@@ -29,7 +29,7 @@
                 } | merge(field.getInputAttributes()) %}
 
                 <input {{ attr(attributes) }} />
-                <label for="{{ optionId }}" class="fui-checkbox-label">{{ option.label }}</label>
+                <label for="{{ optionId }}" class="fui-checkbox-label">{{ option.label | t }}</label>
             </div>
         {% endfor %}
     </div>

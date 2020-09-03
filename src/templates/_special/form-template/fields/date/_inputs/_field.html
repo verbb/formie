@@ -1,7 +1,7 @@
 {% set html %}
     {% set handle = attrs.handle %}
     {% set inputId = handle | namespaceInputId(options.id) %}
-    {% set placeholder = attribute(field, handle ~ 'Placeholder') %}
+    {% set placeholder = attribute(field, handle ~ 'Placeholder') | t %}
 
     {% if handle == 'ampm' %}
         {% set selected = value %}
@@ -14,7 +14,7 @@
         field: null,
         id: inputId,
         required: field.required ? true : false,
-        fieldName: attribute(field, handle ~ 'Label'),
+        fieldName: attribute(field, handle ~ 'Label') | t,
         labelPosition: labelPosition,
     } %}
 
@@ -47,7 +47,9 @@
                     {% endif %}
 
                     {% for option in attrs.options %}
-                        <option value="{{ option.value }}" {{- option.value == selected ? ' selected' }}>{{ option.label }}</option>
+                        <option value="{{ option.value }}" {{- option.value == selected ? ' selected' }}>
+                            {{ option.label | t }}
+                        </option>
                     {% endfor %}
                 </select>
             {% default %}

@@ -1,8 +1,8 @@
 {% set html %}
     {% set inputId = handle | namespaceInputId(options.id) %}
     {% set selected = attribute(value, handle) ?? attribute(field, "#{handle}DefaultValue") ?? '' %}
-    {% set placeholder = attribute(field, "#{handle}Placeholder") %}
-    {% set errorMessage = attribute(field, "#{handle}ErrorMessage") %}
+    {% set placeholder = attribute(field, "#{handle}Placeholder") | t %}
+    {% set errorMessage = attribute(field, "#{handle}ErrorMessage") | t %}
     {% set required = field.required ? field.required : attribute(field, "#{handle}Required") %}
 
     {% set labelPosition = craft.formie.getLabelPosition(field, form, true) %}
@@ -10,7 +10,7 @@
         field: null,
         id: inputId,
         required: required,
-        fieldName: attribute(field, "#{handle}Label"),
+        fieldName: attribute(field, "#{handle}Label") | t,
         labelPosition: labelPosition,
     } %}
 
@@ -47,7 +47,9 @@
                 {% endif %}
 
                 {% for prefix in field.prefixOptions %}
-                    <option value="{{ prefix.value }}" {{- prefix.value == selected ? ' selected' }}>{{ prefix.label }}</option>
+                    <option value="{{ prefix.value }}" {{- prefix.value == selected ? ' selected' }}>
+                        {{ prefix.label | t }}
+                    </option>
                 {% endfor %}
             </select>
         {% default %}

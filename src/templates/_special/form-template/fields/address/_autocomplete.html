@@ -1,6 +1,6 @@
 {{ field.getAutocompleteHtml({
     autocomplete: autocomplete,
-    placeholder: attribute(field, "#{handle}Placeholder"),
+    placeholder: attribute(field, "#{handle}Placeholder") | t,
     required: required,
     value: attribute(value, handle) ?? attribute(field, "#{handle}DefaultValue") ?? '',
     data: data,

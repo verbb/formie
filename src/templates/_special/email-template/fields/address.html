@@ -1,34 +1,34 @@
 <p>
     {% if not (options.hideName ?? false) %}
-        <strong>{{ field.name }}</strong><br>
+        <strong>{{ field.name | t }}</strong><br>
     {% endif %}
 
     {% if field.address1Enabled %}
-        <strong>{{ field.address1Label }}: </strong>{{ value.address1 ?? ('No response.' | t('formie')) }}<br>
+        <strong>{{ field.address1Label | t }}: </strong>{{ value.address1 ?? ('No response.' | t('formie')) }}<br>
     {% endif %}
 
     {% if field.address2Enabled %}
-        <strong>{{ field.address2Label }}: </strong>{{ value.address2 ?? ('No response.' | t('formie')) }}<br>
+        <strong>{{ field.address2Label | t }}: </strong>{{ value.address2 ?? ('No response.' | t('formie')) }}<br>
     {% endif %}
 
     {% if field.address3Enabled %}
-        <strong>{{ field.address3Label }}: </strong>{{ value.address3 ?? ('No response.' | t('formie')) }}<br>
+        <strong>{{ field.address3Label | t }}: </strong>{{ value.address3 ?? ('No response.' | t('formie')) }}<br>
     {% endif %}
 
     {% if field.cityEnabled %}
-        <strong>{{ field.cityLabel }}: </strong>{{ value.city ?? ('No response.' | t('formie')) }}<br>
+        <strong>{{ field.cityLabel | t }}: </strong>{{ value.city ?? ('No response.' | t('formie')) }}<br>
     {% endif %}
 
     {% if field.stateEnabled %}
-        <strong>{{ field.stateLabel }}: </strong>{{ value.state ?? ('No response.' | t('formie')) }}<br>
+        <strong>{{ field.stateLabel | t }}: </strong>{{ value.state ?? ('No response.' | t('formie')) }}<br>
     {% endif %}
 
     {% if field.zipEnabled %}
-        <strong>{{ field.zipLabel }}: </strong>{{ value.zip ?? ('No response.' | t('formie')) }}<br>
+        <strong>{{ field.zipLabel | t }}: </strong>{{ value.zip ?? ('No response.' | t('formie')) }}<br>
     {% endif %}
 
     {% if field.countryEnabled %}
-        <strong>{{ field.countryLabel }}: </strong>{{ value.country ?? ('No response.' | t('formie')) }}<br>
+        <strong>{{ field.countryLabel | t }}: </strong>{{ value.country ?? ('No response.' | t('formie')) }}<br>
     {% endif %}
 </p>
 

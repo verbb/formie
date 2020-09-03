@@ -1,6 +1,6 @@
 {% set html %}
     {% set inputId = handle | namespaceInputId(options.id) %}
-    {% set errorMessage = attribute(field, "#{handle}ErrorMessage") %}
+    {% set errorMessage = attribute(field, "#{handle}ErrorMessage") | t %}
     {% set required = field.required ? field.required : attribute(field, "#{handle}Required") %}
 
     {% set labelPosition = craft.formie.getLabelPosition(field, form, true) %}
@@ -8,7 +8,7 @@
         field: null,
         id: inputId,
         required: required,
-        fieldName: attribute(field, "#{handle}Label"),
+        fieldName: attribute(field, "#{handle}Label") | t,
         labelPosition: labelPosition,
     } %}
 
@@ -25,7 +25,7 @@
 
         {% include ["fields/address/_#{handle}", 'fields/address/_input'] with {
             autocomplete: autocomplete,
-            placeholder: attribute(field, "#{handle}Placeholder"),
+            placeholder: attribute(field, "#{handle}Placeholder") | t,
             required: required,
             value: attribute(value, handle) ?? attribute(field, "#{handle}DefaultValue") ?? '',
             data: {

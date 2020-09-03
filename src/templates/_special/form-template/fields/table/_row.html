@@ -26,7 +26,7 @@
                     }) }}>
 
                     <label for="{{ rowId }}" class="fui-checkbox-label">
-                        &nbsp;<span class="fui-sr-only">{{ col.heading }}</span>
+                        &nbsp;<span class="fui-sr-only">{{ col.heading | t }}</span>
                     </label>
                 </div>
             </td>
@@ -54,7 +54,9 @@
             <td data-col="{{ colId }}">
                 <select class="fui-select" name="{{ "#{index}[#{colId}]" }}">
                     {% for option in col.options %}
-                        <option value="{{ option.value }}" {{ option.value == (row[colId] ?? '') ? 'selected' }}>{{ option.label }}</option>
+                        <option value="{{ option.value }}" {{ option.value == (row[colId] ?? '') ? 'selected' }}>
+                            {{ option.label | t }}
+                        </option>
                     {% endfor %}
                 </select>
             </td>

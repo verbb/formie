@@ -5,7 +5,7 @@
     multiple: field.multiple ? true : false,
     required: field.required ? true : false,
     data: {
-        'fui-message': field.settings.errorMessage,
+        'fui-message': field.settings.errorMessage | t,
     },
     aria: {
         required: field.required ? 'true' : 'false',
@@ -23,7 +23,7 @@
                 {% set hasOptgroups = true %}
             {% endif %}
 
-            <optgroup label="{{ option.optgroup }}">
+            <optgroup label="{{ option.optgroup | t }}">
         {% else %}
             {% if field.multiple %}
                 {% set selected = value ? value.contains(option.value) : (option.isDefault ?? false) %}
@@ -31,7 +31,7 @@
                 {% set selected = value and value.value ? value.value == option.value : (option.isDefault ?? false) %}
             {% endif %}
 
-            <option value="{{ option.value }}" {{ selected ? ' selected' }}>{{ option.label }}</option>
+            <option value="{{ option.value }}" {{ selected ? ' selected' }}>{{ option.label | t }}</option>
         {% endif %}
     {% endfor %}
 

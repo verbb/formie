@@ -2,7 +2,7 @@
 
 <p>
     {% if not (options.hideName ?? false) %}
-        <strong>{{ field.name }}</strong><br>
+        <strong>{{ field.name | t }}</strong><br>
     {% endif %}
 
     {% if elements | length %}

@@ -3,12 +3,12 @@
     class: [ 'fui-input' ],
     id: options.id,
     name: field.handle,
-    placeholder: field.placeholder,
+    placeholder: field.placeholder | t,
     autocomplete: 'email',
     required: field.required ? true : false,
     value: value,
     data: {
-        'fui-message': field.settings.errorMessage,
+        'fui-message': field.settings.errorMessage | t,
     },
     aria: {
         required: field.required ? 'true' : 'false',

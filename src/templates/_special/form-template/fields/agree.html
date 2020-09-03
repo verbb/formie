@@ -6,7 +6,7 @@
         'fui-checkbox-input',
     ],
     name: field.handle,
-    placeholder: field.placeholder,
+    placeholder: field.placeholder | t,
     required: field.required ? true : false,
     value: '1',
     checked: value ? true : false,
@@ -20,5 +20,5 @@
 
 <div class="fui-checkbox">
     <input {{ attr(attributes) }} />
-    <label for="{{ options.id }}" class="fui-checkbox-label">{{ field.description }}</label>
+    <label for="{{ options.id }}" class="fui-checkbox-label">{{ field.description | t }}</label>
 </div>

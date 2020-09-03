@@ -1,6 +1,6 @@
 <div style="margin: 1em 0;">
     {% if not (options.hideName ?? false) %}
-        <strong>{{ field.name }}</strong>
+        <strong>{{ field.name | t }}</strong>
     {% endif %}
 
     {% set cellStyle = 'text-align: left; font-size: inherit; padding: 4px; border: 1px solid;' %}
@@ -9,7 +9,7 @@
         <thead>
             <tr>
                 {% for colId, col in field.columns %}
-                    <th style="{{ cellStyle }} background-color: rgba(0, 0, 0, 0.05);">{{ col.heading }}</th>
+                    <th style="{{ cellStyle }} background-color: rgba(0, 0, 0, 0.05);">{{ col.heading | t }}</th>
                 {% endfor %}
             </tr>
         </thead>
@@ -32,7 +32,7 @@
                             {% case 'select' %}
                                 <td style="{{ cellStyle }}">
                                     {% for option in col.options if option.value == cellValue %}
-                                        {{ option.label }}
+                                        {{ option.label | t }}
                                     {% endfor %}
                                 </td>
                             {% case 'heading' %}

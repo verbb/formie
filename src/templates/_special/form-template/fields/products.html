@@ -9,7 +9,7 @@
     required: field.required ? true : false,
     multiple: multiple,
     data: {
-        'fui-message': field.settings.errorMessage,
+        'fui-message': field.settings.errorMessage | t,
     },
     aria: {
         required: field.required ? 'true' : 'false',
@@ -17,9 +17,11 @@
 } | merge(field.getInputAttributes()) %}
 
 <select {{ attr(attributes) }}>
-    <option value="">{{ field.placeholder }}</option>
+    <option value="">{{ field.placeholder | t }}</option>
     
     {% for product in products %}
-        <option value="{{ product.id }}" {{- product.id in valueIds ? ' selected' }}>{{ product.title }}</option>
+        <option value="{{ product.id }}" {{- product.id in valueIds ? ' selected' }}>
+            {{ product.title | t }}
+        </option>
     {% endfor %}
 </select>

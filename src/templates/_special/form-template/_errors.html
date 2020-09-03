@@ -1,5 +1,5 @@
 <ul class="fui-errors">
     {% for error in errors %}
-        <li class="fui-error-message">{{ error }}</li>
+        <li class="fui-error-message">{{ error | t }}</li>
     {% endfor %}
 </ul>

@@ -12,7 +12,7 @@
     data: {
         'size-limit': field.sizeLimit,
         'file-limit': limitFiles,
-        'fui-message': field.settings.errorMessage,
+        'fui-message': field.settings.errorMessage | t,
     },
     aria: {
         required: field.required ? 'true' : 'false',

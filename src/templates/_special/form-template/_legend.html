@@ -6,7 +6,7 @@
     } | filter %}
 
     <legend {{ attr(attributes) }}>
-        {{ field.name }}
+        {{ field.name | t }}
 
         {% if field.required %}
             <span class="fui-required">*</span>
