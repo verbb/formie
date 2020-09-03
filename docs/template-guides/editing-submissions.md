@@ -11,12 +11,14 @@ First, let's get a collection of submissions for the `contactForm` form. We'll w
 {% endfor %}
 ```
 
-In this example, our `contactForm` form has a field with a handle `email` - your form may be different. You might like to link off to a individual template for each submission, which we've shown above. It'll be up to you to setup your template structure. In our example, we have a route setup to handle `account/form/{{ submission.id }}`.
+In this example, our `contactForm` form has a field with a handle `email` - your form may be different. You might like to link off to a individual template for each submission, which we've shown above. It'll be up to you to setup your template structure. 
+
+In our example, we have a route setup to handle `account/form/{{ submission.id }}`.
 
 On this template, we fetch the submission from the provided submission ID in the URL
 
 ```twig
-{% set submissionId = craft.app.request.segments(3) %}
+{% set submissionId = craft.app.request.getSegment(3) %}
 {% set submission = craft.formie.submissions.id(submissionId).one() %}
 
 {% if not submission %}
