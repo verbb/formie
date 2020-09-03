@@ -665,6 +665,11 @@ class Integrations extends Component
         $captchas = [];
         $integrations = $this->getAllEnabledIntegrationsForForm($form, $page);
 
+        // If we're editing a submission from the front-end, don't enable captchas
+        if ($form->isEditingSubmission()) {
+            return $captchas;
+        }
+
         foreach ($integrations as $integration) {
             if ($integration instanceof Captcha) {
                 // Check if this is a multi-page form, because by default, we want to only show it

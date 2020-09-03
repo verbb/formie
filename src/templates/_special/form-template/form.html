@@ -63,7 +63,7 @@
         {% if not submitted or not form.settings.submitActionFormHide %}
             <form {{ attr(attributes) }}>
                 {{ csrfInput() }}
-                {{ actionInput('formie/submissions/submit') }}
+                {{ actionInput(form.getActionUrl()) }}
                 {{ hiddenInput('handle', form.handle) }}
 
                 {% if submission and submission.id %}

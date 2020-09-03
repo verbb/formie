@@ -67,6 +67,7 @@ class Form extends Element
     private $_defaultStatus;
     private $_submitActionEntry;
     private $_notifications;
+    private $_editingSubmission;
 
 
     // Static
@@ -673,6 +674,11 @@ class Form extends Element
             return $submission;
         }
 
+        // Or, if we're editing a submission
+        if ($submission = $this->_editingSubmission) {
+            return $submission;
+        }
+
         return null;
     }
 
@@ -709,6 +715,38 @@ class Form extends Element
 
         $this->resetCurrentPage();
         Craft::$app->getSession()->remove('formie:' . $this->id . ':submissionId');
+    }
+
+    /**
+     * Sets the current submission, when editing.
+     *
+     * @param Submission|null $submission
+     * @throws MissingComponentException
+     */
+    public function setSubmission($submission)
+    {
+        $this->_editingSubmission = $submission;
+    }
+
+    /**
+     * Whether we're editing a submission or not. Useful to turn off captchas.
+     */
+    public function isEditingSubmission()
+    {
+        return (bool)$this->_editingSubmission;
+    }
+
+    /**
+     * Returns the action URL for form submissions. Changes depending on whether we're editing
+     * a form on the front-end, or submitting as normal.
+     */
+    public function getActionUrl()
+    {
+        if ($this->isEditingSubmission()) {
+            return 'formie/submissions/save-submission';
+        }
+
+        return 'formie/submissions/submit';
     }
 
     /**
