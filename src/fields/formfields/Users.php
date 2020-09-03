@@ -135,13 +135,15 @@ class Users extends CraftUsers implements FormFieldInterface
         // Get all available sources for the element
         $elementSources = Craft::$app->getElementIndexes()->getSources(User::class);
 
-        if ($this->source !== '*') {
+        if ($this->sources !== '*') {
             // Try to find the criteria we're restricting by - if any
-            $elementSource = ArrayHelper::firstWhere($elementSources, 'key', $this->source);
-            $criteria = $elementSource['criteria'] ?? [];
-
-            // Apply the criteria on our query
-            Craft::configure($query, $criteria);
+            foreach ($this->sources as $source) {
+                $elementSource = ArrayHelper::firstWhere($elementSources, 'key', $source);
+                $criteria = $elementSource['criteria'] ?? [];
+                
+                // Apply the criteria on our query
+                Craft::configure($query, $criteria);
+            }
         }
 
         $query->orderBy('title ASC');
