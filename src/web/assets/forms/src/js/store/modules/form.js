@@ -385,6 +385,7 @@ const getters = {
         // TODO refactor this, probably server-side
         const allowedTypes = [
             'verbb\\formie\\fields\\formfields\\Email',
+            'verbb\\formie\\fields\\formfields\\Hidden',
         ];
 
         let fields = [
