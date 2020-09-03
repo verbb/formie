@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.2.3 - 2020-09-03
+
+### Added
+- Provide easier shortcuts for editing a submission on the front-end.
+- Ensure all field attributes for email and form templates are translated for the front-end.
+
+### Fixed
+- Downgrade `guzzlehttp/oauth-subscriber` package to be compatible with Social Poster.
+
 ## 1.2.2 - 2020-09-02
 
 ### Fixed
