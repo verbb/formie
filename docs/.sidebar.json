@@ -38,7 +38,8 @@
             "template-guides/custom-rendering",
             "template-guides/form-templates",
             "template-guides/email-templates",
-            "template-guides/cached-forms"
+            "template-guides/cached-forms",
+            "template-guides/editing-submissions"
         ]
     },
     {
