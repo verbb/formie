@@ -22,7 +22,7 @@ Formie is a Craft CMS plugin for creating user-friendly forms that your content 
 ### Fields
 - Over 25 fields available
   - Standard fields like text, dropdown, radio, checkboxes.
-  - Advanced fields like address, fule uploading, name (short and full).
+  - Advanced fields like address, file uploading, name (short and full).
   - Complex fields like Repeater, Table and Group.
 - Plenty of settings for each field to control their appearance, default values and functionality.
 - Customise your submit buttons - even multiple submits for multi-page forms.
