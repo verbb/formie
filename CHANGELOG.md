@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.2.4 - 2020-09-03
+
+### Added
+- Allow hidden fields to be used in email-only variable fields.
+
+### Fixed
+- Fixed users field not restricting to its chosen sources.
+
 ## 1.2.3 - 2020-09-03
 
 ### Added
