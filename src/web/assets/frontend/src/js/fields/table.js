@@ -1,35 +1,33 @@
 export class FormieTable {
     constructor(settings = {}) {
-        this.formId = '#formie-form-' + settings.formId;
-        this.$form = document.querySelector(this.formId);
+        this.fieldId = '#' + settings.fieldId;
+        this.$field = document.querySelector(this.fieldId);
 
-        if (this.$form) {
-            this.initTables();
+        if (this.$field) {
+            this.$form = this.$field.closest('form');
+            
+            this.initTable();
         }
     }
 
-    initTables() {
-        const $tables = this.$form.querySelectorAll('.fui-type-table');
+    initTable() {
+        const $addButton = this.$field.querySelector('[data-add-table-row]');
 
-        $tables.forEach(($repeater) => {
-            const $addButton = $repeater.querySelector('[data-add-table-row]');
-
-            if ($addButton) {
-                $addButton.addEventListener('click', e => {
-                    this.addRow(e, $repeater);
-                });
-            }
-        });
+        if ($addButton) {
+            $addButton.addEventListener('click', e => {
+                this.addRow(e);
+            });
+        }
     }
 
-    addRow(e, $table) {
+    addRow(e) {
         const button = e.target;
         const handle = button.getAttribute('data-add-table-row');
         const maxRows = parseInt(button.getAttribute('data-max-rows'));
         const template = document.querySelector(`[data-table-template="${handle}"]`);
 
         if (template) {
-            const numRows = this.getNumRows($table);
+            const numRows = this.getNumRows();
             if (numRows >= maxRows) {
                 return;
             }
@@ -40,17 +38,17 @@ export class FormieTable {
             $newRow.className = 'fui-table-row';
             $newRow.innerHTML = html;
 
-            $table.querySelector('tbody').appendChild($newRow);
+            this.$field.querySelector('tbody').appendChild($newRow);
 
             setTimeout(() => {
-                if (this.getNumRows($table) >= maxRows) {
+                if (this.getNumRows() >= maxRows) {
                     button.className += ' fui-disabled';
                     button.setAttribute('disabled', 'disabled');
 
                     return;
                 }
 
-                $table.dispatchEvent(new CustomEvent('append', {
+                this.$field.dispatchEvent(new CustomEvent('append', {
                     bubbles: true,
                     detail: {
                         row: $newRow,
@@ -61,12 +59,12 @@ export class FormieTable {
         }
     }
 
-    getRows($table) {
-        return $table.querySelectorAll('.fui-table-row');
+    getRows() {
+        return this.$field.querySelectorAll('.fui-table-row');
     }
 
-    getLastRow($table) {
-        const rows = this.getRows($table);
+    getLastRow() {
+        const rows = this.getRows();
 
         if (rows.length > 0) {
             return rows[rows.length - 1];
@@ -75,8 +73,8 @@ export class FormieTable {
         return null;
     }
 
-    getNumRows($table) {
-        return this.getRows($table).length;
+    getNumRows() {
+        return this.getRows().length;
     }
 }
 

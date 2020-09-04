@@ -1,4 +1,4 @@
-{% set id = (form.handle | kebab) ~ '-' ~ (field.handle | kebab) %}
+{% set id = field.getHtmlId(form) %}
 {% set labelId = "#{id}-label" %}
 {% set labelPosition = craft.formie.getLabelPosition(field, form) %}
 {% set subfieldLabelPosition = craft.formie.getLabelPosition(field, form, true) %}

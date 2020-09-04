@@ -267,6 +267,22 @@ trait FormFieldTrait
     /**
      * @inheritDoc
      */
+    public function getHtmlId(Form $form)
+    {
+        return StringHelper::toKebabCase($form->handle . ' ' . $this->handle);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getHtmlWrapperId(Form $form)
+    {
+        return StringHelper::toKebabCase($this->namespace . ' ' . $this->getHtmlId($form) . ' wrap');
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function getIsTextInput(): bool
     {
         return false;
