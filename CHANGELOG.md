@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.2.5 - 2020-09-04
+
+### Fixed
+- Fixed repeater and table fields duplicating new rows.
+
 ## 1.2.4 - 2020-09-03
 
 ### Added
