@@ -76,6 +76,24 @@ export class FormieRichText {
                 name: 'image',
                 icon: '<i class="far fa-image"></i>',
             },
+            {
+                name: 'alignleft',
+                icon: '<i class="far fa-align-left"></i>',
+                title: 'Align Left',
+                result: () => exec('justifyLeft', ''),
+            },
+            {
+                name: 'aligncenter',
+                icon: '<i class="far fa-align-center"></i>',
+                title: 'Align Center',
+                result: () => exec('justifyCenter', ''),
+            },
+            {
+                name: 'alignright',
+                icon: '<i class="far fa-align-right"></i>',
+                title: 'Align Right',
+                result: () => exec('justifyRight', ''),
+            },
         ];
 
         if (!this.buttons) {
