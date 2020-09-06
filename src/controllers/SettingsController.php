@@ -23,6 +23,15 @@ class SettingsController extends Controller
         return $this->renderTemplate('formie/settings/general', compact('settings'));
     }
 
+    public function actionForms(): Response
+    {
+        $settings = Formie::$plugin->getSettings();
+        $formTemplates = Formie::$plugin->getFormTemplates()->getAllTemplates();
+        $emailTemplates = Formie::$plugin->getEmailTemplates()->getAllTemplates();
+
+        return $this->renderTemplate('formie/settings/forms', compact('settings', 'formTemplates', 'emailTemplates'));
+    }
+
     public function actionSubmissions(): Response
     {
         $settings = Formie::$plugin->getSettings();

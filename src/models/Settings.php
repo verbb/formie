@@ -34,6 +34,10 @@ class Settings extends Model
      */
     public $defaultPage = 'forms';
 
+    // Forms
+    public $defaultFormTemplate = '';
+    public $defaultEmailTemplate = '';
+
     /**
      * The maximum age of an incomplete submission in days
      * before it is deleted in garbage collection.
@@ -103,5 +107,29 @@ class Settings extends Model
                 }
             }
         }
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getDefaultFormTemplateId()
+    {
+        if ($template = Formie::$plugin->getFormTemplates()->getTemplateByHandle($this->defaultFormTemplate)) {
+            return $template->id;
+        }
+
+        return '';
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getDefaultEmailTemplateId()
+    {
+        if ($template = Formie::$plugin->getEmailTemplates()->getTemplateByHandle($this->defaultEmailTemplate)) {
+            return $template->id;
+        }
+
+        return '';
     }
 }

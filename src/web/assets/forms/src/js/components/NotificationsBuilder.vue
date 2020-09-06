@@ -83,7 +83,7 @@ export default {
     },
 
     computed: {
-        ...mapState(['notifications']),
+        ...mapState(['notifications', 'form']),
     },
 
     methods: {
@@ -92,7 +92,7 @@ export default {
             this.newNotificationModel = {
                 enabled: true,
                 attachFiles: true,
-                templateId: '',
+                templateId: this.form.settings.defaultEmailTemplateId,
             };
 
             this.$refs.newNotification.editNotification();

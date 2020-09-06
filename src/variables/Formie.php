@@ -38,6 +38,14 @@ class Formie
     }
 
     /**
+     * @return array
+     */
+    public function getEmailTemplates(): array
+    {
+        return FormiePlugin::$plugin->getEmailTemplates()->getAllTemplates();
+    }
+
+    /**
      * @param null $criteria
      * @return FormQuery
      */

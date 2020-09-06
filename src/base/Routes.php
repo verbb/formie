@@ -34,6 +34,7 @@ trait Routes
 
             $event->rules['formie/settings'] = 'formie/settings/index';
             $event->rules['formie/settings/general'] = 'formie/settings/index';
+            $event->rules['formie/settings/forms'] = 'formie/settings/forms';
             $event->rules['formie/settings/submissions'] = 'formie/settings/submissions';
             $event->rules['formie/settings/spam'] = 'formie/settings/spam';
             $event->rules['formie/settings/notifications'] = 'formie/notifications/index';

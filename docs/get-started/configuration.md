@@ -12,6 +12,10 @@ return [
         'pluginName' => 'Formie',
         'defaultPage' => 'forms',
 
+        // Forms
+        'defaultFormTemplate' => '',
+        'defaultEmailTemplate' => '',
+
         // Submissions
         'maxIncompleteSubmissionAge' => 30,
         'useQueueForNotifications' => true,
@@ -34,6 +38,10 @@ return [
 ### Configuration options
 - `pluginName` - Set a custom name for the plugin.
 - `defaultPage` - Set the default sub-page navigated to when clicking "Formie" in the main menu.
+
+#### Forms
+- `defaultFormTemplate` - The handle for the default form template used for new forms. Formie's defaults will be used if not specified.
+- `defaultEmailTemplate` - The handle for the default email template used for new forms. Formie's defaults will be used if not specified.
 
 #### Submissions
 - `maxIncompleteSubmissionAge` - The maximum age of an incomplete submission in days before it is deleted in garbage collection. Set to 0 to disable automatic deletion.

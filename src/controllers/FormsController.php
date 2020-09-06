@@ -119,12 +119,18 @@ class FormsController extends Controller
     {
         $this->requirePostRequest();
         $request = Craft::$app->getRequest();
+        $settings = Formie::$plugin->getSettings();
 
         $this->requirePermission('formie-editForms');
 
         $form = Formie::$plugin->getForms()->buildFormFromPost();
         $duplicate = $request->getParam('duplicate');
 
+        // Set the default template from settings, if not already set - for new forms
+        if (!$form->id) {
+            $form->templateId = $settings->getDefaultFormTemplateId();
+        }
+        
         if (!Formie::$plugin->getForms()->saveForm($form)) {
             if ($request->getAcceptsJson()) {
                 $notifications = $form->getNotifications();

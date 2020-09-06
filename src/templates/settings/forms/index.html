@@ -1,0 +1,62 @@
+{% extends 'formie/_layouts/settings' %}
+
+{% import '_includes/forms' as forms %}
+{% import 'verbb-base/_macros' as macros %}
+
+{% block content %}
+
+{% set formTemplateOptions = [{  }] %}
+{% for template in formTemplates %}
+    {% set formTemplateOptions = formTemplateOptions | merge([
+        { label: template.name, value: template.id },
+    ]) %}
+{% endfor %}
+
+<h2>{{ 'Forms' | t('formie') }}</h2>
+
+<form action="" method="post" accept-charset="UTF-8" data-saveshortcut>
+    <input type="hidden" name="action" value="formie/settings/save-settings">
+    {{ redirectInput('formie/settings/forms') }}
+    {{ csrfInput() }}
+
+    {% namespace 'settings' %}
+        {{ forms.selectField({
+            first: true,
+            label: 'Default Form Template' | t('formie'),
+            instructions: 'Select a Form Template to be used as the default for all new forms.' | t('formie'),
+            name: 'defaultFormTemplate',
+            value: settings.defaultFormTemplate,
+            errors: settings.getErrors('defaultFormTemplate'),
+            warning: macros.configWarning('defaultFormTemplate', 'formie'),
+            options: [{
+                label: 'Default Formie Template' | t('formie'),
+                value: '',
+            }] | merge(craft.formie.templates | map(template => {
+                label: template.name,
+                value: template.handle,
+            })),
+        }) }}
+
+        {{ forms.selectField({
+            label: 'Default Email Template' | t('formie'),
+            instructions: 'Select an Email Template to be used as the default for all new forms.' | t('formie'),
+            name: 'defaultEmailTemplate',
+            value: settings.defaultEmailTemplate,
+            errors: settings.getErrors('defaultEmailTemplate'),
+            warning: macros.configWarning('defaultEmailTemplate', 'formie'),
+            options: [{
+                label: 'Default Formie Template' | t('formie'),
+                value: '',
+            }] | merge(craft.formie.emailTemplates | map(template => {
+                label: template.name,
+                value: template.handle,
+            })),
+        }) }}
+    {% endnamespace %}
+
+    <hr>
+
+    <input type="submit" class="btn submit" value="{{ 'Save' | t('formie') }}">
+</form>
+
+{% endblock %}

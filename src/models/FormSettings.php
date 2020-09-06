@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\models;
 
+use verbb\formie\Formie;
 use verbb\formie\positions\AboveInput;
 use verbb\formie\positions\BelowInput;
 use verbb\formie\prosemirror\toprosemirror\Renderer as ProseMirrorRenderer;
@@ -43,6 +44,7 @@ class FormSettings extends Model
     public $defaultLabelPosition;
     public $defaultInstructionsPosition;
     public $progressPosition = 'end';
+    public $defaultEmailTemplateId = '';
     public $integrations = [];
 
 
@@ -75,6 +77,8 @@ class FormSettings extends Model
         if (!$this->defaultInstructionsPosition) {
             $this->defaultInstructionsPosition = BelowInput::class;
         }
+
+        $this->defaultEmailTemplateId = Formie::$plugin->getSettings()->getDefaultEmailTemplateId();
     }
 
     /**
