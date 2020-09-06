@@ -3,7 +3,12 @@
 
 {% set instructions %}
 ### Step 1. Connect to the {name} API
-1. Go to <a href="https://app.ontraport.com/" target="_blank">{name}</a> and login to your account.
+1. Go to <a href="https://sharpspring.com/" target="_blank">{name}</a> and login to your account.
+1. Click on your profile dropdown on the top-right of the screen, and select **Settings**.
+1. In the left-hand sidebar menu, click on **API Settings**.
+1. Click the **Generate New API Keys** button.
+1. Copy the **Account ID** from {name} and paste in the **Account ID** field below.
+1. Copy the **Secret Key** from {name} and paste in the **Secret Key** field below.
 
 ### Step 2. Test Connection
 1. Save this integration.
@@ -15,11 +20,21 @@
 </div>
 
 {{ forms.textField({
-    label: 'API Key' | t('formie'),
-    instructions: 'Enter your {name} API key here.' | t('formie', { name: integration.displayName() }),
-    name: 'apiKey',
+    label: 'Account ID' | t('formie'),
+    instructions: 'Enter your {name} Account ID here.' | t('formie', { name: integration.displayName() }),
+    name: 'accountId',
     required: true,
-    value: integration.settings.apiKey ?? '',
-    warning: macros.configWarning('apiKey', 'formie'),
-    errors: integration.getErrors('apiKey'),
+    value: integration.settings.accountId ?? '',
+    warning: macros.configWarning('accountId', 'formie'),
+    errors: integration.getErrors('accountId'),
+}) }}
+
+{{ forms.textField({
+    label: 'Secret Key' | t('formie'),
+    instructions: 'Enter your {name} Secret Key here.' | t('formie', { name: integration.displayName() }),
+    name: 'secretKey',
+    required: true,
+    value: integration.settings.secretKey ?? '',
+    warning: macros.configWarning('secretKey', 'formie'),
+    errors: integration.getErrors('secretKey'),
 }) }}

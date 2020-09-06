@@ -129,6 +129,7 @@ Build your customer relationship data with ease, mapping form fields to contacts
 - Salesflare
 - Salesforce
 - Scoro
+- SharpSpring
 - vCita
 - Zoho
 
