@@ -250,6 +250,7 @@ class MultiLineText extends FormField
                         ['label' => Craft::t('formie', 'Align Left'), 'value' => 'alignleft'],
                         ['label' => Craft::t('formie', 'Align Center'), 'value' => 'aligncenter'],
                         ['label' => Craft::t('formie', 'Align Right'), 'value' => 'alignright'],
+                        ['label' => Craft::t('formie', 'Clear Formatting'), 'value' => 'clear'],
                     ],
                 ]),
             ]),

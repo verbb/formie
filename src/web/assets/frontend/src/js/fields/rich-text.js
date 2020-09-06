@@ -94,6 +94,20 @@ export class FormieRichText {
                 title: 'Align Right',
                 result: () => exec('justifyRight', ''),
             },
+            {
+                name: 'clear',
+                icon: '<i class="far fa-eraser"></i>',
+                title: 'Clear',
+                result: () => {
+                    if (window.getSelection().toString()) {
+                        let linesToDelete = window.getSelection().toString().split('\n').join('<br>');
+                        exec('formatBlock', '<p>');
+                        document.execCommand('insertHTML', false, linesToDelete);
+                    } else {
+                        exec('formatBlock', '<p>');
+                    }
+                },
+            },
         ];
 
         if (!this.buttons) {
