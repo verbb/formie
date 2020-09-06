@@ -11,7 +11,7 @@
 
 ### Fixed
 - Fixed minor JS issue for webhook integrations in the control panel.
-- Improve Multi-line WYSIWYG front-end field styles, so they aren't overidden. Lists for example now show correctly in all circumstances.
+- Improve Multi-line WYSIWYG front-end field styles, so they aren't overridden. Lists for example now show correctly in all circumstances.
 
 ## 1.2.5 - 2020-09-04
 
