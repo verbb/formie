@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\services;
 
+use verbb\formie\Formie;
 use verbb\formie\base\Captcha;
 use verbb\formie\base\Integration;
 use verbb\formie\base\IntegrationInterface;
@@ -110,6 +111,12 @@ class Integrations extends Component
             emailmarketing\Sender::class,
             emailmarketing\Sendinblue::class,
         ];
+
+        if (Formie::$plugin->getService()->isPluginInstalledAndEnabled('campaign')) {
+            $emailMarketing = array_merge($emailMarketing, [
+                emailmarketing\Campaign::class,
+            ]);
+        }
 
         $crm = [
             crm\ActiveCampaign::class,
@@ -355,12 +362,14 @@ class Integrations extends Component
             $integrationRecord = $this->_getIntegrationRecord($integrationUid, true);
             $isNewIntegration = $integrationRecord->getIsNewRecord();
 
+            $settings = $data['settings'] ?? [];
+
             $integrationRecord->name = $data['name'];
             $integrationRecord->handle = $data['handle'];
             $integrationRecord->type = $data['type'];
             $integrationRecord->enabled = $data['enabled'];
             $integrationRecord->sortOrder = $data['sortOrder'];
-            $integrationRecord->settings = ProjectConfigHelper::unpackAssociativeArrays($data['settings']);
+            $integrationRecord->settings = ProjectConfigHelper::unpackAssociativeArrays($settings);
             $integrationRecord->tokenId = $data['tokenId'] ?? null;
             $integrationRecord->uid = $integrationUid;
 

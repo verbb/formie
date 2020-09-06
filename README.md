@@ -101,6 +101,7 @@ Add users who fill out your forms directly to your mailing lists.
 - Autopilot
 - AWeber
 - Benchmark
+- [Campaign Plugin](https://plugins.craftcms.com/campaign)
 - Campaign Monitor
 - Constant Contact
 - ConvertKit

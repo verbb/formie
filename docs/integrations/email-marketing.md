@@ -28,6 +28,7 @@ Formie integrates with the following providers:
 - Autopilot
 - AWeber
 - Benchmark
+- [Campaign Plugin](https://plugins.craftcms.com/campaign)
 - Campaign Monitor
 - Constant Contact
 - ConvertKit
