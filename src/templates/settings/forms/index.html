@@ -52,6 +52,24 @@
                 value: template.handle,
             })),
         }) }}
+
+        <h4>{{ 'Fields' | t('formie') }}</h4>
+
+        {{ forms.selectField({
+            label: 'Default File Upload Volume' | t('formie'),
+            instructions: 'Select a volume to be used as the default for all new file upload fields.' | t('formie'),
+            name: 'defaultFileUploadVolume',
+            value: settings.defaultFileUploadVolume,
+            errors: settings.getErrors('defaultFileUploadVolume'),
+            warning: macros.configWarning('defaultFileUploadVolume', 'formie'),
+            options: [{
+                label: 'Default Volume' | t('formie'),
+                value: '',
+            }] | merge(craft.app.volumes.getAllVolumes() | map(template => {
+                label: template.name,
+                value: 'folder:' ~ template.uid,
+            })),
+        }) }}
     {% endnamespace %}
 
     <hr>

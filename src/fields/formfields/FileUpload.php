@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\fields\formfields;
 
+use verbb\formie\Formie;
 use verbb\formie\base\FormFieldInterface;
 use verbb\formie\base\FormFieldTrait;
 use verbb\formie\base\RelationFieldTrait;
@@ -119,10 +120,12 @@ class FileUpload extends CraftAssets implements FormFieldInterface
      */
     public function getFieldDefaults(): array
     {
-        $volume = null;
+        $settings = Formie::$plugin->getSettings();
+
+        $volume = $settings->defaultFileUploadVolume;
         $volumes = Craft::$app->getVolumes()->getAllVolumes();
 
-        if (!empty($volumes)) {
+        if (!$volume && !empty($volumes)) {
             $volume = 'folder:' . $volumes[0]->uid;
         }
 

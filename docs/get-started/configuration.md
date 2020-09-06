@@ -15,6 +15,7 @@ return [
         // Forms
         'defaultFormTemplate' => '',
         'defaultEmailTemplate' => '',
+        'defaultFileUploadVolume' => '',
 
         // Submissions
         'maxIncompleteSubmissionAge' => 30,
@@ -42,6 +43,7 @@ return [
 #### Forms
 - `defaultFormTemplate` - The handle for the default form template used for new forms. Formie's defaults will be used if not specified.
 - `defaultEmailTemplate` - The handle for the default email template used for new forms. Formie's defaults will be used if not specified.
+- `defaultFileUploadVolume` - The asset volume to be used as the default for all new file upload fields. Must be in the format `folder:uid`.
 
 #### Submissions
 - `maxIncompleteSubmissionAge` - The maximum age of an incomplete submission in days before it is deleted in garbage collection. Set to 0 to disable automatic deletion.

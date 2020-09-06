@@ -37,6 +37,7 @@ class Settings extends Model
     // Forms
     public $defaultFormTemplate = '';
     public $defaultEmailTemplate = '';
+    public $defaultFileUploadVolume = '';
 
     /**
      * The maximum age of an incomplete submission in days
