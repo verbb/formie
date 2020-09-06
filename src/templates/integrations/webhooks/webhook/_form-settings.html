@@ -30,7 +30,7 @@
 
         <div v-if="success" class="success" style="margin-top: 10px;" v-cloak>
             {{ 'Success!' | t('formie') }}<br>
-            <pre><code v-if="get(settings, 'json')">${ get(settings, 'json') }</code><br><code v-else="get(settings, 'response')">${ get(settings, 'response') }</code></pre>
+            <pre><code v-if="get(settings, 'json')">${ get(settings, 'json') }</code><code v-else="get(settings, 'response')"><br>${ get(settings, 'response') }</code></pre>
         </div>
     </div>
 </integration-form-settings>
