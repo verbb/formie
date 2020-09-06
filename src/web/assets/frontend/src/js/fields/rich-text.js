@@ -1,4 +1,4 @@
-import pell from 'pell';
+import { exec, init } from 'pell';
 
 export class FormieRichText {
     constructor(settings = {}) {
@@ -18,16 +18,97 @@ export class FormieRichText {
         }
     }
 
-    initEditor() {
+    getButtons() {
+        let buttonDefinitions = [
+            {
+                name: 'bold',
+                icon: '<i class="far fa-bold"></i>',
+            },
+            {
+                name: 'italic',
+                icon: '<i class="far fa-italic"></i>',
+            },
+            {
+                name: 'underline',
+                icon: '<i class="far fa-underline"></i>',
+            },
+            {
+                name: 'strikethrough',
+                icon: '<i class="far fa-strikethrough"></i>',
+            },
+            {
+                name: 'heading1',
+                icon: '<i class="far fa-h1"></i>',
+            },
+            {
+                name: 'heading2',
+                icon: '<i class="far fa-h2"></i>',
+            },
+            {
+                name: 'paragraph',
+                icon: '<i class="far fa-paragraph"></i>',
+            },
+            {
+                name: 'quote',
+                icon: '<i class="far fa-quote-right"></i>',
+            },
+            {
+                name: 'olist',
+                icon: '<i class="far fa-list-ol"></i>',
+            },
+            {
+                name: 'ulist',
+                icon: '<i class="far fa-list-ul"></i>',
+            },
+            {
+                name: 'code',
+                icon: '<i class="far fa-code"></i>',
+            },
+            {
+                name: 'line',
+                icon: '<i class="far fa-horizontal-rule"></i>',
+            },
+            {
+                name: 'link',
+                icon: '<i class="far fa-link"></i>',
+            },
+            {
+                name: 'image',
+                icon: '<i class="far fa-image"></i>',
+            },
+        ];
+
         if (!this.buttons) {
             this.buttons = ['bold', 'italic'];
         }
 
-        this.editor = pell.init({
+        let buttons = [];
+
+        this.buttons.forEach(button => {
+            let found = buttonDefinitions.find(element => element.name === button);
+
+            if (found) {
+                buttons.push(found);
+            }
+        });
+
+        return buttons;
+    }
+
+    initEditor() {
+        // Load in FontAwesome, for better icons
+        var $script = document.createElement('script');
+        $script.src = 'https://kit.fontawesome.com/bfee7f35b7.js';
+        $script.setAttribute('crossorigin', 'anonymous');
+        document.body.appendChild($script);
+
+        console.log(this.getButtons());
+
+        this.editor = init({
             element: this.$container,
             defaultParagraphSeparator: 'p',
             styleWithCSS: true,
-            actions: this.buttons,
+            actions: this.getButtons(),
             onChange: html => {
                 this.$field.textContent = html;
             },
