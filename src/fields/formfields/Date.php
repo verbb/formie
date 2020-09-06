@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\fields\formfields;
 
+use verbb\formie\Formie;
 use verbb\formie\base\FormField;
 use verbb\formie\base\SubfieldInterface;
 use verbb\formie\base\SubfieldTrait;
@@ -142,12 +143,17 @@ class Date extends FormField implements SubfieldInterface
      */
     public function getFieldDefaults(): array
     {
+        $settings = Formie::$plugin->getSettings();
+        $displayType = $settings->defaultDateDisplayType ?? 'calendar';
+        $defaultOption = $settings->defaultDateValue ?? '';
+        $defaultValue = $settings->getDefaultDateTimeValue();
+
         return [
             'dateFormat' => 'Y-m-d',
             'timeFormat' => 'H:i',
-            'displayType' => 'calendar',
-            'defaultValue' => null,
-            'defaultOption' => '',
+            'displayType' => $displayType,
+            'defaultValue' => $defaultValue,
+            'defaultOption' => $defaultOption,
             'includeTime' => true,
             'dayLabel' => Craft::t('formie', 'Day'),
             'dayPlaceholder' => '',

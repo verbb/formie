@@ -6,6 +6,7 @@ use verbb\formie\prosemirror\toprosemirror\Renderer as ProseMirrorRenderer;
 
 use Craft;
 use craft\base\Model;
+use craft\helpers\DateTimeHelper;
 
 use yii\validators\EmailValidator;
 
@@ -38,6 +39,9 @@ class Settings extends Model
     public $defaultFormTemplate = '';
     public $defaultEmailTemplate = '';
     public $defaultFileUploadVolume = '';
+    public $defaultDateDisplayType = '';
+    public $defaultDateValueOption = '';
+    public $defaultDateTime = null;
 
     /**
      * The maximum age of an incomplete submission in days
@@ -132,5 +136,17 @@ class Settings extends Model
         }
 
         return '';
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getDefaultDateTimeValue()
+    {
+        if ($this->defaultDateTime = DateTimeHelper::toDateTime($this->defaultDateTime)) {
+            return $this->defaultDateTime;
+        }
+
+        return null;
     }
 }

@@ -16,6 +16,9 @@ return [
         'defaultFormTemplate' => '',
         'defaultEmailTemplate' => '',
         'defaultFileUploadVolume' => '',
+        'defaultDateDisplayType' => '',
+        'defaultDateValueOption' => '',
+        'defaultDateTime' => '',
 
         // Submissions
         'maxIncompleteSubmissionAge' => 30,
@@ -44,6 +47,9 @@ return [
 - `defaultFormTemplate` - The handle for the default form template used for new forms. Formie's defaults will be used if not specified.
 - `defaultEmailTemplate` - The handle for the default email template used for new forms. Formie's defaults will be used if not specified.
 - `defaultFileUploadVolume` - The asset volume to be used as the default for all new file upload fields. Must be in the format `folder:uid`.
+- `defaultDateDisplayType` - The display type to be used as the default for all new date fields. Can be `calendar`, `dropdowns`, `inputs`. 
+- `defaultDateValueOption` - The default value option to be used as the default for all new date fields. Can be `today`, `date`. 
+- `defaultDateTime` - When `defaultDateValueOption` is set to `date`, this date will be used as the default value. Must be a valid datetime.
 
 #### Submissions
 - `maxIncompleteSubmissionAge` - The maximum age of an incomplete submission in days before it is deleted in garbage collection. Set to 0 to disable automatic deletion.
