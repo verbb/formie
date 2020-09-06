@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.2.6 - 2020-09-06
+
+### Added
+- Added SharpSpring CRM integration.
+- Added [Campaign Plugin](https://plugins.craftcms.com/campaign) email marketing integration.
+- Added Font Awesome to front-end rich text field (multi-line), for much better consistency.
+- Added align options to front-end rich text field (multi-line).
+- Added clear formatting option to front-end rich text field (multi-line).
+
+### Fixed
+- Fixed minor JS issue for webhook integrations in the control panel.
+- Improve Multi-line WYSIWYG front-end field styles, so they aren't overidden. Lists for example now show correctly in all circumstances.
+
 ## 1.2.5 - 2020-09-04
 
 ### Fixed
