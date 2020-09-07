@@ -178,7 +178,7 @@ class Sendinblue extends EmailMarketing
 
         return $this->_client = Craft::createGuzzleClient([
             'base_uri' => 'https://api.sendinblue.com/v3/',
-            'headers' => ['api-key' => $this->apiKey],
+            'headers' => ['api-key' => Craft::parseEnv($this->apiKey)],
         ]);
     }
 }

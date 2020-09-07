@@ -370,7 +370,7 @@ class Pipedrive extends Crm
 
         return $this->_client = Craft::createGuzzleClient([
             'base_uri' => 'https://api.pipedrive.com/v1/',
-            'query' => ['api_token' => $this->apiKey],
+            'query' => ['api_token' => Craft::parseEnv($this->apiKey)],
         ]);
     }
 

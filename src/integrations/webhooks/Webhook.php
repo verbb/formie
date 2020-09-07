@@ -80,7 +80,7 @@ class Webhook extends BaseWebhook
             Formie::$plugin->getSubmissions()->populateFakeSubmission($submission);
 
             $payload = $this->generatePayloadValues($submission);
-            $response = $this->getClient()->request('POST', $this->webhook, $payload);
+            $response = $this->getClient()->request('POST', Craft::parseEnv($this->webhook), $payload);
 
             $json = Json::decode((string)$response->getBody());
 
@@ -107,7 +107,7 @@ class Webhook extends BaseWebhook
         try {
             $payload = $this->generatePayloadValues($submission);
 
-            $response = $this->getClient()->request('POST', $this->webhook, $payload);
+            $response = $this->getClient()->request('POST', Craft::parseEnv($this->webhook), $payload);
         } catch (\Throwable $e) {
             Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [
                 'message' => $e->getMessage(),

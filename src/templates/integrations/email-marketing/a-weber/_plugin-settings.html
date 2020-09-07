@@ -29,21 +29,23 @@
     value: integration.getRedirectUri(),
 }) }}
 
-{{ forms.textField({
+{{ forms.autosuggestField({
     label: 'Client ID' | t('formie'),
     instructions: 'Enter your {name} Client ID key here.' | t('formie', { name: integration.displayName() }),
     name: 'clientId',
     required: true,
+    suggestEnvVars: true,
     value: integration.settings.clientId ?? '',
     warning: macros.configWarning('clientId', 'formie'),
     errors: integration.getErrors('clientId'),
 }) }}
 
-{{ forms.textField({
+{{ forms.autosuggestField({
     label: 'Client Secret' | t('formie'),
     instructions: 'Enter your {name} Client Secret here.' | t('formie', { name: integration.displayName() }),
     name: 'clientSecret',
     required: true,
+    suggestEnvVars: true,
     value: integration.settings.clientSecret ?? '',
     warning: macros.configWarning('clientSecret', 'formie'),
     errors: integration.getErrors('clientSecret'),

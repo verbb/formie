@@ -234,7 +234,7 @@ class Monday extends Miscellaneous
         return $this->_client = Craft::createGuzzleClient([
             'base_uri' => 'https://api.monday.com/v2/',
             'headers' => [
-                'Authorization' => $this->apiKey,
+                'Authorization' => Craft::parseEnv($this->apiKey),
                 'Content-Type' => 'application/json',
             ],
         ]);

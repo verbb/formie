@@ -110,7 +110,7 @@ class Google extends AddressProvider
         }
 
         $settings = [
-            'apiKey' => $this->apiKey,
+            'apiKey' => Craft::parseEnv($this->apiKey),
             'container' => $this->uniqueId,
             'options' => $this->_getOptions(),
             'fieldContainer' => 'data-address-id-' . $field->id,

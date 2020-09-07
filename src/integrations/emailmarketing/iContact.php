@@ -260,15 +260,18 @@ class IContact extends EmailMarketing
             return $this->_client;
         }
 
+        $accountId = Craft::parseEnv($this->accountId);
+        $clientFolderId = Craft::parseEnv($this->clientFolderId);
+
         return $this->_client = Craft::createGuzzleClient([
-            'base_uri' => "https://app.icontact.com/icp/a/{$this->accountId}/c/{$this->clientFolderId}/",
+            'base_uri' => "https://app.icontact.com/icp/a/{$accountId}/c/{$clientFolderId}/",
             'headers' => [
                 'Accept' => 'application/json',
                 'Content-type' => 'application/json',
                 'Api-Version' => '2.2',
-                'API-AppId' => $this->appId,
-                'API-Username' => $this->username,
-                'API-Password' => $this->password,
+                'API-AppId' => Craft::parseEnv($this->appId),
+                'API-Username' => Craft::parseEnv($this->username),
+                'API-Password' => Craft::parseEnv($this->password),
             ],
         ]);
     }

@@ -230,7 +230,7 @@ class VCita extends Crm
         return $this->_client = Craft::createGuzzleClient([
             'base_uri' => 'https://api.vcita.biz/platform/v1/',
             'headers' => [
-                'Authorization' => 'Bearer ' . $this->apiKey,
+                'Authorization' => 'Bearer ' . Craft::parseEnv($this->apiKey),
                 'Content-Type' => 'application/json',
             ],
         ]);

@@ -130,7 +130,7 @@ class Pardot extends Crm
 
         return $this->_client = Craft::createGuzzleClient([
             'base_uri' => '',
-            'headers' => ['Api-Token' => $this->apiKey],
+            'headers' => ['Api-Token' => Craft::parseEnv($this->apiKey)],
         ]);
     }
 }

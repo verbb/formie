@@ -58,7 +58,7 @@ class Drip extends EmailMarketing
      */
     public function getClientId(): string
     {
-        return $this->clientId;
+        return Craft::parseEnv($this->clientId);
     }
 
     /**
@@ -66,7 +66,7 @@ class Drip extends EmailMarketing
      */
     public function getClientSecret(): string
     {
-        return $this->clientSecret;
+        return Craft::parseEnv($this->clientSecret);
     }
 
 

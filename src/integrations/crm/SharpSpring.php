@@ -232,8 +232,8 @@ class SharpSpring extends Crm
         return $this->_client = Craft::createGuzzleClient([
             'base_uri' => 'https://api.sharpspring.com/pubapi/v1.2/',
             'query' => [
-                'accountID' => $this->accountId,
-                'secretKey' => $this->secretKey,
+                'accountID' => Craft::parseEnv($this->accountId),
+                'secretKey' => Craft::parseEnv($this->secretKey),
             ],
         ]);
     }

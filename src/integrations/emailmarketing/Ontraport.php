@@ -228,8 +228,8 @@ class Ontraport extends EmailMarketing
         return $this->_client = Craft::createGuzzleClient([
             'base_uri' => 'https://api.ontraport.com/1/',
             'headers' => [
-                'Api-Key' => $this->apiKey,
-                'Api-Appid' => $this->appId,
+                'Api-Key' => Craft::parseEnv($this->apiKey),
+                'Api-Appid' => Craft::parseEnv($this->appId),
             ],
         ]);
     }

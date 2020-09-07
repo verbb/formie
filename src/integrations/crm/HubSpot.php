@@ -298,7 +298,7 @@ class HubSpot extends Crm
 
         return $this->_client = Craft::createGuzzleClient([
             'base_uri' => 'https://api.hubapi.com/',
-            'query' => ['hapikey' => $this->apiKey],
+            'query' => ['hapikey' => Craft::parseEnv($this->apiKey)],
         ]);
     }
 

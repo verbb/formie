@@ -19,41 +19,45 @@
     {{ instructions | t('formie', { name: integration.displayName() }) | md }}
 </div>
 
-{{ forms.textField({
+{{ forms.autosuggestField({
     label: 'API Token' | t('formie'),
     instructions: 'Enter your {name} API token here.' | t('formie', { name: integration.displayName() }),
     name: 'apiToken',
     required: true,
+    suggestEnvVars: true,
     value: integration.settings.apiToken ?? '',
     warning: macros.configWarning('apiToken', 'formie'),
     errors: integration.getErrors('apiToken'),
 }) }}
 
-{{ forms.textField({
+{{ forms.autosuggestField({
     label: 'API Password' | t('formie'),
     instructions: 'Enter your {name} API password here.' | t('formie', { name: integration.displayName() }),
     name: 'apiPassword',
     required: true,
+    suggestEnvVars: true,
     value: integration.settings.apiPassword ?? '',
     warning: macros.configWarning('apiPassword', 'formie'),
     errors: integration.getErrors('apiPassword'),
 }) }}
 
-{{ forms.textField({
+{{ forms.autosuggestField({
     label: 'API Space ID' | t('formie'),
     instructions: 'Enter your {name} API Space ID here.' | t('formie', { name: integration.displayName() }),
     name: 'apiSpaceId',
     required: true,
+    suggestEnvVars: true,
     value: integration.settings.apiSpaceId ?? '',
     warning: macros.configWarning('apiSpaceId', 'formie'),
     errors: integration.getErrors('apiSpaceId'),
 }) }}
 
-{{ forms.textField({
+{{ forms.autosuggestField({
     label: 'API Service URL' | t('formie'),
     instructions: 'Enter your {name} API Service URL here.' | t('formie', { name: integration.displayName() }),
     name: 'apiServiceUrl',
     required: true,
+    suggestEnvVars: true,
     value: integration.settings.apiServiceUrl ?? '',
     warning: macros.configWarning('apiServiceUrl', 'formie'),
     errors: integration.getErrors('apiServiceUrl'),

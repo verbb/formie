@@ -28,18 +28,20 @@
     warning: macros.configWarning('type', 'formie'),
 }) }}
 
-{{ forms.textField({
+{{ forms.autosuggestField({
     label: 'reCAPTCHA Site Key' | t('formie'),
     name: 'siteKey',
     required: true,
+    suggestEnvVars: true,
     value: integration.settings.siteKey ?? '',
     warning: macros.configWarning('siteKey', 'formie'),
 }) }}
 
-{{ forms.textField({
+{{ forms.autosuggestField({
     label: 'reCAPTCHA Secret Key' | t('v'),
     name: 'secretKey',
     required: true,
+    suggestEnvVars: true,
     value: integration.settings.secretKey ?? '',
     warning: macros.configWarning('secretKey', 'formie'),
 }) }}

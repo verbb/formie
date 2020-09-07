@@ -112,8 +112,8 @@ class Algolia extends AddressProvider
         
         // These are reversed on purpose!
         $settings = [
-            'appId' => $this->apiKey,
-            'apiKey' => $this->appId,
+            'appId' => Craft::parseEnv($this->apiKey),
+            'apiKey' => Craft::parseEnv($this->appId),
             'container' => $this->uniqueId,
             'reconfigurableOptions' => $this->_getOptions(),
             'fieldContainer' => 'data-address-id-' . $field->id,

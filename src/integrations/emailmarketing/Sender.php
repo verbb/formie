@@ -66,7 +66,7 @@ class Sender extends EmailMarketing
             $lists = $this->_request([
                 'method' => 'listGetAllLists',
                 'params' => [
-                    'api_key' => $this->apiKey,
+                    'api_key' => Craft::parseEnv($this->apiKey),
                 ],
             ]);
 
@@ -115,7 +115,7 @@ class Sender extends EmailMarketing
             $payload = [
                 'method' => 'listSubscribe',
                 'params' => [
-                    'api_key' => $this->apiKey,
+                    'api_key' => Craft::parseEnv($this->apiKey),
                     'list_id' => $this->listId,
                     'emails' => $fieldValues,
                 ],
@@ -165,7 +165,7 @@ class Sender extends EmailMarketing
             $response = $this->_request([
                 'method' => 'listGetAllLists',
                 'params' => [
-                    'api_key' => $this->apiKey,
+                    'api_key' => Craft::parseEnv($this->apiKey),
                 ],
             ]);
 

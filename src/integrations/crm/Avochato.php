@@ -219,8 +219,8 @@ class Avochato extends Crm
         return $this->_client = Craft::createGuzzleClient([
             'base_uri' => 'https://www.avochato.com/v1/',
             'query' => [
-                'auth_id' => $this->authId,
-                'auth_secret' => $this->authSecret,
+                'auth_id' => Craft::parseEnv($this->authId),
+                'auth_secret' => Craft::parseEnv($this->authSecret),
             ],
         ]);
     }

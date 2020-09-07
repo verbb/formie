@@ -18,21 +18,23 @@
     {{ instructions | t('formie', { name: integration.displayName() }) | md }}
 </div>
 
-{{ forms.textField({
+{{ forms.autosuggestField({
     label: 'Auth ID' | t('formie'),
     instructions: 'Enter your {name} Auth ID here.' | t('formie', { name: integration.displayName() }),
     name: 'authId',
     required: true,
+    suggestEnvVars: true,
     value: integration.settings.authId ?? '',
     warning: macros.configWarning('authId', 'formie'),
     errors: integration.getErrors('authId'),
 }) }}
 
-{{ forms.textField({
+{{ forms.autosuggestField({
     label: 'Auth Secret' | t('formie'),
     instructions: 'Enter your {name} Auth Secret here.' | t('formie', { name: integration.displayName() }),
     name: 'authSecret',
     required: true,
+    suggestEnvVars: true,
     value: integration.settings.authSecret ?? '',
     warning: macros.configWarning('authSecret', 'formie'),
     errors: integration.getErrors('authSecret'),

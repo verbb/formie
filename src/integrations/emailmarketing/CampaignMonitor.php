@@ -64,7 +64,8 @@ class CampaignMonitor extends EmailMarketing
         $settings = [];
 
         try {
-            $lists = $this->request('GET', "clients/{$this->clientId}/lists.json");
+            $clientId = Craft::parseEnv($this->clientId);
+            $lists = $this->request('GET', "clients/{$clientId}/lists.json");
 
             foreach ($lists as $list) {
                 // While we're at it, fetch the fields for the list
@@ -163,7 +164,8 @@ class CampaignMonitor extends EmailMarketing
     public function fetchConnection(): bool
     {
         try {
-            $response = $this->request('GET', "clients/{$this->clientId}.json");
+            $clientId = Craft::parseEnv($this->clientId);
+            $response = $this->request('GET', "clients/{$clientId}.json");
             $error = $response['error'] ?? '';
             $apiKey = $response['ApiKey'] ?? '';
 
@@ -204,7 +206,7 @@ class CampaignMonitor extends EmailMarketing
 
         return $this->_client = Craft::createGuzzleClient([
             'base_uri' => 'https://api.createsend.com/api/v3.2/',
-            'auth' => [$this->apiKey, 'formie'],
+            'auth' => [Craft::parseEnv($this->apiKey), 'formie'],
         ]);
     }
 

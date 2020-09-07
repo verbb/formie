@@ -70,7 +70,7 @@ class GoogleSheets extends Miscellaneous
      */
     public function getClientId(): string
     {
-        return $this->clientId;
+        return Craft::parseEnv($this->clientId);
     }
 
     /**
@@ -78,7 +78,7 @@ class GoogleSheets extends Miscellaneous
      */
     public function getClientSecret(): string
     {
-        return $this->clientSecret;
+        return Craft::parseEnv($this->clientSecret);
     }
 
     /**
@@ -271,8 +271,10 @@ class GoogleSheets extends Miscellaneous
 
         $token = $this->getToken();
 
+        $spreadsheetId = Craft::parseEnv($this->spreadsheetId);
+
         $this->_client = Craft::createGuzzleClient([
-            'base_uri' => "https://sheets.googleapis.com/v4/spreadsheets/{$this->spreadsheetId}/",
+            'base_uri' => "https://sheets.googleapis.com/v4/spreadsheets/{$spreadsheetId}/",
             'headers' => [
                 'Authorization' => 'Bearer ' . $token->accessToken ?? '',
                 'Content-Type' => 'application/json',
@@ -290,7 +292,7 @@ class GoogleSheets extends Miscellaneous
 
                 // Then try again, with the new access token
                 $this->_client = Craft::createGuzzleClient([
-                    'base_uri' => "https://sheets.googleapis.com/v4/spreadsheets/{$this->spreadsheetId}/",
+                    'base_uri' => "https://sheets.googleapis.com/v4/spreadsheets/{$spreadsheetId}/",
                     'headers' => [
                         'Authorization' => 'Bearer ' . $token->accessToken ?? '',
                         'Content-Type' => 'application/json',

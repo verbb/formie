@@ -58,7 +58,7 @@ class ConstantContact extends EmailMarketing
      */
     public function getClientId(): string
     {
-        return $this->settings['apiKey'] ?? '';
+        return Craft::parseEnv($this->apiKey);
     }
 
     /**
@@ -66,7 +66,7 @@ class ConstantContact extends EmailMarketing
      */
     public function getClientSecret(): string
     {
-        return $this->settings['appSecret'] ?? '';
+        return Craft::parseEnv($this->appSecret);
     }
 
     /**

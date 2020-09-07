@@ -221,7 +221,7 @@ class Benchmark extends EmailMarketing
 
         return $this->_client = Craft::createGuzzleClient([
             'base_uri' => 'https://clientapi.benchmarkemail.com/',
-            'headers' => ['AuthToken' => $this->apiKey],
+            'headers' => ['AuthToken' => Craft::parseEnv($this->apiKey)],
         ]);
     }
 }

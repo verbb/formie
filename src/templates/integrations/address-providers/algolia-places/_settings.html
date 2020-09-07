@@ -13,19 +13,21 @@
     {{ instructions | t('formie', { name: integration.displayName() }) | md }}
 </div>
 
-{{ forms.textField({
+{{ forms.autosuggestField({
     label: 'App ID' | t('formie'),
     name: 'appId',
     required: true,
+    suggestEnvVars: true,
     value: integration.settings.appId ?? '',
     warning: macros.configWarning('appId', 'formie'),
     errors: integration.getErrors('appId'),
 }) }}
 
-{{ forms.textField({
+{{ forms.autosuggestField({
     label: 'API Key' | t('formie'),
     name: 'apiKey',
     required: true,
+    suggestEnvVars: true,
     value: integration.settings.apiKey ?? '',
     warning: macros.configWarning('apiKey', 'formie'),
     errors: integration.getErrors('apiKey'),

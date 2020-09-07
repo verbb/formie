@@ -232,7 +232,7 @@ class Autopilot extends EmailMarketing
 
         return $this->_client = Craft::createGuzzleClient([
             'base_uri' => 'https://api2.autopilothq.com/v1/',
-            'headers' => ['autopilotapikey' => $this->apiKey],
+            'headers' => ['autopilotapikey' => Craft::parseEnv($this->apiKey)],
         ]);
     }
 

@@ -63,8 +63,8 @@ class Trello extends Miscellaneous
     public function getOauthProviderConfig()
     {
         return [
-            'identifier' => $this->clientId,
-            'secret' => $this->clientSecret,
+            'identifier' => Craft::parseEnv($this->clientId),
+            'secret' => Craft::parseEnv($this->clientSecret),
             'name' => Craft::t('formie', 'Formie'),
             'callback_uri' => $this->getRedirectUri(),
             'scope' => $this->getOauthScope(),

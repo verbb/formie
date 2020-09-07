@@ -208,7 +208,7 @@ class Salesflare extends Crm
         return $this->_client = Craft::createGuzzleClient([
             'base_uri' => 'https://api.salesflare.com/',
             'headers' => [
-                'Authorization' => 'Bearer ' . $this->apiKey,
+                'Authorization' => 'Bearer ' . Craft::parseEnv($this->apiKey),
                 'Content-Type' => 'application/json',
             ],
         ]);

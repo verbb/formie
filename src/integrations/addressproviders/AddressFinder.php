@@ -111,7 +111,7 @@ class AddressFinder extends AddressProvider
         }
         
         $settings = [
-            'apiKey' => $this->apiKey,
+            'apiKey' => Craft::parseEnv($this->apiKey),
             'countryCode' => $this->countryCode,
             'container' => $this->uniqueId,
             'widgetOptions' => $this->_getOptions(),

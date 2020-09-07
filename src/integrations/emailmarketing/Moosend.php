@@ -202,7 +202,7 @@ class Moosend extends EmailMarketing
 
         return $this->_client = Craft::createGuzzleClient([
             'base_uri' => 'http://api.moosend.com/v3/',
-            'query' => ['apikey' => $this->apiKey],
+            'query' => ['apikey' => Craft::parseEnv($this->apiKey)],
         ]);
     }
 }

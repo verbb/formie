@@ -184,7 +184,7 @@ class Omnisend extends EmailMarketing
 
         return $this->_client = Craft::createGuzzleClient([
             'base_uri' => 'https://api.omnisend.com/v3/',
-            'headers' => ['X-API-KEY' => $this->apiKey],
+            'headers' => ['X-API-KEY' => Craft::parseEnv($this->apiKey)],
         ]);
     }
 }

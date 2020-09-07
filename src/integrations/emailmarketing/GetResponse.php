@@ -198,7 +198,7 @@ class GetResponse extends EmailMarketing
 
         return $this->_client = Craft::createGuzzleClient([
             'base_uri' => 'https://api.getresponse.com/v3/',
-            'headers' => ['X-Auth-Token' => 'api-key ' . $this->apiKey],
+            'headers' => ['X-Auth-Token' => 'api-key ' . Craft::parseEnv($this->apiKey)],
         ]);
     }
 

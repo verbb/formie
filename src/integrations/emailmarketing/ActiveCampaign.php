@@ -209,8 +209,8 @@ class ActiveCampaign extends EmailMarketing
         }
 
         return $this->_client = Craft::createGuzzleClient([
-            'base_uri' => trim($this->apiUrl, '/') . '/api/3/',
-            'headers' => ['Api-Token' => $this->apiKey],
+            'base_uri' => trim(Craft::parseEnv($this->apiUrl), '/') . '/api/3/',
+            'headers' => ['Api-Token' => Craft::parseEnv($this->apiKey)],
         ]);
     }
 

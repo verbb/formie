@@ -104,7 +104,7 @@ class Recaptcha extends Captcha
     public function getFrontEndJsVariables(Form $form, $page = null)
     {
         $settings = [
-            'siteKey' => $this->siteKey,
+            'siteKey' => Craft::parseEnv($this->siteKey),
             'formId' => 'formie-form-' . $form->id,
             'theme' => $this->theme,
             'size' => $this->size,
@@ -162,7 +162,7 @@ class Recaptcha extends Captcha
 
         $response = $client->post('https://www.google.com/recaptcha/api/siteverify', [
             'form_params' => [
-                'secret' => $this->secretKey,
+                'secret' => Craft::parseEnv($this->secretKey),
                 'response' => $response,
                 'remoteip' => Craft::$app->request->getRemoteIP(),
             ],

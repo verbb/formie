@@ -185,7 +185,7 @@ class ConvertKit extends EmailMarketing
 
         return $this->_client = Craft::createGuzzleClient([
             'base_uri' => 'https://api.convertkit.com/v3/',
-            'query' => ['api_secret' => $this->apiSecret],
+            'query' => ['api_secret' => Craft::parseEnv($this->apiSecret)],
         ]);
     }
 }

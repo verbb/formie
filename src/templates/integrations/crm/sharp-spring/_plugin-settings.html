@@ -19,21 +19,23 @@
     {{ instructions | t('formie', { name: integration.displayName() }) | md }}
 </div>
 
-{{ forms.textField({
+{{ forms.autosuggestField({
     label: 'Account ID' | t('formie'),
     instructions: 'Enter your {name} Account ID here.' | t('formie', { name: integration.displayName() }),
     name: 'accountId',
     required: true,
+    suggestEnvVars: true,
     value: integration.settings.accountId ?? '',
     warning: macros.configWarning('accountId', 'formie'),
     errors: integration.getErrors('accountId'),
 }) }}
 
-{{ forms.textField({
+{{ forms.autosuggestField({
     label: 'Secret Key' | t('formie'),
     instructions: 'Enter your {name} Secret Key here.' | t('formie', { name: integration.displayName() }),
     name: 'secretKey',
     required: true,
+    suggestEnvVars: true,
     value: integration.settings.secretKey ?? '',
     warning: macros.configWarning('secretKey', 'formie'),
     errors: integration.getErrors('secretKey'),

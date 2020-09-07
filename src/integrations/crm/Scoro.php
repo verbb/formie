@@ -182,7 +182,7 @@ class Scoro extends Crm
             // Special processing on this due to nested content in payload
             $contactPayload = [
                 'request' => $this->_prepContactPayload($contactValues),
-                'apiKey' => $this->apiKey,
+                'apiKey' => Craft::parseEnv($this->apiKey),
                 'company_account_id' => $this->_getCompanyAccountId(),
             ];
 
@@ -247,11 +247,11 @@ class Scoro extends Crm
             return $this->_client;
         }
 
-        $url = rtrim($this->apiDomain, '/');
+        $url = rtrim(Craft::parseEnv($this->apiDomain), '/');
 
         return $this->_client = Craft::createGuzzleClient([
             'base_uri' => "$url/api/v2/",
-            'query' => ['apiKey' => $this->apiKey],
+            'query' => ['apiKey' => Craft::parseEnv($this->apiKey)],
         ]);
     }
 
@@ -278,8 +278,8 @@ class Scoro extends Crm
      */
     private function _getCompanyAccountId()
     {
-        if ($this->apiDomain) {
-            $parsedUrl = parse_url($this->apiDomain);
+        if (Craft::parseEnv($this->apiDomain)) {
+            $parsedUrl = parse_url(Craft::parseEnv($this->apiDomain));
             $host = explode('.', $parsedUrl['host']);
 
             return $host[0] ?? '';
