@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.2.7 - 2020-09-07
 
 ### Added
 - Added plugin setting to set the default form template for new forms.
