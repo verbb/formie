@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.2.7.1 - 2020-09-07
+
+### Fixed
+- Fixed a potential error when saving an integration.
+- Fixed fields not always showing as available to be mapped for integrations.
+
 ## 1.2.7 - 2020-09-07
 
 ### Added
