@@ -52,7 +52,7 @@ class IntegrationsController extends Controller
         $type = $this->request->getParam('type');
         $integrationId = $this->request->getParam('id') ?: null;
 
-        $settings = $this->request->getParam('types.' . $type);
+        $settings = $this->request->getParam('types.' . $type, []);
 
         if ($integrationId) {
             $savedIntegration = $integrationsService->getIntegrationById($integrationId);
