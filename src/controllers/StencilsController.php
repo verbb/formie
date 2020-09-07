@@ -96,8 +96,8 @@ class StencilsController extends Controller
 
         // These are saved inline, we populate some values, just for the stencil
         foreach ($notifications as $key => $notification) {
-            $notifications[$key]['id'] = uniqId();
-            $notifications[$key]['uid'] = uniqId();
+            // Generate a fake ID just for stencils. Helps to not show it as unsaved
+            $notifications[$key]['id'] = uniqId('stencil');
         }
 
         $variables['formConfig'] = $config;
