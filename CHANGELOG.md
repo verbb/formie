@@ -1,5 +1,22 @@
 # Changelog
 
+## Unreleased
+
+### Added
+- Added plugin setting to set the default form template for new forms.
+- Added plugin setting to set the default email template for new email notifications.
+- Added plugin setting to set the default volume for new file upload fields.
+- Added plugin setting to set the display type for new date fields.
+- Added plugin setting to set the default value for new date fields.
+- Integration field mapping now supports repeater and group nested fields.
+
+### Fixed
+- Fixed stencils not showing validation errors for invalid fields.
+- Fixed stencils not showing validation errors for notifications.
+- Fixed email notifications preview error when viewed in a stencil.
+- Fixed email notifications for stencils showing as unsaved.
+- Fixed error with integations event and `isNew`.
+
 ## 1.2.6 - 2020-09-06
 
 ### Added
