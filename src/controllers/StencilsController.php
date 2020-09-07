@@ -94,6 +94,12 @@ class StencilsController extends Controller
         $config = $stencil->getConfig();
         $notifications = ArrayHelper::remove($config, 'notifications', []);
 
+        // These are saved inline, we populate some values, just for the stencil
+        foreach ($notifications as $key => $notification) {
+            $notifications[$key]['id'] = uniqId();
+            $notifications[$key]['uid'] = uniqId();
+        }
+
         $variables['formConfig'] = $config;
         $variables['notifications'] = $notifications;
         $variables['variables'] = Variables::getVariablesArray();
@@ -186,16 +192,17 @@ class StencilsController extends Controller
         if ($formHasErrors || !Formie::$plugin->getStencils()->saveStencil($stencil)) {
             $stencil->name = $originalName;
 
-            $config = $stencil->getConfig();
-            $notifications = ArrayHelper::remove($config, 'notifications', []);
-
             if ($request->getAcceptsJson()) {
+                $notifications = $form->getNotifications();
+                $notificationsConfig = Formie::$plugin->getNotifications()->getNotificationsConfig($notifications);
+
                 return $this->asJson([
+                    'success' => false,
                     'id' => $stencil->id,
-                    'config' => $config,
-                    'notifications' => $notifications,
+                    'config' => $form->getFormConfig(),
+                    'notifications' => $notificationsConfig,
                     'errors' => ArrayHelper::merge($formErrors, $stencil->getErrors()),
-                    'success' => !$formHasErrors && !$stencil->hasErrors(),
+                    'fieldLayoutId' => $form->fieldLayoutId,
                 ]);
             }
 
@@ -210,16 +217,17 @@ class StencilsController extends Controller
             return null;
         }
 
-        $config = $stencil->getConfig();
-        $notifications = ArrayHelper::remove($config, 'notifications', []);
+        $notifications = $form->getNotifications();
+        $notificationsConfig = Formie::$plugin->getNotifications()->getNotificationsConfig($notifications);
 
         if ($request->getAcceptsJson()) {
             return $this->asJson([
+                'success' => true,
                 'id' => $stencil->id,
-                'config' => $config,
-                'notifications' => $notifications,
+                'config' => $stencil->getConfig(),
+                'notifications' => $notificationsConfig,
                 'errors' => ArrayHelper::merge($formErrors, $stencil->getErrors()),
-                'success' => !$formHasErrors && !$stencil->hasErrors(),
+                'fieldLayoutId' => $form->fieldLayoutId,
                 'redirect' => ($duplicate) ? $stencil->cpEditUrl : null,
                 'redirectMessage' => Craft::t('formie', 'Stencil saved.'),
             ]);
