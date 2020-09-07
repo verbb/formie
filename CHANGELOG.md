@@ -15,7 +15,7 @@
 - Fixed stencils not showing validation errors for notifications.
 - Fixed email notifications preview error when viewed in a stencil.
 - Fixed email notifications for stencils showing as unsaved.
-- Fixed error with integations event and `isNew`.
+- Fixed error with integrations event and `isNew`.
 
 ## 1.2.6 - 2020-09-06
 
