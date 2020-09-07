@@ -68,7 +68,7 @@
 
 <script>
 import isEmpty from 'lodash/isEmpty';
-import isBoolean from 'lodash/isBoolean';
+import { toBoolean } from '../utils/bool';
 
 export default {
     name: 'IntegrationFieldMapping',
@@ -172,7 +172,7 @@ export default {
 
             fields.forEach(field => {
                 // If this field is nested itself, don't show. The outer field takes care of that below
-                if (!isBoolean(field.isNested)) {
+                if (!toBoolean(field.isNested)) {
                     // Don't show a nested field on its own
                     customFields.push({ label: field.label, value: '{' + field.handle + '}' });
 
@@ -186,7 +186,7 @@ export default {
                     }
 
                     // Is this a repeater or field that supports nesting?
-                    if (isBoolean(field.supportsNested) && field.rows) {
+                    if (toBoolean(field.supportsNested) && field.rows) {
                         field.rows.forEach(row => {
                             row.fields.forEach(subfield => {
                                 customFields.push({
