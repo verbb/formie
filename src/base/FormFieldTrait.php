@@ -61,7 +61,7 @@ trait FormFieldTrait
     /**
      * @var bool
      */
-    public $isNested;
+    public $isNested = false;
 
 
     // Private Properties

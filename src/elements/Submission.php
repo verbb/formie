@@ -504,7 +504,17 @@ class Submission extends Element
             $fieldHandle = ArrayHelper::remove($handles, 0);
             $nestedPath = implode('.', $handles);
 
-            $fieldValue = parent::getFieldValue($fieldHandle);
+            // Check if the field provides a custom function
+            $fields = $this->getFieldLayout()->getFields() ?? [];
+            $field = ArrayHelper::firstWhere($fields, 'handle', $fieldHandle);
+
+            // Maybe refactor this later to kick it out before we call this function?
+            // Mostly used for integrations at the moment...
+            if ($field && method_exists($field, 'getValueAsString')) {
+                $fieldValue = $field->getValueAsString($this);
+            } else {
+                $fieldValue = parent::getFieldValue($fieldHandle);
+            }
 
             return ArrayHelper::getValue($fieldValue, $nestedPath);
         }
