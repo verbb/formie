@@ -94,12 +94,6 @@ class StencilsController extends Controller
         $config = $stencil->getConfig();
         $notifications = ArrayHelper::remove($config, 'notifications', []);
 
-        // These are saved inline, we populate some values, just for the stencil
-        foreach ($notifications as $key => $notification) {
-            // Generate a fake ID just for stencils. Helps to not show it as unsaved
-            $notifications[$key]['id'] = uniqId('stencil');
-        }
-
         $variables['formConfig'] = $config;
         $variables['notifications'] = $notifications;
         $variables['variables'] = Variables::getVariablesArray();
@@ -219,6 +213,12 @@ class StencilsController extends Controller
 
         $notifications = $form->getNotifications();
         $notificationsConfig = Formie::$plugin->getNotifications()->getNotificationsConfig($notifications);
+
+        // Setup fake IDs for the notifications. They're saved on the stencil, not models, but show like they are
+        foreach ($notificationsConfig as $key => $notification) {
+            // Generate a fake ID just for stencils. Helps to not show it as saved
+            $notificationsConfig[$key]['id'] = uniqId('stencil');
+        }
 
         if ($request->getAcceptsJson()) {
             return $this->asJson([
