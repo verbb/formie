@@ -35,7 +35,7 @@
         "html2text/html2text": "^4.3",
         "league/html-to-markdown": "^4.10",
         "league/oauth1-client": "^1.7",
-        "league/oauth2-client": "^2.5",
+        "league/oauth2-client": "^2.4.0",
         "league/oauth2-google": "^3.0",
         "verbb/base": "^1.0.0"
     },
