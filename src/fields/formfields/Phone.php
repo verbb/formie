@@ -99,7 +99,9 @@ class Phone extends FormField implements SubfieldInterface
     {
         $value = Json::decodeIfJson($value);
 
-        if (is_array($value)) {
+        if ($value instanceof PhoneModel) {
+            return $value;
+        } else if (is_array($value)) {
             $phone = new PhoneModel($value);
             $phone->hasCountryCode = isset($value['country']);
 

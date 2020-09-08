@@ -171,6 +171,10 @@ class Address extends FormField implements SubfieldInterface
     {
         $value = Json::decodeIfJson($value);
 
+        if ($value instanceof AddressModel) {
+            return $value;
+        }
+
         return new AddressModel($value);
     }
 
