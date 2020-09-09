@@ -108,8 +108,6 @@ abstract class Webhook extends Integration implements IntegrationInterface
         ]);
         $this->trigger(self::EVENT_MODIFY_WEBHOOK_PAYLOAD, $event);
 
-        Craft::dd($event->payload);
-
         return $event->payload;
     }
 }
