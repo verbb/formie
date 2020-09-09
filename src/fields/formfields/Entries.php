@@ -121,18 +121,20 @@ class Entries extends CraftEntries implements FormFieldInterface
     {
         $query = Entry::find();
 
-        // Get all available sources for the element
-        $elementSources = Craft::$app->getElementIndexes()->getSources(Entry::class);
-
         if ($this->sources !== '*') {
             // Try to find the criteria we're restricting by - if any
             foreach ($this->sources as $source) {
-                $elementSource = ArrayHelper::firstWhere($elementSources, 'key', $source);
+                $elementSource = ArrayHelper::firstWhere($this->availableSources(), 'key', $source);
                 $criteria = $elementSource['criteria'] ?? [];
                 
                 // Apply the criteria on our query
                 Craft::configure($query, $criteria);
             }
+        }
+
+        // Restrict elements to be on the current site, for multi-sites
+        if (Craft::$app->getIsMultiSite()) {
+            $query->siteId(Craft::$app->getSites()->getCurrentSite()->id);
         }
 
         $query->orderBy('title ASC');

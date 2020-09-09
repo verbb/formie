@@ -123,16 +123,18 @@ class Variants extends CommerceVariants implements FormFieldInterface
     {
         $query = Variant::find();
 
-        // Get all available sources for the element
-        $elementSources = Craft::$app->getElementIndexes()->getSources(Variant::class);
-
         if ($this->source !== '*') {
             // Try to find the criteria we're restricting by - if any
-            $elementSource = ArrayHelper::firstWhere($elementSources, 'key', $this->source);
+            $elementSource = ArrayHelper::firstWhere($this->availableSources(), 'key', $this->source);
             $criteria = $elementSource['criteria'] ?? [];
 
             // Apply the criteria on our query
             Craft::configure($query, $criteria);
+        }
+
+        // Restrict elements to be on the current site, for multi-sites
+        if (Craft::$app->getIsMultiSite()) {
+            $query->siteId(Craft::$app->getSites()->getCurrentSite()->id);
         }
 
         $query->orderBy('title ASC');
