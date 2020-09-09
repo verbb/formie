@@ -54,24 +54,26 @@ class Hidden extends FormField
         $currentUser = Craft::$app->getUser()->getIdentity();
         $request = Craft::$app->getRequest();
 
-        if ($this->defaultOption === 'dateUs') {
-            $this->defaultValue = DateTimeHelper::toDateTime(new DateTime())->format('m/d/Y');
-        } elseif ($this->defaultOption === 'dateInt') {
-            $this->defaultValue = DateTimeHelper::toDateTime(new DateTime())->format('d/m/Y');
-        } elseif ($this->defaultOption === 'userAgent') {
-            $this->defaultValue = $request->getUserAgent();
-        } elseif ($this->defaultOption === 'referUrl') {
-            $this->defaultValue = $request->getReferrer();
-        } elseif ($this->defaultOption === 'userId') {
-            $this->defaultValue = $currentUser->id ?? null;
-        } elseif ($this->defaultOption === 'username') {
-            $this->defaultValue = $currentUser->username ?? null;
-        } elseif ($this->defaultOption === 'userEmail') {
-            $this->defaultValue = $currentUser->email ?? null;
-        } elseif ($this->defaultOption === 'userIp') {
-            $this->defaultValue = $request->getUserIP();
-        } elseif ($this->defaultOption === 'query') {
-            $this->defaultValue = $request->getParam($this->queryParameter);
+        if (!Craft::$app->getRequest()->getIsConsoleRequest()) {
+            if ($this->defaultOption === 'dateUs') {
+                $this->defaultValue = DateTimeHelper::toDateTime(new DateTime())->format('m/d/Y');
+            } elseif ($this->defaultOption === 'dateInt') {
+                $this->defaultValue = DateTimeHelper::toDateTime(new DateTime())->format('d/m/Y');
+            } elseif ($this->defaultOption === 'userAgent') {
+                $this->defaultValue = $request->getUserAgent();
+            } elseif ($this->defaultOption === 'referUrl') {
+                $this->defaultValue = $request->getReferrer();
+            } elseif ($this->defaultOption === 'userId') {
+                $this->defaultValue = $currentUser->id ?? null;
+            } elseif ($this->defaultOption === 'username') {
+                $this->defaultValue = $currentUser->username ?? null;
+            } elseif ($this->defaultOption === 'userEmail') {
+                $this->defaultValue = $currentUser->email ?? null;
+            } elseif ($this->defaultOption === 'userIp') {
+                $this->defaultValue = $request->getUserIP();
+            } elseif ($this->defaultOption === 'query') {
+                $this->defaultValue = $request->getParam($this->queryParameter);
+            }
         }
     }
 
