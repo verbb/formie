@@ -1005,6 +1005,25 @@ Event::on(AddressFinder::class, AddressFinder::EVENT_MODIFY_ADDRESS_PROVIDER_HTM
 
 
 
+## Webhook Integration Events
+
+### The `modifyWebhookPayload` event
+The event that is triggered to allow modification of the payload sent to your defined webhook URL.
+
+```php
+use verbb\formie\events\ModifyWebhookPayloadEvent;
+use verbb\formie\integrations\webhooks\Zapier;
+use yii\base\Event;
+
+Event::on(Zapier::class, Zapier::EVENT_MODIFY_WEBHOOK_PAYLOAD, function(ModifyWebhookPayloadEvent $event) {
+    $payload = $event->payload;
+    // ...
+});
+```
+
+
+
+
 ## Stencil Events
 
 ### The `beforeSaveStencil` event

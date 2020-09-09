@@ -4,6 +4,7 @@ namespace verbb\formie\base;
 use verbb\formie\Formie;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
+use verbb\formie\events\ModifyWebhookPayloadEvent;
 
 use Craft;
 use craft\helpers\StringHelper;
@@ -11,6 +12,12 @@ use craft\helpers\UrlHelper;
 
 abstract class Webhook extends Integration implements IntegrationInterface
 {
+    // Constants
+    // =========================================================================
+
+    const EVENT_MODIFY_WEBHOOK_PAYLOAD = 'modifyWebhookPayload';
+
+
     // Static Methods
     // =========================================================================
     
@@ -88,11 +95,21 @@ abstract class Webhook extends Integration implements IntegrationInterface
             $submissionContent[$field->handle] = $field->serializeValue($value, $submission);
         }
 
-        return [
+        $payload = [
             'json' => [
                 'submission' => array_merge($submissionAttributes, $submissionContent),
                 'form' => $formAttributes,
             ],
         ];
+
+        // Fire a 'modifyWebhookPayload' event
+        $event = new ModifyWebhookPayloadEvent([
+            'payload' => $payload,
+        ]);
+        $this->trigger(self::EVENT_MODIFY_WEBHOOK_PAYLOAD, $event);
+
+        Craft::dd($event->payload);
+
+        return $event->payload;
     }
 }
