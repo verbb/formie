@@ -1,5 +1,30 @@
 # Changelog
 
+## 1.2.8 - 2020-09-10
+
+### Added
+- Integration settings now support `.env` variables.
+- Entry fields can now restrict their sources to entry types.
+
+### Changed
+- Entry fields now restrict their element query to only include elements from the current site - for multi-sites.
+- Category fields now restrict their element query to only include elements from the current site - for multi-sites.
+- Product fields now restrict their element query to only include elements from the current site - for multi-sites.
+- Variant fields now restrict their element query to only include elements from the current site - for multi-sites.
+
+### Fixed
+- Fixed composer autoload deprecations.
+- Lower `league/oauth2-client` requirement to prevent incompatibility with other plugins.
+- Fixed Entry fields not restricting to its sources in some instances.
+- Fixed Category fields not restricting to its sources in some instances.
+- Fixed Product fields not restricting to its sources in some instances.
+- Fixed User fields not restricting to its sources in some instances.
+- Fixed Variant fields not restricting to its sources in some instances.
+- Fix hidden field throwing errors in queue jobs, for emails and notifications.
+- Fixed Entry fields not restricting correctly when selecting multiple sources.
+- Fixed Product fields not restricting correctly when selecting multiple sources.
+- Fixed User fields not restricting correctly when selecting multiple sources.
+
 ## 1.2.7.1 - 2020-09-07
 
 ### Fixed
