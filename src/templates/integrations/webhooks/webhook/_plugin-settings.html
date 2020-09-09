@@ -5,7 +5,6 @@
     label: 'Webhook URL' | t('formie'),
     instructions: 'Enter the {name} webhook URL that will be triggered when a submission is made.' | t('formie', { name: integration.displayName() }),
     name: 'webhook',
-    required: true,
     suggestEnvVars: true,
     value: integration.settings.webhook ?? '',
     warning: macros.configWarning('webhook', 'formie'),

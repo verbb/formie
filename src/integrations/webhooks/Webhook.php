@@ -57,7 +57,7 @@ class Webhook extends BaseWebhook
     {
         $rules = parent::defineRules();
 
-        $rules[] = [['webhook'], 'required'];
+        $rules[] = [['webhook'], 'required', 'on' => [Integration::SCENARIO_FORM]];
 
         return $rules;
     }
