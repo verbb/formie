@@ -133,19 +133,18 @@ class Users extends CraftUsers implements FormFieldInterface
         $query = User::find();
 
         if ($this->sources !== '*') {
+            $criteria = [];
+
             // Try to find the criteria we're restricting by - if any
             foreach ($this->sources as $source) {
                 $elementSource = ArrayHelper::firstWhere($this->availableSources(), 'key', $source);
-                $criteria = $elementSource['criteria'] ?? [];
-                
-                // Apply the criteria on our query
-                Craft::configure($query, $criteria);
-            }
-        }
+                $elementCriteria = $elementSource['criteria'] ?? [];
 
-        // Restrict elements to be on the current site, for multi-sites
-        if (Craft::$app->getIsMultiSite()) {
-            $query->siteId(Craft::$app->getSites()->getCurrentSite()->id);
+                $criteria = array_merge_recursive($criteria, $elementCriteria);
+            }
+
+            // Apply the criteria on our query
+            Craft::configure($query, $criteria);
         }
 
         $query->orderBy('title ASC');

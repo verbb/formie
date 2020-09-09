@@ -123,6 +123,8 @@ class Entries extends CraftEntries implements FormFieldInterface
         $query = Entry::find();
 
         if ($this->sources !== '*') {
+            $criteria = [];
+
             // Try to find the criteria we're restricting by - if any
             foreach ($this->sources as $source) {
                 // Check if we're looking for a type
@@ -131,16 +133,20 @@ class Entries extends CraftEntries implements FormFieldInterface
                     $entryType = EntryTypeRecord::find()->where(['uid' => $entryTypeUid])->one();
 
                     if ($entryType) {
-                        $criteria = ['typeId' => $entryType->id];
+                        $criteria = array_merge_recursive($criteria, ['typeId' => $entryType->id]);
                     }
                 } else {
                     $elementSource = ArrayHelper::firstWhere($this->availableSources(), 'key', $source);
-                    $criteria = $elementSource['criteria'] ?? [];
-                }
+                    $sectionId = $elementSource['criteria']['sectionId'] ?? null;
 
-                // Apply the criteria on our query
-                Craft::configure($query, $criteria);
+                    if ($sectionId) {
+                        $criteria = array_merge_recursive($criteria, ['sectionId' => $sectionId]);
+                    }
+                }
             }
+
+            // Apply the criteria on our query
+            Craft::configure($query, $criteria);
         }
 
         // Restrict elements to be on the current site, for multi-sites
