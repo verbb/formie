@@ -92,7 +92,7 @@ abstract class Webhook extends Integration implements IntegrationInterface
 
         foreach ($submission->getForm()->getFields() as $field) {
             $value = $submission->getFieldValue($field->handle);
-            $submissionContent[$field->handle] = $field->serializeValue($value, $submission);
+            $submissionContent[$field->handle] = $field->serializeValueForWebhook($value, $submission);
         }
 
         $payload = [

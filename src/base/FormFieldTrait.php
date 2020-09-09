@@ -142,6 +142,14 @@ trait FormFieldTrait
     }
 
     /**
+     * @inheritDoc
+     */
+    public function serializeValueForWebhook($value, ElementInterface $element = null)
+    {
+        return parent::serializeValue($value, $element);
+    }
+
+    /**
      * @inheritdoc
      */
     public function settingsAttributes(): array

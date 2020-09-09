@@ -107,6 +107,20 @@ class FileUpload extends CraftAssets implements FormFieldInterface
     /**
      * @inheritDoc
      */
+    public function serializeValueForWebhook($value, ElementInterface $element = null)
+    {
+        $values = [];
+        foreach ($element->getFieldValue($this->handle)->all() as $asset) {
+            /* @var Asset $asset */
+            $values[] = $asset->toArray();
+        }
+
+        return $values;
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function getExtraBaseFieldConfig(): array
     {
         return [
