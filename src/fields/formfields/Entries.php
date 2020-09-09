@@ -15,6 +15,7 @@ use craft\elements\db\ElementQueryInterface;
 use craft\fields\Entries as CraftEntries;
 use craft\helpers\ArrayHelper;
 use craft\helpers\UrlHelper;
+use craft\records\EntryType as EntryTypeRecord;
 
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
@@ -124,9 +125,19 @@ class Entries extends CraftEntries implements FormFieldInterface
         if ($this->sources !== '*') {
             // Try to find the criteria we're restricting by - if any
             foreach ($this->sources as $source) {
-                $elementSource = ArrayHelper::firstWhere($this->availableSources(), 'key', $source);
-                $criteria = $elementSource['criteria'] ?? [];
-                
+                // Check if we're looking for a type
+                if (strstr($source, 'type:')) {
+                    $entryTypeUid = str_replace('type:', '', $source);
+                    $entryType = EntryTypeRecord::find()->where(['uid' => $entryTypeUid])->one();
+
+                    if ($entryType) {
+                        $criteria = ['typeId' => $entryType->id];
+                    }
+                } else {
+                    $elementSource = ArrayHelper::firstWhere($this->availableSources(), 'key', $source);
+                    $criteria = $elementSource['criteria'] ?? [];
+                }
+
                 // Apply the criteria on our query
                 Craft::configure($query, $criteria);
             }
@@ -147,6 +158,49 @@ class Entries extends CraftEntries implements FormFieldInterface
         $this->trigger(self::EVENT_MODIFY_ELEMENT_QUERY, $event);
 
         return $event->query;
+    }
+
+    /**
+     * Normalizes the available sources into select input options.
+     *
+     * @return array
+     */
+    public function getSourceOptions(): array
+    {
+        $options = [];
+        $optionNames = [];
+
+        foreach ($this->availableSources() as $source) {
+            // Make sure it's not a heading
+            if (!isset($source['heading'])) {
+                $options[] = [
+                    'label' => $source['label'],
+                    'value' => $source['key']
+                ];
+
+                $optionNames[] = $source['label'];
+
+                $sectionId = $source['criteria']['sectionId'] ?? null;
+
+                if ($sectionId && !is_array($sectionId)) {
+                    $entryTypes = Craft::$app->sections->getEntryTypesBySectionId($sectionId);
+
+                    foreach ($entryTypes as $entryType) {
+                        $options[] = [
+                            'label' => $source['label'] . ': ' . $entryType['name'],
+                            'value' => 'type:' . $entryType['uid']
+                        ];
+
+                        $optionNames[] = $source['label'] . ': ' . $entryType['name'];
+                    }
+                }
+            }
+        }
+
+        // Sort alphabetically
+        array_multisort($optionNames, SORT_NATURAL | SORT_FLAG_CASE, $options);
+
+        return $options;
     }
 
     /**
