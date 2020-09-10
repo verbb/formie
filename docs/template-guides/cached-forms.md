@@ -37,3 +37,39 @@ To get around this, you'll need to call `craft.formie.registerAssets()` outside 
 </html>
 ```
 
+## Static Caching
+It's quite commonplace to implement full-page static caching on sites. For Craft, we highly recommend the [Blitz](https://plugins.craftcms.com/blitz) plugin, but you can use any number of methods to statically cache your pages. 
+
+However, caching the form for every visitor poses an issue for Formie's CSRF tokens used to verify the integrity of form submissions. Indeed, this problem will be the same for any form on your site. To get around this, you'll need to implement a way to refresh the CSRF input in your forms through JavaScript.
+
+Let's take a look at an example in action.
+
+```twig
+{% set form = craft.formie.forms.handle('contactForm').one() %}
+
+{{ craft.formie.renderForm(form) }}
+
+<script>
+    // Wait until the DOM is ready
+    document.addEventListener('DOMContentLoaded', (event) => {
+        // Fetch the form we want to deal with
+        let $form = document.querySelector('#formie-form-{{ form.id }}');
+
+        // Find the CSRF token hidden input, so we can replace it
+        let $csrfInput = $form.querySelector('input[name="CRAFT_CSRF_TOKEN"]');
+
+        // Fetch the new token for the form and replace the CSRF input with our new one
+        fetch('/actions/formie/csrf/input')
+            .then(result => { return result.text(); })
+            .then(result => { $csrfInput.outerHTML = result; });
+    });
+</script>
+```
+
+Here, we've combined rendering the form as we normally would, with some extra JavaScript. While this entire code will be cached and served exactly the same to each visitor, the JavaScript will be executed when the page is loaded. The above script makes a `GET` call to our `actions/formie/csrf/input` controller action, which returns a HTML input like below:
+
+```twig
+<input type="hidden" name="CRAFT_CSRF_TOKEN" value="O7fTQEDAHZf9l9luqYuLcM...">
+```
+
+We use this to inject and replace the cached CSRF token (which is completely invalid now), after which the form will submit as expected. It's a little bit of extra work to get things working with a static cached page, but it's worth it for significant performance gains!
