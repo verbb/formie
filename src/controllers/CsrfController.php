@@ -20,6 +20,19 @@ class CsrfController extends Controller
     // =========================================================================
 
     /**
+     * Returns the CSRF token and param.
+     *
+     * @return Response
+     */
+    public function actionIndex(): Response
+    {
+        return $this->asJson([
+            'param' => Craft::$app->getRequest()->csrfParam,
+            'token' => Craft::$app->getRequest()->getCsrfToken(),
+        ]);
+    }
+
+    /**
      * Returns a CSRF input field.
      *
      * @return Response
