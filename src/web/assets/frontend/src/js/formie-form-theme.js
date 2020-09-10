@@ -195,7 +195,7 @@ export class FormieFormTheme {
         var hash = {};
 
         var formData = new FormData(this.$form);
-        var excludedItems = ['g-recaptcha-response'];
+        var excludedItems = ['g-recaptcha-response', 'CRAFT_CSRF_TOKEN'];
 
         formData.forEach((value, key) => {
             if (!excludedItems.includes(key)) {
