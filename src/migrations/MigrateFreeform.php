@@ -1,6 +1,16 @@
 <?php
-
 namespace verbb\formie\migrations;
+
+use verbb\formie\Formie;
+use verbb\formie\base\FormFieldInterface;
+use verbb\formie\elements\Form;
+use verbb\formie\elements\Submission;
+use verbb\formie\events\ModifyMigrationFieldEvent;
+use verbb\formie\fields\formfields;
+use verbb\formie\helpers\Variables;
+use verbb\formie\models\Notification;
+use verbb\formie\models\FieldLayout;
+use verbb\formie\models\FieldLayoutPage;
 
 use Craft;
 use craft\db\Migration;
@@ -20,21 +30,17 @@ use Solspace\Freeform\Library\Composer\Components\FieldInterface;
 use Solspace\Freeform\Library\Composer\Components\Fields\DataContainers\Option;
 use Solspace\Freeform\Fields as freeformfields;
 
-use verbb\formie\base\FormFieldInterface;
-use verbb\formie\elements\Form;
-use verbb\formie\elements\Submission;
-use verbb\formie\fields\formfields;
-use verbb\formie\Formie;
-use verbb\formie\helpers\Variables;
-use verbb\formie\models\Notification;
-use verbb\formie\models\FieldLayout;
-use verbb\formie\models\FieldLayoutPage;
-
 /**
  * Migrates Freeform forms, notifications and submissions.
  */
 class MigrateFreeform extends Migration
 {
+    // Constants
+    // =========================================================================
+
+    const EVENT_MODIFY_FIELD = 'modifyField';
+
+
     // Properties
     // =========================================================================
 
@@ -668,7 +674,14 @@ class MigrateFreeform extends Migration
             $newField->required = !!($field->isRequired() ?? false);
         }
 
-        return $newField;
+        // Fire a 'modifyField' event
+        $event = new ModifyMigrationFieldEvent([
+            'field' => $field,
+            'newField' => $newField,
+        ]);
+        $this->trigger(self::EVENT_MODIFY_FIELD, $event);
+
+        return $event->newField;
     }
 
     private function _applyFieldDefaults(FormFieldInterface &$field)

@@ -1023,7 +1023,6 @@ Event::on(Zapier::class, Zapier::EVENT_MODIFY_WEBHOOK_PAYLOAD, function(ModifyWe
 
 
 
-
 ## Stencil Events
 
 ### The `beforeSaveStencil` event
@@ -1097,4 +1096,36 @@ Event::on(Stencils::class, Stencils::EVENT_AFTER_DELETE_STENCIL, function(Stenci
     // ...
 });
 ```
+
+
+
+## Migration Events
+
+### The `modifyField` event
+The event that is triggered during a migration (from Sprout Forms or Freeform), trying to map the respective third-party field to a Formie field. The `field` variable represents the Sprout Forms or Freeform field, and `newField` represents the Formie equivalent field.
+
+You can use this event to custom Sprout Forms or Freeform field to a field Formie can understand.
+
+```php
+use verbb\formie\events\ModifyMigrationFieldEvent;
+use verbb\formie\migrations\MigrateFreeform;
+use yii\base\Event;
+
+Event::on(MigrateFreeform::class, MigrateFreeform::EVENT_MODIFY_FIELD, function(ModifyMigrationFieldEvent $event) {
+    $field = $event->field;
+    $newField = $event->newField;
+    // ...
+});
+
+use verbb\formie\events\ModifyMigrationFieldEvent;
+use verbb\formie\migrations\MigrateSproutForms;
+use yii\base\Event;
+
+Event::on(MigrateSproutForms::class, MigrateSproutForms::EVENT_MODIFY_FIELD, function(ModifyMigrationFieldEvent $event) {
+    $field = $event->field;
+    $newField = $event->newField;
+    // ...
+});
+```
+
 

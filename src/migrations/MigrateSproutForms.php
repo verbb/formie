@@ -1,6 +1,19 @@
 <?php
-
 namespace verbb\formie\migrations;
+
+use verbb\formie\Formie;
+use verbb\formie\base\FormFieldInterface;
+use verbb\formie\elements\Form;
+use verbb\formie\elements\Submission;
+use verbb\formie\events\ModifyMigrationFieldEvent;
+use verbb\formie\fields\formfields;
+use verbb\formie\helpers\Variables;
+use verbb\formie\models\Address;
+use verbb\formie\models\Name;
+use verbb\formie\models\Notification;
+use verbb\formie\models\Phone;
+use verbb\formie\models\FieldLayout;
+use verbb\formie\models\FieldLayoutPage;
 
 use Craft;
 use craft\base\FieldInterface;
@@ -10,9 +23,10 @@ use craft\fields\BaseRelationField;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Console;
 use craft\helpers\Json;
-use Throwable;
 
 use yii\helpers\Markdown;
+
+use Throwable;
 
 use barrelstrength\sproutforms\elements\Form as SproutFormsForm;
 use barrelstrength\sproutforms\elements\Entry as SproutFormsEntry;
@@ -21,24 +35,17 @@ use barrelstrength\sproutbaseemail\elements\NotificationEmail;
 use barrelstrength\sproutbaseemail\SproutBaseEmail;
 use barrelstrength\sproutforms\SproutForms;
 
-use verbb\formie\base\FormFieldInterface;
-use verbb\formie\elements\Form;
-use verbb\formie\elements\Submission;
-use verbb\formie\fields\formfields;
-use verbb\formie\Formie;
-use verbb\formie\helpers\Variables;
-use verbb\formie\models\Address;
-use verbb\formie\models\Name;
-use verbb\formie\models\Notification;
-use verbb\formie\models\Phone;
-use verbb\formie\models\FieldLayout;
-use verbb\formie\models\FieldLayoutPage;
-
 /**
  * Migrates Sprout Forms forms, notifications and submissions.
  */
 class MigrateSproutForms extends Migration
 {
+    // Constants
+    // =========================================================================
+
+    const EVENT_MODIFY_FIELD = 'modifyField';
+
+
     // Properties
     // =========================================================================
 
@@ -613,7 +620,14 @@ class MigrateSproutForms extends Migration
             $newField->required = !!$field->required;
         }
 
-        return $newField;
+        // Fire a 'modifyField' event
+        $event = new ModifyMigrationFieldEvent([
+            'field' => $field,
+            'newField' => $newField,
+        ]);
+        $this->trigger(self::EVENT_MODIFY_FIELD, $event);
+
+        return $event->newField;
     }
 
     private function _applyFieldDefaults(FormFieldInterface &$field)
