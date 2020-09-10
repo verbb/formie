@@ -22,10 +22,9 @@ class FileUpload extends CraftAssets implements FormFieldInterface
     // Traits
     // =========================================================================
 
-    use FormFieldTrait {
+    use FormFieldTrait, RelationFieldTrait {
         getFrontEndInputOptions as traitGetFrontendInputOptions;
     }
-    use RelationFieldTrait;
 
 
     // Properties

@@ -5,6 +5,7 @@ use verbb\formie\base\FormFieldInterface;
 use verbb\formie\base\FormFieldTrait;
 use verbb\formie\base\RelationFieldTrait;
 use verbb\formie\elements\Form;
+use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyElementFieldQueryEvent;
 use verbb\formie\helpers\SchemaHelper;
 
@@ -27,10 +28,10 @@ class Entries extends CraftEntries implements FormFieldInterface
     // Traits
     // =========================================================================
 
-    use FormFieldTrait {
+    use FormFieldTrait, RelationFieldTrait {
         getFrontEndInputOptions as traitGetFrontendInputOptions;
+        getEmailHtml as traitGetEmailHtml;
     }
-    use RelationFieldTrait;
 
 
     // Constants
@@ -111,6 +112,17 @@ class Entries extends CraftEntries implements FormFieldInterface
         $inputOptions['entriesQuery'] = $this->getEntriesQuery();
 
         return $inputOptions;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getEmailHtml(Submission $submission, $value, array $options = null)
+    {
+        // Ensure we return back the correct, prepped query for emails. Just as we would be submissions.
+        $value = $this->_all($value, $submission);
+
+        return $this->traitGetEmailHtml($submission, $value, $options);
     }
 
     /**
