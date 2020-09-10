@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.2.9 - 2020-09-10
+
+### Added
+- Added `EVENT_MODIFY_WEBHOOK_PAYLOAD` event for Webhook integrations. Allows modification of the payload sent to webhook URLs.
+- Added `EVENT_MODIFY_FIELD` event Freeform and Sprout Forms migrations. This can be used to modify the field-mapping of Freeform and Sprout Forms fields to Formie fields. Particularly useful for custom-built fields.
+
+### Changed
+- Webhook integrations URL is now optional when creating the integration.
+- File upload fields now serialize the entire asset element for webhook payloads.
+
+### Fixed
+- Fixed refreshing CSRF token field triggering a changed form notice on the front-end.
+- Fixed tag fields triggering a changed form notice on the front-end.
+
 ## 1.2.8 - 2020-09-10
 
 ### Added
