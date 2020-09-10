@@ -8,7 +8,7 @@
     class: [ 'fui-input' ],
     name: field.handle,
     required: field.required ? true : false,
-    value: valueJson | json_encode,
+    value: valueJson ? valueJson | json_encode : '',
     autocomplete: 'off',
     data: {
         'formie-tags': tags,
