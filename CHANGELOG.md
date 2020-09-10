@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.2.10 - 2020-09-10
+
+### Fixed
+- Fixed Entry fields not rendering their values correctly for multi-sites in email notifications.
+- Fixed Category fields not rendering their values correctly for multi-sites in email notifications.
+- Fixed Product fields not rendering their values correctly for multi-sites in email notifications.
+- Fixed Tag fields not rendering their values correctly for multi-sites in email notifications.
+- Fixed User fields not rendering their values correctly for multi-sites in email notifications.
+- Fixed Variant fields not rendering their values correctly for multi-sites in email notifications.
+
 ## 1.2.9 - 2020-09-10
 
 ### Added
