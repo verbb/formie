@@ -28,6 +28,22 @@ abstract class Captcha extends Integration implements IntegrationInterface
         return Craft::t('formie', 'Captchas');
     }
 
+    /**
+     * @inheritDoc
+     */
+    public static function supportsConnection(): bool
+    {
+        return false;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public static function supportsPayloadSending(): bool
+    {
+        return false;
+    }
+
 
     // Public Methods
     // =========================================================================
