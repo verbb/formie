@@ -135,7 +135,7 @@ Sets the current submission for a particular form. This is mostly used for multi
 
 
 ### `craft.formie.populateFormValues(handle, values)`
-Populates the `defaultValue` of a field for a form. Note that this should be done before rendering the form.
+Populates the `defaultValue` of a field for a form. Note that this should be done before rendering the form. See [Populating Forms](docs:template-guides/populating-forms).
 
 ```twig
 {# Sets the field with handle `text` to "Some Value" for the form with a handle `contactForm` #}

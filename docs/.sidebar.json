@@ -39,7 +39,8 @@
             "template-guides/form-templates",
             "template-guides/email-templates",
             "template-guides/cached-forms",
-            "template-guides/editing-submissions"
+            "template-guides/editing-submissions",
+            "template-guides/populating-forms"
         ]
     },
     {
