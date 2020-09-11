@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.2.11 - 2020-09-11
+
+### Added
+- Added CSRF controller to allow static-cached sites to handle CSRF re-generation.
+
+### Fixed
+- Fixed captchas allowing payload-sending when they don't support it, causing errors on submissions.
+
 ## 1.2.10 - 2020-09-10
 
 ### Fixed
