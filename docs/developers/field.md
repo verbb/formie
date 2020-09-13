@@ -285,6 +285,13 @@ Setting | Description
 `maxRows` | The maximum required number of instances of this repeater's fields that must be completed.
 
 
+## Recipients
+Setting | Description
+--- | ---
+`displayType` | What sort of field to show on the front-end for users.
+`options` | Define the available options for users to select from.
+
+
 ## Section
 Setting | Description
 --- | ---
