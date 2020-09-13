@@ -178,32 +178,34 @@ class Recipients extends FormField
                     [ 'label' => Craft::t('formie', 'Radio Buttons'), 'value' => 'radio' ],
                 ],
             ]),
-            SchemaHelper::tableField([
-                'label' => Craft::t('formie', 'Options'),
-                'help' => Craft::t('formie', 'Define the available options for users to select from.'),
-                'name' => 'options',
-                'newRowDefaults' => [
-                    'label' => '',
-                    'value' => '',
-                    'isDefault' => false,
-                ],
-                'columns' => [
-                    [
-                        'type' => 'label',
-                        'label' => Craft::t('formie', 'Option Label'),
-                        'class' => 'singleline-cell textual',
+            SchemaHelper::toggleContainer('!settings.displayType=hidden', [
+                SchemaHelper::tableField([
+                    'label' => Craft::t('formie', 'Options'),
+                    'help' => Craft::t('formie', 'Define the available options for users to select from.'),
+                    'name' => 'options',
+                    'newRowDefaults' => [
+                        'label' => '',
+                        'value' => '',
+                        'isDefault' => false,
                     ],
-                    [
-                        'type' => 'value',
-                        'label' => Craft::t('formie', 'Email'),
-                        'class' => 'singleline-cell textual',
+                    'columns' => [
+                        [
+                            'type' => 'label',
+                            'label' => Craft::t('formie', 'Option Label'),
+                            'class' => 'singleline-cell textual',
+                        ],
+                        [
+                            'type' => 'value',
+                            'label' => Craft::t('formie', 'Email'),
+                            'class' => 'singleline-cell textual',
+                        ],
+                        [
+                            'type' => 'default',
+                            'label' => Craft::t('formie', 'Default?'),
+                            'class' => 'thin checkbox-cell',
+                        ],
                     ],
-                    [
-                        'type' => 'default',
-                        'label' => Craft::t('formie', 'Default?'),
-                        'class' => 'thin checkbox-cell',
-                    ],
-                ],
+                ]),
             ]),
         ];
     }
