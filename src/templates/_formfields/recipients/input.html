@@ -1,0 +1,17 @@
+{% if field.displayType == 'hidden' %}
+    {% set class = 'fui-field-input is-disabled' %}
+
+    {% include '_includes/forms/text' %}
+{% endif %}
+
+{% if field.displayType == 'dropdown' %}
+    {% include '_includes/forms/select' %}
+{% endif %}
+
+{% if field.displayType == 'checkboxes' %}
+    {% include '_includes/forms/checkboxGroup' with { values: value } %}
+{% endif %}
+
+{% if field.displayType == 'radio' %}
+    {% include '_includes/forms/radioGroup' %}
+{% endif %}

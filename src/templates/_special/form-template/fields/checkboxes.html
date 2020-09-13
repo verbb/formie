@@ -6,7 +6,7 @@
     <input type="hidden" aria-hidden="true" aria-checked="false" name="{{ field.handle }}[]" value="">
 
     <div class="fui-layout-wrap">
-        {% for option in field.options %}
+        {% for option in field.getFieldOptions() %}
             {% set optionId = options.id ~ '-' ~ option.value | kebab %}
             {% set selected = value ? value.contains(option.value) : (option.isDefault ?? false) %}
 

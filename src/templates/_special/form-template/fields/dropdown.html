@@ -15,7 +15,7 @@
 {% set hasOptgroups = false %}
 
 <select {{ attr(attributes) }}>
-    {% for option in field.options %}
+    {% for option in field.getFieldOptions() %}
         {% if option.optgroup is defined %}
             {% if hasOptgroups %}
                 </optgroup>

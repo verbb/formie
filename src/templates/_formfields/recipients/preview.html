@@ -1,0 +1,31 @@
+<div v-if="field.settings.displayType == 'hidden'">
+    <input type="text" disabled class="fui-field-input" :placeholder="field.settings.placeholder" :value="field.settings.defaultValue">
+</div>
+
+<div v-if="field.settings.displayType == 'dropdown'">
+    <select class="fui-field-select" :multiple="field.settings.multiple">
+        <option
+            v-for="(option, index) in field.settings.options"
+            :key="index"
+            :selected="option.isDefault"
+        >${ option.label }</option>
+    </select>
+</div>
+
+<div v-if="field.settings.displayType == 'checkboxes'">
+    <div :class="'fui-field-layout-' + field.settings.layout">
+        <div v-for="(option, index) in field.settings.options" :key="index" class="fui-field-checkbox">
+            <input :value="option.value" type="checkbox" :checked="option.isDefault" />
+            <label>${ option.label }</label>
+        </div>
+    </div>
+</div>
+
+<div v-if="field.settings.displayType == 'radio'">
+    <div :class="'fui-field-layout-' + field.settings.layout">
+        <div v-for="(option, index) in field.settings.options" :key="index" class="fui-field-radio">
+            <input :value="option.value" type="radio" :checked="option.isDefault" />
+            <label>${ option.label }</label>
+        </div>
+    </div>
+</div>

@@ -150,6 +150,14 @@ trait FormFieldTrait
     }
 
     /**
+     * @inheritDoc
+     */
+    public function populateValue($value)
+    {
+        $this->defaultValue = $value;
+    }
+
+    /**
      * @inheritdoc
      */
     public function settingsAttributes(): array

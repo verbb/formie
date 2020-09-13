@@ -82,6 +82,14 @@ class Checkboxes extends BaseOptionsField implements FormFieldInterface
     /**
      * @inheritDoc
      */
+    public function getFieldOptions()
+    {
+        return $this->options;
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function getInputHtml($value, ElementInterface $element = null): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/checkboxes/input', [

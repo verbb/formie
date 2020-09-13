@@ -328,6 +328,10 @@ class Submissions extends Component
                     $fieldContent[$field->handle] = $faker->randomElement($field->options)['value'] ?? '';
 
                     break;
+                case formfields\Recipients::class:
+                    $fieldContent[$field->handle] = $faker->email;
+
+                    break;                    
                 default:
                     $fieldContent[$field->handle] = $faker->text;
 

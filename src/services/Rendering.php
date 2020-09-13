@@ -422,7 +422,7 @@ class Rendering extends Component
         // Try to populate fields with their default value
         foreach ($values as $key => $value) {
             try {
-                $form->getFieldByHandle($key)->defaultValue = $value;
+                $form->getFieldByHandle($key)->populateValue($value);
             } catch (\Throwable $e) {
                 continue;
             }

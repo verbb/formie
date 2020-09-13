@@ -386,6 +386,7 @@ const getters = {
         const allowedTypes = [
             'verbb\\formie\\fields\\formfields\\Email',
             'verbb\\formie\\fields\\formfields\\Hidden',
+            'verbb\\formie\\fields\\formfields\\Recipients',
         ];
 
         let fields = [

@@ -4,7 +4,7 @@
     {% include '_instructions' with { position: 'fieldset-start' } %}
 
     <div class="fui-layout-wrap">
-        {% for option in field.options %}
+        {% for option in field.getFieldOptions() %}
             {% set optionId = options.id ~ '-' ~ option.value | kebab %}
             {% set selected = value and value.value ? option.value == value.value : (option.isDefault ?? false) %}
 
