@@ -425,6 +425,16 @@ class Form extends Element
             ];
         }
 
+        // Must always provide at least one page. If not, seems to really mess
+        // up Vue's reactivity of pages as an array.
+        if (!$pages) {
+            $pages[] = [
+                'id' => uniqid('new'),
+                'label' => Craft::t('site', 'Page 1'),
+                'rows' => [],
+            ];
+        }
+
         $attributes = $this->toArray();
 
         return array_merge($attributes, [
