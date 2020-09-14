@@ -331,7 +331,7 @@ class FileUpload extends CraftAssets implements FormFieldInterface
                 'type' => 'textWithSuffix',
                 'suffix' => Craft::t('formie', 'MB'),
                 'validation' => 'optional|number|min:0',
-                'warning' => Craft::t('formie', 'Maxiumum allowed upload size is {size}.', ['size' => $maxUpload]),
+                'warning' => Craft::t('formie', 'Maximum allowed upload size is {size}.', ['size' => $maxUpload]),
             ]),
             SchemaHelper::checkboxField([
                 'label' => Craft::t('formie', 'Restrict allowed file types?'),

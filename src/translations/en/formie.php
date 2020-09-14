@@ -792,7 +792,7 @@ return [
     'Limit File Size' => 'Limit File Size',
     'Limit the size of the files a user can upload.' => 'Limit the size of the files a user can upload.',
     'MB' => 'MB',
-    'Maxiumum allowed upload size is {size}.' => 'Maxiumum allowed upload size is {size}.',
+    'Maximum allowed upload size is {size}.' => 'Maximum allowed upload size is {size}.',
     'Restrict allowed file types?' => 'Restrict allowed file types?',
     'Dropdown Options' => 'Dropdown Options',
     'Allow Multiple' => 'Allow Multiple',
@@ -962,9 +962,8 @@ return [
 
     'formie_failed_notification_heading' => 'When an email notification fails to send:',
     'formie_failed_notification_subject' => 'Email notification failed to send for form "{{ form.title }}" on {{ siteName }}.',
-    'formie_failed_notification_body' => "An email notification for the form “{{ form.title }}” has failed to send.\n\n" . 
+    'formie_failed_notification_body' => "An email notification for the form “{{ form.title }}” has failed to send.\n\n" .
         "The error response was recorded: {{ emailResponse | json_encode }}.\n\n" .
         "To review it please log into your control panel.\n\n" .
         "{{ submission.cpEditUrl }}",
 ];
-
