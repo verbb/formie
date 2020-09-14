@@ -369,10 +369,6 @@ class FormsController extends Controller
             return null;
         }
 
-        if ($request->getAcceptsJson()) {
-            return $this->asJson(['success' => true]);
-        }
-
         Craft::$app->getSession()->setNotice(Craft::t('app', 'Form deleted.'));
 
         if ($request->getAcceptsJson()) {
