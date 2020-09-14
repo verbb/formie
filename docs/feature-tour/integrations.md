@@ -15,13 +15,13 @@ Address Providers allow [Address](docs:feature-tour/fields#address) fields to us
 Element integrations allow form submissions to populate other elements, upon form submission success. Formie provides this integration for the Entry element, for further detail read the [Element](docs:integrations/element-integrations) docs.
 
 ## Email Marketing
-Email Marketing integrations allow form submissions to send third-party providers a payload to subscribe an email to a nominated list. You can pick a field to allow users to opt-in to subscribing. You‘ll have control over what fields should be mapped to any custom fields on the third-party system. For further detail read the [Email Marketing](docs:integrations/email-marketing) docs.
+Email Marketing integrations allow form submissions to send third-party providers a payload to subscribe an email to a nominated list. You can pick a field to allow users to opt-in to subscribing. You‘ll have control over what fields should be mapped to any custom fields on the third-party system. For further detail read the [Email Marketing](docs:integrations/email-marketing-integrations) docs.
 
 ## CRM
-CRM integrations allow form submissions to send third-party providers a payload to integration user data into their system. Each CRM provider handles data differently, but Formie‘s integrations attempt to import “Contacts” and “Leads” into the CRM platform. You‘ll have control over what fields should be mapped to their third-party counterparts. For further detail read the [CRM](docs:integrations/crm) docs.
+CRM integrations allow form submissions to send third-party providers a payload to integration user data into their system. Each CRM provider handles data differently, but Formie‘s integrations attempt to import “Contacts” and “Leads” into the CRM platform. You‘ll have control over what fields should be mapped to their third-party counterparts. For further detail read the [CRM](docs:integrations/crm-integrations) docs.
 
 ## Webhooks
 Webhook integrations are primarily used for when an external URL needs to be sent a payload of data from Formie, for processing on the receiving end. For further detail read the [Webhooks](docs:integrations/webhooks) docs.
 
 ## Miscellaneous
-Miscellaneous integrations are just that - any integration that doesn't fit into the categories above, but are still considered an integration. For further detail read the [Miscellaneous](docs:integrations/miscellaneous) docs.
+Miscellaneous integrations are just that - any integration that doesn't fit into the categories above, but are still considered an integration. For further detail read the [Miscellaneous](docs:integrations/miscellaneous-integrations) docs.
