@@ -198,7 +198,7 @@ class Mailchimp extends EmailMarketing
 
         return $this->_client = Craft::createGuzzleClient([
             'base_uri' => 'https://' . $dataCenter . '.api.mailchimp.com/3.0/',
-            'auth' => ['apikey', Craft::parseEnv(Craft::parseEnv($this->apiKey))],
+            'auth' => ['apikey', Craft::parseEnv($this->apiKey)],
         ]);
     }
 
@@ -211,7 +211,7 @@ class Mailchimp extends EmailMarketing
      */
     private function _getDataCenter()
     {
-        if (preg_match('/([a-zA-Z]+[\d]+)$/', Craft::parseEnv(Craft::parseEnv($this->apiKey)), $matches)) {
+        if (preg_match('/([a-zA-Z]+[\d]+)$/', Craft::parseEnv($this->apiKey), $matches)) {
             return $matches[1] ?? '';
         }
     }

@@ -421,7 +421,7 @@ class Freshdesk extends Crm
             return $this->_client;
         }
 
-        $url = rtrim(Craft::parseEnv(Craft::parseEnv($this->apiDomain)), '/');
+        $url = rtrim(Craft::parseEnv($this->apiDomain), '/');
 
         return $this->_client = Craft::createGuzzleClient([
             'base_uri' => "$url/api/v2/",
