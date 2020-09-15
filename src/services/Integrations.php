@@ -123,6 +123,7 @@ class Integrations extends Component
             crm\Avochato::class,
             // crm\Creatio::class,
             crm\Freshdesk::class,
+            crm\Freshsales::class,
             crm\HubSpot::class,
             crm\Infusionsoft::class,
             crm\Insightly::class,

@@ -1,0 +1,40 @@
+{% import '_includes/forms' as forms %}
+{% import 'verbb-base/_macros' as macros %}
+
+{% set instructions %}
+### Step 1. Connect to the {name} API
+1. Go to <a href="https://www.freshworks.com/freshsales-crm/login/" target="_blank">{name}</a> and login to your account.
+1. Click on your profile dropdown on the top-right of the screen, and select **Settings**.
+1. Click on the **API Settings** button.
+1. Copy the **API Key** from {name} and paste in the **API Key** field below.
+
+### Step 2. Test Connection
+1. Save this integration.
+1. Click on the **Refresh** button in the right-hand sidebar.
+{% endset %}
+
+<div class="fui-settings-block">
+    {{ instructions | t('formie', { name: integration.displayName() }) | md }}
+</div>
+
+{{ forms.autosuggestField({
+    label: 'API Key' | t('formie'),
+    instructions: 'Enter your {name} API key here.' | t('formie', { name: integration.displayName() }),
+    name: 'apiKey',
+    required: true,
+    suggestEnvVars: true,
+    value: integration.settings.apiKey ?? '',
+    warning: macros.configWarning('apiKey', 'formie'),
+    errors: integration.getErrors('apiKey'),
+}) }}
+
+{{ forms.autosuggestField({
+    label: 'Domain' | t('formie'),
+    instructions: 'Enter your full {name} Domain here. e.g. `https://example.freshsales.io`' | t('formie', { name: integration.displayName() }) | md,
+    name: 'apiDomain',
+    required: true,
+    suggestEnvVars: true,
+    value: integration.settings.apiDomain ?? '',
+    warning: macros.configWarning('apiDomain', 'formie'),
+    errors: integration.getErrors('apiDomain'),
+}) }}
