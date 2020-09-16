@@ -221,6 +221,8 @@ class Notifications extends Component
         $notificationsData = $request->getParam('notifications');
         $notificationsData = Json::decode($notificationsData) ?? [];
 
+        $duplicate = $request->getParam('duplicate');
+
         foreach ($notificationsData as $notificationData) {
             if (isset($notificationData['hasError'])) {
                 unset($notificationData['hasError']);
@@ -228,6 +230,13 @@ class Notifications extends Component
 
             if (isset($notificationData['errors'])) {
                 unset($notificationData['errors']);
+            }
+
+            // Remove IDs if we're duplicating
+            if ($duplicate) {
+                unset($notificationData['id']);
+                unset($notificationData['formId']);
+                unset($notificationData['uid']);
             }
 
             $notifications[] = new Notification($notificationData);
