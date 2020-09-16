@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.2.12 - 2020-09-16
+
+### Added
+- Added recipients field. Display a field as a hidden/select/radio/checkboxes to allow dynamic recipient emails to be used in email notifications. Raw emails also aren't exposed in rendered templates.
+- Added Freshsales CRM integration.
+
+### Fixed
+- Fixed error when deleting a form due to incorrect redirects.
+- Fixed rare issue of being unable to create new pages if a form had zero pages.
+- Fixed stencil never applying template.
+- Fix email notifications being incorrectly deleted after saving the form as a new form.
+
 ## 1.2.11 - 2020-09-11
 
 ### Added
