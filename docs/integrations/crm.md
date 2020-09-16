@@ -24,6 +24,7 @@ Formie integrates with the following providers:
 - ActiveCampaign
 - Avochato
 - Freshdesk
+- Freshsales
 - HubSpot
 - Infusionsoft
 - Insightly
@@ -91,6 +92,27 @@ Follow the below steps to connect to the Freshdesk API.
 ### Step 1. Connect to the Freshdesk API
 1. Go to <a href="https://www.freshdesk.com/" target="_blank">Freshdesk</a> and login to your account.
 1. Click on your profile dropdown on the top-right of the screen, and select **Profile Settings**.
+1. Copy the **API Key** from Freshdesk and paste in the **API Key** field in Formie.
+
+### Step 2. Test Connection
+1. Save this integration.
+1. Click on the **Refresh** button in the right-hand sidebar.
+
+### Step 3. Form Setting
+1. Go to the form you want to enable this integration on.
+1. Click the **Integrations** tab.
+1. In the left-hand sidebar, select the name you gave the integration.
+1. Enable the integration and fill out all required fields.
+1. Click **Save** to save the form.
+
+
+## Freshsales
+Follow the below steps to connect to the Freshdesk API.
+
+### Step 1. Connect to the Freshdesk API
+1. Go to <a href="https://www.freshworks.com/freshsales-crm/login/" target="_blank">{name}</a> and login to your account.
+1. Click on your profile dropdown on the top-right of the screen, and select **Settings**.
+1. Click on the **API Settings** button.
 1. Copy the **API Key** from Freshdesk and paste in the **API Key** field in Formie.
 
 ### Step 2. Test Connection
