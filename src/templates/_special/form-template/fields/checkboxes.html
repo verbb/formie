@@ -3,7 +3,7 @@
 
     {% include '_instructions' with { position: 'fieldset-start' } %}
 
-    <input type="hidden" aria-hidden="true" aria-checked="false" name="{{ field.handle }}[]" value="">
+    <input type="hidden" aria-hidden="true" aria-checked="false" name="{{ field.handle }}" value="">
 
     <div class="fui-layout-wrap">
         {% for option in field.getFieldOptions() %}
