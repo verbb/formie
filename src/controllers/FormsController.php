@@ -127,10 +127,10 @@ class FormsController extends Controller
         $duplicate = $request->getParam('duplicate');
 
         // Set the default template from settings, if not already set - for new forms
-        if (!$form->id) {
+        if (!$form->id && !$form->templateId) {
             $form->templateId = $settings->getDefaultFormTemplateId();
         }
-        
+
         if (!Formie::$plugin->getForms()->saveForm($form)) {
             if ($request->getAcceptsJson()) {
                 $notifications = $form->getNotifications();
@@ -191,13 +191,13 @@ class FormsController extends Controller
         $stencils = Formie::$plugin->getStencils()->getAllStencils();
         $stencilHandles = ArrayHelper::getColumn($stencils, 'handle');
         $handle = $request->getParam('handle');
-        
+
         $stencil = new Stencil();
         $stencil->name = $request->getParam('title');
 
         // Resolve the handle, in case it already exists
         $stencil->handle = HandleHelper::getUniqueHandle($stencilHandles, $handle);
-        
+
         if ($templateId = $request->getParam('templateId')) {
             $template = Formie::$plugin->getFormTemplates()->getTemplateById($templateId);
             $stencil->setTemplate($template);
