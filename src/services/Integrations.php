@@ -130,6 +130,7 @@ class Integrations extends Component
             // crm\MethodCrm::class,
             // crm\NetSuite::class,
             // crm\Pardot::class,
+            crm\Mercury::class,
             crm\Pipedrive::class,
             crm\Pipeliner::class,
             crm\Salesflare::class,

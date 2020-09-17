@@ -28,6 +28,7 @@ Formie integrates with the following providers:
 - HubSpot
 - Infusionsoft
 - Insightly
+- Mercury
 - Pipedrive
 - Pipeliner
 - Salesflare
@@ -193,14 +194,15 @@ Follow the below steps to connect to the Insightly API.
 1. Click **Save** to save the form.
 
 
-## Pipedrive
-Follow the below steps to connect to the Pipedrive API.
+## Mercury (by Connective)
+Follow the below steps to connect to the Connective Mercury API.
 
-### Step 1. Connect to the Pipedrive API
-1. Go to <a href="https://www.pipedrive.com/" target="_blank">Pipedrive</a> and login to your account.
-1. Click on your profile dropdown on the top-right of the screen, and select **Personal Preference**.
-1. Click on the **API** tab.
-1. Copy the **Your personal API token** from Pipedrive and paste in the **API Key** field in Formie.
+### Step 1. Connect to the Connective Mercury API
+1. Go to <a href="https://www.connective.com.au/" target="_blank">Connective</a> and login to your Mercury account.
+1. In the top menu, click the **Admin** tab.
+1. In the left-hand sidebar menu, click the **Integrations** tab.
+1. Copy the **API Key** from {name} and paste in the **API Key** field in Formie.
+1. Copy the **API Token** from {name} and paste in the **API Token** field in Formie.
 
 ### Step 2. Test Connection
 1. Save this integration.

@@ -122,9 +122,11 @@ Build your customer relationship data with ease, mapping form fields to contacts
 - ActiveCampaign
 - Avochato
 - Freshdesk
+- Freshsales
 - HubSpot
 - Infusionsoft
 - Insightly
+- Mercury
 - Pipedrive
 - Pipeliner
 - Salesflare
