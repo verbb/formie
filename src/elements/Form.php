@@ -13,6 +13,7 @@ use verbb\formie\models\FormSettings;
 use verbb\formie\models\FieldLayout;
 use verbb\formie\models\FieldLayoutPage;
 use verbb\formie\records\Form as FormRecord;
+use verbb\formie\services\Statuses;
 
 use Craft;
 use craft\base\Element;
@@ -373,7 +374,38 @@ class Form extends Element
             if ($this->defaultStatusId) {
                 $this->_defaultStatus = Formie::$plugin->getStatuses()->getStatusById($this->defaultStatusId);
             } else {
-                $this->_defaultStatus = Formie::$plugin->getStatuses()->getAllStatuses()[0];
+                $this->_defaultStatus = Formie::$plugin->getStatuses()->getAllStatuses()[0] ?? null;
+            }
+        }
+
+        // Check if for whatever reason there isn't a default status - create it
+        if ($this->_defaultStatus === null) {
+            // But check for admin changes, as it's a project config setting change to make.
+            if (Craft::$app->getConfig()->getGeneral()->allowAdminChanges) {
+                $projectConfig = Craft::$app->projectConfig;
+
+                // Maybe the project config didn't get applied? Check for existing values
+                // This can likely be removed later, as this fix is already in place when installing Formie
+                $statuses = $projectConfig->get(Statuses::CONFIG_STATUSES_KEY, true) ?? [];
+
+                foreach ($statuses as $statusUid => $statusData) {
+                    $projectConfig->processConfigChanges(Statuses::CONFIG_STATUSES_KEY . '.' . $statusUid, true);
+                }
+
+                // If there's _still_ not a status, just go ahead and create it...
+                $this->_defaultStatus = Formie::$plugin->getStatuses()->getAllStatuses()[0] ?? null;
+
+                if ($this->_defaultStatus === null) {
+                    $this->_defaultStatus = new Status([
+                        'name' => 'New',
+                        'handle' => 'new',
+                        'color' => 'green',
+                        'sortOrder' => 1,
+                        'isDefault' => 1
+                    ]);
+
+                    Formie::getInstance()->getStatuses()->saveStatus($this->_defaultStatus);
+                }
             }
         }
 
