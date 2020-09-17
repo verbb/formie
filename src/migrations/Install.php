@@ -13,6 +13,8 @@ use verbb\formie\models\Stencil;
 use verbb\formie\models\StencilData;
 use verbb\formie\elements\Form;
 use verbb\formie\services\Forms;
+use verbb\formie\services\Statuses;
+use verbb\formie\services\Stencils;
 
 /**
  * Install migration.
@@ -403,13 +405,30 @@ class Install extends Migration
 
     public function insertDefaultData()
     {
+        $projectConfig = Craft::$app->projectConfig;
+        
         // Don't make the same config changes twice
-        $installed = (Craft::$app->projectConfig->get('plugins.formie', true) !== null);
-        $configExists = (Craft::$app->projectConfig->get('formie', true) !== null);
+        $installed = ($projectConfig->get('plugins.formie', true) !== null);
+        $configExists = ($projectConfig->get('formie', true) !== null);
 
         if (!$installed && !$configExists) {
             $this->_defaultStatuses();
             $this->_defaultStencils();
+        }
+
+        // If the config data exists, but we're re-installing, apply it
+        if (!$installed && $configExists) {
+            $statuses = $projectConfig->get(Statuses::CONFIG_STATUSES_KEY, true) ?? [];
+
+            foreach ($statuses as $statusUid => $statusData) {
+                $projectConfig->processConfigChanges(Statuses::CONFIG_STATUSES_KEY . '.' . $statusUid, true);
+            }
+
+            $stencils = $projectConfig->get(Stencils::CONFIG_STENCILS_KEY, true) ?? [];
+
+            foreach ($stencils as $stencilUid => $stencilData) {
+                $projectConfig->processConfigChanges(Stencils::CONFIG_STENCILS_KEY . '.' . $stencilUid, true);
+            }
         }
     }
 
