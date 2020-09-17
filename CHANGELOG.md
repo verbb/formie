@@ -1,6 +1,13 @@
 # Changelog
 
-## Unreleased
+## 1.2.14 - 2020-09-17
+
+### Added
+- Added name/address support for GraphQL mutations.
+- Added Mercury CRM integration.
+
+### Changed
+- Rename `Submission URL` to `Submission CP URL` for better clarity for field variables in email notifications.
 
 ### Fixed
 - Fixed Entry fields not rendering their values correctly in email notifications, when their section had no URL settings.
