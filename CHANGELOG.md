@@ -9,6 +9,7 @@
 - Fixed Tag fields not rendering their values correctly in email notifications.
 - Fixed User fields not rendering their values correctly in email notifications.
 - Fixed Variant fields not rendering their values correctly in email notifications, when their product type had no URL settings.
+- Fixed incorrect validation when saving a recipients field with the display type set to hidden.
 
 ## 1.2.13 - 2020-09-17
 

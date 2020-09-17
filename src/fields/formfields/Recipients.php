@@ -183,6 +183,7 @@ class Recipients extends FormField
                     'label' => Craft::t('formie', 'Options'),
                     'help' => Craft::t('formie', 'Define the available options for users to select from.'),
                     'name' => 'options',
+                    'validation' => 'requiredIfNotEqual:displayType=hidden',
                     'newRowDefaults' => [
                         'label' => '',
                         'value' => '',
