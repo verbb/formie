@@ -364,6 +364,39 @@ With the resulting output:
 }
 ```
 
+#### Complex Fields
+Some fields, such as Name and Address fields are much more than primitive values. Instead, their content needs to be provided as an object. The Name field is an exception, as it can be set to have multiple fields, or a single field.
+
+For example, you can populate a name and address field using the below:
+
+```json
+// Query
+mutation saveSubmission($yourName:contactForm_yourName_FormieNameInput $yourAddress:contactForm_yourAddress_FormieAddressInput) {
+    save_contactForm_Submission(yourName: $yourName, yourAddress: $yourAddress) {
+        yourName
+        yourAddress
+    }
+}
+
+// Query Variables
+{
+    "yourName": {
+        "firstName": "Peter",
+        "lastName": "Sherman"
+    },
+    "yourAddress": {
+        "address1": "42 Wallaby Way",
+        "city": "Sydney",
+        "zip": "2000",
+        "state": "NSW",
+        "country": "Australia"
+    }
+}
+```
+
+You'll notice the `contactForm_yourName_FormieNameInput` type being used. This follows the structure of `{formHandle}_{fieldHandle}_FormieNameInput`.
+
+
 #### Deleting a submission
 
 To delete a submission use the `deleteSubmission` mutation, which requires the `id` of the submission that must be deleted. It returns a boolean value as the result to indicate whether the operation was successful.

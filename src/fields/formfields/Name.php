@@ -5,6 +5,7 @@ use verbb\formie\base\FormField;
 use verbb\formie\base\SubfieldInterface;
 use verbb\formie\base\SubfieldTrait;
 use verbb\formie\Formie;
+use verbb\formie\gql\types\input\NameInputType;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\Name as NameModel;
 
@@ -475,4 +476,13 @@ class Name extends FormField implements SubfieldInterface
             SchemaHelper::containerAttributesField(),
         ];
     }
+
+    /**
+     * @inheritDoc
+     */
+    public function getContentGqlMutationArgumentType()
+    {
+        return NameInputType::getType($this);
+    }
+    
 }

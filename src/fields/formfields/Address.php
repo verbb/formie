@@ -7,6 +7,7 @@ use verbb\formie\base\Integration;
 use verbb\formie\base\SubfieldInterface;
 use verbb\formie\base\SubfieldTrait;
 use verbb\formie\elements\Form;
+use verbb\formie\gql\types\input\AddressInputType;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\Address as AddressModel;
 
@@ -657,5 +658,13 @@ class Address extends FormField implements SubfieldInterface
             SchemaHelper::cssClasses(),
             SchemaHelper::containerAttributesField(),
         ];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getContentGqlMutationArgumentType()
+    {
+        return AddressInputType::getType($this);
     }
 }

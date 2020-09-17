@@ -66,7 +66,11 @@ class SubmissionMutation extends Mutation
 
         $resolver = Craft::createObject(SubmissionResolver::class);
         $resolver->setResolutionData('form', $form);
-        static::prepareResolver($resolver, $form->getFields());
+        $contentFields = $form->getFields();
+        foreach ($contentFields as &$contentField) {
+            $contentField->formId = $form->id;
+        }
+        static::prepareResolver($resolver, $contentFields);
 
         $mutationArguments = array_merge($mutationArguments, $resolver->getResolutionData(ElementMutationResolver::CONTENT_FIELD_KEY));
 
