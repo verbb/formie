@@ -8,7 +8,9 @@
     {% if elements | length %}
         <ul>
             {% for element in elements %}
-                <li>{{ element.link }}</li>
+                <li>
+                    <a href="{{ element.getCpEditUrl() }}">{{ element.title }}</a>
+                </li>
             {% endfor %}
         </ul>
     {% else %}
