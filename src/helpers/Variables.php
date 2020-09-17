@@ -36,7 +36,7 @@ class Variables
             [ 'label' => Craft::t('formie', 'All Form Fields'), 'value' => '{allFields}' ],
             [ 'label' => Craft::t('formie', 'All Non Empty Fields'), 'value' => '{allContentFields}' ],
             [ 'label' => Craft::t('formie', 'Form Name'), 'value' => '{formName}' ],
-            [ 'label' => Craft::t('formie', 'Submission URL'), 'value' => '{submissionUrl}' ],
+            [ 'label' => Craft::t('formie', 'Submission CP URL'), 'value' => '{submissionUrl}' ],
         ];
     }
 

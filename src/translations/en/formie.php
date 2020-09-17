@@ -908,7 +908,7 @@ return [
     'Input Attributes' => 'Input Attributes',
     'Add attributes to be outputted on this field’s input.' => 'Add attributes to be outputted on this field’s input.',
     'All Non Empty Fields' => 'All Non Empty Fields',
-    'Submission URL' => 'Submission URL',
+    'Submission CP URL' => 'Submission CP URL',
     'System Email' => 'System Email',
     'System Reply-To' => 'System Reply-To',
     'General' => 'General',
