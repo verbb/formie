@@ -406,7 +406,7 @@ class Install extends Migration
     public function insertDefaultData()
     {
         $projectConfig = Craft::$app->projectConfig;
-        
+
         // Don't make the same config changes twice
         $installed = ($projectConfig->get('plugins.formie', true) !== null);
         $configExists = ($projectConfig->get('formie', true) !== null);
@@ -418,6 +418,12 @@ class Install extends Migration
 
         // If the config data exists, but we're re-installing, apply it
         if (!$installed && $configExists) {
+            $allowAdminChanges = Craft::$app->getConfig()->getGeneral()->allowAdminChanges;
+
+            if (!$allowAdminChanges) {
+                return;
+            }
+
             $statuses = $projectConfig->get(Statuses::CONFIG_STATUSES_KEY, true) ?? [];
 
             foreach ($statuses as $statusUid => $statusData) {
