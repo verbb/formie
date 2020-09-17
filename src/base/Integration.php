@@ -641,6 +641,10 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     {
         $fieldValues = [];
 
+        if (!is_array($fieldMapping)) {
+            $fieldMapping = [];
+        }
+
         foreach ($fieldMapping as $tag => $formFieldHandle) {
             // Don't let in un-mapped fields
             if ($formFieldHandle === '') {
