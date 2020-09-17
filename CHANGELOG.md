@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+- Fixed Entry fields not rendering their values correctly in email notifications, when their section had no URL settings.
+- Fixed Category fields not rendering their values correctly in email notifications, when their group had no URL settings.
+- Fixed Product fields not rendering their values correctly in email notifications, when their product type had no URL settings.
+- Fixed Tag fields not rendering their values correctly in email notifications.
+- Fixed User fields not rendering their values correctly in email notifications.
+- Fixed Variant fields not rendering their values correctly in email notifications, when their product type had no URL settings.
+
 ## 1.2.13 - 2020-09-17
 
 ### Fixed
