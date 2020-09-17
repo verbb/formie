@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.2.13 - 2020-09-17
+
+### Fixed
+- Fixed error when trying to submit with multiple checkboxes, in some instances.
+- Ensure existing project config data (if any) is applied when installing Formie for the first time.
+- Fixed error when no statuses exist. Usually caused by a project config mishap, or an incorrect installation.
+
 ## 1.2.12 - 2020-09-16
 
 ### Added
