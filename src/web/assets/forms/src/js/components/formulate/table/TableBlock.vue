@@ -3,13 +3,8 @@
         v-bind="$attrs"
         type="table"
         :repeatable="true"
-        :validation-rules="{ uniqueLabels, uniqueValues, requiredLabels, requiredValues }"
-        :validation-messages="{
-            uniqueLabels: uniqueMessage('label'),
-            uniqueValues: uniqueMessage('value'),
-            requiredLabels: requiredMessage('label'),
-            requiredValues: requiredMessage('value'),
-        }"
+        :validation-rules="getValidationRules()"
+        :validation-messages="getValidationMessages()"
         :validation-name="$attrs.label"
         error-behavior="submit"
         :show-value="false"
@@ -46,6 +41,51 @@ export default {
     },
 
     methods: {
+        getValidationRules() {
+            let rules = {};
+
+            // Only load up the rules we include
+            if (this.$attrs.validation.includes('uniqueLabels')) {
+                rules.uniqueLabels = this.uniqueLabels;
+            }
+
+            if (this.$attrs.validation.includes('uniqueValues')) {
+                rules.uniqueValues = this.uniqueValues;
+            }
+
+            if (this.$attrs.validation.includes('requiredLabels')) {
+                rules.requiredLabels = this.requiredLabels;
+            }
+
+            if (this.$attrs.validation.includes('requiredValues')) {
+                rules.requiredValues = this.requiredValues;
+            }
+
+            return rules;
+        },
+        
+        getValidationMessages() {
+            let messages = {};
+
+            if (this.$attrs.validation.includes('uniqueLabels')) {
+                messages.uniqueLabels = this.uniqueMessage('label');
+            }
+
+            if (this.$attrs.validation.includes('uniqueValues')) {
+                messages.uniqueValues = this.uniqueMessage('value');
+            }
+
+            if (this.$attrs.validation.includes('requiredLabels')) {
+                messages.requiredLabels = this.requiredMessage('label');
+            }
+
+            if (this.$attrs.validation.includes('requiredValues')) {
+                messages.requiredValues = this.requiredMessage('value');
+            }
+
+            return messages;
+        },
+
         uniqueLabels(context) {
             return this.unique('label', context);
         },
@@ -103,8 +143,6 @@ export default {
                 const duplicates = this._checkDuplicates(options, value);
 
                 duplicates.forEach(duplicate => {
-                    this.valuesWithError.push(duplicate);
-
                     if (prop === 'value') {
                         this.valuesWithError.push(duplicate);
                     } else if (prop === 'label') {

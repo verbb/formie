@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+- Refactor field serialization for integrations. Provides better support for array-like data.
+- Recipients field settings now no longer enforce unique values for options.
+
+### Fixed
+- Fixed checkboxes fields not serializing correctly for integrations.
+- Fixed table validation rules firing for all rules, instead of the specific defined ones per its field settings.
+
 ## 1.2.14 - 2020-09-17
 
 ### Added
