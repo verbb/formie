@@ -645,6 +645,9 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
             $fieldMapping = [];
         }
 
+        // Fetch all data for the submission, serialized for integrations
+        $serializedFieldValues = $submission->getSerializedFieldValuesForIntegration();
+
         foreach ($fieldMapping as $tag => $formFieldHandle) {
             // Don't let in un-mapped fields
             if ($formFieldHandle === '') {
@@ -661,8 +664,12 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
 
                         $value = $submission->$formFieldHandle;
                     } else {
-                        // This is a custom method that checks for nested field value lookups
-                        $value = $submission->getFieldValue($formFieldHandle);
+                        // Check for nested fields - convert to dot-notation
+                        if (strstr($formFieldHandle, '[')) {
+                            $formFieldHandle = str_replace(['[', ']'], ['.', ''], $formFieldHandle);
+                        }
+
+                        $value = ArrayHelper::getValue($serializedFieldValues, $formFieldHandle);
                     }
 
                     // Then, allow the integration to control how to parse the field, from its type

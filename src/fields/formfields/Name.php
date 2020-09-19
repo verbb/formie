@@ -182,6 +182,14 @@ class Name extends FormField implements SubfieldInterface
     /**
      * @inheritDoc
      */
+    public function serializeValueForIntegration($value, ElementInterface $element = null)
+    {
+        return $value->toArray();
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function getExtraBaseFieldConfig(): array
     {
         return [

@@ -493,33 +493,26 @@ class Submission extends Element
         return $values;
     }
 
-    /**
-     * Override the `getFieldValue` to allow for selection of subfields
-     */
-    public function getFieldValue(string $fieldHandle)
+    public function getSerializedFieldValuesForIntegration(array $fieldHandles = null): array
     {
-        // Do we have nested fields we're trying to select?
-        if (strstr($fieldHandle, '[')) {
-            $handles = explode('.', str_replace(['[', ']'], ['.', ''], $fieldHandle));
-            $fieldHandle = ArrayHelper::remove($handles, 0);
-            $nestedPath = implode('.', $handles);
+        $serializedValues = [];
 
-            // Check if the field provides a custom function
-            $fields = $this->getFieldLayout()->getFields() ?? [];
-            $field = ArrayHelper::firstWhere($fields, 'handle', $fieldHandle);
+        foreach ($this->fieldLayoutFields() as $field) {
+            if ($fieldHandles === null || in_array($field->handle, $fieldHandles, true)) {
+                $value = $this->getFieldValue($field->handle);
 
-            // Maybe refactor this later to kick it out before we call this function?
-            // Mostly used for integrations at the moment...
-            if ($field && method_exists($field, 'getValueAsString')) {
-                $fieldValue = $field->getValueAsString($this);
-            } else {
-                $fieldValue = parent::getFieldValue($fieldHandle);
+                // Allow fields to override their field values, just for integrations
+                if (method_exists($field, 'serializeValueForIntegration')) {
+                    $value = $field->serializeValueForIntegration($value, $this);
+                } else {
+                    $value = $field->serializeValue($value, $this);
+                }
+
+                $serializedValues[$field->handle] = $value;
             }
-
-            return ArrayHelper::getValue($fieldValue, $nestedPath);
         }
 
-        return parent::getFieldValue($fieldHandle);
+        return $serializedValues;
     }
 
     /**
