@@ -452,6 +452,7 @@ class Fields extends Component
         // Allow fields to provide sub-field options for mapping
         if ($field instanceof SubFieldInterface) {
             $config['subfieldOptions'] = $field->getSubfieldOptions();
+            $config['hasSubfields'] = $field->hasSubfields();
         }
 
         // Whether this field is nested inside another one

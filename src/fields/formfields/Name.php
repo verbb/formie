@@ -133,6 +133,18 @@ class Name extends FormField implements SubfieldInterface
     /**
      * @inheritDoc
      */
+    public function hasSubfields(): bool
+    {
+        if ($this->useMultipleFields) {
+            return true;
+        }
+        
+        return false;
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function normalizeValue($value, ElementInterface $element = null)
     {
         $value = Json::decodeIfJson($value);

@@ -98,6 +98,18 @@ class Date extends FormField implements SubfieldInterface
     /**
      * @inheritDoc
      */
+    public function hasSubfields(): bool
+    {
+        if ($this->displayType !== 'calendar') {
+            return true;
+        }
+        
+        return false;
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function normalizeValue($value, ElementInterface $element = null)
     {
         if (!$value || $value instanceof DateTime) {

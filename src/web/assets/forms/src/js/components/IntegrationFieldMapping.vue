@@ -176,7 +176,7 @@ export default {
                     // Don't show a nested field on its own
                     customFields.push({ label: field.label, value: '{' + field.handle + '}' });
 
-                    if (field.subfieldOptions) {
+                    if (field.subfieldOptions && field.hasSubfields) {
                         field.subfieldOptions.forEach(subfield => {
                             customFields.push({
                                 label: field.label + ': ' + subfield.label,
