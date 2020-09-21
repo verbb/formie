@@ -9,6 +9,8 @@
 ### Fixed
 - Fixed checkboxes fields not serializing correctly for integrations.
 - Fixed table validation rules firing for all rules, instead of the specific defined ones per its field settings.
+- Fixed initialising multiple forms manually, with the JS API on the same page.
+- Fixed calling `destroyForm` in the JS API not destroying event listeners correctly.
 
 ## 1.2.14 - 2020-09-17
 

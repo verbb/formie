@@ -1,4 +1,5 @@
 const globals = require('./utils/globals');
+import { isEmpty } from './utils/utils';
 
 import { FormieFormBase } from './formie-form-base';
 
@@ -35,6 +36,9 @@ export class Formie {
 
         // See if we need to init additional, conditional JS (field, captchas, etc)
         var registeredJs = formConfig.registeredJs || [];
+
+        // Add an instance to this factory to the form config
+        formConfig.Formie = this;
 
         // Create the form class, save it to our collection
         var form = new FormieFormBase(formConfig);
@@ -110,6 +114,18 @@ export class Formie {
         // Delete any additional scripts for the form - if any
         if (form.$registeredJs && form.$registeredJs.parentNode) {
             form.$registeredJs.parentNode.removeChild(form.$registeredJs);
+        }
+
+        // Remove all event listeners attached to this form
+        if (!isEmpty(form.listeners)) {
+            Object.keys(form.listeners).forEach(eventKey => {
+                form.removeEventListener(eventKey);
+            });
+        }
+
+        // Destroy Bouncer events
+        if (form.formTheme && form.formTheme.validator) {
+            form.formTheme.validator.destroy();
         }
 
         // Delete it from the factory

@@ -1,3 +1,5 @@
+import { eventKey } from '../utils/utils';
+
 export class FormieTable {
     constructor(settings = {}) {
         this.fieldId = '#' + settings.fieldId;
@@ -6,7 +8,15 @@ export class FormieTable {
         if (this.$field) {
             this.$form = this.$field.closest('form');
             
-            this.initTable();
+            if (this.$form) {
+                this.form = this.$form.form;
+
+                this.initTable();
+            } else {
+                console.error('Unable to find form');
+            }
+        } else {
+            console.error('Unable to find ' + this.fieldId);
         }
     }
 
@@ -14,7 +24,7 @@ export class FormieTable {
         const $addButton = this.$field.querySelector('[data-add-table-row]');
 
         if ($addButton) {
-            $addButton.addEventListener('click', e => {
+            this.form.addEventListener($addButton, eventKey('click'), e => {
                 this.addRow(e);
             });
         }

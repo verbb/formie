@@ -1,3 +1,5 @@
+import { eventKey } from '../utils/utils';
+
 export class FormieTextLimit {
     constructor(settings = {}) {
         this.formId = '#formie-form-' + settings.formId;
@@ -8,6 +10,8 @@ export class FormieTextLimit {
         this.$text = document.querySelector(this.fieldId + '-max');
 
         if (this.$form && this.$field && this.$text) {
+            this.form = this.$form.form;
+
             this.initTextMax();
         } else {
             console.error('Unable to find ' + this.formId + ' ' + this.fieldId);
@@ -19,11 +23,11 @@ export class FormieTextLimit {
         this.maxWords = this.$text.getAttribute('data-max-words');
 
         if (this.maxChars) {
-            this.$field.addEventListener('keydown', this.characterCheck.bind(this), false);
+            this.form.addEventListener(this.$field, eventKey('keydown'), this.characterCheck.bind(this), false);
         }
 
         if (this.maxWords) {
-            this.$field.addEventListener('keydown', this.wordCheck.bind(this), false);
+            this.form.addEventListener(this.$field, eventKey('keydown'), this.wordCheck.bind(this), false);
         }
     }
 

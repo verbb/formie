@@ -134,8 +134,6 @@ export class FormieRichText {
         $script.setAttribute('crossorigin', 'anonymous');
         document.body.appendChild($script);
 
-        console.log(this.getButtons());
-
         this.editor = init({
             element: this.$container,
             defaultParagraphSeparator: 'p',

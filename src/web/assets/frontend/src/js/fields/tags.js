@@ -7,6 +7,8 @@ export class FormieTags {
 
         if (this.$form) {
             this.initTags();
+        } else {
+            console.error('Unable to find ' + this.formId);
         }
     }
 

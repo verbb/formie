@@ -8,6 +8,7 @@ export class FormieFormBase {
         this.$form = document.querySelector(this.formId);
         this.config = config;
         this.settings = config.settings;
+        this.listeners = {};
 
         if (!this.$form) {
             return;
@@ -23,7 +24,7 @@ export class FormieFormBase {
         this.registerFieldEvents(this.$form);
 
         // Hijack the form's submit handler, in case we need to do something
-        this.$form.addEventListener('submit', (e) => {
+        this.addEventListener(this.$form, 'submit', (e) => {
             e.preventDefault();
 
             const beforeSubmitEvent = new CustomEvent('onBeforeFormieSubmit', {
@@ -106,7 +107,7 @@ export class FormieFormBase {
             const $input = $wrapper.querySelector('.fui-input, .fui-select');
 
             if ($input) {
-                $input.addEventListener('input', event => {
+                this.addEventListener($input, 'input', event => {
                     $wrapper.dispatchEvent(new CustomEvent('input', {
                         bubbles: false,
                         detail: {
@@ -115,7 +116,7 @@ export class FormieFormBase {
                     }));
                 });
 
-                $input.addEventListener('focus', event => {
+                this.addEventListener($input, 'focus', event => {
                     $wrapper.dispatchEvent(new CustomEvent('focus', {
                         bubbles: false,
                         detail: {
@@ -124,7 +125,7 @@ export class FormieFormBase {
                     }));
                 });
 
-                $input.addEventListener('blur', event => {
+                this.addEventListener($input, 'blur', event => {
                     $wrapper.dispatchEvent(new CustomEvent('blur', {
                         bubbles: false,
                         detail: {
@@ -141,5 +142,20 @@ export class FormieFormBase {
                 }));
             }
         });
+    }
+
+    addEventListener(element, event, func) {
+        this.listeners[event] = { element, func };
+
+        element.addEventListener(event.split('.')[0], this.listeners[event].func);
+    }
+
+    removeEventListener(event) {
+        let eventInfo = this.listeners[event] || {};
+
+        if (eventInfo && eventInfo.element && eventInfo.func) {
+            eventInfo.element.removeEventListener(event.split('.')[0], eventInfo.func);
+            delete this.listeners[event];
+        }
     }
 }

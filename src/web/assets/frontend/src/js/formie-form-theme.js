@@ -16,6 +16,7 @@ export class FormieFormTheme {
         }
         
         this.$form.formTheme = this;
+        this.form = this.$form.form;
 
         this.initValidator();
 
@@ -100,7 +101,7 @@ export class FormieFormTheme {
 
         // Override error messages defined in DOM - Bouncer only uses these as a last resort
         // In future updates, we can probably remove this
-        document.addEventListener('bouncerShowError', (e) => {
+        this.form.addEventListener(document, 'bouncerShowError', (e) => {
             var $field = e.target;
             var $fieldContainer = $field.closest('.fui-field-container');
             var message = $field.getAttribute('data-fui-message');
@@ -130,7 +131,7 @@ export class FormieFormTheme {
         // Forms can have multiple submit buttons, and its easier to assign the currently clicked one
         // than tracking it through the submit handler.
         $submitBtns.forEach(($submitBtn) => {
-            $submitBtn.addEventListener('click', (e) => {
+            this.form.addEventListener($submitBtn, 'click', (e) => {
                 this.$submitBtn = e.target;
 
                 // Store for later if we're using text spinner
@@ -138,10 +139,10 @@ export class FormieFormTheme {
             });
         });
 
-        this.$form.addEventListener('onBeforeFormieSubmit', this.onBeforeSubmit.bind(this));
-        this.$form.addEventListener('onFormieValidate', this.onValidate.bind(this));
-        this.$form.addEventListener('onFormieSubmit', this.onSubmit.bind(this));
-        this.$form.addEventListener('onFormieSubmitError', this.onSubmitError.bind(this));
+        this.form.addEventListener(this.$form, 'onBeforeFormieSubmit', this.onBeforeSubmit.bind(this));
+        this.form.addEventListener(this.$form, 'onFormieValidate', this.onValidate.bind(this));
+        this.form.addEventListener(this.$form, 'onFormieSubmit', this.onSubmit.bind(this));
+        this.form.addEventListener(this.$form, 'onFormieSubmitError', this.onSubmitError.bind(this));
     }
 
     onBeforeSubmit(e) {
@@ -184,7 +185,7 @@ export class FormieFormTheme {
     }
 
     addFormUnloadEventListener() {
-        window.addEventListener('beforeunload', (e) => {
+        this.form.addEventListener(window, 'beforeunload', (e) => {
             if (this.savedFormHash !== this.hashForm()) {
                 e.returnValue = t('Are you sure you want to leave?');
             }

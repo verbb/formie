@@ -1,10 +1,16 @@
+import { eventKey } from '../utils/utils';
+
 export class FormieFileUpload {
     constructor(settings = {}) {
         this.formId = '#formie-form-' + settings.formId;
         this.$form = document.querySelector(this.formId);
 
         if (this.$form) {
-            this.$form.addEventListener('registerFormieValidation', this.registerValidation.bind(this));
+            this.form = this.$form.form;
+
+            this.form.addEventListener(this.$form, eventKey('registerFormieValidation'), this.registerValidation.bind(this));
+        } else {
+            console.error('Unable to find ' + this.formId);
         }
     }
 

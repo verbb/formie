@@ -1,3 +1,5 @@
+import { eventKey } from '../utils/utils';
+
 export class FormieRepeater {
     constructor(settings = {}) {
         this.fieldId = '#' + settings.fieldId;
@@ -6,7 +8,15 @@ export class FormieRepeater {
         if (this.$field) {
             this.$form = this.$field.closest('form');
 
-            this.initRepeater();
+            if (this.$form) {
+                this.form = this.$form.form;
+
+                this.initRepeater();
+            } else {
+                console.error('Unable to find form');
+            }
+        } else {
+            console.error('Unable to find ' + this.fieldId);
         }
     }
 
@@ -20,7 +30,8 @@ export class FormieRepeater {
 
         // Bind the click event to the add button
         if (this.$addButton) {
-            this.$addButton.addEventListener('click', e => {
+            // Add the click event, but use a namespace so we can track these dynamically-added items
+            this.form.addEventListener(this.$addButton, eventKey('click'), e => {
                 this.addRow(e);
             });
         }
@@ -42,7 +53,8 @@ export class FormieRepeater {
         const $removeButton = $row.querySelector('[data-remove-repeater-row]');
 
         if ($removeButton) {
-            $removeButton.addEventListener('click', e => {
+            // Add the click event, but use a namespace so we can track these dynamically-added items
+            this.form.addEventListener($removeButton, eventKey('click'), e => {
                 this.removeRow(e);
             });
         }   
