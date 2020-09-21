@@ -17,7 +17,7 @@
             </TableBody>
         </table>
 
-        <div v-if="canAddMore" tabindex="0" class="btn add icon" @click.prevent="addItem">
+        <div v-if="canAddMore" tabindex="0" class="btn add icon" @click.prevent="addItem" @keydown.space.prevent="addItem">
             {{ newRowLabel | t('formie') }}
         </div>
     </div>

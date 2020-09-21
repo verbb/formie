@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### Added
+- Allow `status` and `statusId` to be used in GQL mutations for submissions.
+
 ### Changed
 - Refactor field serialization for integrations. Provides better support for array-like data.
 - Recipients field settings now no longer enforce unique values for options.
@@ -11,6 +14,11 @@
 - Fixed table validation rules firing for all rules, instead of the specific defined ones per its field settings.
 - Fixed initialising multiple forms manually, with the JS API on the same page.
 - Fixed calling `destroyForm` in the JS API not destroying event listeners correctly.
+- Fixed integrations not saving when setting as disabled.
+- Fixed custom fields not being registered correctly.
+- Fixed submissions created via mutations in GraphQL not validating correctly.
+- Fixed submissions created via mutations in GraphQL not sending email notifications.
+- Fixed submissions created via mutations in GraphQL not triggering integrations.
 
 ## 1.2.14 - 2020-09-17
 
