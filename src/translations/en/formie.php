@@ -276,7 +276,7 @@ return [
     'Spam Submission Limit' => 'Spam Submission Limit',
     'Set the maximum number of spam submissions to maintain. Older spam submissions will be deleted.' => 'Set the maximum number of spam submissions to maintain. Older spam submissions will be deleted.',
     'Spam Submission Behavior' => 'Spam Submission Behavior',
-    'When a submission is marked as spam, select what behaviour to perform for users. It’s highly recommended to act as if the submission was succeessful to prevent parties from learning how to get around the spam protection.' => 'When a submission is marked as spam, select what behaviour to perform for users. It’s highly recommended to act as if the submission was succeessful to prevent parties from learning how to get around the spam protection.',
+    'When a submission is marked as spam, select what behaviour to perform for users. It’s highly recommended to act as if the submission was successful to prevent parties from learning how to get around the spam protection.' => 'When a submission is marked as spam, select what behaviour to perform for users. It’s highly recommended to act as if the submission was successful to prevent parties from learning how to get around the spam protection.',
     'Show success' => 'Show success',
     'Show error message' => 'Show error message',
     'Submission Message' => 'Submission Message',
