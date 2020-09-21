@@ -90,22 +90,24 @@ class Fields extends Component
      */
     public function getRegisteredFieldGroups()
     {
+        $registeredFields = $this->getRegisteredFields();
+
         $elementFields = [
-            formfields\Entries::class,
-            formfields\Categories::class,
-            formfields\Tags::class,
+            ArrayHelper::remove($registeredFields, formfields\Entries::class),
+            ArrayHelper::remove($registeredFields, formfields\Categories::class),
+            ArrayHelper::remove($registeredFields, formfields\Tags::class),
         ];
 
         if (Craft::$app->getEdition() === Craft::Pro) {
             $elementFields = array_merge($elementFields, [
-                formfields\Users::class,
+                ArrayHelper::remove($registeredFields, formfields\Users::class),
             ]);
         }
 
         if (Formie::$plugin->getService()->isPluginInstalledAndEnabled('commerce')) {
             $elementFields = array_merge($elementFields, [
-                formfields\Products::class,
-                formfields\Variants::class,
+                ArrayHelper::remove($registeredFields, formfields\Products::class),
+                ArrayHelper::remove($registeredFields, formfields\Variants::class),
             ]);
         }
 
@@ -113,38 +115,38 @@ class Fields extends Component
             [
                 'label' => Craft::t('formie', 'Internal'),
                 'fields' => [
-                    formfields\MissingField::class,
+                    ArrayHelper::remove($registeredFields, formfields\MissingField::class),
                 ],
             ],
             [
                 'label' => Craft::t('formie', 'Common Fields'),
                 'fields' => [
-                    formfields\SingleLineText::class,
-                    formfields\MultiLineText::class,
-                    formfields\Radio::class,
-                    formfields\Checkboxes::class,
-                    formfields\Dropdown::class,
-                    formfields\Number::class,
-                    formfields\Name::class,
-                    formfields\Email::class,
-                    formfields\Phone::class,
-                    formfields\Agree::class,
+                    ArrayHelper::remove($registeredFields, formfields\SingleLineText::class),
+                    ArrayHelper::remove($registeredFields, formfields\MultiLineText::class),
+                    ArrayHelper::remove($registeredFields, formfields\Radio::class),
+                    ArrayHelper::remove($registeredFields, formfields\Checkboxes::class),
+                    ArrayHelper::remove($registeredFields, formfields\Dropdown::class),
+                    ArrayHelper::remove($registeredFields, formfields\Number::class),
+                    ArrayHelper::remove($registeredFields, formfields\Name::class),
+                    ArrayHelper::remove($registeredFields, formfields\Email::class),
+                    ArrayHelper::remove($registeredFields, formfields\Phone::class),
+                    ArrayHelper::remove($registeredFields, formfields\Agree::class),
                 ],
             ],
             [
                 'label' => Craft::t('formie', 'Advanced Fields'),
                 'fields' => [
-                    formfields\Date::class,
-                    formfields\Address::class,
-                    formfields\FileUpload::class,
-                    formfields\Recipients::class,
-                    formfields\Hidden::class,
-                    formfields\Repeater::class,
-                    formfields\Table::class,
-                    formfields\Group::class,
-                    formfields\Heading::class,
-                    formfields\Section::class,
-                    formfields\Html::class,
+                    ArrayHelper::remove($registeredFields, formfields\Date::class),
+                    ArrayHelper::remove($registeredFields, formfields\Address::class),
+                    ArrayHelper::remove($registeredFields, formfields\FileUpload::class),
+                    ArrayHelper::remove($registeredFields, formfields\Recipients::class),
+                    ArrayHelper::remove($registeredFields, formfields\Hidden::class),
+                    ArrayHelper::remove($registeredFields, formfields\Repeater::class),
+                    ArrayHelper::remove($registeredFields, formfields\Table::class),
+                    ArrayHelper::remove($registeredFields, formfields\Group::class),
+                    ArrayHelper::remove($registeredFields, formfields\Heading::class),
+                    ArrayHelper::remove($registeredFields, formfields\Section::class),
+                    ArrayHelper::remove($registeredFields, formfields\Html::class),
                 ],
             ],
             [
@@ -153,13 +155,17 @@ class Fields extends Component
             ],
         ];
 
+        // Any custom fields
+        if ($registeredFields) {
+            $groupedFields[] = [
+                'label' => Craft::t('formie', 'Custom Fields'),
+                'fields' => $registeredFields,
+            ];
+        }
+
         foreach ($groupedFields as $groupKey => $group) {
             foreach ($group['fields'] as $fieldKey => $class) {
-                $field = $this->getRegisteredField($class);
-
-                if ($field) {
-                    $groupedFields[$groupKey]['fields'][$fieldKey] = $field->getBaseFieldConfig();
-                }
+                $groupedFields[$groupKey]['fields'][$fieldKey] = $class->getBaseFieldConfig();
             }
         }
 
