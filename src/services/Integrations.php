@@ -286,7 +286,7 @@ class Integrations extends Component
             'name' => $integration->name,
             'handle' => $integration->handle,
             'type' => get_class($integration),
-            'enabled' => $integration->enabled,
+            'enabled' => (bool)$integration->enabled,
             'sortOrder' => (int)$integration->sortOrder,
             'settings' => ProjectConfigHelper::packAssociativeArrays($integration->getSettings()),
             'tokenId' => $integration->tokenId,
