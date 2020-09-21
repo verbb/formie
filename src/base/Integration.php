@@ -147,6 +147,10 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         if ($this->cache) {
             $this->cache = Json::decodeIfJson($this->cache);
         }
+
+        if (is_string($this->enabled)) {
+            $this->enabled = (bool)$this->enabled;
+        }
     }
 
     /**
