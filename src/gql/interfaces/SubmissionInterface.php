@@ -59,7 +59,16 @@ class SubmissionInterface extends Element
     public static function getFieldDefinitions(): array
     {
         return TypeManager::prepareFieldDefinitions(array_merge(parent::getFieldDefinitions(), [
-            
+            'status' => [
+                'name' => 'status',
+                'type' => Type::string(),
+                'description' => 'The submission’s status.'
+            ],
+            'statusId' => [
+                'name' => 'statusId',
+                'type' => Type::int(),
+                'description' => 'The submission’s status ID.'
+            ],
         ]), self::getName());
     }
 }

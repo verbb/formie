@@ -3,6 +3,7 @@ namespace verbb\formie\gql\mutations;
 
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
+use verbb\formie\gql\arguments\mutations\SubmissionArguments as SubmissionMutationArguments;
 use verbb\formie\gql\resolvers\mutations\SubmissionResolver;
 use verbb\formie\gql\types\generators\SubmissionGenerator;
 
@@ -61,15 +62,17 @@ class SubmissionMutation extends Mutation
     public static function createSaveMutation(Form $form): array
     {
         $mutationName = Submission::gqlMutationNameByContext($form);
-        $mutationArguments = ElementMutationArguments::getArguments();
+        $mutationArguments = SubmissionMutationArguments::getArguments();
         $generatedType = SubmissionGenerator::generateType($form);
 
         $resolver = Craft::createObject(SubmissionResolver::class);
         $resolver->setResolutionData('form', $form);
         $contentFields = $form->getFields();
+
         foreach ($contentFields as &$contentField) {
             $contentField->formId = $form->id;
         }
+
         static::prepareResolver($resolver, $contentFields);
 
         $mutationArguments = array_merge($mutationArguments, $resolver->getResolutionData(ElementMutationResolver::CONTENT_FIELD_KEY));
@@ -79,7 +82,7 @@ class SubmissionMutation extends Mutation
             'description' => 'Save the “' . $form->title . '” submission.',
             'args' => $mutationArguments,
             'resolve' => [$resolver, 'saveSubmission'],
-            'type' => $generatedType
+            'type' => $generatedType,
         ];
     }
 }

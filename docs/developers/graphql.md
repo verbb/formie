@@ -330,6 +330,9 @@ To create or update a submission use the form-specific mutation, which will have
 | `id`| `ID` | Set the element’s ID.
 | `uid`| `String` | Set the element’s UID.
 | `enabled`| `Boolean` | Whether the element should be enabled.
+| `title`| `String` | Set the element’s title.
+| `status`| `String` | Set the element’s status as its handle.
+| `statusId`| `Int` | Set the element’s statusId.
 | `...`|  | More arguments depending on the field layout for the form
 
 <!-- END SUBMISSION MUTATION ARGS -->
