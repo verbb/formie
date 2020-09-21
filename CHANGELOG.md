@@ -1,13 +1,15 @@
 # Changelog
 
-## Unreleased
+## 1.2.15 - 2020-09-21
 
 ### Added
-- Allow `status` and `statusId` to be used in GQL mutations for submissions.
+- Added `status` and `statusId` to be used in GQL mutations for submissions.
 
 ### Changed
 - Refactor field serialization for integrations. Provides better support for array-like data.
 - Recipients field settings now no longer enforce unique values for options.
+- Allow table fields in field settings to add new rows with spacebar (for accessibility).
+- Switch reCAPTCHA verification servers to `recaptcha.net`. Hopefully to improve global reach, when access to `google.com` isn't allowed.
 
 ### Fixed
 - Fixed checkboxes fields not serializing correctly for integrations.
