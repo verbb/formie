@@ -15,7 +15,7 @@ export class FormieRecaptchaV2Checkbox {
         if (!document.getElementById(this.recaptchaScriptId)) {
             var $script = document.createElement('script');
             $script.id = this.recaptchaScriptId;
-            $script.src = 'https://www.google.com/recaptcha/api.js?onload=formieRecaptchaOnLoadCallback&render=explicit&hl=' + this.language;
+            $script.src = 'https://www.recaptcha.net/recaptcha/api.js?onload=formieRecaptchaOnLoadCallback&render=explicit&hl=' + this.language;
             $script.async = true;
             $script.defer = true;
 

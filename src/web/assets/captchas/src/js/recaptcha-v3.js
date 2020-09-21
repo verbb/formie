@@ -13,7 +13,7 @@ export class FormieRecaptchaV3 {
         if (!document.getElementById(this.recaptchaScriptId)) {
             var $script = document.createElement('script');
             $script.id = this.recaptchaScriptId;
-            $script.src = 'https://www.google.com/recaptcha/api.js?onload=formieRecaptchaOnLoadCallback&render=' + this.siteKey + '&hl=' + this.language;
+            $script.src = 'https://www.recaptcha.net/recaptcha/api.js?onload=formieRecaptchaOnLoadCallback&render=' + this.siteKey + '&hl=' + this.language;
             $script.async = true;
             $script.defer = true;
 
