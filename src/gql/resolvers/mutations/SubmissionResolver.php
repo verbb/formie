@@ -1,12 +1,15 @@
 <?php
 namespace verbb\formie\gql\resolvers\mutations;
 
+use verbb\formie\Formie;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\Variables;
+use verbb\formie\models\Settings;
 
 use Craft;
 use craft\gql\base\ElementMutationResolver;
 use craft\helpers\Db;
+use craft\helpers\Json;
 
 use GraphQL\Error\Error;
 use GraphQL\Type\Definition\ResolveInfo;
@@ -54,6 +57,9 @@ class SubmissionResolver extends ElementMutationResolver
 
         // TODO: refactor by combining this from the submit controller...
 
+        /* @var Settings $settings */
+        $formieSettings = Formie::$plugin->getSettings();
+
         // Populate the default status if none
         if (!$submission->statusId) {
             $defaultStatus = $form->getDefaultStatus();
@@ -76,7 +82,56 @@ class SubmissionResolver extends ElementMutationResolver
             }
         }
 
-        $submission = $this->saveElement($submission);
+        // Only handle single-pages in GQL for now
+        $submission->isIncomplete = false;
+        $submission->validateCurrentPageOnly = false;
+
+        $submission->validate();
+
+        if ($submission->hasErrors()) {
+            throw new Error('Unable to save submission: ' . Json::encode($submission->hasErrors()));
+        }
+
+        // Check against all enabled captchas. Also take into account multi-pages
+        $captchas = Formie::$plugin->getIntegrations()->getAllEnabledCaptchasForForm($form);
+
+        foreach ($captchas as $captcha) {
+            $valid = $captcha->validateSubmission($submission);
+
+            if (!$valid) {
+                $submission->isSpam = true;
+                $submission->spamReason = Craft::t('formie', 'Failed Captcha {c}', ['c' => get_class($captcha)]);
+            }
+        }
+
+        // Final spam checks for things like keywords
+        Formie::$plugin->getSubmissions()->spamChecks($submission);
+
+        // Save the submission
+        $success = Craft::$app->getElements()->saveElement($submission, false);
+
+        // Run this regardless of the success state
+        if (!$submission->isIncomplete) {
+            Formie::$plugin->getSubmissions()->onAfterSubmission($success, $submission);
+        }
+
+        // If this submission is marked as spam, there will be errors - so choose how we treat feedback
+        if ($submission->isSpam) {
+            // Check if we need to show an error based on spam - we want to stop right here
+            if ($formieSettings->spamBehaviour === Settings::SPAM_BEHAVIOUR_MESSAGE) {
+                $success = false;
+                $errorMessage = $formieSettings->spamBehaviourMessage;
+            }
+
+            // If there are errors, but its marked as spam, and we want to simulate success, press on
+            if ($formieSettings->spamBehaviour === Settings::SPAM_BEHAVIOUR_SUCCESS) {
+                $success = true;
+            }
+        }
+
+        if (!$success) {
+            throw new Error('Unable to save submission: ' . Json::encode($submission->hasErrors()));
+        }
 
         return $elementService->getElementById($submission->id, Submission::class);
     }
