@@ -184,7 +184,11 @@ class Name extends FormField implements SubfieldInterface
      */
     public function serializeValueForIntegration($value, ElementInterface $element = null)
     {
-        return $value->toArray();
+        if ($this->useMultipleFields) {
+            return $value->toArray();
+        }
+
+        return $value;
     }
 
     /**
