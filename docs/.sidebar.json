@@ -40,7 +40,8 @@
             "template-guides/email-templates",
             "template-guides/cached-forms",
             "template-guides/editing-submissions",
-            "template-guides/populating-forms"
+            "template-guides/populating-forms",
+            "template-guides/element-fields"
         ]
     },
     {

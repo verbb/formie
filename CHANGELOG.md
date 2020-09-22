@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Added
+- Added support for group fields and subfield-enabled fields (name, address) to be used as variable tags.
+
 ## 1.2.16 - 2020-09-22
 
 ### Fixed
