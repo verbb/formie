@@ -4,13 +4,17 @@ namespace verbb\formie\services;
 use verbb\formie\Formie;
 use verbb\formie\base\Element;
 use verbb\formie\controllers\SubmissionsController;
+use verbb\formie\elements\NestedFieldRow;
 use verbb\formie\elements\Submission;
+use verbb\formie\elements\db\NestedFieldRowQuery;
 use verbb\formie\events\SubmissionEvent;
 use verbb\formie\events\SendNotificationEvent;
 use verbb\formie\events\TriggerIntegrationEvent;
 use verbb\formie\fields\formfields;
 use verbb\formie\jobs\SendNotification;
 use verbb\formie\jobs\TriggerIntegration;
+use verbb\formie\models\FakeElement;
+use verbb\formie\models\FakeElementQuery;
 use verbb\formie\models\Settings;
 
 use Craft;
@@ -265,79 +269,15 @@ class Submissions extends Component
         Formie::log($error);
     }
 
+    /**
+     * @inheritdoc
+     */
     public function populateFakeSubmission(Submission $submission)
     {
         $fields = $submission->getFieldLayout()->getFields();
         $fieldContent = [];
 
-        $faker = Faker\Factory::create();
-
-        foreach ($fields as $key => $field) {
-            switch (get_class($field)) {
-                case formfields\Address::class:
-                    $fieldContent[$field->handle]['address1'] = $faker->address;
-                    $fieldContent[$field->handle]['address2'] = $faker->buildingNumber;
-                    $fieldContent[$field->handle]['address3'] = $faker->streetSuffix;
-                    $fieldContent[$field->handle]['city'] = $faker->city;
-                    $fieldContent[$field->handle]['zip'] = $faker->postcode;
-                    $fieldContent[$field->handle]['state'] = $faker->state;
-                    $fieldContent[$field->handle]['country'] = $faker->country;
-
-                    break;
-                case formfields\Checkboxes::class:
-                    $values = $faker->randomElement($field->options)['value'] ?? '';
-                    $fieldContent[$field->handle] = [$values];
-
-                    break;
-                case formfields\Date::class:
-                    $fieldContent[$field->handle] = $faker->iso8601;
-
-                    break;
-                case formfields\Dropdown::class:
-                    $fieldContent[$field->handle] = $faker->randomElement($field->options)['value'] ?? '';
-
-                    break;
-                case formfields\Email::class:
-                    $fieldContent[$field->handle] = $faker->email;
-
-                    break;
-                case formfields\Name::class:
-                    if ($field->useMultipleFields) {
-                        $fieldContent[$field->handle]['prefix'] = $faker->title;
-                        $fieldContent[$field->handle]['firstName'] = $faker->firstName;
-                        $fieldContent[$field->handle]['middleName'] = $faker->firstName;
-                        $fieldContent[$field->handle]['lastName'] = $faker->lastName;
-                    } else {
-                        $fieldContent[$field->handle] = $faker->name;
-                    }
-
-                    break;
-                case formfields\MultiLineText::class:
-                    $fieldContent[$field->handle] = $faker->realText;
-
-                    break;
-                case formfields\Number::class:
-                    $fieldContent[$field->handle] = $faker->randomDigit;
-
-                    break;
-                case formfields\Phone::class:
-                    $fieldContent[$field->handle] = $faker->phoneNumber;
-
-                    break;
-                case formfields\Radio::class:
-                    $fieldContent[$field->handle] = $faker->randomElement($field->options)['value'] ?? '';
-
-                    break;
-                case formfields\Recipients::class:
-                    $fieldContent[$field->handle] = $faker->email;
-
-                    break;                    
-                default:
-                    $fieldContent[$field->handle] = $faker->text;
-
-                    break;
-            }
-        }
+        $fieldContent = $this->_getFakeFieldContent($fields);
 
         $submission->setFieldValues($fieldContent);
     }
@@ -381,5 +321,97 @@ class Submissions extends Component
         }
 
         return implode(' ', $fieldValues);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function _getFakeFieldContent($fields)
+    {
+        $fieldContent = [];
+
+        $faker = Faker\Factory::create();
+
+        foreach ($fields as $key => $field) {
+            switch (get_class($field)) {
+                case formfields\Address::class:
+                    $fieldContent[$field->handle]['address1'] = $faker->address;
+                    $fieldContent[$field->handle]['address2'] = $faker->buildingNumber;
+                    $fieldContent[$field->handle]['address3'] = $faker->streetSuffix;
+                    $fieldContent[$field->handle]['city'] = $faker->city;
+                    $fieldContent[$field->handle]['zip'] = $faker->postcode;
+                    $fieldContent[$field->handle]['state'] = $faker->state;
+                    $fieldContent[$field->handle]['country'] = $faker->country;
+
+                    break;
+                case formfields\Checkboxes::class:
+                    $values = $faker->randomElement($field->options)['value'] ?? '';
+                    $fieldContent[$field->handle] = [$values];
+
+                    break;
+                case formfields\Date::class:
+                    $fieldContent[$field->handle] = $faker->iso8601;
+
+                    break;
+                case formfields\Dropdown::class:
+                    $fieldContent[$field->handle] = $faker->randomElement($field->options)['value'] ?? '';
+
+                    break;
+                case formfields\Email::class:
+                    $fieldContent[$field->handle] = $faker->email;
+
+                    break;
+                case formfields\Group::class:
+                    // Create a fake object to query. Maybe one day I'll figure out how to generate a fake elementQuery.
+                    // The fields rely on a NestedRowQuery for use in emails, so we need some similar.
+                    $query = new FakeElementQuery(FakeElement::class);
+
+                    if ($fieldLayout = $field->getFieldLayout()) {
+                        $content = $this->_getFakeFieldContent($fieldLayout->getFields());
+                        $query->setFieldValues($content);
+                    }
+
+                    $fieldContent[$field->handle] = $query;
+
+                    break;
+                case formfields\MultiLineText::class:
+                    $fieldContent[$field->handle] = $faker->realText;
+
+                    break;
+                case formfields\Name::class:
+                    if ($field->useMultipleFields) {
+                        $fieldContent[$field->handle]['prefix'] = $faker->title;
+                        $fieldContent[$field->handle]['firstName'] = $faker->firstName;
+                        $fieldContent[$field->handle]['middleName'] = $faker->firstName;
+                        $fieldContent[$field->handle]['lastName'] = $faker->lastName;
+                    } else {
+                        $fieldContent[$field->handle] = $faker->name;
+                    }
+
+                    break;
+                case formfields\Number::class:
+                    $fieldContent[$field->handle] = $faker->randomDigit;
+
+                    break;
+                case formfields\Phone::class:
+                    $fieldContent[$field->handle] = $faker->phoneNumber;
+
+                    break;
+                case formfields\Radio::class:
+                    $fieldContent[$field->handle] = $faker->randomElement($field->options)['value'] ?? '';
+
+                    break;
+                case formfields\Recipients::class:
+                    $fieldContent[$field->handle] = $faker->email;
+
+                    break;                    
+                default:
+                    $fieldContent[$field->handle] = $faker->text;
+
+                    break;
+            }
+        }
+
+        return $fieldContent;
     }
 }

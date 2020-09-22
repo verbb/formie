@@ -493,6 +493,9 @@ class Submission extends Element
         return $values;
     }
 
+    /**
+     * @inheritdoc
+     */
     public function getSerializedFieldValuesForIntegration(array $fieldHandles = null): array
     {
         $serializedValues = [];

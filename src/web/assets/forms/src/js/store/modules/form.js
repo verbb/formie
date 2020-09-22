@@ -5,6 +5,7 @@ import forEach from 'lodash/forEach';
 import filter from 'lodash/filter';
 import omitBy from 'lodash/omitBy';
 import md5Hex from 'md5-hex';
+import { toBoolean } from '../../utils/bool';
 
 // State is simply an object that contains the properties that need to be shared within the application:
 // The state must return a function to make the module reusable.
@@ -393,11 +394,28 @@ const getters = {
             { label: Craft.t('formie', 'Fields'), heading: true },
         ];
 
-        fields = fields.concat(getters.fields.filter(field => {
-            return allowedTypes.includes(field.type);
-        }).map(field => {
-            return { label: field.label, value: '{' + field.handle + '}' };
-        }));
+        getters.fields.forEach(field => {
+            // If this field is nested itself, don't show. The outer field takes care of that below
+            if (!toBoolean(field.isNested)) {
+                if (field.type === 'verbb\\formie\\fields\\formfields\\Group' && field.rows) {
+                    // Is this a group field that supports nesting?
+                    field.rows.forEach(row => {
+                        row.fields.forEach(subfield => {
+                            if (allowedTypes.includes(subfield.type)) {
+                                fields.push({
+                                    label: field.label + ': ' + subfield.label,
+                                    value: '{' + field.handle + '.one().' + subfield.handle + ' ?? null}',
+                                });
+                            }
+                        });
+                    });
+                } else {
+                    if (allowedTypes.includes(field.type)) {
+                        fields.push({ label: field.label, value: '{' + field.handle + '}' });
+                    }
+                }
+            }
+        });
 
         // Check if there's only a heading
         if (fields.length === 1) {
@@ -434,11 +452,35 @@ const getters = {
             { label: Craft.t('formie', 'Fields'), heading: true },
         ];
 
-        fields = fields.concat(getters.fields.filter(field => {
-            return allowedTypes.includes(field.type);
-        }).map(field => {
-            return { label: field.label, value: '{' + field.handle + '}' };
-        }));
+        getters.fields.forEach(field => {
+            // If this field is nested itself, don't show. The outer field takes care of that below
+            if (!toBoolean(field.isNested)) {
+                if (field.subfieldOptions && field.hasSubfields) {
+                    field.subfieldOptions.forEach(subfield => {
+                        fields.push({
+                            label: field.label + ': ' + subfield.label,
+                            value: '{' + field.handle + '.' + subfield.handle + '}',
+                        });
+                    });
+                } else if (field.type === 'verbb\\formie\\fields\\formfields\\Group' && field.rows) {
+                    // Is this a group field that supports nesting?
+                    field.rows.forEach(row => {
+                        row.fields.forEach(subfield => {
+                            if (allowedTypes.includes(subfield.type)) {
+                                fields.push({
+                                    label: field.label + ': ' + subfield.label,
+                                    value: '{' + field.handle + '.one().' + subfield.handle + ' ?? null}',
+                                });
+                            }
+                        });
+                    });
+                } else {
+                    if (allowedTypes.includes(field.type)) {
+                        fields.push({ label: field.label, value: '{' + field.handle + '}' });
+                    }
+                }
+            }
+        });
 
         // Check if there's only a heading
         if (fields.length === 1) {
