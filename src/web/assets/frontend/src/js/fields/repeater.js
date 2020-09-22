@@ -76,7 +76,7 @@ export class FormieRepeater {
 
             let $newRow = document.createElement('div');
             $newRow.innerHTML = html.trim();
-            $newRow = $newRow.firstChild;
+            $newRow = $newRow.querySelector('div:first-of-type');
 
             this.$field.querySelector('.fui-repeater-rows').appendChild($newRow);
 
