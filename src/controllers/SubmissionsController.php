@@ -38,6 +38,8 @@ class SubmissionsController extends Controller
 
     protected $allowAnonymous = [
         'submit' => self::ALLOW_ANONYMOUS_LIVE,
+        'set-page' => self::ALLOW_ANONYMOUS_LIVE,
+        'clear-submission' => self::ALLOW_ANONYMOUS_LIVE,
     ];
 
 
