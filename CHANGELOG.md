@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.2.16 - 2020-09-22
+
+### Fixed
+- Fixed name field serializing non-multiple fields for integrations
+- Fixed some fields (name, date, phone) always allowing mapping for their subfields for integrations.
+- Fixed front-end submission editing not working for mult-page forms.
+
 ## 1.2.15 - 2020-09-21
 
 ### Added
