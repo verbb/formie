@@ -2,7 +2,13 @@
     <div class="fui-tabs">
         {% for p in form.pages %}
             <div id="fui-tab-{{ p.id }}" class="fui-tab {{ (p.id == currentPage.id) ? 'fui-tab-active' }}">
-                <a href="{{ actionUrl('formie/submissions/set-page', { handle: form.handle, pageId: p.id }) }}">
+                {%- set params = { handle: form.handle, pageId: p.id } -%}
+
+                {%- if submission and submission.id -%}
+                    {%- set params = params | merge({ submissionId: submission.id }) -%}
+                {%- endif -%}
+
+                <a href="{{ actionUrl('formie/submissions/set-page', params) }}">
                     {{ p.name | t }}
                 </a>
             </div>

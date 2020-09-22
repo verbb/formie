@@ -536,7 +536,7 @@ class Form extends Element
 
         if ($pages) {
             // Check if there's a session variable
-            $pageId = Craft::$app->getSession()->get('formie:' . $this->id . ':pageId');
+            $pageId = Craft::$app->getSession()->get($this->_getSessionKey('pageId'));
 
             if ($pageId) {
                 $currentPage = ArrayHelper::firstWhere($pages, 'id', $pageId);
@@ -654,7 +654,7 @@ class Form extends Element
             return;
         }
 
-        Craft::$app->getSession()->set('formie:' . $this->id . ':pageId', $page->id);
+        Craft::$app->getSession()->set($this->_getSessionKey('pageId'), $page->id);
     }
 
     /**
@@ -668,7 +668,7 @@ class Form extends Element
             return;
         }
 
-        Craft::$app->getSession()->remove('formie:' . $this->id . ':pageId');
+        Craft::$app->getSession()->remove($this->_getSessionKey('pageId'));
     }
 
     /**
@@ -710,7 +710,7 @@ class Form extends Element
         }
 
         // Check if there's a session variable
-        $submissionId = Craft::$app->getSession()->get('formie:' . $this->id . ':submissionId');
+        $submissionId = Craft::$app->getSession()->get($this->_getSessionKey('submissionId'));
 
         if ($submissionId && $submission = Submission::find()->id($submissionId)->isIncomplete(true)->one()) {
             return $submission;
@@ -740,7 +740,7 @@ class Form extends Element
             $this->resetCurrentSubmission();
         } else {
             Craft::$app->getContent()->populateElementContent($submission);
-            Craft::$app->getSession()->set('formie:' . $this->id . ':submissionId', $submission->id);
+            Craft::$app->getSession()->set($this->_getSessionKey('submissionId'), $submission->id);
         }
     }
 
@@ -756,7 +756,7 @@ class Form extends Element
         }
 
         $this->resetCurrentPage();
-        Craft::$app->getSession()->remove('formie:' . $this->id . ':submissionId');
+        Craft::$app->getSession()->remove($this->_getSessionKey('submissionId'));
     }
 
     /**
@@ -1222,5 +1222,22 @@ class Form extends Element
                 'attribute' => 'id',
             ],
         ];
+    }
+
+
+    // Private methods
+    // =========================================================================
+
+    /**
+     * @inheritDoc
+     */
+    private function _getSessionKey($key)
+    {
+        // Return a different session namespace when editing a submission
+        if ($this->_editingSubmission && $this->_editingSubmission->id) {
+            return 'formie:' . $this->id . ':' . $this->_editingSubmission->id . ':' . $key;
+        }
+
+        return 'formie:' . $this->id . ':' . $key;
     }
 }

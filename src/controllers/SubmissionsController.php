@@ -154,6 +154,8 @@ class SubmissionsController extends Controller
             $submission->siteId = $siteId ?? $submission->siteId;
         }
 
+        $form = $submission->form;
+
         // Now populate the rest of it from the post data
         $submission->enabled = true;
         $submission->enabledForSite = true;
@@ -167,6 +169,35 @@ class SubmissionsController extends Controller
             $submission->setScenario(Element::SCENARIO_LIVE);
         }
 
+        // Check if this is a front-end edit
+        if ($request->getIsSiteRequest()) {
+            $goingBack = false;
+
+            // Ensure we set the current submission on the form. This keeps track of session info for
+            // multi-page forms, separate to "new" submissions
+            $form->setSubmission($submission);
+
+            // Check for the next page - if there is one
+            $nextPage = $form->getNextPage();
+
+            // Or, if we've passed in a specific page to go to
+            if ($goToPageId = $request->getBodyParam('goToPageId')) {
+                $goingBack = true;
+                $nextPage = ArrayHelper::firstWhere($form->getPages(), 'id', $goToPageId);
+            }
+
+            // Don't validate when going back
+            if (!$goingBack) {
+                // Turn on validation, but set a flag to only validate the current page.
+                $submission->validateCurrentPageOnly = true;
+            }
+
+            // Check if we're on the last page of the form, or need to keep going
+            if (empty($nextPage)) {
+                $submission->validateCurrentPageOnly = false;
+            }
+        }
+
         $submission->validate();
 
         if ($submission->hasErrors()) {
@@ -174,8 +205,8 @@ class SubmissionsController extends Controller
 
             if ($request->getAcceptsJson()) {
                 return $this->asJson([
-                    'errors' => $errors,
                     'success' => false,
+                    'errors' => $errors,
                 ]);
             }
 
@@ -208,6 +239,39 @@ class SubmissionsController extends Controller
             return null;
         }
 
+        // Check if this is a front-end edit
+        if ($request->getIsSiteRequest()) {
+            if (!empty($nextPage)) {
+                // Update the current page to reflect the next page
+                $form->setCurrentPage($nextPage);
+
+                // Set the active submission so we can keep going
+                $form->setCurrentSubmission($submission);
+            } else {
+                // Reset pages, now we're on the last step
+                $form->resetCurrentPage();
+            }
+
+            if ($request->getAcceptsJson()) {
+                return $this->_returnJsonResponse(true, $submission, $form, $nextPage);
+            }
+
+            if (!empty($nextPage)) {
+                // Refresh, there's still more pages to complete
+                return $this->refresh();
+            }
+
+            Formie::$plugin->getService()->setFlash($form->id, 'submitted', true);
+
+            if ($form->settings->submitAction == 'message') {
+                Formie::$plugin->getService()->setNotice($form->id, $form->settings->getSubmitActionMessage());
+
+                return $this->refresh();
+            }
+
+            return $this->redirectToPostedUrl($submission);
+        }
+
         if ($request->getAcceptsJson()) {
             return $this->asJson([
                 'success' => true,
@@ -215,7 +279,7 @@ class SubmissionsController extends Controller
                 'title' => $submission->title,
                 'status' => $submission->getStatus(true)->handle ?? '',
                 'url' => $submission->getUrl(),
-                'cpEditUrl' => $submission->getCpEditUrl()
+                'cpEditUrl' => $submission->getCpEditUrl(),
             ]);
         }
 
@@ -452,6 +516,20 @@ class SubmissionsController extends Controller
 
         if (!$form) {
             throw new BadRequestHttpException("No form exists with the handle \"$handle\"");
+        }
+
+        // Check if we're editing a submission
+        if ($submissionId = $request->getParam('submissionId')) {
+
+            $submission = Submission::find()
+                ->id($submissionId)
+                ->isIncomplete(null)
+                ->isSpam(null)
+                ->one();
+
+            if ($submission) {
+                $form->setSubmission($submission);
+            }
         }
 
         $nextPage = ArrayHelper::firstWhere($form->getPages(), 'id', $pageId);
