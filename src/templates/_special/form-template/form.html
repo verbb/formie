@@ -23,7 +23,7 @@
             "fui-labels-#{defaultLabelPosition}",
             form.settings.displayPageProgress ? "fui-progress-#{form.settings.progressPosition}",
             form.settings.validationOnFocus ? 'fui-validate-on-focus',
-        ],
+        ] | merge(options.formClasses ?? []),
         method: 'post',
         enctype: 'multipart/form-data',
         'accept-charset': 'utf-8',
@@ -35,8 +35,8 @@
             'loading-text': form.settings.loadingIndicatorText ?: false,
             'redirect': form.getRedirectUrl() ?: false,
             'config': form.configJson,
-        },
-    } %}
+        } | merge(options.formDataAttributes ?? {}),
+    } | merge(options.formAttributes ?? {}) %}
 
     <div class="fui-i">
         {% set submitted = craft.formie.plugin.service.getFlash(form.id, 'submitted') %}

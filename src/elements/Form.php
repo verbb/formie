@@ -1000,6 +1000,14 @@ class Form extends Element
         return $output;
     }
 
+    /**
+     * @inheritDoc
+     */
+    public function setSettings($settings)
+    {
+        $this->settings->setAttributes($settings, false);
+    }
+
 
     // Events
     // =========================================================================

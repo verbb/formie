@@ -25,4 +25,45 @@ If you are using custom templates, you can also pass in a number of options to t
 {{ craft.formie.renderForm('contactForm', options) }}
 ```
 
+## Override Form Attributes and Classes
+You can use the rendering options to override any HTML attributes, data attributes and classes on the `<form>` element.
+
+```twig
+{% set options = {
+    formClasses: [
+        'my-custom-class',
+    ],
+    formDataAttributes: {
+        'new-attribute': 'some-value',
+    },
+    formAttributes: {
+        'title': 'Some Title',
+    },
+} %}
+
+{{ craft.formie.renderForm('contactForm', options) }}
+```
+
+The above would produce:
+
+```twig
+<form class="fui-form fui-labels-above-input my-custom-class" data-new-attribute="some-value" title="Some Title">
+    ...
+```
+
+## Override Form Settings
+You can also dynamically override any settings for the form
+
+```twig
+{% set form = craft.formie.forms.handle('contactForm').one() %}
+
+{% do form.setSettings({
+    submitActionUrl: 'https://google.com',
+}) %}
+
+{{ craft.formie.renderForm(form, options) }}
+```
+
+The above would override the redirect URL for the form, regardless of what is defined in the form's settings. See the [Form Settings](docs:developers/form) docs for a full list of available settings to override.
+
 For more fine-grained control over rendering of a form, see [Rendering Pages](docs:template-guides/rendering-pages) and [Rendering Fields](docs:template-guides/rendering-fields)

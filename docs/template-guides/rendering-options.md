@@ -12,6 +12,9 @@ Option | Description
 `buttons` | Affect the attributes of the submit/next page and previous page buttons. Accepts a [Buttons Options](#buttons-options) object as the value.
 `fieldTag` | Set the tag for the outer-most field container. This is `div` by default.
 `fieldNamespace` | Set the namespace used by all fields. This is `fields` by default.
+`formClasses` | Provide an array of classes to be merged on the `<form>` element.
+`formDataAttributes` | Provide an object of data attributes to be merged on the `<form>` element.
+`formAttributes` | Provide an object of attributes to be merged on the `<form>` element.
 
 
 ## Buttons Options

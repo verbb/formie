@@ -45,3 +45,30 @@ Method | Description
 `getRedirectUrl()` | Returns the URL for the redirection upon final submission of the form.
 `getRedirectEntry()` | Returns the [Entry](https://docs.craftcms.com/api/v3/craft-elements-entry.html) used for redirection, if applicable.
 `getCaptchas()` | Returns all enabled [Captcha](docs:integration/captchas) objects for this form.
+
+## Form Settings
+Each form has a collection of settings associated with it.
+
+### Attributes
+
+Attribute | Description
+--- | ---
+`displayFormTitle` | Whether to show the form’s title.
+`displayPageTabs` | Whether to show the form’s page tabs.
+`displayCurrentPageTitle` | Whether to show the form’s current page title.
+`displayPageProgress` | Whether to show the form’s page progress.
+`submitMethod` | The form’s submit method. `ajax` or `page-reload`.
+`submitAction` | Set the submission action. `message`, `entry`, `url`, `reload`.
+`submitActionTab` | Whether to the redirect URL should open in a new tab.
+`submitActionUrl` | The URL to redirect to on success.
+`submitActionFormHide` | Whether the form should be hidden on success.
+`submitActionMessage` | The success message as HTML shown on validation success.
+`submitActionMessageTimeout` | Whether the success message should hide after the provided number of milliseconds.
+`errorMessage` | The error message as HTML shown on validation failure.
+`loadingIndicator` | The type of loading indicator to use. `none`, `spinner` or `text`.
+`loadingIndicatorText` | The text for the loading indicator.
+`validationOnSubmit` | Whether to validate the form fields on-submit.
+`validationOnFocus` | Whether to validate the form fields on-focus.
+`submissionTitleFormat` | The submission title format.
+`collectIp` | Whether to collect the IP address of the user.
+`collectUser` | Whether to collect a logged-in user against the form.
