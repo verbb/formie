@@ -1,9 +1,13 @@
 # Changelog
 
-## Unreleased
+## 1.2.17 - 2020-09-23
 
 ### Added
 - Added support for group fields and subfield-enabled fields (name, address) to be used as variable tags.
+- Added ability to override form settings, classes and attributes in templates.
+
+### Fixed
+- Fixed `isJsonObject` error for Craft 3.4.
 
 ## 1.2.16 - 2020-09-22
 
