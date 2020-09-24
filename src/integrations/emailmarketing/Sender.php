@@ -122,7 +122,7 @@ class Sender extends EmailMarketing
             ];
 
             // Allow events to cancel sending
-            if (!$this->beforeSendPayload($submission, $payload)) {
+            if (!$this->beforeSendPayload($submission, 'listSubscribe', $payload, 'POST')) {
                 return false;
             }
 
@@ -130,7 +130,7 @@ class Sender extends EmailMarketing
             $response = $this->_request($payload);
 
             // Allow events to say the response is invalid
-            if (!$this->afterSendPayload($submission, $payload, $response)) {
+            if (!$this->afterSendPayload($submission, 'listSubscribe', $payload, 'POST', $response)) {
                 return false;
             }
 

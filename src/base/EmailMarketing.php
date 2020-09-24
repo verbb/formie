@@ -119,7 +119,7 @@ abstract class EmailMarketing extends Integration implements IntegrationInterfac
     /**
      * @inheritDoc
      */
-    protected function beforeSendPayload(Submission $submission, $payload)
+    protected function beforeSendPayload(Submission $submission, $endpoint, &$payload, $method)
     {
         $event = new SendIntegrationPayloadEvent([
             'submission' => $submission,

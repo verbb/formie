@@ -223,7 +223,7 @@ class Drip extends EmailMarketing
             ];
 
             // Allow events to cancel sending
-            if (!$this->beforeSendPayload($submission, $payload)) {
+            if (!$this->beforeSendPayload($submission, 'accounts', $payload, 'GET')) {
                 return false;
             }
 
@@ -232,7 +232,7 @@ class Drip extends EmailMarketing
             $accountId = $response['accounts'][0]['id'] ?? '';
 
             // Allow events to say the response is invalid
-            if (!$this->afterSendPayload($submission, $payload, $response)) {
+            if (!$this->afterSendPayload($submission, 'accounts', $payload, 'GET', $response)) {
                 return false;
             }
 

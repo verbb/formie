@@ -216,7 +216,7 @@ class AWeber extends EmailMarketing
             ];
 
             // Allow events to cancel sending
-            if (!$this->beforeSendPayload($submission, $payload)) {
+            if (!$this->beforeSendPayload($submission, 'accounts', $payload, 'GET')) {
                 return false;
             }
 
@@ -227,7 +227,7 @@ class AWeber extends EmailMarketing
             $listsUrl = str_replace('https://api.aweber.com/1.0/', '', $listsUrl);
 
             // Allow events to say the response is invalid
-            if (!$this->afterSendPayload($submission, $payload, $response)) {
+            if (!$this->afterSendPayload($submission, 'accounts', $payload, 'GET', $response)) {
                 return false;
             }
 
