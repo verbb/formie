@@ -622,7 +622,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     protected function deliverPayload($submission, $endpoint, $payload, $method = 'POST')
     {
         // Allow events to cancel sending
-        if (!$this->beforeSendPayload($submission, $payload)) {
+        if (!$this->beforeSendPayload($submission, $endpoint, $payload, $method)) {
             return false;
         }
 
@@ -631,7 +631,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         ]);
 
         // Allow events to say the response is invalid
-        if (!$this->afterSendPayload($submission, $payload, $response)) {
+        if (!$this->afterSendPayload($submission, $endpoint, $payload, $method, $response)) {
             return false;
         }
 
@@ -745,11 +745,13 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     /**
      * @inheritDoc
      */
-    protected function beforeSendPayload(Submission $submission, &$payload)
+    protected function beforeSendPayload(Submission $submission, $endpoint, &$payload, $method)
     {
         $event = new SendIntegrationPayloadEvent([
             'submission' => $submission,
             'payload' => $payload,
+            'endpoint' => $endpoint,
+            'method' => $method,
             'integration' => $this,
         ]);
         $this->trigger(self::EVENT_BEFORE_SEND_PAYLOAD, $event);
@@ -767,12 +769,14 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     /**
      * @inheritDoc
      */
-    protected function afterSendPayload(Submission $submission, $payload, $response)
+    protected function afterSendPayload(Submission $submission, $endpoint, $payload, $method, $response)
     {
         $event = new SendIntegrationPayloadEvent([
             'submission' => $submission,
             'payload' => $payload,
             'response' => $response,
+            'endpoint' => $endpoint,
+            'method' => $method,
             'integration' => $this,
         ]);
         $this->trigger(self::EVENT_AFTER_SEND_PAYLOAD, $event);
