@@ -101,6 +101,9 @@ class NestedFields extends Component
         $formId = Db::idByUid('{{%formie_forms}}', $formContext[1]);
         $baseName = 'fmc_' . $formId . '_' . StringHelper::toLowerCase($field->handle);
 
+        // Trim the table just in case to prevent column limit (leave room for increments)
+        $baseName = substr($baseName, 0, 60);
+
         do {
             $i++;
             $name = '{{%' . $baseName . ($i !== 0 ? '_' . $i : '') . '}}';
