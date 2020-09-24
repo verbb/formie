@@ -142,6 +142,18 @@ class Phone extends FormField implements SubfieldInterface
     /**
      * @inheritDoc
      */
+    public function serializeValueForIntegration($value, ElementInterface $element = null)
+    {
+        if ($this->countryEnabled) {
+            return $value->toArray();
+        }
+
+        return $value->number;
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function getFieldDefaults(): array
     {
         return [
