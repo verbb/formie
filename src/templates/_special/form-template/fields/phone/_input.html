@@ -7,6 +7,9 @@
     autocomplete: autocomplete,
     required: required,
     value: value,
+    data: {
+        'fui-message': field.settings.errorMessage | t,
+    },
     aria: {
         required: required ? 'true' : 'false',
     },

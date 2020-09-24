@@ -20,6 +20,9 @@
                     required: field.required ? true : false,
                     value: option.value,
                     checked: selected,
+                    data: {
+                        'fui-message': field.settings.errorMessage | t,
+                    },
                     aria: {
                         required: field.required ? 'true' : 'false',
                         checked: selected ? 'true' : 'false',

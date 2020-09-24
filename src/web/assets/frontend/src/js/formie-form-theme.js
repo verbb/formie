@@ -103,7 +103,7 @@ export class FormieFormTheme {
         // In future updates, we can probably remove this
         this.form.addEventListener(document, 'bouncerShowError', (e) => {
             var $field = e.target;
-            var $fieldContainer = $field.closest('.fui-field-container');
+            var $fieldContainer = $field.closest('.fui-field');
             var message = $field.getAttribute('data-fui-message');
 
             // Check if we need to move the error out of the .fui-input-container node.

@@ -10,6 +10,9 @@
     required: field.required ? true : false,
     value: '1',
     checked: value ? true : false,
+    data: {
+        'fui-message': field.settings.errorMessage | t,
+    },
     aria: {
         required: field.required ? 'true' : 'false',
         checked: value ? 'true' : 'false',

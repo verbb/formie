@@ -35,6 +35,9 @@
             class: [ 'fui-select' ],
             name: char | namespaceInputName(field.handle),
             required: field.required ? true : false,
+            data: {
+                'fui-message': field.settings.errorMessage | t,
+            },
             aria: {
                 required: field.required ? 'true' : 'false',
             },

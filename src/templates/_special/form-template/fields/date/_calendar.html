@@ -15,6 +15,9 @@
                     name: 'date' | namespaceInputName(field.handle),
                     required: field.required ? true : false,
                     value: value ? (value | date('Y-m-d')) : null,
+                    data: {
+                        'fui-message': field.settings.errorMessage | t,
+                    },
                     aria: {
                         required: field.required ? 'true' : 'false',
                     },
@@ -44,6 +47,9 @@
                         name: 'time' | namespaceInputName(field.handle),
                         required: field.required ? true : false,
                         value: value ? (value | date('H:i:s')) : null,
+                        data: {
+                            'fui-message': field.settings.errorMessage | t,
+                        },
                         aria: {
                             required: field.required ? 'true' : 'false',
                         },
