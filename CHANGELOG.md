@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.2.18 - 2020-09-25
+
+### Added
+- Added `endpoint` and `method` to payload events for integrations.
+
+### Fixed
+- Fixed serialization of phone fields for integrations.
+- Fixed being unable to modify payload in `beforeSendPayload` event.
+- Fixed a number of fields (checkbox, radio, agree, date, phone) where the custom error message wasn't working.
+- Fixed error when connecting with AutoPilot.
+- Fixed image uploads not attaching to email notifications for non-local volumes.
+- Ensure nested fields (group and repeater) respect MySQL table name limits. Prevents errors when saving a very long field name.
+- Fixed an error when editing a form when a user doesn’t have permission for the primary site.
+
 ## 1.2.17 - 2020-09-23
 
 ### Added
