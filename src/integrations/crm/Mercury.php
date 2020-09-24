@@ -288,11 +288,11 @@ class Mercury extends Crm
                 ]),
                 new IntegrationField([
                     'handle' => 'leadSourceId',
-                    'name' => Craft::t('formie', 'LeadSourceId'),
+                    'name' => Craft::t('formie', 'Lead Source ID'),
                 ]),
                 new IntegrationField([
                     'handle' => 'leadSourceDisplay',
-                    'name' => Craft::t('formie', 'LeadSource Display'),
+                    'name' => Craft::t('formie', 'Lead Source Display'),
                 ]),
                 new IntegrationField([
                     'handle' => 'discount',
@@ -387,6 +387,8 @@ class Mercury extends Crm
             $contactPayload = $contactValues;
             $opportunityPayload = $opportunityValues;
 
+            $contactId = null;
+
             if ($this->mapToContact) {
                 $response = $this->deliverPayload($submission, 'contacts', $contactPayload);
 
@@ -396,6 +398,8 @@ class Mercury extends Crm
 
                 $contactId = $response['uniqueId'] ?? '';
             }
+
+            $opportunityId = null;
 
             if ($this->mapToOpportunity) {
                 if ($contactId) {
