@@ -444,7 +444,7 @@ class Emails extends Component
                 $path = $this->_getFullAssetFilePath($asset);
             } else {
                 // Make a local copy of the file, and store so we can delete
-                $this->_tempAttachments[] = $asset->getCopyOfFile();
+                $this->_tempAttachments[] = $path = $asset->getCopyOfFile();
             }
 
             if ($path) {
