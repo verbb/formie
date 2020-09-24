@@ -24,7 +24,6 @@ trait Routes
             $event->rules['formie/forms/new'] = 'formie/forms/new';
             $event->rules['formie/forms/new/<siteHandle:{handle}>'] = 'formie/forms/new';
             $event->rules['formie/forms/edit/<formId:\d+>'] = 'formie/forms/edit';
-            $event->rules['formie/forms/edit/<formId:\d+>/<siteHandle:{handle}>'] = 'formie/forms/edit';
 
             $event->rules['formie/submissions'] = 'formie/submissions/index';
             $event->rules['formie/submissions/new'] = 'formie/submissions/edit-submission';

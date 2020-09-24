@@ -321,13 +321,7 @@ class Form extends Element
      */
     public function getCpEditUrl()
     {
-        $url = UrlHelper::cpUrl("formie/forms/edit/{$this->id}");
-
-        if (Craft::$app->getIsMultiSite()) {
-            $url .= '/' . $this->getSite()->handle;
-        }
-
-        return $url;
+        return UrlHelper::cpUrl("formie/forms/edit/{$this->id}");
     }
 
     /**
