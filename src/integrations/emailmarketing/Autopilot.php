@@ -198,10 +198,10 @@ class Autopilot extends EmailMarketing
     {
         try {
             $response = $this->request('GET', 'account');
-            $accountId = $response['instance_id'] ?? '';
+            $accountId = $response['instanceId'] ?? '';
 
             if (!$accountId) {
-                Integration::error($this, 'Unable to find “{instance_id}” in response.', true);
+                Integration::error($this, 'Unable to find “{instanceId}” in response.', true);
                 return false;
             }
         } catch (\Throwable $e) {
