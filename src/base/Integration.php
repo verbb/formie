@@ -745,7 +745,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     /**
      * @inheritDoc
      */
-    protected function beforeSendPayload(Submission $submission, $payload)
+    protected function beforeSendPayload(Submission $submission, &$payload)
     {
         $event = new SendIntegrationPayloadEvent([
             'submission' => $submission,
@@ -757,6 +757,9 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         if (!$event->isValid) {
             Integration::log($this, 'Sending payload cancelled by event hook.');
         }
+
+        // Allow events to alter the payload
+        $payload = $event->payload;
 
         return $event->isValid;
     }
