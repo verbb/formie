@@ -70,7 +70,7 @@ You can render rows for a page, rather than relying on the render function to ou
         <div class="page" data-page-id="{{ page.id }}">
             {% for row in page.getRows() %}
                 <div class="row">
-                    {% for field in row.getFields() %}
+                    {% for field in row.fields %}
                         <div class="col" data-col="{{ field.columnWidth }}">
                             {{ craft.formie.renderField(form, field) }}
                         </div>
