@@ -864,7 +864,8 @@ class Form extends Element
         }
 
         if ($this->settings->submitAction == 'url') {
-            return $this->settings->submitActionUrl;
+            // Parse Twig
+            return Craft::$app->getView()->renderString($this->settings->submitActionUrl);
         }
 
         return '';
@@ -909,7 +910,7 @@ class Form extends Element
             'submitActionFormHide' => $this->settings->submitActionFormHide,
             'submitAction' => $this->settings->submitAction,
             'submitActionTab' => $this->settings->submitActionTab,
-            'submitActionUrl' => $this->settings->submitActionUrl,
+            'submitActionUrl' => $this->getRedirectUrl(),
             'errorMessage' => $this->settings->getErrorMessage() ?? '',
             'loadingIndicator' => $this->settings->loadingIndicator,
             'loadingIndicatorText' => $this->settings->loadingIndicatorText,
