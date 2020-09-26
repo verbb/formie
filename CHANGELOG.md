@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.2.19 - 2020-09-26
+
+### Added
+- Allow Redirect URL for a form's settings to contain Twig.
+- Added Submission ID as an available variable to pick from in notifications.
+
+### Fixed
+- Fixed an error when an Ajax-enabled form's Redirect URL setting contained Twig.
+- Fixed submision variables incorrectly caching when sending multiple notifications.
+
 ## 1.2.18 - 2020-09-25
 
 ### Added
