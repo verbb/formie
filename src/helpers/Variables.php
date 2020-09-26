@@ -142,8 +142,15 @@ class Variables
         // Parse aliases and env variables
         $value = Craft::parseEnv($value);
 
-        // Check to see if we have these already calculated for the request
-        if (!self::$extras) {
+        // Use a cache key based on the submission, or few unsaved submissions, the formId
+        // This helps to only cache it per-submission, when being run in queues.
+        $cacheKey = $submission->id ?? $form->id;
+
+        $extras = self::$extras[$cacheKey] ?? [];
+
+        // Check to see if we have these already calculated for the request and submission
+        // Just saves a good bunch of calculating values like looping through fields
+        if (!$extras) {
             // User Info
             $currentUser = Craft::$app->getUser()->getIdentity();
             $userId = $currentUser->id ?? '';
@@ -178,7 +185,7 @@ class Variables
             $fieldHtml = self::getFormFieldsHtml($form, $submission);
             $fieldContentHtml = self::getFormFieldsHtml($form, $submission, true);
 
-            self::$extras = [
+            $extras = self::$extras[$cacheKey] = [
                 'allFields' => $fieldHtml,
                 'allContentFields' => $fieldContentHtml,
                 'formName' => $formName,
@@ -207,7 +214,7 @@ class Variables
         $view = Craft::$app->getView();
 
         try {
-            return $view->renderObjectTemplate($value, $submission, self::$extras);
+            return $view->renderObjectTemplate($value, $submission, $extras);
         } catch (Throwable $e) {
             Formie::error(Craft::t('formie', 'Failed to render dynamic string “{value}”. Template error: “{message}” {file}:{line}', [
                 'value' => $originalValue,
