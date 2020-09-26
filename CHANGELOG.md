@@ -8,7 +8,7 @@
 
 ### Fixed
 - Fixed an error when an Ajax-enabled form's Redirect URL setting contained Twig.
-- Fixed submision variables incorrectly caching when sending multiple notifications.
+- Fixed submission variables incorrectly caching when sending multiple notifications.
 
 ## 1.2.18 - 2020-09-25
 
