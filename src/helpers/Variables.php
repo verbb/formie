@@ -37,6 +37,7 @@ class Variables
             [ 'label' => Craft::t('formie', 'All Non Empty Fields'), 'value' => '{allContentFields}' ],
             [ 'label' => Craft::t('formie', 'Form Name'), 'value' => '{formName}' ],
             [ 'label' => Craft::t('formie', 'Submission CP URL'), 'value' => '{submissionUrl}' ],
+            [ 'label' => Craft::t('formie', 'Submission ID'), 'value' => '{submissionId}' ],
         ];
     }
 
@@ -190,6 +191,7 @@ class Variables
                 'allContentFields' => $fieldContentHtml,
                 'formName' => $formName,
                 'submissionUrl' => $submission->getCpEditUrl(),
+                'submissionId' => $submission->id,
 
                 'siteName' => $siteName,
                 'systemEmail' => $systemEmail,
