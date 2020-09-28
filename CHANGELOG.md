@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+- Fixed file upload fields in nested fields not attaching to email notifications.
+- Fixed fields in nested fields showing in email notifications when their field settings don't allow it.
+
 ## 1.2.19 - 2020-09-26
 
 ### Added
