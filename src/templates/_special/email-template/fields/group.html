@@ -12,17 +12,21 @@
                     {% for field in fields %}
                         {% set fieldValue = (row ? row.getFieldValue(field.handle) : field.normalizeValue(null)) %}
 
-                        <tr>
-                            <th style="text-align: left; font-size: inherit; width: 30%; padding: 4px; border: 1px solid; background-color: rgba(0, 0, 0, 0.05);">
-                                {{ field.name | t('site') }}
-                            </th>
+                        {% set html = field.getEmailHtml(submission, fieldValue, {
+                            hideName: true,
+                        }) %}
 
-                            <td style="padding: 4px; border: 1px solid;">
-                                {{ field.getEmailHtml(submission, fieldValue, {
-                                    hideName: true,
-                                }) | raw }}
-                            </td>
-                        </tr>
+                        {% if html %}
+                            <tr>
+                                <th style="text-align: left; font-size: inherit; width: 30%; padding: 4px; border: 1px solid; background-color: rgba(0, 0, 0, 0.05);">
+                                    {{ field.name | t('site') }}
+                                </th>
+
+                                <td style="padding: 4px; border: 1px solid;">
+                                    {{ html | raw }}
+                                </td>
+                            </tr>
+                        {% endif %}
                     {% endfor %}
                 </tbody>
             {% endfor %}
