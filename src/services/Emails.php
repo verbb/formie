@@ -2,6 +2,7 @@
 namespace verbb\formie\services;
 
 use verbb\formie\Formie;
+use verbb\formie\base\NestedFieldInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\EmailEvent;
@@ -30,6 +31,7 @@ use yii\base\ErrorException;
 use yii\base\Exception;
 use yii\base\NotSupportedException;
 use yii\web\ServerErrorHttpException;
+
 use DateTime;
 use Html2Text\Html2Text;
 use Throwable;
@@ -421,20 +423,36 @@ class Emails extends Component
         return $emailsEnv;
     }
 
-    private function _attachFilesToEmail(Message $message, Submission $submission)
+    private function _getAssetsForSubmission($element)
     {
         $assets = [];
-
-        // Grab all the file upload fields
-        foreach ($submission->getFieldLayout()->getFields() as $field) {
+        
+        foreach ($element->getFieldLayout()->getFields() as $field) {
             if (get_class($field) === FileUpload::class) {
-                $value = $submission->getFieldValue($field->handle);
+                $value = $element->getFieldValue($field->handle);
 
                 if ($value instanceof AssetQuery) {
                     $assets = array_merge($assets, $value->all());
                 }
             }
+
+            // Separate check for nested fields (repeater/group), fetch the element and try again
+            if ($field instanceof NestedFieldInterface) {
+                $query = $element->getFieldValue($field->handle);
+
+                if ($query && $nestedElement = $query->one()) {
+                    $assets = array_merge($assets, $this->_getAssetsForSubmission($nestedElement));
+                }
+            }
         }
+
+        return $assets;
+    }
+
+    private function _attachFilesToEmail(Message $message, Submission $submission)
+    {
+        // Grab all the file upload fields, including in nested fields
+        $assets = $this->_getAssetsForSubmission($submission);
 
         foreach ($assets as $asset) {
             $path = '';

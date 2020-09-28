@@ -382,6 +382,28 @@ class Fields extends Component
     }
 
     /**
+     * Returns all fields on a provided element, for a given type. Includes drilling into nested fields.
+     *
+     * @return FormFieldInterface[]
+     */
+    public function getElementFieldsForType($element, $type)
+    {
+        $fields = [];
+        
+        foreach ($element->getFieldLayout()->getFields() as $field) {
+            if (get_class($field) === $type) {
+                $fields[] = $field;
+            }
+
+            if ($field instanceof NestedFieldInterface) {
+                $fields = array_merge($fields, $this->getElementFieldsForType($field, $type));
+            }
+        }
+
+        return $fields;
+    }
+
+    /**
      * Deletes any fields that aren't attached to a form anymore.
      */
     public function deleteOrphanedFields()
