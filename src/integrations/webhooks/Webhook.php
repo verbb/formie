@@ -68,6 +68,7 @@ class Webhook extends BaseWebhook
     public function fetchFormSettings()
     {
         $settings = [];
+        $payload = [];
 
         try {
             $formId = Craft::$app->getRequest()->getParam('formId');
@@ -82,13 +83,23 @@ class Webhook extends BaseWebhook
             $payload = $this->generatePayloadValues($submission);
             $response = $this->getClient()->request('POST', Craft::parseEnv($this->webhook), $payload);
 
-            $json = Json::decode((string)$response->getBody());
+            $rawResponse = (string)$response->getBody();
+            $json = Json::decode($rawResponse);
 
             $settings = [
                 'response' => $response,
                 'json' => $json,
             ];
         } catch (\Throwable $e) {
+            // Save a different payload to logs
+            Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}. Payload: “{payload}”. Response: “{response}”', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'payload' => Json::encode($payload),
+                'response' => $rawResponse,
+            ]));
+
             Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
@@ -109,6 +120,15 @@ class Webhook extends BaseWebhook
 
             $response = $this->getClient()->request('POST', Craft::parseEnv($this->webhook), $payload);
         } catch (\Throwable $e) {
+            // Save a different payload to logs
+            Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}. Payload: “{payload}”. Response: “{response}”', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'payload' => Json::encode($payload),
+                'response' => $rawResponse,
+            ]));
+
             Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
