@@ -49,7 +49,14 @@
 
             <div class="fui-email-body">
                 <!-- Note the odd use of length - we'll get an empty `<p>` back for empty -->
-                <div v-if="email.body && email.body.length > 10" v-html="email.body"></div>
+                <iframe
+                    v-if="email.body && email.body.length > 10"
+                    id="email-iframe"
+                    src="about:blank"
+                    frameborder="0"
+                    style="height: 100vh; width: 100%;"
+                ></iframe>
+
                 <div v-else class="warning with-icon">{{ 'No email content.' | t('formie') }}</div>
             </div>
 
@@ -101,6 +108,22 @@ export default {
     },
 
     methods: {
+        updateiFrame() {
+            this.$nextTick().then(() => {
+                var $iframe = this.$el.querySelector('#email-iframe');
+
+                if ($iframe && this.email.body) {
+                    var doc = $iframe.contentWindow.document;
+
+                    if (doc) {
+                        doc.open();
+                        doc.write('<html><head><title></title></head><body>' + this.email.body + '</body></html>');
+                        doc.close();
+                    }
+                }
+            });
+        },
+
         updatePreview() {
             this.error = false;
             this.errorMessage = '';
@@ -128,6 +151,8 @@ export default {
                 }
 
                 this.email = response.data;
+
+                this.updateiFrame();
             }).catch(error => {
                 this.loading = false;
                 this.error = true;
