@@ -79,8 +79,11 @@ class Zapier extends Webhook
 
             Formie::$plugin->getSubmissions()->populateFakeSubmission($submission);
 
+            // Ensure we're fetching the webhook from the form settings, or global integration settings
+            $webhook = $form->settings->integrations[$this->handle]['webhook'] ?? $this->webhook;
+
             $payload = $this->generatePayloadValues($submission);
-            $response = $this->getClient()->request('POST', Craft::parseEnv($this->webhook), $payload);
+            $response = $this->getClient()->request('POST', Craft::parseEnv($webhook), $payload);
 
             $json = Json::decode((string)$response->getBody());
 
