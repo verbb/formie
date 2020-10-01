@@ -40,6 +40,7 @@ class Submission extends Element
 
     public $id;
     public $formId;
+    public $siteId;
     public $statusId;
     public $userId;
     public $ipAddress;
@@ -121,7 +122,7 @@ class Submission extends Element
      */
     public static function isLocalized(): bool
     {
-        return false;
+        return true;
     }
 
     /**
