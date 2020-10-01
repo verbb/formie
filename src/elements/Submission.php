@@ -581,6 +581,7 @@ class Submission extends Element
         } else {
             $record = new SubmissionRecord();
             $record->id = $this->id;
+            $record->siteId = $this->siteId;
         }
 
         $record->title = $this->title;
