@@ -40,7 +40,7 @@ class Submission extends Element
 
     public $id;
     public $formId;
-    public $siteId;
+    public $originSiteId;
     public $statusId;
     public $userId;
     public $ipAddress;
@@ -581,7 +581,7 @@ class Submission extends Element
         } else {
             $record = new SubmissionRecord();
             $record->id = $this->id;
-            $record->siteId = $this->siteId;
+            $record->originSiteId = $this->originSiteId;
         }
 
         $record->title = $this->title;

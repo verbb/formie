@@ -12,7 +12,7 @@ use yii\db\ActiveQueryInterface;
  * @property int $id
  * @property string $title
  * @property int $formId
- * @property boolean $siteId
+ * @property boolean $originSiteId
  * @property int $statusId
  * @property int $userId
  * @property boolean $isIncomplete
