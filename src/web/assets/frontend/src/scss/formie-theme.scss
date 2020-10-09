@@ -5,25 +5,25 @@
 
 // ==========================================================================
 
-$field-gutter: 0.5rem;
-$border-radius: 0.25rem;
+$field-gutter: 0.5rem !default;
+$border-radius: 0.25rem !default;
 
-$primary-color: #516fea;
-$primary-color-hover: darken(#516fea, 10%);
-$error: #f56565;
-$gray-100: #F7FAFC;
-$gray-200: #EDF2F7;
-$gray-300: #E2E8F0;
-$gray-400: #CBD5E0;
-$gray-500: #A0AEC0;
-$gray-600: #718096;
-$gray-700: #4A5568;
-$gray-800: #2D3748;
-$gray-900: #1A202C;
-$border-color: $gray-400;
+$primary-color: #516fea !default;
+$primary-color-hover: darken(#516fea, 10%) !default;
+$error: #f56565 !default;
+$gray-100: #F7FAFC !default;
+$gray-200: #EDF2F7 !default;
+$gray-300: #E2E8F0 !default;
+$gray-400: #CBD5E0 !default;
+$gray-500: #A0AEC0 !default;
+$gray-600: #718096 !default;
+$gray-700: #4A5568 !default;
+$gray-800: #2D3748 !default;
+$gray-900: #1A202C !default;
+$border-color: $gray-400 !default;
 
-$focus-border-color: #a4cafe;
-$focus-shadow: 0 0 0 3px rgba(164, 202, 254, 0.45);
+$focus-border-color: #a4cafe !default;
+$focus-shadow: 0 0 0 3px rgba(164, 202, 254, 0.45) !default;
 
 @import './formie-base';
 @import './framework';
