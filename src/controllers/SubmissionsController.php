@@ -337,6 +337,7 @@ class SubmissionsController extends Controller
         } else {
             $submission = new Submission();
             $submission->setForm($form);
+            $submission->originSiteId = $request->sites->currentSite->id;
         }
 
         Craft::$app->getContent()->populateElementContent($submission);

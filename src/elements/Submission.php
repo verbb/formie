@@ -40,6 +40,7 @@ class Submission extends Element
 
     public $id;
     public $formId;
+    public $originSiteId;
     public $statusId;
     public $userId;
     public $ipAddress;
@@ -121,7 +122,7 @@ class Submission extends Element
      */
     public static function isLocalized(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -580,6 +581,7 @@ class Submission extends Element
         } else {
             $record = new SubmissionRecord();
             $record->id = $this->id;
+            $record->originSiteId = $this->originSiteId;
         }
 
         $record->title = $this->title;
