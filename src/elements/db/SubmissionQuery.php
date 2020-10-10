@@ -18,7 +18,7 @@ class SubmissionQuery extends ElementQuery
     // =========================================================================
 
     public $id;
-    public $siteId;
+    public $siteId = '*';
     public $formId;
     public $statusId;
     public $userId;
