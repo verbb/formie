@@ -494,6 +494,49 @@ const getters = {
         return fields;
     },
 
+    allFields: (state, getters) => (includeGeneral = false) => {
+        let fields = [
+            { label: Craft.t('formie', 'Fields'), heading: true },
+        ];
+
+        getters.fields.forEach(field => {
+            // If this field is nested itself, don't show. The outer field takes care of that below
+            if (!toBoolean(field.isNested)) {
+                if (field.subfieldOptions && field.hasSubfields) {
+                    field.subfieldOptions.forEach(subfield => {
+                        fields.push({
+                            label: field.label + ': ' + subfield.label,
+                            value: '{' + field.handle + '.' + subfield.handle + '}',
+                        });
+                    });
+                } else if (field.type === 'verbb\\formie\\fields\\formfields\\Group' && field.rows) {
+                    // Is this a group field that supports nesting?
+                    field.rows.forEach(row => {
+                        row.fields.forEach(subfield => {
+                            fields.push({
+                                label: field.label + ': ' + subfield.label,
+                                value: '{' + field.handle + '.one().' + subfield.handle + ' ?? null}',
+                            });
+                        });
+                    });
+                } else {
+                    fields.push({ label: field.label, value: '{' + field.handle + '}' });
+                }
+            }
+        });
+
+        // Check if there's only a heading
+        if (fields.length === 1) {
+            fields = [];
+        }
+
+        if (includeGeneral) {
+            fields = fields.concat(getters.generalFields);
+        }
+
+        return fields;
+    },
+
     fieldsForType: (state, getters) => (type) => {
         let fields = [];
         

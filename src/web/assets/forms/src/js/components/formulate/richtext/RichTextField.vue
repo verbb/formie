@@ -82,7 +82,7 @@ export default {
         },
 
         plainTextVariables() {
-            return this.$store.getters['form/plainTextFields'](true);
+            return this.$store.getters['form/allFields'](true);
         },
 
         buttons() {
