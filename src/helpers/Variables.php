@@ -164,12 +164,9 @@ class Variables
             }
 
             // Site Info
-            try {
-                $site = Craft::$app->getSites()->getCurrentSite();
-                $siteName = $site->name;
-            } catch (SiteNotFoundException $e) {
-                $siteName = '';
-            }
+            $siteId = $submission->siteId ?: Craft::$app->getSites()->getPrimarySite()->id;
+            $site = Craft::$app->getSites()->getSiteById($siteId);
+            $siteName = $site->name ?? '';
 
             $craftMailSettings = App::mailSettings();
             $systemEmail = $craftMailSettings->fromEmail;
