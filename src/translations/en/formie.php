@@ -778,7 +778,7 @@ return [
     'Image' => 'Image',
     'HTML' => 'HTML',
     'HTML Content' => 'HTML Content',
-    'Enter HTML content to be rendered for this field.' => 'Enter HTML content to be rendered for this field.',
+    'Enter HTML or Twig content to be rendered for this field.' => 'Enter HTML or Twig content to be rendered for this field.',
     'Tags' => 'Tags',
     'No tag groups available. View [tag settings]({link}).' => 'No tag groups available. View [tag settings]({link}).',
     'Select a tag' => 'Select a tag',

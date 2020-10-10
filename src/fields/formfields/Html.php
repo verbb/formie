@@ -7,6 +7,7 @@ use verbb\formie\helpers\SchemaHelper;
 
 use Craft;
 use craft\base\ElementInterface;
+use craft\helpers\StringHelper;
 
 use HTMLPurifier_Config;
 use HTMLPurifier;
@@ -49,16 +50,17 @@ class Html extends FormField
 
     // Public Methods
     // =========================================================================
-
-    public function init()
+    
+    /**
+     * @inheritDoc
+     */
+    public function getRenderedHtmlContent()
     {
-        parent::init();
+        $config = HTMLPurifier_Config::createDefault();
+        $purifier = new HTMLPurifier($config);
+        $htmlContent = $purifier->purify($this->htmlContent);
 
-        if ($this->htmlContent) {
-            $config = HTMLPurifier_Config::createDefault();
-            $purifier = new HTMLPurifier($config);
-            $this->htmlContent = $purifier->purify($this->htmlContent);
-        }
+        return Craft::$app->getView()->renderString($htmlContent);
     }
 
     /**
@@ -100,7 +102,7 @@ class Html extends FormField
             SchemaHelper::labelField(),
             SchemaHelper::textareaField([
                 'label' => Craft::t('formie', 'HTML Content'),
-                'help' => Craft::t('formie', 'Enter HTML content to be rendered for this field.'),
+                'help' => Craft::t('formie', 'Enter HTML or Twig content to be rendered for this field.'),
                 'name' => 'htmlContent',
                 'rows' => '10',
             ]),
