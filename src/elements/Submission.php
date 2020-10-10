@@ -673,6 +673,14 @@ class Submission extends Element
     }
 
     /**
+     * @inheritdoc
+     */
+    protected static function defineSearchableAttributes(): array
+    {
+        return ['title'];
+    }
+
+    /**
      * @inheritDoc
      */
     protected static function defineSortOptions(): array

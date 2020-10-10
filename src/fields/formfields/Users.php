@@ -19,6 +19,12 @@ use craft\models\UserGroup;
 
 class Users extends CraftUsers implements FormFieldInterface
 {
+    // Constants
+    // =========================================================================
+
+    const EVENT_MODIFY_ELEMENT_QUERY = 'modifyElementQuery';
+
+
     // Traits
     // =========================================================================
 
@@ -26,27 +32,6 @@ class Users extends CraftUsers implements FormFieldInterface
         getFrontEndInputOptions as traitGetFrontendInputOptions;
         getEmailHtml as traitGetEmailHtml;
     }
-
-
-    // Constants
-    // =========================================================================
-
-    const EVENT_MODIFY_ELEMENT_QUERY = 'modifyElementQuery';
-
-
-    // Properties
-    // =========================================================================
-
-    protected $inputTemplate = 'formie/_includes/elementSelect';
-
-
-    // Private Properties
-    // =========================================================================
-
-    /**
-     * @var UserGroup
-     */
-    private $_userGroup;
 
 
     // Static Methods
@@ -67,6 +52,25 @@ class Users extends CraftUsers implements FormFieldInterface
     {
         return 'formie/_formfields/users/icon.svg';
     }
+
+
+    // Properties
+    // =========================================================================
+
+    /**
+     * @var bool
+     */
+    public $searchable = true;
+
+    /**
+     * @var string
+     */
+    protected $inputTemplate = 'formie/_includes/elementSelect';
+
+    /**
+     * @var UserGroup
+     */
+    private $_userGroup;
 
 
     // Public Methods

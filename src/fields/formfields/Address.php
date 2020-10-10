@@ -22,13 +22,52 @@ use yii\db\Schema;
 
 class Address extends FormField implements SubfieldInterface
 {
-    // Public Properties
+    // Traits
     // =========================================================================
 
     use SubfieldTrait;
 
 
-    // Public Properties
+    // Static Methods
+    // =========================================================================
+
+    /**
+     * @inheritDoc
+     */
+    public static function displayName(): string
+    {
+        return Craft::t('formie', 'Address');
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public static function getSvgIconPath(): string
+    {
+        return 'formie/_formfields/address/icon.svg';
+    }
+
+    /**
+     * Returns an array of countries.
+     *
+     * @return array
+     */
+    public static function getCountries()
+    {
+        $locale = Craft::$app->getLocale()->getLanguageID();
+
+        $repo = new CountryRepository($locale);
+
+        $countries = [];
+        foreach ($repo->getList() as $value => $label) {
+            $countries[] = compact('value', 'label');
+        }
+
+        return $countries;
+    }
+
+
+    // Properties
     // =========================================================================
 
     public $enableAutocomplete;
@@ -97,45 +136,6 @@ class Address extends FormField implements SubfieldInterface
     public $countryDefaultValue;
     public $countryRequired;
     public $countryErrorMessage;
-
-
-    // Static Methods
-    // =========================================================================
-
-    /**
-     * @inheritDoc
-     */
-    public static function displayName(): string
-    {
-        return Craft::t('formie', 'Address');
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public static function getSvgIconPath(): string
-    {
-        return 'formie/_formfields/address/icon.svg';
-    }
-
-    /**
-     * Returns an array of countries.
-     *
-     * @return array
-     */
-    public static function getCountries()
-    {
-        $locale = Craft::$app->getLocale()->getLanguageID();
-
-        $repo = new CountryRepository($locale);
-
-        $countries = [];
-        foreach ($repo->getList() as $value => $label) {
-            $countries[] = compact('value', 'label');
-        }
-
-        return $countries;
-    }
 
 
     // Public Methods

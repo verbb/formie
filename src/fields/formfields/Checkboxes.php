@@ -12,13 +12,6 @@ use craft\fields\data\MultiOptionsFieldData;
 
 class Checkboxes extends BaseOptionsField implements FormFieldInterface
 {
-    // Public Properties
-    // =========================================================================
-
-    public $multi = true;
-    public $layout;
-
-
     // Static Methods
     // =========================================================================
 
@@ -45,6 +38,13 @@ class Checkboxes extends BaseOptionsField implements FormFieldInterface
     {
         return 'formie/_formfields/checkboxes/icon.svg';
     }
+
+
+    // Properties
+    // =========================================================================
+
+    public $multi = true;
+    public $layout;
 
 
     // Public Methods

@@ -23,30 +23,6 @@ class Phone extends FormField implements SubfieldInterface
     use SubfieldTrait;
 
 
-    // Public Properties
-    // =========================================================================
-
-    /**
-     * @var boolean
-     * @deprecated use $countryEnabled
-     */
-    public $showCountryCode;
-
-    public $validate;
-    public $validateType;
-
-    public $countryEnabled = true;
-    public $countryCollapsed;
-    public $countryLabel;
-    public $countryPlaceholder;
-    public $countryDefaultValue;
-
-    public $numberCollapsed;
-    public $numberLabel;
-    public $numberPlaceholder;
-    public $numberDefaultValue;
-
-
     // Static Methods
     // =========================================================================
 
@@ -75,6 +51,30 @@ class Phone extends FormField implements SubfieldInterface
     {
         return Formie::$plugin->getPhone()->getCountries();
     }
+
+
+    // Properties
+    // =========================================================================
+
+    /**
+     * @var boolean
+     * @deprecated use $countryEnabled
+     */
+    public $showCountryCode;
+
+    public $validate;
+    public $validateType;
+
+    public $countryEnabled = true;
+    public $countryCollapsed;
+    public $countryLabel;
+    public $countryPlaceholder;
+    public $countryDefaultValue;
+
+    public $numberCollapsed;
+    public $numberLabel;
+    public $numberPlaceholder;
+    public $numberDefaultValue;
 
 
     // Public Methods

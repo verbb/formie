@@ -25,7 +25,44 @@ class Name extends FormField implements SubfieldInterface
     }
 
 
-    // Public Properties
+    // Static Methods
+    // =========================================================================
+
+    /**
+     * @inheritDoc
+     */
+    public static function displayName(): string
+    {
+        return Craft::t('formie', 'Name');
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public static function getSvgIconPath(): string
+    {
+        return 'formie/_formfields/name/icon.svg';
+    }
+
+    /**
+     * Returns a list of available prefixes.
+     *
+     * @return array[]
+     */
+    public static function getPrefixOptions()
+    {
+        return [
+            ['label' => Craft::t('formie', 'Mr.'), 'value' => 'mr'],
+            ['label' => Craft::t('formie', 'Mrs.'), 'value' => 'mrs'],
+            ['label' => Craft::t('formie', 'Ms.'), 'value' => 'ms'],
+            ['label' => Craft::t('formie', 'Miss.'), 'value' => 'miss'],
+            ['label' => Craft::t('formie', 'Dr.'), 'value' => 'dr'],
+            ['label' => Craft::t('formie', 'Prof.'), 'value' => 'prof'],
+        ];
+    }
+
+
+    // Properties
     // =========================================================================
 
     /**
@@ -64,43 +101,6 @@ class Name extends FormField implements SubfieldInterface
     public $lastNameDefaultValue;
     public $lastNameRequired;
     public $lastNameErrorMessage;
-
-
-    // Static Methods
-    // =========================================================================
-
-    /**
-     * @inheritDoc
-     */
-    public static function displayName(): string
-    {
-        return Craft::t('formie', 'Name');
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public static function getSvgIconPath(): string
-    {
-        return 'formie/_formfields/name/icon.svg';
-    }
-
-    /**
-     * Returns a list of available prefixes.
-     *
-     * @return array[]
-     */
-    public static function getPrefixOptions()
-    {
-        return [
-            ['label' => Craft::t('formie', 'Mr.'), 'value' => 'mr'],
-            ['label' => Craft::t('formie', 'Mrs.'), 'value' => 'mrs'],
-            ['label' => Craft::t('formie', 'Ms.'), 'value' => 'ms'],
-            ['label' => Craft::t('formie', 'Miss.'), 'value' => 'miss'],
-            ['label' => Craft::t('formie', 'Dr.'), 'value' => 'dr'],
-            ['label' => Craft::t('formie', 'Prof.'), 'value' => 'prof'],
-        ];
-    }
 
 
     // Public Methods

@@ -12,14 +12,6 @@ use craft\helpers\StringHelper;
 
 class Section extends FormField
 {
-    // Public Properties
-    // =========================================================================
-
-    public $borderStyle;
-    public $borderWidth;
-    public $borderColor;
-
-
     // Static Methods
     // =========================================================================
 
@@ -46,6 +38,14 @@ class Section extends FormField
     {
         return false;
     }
+
+
+    // Properties
+    // =========================================================================
+
+    public $borderStyle;
+    public $borderWidth;
+    public $borderColor;
 
 
     // Public Methods

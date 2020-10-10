@@ -20,6 +20,12 @@ use craft\commerce\fields\Variants as CommerceVariants;
 
 class Variants extends CommerceVariants implements FormFieldInterface
 {
+    // Constants
+    // =========================================================================
+
+    const EVENT_MODIFY_ELEMENT_QUERY = 'modifyElementQuery';
+
+
     // Traits
     // =========================================================================
 
@@ -27,24 +33,6 @@ class Variants extends CommerceVariants implements FormFieldInterface
         getFrontEndInputOptions as traitGetFrontendInputOptions;
         getEmailHtml as traitGetEmailHtml;
     }
-
-
-    // Constants
-    // =========================================================================
-
-    const EVENT_MODIFY_ELEMENT_QUERY = 'modifyElementQuery';
-
-
-    // Properties
-    // =========================================================================
-
-    protected $inputTemplate = 'formie/_includes/elementSelect';
-
-
-    // Private Properties
-    // =========================================================================
-
-    private $_productType;
 
 
     // Static Methods
@@ -65,6 +53,25 @@ class Variants extends CommerceVariants implements FormFieldInterface
     {
         return 'formie/_formfields/variants/icon.svg';
     }
+
+
+    // Properties
+    // =========================================================================
+
+    /**
+     * @var bool
+     */
+    public $searchable = true;
+
+    /**
+     * @var string
+     */
+    protected $inputTemplate = 'formie/_includes/elementSelect';
+
+    /**
+     * @var ProductType
+     */
+    private $_productType;
 
 
     // Public Methods

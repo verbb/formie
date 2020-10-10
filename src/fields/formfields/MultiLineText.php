@@ -18,13 +18,6 @@ use Twig\Markup;
 
 class MultiLineText extends FormField
 {
-    // Properties
-    // =========================================================================
-
-    public $useRichText;
-    public $richTextButtons;
-
-
     // Static Methods
     // =========================================================================
 
@@ -43,6 +36,13 @@ class MultiLineText extends FormField
     {
         return 'formie/_formfields/multi-line-text/icon.svg';
     }
+
+
+    // Properties
+    // =========================================================================
+
+    public $useRichText;
+    public $richTextButtons;
 
 
     // Public Methods

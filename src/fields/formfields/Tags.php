@@ -31,21 +31,6 @@ class Tags extends CraftTags implements FormFieldInterface
     }
 
 
-    // Properties
-    // =========================================================================
-
-    protected $inputTemplate = 'formie/_includes/elementSelect';
-
-
-    // Private Properties
-    // =========================================================================
-
-    /**
-     * @var
-     */
-    private $_tagGroupId;
-
-
     // Static Methods
     // =========================================================================
 
@@ -64,6 +49,25 @@ class Tags extends CraftTags implements FormFieldInterface
     {
         return 'formie/_formfields/tags/icon.svg';
     }
+
+
+    // Properties
+    // =========================================================================
+
+    /**
+     * @var bool
+     */
+    public $searchable = true;
+
+    /**
+     * @var string
+     */
+    protected $inputTemplate = 'formie/_includes/elementSelect';
+
+    /**
+     * @var TagGroup
+     */
+    private $_tagGroupId;
 
 
     // Public Methods

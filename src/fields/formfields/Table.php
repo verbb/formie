@@ -28,24 +28,6 @@ class Table extends CraftTable implements FormFieldInterface
     use FormFieldTrait;
 
 
-    // Properties
-    // =========================================================================
-
-    /**
-     * Override the default columns from Craft's table field. We don't want default
-     * columns, and we don't want an object syntax of `col1`, which is tricky in our current
-     * Vue setup. Maybe one day...
-     *
-     * @var array
-     */
-    public $columns = [];
-
-    /**
-     * @var bool
-     */
-    public $static = false;
-
-
     // Static Methods
     // =========================================================================
 
@@ -64,6 +46,29 @@ class Table extends CraftTable implements FormFieldInterface
     {
         return 'formie/_formfields/table/icon.svg';
     }
+
+
+    // Properties
+    // =========================================================================
+
+    /**
+     * @var bool
+     */
+    public $searchable = true;
+
+    /**
+     * Override the default columns from Craft's table field. We don't want default
+     * columns, and we don't want an object syntax of `col1`, which is tricky in our current
+     * Vue setup. Maybe one day...
+     *
+     * @var array
+     */
+    public $columns = [];
+
+    /**
+     * @var bool
+     */
+    public $static = false;
 
 
     // Public Methods

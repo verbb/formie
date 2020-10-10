@@ -12,12 +12,6 @@ use craft\helpers\Json;
 
 class Radio extends BaseOptionsField implements FormFieldInterface
 {
-    // Public Properties
-    // =========================================================================
-
-    public $layout;
-
-
     // Static Methods
     // =========================================================================
 
@@ -44,6 +38,12 @@ class Radio extends BaseOptionsField implements FormFieldInterface
     {
         return SingleOptionFieldData::class;
     }
+
+
+    // Properties
+    // =========================================================================
+
+    public $layout;
 
 
     // Public Methods

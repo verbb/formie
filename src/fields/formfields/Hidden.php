@@ -17,13 +17,6 @@ use DateTime;
 
 class Hidden extends FormField
 {
-    // Public Properties
-    // =========================================================================
-
-    public $defaultOption;
-    public $queryParameter;
-
-
     // Static Methods
     // =========================================================================
 
@@ -42,6 +35,13 @@ class Hidden extends FormField
     {
         return 'formie/_formfields/hidden-field/icon.svg';
     }
+
+
+    // Properties
+    // =========================================================================
+
+    public $defaultOption;
+    public $queryParameter;
 
 
     // Public Methods

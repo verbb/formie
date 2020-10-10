@@ -10,14 +10,6 @@ use craft\helpers\ArrayHelper;
 
 class Dropdown extends BaseOptionsField implements FormFieldInterface
 {
-    // Public Properties
-    // =========================================================================
-
-    public $multiple;
-    public $multi = false;
-    public $optgroups = true;
-
-
     // Static Methods
     // =========================================================================
 
@@ -36,6 +28,14 @@ class Dropdown extends BaseOptionsField implements FormFieldInterface
     {
         return 'formie/_formfields/dropdown/icon.svg';
     }
+
+
+    // Properties
+    // =========================================================================
+
+    public $multiple;
+    public $multi = false;
+    public $optgroups = true;
 
 
     // Public Methods

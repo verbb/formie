@@ -12,14 +12,6 @@ use yii\db\Schema;
 
 class Agree extends FormField
 {
-    // Properties
-    // =========================================================================
-
-    public $description;
-    public $checkedValue;
-    public $uncheckedValue;
-
-
     // Static Methods
     // =========================================================================
 
@@ -38,6 +30,14 @@ class Agree extends FormField
     {
         return 'formie/_formfields/agree/icon.svg';
     }
+
+
+    // Properties
+    // =========================================================================
+
+    public $description;
+    public $checkedValue;
+    public $uncheckedValue;
 
 
     // Public Methods

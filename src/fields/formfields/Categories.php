@@ -19,6 +19,12 @@ use craft\models\CategoryGroup;
 
 class Categories extends CraftCategories implements FormFieldInterface
 {
+    // Constants
+    // =========================================================================
+
+    const EVENT_MODIFY_ELEMENT_QUERY = 'modifyElementQuery';
+
+
     // Traits
     // =========================================================================
 
@@ -26,27 +32,6 @@ class Categories extends CraftCategories implements FormFieldInterface
         getFrontEndInputOptions as traitGetFrontendInputOptions;
         getEmailHtml as traitGetEmailHtml;
     }
-
-
-    // Constants
-    // =========================================================================
-
-    const EVENT_MODIFY_ELEMENT_QUERY = 'modifyElementQuery';
-
-
-    // Properties
-    // =========================================================================
-
-    protected $inputTemplate = 'formie/_includes/elementSelect';
-
-
-    // Private Properties
-    // =========================================================================
-
-    /**
-     * @var CategoryGroup
-     */
-    private $_categoryGroup;
 
 
     // Static Methods
@@ -67,6 +52,25 @@ class Categories extends CraftCategories implements FormFieldInterface
     {
         return 'formie/_formfields/categories/icon.svg';
     }
+
+
+    // Properties
+    // =========================================================================
+
+    /**
+     * @var bool
+     */
+    public $searchable = true;
+
+    /**
+     * @var string
+     */
+    protected $inputTemplate = 'formie/_includes/elementSelect';
+
+    /**
+     * @var CategoryGroup
+     */
+    private $_categoryGroup;
 
 
     // Public Methods

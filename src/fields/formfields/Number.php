@@ -16,14 +16,6 @@ use Twig\Markup;
 
 class Number extends FormField
 {
-    // Public Properties
-    // =========================================================================
-
-    public $min;
-    public $max;
-    public $decimals;
-
-
     // Static Methods
     // =========================================================================
 
@@ -42,6 +34,14 @@ class Number extends FormField
     {
         return 'formie/_formfields/number/icon.svg';
     }
+
+
+    // Properties
+    // =========================================================================
+
+    public $min;
+    public $max;
+    public $decimals;
 
 
     // Public Methods

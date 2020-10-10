@@ -29,25 +29,6 @@ class Repeater extends FormField implements NestedFieldInterface, EagerLoadingFi
     use NestedFieldTrait;
 
 
-    // Public Properties
-    // =========================================================================
-
-    /**
-     * @var int
-     */
-    public $minRows;
-
-    /**
-     * @var int
-     */
-    public $maxRows;
-
-    /**
-     * @var string
-     */
-    public $addLabel;
-
-
     // Static Methods
     // =========================================================================
 
@@ -74,6 +55,25 @@ class Repeater extends FormField implements NestedFieldInterface, EagerLoadingFi
     {
         return false;
     }
+
+
+    // Properties
+    // =========================================================================
+
+    /**
+     * @var int
+     */
+    public $minRows;
+
+    /**
+     * @var int
+     */
+    public $maxRows;
+
+    /**
+     * @var string
+     */
+    public $addLabel;
 
 
     // Public Methods

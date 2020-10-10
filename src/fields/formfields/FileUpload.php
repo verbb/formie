@@ -27,24 +27,6 @@ class FileUpload extends CraftAssets implements FormFieldInterface
     }
 
 
-    // Properties
-    // =========================================================================
-
-    protected $inputTemplate = 'formie/_includes/elementSelect';
-
-
-    // Public Properties
-    // =========================================================================
-
-    public $sizeLimit;
-    public $limitFiles;
-    public $restrictFiles;
-    public $allowedKinds;
-    public $uploadLocationSource;
-    public $uploadLocationSubpath;
-    public $useSingleFolder = true;
-
-
     // Static Methods
     // =========================================================================
 
@@ -63,6 +45,24 @@ class FileUpload extends CraftAssets implements FormFieldInterface
     {
         return 'formie/_formfields/file-upload/icon.svg';
     }
+
+
+    // Properties
+    // =========================================================================
+
+    /**
+     * @var bool
+     */
+    public $searchable = true;
+    public $sizeLimit;
+    public $limitFiles;
+    public $restrictFiles;
+    public $allowedKinds;
+    public $uploadLocationSource;
+    public $uploadLocationSubpath;
+    public $useSingleFolder = true;
+
+    protected $inputTemplate = 'formie/_includes/elementSelect';
 
 
     // Public Methods

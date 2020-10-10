@@ -15,12 +15,6 @@ use Twig\Markup;
 
 class Heading extends FormField
 {
-    // Public Properties
-    // =========================================================================
-
-    public $headingSize;
-
-
     // Static Methods
     // =========================================================================
 
@@ -47,6 +41,12 @@ class Heading extends FormField
     {
         return false;
     }
+
+
+    // Properties
+    // =========================================================================
+
+    public $headingSize;
 
 
     // Public Methods

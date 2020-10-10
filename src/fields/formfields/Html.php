@@ -13,12 +13,6 @@ use HTMLPurifier;
 
 class Html extends FormField
 {
-    // Public Properties
-    // =========================================================================
-
-    public $htmlContent;
-
-
     // Static Methods
     // =========================================================================
 
@@ -45,6 +39,12 @@ class Html extends FormField
     {
         return false;
     }
+
+
+    // Properties
+    // =========================================================================
+
+    public $htmlContent;
 
 
     // Public Methods

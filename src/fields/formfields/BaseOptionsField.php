@@ -20,8 +20,13 @@ abstract class BaseOptionsField extends CraftBaseOptionsField
     }
 
 
-    // Public Properties
+    // Properties
     // =========================================================================
+
+    /**
+     * @var bool
+     */
+    public $searchable = true;
 
     /**
      * @var string vertical or horizontal layout

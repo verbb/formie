@@ -16,14 +16,6 @@ use craft\helpers\StringHelper;
 
 class Recipients extends FormField
 {
-    // Properties
-    // =========================================================================
-
-    public $displayType = 'hidden';
-    public $options = [];
-    public $multiple;
-
-
     // Static Methods
     // =========================================================================
 
@@ -51,6 +43,14 @@ class Recipients extends FormField
     {
         return (bool)preg_match('/^(?:\{.*\}|\[.*\])$/s', $str);
     }
+
+
+    // Properties
+    // =========================================================================
+
+    public $displayType = 'hidden';
+    public $options = [];
+    public $multiple;
 
 
     // Public Methods

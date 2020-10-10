@@ -23,7 +23,27 @@ class Date extends FormField implements SubfieldInterface
     use SubfieldTrait;
 
 
-    // Public Properties
+    // Static Methods
+    // =========================================================================
+
+    /**
+     * @inheritDoc
+     */
+    public static function displayName(): string
+    {
+        return Craft::t('formie', 'Date/Time');
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public static function getSvgIconPath(): string
+    {
+        return 'formie/_formfields/date/icon.svg';
+    }
+
+
+    // Properties
     // =========================================================================
 
     public $dateFormat = 'Y-m-d';
@@ -45,26 +65,6 @@ class Date extends FormField implements SubfieldInterface
     public $secondPlaceholder;
     public $ampmLabel;
     public $ampmPlaceholder;
-
-
-    // Static Methods
-    // =========================================================================
-
-    /**
-     * @inheritDoc
-     */
-    public static function displayName(): string
-    {
-        return Craft::t('formie', 'Date/Time');
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public static function getSvgIconPath(): string
-    {
-        return 'formie/_formfields/date/icon.svg';
-    }
 
 
     // Public Methods

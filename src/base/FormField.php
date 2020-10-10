@@ -21,6 +21,15 @@ abstract class FormField extends Field implements FormFieldInterface
     }
 
 
+    // Properties
+    // =========================================================================
+
+    /**
+     * @var bool
+     */
+    public $searchable = true;
+
+
     // Public Methods
     // =========================================================================
 

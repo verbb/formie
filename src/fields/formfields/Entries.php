@@ -25,6 +25,12 @@ use yii\base\Exception;
 
 class Entries extends CraftEntries implements FormFieldInterface
 {
+    // Constants
+    // =========================================================================
+
+    const EVENT_MODIFY_ELEMENT_QUERY = 'modifyElementQuery';
+
+
     // Traits
     // =========================================================================
 
@@ -32,18 +38,6 @@ class Entries extends CraftEntries implements FormFieldInterface
         getFrontEndInputOptions as traitGetFrontendInputOptions;
         getEmailHtml as traitGetEmailHtml;
     }
-
-
-    // Constants
-    // =========================================================================
-
-    const EVENT_MODIFY_ELEMENT_QUERY = 'modifyElementQuery';
-
-
-    // Properties
-    // =========================================================================
-
-    protected $inputTemplate = 'formie/_includes/elementSelect';
 
 
     // Static Methods
@@ -64,6 +58,20 @@ class Entries extends CraftEntries implements FormFieldInterface
     {
         return 'formie/_formfields/entries/icon.svg';
     }
+
+
+    // Properties
+    // =========================================================================
+
+    /**
+     * @var bool
+     */
+    public $searchable = true;
+    
+    /**
+     * @var string
+     */
+    protected $inputTemplate = 'formie/_includes/elementSelect';
 
 
     // Public Methods
