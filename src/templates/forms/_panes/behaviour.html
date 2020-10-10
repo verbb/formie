@@ -272,6 +272,16 @@
     :value="form.settings.errorMessage"
 />
 
+{{ forms.selectField({
+    label: 'Error Message Position' | t('formie'),
+    instructions: 'Where to position the error message in the form, when shown.' | t('formie'),
+    name: 'settings[errorMessagePosition]',
+    options: [
+        { label: 'Top of Form' | t('formie'), value: 'top-form' },
+        { label: 'Bottom of Form' | t('formie'), value: 'bottom-form' },
+    ],
+    value: form.settings.errorMessagePosition ?? 'top-form',
+}) }}
 
 
 

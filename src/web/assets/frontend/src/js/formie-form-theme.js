@@ -293,11 +293,20 @@ export class FormieFormTheme {
             }
         } else {
             $alert = document.createElement('div');
-            $alert.className = 'fui-alert fui-alert-' + type;
+            $alert.className = 'fui-alert fui-alert-' + type + ' fui-alert-' + this.settings.errorMessagePosition;
             $alert.setAttribute('role' , 'alert');
             $alert.innerHTML = text;
 
-            this.$form.parentNode.insertBefore($alert, this.$form);
+            // For error notices, we have potential special handling on position
+            if (type == 'error') {
+                if (this.settings.errorMessagePosition == 'bottom-form') {
+                    this.$submitBtn.parentNode.parentNode.insertBefore($alert, this.$submitBtn.parentNode);
+                } else {
+                    this.$form.parentNode.insertBefore($alert, this.$form);
+                }
+            } else {
+                this.$form.parentNode.insertBefore($alert, this.$form);
+            }
         }
     }
 

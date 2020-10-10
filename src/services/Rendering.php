@@ -147,10 +147,14 @@ class Rendering extends Component
             $page = $form->getCurrentPage();
         }
 
+        // Get the active submission.
+        $submission = $form->getCurrentSubmission();
+
         $html = $view->renderTemplate('page', [
             'form' => $form,
             'page' => $page,
             'options' => $options,
+            'submission' => $submission,
         ], View::TEMPLATE_MODE_SITE);
 
         $view->setTemplatesPath($oldTemplatesPath);

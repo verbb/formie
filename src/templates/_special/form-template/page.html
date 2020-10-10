@@ -38,6 +38,16 @@
         html: html,
     }) }}
 
+    {% if submission is defined %}
+        {% set flashError = craft.formie.plugin.service.getFlash(form.id, 'error') %}
+
+        {% if flashError and form.settings.errorMessagePosition == 'bottom-form' %}
+            <div class="fui-alert fui-alert-error fui-alert-{{ form.settings.errorMessagePosition }}" role="alert">
+                {{ flashError | t | raw }}
+            </div>
+        {% endif %}
+    {% endif %}
+
     {% hook 'formie.buttons.before' %}
 
     {% set nextPage = form.getNextPage(page) %}

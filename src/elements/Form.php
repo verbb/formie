@@ -912,6 +912,7 @@ class Form extends Element
             'submitActionTab' => $this->settings->submitActionTab,
             'submitActionUrl' => $this->getRedirectUrl(),
             'errorMessage' => $this->settings->getErrorMessage() ?? '',
+            'errorMessagePosition' => $this->settings->errorMessagePosition,
             'loadingIndicator' => $this->settings->loadingIndicator,
             'loadingIndicatorText' => $this->settings->loadingIndicatorText,
             'validationOnSubmit' => $this->settings->validationOnSubmit,

@@ -51,8 +51,8 @@
                 </div>
             {% endif %}
 
-            {% if flashError %}
-                <div class="fui-alert fui-alert-error" role="alert">
+            {% if flashError and form.settings.errorMessagePosition == 'top-form' %}
+                <div class="fui-alert fui-alert-error fui-alert-{{ form.settings.errorMessagePosition }}" role="alert">
                     {{ flashError | t | raw }}
                 </div>
             {% endif %}

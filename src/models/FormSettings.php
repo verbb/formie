@@ -30,6 +30,7 @@ class FormSettings extends Model
     public $submitActionMessage;
     public $submitActionMessageTimeout;
     public $errorMessage;
+    public $errorMessagePosition = 'top-form';
     public $loadingIndicator;
     public $loadingIndicatorText;
     public $validationOnSubmit;
