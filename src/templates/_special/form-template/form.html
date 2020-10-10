@@ -65,6 +65,7 @@
                 {{ csrfInput() }}
                 {{ actionInput(form.getActionUrl()) }}
                 {{ hiddenInput('handle', form.handle) }}
+                {{ hiddenInput('siteId', craft.app.sites.currentSite.id) }}
 
                 {% if submission and submission.id %}
                     {{ hiddenInput('submissionId', submission.id) }}

@@ -40,7 +40,6 @@ class Submission extends Element
 
     public $id;
     public $formId;
-    public $originSiteId;
     public $statusId;
     public $userId;
     public $ipAddress;
@@ -347,6 +346,17 @@ class Submission extends Element
     }
 
     /**
+     * @inheritdoc
+     */
+    public function getSupportedSites(): array
+    {
+        // Only support the site he submission is being made on
+        $siteId = $this->siteId ?: Craft::$app->getSites()->getPrimarySite()->id;
+
+        return [$siteId];
+    }
+
+    /**
      * @inheritDoc
      */
     public function getFieldLayout()
@@ -581,7 +591,6 @@ class Submission extends Element
         } else {
             $record = new SubmissionRecord();
             $record->id = $this->id;
-            $record->originSiteId = $this->originSiteId;
         }
 
         $record->title = $this->title;
