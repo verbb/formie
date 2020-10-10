@@ -46,7 +46,7 @@ class Submissions extends Component
      * @param null $siteId
      * @return Submission|null
      */
-    public function getSubmissionById($submissionId, $siteId = null)
+    public function getSubmissionById($submissionId, $siteId = '*')
     {
         /* @var Submission $submission */
         $submission = Craft::$app->getElements()->getElementById($submissionId, Submission::class, $siteId);
