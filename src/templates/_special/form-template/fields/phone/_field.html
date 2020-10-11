@@ -12,9 +12,9 @@
 
     {% hook 'formie.subfield.field-start' %}
 
-    {% include 'formie/form-template/_includes/label' with labelOptions | merge({
+    {{ formieInclude('_includes/label' with labelOptions | merge({
         position: 'above',
-    }) %}
+    })}) }}
 
     {% hook 'formie.subfield.input-before' %}
 
@@ -34,9 +34,9 @@
 
     {% hook 'formie.subfield.input-after' %}
 
-    {% include 'formie/form-template/_includes/label' with labelOptions | merge({
+    {{ formieInclude('_includes/label' with labelOptions | merge({
         position: 'below',
-    }) %}
+    })}) }}
 
     {% hook 'formie.subfield.field-end' %}
 {% endset %}

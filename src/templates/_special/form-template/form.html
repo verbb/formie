@@ -83,15 +83,15 @@
                     {% endif %}
 
                     {% if form.settings.progressPosition == 'start' %}
-                        {% include 'formie/form-template/_includes/progress' %}
+                        {{ formieInclude('_includes/progress') }}
                     {% endif %}
 
                     {% set errors = submission.getErrors('form') ?? null %}
                     {% if errors %}
-                        {% include 'formie/form-template/_includes/errors' %}
+                        {{ formieInclude('_includes/errors') }}
                     {% endif %}
 
-                    {% include 'formie/form-template/_includes/page-tabs' %}
+                    {{ formieInclude('_includes/page-tabs') }}
 
                     {% if form.settings.submitMethod == 'page-reload' %}
                         {{ craft.formie.renderPage(form, null, options) }}
@@ -102,7 +102,7 @@
                     {% endif %}
 
                     {% if form.settings.progressPosition == 'end' %}
-                        {% include 'formie/form-template/_includes/progress' %}
+                        {{ formieInclude('_includes/progress') }}
                     {% endif %}
 
                     {% hook 'formie.form.end' %}
