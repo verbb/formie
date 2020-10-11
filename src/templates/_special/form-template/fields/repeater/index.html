@@ -2,9 +2,9 @@
 
 {% namespace field.handle %}
     <fieldset class="fui-fieldset">
-        {% include '_legend' with { position: 'above' } %}
+        {% include 'formie/form-template/_includes/legend' with { position: 'above' } %}
 
-        {% include '_instructions' with { position: 'fieldset-start' } %}
+        {% include 'formie/form-template/_includes/instructions' with { position: 'fieldset-start' } %}
 
         <div class="fui-repeater-rows">
             {% if value and value.exists() %}
@@ -46,9 +46,9 @@
             {{ field.addLabel }}
         </button>
 
-        {% include '_instructions' with { position: 'fieldset-end' } %}
+        {% include 'formie/form-template/_includes/instructions' with { position: 'fieldset-end' } %}
 
-        {% include '_legend' with { position: 'below' } %}
+        {% include 'formie/form-template/_includes/legend' with { position: 'below' } %}
     </fieldset>
 {% endnamespace %}
 

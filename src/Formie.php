@@ -38,6 +38,7 @@ use craft\events\RegisterEmailMessagesEvent;
 use craft\events\RegisterGqlMutationsEvent;
 use craft\events\RegisterGqlQueriesEvent;
 use craft\events\RegisterGqlTypesEvent;
+use craft\events\RegisterTemplateRootsEvent;
 use craft\events\RegisterUserPermissionsEvent;
 use craft\services\Gc;
 use craft\services\Elements;
@@ -48,6 +49,7 @@ use craft\services\SystemMessages;
 use craft\services\UserPermissions;
 use craft\helpers\UrlHelper;
 use craft\web\twig\variables\CraftVariable;
+use craft\web\View;
 
 use yii\base\Event;
 
@@ -91,6 +93,7 @@ class Formie extends Plugin
         $this->_registerProjectConfigEventListeners();
         $this->_registerEmailMessages();
         $this->_registerElementExports();
+        $this->_registerTemplateRoots();
 
         // Add default captcha integrations
         Craft::$app->view->hook('formie.buttons.before', static function(array &$context) {
@@ -341,6 +344,13 @@ class Formie extends Plugin
             $e->exporters = array_values($e->exporters);
 
             $e->exporters[] = SubmissionExport::class;
+        });
+    }
+
+    private function _registerTemplateRoots()
+    {
+        Event::on(View::class, View::EVENT_REGISTER_SITE_TEMPLATE_ROOTS, function(RegisterTemplateRootsEvent $e) {
+            $e->roots[$this->id] = $this->getBasePath() . DIRECTORY_SEPARATOR . 'templates/_special';
         });
     }
 }

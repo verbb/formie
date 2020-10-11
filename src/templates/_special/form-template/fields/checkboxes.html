@@ -1,7 +1,7 @@
 <fieldset class="fui-fieldset fui-layout-{{ field.settings.layout ?? 'vertical' }}" id="{{ options.id }}">
-    {% include '_legend' with { position: 'above' } %}
+    {% include 'formie/form-template/_includes/legend' with { position: 'above' } %}
 
-    {% include '_instructions' with { position: 'fieldset-start' } %}
+    {% include 'formie/form-template/_includes/instructions' with { position: 'fieldset-start' } %}
 
     <input type="hidden" aria-hidden="true" aria-checked="false" name="{{ field.handle }}" value="">
 
@@ -37,7 +37,7 @@
         {% endfor %}
     </div>
 
-    {% include '_instructions' with { position: 'fieldset-end' } %}
+    {% include 'formie/form-template/_includes/instructions' with { position: 'fieldset-end' } %}
 
-    {% include '_legend' with { position: 'below' } %}
+    {% include 'formie/form-template/_includes/legend' with { position: 'below' } %}
 </fieldset>

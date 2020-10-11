@@ -20,9 +20,9 @@
         <div class="fui-field-container">
             {% hook 'formie.field.field-start' %}
 
-            {% include '_label' with { position: 'above' } %}
+            {% include 'formie/form-template/_includes/label' with { position: 'above' } %}
 
-            {% include '_instructions' with { position: 'above' } %}
+            {% include 'formie/form-template/_includes/instructions' with { position: 'above' } %}
 
             {% hook 'formie.field.input-before' %}
 
@@ -36,12 +36,12 @@
 
             {% hook 'formie.field.input-after' %}
 
-            {% include '_instructions' with { position: 'below' } %}
+            {% include 'formie/form-template/_includes/instructions' with { position: 'below' } %}
 
-            {% include '_label' with { position: 'below' } %}
+            {% include 'formie/form-template/_includes/label' with { position: 'below' } %}
 
             {% if errors %}
-                {% include '_errors' %}
+                {% include 'formie/form-template/_includes/errors' %}
             {% endif %}
 
             {% hook 'formie.field.field-end' %}

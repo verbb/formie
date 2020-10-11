@@ -1,7 +1,7 @@
 <fieldset class="fui-fieldset" aria-labelledby="{{ options.labelId }}">
-    {% include '_legend' with { position: 'above' } %}
+    {% include 'formie/form-template/_includes/legend' with { position: 'above' } %}
 
-    {% include '_instructions' with { position: 'fieldset-start' } %}
+    {% include 'formie/form-template/_includes/instructions' with { position: 'fieldset-start' } %}
 
     <div class="fui-field-rows">
         {% for row in field.getFrontEndSubfields() %}
@@ -13,7 +13,7 @@
         {% endfor %}
     </div>
 
-    {% include '_instructions' with { position: 'fieldset-end' } %}
+    {% include 'formie/form-template/_includes/instructions' with { position: 'fieldset-end' } %}
 
-    {% include '_legend' with { position: 'below' } %}
+    {% include 'formie/form-template/_includes/legend' with { position: 'below' } %}
 </fieldset>

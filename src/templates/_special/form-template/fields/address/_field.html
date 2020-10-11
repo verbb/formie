@@ -14,7 +14,7 @@
 
     {% hook 'formie.subfield.field-start' %}
 
-    {% include '_label' with labelOptions | merge({
+    {% include 'formie/form-template/_includes/label' with labelOptions | merge({
         position: 'above',
     }) %}
 
@@ -40,7 +40,7 @@
 
     {% hook 'formie.subfield.input-after' %}
 
-    {% include '_label' with labelOptions | merge({
+    {% include 'formie/form-template/_includes/label' with labelOptions | merge({
         position: 'below',
     }) %}
 
