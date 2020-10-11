@@ -2,11 +2,15 @@
 namespace verbb\formie\fields\formfields;
 
 use verbb\formie\base\FormField;
+use verbb\formie\helpers\RichTextHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\positions\Hidden as HiddenPosition;
+use verbb\formie\prosemirror\tohtml\Renderer as HtmlRenderer;
 
 use Craft;
 use craft\base\ElementInterface;
+use craft\helpers\Json;
+use craft\helpers\Template;
 
 use yii\db\Schema;
 
@@ -39,9 +43,18 @@ class Agree extends FormField
     public $checkedValue;
     public $uncheckedValue;
 
+    public $descriptionHtml;
+
 
     // Public Methods
     // =========================================================================
+
+    public function init()
+    {
+        parent::init();
+
+        $this->descriptionHtml = $this->getDescriptionHtml();
+    }
 
     /**
      * @inheritdoc
@@ -66,6 +79,16 @@ class Agree extends FormField
     {
         // Default to yii\validators\Validator::isEmpty()'s behavior
         return $value === null || $value === [] || $value === '' || $value === false;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getDescriptionHtml()
+    {
+        $html = $this->_getHtmlContent($this->description);
+
+        return Template::raw(Craft::t('formie', $html));
     }
 
     /**
@@ -99,7 +122,7 @@ class Agree extends FormField
     public function getPreviewInputHtml(): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/agree/preview', [
-            'field' => $this
+            'field' => $this,
         ]);
     }
 
@@ -110,13 +133,13 @@ class Agree extends FormField
     {
         return [
             SchemaHelper::labelField(),
-            SchemaHelper::textField([
+            SchemaHelper::richTextField(array_merge([
                 'label' => Craft::t('formie', 'Description'),
                 'help' => Craft::t('formie', 'The description for the field. This will be shown next to the checkbox.'),
                 'name' => 'description',
                 'validation' => 'required',
                 'required' => true,
-            ]),
+            ], RichTextHelper::getRichTextConfig('fields.agree'))),
             SchemaHelper::textField([
                 'label' => Craft::t('formie', 'Checked Value'),
                 'help' => Craft::t('formie', 'The value of this field when it is checked.'),
@@ -184,5 +207,28 @@ class Agree extends FormField
             SchemaHelper::containerAttributesField(),
             SchemaHelper::inputAttributesField(),
         ];
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    private function _getHtmlContent($content)
+    {
+        if (is_string($content)) {
+            $content = Json::decode($content);
+        }
+
+        $renderer = new HtmlRenderer();
+
+        $html = $renderer->render([
+            'type' => 'doc',
+            'content' => $content,
+        ]);
+
+        // Strip out paragraphs
+        $html = str_replace(['<p>', '</p>'], ['', ''], $html);
+        
+        return $html;
     }
 }

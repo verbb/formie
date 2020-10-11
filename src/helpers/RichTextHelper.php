@@ -41,6 +41,12 @@ class RichTextHelper
                     'rows' => 3,
                 ],
             ],
+            'fields' => [
+                'agree' => [
+                    'buttons' => ['bold', 'italic', 'link'],
+                    'rows' => 3,
+                ],
+            ],
             'notifications' => [
                 'content' => [
                     'buttons' => ['bold', 'italic', 'variableTag'],

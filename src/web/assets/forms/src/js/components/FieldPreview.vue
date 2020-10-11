@@ -1,9 +1,14 @@
 <script>
 import { mapState } from 'vuex';
 import { parseDate } from '../utils/string';
+import HtmlBlocks from './HtmlBlocks.vue';
 
 export default {
     name: 'FieldPreview',
+
+    components: {
+        HtmlBlocks,
+    },
 
     props: {
         id: {
