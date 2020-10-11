@@ -1,7 +1,9 @@
 {% extends 'formie/_layouts/settings' %}
 
 {% block actionButton %}
-    <a href="{{ url("formie/settings/#{typeName | kebab}/new") }}" class="btn submit add icon">{{ 'New Integration' | t('formie') }}</a>
+    {% if craft.app.config.general.allowAdminChanges %}
+        <a href="{{ url("formie/settings/#{typeName | kebab}/new") }}" class="btn submit add icon">{{ 'New Integration' | t('formie') }}</a>
+    {% endif %}
 {% endblock %}
 
 {% block content %}
@@ -61,24 +63,27 @@ var columns = [
         }
     },
     {% if supportsConnection %}
-    { name: 'connected', title: Craft.t('formie', 'Connected'), callback: function(value) {
-            if (value) {
-                return '<span class="status on"></span>' + Craft.t('formie', 'Connected');
-            } else {
-                return '<span class="status"></span>' + Craft.t('formie', 'Not connected');
+        { name: 'connected', title: Craft.t('formie', 'Connected'), callback: function(value) {
+                if (value) {
+                    return '<span class="status on"></span>' + Craft.t('formie', 'Connected');
+                } else {
+                    return '<span class="status"></span>' + Craft.t('formie', 'Not connected');
+                }
             }
-        }
-    },
+        },
     {% endif %}
 ];
 
 new Craft.VueAdminTable({
     columns: columns,
     container: '#integrations-vue-admin-table',
-    deleteAction: 'formie/integrations/delete-integration',
     emptyMessage: Craft.t('formie', 'No integrations exist yet.'),
-    reorderAction: '{{ integrations | length > 1 ? 'formie/integrations/reorder-integrations' : ''}}',
-    tableData: {{ tableData | json_encode | raw }}
+    tableData: {{ tableData | json_encode | raw }},
+
+    {% if craft.app.config.general.allowAdminChanges %}
+        deleteAction: 'formie/integrations/delete-integration',
+        reorderAction: '{{ integrations | length > 1 ? 'formie/integrations/reorder-integrations' : ''}}',
+    {% endif %}
 });
 
 {% endjs %}

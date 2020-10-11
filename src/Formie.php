@@ -128,7 +128,7 @@ class Formie extends Plugin
             ];
         }
 
-        if (Craft::$app->getUser()->getIsAdmin() && Craft::$app->getConfig()->getGeneral()->allowAdminChanges) {
+        if (Craft::$app->getUser()->getIsAdmin()) {
             $nav['subnav']['settings'] = [
                 'label' => Craft::t('formie', 'Settings'),
                 'url' => 'formie/settings',

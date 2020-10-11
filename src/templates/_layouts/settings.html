@@ -11,73 +11,13 @@
     { label: 'Settings' | t('app'), url: url('formie/settings') },
 ] %}
 
-{% set navItems = {
-    'general': { title: 'General Settings' | t('formie') },
-    'forms': { title: 'Forms' | t('formie') },
-    'behavior-heading': { heading: 'Behavior' | t('formie') },
-    'notifications': { title: 'Notifications' | t('formie') },
-    'statuses': { title: 'Statuses' | t('formie') },
-    'submissions': { title: 'Submissions' | t('formie') },
-    'spam': { title: 'Spam' | t('formie') },
-    'appearance-heading': { heading: 'Appearance' | t('formie') },
-    'stencils': { title: 'Stencils' | t('formie') },
-    'form-templates': { title: 'Form Templates' | t('formie') },
-    'email-templates': { title: 'Email Templates' | t('formie') },
-    'integrations-heading': { heading: 'Integrations' | t('formie') },
-    'captchas': { title: 'Captchas' | t('formie') },
-    'address-providers': { title: 'Address Providers' | t('formie') },
-    'elements': { title: 'Elements' | t('formie') },
-    'email-marketing': { title: 'Email Marketing' | t('formie') },
-    'crm': { title: 'CRM' | t('formie') },
-    'webhooks': { title: 'Webhooks' | t('formie') },
-    'miscellaneous': { title: 'Miscellaneous' | t('formie') },
-} %}
-
-{% set plugins = [
-    craft.app.plugins.pluginInstalled('freeform') ? {
-        'migrate/freeform': { title: 'Freeform' },
-    },
-    craft.app.plugins.pluginInstalled('sprout-forms') ? {
-        'migrate/sprout-forms': { title: 'Sprout Forms' },
-    },
-] | filter %}
-
-{% if plugins %}
-    {% set navItems = navItems | merge({
-        'migrations-heading': { heading: 'Migrations' | t('formie') },
-    }) %}
-
-    {% for plugin in plugins %}
-        {% set navItems = navItems | merge(plugin) %}
-    {% endfor %}
-{% endif %}
-
-{# TODO: Implement all items #}
-{#{% set navItems = {
-    'general': { title: 'General Settings' | t('formie') },
-    'behaviour': { title: 'Behaviour' | t('formie') },
-    'notifications': { title: 'Email Notifications' | t('formie') },
-    'statuses': { title: 'Statuses' | t('formie') },
-    'appearance-heading': { heading: 'Appearance' | t('formie') },
-    'form-templates': { title: 'Form Templates' | t('formie') },
-    'email-templates': { title: 'Email Templates' | t('formie') },
-    'security-heading': { heading: 'Security' | t('formie') },
-    'security': { title: 'Security & Spam' | t('formie') },
-    'privacy-heading': { heading: 'Privacy' | t('formie') },
-    'privacy': { title: 'Privacy & Data' | t('formie') },
-    'integrations-heading': { heading: 'Integrations' | t('formie') },
-    'integrations': { title: 'Integrations' | t('formie') },
-    'permissions': { title: 'Permissions' | t('formie') },
-    'fields': { title: 'Custom Fields' | t('formie') },
-} %}#}
-
 {% set selectedSubnavItem = 'settings' %}
 {% set selectedTab = selectedTab ?? craft.app.request.getSegment(3) ?? 'general' %}
 
 {% block sidebar %}
     <nav class="formie-settings-tabs">
         <ul>
-            {% for handle, item in navItems %}
+            {% for handle, item in craft.formie.getSettingsNavItems() %}
                 {% if item.heading is defined %}
                     <li class="heading"><span>{{ item.heading }}</span></li>
                 {% else %}

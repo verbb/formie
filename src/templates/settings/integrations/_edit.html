@@ -14,24 +14,26 @@
 {% set selectedSubnavItem = 'settings' %}
 {% set selectedTab = 'settings' %}
 
-{% set fullPageForm = true %}
-{% set saveShortcutRedirect = continueEditingUrl %}
+{% if craft.app.config.general.allowAdminChanges %}
+    {% set fullPageForm = true %}
+    {% set saveShortcutRedirect = continueEditingUrl %}
 
-{% set formActions = [
-    {
-        label: 'Save and continue editing' | t('app'),
-        redirect: continueEditingUrl | hash,
-        shortcut: true,
-        retainScroll: true,
-    },
-    not isNewIntegration ? {
-        destructive: true,
-        label: 'Delete integration' | t('formie'),
-        action: 'formie/integrations/delete-integration',
-        redirect: baseUrl | hash,
-        confirm: 'Are you sure you want to delete this integration?' | t('formie'),
-    }
-] | filter %}
+    {% set formActions = [
+        {
+            label: 'Save and continue editing' | t('app'),
+            redirect: continueEditingUrl | hash,
+            shortcut: true,
+            retainScroll: true,
+        },
+        not isNewIntegration ? {
+            destructive: true,
+            label: 'Delete integration' | t('formie'),
+            action: 'formie/integrations/delete-integration',
+            redirect: baseUrl | hash,
+            confirm: 'Are you sure you want to delete this integration?' | t('formie'),
+        }
+    ] | filter %}
+{% endif %}
 
 {% block content %}
 
@@ -164,16 +166,18 @@
 </div>
 
 {% if not isNewIntegration %}
-    <hr>
+    {% if craft.app.config.general.allowAdminChanges %}
+        <hr>
+    {% endif %}
 
     <div class="meta read-only">
         <div class="data">
-            <h5 class="heading">{{ 'Date Created' | t('wishlist') }}</h5>
+            <h5 class="heading">{{ 'Date Created' | t('app') }}</h5>
             <div class="value">{{ integration.dateCreated | date('short') }} {{ integration.dateCreated | time('short') }}</div>
         </div>
 
         <div class="data">
-            <h5 class="heading">{{ 'Date Updated' | t('wishlist') }}</h5>
+            <h5 class="heading">{{ 'Date Updated' | t('app') }}</h5>
             <div class="value">{{ integration.dateUpdated | date('short') }} {{ integration.dateUpdated | time('short') }}</div>
         </div>
     </div>

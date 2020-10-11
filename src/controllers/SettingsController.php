@@ -20,7 +20,12 @@ class SettingsController extends Controller
     {
         $settings = Formie::$plugin->getSettings();
 
-        return $this->renderTemplate('formie/settings/general', compact('settings'));
+        // Find the first available settings
+        if (Craft::$app->getConfig()->getGeneral()->allowAdminChanges) {
+            return $this->renderTemplate('formie/settings/general', compact('settings'));
+        } else {
+            return $this->redirect('formie/settings/address-providers');
+        }
     }
 
     public function actionForms(): Response

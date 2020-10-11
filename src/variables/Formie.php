@@ -232,4 +232,66 @@ class Formie
     {
         return FormiePlugin::$plugin->getSettings()->pluginName;
     }
+
+    /**
+     * @return array
+     */
+    public function getSettingsNavItems(): array
+    {
+        if (Craft::$app->getConfig()->getGeneral()->allowAdminChanges) {
+            $navItems = [
+                'general' => ['title' => Craft::t('formie', 'General Settings')],
+                'forms' => ['title' => Craft::t('formie', 'Forms')],
+                
+                'behavior-heading' => ['heading' => Craft::t('formie', 'Behavior')],
+                'notifications' => ['title' => Craft::t('formie', 'Email Notifications')],
+                'statuses' => ['title' => Craft::t('formie', 'Statuses')],
+                'submissions' => ['title' => Craft::t('formie', 'Submissions')],
+                'spam' => ['title' => Craft::t('formie', 'Spam')],
+                // 'security' => ['title' => Craft::t('formie', 'Security')],
+                // 'privacy' => ['title' => Craft::t('formie', 'Privacy & Data')],
+                
+                'appearance-heading' => ['heading' => Craft::t('formie', 'Appearance')],
+                'stencils' => ['title' => Craft::t('formie', 'Stencils')],
+                'form-templates' => ['title' => Craft::t('formie', 'Form Templates')],
+                'email-templates' => ['title' => Craft::t('formie', 'Email Templates')],
+                
+                'integrations-heading' => ['heading' => Craft::t('formie', 'Integrations')],
+                'captchas' => ['title' => Craft::t('formie', 'Captchas')],
+                'address-providers' => ['title' => Craft::t('formie', 'Address Providers')],
+                'elements' => ['title' => Craft::t('formie', 'Elements')],
+                'email-marketing' => ['title' => Craft::t('formie', 'Email Marketing')],
+                'crm' => ['title' => Craft::t('formie', 'CRM')],
+                'webhooks' => ['title' => Craft::t('formie', 'Webhooks')],
+                'miscellaneous' => ['title' => Craft::t('formie', 'Miscellaneous')],
+            ];
+
+            $plugins = [];
+
+            if (FormiePlugin::$plugin->getService()->isPluginInstalledAndEnabled('freeform')) {
+                $plugins['migrate/freeform'] = ['title' => Craft::t('formie', 'Freeform')];
+            }
+
+            if (FormiePlugin::$plugin->getService()->isPluginInstalledAndEnabled('sprout-forms')) {
+                $plugins['migrate/sprout-forms'] = ['title' => Craft::t('formie', 'Sprout Forms')];
+            }
+
+            if ($plugins) {
+                $navItems['migrations-heading'] = ['heading' => Craft::t('formie', 'Migrations')];
+                $navItems = array_merge($navItems, $plugins);
+            }
+        } else {
+            $navItems = [
+                'integrations-heading' => ['heading' => Craft::t('formie', 'Integrations')],
+                'address-providers' => ['title' => Craft::t('formie', 'Address Providers')],
+                'elements' => ['title' => Craft::t('formie', 'Elements')],
+                'email-marketing' => ['title' => Craft::t('formie', 'Email Marketing')],
+                'crm' => ['title' => Craft::t('formie', 'CRM')],
+                'webhooks' => ['title' => Craft::t('formie', 'Webhooks')],
+                'miscellaneous' => ['title' => Craft::t('formie', 'Miscellaneous')],
+            ];
+        }
+
+        return $navItems;
+    }
 }
