@@ -53,7 +53,9 @@ class SubmissionExport extends ElementExporter
         $query->with($eagerLoadableFields);
 
         // Fix when trying to export from "All Forms"
-        $query->formId = null;
+        if (is_array($query->formId)) {
+            $query->formId = null;
+        }
 
         foreach ($query->each() as $element) {
             $row = $element->toArray($attributes);
