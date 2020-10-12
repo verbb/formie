@@ -29,9 +29,9 @@
     </select>
 {% else %}
     <fieldset class="fui-fieldset">
-        {{ formieInclude('_includes/legend', { position: 'above' }) }} %}
+        {{ formieInclude('_includes/legend', { position: 'above' }) }}
 
-        {{ formieInclude('_includes/instructions', { position: 'fieldset-start' }) }} %}
+        {{ formieInclude('_includes/instructions', { position: 'fieldset-start' }) }}
 
         <ul id="{{ options.id }}" data-limit="{{ field.branchLimit }}">
             {% nav category in categories %}
@@ -69,8 +69,8 @@
             {% endnav %}
         </ul>
 
-        {{ formieInclude('_includes/instructions', { position: 'fieldset-end' }) }} %}
+        {{ formieInclude('_includes/instructions', { position: 'fieldset-end' }) }}
 
-        {{ formieInclude('_includes/legend', { position: 'below' }) }} %}
+        {{ formieInclude('_includes/legend', { position: 'below' }) }}
     </fieldset>
 {% endif %}

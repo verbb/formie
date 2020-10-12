@@ -1,7 +1,7 @@
 <fieldset class="fui-fieldset" aria-labelledby="{{ options.labelId }}" data-address-id-{{ field.id }}>
-    {{ formieInclude('_includes/legend', { position: 'above' }) }} %}
+    {{ formieInclude('_includes/legend', { position: 'above' }) }}
 
-    {{ formieInclude('_includes/instructions', { position: 'fieldset-start' }) }} %}
+    {{ formieInclude('_includes/instructions', { position: 'fieldset-start' }) }}
 
     <div class="fui-field-rows">
         {% for row in field.getFrontEndSubfields() %}
@@ -13,7 +13,7 @@
         {% endfor %}
     </div>
 
-    {{ formieInclude('_includes/instructions', { position: 'fieldset-end' }) }} %}
+    {{ formieInclude('_includes/instructions', { position: 'fieldset-end' }) }}
 
-    {{ formieInclude('_includes/legend', { position: 'below' }) }} %}
+    {{ formieInclude('_includes/legend', { position: 'below' }) }}
 </fieldset>
