@@ -14,9 +14,7 @@
 
     {% hook 'formie.subfield.field-start' %}
 
-    {{ formieInclude('_includes/label', { labelOptions | merge({
-        position: 'above',
-    })}) }}
+    {{ formieInclude('_includes/label', labelOptions | merge({ position: 'above' })) }}
 
     {% hook 'formie.subfield.input-before' %}
 
@@ -40,9 +38,7 @@
 
     {% hook 'formie.subfield.input-after' %}
 
-    {{ formieInclude('_includes/label', { labelOptions | merge({
-        position: 'below',
-    })}) }}
+    {{ formieInclude('_includes/label', labelOptions | merge({ position: 'below' })) }}
 
     {% hook 'formie.subfield.field-end' %}
 {% endset %}
