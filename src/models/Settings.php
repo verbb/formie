@@ -2,6 +2,8 @@
 namespace verbb\formie\models;
 
 use verbb\formie\Formie;
+use verbb\formie\positions\AboveInput;
+use verbb\formie\positions\BelowInput;
 use verbb\formie\prosemirror\toprosemirror\Renderer as ProseMirrorRenderer;
 
 use Craft;
@@ -38,6 +40,9 @@ class Settings extends Model
     // Forms
     public $defaultFormTemplate = '';
     public $defaultEmailTemplate = '';
+    public $defaultLabelPosition = AboveInput::class;
+    public $defaultInstructionsPosition = BelowInput::class;
+
     public $defaultFileUploadVolume = '';
     public $defaultDateDisplayType = '';
     public $defaultDateValueOption = '';

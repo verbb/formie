@@ -59,6 +59,8 @@ class FormSettings extends Model
     {
         parent::init();
 
+        $settings = Formie::$plugin->getSettings();
+
         if (!$this->errorMessage) {
             $errorMessage = (new ProseMirrorRenderer)->render('<p>' . Craft::t('formie', 'Couldn’t save submission due to errors.') . '</p>');
 
@@ -72,14 +74,14 @@ class FormSettings extends Model
         }
 
         if (!$this->defaultLabelPosition) {
-            $this->defaultLabelPosition = AboveInput::class;
+            $this->defaultLabelPosition = $settings->defaultLabelPosition;
         }
 
         if (!$this->defaultInstructionsPosition) {
-            $this->defaultInstructionsPosition = BelowInput::class;
+            $this->defaultInstructionsPosition = $settings->defaultInstructionsPosition;
         }
 
-        $this->defaultEmailTemplateId = Formie::$plugin->getSettings()->getDefaultEmailTemplateId();
+        $this->defaultEmailTemplateId = $settings->getDefaultEmailTemplateId();
     }
 
     /**

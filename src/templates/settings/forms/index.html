@@ -55,7 +55,27 @@
 
         <hr>
 
-        <h4>{{ 'Fields' | t('formie') }}</h4>
+        <h4>{{ 'General Fields' | t('formie') }}</h4>
+
+        {{ forms.selectField({
+            label: 'Default Label Position' | t('formie'),
+            instructions: 'Fields will by default have their label position set to this option.' | t('formie'),
+            name: 'defaultLabelPosition',
+            options: craft.formie.plugin.fields.getLabelPositionsArray(),
+            value: settings.defaultLabelPosition
+        }) }}
+
+        {{ forms.selectField({
+            label: 'Default Instructions Position' | t('formie'),
+            instructions: 'Fields will by default have their instructions position set to this option.' | t('formie'),
+            name: 'defaultInstructionsPosition',
+            options: craft.formie.plugin.fields.getInstructionsPositionsArray(),
+            value: settings.defaultInstructionsPosition,
+        }) }}
+
+        <hr>
+
+        <h4>{{ 'File Upload Fields' | t('formie') }}</h4>
 
         {{ forms.selectField({
             label: 'Default File Upload Volume' | t('formie'),
@@ -72,6 +92,10 @@
                 value: 'folder:' ~ template.uid,
             })),
         }) }}
+
+        <hr>
+
+        <h4>{{ 'Date/Time Fields' | t('formie') }}</h4>
 
         {{ forms.selectField({
             label: 'Default Date Display Type' | t('formie'),
