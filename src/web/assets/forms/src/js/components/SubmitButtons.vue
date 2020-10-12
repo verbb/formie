@@ -163,6 +163,54 @@ export default {
                             help: this.$options.filters.t('Add classes that will be output on submit button container.', 'formie'),
                             name: 'cssClasses',
                         },
+                        {
+                            component: 'table-block',
+                            label: this.$options.filters.t('Container Attributes', 'formie'),
+                            help: this.$options.filters.t('Add attributes to be outputted on this submit button’s container.', 'formie'),
+                            validation: 'min:0',
+                            generateValue: false,
+                            name: 'containerAttributes',
+                            newRowDefaults: {
+                                label: '',
+                                value: '',
+                            },
+                            columns: [
+                                {
+                                    type: 'label',
+                                    label: 'Name',
+                                    class: 'singleline-cell textual',
+                                },
+                                {
+                                    type: 'value',
+                                    label: 'Value',
+                                    class: 'singleline-cell textual',
+                                },
+                            ],
+                        },
+                        {
+                            component: 'table-block',
+                            label: this.$options.filters.t('Input Attributes', 'formie'),
+                            help: this.$options.filters.t('Add attributes to be outputted on this submit button’s input.', 'formie'),
+                            validation: 'min:0',
+                            generateValue: false,
+                            name: 'inputAttributes',
+                            newRowDefaults: {
+                                label: '',
+                                value: '',
+                            },
+                            columns: [
+                                {
+                                    type: 'label',
+                                    label: 'Name',
+                                    class: 'singleline-cell textual',
+                                },
+                                {
+                                    type: 'value',
+                                    label: 'Value',
+                                    class: 'singleline-cell textual',
+                                },
+                            ],
+                        },
                     ],
                 },
             ];

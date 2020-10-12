@@ -3,7 +3,18 @@
 {% set nextPage = form.getNextPage(page) %}
 {% set prevPage = form.getPreviousPage(page) %}
 
-<div class="fui-btn-container fui-btn-{{ page.settings.buttonsPosition }} {{ page.settings.cssClasses }}">
+{% set containerAttributes = page.settings.getContainerAttributes() ?? {} %}
+{% set inputAttributes = page.settings.getInputAttributes() ?? {} %}
+
+{% set attributes = {
+    class: [
+        'fui-btn-container',
+        "fui-btn-#{page.settings.buttonsPosition}",
+        page.settings.cssClasses,
+    ],
+} | merge(containerAttributes) %}
+
+<div {{ attr(attributes) }}>
     {% hook 'formie.buttons.start' %}
 
     {#
@@ -18,7 +29,7 @@
             nextPage ? 'fui-next',
         ],
         type: 'submit',
-    } | merge(options.buttons.submit ?? {}) %}
+    } | merge(options.buttons.submit ?? {}) | merge(inputAttributes) %}
 
     <button {{ attr(submitAttributes) }}>
         {% hook 'formie.buttons.submit-start' %}
@@ -37,8 +48,8 @@
             type: 'submit',
             name: 'goToPageId',
             value: prevPage.id,
-            onclick: 'this.form.goToPage = this.value;'
-        } | merge(options.buttons.prev ?? {}) %}
+            onclick: 'this.form.goToPage = this.value;',
+        } | merge(options.buttons.prev ?? {}) | merge(inputAttributes) %}
 
         <button {{ attr(prevAttributes) }}>
             {% hook 'formie.buttons.prev-start' %}

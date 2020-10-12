@@ -3,6 +3,7 @@ namespace verbb\formie\models;
 
 use Craft;
 use craft\base\Model;
+use craft\helpers\ArrayHelper;
 
 use yii\behaviors\AttributeTypecastBehavior;
 
@@ -16,11 +17,16 @@ class PageSettings extends Model
     public $showBackButton = false;
     public $buttonsPosition = 'left';
     public $cssClasses;
+    public $containerAttributes;
+    public $inputAttributes;
 
 
     // Public Methods
     // =========================================================================
-
+    
+    /**
+     * @inheritDoc
+     */
     public function init()
     {
         if (!$this->submitButtonLabel) {
@@ -32,6 +38,9 @@ class PageSettings extends Model
         }
     }
 
+    /**
+     * @inheritDoc
+     */
     public function behaviors(): array
     {
         return [
@@ -46,5 +55,29 @@ class PageSettings extends Model
                 ]
             ]
         ];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getContainerAttributes(): array
+    {
+        if (!$this->containerAttributes) {
+            return [];
+        }
+
+        return ArrayHelper::map($this->containerAttributes, 'label', 'value');
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getInputAttributes(): array
+    {
+        if (!$this->inputAttributes) {
+            return [];
+        }
+
+        return ArrayHelper::map($this->inputAttributes, 'label', 'value');
     }
 }
