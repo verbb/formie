@@ -524,11 +524,14 @@ trait FormFieldTrait
      */
     public function getFrontEndInputOptions(Form $form, $value, array $options = null): array
     {
+        // Check to see if we're overriding the field
+        $field = $options['field'] ?? $this;
+
         return [
             'form' => $form,
             'name' => $this->handle,
             'value' => $value,
-            'field' => $this,
+            'field' => $field,
             'options' => $options,
         ];
     }
