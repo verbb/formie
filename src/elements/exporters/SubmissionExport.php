@@ -52,13 +52,11 @@ class SubmissionExport extends ElementExporter
         /** @var ElementQuery $query */
         $query->with($eagerLoadableFields);
 
-        // Fix when trying to export from "All Forms"
-        if (is_array($query->formId)) {
-            $query->formId = null;
-        }
-
         foreach ($query->each() as $element) {
             $row = $element->toArray($attributes);
+
+            // Unavoidable, but we need to ensure the correct content table is resolves when using "All Forms"
+            Craft::$app->getContent()->populateElementContent($element);
 
             if (($fieldLayout = $element->getFieldLayout()) !== null) {
                 foreach ($fieldLayout->getFields() as $field) {
