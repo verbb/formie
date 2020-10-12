@@ -216,7 +216,7 @@ class Agree extends FormField
     private function _getHtmlContent($content)
     {
         if (is_string($content)) {
-            $content = Json::decode($content);
+            $content = Json::decodeIfJson($content);
         }
 
         $renderer = new HtmlRenderer();
