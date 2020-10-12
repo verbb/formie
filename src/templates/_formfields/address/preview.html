@@ -1,7 +1,7 @@
-<div v-if="field.settings.enableAutocomplete" class="fui-row">
+<div v-if="field.settings.autocompleteEnabled" class="fui-row">
     <div class="fui-col">
         <label class="fui-field-label"></label>
-        <input type="text" class="fui-field-input" :placeholder="field.settings.address1Placeholder" :value="field.settings.address1DefaultValue">
+        <input type="text" class="fui-field-input" :placeholder="field.settings.autocompletePlaceholder" :value="field.settings.autocompleteDefaultValue">
     </div>
 </div>
 

@@ -1,6 +1,19 @@
 {% import '_includes/forms' as forms %}
 
 {% namespace field.handle %}
+    {% if field.autocompleteEnabled %}
+        <div class="fui-row">
+            <div class="fui-col">
+                {{ forms.textField({
+                    label: field.autocompleteLabel,
+                    name: 'autocomplete',
+                    required: field.autocompleteRequired,
+                    value: value.autocomplete ?? '',
+                }) }}
+            </div>
+        </div>
+    {% endif %}
+
     {% if field.address1Enabled %}
         <div class="fui-row">
             <div class="fui-col">
