@@ -12,7 +12,7 @@ Captchas are an important part of spam-protection for forms. Formie provides 4 c
 Address Providers allow [Address](docs:feature-tour/fields#address) fields to use third-party services to autocomplete addresses. This has a significant benefit of lowering user input errors for users filling out a form. Formie provides 3 address provider integrations, for further detail read the [Address Provider](docs:integrations/address-providers) docs.
 
 ## Elements
-Element integrations allow form submissions to populate other elements, upon form submission success. Formie provides this integration for the Entry element, for further detail read the [Element](docs:integrations/element-integrations) docs.
+Element integrations allow form submissions to populate other elements, upon form submission success. For further detail read the [Element](docs:integrations/element-integrations) docs.
 
 ## Email Marketing
 Email Marketing integrations allow form submissions to send third-party providers a payload to subscribe an email to a nominated list. You can pick a field to allow users to opt-in to subscribing. You‘ll have control over what fields should be mapped to any custom fields on the third-party system. For further detail read the [Email Marketing](docs:integrations/email-marketing-integrations) docs.

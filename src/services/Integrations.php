@@ -90,6 +90,7 @@ class Integrations extends Component
 
         $elements = [
             elements\Entry::class,
+            elements\User::class,
         ];
 
         $emailMarketing = [

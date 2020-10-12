@@ -1,0 +1,60 @@
+{% import '_includes/forms' as forms %}
+
+{% set handle = integration.handle %}
+{% set formSettings = integration.getFormSettings().getSettings() %}
+{% set activateUser = form.settings.integrations[handle].activateUser ?? false %}
+{% set sendActivationEmail = form.settings.integrations[handle].sendActivationEmail ?? true %}
+{% set groupIds = form.settings.integrations[handle].groupIds ?? [] %}
+
+<integration-form-settings handle="{{ handle }}" :form-settings="{{ formSettings | json_encode }}" source="user" inline-template>
+    <div>
+        {{ forms.checkboxSelectField({
+            label: 'User Group' | t('formie'),
+            instructions: 'Select user groups to assign this new user to.' | t('formie'),
+            id: 'groupIds',
+            name: 'groupIds',
+            options: integration.getGroupOptions(),
+            values: groupIds,
+        }) }}
+
+        {{ forms.lightswitchField({
+            label: 'Activate User' | t('formie'),
+            instructions: 'Whether to activate the user automatically.' | t('formie'),
+            name: 'activateUser',
+            on: activateUser,
+        }) }}
+                                
+        {{ forms.lightswitchField({
+            label: 'Send Activation Email' | t('formie'),
+            instructions: 'Whether to send the activation email for the user automatically.' | t('formie'),
+            name: 'sendActivationEmail',
+            on: sendActivationEmail,
+        }) }}
+
+        <integration-field-mapping
+            label="{{ 'User Attribute Mapping' | t('formie') }}"
+            instructions="{{ 'Choose how your form fields should map to your user attributes.' | t('formie') }}"
+            name-label="{{ integration.displayName() }}"
+            id="attribute-mapping"
+            name="attributeMapping"
+            :value="get(form, 'settings.integrations.{{ handle }}.attributeMapping')"
+            :rows="{{ integration.getElementAttributes() | json_encode }}"
+        ></integration-field-mapping>
+
+        <integration-field-mapping
+            label="{{ 'User Field Mapping' | t('formie') }}"
+            instructions="{{ 'Choose how your form fields should map to your user fields.' | t('formie') }}"
+            name-label="{{ integration.displayName() }}"
+            id="field-mapping"
+            name="fieldMapping"
+            :value="get(form, 'settings.integrations.{{ handle }}.fieldMapping')"
+            :rows="getSourceFields('elements')"
+        ></integration-field-mapping>
+
+        <ul v-if="!isEmpty(get(form, 'settings.integrations.{{ handle }}.errors.fieldMapping'))" class="errors" v-cloak>
+            <li v-for="(error, index) in get(form, 'settings.integrations.{{ handle }}.errors.fieldMapping')" :key="index">
+                ${ error }
+            </li>
+        </ul>
+    </div>
+</integration-form-settings>
