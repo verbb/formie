@@ -1,18 +1,16 @@
 <?php
 namespace verbb\formie\migrations;
 
-use verbb\formie\elements\Form;
-use verbb\formie\fields\formfields\Agree;
-use verbb\formie\prosemirror\toprosemirror\Renderer;
+use verbb\formie\fields\formfields\Address;
 
 use Craft;
 use craft\db\Migration;
 use craft\db\Query;
+use craft\helpers\ArrayHelper;
 use craft\helpers\Db;
 use craft\helpers\Json;
-use craft\helpers\StringHelper;
 
-class m201011_000000_convert_agree_description extends Migration
+class m201012_000000_address_autocomplete extends Migration
 {
     /**
      * @inheritdoc
@@ -22,15 +20,14 @@ class m201011_000000_convert_agree_description extends Migration
         $fields = (new Query())
             ->select(['*'])
             ->from('{{%fields}}')
-            ->where(['type' => Agree::class])
+            ->where(['type' => Address::class])
             ->all();
 
         foreach ($fields as $field) {
             $settings = Json::decode($field['settings']);
 
-            if (array_key_exists('description', $settings)) {
-                $description = (new Renderer)->render('<p>' . $settings['description'] . '</p>');
-                $settings['description'] = $description['content'];
+            if (array_key_exists('enableAutocomplete', $settings)) {
+                $settings['autocompleteEnabled'] = ArrayHelper::remove($settings, 'enableAutocomplete');
 
                 $this->db->createCommand()
                     ->update('{{%fields}}', [
@@ -46,7 +43,7 @@ class m201011_000000_convert_agree_description extends Migration
      */
     public function safeDown()
     {
-        echo "m201011_000000_convert_agree_description cannot be reverted.\n";
+        echo "m201012_000000_address_autocomplete cannot be reverted.\n";
         return false;
     }
 }

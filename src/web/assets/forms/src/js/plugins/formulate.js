@@ -82,7 +82,7 @@ export default Vue => {
                     const values = context.getFormValues();
 
                     if (has(values, 'address1Enabled')) {
-                        return values.address1Enabled || values.address2Enabled || values.address3Enabled || values.cityEnabled || values.stateEnabled || values.zipEnabled || values.countryEnabled;
+                        return values.autocompleteEnabled || values.address1Enabled || values.address2Enabled || values.address3Enabled || values.cityEnabled || values.stateEnabled || values.zipEnabled || values.countryEnabled;
                     }
 
                     if (has(values, 'prefixEnabled')) {

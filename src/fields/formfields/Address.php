@@ -70,7 +70,6 @@ class Address extends FormField implements SubfieldInterface
     // Properties
     // =========================================================================
 
-    public $enableAutocomplete;
     public $autocompleteIntegration;
 
     public $autocompleteEnabled;
@@ -136,6 +135,9 @@ class Address extends FormField implements SubfieldInterface
     public $countryDefaultValue;
     public $countryRequired;
     public $countryErrorMessage;
+
+    // TODO: Remove at next breakpoint. Will blow up CP unless the migration is done first.
+    public $enableAutocomplete;
 
 
     // Public Methods
@@ -231,9 +233,10 @@ class Address extends FormField implements SubfieldInterface
     public function getFieldDefaults(): array
     {
         return [
-            'autocompleteEnabled' => true,
+            'autocompleteEnabled' => false,
             'autocompleteCollapsed' => true,
             'autocompleteLabel' => Craft::t('formie', 'Auto-Complete'),
+            'autocompleteDefaultValue' => '',
 
             'address1Enabled' => true,
             'address1Collapsed' => true,
@@ -300,7 +303,7 @@ class Address extends FormField implements SubfieldInterface
             'country',
         ];
 
-        if ($this->enableAutocomplete) {
+        if ($this->autocompleteEnabled) {
             $subFields[] = 'autocomplete';
         }
 
@@ -333,7 +336,7 @@ class Address extends FormField implements SubfieldInterface
 
         $rows = [];
 
-        if ($this->enableAutocomplete) {
+        if ($this->autocompleteEnabled) {
             $rows[] = ['autocomplete' => 'autocomplete'];
         }
 
@@ -369,7 +372,17 @@ class Address extends FormField implements SubfieldInterface
      */
     public function getSubfieldOptions(): array
     {
-        return [
+        $fields = [];
+        $addressProviderOptions = $this->_getAddressProviderOptions();
+
+        if ($addressProviderOptions) {
+            $fields[] = [
+                'label' => Craft::t('formie', 'Auto-Complete'),
+                'handle' => 'autocomplete',
+            ];
+        }
+
+        return array_merge($fields, [
             [
                 'label' => Craft::t('formie', 'Address 1'),
                 'handle' => 'address1',
@@ -398,7 +411,7 @@ class Address extends FormField implements SubfieldInterface
                 'label' => Craft::t('formie', 'Country'),
                 'handle' => 'country',
             ],
-        ];
+        ]);
     }
 
     /**
@@ -437,7 +450,7 @@ class Address extends FormField implements SubfieldInterface
      */
     public function getAutocompleteHtml($options): string
     {
-        if (!$this->enableAutocomplete || !$this->autocompleteIntegration) {
+        if (!$this->autocompleteEnabled || !$this->autocompleteIntegration) {
             return '';
         }
 
@@ -455,7 +468,7 @@ class Address extends FormField implements SubfieldInterface
      */
     public function getFrontEndJsVariables(Form $form)
     {
-        if (!$this->enableAutocomplete || !$this->autocompleteIntegration) {
+        if (!$this->autocompleteEnabled || !$this->autocompleteIntegration) {
             return null;
         }
 
@@ -473,84 +486,42 @@ class Address extends FormField implements SubfieldInterface
      */
     public function defineGeneralSchema(): array
     {
-        $addressProviderOptions = [];
-        $addressProviders = Formie::$plugin->getIntegrations()->getAllIntegrationsForType(Integration::TYPE_ADDRESS_PROVIDER);
-
-        foreach ($addressProviders as $addressProvider) {
-            if ($addressProvider->enabled) {
-                $addressProviderOptions[] = [ 'label' => $addressProvider->getName(), 'value' => $addressProvider->getHandle() ];
-            }
-        }
+        $addressProviderOptions = $this->_getAddressProviderOptions();
 
         $fields = [
             SchemaHelper::labelField(),
         ];
 
-        if ($addressProviderOptions) {
-            $fields[] = SchemaHelper::lightswitchField([
-                'label' => Craft::t('formie', 'Enable Auto-Complete'),
-                'help' => Craft::t('formie', 'Whether this field should use auto-complete integration. This will render a single field to enter an address.'),
-                'name' => 'enableAutocomplete',
-            ]);
+        foreach ($this->getSubfieldOptions() as $key => $nestedField) {
+            $subfields = [];
 
-            $fields[] = SchemaHelper::toggleContainer('settings.enableAutocomplete', [
-                SchemaHelper::selectField([
+            if ($nestedField['handle'] === 'autocomplete' && $addressProviderOptions) {
+                $subfields[] = SchemaHelper::selectField([
                     'label' => Craft::t('formie', 'Auto-Complete Integration'),
                     'help' => Craft::t('formie', 'Select which address provider this field should use.'),
                     'name' => 'autocompleteIntegration',
-                    'validation' => 'requiredIf:enableAutocomplete',
+                    'validation' => 'requiredIf:autocompleteEnabled',
                     'required' => true,
                     'options' => array_merge(
                         [[ 'label' => Craft::t('formie', 'Select an option'), 'value' => '' ]],
                         $addressProviderOptions
                     ),
-                ]),
+                ]);
+            }
+
+            $subfields[] = SchemaHelper::textField([
+                'label' => Craft::t('formie', 'Label'),
+                'help' => Craft::t('formie', 'The label that describes this field.'),
+                'name' => $nestedField['handle'] . 'Label',
+                'validation' => 'requiredIf:' . $nestedField['handle'] . 'Enabled',
+                'required' => true,
             ]);
-        }
 
-        $toggleBlocks = [
-            SchemaHelper::toggleContainer('settings.enableAutocomplete', [
-                SchemaHelper::toggleBlock([
-                    'blockLabel' => Craft::t('formie', 'Auto-Complete'),
-                    'blockHandle' => 'autocomplete',
-                ], [
-                    SchemaHelper::textField([
-                        'label' => Craft::t('formie', 'Label'),
-                        'help' => Craft::t('formie', 'The label that describes this field.'),
-                        'name' => 'autocompleteLabel',
-                        'validation' => 'requiredIf:enableAutocomplete',
-                        'required' => true,
-                    ]),
-                    SchemaHelper::textField([
-                        'label' => Craft::t('formie', 'Placeholder'),
-                        'help' => Craft::t('formie', 'The text that will be shown if the field doesn’t have a value.'),
-                        'name' => 'autocompletePlaceholder',
-                    ]),
-                    SchemaHelper::textField([
-                        'label' => Craft::t('formie', 'Default Value'),
-                        'help' => Craft::t('formie', 'Entering a default value will place the value in the field when it loads.'),
-                        'name' => 'autocompleteDefaultValue',
-                    ]),
-                ]),
-            ]),
-        ];
-
-        foreach ($this->getSubfieldOptions() as $key => $nestedField) {
-            $subfields = [
-                SchemaHelper::textField([
-                    'label' => Craft::t('formie', 'Label'),
-                    'help' => Craft::t('formie', 'The label that describes this field.'),
-                    'name' => $nestedField['handle'] . 'Label',
-                    'validation' => 'requiredIf:' . $nestedField['handle'] . 'Enabled',
-                    'required' => true,
-                ]),
-
-                SchemaHelper::textField([
-                    'label' => Craft::t('formie', 'Placeholder'),
-                    'help' => Craft::t('formie', 'The text that will be shown if the field doesn’t have a value.'),
-                    'name' => $nestedField['handle'] . 'Placeholder',
-                ]),
-            ];
+            $subfields[] = SchemaHelper::textField([
+                'label' => Craft::t('formie', 'Placeholder'),
+                'help' => Craft::t('formie', 'The text that will be shown if the field doesn’t have a value.'),
+                'name' => $nestedField['handle'] . 'Placeholder',
+            ]);
 
             if ($nestedField['handle'] === 'country') {
                 $subfields[] = SchemaHelper::selectField([
@@ -589,31 +560,6 @@ class Address extends FormField implements SubfieldInterface
     public function defineSettingsSchema(): array
     {
         $fields = [];
-
-        $fields = [
-            SchemaHelper::toggleContainer('settings.enableAutocomplete', [
-                SchemaHelper::toggleBlock([
-                    'blockLabel' => Craft::t('formie', 'Auto-Complete'),
-                    'blockHandle' => 'autocomplete',
-                    'showToggle' => false,
-                    'showEnabled' => false,
-                    'showOnlyIfEnabled' => true,
-                ], [
-                    SchemaHelper::lightswitchField([
-                        'label' => Craft::t('formie', 'Required Field'),
-                        'help' => Craft::t('formie', 'Whether this field should be required when filling out the form.'),
-                        'name' => 'autocompleteRequired',
-                    ]),
-                    SchemaHelper::toggleContainer('settings.autocompleteRequired', [
-                        SchemaHelper::textField([
-                            'label' => Craft::t('formie', 'Error Message'),
-                            'help' => Craft::t('formie', 'When validating the form, show this message if an error occurs. Leave empty to retain the default message.'),
-                            'name' => 'autocompleteErrorMessage',
-                        ]),
-                    ]),
-                ]),
-            ]),
-        ];
 
         foreach ($this->getSubfieldOptions() as $key => $nestedField) {
             $subfields = [
@@ -674,5 +620,26 @@ class Address extends FormField implements SubfieldInterface
     public function getContentGqlMutationArgumentType()
     {
         return AddressInputType::getType($this);
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    /**
+     * @inheritDoc
+     */
+    private function _getAddressProviderOptions()
+    {
+        $addressProviderOptions = [];
+        $addressProviders = Formie::$plugin->getIntegrations()->getAllIntegrationsForType(Integration::TYPE_ADDRESS_PROVIDER);
+
+        foreach ($addressProviders as $addressProvider) {
+            if ($addressProvider->enabled) {
+                $addressProviderOptions[] = [ 'label' => $addressProvider->getName(), 'value' => $addressProvider->getHandle() ];
+            }
+        }
+
+        return $addressProviderOptions;
     }
 }
