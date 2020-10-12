@@ -5,6 +5,7 @@ use verbb\formie\base\FormField;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\positions\Hidden;
 
 use Craft;
 use craft\base\ElementInterface;
@@ -129,6 +130,16 @@ class Recipients extends FormField
         // Populate the default value correctly, when populating from Twig. We want to use placeholder values
         // instead of real values, so they aren't expose in the source
         $this->defaultValue = $this->_getFakeValue($value);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getFieldDefaults(): array
+    {
+        return [
+            'labelPosition' => Hidden::class,
+        ];
     }
 
     /**
