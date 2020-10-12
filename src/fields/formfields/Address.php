@@ -87,6 +87,7 @@ class Address extends FormField implements SubfieldInterface
     public $address1DefaultValue;
     public $address1Required;
     public $address1ErrorMessage;
+    public $address1Hidden;
 
     public $address2Enabled;
     public $address2Collapsed;
@@ -95,6 +96,7 @@ class Address extends FormField implements SubfieldInterface
     public $address2DefaultValue;
     public $address2Required;
     public $address2ErrorMessage;
+    public $address2Hidden;
 
     public $address3Enabled;
     public $address3Collapsed;
@@ -103,6 +105,7 @@ class Address extends FormField implements SubfieldInterface
     public $address3DefaultValue;
     public $address3Required;
     public $address3ErrorMessage;
+    public $address3Hidden;
 
     public $cityEnabled;
     public $cityCollapsed;
@@ -111,6 +114,7 @@ class Address extends FormField implements SubfieldInterface
     public $cityDefaultValue;
     public $cityRequired;
     public $cityErrorMessage;
+    public $cityHidden;
 
     public $stateEnabled;
     public $stateCollapsed;
@@ -119,6 +123,7 @@ class Address extends FormField implements SubfieldInterface
     public $stateDefaultValue;
     public $stateRequired;
     public $stateErrorMessage;
+    public $stateHidden;
 
     public $zipEnabled;
     public $zipCollapsed;
@@ -127,6 +132,7 @@ class Address extends FormField implements SubfieldInterface
     public $zipDefaultValue;
     public $zipRequired;
     public $zipErrorMessage;
+    public $zipHidden;
 
     public $countryEnabled;
     public $countryCollapsed;
@@ -135,6 +141,7 @@ class Address extends FormField implements SubfieldInterface
     public $countryDefaultValue;
     public $countryRequired;
     public $countryErrorMessage;
+    public $countryHidden;
 
     // TODO: Remove at next breakpoint. Will blow up CP unless the migration is done first.
     public $enableAutocomplete;
@@ -370,6 +377,29 @@ class Address extends FormField implements SubfieldInterface
     /**
      * @inheritDoc
      */
+    public function getVisibleFrontEndSubfields($row): array
+    {
+        $subFields = [];
+
+        foreach ($row as $handle => $autocomplete) {
+            $hiddenProp = "{$handle}Hidden";
+
+            if (property_exists($this, $hiddenProp) && !$this->$hiddenProp) {
+                $subFields[$handle] = $autocomplete;
+            }
+
+            // Special-case for autocomplete, can't be hidden
+            if ($handle === 'autocomplete') {
+                $subFields['autocomplete'] = 'autocomplete';
+            }
+        }
+
+        return $subFields;
+    }
+    
+    /**
+     * @inheritDoc
+     */
     public function getSubfieldOptions(): array
     {
         $fields = [];
@@ -576,6 +606,14 @@ class Address extends FormField implements SubfieldInterface
                     ]),
                 ]),
             ];
+
+            if ($nestedField['handle'] !== 'autocomplete') {
+                $subfields[] = SchemaHelper::lightswitchField([
+                    'label' => Craft::t('formie', 'Hidden Field'),
+                    'help' => Craft::t('formie', 'Whether this field should be hidden when filling out the form.'),
+                    'name' => $nestedField['handle'] . 'Hidden',
+                ]);
+            }
 
             $fields[] = SchemaHelper::toggleBlock([
                 'blockLabel' => $nestedField['label'],

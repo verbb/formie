@@ -5,7 +5,9 @@
 
     <div class="fui-field-rows">
         {% for row in field.getFrontEndSubfields() %}
-            <div class="fui-row">
+            {% set visibleFields = field.getVisibleFrontEndSubfields(row) %}
+
+            <div class="{{ (visibleFields | length) ? 'fui-row' : '' }}">
                 {% for handle, autocomplete in row %}
                     {% include 'fields/address/_field' %}
                 {% endfor %}

@@ -2,6 +2,11 @@
     {% set inputId = handle | namespaceInputId(options.id) %}
     {% set errorMessage = attribute(field, "#{handle}ErrorMessage") | t %}
     {% set required = field.required ? field.required : attribute(field, "#{handle}Required") %}
+    {% set isHidden = false %}
+
+    {% if handle != 'autocomplete' %}
+        {% set isHidden = attribute(field, "#{handle}Hidden") %}
+    {% endif %}
 
     {% set labelPosition = craft.formie.getLabelPosition(field, form, true) %}
     {% set labelOptions = {
@@ -50,6 +55,7 @@
         "fui-address-#{handle | kebab}",
         "fui-label-#{labelPosition}",
         handle != 'country' ? 'fui-text-input-field' : 'fui-select-field',
+        isHidden ? 'fui-hidden',
     ],
     html: html,
 } %}

@@ -71,13 +71,14 @@
     }
 }
 
+.fui-field-rows {
+    margin-bottom: -1.25rem;
+}
+
 .fui-row {
     margin-left: -$field-gutter;
     margin-right: -$field-gutter;
-
-    &:not(:last-child) {
-        margin-bottom: 1.25rem;
-    }
+    margin-bottom: 1.25rem;
 }
 
 
