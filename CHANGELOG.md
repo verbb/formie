@@ -1,10 +1,46 @@
 # Changelog
 
-## Unreleased
+## 1.2.20 - 2020-10-12
+
+### Added
+- Added more logging for webhook integrations when troubleshooting.
+- Added `siteId` to submissions. Now makes it possible to know which site a submission was made on.
+- Added multi-site support for submissions.
+- Allow fields in submissions to be searchable.
+- Added “Error Message Position” option for forms to control where form-wide errors are shown.
+- Twig template code can now be included inside a HTML field.
+- Setup template roots to allow for much easier template overrides.
+- Allow form includes to be overridden individually.
+- Allow field hooks to override field settings.
+- Added `fui-next` to all forward-progressing submit buttons, except the final submit button, for multi-page forms.
+- Added `inputAttributes` and `containerAttributes` for submit buttons.
+- Added `defaultLabelPosition` and `defaultInstructionsPosition` to plugin settings for site-wide defaults.
+- Added time label to date field.
+- Address sub-fields can now be set to hidden. Assists with using only autocomplete field.
+- Added User element integration.
+
+### Changed
+- Integration settings can now be viewed read-only when `allowAdminChanges` is false.
+- Agree field’s description now uses HTML content.
+- Re-organised front-end form includes.
+- Extract submit button front-end template to its own include, to allow easier overriding.
+- Recipients field label position is set to “Hidden” by default (because the default field is set to hidden).
+- Address fields can now have only the autocomplete block enabled.
+- Forms now no longer forces `novalidate`. HTML5 validation will trigger when Formie’s JS validation is not triggered.
 
 ### Fixed
 - Fixed file upload fields in nested fields not attaching to email notifications.
 - Fixed fields in nested fields showing in email notifications when their field settings don't allow it.
+- Fixed an error with email notification preview, preventing CSS bleeding into the control panel.
+- Fixed webhook integrations not always using the per-form defined Webhook URL.
+- Fixed Formie's front-end templates, as Sass variables not being able to be overwritten. (thanks @leevigraham).
+- Fixed submission field data not exporting, when exporting from “All Forms”.
+- Fixed “Site Name” for variable picker reflect the site the submission was made on.
+- Fixed attributes and custom fields for submissions not being able to be searched.
+- Fixed rich text content not having access to all available fields in the variable picker.
+- Fixed a few issues with Address field and auto-complete behaving inconsistently with other sub-fields.
+- Fixed autocomplete field for Address fields not showing for submissions.
+- Remove `<small>` HTML elements from instructions for front-end templates. Produced invalid HTML.
 
 ## 1.2.19 - 2020-09-26
 
