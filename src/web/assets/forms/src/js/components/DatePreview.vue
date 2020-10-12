@@ -2,6 +2,8 @@
     <div>
         <div v-if="field.settings.displayType === 'calendar'" class="fui-row">
             <div class="fui-col-auto">
+                <label v-if="field.settings.includeTime && field.settings.timeLabel" class="fui-field-label">{{ field.name }}</label>
+
                 <div class="fui-field-preview">
                     <input
                         type="text"
@@ -16,6 +18,8 @@
             </div>
 
             <div v-if="field.settings.includeTime" class="fui-col-auto">
+                <label v-if="field.settings.timeLabel" class="fui-field-label">{{ field.settings.timeLabel }}</label>
+                    
                 <div class="fui-field-preview">
                     <input
                         v-if="field.settings.includeTime"

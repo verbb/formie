@@ -10,7 +10,7 @@
 
     {% if label %}
         <label {{ attr(attributes) }}>
-            {{ label | t -}}
+            {{ label | t | raw -}}
 
             {%- if field.required ?? required ?? false -%}
                 &nbsp;<span class="fui-required">*</span>

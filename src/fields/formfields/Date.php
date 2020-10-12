@@ -50,6 +50,7 @@ class Date extends FormField implements SubfieldInterface
     public $timeFormat = 'H:i';
     public $displayType = 'calendar';
     public $includeTime = false;
+    public $timeLabel = '';
     public $defaultOption;
     public $dayLabel;
     public $dayPlaceholder;
@@ -319,7 +320,11 @@ class Date extends FormField implements SubfieldInterface
      */
     public function getIsFieldset(): bool
     {
-        return $this->displayType !== 'calendar';
+        if ($this->displayType === 'calendar' && !$this->includeTime) {
+            return false;
+        }
+
+        return true;
     }
 
     /**
@@ -396,6 +401,13 @@ class Date extends FormField implements SubfieldInterface
                 'label' => Craft::t('formie', 'Include Time'),
                 'help' => Craft::t('formie', 'Whether this field should include the time.'),
                 'name' => 'includeTime',
+            ]),
+            SchemaHelper::toggleContainer('settings.includeTime', [
+                SchemaHelper::textField([
+                    'label' => Craft::t('formie', 'Time Label'),
+                    'help' => Craft::t('formie', 'The label shown for the time field.'),
+                    'name' => 'timeLabel',
+                ]),
             ]),
             SchemaHelper::selectField([
                 'label' => Craft::t('formie', 'Default Value'),
