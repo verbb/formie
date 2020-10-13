@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.2.21 - 2020-10-13
+
+### Added
+- Added `enableUnloadWarning` plugin setting, to control the “unload” warning for front-end forms. This warning is used to prompt users their form has changed for good UX.
+- Added `renderJs` and `renderCss` options to `renderForm()`, to allow for enable/disable of resources on specific render calls.
+
+### Fixed
+- Fixed potential error with Agree field descriptions.
+- Fixed incorrectly exporting all form submissions site-wide when a specific form’s submissions were selected.
+- Fixed submission exports not resolving the content table correctly.
+- Fixed submission element index not showing available custom fields to customise with.
+
 ## 1.2.20 - 2020-10-12
 
 ### Added
