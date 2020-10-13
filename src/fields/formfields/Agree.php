@@ -44,18 +44,9 @@ class Agree extends FormField implements PreviewableFieldInterface
     public $checkedValue;
     public $uncheckedValue;
 
-    public $descriptionHtml;
-
 
     // Public Methods
     // =========================================================================
-
-    public function init()
-    {
-        parent::init();
-
-        $this->descriptionHtml = $this->getDescriptionHtml();
-    }
 
     /**
      * @inheritdoc
