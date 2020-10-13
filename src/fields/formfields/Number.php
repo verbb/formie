@@ -6,6 +6,7 @@ use verbb\formie\helpers\SchemaHelper;
 
 use Craft;
 use craft\base\ElementInterface;
+use craft\base\PreviewableFieldInterface;
 use craft\i18n\Locale;
 use craft\helpers\Db;
 use craft\helpers\Localization;
@@ -14,7 +15,7 @@ use craft\helpers\Template;
 use LitEmoji\LitEmoji;
 use Twig\Markup;
 
-class Number extends FormField
+class Number extends FormField implements PreviewableFieldInterface
 {
     // Static Methods
     // =========================================================================

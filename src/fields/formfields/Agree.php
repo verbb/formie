@@ -9,12 +9,13 @@ use verbb\formie\prosemirror\tohtml\Renderer as HtmlRenderer;
 
 use Craft;
 use craft\base\ElementInterface;
+use craft\base\PreviewableFieldInterface;
 use craft\helpers\Json;
 use craft\helpers\Template;
 
 use yii\db\Schema;
 
-class Agree extends FormField
+class Agree extends FormField implements PreviewableFieldInterface
 {
     // Static Methods
     // =========================================================================

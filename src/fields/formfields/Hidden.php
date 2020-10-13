@@ -9,13 +9,14 @@ use verbb\formie\positions\Hidden as HiddenPosition;
 
 use Craft;
 use craft\base\ElementInterface;
+use craft\base\PreviewableFieldInterface;
 use craft\helpers\DateTimeHelper;
 use craft\web\View;
 
 use Throwable;
 use DateTime;
 
-class Hidden extends FormField
+class Hidden extends FormField implements PreviewableFieldInterface
 {
     // Static Methods
     // =========================================================================

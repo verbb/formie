@@ -628,6 +628,22 @@ class Submission extends Element
     // =========================================================================
 
     /**
+     * @inheritdoc
+     */
+    protected static function defineFieldLayouts(string $source): array
+    {
+        $fieldLayouts = [];
+
+        if (preg_match('/^form:(.+)$/', $source, $matches) && ($form = Formie::$plugin->getForms()->getFormById($matches[1]))) {
+            if ($fieldLayout = $form->getFormFieldLayout()) {
+                $fieldLayouts[] = $fieldLayout;
+            }
+        }
+
+        return $fieldLayouts;
+    }
+
+    /**
      * @inheritDoc
      */
     protected static function defineTableAttributes(): array

@@ -7,6 +7,7 @@ use verbb\formie\helpers\SchemaHelper;
 
 use Craft;
 use craft\base\ElementInterface;
+use craft\base\PreviewableFieldInterface;
 use craft\helpers\Template;
 
 use yii\db\Schema;

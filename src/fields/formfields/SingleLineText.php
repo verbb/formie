@@ -9,6 +9,7 @@ use verbb\formie\helpers\SchemaHelper;
 
 use Craft;
 use craft\base\ElementInterface;
+use craft\base\PreviewableFieldInterface;
 use craft\helpers\Json;
 use craft\helpers\Template;
 
@@ -16,7 +17,7 @@ use yii\db\Schema;
 use LitEmoji\LitEmoji;
 use Twig\Markup;
 
-class SingleLineText extends FormField
+class SingleLineText extends FormField implements PreviewableFieldInterface
 {
     // Static Methods
     // =========================================================================

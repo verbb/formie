@@ -11,11 +11,12 @@ use verbb\formie\models\Name as NameModel;
 
 use Craft;
 use craft\base\ElementInterface;
+use craft\base\PreviewableFieldInterface;
 use craft\helpers\Json;
 
 use yii\db\Schema;
 
-class Name extends FormField implements SubfieldInterface
+class Name extends FormField implements SubfieldInterface, PreviewableFieldInterface
 {
     // Traits
     // =========================================================================

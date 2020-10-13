@@ -13,6 +13,7 @@ use verbb\formie\models\Address as AddressModel;
 
 use Craft;
 use craft\base\ElementInterface;
+use craft\base\PreviewableFieldInterface;
 use craft\helpers\Json;
 use craft\helpers\StringHelper;
 
@@ -20,7 +21,7 @@ use CommerceGuys\Addressing\Country\CountryRepository;
 
 use yii\db\Schema;
 
-class Address extends FormField implements SubfieldInterface
+class Address extends FormField implements SubfieldInterface, PreviewableFieldInterface
 {
     // Traits
     // =========================================================================

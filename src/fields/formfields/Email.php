@@ -6,8 +6,9 @@ use verbb\formie\helpers\SchemaHelper;
 
 use Craft;
 use craft\base\ElementInterface;
+use craft\base\PreviewableFieldInterface;
 
-class Email extends FormField
+class Email extends FormField implements PreviewableFieldInterface
 {
     // Static Methods
     // =========================================================================

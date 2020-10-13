@@ -8,14 +8,15 @@ use verbb\formie\base\SubfieldTrait;
 use verbb\formie\helpers\SchemaHelper;
 
 use Craft;
-use craft\helpers\DateTimeHelper;
 use craft\base\ElementInterface;
+use craft\base\PreviewableFieldInterface;
+use craft\helpers\DateTimeHelper;
 use craft\helpers\StringHelper;
 
 use DateTime;
 use yii\db\Schema;
 
-class Date extends FormField implements SubfieldInterface
+class Date extends FormField implements SubfieldInterface, PreviewableFieldInterface
 {
     // Traits
     // =========================================================================

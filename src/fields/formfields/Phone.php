@@ -10,12 +10,13 @@ use verbb\formie\models\Phone as PhoneModel;
 
 use Craft;
 use craft\base\ElementInterface;
+use craft\base\PreviewableFieldInterface;
 use craft\helpers\Json;
 use craft\helpers\StringHelper;
 
 use yii\db\Schema;
 
-class Phone extends FormField implements SubfieldInterface
+class Phone extends FormField implements SubfieldInterface, PreviewableFieldInterface
 {
     // Traits
     // =========================================================================
