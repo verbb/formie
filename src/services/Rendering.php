@@ -96,6 +96,10 @@ class Rendering extends Component
 
         $output = $event->html;
 
+        // We might want to explicitly disable JS/CSS for just this render call
+        $renderCss = $options['renderCss'] ?? true;
+        $renderJs = $options['renderJs'] ?? true;
+
         // We might need to output CSS and JS inline, or at the head/footer. `renderFormAssets`
         // will sort this out, but we don't want to do anything if rendering manually
         $outputCssLocation = $form->getFrontEndTemplateLocation('outputCssLocation');
@@ -104,13 +108,13 @@ class Rendering extends Component
         $outputCss = $form->getFrontEndTemplateOption('outputCssLayout');
         $outputJs = $form->getFrontEndTemplateOption('outputJsBase');
 
-        if ($outputCssLocation !== FormTemplate::MANUAL && $outputCss) {
+        if ($outputCssLocation !== FormTemplate::MANUAL && $outputCss && $renderCss) {
             $css = $this->renderFormAssets($form, self::RENDER_TYPE_CSS);
 
             $output = TemplateHelper::raw($output . $css);
         }
 
-        if ($outputJsLocation !== FormTemplate::MANUAL && $outputJs) {
+        if ($outputJsLocation !== FormTemplate::MANUAL && $outputJs && $renderJs) {
             $js = $this->renderFormAssets($form, self::RENDER_TYPE_JS);
 
             $output = TemplateHelper::raw($output . $js);
