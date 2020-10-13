@@ -15,6 +15,13 @@ return [
         // Forms
         'defaultFormTemplate' => '',
         'defaultEmailTemplate' => '',
+        'enableUnloadWarning' => true,
+
+        // General Fields
+        'defaultLabelPosition' => 'above-input',
+        'defaultInstructionsPosition' => 'below-input',
+
+        // Fields
         'defaultFileUploadVolume' => '',
         'defaultDateDisplayType' => '',
         'defaultDateValueOption' => '',
@@ -44,8 +51,15 @@ return [
 - `defaultPage` - Set the default sub-page navigated to when clicking "Formie" in the main menu.
 
 #### Forms
-- `defaultFormTemplate` - The handle for the default form template used for new forms. Formie's defaults will be used if not specified.
+- `defaultFormTemplate` - The handle for the default form template used for new forms. Formie‘s defaults will be used if not specified.
 - `defaultEmailTemplate` - The handle for the default email template used for new forms. Formie's defaults will be used if not specified.
+- `enableUnloadWarning` - Whether front-end forms should trigger an "unload" warning when a form‘s content has changed and the user tries to navigate away without submitting.
+
+### General Fields
+- `defaultLabelPosition` - The default label position for new forms and fields.
+- `defaultInstructionsPosition` - The default instruction position for new forms and fields.
+
+### Fields
 - `defaultFileUploadVolume` - The asset volume to be used as the default for all new file upload fields. Must be in the format `folder:uid`.
 - `defaultDateDisplayType` - The display type to be used as the default for all new date fields. Can be `calendar`, `dropdowns`, `inputs`. 
 - `defaultDateValueOption` - The default value option to be used as the default for all new date fields. Can be `today`, `date`. 

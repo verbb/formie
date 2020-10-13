@@ -53,6 +53,15 @@
             })),
         }) }}
 
+        {{ forms.lightswitchField({
+            label: 'Enable Unload Warning' | t('formie'),
+            instructions: 'Whether front-end forms should trigger an "unload" warning when a form‘s content has changed and the user tries to navigate away without submitting.' | t('formie'),
+            name: 'enableUnloadWarning',
+            on: settings.enableUnloadWarning,
+            errors: settings.getErrors('enableUnloadWarning'),
+            warning: macros.configWarning('enableUnloadWarning', 'formie'),
+        }) }}
+
         <hr>
 
         <h4>{{ 'General Fields' | t('formie') }}</h4>

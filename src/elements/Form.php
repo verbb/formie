@@ -902,6 +902,8 @@ class Form extends Element
      */
     public function getFrontEndJsVariables(): array
     {   
+        $pluginSettings = Formie::$plugin->getSettings();
+
         // Only provide what we need, both for security/privacy but also DOM size
         $settings = [
             'submitMethod' => $this->settings->submitMethod,
@@ -917,6 +919,7 @@ class Form extends Element
             'loadingIndicatorText' => $this->settings->loadingIndicatorText,
             'validationOnSubmit' => $this->settings->validationOnSubmit,
             'validationOnFocus' => $this->settings->validationOnFocus,
+            'enableUnloadWarning' => $pluginSettings->enableUnloadWarning,
 
             'redirectEntry' => $this->getRedirectEntry()->url ?? '',
             'currentPageId' => $this->getCurrentPage()->id ?? '',

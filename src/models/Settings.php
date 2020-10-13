@@ -40,9 +40,13 @@ class Settings extends Model
     // Forms
     public $defaultFormTemplate = '';
     public $defaultEmailTemplate = '';
+    public $enableUnloadWarning = true;
+
+    // General Fields
     public $defaultLabelPosition = AboveInput::class;
     public $defaultInstructionsPosition = BelowInput::class;
 
+    // Fields
     public $defaultFileUploadVolume = '';
     public $defaultDateDisplayType = '';
     public $defaultDateValueOption = '';

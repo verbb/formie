@@ -31,7 +31,9 @@ export class FormieFormTheme {
         this.savedFormHash = this.hashForm();
 
         // Listen to form changes if the user tries to reload
-        this.addFormUnloadEventListener();
+        if (this.settings.enableUnloadWarning) {
+            this.addFormUnloadEventListener();
+        }
     }
 
     initValidator() {
