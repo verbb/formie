@@ -1,11 +1,20 @@
 <?php
 namespace verbb\formie\controllers;
 
+use verbb\formie\Formie;
+use verbb\formie\base\FormField;
+use verbb\formie\elements\Form;
+use verbb\formie\elements\Submission;
+use verbb\formie\helpers\Variables;
+use verbb\formie\models\Settings;
+use verbb\formie\web\assets\cp\CpAsset;
+
 use Craft;
 use craft\base\Element;
 use craft\errors\ElementNotFoundException;
 use craft\errors\MissingComponentException;
 use craft\helpers\ArrayHelper;
+use craft\helpers\Json;
 use craft\helpers\Template;
 use craft\models\Site;
 use craft\web\Controller;
@@ -22,14 +31,6 @@ use yii\web\Response;
 use DateTime;
 use DateTimeZone;
 use Throwable;
-
-use verbb\formie\Formie;
-use verbb\formie\base\FormField;
-use verbb\formie\elements\Form;
-use verbb\formie\elements\Submission;
-use verbb\formie\helpers\Variables;
-use verbb\formie\models\Settings;
-use verbb\formie\web\assets\cp\CpAsset;
 
 class SubmissionsController extends Controller
 {
@@ -212,6 +213,8 @@ class SubmissionsController extends Controller
 
             Craft::$app->getSession()->setError(Craft::t('formie', 'Couldn’t save submission due to errors.'));
 
+            Formie::error(Craft::t('app', 'Couldn’t save submission due to errors - {e}.', Json::encode($errors)));
+
             Craft::$app->getUrlManager()->setRouteParams([
                 'form' => $submission->getForm(),
                 'submission' => $submission,
@@ -222,18 +225,24 @@ class SubmissionsController extends Controller
         }
 
         if (!Craft::$app->getElements()->saveElement($submission)) {
+            $errors = $submission->getErrors();
+
             if ($request->getAcceptsJson()) {
                 return $this->asJson([
                     'success' => false,
-                    'errors' => $submission->getErrors(),
+                    'errors' => $errors,
                 ]);
             }
 
             Craft::$app->getSession()->setError(Craft::t('formie', 'Couldn’t save submission.'));
 
+            Formie::error(Craft::t('app', 'Couldn’t save submission - {e}.', Json::encode($errors)));
+
             // Send the submission back to the template
             Craft::$app->getUrlManager()->setRouteParams([
+                'form' => $submission->getForm(),
                 'submission' => $submission,
+                'errors' => $errors,
             ]);
 
             return null;
