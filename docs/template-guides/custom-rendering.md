@@ -55,13 +55,13 @@ This guide serves as a starter. There are several aspects of templating that sho
 </form>
 ```
 
-Stepping through the above, we prepare an array of HTML attribute, for the `<form>` element, and use Craft's `attr()` Twig function to apply them - its a little easier than all those attributes!
+Stepping through the above, we prepare an array of HTML attributes, for the `<form>` element, and use Craft's `attr()` Twig function to apply them - its a little easier than all those attributes!
 
 Make sure to use `{{ form.formId }}` for the `id` attribute, and `{{ form.configJson }}` for the `data-config` attribute. These are the only two things Formie needs to hook up the JavaScript used to handle forms. Everything else related to markup is up to you.
 
 We're then including the `actionInput`, `hiddenInput` and `csrfInput` to the form - all requirements and should not be changed. If the form has a redirect URL, we're also setting that with a `redirectInput`.
 
-Finally, we're looping through all fields defined in the form, and namespacing them, so Formie can grab the field values. We're also using `getFrontEndInputHtml` to output the HTML for the field. You could write the individual `<input>` elements, but we'd highly recommend you use the Form Templates to override individual field HTML. The reason is simple - you're keeping field HTML module so it's easily resuable across multiple forms.
+Finally, we're looping through all fields defined in the form, and namespacing them, so Formie can grab the field values. We're also using `getFrontEndInputHtml` to output the HTML for the field. You could write the individual `<input>` elements, but we'd highly recommend you use the [Form Templates](docs:template-guides/form-templates) to override individual field HTML. The reason is simple - you're keeping field HTML modular so it's easily resuable across multiple forms.
 
 Be sure to include the `id` and `labelId` for accessibility, but some fieldtypes rely on this to hook in JavaScript behaviour.
 
@@ -88,9 +88,9 @@ Next, let's add some error-handling for good UX.
 ...
 ```
 
-Here, we've added flash messages for form-wide errors and success. We'll add some more next.
+Here, we've added flash messages for form-wide errors and success. We'll add some more shortly.
 
-Then, we want to add information about the submission. This is important if the form is submitted, you'll want to retain the submission information on the form, rather than getting the user to fill in their details from scratch. It's also important for multi-page forms.
+Then, we want to add information about the submission. This is important if the form is submitted, but validation fails. You'll want to retain the submission information on the form, rather than getting the user to fill in their details from scratch. It's also important for multi-page forms.
 
 ```twig
 {% set submission = form.getCurrentSubmission() %}
@@ -143,9 +143,9 @@ We're fetching the `submission` based on the current submission for this form. F
 
 We also add the `submissionId` as a `hiddenInput` if we're trying to submit the form again. We also check if there are any validation errors on the `submission` element for the form, as well as for each individual field.
 
-Then, for each field, we're fething the field value from the `submission` element, if it doesn't exist, using the `defaultValue`. We're also check for validation errors for the specific field
+Then, for each field, we're fetching the field value from the `submission` element, if it doesn't exist, we use the `defaultValue`. We're also checking for validation errors for the specific field.
 
-Last, but not least - we'll want to include Formie's CSS and JS. If you'd rather include your own, either exclude this, or turn these off in your Form Templates.
+Last, but not least - we'll want to include Formie's CSS and JS. If you'd rather include your own, either exclude this, or turn these off in your [Form Templates](docs:template-guides/form-templates).
 
 ```twig
 {% set form = craft.formie.forms.handle('contactUs').one() %}
@@ -157,7 +157,7 @@ Last, but not least - we'll want to include Formie's CSS and JS. If you'd rather
 ...
 ```
 
-It's important to include this `registerAssets` before the `<form>` rendering tag. You could include them separately as below:
+It's important to include this `registerAssets` before the `<form>` rendering tag. You could also include them separately as below:
 
 ```twig
 {% set form = craft.formie.forms.handle('contactUs').one() %}
