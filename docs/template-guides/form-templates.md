@@ -19,6 +19,7 @@ We're using the `.html` extension here for clarity. You can use `.twig` or whate
 - `form.html`
 - `field.html`
 - `page.html`
+- `_includes/`
 - `fields/`
     - `address/`
         - `country.html`
@@ -123,3 +124,13 @@ For example, the Address field, has the following templates in a folder:
 - `fields/address/index.html`
 
 This is because the address field has many parts, and is complex. If you want to override the templates for this field, you just need to alter the `index.html` file. You can use the includes (denoted by `_`), or you don't have to.
+
+## Overriding Partials
+You'll have noticed in our preview of the templates directory, the inclusion of an `_includes` directory. This houses partial templates that are used throughout the templates. This helps not only with re-use, but keeps things modular, which has a flow-on effect when you want to override _just_ a partial.
+
+The `form.html` file sets up your form, but also includes other partials like `_includes/page-tabs.html`, `_includes/progress.html` and  `_includes/submit.html`. Rather than overriding the `form.html` file just to alter any one of these partials, you can override just the partial.
+
+For example, let's say we want to override the page tabs of a multi-step form. We could create a file `_includes/page-tabs.html` and add our content to this template. There's no need to override `form.html` now!
+
+### How it Works
+Formie's templates use a custom Twig function like `{{ formieInclude('_includes/page-tabs') }}`. This is in contrast to what you might be used to in your own templates, something like `{% include '_includes/page-tabs' %}`. The drawback with this approach is how Formie resolves the template partial. Using `{% include %}` it will expect to find the template partial relative to the template file you're including it from. Instead, `formieInclude()` will resolve the template partial to either your overrides folder, or Formie's default templates.
