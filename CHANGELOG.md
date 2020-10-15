@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.2.22 - 2020-10-15
+
+### Added
+- Added `descriptionHtml` for GraphQL querying Agree fields’ description.
+- Table, Repeater and Rich Text JS now provide access to their JS classes on field DOM elements.
+- Repeater field’s JS now triggers an `init` event.
+
+### Fixed
+- Fix integrations throwing errors when opting-out of the integration (through events or opt-in field).
+- When `Validate When Typing` is set on a form, ensure that the global form error message is removed after errors are fixed (when typing).
+- Fix Agree fields’ description being incorrectly formatted when calling through GraphQL.
+
 ## 1.2.21 - 2020-10-13
 
 ### Added
