@@ -101,6 +101,11 @@ export class FormieFormTheme {
 
         this.validator = new Bouncer(this.formId, registerFormieValidation.detail.validatorSettings);
 
+        // After we clear any error, validate the fielset again. Mostly so we can remove global errors
+        this.form.addEventListener(document, 'bouncerRemoveError', (e) => {
+            this.validate(false);
+        });
+
         // Override error messages defined in DOM - Bouncer only uses these as a last resort
         // In future updates, we can probably remove this
         this.form.addEventListener(document, 'bouncerShowError', (e) => {
@@ -209,7 +214,7 @@ export class FormieFormTheme {
         return JSON.stringify(hash);
     }
 
-    validate() {
+    validate(focus = true) {
         if (!this.validationOnSubmit) {
             return true;
         }
@@ -223,8 +228,13 @@ export class FormieFormTheme {
         var invalidFields = this.validator.validateAll($fieldset);
 
         // If there are errors, focus on the first one
-        if (invalidFields.length > 0) {
+        if (invalidFields.length > 0 && focus) {
             invalidFields[0].focus();
+        }
+
+        // Remove any global errors if none - just in case
+        if (invalidFields.length === 0) {
+            this.removeFormAlert();
         }
 
         return !invalidFields.length;
