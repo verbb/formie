@@ -42,6 +42,14 @@ export class FormieRepeater {
                 this.initRow($row);
             });
         }
+
+        // Emit an "init" event
+        this.$field.dispatchEvent(new CustomEvent('init', {
+            bubbles: true,
+            detail: {
+                repeater: this,
+            },
+        }));
     }
 
     initRow($row) {
