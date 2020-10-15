@@ -259,8 +259,13 @@ Craft.Formie = Garnish.Base.extend({
                     let $notificationsTab = document.querySelector('a[href="#tab-notifications"]');
                     let $integrationsTab = document.querySelector('a[href="#tab-integrations"]');
 
-                    $fieldsTab.classList.remove('error');
-                    $notificationsTab.classList.remove('error');
+                    if ($fieldsTab) {
+                        $fieldsTab.classList.remove('error');
+                    }
+
+                    if ($notificationsTab) {
+                        $notificationsTab.classList.remove('error');
+                    }
 
                     if ($integrationsTab) {
                         $integrationsTab.classList.remove('error');
@@ -375,7 +380,7 @@ Craft.Formie = Garnish.Base.extend({
                         data.config.pages.forEach(page => {
                             page.rows.forEach(row => {
                                 row.fields.forEach(field => {
-                                    if (field.hasError) {
+                                    if ($fieldsTab && field.hasError) {
                                         $fieldsTab.classList.add('error');
                                     }
                                 });
@@ -396,7 +401,7 @@ Craft.Formie = Garnish.Base.extend({
 
                     if (data && data.notifications) {
                         data.notifications.forEach(notification => {
-                            if (notification.hasError) {
+                            if ($notificationsTab && notification.hasError) {
                                 $notificationsTab.classList.add('error');
                             }
                         });

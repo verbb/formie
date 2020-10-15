@@ -350,13 +350,15 @@ class Forms extends Component
         $entryId = $request->getParam('submitActionEntryId', $form->submitActionEntryId);
         $form->submitActionEntryId = is_array($entryId) && !empty($entryId) ? $entryId[0] : null;
 
-        // Retain any integration form settings before wiping them
-        $integrationSettings = $form->settings->integrations ?? [];
-
         // Set the settings.
-        $settings = $request->getParam('settings');
-        $form->settings = new FormSettings($settings);
-        $form->settings->integrations = array_merge($integrationSettings, $form->settings->integrations);
+        if (!$form->settings) {
+            $form->settings = new FormSettings();
+        }
+
+        // Merge in any new settings, while retaining existing ones. Important for users with permissions.
+        if ($newSettings = $request->getParam('settings')) {
+            $form->settings->setAttributes($newSettings, false);
+        }
 
         if ($duplicate) {
             $form->handle = $form->handle . rand();
