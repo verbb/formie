@@ -2,10 +2,11 @@
 namespace verbb\formie\gql\types\generators;
 
 use verbb\formie\Formie;
+use verbb\formie\base\NestedFieldInterface;
+use verbb\formie\fields\formfields\Agree;
 use verbb\formie\gql\interfaces\FieldInterface;
 use verbb\formie\gql\interfaces\RowInterface;
 use verbb\formie\gql\types\FieldType;
-use verbb\formie\base\NestedFieldInterface;
 
 use Craft;
 use craft\gql\base\GeneratorInterface;
@@ -38,12 +39,22 @@ class FieldGenerator implements GeneratorInterface
                     'nestedRows' => [
                         'name' => 'nestedRows',
                         'type' => Type::listOf(RowInterface::getType()),
-                        'description' => 'The field’s nested rows.'
+                        'description' => 'The field’s nested rows.',
                     ],
                     'fields' => [
                         'name' => 'fields',
                         'type' => Type::listOf(FieldInterface::getType()),
-                        'description' => 'The field’s nested fields.'
+                        'description' => 'The field’s nested fields.',
+                    ],
+                ]);
+            }
+
+            // Special-case for Agree field. Maybe we can refactor this to inside the field class?
+            if ($field instanceof Agree) {
+                $contentFieldGqlTypes = array_merge($contentFieldGqlTypes, [
+                    'descriptionHtml' => [
+                        'name' => 'descriptionHtml',
+                        'type' => Type::string(),
                     ],
                 ]);
             }
