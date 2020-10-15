@@ -198,14 +198,6 @@ class FileUpload extends CraftAssets implements FormFieldInterface
     }
 
     /**
-     * @inheritDoc
-     */
-    public function getEmailHtml(Submission $submission, $value, array $options = null)
-    {
-        return false;
-    }
-
-    /**
      * Returns a comma separated list of allowed file extensions
      * that are allowed to be uploaded.
      *

@@ -1,0 +1,19 @@
+{% set elements = value.all() %}
+
+<p>
+    {% if not (options.hideName ?? false) %}
+        <strong>{{ field.name | t }}</strong><br>
+    {% endif %}
+
+    {% if elements | length %}
+        <ul>
+            {% for element in elements %}
+                <li>
+                    <a href="{{ element.getCpEditUrl() }}">{{ element.title }}</a>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        {{ 'No response.' | t('formie') }}
+    {% endif %}
+</p>
