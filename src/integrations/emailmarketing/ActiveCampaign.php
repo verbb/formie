@@ -136,7 +136,7 @@ class ActiveCampaign extends EmailMarketing
             $response = $this->deliverPayload($submission, 'contact/sync', $payload);
 
             if ($response === false) {
-                return false;
+                return true;
             }
 
             $contactId = $response['contact']['id'] ?? '';
@@ -160,7 +160,7 @@ class ActiveCampaign extends EmailMarketing
             $response = $this->deliverPayload($submission, 'contactLists', $payload);
 
             if ($response === false) {
-                return false;
+                return true;
             }
         } catch (\Throwable $e) {
             Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [

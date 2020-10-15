@@ -189,7 +189,7 @@ class Scoro extends Crm
             $response = $this->deliverPayload($submission, 'contacts/modify', $contactPayload);
 
             if ($response === false) {
-                return false;
+                return true;
             }
 
             $contactId = $response['data']['contact_id'] ?? '';

@@ -123,7 +123,7 @@ class Sender extends EmailMarketing
 
             // Allow events to cancel sending
             if (!$this->beforeSendPayload($submission, 'listSubscribe', $payload, 'POST')) {
-                return false;
+                return true;
             }
 
             // Add or update
@@ -131,7 +131,7 @@ class Sender extends EmailMarketing
 
             // Allow events to say the response is invalid
             if (!$this->afterSendPayload($submission, 'listSubscribe', $payload, 'POST', $response)) {
-                return false;
+                return true;
             }
 
             $contactId = $response['success'] ?? '';

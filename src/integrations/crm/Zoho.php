@@ -245,7 +245,7 @@ class Zoho extends Crm
                 $response = $this->deliverPayload($submission, 'Contacts/upsert', $contactPayload);
 
                 if ($response === false) {
-                    return false;
+                    return true;
                 }
 
                 $contactId = $response['data'][0]['details']['id'] ?? '';
@@ -268,7 +268,7 @@ class Zoho extends Crm
                 $response = $this->deliverPayload($submission, 'Accounts/upsert', $accountPayload);
 
                 if ($response === false) {
-                    return false;
+                    return true;
                 }
 
                 $accountId = $response['data'][0]['details']['id'] ?? '';
@@ -290,7 +290,7 @@ class Zoho extends Crm
                 $response = $this->deliverPayload($submission, 'Deals', $dealPayload);
 
                 if ($response === false) {
-                    return false;
+                    return true;
                 }
 
                 $dealId = $response['data'][0]['details']['id'] ?? '';
@@ -314,7 +314,7 @@ class Zoho extends Crm
                     $response = $this->deliverPayload($submission, "/Contacts/{$contactId}/Deals/{$dealId}", $payload, 'PUT');
 
                     if ($response === false) {
-                        return false;
+                        return true;
                     }
                 }
             }
@@ -327,7 +327,7 @@ class Zoho extends Crm
                 $response = $this->deliverPayload($submission, 'Leads', $leadPayload);
 
                 if ($response === false) {
-                    return false;
+                    return true;
                 }
 
                 $leadId = $response['data'][0]['details']['id'] ?? '';

@@ -241,7 +241,7 @@ class GoogleSheets extends Miscellaneous
             $response = $this->deliverPayload($submission, "values/{$range}:append?valueInputOption=RAW", $payload);
 
             if ($response === false) {
-                return false;
+                return true;
             }
         } catch (\Throwable $e) {
             Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [

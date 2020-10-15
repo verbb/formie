@@ -129,7 +129,7 @@ class ConvertKit extends EmailMarketing
             $response = $this->deliverPayload($submission, "forms/{$this->listId}/subscribe", $payload);
 
             if ($response === false) {
-                return false;
+                return true;
             }
         } catch (\Throwable $e) {
             Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [

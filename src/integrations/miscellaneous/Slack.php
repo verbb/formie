@@ -238,7 +238,7 @@ class Slack extends Miscellaneous
                 $response = $this->deliverPayload($submission, 'chat.postMessage', $payload);
 
                 if ($response === false) {
-                    return false;
+                    return true;
                 }
 
                 $isOkay = $response['ok'] ?? '';

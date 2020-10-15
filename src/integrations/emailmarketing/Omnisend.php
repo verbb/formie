@@ -124,7 +124,7 @@ class Omnisend extends EmailMarketing
             $response = $this->deliverPayload($submission, 'contacts', $payload);
 
             if ($response === false) {
-                return false;
+                return true;
             }
 
             $contactId = $response['contactID'] ?? '';

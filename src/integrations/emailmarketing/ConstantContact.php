@@ -206,7 +206,7 @@ class ConstantContact extends EmailMarketing
             $response = $this->deliverPayload($submission, 'contacts/sign_up_form', $payload);
 
             if ($response === false) {
-                return false;
+                return true;
             }
 
             $contactId = $response['contact_id'] ?? '';

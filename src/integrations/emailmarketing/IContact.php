@@ -177,7 +177,7 @@ class IContact extends EmailMarketing
             $response = $this->deliverPayload($submission, 'contacts', $payload);
 
             if ($response === false) {
-                return false;
+                return true;
             }
 
             $contactId = $response['contacts'][0]['contactId'] ?? '';
@@ -202,7 +202,7 @@ class IContact extends EmailMarketing
             $response = $this->deliverPayload($submission, 'subscriptions', $payload);
 
             if ($response === false) {
-                return false;
+                return true;
             }
 
             $failed = $response['failed'] ?? [];

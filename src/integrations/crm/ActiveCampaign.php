@@ -285,7 +285,7 @@ class ActiveCampaign extends Crm
                 $response = $this->deliverPayload($submission, 'contact/sync', $contactPayload);
 
                 if ($response === false) {
-                    return false;
+                    return true;
                 }
 
                 $contactId = $response['contact']['id'] ?? '';
@@ -311,7 +311,7 @@ class ActiveCampaign extends Crm
                     $response = $this->deliverPayload($submission, 'contactLists', $payload);
 
                     if ($response === false) {
-                        return false;
+                        return true;
                     }
                 }
             }
@@ -343,7 +343,7 @@ class ActiveCampaign extends Crm
                     $response = $this->deliverPayload($submission, 'accounts', $accountPayload);
 
                     if ($response === false) {
-                        return false;
+                        return true;
                     }
 
                     $accountId = $response['account']['id'] ?? '';
@@ -366,7 +366,7 @@ class ActiveCampaign extends Crm
                         $response = $this->deliverPayload($submission, 'accountContacts', $payload);
 
                         if ($response === false) {
-                            return false;
+                            return true;
                         }
                     }
                 }
@@ -395,7 +395,7 @@ class ActiveCampaign extends Crm
                 $response = $this->deliverPayload($submission, 'deals', $dealPayload);
 
                 if ($response === false) {
-                    return false;
+                    return true;
                 }
             }
         } catch (\Throwable $e) {

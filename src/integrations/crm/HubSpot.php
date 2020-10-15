@@ -202,7 +202,7 @@ class HubSpot extends Crm
                 $response = $this->deliverPayload($submission, "contacts/v1/contact/createOrUpdate/email/{$email}", $contactPayload);
 
                 if ($response === false) {
-                    return false;
+                    return true;
                 }
 
                 $contactId = $response['vid'] ?? '';
@@ -237,7 +237,7 @@ class HubSpot extends Crm
                 $response = $this->deliverPayload($submission, 'deals/v1/deal', $dealPayload);
 
                 if ($response === false) {
-                    return false;
+                    return true;
                 }
 
                 $dealId = $response['dealId'] ?? '';

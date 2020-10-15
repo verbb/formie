@@ -143,7 +143,7 @@ class CampaignMonitor extends EmailMarketing
             $response = $this->deliverPayload($submission, "subscribers/{$this->listId}.json", $payload);
 
             if ($response === false) {
-                return false;
+                return true;
             }
         } catch (\Throwable $e) {
             Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [

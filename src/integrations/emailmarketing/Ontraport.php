@@ -167,7 +167,7 @@ class Ontraport extends EmailMarketing
             $response = $this->deliverPayload($submission, 'Contacts', $payload);
 
             if ($response === false) {
-                return false;
+                return true;
             }
 
             $contactId = $response['data']['unique_id'] ?? '';

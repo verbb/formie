@@ -147,7 +147,7 @@ class Salesflare extends Crm
             $response = $this->deliverPayload($submission, 'contacts', $contactPayload);
 
             if ($response === false) {
-                return false;
+                return true;
             }
 
             $contactId = $response['id'] ?? '';

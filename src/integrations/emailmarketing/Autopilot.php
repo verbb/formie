@@ -166,7 +166,7 @@ class Autopilot extends EmailMarketing
             $response = $this->deliverPayload($submission, 'contact', $payload);
 
             if ($response === false) {
-                return false;
+                return true;
             }
 
             $contactId = $response['contact_id'] ?? '';

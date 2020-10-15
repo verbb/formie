@@ -130,7 +130,7 @@ class Benchmark extends EmailMarketing
 
             // Allow events to cancel sending
             if (!$this->beforeSendPayload($submission, 'Contact/ContactDetails', $payload, 'GET')) {
-                return false;
+                return true;
             }
 
             // Check if the email exists, API can't handle PUT or updating if it exists...
@@ -155,7 +155,7 @@ class Benchmark extends EmailMarketing
 
             // Allow events to say the response is invalid
             if (!$this->afterSendPayload($submission, 'Contact', $payload, 'POST', $response)) {
-                return false;
+                return true;
             }
 
             $errors = $response['Response']['Errors'] ?? [];

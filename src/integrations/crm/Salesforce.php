@@ -229,7 +229,7 @@ class Salesforce extends Crm
                 $response = $this->deliverPayload($submission, 'sobjects/Account', $accountPayload);
 
                 if ($response === false) {
-                    return false;
+                    return true;
                 }
 
                 $accountId = $response['id'] ?? '';
@@ -266,14 +266,14 @@ class Salesforce extends Crm
                     $response = $this->deliverPayload($submission, "sobjects/Contact/$contactId", $contactPayload, 'PATCH');
 
                     if ($response === false) {
-                        return false;
+                        return true;
                     }
                 } else {
                     // Create the new record
                     $response = $this->deliverPayload($submission, 'sobjects/Contact', $contactPayload);
 
                     if ($response === false) {
-                        return false;
+                        return true;
                     }
 
                     $contactId = $response['id'] ?? '';
@@ -314,7 +314,7 @@ class Salesforce extends Crm
                     $response = $this->deliverPayload($submission, 'sobjects/Lead', $leadPayload);
 
                     if ($response === false) {
-                        return false;
+                        return true;
                     }
 
                     $leadId = $response['id'] ?? '';
@@ -363,7 +363,7 @@ class Salesforce extends Crm
                 $response = $this->deliverPayload($submission, 'sobjects/Opportunity', $opportunityPayload);
 
                 if ($response === false) {
-                    return false;
+                    return true;
                 }
 
                 $opportunityId = $response['id'] ?? '';

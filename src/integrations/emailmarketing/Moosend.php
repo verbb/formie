@@ -136,7 +136,7 @@ class Moosend extends EmailMarketing
             $response = $this->deliverPayload($submission, "subscribers/{$this->listId}/subscribe.json", $payload);
 
             if ($response === false) {
-                return false;
+                return true;
             }
 
             $contactId = $response['Context']['ID'] ?? '';

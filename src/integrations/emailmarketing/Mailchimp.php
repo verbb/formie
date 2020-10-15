@@ -132,7 +132,7 @@ class Mailchimp extends EmailMarketing
             $response = $this->deliverPayload($submission, "lists/{$this->listId}/members/$emailHash", $payload, 'PUT');
 
             if ($response === false) {
-                return false;
+                return true;
             }
         } catch (\Throwable $e) {
             Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}. Payload: “{payload}”', [

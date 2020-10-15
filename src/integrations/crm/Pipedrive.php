@@ -179,7 +179,7 @@ class Pipedrive extends Crm
                 $response = $this->deliverPayload($submission, 'organizations', $organizationPayload);
 
                 if ($response === false) {
-                    return false;
+                    return true;
                 }
 
                 $organizationId = $response['data']['id'] ?? '';
@@ -205,7 +205,7 @@ class Pipedrive extends Crm
                 $response = $this->deliverPayload($submission, 'persons', $personPayload);
 
                 if ($response === false) {
-                    return false;
+                    return true;
                 }
 
                 $personId = $response['data']['id'] ?? '';
@@ -235,7 +235,7 @@ class Pipedrive extends Crm
                 $response = $this->deliverPayload($submission, 'deals', $dealPayload);
 
                 if ($response === false) {
-                    return false;
+                    return true;
                 }
 
                 $dealId = $response['data']['id'] ?? '';
@@ -265,7 +265,7 @@ class Pipedrive extends Crm
                 $response = $this->deliverPayload($submission, 'leads', $leadPayload);
 
                 if ($response === false) {
-                    return false;
+                    return true;
                 }
 
                 $leadId = $response['data']['id'] ?? '';
@@ -300,7 +300,7 @@ class Pipedrive extends Crm
                 $response = $this->deliverPayload($submission, 'notes', $notePayload);
 
                 if ($response === false) {
-                    return false;
+                    return true;
                 }
 
                 $noteId = $response['data']['id'] ?? '';

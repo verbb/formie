@@ -169,7 +169,7 @@ class VCita extends Crm
             }
 
             if ($response === false) {
-                return false;
+                return true;
             }
 
             $clientId = $response['data']['client']['id'] ?? '';

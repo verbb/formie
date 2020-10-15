@@ -122,7 +122,7 @@ class Sendinblue extends EmailMarketing
             $response = $this->deliverPayload($submission, 'contacts', $payload);
 
             if ($response === false) {
-                return false;
+                return true;
             }
         } catch (\Throwable $e) {
             Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [

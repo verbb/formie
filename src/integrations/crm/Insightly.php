@@ -271,7 +271,7 @@ class Insightly extends Crm
             $response = $this->deliverPayload($submission, 'Contacts', $contactPayload);
 
             if ($response === false) {
-                return false;
+                return true;
             }
 
             $contactId = $response['CONTACT_ID'] ?? '';
@@ -293,7 +293,7 @@ class Insightly extends Crm
             $response = $this->deliverPayload($submission, 'Leads', $leadPayload);
 
             if ($response === false) {
-                return false;
+                return true;
             }
 
             $leadId = $response['LEAD_ID'] ?? '';

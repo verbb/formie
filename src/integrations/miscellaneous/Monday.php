@@ -162,7 +162,7 @@ class Monday extends Miscellaneous
             $response = $this->deliverPayload($submission, '/', $itemPayload);
 
             if ($response === false) {
-                return false;
+                return true;
             }
 
             $itemId = $response['data']['create_item']['id'] ?? '';

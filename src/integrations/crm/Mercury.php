@@ -393,7 +393,7 @@ class Mercury extends Crm
                 $response = $this->deliverPayload($submission, 'contacts', $contactPayload);
 
                 if ($response === false) {
-                    return false;
+                    return true;
                 }
 
                 $contactId = $response['uniqueId'] ?? '';
@@ -409,7 +409,7 @@ class Mercury extends Crm
                 $response = $this->deliverPayload($submission, 'opportunities', $opportunityPayload);
 
                 if ($response === false) {
-                    return false;
+                    return true;
                 }
 
                 $opportunityId = $response['uniqueId'] ?? '';
@@ -423,7 +423,7 @@ class Mercury extends Crm
                     $response = $this->deliverPayload($submission, "opportunities/{$opportunityId}/relatedParties", $payload);
 
                     if ($response === false) {
-                        return false;
+                        return true;
                     }
                 }
             }

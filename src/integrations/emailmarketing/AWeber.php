@@ -217,7 +217,7 @@ class AWeber extends EmailMarketing
 
             // Allow events to cancel sending
             if (!$this->beforeSendPayload($submission, 'accounts', $payload, 'GET')) {
-                return false;
+                return true;
             }
 
             // Find the account first to fetch lists
@@ -228,7 +228,7 @@ class AWeber extends EmailMarketing
 
             // Allow events to say the response is invalid
             if (!$this->afterSendPayload($submission, 'accounts', $payload, 'GET', $response)) {
-                return false;
+                return true;
             }
 
             if (!$listsUrl) {
@@ -242,7 +242,7 @@ class AWeber extends EmailMarketing
             $response = $this->deliverPayload($submission, "{$listsUrl}/{$this->listId}/subscribers", $payload);
 
             if ($response === false) {
-                return false;
+                return true;
             }
         } catch (\Throwable $e) {
             Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [

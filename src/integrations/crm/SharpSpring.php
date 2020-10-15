@@ -181,7 +181,7 @@ class SharpSpring extends Crm
             $response = $this->deliverPayload($submission, '', $contactPayload);
 
             if ($response === false) {
-                return false;
+                return true;
             }
         } catch (\Throwable $e) {
             Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [

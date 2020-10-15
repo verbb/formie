@@ -187,7 +187,7 @@ class Trello extends Miscellaneous
             $response = $this->deliverPayload($submission, 'cards', $payload);
 
             if ($response === false) {
-                return false;
+                return true;
             }
 
             $cardId = $response['id'] ?? '';

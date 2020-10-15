@@ -326,7 +326,7 @@ class Freshdesk extends Crm
                 $response = $this->deliverPayload($submission, 'contacts', $contactPayload);
 
                 if ($response === false) {
-                    return false;
+                    return true;
                 }
 
                 $contactId = $response['id'] ?? '';
@@ -363,7 +363,7 @@ class Freshdesk extends Crm
             $response = $this->deliverPayload($submission, 'tickets', $ticketPayload);
 
             if ($response === false) {
-                return false;
+                return true;
             }
 
             $ticketId = $response['id'] ?? '';

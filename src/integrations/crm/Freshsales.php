@@ -556,7 +556,7 @@ class Freshsales extends Crm
                 }
 
                 if ($response === false) {
-                    return false;
+                    return true;
                 }
 
                 $contactId = $response['contact']['id'] ?? '';
@@ -573,7 +573,7 @@ class Freshsales extends Crm
                 $response = $this->deliverPayload($submission, 'leads', $leadPayload);
 
                 if ($response === false) {
-                    return false;
+                    return true;
                 }
 
                 $leadId = $response['lead']['id'] ?? '';
@@ -590,7 +590,7 @@ class Freshsales extends Crm
                 $response = $this->deliverPayload($submission, 'sales_accounts', $accountPayload);
 
                 if ($response === false) {
-                    return false;
+                    return true;
                 }
 
                 $accountId = $response['account']['id'] ?? '';
@@ -615,7 +615,7 @@ class Freshsales extends Crm
                 $response = $this->deliverPayload($submission, 'deals', $dealPayload);
 
                 if ($response === false) {
-                    return false;
+                    return true;
                 }
 
                 $dealId = $response['deal']['id'] ?? '';

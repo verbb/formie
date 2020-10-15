@@ -110,7 +110,7 @@ class MailerLite extends EmailMarketing
             $response = $this->deliverPayload($submission, "groups/{$this->listId}/subscribers", $payload);
 
             if ($response === false) {
-                return false;
+                return true;
             }
 
             $contactId = $response['id'] ?? '';

@@ -200,7 +200,7 @@ class Pipeliner extends Crm
             $response = $this->deliverPayload($submission, 'entities/Contacts', $contactPayload);
 
             if ($response === false) {
-                return false;
+                return true;
             }
 
             $contactId = $response['data']['id'] ?? '';
