@@ -19,13 +19,21 @@ class FakeElementQuery extends ElementQuery
      */
     public function setFieldValues($values)
     {
-        $this->_fieldValues = $values;
+        $this->_fieldValues[] = new FakeElement($values);
     }
 
     /**
      * @return string
      */
     public function one($db = null)
+    {
+        return $this->_fieldValues;
+    }
+
+    /**
+     * @return string
+     */
+    public function all($db = null)
     {
         return $this->_fieldValues;
     }
