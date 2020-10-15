@@ -23,6 +23,9 @@ export class FormieTable {
     initTable() {
         const $addButton = this.$field.querySelector('[data-add-table-row]');
 
+        // Assign this instance to the field's DOM, so it can be accessed by third parties
+        this.$field.table = this;
+
         if ($addButton) {
             this.form.addEventListener($addButton, eventKey('click'), e => {
                 this.addRow(e);

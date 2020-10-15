@@ -23,6 +23,9 @@ export class FormieRepeater {
     initRepeater() {
         const $rows = this.getRows();
 
+        // Assign this instance to the field's DOM, so it can be accessed by third parties
+        this.$field.repeater = this;
+
         // Save a bunch of properties
         this.$addButton = this.$field.querySelector('[data-add-repeater-row]');
         this.minRows = parseInt(this.$addButton.getAttribute('data-min-rows'));

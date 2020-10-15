@@ -128,6 +128,9 @@ export class FormieRichText {
     }
 
     initEditor() {
+        // Assign this instance to the field's DOM, so it can be accessed by third parties
+        this.$field.richText = this;
+
         // Load in FontAwesome, for better icons
         var $script = document.createElement('script');
         $script.src = 'https://kit.fontawesome.com/bfee7f35b7.js';
