@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.2.23.1 - 2020-10-16
+
+### Fixed
+- Fix Agree field `descriptionHtml` error, introduced in 1.2.20.
+
 ## 1.2.23 - 2020-10-16
 
 ### Changed
