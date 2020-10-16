@@ -88,7 +88,7 @@ class Entry extends Element
                     $fields[] = new IntegrationField([
                         'handle' => $field->handle,
                         'name' => $field->name,
-                        'type' => get_class($field),
+                        'type' => $this->getFieldTypeForField(get_class($field)),
                         'required' => (bool)$field->required,
                     ]);
                 }

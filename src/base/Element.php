@@ -4,8 +4,10 @@ namespace verbb\formie\base;
 use verbb\formie\Formie;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
+use verbb\formie\models\IntegrationField;
 
 use Craft;
+use craft\fields;
 use craft\helpers\ArrayHelper;
 use craft\helpers\StringHelper;
 use craft\helpers\UrlHelper;
@@ -92,5 +94,31 @@ abstract class Element extends Integration implements IntegrationInterface
     {
         // Always fetch, no real need for cache
         return $this->fetchFormSettings();
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
+    /**
+     * @inheritDoc
+     */
+    protected function getFieldTypeForField($fieldClass)
+    {
+        // Provide a map of all native Craft fields to the data we expect
+        $fieldTypeMap = [
+            fields\Assets::class => IntegrationField::TYPE_ARRAY,
+            fields\Categories::class => IntegrationField::TYPE_ARRAY,
+            fields\Checkboxes::class => IntegrationField::TYPE_ARRAY,
+            fields\Date::class => IntegrationField::TYPE_DATETIME,
+            fields\Entries::class => IntegrationField::TYPE_ARRAY,
+            fields\Lightswitch::class => IntegrationField::TYPE_BOOLEAN,
+            fields\MultiSelect::class => IntegrationField::TYPE_ARRAY,
+            fields\Number::class => IntegrationField::TYPE_NUMBER,
+            fields\Tags::class => IntegrationField::TYPE_ARRAY,
+            fields\Users::class => IntegrationField::TYPE_ARRAY,
+        ];
+
+        return $fieldTypeMap[$fieldClass] ?? IntegrationField::TYPE_STRING;
     }
 }
