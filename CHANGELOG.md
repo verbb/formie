@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.2.23 - 2020-10-16
+
+### Changed
+- File upload fields now render links to their control-panel assets in email templates, in addition to being attachments.
+
+### Fixed
+- Fixed group fields displaying incorrectly in email previews.
+- Fixed group fields not checking for nested field’s `hasLabel` attribute in email content.
+- Fixed repeater fields not checking for nested field’s `hasLabel` attribute in email content.
+- Fixed form settings now saving correctly when users with limited permissions save forms.
+- Fixed an error with entry integrations and author.
+- Element integrations now correctly translate Formie fields to Craft fields.
+
 ## 1.2.22 - 2020-10-15
 
 ### Added
