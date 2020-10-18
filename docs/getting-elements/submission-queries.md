@@ -52,10 +52,8 @@ Submission queries support the following parameters:
 
 | Param                                     | Description
 | ----------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-| [after](#after)                               | Narrows the query results to only submissions that were posted on or after a certain date.
-| [anyStatus](#anystatus)                       | Clears out the [status](#status) and [enabledForSite()](https://docs.craftcms.com/api/v3/craft-elements-db-
+| [anyStatus](#anystatus)                       | Clears out the [status](#status)
 | [asArray](#asarray)                           | Causes the query to return matching submissions as arrays of data, rather than Submission objects.
-| [before](#before)                             | Narrows the query results to only submissions that were posted before a certain date.
 | [dateCreated](#datecreated)                   | Narrows the query results based on the submissions’ creation dates.
 | [dateUpdated](#dateupdated)                   | Narrows the query results based on the submissions’ last-updated dates.
 | [fixedOrder](#fixedorder)                     | Causes the query results to be returned in the order specified by [id](#id).
@@ -73,39 +71,6 @@ Submission queries support the following parameters:
 | [statusId](#statusId)                         | Narrows the query results based on the submissions’ statuses, per their IDs.
 | [title](#title)                               | Narrows the query results based on the submissions’ titles.
 | [uid](#uid)                                   | Narrows the query results based on the submissions’ UIDs.
-
-
-
-### `after`
-
-Narrows the query results to only submissions that were posted on or after a certain date.
-
-Possible values include:
-
-| Value | Fetches submissions…
-| - | -
-| `'2018-04-01'` | that were posted after 2018-04-01.
-| a [DateTime](http://php.net/class.datetime) object | that were posted after the date represented by the object.
-
-::: code
-```twig
-{# Fetch submissions posted this month #}
-{% set firstDayOfMonth = date('first day of this month') %}
-
-{% set submissions = craft.formie.submissions()
-    .after(firstDayOfMonth)
-    .all() %}
-```
-
-```php
-// Fetch submissions posted this month
-$firstDayOfMonth = new \DateTime('first day of this month');
-
-$submissions = \verbb\formie\elements\Submission::find()
-    ->after($firstDayOfMonth)
-    ->all();
-```
-:::
 
 
 
@@ -147,39 +112,6 @@ Causes the query to return matching submissions as arrays of data, rather than [
 // Fetch submissions as arrays
 $submissions = \verbb\formie\elements\Submission::find()
     ->asArray()
-    ->all();
-```
-:::
-
-
-
-### `before`
-
-Narrows the query results to only submissions that were posted before a certain date.
-
-Possible values include:
-
-| Value | Fetches submissions…
-| - | -
-| `'2018-04-01'` | that were posted before 2018-04-01.
-| a [DateTime](http://php.net/class.datetime) object | that were posted before the date represented by the object.
-
-::: code
-```twig
-{# Fetch submissions posted before this month #}
-{% set firstDayOfMonth = date('first day of this month') %}
-
-{% set submissions = craft.formie.submissions()
-    .before(firstDayOfMonth)
-    .all() %}
-```
-
-```php
-// Fetch submissions posted before this month
-$firstDayOfMonth = new \DateTime('first day of this month');
-
-$submissions = \verbb\formie\elements\Submission::find()
-    ->before($firstDayOfMonth)
     ->all();
 ```
 :::
