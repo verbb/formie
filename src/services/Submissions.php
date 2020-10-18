@@ -136,6 +136,9 @@ class Submissions extends Component
             if (!$integration->supportsPayloadSending()) {
                 continue;
             }
+
+            // Add additional useful info for the integration
+            $integration->referrer = Craft::$app->getRequest()->getReferrer();
             
             // Fire a 'beforeTriggerIntegration' event
             $event = new TriggerIntegrationEvent([

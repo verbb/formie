@@ -63,6 +63,9 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     public $tokenId;
     public $uid;
 
+    // Used to retain the referrer URL from submissions
+    public $referrer = '';
+
     protected $_client;
 
 
