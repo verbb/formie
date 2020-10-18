@@ -406,6 +406,8 @@ class SubmissionsController extends Controller
 
             Formie::$plugin->getService()->setError($form->id, $errorMessage);
 
+            Formie::error(Craft::t('app', 'Couldn’t save submission due to errors - {e}.', Json::encode($errors)));
+
             Craft::$app->getUrlManager()->setRouteParams([
                 'form' => $form,
                 'submission' => $submission,
@@ -468,6 +470,8 @@ class SubmissionsController extends Controller
             }
 
             Formie::$plugin->getService()->setError($form->id, $errorMessage);
+
+            Formie::error(Craft::t('app', 'Couldn’t save submission due to errors - {e}.', Json::encode($errors)));
 
             Craft::$app->getUrlManager()->setRouteParams([
                 'form' => $form,
