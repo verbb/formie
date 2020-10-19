@@ -158,10 +158,7 @@ class Variables
             $userEmail = $currentUser->email ?? '';
             $username = $currentUser->username ?? '';
             $userFullName = $currentUser->fullName ?? '';
-
-            if ($form && $form->settings->collectIp) {
-                $userIp = Craft::$app->getRequest()->userIP;
-            }
+            $userIp = $submission->ipAddress ?? '';
 
             // Site Info
             $siteId = $submission->siteId ?: Craft::$app->getSites()->getPrimarySite()->id;
@@ -201,7 +198,7 @@ class Variables
                 'time12' => $now->format('h:i a'),
                 'time24' => $now->format('H:i'),
 
-                'userIp' => $userIp ?? '',
+                'userIp' => $userIp,
                 'userId' => $userId,
                 'userEmail' => $userEmail,
                 'username' => $username,
