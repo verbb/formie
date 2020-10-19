@@ -357,6 +357,11 @@ class Forms extends Component
 
         // Merge in any new settings, while retaining existing ones. Important for users with permissions.
         if ($newSettings = $request->getParam('settings')) {
+            // Retain any integration form settings before wiping them
+            $oldIntegrationSettings = $form->settings->integrations ?? [];
+            $newIntegrationSettings = $newSettings['integrations'] ?? [];
+            $newSettings['integrations'] = array_merge($oldIntegrationSettings, $newIntegrationSettings);
+
             $form->settings->setAttributes($newSettings, false);
         }
 
