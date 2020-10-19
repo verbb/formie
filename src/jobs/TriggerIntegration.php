@@ -36,7 +36,7 @@ class TriggerIntegration extends BaseJob
 
         $submission = Formie::$plugin->getSubmissions()->getSubmissionById($this->submissionId);
 
-        $response = $this->integration->sendPayLoad($submission);
+        $response = Formie::$plugin->getSubmissions()->sendIntegrationPayload($this->integration, $submission);
 
         if (!$response) {
             throw new \Exception('Failed to trigger integration.');

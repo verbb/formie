@@ -97,30 +97,41 @@ class Submissions extends Component
         $notifications = $form->getEnabledNotifications();
 
         foreach ($notifications as $notification) {
-            // Fire a 'beforeSendNotification' event
-            $event = new SendNotificationEvent([
-                'submission' => $submission,
-                'notification' => $notification,
-            ]);
-            $this->trigger(self::EVENT_BEFORE_SEND_NOTIFICATION, $event);
-
-            if (!$event->isValid) {
-                continue;
-            }
-
             if ($settings->useQueueForNotifications) {
                 Craft::$app->getQueue()->push(new SendNotification([
-                    'submissionId' => $event->submission->id,
-                    'notificationId' => $event->notification->id,
+                    'submissionId' => $submission->id,
+                    'notificationId' => $notification->id,
                 ]));
             } else {
-                Formie::$plugin->getEmails()->sendEmail($event->notification, $event->submission);
+                $this->sendNotificationEmail($notification, $submission);
             }
         }
     }
 
     /**
-     * Triggers any enabled element integrations.
+     * Sends a notification email. Normally called from the queue job.
+     *
+     * @param Notification $notification
+     * @param Submission $submission
+     */
+    public function sendNotificationEmail($notification, $submission)
+    {
+        // Fire a 'beforeSendNotification' event
+        $event = new SendNotificationEvent([
+            'submission' => $submission,
+            'notification' => $notification,
+        ]);
+        $this->trigger(self::EVENT_BEFORE_SEND_NOTIFICATION, $event);
+
+        if (!$event->isValid) {
+            return true;
+        }
+
+        return Formie::$plugin->getEmails()->sendEmail($event->notification, $event->submission);
+    }
+
+    /**
+     * Triggers any enabled integrations.
      *
      * @param Submission $submission
      */
@@ -139,28 +150,39 @@ class Submissions extends Component
 
             // Add additional useful info for the integration
             $integration->referrer = Craft::$app->getRequest()->getReferrer();
-            
-            // Fire a 'beforeTriggerIntegration' event
-            $event = new TriggerIntegrationEvent([
-                'submission' => $submission,
-                'type' => get_class($integration),
-                'integration' => $integration,
-            ]);
-            $this->trigger(self::EVENT_BEFORE_TRIGGER_INTEGRATION, $event);
-
-            if (!$event->isValid) {
-                continue;
-            }
 
             if ($settings->useQueueForIntegrations) {
                 Craft::$app->getQueue()->push(new TriggerIntegration([
-                    'submissionId' => $event->submission->id,
-                    'integration' => $event->integration,
+                    'submissionId' => $submission->id,
+                    'integration' => $integration,
                 ]));
             } else {
-                $integration->sendPayLoad($event->submission);
+                $this->sendIntegrationPayload($integration, $submission);
             }
         }
+    }
+
+    /**
+     * Triggers an integration's payload to be sent. Normally called from the queue job.
+     *
+     * @param Integration $integration
+     * @param Submission $submission
+     */
+    public function sendIntegrationPayload($integration, Submission $submission)
+    {
+        // Fire a 'beforeTriggerIntegration' event
+        $event = new TriggerIntegrationEvent([
+            'submission' => $submission,
+            'type' => get_class($integration),
+            'integration' => $integration,
+        ]);
+        $this->trigger(self::EVENT_BEFORE_TRIGGER_INTEGRATION, $event);
+
+        if (!$event->isValid) {
+            return true;
+        }
+
+        return $integration->sendPayLoad($event->submission);
     }
 
     /**
