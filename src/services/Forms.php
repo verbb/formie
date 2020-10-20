@@ -144,6 +144,8 @@ class Forms extends Component
 
             // Save fields and syncs.
             foreach ($fieldLayout->getFields() as $field) {
+                $refId = null;
+
                 if ($field->getIsRef()) {
                     $refId = $field->id;
                 }
@@ -151,8 +153,9 @@ class Forms extends Component
                 /* @var FormField $field */
                 $fieldsService->saveField($field);
 
-                if (isset($refId)) {
+                if ($refId) {
                     $toField = $syncsService->parseSyncId($refId);
+
                     if ($toField && $sync = $syncsService->createSync($field, $toField)) {
                         $syncsService->saveSync($sync);
                     }
