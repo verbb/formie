@@ -5,7 +5,7 @@
     type: 'file',
     class: [ 'fui-input' ],
     id: options.id,
-    name: field.handle,
+    name: field.handle ~ '[]',
     required: field.required ? true : false,
     multiple: limitFiles != 1,
     accept: field.accept,
