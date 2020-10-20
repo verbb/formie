@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.2.24 - 2020-10-20
+
+### Added
+Added `referrer` property to integrations, to provide the URL where the submission came from.
+
+### Fixed
+Fixed Campaign integration and error thrown when the referrer was missing.
+Fixed `beforeSendNotification` and `beforeTriggerIntegration` events not working consistently across queue jobs and non-queue.
+Fixed parsing `userIp` twice, when used in variable tags.
+Fixed an error when sending notification emails via queue jobs.
+Fixed Integration settings for forms were wiped when an integrations was disabled.
+Fixed synced fields not saving correctly when moved immediately after being added.
+Fixed file upload files defaulting to a single file being allowed to be uploaded.
+Fixed file upload fields not being able to handle multiple files uploaded.
+
 ## 1.2.23.1 - 2020-10-16
 
 ### Fixed
