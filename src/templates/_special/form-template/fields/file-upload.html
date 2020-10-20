@@ -1,5 +1,5 @@
 {% set sizeLimit = field.sizeLimit ?? 0 %}
-{% set limitFiles = field.limitFiles ?? 1 %}
+{% set limitFiles = field.limitFiles ?? 0 %}
 
 {% set attributes = {
     type: 'file',
@@ -7,7 +7,7 @@
     id: options.id,
     name: field.handle,
     required: field.required ? true : false,
-    multiple: limitFiles > 1,
+    multiple: limitFiles != 1,
     accept: field.accept,
     data: {
         'size-limit': field.sizeLimit,
