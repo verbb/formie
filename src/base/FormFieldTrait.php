@@ -331,6 +331,14 @@ trait FormFieldTrait
     /**
      * @inheritDoc
      */
+    public function getIsVisible(): bool
+    {
+        return true;
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function getExtraBaseFieldConfig(): array
     {
         return [];
