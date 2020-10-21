@@ -294,4 +294,21 @@ class Formie
 
         return $navItems;
     }
+
+    /**
+     * @return array
+     */
+    public function getVisibleFields($row): array
+    {
+        $fields = [];
+        $rowFields = $row['fields'] ?? [];
+
+        foreach ($rowFields as $field) {
+            if ($field->getIsVisible()) {
+                $fields[] = $field;
+            }
+        }
+
+        return $fields;
+    }
 }
