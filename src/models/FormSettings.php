@@ -29,6 +29,7 @@ class FormSettings extends Model
     public $submitActionFormHide;
     public $submitActionMessage;
     public $submitActionMessageTimeout;
+    public $submitActionMessagePosition = 'top-form';
     public $errorMessage;
     public $errorMessagePosition = 'top-form';
     public $loadingIndicator;

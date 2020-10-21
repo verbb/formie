@@ -124,6 +124,17 @@
             size: 3,
             value: form.settings.submitActionMessageTimeout ?? null,
         }) }}
+
+        {{ forms.selectField({
+            label: 'Submission Message Position' | t('formie'),
+            instructions: 'Where to position the success message in the form, when shown.' | t('formie'),
+            name: 'settings[submitActionMessagePosition]',
+            options: [
+                { label: 'Top of Form' | t('formie'), value: 'top-form' },
+                { label: 'Bottom of Form' | t('formie'), value: 'bottom-form' },
+            ],
+            value: form.settings.submitActionMessagePosition ?? 'top-form',
+        }) }}
     </div>
 
     <div id="submit-action-entry" class="{{ submitAction != 'entry' ? 'hidden' }}">

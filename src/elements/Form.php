@@ -909,6 +909,7 @@ class Form extends Element
             'submitMethod' => $this->settings->submitMethod,
             'submitActionMessage' => $this->settings->getSubmitActionMessage() ?? '',
             'submitActionMessageTimeout' => $this->settings->submitActionMessageTimeout,
+            'submitActionMessagePosition' => $this->settings->submitActionMessagePosition,
             'submitActionFormHide' => $this->settings->submitActionFormHide,
             'submitAction' => $this->settings->submitAction,
             'submitActionTab' => $this->settings->submitActionTab,

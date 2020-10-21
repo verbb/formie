@@ -41,7 +41,14 @@
     }) }}
 
     {% if submission is defined %}
+        {% set flashNotice = craft.formie.plugin.service.getFlash(form.id, 'notice') %}
         {% set flashError = craft.formie.plugin.service.getFlash(form.id, 'error') %}
+
+        {% if flashNotice and form.settings.submitActionMessagePosition == 'bottom-form' %}
+            <div class="fui-alert fui-alert-success fui-alert-{{ form.settings.submitActionMessagePosition }}" role="alert">
+                {{ flashNotice | t | raw }}
+            </div>
+        {% endif %}
 
         {% if flashError and form.settings.errorMessagePosition == 'bottom-form' %}
             <div class="fui-alert fui-alert-error fui-alert-{{ form.settings.errorMessagePosition }}" role="alert">
