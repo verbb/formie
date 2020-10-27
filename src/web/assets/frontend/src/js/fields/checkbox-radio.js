@@ -42,7 +42,7 @@ export class FormieCheckboxRadio {
     }
 
     initRequiredCheckboxes() {
-        const $checkboxFields = this.$form.querySelectorAll('.fui-type-checkbox.fui-field-required');
+        const $checkboxFields = this.$form.querySelectorAll('.fui-type-checkboxes.fui-field-required');
 
         $checkboxFields.forEach(($checkboxField) => {
             const $checkboxInputs = $checkboxField.querySelectorAll('[type="checkbox"]');
