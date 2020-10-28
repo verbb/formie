@@ -1,11 +1,11 @@
 <?php
 namespace verbb\formie\gql\interfaces;
 
-use verbb\formie\gql\types\generators\FieldGenerator;
 use verbb\formie\gql\interfaces\FieldSettingsInterface;
-
 use verbb\formie\gql\types\SettingType;
 use verbb\formie\gql\types\SettingValue;
+use verbb\formie\gql\types\generators\FieldGenerator;
+use verbb\formie\gql\types\generators\FieldAttributeGenerator;
 
 use craft\gql\base\InterfaceType as BaseInterfaceType;
 use craft\gql\interfaces\Element;
@@ -78,11 +78,6 @@ class FieldInterface extends BaseInterfaceType
                 'type' => Type::boolean(),
                 'description' => 'Whether the field is required.'
             ],
-            'columnWidth' => [
-                'name' => 'columnWidth',
-                'type' => Type::string(),
-                'description' => 'The width of the field’s column.'
-            ],
             'type' => [
                 'name' => 'type',
                 'type' => Type::string(),
@@ -100,6 +95,66 @@ class FieldInterface extends BaseInterfaceType
 
                     return array_pop($classNameParts);
                 },
+            ],
+            'columnWidth' => [
+                'name' => 'columnWidth',
+                'type' => Type::string(),
+                'description' => 'The width of the field’s column.'
+            ],
+            'limit' => [
+                'name' => 'limit',
+                'type' => Type::boolean(),
+                'description' => 'Whether the field should limit content.'
+            ],
+            'limitType' => [
+                'name' => 'limitType',
+                'type' => Type::string(),
+                'description' => 'The field’s limit type.'
+            ],
+            'limitAmount' => [
+                'name' => 'limitAmount',
+                'type' => Type::int(),
+                'description' => 'The field’s limit amount.'
+            ],
+            'placeholder' => [
+                'name' => 'placeholder',
+                'type' => Type::string(),
+                'description' => 'The field’s placeholder.'
+            ],
+            'defaultValue' => [
+                'name' => 'defaultValue',
+                'type' => Type::string(),
+                'description' => 'The field’s default value.'
+            ],
+            'errorMessage' => [
+                'name' => 'errorMessage',
+                'type' => Type::string(),
+                'description' => 'The field’s error message.'
+            ],
+            'labelPosition' => [
+                'name' => 'labelPosition',
+                'type' => Type::string(),
+                'description' => 'The field’s label position.'
+            ],
+            'instructionsPosition' => [
+                'name' => 'instructionsPosition',
+                'type' => Type::string(),
+                'description' => 'The field’s instructions position.'
+            ],
+            'cssClasses' => [
+                'name' => 'cssClasses',
+                'type' => Type::string(),
+                'description' => 'The field’s CSS classes.'
+            ],
+            'containerAttributes' => [
+                'name' => 'containerAttributes',
+                'type' => Type::listOf(FieldAttributeGenerator::generateType()),
+                'description' => 'The field’s container attributes.'
+            ],
+            'inputAttributes' => [
+                'name' => 'inputAttributes',
+                'type' => Type::listOf(FieldAttributeGenerator::generateType()),
+                'description' => 'The field’s input attributes.'
             ],
         ]), self::getName());
     }

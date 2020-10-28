@@ -223,9 +223,20 @@ This is the interface implemented by all fields. Note that as settings are speci
 | `handle`| `String` | The field’s handle.
 | `instructions`| `String` | The field’s instructions.
 | `required`| `Boolean` | Whether the field is required.
-| `columnWidth`| `Int` | The field’s column width.
 | `type`| `String` | The field’s full class type.
 | `displayName`| `String` | The field’s display name (last portion of the class).
+| `columnWidth`| `Int` | The field’s column width.
+| `limit`| `Boolean` | Whether the field should limit content.
+| `limitType`| `String` | The field’s limit type.
+| `limitAmount`| `Int` | The field’s limit amount.
+| `placeholder`| `String` | The field’s placeholder.
+| `defaultValue`| `String` | The field’s limit type.
+| `errorMessage`| `String` | The field’s error message.
+| `labelPosition`| `String` | The field’s label position.
+| `instructionsPosition`| `String` | The field’s instructions position.
+| `cssClasses`| `String` | The field’s CSS classes.
+| `containerAttributes`| `String` | The field’s container attributes.
+| `inputAttributes`| `String` | The field’s input attributes.
 
 Once using the necessary [Inline Fragments](https://graphql.org/learn/queries/#inline-fragments) for each field type, you'll have access to the same variables as described on the [Field](docs:developers/field) docs.
 
