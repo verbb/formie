@@ -411,6 +411,9 @@ export class FormieFormTheme {
     onAjaxError(response, errorMessage = '') {
         this.onFormError(errorMessage);
 
+        // Fire a fail event
+        this.submitHandler.formSubmitError();
+
         this.afterAjaxSubmit(response);
 
         if (typeof response === 'string') {

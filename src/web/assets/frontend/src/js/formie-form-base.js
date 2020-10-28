@@ -94,9 +94,10 @@ export class FormieFormBase {
         }));
     }
 
-    formSubmitError() {
+    formSubmitError(data = {}) {
         this.$form.dispatchEvent(new CustomEvent('onFormieSubmitError', {
             bubbles: true,
+            detail: data,
         }));
     }
 
