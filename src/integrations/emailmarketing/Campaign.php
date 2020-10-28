@@ -12,6 +12,7 @@ use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
+use craft\fields;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 use craft\web\View;
@@ -151,13 +152,13 @@ class Campaign extends EmailMarketing
     private function _convertFieldType($fieldType)
     {
         $fieldTypes = [
-            Checkboxes::class => IntegrationField::TYPE_ARRAY,
-            Lightswitch::class => IntegrationField::TYPE_BOOLEAN,
-            Entries::class => IntegrationField::TYPE_ARRAY,
-            MultiSelect::class => IntegrationField::TYPE_ARRAY,
-            Number::class => IntegrationField::TYPE_NUMBER,
-            Tags::class => IntegrationField::TYPE_ARRAY,
-            Users::class => IntegrationField::TYPE_ARRAY,
+            fields\Checkboxes::class => IntegrationField::TYPE_ARRAY,
+            fields\Lightswitch::class => IntegrationField::TYPE_BOOLEAN,
+            fields\Entries::class => IntegrationField::TYPE_ARRAY,
+            fields\MultiSelect::class => IntegrationField::TYPE_ARRAY,
+            fields\Number::class => IntegrationField::TYPE_NUMBER,
+            fields\Tags::class => IntegrationField::TYPE_ARRAY,
+            fields\Users::class => IntegrationField::TYPE_ARRAY,
         ];
 
         return $fieldTypes[$fieldType] ?? IntegrationField::TYPE_STRING;
