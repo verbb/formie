@@ -17,35 +17,37 @@
         labelPosition: labelPosition,
     } %}
 
-    {% hook 'formie.subfield.field-start' %}
-
-    {{ formieInclude('_includes/label', labelOptions | merge({ position: 'above' })) }}
-
-    {% hook 'formie.subfield.input-before' %}
-
     <div class="fui-input-container">
-        {% hook 'formie.subfield.input-start' %}
+        {% hook 'formie.subfield.field-start' %}
 
-        {% include ["fields/address/_#{handle}", 'fields/address/_input'] with {
-            autocomplete: autocomplete,
-            placeholder: attribute(field, "#{handle}Placeholder") | t,
-            required: required,
-            value: attribute(value, handle) ?? attribute(field, "#{handle}DefaultValue") ?? '',
-            data: {
-                'fui-message': errorMessage,
-                (handle): '',
-            },
-            id: inputId,
-        } %}
+        {{ formieInclude('_includes/label', labelOptions | merge({ position: 'above' })) }}
 
-        {% hook 'formie.subfield.input-end' %}
+        {% hook 'formie.subfield.input-before' %}
+
+        <div class="fui-input-container">
+            {% hook 'formie.subfield.input-start' %}
+
+            {% include ["fields/address/_#{handle}", 'fields/address/_input'] with {
+                autocomplete: autocomplete,
+                placeholder: attribute(field, "#{handle}Placeholder") | t,
+                required: required,
+                value: attribute(value, handle) ?? attribute(field, "#{handle}DefaultValue") ?? '',
+                data: {
+                    'fui-message': errorMessage,
+                    (handle): '',
+                },
+                id: inputId,
+            } %}
+
+            {% hook 'formie.subfield.input-end' %}
+        </div>
+
+        {% hook 'formie.subfield.input-after' %}
+
+        {{ formieInclude('_includes/label', labelOptions | merge({ position: 'below' })) }}
+
+        {% hook 'formie.subfield.field-end' %}
     </div>
-
-    {% hook 'formie.subfield.input-after' %}
-
-    {{ formieInclude('_includes/label', labelOptions | merge({ position: 'below' })) }}
-
-    {% hook 'formie.subfield.field-end' %}
 {% endset %}
 
 {% set attributes = {

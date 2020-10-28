@@ -10,31 +10,33 @@
         labelPosition: labelPosition,
     } %}
 
-    {% hook 'formie.subfield.field-start' %}
+    <div class="fui-field-container">
+        {% hook 'formie.subfield.field-start' %}
 
-    {{ formieInclude('_includes/label', labelOptions | merge({ position: 'above' })) }}
+        {{ formieInclude('_includes/label', labelOptions | merge({ position: 'above' })) }}
 
-    {% hook 'formie.subfield.input-before' %}
+        {% hook 'formie.subfield.input-before' %}
 
-    <div class="fui-input-container">
-        {% hook 'formie.subfield.input-start' %}
+        <div class="fui-input-container">
+            {% hook 'formie.subfield.input-start' %}
 
-        {% include ["fields/phone/_#{handle}", 'fields/phone/_input'] with {
-            autocomplete: autocomplete,
-            placeholder: attribute(field, "#{handle}Placeholder") | t,
-            required: field.required ? true : false,
-            value: attribute(value, handle) ?? attribute(field, "#{handle}DefaultValue") ?? '',
-            id: inputId,
-        } %}
+            {% include ["fields/phone/_#{handle}", 'fields/phone/_input'] with {
+                autocomplete: autocomplete,
+                placeholder: attribute(field, "#{handle}Placeholder") | t,
+                required: field.required ? true : false,
+                value: attribute(value, handle) ?? attribute(field, "#{handle}DefaultValue") ?? '',
+                id: inputId,
+            } %}
 
-        {% hook 'formie.subfield.input-end' %}
+            {% hook 'formie.subfield.input-end' %}
+        </div>
+
+        {% hook 'formie.subfield.input-after' %}
+
+        {{ formieInclude('_includes/label', labelOptions | merge({ position: 'below' })) }}
+
+        {% hook 'formie.subfield.field-end' %}
     </div>
-
-    {% hook 'formie.subfield.input-after' %}
-
-    {{ formieInclude('_includes/label', labelOptions | merge({ position: 'below' })) }}
-
-    {% hook 'formie.subfield.field-end' %}
 {% endset %}
 
 {% set attributes = {

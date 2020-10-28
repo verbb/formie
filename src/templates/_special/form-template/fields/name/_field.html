@@ -14,71 +14,73 @@
         labelPosition: labelPosition,
     } %}
 
-    {% hook 'formie.subfield.field-start' %}
-
-    {{ formieInclude('_includes/label', labelOptions | merge({ position: 'above' })) }}
-
-    {% hook 'formie.subfield.input-before' %}
-
     <div class="fui-input-container">
-        {% hook 'formie.subfield.input-start' %}
+        {% hook 'formie.subfield.field-start' %}
 
-        {% switch handle %}
-        {% case 'prefix' %}
-            {% set attributes = {
-                id: inputId,
-                class: [ 'fui-select' ],
-                name: handle | namespaceInputName(field.handle),
-                autocomplete: autocomplete,
-                required: required,
-                data: {
-                    'fui-message': errorMessage,
-                },
-                aria: {
-                    required: required ? 'true' : 'false',
-                },
-            } %}
+        {{ formieInclude('_includes/label', labelOptions | merge({ position: 'above' })) }}
 
-            <select {{ attr(attributes) }}>
-                {% if placeholder %}
-                    <option value="" disabled {{- not selected ? ' selected' }}>{{ placeholder }}</option>
-                {% endif %}
+        {% hook 'formie.subfield.input-before' %}
 
-                {% for prefix in field.prefixOptions %}
-                    <option value="{{ prefix.value }}" {{- prefix.value == selected ? ' selected' }}>
-                        {{ prefix.label | t }}
-                    </option>
-                {% endfor %}
-            </select>
-        {% default %}
-            {% set attributes = {
-                type: 'text',
-                id: inputId,
-                class: [ 'fui-input' ],
-                name: handle | namespaceInputName(field.handle),
-                placeholder: placeholder,
-                autocomplete: autocomplete,
-                required: required,
-                value: selected,
-                data: {
-                    'fui-message': errorMessage,
-                },
-                aria: {
-                    required: required ? 'true' : 'false',
-                },
-            } %}
+        <div class="fui-input-container">
+            {% hook 'formie.subfield.input-start' %}
 
-            <input {{ attr(attributes) }} />
-        {% endswitch %}
+            {% switch handle %}
+            {% case 'prefix' %}
+                {% set attributes = {
+                    id: inputId,
+                    class: [ 'fui-select' ],
+                    name: handle | namespaceInputName(field.handle),
+                    autocomplete: autocomplete,
+                    required: required,
+                    data: {
+                        'fui-message': errorMessage,
+                    },
+                    aria: {
+                        required: required ? 'true' : 'false',
+                    },
+                } %}
 
-        {% hook 'formie.subfield.input-end' %}
+                <select {{ attr(attributes) }}>
+                    {% if placeholder %}
+                        <option value="" disabled {{- not selected ? ' selected' }}>{{ placeholder }}</option>
+                    {% endif %}
+
+                    {% for prefix in field.prefixOptions %}
+                        <option value="{{ prefix.value }}" {{- prefix.value == selected ? ' selected' }}>
+                            {{ prefix.label | t }}
+                        </option>
+                    {% endfor %}
+                </select>
+            {% default %}
+                {% set attributes = {
+                    type: 'text',
+                    id: inputId,
+                    class: [ 'fui-input' ],
+                    name: handle | namespaceInputName(field.handle),
+                    placeholder: placeholder,
+                    autocomplete: autocomplete,
+                    required: required,
+                    value: selected,
+                    data: {
+                        'fui-message': errorMessage,
+                    },
+                    aria: {
+                        required: required ? 'true' : 'false',
+                    },
+                } %}
+
+                <input {{ attr(attributes) }} />
+            {% endswitch %}
+
+            {% hook 'formie.subfield.input-end' %}
+        </div>
+
+        {% hook 'formie.subfield.input-after' %}
+
+        {{ formieInclude('_includes/label', labelOptions | merge({ position: 'below' })) }}
+
+        {% hook 'formie.subfield.field-end' %}
     </div>
-
-    {% hook 'formie.subfield.input-after' %}
-
-    {{ formieInclude('_includes/label', labelOptions | merge({ position: 'below' })) }}
-
-    {% hook 'formie.subfield.field-end' %}
 {% endset %}
 
 {% set attributes = {

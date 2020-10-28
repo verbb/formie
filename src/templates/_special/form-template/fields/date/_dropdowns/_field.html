@@ -19,54 +19,56 @@
         labelPosition: labelPosition,
     } %}
 
-    {% hook 'formie.subfield.field-start' %}
-
-    {{ formieInclude('_includes/label', labelOptions | merge({ position: 'above' })) }}
-
-    {% hook 'formie.subfield.input-before' %}
-
     <div class="fui-input-container">
-        {% hook 'formie.subfield.input-start' %}
+        {% hook 'formie.subfield.field-start' %}
 
-        {% set attributes = {
-            id: inputId,
-            class: [ 'fui-select' ],
-            name: char | namespaceInputName(field.handle),
-            required: field.required ? true : false,
-            data: {
-                'fui-message': field.settings.errorMessage | t,
-            },
-            aria: {
-                required: field.required ? 'true' : 'false',
-            },
-        } %}
+        {{ formieInclude('_includes/label', labelOptions | merge({ position: 'above' })) }}
 
-        <select {{ attr(attributes) }}>
-            {% if placeholder %}
-                <option value="" disabled {{- not selected ? ' selected' }}>{{ placeholder }}</option>
-            {% endif %}
+        {% hook 'formie.subfield.input-before' %}
 
-            {% if attrs.options is defined %}
-                {% for option in attrs.options %}
-                    <option value="{{ option.value }}" {{- option.value == selected ? ' selected' }}>
-                        {{ option.label | t }}
-                    </option>
-                {% endfor %}
-            {% else %}
-                {% for i in attrs.min..attrs.max %}
-                    <option value="{{ i }}" {{- i == selected ? ' selected' }}>{{ i }}</option>
-                {% endfor %}
-            {% endif %}
-        </select>
+        <div class="fui-input-container">
+            {% hook 'formie.subfield.input-start' %}
 
-        {% hook 'formie.subfield.input-end' %}
+            {% set attributes = {
+                id: inputId,
+                class: [ 'fui-select' ],
+                name: char | namespaceInputName(field.handle),
+                required: field.required ? true : false,
+                data: {
+                    'fui-message': field.settings.errorMessage | t,
+                },
+                aria: {
+                    required: field.required ? 'true' : 'false',
+                },
+            } %}
+
+            <select {{ attr(attributes) }}>
+                {% if placeholder %}
+                    <option value="" disabled {{- not selected ? ' selected' }}>{{ placeholder }}</option>
+                {% endif %}
+
+                {% if attrs.options is defined %}
+                    {% for option in attrs.options %}
+                        <option value="{{ option.value }}" {{- option.value == selected ? ' selected' }}>
+                            {{ option.label | t }}
+                        </option>
+                    {% endfor %}
+                {% else %}
+                    {% for i in attrs.min..attrs.max %}
+                        <option value="{{ i }}" {{- i == selected ? ' selected' }}>{{ i }}</option>
+                    {% endfor %}
+                {% endif %}
+            </select>
+
+            {% hook 'formie.subfield.input-end' %}
+        </div>
+
+        {% hook 'formie.subfield.input-after' %}
+
+        {{ formieInclude('_includes/label', labelOptions | merge({ position: 'below' })) }}
+
+        {% hook 'formie.subfield.field-end' %}
     </div>
-
-    {% hook 'formie.subfield.input-after' %}
-
-    {{ formieInclude('_includes/label', labelOptions | merge({ position: 'below' })) }}
-
-    {% hook 'formie.subfield.field-end' %}
 {% endset %}
 
 {% set attributes = {
