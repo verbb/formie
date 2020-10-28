@@ -6,6 +6,7 @@ use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\fields\formfields\BaseOptionsField;
 use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\gql\types\generators\FieldAttributeGenerator;
 use verbb\formie\gql\types\generators\KeyValueGenerator;
 use verbb\formie\models\Notification;
 
@@ -716,6 +717,14 @@ trait FormFieldTrait
 
         if ($type === 'date') {
             return DateTimeType::getType();
+        }
+
+        if ($attribute === 'containerAttributes') {
+            return Type::listOf(FieldAttributeGenerator::generateType());
+        }
+
+        if ($attribute === 'inputAttributes') {
+            return Type::listOf(FieldAttributeGenerator::generateType());
         }
 
         if ($type === 'table-block') {
