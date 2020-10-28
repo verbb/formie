@@ -1,5 +1,5 @@
 <fieldset class="fui-fieldset" aria-labelledby="{{ options.labelId }}">
-    {% set labelPosition = craft.formie.getLabelPosition(field, form, true) %}
+    {% set labelPosition = craft.formie.getLabelPosition(field, form) %}
 
     {{ formieInclude('_includes/legend', { position: 'above' }) }}
 
