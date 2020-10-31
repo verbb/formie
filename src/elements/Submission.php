@@ -314,6 +314,27 @@ class Submission extends Element
         return $validates;
     }
 
+    /**
+     * @inheritdoc
+     */
+    public static function eagerLoadingMap(array $sourceElements, string $handle)
+    {
+        $contentService = Craft::$app->getContent();
+        $originalFieldContext = $contentService->fieldContext;
+
+        $submission = $sourceElements[0] ?? null;
+
+        if ($submission && $submission instanceof self) {
+            $contentService->fieldContext = $submission->getFieldContext();
+        }
+
+        $map = parent::eagerLoadingMap($sourceElements, $handle);
+
+        $contentService->fieldContext = $originalFieldContext;
+
+        return $map;
+    }
+
 
     // Public Methods
     // =========================================================================
