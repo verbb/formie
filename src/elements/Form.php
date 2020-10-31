@@ -919,10 +919,11 @@ class Form extends Element
             'loadingIndicatorText' => $this->settings->loadingIndicatorText,
             'validationOnSubmit' => $this->settings->validationOnSubmit,
             'validationOnFocus' => $this->settings->validationOnFocus,
-            'enableUnloadWarning' => $pluginSettings->enableUnloadWarning,
 
+            'redirectUrl' => $this->getRedirectUrl(),
             'currentPageId' => $this->getCurrentPage()->id ?? '',
             'outputJsTheme' => $this->getFrontEndTemplateOption('outputJsTheme'),
+            'enableUnloadWarning' => $pluginSettings->enableUnloadWarning,
         ];
 
         $registeredJs = [];
