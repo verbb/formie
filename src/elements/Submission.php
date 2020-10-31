@@ -69,6 +69,10 @@ class Submission extends Element
      */
     private $_user;
 
+    private $_fieldLayout;
+    private $_fieldContext;
+    private $_contentTable;
+
 
     // Static
     // =========================================================================
@@ -324,6 +328,8 @@ class Submission extends Element
 
         $submission = $sourceElements[0] ?? null;
 
+        // Ensure we setup the correct content table before fetching the eager-loading map.
+        // This is particular helps resolve element fields' content.
         if ($submission && $submission instanceof self) {
             $contentService->fieldContext = $submission->getFieldContext();
         }
@@ -371,7 +377,7 @@ class Submission extends Element
      */
     public function getSupportedSites(): array
     {
-        // Only support the site he submission is being made on
+        // Only support the site the submission is being made on
         $siteId = $this->siteId ?: Craft::$app->getSites()->getPrimarySite()->id;
 
         return [$siteId];
@@ -382,8 +388,11 @@ class Submission extends Element
      */
     public function getFieldLayout()
     {
-        $form = $this->getForm();
-        return $form->getFormFieldLayout();
+        if (!$this->_fieldLayout) {
+            $this->_fieldLayout = $this->getForm()->getFormFieldLayout();
+        }
+
+        return $this->_fieldLayout;
     }
 
     /**
@@ -391,8 +400,11 @@ class Submission extends Element
      */
     public function getFieldContext(): string
     {
-        $form = $this->getForm();
-        return "formie:{$form->uid}";
+        if (!$this->_fieldContext) {
+            $this->_fieldContext = "formie:{$this->getForm()->uid}";
+        }
+
+        return $this->_fieldContext;
     }
 
     /**
@@ -400,8 +412,11 @@ class Submission extends Element
      */
     public function getContentTable(): string
     {
-        $form = $this->getForm();
-        return $form->fieldContentTable;
+        if (!$this->_contentTable) {
+            $this->_contentTable = $this->getForm()->fieldContentTable;
+        }
+
+        return $this->_contentTable;
     }
 
     /**
