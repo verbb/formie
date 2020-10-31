@@ -922,7 +922,6 @@ class Form extends Element
             'validationOnFocus' => $this->settings->validationOnFocus,
             'enableUnloadWarning' => $pluginSettings->enableUnloadWarning,
 
-            'redirectEntry' => $this->getRedirectEntry()->url ?? '',
             'currentPageId' => $this->getCurrentPage()->id ?? '',
             'outputJsTheme' => $this->getFrontEndTemplateOption('outputJsTheme'),
         ];
