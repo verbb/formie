@@ -913,7 +913,6 @@ class Form extends Element
             'submitActionFormHide' => $this->settings->submitActionFormHide,
             'submitAction' => $this->settings->submitAction,
             'submitActionTab' => $this->settings->submitActionTab,
-            'submitActionUrl' => $this->getRedirectUrl(),
             'errorMessage' => $this->settings->getErrorMessage() ?? '',
             'errorMessagePosition' => $this->settings->errorMessagePosition,
             'loadingIndicator' => $this->settings->loadingIndicator,
