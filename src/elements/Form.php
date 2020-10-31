@@ -859,6 +859,11 @@ class Form extends Element
             return '';
         }
 
+        // Allow settings to statically set the redirect URL (from templates)
+        if ($this->settings->redirectUrl) {
+            return $this->settings->redirectUrl;
+        }
+
         if ($this->settings->submitAction == 'entry' && $this->getRedirectEntry()) {
             return $this->getRedirectEntry()->url;
         }

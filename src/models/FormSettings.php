@@ -47,6 +47,7 @@ class FormSettings extends Model
     public $defaultInstructionsPosition;
     public $progressPosition = 'end';
     public $defaultEmailTemplateId = '';
+    public $redirectUrl;
     public $integrations = [];
 
 

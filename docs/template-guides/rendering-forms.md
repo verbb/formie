@@ -58,10 +58,14 @@ You can also dynamically override any settings for the form
 {% set form = craft.formie.forms.handle('contactForm').one() %}
 
 {% do form.setSettings({
-    submitActionUrl: 'https://google.com',
+    {# Set the redirect URL to something static #}
+    redirectUrl: 'https://google.com',
+
+    {# Or, set the redirect URL to include a query param to the submission #}
+    redirectUrl: form.getRedirectUrl() ~ '?submissionId={id}',
 }) %}
 
-{{ craft.formie.renderForm(form, options) }}
+{{ craft.formie.renderForm(form) }}
 ```
 
 The above would override the redirect URL for the form, regardless of what is defined in the form's settings. See the [Form Settings](docs:developers/form) docs for a full list of available settings to override.

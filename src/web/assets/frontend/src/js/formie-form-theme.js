@@ -456,21 +456,11 @@ export class FormieFormTheme {
         }
 
         // If we're redirecting away, do it immediately for nicer UX
-        if (this.settings.submitAction === 'entry') {
+        if (this.settings.submitAction === 'entry' || this.settings.submitAction === 'url') {
             if (this.settings.submitActionTab === 'same-tab') {
-                window.location.href = this.settings.redirectEntry;
+                window.location.href = this.settings.redirectUrl;
             } else if (this.settings.submitActionTab === 'new-tab') {
-                window.open(this.settings.redirectEntry, '_blank');
-            }
-
-            return;
-        }
-
-        if (this.settings.submitAction === 'url') {
-            if (this.settings.submitActionTab === 'same-tab') {
-                window.location.href = this.settings.submitActionUrl;
-            } else if (this.settings.submitActionTab === 'new-tab') {
-                window.open(this.settings.submitActionUrl, '_blank');
+                window.open(this.settings.redirectUrl, '_blank');
             }
 
             return;
