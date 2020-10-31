@@ -53,6 +53,9 @@ if (typeof Craft.Formie === typeof undefined) {
 
 Craft.Formie = Garnish.Base.extend({
     init(settings) {
+        // Add isStencil flag
+        settings.config.isStencil = settings.isStencil;
+
         // Initialise our Vuex stores with data
         store.dispatch('form/setFormConfig', settings.config);
         store.dispatch('form/setVariables', settings.variables);

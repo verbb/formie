@@ -76,6 +76,10 @@ export default {
         },
 
         isUnsaved() {
+            if (this.$store.state.form.isStencil) {
+                return false;
+            }
+
             return (this.notification.id || '').toString().startsWith('new');
         },
     },
