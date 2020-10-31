@@ -116,6 +116,8 @@ class StencilsController extends Controller
     {
         $this->requirePostRequest();
         $request = Craft::$app->getRequest();
+        $notificationsConfig = null;
+        $form = null;
 
         $stencilId = $request->getParam('stencilId');
         $duplicate = $request->getParam('duplicateStencil');
@@ -211,13 +213,15 @@ class StencilsController extends Controller
             return null;
         }
 
-        $notifications = $form->getNotifications();
-        $notificationsConfig = Formie::$plugin->getNotifications()->getNotificationsConfig($notifications);
+        if ($form) {
+            $notifications = $form->getNotifications();
+            $notificationsConfig = Formie::$plugin->getNotifications()->getNotificationsConfig($notifications);
 
-        // Setup fake IDs for the notifications. They're saved on the stencil, not models, but show like they are
-        foreach ($notificationsConfig as $key => $notification) {
-            // Generate a fake ID just for stencils. Helps to not show it as saved
-            $notificationsConfig[$key]['id'] = uniqId('stencil');
+            // Setup fake IDs for the notifications. They're saved on the stencil, not models, but show like they are
+            foreach ($notificationsConfig as $key => $notification) {
+                // Generate a fake ID just for stencils. Helps to not show it as saved
+                $notificationsConfig[$key]['id'] = uniqId('stencil');
+            }
         }
 
         if ($request->getAcceptsJson()) {
