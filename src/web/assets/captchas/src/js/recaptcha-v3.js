@@ -5,6 +5,7 @@ export class FormieRecaptchaV3 {
     constructor(settings = {}) {
         this.formId = settings.formId;
         this.siteKey = settings.siteKey;
+        this.badge = settings.badge;
         this.language = settings.language;
         this.recaptchaScriptId = 'FORMIE_RECAPTCHA_SCRIPT';
 
@@ -13,7 +14,7 @@ export class FormieRecaptchaV3 {
         if (!document.getElementById(this.recaptchaScriptId)) {
             var $script = document.createElement('script');
             $script.id = this.recaptchaScriptId;
-            $script.src = 'https://www.recaptcha.net/recaptcha/api.js?onload=formieRecaptchaOnLoadCallback&render=' + this.siteKey + '&hl=' + this.language;
+            $script.src = 'https://www.recaptcha.net/recaptcha/api.js?onload=formieRecaptchaOnLoadCallback&render=explicit&hl=' + this.language;
             $script.async = true;
             $script.defer = true;
 
@@ -40,13 +41,12 @@ export class FormieRecaptchaV3 {
             return;
         }
 
-        // Technically, there's nothing to render for V3, but we want to keep track of whether
-        // we need to submit to recaptcha for this particular page or not. This is what V2 does
-        // with the placeholder for render, so we might as well copy that!
+        // Render the captcha for just this page
         this.renderCaptcha();
 
         // Attach a custom event listener on the form
         this.$form.addEventListener('onFormieValidate', this.onValidate.bind(this));
+        this.$form.addEventListener('onAfterFormieSubmit', this.onAfterSubmit.bind(this));
     }
 
     renderCaptcha() {
@@ -57,6 +57,47 @@ export class FormieRecaptchaV3 {
             if (isVisible($placeholder)) {
                 this.$placeholder = $placeholder;
             }
+        });
+
+        if (this.$placeholder === null) {
+            // This is okay in some instances - notably for multi-page forms where the captcha
+            // should only be shown on the last step. But its nice to log this anyway
+            console.log('Unable to find ReCAPTCHA placeholder for #' + this.formId);
+
+            return;
+        }
+
+        // Remove any existing token input (more for ajax multi-pages)
+        var $token = this.$form.querySelector('[name="g-recaptcha-response"]');
+
+        if ($token) {
+            $token.remove();
+        }
+
+        // Check if we actually need to re-render this, or just refresh it...
+        var currentRecaptchaId = this.$placeholder.getAttribute('data-recaptcha-id');
+
+        if (currentRecaptchaId !== null) {
+            this.recaptchaId = currentRecaptchaId;
+
+            recaptcha.reset(this.recaptchaId);
+
+            return;
+        }
+
+        // Render the recaptcha
+        recaptcha.render(this.$placeholder, {
+            sitekey: this.siteKey,
+            badge: this.badge,
+            size: 'invisible',
+            callback: this.onVerify.bind(this),
+            'expired-callback': this.onExpired.bind(this),
+            'error-callback': this.onError.bind(this),
+        }, id => {
+            this.recaptchaId = id;
+
+            // Update the placeholder with our ID, in case we need to re-render it
+            this.$placeholder.setAttribute('data-recaptcha-id', id);
         });
     }
 
@@ -77,26 +118,33 @@ export class FormieRecaptchaV3 {
         this.submitHandler = e.detail.submitHandler;
 
         // Trigger recaptcha
-        recaptcha.executeV3(this.siteKey).then((token) => {
-            this.onVerify(token);
-        });
+        recaptcha.execute(this.recaptchaId);
     }
 
     onVerify(token) {
-        // Check if we should validate on a page
-        if (this.$placeholder === null) {
-            return;
-        }
-
-        var $input = document.createElement('input');
-        $input.type = 'hidden';
-        $input.name = 'g-recaptcha-response';
-        $input.value = token;
-
-        this.$form.appendChild($input);
-
         // Submit the form - we've hijacked it up until now
-        this.submitHandler.submitForm();
+        if (this.submitHandler) {
+            this.submitHandler.submitForm();
+        }
+    }
+
+    onAfterSubmit(e) {
+        // For a multi-page form, we need to remove the current captcha, then render the next pages.
+        // For a single-page form, reset the recaptcha, in case we want to fill out the form again
+        // `renderCaptcha` will deal with both cases
+        setTimeout(() => {
+            this.renderCaptcha();
+        }, 300);
+    }
+
+    onExpired() {
+        console.log('ReCAPTCHA has expired for #' + this.formId + ' - reloading.');
+
+        recaptcha.reset(this.recaptchaId);
+    }
+
+    onError(error) {
+        console.error('ReCAPTCHA was unable to load for #' + this.formId);
     }
 }
 

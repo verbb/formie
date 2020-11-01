@@ -119,6 +119,24 @@
         },
         warning: macros.configWarning('badge', 'formie'),
     }) }}
+
+    {{ forms.selectField({
+        label: 'Badge Type' | t('formie'),
+        instructions: 'Select the type of badge to display.' | t('formie'),
+        name: 'badge',
+        value: integration.settings.badge ?? 'bottomright',
+        options: [{
+            value: 'bottomright',
+            label: 'Bottom-right' | t('formie'),
+        }, {
+            value: 'bottomleft',
+            label: 'Bottom-left' | t('formie'),
+        }, {
+            value: 'inline',
+            label: 'Inline' | t('formie'),
+        }],
+        warning: macros.configWarning('badge', 'formie'),
+    }) }}
 </div>
 
 {{ forms.selectField({
