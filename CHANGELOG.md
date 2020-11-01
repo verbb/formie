@@ -1,19 +1,56 @@
 # Changelog
 
+## 1.2.25 - 2020-10-28
+
+### Added
+- Added `getIsVisible()` to all field classes.
+- Added `craft.formie.getVisibleFields(row)`. For any given row, will return whether there are any visible fields.
+- Added `submitActionMessagePosition` to forms to control the position of success messages.
+- Added more base-field level attributes for GraphQL `FieldInterface`. No need to supply inline fragments for common attributes.
+- Added `redirectUrl` to JS variables, for consistency.
+- Added `redirectUrl` to form settings, allowing full override of the URL when redirecting on submission success.
+- Added “Badge” setting for ReCAPTCHA V3.
+- Added support for element fields in integrations mapping to string-like fields.
+- Added `parseMappedFieldValue` event for integrations, allowing modification of the form submission values from Formie to the integration provider.
+- Added remove row button for Table field's front-end templates.
+
+### Changed
+- Ensure row classes aren’t outputted when there are no visible fields for a given row.
+- Ensure eager-loaded fields have the correct content table set.
+- Minimum table field rows now create rows when initially loading the form.
+
+### Fixed
+- Fixed incorrect submission error logging.
+- Fixed Campaign integration and some custom fields (like checkboxes). Be sure to re-save your form's integration settings for this to take effect.
+- Fixed checkboxes field validation not working correctly.
+- Fixed GraphQL `containerAttributes` and `inputAttributes` properties.
+- Fixed phone number sub-field label position not working correctly.
+- Fixed address, date, name and phone sub-field labels not displaying correctly for left/right alignments.
+- Fixed `onFormieSubmitError` JS event not firing for server-side errors.
+- Fixed submissions not showing preview of element field content for submission index columns.
+- Fixed stencil notifications showing unsaved.
+- Fixed error when saving a new stencil.
+- Fixed error when saving a Table field in some cases.
+- Fixed some min/max row checks with Table fields.
+
+### Removed
+- Removed `redirectEntry` from JS variables.
+- Removed `submitActionUrl` from JS variables.
+
 ## 1.2.24 - 2020-10-20
 
 ### Added
-Added `referrer` property to integrations, to provide the URL where the submission came from.
+- Added `referrer` property to integrations, to provide the URL where the submission came from.
 
 ### Fixed
-Fixed Campaign integration and error thrown when the referrer was missing.
-Fixed `beforeSendNotification` and `beforeTriggerIntegration` events not working consistently across queue jobs and non-queue.
-Fixed parsing `userIp` twice, when used in variable tags.
-Fixed an error when sending notification emails via queue jobs.
-Fixed Integration settings for forms were wiped when an integrations was disabled.
-Fixed synced fields not saving correctly when moved immediately after being added.
-Fixed file upload files defaulting to a single file being allowed to be uploaded.
-Fixed file upload fields not being able to handle multiple files uploaded.
+- Fixed Campaign integration and error thrown when the referrer was missing.
+- Fixed `beforeSendNotification` and `beforeTriggerIntegration` events not working consistently across queue jobs and non-queue.
+- Fixed parsing `userIp` twice, when used in variable tags.
+- Fixed an error when sending notification emails via queue jobs.
+- Fixed Integration settings for forms were wiped when an integrations was disabled.
+- Fixed synced fields not saving correctly when moved immediately after being added.
+- Fixed file upload files defaulting to a single file being allowed to be uploaded.
+- Fixed file upload fields not being able to handle multiple files uploaded.
 
 ## 1.2.23.1 - 2020-10-16
 
