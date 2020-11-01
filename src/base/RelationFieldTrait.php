@@ -1,11 +1,14 @@
 <?php
 namespace verbb\formie\base;
 
+use verbb\formie\models\IntegrationField;
+
 use Craft;
 use craft\base\Element;
 use craft\base\ElementInterface;
 use craft\elements\db\ElementQuery;
 use craft\elements\db\ElementQueryInterface;
+use craft\helpers\ArrayHelper;
 use craft\helpers\Html;
 use craft\helpers\ElementHelper;
 use craft\helpers\Template as TemplateHelper;
@@ -152,6 +155,28 @@ trait RelationFieldTrait
         $variables['field'] = $this;
 
         return Craft::$app->getView()->renderTemplate($this->inputTemplate, $variables);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getFieldMappedValueForIntegration(IntegrationField $integrationField, $formField, $value, $submission)
+    {
+        // Override the value to get full elements
+        $value = $submission->getFieldValue($formField->handle);
+
+        // Send through a CSV of element titles, when mapping to a string
+        if ($integrationField->getType() === IntegrationField::TYPE_STRING) {
+            $titles = ArrayHelper::getColumn($value->all(), 'title');
+
+            return implode(', ', $titles);
+        }
+
+        if ($integrationField->getType() === IntegrationField::TYPE_ARRAY) {
+            return $value->ids();
+        }
+
+        return null;
     }
 
 

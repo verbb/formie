@@ -655,6 +655,9 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         // Fetch all data for the submission, serialized for integrations
         $serializedFieldValues = $submission->getSerializedFieldValuesForIntegration();
 
+        // Keep track of all custom fields
+        $formFields = ArrayHelper::index($submission->getFieldLayout()->getFields(), 'handle');
+
         foreach ($fieldMapping as $tag => $formFieldHandle) {
             // Don't let in un-mapped fields
             if ($formFieldHandle === '') {
@@ -679,9 +682,12 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
                         $value = ArrayHelper::getValue($serializedFieldValues, $formFieldHandle);
                     }
 
+                    // Try and get the form field we're pulling data from
+                    $formField = $formFields[$formFieldHandle] ?? null;
+
                     // Then, allow the integration to control how to parse the field, from its type
                     $integrationField = ArrayHelper::firstWhere($fieldSettings, 'handle', $tag) ?? new IntegrationField();
-                    $fieldValues[$tag] = $this->parseFieldMappedValue($integrationField, $value);
+                    $fieldValues[$tag] = $this->parseFieldMappedValue($integrationField, $formField, $value, $submission);
                 } catch (\Throwable $e) {
 
                 }
@@ -697,8 +703,13 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     /**
      * @inheritDoc
      */
-    protected function parseFieldMappedValue(IntegrationField $integrationField, $value)
+    protected function parseFieldMappedValue(IntegrationField $integrationField, $formField, $value, $submission)
     {
+        // Check to see if this form field has specific support for how to translate content
+        if ($formField && method_exists($formField, 'getFieldMappedValueForIntegration')) {
+            return $formField->getFieldMappedValueForIntegration($integrationField, $formField, $value, $submission);
+        }
+
         if ($integrationField->getType() === IntegrationField::TYPE_DATE) {
             if ($date = DateTimeHelper::toDateTime($value)) {
                 return $date->format('Y-m-d');
