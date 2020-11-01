@@ -8,6 +8,7 @@ use verbb\formie\errors\IntegrationException;
 use verbb\formie\records\Integration as IntegrationRecord;
 use verbb\formie\events\IntegrationConnectionEvent;
 use verbb\formie\events\IntegrationFormSettingsEvent;
+use verbb\formie\events\ParseMappedFieldValueEvent;
 use verbb\formie\events\SendIntegrationPayloadEvent;
 use verbb\formie\helpers\UrlHelper as FormieUrlHelper;
 use verbb\formie\models\IntegrationCollection;
@@ -37,6 +38,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     const EVENT_AFTER_CHECK_CONNECTION = 'afterCheckConnection';
     const EVENT_BEFORE_FETCH_FORM_SETTINGS = 'beforeFetchFormSettings';
     const EVENT_AFTER_FETCH_FORM_SETTINGS = 'afterFetchFormSettings';
+    const EVENT_PARSE_MAPPED_FIELD_VALUE = 'parseMappedFieldValue';
     
     const TYPE_ADDRESS_PROVIDER = 'addressProvider';
     const TYPE_CAPTCHA = 'captcha';
@@ -705,6 +707,23 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
      */
     protected function parseFieldMappedValue(IntegrationField $integrationField, $formField, $value, $submission)
     {
+        // Allow events to modify the parsed value
+        if ($this->hasEventHandlers(self::EVENT_PARSE_MAPPED_FIELD_VALUE)) {
+            $event = new ParseMappedFieldValueEvent([
+                'integrationField' => $integrationField,
+                'formField' => $formField,
+                'value' => $value,
+                'submission' => $submission,
+                'integration' => $this,
+            ]);
+
+            $this->trigger(self::EVENT_PARSE_MAPPED_FIELD_VALUE, $event);
+
+            if ($event->handled) {
+                return $event->value ?? '';
+            }
+        }
+
         // Check to see if this form field has specific support for how to translate content
         if ($formField && method_exists($formField, 'getFieldMappedValueForIntegration')) {
             return $formField->getFieldMappedValueForIntegration($integrationField, $formField, $value, $submission);

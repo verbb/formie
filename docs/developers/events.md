@@ -911,6 +911,33 @@ Event::on(Mailchimp::class, Mailchimp::EVENT_AFTER_FETCH_FORM_SETTINGS, function
 });
 ```
 
+### The `parseMappedFieldValue` event
+The event that is triggered when parsing the field value made during submission to the field mapped in the provider. Using this event allows you to modify how Formie translates content from Craft into the third-party provider.
+
+You **must** use `handled = true` to flag you are overriding field content behaviour. If not, it'll fall back to Formie's default handling.
+
+```php
+use verbb\formie\events\ParseMappedFieldValueEvent;
+use verbb\formie\integrations\emailmarketing\Mailchimp;
+use yii\base\Event;
+
+Event::on(Mailchimp::class, Mailchimp::EVENT_PARSE_MAPPED_FIELD_VALUE, function(ParseMappedFieldValueEvent $event) {
+    $integrationField = $event->integrationField;
+    $formField = $event->formField;
+    $value = $event->value;
+    $submission = $event->submission;
+    $integration = $event->integration;
+
+    if ($formField->handle === 'myFieldHandle') {
+        $event->value = 'An overridden value';
+
+        // This tells Formie you've overridden the parsed value, and to use that.
+        $event->handled = true;
+    }
+});
+```
+
+
 
 ## Integration OAuth Events
 
