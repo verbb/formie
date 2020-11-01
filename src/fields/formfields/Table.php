@@ -285,6 +285,22 @@ class Table extends CraftTable implements FormFieldInterface
     }
 
     /**
+     * @return bool whether minRows was set
+     */
+    public function hasMinRows(): bool
+    {
+        return (bool)$this->minRows;
+    }
+
+    /**
+     * @return bool whether maxRows was set
+     */
+    public function hasMaxRows(): bool
+    {
+        return (bool)$this->maxRows;
+    }
+
+    /**
      * @inheritDoc
      */
     public function defineGeneralSchema(): array
