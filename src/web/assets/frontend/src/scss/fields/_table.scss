@@ -24,3 +24,47 @@
         }
     }
 }
+
+.fui-table [data-col-remove] {
+    width: 1px;
+}
+
+.fui-table-add-btn {
+    position: relative;
+    padding-left: 2rem;
+
+    &::after {
+        content: '';
+        position: absolute;
+        top: 0.75rem;
+        left: 0.75rem;
+        width: 14px;
+        height: 14px;
+        display: block;
+        background-repeat: no-repeat;
+        background-image: url("data:image/svg+xml,%3Csvg aria-hidden='true' focusable='false' data-prefix='far' data-icon='plus' class='svg-inline--fa fa-plus fa-w-12' role='img' xmlns='http://www.w3.org/2000/svg' viewBox='0 0 384 512'%3E%3Cpath fill='currentColor' d='M368 224H224V80c0-8.84-7.16-16-16-16h-32c-8.84 0-16 7.16-16 16v144H16c-8.84 0-16 7.16-16 16v32c0 8.84 7.16 16 16 16h144v144c0 8.84 7.16 16 16 16h32c8.84 0 16-7.16 16-16V288h144c8.84 0 16-7.16 16-16v-32c0-8.84-7.16-16-16-16z'%3E%3C/path%3E%3C/svg%3E");
+    }
+}
+
+.fui-table-remove-btn {
+    position: relative;
+    border-radius: 50%;
+    height: 0;
+    width: 0;
+    padding: 13px;
+    text-indent: -9999px;
+    border: 1px solid $border-color;
+
+    &::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 9px;
+        height: 14px;
+        transform: translate(-50%, -50%);
+        display: block;
+        background-repeat: no-repeat;
+        background-image: url("data:image/svg+xml,%3Csvg aria-hidden='true' focusable='false' data-prefix='far' data-icon='times' class='svg-inline--fa fa-times fa-w-10' role='img' xmlns='http://www.w3.org/2000/svg' viewBox='0 0 320 512'%3E%3Cpath fill='currentColor' d='M207.6 256l107.72-107.72c6.23-6.23 6.23-16.34 0-22.58l-25.03-25.03c-6.23-6.23-16.34-6.23-22.58 0L160 208.4 52.28 100.68c-6.23-6.23-16.34-6.23-22.58 0L4.68 125.7c-6.23 6.23-6.23 16.34 0 22.58L112.4 256 4.68 363.72c-6.23 6.23-6.23 16.34 0 22.58l25.03 25.03c6.23 6.23 16.34 6.23 22.58 0L160 303.6l107.72 107.72c6.23 6.23 16.34 6.23 22.58 0l25.03-25.03c6.23-6.23 6.23-16.34 0-22.58L207.6 256z'%3E%3C/path%3E%3C/svg%3E");
+    }
+}

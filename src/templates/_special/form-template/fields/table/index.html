@@ -1,3 +1,5 @@
+{{ hiddenInput(field.handle, '') }}
+
 {% namespace field.handle %}
     <fieldset class="fui-fieldset">
         {{ formieInclude('_includes/legend', { position: 'above' }) }}
@@ -17,7 +19,7 @@
                 </tr>
             </thead>
 
-            <tbody>
+            <tbody class="fui-table-rows">
                 {% if value %}
                     {% for rowId, row in value %}
                         <tr class="fui-table-row">
@@ -35,20 +37,40 @@
                             } %}
                         </tr>
                     {% endfor %}
+                {% elseif field.minRows > 0 %}
+                    {% for i in 1..field.minRows %}
+                        <tr class="fui-table-row">
+                            {% include 'fields/table/_row' with {
+                                index: loop.index0,
+                                row: null,
+                            } %}
+                        </tr>
+                    {% endfor %}
                 {% endif %}
             </tbody>
         </table>
 
+        {% set buttonAttributes = {
+            class: 'fui-btn fui-table-add-btn',
+            type: 'button',
+            data: {
+                'min-rows': field.minRows,
+                'max-rows': field.maxRows,
+                'add-table-row': field.handle,
+            }
+        } %}
+
+        {# Disable the button straight away if we're making it static #}
+        {% if field.minRows != '' and field.maxRows != '' %}
+            {% if field.minRows == field.maxRows %}
+                {% set buttonAttributes = buttonAttributes | merge({
+                    class: buttonAttributes.class ~ ' fui-disabled',
+                    disabled: true,
+                }) %}
+            {% endif %}
+        {% endif %}
+
         {% if not field.static %}
-            {% set buttonAttributes = {
-                class: 'fui-btn',
-                type: 'button',
-                data: {
-                    'min-rows': field.minRows,
-                    'max-rows': field.maxRows,
-                    'add-table-row': field.handle,
-                }
-            } %}
             <button {{ attr(buttonAttributes) }}>{{ field.addRowLabel }}</button>
         {% endif %}
 
@@ -58,12 +80,10 @@
     </fieldset>
 {% endnamespace %}
 
-{% if not field.static %}
-    <script type="text/template" data-table-template="{{ field.handle }}">
-        {% namespace field.handle %}
-            {% include 'fields/table/_row' with {
-                index: '__ROW__'
-            } %}
-        {% endnamespace %}
-    </script>
-{% endif %}
+<script type="text/template" data-table-template="{{ field.handle }}">
+    {% namespace field.handle %}
+        {% include 'fields/table/_row' with {
+            index: '__ROW__'
+        } %}
+    {% endnamespace %}
+</script>

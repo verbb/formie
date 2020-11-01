@@ -21,54 +21,108 @@ export class FormieTable {
     }
 
     initTable() {
-        const $addButton = this.$field.querySelector('[data-add-table-row]');
+        const $rows = this.getRows();
 
         // Assign this instance to the field's DOM, so it can be accessed by third parties
         this.$field.table = this;
 
-        if ($addButton) {
-            this.form.addEventListener($addButton, eventKey('click'), e => {
+        // Save a bunch of properties
+        this.$addButton = this.$field.querySelector('[data-add-table-row]');
+
+        // Bind the click event to the add button
+        if (this.$addButton) {
+            this.minRows = parseInt(this.$addButton.getAttribute('data-min-rows'));
+            this.maxRows = parseInt(this.$addButton.getAttribute('data-max-rows'));
+
+            // Add the click event, but use a namespace so we can track these dynamically-added items
+            this.form.addEventListener(this.$addButton, eventKey('click'), e => {
                 this.addRow(e);
             });
         }
+
+        // Initialise any rendered rows
+        if ($rows && $rows.length) {
+            $rows.forEach(($row) => {
+                this.initRow($row);
+            });
+        }
+
+        // Emit an "init" event
+        this.$field.dispatchEvent(new CustomEvent('init', {
+            bubbles: true,
+            detail: {
+                table: this,
+            },
+        }));
+    }
+
+    initRow($row) {
+        if (!$row) {
+            console.error($row);
+            return;
+        }
+
+        const $removeButton = $row.querySelector('[data-remove-table-row]');
+
+        if ($removeButton) {
+            // Add the click event, but use a namespace so we can track these dynamically-added items
+            this.form.addEventListener($removeButton, eventKey('click'), e => {
+                this.removeRow(e);
+            });
+        }   
     }
 
     addRow(e) {
         const button = e.target;
-        const handle = button.getAttribute('data-add-table-row');
-        const maxRows = parseInt(button.getAttribute('data-max-rows'));
+        const handle = this.$addButton.getAttribute('data-add-table-row');
         const template = document.querySelector(`[data-table-template="${handle}"]`);
+        const numRows = this.getNumRows();
 
         if (template) {
-            const numRows = this.getNumRows();
-            if (numRows >= maxRows) {
+            if (numRows >= this.maxRows) {
                 return;
             }
 
             const id = `${numRows + 1}`;
             const html = template.innerHTML.replace(/__ROW__/g, id);
-            const $newRow = document.createElement('tr');
+
+            let $newRow = document.createElement('tr');
             $newRow.className = 'fui-table-row';
             $newRow.innerHTML = html;
 
             this.$field.querySelector('tbody').appendChild($newRow);
 
             setTimeout(() => {
-                if (this.getNumRows() >= maxRows) {
-                    button.className += ' fui-disabled';
-                    button.setAttribute('disabled', 'disabled');
+                this.updateButton();
 
-                    return;
-                }
-
-                this.$field.dispatchEvent(new CustomEvent('append', {
+                const event = new CustomEvent('append', {
                     bubbles: true,
                     detail: {
                         row: $newRow,
                         form: this.$form,
                     },
-                }));
-            }, 0);
+                });
+                this.$field.dispatchEvent(event);
+
+                this.initRow(event.detail.row);
+            }, 50);
+        }
+    }
+
+    removeRow(e) {
+        const button = e.target;
+        const $row = button.closest('.fui-table-row');
+
+        if ($row) {
+            const numRows = this.getNumRows();
+
+            if (numRows <= this.minRows) {
+                return;
+            }
+
+            $row.parentNode.removeChild($row);
+
+            this.updateButton();
         }
     }
 
@@ -76,18 +130,20 @@ export class FormieTable {
         return this.$field.querySelectorAll('.fui-table-row');
     }
 
-    getLastRow() {
-        const rows = this.getRows();
-
-        if (rows.length > 0) {
-            return rows[rows.length - 1];
-        }
-
-        return null;
-    }
-
     getNumRows() {
         return this.getRows().length;
+    }
+
+    updateButton() {
+        if (this.$addButton) {
+            if (this.getNumRows() >= this.maxRows) {
+                this.$addButton.classList.add = 'fui-disabled';
+                this.$addButton.setAttribute('disabled', 'disabled');
+            } else {
+                this.$addButton.classList.remove = 'fui-disabled';
+                this.$addButton.removeAttribute('disabled');
+            }
+        }
     }
 }
 
