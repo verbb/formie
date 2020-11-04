@@ -110,10 +110,8 @@ class SubmissionResolver extends ElementMutationResolver
         // Save the submission
         $success = Craft::$app->getElements()->saveElement($submission, false);
 
-        // Run this regardless of the success state
-        if (!$submission->isIncomplete) {
-            Formie::$plugin->getSubmissions()->onAfterSubmission($success, $submission);
-        }
+        // Run this regardless of the success state, or incomplete state
+        Formie::$plugin->getSubmissions()->onAfterSubmission($success, $submission);
 
         // If this submission is marked as spam, there will be errors - so choose how we treat feedback
         if ($submission->isSpam) {

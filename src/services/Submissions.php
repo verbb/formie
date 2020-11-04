@@ -32,6 +32,7 @@ class Submissions extends Component
     // =========================================================================
 
     const EVENT_AFTER_SUBMISSION = 'afterSubmission';
+    const EVENT_AFTER_INCOMPLETE_SUBMISSION = 'afterIncompleteSubmission';
     const EVENT_BEFORE_SEND_NOTIFICATION = 'beforeSendNotification';
     const EVENT_BEFORE_TRIGGER_INTEGRATION = 'beforeTriggerIntegration';
 
@@ -62,6 +63,18 @@ class Submissions extends Component
      */
     public function onAfterSubmission(bool $success, Submission $submission)
     {
+        // Check to see if this is an incomplete submission. Return immedately, but fire an event
+        if ($submission->isIncomplete) {
+            // Fire an 'afterIncompleteSubmission' event
+            $event = new SubmissionEvent([
+                'submission' => $submission,
+                'success' => $success,
+            ]);
+            $this->trigger(self::EVENT_AFTER_INCOMPLETE_SUBMISSION, $event);
+
+            return;
+        }
+
         // Check if the submission is spam
         if ($submission->isSpam) {
             $success = false;

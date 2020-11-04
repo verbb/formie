@@ -116,6 +116,21 @@ Event::on(Submissions::class, Submissions::EVENT_AFTER_SUBMISSION, function(Subm
 });
 ```
 
+### The `afterIncompleteSubmission` event
+The event that is triggered after a submission has been made, whether successful or not, not while the submission is incomplete. This is primarily for multi-page forms, where this event is fired on each submission of each page, except the final page.
+
+```php
+use verbb\formie\events\SubmissionEvent;
+use verbb\formie\services\Submissions;
+use yii\base\Event;
+
+Event::on(Submissions::class, Submissions::EVENT_AFTER_INCOMPLETE_SUBMISSION, function(SubmissionEvent $event) {
+    $submission = $event->submission;
+    $success = $event->success;
+    // ...
+});
+```
+
 ### The `beforeSendNotification` event
 The event that is triggered before an email notification is sent.
 
