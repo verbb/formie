@@ -104,6 +104,8 @@ Event::on(Submission::class, Submission::EVENT_BEFORE_MARKED_AS_SPAM, function(S
 ### The `afterSubmission` event
 The event that is triggered after a submission has been made, whether successful or not.
 
+You should always check `$event->success` if you want to ensure your event only triggers on submissions that have been successful.
+
 ```php
 use verbb\formie\events\SubmissionEvent;
 use verbb\formie\services\Submissions;
@@ -118,6 +120,8 @@ Event::on(Submissions::class, Submissions::EVENT_AFTER_SUBMISSION, function(Subm
 
 ### The `afterIncompleteSubmission` event
 The event that is triggered after a submission has been made, whether successful or not, not while the submission is incomplete. This is primarily for multi-page forms, where this event is fired on each submission of each page, except the final page.
+
+You should always check `$event->success` if you want to ensure your event only triggers on submissions that have been successful.
 
 ```php
 use verbb\formie\events\SubmissionEvent;
