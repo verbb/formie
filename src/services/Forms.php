@@ -422,8 +422,15 @@ class Forms extends Component
                     $required = ArrayHelper::remove($settings, 'required', false);
                     $columnWidth = ArrayHelper::remove($settings, 'columnWidth', 12);
 
+                    $fieldId = $fieldData['id'] ?? null;
+
+                    // Take care of new fields, particularly an issue in Postgres, setting the id to `new-4332`.
+                    if ($duplicate || strpos($fieldId, 'new') === 0) {
+                        $fieldId = null;
+                    }
+
                     $field = Craft::$app->getFields()->createField([
-                        'id' => $duplicate ? null : $fieldData['id'] ?? null,
+                        'id' => $fieldId,
                         'type' => $fieldData['type'],
                         'name' => $fieldData['label'] ?? null,
                         'handle' => $fieldData['handle'] ?? null,
@@ -431,7 +438,7 @@ class Forms extends Component
                         'rowIndex' => $rowIndex,
                         'columnWidth' => $columnWidth,
                         'settings' => $settings,
-                        'required' => (bool) $required,
+                        'required' => (bool)$required,
                     ]);
 
                     $field->afterCreateField($fieldData);
