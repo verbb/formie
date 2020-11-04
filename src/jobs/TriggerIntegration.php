@@ -34,7 +34,11 @@ class TriggerIntegration extends BaseJob
     {
         $this->setProgress($queue, 0);
 
-        $submission = Formie::$plugin->getSubmissions()->getSubmissionById($this->submissionId);
+        // Allow incomplete submissions
+        $submission = Submission::find()
+            ->id($this->submissionId)
+            ->isIncomplete(null)
+            ->one();
 
         $response = Formie::$plugin->getSubmissions()->sendIntegrationPayload($this->integration, $submission);
 
