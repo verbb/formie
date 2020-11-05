@@ -2,6 +2,10 @@
 
 {% if field.displayType == 'calendar' %}
     {% include 'formie/_formfields/date/_date' %}
+
+    {% if field.includeTime %}
+        {% include 'formie/_formfields/date/_time' %}
+    {% endif %}
 {% endif %}
 
 {% if field.displayType == 'dropdowns' %}
