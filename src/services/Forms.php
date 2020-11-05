@@ -240,9 +240,7 @@ class Forms extends Component
             // form content tables to cleanup later, or restore
             $newContentTableName = $this->defineContentTableName($form, false, true);
 
-            $db->createCommand()
-                ->renameTable($form->fieldContentTable, $newContentTableName)
-                ->execute();
+            MigrationHelper::renameTable($form->fieldContentTable, $newContentTableName);
 
             $db->createCommand()
                 ->update('{{%formie_forms}}', ['fieldContentTable' => $newContentTableName], [

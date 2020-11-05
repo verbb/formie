@@ -25,6 +25,7 @@ use craft\elements\db\ElementQueryInterface;
 use craft\errors\MissingComponentException;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
+use craft\helpers\MigrationHelper;
 use craft\helpers\UrlHelper;
 use craft\models\FieldLayout as CraftFieldLayout;
 use craft\validators\HandleValidator;
@@ -1160,9 +1161,7 @@ class Form extends Element
         if ($db->tableExists($this->fieldContentTable)) {
             $newContentTableName = Formie::$plugin->getForms()->defineContentTableName($this);
 
-            $db->createCommand()
-                ->renameTable($this->fieldContentTable, $newContentTableName)
-                ->execute();
+            MigrationHelper::renameTable($this->fieldContentTable, $newContentTableName);
 
             $db->createCommand()
                 ->update('{{%formie_forms}}', ['fieldContentTable' => $newContentTableName], [
