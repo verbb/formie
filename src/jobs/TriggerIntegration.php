@@ -3,6 +3,7 @@ namespace verbb\formie\jobs;
 
 use verbb\formie\Formie;
 use verbb\formie\base\Element;
+use verbb\formie\elements\Submission;
 
 use Craft;
 use craft\queue\BaseJob;
