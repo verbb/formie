@@ -5,9 +5,22 @@ const ownProp = Object.prototype.hasOwnProperty;
 export function createRecaptcha() {
     const deferred = defer();
 
+    // In order to handle multiple recaptchas on a page, store all renderers (promises)
+    // in a central store. When reCAPTCHA is loaded, notify all promises that it's ready.
+    if (!window.recaptchaRenderers) {
+        window.recaptchaRenderers = [];
+    }
+
+    // Store the promise in our renderers store
+    window.recaptchaRenderers.push(deferred);
+
     return {
         notify() {
-            deferred.resolve();
+            // Be sure to notify all renderers that reCAPTCHA is ready, as soon as at least one is ready
+            // As is - as soon as `window.grecaptcha` is available.
+            for (let i = 0, len = window.recaptchaRenderers.length; i < len; i++) {
+                window.recaptchaRenderers[i].resolve();
+            }
         },
 
         wait() {
