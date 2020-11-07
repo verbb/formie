@@ -373,10 +373,11 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
                     'help' => Craft::t('formie', 'The text that will be shown if the field doesn’t have a value.'),
                     'name' => 'placeholder',
                 ]),
-                SchemaHelper::textField([
+                SchemaHelper::variableTextField([
                     'label' => Craft::t('formie', 'Default Value'),
                     'help' => Craft::t('formie', 'Entering a default value will place the value in the field when it loads.'),
                     'name' => 'defaultValue',
+                    'variables' => 'userVariables',
                 ]),
             ]),
         ];
@@ -411,10 +412,11 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
                     ),
                 ]);
             } else {
-                $subfields[] = SchemaHelper::textField([
+                $subfields[] = SchemaHelper::variableTextField([
                     'label' => Craft::t('formie', 'Default Value'),
                     'help' => Craft::t('formie', 'Entering a default value will place the value in the field when it loads.'),
                     'name' => $nestedField['handle'] . 'DefaultValue',
+                    'variables' => 'userVariables',
                 ]);
             }
 

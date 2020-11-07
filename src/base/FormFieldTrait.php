@@ -6,6 +6,7 @@ use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\fields\formfields\BaseOptionsField;
 use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\helpers\Variables;
 use verbb\formie\gql\types\generators\FieldAttributeGenerator;
 use verbb\formie\gql\types\generators\KeyValueGenerator;
 use verbb\formie\models\Notification;
@@ -430,6 +431,9 @@ trait FormFieldTrait
                 return $queryParam;
             }
         }
+
+        // Parse the default value for variables
+        $value = Variables::getParsedValue($value, null, null);
 
         return $value;
     }

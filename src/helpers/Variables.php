@@ -87,6 +87,8 @@ class Variables
             [ 'label' => Craft::t('formie', 'User Email'), 'value' => '{userEmail}' ],
             [ 'label' => Craft::t('formie', 'Username'), 'value' => '{username}' ],
             [ 'label' => Craft::t('formie', 'User Full Name'), 'value' => '{userFullName}' ],
+            [ 'label' => Craft::t('formie', 'User First Name'), 'value' => '{userFirstName}' ],
+            [ 'label' => Craft::t('formie', 'User Last Name'), 'value' => '{userLastName}' ],
         ];
     }
 
@@ -128,7 +130,7 @@ class Variables
      * @param Form $form
      * @return string|null
      */
-    public static function getParsedValue($value, Submission $submission, Form $form = null)
+    public static function getParsedValue($value, Submission $submission = null, Form $form = null)
     {
         $originalValue = $value;
 
@@ -145,7 +147,7 @@ class Variables
 
         // Use a cache key based on the submission, or few unsaved submissions, the formId
         // This helps to only cache it per-submission, when being run in queues.
-        $cacheKey = $submission->id ?? $form->id;
+        $cacheKey = $submission->id ?? $form->id ?? rand();
 
         $extras = self::$extras[$cacheKey] ?? [];
 
@@ -158,10 +160,12 @@ class Variables
             $userEmail = $currentUser->email ?? '';
             $username = $currentUser->username ?? '';
             $userFullName = $currentUser->fullName ?? '';
+            $userFirstName = $currentUser->firstName ?? '';
+            $userLastName = $currentUser->lastName ?? '';
             $userIp = $submission->ipAddress ?? '';
 
             // Site Info
-            $siteId = $submission->siteId ?: Craft::$app->getSites()->getPrimarySite()->id;
+            $siteId = $submission->siteId ?? Craft::$app->getSites()->getPrimarySite()->id;
             $site = Craft::$app->getSites()->getSiteById($siteId);
             $siteName = $site->name ?? '';
 
@@ -184,8 +188,8 @@ class Variables
                 'allFields' => $fieldHtml,
                 'allContentFields' => $fieldContentHtml,
                 'formName' => $formName,
-                'submissionUrl' => $submission->getCpEditUrl(),
-                'submissionId' => $submission->id,
+                'submissionUrl' => $submission->cpEditUrl ?? '',
+                'submissionId' => $submission->id ?? '',
 
                 'siteName' => $siteName,
                 'systemEmail' => $systemEmail,
@@ -203,6 +207,8 @@ class Variables
                 'userEmail' => $userEmail,
                 'username' => $username,
                 'userFullName' => $userFullName,
+                'userFirstName' => $userFirstName,
+                'userLastName' => $userLastName,
             ];
         }
 

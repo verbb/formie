@@ -72,6 +72,14 @@ export default {
         plainTextVariables() {
             return this.$store.getters['form/plainTextFields'](true);
         },
+
+        generalVariables() {
+            return this.$store.getters['form/generalFields'];
+        },
+
+        userVariables() {
+            return this.$store.getters['form/userFields'];
+        },
     },
 
     watch: {

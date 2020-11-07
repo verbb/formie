@@ -410,11 +410,16 @@
 //
 
 .field[data-type="toggleBlock"] {
+    position: static;
     margin: 0;
+
+    > .field {
+        position: static;
+    }
 }
 
 .fui-toggle-block {
-    position: relative;
+    // position: relative;
     margin-bottom: 8px;
     border-radius: 5px;
     border: 1px solid rgba(51, 64, 77, 0.1);

@@ -382,6 +382,10 @@ const getters = {
         return fields;
     },
 
+    userFields: state => {
+        return state.variables.users;
+    },
+
     emailFields: (state, getters) => (includeGeneral = false) => {
         // TODO refactor this, probably server-side
         const allowedTypes = [
