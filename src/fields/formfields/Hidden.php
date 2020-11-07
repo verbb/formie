@@ -200,6 +200,16 @@ class Hidden extends FormField implements PreviewableFieldInterface
     /**
      * @inheritDoc
      */
+    public function defineSettingsSchema(): array
+    {
+        return [
+            SchemaHelper::prePopulate(),
+        ];
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function defineAdvancedSchema(): array
     {
         return [

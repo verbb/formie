@@ -248,6 +248,7 @@ class SingleLineText extends FormField implements PreviewableFieldInterface
                     ],
                 ]
             ]),
+            SchemaHelper::prePopulate(),
         ];
     }
 

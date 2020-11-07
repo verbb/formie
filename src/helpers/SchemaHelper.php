@@ -269,6 +269,15 @@ class SchemaHelper
         ]), $config);
     }
 
+    public static function prePopulate($config = [])
+    {
+        return array_merge(self::textField([
+            'label' => Craft::t('formie', 'Pre-Populate Value'),
+            'help' => Craft::t('formie', 'Specify a query parameter to pre-populate the value of this field.'),
+            'name' => 'prePopulate',
+        ]), $config);
+    }
+
     public static function extractFieldsFromSchema($fieldSchema, $names = [])
     {
         foreach ($fieldSchema as $field) {

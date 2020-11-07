@@ -78,6 +78,7 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
     public $autocompleteLabel;
     public $autocompletePlaceholder;
     public $autocompleteDefaultValue;
+    public $autocompletePrePopulate;
     public $autocompleteRequired;
     public $autocompleteErrorMessage;
 
@@ -86,6 +87,7 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
     public $address1Label;
     public $address1Placeholder;
     public $address1DefaultValue;
+    public $address1PrePopulate;
     public $address1Required;
     public $address1ErrorMessage;
     public $address1Hidden;
@@ -95,6 +97,7 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
     public $address2Label;
     public $address2Placeholder;
     public $address2DefaultValue;
+    public $address2PrePopulate;
     public $address2Required;
     public $address2ErrorMessage;
     public $address2Hidden;
@@ -104,6 +107,7 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
     public $address3Label;
     public $address3Placeholder;
     public $address3DefaultValue;
+    public $address3PrePopulate;
     public $address3Required;
     public $address3ErrorMessage;
     public $address3Hidden;
@@ -113,6 +117,7 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
     public $cityLabel;
     public $cityPlaceholder;
     public $cityDefaultValue;
+    public $cityPrePopulate;
     public $cityRequired;
     public $cityErrorMessage;
     public $cityHidden;
@@ -122,6 +127,7 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
     public $stateLabel;
     public $statePlaceholder;
     public $stateDefaultValue;
+    public $statePrePopulate;
     public $stateRequired;
     public $stateErrorMessage;
     public $stateHidden;
@@ -131,6 +137,7 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
     public $zipLabel;
     public $zipPlaceholder;
     public $zipDefaultValue;
+    public $zipPrePopulate;
     public $zipRequired;
     public $zipErrorMessage;
     public $zipHidden;
@@ -140,6 +147,7 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
     public $countryLabel;
     public $countryPlaceholder;
     public $countryDefaultValue;
+    public $countryPrePopulate;
     public $countryRequired;
     public $countryErrorMessage;
     public $countryHidden;
@@ -245,41 +253,49 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
             'autocompleteCollapsed' => true,
             'autocompleteLabel' => Craft::t('formie', 'Auto-Complete'),
             'autocompleteDefaultValue' => '',
+            'autocompletePrePopulate' => '',
 
             'address1Enabled' => true,
             'address1Collapsed' => true,
             'address1Label' => Craft::t('formie', 'Address 1'),
             'address1DefaultValue' => '',
+            'address1PrePopulate' => '',
 
             'address2Enabled' => false,
             'address2Collapsed' => true,
             'address2Label' => Craft::t('formie', 'Address 2'),
             'address2DefaultValue' => '',
+            'address2PrePopulate' => '',
 
             'address3Enabled' => false,
             'address3Collapsed' => true,
             'address3Label' => Craft::t('formie', 'Address 3'),
             'address3DefaultValue' => '',
+            'address3PrePopulate' => '',
 
             'cityEnabled' => true,
             'cityCollapsed' => true,
             'cityLabel' => Craft::t('formie', 'City'),
             'cityDefaultValue' => '',
+            'cityPrePopulate' => '',
 
             'stateEnabled' => true,
             'stateCollapsed' => true,
             'stateLabel' => Craft::t('formie', 'State / Province'),
             'stateDefaultValue' => '',
+            'statePrePopulate' => '',
 
             'zipEnabled' => true,
             'zipCollapsed' => true,
             'zipLabel' => Craft::t('formie', 'ZIP / Postal Code'),
             'zipDefaultValue' => '',
+            'zipPrePopulate' => '',
 
             'countryEnabled' => true,
             'countryCollapsed' => true,
             'countryLabel' => Craft::t('formie', 'Country'),
             'countryDefaultValue' => '',
+            'countryPrePopulate' => '',
         ];
     }
 
@@ -615,6 +631,10 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
                     'name' => $nestedField['handle'] . 'Hidden',
                 ]);
             }
+
+            $subfields[] = SchemaHelper::prePopulate([
+                'name' => $nestedField['handle'] . 'PrePopulate',
+            ]);
 
             $fields[] = SchemaHelper::toggleBlock([
                 'blockLabel' => $nestedField['label'],

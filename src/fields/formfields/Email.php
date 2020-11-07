@@ -101,6 +101,7 @@ class Email extends FormField implements PreviewableFieldInterface
                     'name' => 'errorMessage',
                 ]),
             ]),
+            SchemaHelper::prePopulate(),
         ];
     }
 

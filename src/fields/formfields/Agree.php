@@ -172,6 +172,7 @@ class Agree extends FormField implements PreviewableFieldInterface
                     'name' => 'errorMessage',
                 ]),
             ]),
+            SchemaHelper::prePopulate(),
         ];
     }
 

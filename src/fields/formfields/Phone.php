@@ -71,11 +71,13 @@ class Phone extends FormField implements SubfieldInterface, PreviewableFieldInte
     public $countryLabel;
     public $countryPlaceholder;
     public $countryDefaultValue;
+    public $countryPrePopulate;
 
     public $numberCollapsed;
     public $numberLabel;
     public $numberPlaceholder;
     public $numberDefaultValue;
+    public $numberPrePopulate;
 
 
     // Public Methods
@@ -165,11 +167,13 @@ class Phone extends FormField implements SubfieldInterface, PreviewableFieldInte
             'countryLabel' => Craft::t('formie', 'Country'),
             'countryPlaceholder' => '',
             'countryDefaultValue' => '',
+            'countryPrePopulate' => '',
 
             'numberCollapsed' => true,
             'numberLabel' => Craft::t('formie', 'Number'),
             'numberPlaceholder' => '',
             'numberDefaultValue' => '',
+            'numberPrePopulate' => '',
         ];
     }
 
@@ -375,6 +379,7 @@ class Phone extends FormField implements SubfieldInterface, PreviewableFieldInte
                     'name' => 'errorMessage',
                 ]),
             ]),
+            SchemaHelper::prePopulate(),
 
             // TODO: implement more involved validation
             // SchemaHelper::lightswitchField([

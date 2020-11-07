@@ -76,6 +76,7 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
     public $prefixLabel;
     public $prefixPlaceholder;
     public $prefixDefaultValue;
+    public $prefixPrePopulate;
     public $prefixRequired;
     public $prefixErrorMessage;
 
@@ -84,6 +85,7 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
     public $firstNameLabel;
     public $firstNamePlaceholder;
     public $firstNameDefaultValue;
+    public $firstNamePrePopulate;
     public $firstNameRequired;
     public $firstNameErrorMessage;
 
@@ -92,6 +94,7 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
     public $middleNameLabel;
     public $middleNamePlaceholder;
     public $middleNameDefaultValue;
+    public $middleNamePrePopulate;
     public $middleNameRequired;
     public $middleNameErrorMessage;
 
@@ -100,6 +103,7 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
     public $lastNameLabel;
     public $lastNamePlaceholder;
     public $lastNameDefaultValue;
+    public $lastNamePrePopulate;
     public $lastNameRequired;
     public $lastNameErrorMessage;
 
@@ -224,21 +228,25 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
             'prefixCollapsed' => true,
             'prefixLabel' => Craft::t('formie', 'Prefix'),
             'prefixDefaultValue' => '',
+            'prefixPrePopulate' => '',
 
             'firstNameEnabled' => true,
             'firstNameCollapsed' => true,
             'firstNameLabel' => Craft::t('formie', 'First Name'),
             'firstNameDefaultValue' => '',
+            'firstNamePrePopulate' => '',
 
             'middleNameEnabled' => false,
             'middleNameCollapsed' => true,
             'middleNameLabel' => Craft::t('formie', 'Middle Name'),
             'middleNameDefaultValue' => '',
+            'middleNamePrePopulate' => '',
 
             'lastNameEnabled' => true,
             'lastNameCollapsed' => true,
             'lastNameLabel' => Craft::t('formie', 'Last Name'),
             'lastNameDefaultValue' => '',
+            'lastNamePrePopulate' => '',
         ];
     }
 
@@ -444,6 +452,9 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
                         'name' => $nestedField['handle'] . 'ErrorMessage',
                     ]),
                 ]),
+                SchemaHelper::prePopulate([
+                    'name' => $nestedField['handle'] . 'PrePopulate',
+                ]),
             ];
 
             $fields[] = SchemaHelper::toggleContainer('settings.useMultipleFields', [
@@ -470,6 +481,7 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
                     'name' => 'errorMessage',
                 ]),
             ]),
+            SchemaHelper::prePopulate(),
         ]);
 
         return $fields;

@@ -221,6 +221,7 @@ class Dropdown extends BaseOptionsField implements FormFieldInterface
                     'name' => 'errorMessage',
                 ]),
             ]),
+            SchemaHelper::prePopulate(),
         ];
     }
 

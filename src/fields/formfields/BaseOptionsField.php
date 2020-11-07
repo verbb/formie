@@ -17,6 +17,7 @@ abstract class BaseOptionsField extends CraftBaseOptionsField
 
     use FormFieldTrait {
         getFrontEndInputOptions as traitGetFrontendInputOptions;
+        getDefaultValue as traitGetDefaultValue;
     }
 
 
@@ -67,6 +68,59 @@ abstract class BaseOptionsField extends CraftBaseOptionsField
         }
 
         return null;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getDefaultValue()
+    {
+        $value = $this->traitGetDefaultValue();
+
+        try {
+            $options = [];
+            $optionValues = [];
+            $optionLabels = [];
+
+            foreach ($this->options() as $option) {
+                if (!isset($option['optgroup'])) {
+                    $options[] = new OptionData($option['label'], $option['value'], false, true);
+                    $optionValues[] = (string)$option['value'];
+                    $optionLabels[] = (string)$option['label'];
+                }
+            }
+
+            if ($this->multi) {
+                $selectedOptions = [];
+
+                $selectedValues = !is_array($value) ? [$value] : $value;
+
+                foreach ($selectedValues as $selectedValue) {
+                    $index = array_search($selectedValue, $optionValues, true);
+                    $valid = $index !== false;
+                    $label = $valid ? $optionLabels[$index] : null;
+                    $selectedOptions[] = new OptionData($label, $selectedValue, true, $valid);
+                }
+
+                return new MultiOptionsFieldData($selectedOptions);
+            } else {
+                // $selectedValue = reset($selectedValues);
+                $index = array_search($value, $optionValues, true);
+                $valid = $index !== false;
+                $label = $valid ? $optionLabels[$index] : null;
+
+                return new SingleOptionFieldData($label, $value, true, $valid);
+            }
+        } catch (\Throwable $e) {
+            Formie::error(Craft::t('formie', '{handle}: “{message}” {file}:{line}', [
+                'handle' => $this->handle,
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]));
+        }
+
+        return $value;
     }
 
     /**

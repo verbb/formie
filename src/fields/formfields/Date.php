@@ -459,6 +459,7 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
                     'name' => 'errorMessage',
                 ]),
             ]),
+            SchemaHelper::prePopulate(),
         ];
     }
 

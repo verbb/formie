@@ -37,6 +37,7 @@ trait FormFieldTrait
     public $limitAmount;
     public $placeholder;
     public $defaultValue;
+    public $prePopulate;
     public $errorMessage;
     public $labelPosition;
     public $instructionsPosition;
@@ -378,6 +379,59 @@ trait FormFieldTrait
         }
 
         return $defaults;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getFieldValue($element, $handle = '', $attributePrefix = '')
+    {
+        // Allow handle to be overridden
+        if (!$handle) {
+            $handle = $this->handle;
+        }
+
+        // If we pass in an element (submission), fetch the value on that
+        $value = $element->{$handle} ?? null;
+
+        // Otherwise, check if there are any default values
+        if ($value === null) {
+            $defaultValue = $this->getDefaultValue($attributePrefix);
+
+            if ($defaultValue !== null) {
+                return $defaultValue;
+            }
+        }
+
+        return $value;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getDefaultValue($attributePrefix = '')
+    {
+        $defaultValueAttribute = 'defaultValue';
+        $prePopulateAttribute = 'prePopulate';
+
+        // Handle nested fields that supply their own attribute to fetch default values from
+        if ($attributePrefix) {
+            $defaultValueAttribute = "{$attributePrefix}DefaultValue";
+            $prePopulateAttribute = "{$attributePrefix}PrePopulate";
+        }
+
+        $value = $this->$defaultValueAttribute;
+
+        // Check for a query string is configured
+        if ($this->$prePopulateAttribute) {
+            $queryParam = Craft::$app->getRequest()->getParam($this->$prePopulateAttribute);
+
+            if ($queryParam !== null) {
+                return $queryParam;
+            }
+        }
+
+        return $value;
     }
 
     /**

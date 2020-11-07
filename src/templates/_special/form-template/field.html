@@ -11,7 +11,7 @@
     renderOptions: options,
 } %}
 
-{% set value = attribute(element, field.handle) ?? field.defaultValue ?? null %}
+{% set value = field.getFieldValue(element) %}
 {% set errors = element.getErrors(field.handle) ?? null %}
 
 {% set html %}

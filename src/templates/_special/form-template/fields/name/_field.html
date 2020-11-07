@@ -1,6 +1,6 @@
 {% set html %}
     {% set inputId = handle | namespaceInputId(options.id) %}
-    {% set selected = attribute(value, handle) ?? attribute(field, "#{handle}DefaultValue") ?? '' %}
+    {% set selected = field.getFieldValue(value, handle, handle) %}
     {% set placeholder = attribute(field, "#{handle}Placeholder") | t %}
     {% set errorMessage = attribute(field, "#{handle}ErrorMessage") | t %}
     {% set required = field.required ? field.required : attribute(field, "#{handle}Required") %}

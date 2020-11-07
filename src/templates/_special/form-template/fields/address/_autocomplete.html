@@ -2,7 +2,7 @@
     autocomplete: autocomplete,
     placeholder: attribute(field, "#{handle}Placeholder") | t,
     required: required,
-    value: attribute(value, handle) ?? attribute(field, "#{handle}DefaultValue") ?? '',
+    value: field.getFieldValue(value, handle, handle),
     data: data,
     id: inputId,
     formId: form.id,

@@ -213,6 +213,7 @@ class MultiLineText extends FormField implements PreviewableFieldInterface
                     ],
                 ]
             ]),
+            SchemaHelper::prePopulate(),
         ];
     }
 

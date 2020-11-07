@@ -176,6 +176,7 @@ class Radio extends BaseOptionsField implements FormFieldInterface
                     'name' => 'errorMessage',
                 ]),
             ]),
+            SchemaHelper::prePopulate(),
         ];
     }
 
