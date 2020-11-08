@@ -312,7 +312,7 @@ class Emails extends Component
             }
 
             // Log the sent notification - if enabled
-            Formie::$plugin->getSentNotifications()->saveSentNotification($notification, $submission, $newEmail);
+            Formie::$plugin->getSentNotifications()->saveSentNotification($submission, $newEmail);
         } catch (Throwable $e) {
             $error = Craft::t('formie', 'Notification email could not be sent for submission “{submission}”. Error: {error} {file}:{line}', [
                 'error' => $e->getMessage(),

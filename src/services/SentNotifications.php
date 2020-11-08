@@ -22,7 +22,7 @@ class SentNotifications extends Component
     /**
      * @inheritdoc
      */
-    public function saveSentNotification($notification, $submission, $email)
+    public function saveSentNotification($submission, $email)
     {
         $settings = Formie::$plugin->getSettings();
 
