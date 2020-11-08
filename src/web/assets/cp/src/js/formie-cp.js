@@ -6,6 +6,7 @@
 // ==========================================================================
 
 require('./submission-index.js');
+require('./sent-notifications.js');
 
 if (typeof Craft.Formie === typeof undefined) {
     Craft.Formie = {};

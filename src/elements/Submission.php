@@ -1,7 +1,6 @@
 <?php
 namespace verbb\formie\elements;
 
-use craft\elements\User;
 use verbb\formie\Formie;
 use verbb\formie\base\FormField;
 use verbb\formie\base\FormFieldTrait;
@@ -20,6 +19,7 @@ use craft\base\Element;
 use craft\elements\actions\Delete;
 use craft\elements\actions\Restore;
 use craft\elements\db\ElementQueryInterface;
+use craft\elements\User;
 use craft\helpers\UrlHelper;
 use craft\helpers\ArrayHelper;
 

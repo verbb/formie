@@ -4,6 +4,7 @@ namespace verbb\formie;
 use verbb\formie\base\PluginTrait;
 use verbb\formie\base\Routes;
 use verbb\formie\elements\Form;
+use verbb\formie\elements\SentNotification;
 use verbb\formie\elements\Submission;
 use verbb\formie\elements\exporters\SubmissionExport;
 use verbb\formie\fields\Forms;
@@ -58,7 +59,7 @@ class Formie extends Plugin
     // Public Properties
     // =========================================================================
 
-    public $schemaVersion = '1.0.13';
+    public $schemaVersion = '1.1.0';
     public $hasCpSettings = true;
     public $hasCpSection = true;
 
@@ -115,6 +116,8 @@ class Formie extends Plugin
     {
         $nav = parent::getCpNavItem();
 
+        $settings = Formie::$plugin->getSettings();
+
         $nav['label'] = $this->getPluginName();
 
         if (Craft::$app->getUser()->checkPermission('formie-manageForms')) {
@@ -128,6 +131,13 @@ class Formie extends Plugin
             $nav['subnav']['submissions'] = [
                 'label' => Craft::t('formie', 'Submissions'),
                 'url' => 'formie/submissions',
+            ];
+        }
+
+        if (Craft::$app->getUser()->checkPermission('formie-viewSentNotifications') && $settings->sentNotifications) {
+            $nav['subnav']['sentNotifications'] = [
+                'label' => Craft::t('formie', 'Sent Notifications'),
+                'url' => 'formie/sent-notifications',
             ];
         }
 
@@ -177,6 +187,7 @@ class Formie extends Plugin
                 'formie-viewSubmissions' => ['label' => Craft::t('formie', 'View submissions'), 'nested' => [
                     'formie-editSubmissions' => ['label' => Craft::t('formie', 'Edit submissions')],
                 ]],
+                'formie-viewSentNotifications' => ['label' => Craft::t('formie', 'View sent notifications')],
             ];
         });
     }
@@ -194,6 +205,7 @@ class Formie extends Plugin
     {
         Event::on(Elements::class, Elements::EVENT_REGISTER_ELEMENT_TYPES, function(RegisterComponentTypesEvent $event) {
             $event->types[] = Form::class;
+            $event->types[] = SentNotification::class;
             $event->types[] = Submission::class;
         });
     }

@@ -1,0 +1,127 @@
+<div class="fui-email-preview">
+    <div class="fui-email-header"></div>
+
+    {% if sentNotification.to %}
+        <div id="fui-email-meta-to" class="fui-email-meta">
+            <div class="fui-email-meta-label">{{ 'To:' | t('formie') }}</div>
+            <div class="fui-email-meta-value">{{ sentNotification.to }}</div>
+        </div>
+    {% endif %}
+
+    {% if sentNotification.cc %}
+        <div class="fui-email-meta">
+            <div class="fui-email-meta-label">{{ 'Cc:' | t('formie') }}</div>
+            <div class="fui-email-meta-value">{{ sentNotification.cc }}</div>
+        </div>
+    {% endif %}
+
+    {% if sentNotification.bcc %}
+        <div class="fui-email-meta">
+            <div class="fui-email-meta-label">{{ 'Bcc:' | t('formie') }}</div>
+            <div class="fui-email-meta-value">{{ sentNotification.bcc }}</div>
+        </div>
+    {% endif %}
+
+    {% if sentNotification.subject %}
+        <div class="fui-email-meta">
+            <div class="fui-email-meta-label">{{ 'Subject:' | t('formie') }}</div>
+            <div class="fui-email-meta-value">{{ sentNotification.subject }}</div>
+        </div>
+    {% endif %}
+
+    {% if sentNotification.replyTo %}
+        <div class="fui-email-meta">
+            <div class="fui-email-meta-label">{{ 'Reply To:' | t('formie') }}</div>
+            <div class="fui-email-meta-value">{{ sentNotification.replyTo }}</div>
+        </div>
+    {% endif %}
+
+    {% if sentNotification.from %}
+        <div class="fui-email-meta">
+            <div class="fui-email-meta-label">{{ 'From:' | t('formie') }}</div>
+            <div class="fui-email-meta-value">{{ sentNotification.from }}</div>
+        </div>
+    {% endif %}
+
+    <div class="fui-email-body">
+        <iframe
+            class="email-iframe"
+            src="about:blank"
+            frameborder="0"
+            style="width: 100%;"
+        ></iframe>
+    </div>
+
+    <div class="fui-email-footer"></div>
+</div>
+
+{% js %}
+
+var $iframes = document.querySelectorAll('.email-iframe');
+
+if ($iframes) {
+    // Using a for loop here to handle multiple instances on a page (modal window when editing)
+    for (var i = 0; i < $iframes.length; i++) {
+        var doc = $iframes[i].contentWindow.document;
+
+        if (doc) {
+            doc.open();
+            doc.write('<html><head><title></title></head><body>{% spaceless %}{{ sentNotification.htmlBody | raw }}{% endspaceless %}</body></html>');
+            doc.close();
+        }
+
+        // Adjust the height to match the content
+        $iframes[i].style.height = $iframes[i].contentWindow.document.body.scrollHeight + 'px';
+    }
+}
+
+{% endjs %}
+
+{% css %}
+
+.fui-email-preview {
+    position: relative;
+    box-shadow: 0 0 0 1px rgba(49,49,93,.05), 0 2px 5px 0 rgba(49,49,93,.075), 0 1px 3px 0 rgba(49,49,93,.15);
+    background-color: #fff;
+    border-radius: 4px;
+}
+
+.fui-email-header,
+.fui-email-footer {
+    background: #f5f8fc;
+    width: 100%;
+    height: 20px;
+}
+
+.fui-email-header {
+    border-bottom: 1px #e5e5e5 solid;
+    border-radius: 4px 4px 0 0;
+}
+
+.fui-email-footer {
+    border-top: 1px #e5e5e5 solid;
+    border-radius: 0 0 4px 4px;
+}
+
+.fui-email-meta {
+    display: flex;
+    font-size: 13px;
+    padding: 4px 0;
+    border-bottom: 1px #e5e5e5 solid;
+}
+
+.fui-email-meta-label {
+    width: 75px;
+    text-align: right;
+    font-weight: 700;
+    color: #b2bac1;
+    margin-right: 8px;
+    flex: 0 0 auto;
+}
+
+.fui-email-body {
+    min-height: 20rem;
+    padding: 16px;
+}
+
+{% endcss %}

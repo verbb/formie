@@ -1,0 +1,25 @@
+{% import '_includes/forms' as forms %}
+
+<h2>{{ 'Resend Email Notification' | t('formie') }}</h2>
+
+<p>{{ 'This will resend the below email to the recipients of your choosing.' | t('formie') }}</p>
+
+{{ forms.textField({
+    label: 'Recipients' | t('formie'),
+    instructions: 'Provide recipients for this email notification to be sent to. For multiple recipients, separate each with a comma.' | t('formie'),
+    name: 'to',
+    value: sentNotification.to ?? '',
+    required: true,
+}) }}
+
+{% include 'formie/sent-notifications/_includes/preview' %}
+
+<input type="hidden" name="id" value="{{ sentNotification.id }}">
+
+{% css %}
+
+.fui-resend-modal #fui-email-meta-to {
+    display: none;
+}
+
+{% endcss %}

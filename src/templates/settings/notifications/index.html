@@ -15,6 +15,14 @@
     {% namespace 'settings' %}
         {{ forms.lightswitchField({
             first: true,
+            label: 'Enable Sent Notifications' | t('formie'),
+            instructions: 'Whether to enable logging of all sent notification emails.' | t('formie'),
+            name: 'sentNotifications',
+            on: settings.sentNotifications,
+            warning: macros.configWarning('sentNotifications', 'formie'),
+        }) }}
+
+        {{ forms.lightswitchField({
             label: 'Send Email Alert for Failed Notification' | t('formie'),
             instructions: 'Enable this option send nominated email addresses an alert email when an email notification cannot be delivered.' | t('formie'),
             name: 'sendEmailAlerts',

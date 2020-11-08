@@ -3,6 +3,7 @@ namespace verbb\formie\migrations;
 
 use Craft;
 use craft\db\Migration;
+use craft\elements\SentNotification;
 use craft\helpers\FileHelper;
 use craft\helpers\Json;
 use craft\helpers\MigrationHelper;
@@ -52,6 +53,7 @@ class Install extends Migration
 
         $this->dropForeignKeys();
         $this->removeTables();
+        $this->removeContent();
         $this->dropProjectConfig();
 
         return true;
@@ -176,6 +178,27 @@ class Install extends Migration
             'attachFiles' => $this->boolean()->defaultValue(true),
             'dateCreated' => $this->dateTime()->notNull(),
             'dateUpdated' => $this->dateTime()->notNull(),
+            'uid' => $this->uid(),
+        ]);
+
+        $this->createTable('{{%formie_sentnotifications}}', [
+            'id' => $this->primaryKey(),
+            'title' => $this->string(),
+            'formId' => $this->integer(),
+            'submissionId' => $this->integer(),
+            'subject' => $this->string(),
+            'to' => $this->string(),
+            'cc' => $this->string(),
+            'bcc' => $this->string(),
+            'replyTo' => $this->string(),
+            'replyToName' => $this->string(),
+            'from' => $this->string(),
+            'fromName' => $this->string(),
+            'body' => $this->text(),
+            'htmlBody' => $this->text(),
+            'info' => $this->text(),
+            'dateCreated' => $this->dateTime(),
+            'dateUpdated' => $this->dateTime(),
             'uid' => $this->uid(),
         ]);
 
@@ -322,6 +345,9 @@ class Install extends Migration
         $this->addForeignKey(null, '{{%formie_formtemplates}}', ['fieldLayoutId'], '{{%fieldlayouts}}', ['id'], 'CASCADE', null);
         $this->addForeignKey(null, '{{%formie_notifications}}', ['formId'], '{{%formie_forms}}', ['id'], 'CASCADE', null);
         $this->addForeignKey(null, '{{%formie_notifications}}', ['templateId'], '{{%formie_emailtemplates}}', ['id'], 'SET NULL', null);
+        $this->addForeignKey(null, '{{%formie_sentnotifications}}', ['id'], '{{%elements}}', ['id'], 'CASCADE', null);
+        $this->addForeignKey(null, '{{%formie_sentnotifications}}', ['formId'], '{{%formie_forms}}', ['id'], 'CASCADE', null);
+        $this->addForeignKey(null, '{{%formie_sentnotifications}}', ['submissionId'], '{{%formie_submissions}}', ['id'], 'CASCADE', null);
     }
 
     protected function dropForeignKeys()
@@ -377,6 +403,10 @@ class Install extends Migration
         if ($this->db->tableExists('{{%formie_emailtemplates}}')) {
             MigrationHelper::dropAllForeignKeysOnTable('{{%formie_emailtemplates}}', $this);
         }
+
+        if ($this->db->tableExists('{{%formie_sentnotifications}}')) {
+            MigrationHelper::dropAllForeignKeysOnTable('{{%formie_sentnotifications}}', $this);
+        }
     }
 
     public function removeTables()
@@ -396,6 +426,13 @@ class Install extends Migration
         $this->dropTableIfExists('{{%formie_emailtemplates}}');
         $this->dropTableIfExists('{{%formie_tokens}}');
         $this->dropTableIfExists('{{%formie_integrations}}');
+        $this->dropTableIfExists('{{%formie_sentnotifications}}');
+    }
+
+    public function removeContent()
+    {
+        // Delete Sent Notification Elements
+        $this->delete('{{%elements}}', ['type' => SentNotification::class]);
     }
 
     public function dropProjectConfig()

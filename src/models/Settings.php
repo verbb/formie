@@ -75,6 +75,7 @@ class Settings extends Model
 
     // Notifications
     public $sendEmailAlerts = false;
+    public $sentNotifications = true;
     public $alertEmails;
 
 

@@ -12,6 +12,7 @@ use verbb\formie\services\Notifications;
 use verbb\formie\services\Phone;
 use verbb\formie\services\Rendering;
 use verbb\formie\services\NestedFields;
+use verbb\formie\services\SentNotifications;
 use verbb\formie\services\Service;
 use verbb\formie\services\Statuses;
 use verbb\formie\services\Stencils;
@@ -89,6 +90,11 @@ trait PluginTrait
         return $this->get('rendering');
     }
 
+    public function getSentNotifications(): SentNotifications
+    {
+        return $this->get('sentNotifications');
+    }
+
     public function getService(): Service
     {
         return $this->get('service');
@@ -146,6 +152,7 @@ trait PluginTrait
             'notifications' => Notifications::class,
             'phone' => Phone::class,
             'rendering' => Rendering::class,
+            'sentNotifications' => SentNotifications::class,
             'service' => Service::class,
             'statuses' => Statuses::class,
             'stencils' => Stencils::class,

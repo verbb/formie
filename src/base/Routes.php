@@ -31,6 +31,9 @@ trait Routes
             $event->rules['formie/submissions/edit/<submissionId:\d+>'] = 'formie/submissions/edit-submission';
             $event->rules['formie/submissions/edit/<submissionId:\d+>/<siteHandle:{handle}>'] = 'formie/submissions/edit-submission';
 
+            $event->rules['formie/sent-notifications'] = 'formie/sent-notifications/index';
+            $event->rules['formie/sent-notifications/edit/<sentNotificationId:\d+>'] = 'formie/sent-notifications/edit';
+
             $event->rules['formie/settings'] = 'formie/settings/index';
             $event->rules['formie/settings/general'] = 'formie/settings/index';
             $event->rules['formie/settings/forms'] = 'formie/settings/forms';

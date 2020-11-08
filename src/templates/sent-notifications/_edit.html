@@ -1,0 +1,71 @@
+{% extends '_layouts/cp' %}
+{% import '_includes/forms' as forms %}
+{% import 'verbb-base/_macros' as macros %}
+
+{% do view.registerAssetBundle('verbb\\formie\\web\\assets\\cp\\CpAsset') -%}
+
+{% set crumbs = [
+    { label: craft.formie.getPluginName() | t('formie'), url: url('formie') },
+    { label: 'Sent Notifications' | t('formie'), url: url('formie/sent-notifications') },
+] %}
+
+{% set bodyClass = 'fui-body' %}
+{% set selectedSubnavItem = 'sentNotifications' %}
+
+{% block content %}
+
+{% include 'formie/sent-notifications/_includes/preview' %}
+
+{% endblock %}
+
+{% block details %}
+
+<div id="settings" class="meta">
+    <div class="field">
+        <div class="heading">
+            <label class="">{{ 'Resend' | t('formie') }}</label>
+        </div>
+
+        <div class="input ltr">
+            <a class="js-fui-notification-modal-resend-btn btn small formsubmit" data-id="{{ sentNotification.id }}">{{ 'Resend' | t('formie') }}</a>
+        </div>
+    </div>
+
+    <div class="field">
+        <div class="heading">
+            <label class="">{{ 'Form Name' | t('formie') }}</label>
+        </div>
+
+        <div class="input ltr">
+            <a href="{{ sentNotification.form.cpEditUrl }}">{{ sentNotification.form }}</a>
+        </div>
+    </div>
+
+    <div class="field">
+        <div class="heading">
+            <label class="">{{ 'Submission' | t('formie') }}</label>
+        </div>
+
+        <div class="input ltr">
+            <a href="{{ sentNotification.submission.cpEditUrl }}">{{ sentNotification.submission }}</a>
+        </div>
+    </div>
+</div>
+
+<div id="meta-details" class="meta read-only">
+    {% block meta %}
+        <div class="data">
+            <h5 class="heading">{{ 'Date Sent' | t('formie') }}</h5>
+            <div id="date-created-value" class="value">{{ sentNotification.dateCreated | datetime('short') }}</div>
+        </div>
+
+        {% for key, item in sentNotification.info %}
+            <div class="data">
+                <h5 class="heading">{{ key | camel2words }}</h5>
+                <div class="value">{{ item }}</div>
+            </div>
+        {% endfor %}
+    {% endblock %}
+</div>
+
+{% endblock %}
