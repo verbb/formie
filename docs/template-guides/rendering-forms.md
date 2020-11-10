@@ -15,6 +15,14 @@ You can optionally provide a [Form](docs:developers/form) object in the same way
 {{ craft.formie.renderForm(form) }}
 ```
 
+If you're using a [Form Field](docs:template-guides/selecting-forms) in an entry or other element, you can get the [Form](docs:developers/form) object from that field. For example, you might have a Form field with the handle `myFormFieldHandle` added to a specific entry element.
+
+```twig
+{% set form = entry.myFormFieldHandle.one() %}
+
+{{ craft.formie.renderForm(form) }}
+```
+
 If you are using custom templates, you can also pass in a number of options to the rendering function. For help on how these options should be structured, refer to the [Rendering Options](docs:template-guides/rendering-options).
 
 ```twig
