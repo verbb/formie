@@ -1,5 +1,21 @@
 # Changelog
 
+## 1.2.26 - 2020-11-10
+
+### Added
+- Added `afterIncompleteSubmission` event.
+
+### Changed
+- Allow incomplete submissions to be used in trigger integrations queue job
+
+### Fixed
+- Fixed error when saving a field in Postgres.
+- Fixed multiple recaptchas on the same page not working correctly.
+- Fixed Postgres error when deleting or restoring forms.
+- Fixed date fields storing time incorrectly when a submission is saved in the control panel.
+- Fixed date fields not showing the time field in the control panel when editing a submission.
+- Fixed table field dropdown column options not saving.
+
 ## 1.2.25 - 2020-10-28
 
 ### Added
