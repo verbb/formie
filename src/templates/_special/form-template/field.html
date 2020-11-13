@@ -48,17 +48,23 @@
             {% hook 'formie.field.field-end' %}
         </div>
     {% else %}
-        {% hook 'formie.field.field-start' %}
+        <div class="fui-field-container">
+            {% hook 'formie.field.field-start' %}
 
-        <div class="fui-input-container">
-            {% hook 'formie.field.input-start' %}
+            <div class="fui-input-container">
+                {% hook 'formie.field.input-start' %}
 
-            {{ field.getFrontEndInputHtml(form, value, inputOptions) }}
+                {{ field.getFrontEndInputHtml(form, value, inputOptions) }}
 
-            {% hook 'formie.field.input-end' %}
+                {% hook 'formie.field.input-end' %}
+            </div>
+
+            {% if errors %}
+                {{ formieInclude('_includes/errors') }}
+            {% endif %}
+
+            {% hook 'formie.field.field-end' %}
         </div>
-
-        {% hook 'formie.field.field-end' %}
     {% endif %}
 
     {% hook 'formie.field.field-after' %}
