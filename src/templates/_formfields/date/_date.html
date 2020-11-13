@@ -2,7 +2,7 @@
 
 {% set id = (id ?? "date#{random()}") ~ '-date' -%}
 {% set name = name ?? null -%}
-{% set value = (value ?? false) ? date(value, false) : null -%}
+{% set value = (value ?? false) ? date(value, false, false) : null -%}
 
 <div class="datewrapper"
         {%- if block('attr') is defined %} {{ block('attr') }}{% endif %}>
@@ -11,7 +11,7 @@
         autocomplete: false,
         size: 10,
         placeholder: ' ',
-        value: value ? value|date('short') : '',
+        value: value ? value|date('short', false, false) : '',
     } -%}
     <div data-icon="date"></div>
 </div>
