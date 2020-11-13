@@ -16,11 +16,11 @@
     "/cp/dist/css/formie-cp.css": "/cp/dist/css/formie-cp.css?id=1e58f3a5f5dd03056712",
     "/frontend/dist/js/fields/checkbox-radio.js": "/frontend/dist/js/fields/checkbox-radio.js?id=512657f3e6e8835404f5",
     "/frontend/dist/js/fields/file-upload.js": "/frontend/dist/js/fields/file-upload.js?id=79bc709c95c8b79c7a9b",
-    "/frontend/dist/js/fields/repeater.js": "/frontend/dist/js/fields/repeater.js?id=1711b57ee19f21007112",
-    "/frontend/dist/js/fields/rich-text.js": "/frontend/dist/js/fields/rich-text.js?id=b660f47e4742f1f0167f",
-    "/frontend/dist/js/fields/table.js": "/frontend/dist/js/fields/table.js?id=29152bf596e9623f0a1a",
+    "/frontend/dist/js/fields/repeater.js": "/frontend/dist/js/fields/repeater.js?id=f73f438f6dfc62bdf129",
+    "/frontend/dist/js/fields/rich-text.js": "/frontend/dist/js/fields/rich-text.js?id=dd9709c1ecef7c20d289",
+    "/frontend/dist/js/fields/table.js": "/frontend/dist/js/fields/table.js?id=b8b792b6135d8379c43e",
     "/frontend/dist/js/fields/tags.js": "/frontend/dist/js/fields/tags.js?id=7a0e7d5eef5c4a9517bf",
-    "/frontend/dist/js/fields/text-limit.js": "/frontend/dist/js/fields/text-limit.js?id=5b8e242f8c8abbdbae22",
+    "/frontend/dist/js/fields/text-limit.js": "/frontend/dist/js/fields/text-limit.js?id=5ac8eb0a88a39664b285",
     "/frontend/dist/js/formie.js": "/frontend/dist/js/formie.js?id=cd557c762401f215fcba",
     "/repeater/dist/js/main.js": "/repeater/dist/js/main.js?id=abd0659b4ba104da3c63"
 }
