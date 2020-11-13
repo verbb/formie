@@ -139,8 +139,24 @@ class Monday extends Miscellaneous
             $boardValues = $this->getFieldMappingValues($submission, $this->fieldMapping, $fields);
 
             $boardIds = explode(':', $this->boardId);
-            $boardId = $boardIds[0];
-            $groupId = $boardIds[1];
+            $boardId = $boardIds[0] ?? '';
+            $groupId = $boardIds[1] ?? '';
+
+            if (!$boardId) {
+                Integration::error($this, Craft::t('formie', 'Missing mapped “boardId” {id}', [
+                    'id' => $this->boardId,
+                ]), true);
+
+                return false;
+            }
+
+            if (!$groupId) {
+                Integration::error($this, Craft::t('formie', 'Missing mapped “groupId” {id}', [
+                    'id' => $this->boardId,
+                ]), true);
+
+                return false;
+            }
 
             $itemPayload = [
                 'query' => '
