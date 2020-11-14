@@ -860,7 +860,7 @@ return [
     'Create a new submission' => 'Create a new submission',
     'No submission with the ID “{id}”' => 'No submission with the ID “{id}”',
     'Couldn’t save submission.' => 'Couldn’t save submission.',
-    'Failed Captcha {c}' => 'Failed Captcha {c}',
+    'Failed Captcha “{c}”: “{m}”' => 'Failed Captcha “{c}”: “{m}”',
     'Couldn’t delete submission.' => 'Couldn’t delete submission.',
     'Submission deleted.' => 'Submission deleted.',
     'Create a new template' => 'Create a new template',

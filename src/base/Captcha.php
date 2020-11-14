@@ -15,6 +15,7 @@ abstract class Captcha extends Integration implements IntegrationInterface
     // =========================================================================
 
     public $showAllPages = false;
+    public $spamReason;
 
 
     // Static Methods

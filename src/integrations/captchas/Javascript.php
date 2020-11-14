@@ -106,6 +106,8 @@ class Javascript extends Captcha
             Craft::$app->getSession()->remove($sessionId . '_init');
 
             if ($initTime <= $this->minTime) {
+                $this->spamReason = Craft::t('formie', 'Submitted in {s}s, below the {m}s setting.', ['s' => $initTime, 'm' => $this->minTime]);
+
                 return false;
             }
         }
