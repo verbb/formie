@@ -20,6 +20,7 @@ class Javascript extends Captcha
     // =========================================================================
 
     public $handle = 'javascript';
+    public $minTime;
 
 
     // Public Methods
@@ -44,6 +45,16 @@ class Javascript extends Captcha
     /**
      * @inheritDoc
      */
+    public function getSettingsHtml(): string
+    {
+        return Craft::$app->getView()->renderTemplate('formie/integrations/captchas/javascript/_plugin-settings', [
+            'integration' => $this,
+        ]);
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function getFrontEndHtml(Form $form, $page = null): string
     {
         $sessionId = $this->getSessionKey($form, $page);
@@ -60,6 +71,11 @@ class Javascript extends Captcha
         $js = '(function(){ document.getElementById("' . $uniqueId . '").value = "' . $value . '"; })();';
 
         Craft::$app->getView()->registerJs($js, View::POS_END);
+
+        // Set the init time, if we need it
+        if ($this->minTime) {
+            Craft::$app->getSession()->set($sessionId . '_init', time());
+        }
 
         return $output;
     }
@@ -80,6 +96,18 @@ class Javascript extends Captcha
         // Compare the two - in case someone is being sneaky and just providing _any_ value for the captcha
         if ($value !== $jsset) {   
             return false;            
+        }
+
+        // If we're checking against a min time?
+        if ($this->minTime) {
+            $initTime = time() - Craft::$app->getSession()->get($sessionId . '_init');
+
+            // Remove the session
+            Craft::$app->getSession()->remove($sessionId . '_init');
+
+            if ($initTime <= $this->minTime) {
+                return false;
+            }
         }
 
         // Remove the session info (keep it around if it fails)
