@@ -111,7 +111,7 @@ Follow the below steps to connect to the Freshdesk API.
 Follow the below steps to connect to the Freshdesk API.
 
 ### Step 1. Connect to the Freshdesk API
-1. Go to <a href="https://www.freshworks.com/freshsales-crm/login/" target="_blank">{name}</a> and login to your account.
+1. Go to <a href="https://www.freshworks.com/freshsales-crm/login/" target="_blank">Freshsales</a> and login to your account.
 1. Click on your profile dropdown on the top-right of the screen, and select **Settings**.
 1. Click on the **API Settings** button.
 1. Copy the **API Key** from Freshdesk and paste in the **API Key** field in Formie.
@@ -164,7 +164,7 @@ Follow the below steps to connect to the Infusionsoft API.
 ### Step 2. Test Connection
 1. Save this integration.
 1. Click on the **Connect** button in the right-hand sidebar.
-1. You‘ll be redirected to Infusionsoft, where you must approve Formie to access your {name} account.
+1. You‘ll be redirected to Infusionsoft, where you must approve Formie to access your Infusionsoft account.
 
 ### Step 3. Form Setting
 1. Go to the form you want to enable this integration on.
@@ -201,8 +201,29 @@ Follow the below steps to connect to the Connective Mercury API.
 1. Go to <a href="https://www.connective.com.au/" target="_blank">Connective</a> and login to your Mercury account.
 1. In the top menu, click the **Admin** tab.
 1. In the left-hand sidebar menu, click the **Integrations** tab.
-1. Copy the **API Key** from {name} and paste in the **API Key** field in Formie.
-1. Copy the **API Token** from {name} and paste in the **API Token** field in Formie.
+1. Copy the **API Key** from Mercury and paste in the **API Key** field in Formie.
+1. Copy the **API Token** from Mercury and paste in the **API Token** field in Formie.
+
+### Step 2. Test Connection
+1. Save this integration.
+1. Click on the **Refresh** button in the right-hand sidebar.
+
+### Step 3. Form Setting
+1. Go to the form you want to enable this integration on.
+1. Click the **Integrations** tab.
+1. In the left-hand sidebar, select the name you gave the integration.
+1. Enable the integration and fill out all required fields.
+1. Click **Save** to save the form.
+
+
+## Pipedrive
+Follow the below steps to connect to the Pipedrive API.
+
+### Step 1. Connect to the Pipedrive API
+1. Go to <a href="https://www.pipedrive.com/" target="_blank">Pipedrive</a> and login to your account.
+1. Click on your profile dropdown on the top-right of the screen, and select **Personal Preferences**.
+1. Click on the **API** tab.
+1. Copy the **Your personal API token** from Pipedrive and paste in the **API Key** field in Formie.
 
 ### Step 2. Test Connection
 1. Save this integration.
@@ -223,7 +244,7 @@ Follow the below steps to connect to the Pipeliner API.
 1. Go to <a href="https://www.pipelinersales.com/" target="_blank">Pipeliner</a> and login to your account.
 1. In the top main menu, click on **Menu** icon in the far-left of the screen (9 dots).
 1. In the top sub-menu, click on the **Obtain API Key**.
-1. Copy the **API Token** from {name} and paste in the **API Token** field in Formie.
+1. Copy the **API Token** from Pipeliner and paste in the **API Token** field in Formie.
 1. Copy the **API Password** from Pipeliner and paste in the **API Password** field in Formie.
 1. Copy the **API Space ID** from Pipeliner and paste in the **API Space ID** field in Formie.
 
