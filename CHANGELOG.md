@@ -1,5 +1,23 @@
 # Changelog
 
+## 1.2.27 - 2020-11-16
+
+### Added
+- Allow captchas to set a `spamReason` property, providing details on why a submission was marked as spam.
+- Added “Minimum Submit Time” to Javascript captcha.
+
+### Changed
+- Remove table-padding in plugin settings.
+
+### Fixed
+- Fixed potential error when processing Monday integrations.
+- Fixed front-end JS console error thrown for some fields (table, repeater) for multi-page non-ajax forms.
+- Fixed Table and Repeater fields sometimes throwing an incorrect error for min/max rows when not set.
+- Fixed checkbox and radio field instructions not working well when set to “Above Input” or “Below Input”.
+- Fixed date fields incorrectly converting to the system timezone.
+- Fixed potential issue with Name field being used in integrations.
+- Fixed spam reason not showing when editing a submission in the control panel.
+
 ## 1.2.26 - 2020-11-10
 
 ### Added
