@@ -269,6 +269,7 @@ class NestedFields extends Component
             foreach ($rows as $row) {
                 $sortOrder++;
                 if ($saveAll || !$row->id || $row->dirty) {
+                    $row->siteId = $owner->siteId;
                     $row->ownerId = $owner->id;
                     $row->sortOrder = $sortOrder;
                     $elementsService->saveElement($row, false);
