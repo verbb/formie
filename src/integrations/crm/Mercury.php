@@ -384,8 +384,8 @@ class Mercury extends Crm
             $contactValues = $this->getFieldMappingValues($submission, $this->contactFieldMapping, 'contact');
             $opportunityValues = $this->getFieldMappingValues($submission, $this->opportunityFieldMapping, 'opportunity');
 
-            $contactPayload = $contactValues;
-            $opportunityPayload = $opportunityValues;
+            $contactPayload = $this->_prepCustomFields($contactValues);
+            $opportunityPayload = $this->_prepCustomFields($opportunityValues);
 
             $contactId = null;
 
@@ -494,5 +494,21 @@ class Mercury extends Crm
                 'x-api-key' => $apiKey,
             ],
         ]);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    private function _prepCustomFields($fields)
+    {
+        // Emails need to be handled specifically.
+        if (isset($fields['email'])) {
+            $fields['contactMethods'] = [
+                'contactMethod' => 'Email 1',
+                'content' => $fields['email'],
+            ];
+        }
+
+        return $fields;
     }
 }
