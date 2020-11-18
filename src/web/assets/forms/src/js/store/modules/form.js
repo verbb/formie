@@ -409,6 +409,12 @@ const getters = {
                             }
                         });
                     });
+                } else if (field.isElementField) {
+                    // Is this an element field? Special template syntax
+                    fields.push({
+                        label: field.label,
+                        value: '{' + field.handle + '_html}',
+                    });
                 } else {
                     if (allowedTypes.includes(field.type)) {
                         fields.push({ label: field.label, value: '{' + field.handle + '}' });
@@ -474,6 +480,12 @@ const getters = {
                             }
                         });
                     });
+                } else if (field.isElementField) {
+                    // Is this an element field? Special template syntax
+                    fields.push({
+                        label: field.label,
+                        value: '{' + field.handle + '_html}',
+                    });
                 } else {
                     if (allowedTypes.includes(field.type)) {
                         fields.push({ label: field.label, value: '{' + field.handle + '}' });
@@ -518,6 +530,12 @@ const getters = {
                                 value: '{' + field.handle + '.one().' + subfield.handle + ' ?? null}',
                             });
                         });
+                    });
+                } else if (field.isElementField) {
+                    // Is this an element field? Special template syntax
+                    fields.push({
+                        label: field.label,
+                        value: '{' + field.handle + '_html}',
                     });
                 } else {
                     fields.push({ label: field.label, value: '{' + field.handle + '}' });

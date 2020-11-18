@@ -1,17 +1,18 @@
 <?php
 namespace verbb\formie\helpers;
 
+use verbb\formie\Formie;
+use verbb\formie\elements\Form;
+use verbb\formie\elements\Submission;
+
 use Craft;
 use craft\errors\SiteNotFoundException;
+use craft\fields\BaseRelationField;
 use craft\helpers\App;
 
 use DateTime;
 use DateTimeZone;
 use Throwable;
-
-use verbb\formie\elements\Form;
-use verbb\formie\elements\Submission;
-use verbb\formie\Formie;
 
 class Variables
 {
@@ -21,7 +22,7 @@ class Variables
     public static $extras = [];
 
 
-    // Public Methods
+    // Public Static Methods
     // =========================================================================
 
     /**
@@ -204,6 +205,11 @@ class Variables
                 'username' => $username,
                 'userFullName' => $userFullName,
             ];
+
+            // Special checks for some fields that generate HTML
+            $extras = array_merge($extras, self::_getParsedFieldValues($form, $submission));
+
+            self::$extras[$cacheKey] = $extras;
         }
 
         // Try to parse submission + extra variables
@@ -223,13 +229,16 @@ class Variables
         }
     }
 
-    public static function getFormFieldsHtml($form, $submission, $excludeEmpty = false)
+    /**
+     * @inheritdoc
+     */
+    public static function getFormFieldsHtml($form, $submission, $excludeEmpty = false, $asArray = false)
     {
-        if (!$form) {
-            return '';
-        }
+        $fieldItems = $asArray ? [] : '';
 
-        $fieldHtml = '';
+        if (!$form) {
+            return $fieldItems;
+        }
 
         // Need to switch back to the CP to render our fields email HTML
         $view = Craft::$app->getView();
@@ -249,11 +258,44 @@ class Variables
                 continue;
             }
 
-            $fieldHtml .= $html;
+            if ($asArray) {
+                $fieldItems[$field->handle] = (string)$html;
+            } else {
+                $fieldItems .= (string)$html;
+            }
         }
 
         $view->setTemplateMode($oldTemplateMode);
 
-        return $fieldHtml;
+        return $fieldItems;
+    }
+
+
+    // Public Static Methods
+    // =========================================================================
+   
+    /**
+     * @inheritdoc
+     */
+    private static function _getParsedFieldValues($form, $submission)
+    {
+        $values = [];
+
+        $parsedFieldContent = self::getFormFieldsHtml($form, $submission, true, true);
+
+        // For now, only handle element fields, which need HTML generated
+        if ($submission && $submission->getFieldLayout()) {
+            foreach ($submission->getFieldLayout()->getFields() as $field) {
+                if ($field instanceof BaseRelationField) {
+                    $parsedContent = $parsedFieldContent[$field->handle] ?? '';
+
+                    if ($parsedContent) {
+                        $values[$field->handle . '_html'] = $parsedContent;
+                    }
+                }
+            }
+        }
+
+        return $values;
     }
 }
