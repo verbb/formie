@@ -503,10 +503,25 @@ class Mercury extends Crm
     {
         // Emails need to be handled specifically.
         if (isset($fields['email'])) {
-            $fields['contactMethods'] = [
-                'contactMethod' => 'Email 1',
-                'content' => $fields['email'],
-            ];
+            $contactMethods = $fields['contactMethods'] ?? [];
+
+            $fields['contactMethods'] = array_merge($contactMethods, [
+                [
+                    'contactMethod' => 'Email 1',
+                    'content' => $fields['email'],
+                ]
+            ]);
+        }
+
+        if (isset($fields['mobile_phone_number'])) {
+            $contactMethods = $fields['contactMethods'] ?? [];
+
+            $fields['contactMethods'] = array_merge($contactMethods, [
+                [
+                    'contactMethod' => 'Mobile',
+                    'content' => $fields['mobile_phone_number'],
+                ]
+            ]);
         }
 
         return $fields;
