@@ -1,6 +1,10 @@
 <?php
 namespace verbb\formie\helpers;
 
+use verbb\formie\elements\Form;
+use verbb\formie\elements\Submission;
+use verbb\formie\Formie;
+
 use Craft;
 use craft\errors\SiteNotFoundException;
 use craft\helpers\App;
@@ -9,9 +13,8 @@ use DateTime;
 use DateTimeZone;
 use Throwable;
 
-use verbb\formie\elements\Form;
-use verbb\formie\elements\Submission;
-use verbb\formie\Formie;
+use yii\base\Arrayable;
+use yii\base\Model;
 
 class Variables
 {
@@ -21,7 +24,7 @@ class Variables
     public static $extras = [];
 
 
-    // Public Methods
+    // Public Static Methods
     // =========================================================================
 
     /**
@@ -180,7 +183,7 @@ class Variables
             $fieldHtml = self::getFormFieldsHtml($form, $submission);
             $fieldContentHtml = self::getFormFieldsHtml($form, $submission, true);
 
-            $extras = self::$extras[$cacheKey] = [
+            $extras = [
                 'allFields' => $fieldHtml,
                 'allContentFields' => $fieldContentHtml,
                 'formName' => $formName,
@@ -204,6 +207,14 @@ class Variables
                 'username' => $username,
                 'userFullName' => $userFullName,
             ];
+
+            // Ensure all fields' values are parsed correctly. Allowing `renderObjectTemplate` to render the field
+            // via its handle `{entry}` for example won't work correctly. But only override non-string like values
+            // otherwise this would convert values like `{email}` to their HTML equivalent, which then can't be used
+            // in the email notification, as we need the raw value.
+            $extras = array_merge($extras, self::_getParsedFieldValues($form, $submission));
+
+            self::$extras[$cacheKey] = $extras;
         }
 
         // Try to parse submission + extra variables
@@ -223,13 +234,13 @@ class Variables
         }
     }
 
-    public static function getFormFieldsHtml($form, $submission, $excludeEmpty = false)
+    public static function getFormFieldsHtml($form, $submission, $excludeEmpty = false, $asArray = false)
     {
-        if (!$form) {
-            return '';
-        }
+        $fieldItems = $asArray ? [] : '';
 
-        $fieldHtml = '';
+        if (!$form) {
+            return $fieldItems;
+        }
 
         // Need to switch back to the CP to render our fields email HTML
         $view = Craft::$app->getView();
@@ -249,11 +260,40 @@ class Variables
                 continue;
             }
 
-            $fieldHtml .= $html;
+            if ($asArray) {
+                $fieldItems[$field->handle] = (string)$html;
+            } else {
+                $fieldItems .= (string)$html;
+            }
         }
 
         $view->setTemplateMode($oldTemplateMode);
 
-        return $fieldHtml;
+        return $fieldItems;
     }
+
+
+    // Private Static Methods
+    // =========================================================================
+
+    public static function _getParsedFieldValues($form, $submission)
+    {
+        $parsedFieldContent = self::getFormFieldsHtml($form, $submission, true, true);
+
+        // Check each custom field to see if it returns an object or array when calling `getFieldValue`
+        // If that's the case, we need to return the generated HTML for it, so it's a string-like value
+        foreach ($parsedFieldContent as $parsedFieldHandle => $parsedField) {
+            $parsedFieldValue = $submission->getFieldValue($parsedFieldHandle);
+
+            if ($parsedFieldValue instanceof Model || $parsedFieldValue instanceof Arrayable) {
+                // These are objects/arrays that need converting to HTML, so keep
+            } else {
+                // Don't override the string-like value from 'normal' fields
+                unset($parsedFieldContent[$parsedFieldHandle]);
+            }
+        }
+
+        return $parsedFieldContent;
+    }
+
 }
