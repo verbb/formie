@@ -1,5 +1,24 @@
 # Changelog
 
+## 1.2.28 - 2020-11-19
+
+### Added
+- Added per-form form permissions for users.
+- Added per-form submission permissions for users.
+
+### Changed
+- Change `fzaninotto/faker` to non-abandoned `fakerphp/faker`.
+- Increase stencil and form settings database column sizes, for large forms.
+
+### Fixed
+- Fixed error when submitting a form on a non-primary site, when it contained a group or repeater field.
+- Fixed Agree field’s description not translating correctly when using special characters.
+- Fixed HTML-based form settings not translating correctly when using special characters.
+- Fixed Mercury CRM not mapping email and mobile fields correctly.
+- Fixed email notifications incorrectly showing element queries, when trying to output an element field’s value.
+- Ensure rich text fields don’t convert underscores to italics, when using as part of field handles.
+- Fixed fatal error being thrown when viewing stencils, if a stencil had invalid data.
+
 ## 1.2.27 - 2020-11-16
 
 ### Added
