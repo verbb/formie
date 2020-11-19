@@ -22,7 +22,7 @@
 
 {% block actionButton %}
 
-{% if currentUser.can('formie-editForms') %}
+{% if currentUser.can('formie-editForms') or currentUser.can('formie-manageForm:' ~ form.uid) %}
     <div id="fui-save-form-button">
         <div class="btngroup submit first">
             <a href="#" class="btn submit" :class="{ 'fui-loading fui-loading-sm': loading }" @click.prevent="onSave">
@@ -49,7 +49,7 @@
                     {% endif %}
                 </ul>
 
-                {% if form.id %}
+                {% if form.id and currentUser.can('formie-deleteForms') %}
                     <hr>
 
                     <ul>

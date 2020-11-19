@@ -1,6 +1,13 @@
 <?php
 namespace verbb\formie\controllers;
 
+use verbb\formie\Formie;
+use verbb\formie\elements\Form;
+use verbb\formie\helpers\HandleHelper;
+use verbb\formie\helpers\Variables;
+use verbb\formie\models\Stencil;
+use verbb\formie\models\StencilData;
+
 use Craft;
 use craft\helpers\ArrayHelper;
 use craft\helpers\DateTimeHelper;
@@ -16,13 +23,6 @@ use yii\web\NotFoundHttpException;
 use yii\web\Response;
 
 use Throwable;
-
-use verbb\formie\Formie;
-use verbb\formie\elements\Form;
-use verbb\formie\helpers\HandleHelper;
-use verbb\formie\helpers\Variables;
-use verbb\formie\models\Stencil;
-use verbb\formie\models\StencilData;
 
 class FormsController extends Controller
 {
@@ -57,10 +57,13 @@ class FormsController extends Controller
      */
     public function actionNew(Form $form = null)
     {
+        $this->requirePermission('formie-createForms');
+
         $formHandles = ArrayHelper::getColumn(Form::find()->all(), 'handle');
         $stencilArray = Formie::$plugin->getStencils()->getStencilArray();
 
         $variables = compact('formHandles', 'form', 'stencilArray');
+
         if (!$variables['form']) {
             $variables['form'] = new Form();
         }
@@ -95,6 +98,14 @@ class FormsController extends Controller
 
         if (!empty($variables['form']->id)) {
             $variables['title'] = $variables['form']->title;
+
+            // User must have at least one of these permissions to edit (all, or the specific form)
+            $formsPermission = Craft::$app->getUser()->checkPermission('formie-editForms');
+            $formPermission = Craft::$app->getUser()->checkPermission('formie-manageForm:' . $variables['form']->uid);
+
+            if (!$formsPermission && !$formPermission) {
+                throw new ForbiddenHttpException('User is not permitted to perform this action');
+            }
         } else {
             $variables['title'] = Craft::t('formie', 'Create a new form');
         }
@@ -121,10 +132,21 @@ class FormsController extends Controller
         $request = Craft::$app->getRequest();
         $settings = Formie::$plugin->getSettings();
 
-        $this->requirePermission('formie-editForms');
-
         $form = Formie::$plugin->getForms()->buildFormFromPost();
         $duplicate = $request->getParam('duplicate');
+
+        // If the user has create permissions, but not edit permissions, we can run into issues...
+        if (!$form->uid) {
+             $this->requirePermission('formie-createForms');
+        } else {
+            // User must have at least one of these permissions to edit (all, or the specific form)
+            $formsPermission = Craft::$app->getUser()->checkPermission('formie-editForms');
+            $formPermission = Craft::$app->getUser()->checkPermission('formie-manageForm:' . $form->uid);
+
+            if (!$formsPermission && !$formPermission) {
+                throw new ForbiddenHttpException('User is not permitted to perform this action');
+            }
+        }
 
         // Set the default template from settings, if not already set - for new forms
         if (!$form->id && !$form->templateId) {
@@ -173,6 +195,9 @@ class FormsController extends Controller
         }
 
         Craft::$app->getSession()->setNotice(Craft::t('formie', 'Form saved.'));
+
+        // Check if we need to update the permissions for this user.
+        $this->_updateFormPermission($form);
 
         return $this->redirectToPostedUrl($form);
     }
@@ -344,7 +369,7 @@ class FormsController extends Controller
     {
         $this->requirePostRequest();
 
-        $this->requirePermission('formie-editForms');
+        $this->requirePermission('formie-deleteForms');
 
         $request = Craft::$app->getRequest();
         $formId = $request->getRequiredBodyParam('formId');
@@ -475,5 +500,46 @@ class FormsController extends Controller
         $variables['reservedHandles'] = Formie::$plugin->getFields()->getReservedHandles();
         $variables['groupedIntegrations'] = Formie::$plugin->getIntegrations()->getAllIntegrationsForForm();
         $variables['formHandles'] = ArrayHelper::getColumn(Form::find()->id('not ' . $form->id)->all(), 'handle');
+    }
+
+    /**
+     * @inheritDoc
+     */
+    private function _updateFormPermission($form)
+    {
+        if (Craft::$app->getEdition() !== Craft::Pro) {
+            return;
+        }
+
+        $suffix = ':' . $form->uid;
+
+        $userService = Craft::$app->getUser();
+        $currentUser = $userService->getIdentity();
+        $permissions = Craft::$app->getUserPermissions()->getPermissionsByUserId($currentUser->id);
+        $permissions[] = "formie-manageform{$suffix}";
+
+        // Add all nested permissions according to top-level permissions set
+        if ($userService->checkPermission('formie-manageFormAppearance')) {
+            $permissions[] = "formie-manageFormAppearance{$suffix}";
+        }
+
+        if ($userService->checkPermission('formie-manageFormBehavior')) {
+            $permissions[] = "formie-manageFormBehavior{$suffix}";
+        }
+
+        if ($userService->checkPermission('formie-manageNotifications')) {
+            $permissions[] = "formie-manageNotifications{$suffix}";
+        }
+
+        if ($userService->checkPermission('formie-manageFormIntegrations')) {
+            $permissions[] = "formie-manageFormIntegrations{$suffix}";
+        }
+
+        if ($userService->checkPermission('formie-manageFormSettings')) {
+            $permissions[] = "formie-manageFormSettings{$suffix}";
+        }
+
+
+        Craft::$app->getUserPermissions()->saveUserPermissions($currentUser->id, $permissions);
     }
 }
