@@ -119,6 +119,8 @@ export default {
                 this.json = getJSON().content;
                 this.html = getHTML();
             },
+            disableInputRules: ['italic'],
+            disablePasteRules: ['italic'],
         });
 
         this.json = this.editor.getJSON().content;
