@@ -92,6 +92,7 @@ export default {
             this.newNotificationModel = {
                 enabled: true,
                 attachFiles: true,
+                enableConditions: false,
                 templateId: this.form.settings.defaultEmailTemplateId,
             };
 
