@@ -13,7 +13,17 @@ export default {
 
     computed: {
         conditional() {
-            return parse(this.$attrs.conditional, this.$editingField ? this.$editingField.field : null);
+            var model = null;
+
+            if (this.$editingField) {
+                model = this.$editingField.field;
+            }
+
+            if (Vue.prototype.$editingNotification) {
+                model = Vue.prototype.$editingNotification.notification;
+            }
+
+            return parse(this.$attrs.conditional, model);
         },
     },
 };

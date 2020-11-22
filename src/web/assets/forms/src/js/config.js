@@ -17,6 +17,9 @@ const Config = {
         // Used to keep track of a currently edited field' component.
         Vue.prototype.$editingField = null;
 
+        // Used to keep track of a currently edited notification' component.
+        Vue.prototype.$editingNotification = null;
+
         // Global events can be accessed via `this.$events`
         Vue.prototype.$events = new Vue();
 

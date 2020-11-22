@@ -110,6 +110,11 @@ class Submissions extends Component
         $notifications = $form->getEnabledNotifications();
 
         foreach ($notifications as $notification) {
+            // Evaluate conditions for each notification
+            if (!Formie::$plugin->getNotifications()->evaluateConditions($notification, $submission)) {
+                continue;
+            }
+
             if ($settings->useQueueForNotifications) {
                 Craft::$app->getQueue()->push(new SendNotification([
                     'submissionId' => $submission->id,

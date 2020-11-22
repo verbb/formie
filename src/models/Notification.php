@@ -30,6 +30,8 @@ class Notification extends Model
     public $fromName;
     public $content;
     public $attachFiles;
+    public $enableConditions;
+    public $conditions;
     public $uid;
 
 
@@ -78,6 +80,8 @@ class Notification extends Model
                 'from' => AttributeTypecastBehavior::TYPE_STRING,
                 'fromName' => AttributeTypecastBehavior::TYPE_STRING,
                 'attachFiles' => AttributeTypecastBehavior::TYPE_BOOLEAN,
+                'enableConditions' => AttributeTypecastBehavior::TYPE_BOOLEAN,
+                'conditions' => AttributeTypecastBehavior::TYPE_STRING,
                 'uid' => AttributeTypecastBehavior::TYPE_STRING,
             ]
         ];

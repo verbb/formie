@@ -154,6 +154,11 @@ export default Vue => {
                 component: 'RichTextField',
             },
 
+            notificationConditions: {
+                classification: 'text',
+                component: 'NotificationConditions',
+            },
+
             date: {
                 component: 'DateField',
             },

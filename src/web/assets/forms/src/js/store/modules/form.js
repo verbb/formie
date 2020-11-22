@@ -509,6 +509,8 @@ const getters = {
                 if (field.subfieldOptions && field.hasSubfields) {
                     field.subfieldOptions.forEach(subfield => {
                         fields.push({
+                            id: field.id,
+                            type: field.type,
                             label: field.label + ': ' + subfield.label,
                             value: '{' + field.handle + '.' + subfield.handle + '}',
                         });
@@ -518,13 +520,20 @@ const getters = {
                     field.rows.forEach(row => {
                         row.fields.forEach(subfield => {
                             fields.push({
+                                id: field.id,
+                                type: field.type,
                                 label: field.label + ': ' + subfield.label,
                                 value: '{' + field.handle + '.one().' + subfield.handle + ' ?? null}',
                             });
                         });
                     });
                 } else {
-                    fields.push({ label: field.label, value: '{' + field.handle + '}' });
+                    fields.push({ 
+                        id: field.id,
+                        type: field.type,
+                        label: field.label, 
+                        value: '{' + field.handle + '}',
+                    });
                 }
             }
         });

@@ -176,6 +176,8 @@ class Install extends Migration
             'fromName' => $this->text(),
             'content' => $this->text(),
             'attachFiles' => $this->boolean()->defaultValue(true),
+            'enableConditions' => $this->boolean()->defaultValue(false),
+            'conditions' => $this->text(),
             'dateCreated' => $this->dateTime()->notNull(),
             'dateUpdated' => $this->dateTime()->notNull(),
             'uid' => $this->uid(),

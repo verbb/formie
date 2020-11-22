@@ -7,7 +7,7 @@
             role="checkbox"
             class="lightswitch"
             :class="[{
-                on: context.model,
+                on: toBoolean(context.model),
                 indeterminate: indeterminate,
                 dragging: dragging,
             }, localClasses]"
@@ -27,6 +27,8 @@
 </template>
 
 <script>
+import { toBoolean } from '../../../utils/bool';
+
 import FormulateInputMixin from '@braid/vue-formulate/src/FormulateInputMixin';
 
 export default {
@@ -206,6 +208,10 @@ export default {
             const style = innerContainer.currentStyle || window.getComputedStyle(innerContainer);
 
             return parseInt(style.marginLeft);
+        },
+
+        toBoolean(value) {
+            return toBoolean(value);
         },
     },
 

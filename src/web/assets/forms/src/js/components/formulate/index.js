@@ -22,6 +22,8 @@ import TableBody from './table/TableBody.vue';
 import TableRepeatableProvider from './table/TableRepeatableProvider.vue';
 import TableRow from './table/TableRow.vue';
 
+import NotificationConditions from './NotificationConditions.vue';
+
 export default {
     Help,
     Label,
@@ -46,4 +48,6 @@ export default {
     TableBody,
     TableRepeatableProvider,
     TableRow,
+
+    NotificationConditions,
 };

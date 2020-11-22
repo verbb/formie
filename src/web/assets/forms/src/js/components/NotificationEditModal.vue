@@ -125,6 +125,12 @@ export default {
     created() {
         // Store this so we can cancel changes.
         this.originalNotification = cloneDeep(this.notification);
+
+        Vue.prototype.$editingNotification = this.notificationRef;
+    },
+
+    destroy() {
+        Vue.prototype.$editingNotification = null;
     },
 
     methods: {

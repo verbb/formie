@@ -179,7 +179,11 @@ export default {
                         return false;
                     }
 
-                    var value = row[valueKey].trim();
+                    var value = row[valueKey];
+
+                    if (value) {
+                        value.trim();
+                    }
 
                     if (!value) {
                         if (prop === 'value') {

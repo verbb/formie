@@ -3,8 +3,10 @@ namespace verbb\formie\services;
 
 use verbb\formie\Formie;
 use verbb\formie\elements\Form;
+use verbb\formie\elements\Submission;
 use verbb\formie\events\NotificationEvent;
 use verbb\formie\events\ModifyExistingNotificationsEvent;
+use verbb\formie\helpers\ConditionsHelper;
 use verbb\formie\helpers\RichTextHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\Notification;
@@ -12,6 +14,7 @@ use verbb\formie\records\Notification as NotificationRecord;
 
 use Craft;
 use craft\db\Query;
+use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 
 use yii\base\Component;
@@ -134,6 +137,8 @@ class Notifications extends Component
             $notificationRecord->fromName = $notification->fromName;
             $notificationRecord->content = $notification->content;
             $notificationRecord->attachFiles = $notification->attachFiles;
+            $notificationRecord->enableConditions = $notification->enableConditions;
+            $notificationRecord->conditions = $notification->conditions;
 
             $success = $notificationRecord->save(false);
 
@@ -319,6 +324,76 @@ class Notifications extends Component
     }
 
     /**
+     * Returns whether the notification has passed conditional evaluation. A `true` result means the notification
+     * should be sent, whilst a `false` result means the notification should not send.
+     *
+     * @return bool
+     */
+    public function evaluateConditions($notification, Submission $submission)
+    {
+        if ($notification->enableConditions) {
+            $conditionSettings = Json::decode($notification->conditions) ?? [];
+            $conditions = $conditionSettings['conditions'] ?? [];
+
+            if ($conditionSettings && $conditions) {
+                $results = [];
+                $ruler = ConditionsHelper::getRuler();
+
+                // Fetch the values, serialized for notifications
+                $serializedFieldValues = $submission->getSerializedFieldValuesForIntegration();
+
+                foreach ($conditions as $condition) {
+                    try {
+                        $rule = "field {$condition['condition']} value";
+
+                        // Parse the field handle first to get the submission value
+                        $condition['field'] = str_replace(['{', '}'], ['', ''], $condition['field']);
+                        $condition['field'] = ArrayHelper::getValue($serializedFieldValues, $condition['field']);
+
+                        // Protect against empty conditions
+                        if (!trim(implode('', $condition))) {
+                            continue;
+                        }
+
+                        $context = ConditionsHelper::getContext($condition);
+
+                        // Test the condition
+                        $results[] = $ruler->assert($rule, $context);
+                    } catch (\Throwable $e) {
+                        Formie::error(Craft::t('formie', 'Failed to parse conditional “{rule}”: “{message}” {file}:{line}', [
+                            'rule' => implode(' ', $condition),
+                            'message' => $e->getMessage(),
+                            'file' => $e->getFile(),
+                            'line' => $e->getLine(),
+                        ]));
+
+                        continue;
+                    }
+                }
+
+                $result = false;
+
+                // Check to see how to compare the result (any or all).
+                if ($conditionSettings['conditionRule'] === 'all') {
+                    // Are _all_ the conditions the same?
+                    $result = (bool)array_product($results);
+                } else {
+                    $result = (bool)in_array(true, $results);
+                }
+
+                // Lastly, check to see if we should return true or false depending on if we want to send or not
+                if ($conditionSettings['sendRule'] === 'send') {
+                    return $result;
+                } else {
+                    return !$result;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    /**
      * Returns the notifications settings schema.
      *
      * @return array
@@ -344,6 +419,7 @@ class Notifications extends Component
         }
 
         $definedTabs[] = 'Preview';
+        $definedTabs[] = 'Conditions';
 
         foreach ($definedTabs as $definedTab) {
             $methodName = 'define' . $definedTab . 'Schema';
@@ -474,7 +550,6 @@ class Notifications extends Component
                 'label' => Craft::t('formie', 'Attach File Uploads'),
                 'help' => Craft::t('formie', 'Whether to attach file uploads to this email notification.'),
                 'name' => 'attachFiles',
-                'variables' => 'emailVariables',
             ]),
         ];
     }
@@ -523,6 +598,30 @@ class Notifications extends Component
         ];
     }
 
+    /**
+     * Defines the templates conditions schema.
+     *
+     * @return array
+     */
+    public function defineConditionsSchema(): array
+    {
+        return [
+            SchemaHelper::lightswitchField([
+                'label' => Craft::t('formie', 'Enable Conditions'),
+                'help' => Craft::t('formie', 'Whether to enable conditional logic to control how this email notification is sent.'),
+                'name' => 'enableConditions',
+            ]),
+            SchemaHelper::toggleContainer('enableConditions', [
+                [
+                    'type' => 'notificationConditions',
+                    'name' => 'conditions',
+                ],
+            ]),
+        ];
+    }
+
+
+
 
     // Private Methods
     // =========================================================================
@@ -551,6 +650,8 @@ class Notifications extends Component
                 'fromName',
                 'content',
                 'attachFiles',
+                'enableConditions',
+                'conditions',
                 'uid'
             ])
             ->orderBy('dateCreated')
