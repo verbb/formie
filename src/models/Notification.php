@@ -54,6 +54,10 @@ class Notification extends Model
         if (!$this->templateId) {
             $this->templateId = null;
         }
+
+        // Cast some properties. Doesn't play with with JS otherwise.
+        $this->attachFiles = (bool)$this->attachFiles;
+        $this->enableConditions = (bool)$this->enableConditions;
     }
 
     /**
