@@ -73,7 +73,7 @@ Variable | Description
 `element` | The current [Submission](docs:developers/submission) object this this form may or may not have.
 
 ## Overriding Field Templates
-You'll notice the above structure includes the `fields/` directory. Inside this directory are a mixture of folder and individual files, each representing a template that you're able to override.
+You'll notice the above structure includes the `fields/` directory. Inside this directory are a mixture of folders and individual files, each representing a template that you're able to override.
 
 First, you'll need to identify the template's name. It's derived from the PHP class name for the field, converted to a "kebab" string. For easy reference, you can use the below table.
 
@@ -133,4 +133,4 @@ The `form.html` file sets up your form, but also includes other partials like `_
 For example, let's say we want to override the page tabs of a multi-step form. We could create a file `_includes/page-tabs.html` and add our content to this template. There's no need to override `form.html` now!
 
 ### How it Works
-Formie's templates use a custom Twig function like `{{ formieInclude('_includes/page-tabs') }}`. This is in contrast to what you might be used to in your own templates, something like `{% include '_includes/page-tabs' %}`. The drawback with this approach is how Formie resolves the template partial. Using `{% include %}` it will expect to find the template partial relative to the template file you're including it from. Instead, `formieInclude()` will resolve the template partial to either your overrides folder, or Formie's default templates.
+Formie's templates use a custom Twig function like `{{ formieInclude('_includes/page-tabs') }}`. This is in contrast to what you might be used to in your own templates, something like `{% include '_includes/page-tabs' %}`. The drawback with this latter approach is how Formie resolves the template partial. Using `{% include %}` it will expect to find the template partial relative to the template file you're including it from. Instead, `formieInclude()` will resolve the template partial to either your overrides folder, or Formie's default templates.
