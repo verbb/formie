@@ -16,3 +16,14 @@
 } | merge(field.getInputAttributes()) %}
 
 <input {{ attr(attributes) }} />
+
+{% if field.countryEnabled %}
+    <input {{ attr({
+        id: options.id ~ '-country',
+        name: 'country' | namespaceInputName(field.handle),
+        value: value.country ?? null,
+        type: 'hidden',
+    }) }} />
+
+    {% do view.registerCssFile(view.getAssetManager().getPublishedUrl('@verbb/formie/web/assets/frontend/dist/css/fields/phone-country.css', true)) %}
+{% endif %}

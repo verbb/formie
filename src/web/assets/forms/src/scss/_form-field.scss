@@ -391,6 +391,34 @@
         line-height: 1;
         padding: 1rem;
     }
+
+    .fui-phone-flag-wrap {
+        position: absolute;
+        top: 1px;
+        left: 1px;
+    }
+
+    .fui-phone-flag-icon {
+        width: 20px;
+        height: 10px;
+        background: rgb(204, 204, 204);
+        display: block;
+        position: absolute;
+        top: 50%;
+        left: 10px;
+        transform: translateY(-50%);
+    }
+
+    .fui-phone-flag-select {
+        padding-left: 30px;
+        border: none;
+        background-position: right 5px center !important;
+        background-size: 8px !important;
+    }
+
+    // Phone field flags
+    @import 'flags';
+
 }
 
 .fui-color-field {

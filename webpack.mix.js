@@ -45,11 +45,13 @@ mix.js(assetsPath + '/repeater/src/js/main.js', assetsPath + '/repeater/dist/js'
 // Setup and configure Sass
 mix.sass(assetsPath + '/frontend/src/scss/formie-base.scss', assetsPath + '/frontend/dist/css');
 mix.sass(assetsPath + '/frontend/src/scss/formie-theme.scss', assetsPath + '/frontend/dist/css');
+mix.sass(assetsPath + '/frontend/src/scss/fields/phone-country.scss', assetsPath + '/frontend/dist/css/fields');
 mix.sass(assetsPath + '/frontend/src/scss/fields/tags.scss', assetsPath + '/frontend/dist/css/fields');
 
 // Setup and configure JS
 mix.js(assetsPath + '/frontend/src/js/formie.js', assetsPath + '/frontend/dist/js');
 mix.js(assetsPath + '/frontend/src/js/fields/file-upload.js', assetsPath + '/frontend/dist/js/fields');
+mix.js(assetsPath + '/frontend/src/js/fields/phone-country.js', assetsPath + '/frontend/dist/js/fields');
 mix.js(assetsPath + '/frontend/src/js/fields/repeater.js', assetsPath + '/frontend/dist/js/fields');
 mix.js(assetsPath + '/frontend/src/js/fields/table.js', assetsPath + '/frontend/dist/js/fields');
 mix.js(assetsPath + '/frontend/src/js/fields/tags.js', assetsPath + '/frontend/dist/js/fields');

@@ -1,22 +1,9 @@
-<div v-if="field.settings.countryEnabled">
-    <div class="fui-row">
-        <div class="fui-col-2" style="max-width: 20%; flex: 0 0 20%;">
-            <label class="fui-field-label">Country Code</label>
-
-            <select class="fui-field-select" :value="field.settings.countryDefaultValue">
-                <option value="" disabled selected>${ field.settings.countryPlaceholder }</option>
-                <option v-for="country in fieldType.data.countries" :value="country.value">${ country.label }</option>
-            </select>
-        </div>
-
-        <div class="fui-col fui-col-auto">
-            <label class="fui-field-label">Phone Number</label>
-            <input type="text" class="fui-field-input" :placeholder="field.settings.numberPlaceholder" :value="field.settings.numberDefaultValue">
-        </div>
+<div>
+    <div v-if="field.settings.countryEnabled" class="fui-phone-flag-wrap" >
+        <span class="fui-phone-flag-icon iti__flag" :class="'iti__' + (field.settings.countryDefaultValue ? field.settings.countryDefaultValue.toLowerCase() : 'auto')"></span>
+        <select class="fui-field-select fui-phone-flag-select"></select>
     </div>
-</div>
 
-<div v-else>
     <input type="text" class="fui-field-input" :placeholder="field.settings.placeholder" :value="field.settings.defaultValue">
     <span class="fui-field-icon">{{ field.getSvgIcon() | raw }}</span>
 </div>

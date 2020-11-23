@@ -13,6 +13,16 @@ export const parse = function(attribute, obj) {
     let negative = false;
     let compare = '';
 
+    if (attribute.includes('||')) {
+        var attributes = attribute.split('||');
+        
+        var results = attributes.map(attr => {
+            return parse(attr, obj);
+        });
+
+        return results.includes(true);
+    }
+
     if (attribute.startsWith('!')) {
         attribute = attribute.replace('!', '');
         negative = true;

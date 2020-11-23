@@ -37,6 +37,13 @@ class SchemaHelper
         ], $config);
     }
 
+    public static function multiSelectField($config = [])
+    {
+        return array_merge([
+            'type' => 'multiSelect',
+        ], $config);
+    }
+
     public static function dateField($config = [])
     {
         return array_merge([

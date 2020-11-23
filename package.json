@@ -49,6 +49,7 @@
         "axios": "^0.19.2",
         "core-js": "^3.6.5",
         "flat": "^5.0.0",
+        "intl-tel-input": "^17.0.8",
         "md5-hex": "^3.0.1",
         "mobile-drag-drop": "^2.3.0-rc.2",
         "pell": "^1.0.6",
@@ -62,6 +63,7 @@
         "v-tooltip": "^2.0.3",
         "vue-clickaway": "^2.2.2",
         "vue-drag-drop": "^1.1.4",
+        "vue-multiselect": "^2.1.6",
         "vue-simple-markdown": "^1.1.4",
         "vue-unique-id": "^3.0.0"
     }

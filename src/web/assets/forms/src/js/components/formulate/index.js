@@ -14,6 +14,7 @@ import HandleField from './inputs/HandleField.vue';
 import LightswitchField from './inputs/LightswitchField.vue';
 import RichTextField from './richtext/RichTextField.vue';
 import TextWithSuffixField from './inputs/TextWithSuffixField.vue';
+import MultiSelectField from './inputs/MultiSelectField.vue';
 import VariableTextField from './variables/VariableTextField.vue';
 
 import TableField from './table/TableField.vue';
@@ -41,6 +42,7 @@ export default {
     LightswitchField,
     RichTextField,
     TextWithSuffixField,
+    MultiSelectField,
     VariableTextField,
 
     TableField,

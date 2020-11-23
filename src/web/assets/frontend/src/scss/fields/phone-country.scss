@@ -1,0 +1,40 @@
+.fui-i {
+    @import '~intl-tel-input/build/css/intlTelInput.css';
+
+    .iti {
+        display: block;
+    }
+
+    .iti__arrow {
+        border-left: 3px solid transparent;
+        border-right: 3px solid transparent;
+        border-top: 4px solid #555;
+    }
+
+    .iti__arrow--up {
+        border-top: none;
+        border-bottom: 4px solid #555;
+    }
+
+    .iti__divider {
+        border-bottom: 1px solid #CCC;
+    }
+
+    .iti__country-list {
+        border: 1px solid #CCC;
+    }
+
+    .iti--separate-dial-code .iti__selected-dial-code {
+        font-size: 14px;
+    }
+
+    .iti__flag {
+        background-image: url("https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/img/flags.png");
+    }
+
+    @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+        .iti__flag {
+            background-image: url("https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/img/flags@2x.png");
+        }
+    }
+}

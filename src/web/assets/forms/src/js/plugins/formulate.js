@@ -135,6 +135,11 @@ export default Vue => {
                 component: 'TextWithSuffixField',
             },
 
+            multiSelect: {
+                classification: 'select',
+                component: 'MultiSelectField',
+            },
+
             lightswitch: {
                 component: 'LightswitchField',
             },
