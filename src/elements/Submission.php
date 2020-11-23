@@ -775,11 +775,6 @@ class Submission extends Element
      */
     private static function _getEditableFormIds()
     {
-        // Can the user edit _every_ form?
-        if (Craft::$app->getUser()->checkPermission('formie-editSubmissions')) {
-            return '*';
-        }
-
         $userSession = Craft::$app->getUser();
 
         $editableIds = [];
@@ -790,10 +785,15 @@ class Submission extends Element
             ->select(['id', 'uid'])
             ->all();
 
-        // Find all UIDs the user has permission to
-        foreach ($formInfo as $form) {
-            if ($userSession->checkPermission('formie-manageSubmission:' . $form['uid'])) {
-                $editableIds[] = $form['id'];
+        // Can the user edit _every_ form?
+        if ($userSession->checkPermission('formie-editSubmissions')) {
+            $editableIds = ArrayHelper::getColumn($formInfo, 'id');
+        } else {
+            // Find all UIDs the user has permission to
+            foreach ($formInfo as $form) {
+                if ($userSession->checkPermission('formie-manageSubmission:' . $form['uid'])) {
+                    $editableIds[] = $form['id'];
+                }
             }
         }
 
