@@ -1275,7 +1275,7 @@ class Form extends Element
             ->all();
 
         // Can the user edit _every_ form?
-        if (Craft::$app->getUser()->checkPermission('formie-editForms')) {
+        if ($userSession->checkPermission('formie-editForms')) {
             $editableIds = ArrayHelper::getColumn($formInfo, 'id');
         } else {
             // Find all UIDs the user has permission to
@@ -1287,9 +1287,9 @@ class Form extends Element
         }
 
         // Important to check if empty, there are zero editable forms, but as we use this as a criteria param
-        // that would return all forms, not what we want. Maybe `none` isn't ideal?
+        // that would return all forms, not what we want.
         if (!$editableIds) {
-            $editableIds = 'none';
+            $editableIds = 0;
         }
 
         return $editableIds;

@@ -798,9 +798,9 @@ class Submission extends Element
         }
 
         // Important to check if empty, there are zero editable forms, but as we use this as a criteria param
-        // that would return all forms, not what we want. Maybe `none` isn't ideal?
+        // that would return all forms, not what we want.
         if (!$editableIds) {
-            $editableIds = 'none';
+            $editableIds = 0;
         }
 
         return $editableIds;
