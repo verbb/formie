@@ -258,7 +258,7 @@ class Submission extends Element
                 if (!in_array($form->id, $ids)) {
                     continue;
                 }
-            } else if ($ids === 'none') {
+            } else if ($ids === 0) {
                 continue;
             }
 
