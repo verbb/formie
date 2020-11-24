@@ -1,5 +1,44 @@
 # Changelog
 
+## Unreleased
+
+### Added
+- Added Sent Notifications section, providing information on sent email notifications. Each Sent Notification contains delivery information and the ability to preview what was sent.
+- Added resend Sent Notifications, allowing you to either resend the notification to their original recipients or nominated new ones.
+- Added bulk resend Sent Notifications, either to their original recipients or nominated new ones.
+- Added support for default field values to contain variable tags for autofilling user info.
+- Added pre-populate setting to fields, allowing you to specify a query string param to pre-populate the field with a value.
+- Added conditions to notifications. Build complex conditional rules on when to send (or not send) email notifications.
+- Added better support for countries in Phone fields, now with a nicer UI for the front-end.
+- Added country flags and international/national validation to Phone fields.
+- Added new MultiSelect Vue component, for use in custom field schema settings.
+- Added ability to control whether form submissions are stored permanently or not.
+- Added settings for form submission data rentention for hours, days, weeks, months and years.
+- Added indicator when editing a submission when it's associated with a user.
+- Added `submission->getUser()`.
+- Added support for when deleted a user, any submissions associated to them can be transferred to another user, or deleted.
+- Added when deleting a user, a summary of their submissions (if any) is shown in the prompt.
+- Added support for when restoring a deleted user, we restore any associated submissions.
+- Added settings for form submission data rentention for uploaded files.
+- Added `formie/gc/delete-orphaned-fields` console command.
+- Added `formie/gc/prune-syncs` console command.
+- Added `formie/gc/prune-incomplete-submissions` console command.
+- Added `formie/gc/prune-data-retention-submissions` console command.
+- Added `formie/gc/prune-content-tables` console command.
+- Added variable tags to form “Submission Message” rich text field setting, allowing for the use of submission variables in the submission success message.
+
+### Changed
+- Refactored Phone fields to no longer use a separate dropdown for country code.
+- When deleting a user, any form submissions related to that user will be deleted, or transferred to a user of your choice. This only applies if you use the "Collect User" setting for your forms.
+
+### Fixed
+- Fixed an error when a fields' setting was removed, but a critical error is thrown before migration can take place (looking at you `descriptionHtml` attribute).
+Fixed `registerFormieValidation` JS event not working correctly.
+- Fixed a potential error in `craft.formie.getParsedValue()`.
+
+### Removed
+- The following attributes on Phone fields have been removed: `showCountryCode`, `validate`, `validateType`, `countryCollapsed`, `countryLabel`, `countryPlaceholder`, `countryPrePopulate`, `numberCollapsed`, `numberLabel`, `numberPlaceholder`, `numberDefaultValue`, `numberPrePopulate`.
+
 ## 1.2.25 - 2020-10-28
 
 ### Added
