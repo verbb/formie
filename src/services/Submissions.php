@@ -321,6 +321,90 @@ class Submissions extends Component
     }
 
     /**
+     * Defining a summary of content owned by a user(s), before they are deleted.
+     */
+    public function defineUserSubmssions(DefineUserContentSummaryEvent $event)
+    {
+        $userIds = Craft::$app->getRequest()->getRequiredBodyParam('userId');
+
+        $submissionCount = Submission::find()
+            ->userId($userIds)
+            ->siteId('*')
+            ->unique()
+            ->anyStatus()
+            ->count();
+
+        if ($submissionCount) {
+            $event->contentSummary[] = $submissionCount == 1 ? Craft::t('formie', '1 form submission') : Craft::t('formie', '{num} form submissions', ['num' => $submissionCount]);
+        }
+    }
+
+    /**
+     * Deletes any submissions related to a user.
+     */
+    public function deleteUserSubmssions(Event $event)
+    {
+        /** @var User $user */
+        $user = $event->sender;
+
+        $submissions = Submission::find()
+            ->userId($user->id)
+            ->siteId('*')
+            ->unique()
+            ->anyStatus()
+            ->all();
+
+        if (!$submissions) {
+            return;
+        }
+
+        // Are we transferring to another user, or just deleting?
+        $inheritorOnDelete = $user->inheritorOnDelete ?? null;
+
+        if ($inheritorOnDelete) {
+            // Re-assign each submission to the new user
+            Craft::$app->getDb()->createCommand()
+                ->update('{{%formie_submissions}}', ['userId' => $inheritorOnDelete->id], ['userId' => $user->id])
+                ->execute();
+
+        } else {
+            // We just want to delete each submission - bye!
+            foreach ($submissions as $submission) {
+                try {
+                    Craft::$app->getElements()->deleteElement($submission);
+                } catch (Throwable $e) {
+                    Formie::error('Failed to delete user submission with ID: #' . $submission->id);
+                }
+            }
+        }
+    }
+
+    /**
+     * Restores any submissions related to a user.
+     */
+    public function restoreUserSubmssions(Event $event)
+    {
+        /** @var User $user */
+        $user = $event->sender;
+
+        $submissions = Submission::find()
+            ->userId($user->id)
+            ->siteId('*')
+            ->unique()
+            ->anyStatus()
+            ->trashed(true)
+            ->all();
+        
+        foreach ($submissions as $submission) {
+            try {
+                Craft::$app->getElements()->restoreElement($submission);
+            } catch (Throwable $e) {
+                Formie::error('Failed to restore user submission with ID: #' . $submission->id);
+            }
+        }
+    }
+
+    /**
      * Performs spam checks on a submission.
      *
      * @param Submission $submission

@@ -31,6 +31,8 @@ use verbb\formie\web\twig\Extension;
 
 use Craft;
 use craft\base\Plugin;
+use craft\controllers\UsersController;
+use craft\elements\User as UserElement;
 use craft\events\FieldLayoutEvent;
 use craft\events\RebuildConfigEvent;
 use craft\events\RegisterComponentTypesEvent;
@@ -91,6 +93,7 @@ class Formie extends Plugin
         $this->_registerElementTypes();
         $this->_registerGarbageCollection();
         $this->_registerGraphQl();
+        $this->_registerCraftEventListeners();
         $this->_registerProjectConfigEventListeners();
         $this->_registerEmailMessages();
         $this->_registerElementExports();
@@ -287,6 +290,13 @@ class Formie extends Plugin
                 }
             });
         }
+    }
+
+    private function _registerCraftEventListeners()
+    {
+        Event::on(UsersController::class, UsersController::EVENT_DEFINE_CONTENT_SUMMARY, [$this->getSubmissions(), 'defineUserSubmssions']);
+        Event::on(UserElement::class, UserElement::EVENT_AFTER_DELETE, [$this->getSubmissions(), 'deleteUserSubmssions']);
+        Event::on(UserElement::class, UserElement::EVENT_AFTER_RESTORE, [$this->getSubmissions(), 'restoreUserSubmssions']);
     }
 
     private function _registerProjectConfigEventListeners()

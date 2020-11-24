@@ -91,24 +91,6 @@
     toggle: 'collect-user',
 }) }}
 
-<div id="collect-user" class="{{ not collectUser ? 'hidden' }}">
-    {{ forms.selectField({
-        label: 'When a User is Deleted' | t('formie'),
-        instructions: 'Select how to handle submissions from users, when their user accounts are deleted.' | t('formie'),
-        id: 'userDeletedAction',
-        name: 'userDeletedAction',
-        options: [{
-            label: 'Retain Submissions' | t('formie'),
-            value: 'retain',
-        },
-        {
-            label: 'Delete Submissions' | t('formie'),
-            value: 'delete',
-        }],
-        value: form.userDeletedAction ?? 'retain',
-    }) }}
-</div>
-
 {% set dataRetention = form.dataRetention ?? 'forever' %}
 
 {{ forms.selectField({
