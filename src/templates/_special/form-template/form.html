@@ -108,5 +108,16 @@
                 </div>
             </form>
         {% endif %}
+
+        {# When the position of success message is set to bottom, but the form is hidden... #}
+        {% if submission is defined and form.settings.submitAction == 'message' and form.settings.submitActionFormHide %}
+            {% set flashNotice = craft.formie.plugin.service.getFlash(form.id, 'notice') %}
+
+            {% if flashNotice and form.settings.submitActionMessagePosition == 'bottom-form' %}
+                <div class="fui-alert fui-alert-success fui-alert-{{ form.settings.submitActionMessagePosition }}" role="alert">
+                    {{ flashNotice | t | raw }}
+                </div>
+            {% endif %}
+        {% endif %}
     </div>
 {% endapply %}
