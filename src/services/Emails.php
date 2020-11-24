@@ -213,8 +213,6 @@ class Emails extends Component
             // Add it to our render variables
             $renderVariables['contentHtml'] = Template::raw($parsedContent);
 
-            $view->setTemplateMode($view::TEMPLATE_MODE_CP);
-
             if ($templatePath) {
                 // We need to do a little more work here to deal with a template, if picked
                 $oldTemplatesPath = $view->getTemplatesPath();
@@ -222,10 +220,13 @@ class Emails extends Component
                 $body = $view->renderTemplate($templatePath, $renderVariables);
                 $view->setTemplatesPath($oldTemplatesPath);
             } else {
-                $body = $view->renderTemplate('formie/_special/email-template', $renderVariables);
-            }
+                $oldTemplateMode = $view->getTemplateMode();
+                $view->setTemplateMode($view::TEMPLATE_MODE_CP);
 
-            $view->setTemplateMode($view::TEMPLATE_MODE_SITE);
+                $body = $view->renderTemplate('formie/_special/email-template', $renderVariables);
+
+                $view->setTemplateMode($oldTemplateMode);
+            }
 
             $newEmail->setHtmlBody($body);
 
@@ -250,11 +251,11 @@ class Emails extends Component
     public function sendEmail(Notification $notification, Submission $submission)
     {
         // Set Craft to the site template mode
-        $view = Craft::$app->getView();
-        $oldTemplateMode = $view->getTemplateMode();
-        $view->setTemplateMode($view::TEMPLATE_MODE_SITE);
+        // $view = Craft::$app->getView();
+        // $oldTemplateMode = $view->getTemplateMode();
+        // $view->setTemplateMode($view::TEMPLATE_MODE_SITE);
 
-        $originalLanguage = Craft::$app->language;
+        // $originalLanguage = Craft::$app->language;
 
         // Render the email
         $emailRender = $this->renderEmail($notification, $submission);
@@ -266,8 +267,8 @@ class Emails extends Component
 
             Formie::error($error);
 
-            Craft::$app->language = $originalLanguage;
-            $view->setTemplateMode($oldTemplateMode);
+            // Craft::$app->language = $originalLanguage;
+            // $view->setTemplateMode($oldTemplateMode);
 
             return ['error' => $error];
         }
@@ -292,8 +293,8 @@ class Emails extends Component
 
                 Formie::error($error);
 
-                Craft::$app->language = $originalLanguage;
-                $view->setTemplateMode($oldTemplateMode);
+                // Craft::$app->language = $originalLanguage;
+                // $view->setTemplateMode($oldTemplateMode);
 
                 return ['error' => $error];
             }
@@ -305,8 +306,8 @@ class Emails extends Component
 
                 Formie::error($error);
 
-                Craft::$app->language = $originalLanguage;
-                $view->setTemplateMode($oldTemplateMode);
+                // Craft::$app->language = $originalLanguage;
+                // $view->setTemplateMode($oldTemplateMode);
 
                 return ['error' => $error];
             }
@@ -320,8 +321,8 @@ class Emails extends Component
 
             Formie::error($error);
 
-            Craft::$app->language = $originalLanguage;
-            $view->setTemplateMode($oldTemplateMode);
+            // Craft::$app->language = $originalLanguage;
+            // $view->setTemplateMode($oldTemplateMode);
 
             return ['error' => $error];
         }
@@ -333,8 +334,8 @@ class Emails extends Component
             ]));
         }
 
-        Craft::$app->language = $originalLanguage;
-        $view->setTemplateMode($oldTemplateMode);
+        // Craft::$app->language = $originalLanguage;
+        // $view->setTemplateMode($oldTemplateMode);
 
         // Delete any leftover attachments
         foreach ($this->_tempAttachments as $path) {
@@ -352,7 +353,7 @@ class Emails extends Component
     {
         $settings = Formie::$plugin->getSettings();
 
-        $view = Craft::$app->getView();
+        // $view = Craft::$app->getView();
 
         // Check our settings are all in order first.
         if (!$settings->sendEmailAlerts) {
