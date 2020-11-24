@@ -59,7 +59,7 @@ class Formie extends Plugin
     // Public Properties
     // =========================================================================
 
-    public $schemaVersion = '1.1.3';
+    public $schemaVersion = '1.1.4';
     public $hasCpSettings = true;
     public $hasCpSection = true;
 
@@ -240,7 +240,10 @@ class Formie extends Plugin
             $this->getSyncs()->pruneSyncs();
 
             // Delete incomplete submissions older than the configured interval.
-            $this->getSubmissions()->pruneSubmissions();
+            $this->getSubmissions()->pruneIncompleteSubmissions();
+
+            // Deletes submissions if they are past the form data retention settings.
+            $this->getSubmissions()->pruneDataRetentionSubmissions();
 
             // Delete leftover content tables, for deleted forms
             $this->getForms()->pruneContentTables();

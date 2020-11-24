@@ -18,6 +18,8 @@ use verbb\formie\models\FakeElementQuery;
 use verbb\formie\models\Settings;
 
 use Craft;
+use craft\db\Query;
+use craft\helpers\Console;
 use craft\helpers\Json;
 
 use yii\base\Component;
@@ -206,10 +208,11 @@ class Submissions extends Component
     /**
      * Deletes incomplete submissions older than the configured interval.
      */
-    public function pruneSubmissions()
+    public function pruneIncompleteSubmissions()
     {
         /* @var Settings $settings */
         $settings = Formie::$plugin->getSettings();
+
         if ($settings->maxIncompleteSubmissionAge <= 0) {
             return;
         }
@@ -227,7 +230,7 @@ class Submissions extends Component
             try {
                 Craft::$app->getElements()->deleteElement($submission, true);
             } catch (Throwable $e) {
-                Formie::error('Failed to prune submission with ID: ' . $submission->id);
+                Formie::error('Failed to prune submission with ID: #' . $submission->id);
             }
         }
 
@@ -248,7 +251,70 @@ class Submissions extends Component
                 try {
                     Craft::$app->getElements()->deleteElement($submission, true);
                 } catch (Throwable $e) {
-                    Formie::error('Failed to prune spam submission with ID: ' . $submission->id);
+                    Formie::error('Failed to prune spam submission with ID: #' . $submission->id);
+                }
+            }
+        }
+    }
+
+    /**
+     * Deletes submissions older than the form data retention settings.
+     */
+    public function pruneDataRetentionSubmissions($consoleInstance = null)
+    {
+        // Find all the forms with data retention settings
+        $forms = (new Query())
+            ->select(['id', 'dataRetention', 'dataRetentionValue'])
+            ->from(['{{%formie_forms}}'])
+            ->where(['not', ['dataRetention' => 'forever']])
+            ->all();
+
+        foreach ($forms as $form) {
+            $dataRetention = $form['dataRetention'] ?? '';
+            $dataRetentionValue = (int)$form['dataRetentionValue'];
+
+            // Setup intervals, depending on the setting
+            $intervalLookup = ['hours' => 'H', 'days' => 'D', 'weeks' => 'W', 'months' => 'M', 'years' => 'Y'];
+            $intervalValue = $intervalLookup[$dataRetention] ?? '';
+
+            if (!$intervalValue || !$dataRetentionValue) {
+                continue;
+            }
+
+            // Handle weeks - not available built-in interval
+            if ($intervalValue === 'W') {
+                $intervalValue = 'D';
+                $dataRetentionValue = $dataRetentionValue * 7;
+            }
+
+            $period = ($intervalValue === 'H') ? 'PT' : 'P';
+
+            $interval = new DateInterval("{$period}{$dataRetentionValue}{$intervalValue}");
+            $date = new DateTime();
+            $date->sub($interval);
+
+            $submissions = Submission::find()
+                ->dateCreated('< ' . $date->format('c'))
+                ->formId($form['id'])
+                ->all();
+
+            if ($submissions) {
+                $consoleInstance->stdout('Preparing to prune ' . count($submissions) . ' submissions.' . PHP_EOL, Console::FG_YELLOW);
+            }
+
+            foreach ($submissions as $submission) {
+                try {
+                    Craft::$app->getElements()->deleteElement($submission, true);
+
+                    if ($consoleInstance) {
+                        $consoleInstance->stdout("Pruned submission with ID: #{$submission->id}." . PHP_EOL, Console::FG_GREEN);
+                    }
+                } catch (Throwable $e) {
+                    Formie::error('Failed to prune submission with ID: #' . $submission->id);
+
+                    if ($consoleInstance) {
+                        $consoleInstance->stdout("Failed to prune submission with ID: #{$submission->id}." . PHP_EOL, Console::FG_RED);
+                    }
                 }
             }
         }

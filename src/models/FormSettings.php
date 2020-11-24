@@ -18,10 +18,16 @@ class FormSettings extends Model
     // Public Properties
     // =========================================================================
 
+    // Appearance
     public $displayFormTitle = false;
-    public $displayPageTabs = false;
     public $displayCurrentPageTitle = false;
+    public $displayPageTabs = false;
     public $displayPageProgress = false;
+    public $progressPosition = 'end';
+    public $defaultLabelPosition;
+    public $defaultInstructionsPosition;
+
+    // Behaviour
     public $submitMethod;
     public $submitAction;
     public $submitActionTab;
@@ -30,25 +36,40 @@ class FormSettings extends Model
     public $submitActionMessage;
     public $submitActionMessageTimeout;
     public $submitActionMessagePosition = 'top-form';
-    public $errorMessage;
-    public $errorMessagePosition = 'top-form';
     public $loadingIndicator;
     public $loadingIndicatorText;
+
+    // Behaviour - Validation
     public $validationOnSubmit;
     public $validationOnFocus;
-    public $submissionTitleFormat = '{timestamp}';
-    public $collectIp;
-    public $collectUser;
-    public $storeData;
+    public $errorMessage;
+    public $errorMessagePosition = 'top-form';
+
+    // Behaviour - Availability
     public $availabilityMessage;
     public $availabilityMessageDate;
     public $availabilityMessageSubmissions;
-    public $defaultLabelPosition;
-    public $defaultInstructionsPosition;
-    public $progressPosition = 'end';
-    public $defaultEmailTemplateId = '';
-    public $redirectUrl;
+
+    // Integrations
     public $integrations = [];
+
+    // Settings
+    public $submissionTitleFormat = '{timestamp}';
+
+    // Settings - Privacy
+    public $collectIp;
+    public $collectUser;
+    public $dataRetention;
+    public $dataRetentionValue;
+    public $userDeletedAction;
+
+    // Other
+    public $redirectUrl;
+    public $defaultEmailTemplateId = '';
+    
+
+    // TODO: to remove
+    public $storeData;
 
 
     // Public Methods

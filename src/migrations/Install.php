@@ -76,7 +76,7 @@ class Install extends Migration
             'availabilityTo' => $this->dateTime(),
             'availabilitySubmissions' => $this->integer(),
             'defaultStatusId' => $this->integer(),
-            'dataRetention' => $this->enum('dataRetention', ['forever', 'days', 'weeks', 'months', 'years'])
+            'dataRetention' => $this->enum('dataRetention', ['forever', 'hours', 'days', 'weeks', 'months', 'years'])
                 ->defaultValue('forever')
                 ->notNull(),
             'dataRetentionValue' => $this->integer(),

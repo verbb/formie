@@ -80,22 +80,36 @@
     on: form.settings.collectIp ?? false,
 }) }}
 
+{% set collectUser = form.settings.collectUser ?? false %}
+
 {{ forms.lightswitchField({
     label: 'Collect User' | t('formie'),
     instructions: 'Whether this form should keep a record of the logged-in user.' | t('formie'),
     id: 'collectUser',
     name: 'settings[collectUser]',
-    on: form.settings.collectUser ?? false,
+    on: collectUser,
+    toggle: 'collect-user',
 }) }}
 
-{# TODO
-{{ forms.lightswitchField({
-    label: 'Store Submitted Data' | t('formie'),
-    instructions: 'Whether to store users’ form data to the database.' | t('formie'),
-    id: 'storeData',
-    name: 'settings[storeData]',
-    on: form.settings.storeData ?? true,
-}) }}
+<div id="collect-user" class="{{ not collectUser ? 'hidden' }}">
+    {{ forms.selectField({
+        label: 'When a User is Deleted' | t('formie'),
+        instructions: 'Select how to handle submissions from users, when their user accounts are deleted.' | t('formie'),
+        id: 'userDeletedAction',
+        name: 'userDeletedAction',
+        options: [{
+            label: 'Retain Submissions' | t('formie'),
+            value: 'retain',
+        },
+        {
+            label: 'Delete Submissions' | t('formie'),
+            value: 'delete',
+        }],
+        value: form.userDeletedAction ?? 'retain',
+    }) }}
+</div>
+
+{% set dataRetention = form.dataRetention ?? 'forever' %}
 
 {{ forms.selectField({
     label: 'Data Retention' | t('formie'),
@@ -105,6 +119,10 @@
     options: [{
         label: 'Forever' | t('formie'),
         value: 'forever',
+    },
+    {
+        label: 'Number of hours' | t('formie'),
+        value: 'hours',
     },
     {
         label: 'Number of days' | t('formie'),
@@ -123,66 +141,21 @@
         value: 'years',
     }],
     toggle: true,
-    targetPrefix: 'data-retention-',
-    value: form.dataRetention ?? null,
+    targetPrefix: '.fui-dr-',
+    value: dataRetention,
 }) }}
 
-<div id="data-retention-days" class="hidden">
-    {{ forms.textareaField({
-        label: 'Data Retention Value' | t('formie'),
-        instructions: 'The number of days to retain form submission data for. At this point submissions will be deleted.' | t('formie'),
+<div class="fui-dr-hours fui-dr-days fui-dr-weeks fui-dr-months fui-dr-years {{ dataRetention == 'forever' ? 'hidden' }}">
+    {{ forms.textField({
+        label: 'Data Retention Duration' | t('formie'),
+        instructions: 'After this duration has been met, submissions will be deleted.' | t('formie'),
         id: 'dataRetentionValue',
         name: 'dataRetentionValue',
+        type: 'number',
+        size: 3,
         value: form.dataRetentionValue ?? null,
     }) }}
 </div>
-
-<div id="data-retention-weeks" class="hidden">
-    {{ forms.textareaField({
-        label: 'Data Retention Value' | t('formie'),
-        instructions: 'The number of weeks to retain form submission data for. At this point submissions will be deleted.' | t('formie'),
-        id: 'dataRetentionValue',
-        name: 'dataRetentionValue',
-        value: form.dataRetentionValue ?? null,
-    }) }}
-</div>
-
-<div id="data-retention-months" class="hidden">
-    {{ forms.textareaField({
-        label: 'Data Retention Value' | t('formie'),
-        instructions: 'The number of months to retain form submission data for. At this point submissions will be deleted.' | t('formie'),
-        id: 'dataRetentionValue',
-        name: 'dataRetentionValue',
-        value: form.dataRetentionValue ?? null,
-    }) }}
-</div>
-
-<div id="data-retention-years" class="hidden">
-    {{ forms.textareaField({
-        label: 'Data Retention Value' | t('formie'),
-        instructions: 'The number of years to retain form submission data for. At this point submissions will be deleted.' | t('formie'),
-        id: 'dataRetentionValue',
-        name: 'dataRetentionValue',
-        value: form.dataRetentionValue ?? null,
-    }) }}
-</div>
-
-{{ forms.selectField({
-    label: 'When a User is Deleted' | t('formie'),
-    instructions: 'Select how to handle submissions from users, when their user accounts are deleted.' | t('formie'),
-    id: 'userDeletedAction',
-    name: 'userDeletedAction',
-    options: [{
-        label: 'Retain Submissions' | t('formie'),
-        value: 'retain',
-    },
-    {
-        label: 'Delete Submissions' | t('formie'),
-        value: 'delete',
-    }],
-    value: form.userDeletedAction ?? 'retain',
-}) }}
-#}
 
 <hr>
 
