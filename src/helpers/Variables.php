@@ -142,6 +142,11 @@ class Variables
             return '';
         }
 
+        // Try and get the form from the submission if not set
+        if ($submission && !$form) {
+            $form = $submission->form;
+        }
+
         // Parse aliases and env variables
         $value = Craft::parseEnv($value);
 
