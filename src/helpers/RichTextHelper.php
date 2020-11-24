@@ -33,7 +33,7 @@ class RichTextHelper
         return [
             'forms' => [
                 'submitActionMessage' => [
-                    'buttons' => ['bold', 'italic'],
+                    'buttons' => ['bold', 'italic', 'variableTag'],
                     'rows' => 3,
                 ],
                 'errorMessage' => [

@@ -107,6 +107,7 @@
             name="settings[submitActionMessage]"
             v-model="form.settings.submitActionMessage"
             v-bind="{{ getRichTextConfig('forms.submitActionMessage') | json_encode }}"
+            variables="plainTextVariables"
         ></formulate-input>
 
         <input

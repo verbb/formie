@@ -491,7 +491,7 @@ export class FormieFormTheme {
         }
 
         if (this.settings.submitAction === 'message') {
-            this.showFormAlert(this.settings.submitActionMessage, 'success');
+            this.showFormAlert(data.submitActionMessage, 'success');
 
             // Check if we need to remove the success message
             this.hideSuccess();

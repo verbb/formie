@@ -273,7 +273,7 @@ class SubmissionsController extends Controller
             Formie::$plugin->getService()->setFlash($form->id, 'submitted', true);
 
             if ($form->settings->submitAction == 'message') {
-                Formie::$plugin->getService()->setNotice($form->id, $form->settings->getSubmitActionMessage());
+                Formie::$plugin->getService()->setNotice($form->id, $form->settings->getSubmitActionMessage($submission));
 
                 return $this->refresh();
             }
@@ -509,7 +509,7 @@ class SubmissionsController extends Controller
         Formie::$plugin->getService()->setFlash($form->id, 'submitted', true);
 
         if ($form->settings->submitAction == 'message') {
-            Formie::$plugin->getService()->setNotice($form->id, $form->settings->getSubmitActionMessage());
+            Formie::$plugin->getService()->setNotice($form->id, $form->settings->getSubmitActionMessage($submission));
 
             return $this->refresh();
         }
@@ -629,14 +629,17 @@ class SubmissionsController extends Controller
 
     private function _returnJsonResponse($success, $submission, $form, $nextPage, $extras = [])
     {
-        return $this->asJson(array_merge([
+        $params = array_merge([
             'success' => $success,
             'submissionId' => $submission->id,
             'currentPageId' => $form->getCurrentPage()->id,
             'nextPageId' => $nextPage->id ?? null,
             'nextPageIndex' => $form->getCurrentPageIndex() ?? 0,
             'totalPages' => count($form->getPages()),
-        ], $extras));
+            'submitActionMessage' => $form->settings->getSubmitActionMessage($submission),
+        ], $extras);
+
+        return $this->asJson($params);
     }
 
     private function _prepEditSubmissionVariables(array &$variables)

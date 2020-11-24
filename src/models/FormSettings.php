@@ -2,6 +2,8 @@
 namespace verbb\formie\models;
 
 use verbb\formie\Formie;
+use verbb\formie\helpers\VariableNode;
+use verbb\formie\helpers\Variables;
 use verbb\formie\positions\AboveInput;
 use verbb\formie\positions\BelowInput;
 use verbb\formie\prosemirror\toprosemirror\Renderer as ProseMirrorRenderer;
@@ -66,7 +68,7 @@ class FormSettings extends Model
     // Other
     public $redirectUrl;
     public $defaultEmailTemplateId = '';
-    
+
 
     // TODO: to remove
     public $storeData;
@@ -148,9 +150,9 @@ class FormSettings extends Model
     /**
      * @inheritDoc
      */
-    public function getSubmitActionMessage()
+    public function getSubmitActionMessage($submission = null)
     {
-        return $this->_getHtmlContent($this->submitActionMessage);
+        return $this->_getHtmlContent($this->submitActionMessage, $submission);
     }
 
     /**
@@ -181,18 +183,23 @@ class FormSettings extends Model
     // Private Methods
     // =========================================================================
 
-    private function _getHtmlContent($content)
+    private function _getHtmlContent($content, $submission = null)
     {
         if (is_string($content)) {
             $content = Json::decodeIfJson($content);
         }
 
         $renderer = new HtmlRenderer();
+        $renderer->addNode(VariableNode::class);
 
         $html = $renderer->render([
             'type' => 'doc',
             'content' => $content,
         ]);
+
+        if ($submission) {
+            $html = Variables::getParsedValue($html, $submission);
+        }
 
         // Strip out paragraphs
         $html = str_replace(['<p>', '</p>'], ['', ''], $html);
