@@ -10,6 +10,7 @@ use Craft;
 use craft\base\Element;
 use craft\db\Query;
 use craft\elements\actions\Delete;
+use craft\elements\actions\Restore;
 use craft\elements\db\ElementQueryInterface;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Html;
@@ -134,6 +135,13 @@ class SentNotification extends Element
             'type' => Delete::class,
             'confirmationMessage' => Craft::t('formie', 'Are you sure you want to delete the selected sent notification?'),
             'successMessage' => Craft::t('formie', 'Sent Notification deleted.'),
+        ]);
+
+        $actions[] = Craft::$app->elements->createAction([
+            'type' => Restore::class,
+            'successMessage' => Craft::t('formie', 'Sent Notification restored.'),
+            'partialSuccessMessage' => Craft::t('formie', 'Some Sent Notifications restored.'),
+            'failMessage' => Craft::t('formie', 'Sent Notifications not restored.'),
         ]);
 
         return $actions;

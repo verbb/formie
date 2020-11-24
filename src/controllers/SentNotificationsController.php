@@ -223,6 +223,44 @@ class SentNotificationsController extends Controller
         ]);
     }
 
+    public function actionDelete()
+    {
+        $this->requirePostRequest();
+
+        $request = Craft::$app->getRequest();
+        $sentNotificationId = $request->getRequiredBodyParam('sentNotificationId');
+
+        $sentNotification = SentNotification::find()
+            ->id($sentNotificationId)
+            ->one();
+
+        if (!$sentNotification) {
+            throw new NotFoundHttpException('Sent Notification not found');
+        }
+
+        if (!Craft::$app->getElements()->deleteElement($sentNotification)) {
+            if ($request->getAcceptsJson()) {
+                return $this->asJson(['success' => false]);
+            }
+
+            Craft::$app->getSession()->setError(Craft::t('app', 'Couldn’t delete sent notification.'));
+
+            Craft::$app->getUrlManager()->setRouteParams([
+                'sentNotification' => $sentNotification,
+            ]);
+
+            return null;
+        }
+
+        if ($request->getAcceptsJson()) {
+            return $this->asJson(['success' => true]);
+        }
+
+        Craft::$app->getSession()->setNotice(Craft::t('app', 'Sent Notification deleted.'));
+
+        return $this->redirectToPostedUrl($sentNotification);
+    }
+
 
     // Private Methods
     // =========================================================================
