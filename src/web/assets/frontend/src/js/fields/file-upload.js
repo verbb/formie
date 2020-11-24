@@ -35,18 +35,15 @@ export class FormieFileUpload {
             fileSizeLimit(field) {
                 const type = field.getAttribute('type');
                 const sizeLimit = field.getAttribute('data-size-limit');
+                const sizeBytes = parseFloat(sizeLimit) * 1024 * 1024;
 
-                if (type !== 'file' || !sizeLimit) {
+                if (type !== 'file' || !sizeBytes) {
                     return;
                 }
 
-                const sizeBytes = parseFloat(sizeLimit) * 1024 * 1024;
-
-                if (sizeBytes > 0) {
-                    for (const file of field.files) {
-                        if (file.size > sizeBytes) {
-                            return true;
-                        }
+                for (const file of field.files) {
+                    if (file.size > sizeBytes) {
+                        return true;
                     }
                 }
             },
@@ -67,13 +64,11 @@ export class FormieFileUpload {
         return {
             fileLimit(field) {
                 const type = field.getAttribute('type');
-                let fileLimit = field.getAttribute('data-file-limit');
+                const fileLimit = parseInt(field.getAttribute('data-file-limit'));
 
                 if (type !== 'file' || !fileLimit) {
                     return;
                 }
-
-                fileLimit = parseInt(fileLimit);
 
                 if (field.files.length > fileLimit) {
                     return true;
