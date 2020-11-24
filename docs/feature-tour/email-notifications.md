@@ -70,3 +70,24 @@ Dummy content will be generated for fields.
 
 ## Send Test Email
 Emails can be sent as a test to a nominated email. This will essentially send the content as shown in the Email Preview to the email address, and is considerably useful for testing email deliverability and other issues.
+
+## Conditions
+Email notifications can also have set conditions on whether they send or not. Through the conditions builder, you can create complex rules for each of your email notifications.
+
+<img src="https://verbb.io/uploads/plugins/formie/formie-notification-conditions.png" />
+
+First, it's a matter of choosing whether you want these sets of rules to "Send" or "Not Send" the email notification. For example, you might like to only send an email notification if the users' email isn't for a number of domain names.
+
+Then, you can set whether to match against "All" rules, or just "Any" rule.
+
+Finally, building your conditions is a matter of specifying 3 important bits of information: "Field", "Condition", "Value". For "Field", pick the field you want to test a condition against. A "Condition" will be one of the following:
+
+- `is`
+- `is not`
+- `greater than`
+- `less than`
+- `contains`
+- `starts with`
+- `ends with`
+
+And provide a "Value" you wish to compare against. For fields that support set options (Dropdown, Radio, Checkboxes), you must pick from your list of defined options. Otherwise, text values are supported.

@@ -66,3 +66,6 @@ Additional (advanced) settings can be managed on a form, including:
 - The default status submissions should receive
 - The title format new submissions receive
 - Whether to collect IP Addresses from users
+- Whether to associate a form submission with a Craft user (if logged in)
+- Data retention - How long should submission data be stored?
+- Whether to retain file uploads when a submission is deleted
