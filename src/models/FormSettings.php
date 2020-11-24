@@ -63,7 +63,7 @@ class FormSettings extends Model
     public $collectUser;
     public $dataRetention;
     public $dataRetentionValue;
-    public $userDeletedAction;
+    public $fileUploadsAction;
 
     // Other
     public $redirectUrl;
@@ -72,6 +72,7 @@ class FormSettings extends Model
 
     // TODO: to remove
     public $storeData;
+    public $userDeletedAction;
 
 
     // Public Methods

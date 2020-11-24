@@ -59,6 +59,7 @@ class Form extends Element
     public $dataRetention = 'forever';
     public $dataRetentionValue;
     public $userDeletedAction = 'retain';
+    public $fileUploadsAction = 'retain';
     public $fieldLayoutId;
 
 
@@ -1098,6 +1099,7 @@ class Form extends Element
         $record->defaultStatusId = $this->defaultStatusId;
         $record->dataRetention = $this->dataRetention;
         $record->dataRetentionValue = $this->dataRetentionValue;
+        $record->fileUploadsAction = $this->fileUploadsAction;
         $record->userDeletedAction = $this->userDeletedAction;
         $record->fieldLayoutId = $this->fieldLayoutId;
         $record->uid = $this->uid;

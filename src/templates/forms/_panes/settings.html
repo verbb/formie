@@ -139,6 +139,22 @@
     }) }}
 </div>
 
+{{ forms.selectField({
+    label: 'File Uploads' | t('formie'),
+    instructions: 'Select how to handle file uploads when a submission is deleted.' | t('formie'),
+    id: 'fileUploadsAction',
+    name: 'fileUploadsAction',
+    options: [{
+        label: 'Retain files' | t('formie'),
+        value: 'retain',
+    },
+    {
+        label: 'Delete files' | t('formie'),
+        value: 'delete',
+    }],
+    value: form.fileUploadsAction ?? 'retain',
+}) }}
+
 <hr>
 
 <h2>{{ 'Advanced' | t('formie') }}</h2>

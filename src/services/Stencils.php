@@ -339,6 +339,7 @@ class Stencils extends Component
         $form->requireUser = $stencil->data->requireUser;
         $form->availability = $stencil->data->availability;
         $form->userDeletedAction = $stencil->data->userDeletedAction;
+        $form->fileUploadsAction = $stencil->data->fileUploadsAction;
         $form->dataRetention = $stencil->data->dataRetention;
         $form->dataRetentionValue = $stencil->data->dataRetentionValue;
         $form->availabilitySubmissions = $stencil->data->availabilitySubmissions;

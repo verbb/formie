@@ -19,6 +19,7 @@ class StencilData extends Model
     public $dataRetention = 'forever';
     public $dataRetentionValue;
     public $userDeletedAction = 'retain';
+    public $fileUploadsAction = 'retain';
 
     /**
      * @var FormSettings

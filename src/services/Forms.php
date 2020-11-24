@@ -342,6 +342,7 @@ class Forms extends Component
         $form->availability = $request->getParam('availability', $form->availability);
         $form->defaultStatusId = $request->getParam('defaultStatusId', $form->defaultStatusId);
         $form->userDeletedAction = $request->getParam('userDeletedAction', $form->userDeletedAction);
+        $form->fileUploadsAction = $request->getParam('fileUploadsAction', $form->fileUploadsAction);
         $form->dataRetention = $request->getParam('dataRetention', $form->dataRetention);
         $form->dataRetentionValue = $request->getParam('dataRetentionValue', $form->dataRetentionValue);
         $form->availabilitySubmissions = $request->getParam('availabilitySubmissions', $form->availabilitySubmissions);

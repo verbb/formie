@@ -83,6 +83,9 @@ class Install extends Migration
             'userDeletedAction' => $this->enum('userDeletedAction', ['retain', 'delete'])
                 ->defaultValue('retain')
                 ->notNull(),
+            'fileUploadsAction' => $this->enum('fileUploadsAction', ['retain', 'delete'])
+                ->defaultValue('retain')
+                ->notNull(),
             'fieldLayoutId' => $this->integer()->notNull(),
             'dateCreated' => $this->dateTime()->notNull(),
             'dateUpdated' => $this->dateTime()->notNull(),

@@ -25,6 +25,7 @@ use yii\db\ActiveQueryInterface;
  * @property string $dataRetention
  * @property int $dataRetentionValue
  * @property string $userDeletedAction
+ * @property string $fileUploadsAction
  * @property int $fieldLayoutId
  * @property int $groupId
  * @property Element $element

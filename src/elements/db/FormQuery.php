@@ -76,6 +76,7 @@ class FormQuery extends ElementQuery
             'formie_forms.dataRetention',
             'formie_forms.dataRetentionValue',
             'formie_forms.userDeletedAction',
+            'formie_forms.fileUploadsAction',
             'formie_forms.fieldLayoutId',
             'formie_forms.uid',
         ]);

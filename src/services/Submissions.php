@@ -19,10 +19,14 @@ use verbb\formie\models\Settings;
 
 use Craft;
 use craft\db\Query;
+use craft\events\DefineUserContentSummaryEvent;
+use craft\events\ModelEvent;
 use craft\helpers\Console;
 use craft\helpers\Json;
 
+use yii\base\Event;
 use yii\base\Component;
+
 use DateInterval;
 use DateTime;
 use Throwable;

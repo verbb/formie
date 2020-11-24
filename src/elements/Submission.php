@@ -9,6 +9,7 @@ use verbb\formie\elements\actions\SetSubmissionStatus;
 use verbb\formie\elements\db\SubmissionQuery;
 use verbb\formie\events\SubmissionMarkedAsSpamEvent;
 use verbb\formie\events\SubmissionRulesEvent;
+use verbb\formie\fields\formfields\FileUpload;
 use verbb\formie\models\FieldLayoutPage;
 use verbb\formie\models\Settings;
 use verbb\formie\models\Status;
@@ -20,8 +21,9 @@ use craft\elements\actions\Delete;
 use craft\elements\actions\Restore;
 use craft\elements\db\ElementQueryInterface;
 use craft\elements\User;
-use craft\helpers\UrlHelper;
 use craft\helpers\ArrayHelper;
+use craft\helpers\Json;
+use craft\helpers\UrlHelper;
 
 use yii\base\Exception;
 use yii\behaviors\AttributeTypecastBehavior;
@@ -657,6 +659,35 @@ class Submission extends Element
         }
 
         return parent::beforeDelete();
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function afterDelete()
+    {
+        $form = $this->getForm();
+        $elementsService = Craft::$app->getElements();
+
+        // Check if we should hard-delete any file uploads - note once an asset is soft-deleted
+        // it's file is hard-deleted gone, so we cannot restore a file upload. I'm aware of `keepFileOnDelete`, but there's
+        // no way to remove that file on hard-delete, so that won't work.
+        // See https://github.com/craftcms/cms/issues/5074
+        if ($form->fileUploadsAction === 'delete') {
+            foreach ($form->getFields() as $field) {
+                if ($field instanceof FileUpload) {
+                    $assets = $this->getFieldValue($field->handle)->all();
+
+                    foreach ($assets as $asset) {
+                        if (!$elementsService->deleteElement($asset)) {
+                            Formie::error("Unable to delete file ”{$asset->id}” for submission ”{$this->id}”: " . Json::encode($asset->getErrors()) . ".");
+                        }
+                    }
+                }
+            }
+        }
+
+        parent::beforeDelete();
     }
 
 

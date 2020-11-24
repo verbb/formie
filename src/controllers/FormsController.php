@@ -217,6 +217,7 @@ class FormsController extends Controller
             $stencil->data->requireUser = $request->getParam('requireUser', $stencil->data->requireUser);
             $stencil->data->availability = $request->getParam('availability', $stencil->data->availability);
             $stencil->data->userDeletedAction = $request->getParam('userDeletedAction', $stencil->data->userDeletedAction);
+            $stencil->data->fileUploadsAction = $request->getParam('fileUploadsAction', $stencil->data->fileUploadsAction);
             $stencil->data->dataRetention = $request->getParam('dataRetention', $stencil->data->dataRetention);
             $stencil->data->dataRetentionValue = $request->getParam('dataRetentionValue', $stencil->data->dataRetentionValue);
             $stencil->data->availabilitySubmissions = $request->getParam('availabilitySubmissions', $stencil->data->availabilitySubmissions);
