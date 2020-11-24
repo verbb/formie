@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.3.0- 2020-11-25
+## 1.3.0 - 2020-11-25
 
 ### Added
 - Added Sent Notifications section, providing information on sent email notifications. Each Sent Notification contains delivery information and the ability to preview what was sent.
