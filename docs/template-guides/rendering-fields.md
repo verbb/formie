@@ -72,7 +72,7 @@ You can also render fields in the layout you build in the form builder, with pag
             {% for row in page.getRows() %}
                 <div class="row">
                     {% for field in row.fields %}
-                        <div class="col" data-col="{{ field.columnWidth }}">
+                        <div class="col">
                             {{ craft.formie.renderField(form, field) }}
                         </div>
                     {% endfor %}

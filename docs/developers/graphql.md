@@ -25,7 +25,6 @@ Formie supports accessing [Form](docs:developers/form) and [Submission](docs:dev
                     handle
                     type
                     displayName
-                    columnWidth
 
                     ... on Field_Name {
                         firstNameLabel
@@ -66,7 +65,6 @@ Formie supports accessing [Form](docs:developers/form) and [Submission](docs:dev
                                     "handle": "yourName",
                                     "type": "verbb\\formie\\fields\\formfields\\Name",
                                     "displayName": "Name",
-                                    "columnWidth": "12",
                                     "firstNameLabel": "First Name",
                                     "firstNameRequired": true,
                                     "lastNameLabel": "Last Name",
@@ -81,7 +79,6 @@ Formie supports accessing [Form](docs:developers/form) and [Submission](docs:dev
                                     "handle": "emailAddress",
                                     "type": "verbb\\formie\\fields\\formfields\\Email",
                                     "displayName": "Email",
-                                    "columnWidth": "12",
                                     "placeholder": "eg. psherman@wallaby.com"
                                 }
                             ]
@@ -92,8 +89,7 @@ Formie supports accessing [Form](docs:developers/form) and [Submission](docs:dev
                                     "name": "Message",
                                     "handle": "message",
                                     "type": "verbb\\formie\\fields\\formfields\\MultiLineText",
-                                    "displayName": "MultiLineText",
-                                    "columnWidth": "12"
+                                    "displayName": "MultiLineText"
                                 }
                             ]
                         }
@@ -225,7 +221,6 @@ This is the interface implemented by all fields. Note that as settings are speci
 | `required`| `Boolean` | Whether the field is required.
 | `type`| `String` | The field’s full class type.
 | `displayName`| `String` | The field’s display name (last portion of the class).
-| `columnWidth`| `Int` | The field’s column width.
 | `limit`| `Boolean` | Whether the field should limit content.
 | `limitType`| `String` | The field’s limit type.
 | `limitAmount`| `Int` | The field’s limit amount.

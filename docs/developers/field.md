@@ -44,7 +44,6 @@ The settings for a field will differ per-type, but the following are general set
 
 Attribute | Description
 --- | ---
-`columnWidth` | How many columns (out of 12) this field takes up.
 `labelPosition` | The position of the field's label.
 `instructionsPosition` | The position of the field's instructions.
 `cssClasses` | Any CSS classes, applied on the outer container of a field.
