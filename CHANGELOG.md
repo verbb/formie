@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.3.0- 2020-11-25
 
 ### Added
 - Added Sent Notifications section, providing information on sent email notifications. Each Sent Notification contains delivery information and the ability to preview what was sent.
@@ -26,15 +26,24 @@
 - Added `formie/gc/prune-data-retention-submissions` console command.
 - Added `formie/gc/prune-content-tables` console command.
 - Added variable tags to form “Submission Message” rich text field setting, allowing for the use of submission variables in the submission success message.
+- Added ability to use submission attributes and fields in redirect URLs for Ajax forms.
 
 ### Changed
 - Refactored Phone fields to no longer use a separate dropdown for country code.
 - When deleting a user, any form submissions related to that user will be deleted, or transferred to a user of your choice. This only applies if you use the "Collect User" setting for your forms.
+- Lock `fakerphp/faker` at 1.9.1 due to PHP compatibiity. Hopefully also fix some composer issues when updating with `./craft update all`.
 
 ### Fixed
-- Fixed an error when a fields' setting was removed, but a critical error is thrown before migration can take place (looking at you `descriptionHtml` attribute).
-Fixed `registerFormieValidation` JS event not working correctly.
+- Fixed critical errors when a fields' setting was removed before migration can take place (looking at you `descriptionHtml` attribute).
+- Fixed `registerFormieValidation` JS event not working correctly.
 - Fixed a potential error in `craft.formie.getParsedValue()`.
+- Fixed error with Postgres and viewing the forms index.
+- Fixed error with Postgres and viewing the submissions index.
+- Fixed agree field description not outputting line breaks.
+- Fixed “Submission Message” and “Error Message Position” form messages not outputting line breaks.
+- Fixed form messages not being translated correctly when the form is set as Ajax submit.
+- Fixed submit message not showing correctly when set to show at the bottom of the form and the form is hidden on success.
+- Fixed error with sending test email notifications in some instances.
 
 ### Removed
 - The following attributes on Phone fields have been removed: `showCountryCode`, `validate`, `validateType`, `countryCollapsed`, `countryLabel`, `countryPlaceholder`, `countryPrePopulate`, `numberCollapsed`, `numberLabel`, `numberPlaceholder`, `numberDefaultValue`, `numberPrePopulate`.
