@@ -1,20 +1,12 @@
 <?php
 namespace verbb\formie\services;
 
-use craft\base\Field;
-use craft\errors\MissingComponentException;
-use craft\helpers\Component as ComponentHelper;
-use craft\helpers\Db;
-use craft\validators\HandleValidator;
-use ReflectionClass;
-use ReflectionException;
-
-use verbb\formie\base\NestedFieldInterface;
-use verbb\formie\base\NestedFieldTrait;
-use verbb\formie\base\SubFieldInterface;
 use verbb\formie\Formie;
 use verbb\formie\base\FormField;
 use verbb\formie\base\FormFieldInterface;
+use verbb\formie\base\NestedFieldInterface;
+use verbb\formie\base\NestedFieldTrait;
+use verbb\formie\base\SubFieldInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\events\FieldPageEvent;
 use verbb\formie\events\FieldRowEvent;
@@ -38,10 +30,19 @@ use verbb\formie\records\Row;
 
 use Craft;
 use craft\base\Component;
+use craft\base\Field;
 use craft\base\FieldInterface;
 use craft\db\Query;
 use craft\db\Table as CraftTable;
+use craft\errors\MissingComponentException;
+use craft\fields\BaseRelationField;
 use craft\helpers\ArrayHelper;
+use craft\helpers\Component as ComponentHelper;
+use craft\helpers\Db;
+use craft\validators\HandleValidator;
+
+use ReflectionClass;
+use ReflectionException;
 
 use yii\base\InvalidConfigException;
 
@@ -468,6 +469,8 @@ class Fields extends Component
 
         // Nested fields have rows of their own.
         if ($config['supportsNested'] = $field instanceof NestedFieldInterface) {
+            $config['isElementField'] = true;
+            
             /* @var NestedFieldInterface|NestedFieldTrait $field */
             $config['rows'] = $field->getRows();
         }
@@ -480,6 +483,11 @@ class Fields extends Component
 
         // Whether this field is nested inside another one
         $config['isNested'] = $field->isNested;
+
+        // Whether this is an element field
+        if ($field instanceof BaseRelationField) {
+            $config['isElementField'] = true;
+        }
 
         // Fire a 'modifyFieldConfig' event
         $event = new ModifyFieldConfigEvent([

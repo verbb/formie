@@ -43,6 +43,15 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
         return 'formie/_formfields/date/icon.svg';
     }
 
+    /**
+     * @inheritDoc
+     */
+    public static function toDateTime($value)
+    {
+        // We should never deal with timezones
+        return DateTimeHelper::toDateTime($value, false, false);
+    }
+
 
     // Properties
     // =========================================================================
@@ -78,14 +87,14 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
 
         if ($this->defaultOption === 'date') {
             if ($this->defaultValue && !$this->defaultValue instanceof DateTime) {
-                $defaultValue = DateTimeHelper::toDateTime($this->defaultValue);
+                $defaultValue = self::toDateTime($this->defaultValue);
 
                 if ($defaultValue) {
                     $this->defaultValue = $defaultValue;
                 }
             }
         } elseif ($this->defaultOption === 'today') {
-            $this->defaultValue = DateTimeHelper::toDateTime(new DateTime());
+            $this->defaultValue = self::toDateTime(new DateTime());
         }
     }
 
@@ -118,7 +127,7 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
             return $value;
         }
 
-        if (is_string($value) && ($date = DateTimeHelper::toDateTime($value)) !== false) {
+        if (is_string($value) && ($date = self::toDateTime($value)) !== false) {
             return $date;
         }
 
@@ -137,7 +146,7 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
             }
         }
 
-        if (($date = DateTimeHelper::toDateTime($value)) !== false) {
+        if (($date = self::toDateTime($value)) !== false) {
             return $date;
         }
 

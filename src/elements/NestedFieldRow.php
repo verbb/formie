@@ -200,6 +200,17 @@ class NestedFieldRow extends Element implements BlockElementInterface
     /**
      * @inheritdoc
      */
+    public function getSupportedSites(): array
+    {
+        // Only support the site the submission is being made on
+        $siteId = $this->siteId ?: Craft::$app->getSites()->getPrimarySite()->id;
+
+        return [$siteId];
+    }
+
+    /**
+     * @inheritdoc
+     */
     public function getFieldLayout()
     {
         return $this->_getField()->getFieldLayout();

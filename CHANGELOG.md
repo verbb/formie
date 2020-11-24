@@ -39,6 +39,59 @@ Fixed `registerFormieValidation` JS event not working correctly.
 ### Removed
 - The following attributes on Phone fields have been removed: `showCountryCode`, `validate`, `validateType`, `countryCollapsed`, `countryLabel`, `countryPlaceholder`, `countryPrePopulate`, `numberCollapsed`, `numberLabel`, `numberPlaceholder`, `numberDefaultValue`, `numberPrePopulate`.
 
+## 1.2.28 - 2020-11-19
+
+### Added
+- Added per-form form permissions for users.
+- Added per-form submission permissions for users.
+
+### Changed
+- Change `fzaninotto/faker` to non-abandoned `fakerphp/faker`.
+- Increase stencil and form settings database column sizes, for large forms.
+
+### Fixed
+- Fixed error when submitting a form on a non-primary site, when it contained a group or repeater field.
+- Fixed Agree field’s description not translating correctly when using special characters.
+- Fixed HTML-based form settings not translating correctly when using special characters.
+- Fixed Mercury CRM not mapping email and mobile fields correctly.
+- Fixed email notifications incorrectly showing element queries, when trying to output an element field’s value.
+- Ensure rich text fields don’t convert underscores to italics, when using as part of field handles.
+- Fixed fatal error being thrown when viewing stencils, if a stencil had invalid data.
+
+## 1.2.27 - 2020-11-16
+
+### Added
+- Allow captchas to set a `spamReason` property, providing details on why a submission was marked as spam.
+- Added “Minimum Submit Time” to Javascript captcha.
+
+### Changed
+- Remove table-padding in plugin settings.
+
+### Fixed
+- Fixed potential error when processing Monday integrations.
+- Fixed front-end JS console error thrown for some fields (table, repeater) for multi-page non-ajax forms.
+- Fixed Table and Repeater fields sometimes throwing an incorrect error for min/max rows when not set.
+- Fixed checkbox and radio field instructions not working well when set to “Above Input” or “Below Input”.
+- Fixed date fields incorrectly converting to the system timezone.
+- Fixed potential issue with Name field being used in integrations.
+- Fixed spam reason not showing when editing a submission in the control panel.
+
+## 1.2.26 - 2020-11-10
+
+### Added
+- Added `afterIncompleteSubmission` event.
+
+### Changed
+- Allow incomplete submissions to be used in trigger integrations queue job
+
+### Fixed
+- Fixed error when saving a field in Postgres.
+- Fixed multiple recaptchas on the same page not working correctly.
+- Fixed Postgres error when deleting or restoring forms.
+- Fixed date fields storing time incorrectly when a submission is saved in the control panel.
+- Fixed date fields not showing the time field in the control panel when editing a submission.
+- Fixed table field dropdown column options not saving.
+
 ## 1.2.25 - 2020-10-28
 
 ### Added

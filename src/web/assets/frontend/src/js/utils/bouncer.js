@@ -435,12 +435,12 @@ export const Bouncer = function(selector, options) {
         }
 
         // Get the associated label for radio button or checkbox
-        if (field.type === 'radio') {
-            var label = field.closest('label') || field.form.querySelector('[for="' + field.id + '"]');
-            field = label || field;
-        }
+        // if (field.type === 'radio') {
+        //     var label = field.closest('label') || field.form.querySelector('[for="' + field.id + '"]');
+        //     field = label || field;
+        // }
 
-        if (field.type === 'checkbox') {
+        if (field.type === 'checkbox' || field.type === 'radio') {
             // TODO: think of a way to make this less opinionated
             field = field.closest('.fui-field-container');
         }

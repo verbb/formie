@@ -71,6 +71,15 @@ class Radio extends BaseOptionsField implements FormFieldInterface
     /**
      * @inheritDoc
      */
+    public function renderLabel(): bool
+    {
+        // We render a `<legend>` within a `<fieldset>` for accessibility
+        return false;
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function getFieldOptions()
     {
         return $this->options;

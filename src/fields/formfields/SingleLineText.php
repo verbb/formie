@@ -156,8 +156,16 @@ class SingleLineText extends FormField implements PreviewableFieldInterface
     {
         $limit = $this->limit ?? '';
 
+        $settings = [
+            'formId' => $form->id,
+            'formSettings' => [
+                'hasMultiplePages' => $form->hasMultiplePages(),
+                'submitMethod' => $form->settings->submitMethod,
+            ],
+        ];
+
         $src = Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/fields/text-limit.js', true);
-        $onload = 'new FormieTextLimit(' . Json::encode(['formId' => $form->id]) . ');';
+        $onload = 'new FormieTextLimit(' . Json::encode($settings) . ');';
 
         if ($limit) {
             return [

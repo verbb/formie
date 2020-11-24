@@ -137,11 +137,14 @@ class Form extends Element
      */
     public static function defineSources(string $context = null): array
     {
+        $ids = self::_getEditableFormIds();
+        
         $sources = [
             [
                 'key' => '*',
                 'label' => 'All forms',
-                'defaultSort' => ['title', 'desc']
+                'defaultSort' => ['title', 'desc'],
+                'criteria' => ['id' => $ids],
             ]
         ];
 
@@ -158,7 +161,7 @@ class Form extends Element
                 'key' => $key,
                 'label' => $template->name,
                 'data' => ['id' => $template->id],
-                'criteria' => ['templateId' => $template->id],
+                'criteria' => ['templateId' => $template->id, 'id' => $ids],
             ];
         }
 
@@ -174,11 +177,15 @@ class Form extends Element
 
         $actions = parent::defineActions($source);
 
-        $actions[] = $elementsService->createAction([
-            'type' => Delete::class,
-            'confirmationMessage' => Craft::t('formie', 'Are you sure you want to delete the selected forms?'),
-            'successMessage' => Craft::t('formie', 'Forms deleted.'),
-        ]);
+        $canDeleteForms = Craft::$app->getUser()->checkPermission('formie-deleteForms');
+
+        if ($canDeleteForms) {
+            $actions[] = $elementsService->createAction([
+                'type' => Delete::class,
+                'confirmationMessage' => Craft::t('formie', 'Are you sure you want to delete the selected forms?'),
+                'successMessage' => Craft::t('formie', 'Forms deleted.'),
+            ]);
+        }
 
         $actions[] = Craft::$app->elements->createAction([
             'type' => Restore::class,
@@ -1252,5 +1259,41 @@ class Form extends Element
         }
 
         return 'formie:' . $this->id . ':' . $key;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    private static function _getEditableFormIds()
+    {
+        $userSession = Craft::$app->getUser();
+
+        $editableIds = [];
+
+        // Fetch all form UIDs
+        $formInfo = (new Query())
+            ->from('{{%formie_forms}}')
+            ->select(['id', 'uid'])
+            ->all();
+
+        // Can the user edit _every_ form?
+        if ($userSession->checkPermission('formie-editForms')) {
+            $editableIds = ArrayHelper::getColumn($formInfo, 'id');
+        } else {
+            // Find all UIDs the user has permission to
+            foreach ($formInfo as $form) {
+                if ($userSession->checkPermission('formie-manageForm:' . $form['uid'])) {
+                    $editableIds[] = $form['id'];
+                }
+            }
+        }
+
+        // Important to check if empty, there are zero editable forms, but as we use this as a criteria param
+        // that would return all forms, not what we want.
+        if (!$editableIds) {
+            $editableIds = 0;
+        }
+
+        return $editableIds;
     }
 }

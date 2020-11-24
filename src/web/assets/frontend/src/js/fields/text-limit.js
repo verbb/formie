@@ -14,7 +14,10 @@ export class FormieTextLimit {
 
             this.initTextMax();
         } else {
-            console.error('Unable to find ' + this.formId + ' ' + this.fieldId);
+            // Only an error if a single-page form (any submit method), or a multi-page ajax form.
+            if (!settings.formSettings.hasMultiplePages || (settings.formSettings.submitMethod === 'ajax' && settings.formSettings.hasMultiplePages)) {
+                console.error('Unable to find text limit ' + this.formId + ' ' + this.fieldId);
+            }
         }
     }
 

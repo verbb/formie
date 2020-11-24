@@ -124,7 +124,8 @@ class Table extends CraftTable implements FormFieldInterface
                 'max' => $this->maxRows ?: null,
                 'tooFew' => Craft::t('formie', '{attribute} should contain at least {min, number} {min, plural, one{row} other{rows}}.'),
                 'tooMany' => Craft::t('formie', '{attribute} should contain at most {max, number} {max, plural, one{row} other{rows}}.'),
-                'skipOnEmpty' => false,
+                'message' => Craft::t('formie', '{attribute} must have one item.'),
+                'skipOnEmpty' => !($this->minRows || $this->maxRows),
                 'on' => Element::SCENARIO_LIVE,
             ];
         }
@@ -222,8 +223,16 @@ class Table extends CraftTable implements FormFieldInterface
      */
     public function getFrontEndJsVariables(Form $form)
     {
+        $settings = [
+            'fieldId' => $this->getHtmlWrapperId($form),
+            'formSettings' => [
+                'hasMultiplePages' => $form->hasMultiplePages(),
+                'submitMethod' => $form->settings->submitMethod,
+            ],
+        ];
+
         $src = Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/fields/table.js', true);
-        $onload = 'new FormieTable(' . Json::encode(['fieldId' => $this->getHtmlWrapperId($form)]) . ');';
+        $onload = 'new FormieTable(' . Json::encode($settings) . ');';
 
         return [
             'src' => $src,

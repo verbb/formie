@@ -430,7 +430,7 @@ class SubmissionsController extends Controller
 
             if (!$valid) {
                 $submission->isSpam = true;
-                $submission->spamReason = Craft::t('formie', 'Failed Captcha {c}', ['c' => get_class($captcha)]);
+                $submission->spamReason = Craft::t('formie', 'Failed Captcha “{c}”: “{m}”', ['c' => $captcha::displayName(), 'm' => $captcha->spamReason]);
             }
         }
 
@@ -629,6 +629,8 @@ class SubmissionsController extends Controller
 
     private function _returnJsonResponse($success, $submission, $form, $nextPage, $extras = [])
     {
+        $redirectUrl = Craft::$app->getView()->renderObjectTemplate($form->getRedirectUrl(), $submission);
+
         $params = array_merge([
             'success' => $success,
             'submissionId' => $submission->id,
@@ -636,6 +638,7 @@ class SubmissionsController extends Controller
             'nextPageId' => $nextPage->id ?? null,
             'nextPageIndex' => $form->getCurrentPageIndex() ?? 0,
             'totalPages' => count($form->getPages()),
+            'redirectUrl' => $redirectUrl,
             'submitActionMessage' => $form->settings->getSubmitActionMessage($submission),
         ], $extras);
 

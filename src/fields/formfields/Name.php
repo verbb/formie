@@ -201,7 +201,7 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
      */
     public function serializeValueForIntegration($value, ElementInterface $element = null)
     {
-        if ($this->useMultipleFields) {
+        if ($this->useMultipleFields && $value) {
             return $value->toArray();
         }
 

@@ -153,7 +153,7 @@ class FormSettings extends Model
      */
     public function getSubmitActionMessage($submission = null)
     {
-        return $this->_getHtmlContent($this->submitActionMessage, $submission);
+        return Craft::t('site', $this->_getHtmlContent($this->submitActionMessage, $submission));
     }
 
     /**
@@ -169,7 +169,7 @@ class FormSettings extends Model
      */
     public function getErrorMessage()
     {
-        return $this->_getHtmlContent($this->errorMessage);
+        return Craft::t('site', $this->_getHtmlContent($this->errorMessage));
     }
 
     /**
@@ -202,8 +202,13 @@ class FormSettings extends Model
             $html = Variables::getParsedValue($html, $submission);
         }
 
-        // Strip out paragraphs
-        $html = str_replace(['<p>', '</p>'], ['', ''], $html);
+        // Strip out paragraphs, replace with `<br>`
+        $html = str_replace(['<p>', '</p>'], ['', '<br>'], $html);
+        $html = trim($html, '<br>');
+
+        // Prosemirror will use `htmlentities` for special characters, but doesn't play nice
+        // with static translations. Convert them back.
+        $html = html_entity_decode($html);
         
         return $html;
     }

@@ -326,7 +326,12 @@ export class FormieFormTheme {
                 $alert.className += ' fui-alert-' + this.settings.submitActionMessagePosition;
                 
                 if (this.settings.submitActionMessagePosition == 'bottom-form') {
-                    this.$submitBtn.parentNode.parentNode.insertBefore($alert, this.$submitBtn.parentNode);
+                    // An even further special case when hiding the form!
+                    if (this.settings.submitActionFormHide) {
+                        this.$form.parentNode.insertBefore($alert, this.$form);
+                    } else {
+                        this.$submitBtn.parentNode.parentNode.insertBefore($alert, this.$submitBtn.parentNode);
+                    }
                 } else {
                     this.$form.parentNode.insertBefore($alert, this.$form);
                 }
@@ -462,9 +467,9 @@ export class FormieFormTheme {
         // If we're redirecting away, do it immediately for nicer UX
         if (this.settings.submitAction === 'entry' || this.settings.submitAction === 'url') {
             if (this.settings.submitActionTab === 'same-tab') {
-                window.location.href = this.settings.redirectUrl;
+                window.location.href = data.redirectUrl;
             } else if (this.settings.submitActionTab === 'new-tab') {
-                window.open(this.settings.redirectUrl, '_blank');
+                window.open(data.redirectUrl, '_blank');
             }
 
             return;

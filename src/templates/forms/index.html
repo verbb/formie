@@ -12,10 +12,12 @@
 {% set selectedSubnavItem = 'forms' %}
 
 {% block actionButton %}
-    <div class="buttons">
-        <a class="btn submit add icon" href="{{ url('formie/forms/new') }}">
-            {{- 'New Form' | t('formie') -}}
-        </a>
-    </div>
+    {% if currentUser.can('formie-createForms') %}
+        <div class="buttons">
+            <a class="btn submit add icon" href="{{ url('formie/forms/new') }}">
+                {{- 'New Form' | t('formie') -}}
+            </a>
+        </div>
+    {% endif %}
 {% endblock %}
 

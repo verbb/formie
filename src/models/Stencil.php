@@ -97,10 +97,11 @@ class Stencil extends Model
     {
         parent::init();
 
-        if (empty($this->data)) {
+        $data = Json::decodeIfJson($this->data);
+
+        if (!is_array($data)) {
             $this->data = new StencilData();
         } else {
-            $data = Json::decodeIfJson($this->data);
             $this->data = new StencilData($data);
         }
     }

@@ -712,7 +712,9 @@ class Forms extends Component
             }
         }
 
-        if ($user->checkPermission('formie-manageFormAppearance')) {
+        $suffix = ':' . $form->uid;
+
+        if ($user->checkPermission('formie-manageFormAppearance') || $user->checkPermission("formie-manageFormAppearance{$suffix}")) {
             $tabs[] = [
                 'label' => Craft::t('formie', 'Appearance'),
                 'value' => 'appearance',
@@ -720,7 +722,7 @@ class Forms extends Component
             ];
         }
 
-        if ($user->checkPermission('formie-manageFormBehavior')) {
+        if ($user->checkPermission('formie-manageFormBehavior') || $user->checkPermission("formie-manageFormBehavior{$suffix}")) {
             $tabs[] = [
                 'label' => Craft::t('formie', 'Behaviour'),
                 'value' => 'behaviour',
@@ -728,7 +730,7 @@ class Forms extends Component
             ];
         }
 
-        if ($user->checkPermission('formie-manageNotifications')) {
+        if ($user->checkPermission('formie-manageNotifications') || $user->checkPermission("formie-manageNotifications{$suffix}")) {
             $tabs[] = [
                 'label' => Craft::t('formie', 'Email Notifications'),
                 'value' => 'notifications',
@@ -736,7 +738,7 @@ class Forms extends Component
             ];
         }
 
-        if ($form && $user->checkPermission('formie-manageFormIntegrations')) {
+        if ($form && ($user->checkPermission('formie-manageFormIntegrations') || $user->checkPermission("formie-manageFormIntegrations{$suffix}"))) {
             $tabs[] = [
                 'label' => Craft::t('formie', 'Integrations'),
                 'value' => 'integrations',
@@ -744,7 +746,7 @@ class Forms extends Component
             ];
         }
 
-        if ($user->checkPermission('formie-manageFormSettings')) {
+        if ($user->checkPermission('formie-manageFormSettings') || $user->checkPermission("formie-manageFormSettings{$suffix}")) {
             $tabs[] = [
                 'label' => Craft::t('formie', 'Settings'),
                 'value' => 'settings',

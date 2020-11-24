@@ -104,6 +104,10 @@ class MultiLineText extends FormField implements PreviewableFieldInterface
             $settings = [
                 'formId' => $form->id,
                 'fieldId' => $fieldId,
+                'formSettings' => [
+                    'hasMultiplePages' => $form->hasMultiplePages(),
+                    'submitMethod' => $form->settings->submitMethod,
+                ],
             ];
 
             $modules[] = [
@@ -120,6 +124,10 @@ class MultiLineText extends FormField implements PreviewableFieldInterface
                 'fieldId' => $fieldId,
                 'containerId' => 'fui-rich-text-' . $form->id . '-' . $this->id,
                 'buttons' => $this->richTextButtons,
+                'formSettings' => [
+                    'hasMultiplePages' => $form->hasMultiplePages(),
+                    'submitMethod' => $form->settings->submitMethod,
+                ],
             ];
 
             $modules[] = [

@@ -1,0 +1,10 @@
+{% import '_includes/forms' as forms %}
+{% import 'verbb-base/_macros' as macros %}
+
+{{ forms.textField({
+    label: 'Minimum Submit Time' | t('formie'),
+    instructions: 'Provide the number of seconds that users must wait in order to submit the form. If a user submits the form quicker than the provided value, it will be marked as spam. Using `0`, `false` or leaving empty will disable this setting.' | t('formie'),
+    name: 'minTime',
+    value: integration.settings.minTime ?? '',
+    warning: macros.configWarning('minTime', 'formie'),
+}) }}

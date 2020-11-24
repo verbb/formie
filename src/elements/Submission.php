@@ -17,6 +17,7 @@ use verbb\formie\records\Submission as SubmissionRecord;
 
 use Craft;
 use craft\base\Element;
+use craft\db\Query;
 use craft\elements\actions\Delete;
 use craft\elements\actions\Restore;
 use craft\elements\db\ElementQueryInterface;
@@ -238,13 +239,14 @@ class Submission extends Element
     protected static function defineSources(string $context = null): array
     {
         $forms = Form::find()->all();
-        $formIds = ArrayHelper::getColumn($forms, 'id');
+
+        $ids = self::_getEditableFormIds();
 
         $sources = [
             [
                 'key' => '*',
                 'label' => Craft::t('formie', 'All forms'),
-                'criteria' => ['formId' => $formIds],
+                'criteria' => ['formId' => $ids],
                 'defaultSort' => ['formie_submissions.title', 'desc']
             ]
         ];
@@ -252,6 +254,14 @@ class Submission extends Element
         $sources[] = ['heading' => Craft::t('formie', 'Forms')];
 
         foreach ($forms as $form) {
+            if (is_array($ids)) {
+                if (!in_array($form->id, $ids)) {
+                    continue;
+                }
+            } else if ($ids === 'none') {
+                continue;
+            }
+
             /* @var Form $form */
             $key = "form:{$form->id}";
 
@@ -785,5 +795,45 @@ class Submission extends Element
                 'attribute' => 'dateUpdated'
             ],
         ];
+    }
+
+
+    // Private methods
+    // =========================================================================
+
+    /**
+     * @inheritDoc
+     */
+    private static function _getEditableFormIds()
+    {
+        $userSession = Craft::$app->getUser();
+
+        $editableIds = [];
+
+        // Fetch all form UIDs
+        $formInfo = (new Query())
+            ->from('{{%formie_forms}}')
+            ->select(['id', 'uid'])
+            ->all();
+
+        // Can the user edit _every_ form?
+        if ($userSession->checkPermission('formie-editSubmissions')) {
+            $editableIds = ArrayHelper::getColumn($formInfo, 'id');
+        } else {
+            // Find all UIDs the user has permission to
+            foreach ($formInfo as $form) {
+                if ($userSession->checkPermission('formie-manageSubmission:' . $form['uid'])) {
+                    $editableIds[] = $form['id'];
+                }
+            }
+        }
+
+        // Important to check if empty, there are zero editable forms, but as we use this as a criteria param
+        // that would return all forms, not what we want.
+        if (!$editableIds) {
+            $editableIds = 0;
+        }
+
+        return $editableIds;
     }
 }

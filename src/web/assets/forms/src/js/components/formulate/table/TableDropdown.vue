@@ -65,20 +65,14 @@ export default {
     data() {
         return {
             originalValues: null,
+            formValues: {},
         };
     },
 
-    computed: {
+    watch: {
         formValues: {
-            get() {
-                if (this.$parent.model.options) {
-                    return { options: this.$parent.model.options };
-                }
-
-                return { options: [] };
-            },
-
-            set(newValue) {
+            deep: true,
+            handler(newValue) {
                 newValue.options.forEach((item, index) => {
                     this.$parent.model.options[index] = item;
                 });
@@ -87,6 +81,13 @@ export default {
     },
 
     created() {
+        // Populate form values
+        if (this.$parent.model.options) {
+            this.formValues = { options: this.$parent.model.options };
+        } else {
+            this.formValues = { options: [] };
+        }
+
         // Store this so we can cancel changes.
         this.originalValues = clone(this.formValues);
     },

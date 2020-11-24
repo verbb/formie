@@ -13,7 +13,7 @@
         autocomplete: false,
         size: 10,
         placeholder: ' ',
-        value: (value ? value|time('short') : '')
+        value: (value ? value|time('short', false, false) : '')
     } -%}
     <div data-icon="time"></div>
 </div>
