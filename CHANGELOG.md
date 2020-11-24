@@ -20,6 +20,7 @@
 - Added when deleting a user, a summary of their submissions (if any) is shown in the prompt.
 - Added support for when restoring a deleted user, we restore any associated submissions.
 - Added settings for form submission data rentention for uploaded files.
+- Added `maxSentNotificationsAge` plugin setting to control sent notification pruning.
 - Added `formie/gc/delete-orphaned-fields` console command.
 - Added `formie/gc/prune-syncs` console command.
 - Added `formie/gc/prune-incomplete-submissions` console command.
