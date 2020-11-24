@@ -250,13 +250,6 @@ class Emails extends Component
 
     public function sendEmail(Notification $notification, Submission $submission)
     {
-        // Set Craft to the site template mode
-        // $view = Craft::$app->getView();
-        // $oldTemplateMode = $view->getTemplateMode();
-        // $view->setTemplateMode($view::TEMPLATE_MODE_SITE);
-
-        // $originalLanguage = Craft::$app->language;
-
         // Render the email
         $emailRender = $this->renderEmail($notification, $submission);
 
@@ -266,9 +259,6 @@ class Emails extends Component
             $error = $emailRender['error'];
 
             Formie::error($error);
-
-            // Craft::$app->language = $originalLanguage;
-            // $view->setTemplateMode($oldTemplateMode);
 
             return ['error' => $error];
         }
@@ -293,9 +283,6 @@ class Emails extends Component
 
                 Formie::error($error);
 
-                // Craft::$app->language = $originalLanguage;
-                // $view->setTemplateMode($oldTemplateMode);
-
                 return ['error' => $error];
             }
 
@@ -305,9 +292,6 @@ class Emails extends Component
                 ]);
 
                 Formie::error($error);
-
-                // Craft::$app->language = $originalLanguage;
-                // $view->setTemplateMode($oldTemplateMode);
 
                 return ['error' => $error];
             }
@@ -321,9 +305,6 @@ class Emails extends Component
 
             Formie::error($error);
 
-            // Craft::$app->language = $originalLanguage;
-            // $view->setTemplateMode($oldTemplateMode);
-
             return ['error' => $error];
         }
 
@@ -333,9 +314,6 @@ class Emails extends Component
                 'email' => $newEmail,
             ]));
         }
-
-        // Craft::$app->language = $originalLanguage;
-        // $view->setTemplateMode($oldTemplateMode);
 
         // Delete any leftover attachments
         foreach ($this->_tempAttachments as $path) {
@@ -352,8 +330,6 @@ class Emails extends Component
     public function sendFailAlertEmail(Notification $notification, Submission $submission, $emailResponse)
     {
         $settings = Formie::$plugin->getSettings();
-
-        // $view = Craft::$app->getView();
 
         // Check our settings are all in order first.
         if (!$settings->sendEmailAlerts) {
