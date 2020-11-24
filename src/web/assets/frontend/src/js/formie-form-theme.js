@@ -458,9 +458,9 @@ export class FormieFormTheme {
         // If we're redirecting away, do it immediately for nicer UX
         if (this.settings.submitAction === 'entry' || this.settings.submitAction === 'url') {
             if (this.settings.submitActionTab === 'same-tab') {
-                window.location.href = this.settings.redirectUrl;
+                window.location.href = data.redirectUrl;
             } else if (this.settings.submitActionTab === 'new-tab') {
-                window.open(this.settings.redirectUrl, '_blank');
+                window.open(data.redirectUrl, '_blank');
             }
 
             return;
