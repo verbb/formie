@@ -245,6 +245,7 @@ class Formie
                 
                 'behavior-heading' => ['heading' => Craft::t('formie', 'Behavior')],
                 'notifications' => ['title' => Craft::t('formie', 'Email Notifications')],
+                'sent-notifications' => ['title' => Craft::t('formie', 'Sent Notifications')],
                 'statuses' => ['title' => Craft::t('formie', 'Statuses')],
                 'submissions' => ['title' => Craft::t('formie', 'Submissions')],
                 'spam' => ['title' => Craft::t('formie', 'Spam')],

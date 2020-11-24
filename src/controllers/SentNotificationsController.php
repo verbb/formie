@@ -26,6 +26,13 @@ class SentNotificationsController extends Controller
         return $this->renderTemplate('formie/sent-notifications/index', []);
     }
 
+    public function actionSettings(): Response
+    {
+        $settings = Formie::$plugin->getSettings();
+
+        return $this->renderTemplate('formie/settings/sent-notifications', compact('settings'));
+    }
+
     public function actionEdit(int $sentNotificationId = null, SentNotification $sentNotification = null): Response
     {
         $variables = compact('sentNotificationId', 'sentNotification');

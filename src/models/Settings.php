@@ -62,6 +62,16 @@ class Settings extends Model
      */
     public $maxIncompleteSubmissionAge = 30;
 
+    /**
+     * The maximum age of an incomplete submission in days
+     * before it is deleted in garbage collection.
+     *
+     * Set to 0 to disable automatic deletion.
+     *
+     * @var int days
+     */
+    public $maxSentNotificationsAge = 30;
+
     // Submissions
     public $useQueueForNotifications = true;
     public $useQueueForIntegrations = true;
@@ -89,9 +99,9 @@ class Settings extends Model
     {
         $rules = parent::defineRules();
 
-        $rules[] = [['pluginName', 'defaultPage', 'maxIncompleteSubmissionAge'], 'required'];
+        $rules[] = [['pluginName', 'defaultPage', 'maxIncompleteSubmissionAge', 'maxSentNotificationsAge'], 'required'];
         $rules[] = [['pluginName'], 'string', 'max' => 52];
-        $rules[] = [['maxIncompleteSubmissionAge'], 'number', 'integerOnly' => true];
+        $rules[] = [['maxIncompleteSubmissionAge', 'maxSentNotificationsAge'], 'number', 'integerOnly' => true];
         $rules[] = [['alertEmails'], 'validateAlertEmails'];
 
         return $rules;

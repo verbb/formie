@@ -136,4 +136,33 @@ class SentNotifications extends Component
 
         return $info;
     }
+
+    /**
+     * Deletes sent notifications older than the configured interval.
+     */
+    public function pruneSentNotifications()
+    {
+        /* @var Settings $settings */
+        $settings = Formie::$plugin->getSettings();
+
+        if ($settings->maxSentNotificationsAge <= 0) {
+            return;
+        }
+
+        $interval = new DateInterval("P{$settings->maxSentNotificationsAge}D");
+        $date = new DateTime();
+        $date->sub($interval);
+
+        $sentNotifications = SentNotification::find()
+            ->dateUpdated('< ' . $date->format('c'))
+            ->all();
+
+        foreach ($sentNotifications as $sentNotification) {
+            try {
+                Craft::$app->getElements()->deleteElement($sentNotification, true);
+            } catch (Throwable $e) {
+                Formie::error('Failed to prune sent notification with ID: #' . $sentNotification->id);
+            }
+        }
+    }
 }
