@@ -175,6 +175,20 @@
     </div>
 {% endif %}
 
+{% if submission.user %}
+    <div id="meta-details" class="meta">
+        <div class="field">
+            <div class="heading">
+                <label class="">{{ 'User' | t('formie') }}</label>
+            </div>
+
+            <div class="input ltr">
+                <a href="{{ submission.user.cpEditUrl }}">{{ submission.user }}</a>
+            </div>
+        </div>
+    </div>
+{% endif %}
+
 <div id="meta-details" class="meta read-only">
     {% block meta %}
         {% if submission.isIncomplete %}
