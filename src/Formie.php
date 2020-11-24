@@ -278,6 +278,9 @@ class Formie extends Plugin
 
             // Delete leftover content tables, for deleted forms
             $this->getForms()->pruneContentTables();
+
+            // Delete sent notifications older than the configured interval.
+            $this->getSentNotifications()->pruneSentNotifications();
         });
     }
 

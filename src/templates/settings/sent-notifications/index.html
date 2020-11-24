@@ -1,0 +1,34 @@
+{% extends 'formie/_layouts/settings' %}
+
+{% import '_includes/forms' as forms %}
+{% import 'verbb-base/_macros' as macros %}
+
+{% block content %}
+
+<h2>{{ 'Sent Notifications' | t('formie') }}</h2>
+
+<form action="" method="post" accept-charset="UTF-8" data-saveshortcut>
+    <input type="hidden" name="action" value="formie/settings/save-settings">
+    {{ redirectInput('formie/settings/submissions') }}
+    {{ csrfInput() }}
+
+    {% namespace 'settings' %}
+        {{ forms.textField({
+            first: true,
+            type: 'number',
+            label: 'Maximum Sent Notifications Age' | t('formie'),
+            instructions: 'The number of days to keep sent notifications before they are deleted permanently. Set to 0 to disable automatic deletion.' | t('formie'),
+            id: 'maxSentNotificationsAge',
+            name: 'maxSentNotificationsAge',
+            value: settings.maxSentNotificationsAge,
+            autofocus: true,
+            warning: macros.configWarning('maxSentNotificationsAge', 'formie'),
+        }) }}
+    {% endnamespace %}
+
+    <hr>
+
+    <input type="submit" class="btn submit" value="{{ 'Save' | t('formie') }}">
+</form>
+
+{% endblock %}

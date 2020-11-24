@@ -40,6 +40,7 @@ trait Routes
             $event->rules['formie/settings/submissions'] = 'formie/settings/submissions';
             $event->rules['formie/settings/spam'] = 'formie/settings/spam';
             $event->rules['formie/settings/notifications'] = 'formie/notifications/index';
+            $event->rules['formie/settings/sent-notifications'] = 'formie/sent-notifications/settings';
             $event->rules['formie/settings/statuses'] = 'formie/statuses/index';
             $event->rules['formie/settings/statuses/new'] = 'formie/statuses/edit';
             $event->rules['formie/settings/statuses/edit/<id:\d+>'] = 'formie/statuses/edit';
