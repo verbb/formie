@@ -129,7 +129,7 @@ class FormSettings extends Model
      */
     public function getSubmitActionMessage()
     {
-        return $this->_getHtmlContent($this->submitActionMessage);
+        return Craft::t('site', $this->_getHtmlContent($this->submitActionMessage));
     }
 
     /**
@@ -145,7 +145,7 @@ class FormSettings extends Model
      */
     public function getErrorMessage()
     {
-        return $this->_getHtmlContent($this->errorMessage);
+        return Craft::t('site', $this->_getHtmlContent($this->errorMessage));
     }
 
     /**
