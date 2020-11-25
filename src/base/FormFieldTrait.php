@@ -748,26 +748,13 @@ trait FormFieldTrait
     }
 
 
-    // Private Methods
+    // Protected Methods
     // =========================================================================
-
-    /**
-     * Returns the kebab-case name of the field class.
-     *
-     * @return string
-     */
-    private static function _getKebabName()
-    {
-        $classNameParts = explode('\\', static::class);
-        $end = array_pop($classNameParts);
-
-        return StringHelper::toKebabCase($end);
-    }
 
     /**
      * Returns the GraphQL-equivalent datatype based on a provided field's handle or schema type
      */
-    private function getSettingGqlType($attribute, $type, $fieldInfo)
+    protected function getSettingGqlType($attribute, $type, $fieldInfo)
     {
         if ($type === 'lightswitch') {
             return Type::boolean();
@@ -818,5 +805,22 @@ trait FormFieldTrait
         }
 
         return Type::string();
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    /**
+     * Returns the kebab-case name of the field class.
+     *
+     * @return string
+     */
+    private static function _getKebabName()
+    {
+        $classNameParts = explode('\\', static::class);
+        $end = array_pop($classNameParts);
+
+        return StringHelper::toKebabCase($end);
     }
 }
