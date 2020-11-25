@@ -32,7 +32,7 @@
 ### Changed
 - Refactored Phone fields to no longer use a separate dropdown for country code.
 - When deleting a user, any form submissions related to that user will be deleted, or transferred to a user of your choice. This only applies if you use the "Collect User" setting for your forms.
-- Lock `fakerphp/faker` at 1.9.1 due to PHP compatibiity. Hopefully also fix some composer issues when updating with `./craft update all`.
+- Lock `fakerphp/faker` at 1.9.1 due to PHP compatibility. Hopefully also fix some composer issues when updating with `./craft update all`.
 
 ### Fixed
 - Fixed critical errors when a fields' setting was removed before migration can take place (looking at you `descriptionHtml` attribute).
