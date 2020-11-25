@@ -13,13 +13,13 @@
 - Added country flags and international/national validation to Phone fields.
 - Added new MultiSelect Vue component, for use in custom field schema settings.
 - Added ability to control whether form submissions are stored permanently or not.
-- Added settings for form submission data rentention for hours, days, weeks, months and years.
+- Added settings for form submission data retention for hours, days, weeks, months and years.
 - Added indicator when editing a submission when it's associated with a user.
 - Added `submission->getUser()`.
 - Added support for when deleted a user, any submissions associated to them can be transferred to another user, or deleted.
 - Added when deleting a user, a summary of their submissions (if any) is shown in the prompt.
 - Added support for when restoring a deleted user, we restore any associated submissions.
-- Added settings for form submission data rentention for uploaded files.
+- Added settings for form submission data retention for uploaded files.
 - Added `maxSentNotificationsAge` plugin setting to control sent notification pruning.
 - Added `formie/gc/delete-orphaned-fields` console command.
 - Added `formie/gc/prune-syncs` console command.
