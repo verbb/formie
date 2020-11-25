@@ -17,6 +17,8 @@ use craft\fields\Assets as CraftAssets;
 use craft\helpers\Assets;
 use craft\helpers\Json;
 
+use GraphQL\Type\Definition\Type;
+
 class FileUpload extends CraftAssets implements FormFieldInterface
 {
     // Traits
@@ -24,6 +26,7 @@ class FileUpload extends CraftAssets implements FormFieldInterface
 
     use FormFieldTrait, RelationFieldTrait {
         getFrontEndInputOptions as traitGetFrontendInputOptions;
+        getSettingGqlType as traitGetSettingGqlType;
     }
 
 
@@ -361,6 +364,18 @@ class FileUpload extends CraftAssets implements FormFieldInterface
             SchemaHelper::containerAttributesField(),
             SchemaHelper::inputAttributesField(),
         ];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected function getSettingGqlType($attribute, $type, $fieldInfo)
+    {
+        if ($attribute === 'allowedKinds') {
+            return Type::listOf(Type::string());
+        }
+
+        return $this->traitGetSettingGqlType($attribute, $type, $fieldInfo);
     }
 
 
