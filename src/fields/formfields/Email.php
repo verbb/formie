@@ -8,6 +8,8 @@ use Craft;
 use craft\base\ElementInterface;
 use craft\base\PreviewableFieldInterface;
 
+use yii\validators\EmailValidator;
+
 class Email extends FormField implements PreviewableFieldInterface
 {
     // Static Methods
@@ -39,6 +41,17 @@ class Email extends FormField implements PreviewableFieldInterface
     public function getIsTextInput(): bool
     {
         return true;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getElementValidationRules(): array
+    {
+        $rules = parent::getElementValidationRules();
+        $rules[] = [$this->handle, EmailValidator::class, 'skipOnEmpty' => true];
+
+        return $rules;
     }
 
     /**
