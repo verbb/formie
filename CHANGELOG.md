@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.3.1 - 2020-11-26
+
+### Added
+- Allow field type classes to provide their own GQL attribute mappings for attributes.
+
+### Fixed
+- Fixed Ajax submissions not resolving to the correct current site when using sub-directories for sites, causing translation issues.
+- Fixed agree field description not translating correctly.
+- Fixed error when querying `allowedKinds` as an attribute on a file upload field with GQL.
+- Fixed lack of server-side email validation for email fields.
+
 ## 1.3.0 - 2020-11-25
 
 ### Added
