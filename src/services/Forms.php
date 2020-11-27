@@ -712,7 +712,7 @@ class Forms extends Component
             }
         }
 
-        $suffix = ':' . $form->uid;
+        $suffix = ':' . ($form->uid ?? '');
 
         if ($user->checkPermission('formie-manageFormAppearance') || $user->checkPermission("formie-manageFormAppearance{$suffix}")) {
             $tabs[] = [

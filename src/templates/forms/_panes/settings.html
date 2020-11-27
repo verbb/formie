@@ -91,7 +91,16 @@
     toggle: 'collect-user',
 }) }}
 
-{% set dataRetention = form.dataRetention ?? 'forever' %}
+{# Annoying, but different settings for top-level #}
+{% if stencil is defined %}
+    {% set dataRetention = form.data.dataRetention ?? 'forever' %}
+    {% set dataRetentionValue = form.data.dataRetentionValue ?? null %}
+    {% set fileUploadsAction = form.data.fileUploadsAction ?? 'retain' %}
+{% else %}
+    {% set dataRetention = form.dataRetention ?? 'forever' %}
+    {% set dataRetentionValue = form.dataRetentionValue ?? null %}
+    {% set fileUploadsAction = form.fileUploadsAction ?? 'retain' %}
+{% endif %}
 
 {{ forms.selectField({
     label: 'Data Retention' | t('formie'),
@@ -135,7 +144,7 @@
         name: 'dataRetentionValue',
         type: 'number',
         size: 3,
-        value: form.dataRetentionValue ?? null,
+        value: dataRetentionValue,
     }) }}
 </div>
 
@@ -152,7 +161,7 @@
         label: 'Delete files' | t('formie'),
         value: 'delete',
     }],
-    value: form.fileUploadsAction ?? 'retain',
+    value: fileUploadsAction,
 }) }}
 
 <hr>
