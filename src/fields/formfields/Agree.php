@@ -221,7 +221,7 @@ class Agree extends FormField implements PreviewableFieldInterface
 
         // Strip out paragraphs, replace with `<br>`
         $html = str_replace(['<p>', '</p>'], ['', '<br>'], $html);
-        $html = trim($html, '<br>');
+        $html = preg_replace('/(<br>)+$/', '', $html);
 
         // Prosemirror will use `htmlentities` for special characters, but doesn't play nice
         // with static translations. Convert them back.
