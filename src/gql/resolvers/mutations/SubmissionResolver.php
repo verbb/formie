@@ -89,7 +89,7 @@ class SubmissionResolver extends ElementMutationResolver
         $submission->validate();
 
         if ($submission->hasErrors()) {
-            throw new Error('Unable to save submission: ' . Json::encode($submission->hasErrors()));
+            throw new Error('Unable to save submission: ' . Json::encode($submission->getErrors()));
         }
 
         // Check against all enabled captchas. Also take into account multi-pages
@@ -128,7 +128,7 @@ class SubmissionResolver extends ElementMutationResolver
         }
 
         if (!$success) {
-            throw new Error('Unable to save submission: ' . Json::encode($submission->hasErrors()));
+            throw new Error('Unable to save submission: ' . Json::encode($submission->getErrors()));
         }
 
         return $elementService->getElementById($submission->id, Submission::class);
