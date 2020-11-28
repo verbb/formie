@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.3.2 - 2020-11-28
+
+### Added
+- Added support for using the submission ID, Title and Status in notification conditions.
+
+### Fixed
+- Fixed notification conditions not saving correctly when a field with options (dropdown, etc) was selected.
+- Fixed “Submission Message” and “Error Message Position” form message parsing HTML incorrectly in some cases.
+- Fixed agree field description parsing HTML incorrectly in some cases.
+- Fix an error when editing stencils.
+- Fix minor error handling for GQL mutations.
+
 ## 1.3.1 - 2020-11-26
 
 ### Added
