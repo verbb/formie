@@ -15,6 +15,7 @@ use verbb\formie\records\Notification as NotificationRecord;
 use Craft;
 use craft\db\Query;
 use craft\helpers\ArrayHelper;
+use craft\helpers\StringHelper;
 use craft\helpers\Json;
 
 use yii\base\Component;
@@ -346,9 +347,17 @@ class Notifications extends Component
                     try {
                         $rule = "field {$condition['condition']} value";
 
-                        // Parse the field handle first to get the submission value
                         $condition['field'] = str_replace(['{', '}'], ['', ''], $condition['field']);
-                        $condition['field'] = ArrayHelper::getValue($serializedFieldValues, $condition['field']);
+
+                        // Check to see if this is a custom field, or an attribute on the submission
+                        if (StringHelper::startsWith($condition['field'], 'submission:')) {
+                            $condition['field'] = str_replace('submission:', '', $condition['field']);
+
+                            $condition['field'] = ArrayHelper::getValue($submission, $condition['field']);
+                        } else {
+                            // Parse the field handle first to get the submission value
+                            $condition['field'] = ArrayHelper::getValue($serializedFieldValues, $condition['field']);
+                        }
 
                         // Protect against empty conditions
                         if (!trim(implode('', $condition))) {

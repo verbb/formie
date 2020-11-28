@@ -66,6 +66,7 @@ Craft.Formie = Garnish.Base.extend({
         store.dispatch('formie/setExistingNotifications', settings.existingNotifications);
         store.dispatch('formie/setEmailTemplates', settings.emailTemplates);
         store.dispatch('formie/setReservedHandles', settings.reservedHandles);
+        store.dispatch('formie/setStatuses', settings.statuses);
 
         new Vue({
             el: '#fui-page-title',

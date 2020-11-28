@@ -34,9 +34,13 @@
                             <td class="select-cell thin">
                                 <div class="select small">
                                     <select v-model="row.field" @change="changeDropdown(row)">
-                                        <option v-for="(field, i) in fields" :key="i" :value="field.value">
-                                            {{ field.label }}
-                                        </option>
+                                        <option value="">{{ 'Select an option' | t('formie') }}</option>
+
+                                        <optgroup v-for="(optgroup, i) in fieldOptions" :key="i" :label="optgroup.label">
+                                            <option v-for="(option, j) in optgroup.options" :key="j" :value="option.value">
+                                                {{ option.label }}
+                                            </option>
+                                        </optgroup>
                                     </select>
                                 </div>
                             </td>
@@ -102,9 +106,7 @@ export default {
 
     data() {
         return {
-            fields: [
-                { label: Craft.t('formie', 'Select an option'), value: '' },
-            ],
+            fieldOptions: [],
             conditions: [
                 { label: Craft.t('formie', 'Select an option'), value: '' },
                 { label: Craft.t('formie', 'is'), value: '=' },
@@ -134,47 +136,11 @@ export default {
     },
 
     created() {
-        var allFields = this.$store.getters['form/fields'];
+        // Setup custom fields
+        this.fieldOptions = this.getFieldOptions();
 
         // Load up settings into a local variable. Cloned so we don't get collisions
         this.settings = this.unserializeContent(clone(this.context.model));
-
-        allFields.forEach(field => {
-            // If this field is nested itself, don't show. The outer field takes care of that below
-            if (!toBoolean(field.isNested)) {
-                if (field.subfieldOptions && field.hasSubfields) {
-                    field.subfieldOptions.forEach(subfield => {
-                        this.fields.push({
-                            field,
-                            subfield,
-                            type: field.type,
-                            label: field.label + ': ' + subfield.label,
-                            value: '{' + field.handle + '.' + subfield.handle + '}',
-                        });
-                    });
-                } else if (field.type === 'verbb\\formie\\fields\\formfields\\Group' && field.rows) {
-                    // Is this a group field that supports nesting?
-                    field.rows.forEach(row => {
-                        row.fields.forEach(subfield => {
-                            this.fields.push({
-                                field,
-                                subfield,
-                                type: field.type,
-                                label: field.label + ': ' + subfield.label,
-                                value: '{' + field.handle + '.one().' + subfield.handle + ' ?? null}',
-                            });
-                        });
-                    });
-                } else {
-                    this.fields.push({ 
-                        field,
-                        type: field.type,
-                        label: field.label, 
-                        value: '{' + field.handle + '}',
-                    });
-                }
-            }
-        });
     },
 
     methods: {
@@ -194,8 +160,10 @@ export default {
             if (parsedValue) {
                 // Prep rows with their correct value types
                 parsedValue.conditions.forEach(row => {
-                    this.$set(row, 'valueType', this.getValueType(row.field));
-                    this.$set(row, 'valueOptions', this.getValueOptions(row.field));
+                    var field = this.getField(row.field);
+            
+                    this.$set(row, 'valueType', this.getValueType(field, row.condition));
+                    this.$set(row, 'valueOptions', this.getValueOptions(field, row.condition));
                 });
 
                 return parsedValue;
@@ -242,6 +210,14 @@ export default {
                 }
             }
 
+            // Handle submission options which have statically defined options
+            if (field && field.valueType) {
+                // Only allow picking for 'is' and 'is not'
+                if (['=', '!='].includes(condition)) {
+                    return field.valueType;
+                }
+            }
+
             return 'text';
         },
 
@@ -251,13 +227,16 @@ export default {
                 return field.field.settings.options || [];
             }
 
+            // Handle submission options which have statically defined options
+            if (field && field.valueOptions) {
+                return field.valueOptions;
+            }
+
             return [];
         },
 
         changeDropdown(row) {
-            var field = this.fields.find(field => {
-                return field.value === row.field;
-            });
+            var field = this.getField(row.field);
 
             row.valueType = this.getValueType(field, row.condition);
             row.valueOptions = this.getValueOptions(field, row.condition);
@@ -269,6 +248,95 @@ export default {
             } else {
                 row.value = '';
             }
+        },
+
+        getField(handle) {
+            var field = null;
+
+            this.fieldOptions.forEach(optgroup => {
+                optgroup.options.forEach(f => {
+                    if (f.value === handle) {
+                        field = f;
+                    }
+                });
+            });
+
+            return field;
+        },
+
+        getFieldOptions() {
+            var options = [];
+
+            var allStatuses = this.$store.getters['formie/statuses']();
+            var statuses = allStatuses.map(status => {
+                return { label: status.name, value: status.handle };
+            });
+
+            // console.log(this.context.model);
+
+            options.push({
+                label: Craft.t('formie', 'Submission'),
+                options: [
+                    { label: Craft.t('formie', 'Title'), value: '{submission:title}' },
+                    { label: Craft.t('formie', 'ID'), value: '{submission:id}' },
+                    {
+                        label: Craft.t('formie', 'Status'),
+                        value: '{submission:status}',
+                        valueType: 'select',
+                        valueOptions: [
+                            { label: Craft.t('formie', 'Select an option'), value: '' },
+                            ...statuses,
+                        ],
+                    },
+                ],
+            });
+
+            var fields = this.$store.getters['form/fields'];
+            var customFields = [];
+
+            fields.forEach(field => {
+                // If this field is nested itself, don't show. The outer field takes care of that below
+                if (!toBoolean(field.isNested)) {
+                    if (field.subfieldOptions && field.hasSubfields) {
+                        field.subfieldOptions.forEach(subfield => {
+                            customFields.push({
+                                field,
+                                subfield,
+                                type: field.type,
+                                label: field.label + ': ' + subfield.label,
+                                value: '{' + field.handle + '.' + subfield.handle + '}',
+                            });
+                        });
+                    } else if (field.type === 'verbb\\formie\\fields\\formfields\\Group' && field.rows) {
+                        // Is this a group field that supports nesting?
+                        field.rows.forEach(row => {
+                            row.fields.forEach(subfield => {
+                                customFields.push({
+                                    field,
+                                    subfield,
+                                    type: field.type,
+                                    label: field.label + ': ' + subfield.label,
+                                    value: '{' + field.handle + '.one().' + subfield.handle + ' ?? null}',
+                                });
+                            });
+                        });
+                    } else {
+                        customFields.push({ 
+                            field,
+                            type: field.type,
+                            label: field.label, 
+                            value: '{' + field.handle + '}',
+                        });
+                    }
+                }
+            });
+
+            options.push({
+                label: Craft.t('formie', 'Fields'),
+                options: customFields,
+            });
+
+            return options;
         },
     },
 };
