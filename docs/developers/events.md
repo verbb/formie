@@ -18,6 +18,32 @@ Event::on(Form::class, Form::EVENT_MODIFY_FORM_CAPTCHAS, function(ModifyFormCapt
 });
 ```
 
+### The `beforeSaveForm` event
+The event that is triggered before a form is saved. You can set `$event->isValid` to false to prevent saving.
+
+```php
+use verbb\formie\elements\Form;
+use yii\base\Event;
+
+Event::on(Form::class, Form::EVENT_BEFORE_SAVE, function(Event $event) {
+    $form = $event->sender;
+
+    $event->isValid = false;
+});
+```
+
+### The `afterSaveForm` event
+The event that is triggered after a form is saved.
+
+```php
+use verbb\formie\elements\Form;
+use yii\base\Event;
+
+Event::on(Form::class, Form::EVENT_AFTER_SAVE, function(Event $event) {
+    $form = $event->sender;
+});
+```
+
 
 
 ## Form Render Events
@@ -101,8 +127,38 @@ Event::on(Submission::class, Submission::EVENT_BEFORE_MARKED_AS_SPAM, function(S
 });
 ```
 
+### The `beforeSaveSubmission` event
+The event that is triggered before a submission is saved. For multi-page forms, this event will occur on each page submission, as the submission is saved in its incomplete state.
+
+You can set `$event->isValid` to false to prevent saving.
+
+```php
+use verbb\formie\elements\Submission;
+use yii\base\Event;
+
+Event::on(Submission::class, Submission::EVENT_BEFORE_SAVE, function(Event $event) {
+    $submission = $event->sender;
+
+    $event->isValid = false;
+});
+```
+
+### The `afterSaveSubmission` event
+The event that is triggered after a submission is saved. For multi-page forms, this event will occur on each page submission, as the submission is saved in its incomplete state.
+
+Do note the difference between this event and `afterSubmission`.
+
+```php
+use verbb\formie\elements\Submission;
+use yii\base\Event;
+
+Event::on(Submission::class, Submission::EVENT_AFTER_SAVE, function(Event $event) {
+    $submission = $event->sender;
+});
+```
+
 ### The `afterSubmission` event
-The event that is triggered after a submission has been made, whether successful or not.
+The event that is triggered after a submission has been completed, whether successful or not. For multi-page forms, this is triggered when the final page has been reached and submitted.
 
 You should always check `$event->success` if you want to ensure your event only triggers on submissions that have been successful.
 
