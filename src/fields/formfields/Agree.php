@@ -14,6 +14,7 @@ use craft\helpers\Json;
 use craft\helpers\Template;
 
 use yii\db\Schema;
+use GraphQL\Type\Definition\Type;
 
 class Agree extends FormField implements PreviewableFieldInterface
 {
@@ -81,6 +82,15 @@ class Agree extends FormField implements PreviewableFieldInterface
         $html = $this->_getHtmlContent($this->description);
 
         return Template::raw(Craft::t('formie', $html));
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getDefaultState()
+    {
+        // An alias for `defaultValue` for GQL, as `defaultValue` returns a boolean, not string
+        return $this->defaultValue;
     }
 
     /**
@@ -203,9 +213,32 @@ class Agree extends FormField implements PreviewableFieldInterface
     }
 
 
+    // Protected Methods
+    // =========================================================================
+      
+    /**
+     * @inheritDoc
+     */
+    protected function getSettingGqlType($attribute, $type, $fieldInfo)
+    {
+        // Disable normal `defaultValue` as it is a DateTime, not string. Instead, return `defaultDate`
+        if ($attribute === 'defaultValue') {
+            return [
+                'name' => 'defaultState',
+                'type' => Type::boolean(),
+            ];
+        }
+
+        return parent::getSettingGqlType($attribute, $type, $fieldInfo);
+    }
+
+
     // Private Methods
     // =========================================================================
-
+    
+    /**
+     * @inheritDoc
+     */
     private function _getHtmlContent($content)
     {
         if (is_string($content)) {
