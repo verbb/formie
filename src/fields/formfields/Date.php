@@ -10,11 +10,13 @@ use verbb\formie\helpers\SchemaHelper;
 use Craft;
 use craft\base\ElementInterface;
 use craft\base\PreviewableFieldInterface;
+use craft\gql\types\DateTime as GqlDateTime;
 use craft\helpers\DateTimeHelper;
 use craft\helpers\StringHelper;
 
 use DateTime;
 use yii\db\Schema;
+use GraphQL\Type\Definition\Type;
 
 class Date extends FormField implements SubfieldInterface, PreviewableFieldInterface
 {
@@ -378,6 +380,15 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
     /**
      * @inheritDoc
      */
+    public function getDefaultDate()
+    {
+        // An alias for `defaultValue` for GQL, as `defaultValue` returns a date, not string
+        return $this->defaultValue;
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function defineGeneralSchema(): array
     {
         $toggleBlocks = [];
@@ -530,5 +541,26 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
                 SchemaHelper::inputAttributesField(),
             ]),
         ];
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+   
+    /**
+     * @inheritDoc
+     */
+    protected function getSettingGqlType($attribute, $type, $fieldInfo)
+    {
+        // Disable normal `defaultValue` as it is a DateTime, not string. We can't have the same attributes 
+        // return multiple types. Instead, return `defaultDate` as the attribute name and correct type.
+        if ($attribute === 'defaultValue') {
+            return [
+                'name' => 'defaultDate',
+                'type' => GqlDateTime::getType(),
+            ];
+        }
+
+        return parent::getSettingGqlType($attribute, $type, $fieldInfo);
     }
 }
