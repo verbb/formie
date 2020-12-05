@@ -763,6 +763,7 @@ trait FormFieldTrait
             'inputAttributes' => Type::listOf(FieldAttributeGenerator::generateType()),
             'required' => Type::boolean(),
             'limit' => Type::boolean(),
+            'multiple' => Type::boolean(),
             'limitAmount' => Type::int(),
         ];
 
