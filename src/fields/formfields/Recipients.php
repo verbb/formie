@@ -36,15 +36,6 @@ class Recipients extends FormField
         return 'formie/_formfields/recipients/icon.svg';
     }
 
-    /**
-     * Returns whether a string value looks like a JSON object or array.
-     * TODO: Remove this when bumping to 3.5+
-     */
-    public static function isJsonObject(string $str): bool
-    {
-        return (bool)preg_match('/^(?:\{.*\}|\[.*\])$/s', $str);
-    }
-
 
     // Properties
     // =========================================================================
@@ -79,7 +70,7 @@ class Recipients extends FormField
     public function normalizeValue($value, ElementInterface $element = null)
     {
         // Sort out multiple options being set
-        if (is_string($value) && self::isJsonObject($value)) {
+        if (is_string($value) && Json::isJsonObject($value)) {
             $value = implode(',', array_filter(Json::decode($value)));
         }
 

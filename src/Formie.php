@@ -308,19 +308,17 @@ class Formie extends Plugin
             }
         });
 
-        if (version_compare(Craft::$app->getVersion(), '3.5', '>=')) {
-            Event::on(Gql::class, Gql::EVENT_REGISTER_GQL_MUTATIONS, function(RegisterGqlMutationsEvent $event) {
-                $mutations = [
-                    SubmissionMutation::getMutations(),
-                ];
+        Event::on(Gql::class, Gql::EVENT_REGISTER_GQL_MUTATIONS, function(RegisterGqlMutationsEvent $event) {
+            $mutations = [
+                SubmissionMutation::getMutations(),
+            ];
 
-                foreach ($mutations as $k => $v) {
-                    foreach ($v as $key => $value) {
-                        $event->mutations[$key] = $value;
-                    }
+            foreach ($mutations as $k => $v) {
+                foreach ($v as $key => $value) {
+                    $event->mutations[$key] = $value;
                 }
-            });
-        }
+            }
+        });
     }
 
     private function _registerCraftEventListeners()
