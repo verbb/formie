@@ -221,7 +221,8 @@ class Agree extends FormField implements PreviewableFieldInterface
      */
     protected function getSettingGqlType($attribute, $type, $fieldInfo)
     {
-        // Disable normal `defaultValue` as it is a DateTime, not string. Instead, return `defaultDate`
+        // Disable normal `defaultValue` as it is a boolean, not string. We can't have the same attributes 
+        // return multiple types. Instead, return `defaultState` as the attribute name and correct type.
         if ($attribute === 'defaultValue') {
             return [
                 'name' => 'defaultState',
