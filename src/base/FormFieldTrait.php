@@ -756,20 +756,27 @@ trait FormFieldTrait
      */
     protected function getSettingGqlType($attribute, $type, $fieldInfo)
     {
+        // Define any non-string properties
+        $attributesDefinitions = [
+            'containerAttributes' => Type::listOf(FieldAttributeGenerator::generateType()),
+            'inputAttributes' => Type::listOf(FieldAttributeGenerator::generateType()),
+            'required' => Type::boolean(),
+            'limit' => Type::boolean(),
+            'limitAmount' => Type::int(),
+        ];
+
+        $attributesDefinition = $attributesDefinitions[$attribute] ?? null;
+
+        if ($attributesDefinition) {
+            return $attributesDefinition;
+        }
+
         if ($type === 'lightswitch') {
             return Type::boolean();
         }
 
         if ($type === 'date') {
             return DateTimeType::getType();
-        }
-
-        if ($attribute === 'containerAttributes') {
-            return Type::listOf(FieldAttributeGenerator::generateType());
-        }
-
-        if ($attribute === 'inputAttributes') {
-            return Type::listOf(FieldAttributeGenerator::generateType());
         }
 
         if ($type === 'table-block') {
