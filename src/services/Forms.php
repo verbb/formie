@@ -234,32 +234,44 @@ class Forms extends Component
         $db = Craft::$app->getDb();
         $db->getSchema()->refresh();
 
-        $transaction = $db->beginTransaction();
-        try {
-            // Rename the content table. This is so we can easily determine soft-deleted
-            // form content tables to cleanup later, or restore
-            $newContentTableName = $this->defineContentTableName($form, false, true);
-
-            MigrationHelper::renameTable($form->fieldContentTable, $newContentTableName);
-
+        // If we are deleting a trashed form, we're killing stuff for good.
+        if ($form->trashed) {
+            // Permanently drop the content table
             $db->createCommand()
-                ->update('{{%formie_forms}}', ['fieldContentTable' => $newContentTableName], [
-                    'id' => $form->id,
-                ])->execute();
-
-            $form->fieldContentTable = $newContentTableName;
-
-            if ($fieldLayout = $form->getFormFieldLayout()) {
-                Craft::$app->getFields()->deleteLayout($fieldLayout);
-            }
-
-            $transaction->commit();
+                ->dropTableIfExists($form->fieldContentTable)
+                ->execute();
 
             return true;
-        } catch (Throwable $e) {
-            $transaction->rollBack();
-            throw $e;
+        } else {
+            $transaction = $db->beginTransaction();
+            try {
+                // Rename the content table. This is so we can easily determine soft-deleted
+                // form content tables to cleanup later, or restore
+                $newContentTableName = $this->defineContentTableName($form, false, true);
+
+                MigrationHelper::renameTable($form->fieldContentTable, $newContentTableName);
+
+                $db->createCommand()
+                    ->update('{{%formie_forms}}', ['fieldContentTable' => $newContentTableName], [
+                        'id' => $form->id,
+                    ])->execute();
+
+                $form->fieldContentTable = $newContentTableName;
+
+                if ($fieldLayout = $form->getFormFieldLayout()) {
+                    Craft::$app->getFields()->deleteLayout($fieldLayout);
+                }
+
+                $transaction->commit();
+
+                return true;
+            } catch (Throwable $e) {
+                $transaction->rollBack();
+                throw $e;
+            }
         }
+
+        return false;
     }
 
     /**
