@@ -433,7 +433,9 @@ trait FormFieldTrait
         }
 
         // Parse the default value for variables
-        $value = Variables::getParsedValue($value, null, null);
+        if (!is_array($value) && !is_object($value)) {
+            $value = Variables::getParsedValue($value, null, null);
+        }
 
         return $value;
     }
