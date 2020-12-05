@@ -31,10 +31,17 @@ class SubmissionMutation extends Mutation
         $createDeleteMutation = false;
 
         foreach (Form::find()->all() as $form) {
-            $mutation = static::createSaveMutation($form);
-            $mutationList[$mutation['name']] = $mutation;
+            $scope = 'formieSubmissions.' . $form->uid;
 
-            if (!$createDeleteMutation) {
+            $canCreate = Gql::canSchema($scope, 'create');
+            $canSave = Gql::canSchema($scope, 'save');
+
+            if ($canCreate || $canSave) {
+                $mutation = static::createSaveMutation($form);
+                $mutationList[$mutation['name']] = $mutation;
+            }
+
+            if (!$createDeleteMutation && Gql::canSchema($scope, 'delete')) {
                 $createDeleteMutation = true;
             }
         }

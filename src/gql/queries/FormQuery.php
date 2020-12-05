@@ -4,6 +4,7 @@ namespace verbb\formie\gql\queries;
 use verbb\formie\gql\arguments\FormArguments;
 use verbb\formie\gql\interfaces\FormInterface;
 use verbb\formie\gql\resolvers\FormResolver;
+use verbb\formie\helpers\Gql as GqlHelper;
 
 use craft\gql\base\Query;
 
@@ -16,6 +17,10 @@ class FormQuery extends Query
 
     public static function getQueries($checkToken = true): array
     {
+        if ($checkToken && !GqlHelper::canQueryForms()) {
+            return [];
+        }
+        
         return [
             'formieForms' => [
                 'type' => Type::listOf(FormInterface::getType()),

@@ -152,7 +152,7 @@ class Submission extends Element
      */
     public static function gqlScopesByContext($context): array
     {
-        return ['submission.' . $context->uid];
+        return ['formieSubmissions.' . $context->uid];
     }
 
     /**

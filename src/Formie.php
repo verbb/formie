@@ -40,6 +40,7 @@ use craft\events\RegisterElementExportersEvent;
 use craft\events\RegisterEmailMessagesEvent;
 use craft\events\RegisterGqlMutationsEvent;
 use craft\events\RegisterGqlQueriesEvent;
+use craft\events\RegisterGqlSchemaComponentsEvent;
 use craft\events\RegisterGqlTypesEvent;
 use craft\events\RegisterTemplateRootsEvent;
 use craft\events\RegisterUserPermissionsEvent;
@@ -317,6 +318,47 @@ class Formie extends Plugin
                 foreach ($v as $key => $value) {
                     $event->mutations[$key] = $value;
                 }
+            }
+        });
+
+        Event::on(Gql::class, Gql::EVENT_REGISTER_GQL_SCHEMA_COMPONENTS, function(RegisterGqlSchemaComponentsEvent $event) {
+            $label = Craft::t('formie', 'Formie');
+
+            $forms = Form::find()->all();
+
+            $event->queries[$label]['formieForms.all:read'] = ['label' => Craft::t('formie', 'View all forms')];
+
+            foreach ($forms as $form) {
+                $suffix = 'formieForms.' . $form->uid;
+                $event->queries[$label][$suffix . ':read'] = ['label' => Craft::t('formie', 'View “{form}” form', ['form' => Craft::t('site', $form->title)])];
+            }
+
+            $event->queries[$label]['formieSubmissions.all:read'] = ['label' => Craft::t('formie', 'View all submissions')];
+
+            foreach ($forms as $form) {
+                $suffix = 'formieSubmissions.' . $form->uid;
+                $event->queries[$label][$suffix . ':read'] = ['label' => Craft::t('formie', 'View submissions for form “{form}”', ['form' => Craft::t('site', $form->title)])];
+            }
+
+            $event->mutations[$label]['formieSubmissions.all:edit'] = [
+                'label' => Craft::t('formie', 'Edit all submissions'),
+                'nested' => [
+                    'formieSubmissions.all:create' => ['label' => Craft::t('app', 'Create all submissions')],
+                    'formieSubmissions.all:save' => ['label' => Craft::t('app', 'Modify all submissions')],
+                    'formieSubmissions.all:delete' => ['label' => Craft::t('app', 'Delete all submissions')],
+                ],
+            ];
+
+            foreach ($forms as $form) {
+                $suffix = 'formieSubmissions.' . $form->uid;
+                $event->mutations[$label][$suffix . ':edit'] = [
+                    'label' => Craft::t('formie', 'Edit submissions for form “{form}”', ['form' => Craft::t('site', $form->title)]),
+                    'nested' => [
+                        $suffix . ':create' => ['label' => Craft::t('app', 'Create submissions for form “{form}”', ['form' => Craft::t('site', $form->title)])],
+                        $suffix . ':save' => ['label' => Craft::t('app', 'Modify submissions for form “{form}”', ['form' => Craft::t('site', $form->title)])],
+                        $suffix . ':delete' => ['label' => Craft::t('app', 'Delete submissions for form “{form}”', ['form' => Craft::t('site', $form->title)])],
+                    ],
+                ];
             }
         });
     }

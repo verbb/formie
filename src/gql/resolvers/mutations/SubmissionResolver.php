@@ -36,6 +36,8 @@ class SubmissionResolver extends ElementMutationResolver
         $elementService = Craft::$app->getElements();
 
         if ($canIdentify) {
+            $this->requireSchemaAction('formieSubmissions.' . $form->uid, 'save');
+
             if (!empty($arguments['uid'])) {
                 $submission = $elementService->createElementQuery(Submission::class)->uid($arguments['uid'])->one();
             } else {
@@ -46,6 +48,8 @@ class SubmissionResolver extends ElementMutationResolver
                 throw new Error('No such submission exists');
             }
         } else {
+            $this->requireSchemaAction('formieSubmissions.' . $form->uid, 'create');
+
             $submission = $elementService->createElement(['type' => Submission::class, 'formId' => $form->id]);
         }
 
@@ -144,6 +148,9 @@ class SubmissionResolver extends ElementMutationResolver
         if (!$submission) {
             return true;
         }
+
+        $formUid = Db::uidById('{{%formie_forms}}', $submission->getForm->id);
+        $this->requireSchemaAction('formieSubmissions.' . $formUid, 'delete');
 
         $elementService->deleteElementById($submissionId);
 

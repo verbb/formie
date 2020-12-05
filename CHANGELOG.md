@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+- Formie now requires Craft 3.5+.
+- Form queries via GraphQL are now no longer automatically included in the public schema.
+- Submission queries via GraphQL are now no longer automatically included in the public schema.
+- Submission mutatons via GraphQL are now no longer automatically included in the public schema.
+
+### Fixed
+- Fix errors when garbage collection is called for sent notifications.
+
 ## 1.3.2 - 2020-11-28
 
 ### Added
