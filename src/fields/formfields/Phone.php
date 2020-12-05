@@ -155,6 +155,10 @@ class Phone extends FormField implements SubfieldInterface, PreviewableFieldInte
             'countryShowDialCode' => $this->countryShowDialCode,
             'countryDefaultValue' => $this->countryDefaultValue,
             'countryAllowed' => $this->countryAllowed,
+            'formSettings' => [
+                'hasMultiplePages' => $form->hasMultiplePages(),
+                'submitMethod' => $form->settings->submitMethod,
+            ],
         ];
 
         if ($this->countryEnabled) {
