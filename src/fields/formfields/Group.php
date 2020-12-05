@@ -4,6 +4,7 @@ namespace verbb\formie\fields\formfields;
 use verbb\formie\base\FormField;
 use verbb\formie\base\NestedFieldInterface;
 use verbb\formie\base\NestedFieldTrait;
+use verbb\formie\elements\Form;
 use verbb\formie\elements\db\NestedFieldRowQuery;
 use verbb\formie\helpers\SchemaHelper;
 
@@ -17,7 +18,9 @@ class Group extends FormField implements NestedFieldInterface, EagerLoadingField
     // Traits
     // =========================================================================
 
-    use NestedFieldTrait;
+    use NestedFieldTrait {
+        getFrontEndJsVariables as traitGetFrontEndJsVariables;
+    }
 
 
     // Static Methods
@@ -114,6 +117,35 @@ class Group extends FormField implements NestedFieldInterface, EagerLoadingField
         return Craft::$app->getView()->renderTemplate('formie/_formfields/group/preview', [
             'field' => $this
         ]);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getFrontEndJsVariables(Form $form)
+    {
+        $modules = [];
+
+        // $settings = [
+        //     'fieldId' => $this->getHtmlWrapperId($form),
+        //     'formSettings' => [
+        //         'hasMultiplePages' => $form->hasMultiplePages(),
+        //         'submitMethod' => $form->settings->submitMethod,
+        //     ],
+        // ];
+        
+        // $src = Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/fields/repeater.js', true);
+        // $onload = 'new FormieRepeater(' . Json::encode($settings) . ');';
+
+        // $modules[] = [
+        //     'src' => $src,
+        //     'onload' => $onload,
+        // ];
+
+        // Check for any nested fields
+        $modules = array_merge($modules, $this->traitGetFrontEndJsVariables($form));
+
+        return $modules;
     }
 
     /**

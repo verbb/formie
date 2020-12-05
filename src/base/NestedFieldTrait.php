@@ -1,6 +1,13 @@
 <?php
 namespace verbb\formie\base;
 
+use verbb\formie\Formie;
+use verbb\formie\elements\Form;
+use verbb\formie\elements\NestedFieldRow;
+use verbb\formie\elements\db\NestedFieldRowQuery;
+use verbb\formie\models\FieldLayout;
+
+use Craft;
 use craft\base\Element;
 use craft\base\ElementInterface;
 use craft\base\Field;
@@ -13,13 +20,7 @@ use craft\helpers\ElementHelper;
 use craft\helpers\StringHelper;
 use craft\services\Elements;
 use craft\validators\ArrayValidator;
-use verbb\formie\elements\db\NestedFieldRowQuery;
-use verbb\formie\elements\NestedFieldRow;
-use verbb\formie\Formie;
 
-use Craft;
-
-use verbb\formie\models\FieldLayout;
 
 trait NestedFieldTrait
 {
@@ -247,6 +248,28 @@ trait NestedFieldTrait
     public function getFormFieldContext(): string
     {
         return "formieField:{$this->uid}";
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getFrontEndJsVariables(Form $form)
+    {
+        $modules = [];
+
+        // Check for any nested fields
+        foreach ($this->getFields() as $field) {
+            $js = $field->getFrontEndJsVariables($form);
+
+            // Handle multiple registrations
+            if (isset($js[0])) {
+                $modules = array_merge($modules, $js);
+            } else {
+                $modules[] = $js;
+            }
+        }
+
+        return $modules;
     }
 
     /**

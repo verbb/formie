@@ -26,7 +26,9 @@ class Repeater extends FormField implements NestedFieldInterface, EagerLoadingFi
     // Traits
     // =========================================================================
 
-    use NestedFieldTrait;
+    use NestedFieldTrait {
+        getFrontEndJsVariables as traitGetFrontEndJsVariables;
+    }
 
 
     // Static Methods
@@ -222,6 +224,8 @@ class Repeater extends FormField implements NestedFieldInterface, EagerLoadingFi
      */
     public function getFrontEndJsVariables(Form $form)
     {
+        $modules = [];
+
         $settings = [
             'fieldId' => $this->getHtmlWrapperId($form),
             'formSettings' => [
@@ -233,10 +237,15 @@ class Repeater extends FormField implements NestedFieldInterface, EagerLoadingFi
         $src = Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/fields/repeater.js', true);
         $onload = 'new FormieRepeater(' . Json::encode($settings) . ');';
 
-        return [
+        $modules[] = [
             'src' => $src,
             'onload' => $onload,
         ];
+
+        // Check for any nested fields
+        $modules = array_merge($modules, $this->traitGetFrontEndJsVariables($form));
+
+        return $modules;
     }
 
     /**
