@@ -730,10 +730,11 @@ trait FormFieldTrait
             $fieldInfo = $fieldTypes[$attribute] ?? [];
             $schemaType = $fieldInfo['type'] ?? $fieldInfo['component'] ?? 'text';
 
-            $gqlSettingTypes[$attribute] = [
-                'name' => $attribute,
-                'type' => $this->getSettingGqlType($attribute, $schemaType, $fieldInfo),
-            ];
+            $gqlAttribute = $this->getSettingGqlType($attribute, $schemaType, $fieldInfo);
+
+            if ($gqlAttribute) {
+                $gqlSettingTypes[$attribute] = $gqlAttribute;
+            }
         }
 
         return $gqlSettingTypes;
@@ -768,15 +769,24 @@ trait FormFieldTrait
         $attributesDefinition = $attributesDefinitions[$attribute] ?? null;
 
         if ($attributesDefinition) {
-            return $attributesDefinition;
+            return [
+                'name' => $attribute,
+                'type' => $attributesDefinition,
+            ];
         }
 
-        if ($type === 'lightswitch') {
-            return Type::boolean();
-        }
+        $typeDefinitions = [
+            'lightswitch' => Type::boolean(),
+            'date' => DateTimeType::getType(),
+        ];
 
-        if ($type === 'date') {
-            return DateTimeType::getType();
+        $typeDefinition = $typeDefinitions[$type] ?? null;
+
+        if ($typeDefinition) {
+            return [
+                'name' => $attribute,
+                'type' => $typeDefinition,
+            ];
         }
 
         if ($type === 'table-block') {

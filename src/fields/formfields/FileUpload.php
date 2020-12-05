@@ -372,7 +372,10 @@ class FileUpload extends CraftAssets implements FormFieldInterface
     protected function getSettingGqlType($attribute, $type, $fieldInfo)
     {
         if ($attribute === 'allowedKinds') {
-            return Type::listOf(Type::string());
+            return [
+                'name' => $attribute,
+                'type' => Type::listOf(Type::string()),
+            ];
         }
 
         return $this->traitGetSettingGqlType($attribute, $type, $fieldInfo);
