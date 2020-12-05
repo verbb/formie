@@ -121,11 +121,6 @@ class FieldInterface extends BaseInterfaceType
                 'type' => Type::string(),
                 'description' => 'The field’s placeholder.'
             ],
-            'defaultValue' => [
-                'name' => 'defaultValue',
-                'type' => Type::string(),
-                'description' => 'The field’s default value.'
-            ],
             'errorMessage' => [
                 'name' => 'errorMessage',
                 'type' => Type::string(),
