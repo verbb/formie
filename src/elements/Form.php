@@ -1136,6 +1136,22 @@ class Form extends Element
     /**
      * @inheritDoc
      */
+    public function afterDelete()
+    {
+        // Delete any submissions made on this form.
+        $submissions = Submission::find()->formId($this->id)->all();
+        $elementsService = Craft::$app->getElements();
+
+        foreach ($submissions as $submission) {
+            if (!$elementsService->deleteElement($submission)) {
+                Formie::error("Unable to delete submission ”{$submission->id}” for form ”{$this->id}”: " . Json::encode($submission->getErrors()) . ".");
+            }
+        }
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function beforeRestore(): bool
     {
         if (!parent::beforeRestore()) {
@@ -1185,6 +1201,16 @@ class Form extends Element
             $this->fieldContentTable = $newContentTableName;
         } else {
             Craft::warning("Form {$this->id} content table {$this->fieldContentTable} not found.");
+        }
+
+        // Restore any submissions deleted
+        $submissions = Submission::find()->formId($this->id)->trashed(true)->all();
+        $elementsService = Craft::$app->getElements();
+
+        foreach ($submissions as $submission) {
+            if (!$elementsService->restoreElement($submission)) {
+                Formie::error("Unable to restore submission ”{$submission->id}” for form ”{$this->id}”: " . Json::encode($submission->getErrors()) . ".");
+            }
         }
 
         parent::afterRestore();
