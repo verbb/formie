@@ -49,16 +49,6 @@ class FieldGenerator implements GeneratorInterface
                 ]);
             }
 
-            // Special-case for Agree field. Maybe we can refactor this to inside the field class?
-            if ($field instanceof Agree) {
-                $contentFieldGqlTypes = array_merge($contentFieldGqlTypes, [
-                    'descriptionHtml' => [
-                        'name' => 'descriptionHtml',
-                        'type' => Type::string(),
-                    ],
-                ]);
-            }
-
             $fieldFields = TypeManager::prepareFieldDefinitions(array_merge(FieldInterface::getFieldDefinitions(), $contentFieldGqlTypes), $typeName);
 
             $gqlTypes[$typeName] = GqlEntityRegistry::getEntity($typeName) ?: GqlEntityRegistry::createEntity($typeName, new FieldType([

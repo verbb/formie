@@ -131,6 +131,19 @@ class Agree extends FormField implements PreviewableFieldInterface
     /**
      * @inheritDoc
      */
+    public function getSettingGqlTypes()
+    {
+        return array_merge(parent::getSettingGqlTypes(), [
+            'descriptionHtml' => [
+                'name' => 'descriptionHtml',
+                'type' => Type::string(),
+            ],
+        ]);
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function defineGeneralSchema(): array
     {
         return [
