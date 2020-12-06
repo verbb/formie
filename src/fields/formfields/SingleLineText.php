@@ -152,7 +152,7 @@ class SingleLineText extends FormField implements PreviewableFieldInterface
     /**
      * @inheritdoc
      */
-    public function getFrontEndJsModules(Form $form = null)
+    public function getFrontEndJsModules()
     {
         if ($this->limit) {
             return [

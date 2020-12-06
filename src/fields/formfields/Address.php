@@ -514,7 +514,7 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
     /**
      * @inheritDoc
      */
-    public function getFrontEndJsModules(Form $form = null)
+    public function getFrontEndJsModules()
     {
         if (!$this->autocompleteEnabled || !$this->autocompleteIntegration) {
             return null;
@@ -526,7 +526,7 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
             return null;
         }
 
-        return $integration->getFrontEndJsVariables($form, $this);
+        return $integration->getFrontEndJsVariables($this);
     }
 
     /**

@@ -949,7 +949,7 @@ class Form extends Element
 
         // Add any JS per-field
         foreach ($this->getFields() as $field) {
-            $js = $field->getFrontEndJsModules($this);
+            $js = $field->getFrontEndJsModules();
 
             // Handle multiple registrations
             if (isset($js[0])) {

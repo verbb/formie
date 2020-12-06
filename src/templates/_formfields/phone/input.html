@@ -1,30 +1,27 @@
 {% import '_includes/forms' as forms %}
 
-{% set type = 'tel' %}
+{% extends 'formie/_formfields/field' %}
 
-{% if field.countryEnabled %}
+{% block field %}
     {% namespace field.handle %}
-        <div class="fui-row">
-            <div class="fui-col-auto" style="flex: 0;">
-                {{ forms.selectField({
-                    label: 'Country' | t('formie'),
-                    name: 'country',
-                    required: field.required ? true : false,
-                    options: field.countries,
-                    value: value.country ?? '',
-                }) }}
-            </div>
+        {{ forms.text({
+            type: 'tel',
+            name: 'number',
+            required: field.required ? true : false,
+            value: value.number ?? '',
+        }) }}
 
-            <div class="fui-col-auto">
-                {{ forms.textField({
-                    label: 'Number' | t('formie'),
-                    name: 'number',
-                    required: field.required ? true : false,
-                    value: value.number ?? '',
-                }) }}
-            </div>
-        </div>
+        {% if field.countryEnabled %}
+            {{ tag('input', {
+                type: 'hidden',
+                name: 'country',
+                value: value.country ?? '',
+                data: {
+                    country: '',
+                },
+            }) }}
+
+            {% do view.registerCssFile(view.getAssetManager().getPublishedUrl('@verbb/formie/web/assets/frontend/dist/css/fields/phone-country.css', true)) %}
+        {% endif %}
     {% endnamespace %}
-{% else %}
-    {% include '_includes/forms/text' %}
-{% endif %}
+{% endblock %}

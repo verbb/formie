@@ -622,7 +622,7 @@ trait FormFieldTrait
     /**
      * @inheritDoc
      */
-    public function getFrontEndJsModules(Form $form = null)
+    public function getFrontEndJsModules()
     {
         return null;
     }
@@ -630,12 +630,12 @@ trait FormFieldTrait
     /**
      * @inheritDoc
      */
-    public function getConfigJson(Form $form = null)
+    public function getConfigJson()
     {
         // From the provided JS module config, extract just the settings and module name
         // for use inline in the HTML. We load the scripts async, and rely on the HTML for
         // fields to output their config, so it's reliable and works for on-demand HTML (repeater)
-        $modules = $this->getFrontEndJsModules($form);
+        $modules = $this->getFrontEndJsModules();
 
          // Normalise to handle multiple module registrations
         if (!isset($modules[0])) {

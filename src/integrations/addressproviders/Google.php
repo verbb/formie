@@ -91,7 +91,7 @@ class Google extends AddressProvider
     /**
      * @inheritDoc
      */
-    public function getFrontEndJsVariables(Form $form, $field = null)
+    public function getFrontEndJsVariables($field = null)
     {
         if (!$this->hasValidSettings()) {
             return null;

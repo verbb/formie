@@ -221,7 +221,7 @@ class Table extends CraftTable implements FormFieldInterface
     /**
      * @inheritdoc
      */
-    public function getFrontEndJsModules(Form $form = null)
+    public function getFrontEndJsModules()
     {
         return [
             'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/fields/table.js', true),

@@ -120,6 +120,12 @@ class SubmissionsController extends Controller
         $variables['continueEditingUrl'] = $variables['baseCpEditUrl'] .
             (Craft::$app->getIsMultiSite() && Craft::$app->getSites()->currentSite->id !== $variables['site']->id ? '/' . $variables['site']->handle : '');
 
+        $formConfigJson = $variables['submission']->getForm()->getFrontEndJsVariables();
+
+        // Add some settings just for submission editing
+        $formConfigJson['settings']['outputJsTheme'] = false;
+        $variables['formConfigJson'] = $formConfigJson;
+
         return $this->renderTemplate('formie/submissions/_edit', $variables);
     }
 

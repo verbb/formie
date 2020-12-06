@@ -142,7 +142,7 @@ class Phone extends FormField implements SubfieldInterface, PreviewableFieldInte
     /**
      * @inheritdoc
      */
-    public function getFrontEndJsModules(Form $form = null)
+    public function getFrontEndJsModules()
     {
         if ($this->countryEnabled) {
             return [

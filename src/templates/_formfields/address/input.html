@@ -1,110 +1,154 @@
 {% import '_includes/forms' as forms %}
 
-{% namespace field.handle %}
-    {% if field.autocompleteEnabled %}
-        <div class="fui-row">
-            <div class="fui-col">
-                {{ forms.textField({
-                    label: field.autocompleteLabel,
-                    name: 'autocomplete',
-                    required: field.autocompleteRequired,
-                    value: value.autocomplete ?? '',
-                }) }}
-            </div>
-        </div>
-    {% endif %}
+{% extends 'formie/_formfields/field' %}
 
-    {% if field.address1Enabled %}
-        <div class="fui-row">
-            <div class="fui-col">
-                {{ forms.textField({
-                    label: field.address1Label,
-                    name: 'address1',
-                    required: field.address1Required,
-                    value: value.address1 ?? '',
-                }) }}
-            </div>
-        </div>
-    {% endif %}
-
-    {% if field.address2Enabled %}
-        <div class="fui-row">
-            <div class="fui-col">
-                {{ forms.textField({
-                    label: field.address2Label,
-                    name: 'address2',
-                    required: field.address2Required,
-                    value: value.address2 ?? '',
-                }) }}
-            </div>
-        </div>
-    {% endif %}
-
-    {% if field.address3Enabled %}
-        <div class="fui-row">
-            <div class="fui-col">
-                {{ forms.textField({
-                    label: field.address3Label,
-                    name: 'address3',
-                    required: field.address3Required,
-                    value: value.address3 ?? '',
-                }) }}
-            </div>
-        </div>
-    {% endif %}
-
-    {% if field.cityEnabled or field.stateEnabled %}
-        <div class="fui-row">
-            {% if field.cityEnabled %}
-                <div class="fui-col-auto">
+{% block field %}
+    {% namespace field.handle %}
+        {% if field.autocompleteEnabled %}
+            <div class="fui-row">
+                <div class="fui-col">
                     {{ forms.textField({
-                        label: field.cityLabel,
-                        name: 'city',
-                        required: field.cityRequired,
-                        value: value.city ?? '',
+                        label: field.autocompleteLabel,
+                        name: 'autocomplete',
+                        required: field.autocompleteRequired,
+                        value: value.autocomplete ?? '',
+                        inputAttributes: {
+                            data: {
+                                autocomplete: '',
+                            },
+                        },
                     }) }}
                 </div>
-            {% endif %}
+            </div>
+        {% endif %}
 
-            {% if field.stateEnabled %}
-                <div class="fui-col-auto">
+        {% if field.address1Enabled %}
+            <div class="fui-row">
+                <div class="fui-col">
                     {{ forms.textField({
-                        label: field.stateLabel,
-                        name: 'state',
-                        required: field.stateRequired,
-                        value: value.state ?? '',
+                        label: field.address1Label,
+                        name: 'address1',
+                        required: field.address1Required,
+                        value: value.address1 ?? '',
+                        inputAttributes: {
+                            data: {
+                                address1: '',
+                            },
+                        },
                     }) }}
                 </div>
-            {% endif %}
-        </div>
-    {% endif %}
+            </div>
+        {% endif %}
 
-    {% if field.zipEnabled or field.countryEnabled %}
-        <div class="fui-row">
-            {% if field.zipEnabled %}
-                <div class="fui-col-auto">
+        {% if field.address2Enabled %}
+            <div class="fui-row">
+                <div class="fui-col">
                     {{ forms.textField({
-                        label: field.zipLabel,
-                        name: 'zip',
-                        required: field.zipRequired,
-                        value: value.zip ?? '',
+                        label: field.address2Label,
+                        name: 'address2',
+                        required: field.address2Required,
+                        value: value.address2 ?? '',
+                        inputAttributes: {
+                            data: {
+                                address2: '',
+                            },
+                        },
                     }) }}
                 </div>
-            {% endif %}
+            </div>
+        {% endif %}
 
-            {% if field.countryEnabled %}
-                <div class="fui-col-auto">
-                    {% set countries = [{ label: 'Select an option' | t('formie'), value: '' }] | merge(field.countries) %}
-
-                    {{ forms.selectField({
-                        label: field.countryLabel,
-                        name: 'country',
-                        required: field.countryRequired,
-                        options: countries,
-                        value: value.country ?? '',
+        {% if field.address3Enabled %}
+            <div class="fui-row">
+                <div class="fui-col">
+                    {{ forms.textField({
+                        label: field.address3Label,
+                        name: 'address3',
+                        required: field.address3Required,
+                        value: value.address3 ?? '',
+                        inputAttributes: {
+                            data: {
+                                address3: '',
+                            },
+                        },
                     }) }}
                 </div>
-            {% endif %}
-        </div>
-    {% endif %}
-{% endnamespace %}
+            </div>
+        {% endif %}
+
+        {% if field.cityEnabled or field.stateEnabled %}
+            <div class="fui-row">
+                {% if field.cityEnabled %}
+                    <div class="fui-col-auto">
+                        {{ forms.textField({
+                            label: field.cityLabel,
+                            name: 'city',
+                            required: field.cityRequired,
+                            value: value.city ?? '',
+                            inputAttributes: {
+                                data: {
+                                    city: '',
+                                },
+                            },
+                        }) }}
+                    </div>
+                {% endif %}
+
+                {% if field.stateEnabled %}
+                    <div class="fui-col-auto">
+                        {{ forms.textField({
+                            label: field.stateLabel,
+                            name: 'state',
+                            required: field.stateRequired,
+                            value: value.state ?? '',
+                            inputAttributes: {
+                                data: {
+                                    state: '',
+                                },
+                            },
+                        }) }}
+                    </div>
+                {% endif %}
+            </div>
+        {% endif %}
+
+        {% if field.zipEnabled or field.countryEnabled %}
+            <div class="fui-row">
+                {% if field.zipEnabled %}
+                    <div class="fui-col-auto">
+                        {{ forms.textField({
+                            label: field.zipLabel,
+                            name: 'zip',
+                            required: field.zipRequired,
+                            value: value.zip ?? '',
+                            inputAttributes: {
+                                data: {
+                                    zip: '',
+                                },
+                            },
+                        }) }}
+                    </div>
+                {% endif %}
+
+                {% if field.countryEnabled %}
+                    <div class="fui-col-auto">
+                        {% set countries = [{ label: 'Select an option' | t('formie'), value: '' }] | merge(field.countries) %}
+
+                        {{ forms.selectField({
+                            label: field.countryLabel,
+                            name: 'country',
+                            required: field.countryRequired,
+                            options: countries,
+                            value: value.country ?? '',
+                            inputAttributes: {
+                                data: {
+                                    country: '',
+                                },
+                            },
+                        }) }}
+                    </div>
+                {% endif %}
+            </div>
+        {% endif %}
+    {% endnamespace %}
+{% endblock %}

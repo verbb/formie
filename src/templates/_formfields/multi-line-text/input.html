@@ -1,9 +1,33 @@
-{% if field.useRichText %}
-    <div class="fui-rich-text" data-rich-text></div>
+{% extends 'formie/_formfields/field' %}
 
-    <div style="display: none !important;">
+{% set limitType = field.limitType ?? '' %}
+{% set limitAmount = field.limitAmount ?? false %}
+{% set limit = (field.limit ?? false) and limitAmount %}
+{% set maxlength = limit and limitType == 'characters' ? limitAmount %}
+{% set wordlimit = limit and limitType == 'words' ? limitAmount %}
+
+{% block field %}
+    {% if field.useRichText %}
+        <div class="fui-rich-text" data-rich-text></div>
+
+        <div style="display: none !important;">
+            {% include '_includes/forms/textarea' %}
+        </div>
+    {% else %}
         {% include '_includes/forms/textarea' %}
-    </div>
-{% else %}
-    {% include '_includes/forms/textarea' %}
-{% endif %}
+    {% endif %}
+
+    {% if maxlength or wordlimit %}
+        {% if maxlength %}
+            <div class="fui-instructions fui-limit" data-max-limit data-max-chars="{{ maxlength }}">
+                {{ '{num} characters left' | t('formie', { num: maxlength }) | raw }}
+            </div>
+        {% endif %}
+
+        {% if wordlimit %}
+            <div class="fui-instructions fui-limit" data-max-limit data-max-words="{{ wordlimit }}">
+                {{ '{num} words left' | t('formie', { num: wordlimit }) | raw }}
+            </div>
+        {% endif %}
+    {% endif %}
+{% endblock %}

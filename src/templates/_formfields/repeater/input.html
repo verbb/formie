@@ -1,47 +1,33 @@
-<div id="{{ id }}" class="repeaterContainer rowLayout">
-    <div class="rowLayoutContainer">
-        {% set totalNewRows = 0 %}
+{% extends 'formie/_formfields/field' %}
 
-        {% for row in rows %}
-            {% set rowId = row.id %}
-            {% set rowIsNew = rowId is empty %}
-            
-            {% if rowIsNew %}
-                {% set totalNewRows = totalNewRows + 1 %}
-                {% set rowId = 'new' ~ totalNewRows %}
-            {% endif %}
+{% block field %}
 
-            {% set baseInputName = "#{name}[rows][#{rowId}]" %}
-
-            {# only register a delta name for this row if it's not new #}
-            {% if not rowIsNew %}
-                {% do view.registerDeltaName(baseInputName) %}
-            {% endif %}
-
-            <div class="repeaterRow" data-id="{{ rowId }}">
-                {{ hiddenInput("#{name}[sortOrder][]", rowId) }}
-
-                <div class="repeater-layout-row-new">
-                    <div class="repeater-layout-row-new-body">
-                        {% include 'formie/_formfields/repeater/fields' with {
-                            namespace: "#{baseInputName}[fields]",
-                            element: row,
-                            fields: nestedField.getFieldLayout().getFields(),
-                            settings: nestedField,
-                            registerDeltas: not rowIsNew,
-                        } %}
-                    </div>
-
-                    <div class="repeater-layout-row-new-actions tfoot-actions">
-                        <div class="floating reorder"><a class="move icon" title="{{ 'Reorder' | t('site') }}"></a></div>
-                        <div class="floating delete"><a class="delete icon" title="{{ 'Delete' | t('site') }}"></a></div>
-                    </div>
-                </div>
-            </div>
+{% namespace field.handle %}
+    <div class="fui-repeater-rows">
+        {% for row in value %}
+            {% include 'formie/_formfields/repeater/fields' with {
+                element: row,
+            } %}
         {% endfor %}
     </div>
 
-    <div class="repeaterAddRow btn add icon">
-        {{ nestedField.addLabel | default('Add another row') | t('formie') }}
-    </div>
-</div>
+    {% set buttonAttributes = {
+        class: 'btn add icon',
+        type: 'button',
+        data: {
+            'min-rows': field.minRows,
+            'max-rows': field.maxRows,
+            'add-repeater-row': field.handle,
+        }
+    } %}
+
+    <button {{ attr(buttonAttributes) }}>
+        {{ field.addLabel }}
+    </button>
+
+    <script type="text/template" data-repeater-template="{{ field.handle }}">
+        {% include 'formie/_formfields/repeater/fields' %}
+    </script>
+{% endnamespace %}
+
+{% endblock %}
