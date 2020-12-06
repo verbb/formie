@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+### Added
+- Added `formie.cp.submissions.edit` template hook.
+- Added `formie.cp.submissions.edit.content` template hook.
+- Added `formie.cp.submissions.edit.details` |template hook.
+- Added `formie.cp.sentNotifications.edit` template hook.
+- Added `formie.cp.sentNotifications.edit.content` template hook.
+- Added `formie.cp.sentNotifications.edit.details` template hook.
+
 ## 1.3.3 - 2020-12-06
 
 > {warning} If you are overriding templates for `field.html`, you **must** update your template to include `data-field-config="{{ field.getConfigJson(form) | json_encode | raw }}"`. This is the new and improved method for fields to define their config settings, picked up by JavaScript classes. Without making this change, field JS will not work. Refer to [this commit change](https://github.com/verbb/formie/commit/c5d5eda10b39063e1cf782b38f84bebe0da6fdf9#diff-ba26d5dbf9dcd3281c9b0b3c16f822eff1d2943c2134518d4ecea26d10907be4R90-R92).

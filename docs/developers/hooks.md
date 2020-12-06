@@ -108,3 +108,49 @@ Craft::$app->view->hook('formie.field.field-before', function(array &$context) {
     return '<p>Hey!</p>';
 });
 ```
+
+
+## Control Panel - Edit Submission
+When editing a submissions in the control panel, you'll have access to the following hooks.
+
+Hook | Description
+--- | ---
+`formie.cp.submissions.edit` | Before submission detail view’s template blocks.
+`formie.cp.submissions.edit.content` | After submission detail view’s main content.
+`formie.cp.submissions.edit.details` | After submission detail view’s existing right sidebar details column.
+
+
+### Example
+
+```php
+Craft::$app->view->hook('formie.cp.submissions.edit.content', function(array &$context) {
+    // Add a variable to be accessible in the context object.
+    $context['foo'] = 'bar';
+
+    // Optionally return a string
+    return '<p>Hey!</p>';
+});
+```
+
+
+## Control Panel - Edit Sent Notification
+When viewing a sent notification in the control panel, you'll have access to the following hooks.
+
+Hook | Description
+--- | ---
+`formie.cp.sentNotifications.edit` | Before submission detail view’s template blocks.
+`formie.cp.sentNotifications.edit.content` | After submission detail view’s main content.
+`formie.cp.sentNotifications.edit.details` | After submission detail view’s existing right sidebar details column.
+
+
+### Example
+
+```php
+Craft::$app->view->hook('formie.cp.sentNotifications.edit.content', function(array &$context) {
+    // Add a variable to be accessible in the context object.
+    $context['foo'] = 'bar';
+
+    // Optionally return a string
+    return '<p>Hey!</p>';
+});
+```
