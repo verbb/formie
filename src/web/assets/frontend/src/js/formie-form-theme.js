@@ -106,13 +106,13 @@ export class FormieFormTheme {
         }, 500);
 
         // After we clear any error, validate the fielset again. Mostly so we can remove global errors
-        this.form.addEventListener(document, 'bouncerRemoveError', (e) => {
+        this.form.addEventListener(this.$form, 'bouncerRemoveError', (e) => {
             this.validate(false);
         });
 
         // Override error messages defined in DOM - Bouncer only uses these as a last resort
         // In future updates, we can probably remove this
-        this.form.addEventListener(document, 'bouncerShowError', (e) => {
+        this.form.addEventListener(this.$form, 'bouncerShowError', (e) => {
             var $field = e.target;
             var $fieldContainer = $field.closest('.fui-field');
             var message = $field.getAttribute('data-fui-message');

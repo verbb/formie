@@ -39,7 +39,8 @@
 - Fixed multi-line rich text fields loading Font Awesome multiple times.
 - Fixed checkbox/radio fields not validation correctly inside a Repeater field.
 - Fixed warnings/errors for JS fields, where their inputs might not exist on a page.
-- Fix Algolia Places not working correctly.
+- Fixed Algolia Places not working correctly.
+- Fixed issue where multiple ajax-based forms on a single page would have validation triggered across all forms.
 
 ## 1.3.2 - 2020-11-28
 
