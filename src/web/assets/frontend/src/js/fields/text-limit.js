@@ -29,7 +29,12 @@ export class FormieTextLimit {
 
     characterCheck(e) {
         setTimeout(() => {
-            var charactersLeft = this.maxChars - e.target.value.length;
+            // If we're using a rich text editor, treat it a little differently
+            var isRichText = e.target.hasAttribute('contenteditable');
+
+            var value = isRichText ? e.target.innerHTML : e.target.value;
+
+            var charactersLeft = this.maxChars - value.length;
 
             if (charactersLeft <= 0) {
                 charactersLeft = '0';
@@ -43,11 +48,16 @@ export class FormieTextLimit {
 
     wordCheck(e) {
         setTimeout(() => {
-            var wordCount = e.target.value.split(/\S+/).length - 1;
+            // If we're using a rich text editor, treat it a little differently
+            var isRichText = e.target.hasAttribute('contenteditable');
+
+            var value = isRichText ? e.target.innerHTML : e.target.value;
+            
+            var wordCount = value.split(/\S+/).length - 1;
             var regex = new RegExp('^\\s*\\S+(?:\\s+\\S+){0,' + (this.maxWords - 1) + '}');
             
             if (wordCount >= this.maxWords) {
-                this.$field.value = e.target.value.match(regex);
+                this.$field.value = value.match(regex);
             }
 
             var wordsLeft = this.maxWords - wordCount;

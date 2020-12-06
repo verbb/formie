@@ -3,7 +3,6 @@ import intlTelInput from 'intl-tel-input';
 
 export class FormiePhoneCountry {
     constructor(settings = {}) {
-        console.log('FormiePhoneCountry');
         this.$form = settings.$form;
         this.form = this.$form.form;
         this.$field = settings.$field.querySelector('input[type="tel"]');
@@ -77,8 +76,21 @@ export class FormiePhoneCountry {
             },
         }));
 
+        // Update the hidden country field when selected
+        this.form.addEventListener(this.$field, eventKey('countrychange'), this.countryChange.bind(this));
+
         // Attach custom validation
         this.form.addEventListener(this.$form, eventKey('registerFormieValidation'), this.registerValidation.bind(this));
+    }
+
+    countryChange(e) {
+        var countryData = this.validator.getSelectedCountryData();
+        var selectedCountryCode = countryData.iso2;
+
+        // Save the country code to the hidden input
+        if (this.$countryInput && selectedCountryCode) {
+            this.$countryInput.value = selectedCountryCode.toUpperCase();
+        }
     }
 
     registerValidation(e) {

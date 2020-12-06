@@ -4,13 +4,13 @@ export class FormieRichText {
     constructor(settings = {}) {
         this.$form = settings.$form;
         this.form = this.$form.form;
-        this.$field = settings.$field;
-        this.$container = this.$field.querySelector('[data-rich-text]');
+        this.$field = settings.$field.querySelector('textarea');
+        this.$container = settings.$field.querySelector('[data-rich-text]');
         this.scriptId = 'FORMIE_FONT_AWESOME_SCRIPT';
 
         this.buttons = settings.buttons;
 
-        if (this.$container) {
+        if (this.$field && this.$container) {
             this.initEditor();
         } else {
             console.error('Unable to find rich text field “[data-rich-text]”');
