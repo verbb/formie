@@ -2,17 +2,12 @@ import { eventKey } from '../utils/utils';
 
 export class FormieCheckboxRadio {
     constructor(settings = {}) {
-        this.formId = '#formie-form-' + settings.formId;
-        this.$form = document.querySelector(this.formId);
+        this.$form = settings.$form;
+        this.form = this.$form.form;
+        this.$field = settings.$field;
 
-        if (this.$form) {
-            this.form = this.$form.form;
-
-            this.initInputs();
-            this.initRequiredCheckboxes();
-        } else {
-            console.error('Unable to find ' + this.formId);
-        }
+        this.initInputs();
+        this.initRequiredCheckboxes();
     }
 
     initInputs() {

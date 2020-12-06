@@ -62,12 +62,10 @@ class MultiLineText extends FormField implements PreviewableFieldInterface
      */
     public function getInputHtml($value, ElementInterface $element = null): string
     {
-        $jsVariables = [];
         $form = null;
 
         if ($element instanceof Submission) {
             $form = $element->getForm();
-            $jsVariables = $this->getFrontEndJsVariables($form);
         }
 
         return Craft::$app->getView()->renderTemplate('formie/_formfields/multi-line-text/input', [
@@ -75,7 +73,6 @@ class MultiLineText extends FormField implements PreviewableFieldInterface
             'value' => $value,
             'field' => $this,
             'form' => $form,
-            'jsVariables' => $jsVariables,
         ]);
     }
 
@@ -92,47 +89,24 @@ class MultiLineText extends FormField implements PreviewableFieldInterface
     /**
      * @inheritdoc
      */
-    public function getFrontEndJsVariables(Form $form)
+    public function getFrontEndJsModules(Form $form = null)
     {
         $modules = [];
-        $limit = $this->limit ?? '';
-        $fieldId = StringHelper::toKebabCase($form->handle) . '-' . StringHelper::toKebabCase($this->handle);
-
-        if ($limit) {
-            $src = Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/fields/text-limit.js', true);
-
-            $settings = [
-                'formId' => $form->id,
-                'fieldId' => $fieldId,
-                'formSettings' => [
-                    'hasMultiplePages' => $form->hasMultiplePages(),
-                    'submitMethod' => $form->settings->submitMethod,
-                ],
-            ];
-
+        
+        if ($this->limit) {
             $modules[] = [
-                'src' => $src,
-                'onload' => 'new FormieTextLimit(' . Json::encode($settings) . ');',
+                'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/fields/text-limit.js', true),
+                'module' => 'FormieTextLimit',
             ];
         }
 
         if ($this->useRichText) {
-            $src = Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/fields/rich-text.js', true);
-
-            $settings = [
-                'formId' => $form->id,
-                'fieldId' => $fieldId,
-                'containerId' => 'fui-rich-text-' . $form->id . '-' . $this->id,
-                'buttons' => $this->richTextButtons,
-                'formSettings' => [
-                    'hasMultiplePages' => $form->hasMultiplePages(),
-                    'submitMethod' => $form->settings->submitMethod,
-                ],
-            ];
-
             $modules[] = [
-                'src' => $src,
-                'onload' => 'new FormieRichText(' . Json::encode($settings) . ');',
+                'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/fields/rich-text.js', true),
+                'module' => 'FormieRichText',
+                'settings' => [
+                    'buttons' => $this->richTextButtons,
+                ],
             ];
         }
 

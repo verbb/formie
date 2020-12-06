@@ -14,6 +14,7 @@ use verbb\formie\models\Address as AddressModel;
 use Craft;
 use craft\base\ElementInterface;
 use craft\base\PreviewableFieldInterface;
+use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 use craft\helpers\StringHelper;
 
@@ -513,7 +514,7 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
     /**
      * @inheritDoc
      */
-    public function getFrontEndJsVariables(Form $form)
+    public function getFrontEndJsModules(Form $form = null)
     {
         if (!$this->autocompleteEnabled || !$this->autocompleteIntegration) {
             return null;

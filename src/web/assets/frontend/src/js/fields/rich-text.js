@@ -2,22 +2,18 @@ import { exec, init } from 'pell';
 
 export class FormieRichText {
     constructor(settings = {}) {
-        this.formId = '#formie-form-' + settings.formId;
-        this.fieldId = '#fields-' + settings.fieldId;
-        this.containerId = '#fields-' + settings.containerId;
+        this.$form = settings.$form;
+        this.form = this.$form.form;
+        this.$field = settings.$field;
+        this.$container = this.$field.querySelector('[data-rich-text]');
+        this.scriptId = 'FORMIE_FONT_AWESOME_SCRIPT';
+
         this.buttons = settings.buttons;
 
-        this.$form = document.querySelector(this.formId);
-        this.$field = document.querySelector(this.fieldId);
-        this.$container = document.querySelector(this.containerId);
-
-        if (this.$form && this.$field && this.$container) {
+        if (this.$container) {
             this.initEditor();
         } else {
-            // Only an error if a single-page form (any submit method), or a multi-page ajax form.
-            if (!settings.formSettings.hasMultiplePages || (settings.formSettings.submitMethod === 'ajax' && settings.formSettings.hasMultiplePages)) {
-                console.error('Unable to find rich text ' + this.formId + ' ' + this.fieldId + ' ' + this.containerId);
-            }
+            console.error('Unable to find rich text field “[data-rich-text]”');
         }
     }
 
@@ -134,11 +130,16 @@ export class FormieRichText {
         // Assign this instance to the field's DOM, so it can be accessed by third parties
         this.$field.richText = this;
 
-        // Load in FontAwesome, for better icons
-        var $script = document.createElement('script');
-        $script.src = 'https://kit.fontawesome.com/bfee7f35b7.js';
-        $script.setAttribute('crossorigin', 'anonymous');
-        document.body.appendChild($script);
+        // Load in FontAwesome, for better icons. Only load once though
+        if (!document.getElementById(this.scriptId)) {
+            var $script = document.createElement('script');
+            $script.src = 'https://kit.fontawesome.com/bfee7f35b7.js';
+            $script.id = this.scriptId;
+            $script.defer = true;
+            $script.async = true;
+            $script.setAttribute('crossorigin', 'anonymous');
+            document.body.appendChild($script);
+        }
 
         this.editor = init({
             element: this.$container,

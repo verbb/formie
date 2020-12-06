@@ -16,6 +16,7 @@ use craft\base\ElementInterface;
 use craft\gql\types\DateTime as DateTimeType;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Html;
+use craft\helpers\Json;
 use craft\helpers\Template;
 use craft\helpers\StringHelper;
 use craft\validators\HandleValidator;
@@ -621,8 +622,44 @@ trait FormFieldTrait
     /**
      * @inheritDoc
      */
-    public function getFrontEndJsVariables(Form $form)
+    public function getFrontEndJsModules(Form $form = null)
     {
+        return null;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getConfigJson(Form $form = null)
+    {
+        // From the provided JS module config, extract just the settings and module name
+        // for use inline in the HTML. We load the scripts async, and rely on the HTML for
+        // fields to output their config, so it's reliable and works for on-demand HTML (repeater)
+        $modules = $this->getFrontEndJsModules($form);
+
+         // Normalise to handle multiple module registrations
+        if (!isset($modules[0])) {
+            $modules = [$modules];
+        }
+
+        if ($modules) {
+            $config = [];
+
+            foreach ($modules as $module) {
+                $settings = $module['settings'] ?? [];
+                $settings['module'] = $module['module'] ?? '';
+                $settings = array_filter($settings);
+
+                if ($settings) {
+                    $config[] = $settings;
+                }
+            }
+
+            if ($config) {
+                return Json::encode($config);
+            }
+        }
+
         return null;
     }
 

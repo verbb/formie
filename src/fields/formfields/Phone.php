@@ -142,29 +142,17 @@ class Phone extends FormField implements SubfieldInterface, PreviewableFieldInte
     /**
      * @inheritdoc
      */
-    public function getFrontEndJsVariables(Form $form)
+    public function getFrontEndJsModules(Form $form = null)
     {
-        $src = Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/fields/phone-country.js', true);
-        $fieldId = StringHelper::toKebabCase($form->handle) . '-' . StringHelper::toKebabCase($this->handle);
-        $countryFieldId = StringHelper::toKebabCase($form->handle) . '-' . StringHelper::toKebabCase($this->handle) . '-country';
-
-        $settings = [
-            'formId' => $form->id,
-            'fieldId' => $fieldId,
-            'countryFieldId' => $countryFieldId,
-            'countryShowDialCode' => $this->countryShowDialCode,
-            'countryDefaultValue' => $this->countryDefaultValue,
-            'countryAllowed' => $this->countryAllowed,
-            'formSettings' => [
-                'hasMultiplePages' => $form->hasMultiplePages(),
-                'submitMethod' => $form->settings->submitMethod,
-            ],
-        ];
-
         if ($this->countryEnabled) {
             return [
-                'src' => $src,
-                'onload' => 'new FormiePhoneCountry(' . Json::encode($settings) . ');',
+                'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/fields/phone-country.js', true),
+                'module' => 'FormiePhoneCountry',
+                'settings' => [
+                    'countryShowDialCode' => $this->countryShowDialCode,
+                    'countryDefaultValue' => $this->countryDefaultValue,
+                    'countryAllowed' => $this->countryAllowed,
+                ],
             ];
         }
     }

@@ -27,7 +27,7 @@ class Repeater extends FormField implements NestedFieldInterface, EagerLoadingFi
     // =========================================================================
 
     use NestedFieldTrait {
-        getFrontEndJsVariables as traitGetFrontEndJsVariables;
+        getFrontEndJsModules as traitGetFrontEndJsModules;
     }
 
 
@@ -222,30 +222,31 @@ class Repeater extends FormField implements NestedFieldInterface, EagerLoadingFi
     /**
      * @inheritdoc
      */
-    public function getFrontEndJsVariables(Form $form)
+    public function getFrontEndJsModules(Form $form = null)
     {
         $modules = [];
-
-        $settings = [
-            'fieldId' => $this->getHtmlWrapperId($form),
-            'formSettings' => [
-                'hasMultiplePages' => $form->hasMultiplePages(),
-                'submitMethod' => $form->settings->submitMethod,
-            ],
-        ];
         
-        $src = Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/fields/repeater.js', true);
-        $onload = 'new FormieRepeater(' . Json::encode($settings) . ');';
-
         $modules[] = [
-            'src' => $src,
-            'onload' => $onload,
+            'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/fields/repeater.js', true),
+            'module' => 'FormieRepeater',
         ];
 
-        // Check for any nested fields
-        $modules = array_merge($modules, $this->traitGetFrontEndJsVariables($form));
+        // Ensure we also load any JS in nested fields
+        $modules = array_merge($modules, $this->traitGetFrontEndJsModules($form));
 
         return $modules;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getConfigJson(Form $form = null)
+    {
+        // Override `getConfigJson` as we don't want to initialise any inner fields immediately.
+        // Even if there are min-rows, JS is the one to create the blocks, and initialize inner field JS.
+        return Json::encode([
+            'module' => 'FormieRepeater',
+        ]);
     }
 
     /**

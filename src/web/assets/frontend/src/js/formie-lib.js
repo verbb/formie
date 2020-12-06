@@ -11,6 +11,12 @@ export class Formie {
     initForms() {
         this.$forms = document.querySelectorAll('form[id^="formie-form-"]') || [];
 
+        // We use this in the CP, where it's a bit tricky to add a form ID. So check just in case.
+        // Might also be handy for front-end too!
+        if (!this.$forms.length) {
+            this.$forms = document.querySelectorAll('div[id^="formie-form-"]') || [];
+        }
+
         this.$forms.forEach($form => {
             this.initForm($form);
         });
@@ -45,6 +51,10 @@ export class Formie {
 
         this.forms.push(form);
 
+        // Find all `data-field-config` attributes for the current page and form
+        // and build an object of them to initialize when loaded.
+        this.fieldConfigs = this.parseFieldConfig($form, $form);
+
         // Is there any additional JS config registered for this form?
         if (registeredJs.length) {
             // Create a container to add these items to, so we can destroy them later
@@ -62,11 +72,23 @@ export class Formie {
                     $script.src = config.src;
                     $script.defer = true;
 
-                    // Parse any JS onload code we have. Yes, I'm aware of `eval()` but its pretty safe as it's
-                    // only provided from the field or captcha class - no user data.
-                    $script.onload = function() {
+                    // Initialize all matching fields - their config is already rendered in templates
+                    $script.onload = () => {
+                        // Mostly for captchas, but might change this...
                         if (config.onload) {
                             eval(config.onload);
+                        }
+
+                        if (config.module) {
+                            var fieldConfigs = this.fieldConfigs[config.module];
+
+                            if (fieldConfigs && fieldConfigs.length) {
+                                fieldConfigs.forEach(fieldConfig => {
+                                    // Yes, I'm aware of `eval()` but its pretty safe as it's
+                                    // only provided from the field or captcha class - no user data.
+                                    eval(`new ${config.module}(fieldConfig)`);
+                                });
+                            }
                         }
                     };
                 }
@@ -74,6 +96,35 @@ export class Formie {
                 form.$registeredJs.appendChild($script);
             });
         }
+    }
+
+    parseFieldConfig($element, $form) {
+        var config = {};
+
+        $element.querySelectorAll('[data-field-config]').forEach(($field) => {
+            var fieldConfig = JSON.parse($field.getAttribute('data-field-config'));
+
+            // Some fields supply multiple modules, so normalise for ease-of-processing
+            if (!Array.isArray(fieldConfig)) {
+                fieldConfig = [fieldConfig];
+            }
+
+            fieldConfig.forEach((nestedFieldConfig) => {
+                if (!config[nestedFieldConfig.module]) {
+                    config[nestedFieldConfig.module] = [];
+                }
+
+                // Provide field classes with the data they need
+                config[nestedFieldConfig.module].push({
+                    $form,
+                    $field,
+                    ...nestedFieldConfig,
+                });
+
+            });
+        });
+
+        return config;
     }
 
     getForm($form) {

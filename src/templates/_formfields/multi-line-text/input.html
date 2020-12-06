@@ -1,94 +1,9 @@
 {% if field.useRichText %}
-    {% set containerId = 'fui-rich-text-' ~ form.id ~ '-' ~ field.id %}
-    {% set id = (form.handle | kebab) ~ '-' ~ (field.handle | kebab) %}
-
-    <div id="{{ containerId }}" class="fui-rich-text"></div>
+    <div class="fui-rich-text" data-rich-text></div>
 
     <div style="display: none !important;">
-        {% include '_includes/forms/textarea' with { id: id } %}
+        {% include '_includes/forms/textarea' %}
     </div>
 {% else %}
     {% include '_includes/forms/textarea' %}
 {% endif %}
-
-{% js %}
-
-$(function () {
-    var jsVariables = {{ jsVariables | json_encode | raw }};
-
-    if (jsVariables.length) {
-        for (var i = 0; i < jsVariables.length; i++) {
-            var config = jsVariables[i];
-            var $script = document.createElement('script');
-
-            $script.src = config.src;
-            $script.defer = true;
-
-            $script.onload = function() {
-                if (config.onload) {
-                    eval(config.onload);
-                }
-            };
-
-            document.body.appendChild($script);
-        }
-    }
-});
-
-{% endjs %}
-
-{% css %}
-
-.fui-rich-text {
-    position: relative;
-}
-
-.fui-rich-text-toolbar {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    border-radius: 3px 3px 0 0;
-    padding: 4px 8px;
-    align-items: center;
-    flex-wrap: wrap;
-    display: flex;
-    z-index: 1;
-    border-bottom: 1px rgba(49, 49, 93, 0.15) solid;
-    box-shadow: 0 2px 3px 0 rgba(49, 49, 93, 0.075);
-}
-
-.fui-rich-text-content {
-    padding-top: 50px !important;
-    min-height: 10rem;
-    padding: .5rem .75rem;
-    border: 1px solid #cbd5e0;
-}
-
-.fui-rich-text-content p {
-    margin: 0 0 1rem;
-}
-
-.fui-rich-text-button {
-    background: transparent;
-    color: #1c2e36;
-    border-radius: 3px;
-    padding-left: 4px;
-    padding-right: 4px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 16px;
-    text-align: center;
-    height: 32px;
-    width: 32px;
-    margin: 0 2px;
-    cursor: pointer;
-    border: 0 solid #cbd5e0;
-}
-
-.fui-rich-text-button:hover {
-    background-color: #edf3fa;
-}
-
-{% endcss %}

@@ -949,7 +949,7 @@ class Form extends Element
 
         // Add any JS per-field
         foreach ($this->getFields() as $field) {
-            $js = $field->getFrontEndJsVariables($this);
+            $js = $field->getFrontEndJsModules($this);
 
             // Handle multiple registrations
             if (isset($js[0])) {
@@ -973,8 +973,8 @@ class Form extends Element
             }
         }
 
-        // Cleanup
-        $registeredJs = array_values(array_filter($registeredJs));
+        // Cleanup - Ensure we don't include JS multiple times
+        $registeredJs = array_values(array_unique(array_filter($registeredJs), SORT_REGULAR));
 
         return [
             'formId' => $this->id,

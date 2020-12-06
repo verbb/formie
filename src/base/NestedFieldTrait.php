@@ -253,13 +253,13 @@ trait NestedFieldTrait
     /**
      * @inheritDoc
      */
-    public function getFrontEndJsVariables(Form $form)
+    public function getFrontEndJsModules(Form $form = null)
     {
         $modules = [];
 
         // Check for any nested fields
         foreach ($this->getFields() as $field) {
-            $js = $field->getFrontEndJsVariables($form);
+            $js = $field->getFrontEndJsModules($form);
 
             // Handle multiple registrations
             if (isset($js[0])) {

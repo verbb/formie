@@ -2,22 +2,15 @@ import { eventKey } from '../utils/utils';
 
 export class FormieTextLimit {
     constructor(settings = {}) {
-        this.formId = '#formie-form-' + settings.formId;
-        this.fieldId = '#fields-' + settings.fieldId;
+        this.$form = settings.$form;
+        this.form = this.$form.form;
+        this.$field = settings.$field;
+        this.$text = this.$field.querySelector('[data-max-limit]');
 
-        this.$form = document.querySelector(this.formId);
-        this.$field = document.querySelector(this.fieldId);
-        this.$text = document.querySelector(this.fieldId + '-max');
-
-        if (this.$form && this.$field && this.$text) {
-            this.form = this.$form.form;
-
+        if (this.$text) {
             this.initTextMax();
         } else {
-            // Only an error if a single-page form (any submit method), or a multi-page ajax form.
-            if (!settings.formSettings.hasMultiplePages || (settings.formSettings.submitMethod === 'ajax' && settings.formSettings.hasMultiplePages)) {
-                console.error('Unable to find text limit ' + this.formId + ' ' + this.fieldId);
-            }
+            console.error('Unable to find rich text field “[data-max-limit]”');
         }
     }
 

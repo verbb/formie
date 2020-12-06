@@ -2,25 +2,11 @@ import { eventKey } from '../utils/utils';
 
 export class FormieRepeater {
     constructor(settings = {}) {
-        this.fieldId = '#' + settings.fieldId;
-        this.$field = document.querySelector(this.fieldId);
+        this.$form = settings.$form;
+        this.form = this.$form.form;
+        this.$field = settings.$field;
 
-        if (this.$field) {
-            this.$form = this.$field.closest('form');
-
-            if (this.$form) {
-                this.form = this.$form.form;
-
-                this.initRepeater();
-            } else {
-                console.error('Unable to find form');
-            }
-        } else {
-            // Only an error if a single-page form (any submit method), or a multi-page ajax form.
-            if (!settings.formSettings.hasMultiplePages || (settings.formSettings.submitMethod === 'ajax' && settings.formSettings.hasMultiplePages)) {
-                console.error('Unable to find repeater ' + this.fieldId);
-            }
-        }
+        this.initRepeater();
     }
 
     initRepeater() {
@@ -58,7 +44,7 @@ export class FormieRepeater {
         }));
     }
 
-    initRow($row) {
+    initRow($row, isNew = false) {
         if (!$row) {
             console.error($row);
             return;
@@ -71,7 +57,20 @@ export class FormieRepeater {
             this.form.addEventListener($removeButton, eventKey('click'), e => {
                 this.removeRow(e);
             });
-        }   
+        }
+
+        // Initialize any new nested fields with JS
+        if (isNew) {
+            var fieldConfigs = Formie.parseFieldConfig($row, this.$form);
+
+            Object.keys(fieldConfigs).forEach(module => {
+                fieldConfigs[module].forEach(fieldConfig => {
+                    // Yes, I'm aware of `eval()` but its pretty safe as it's
+                    // only provided from the field or captcha class - no user data.
+                    eval(`new ${module}(fieldConfig)`);
+                }); 
+            });
+        }
     }
 
     addRow(e) {
@@ -106,7 +105,7 @@ export class FormieRepeater {
                 });
                 this.$field.dispatchEvent(event);
 
-                this.initRow(event.detail.row);
+                this.initRow(event.detail.row, true);
             }, 50);
         }
     }
