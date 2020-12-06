@@ -1,8 +1,8 @@
 # Changelog
 
-## Unreleased
+## 1.3.3 - 2020-12-06
 
-> {warning} If you are overriding templates for `field.html`, you **must** update your template to include `data-field-config="{{ field.getConfigJson(form) | json_encode | raw }}"`. This is the new and improved method for fields to define their config settings, picked up by JavaScript classes. Without making this change, field JS will not work. Refer to [this commit]().
+> {warning} If you are overriding templates for `field.html`, you **must** update your template to include `data-field-config="{{ field.getConfigJson(form) | json_encode | raw }}"`. This is the new and improved method for fields to define their config settings, picked up by JavaScript classes. Without making this change, field JS will not work. Refer to [this commit change](https://github.com/verbb/formie/commit/c5d5eda10b39063e1cf782b38f84bebe0da6fdf9#diff-ba26d5dbf9dcd3281c9b0b3c16f822eff1d2943c2134518d4ecea26d10907be4R90-R92).
 
 ### Added
 - Added `defaultState` for GraphQL queries for Agree fields. This replaces `defaultValue`.
@@ -15,8 +15,8 @@
 - Formie now requires Craft 3.5+.
 - Form queries via GraphQL are now no longer automatically included in the public schema.
 - Submission queries via GraphQL are now no longer automatically included in the public schema.
-- Submission mutatons via GraphQL are now no longer automatically included in the public schema.
-- When (soft) deleting a form, any submissions will also be (soft) deleted. These are also retored if the form is restored.
+- Submission mutations via GraphQL are now no longer automatically included in the public schema.
+- When (soft) deleting a form, any submissions will also be (soft) deleted. These are also restored if the form is restored.
 - Refactor JS behaviour for fields that require it. We now use a `data-field-config` attribute on the field to store JS module settings. This is then initialized once the JS has been lazy-loaded. This allows us to split configuration from initialization and may also help with custom JS.
 - Renamed `Field::getFrontEndJsVariables()` to `Field::getFrontEndJsModules()`.
 - Improve handling of multi-page non-ajax forms, where some fields required JS. Formie now detects what JS needs to be used for the current page for a page-reload form, or the entire form for an ajax form.
@@ -41,6 +41,9 @@
 - Fixed warnings/errors for JS fields, where their inputs might not exist on a page.
 - Fixed Algolia Places not working correctly.
 - Fixed issue where multiple ajax-based forms on a single page would have validation triggered across all forms.
+- Fixed incorrect error being shown when custom server-side errors for fields are defined.
+- Fixed an error when an email notification's sender email wasn't properly filtered.
+- Fixed incorrect output in email notifications when using date fields.
 
 ## 1.3.2 - 2020-11-28
 
