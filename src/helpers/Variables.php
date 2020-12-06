@@ -4,6 +4,7 @@ namespace verbb\formie\helpers;
 use verbb\formie\Formie;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
+use verbb\formie\fields\formfields\Date;
 
 use Craft;
 use craft\errors\SiteNotFoundException;
@@ -297,11 +298,21 @@ class Variables
         // For now, only handle element fields, which need HTML generated
         if ($submission && $submission->getFieldLayout()) {
             foreach ($submission->getFieldLayout()->getFields() as $field) {
+                // Element fields
                 if ($field instanceof BaseRelationField) {
                     $parsedContent = $parsedFieldContent[$field->handle] ?? '';
 
                     if ($parsedContent) {
                         $values[$field->handle . '_html'] = $parsedContent;
+                    }
+                }
+
+                // Date fields
+                if ($field instanceof Date) {
+                    $parsedContent = $submission[$field->handle] ?? '';
+
+                    if ($parsedContent && $parsedContent instanceof DateTime) {
+                        $values[$field->handle] = $parsedContent->format('Y-m-d H:i:s');
                     }
                 }
             }
