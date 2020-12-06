@@ -76,8 +76,8 @@ class Emails extends Component
         $fromEmail = Variables::getParsedValue((string)$notification->from, $submission, $form) ?: $craftMailSettings->fromEmail;
         $fromName = Variables::getParsedValue((string)$notification->fromName, $submission, $form) ?: $craftMailSettings->fromName;
 
-        $fromEmail = Craft::parseEnv($fromEmail);
-        $fromName = Craft::parseEnv($fromName);
+        $fromEmail = $this->_getFilteredString($fromEmail);
+        $fromName = $this->_getFilteredString($fromName);
 
         if ($fromEmail) {
             $newEmail->setFrom($fromEmail);
@@ -390,6 +390,11 @@ class Emails extends Component
         return $html->getText();
     }
 
+    private function _getFilteredString($string)
+    {
+        return Craft::parseEnv(trim($string));
+    }
+
     private function _getParsedEmails($emails)
     {
         $emails = str_replace(';', ',', $emails);
@@ -397,7 +402,7 @@ class Emails extends Component
         $emailsEnv = [];
 
         foreach (array_filter($emails) as $email) {
-            $emailsEnv[] = Craft::parseEnv($email);
+            $emailsEnv[] = Craft::parseEnv(trim($email));
         }
 
         return $emailsEnv;
