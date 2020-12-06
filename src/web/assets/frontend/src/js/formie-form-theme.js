@@ -117,6 +117,11 @@ export class FormieFormTheme {
             var $fieldContainer = $field.closest('.fui-field');
             var message = $field.getAttribute('data-fui-message');
 
+            // If there's a server error, it takes priority.
+            if (e.detail && e.detail.errors && e.detail.errors.serverMessage) {
+                message = e.detail.errors.serverMessage;
+            }
+
             // Check if we need to move the error out of the .fui-input-container node.
             // Only the input itself should be in here.
             var $errorToMove = $field.parentNode.querySelector('.fui-error-message');
@@ -435,7 +440,7 @@ export class FormieFormTheme {
                 const $field = document.querySelector(`[name="fields[${handle}]"]`);
 
                 if ($field) {
-                    this.validator.showError($field, { customMessage: error });
+                    this.validator.showError($field, { serverMessage: error });
 
                     // Focus on the first error
                     if (index === 0) {
