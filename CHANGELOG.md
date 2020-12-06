@@ -2,14 +2,44 @@
 
 ## Unreleased
 
+> {warning} If you are overriding templates for `field.html`, you **must** update your template to include `data-field-config="{{ field.getConfigJson(form) | json_encode | raw }}"`. This is the new and improved method for fields to define their config settings, picked up by JavaScript classes. Without making this change, field JS will not work. Refer to [this commit]().
+
+### Added
+- Added `defaultState` for GraphQL queries for Agree fields. This replaces `defaultValue`.
+- Added `defaultDate` for GraphQL queries for Date fields. This replaces `defaultValue`.
+- Added “Current URL” to hidden field default value options.
+- Added `data-field-config` attribute to all fields that require JS.
+- Added `getConfigJson()` for all fields to define settings for JS modules.
+
 ### Changed
 - Formie now requires Craft 3.5+.
 - Form queries via GraphQL are now no longer automatically included in the public schema.
 - Submission queries via GraphQL are now no longer automatically included in the public schema.
 - Submission mutatons via GraphQL are now no longer automatically included in the public schema.
+- When (soft) deleting a form, any submissions will also be (soft) deleted. These are also retored if the form is restored.
+- Refactor JS behaviour for fields that require it. We now use a `data-field-config` attribute on the field to store JS module settings. This is then initialized once the JS has been lazy-loaded. This allows us to split configuration from initialization and may also help with custom JS.
+- Renamed `Field::getFrontEndJsVariables()` to `Field::getFrontEndJsModules()`.
+- Improve handling of multi-page non-ajax forms, where some fields required JS. Formie now detects what JS needs to be used for the current page for a page-reload form, or the entire form for an ajax form.
+- Improve field JS to stop relying on IDs or classes to hook into field functionality. It now determines this through `data-field-config` attribute on the field wrapper element. This should allow for greater template flexibility.
+- Submissions now make use of the same JS/CSS code that the front-end does.
 
 ### Fixed
-- Fix errors when garbage collection is called for sent notifications.
+- Fixed errors when garbage collection is called for sent notifications.
+- Fixed when deleting a form, the submissions for that form weren't also deleted.
+- Fixed an error when trying to view a submission on a deleted form.
+- Fixed some GraphQL attributes not being cast to the correct type.
+- Fixed some GraphQL errors for some fields.
+- Fixed an error when trying to permanently delete a form.
+- Fixed an error with date field using a default value.
+- Fixed console error for multi-page non-ajax forms containing a phone field.
+- Fixed repeater and group fields not initializing their inner fields’ JS.
+- Fixed JS module code for fields being loaded multiple times when initially loading the page.
+- Fixed an error for address providers when used in a Repeater field.
+- Fixed address providers not checking if their provider JS is loaded correctly, in some instances.
+- Fixed multi-line rich text fields loading Font Awesome multiple times.
+- Fixed checkbox/radio fields not validation correctly inside a Repeater field.
+- Fixed warnings/errors for JS fields, where their inputs might not exist on a page.
+- Fix Algolia Places not working correctly.
 
 ## 1.3.2 - 2020-11-28
 
