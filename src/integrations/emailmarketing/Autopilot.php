@@ -78,6 +78,10 @@ class Autopilot extends EmailMarketing
                         'required' => true,
                     ]),
                     new IntegrationField([
+                        'handle' => 'Title',
+                        'name' => Craft::t('formie', 'Title'),
+                    ]),
+                    new IntegrationField([
                         'handle' => 'FirstName',
                         'name' => Craft::t('formie', 'First Name'),
                     ]),
@@ -86,8 +90,20 @@ class Autopilot extends EmailMarketing
                         'name' => Craft::t('formie', 'Last Name'),
                     ]),
                     new IntegrationField([
+                        'handle' => 'Salutation',
+                        'name' => Craft::t('formie', 'Salutation'),
+                    ]),
+                    new IntegrationField([
                         'handle' => 'Company',
                         'name' => Craft::t('formie', 'Company'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'NumberOfEmployees',
+                        'name' => Craft::t('formie', 'Number Of Employees'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'Industry',
+                        'name' => Craft::t('formie', 'Industry'),
                     ]),
                     new IntegrationField([
                         'handle' => 'Phone',
@@ -98,8 +114,36 @@ class Autopilot extends EmailMarketing
                         'name' => Craft::t('formie', 'Mobile Phone'),
                     ]),
                     new IntegrationField([
+                        'handle' => 'Fax',
+                        'name' => Craft::t('formie', 'Fax'),
+                    ]),
+                    new IntegrationField([
                         'handle' => 'Website',
                         'name' => Craft::t('formie', 'Website'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'MailingStreet',
+                        'name' => Craft::t('formie', 'Mailing Street'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'MailingCity',
+                        'name' => Craft::t('formie', 'Mailing City'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'MailingState',
+                        'name' => Craft::t('formie', 'Mailing State'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'MailingPostalCode',
+                        'name' => Craft::t('formie', 'Mailing Postal Code'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'MailingCountry',
+                        'name' => Craft::t('formie', 'Mailing Postal Country'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'owner_name',
+                        'name' => Craft::t('formie', 'Owner Name'),
                     ]),
                     new IntegrationField([
                         'handle' => 'LeadSource',
@@ -108,6 +152,18 @@ class Autopilot extends EmailMarketing
                     new IntegrationField([
                         'handle' => 'Status',
                         'name' => Craft::t('formie', 'Status'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'Twitter',
+                        'name' => Craft::t('formie', 'Twitter'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'LinkedIn',
+                        'name' => Craft::t('formie', 'LinkedIn'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'unsubscribed',
+                        'name' => Craft::t('formie', 'Unsubscribed'),
                     ]),
                 ], $this->_getCustomFields($fields));
             
@@ -146,6 +202,20 @@ class Autopilot extends EmailMarketing
             $website = ArrayHelper::remove($fieldValues, 'Website');
             $leadSource = ArrayHelper::remove($fieldValues, 'LeadSource');
             $status = ArrayHelper::remove($fieldValues, 'Status');
+            $title = ArrayHelper::remove($fieldValues, 'Title');
+            $salutation = ArrayHelper::remove($fieldValues, 'Salutation');
+            $numberOfEmployees = ArrayHelper::remove($fieldValues, 'NumberOfEmployees');
+            $industry = ArrayHelper::remove($fieldValues, 'Industry');
+            $fax = ArrayHelper::remove($fieldValues, 'Fax');
+            $mailingStreet = ArrayHelper::remove($fieldValues, 'MailingStreet');
+            $mailingCity = ArrayHelper::remove($fieldValues, 'MailingCity');
+            $mailingState = ArrayHelper::remove($fieldValues, 'MailingState');
+            $mailingPostalCode = ArrayHelper::remove($fieldValues, 'MailingPostalCode');
+            $mailingCountry = ArrayHelper::remove($fieldValues, 'MailingCountry');
+            $owner_name = ArrayHelper::remove($fieldValues, 'owner_name');
+            $twitter = ArrayHelper::remove($fieldValues, 'Twitter');
+            $linkedIn = ArrayHelper::remove($fieldValues, 'LinkedIn');
+            $unsubscribed = ArrayHelper::remove($fieldValues, 'unsubscribed');
 
             $payload = [
                 'contact' => [
@@ -158,9 +228,24 @@ class Autopilot extends EmailMarketing
                     'Website' => $website,
                     'LeadSource' => $leadSource,
                     'Status' => $status,
+                    'MailingCity' => $mailingCity,
+                    'Title' => $title,
+                    'Salutation' => $salutation,
+                    'NumberOfEmployees' => $numberOfEmployees,
+                    'Industry' => $industry,
+                    'Fax' => $fax,
+                    'MailingStreet' => $mailingStreet,
+                    'MailingCity' => $mailingCity,
+                    'MailingState' => $mailingState,
+                    'MailingPostalCode' => $mailingPostalCode,
+                    'MailingCountry' => $mailingCountry,
+                    'owner_name' => $owner_name,
+                    'Twitter' => $twitter,
+                    'LinkedIn' => $linkedIn,
+                    'unsubscribed' => $unsubscribed,
+                    '_autopilot_list' => $this->listId,
+                    'custom' => $fieldValues,
                 ],
-                '_autopilot_list' => $this->listId,
-                'custom' => $fieldValues,
             ];
 
             $response = $this->deliverPayload($submission, 'contact', $payload);
