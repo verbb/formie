@@ -34,8 +34,8 @@
 
 <script>
 import find from 'lodash/find';
-import { Editor, EditorContent, EditorMenuBar } from 'tiptap';
-import { Blockquote, Heading, OrderedList, BulletList, ListItem, Bold, Italic, Strike, Underline, Table, TableHeader, TableCell, TableRow } from 'tiptap-extensions';
+import { Editor, EditorContent, EditorMenuBar, Extension } from 'tiptap';
+import { Blockquote, Heading, OrderedList, BulletList, ListItem, Bold, Italic, Strike, Underline, Table, TableHeader, TableCell, TableRow, HardBreak } from 'tiptap-extensions';
 import VariableTag from '../variables/VariableTag';
 import Link from './Link';
 import EditorSource from './EditorSource.vue';
@@ -150,7 +150,9 @@ export default {
 
     methods: {
         getExtensions() {
-            var extensions = [];
+            var extensions = [
+                new HardBreak(),
+            ];
 
             var { buttons } = this;
 
