@@ -71,6 +71,7 @@ class Form extends Element
     private $_submitActionEntry;
     private $_notifications;
     private $_editingSubmission;
+    private $_formId;
 
 
     // Static
@@ -484,7 +485,11 @@ class Form extends Element
      */
     public function getFormId()
     {
-        return "formie-form-{$this->id}";
+        if ($this->_formId) {
+            return $this->_formId;
+        }
+        
+        return $this->_formId = uniqid("formie-form-{$this->id}");
     }
 
     /**
@@ -977,6 +982,7 @@ class Form extends Element
         $registeredJs = array_values(array_unique(array_filter($registeredJs), SORT_REGULAR));
 
         return [
+            'formHashId' => $this->getFormId(),
             'formId' => $this->id,
             'formHandle' => $this->handle,
             'registeredJs' => $registeredJs,

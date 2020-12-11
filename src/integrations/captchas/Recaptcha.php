@@ -105,7 +105,7 @@ class Recaptcha extends Captcha
     {
         $settings = [
             'siteKey' => Craft::parseEnv($this->siteKey),
-            'formId' => 'formie-form-' . $form->id,
+            'formId' => $form->getFormId(),
             'theme' => $this->theme,
             'size' => $this->size,
             'badge' => $this->badge,
