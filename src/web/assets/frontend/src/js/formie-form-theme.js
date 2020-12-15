@@ -542,7 +542,7 @@ export class FormieFormTheme {
 
         $allPages.forEach($page => {
             // Show the current page
-            if ($page.id === 'formie-p-' + data.nextPageId) {
+            if ($page.id === `${this.getPageId(data.nextPageId)}`) {
                 $page.classList.remove('fui-hidden');
             } else {
                 $page.classList.add('fui-hidden');
@@ -577,7 +577,11 @@ export class FormieFormTheme {
     }
 
     setCurrentPage(pageId) {
-        this.currentPageId = `#formie-p-${pageId}`;
+        this.currentPageId = `#${this.getPageId(pageId)}`;
         this.$currentPage = document.querySelector(this.currentPageId);
+    }
+
+    getPageId(pageId) {
+        return `${this.config.formHashId}-p-${pageId}`;
     }
 }
