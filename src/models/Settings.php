@@ -88,6 +88,8 @@ class Settings extends Model
     public $sentNotifications = true;
     public $alertEmails;
 
+    public $captchas = [];
+
 
     // Public Methods
     // =========================================================================
