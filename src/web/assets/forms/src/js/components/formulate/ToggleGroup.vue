@@ -19,9 +19,12 @@ export default {
                 model = this.$editingField.field;
             }
 
-            if (Vue.prototype.$editingNotification) {
-                model = Vue.prototype.$editingNotification.notification;
+            if (this.$editingNotification) {
+                model = this.$editingNotification.notification;
             }
+
+            console.log(this.$editingNotification);
+            // console.log(this.$editingField);
 
             return parse(this.$attrs.conditional, model);
         },

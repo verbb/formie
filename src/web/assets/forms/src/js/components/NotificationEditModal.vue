@@ -130,16 +130,24 @@ export default {
     },
 
     destroy() {
-        Vue.prototype.$editingNotification = null;
+        this.destroy();
     },
 
     methods: {
+        destroy() {
+            Vue.prototype.$editingNotification = null;
+        },
+        
         hideModal() {
             this.$emit('close');
+
+            this.destroy();
         },
 
         deleteNotification() {
             this.$emit('delete');
+
+            this.destroy();
         },
 
         tabErrorClass(tab) {
