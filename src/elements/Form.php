@@ -928,7 +928,7 @@ class Form extends Element
             // Send the site-relative root. This is to ensure submission requests are setup
             // to go to the root of a multi site. Important for sub-directory setups where
             // posting to '/' would be the incorrect primary site.
-            'siteRootUrl' => UrlHelper::siteUrl(''),
+            'siteRootUrl' => rtrim(UrlHelper::siteUrl(''), '/'),
 
             'submitMethod' => $this->settings->submitMethod,
             'submitActionMessage' => $this->settings->getSubmitActionMessage() ?? '',
