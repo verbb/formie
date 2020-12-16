@@ -48,7 +48,7 @@ abstract class FormField extends Field implements FormFieldInterface
             return parent::__set($name, $value);
         } catch (UnknownPropertyException $e) {
             // Let it slide, but log it, _just_ in case.
-            Formie::log(Craft::t('formie', '{message} {file}:{line}', [
+            Formie::log(Craft::t('app', '{message} {file}:{line}', [
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
