@@ -629,12 +629,9 @@ class Integrations extends Component
 
             // Load in any settings from PC
             $config = $settings->captchas[$class->getHandle()] ?? [];
+            $config['type'] = $captchaClass;
 
-            if ($config) {
-                $config['type'] = $captchaClass;
-
-                $captchas[] = $this->createIntegration($config);
-            }
+            $captchas[] = $this->createIntegration($config);
         }
 
         return $captchas;
