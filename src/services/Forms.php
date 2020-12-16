@@ -15,6 +15,7 @@ use verbb\formie\records\Form as FormRecord;
 
 use Craft;
 use craft\base\Component;
+use craft\db\Query;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Db;
 use craft\helpers\DateTimeHelper;
@@ -63,6 +64,16 @@ class Forms extends Component
     {
         $query = Form::find()->handle($handle)->siteId($siteId);
         return $query->one();
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getFormRecord($formId)
+    {
+        $result = $this->_createFormsQuery($formId)->one();
+
+        return ($result) ? new Form($result) : null;
     }
 
     /**
@@ -809,6 +820,25 @@ class Forms extends Component
 
     // Private Methods
     // =========================================================================
+
+    /**
+     * Returns a Query object prepped for retrieving forms.
+     *
+     * @return Query
+     */
+    private function _createFormsQuery($formId): Query
+    {
+        return (new Query())
+            ->select([
+                'id',
+                'handle',
+                'fieldLayoutId',
+                'fieldContentTable',
+                'uid',
+            ])
+            ->from(['{{%formie_forms}}'])
+            ->where(['id' => $formId]);
+    }
 
     /**
      * Creates the content table for a form.

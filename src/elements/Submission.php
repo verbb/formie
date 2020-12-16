@@ -417,8 +417,8 @@ class Submission extends Element
      */
     public function getFieldContext(): string
     {
-        if (!$this->_fieldContext && $this->getForm()) {
-            $this->_fieldContext = "formie:{$this->getForm()->uid}";
+        if (!$this->_fieldContext && $this->getFormRecord()) {
+            $this->_fieldContext = "formie:{$this->getFormRecord()->uid}";
         }
 
         return $this->_fieldContext;
@@ -429,8 +429,8 @@ class Submission extends Element
      */
     public function getContentTable(): string
     {
-        if (!$this->_contentTable && $this->getForm()) {
-            $this->_contentTable = $this->getForm()->fieldContentTable;
+        if (!$this->_contentTable && $this->getFormRecord()) {
+            $this->_contentTable = $this->getFormRecord()->fieldContentTable;
         }
 
         return $this->_contentTable;
@@ -480,6 +480,20 @@ class Submission extends Element
     {
         $this->_form = $form;
         $this->formId = $form->id;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getFormRecord()
+    {
+        if ($this->formId) {
+            if ($form = Formie::$plugin->getForms()->getFormRecord($this->formId)) {
+                return $form;
+            }
+        }
+
+        return null;
     }
 
     /**
