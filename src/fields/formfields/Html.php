@@ -9,8 +9,7 @@ use Craft;
 use craft\base\ElementInterface;
 use craft\helpers\StringHelper;
 
-use HTMLPurifier_Config;
-use HTMLPurifier;
+use craft\helpers\HTMLPurifier;
 
 class Html extends FormField
 {
@@ -56,9 +55,7 @@ class Html extends FormField
      */
     public function getRenderedHtmlContent()
     {
-        $config = HTMLPurifier_Config::createDefault();
-        $purifier = new HTMLPurifier($config);
-        $htmlContent = $purifier->purify($this->htmlContent);
+        $htmlContent = HTMLPurifier::process($this->htmlContent);
 
         return Craft::$app->getView()->renderString($htmlContent);
     }
