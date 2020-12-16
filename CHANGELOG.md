@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.3.4 - 2020-12-16
 
 ### Added
 - Added `formie.cp.submissions.edit` template hook.
@@ -9,6 +9,19 @@
 - Added `formie.cp.sentNotifications.edit` template hook.
 - Added `formie.cp.sentNotifications.edit.content` template hook.
 - Added `formie.cp.sentNotifications.edit.details` template hook.
+- Update Autopilot integration to include more default fields and fix list-subscribing.
+- Added ability to add soft line-breaks to email notifications and other rich-text enable fields.
+
+### Changed
+- Pages now have a unique ID, inherited from the form’s `formId`.
+
+### Fixed
+- Fixed rendering the same form multiple times on a page not working correctly.
+- Fixed “Unknown Integration” error message when trying to connect an integration with `allowAdminChanges = false`.
+- Fixed captcha settings resetting when saving plugin settings.
+- Fixed the `siteRootUrl` to trim the trailing slash if present. This is an issue on some systems (Servd) where URLs with a trailing slash are redirected.
+- Fixed field/notification edit modals not getting properly reset when hidden.
+- Fixed HTML field errors when the vendor folder didn’t have write permissions (such as Servd).
 
 ## 1.3.3 - 2020-12-06
 
