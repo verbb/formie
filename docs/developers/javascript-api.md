@@ -292,7 +292,7 @@ $('#formie-form-1').on('onAfterFormieSubmit', function(e) {
 
 
 ### The `onFormieSubmitError` event
-The event that is triggered if an error of submission is detected. This can also be called manually through `formSubmitError()`.
+The event that is triggered if an error on submission is detected. This can also be called manually through `formSubmitError()`.
 
 ```js
 let $form = document.querySelector('#formie-form-1');
@@ -426,7 +426,7 @@ public function getFrontEndJs(Form $form)
 
 The `getFrontEndJs()` should return an array. The `src` key should provide the full URL to the JS asset containing the main code for your field - if required. The `onload` key should provide JavaScript code that is executed once the JS file has been loaded.
 
-The above shows the `repeater.js` field needs to be loaded. This contains a `FormieRepeater` JS class that contains all functionality required to make the Repeater field work. We also need to provide a means to actually initialise this class, through the `onload function`. We're also passing some options to the constructor of this JS class.
+The above shows the `repeater.js` file needs to be loaded. This contains a `FormieRepeater` JS class that contains all functionality required to make the Repeater field work. We also need to provide a means to actually initialise this class, through the `onload function`. We're also passing some options to the constructor of this JS class.
 
 This content is then lazy-loaded once the `formie.js` factory has loaded, and the form is initialised.
 
