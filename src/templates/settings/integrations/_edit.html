@@ -124,25 +124,34 @@
         {% set connected = integration.getIsConnected() %}
 
         {% if integration.supportsOauthConnection() %}
-            {% if connected %}
-                <div class="field lightswitch-field fui-connect">
-                    <div class="heading">
-                        <span class="status on"></span>{{ 'Connected' | t('formie') }}
-                    </div>
-
-                    <div class="input ltr">
-                        <a class="btn small formsubmit" data-action="formie/integrations/disconnect" data-param="integrationId" data-value="{{ integration.id }}">{{ 'Disconnect' | t('formie') }}</a>
-                    </div>
-                </div>
+            {% if not craft.app.config.general.allowAdminChanges %}
+                <form class="field lightswitch-field fui-connect" method="post" accept-charset="UTF-8">
+                    {{ csrfInput() }}
             {% else %}
                 <div class="field lightswitch-field fui-connect">
-                    <div class="heading">
-                        <span class="status"></span>{{ 'Not connected' | t('formie') }}
-                    </div>
+            {% endif %}
 
-                    <div class="input ltr">
-                        <a class="btn small formsubmit" data-action="formie/integrations/connect" data-param="integrationId" data-value="{{ integration.id }}">{{ 'Connect' | t('formie') }}</a>
-                    </div>
+            {% if connected %}
+                <div class="heading">
+                    <span class="status on"></span>{{ 'Connected' | t('formie') }}
+                </div>
+
+                <div class="input ltr">
+                    <a class="btn small formsubmit" data-action="formie/integrations/disconnect" data-param="integrationId" data-value="{{ integration.id }}">{{ 'Disconnect' | t('formie') }}</a>
+                </div>
+            {% else %}
+                <div class="heading">
+                    <span class="status"></span>{{ 'Not connected' | t('formie') }}
+                </div>
+
+                <div class="input ltr">
+                    <a class="btn small formsubmit" data-action="formie/integrations/connect" data-param="integrationId" data-value="{{ integration.id }}">{{ 'Connect' | t('formie') }}</a>
+                </div>
+            {% endif %}
+
+            {% if not craft.app.config.general.allowAdminChanges %}
+                </form>
+            {% else %}
                 </div>
             {% endif %}
         {% elseif integration.supportsConnection() %}
