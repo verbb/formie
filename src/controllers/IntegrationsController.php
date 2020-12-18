@@ -382,9 +382,7 @@ class IntegrationsController extends Controller
             return null;
         }
 
-        $integration->tokenId = $token->id;
-
-        if (!Formie::$plugin->getIntegrations()->saveIntegration($integration)) {
+        if (!Formie::$plugin->getIntegrations()->updateIntegrationToken($integration, $token->id)) {
             $error = Craft::t('formie', 'Unable to save integration - {errors}.', [
                 'errors' => Json::encode($integration->getErrors()),
             ]);
@@ -426,9 +424,7 @@ class IntegrationsController extends Controller
             return null;
         }
 
-        $integration->tokenId = null;
-
-        if (!Formie::$plugin->getIntegrations()->saveIntegration($integration)) {
+        if (!Formie::$plugin->getIntegrations()->updateIntegrationToken($integration, null)) {
             $error = Craft::t('formie', 'Unable to update integration - {errors}.', [
                 'errors' => Json::encode($integration->getErrors()),
             ]);

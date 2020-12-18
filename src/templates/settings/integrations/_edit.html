@@ -125,7 +125,7 @@
 
         {% if integration.supportsOauthConnection() %}
             {% if not craft.app.config.general.allowAdminChanges %}
-                <form class="field lightswitch-field fui-connect" method="post" accept-charset="UTF-8">
+                <form id="main-form" class="field lightswitch-field fui-connect" method="post" accept-charset="UTF-8">
                     {{ csrfInput() }}
             {% else %}
                 <div class="field lightswitch-field fui-connect">

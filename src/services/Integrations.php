@@ -345,6 +345,17 @@ class Integrations extends Component
     }
 
     /**
+     * @inheritDoc
+     */
+    public function updateIntegrationToken(IntegrationInterface $integration, $token)
+    {
+        // Direct DB update to keep it out of PC, plus speed
+        return Craft::$app->getDb()->createCommand()
+            ->update('{{%formie_integrations}}', ['tokenId' => $token], ['id' => $integration->id])
+            ->execute();
+    }
+
+    /**
      * Handle integration change
      *
      * @param ConfigEvent $event
