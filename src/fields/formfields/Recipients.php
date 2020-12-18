@@ -292,7 +292,7 @@ class Recipients extends FormField
             $value = StringHelper::decdec($value);
 
             // Check if this was an array of data
-            if (is_string($value) && self::isJsonObject($value)) {
+            if (is_string($value) && Json::isJsonObject($value)) {
                 $value = implode(',', array_filter(Json::decode($value)));
             }
         }
