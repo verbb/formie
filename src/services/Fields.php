@@ -79,6 +79,7 @@ class Fields extends Component
 
     private $_fields = [];
     private $_layoutsById = [];
+    private $_existingFields = [];
 
 
     // Public Methods
@@ -266,6 +267,10 @@ class Fields extends Component
      */
     public function getExistingFields($excludeForm = null): array
     {
+        if ($this->_existingFields !== null) {
+            return $this->_existingFields;
+        }
+
         $query = Form::find()->orderBy('title ASC');
 
         // Exclude the current form.
@@ -360,7 +365,7 @@ class Fields extends Component
         ]);
         $this->trigger(self::EVENT_MODIFY_EXISTING_FIELDS, $event);
 
-        return $event->fields;
+        return $this->_existingFields = $event->fields;
     }
 
     /**

@@ -73,6 +73,8 @@ class Entries extends CraftEntries implements FormFieldInterface
      */
     protected $inputTemplate = 'formie/_includes/elementSelect';
 
+    private $_sourceOptions;
+
 
     // Public Methods
     // =========================================================================
@@ -196,6 +198,10 @@ class Entries extends CraftEntries implements FormFieldInterface
         $options = [];
         $optionNames = [];
 
+        if ($this->_sourceOptions !== null) {
+            return $this->_sourceOptions;
+        }
+
         foreach ($this->availableSources() as $source) {
             // Make sure it's not a heading
             if (!isset($source['heading'])) {
@@ -226,7 +232,7 @@ class Entries extends CraftEntries implements FormFieldInterface
         // Sort alphabetically
         array_multisort($optionNames, SORT_NATURAL | SORT_FLAG_CASE, $options);
 
-        return $options;
+        return $this->_sourceOptions = $options;
     }
 
     /**

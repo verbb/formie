@@ -36,6 +36,8 @@ class FormTemplate extends BaseTemplate
     public $outputCssLocation = self::PAGE_HEADER;
     public $outputJsLocation = self::PAGE_FOOTER;
 
+    private $_fieldLayout;
+
 
     // Public Methods
     // =========================================================================
@@ -68,9 +70,14 @@ class FormTemplate extends BaseTemplate
      */
     public function getFieldLayout(): FieldLayout
     {
+        if ($this->_fieldLayout !== null) {
+            return $this->_fieldLayout;
+        }
+
         /** @var FieldLayoutBehavior $behavior */
         $behavior = $this->getBehavior('fieldLayout');
-        return $behavior->getFieldLayout();
+
+        return $this->_fieldLayout = $behavior->getFieldLayout();
     }
 
     /**

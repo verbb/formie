@@ -32,6 +32,8 @@ class Notifications extends Component
     const EVENT_AFTER_DELETE_NOTIFICATION = 'afterDeleteNotification';
     const EVENT_MODIFY_EXISTING_NOTIFICATIONS = 'modifyExistingNotifications';
 
+    private $_existingNotifications;
+
 
     // Public Methods
     // =========================================================================
@@ -281,6 +283,10 @@ class Notifications extends Component
      */
     public function getExistingNotifications($excludeForm = null): array
     {
+        if ($this->_existingNotifications !== null) {
+            return $this->_existingNotifications;
+        }
+
         $query = Form::find()->orderBy('title ASC');
 
         // Exclude the current form.
@@ -321,7 +327,7 @@ class Notifications extends Component
         ]);
         $this->trigger(self::EVENT_MODIFY_EXISTING_NOTIFICATIONS, $event);
 
-        return $event->notifications;
+        return $this->_existingNotifications = $event->notifications;
     }
 
     /**

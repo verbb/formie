@@ -66,12 +66,17 @@ class Form extends Element
     // Private Properties
     // =========================================================================
 
+    private $_fieldLayout;
+    private $_formFieldLayout;
+    private $_fields;
+    private $_pages;
     private $_template;
     private $_defaultStatus;
     private $_submitActionEntry;
     private $_notifications;
     private $_editingSubmission;
     private $_formId;
+    private static $_layoutsByType;
 
 
     // Static
@@ -167,6 +172,18 @@ class Form extends Element
         }
 
         return $sources;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected static function defineFieldLayouts(string $source): array
+    {
+        if (self::$_layoutsByType !== null) {
+            return self::$_layoutsByType;
+        }
+        
+        return self::$_layoutsByType = Craft::$app->getFields()->getLayoutsByType(static::class);
     }
 
     /**
@@ -282,9 +299,14 @@ class Form extends Element
      */
     public function getFormFieldLayout()
     {
+        if ($this->_formFieldLayout !== null) {
+            return $this->_formFieldLayout;
+        }
+
         /* @var FieldLayoutBehavior $behavior */
         $behavior = $this->getBehavior('fieldLayout');
-        return $behavior->getFieldLayout();
+        
+        return $this->_formFieldLayout = $behavior->getFieldLayout();
     }
 
     /**
@@ -302,6 +324,10 @@ class Form extends Element
      */
     public function getFieldLayout()
     {
+        if ($this->_fieldLayout !== null) {
+            return $this->_fieldLayout;
+        }
+
         try {
             $template = $this->getTemplate();
         } catch (InvalidConfigException $e) {
@@ -313,7 +339,7 @@ class Form extends Element
             return null;
         }
 
-        return $template->getFieldLayout();
+        return $this->_fieldLayout = $template->getFieldLayout();
     }
 
     /**
@@ -507,6 +533,10 @@ class Form extends Element
      */
     public function getPages(): array
     {
+        if ($this->_pages !== null) {
+            return $this->_pages;
+        }
+
         // Check for a deleted form
         try {
             $fieldLayout = $this->getFormFieldLayout();
@@ -518,7 +548,7 @@ class Form extends Element
             return [];
         }
 
-        return $fieldLayout->getTabs();
+        return $this->_pages = $fieldLayout->getTabs();
     }
 
     /**
@@ -806,13 +836,17 @@ class Form extends Element
      */
     public function getFields(): array
     {
+        if ($this->_fields !== null) {
+            return $this->_fields;
+        }
+
         $fieldLayout = $this->getFormFieldLayout();
 
         if (!$fieldLayout) {
             return [];
         }
 
-        return $fieldLayout->getFields();
+        return $this->_fields = $fieldLayout->getFields();
     }
 
     /**
