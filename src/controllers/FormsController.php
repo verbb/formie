@@ -181,6 +181,9 @@ class FormsController extends Controller
         $notifications = $form->getNotifications();
         $notificationsConfig = Formie::$plugin->getNotifications()->getNotificationsConfig($notifications);
 
+        // Check if we need to update the permissions for this user.
+        $this->_updateFormPermission($form);
+
         if ($request->getAcceptsJson()) {
             return $this->asJson([
                 'success' => true,
@@ -195,9 +198,6 @@ class FormsController extends Controller
         }
 
         Craft::$app->getSession()->setNotice(Craft::t('formie', 'Form saved.'));
-
-        // Check if we need to update the permissions for this user.
-        $this->_updateFormPermission($form);
 
         return $this->redirectToPostedUrl($form);
     }
