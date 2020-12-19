@@ -23,9 +23,6 @@ export default {
                 model = this.$editingNotification.notification;
             }
 
-            console.log(this.$editingNotification);
-            // console.log(this.$editingField);
-
             return parse(this.$attrs.conditional, model);
         },
     },

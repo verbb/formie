@@ -272,8 +272,6 @@ export default {
                 return { label: status.name, value: status.handle };
             });
 
-            // console.log(this.context.model);
-
             options.push({
                 label: Craft.t('formie', 'Submission'),
                 options: [
