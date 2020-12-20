@@ -394,7 +394,7 @@ class Forms extends Component
             $form->handle = $form->handle . rand();
 
             // Have to save to get an ID.
-            Formie::$plugin->getForms()->saveForm($form, false);
+            // Formie::$plugin->getForms()->saveForm($form);
         }
 
         if ($stencilId = $request->getParam('applyStencilId')) {
