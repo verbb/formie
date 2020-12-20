@@ -412,6 +412,22 @@ Event::on(Entries::class, Entries::EVENT_MODIFY_ELEMENT_QUERY, function(ModifyEl
 ```
 
 
+## HTML Field Events
+
+### The `modifyPurifierConfig` event
+The event that is triggered to modify the HTML Purifier config.
+
+```php
+use verbb\formie\events\ModifyPurifierConfigEvent;
+use verbb\formie\fields\formfields\Html;
+use HTMLPurifier_AttrDef_Text;
+use yii\base\Event;
+
+Event::on(Html::class, Html::EVENT_MODIFY_PURIFIER_CONFIG, function(ModifyPurifierConfigEvent $e) {
+    $e->config->getHTMLDefinition(true)->addAttribute('span', 'data-type', new HTMLPurifier_AttrDef_Text());
+});
+```
+
 
 ## Synced Field Events
 
