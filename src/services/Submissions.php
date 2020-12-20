@@ -565,7 +565,7 @@ class Submissions extends Component
 
                     if ($fieldLayout = $field->getFieldLayout()) {
                         $content = $this->_getFakeFieldContent($fieldLayout->getFields());
-                        $query->setFieldValues($content);
+                        $query->setFieldValues($content, $fieldLayout);
                     }
 
                     $fieldContent[$field->handle] = $query;

@@ -2,6 +2,8 @@
 namespace verbb\formie\helpers;
 
 use verbb\formie\Formie;
+use verbb\formie\base\NestedFieldInterface;
+use verbb\formie\base\SubFieldInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\fields\formfields\Date;
@@ -218,7 +220,10 @@ class Variables
                 'userLastName' => $userLastName,
             ];
 
-            // Special checks for some fields that generate HTML
+            // Old and deprecated methods. Ensure all fields are prefixed with 'field:', but too tricky to migrate...
+            $extras = array_merge($extras, self::_getParsedFieldValuesLegacy($form, $submission));
+
+            // Properly parse field values
             $extras = array_merge($extras, self::_getParsedFieldValues($form, $submission));
 
             self::$extras[$cacheKey] = $extras;
@@ -289,7 +294,7 @@ class Variables
     /**
      * @inheritdoc
      */
-    private static function _getParsedFieldValues($form, $submission)
+    private static function _getParsedFieldValuesLegacy($form, $submission)
     {
         $values = [];
 
@@ -319,5 +324,86 @@ class Variables
         }
 
         return $values;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    private static function _getParsedFieldValues($form, $submission)
+    {
+        $values = [];
+
+        if ($submission && $submission->getFieldLayout()) {
+            foreach ($submission->getFieldLayout()->getFields() as $field) {
+                $submissionValue = $submission->getFieldValue($field->handle);
+
+                $values = array_merge($values, self::_getParsedFieldValue($field, $submissionValue, $submission));
+            }
+        }
+
+        return self::_expandArray($values);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    private static function _getParsedFieldValue($field, $submissionValue, $submission)
+    {
+        $values = [];
+
+        $parsedContent = (string)$field->getEmailHtml($submission, $submissionValue);
+
+        $prefix = 'field.';
+
+        if ($field instanceof Date) {
+            if ($submissionValue && $submissionValue instanceof DateTime) {
+                $values["{$prefix}{$field->handle}"] = $submissionValue->format('Y-m-d H:i:s');
+            }
+        } else if ($field instanceof SubFieldInterface) {
+            foreach ($field->getSubFieldOptions() as $subfield) {
+                $handle = "{$prefix}{$field->handle}.{$subfield['handle']}";
+                
+                $values[$handle] = $submissionValue[$subfield['handle']] ?? '';
+            }
+        } else if ($field instanceof NestedFieldInterface) {
+            if ($submissionValue && $row = $submissionValue->one()) {
+                foreach ($row->getFieldLayout()->getFields() as $nestedField) {
+                    $submissionValue = $row->getFieldValue($nestedField->handle);
+                    $fieldValues = self::_getParsedFieldValue($nestedField, $submissionValue, $submission);
+
+                    foreach ($fieldValues as $key => $fieldValue) {
+                        $handle = "{$prefix}{$field->handle}." . str_replace($prefix, '', $key);
+
+                        $values[$handle] = $fieldValue;
+                    }
+                }
+            }
+        } else if ($parsedContent) {
+            $values["{$prefix}{$field->handle}"] = $parsedContent;
+        }
+
+        return $values;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    private static function _expandArray($array)
+    {
+        $result = [];
+
+        foreach ($array as $key => $value) {
+            if (is_array($value)) {
+                $value = self::_expandArray($value);
+            }
+
+            foreach (array_reverse(explode(".", $key)) as $key) {
+                $value = [$key => $value];
+            }
+
+            $result = array_merge_recursive($result, $value);
+        }
+
+        return $result;
     }
 }
