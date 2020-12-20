@@ -398,7 +398,10 @@ class SubmissionsController extends Controller
             $submission->isIncomplete = true;
         }
 
-        $submission->validate();
+        // Don't validate when going back
+        if (!$goingBack) {
+            $submission->validate();
+        }
 
         if ($submission->hasErrors()) {
             $errors = $submission->getErrors();
