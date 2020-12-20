@@ -50,6 +50,10 @@
             frameborder="0"
             style="width: 100%;"
         ></iframe>
+
+        <script id="template" type="text/template">
+            {{ sentNotification.htmlBody | raw }}
+        </script>
     </div>
 
     <div class="fui-email-footer"></div>
@@ -64,9 +68,11 @@ if ($iframes) {
     for (var i = 0; i < $iframes.length; i++) {
         var doc = $iframes[i].contentWindow.document;
 
+        var html = $iframes[i].parentNode.parentNode.querySelector('#template').innerHTML;
+
         if (doc) {
             doc.open();
-            doc.write('<html><head><title></title></head><body>{% spaceless %}{{ sentNotification.htmlBody | raw }}{% endspaceless %}</body></html>');
+            doc.write('<html><head><title></title></head><body>' + html + '</body></html>');
             doc.close();
         }
 
