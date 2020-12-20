@@ -82,14 +82,11 @@ abstract class BaseTemplate extends Model
             $oldTemplatesPath = $view->getTemplatesPath();
             $view->setTemplatesPath($templatesPath);
 
-            $path = Craft::$app->getPath()->getSiteTemplatesPath() . DIRECTORY_SEPARATOR . $this->$attribute;
-            $path = FileHelper::normalizePath($path);
-
-            if (!is_dir($path)) {
+            if (!$view->doesTemplateExist($this->$attribute)) {
                 $validator->addError(
                     $this,
                     $attribute,
-                    Craft::t('formie', 'The template directory does not exist.')
+                    Craft::t('formie', 'The template does not exist.')
                 );
             }
 
