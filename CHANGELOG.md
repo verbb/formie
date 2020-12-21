@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.3.6 - 2020-12-22
+
+### Fixed
+- Fixed element integrations not having their error messages translated correctly (and not containing the required logging detail).
+
 ## 1.3.5 - 2020-12-22
 
 ### Added
