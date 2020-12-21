@@ -226,6 +226,11 @@ class Variables
             // Properly parse field values
             $extras = array_merge($extras, self::_getParsedFieldValues($form, $submission));
 
+            // Add support for all global sets
+            foreach (Craft::$app->getGlobals()->getAllSets() as $globalSet) {
+                $extras[$globalSet->handle] = $globalSet;
+            }
+
             self::$extras[$cacheKey] = $extras;
         }
 
