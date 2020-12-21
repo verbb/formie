@@ -19,8 +19,8 @@ export default {
                 model = this.$editingField.field;
             }
 
-            if (this.$editingNotification) {
-                model = this.$editingNotification.notification;
+            if (Vue.prototype.$editingNotification) {
+                model = Vue.prototype.$editingNotification.notification;
             }
 
             return parse(this.$attrs.conditional, model);
