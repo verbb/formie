@@ -93,6 +93,7 @@ Provide autocomplete behaviour for your address fields. Drastically reduce user 
 Create elements from form submission data.
 
 - Entries
+- Users
 
 #### Email Marketing
 Add users who fill out your forms directly to your mailing lists.
@@ -120,7 +121,10 @@ Add users who fill out your forms directly to your mailing lists.
 Build your customer relationship data with ease, mapping form fields to contacts, leads and more.
 
 - ActiveCampaign
+- Agile CRM
 - Avochato
+- Capsule CRM
+- Copper CRM
 - Freshdesk
 - Freshsales
 - HubSpot
