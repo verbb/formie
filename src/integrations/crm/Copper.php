@@ -117,19 +117,19 @@ class Copper extends Crm
                 ]),
                 new IntegrationField([
                     'handle' => 'assignee_id',
-                    'name' => Craft::t('formie', 'assignee_id'),
+                    'name' => Craft::t('formie', 'Assignee'),
                 ]),
                 new IntegrationField([
                     'handle' => 'company_id',
-                    'name' => Craft::t('formie', 'company_id'),
+                    'name' => Craft::t('formie', 'Company'),
                 ]),
                 new IntegrationField([
                     'handle' => 'company_name',
-                    'name' => Craft::t('formie', 'company_name'),
+                    'name' => Craft::t('formie', 'Company Name'),
                 ]),
                 new IntegrationField([
                     'handle' => 'contact_type_id',
-                    'name' => Craft::t('formie', 'contact_type_id'),
+                    'name' => Craft::t('formie', 'Contact Type'),
                     'options' => [
                         'label' => Craft::t('formie', 'contact_type'),
                         'options' => $contactTypeOptions,
@@ -137,27 +137,27 @@ class Copper extends Crm
                 ]),
                 new IntegrationField([
                     'handle' => 'details',
-                    'name' => Craft::t('formie', 'details'),
+                    'name' => Craft::t('formie', 'Details'),
                 ]),
                 new IntegrationField([
                     'handle' => 'emails',
-                    'name' => Craft::t('formie', 'emails'),
+                    'name' => Craft::t('formie', 'Email'),
                 ]),
                 new IntegrationField([
                     'handle' => 'phone_numbers',
-                    'name' => Craft::t('formie', 'phone_numbers'),
+                    'name' => Craft::t('formie', 'Phone Number'),
                 ]),
                 new IntegrationField([
                     'handle' => 'socials',
-                    'name' => Craft::t('formie', 'socials'),
+                    'name' => Craft::t('formie', 'Social'),
                 ]),
                 new IntegrationField([
                     'handle' => 'title',
-                    'name' => Craft::t('formie', 'title'),
+                    'name' => Craft::t('formie', 'Title'),
                 ]),
                 new IntegrationField([
                     'handle' => 'websites',
-                    'name' => Craft::t('formie', 'websites'),
+                    'name' => Craft::t('formie', 'Website'),
                 ]),
             ], $this->_getCustomFields($fields, 'person'));
 
@@ -175,44 +175,44 @@ class Copper extends Crm
             $leadFields = array_merge([
                 new IntegrationField([
                     'handle' => 'name',
-                    'name' => Craft::t('formie', 'name'),
+                    'name' => Craft::t('formie', 'Name'),
                     'required' => true,
                 ]),
                 new IntegrationField([
                     'handle' => 'assignee_id',
-                    'name' => Craft::t('formie', 'assignee_id'),
+                    'name' => Craft::t('formie', 'Assignee'),
                 ]),
                 new IntegrationField([
                     'handle' => 'company_name',
-                    'name' => Craft::t('formie', 'company_name'),
+                    'name' => Craft::t('formie', 'Company Name'),
                 ]),
                 new IntegrationField([
                     'handle' => 'customer_source_id',
-                    'name' => Craft::t('formie', 'customer_source_id'),
+                    'name' => Craft::t('formie', 'Customer Source'),
                     'options' => [
-                        'label' => Craft::t('formie', 'contact_type'),
+                        'label' => Craft::t('formie', 'Customer Source'),
                         'options' => $customerSourceOptions,
                     ],
                 ]),
                 new IntegrationField([
                     'handle' => 'details',
-                    'name' => Craft::t('formie', 'details'),
+                    'name' => Craft::t('formie', 'Details'),
                 ]),
                 new IntegrationField([
                     'handle' => 'email',
-                    'name' => Craft::t('formie', 'email'),
+                    'name' => Craft::t('formie', 'Email'),
                 ]),
                 new IntegrationField([
                     'handle' => 'monetary_value',
-                    'name' => Craft::t('formie', 'monetary_value'),
+                    'name' => Craft::t('formie', 'Monetary Value'),
                 ]),
                 new IntegrationField([
                     'handle' => 'phone_numbers',
-                    'name' => Craft::t('formie', 'phone_numbers'),
+                    'name' => Craft::t('formie', 'Phone Number'),
                 ]),
                 new IntegrationField([
                     'handle' => 'socials',
-                    'name' => Craft::t('formie', 'socials'),
+                    'name' => Craft::t('formie', 'Social'),
                 ]),
                 new IntegrationField([
                     'handle' => 'status',
@@ -241,7 +241,7 @@ class Copper extends Crm
                 ]),
                 new IntegrationField([
                     'handle' => 'websites',
-                    'name' => Craft::t('formie', 'websites'),
+                    'name' => Craft::t('formie', 'Website'),
                 ]),
             ], $this->_getCustomFields($fields, 'lead'));
 
@@ -292,23 +292,23 @@ class Copper extends Crm
                 ]),
                 new IntegrationField([
                     'handle' => 'assignee_id',
-                    'name' => Craft::t('formie', 'assignee_id'),
+                    'name' => Craft::t('formie', 'Assignee'),
                 ]),
                 new IntegrationField([
                     'handle' => 'close_date',
-                    'name' => Craft::t('formie', 'close_date'),
+                    'name' => Craft::t('formie', 'Close Date'),
                 ]),
                 new IntegrationField([
                     'handle' => 'company_id',
-                    'name' => Craft::t('formie', 'company_id'),
+                    'name' => Craft::t('formie', 'Company'),
                 ]),
                 new IntegrationField([
                     'handle' => 'company_name',
-                    'name' => Craft::t('formie', 'company_name'),
+                    'name' => Craft::t('formie', 'Company Name'),
                 ]),
                 new IntegrationField([
                     'handle' => 'customer_source_id',
-                    'name' => Craft::t('formie', 'customer_source_id'),
+                    'name' => Craft::t('formie', 'Customer Source'),
                     'options' => [
                         'label' => Craft::t('formie', 'Customer Source'),
                         'options' => $sourceOptions,
@@ -316,11 +316,11 @@ class Copper extends Crm
                 ]),
                 new IntegrationField([
                     'handle' => 'details',
-                    'name' => Craft::t('formie', 'details'),
+                    'name' => Craft::t('formie', 'Details'),
                 ]),
                 new IntegrationField([
                     'handle' => 'loss_reason_id',
-                    'name' => Craft::t('formie', 'loss_reason_id'),
+                    'name' => Craft::t('formie', 'Loss Reason'),
                     'options' => [
                         'label' => Craft::t('formie', 'Loss Reason'),
                         'options' => $lossReasonOptions,
@@ -328,7 +328,7 @@ class Copper extends Crm
                 ]),
                 new IntegrationField([
                     'handle' => 'monetary_value',
-                    'name' => Craft::t('formie', 'monetary_value'),
+                    'name' => Craft::t('formie', 'Monetary Value'),
                 ]),
                 new IntegrationField([
                     'handle' => 'pipeline_id',
@@ -340,9 +340,9 @@ class Copper extends Crm
                 ]),
                 new IntegrationField([
                     'handle' => 'priority',
-                    'name' => Craft::t('formie', 'priority'),
+                    'name' => Craft::t('formie', 'Priority'),
                     'options' => [
-                        'label' => Craft::t('formie', 'Status'),
+                        'label' => Craft::t('formie', 'Priority'),
                         'options' => [
                             [
                                 'label' => Craft::t('formie', 'None'),
@@ -365,7 +365,7 @@ class Copper extends Crm
                 ]),
                 new IntegrationField([
                     'handle' => 'pipeline_stage_id',
-                    'name' => Craft::t('formie', 'pipeline_stage_id'),
+                    'name' => Craft::t('formie', 'Pipeline Stage'),
                     'options' => [
                         'label' => Craft::t('formie', 'Stages'),
                         'options' => $stageOptions,
@@ -373,7 +373,7 @@ class Copper extends Crm
                 ]),
                 new IntegrationField([
                     'handle' => 'status',
-                    'name' => Craft::t('formie', 'status'),
+                    'name' => Craft::t('formie', 'Status'),
                     'options' => [
                         'label' => Craft::t('formie', 'Status'),
                         'options' => [
@@ -398,37 +398,37 @@ class Copper extends Crm
                 ]),
                 new IntegrationField([
                     'handle' => 'win_probability',
-                    'name' => Craft::t('formie', 'win_probability'),
+                    'name' => Craft::t('formie', 'Win Probability'),
                 ]),
             ], $this->_getCustomFields($fields, 'opportunity'));
 
             $taskFields = array_merge([
                 new IntegrationField([
                     'handle' => 'name',
-                    'name' => Craft::t('formie', 'name'),
+                    'name' => Craft::t('formie', 'Name'),
                     'required' => true,
                 ]),
                 new IntegrationField([
                     'handle' => 'related_resource',
-                    'name' => Craft::t('formie', 'related_resource'),
+                    'name' => Craft::t('formie', 'Related Resource'),
                 ]),
                 new IntegrationField([
                     'handle' => 'assignee_id',
-                    'name' => Craft::t('formie', 'assignee_id'),
+                    'name' => Craft::t('formie', 'Assignee'),
                 ]),
                 new IntegrationField([
                     'handle' => 'due_date',
-                    'name' => Craft::t('formie', 'due_date'),
+                    'name' => Craft::t('formie', 'Due Date'),
                 ]),
                 new IntegrationField([
                     'handle' => 'reminder_date',
-                    'name' => Craft::t('formie', 'reminder_date'),
+                    'name' => Craft::t('formie', 'Reminder Date'),
                 ]),
                 new IntegrationField([
                     'handle' => 'priority',
-                    'name' => Craft::t('formie', 'priority'),
+                    'name' => Craft::t('formie', 'Priority'),
                     'options' => [
-                        'label' => Craft::t('formie', 'priority'),
+                        'label' => Craft::t('formie', 'Priority'),
                         'options' => [
                             [
                                 'label' => Craft::t('formie', 'None'),
@@ -443,9 +443,9 @@ class Copper extends Crm
                 ]),
                 new IntegrationField([
                     'handle' => 'status',
-                    'name' => Craft::t('formie', 'status'),
+                    'name' => Craft::t('formie', 'Status'),
                     'options' => [
-                        'label' => Craft::t('formie', 'status'),
+                        'label' => Craft::t('formie', 'Status'),
                         'options' => [
                             [
                                 'label' => Craft::t('formie', 'Open'),
@@ -460,7 +460,7 @@ class Copper extends Crm
                 ]),
                 new IntegrationField([
                     'handle' => 'details',
-                    'name' => Craft::t('formie', 'details'),
+                    'name' => Craft::t('formie', 'Details'),
                 ]),
             ], $this->_getCustomFields($fields, 'task'));
 

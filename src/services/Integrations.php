@@ -122,6 +122,7 @@ class Integrations extends Component
             crm\ActiveCampaign::class,
             crm\Agile::class,
             crm\Avochato::class,
+            crm\Capsule::class,
             crm\Copper::class,
             // crm\Creatio::class,
             crm\Freshdesk::class,
