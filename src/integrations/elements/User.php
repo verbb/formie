@@ -158,19 +158,19 @@ class User extends Element
             $user->setFieldValues($fieldValues);
 
             if (!$user->validate()) {
-                Formie::error('Unable to validate “{type}” element integration. Error: {error}.', [
+                Formie::error(Craft::t('formie', 'Unable to validate “{type}” element integration. Error: {error}.', [
                     'type' => $this->handle,
                     'error' => Json::encode($user->getErrors()),
-                ]);
+                ]));
 
                 return false;
             }
 
             if (!Craft::$app->getElements()->saveElement($user)) {
-                Formie::error('Unable to save “{type}” element integration. Error: {error}.', [
+                Formie::error(Craft::t('formie', 'Unable to save “{type}” element integration. Error: {error}.', [
                     'type' => $this->handle,
                     'error' => Json::encode($user->getErrors()),
-                ]);
+                ]));
                 
                 return false;
             }
