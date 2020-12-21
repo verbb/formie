@@ -1,5 +1,32 @@
 # Changelog
 
+## 1.3.5 - 2020-12-22
+
+### Added
+- Added ability to provide htmlpurifier config JSON files for HTML fields.
+- Added `ModifyPurifierConfigEvent`.
+- Added Agile CRM integration.
+- Added Copper CRM integration.
+- Added Capsule CRM integration.
+- Added all global sets into variable-enabled fields.
+
+### Changed
+- Improve performance for very large forms and fields.
+
+### Fixed
+- Fixed an error when viewing a trashed submission, with custom fields selected in columns.
+- Fixed no captchas appearing in plugin settings.
+- Fixed potential error thrown, when trying to catch _other_ errors during older updates.
+- Fixed Oauth-based integrations not allowing connection when `'allowAdminChanges' => false`.
+- Fixed an error with the recipients field.
+- Fixed form permissions not always being run for new forms.
+- Fixed “Save as a new form” not working in some cases.
+- Fixed multi-page form submissions incorrectly validating fields when going back to a previous page.
+- Fixed some fields not displaying correctly in notification emails.
+- Fixed sent notifications not always showing the HTML body content.
+- Fixed form and email templates not resolving to single template files correctly.
+- Fixed an error when trying to delete a submission using GraphQL.
+
 ## 1.3.4 - 2020-12-16
 
 ### Added
