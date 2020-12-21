@@ -419,9 +419,6 @@ class Agile extends Crm
                     $taskPayload['deal_ids'] = [$dealId];
                 }
 
-                // $dealPayload['expected_value'] = 500;
-                $taskPayload['due'] = 1455042600;
-
                 $response = $this->deliverPayload($submission, 'tasks', $taskPayload);
 
                 if ($response === false) {
