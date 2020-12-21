@@ -149,7 +149,7 @@ class SubmissionResolver extends ElementMutationResolver
             return true;
         }
 
-        $formUid = Db::uidById('{{%formie_forms}}', $submission->getForm->id);
+        $formUid = Db::uidById('{{%formie_forms}}', $submission->getForm()->id);
         $this->requireSchemaAction('formieSubmissions.' . $formUid, 'delete');
 
         $elementService->deleteElementById($submissionId);
