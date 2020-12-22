@@ -141,6 +141,14 @@ class Agile extends Crm
                     'name' => Craft::t('formie', 'Title'),
                 ]),
                 new IntegrationField([
+                    'handle' => 'email',
+                    'name' => Craft::t('formie', 'Email'),
+                ]),
+                new IntegrationField([
+                    'handle' => 'phone',
+                    'name' => Craft::t('formie', 'Phone'),
+                ]),
+                new IntegrationField([
                     'handle' => 'website',
                     'name' => Craft::t('formie', 'Website'),
                 ]),
@@ -350,7 +358,7 @@ class Agile extends Crm
             $taskValues = $this->getFieldMappingValues($submission, $this->taskFieldMapping, 'task');
 
             // Directly modify the field values first
-            $contactFields = $this->_prepCustomFields($contactValues, ['first_name', 'last_name', 'company', 'title', 'website']);
+            $contactFields = $this->_prepCustomFields($contactValues, ['first_name', 'last_name', 'company', 'title']);
             $dealFields = $this->_prepCustomFields($dealValues);
             $taskFields = $this->_prepCustomFields($taskValues);
 
@@ -551,6 +559,36 @@ class Agile extends Crm
 
                 $customFields[] = [
                     'type' => 'SYSTEM',
+                    'name' => $key,
+                    'value' => $value,
+                ];
+            }
+
+            if ($key === 'email') {
+                $field = ArrayHelper::remove($fields, $key);
+
+                $customFields[] = [
+                    'subtype' => 'work',
+                    'name' => $key,
+                    'value' => $value,
+                ];
+            }
+
+            if ($key === 'phone') {
+                $field = ArrayHelper::remove($fields, $key);
+
+                $customFields[] = [
+                    'subtype' => 'work',
+                    'name' => $key,
+                    'value' => $value,
+                ];
+            }
+
+            if ($key === 'website') {
+                $field = ArrayHelper::remove($fields, $key);
+
+                $customFields[] = [
+                    'subtype' => 'URL',
                     'name' => $key,
                     'value' => $value,
                 ];
