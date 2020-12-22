@@ -141,19 +141,18 @@ class SubmissionResolver extends ElementMutationResolver
     public function deleteSubmission($source, array $arguments, $context, ResolveInfo $resolveInfo)
     {
         $submissionId = $arguments['id'];
+        $siteId = $arguments['siteId'] ?? null;
 
         $elementService = Craft::$app->getElements();
-        $submission = $elementService->getElementById($submissionId, Submission::class);
+        $submission = $elementService->getElementById($submissionId, Submission::class, $siteId);
 
         if (!$submission) {
-            return true;
+            return false;
         }
 
         $formUid = Db::uidById('{{%formie_forms}}', $submission->getForm()->id);
         $this->requireSchemaAction('formieSubmissions.' . $formUid, 'delete');
 
-        $elementService->deleteElementById($submissionId);
-
-        return true;
+        return $elementService->deleteElementById($submissionId, Submission::class, $siteId);
     }
 }

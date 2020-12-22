@@ -49,7 +49,10 @@ class SubmissionMutation extends Mutation
         if ($createDeleteMutation) {
             $mutationList['deleteSubmission'] = [
                 'name' => 'deleteSubmission',
-                'args' => ['id' => Type::nonNull(Type::int())],
+                'args' => [
+                    'id' => Type::nonNull(Type::int()),
+                    'siteId' => Type::nonNull(Type::int()),
+                ],
                 'resolve' => [Craft::createObject(SubmissionResolver::class), 'deleteSubmission'],
                 'description' => 'Delete a submission.',
                 'type' => Type::boolean(),
