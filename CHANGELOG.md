@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.3.7 - 2020-12-23
+
+### Fixed
+- Fixed Agile CRM mapping email, website and phone to contacts. 
+- Fixed deleting a submission via GraphQL not returning the correct success/fail state.
+- Fixed deleting a submission via GraphQL not working for non-default sites.
+
 ## 1.3.6 - 2020-12-22
 
 ### Fixed

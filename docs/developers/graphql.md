@@ -420,9 +420,9 @@ You'll notice the `contactForm_yourName_FormieNameInput` type being used. This f
 To delete a submission use the `deleteSubmission` mutation, which requires the `id` of the submission that must be deleted. It returns a boolean value as the result to indicate whether the operation was successful.
 
 ```json
-// Query to delete a submission with ID of `1110`.
+// Query to delete a submission with ID of `1110` for a site with an ID of `2`.
 mutation deleteSubmission {
-    deleteSubmission(id:1110)
+    deleteSubmission(id:1110 siteId:2)
 }
 ```
 
