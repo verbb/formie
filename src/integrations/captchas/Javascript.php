@@ -61,7 +61,11 @@ class Javascript extends Captcha
 
         // Create the unique token 
         $uniqueId = uniqid(self::JAVASCRIPT_INPUT_NAME . '_', false);
-        $value = uniqid();
+
+        $value = Craft::$app->getSession()->get($sessionId);
+        if (!$value) {
+            $value = uniqid();
+        }
 
         // Save the generated input value so we can validate it properly. Also make it per-form
         Craft::$app->getSession()->set($sessionId, $value);
