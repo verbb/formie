@@ -186,7 +186,7 @@ class Emails extends Component
             return ['error' => $error];
         }
 
-        // Fetch the emil template for the notification - if we're using one
+        // Fetch the email template for the notification - if we're using one
         $emailTemplate = Formie::$plugin->getEmailTemplates()->getTemplateById($notification->templateId);
 
         // We always need a template, so log the error, but use the default built-in one.
