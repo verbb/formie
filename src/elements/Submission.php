@@ -493,6 +493,10 @@ class Submission extends Element
             }
         }
 
+        if ($this->_form) {
+            return $this->_form;
+        }
+
         return null;
     }
 
