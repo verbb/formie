@@ -9,6 +9,12 @@ use verbb\formie\records\EmailTemplate as EmailTemplateRecord;
 
 class EmailTemplate extends BaseTemplate
 {
+    // Properties
+    // =========================================================================
+
+    public $hasSingleTemplate = true;
+
+
     // Public Methods
     // =========================================================================
 
