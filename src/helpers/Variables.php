@@ -383,8 +383,8 @@ class Variables
                     }
                 }
             }
-        } else if ($parsedContent) {
-            $values["{$prefix}{$field->handle}"] = $parsedContent;
+        } else {
+            $values["{$prefix}{$field->handle}"] = (string)$submissionValue;
         }
 
         return $values;

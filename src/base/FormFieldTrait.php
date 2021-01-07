@@ -684,6 +684,7 @@ trait FormFieldTrait
             try {
                 $content = (string)($value ? $value : Craft::t('formie', 'No response.'));
                 $hideName = $options['hideName'] ?? false;
+
                 if (!$hideName) {
                     $content = Html::tag('strong', $this->name) . '<br>' . $content;
                 }
@@ -696,6 +697,7 @@ trait FormFieldTrait
         }
 
         $view->setTemplatesPath($oldTemplatesPath);
+        
         return $html;
     }
 
