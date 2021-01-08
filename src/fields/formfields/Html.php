@@ -8,8 +8,9 @@ use verbb\formie\helpers\SchemaHelper;
 
 use Craft;
 use craft\base\ElementInterface;
-use craft\helpers\StringHelper;
 use craft\helpers\HTMLPurifier;
+use craft\helpers\Json;
+use craft\helpers\StringHelper;
 
 use HTMLPurifier_Config;
 
