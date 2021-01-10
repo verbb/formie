@@ -60,7 +60,7 @@ The above would produce:
 ```
 
 ## Override Form Settings
-You can also dynamically override any settings for the form
+You can also dynamically override any settings for the form.
 
 ```twig
 {% set form = craft.formie.forms.handle('contactForm').one() %}

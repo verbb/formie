@@ -1066,6 +1066,18 @@ class Form extends Element
         $this->settings->setAttributes($settings, false);
     }
 
+    /**
+     * @inheritDoc
+     */
+    public function setFieldSettings($handle, $settings)
+    {
+        $field = $this->getFieldByHandle($handle);
+
+        if ($field) {
+            $field->setAttributes($settings, false);
+        }
+    }
+
 
     // Events
     // =========================================================================
