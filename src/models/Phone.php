@@ -5,6 +5,7 @@ use Craft;
 use craft\base\Model;
 use craft\helpers\ArrayHelper;
 use craft\helpers\StringHelper;
+
 use libphonenumber\NumberParseException;
 use libphonenumber\PhoneNumberFormat;
 use libphonenumber\PhoneNumberUtil;
@@ -57,6 +58,28 @@ class Phone extends Model
         } else {
             return (string)$this->number;
         }
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getCountryCode()
+    {
+        if ($this->hasCountryCode) {
+            try {
+                $phoneUtil = PhoneNumberUtil::getInstance();
+                $numberProto = $phoneUtil->parse($this->number, $this->country);
+                $countryCode = $numberProto->getCountryCode();
+
+                if ($countryCode) {
+                    return '+' . $countryCode;
+                }
+            } catch (\Throwable $e) {
+                
+            }
+        }
+
+        return '';
     }
 
 }
