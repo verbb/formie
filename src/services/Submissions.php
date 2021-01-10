@@ -591,7 +591,17 @@ class Submissions extends Component
 
                     break;
                 case formfields\Phone::class:
-                    $fieldContent[$field->handle] = $faker->phoneNumber;
+                    if ($field->countryEnabled) {
+                        $number = $faker->e164PhoneNumber;
+
+                        $phoneUtil = \libphonenumber\PhoneNumberUtil::getInstance();
+                        $numberProto = $phoneUtil->parse($number);
+
+                        $fieldContent[$field->handle]['number'] = $number;
+                        $fieldContent[$field->handle]['country'] = $phoneUtil->getRegionCodeForNumber($numberProto);
+                    } else {
+                        $fieldContent[$field->handle] = $faker->phoneNumber;
+                    }
 
                     break;
                 case formfields\Radio::class:
