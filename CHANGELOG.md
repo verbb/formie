@@ -1,5 +1,23 @@
 # Changelog
 
+## 1.3.8 - 2021-01-10
+
+### Added
+- Added “Country Code” to Phone model, allowing the raw country code (eg “+1”) to be used in email notifications and submissions for a Phone field
+- Added `form.setFieldSettings()` function to provide render-time overrides to form fields and their settings.
+
+### Changed
+- Change email notification variable output to only contain the value for the field, instead of including the field label/name.
+
+### Fixed
+- Fixed default stencil’s “To” and “Reply To” variable fields not being correct.
+- Fixed email notification preview not working for stencils
+- Fixed form templates with custom template path not saving correctly
+- Fixed JavaScript captcha not working correctly for multiple instances of the same form on a page.
+- Fixed an error with the HTML field
+- Fixed server-side validation errors with Phone field
+- Fixed phone numbers not being created as international numbers, when previewing an email notification
+
 ## 1.3.7 - 2020-12-23
 
 ### Fixed
