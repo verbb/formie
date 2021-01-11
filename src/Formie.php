@@ -365,15 +365,17 @@ class Formie extends Plugin
             }
         });
 
-        Event::on(SourceNodes::class, SourceNodes::EVENT_REGISTER_SOURCE_NODE_TYPES, function(RegisterSourceNodeTypesEvent $event) {
-            $event->types[] = [
-                'node' => 'formieForm',
-                'list' => 'formieForms',
-                'filterArgument' => '',
-                'filterTypeExpression' => '(.+)_Form',
-                'targetInterface' => FormInterface::getName(),
-            ];
-        });
+        if (class_exists(SourceNodes::class)) {
+            Event::on(SourceNodes::class, SourceNodes::EVENT_REGISTER_SOURCE_NODE_TYPES, function(RegisterSourceNodeTypesEvent $event) {
+                $event->types[] = [
+                    'node' => 'formieForm',
+                    'list' => 'formieForms',
+                    'filterArgument' => '',
+                    'filterTypeExpression' => '(.+)_Form',
+                    'targetInterface' => FormInterface::getName(),
+                ];
+            });
+        }
     }
 
     private function _registerCraftEventListeners()
