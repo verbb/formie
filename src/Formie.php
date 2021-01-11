@@ -374,6 +374,14 @@ class Formie extends Plugin
                     'filterTypeExpression' => '(.+)_Form',
                     'targetInterface' => FormInterface::getName(),
                 ];
+
+                $event->types[] = [
+                    'node' => 'formieSubmission',
+                    'list' => 'formieSubmissions',
+                    'filterArgument' => '',
+                    'filterTypeExpression' => '(.+)_Submission',
+                    'targetInterface' => SubmissionInterface::getName(),
+                ];
             });
         }
     }
