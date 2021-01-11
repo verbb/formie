@@ -364,7 +364,7 @@ class Variables
             if ($submissionValue && $submissionValue instanceof DateTime) {
                 $values["{$prefix}{$field->handle}"] = $submissionValue->format('Y-m-d H:i:s');
             }
-        } else if ($field instanceof SubFieldInterface) {
+        } else if ($field instanceof SubFieldInterface && $field->hasSubfields()) {
             foreach ($field->getSubFieldOptions() as $subfield) {
                 $handle = "{$prefix}{$field->handle}.{$subfield['handle']}";
                 
