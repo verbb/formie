@@ -367,7 +367,7 @@ class Variables
         } else if ($field instanceof SubFieldInterface) {
             foreach ($field->getSubFieldOptions() as $subfield) {
                 $handle = "{$prefix}{$field->handle}.{$subfield['handle']}";
-                
+
                 $values[$handle] = $submissionValue[$subfield['handle']] ?? '';
             }
         } else if ($field instanceof NestedFieldInterface) {
@@ -382,6 +382,14 @@ class Variables
                         $values[$handle] = $fieldValue;
                     }
                 }
+            }
+        } else if ($field instanceof \verbb\formie\fields\formfields\Checkboxes) {
+            if ($submissionValue && $submissionValue instanceof \craft\fields\data\MultiOptionsFieldData) {
+                $values["{$prefix}{$field->handle}"] = implode(', ', array_map(
+                    function($f) {return $f->label;},
+                    array_filter(
+                        $submissionValue->getOptions(),
+                        function($f) {return $f->selected;})));
             }
         } else {
             $values["{$prefix}{$field->handle}"] = (string)$submissionValue;
