@@ -384,7 +384,14 @@ class Variables
                 }
             }
         } else {
-            $values["{$prefix}{$field->handle}"] = (string)$submissionValue;
+            // Try to convert as a simple string value, if not, fall back on email template
+            try {
+                $values["{$prefix}{$field->handle}"] = (string)$submissionValue;
+            } catch (\Throwable $e) {
+                if ($parsedContent) {
+                    $values["{$prefix}{$field->handle}"] = $parsedContent;
+                }
+            }
         }
 
         return $values;
