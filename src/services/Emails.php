@@ -198,7 +198,7 @@ class Emails extends Component
             if (!$view->doesTemplateExist($emailTemplate->template)) {
                 // Let's press on if we can't find the template - use the default
                 Formie::error(Craft::t('formie', 'Notification email template does not exist at “{templatePath}”.', [
-                    'templatePath' => $templatePath,
+                    'templatePath' => $emailTemplate->template,
                 ]));
             } else {
                 $templatePath = $emailTemplate->template;
