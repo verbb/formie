@@ -402,8 +402,13 @@ class Emails extends Component
         $emailsEnv = [];
 
         foreach (array_filter($emails) as $email) {
+            // Prevent non-utf characters sneaking in.
+            $email = StringHelper::convertToUtf8($email);
+
             $emailsEnv[] = Craft::parseEnv(trim($email));
         }
+
+        $emailsEnv = array_filter($emailsEnv);
 
         return $emailsEnv;
     }
