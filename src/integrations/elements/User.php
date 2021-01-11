@@ -188,6 +188,26 @@ class User extends Element
             if ($userGroups) {
                 Craft::$app->getUsers()->assignUserToGroups($user->id, $this->groupIds);
             }
+
+            // Important to wipe out the field mapped to their password, and save the submission. We don't want to permanently
+            // store the password content against the submission.
+            $passwordFieldHandle = $this->attributeMapping['newPassword'] ?? '';
+
+            if ($passwordFieldHandle) {
+                $passwordFieldHandle = str_replace(['{', '}'], ['', ''], $passwordFieldHandle);
+
+                $submission->setFieldValue($passwordFieldHandle, '');
+            
+                if (!Craft::$app->getElements()->saveElement($submission, false)) {
+                    Formie::error(Craft::t('formie', 'Unable to save “{type}” element integration. Error: {error}.', [
+                        'type' => $this->handle,
+                        'error' => Json::encode($submission->getErrors()),
+                    ]));
+                    
+                    return false;
+                }
+            }
+
         } catch (\Throwable $e) {
             $error = Craft::t('formie', 'Element integration failed for submission “{submission}”. Error: {error} {file}:{line}', [
                 'error' => $e->getMessage(),
