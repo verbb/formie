@@ -521,6 +521,14 @@ class Form extends Element
     /**
      * @inheritDoc
      */
+    public function setFormId($value)
+    {
+        $this->_formId = $value;
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function getConfigJson()
     {
         return Json::encode($this->getFrontEndJsVariables());

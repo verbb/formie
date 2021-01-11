@@ -79,3 +79,18 @@ You can also dynamically override any settings for the form.
 The above would override the redirect URL for the form, regardless of what is defined in the form's settings. See the [Form Settings](docs:developers/form) docs for a full list of available settings to override.
 
 For more fine-grained control over rendering of a form, see [Rendering Pages](docs:template-guides/rendering-pages) and [Rendering Fields](docs:template-guides/rendering-fields)
+
+## Override Form ID
+You can also override the Form's ID, which is an important factor in rendering the form in HTML, but in connecting JavaScript functionality to fields and the form itself.
+
+By default, the ID of a form is randomly generated, to ensure each form (even the same one) is uniquely rendered on the page. The default format looks similar to `formie-form-35415ffccebce54e6`.
+
+```twig
+{% set form = craft.formie.forms.handle('contactForm').one() %}
+
+{% do form.setFormId('formie-form-special-contact-form') %}
+
+{{ craft.formie.renderForm(form) }}
+```
+
+Do note that you **must** prefix your ID with `formie-form-`, as Formie's JavaScript relies on this to connect functionality up. This will be improved in the next major version of Formie as a breaking change, to provide greater flexibility.

@@ -9,6 +9,7 @@ export class Formie {
     }
 
     initForms() {
+        // TODO: Change this to not be an ID for greater flexibility at the next breakpoint
         this.$forms = document.querySelectorAll('form[id^="formie-form-"]') || [];
 
         // We use this in the CP, where it's a bit tricky to add a form ID. So check just in case.
