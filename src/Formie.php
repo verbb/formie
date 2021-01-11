@@ -55,6 +55,9 @@ use craft\helpers\UrlHelper;
 use craft\web\twig\variables\CraftVariable;
 use craft\web\View;
 
+use craft\gatsbyhelper\events\RegisterSourceNodeTypesEvent;
+use craft\gatsbyhelper\services\SourceNodes;
+
 use yii\base\Event;
 
 class Formie extends Plugin
@@ -360,6 +363,16 @@ class Formie extends Plugin
                     ],
                 ];
             }
+        });
+
+        Event::on(SourceNodes::class, SourceNodes::EVENT_REGISTER_SOURCE_NODE_TYPES, function(RegisterSourceNodeTypesEvent $event) {
+            $event->types[] = [
+                'node' => 'formieForm',
+                'list' => 'formieForms',
+                'filterArgument' => '',
+                'filterTypeExpression' => '(.+)_Form',
+                'targetInterface' => FormInterface::getName(),
+            ];
         });
     }
 
