@@ -1,5 +1,22 @@
 # Changelog
 
+## 1.3.9 - 2021-01-12
+
+### Added
+- Added support for Gatsby Source Plugin and Form elements.
+- Added support for Gatsby Source Plugin and Submission elements.
+- Added support to set the `formId` for a form. This is used as the unique identifier for the `id` attribute and connection JS to the form.
+
+### Changed
+- User element integrations now clear any field content mapped to the password field, once the user element is created.
+
+### Fixed
+- Fixed name and address fields not showing content in columns, when editing a submission in the control panel.
+- Fixed some fields (checkboxes) throwing errors in email notifications.
+- Fixed non-multiple name field causing an error in email notifications.
+- Fixed non-utf8 characters in email notification email values causing errors.
+- Fixed email notification logging message to properly include the template it tried to resolve.
+
 ## 1.3.8 - 2021-01-10
 
 ### Added
