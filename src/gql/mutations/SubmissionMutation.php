@@ -12,7 +12,6 @@ use craft\gql\base\ElementMutationArguments;
 use craft\gql\base\ElementMutationResolver;
 use craft\gql\base\Mutation;
 use craft\helpers\Gql;
-use craft\helpers\Gql as GqlHelper;
 
 use GraphQL\Type\Definition\Type;
 
@@ -33,15 +32,20 @@ class SubmissionMutation extends Mutation
         foreach (Form::find()->all() as $form) {
             $scope = 'formieSubmissions.' . $form->uid;
 
+            $canCreateAll = Gql::canSchema('formieSubmissions.all', 'create');
+            $canSaveAll = Gql::canSchema('formieSubmissions.all', 'save');
+            $canDeleteAll = Gql::canSchema('formieSubmissions.all', 'delete');
+            
             $canCreate = Gql::canSchema($scope, 'create');
             $canSave = Gql::canSchema($scope, 'save');
+            $canDelete = Gql::canSchema($scope, 'delete');
 
-            if ($canCreate || $canSave) {
+            if ($canCreateAll || $canSaveAll || $canCreate || $canSave) {
                 $mutation = static::createSaveMutation($form);
                 $mutationList[$mutation['name']] = $mutation;
             }
 
-            if (!$createDeleteMutation && Gql::canSchema($scope, 'delete')) {
+            if (!$createDeleteMutation && ($canDeleteAll || $canDelete)) {
                 $createDeleteMutation = true;
             }
         }
