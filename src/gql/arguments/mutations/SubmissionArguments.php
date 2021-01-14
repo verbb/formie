@@ -24,6 +24,11 @@ class SubmissionArguments extends ElementMutationArguments
                 'type' => Type::int(),
                 'description' => 'The submission’s status ID.'
             ],
+            'siteId' => [
+                'name' => 'siteId',
+                'type' => Type::int(),
+                'description' => 'The submission’s site ID.'
+            ],
         ]);
     }
 }
