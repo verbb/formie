@@ -191,7 +191,7 @@
     </div>
 {% endif %}
 
-{% if submission.user %}
+{% if submission.getUser() %}
     <div id="meta-details" class="meta">
         <div class="field">
             <div class="heading">
@@ -199,7 +199,7 @@
             </div>
 
             <div class="input ltr">
-                <a href="{{ submission.user.cpEditUrl }}">{{ submission.user }}</a>
+                <a href="{{ submission.getUser().cpEditUrl }}">{{ submission.getUser() }}</a>
             </div>
         </div>
     </div>
