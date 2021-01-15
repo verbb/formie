@@ -574,6 +574,12 @@ export class FormieFormTheme {
 
         // Update the current page
         this.setCurrentPage(data.nextPageId);
+
+        // Smooth-scroll to the top of the form.
+        window.scrollTo({
+            top: this.$form.getBoundingClientRect().top + window.pageYOffset - 50,
+            behavior: 'smooth',
+        });
     }
 
     setCurrentPage(pageId) {
