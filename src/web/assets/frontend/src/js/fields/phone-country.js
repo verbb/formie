@@ -28,6 +28,7 @@ export class FormiePhoneCountry {
             separateDialCode: false,
             initialCountry: 'auto',
             autoPlaceholder: 'off',
+            formatOnDisplay: false,
             utilsScript: 'https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/js/utils.min.js',
         };
 
