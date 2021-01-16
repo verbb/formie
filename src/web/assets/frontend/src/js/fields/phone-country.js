@@ -66,6 +66,11 @@ export class FormiePhoneCountry {
         // Also add the hidden input for the country code
         this.$field.$countryInput = this.$countryInput;
 
+        // If the country input has a value, set the country
+        if (this.$field.$countryInput && this.$field.$countryInput.value) {
+            this.validator.setCountry(this.$field.$countryInput.value);
+        }
+
         // Emit an "init" event
         this.$field.dispatchEvent(new CustomEvent('init', {
             bubbles: true,
