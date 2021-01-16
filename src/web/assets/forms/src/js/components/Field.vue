@@ -28,6 +28,7 @@
                 pageIndex,
                 columnIndex,
             }"
+            :hide-image-html="!isSafari"
             @click.prevent="editField"
             @dragstart="dragStart"
             @dragend="dragEnd"
