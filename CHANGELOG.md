@@ -1,5 +1,24 @@
 # Changelog
 
+## 1.3.10 - 2021-01-16
+
+### Added
+- File Upload fields now show a summary of uploaded files for multi-page forms. When navigating back to a page with the field, you'll see this summary.
+- Ajax-enabled multi-page forms now smooth-scrolls to the top of the loaded page when going to the previous or next pages.
+- Front-end validation now adds a `fui-error` class on the `fui-field` element, when a validation error occurs, instead of just on the input.
+
+### Fixed
+- Fixed an error when using checkboxes in email notification conditions.
+- Fixed a potential error when viewing a submission in the control panel.
+- Fixed Address field auto-complete value not persisting on front-end submissions.
+- Fixed being unable to set the `siteId` of submissions through GraphQL.
+- Fixed submissions not being able to be mutated through GraphQL for non-public schemas.
+- Fixed Group and Repeater fields not saving content correctly for non-primary sites.
+- Fixed flicker in Safari for the form builder, when hovering over draggable elements.
+- Fixed Phone field exporting not formatting international phone numbers correctly.
+- Fixed Phone field not always remembering the country dial code selected.
+- Fixed Phone field triggering content change warnings for country-enabled fields. This was due to numbers being formatted on-load..
+
 ## 1.3.9 - 2021-01-12
 
 ### Added
