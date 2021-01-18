@@ -638,7 +638,15 @@ class SubmissionsController extends Controller
 
     private function _returnJsonResponse($success, $submission, $form, $nextPage, $extras = [])
     {
-        $redirectUrl = Craft::$app->getView()->renderObjectTemplate($form->getRedirectUrl(), $submission);
+        // Try and get the redirect from the template, as it might've been altered in templates
+        $redirect = Craft::$app->getRequest()->getValidatedBodyParam('redirect');
+
+        // Otherwise, use the form defined
+        if (!$redirect) {
+            $redirect = $form->getRedirectUrl();
+        }
+
+        $redirectUrl = Craft::$app->getView()->renderObjectTemplate($redirect, $submission);
 
         $params = array_merge([
             'success' => $success,
