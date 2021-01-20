@@ -417,7 +417,7 @@ class ActiveCampaign extends Crm
     public function fetchConnection(): bool
     {
         try {
-            $response = $this->request('GET', '');
+            $response = $this->request('GET', 'contacts');
         } catch (\Throwable $e) {
             Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [
                 'message' => $e->getMessage(),
