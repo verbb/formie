@@ -64,12 +64,22 @@ class ActiveCampaign extends EmailMarketing
         $settings = [];
 
         try {
-            $response = $this->request('GET', 'lists');
+            $response = $this->request('GET', 'lists', [
+                'query' => [
+                    'limit' => 100,
+                ],
+            ]);
+
             $lists = $response['lists'] ?? [];
 
             foreach ($lists as $list) {
                 // While we're at it, fetch the fields for the list
-                $response = $this->request('GET', 'fields');
+                $response = $this->request('GET', 'fields', [
+                    'query' => [
+                        'limit' => 100,
+                    ],
+                ]);
+                    
                 $fields = $response['fields'] ?? [];
 
                 $listFields = array_merge([

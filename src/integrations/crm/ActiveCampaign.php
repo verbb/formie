@@ -90,7 +90,12 @@ class ActiveCampaign extends Crm
 
         // Populate some options for some values
         try {
-            $response = $this->request('GET', 'dealGroups');
+            $response = $this->request('GET', 'dealGroups', [
+                'query' => [
+                    'limit' => 100,
+                ],
+            ]);
+
             $dealGroups = $response['dealGroups'] ?? [];
             $dealStages = $response['dealStages'] ?? [];
 
@@ -108,7 +113,12 @@ class ActiveCampaign extends Crm
                 ];
             }
 
-            $response = $this->request('GET', 'lists');
+            $response = $this->request('GET', 'lists', [
+                'query' => [
+                    'limit' => 100,
+                ],
+            ]);
+
             $lists = $response['lists'] ?? [];
 
             foreach ($lists as $list) {
@@ -119,7 +129,12 @@ class ActiveCampaign extends Crm
             }
 
             // Get Contacts fields
-            $response = $this->request('GET', 'fields');
+            $response = $this->request('GET', 'fields', [
+                'query' => [
+                    'limit' => 100,
+                ],
+            ]);
+
             $fields = $response['fields'] ?? [];
 
             $contactFields = array_merge([
@@ -151,7 +166,12 @@ class ActiveCampaign extends Crm
             ], $this->_getCustomFields($fields));
 
             // Get Deals fields
-            $response = $this->request('GET', 'dealCustomFieldMeta');
+            $response = $this->request('GET', 'dealCustomFieldMeta', [
+                'query' => [
+                    'limit' => 100,
+                ],
+            ]);
+
             $fields = $response['dealCustomFieldMeta'] ?? [];
 
             $dealFields = array_merge([
@@ -225,7 +245,12 @@ class ActiveCampaign extends Crm
             ], $this->_getCustomFields($fields));
 
             // Get Account fields
-            $response = $this->request('GET', 'accountCustomFieldMeta');
+            $response = $this->request('GET', 'accountCustomFieldMeta', [
+                'query' => [
+                    'limit' => 100,
+                ],
+            ]);
+
             $fields = $response['accountCustomFieldMeta'] ?? [];
 
             $accountFields = array_merge([
@@ -327,7 +352,11 @@ class ActiveCampaign extends Crm
                 ];
 
                 // Try to find the account first
-                $response = $this->request('GET', 'accounts');
+                $response = $this->request('GET', 'accounts', [
+                    'query' => [
+                        'limit' => 100,
+                    ],
+                ]);
 
                 $accounts = $response['accounts'] ?? [];
                 $accountId = '';
@@ -359,7 +388,12 @@ class ActiveCampaign extends Crm
                     ];
 
                     // Don't proceed with an update if already associated
-                    $response = $this->request('GET', 'accountContacts');
+                    $response = $this->request('GET', 'accountContacts', [
+                        'query' => [
+                            'limit' => 100,
+                        ],
+                    ]);
+                    
                     $accountContacts = $response['accountContacts'][0]['id'] ?? '';
 
                     if (!$accountContacts) {
