@@ -113,13 +113,7 @@ class ActiveCampaign extends Crm
                 ];
             }
 
-            $response = $this->request('GET', 'lists', [
-                'query' => [
-                    'limit' => 100,
-                ],
-            ]);
-
-            $lists = $response['lists'] ?? [];
+            $lists = $this->_getPaginated('lists');
 
             foreach ($lists as $list) {
                 $listOptions[] = [
@@ -393,7 +387,7 @@ class ActiveCampaign extends Crm
                             'limit' => 100,
                         ],
                     ]);
-                    
+
                     $accountContacts = $response['accountContacts'][0]['id'] ?? '';
 
                     if (!$accountContacts) {
@@ -578,5 +572,29 @@ class ActiveCampaign extends Crm
         }
 
         return $customFields;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    private function _getPaginated($endpoint, $limit = 100, $offset = 0, $items = [])
+    {
+        $response = $this->request('GET', $endpoint, [
+            'query' => [
+                'limit' => $limit,
+                'offset' => $offset,
+            ]
+        ]);
+
+        $newItems = $response[$endpoint] ?? [];
+        $total = $response['meta']['total'] ?? 0;
+
+        $items = array_merge($items, $newItems);
+
+        if (count($items) < $total) {
+            $items = array_merge($items, $this->_getPaginated($endpoint, $limit, $offset + $limit, $items));
+        }
+
+        return $items;
     }
 }
