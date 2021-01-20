@@ -177,7 +177,7 @@ class Entry extends Element
             foreach ($attributeValues as $entryFieldHandle => $fieldValue) {
                 if ($entryFieldHandle === 'author') {
                     if (isset($fieldValue[0])) {
-                        $entry->authorId = $fieldValue[0]->one()->id ?? '';
+                        $entry->authorId = $fieldValue[0] ?? null;
                     }
                 } else {
                     $entry->{$entryFieldHandle} = $fieldValue;
