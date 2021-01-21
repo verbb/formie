@@ -1,5 +1,22 @@
 # Changelog
 
+## 1.3.11 - 2021-01-21
+
+### Added
+- Added a ‘pageIndex’ param to the submit action. (thanks @joshuabaker).
+- Added pagination-helper for ActiveCampaign integrations. The integration will now automatically fetch greater-than 100 resources such as lists.
+
+### Changed
+- Changed ActiveCampaign integrations to fetch at least 100 of each resource.
+
+### Fixed
+- Fixed deprecation notice for Repeater field. (thanks @danieladarve).
+- Fixed ajax forms not redirecting correctly, when overriding `redirectUrl` in templates.
+- Fixed HTML field not parsing Twig content in some instances.
+- Fixed Entry mapping throwing an error when setting the author to an Entry field.
+- Fixed ActiveCampaign integration not showing connection status correctly.
+- Fixed sub-fields (Name, Address, Phone) not having their values concatenated for integrations, when not selecting a sub-field.
+
 ## 1.3.10 - 2021-01-16
 
 ### Added
