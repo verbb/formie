@@ -1,12 +1,14 @@
 <?php
 namespace verbb\formie\base;
 
+use verbb\formie\Formie;
+use verbb\formie\models\IntegrationField;
+
 use Craft;
 use craft\base\ElementInterface;
 use craft\helpers\ArrayHelper;
 use craft\helpers\StringHelper;
 use craft\validators\HandleValidator;
-use verbb\formie\Formie;
 
 trait SubfieldTrait
 {
@@ -61,5 +63,20 @@ trait SubfieldTrait
                 );
             }
         }
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getFieldMappedValueForIntegration(IntegrationField $integrationField, $formField, $value, $submission)
+    {
+        // If the expected value is a string, and if this is a multiple-allowed field, it'll map an array
+        // of data. Instead, return a string-like value
+        if ($integrationField->getType() === IntegrationField::TYPE_STRING) {
+            // Override the already-parsed value (an array) to provide toString() support.
+            return (string)$submission->getFieldValue($formField->handle);
+        }
+
+        return $value;
     }
 }
