@@ -11,17 +11,13 @@
                 <div class="fui-modal-sidebar sidebar">
                     <nav v-if="filteredExistingNotifications.length">
                         <ul>
-                            <li v-if="existingNotifications.length">
-                                <a :class="{ 'sel': selectedKey === existingNotifications[0].key }" @click.prevent="selectTab(existingNotifications[0].key)">
-                                    <span class="label">{{ existingNotifications[0].label }}</span>
-                                </a>
-                            </li>
+                            <li v-for="(item, index) in existingNotifications" :key="index" :class="{ 'heading': item.heading }">
+                                <span v-if="item.heading">
+                                    {{ item.heading }}
+                                </span>
 
-                            <li class="heading"><span>{{ 'Forms' | t('formie') }}</span></li>
-
-                            <li v-for="(form, index) in existingNotifications" :key="index">
-                                <a v-if="index > 0" :class="{ 'sel': selectedKey === form.key }" @click.prevent="selectTab(form.key)">
-                                    <span class="label">{{ form.label }}</span>
+                                <a v-else :class="{ 'sel': selectedKey === item.key }" @click.prevent="selectTab(item.key)">
+                                    <span class="label">{{ item.label }}</span>
                                 </a>
                             </li>
                         </ul>

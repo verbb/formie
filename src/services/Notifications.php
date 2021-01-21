@@ -296,18 +296,32 @@ class Notifications extends Component
 
         /* @var Form[] $forms */
         $forms = $query->all();
+        $stencils = Formie::$plugin->getStencils()->getAllStencils();
 
-        $notifications = Formie::$plugin->getNotifications()->getAllNotifications();
-        $allNotifications = $this->getNotificationsConfig($notifications);
         $existingNotifications = [];
+        $formNotifications = [];
+        $stencilNotifications = [];
 
-        $notifications = [];
+        foreach ($forms as $form) {
+            $formNotifications = array_merge($formNotifications, $this->getNotificationsConfig($form->getNotifications()));
+        }
+
+        foreach ($stencils as $stencil) {
+            $stencilNotifications = array_merge($stencilNotifications, $this->getNotificationsConfig($stencil->getNotifications()));
+        }
 
         $existingNotifications[] = [
             'key' => '*',
             'label' => Craft::t('formie', 'All notifications'),
-            'notifications' => $allNotifications,
+            'notifications' => array_merge($formNotifications, $stencilNotifications),
         ];
+
+        if ($formNotifications) {
+            $existingNotifications[] = [
+                'heading' => Craft::t('formie', 'Forms'),
+                'notifications' => [],
+            ];
+        }
 
         foreach ($forms as $form) {
             $formNotifications = $this->getNotificationsConfig($form->getNotifications());
@@ -316,6 +330,25 @@ class Notifications extends Component
                 $existingNotifications[] = [
                     'key' => $form->handle,
                     'label' => $form->title,
+                    'notifications' => $formNotifications,
+                ];
+            }
+        }
+
+        if ($stencilNotifications) {
+            $existingNotifications[] = [
+                'heading' => Craft::t('formie', 'Stencils'),
+                'notifications' => [],
+            ];
+        }
+
+        foreach ($stencils as $stencil) {
+            $formNotifications = $this->getNotificationsConfig($stencil->getNotifications());
+
+            if ($formNotifications) {
+                $existingNotifications[] = [
+                    'key' => $stencil->handle,
+                    'label' => $stencil->title,
                     'notifications' => $formNotifications,
                 ];
             }
