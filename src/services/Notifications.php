@@ -10,6 +10,7 @@ use verbb\formie\helpers\ConditionsHelper;
 use verbb\formie\helpers\RichTextHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\Notification;
+use verbb\formie\models\Stencil;
 use verbb\formie\records\Notification as NotificationRecord;
 
 use Craft;
@@ -290,13 +291,26 @@ class Notifications extends Component
         $query = Form::find()->orderBy('title ASC');
 
         // Exclude the current form.
-        if ($excludeForm) {
+        if ($excludeForm && $excludeForm instanceof Form) {
             $query = $query->id("not {$excludeForm->id}");
         }
 
         /* @var Form[] $forms */
         $forms = $query->all();
         $stencils = Formie::$plugin->getStencils()->getAllStencils();
+
+        // Exclude the current stencil.
+        if ($excludeForm && $excludeForm instanceof Stencil) {
+            $filteredStencils = [];
+
+            foreach ($stencils as $stencil) {
+                if ($stencil->id != $excludeForm->id) {
+                    $filteredStencils[] = $stencil;
+                }
+            }
+
+            $stencils = $filteredStencils;
+        }
 
         $existingNotifications = [];
         $formNotifications = [];
