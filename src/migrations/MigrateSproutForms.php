@@ -215,9 +215,13 @@ class MigrateSproutForms extends Migration
                             $newField = $this->_form->getFieldByHandle($field->handle);
 
                             $phone = new Phone();
-                            $phone->number = $value->phone;
-                            $phone->hasCountryCode = !!$value->country;
-                            $phone->country = $value->country ?: $newField->countryDefaultValue;
+                            $phone->number = $value->phone ?? '';
+
+                            $country = $value->country ?? '';
+                            $countryDefaultValue = $value->countryDefaultValue ?? '';
+
+                            $phone->hasCountryCode = !!$country;
+                            $phone->country = $country ?: $countryDefaultValue;
 
                             $submission->setFieldValue($field->handle, $phone);
                             break;
