@@ -480,7 +480,7 @@ class MigrateSproutForms extends Migration
                 $newField = new formfields\FileUpload();
                 $this->_applyFieldDefaults($newField);
 
-                $newField->uploadLocationSource = $field->defaultUploadLocationSource;
+                $newField->uploadLocationSource = str_replace('volume', 'folder', $field->defaultUploadLocationSource);
                 $newField->uploadLocationSubpath = $field->defaultUploadLocationSubpath;
                 $newField->restrictFiles = !empty($field->allowedKinds);
                 $newField->allowedKinds = $field->allowedKinds ?? [];
