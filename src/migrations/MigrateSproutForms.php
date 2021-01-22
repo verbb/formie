@@ -14,6 +14,7 @@ use verbb\formie\models\Notification;
 use verbb\formie\models\Phone;
 use verbb\formie\models\FieldLayout;
 use verbb\formie\models\FieldLayoutPage;
+use verbb\formie\prosemirror\toprosemirror\Renderer;
 
 use Craft;
 use craft\base\FieldInterface;
@@ -551,7 +552,9 @@ class MigrateSproutForms extends Migration
                 $newField = new formfields\Agree();
                 $this->_applyFieldDefaults($newField);
 
-                $newField->description = $field->optInMessage;
+                $description = (new Renderer)->render('<p>' . $field->optInMessage . '</p>');
+
+                $newField->description = $description['content'];
                 $newField->checkedValue = $field->optInValueWhenTrue;
                 $newField->uncheckedValue = $field->optInValueWhenFalse;
                 break;
