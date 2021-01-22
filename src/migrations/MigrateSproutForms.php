@@ -186,12 +186,12 @@ class MigrateSproutForms extends Migration
                             $value = $entry->getFieldValue($field->handle);
 
                             $address = new Address();
-                            $address->address1 = $value->address1;
-                            $address->address2 = $value->address2;
-                            $address->address3 = $value->address3;
-                            $address->city = $value->locality;
-                            $address->state = $value->administrativeArea;
-                            $address->country = $value->countryCode;
+                            $address->address1 = $value->address1 ?? '';
+                            $address->address2 = $value->address2 ?? '';
+                            $address->address3 = $value->address3 ?? '';
+                            $address->city = $value->locality ?? '';
+                            $address->state = $value->administrativeArea ?? '';
+                            $address->country = $value->countryCode ?? '';
 
                             $submission->setFieldValue($field->handle, $address);
                             break;
@@ -200,10 +200,11 @@ class MigrateSproutForms extends Migration
                             $value = $entry->getFieldValue($field->handle);
 
                             $name = new Name();
-                            $name->prefix = $value->prefix;
-                            $name->firstName = $value->firstName;
-                            $name->middleName = $value->middleName;
-                            $name->lastName = $value->lastName;
+
+                            $name->prefix = $value->prefix ?? '';
+                            $name->firstName = $value->firstName ?? '';
+                            $name->middleName = $value->middleName ?? '';
+                            $name->lastName = $value->lastName ?? '';
 
                             $submission->setFieldValue($field->handle, $name);
                             break;
