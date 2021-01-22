@@ -114,6 +114,7 @@ class Forms extends Component
         try {
             // Prep the fields for save
             $fieldLayout = $form->getFormFieldLayout();
+            
             foreach ($fieldLayout->getFields() as $field) {
                 $field->context = $form->getFormFieldContext();
                 $fieldsService->prepFieldForSave($field);
@@ -207,6 +208,7 @@ class Forms extends Component
 
             $notificationsService = Formie::$plugin->getNotifications();
             $notifications = $form->getNotifications();
+
             foreach ($notifications as $notification) {
                 $notification->formId = $form->id;
                 $notificationsService->saveNotification($notification);
@@ -215,6 +217,7 @@ class Forms extends Component
             // Prune deleted notifications.
             if (!$isNewForm) {
                 $allNotifications = $notificationsService->getFormNotifications($form);
+
                 foreach ($allNotifications as $notification) {
                     if (!ArrayHelper::contains($notifications, 'id', $notification->id)) {
                         $notificationsService->deleteNotificationById($notification->id);

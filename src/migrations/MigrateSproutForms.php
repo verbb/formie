@@ -359,8 +359,8 @@ class MigrateSproutForms extends Migration
 
                 foreach ($tab->getFields() as $field) {
                     if ($newField = $this->_mapField($field)) {
-
                         $newField->validate();
+
                         if ($newField->hasErrors()) {
                             $this->stdout("    > Failed to save field “{$newField->handle}”.", Console::FG_RED);
 
