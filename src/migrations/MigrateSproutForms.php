@@ -106,8 +106,6 @@ class MigrateSproutForms extends Migration
             $form->settings->submitActionMessage = $sproutFormsForm->successMessage;
             $form->settings->storeData = $sproutFormsForm->saveData ?? true;
 
-            Formie::$plugin->getForms()->saveForm($form);
-
             if ($fieldLayout = $this->_buildFieldLayout($sproutFormsForm)) {
                 $form->setFormFieldLayout($fieldLayout);
             }
