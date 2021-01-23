@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.3.13 - 2021-01-24
+
+### Added
+- Added support to Mailchimp integration for tags.
+
+### Fixed
+- Fixed an error with Webhook integrations.
+
 ## 1.3.12 - 2021-01-23
 
 ### Added
