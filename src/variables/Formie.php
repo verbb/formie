@@ -266,21 +266,6 @@ class Formie
                 'webhooks' => ['title' => Craft::t('formie', 'Webhooks')],
                 'miscellaneous' => ['title' => Craft::t('formie', 'Miscellaneous')],
             ];
-
-            $plugins = [];
-
-            if (FormiePlugin::$plugin->getService()->isPluginInstalledAndEnabled('freeform')) {
-                $plugins['migrate/freeform'] = ['title' => Craft::t('formie', 'Freeform')];
-            }
-
-            if (FormiePlugin::$plugin->getService()->isPluginInstalledAndEnabled('sprout-forms')) {
-                $plugins['migrate/sprout-forms'] = ['title' => Craft::t('formie', 'Sprout Forms')];
-            }
-
-            if ($plugins) {
-                $navItems['migrations-heading'] = ['heading' => Craft::t('formie', 'Migrations')];
-                $navItems = array_merge($navItems, $plugins);
-            }
         } else {
             $navItems = [
                 'integrations-heading' => ['heading' => Craft::t('formie', 'Integrations')],
@@ -291,6 +276,21 @@ class Formie
                 'webhooks' => ['title' => Craft::t('formie', 'Webhooks')],
                 'miscellaneous' => ['title' => Craft::t('formie', 'Miscellaneous')],
             ];
+        }
+
+        $plugins = [];
+
+        if (FormiePlugin::$plugin->getService()->isPluginInstalledAndEnabled('freeform')) {
+            $plugins['migrate/freeform'] = ['title' => Craft::t('formie', 'Freeform')];
+        }
+
+        if (FormiePlugin::$plugin->getService()->isPluginInstalledAndEnabled('sprout-forms')) {
+            $plugins['migrate/sprout-forms'] = ['title' => Craft::t('formie', 'Sprout Forms')];
+        }
+
+        if ($plugins) {
+            $navItems['migrations-heading'] = ['heading' => Craft::t('formie', 'Migrations')];
+            $navItems = array_merge($navItems, $plugins);
         }
 
         return $navItems;
