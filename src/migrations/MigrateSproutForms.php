@@ -425,6 +425,7 @@ class MigrateSproutForms extends Migration
                 $newField = new formfields\Categories();
                 $this->_applyFieldDefaults($newField);
 
+                $newField->placeholder = $field->selectionLabel;
                 $newField->groupId = $field->groupId;
                 $newField->branchLimit = $field->branchLimit;
                 $newField->source = $field->source;
@@ -474,6 +475,7 @@ class MigrateSproutForms extends Migration
                 $newField = new formfields\Entries();
                 $this->_applyFieldDefaults($newField);
 
+                $newField->placeholder = $field->selectionLabel;
                 $newField->groupId = $field->groupId;
                 $newField->limit = $field->limit;
                 $newField->source = $field->source;
@@ -597,6 +599,7 @@ class MigrateSproutForms extends Migration
                 $newField = new formfields\Tags();
                 $this->_applyFieldDefaults($newField);
 
+                $newField->placeholder = $field->selectionLabel;
                 $newField->groupId = $field->groupId;
                 $newField->limit = $field->limit;
                 $newField->source = $field->source;
@@ -607,6 +610,7 @@ class MigrateSproutForms extends Migration
                 $newField = new formfields\Users();
                 $this->_applyFieldDefaults($newField);
 
+                $newField->placeholder = $field->selectionLabel;
                 $newField->limit = $field->limit;
                 $newField->source = $field->source;
                 $newField->sources = $field->sources;
