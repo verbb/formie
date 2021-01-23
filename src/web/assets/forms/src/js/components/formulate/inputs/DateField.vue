@@ -43,7 +43,11 @@ export default {
 
     computed: {
         includeTime() {
-            return this.$editingField.field.settings.includeTime;
+            if (this.$editingField) {
+                return this.$editingField.field.settings.includeTime;
+            }
+
+            return false;
         },
     },
 

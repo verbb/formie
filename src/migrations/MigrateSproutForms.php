@@ -450,6 +450,8 @@ class MigrateSproutForms extends Migration
                 /* @var sproutfields\Date $field */
                 $newField = new formfields\Date();
                 $this->_applyFieldDefaults($newField);
+
+                $newField->displayType = 'calendar';
                 break;
             case sproutfields\Dropdown::class:
                 /* @var sproutfields\Dropdown $field */
