@@ -1,5 +1,23 @@
 # Changelog
 
+## 1.3.12 - 2021-01-23
+
+### Added
+- Added support for selecting existing notifications from stencils, when adding a notification to a form.
+- Added support for Webhook integration URLs to contain submission variables through shorthand Twig.
+- Added support for Freeform and Sprout Form migrations to be run when `allowAdminChanges = false`.
+
+### Fixed
+- Fixed existing notifications not appearing when editing a stencil.
+- Fixed some potential errors with Sprout Forms migration and address/name fields.
+- Fixed Freeform migration not migrating fields correctly.
+- Fixed Sprout Forms migration not migrating fields correctly.
+- Fixed Sprout Forms migration for Agree field, where the message description would be blank.
+- Fixed Sprout Forms migration for File Upload field, where the selected volume wasn’t migrated.
+- Fixed Sprout Forms migration for Categories, Entries, Tags and User fields, not setting the `selectionLabel` to the `placeholder` value. 
+- Fixed some potential errors with Sprout Forms migration and phone fields.
+- Fixed “Save as Stencil” not saving data correctly, by not stripping out page, row and field IDs.
+
 ## 1.3.11 - 2021-01-21
 
 ### Added
