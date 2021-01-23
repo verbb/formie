@@ -114,7 +114,7 @@ abstract class Webhook extends Integration implements IntegrationInterface
     /**
      * @inheritDoc
      */
-    protected function getWebhookUrl($url, Submission $submission): array
+    protected function getWebhookUrl($url, Submission $submission)
     {
         $url = Craft::$app->getView()->renderObjectTemplate($url, $submission);
 
