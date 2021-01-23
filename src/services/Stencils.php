@@ -178,6 +178,9 @@ class Stencils extends Component
             ];
         }
 
+        // Prepare the stencil data for saving.
+        $configData = $this->_prepDataForSave($configData);
+
         $configPath = self::CONFIG_STENCILS_KEY . '.' . $stencilUid;
         $projectConfig->set($configPath, $configData);
 
@@ -421,5 +424,47 @@ class Stencils extends Component
         }
 
         return new StencilRecord();
+    }
+
+    /**
+     * @inheritDoc
+     */
+    private function _prepDataForSave($configData)
+    {
+        // It's important to not store actual IDs in stencil data. Ensure they're marked as 'new'
+        // for pages, rows and fields.
+        $pages = $configData['data']['pages'] ?? [];
+
+        foreach ($pages as $pageKey => $page) {
+            $pageId = $page['id'] ?? '';
+
+            if (strpos($pageId, 'new') !== 0) {
+                $pages[$pageKey]['id'] = 'new' . rand();
+            }
+
+            $rows = $page['rows'] ?? [];
+
+            foreach ($rows as $rowKey => $row) {
+                $rowId = $row['id'] ?? '';
+
+                if (strpos($rowId, 'new') !== 0) {
+                    $pages[$pageKey]['rows'][$rowKey]['id'] = 'new' . rand();
+                }
+
+                $fields = $row['fields'] ?? [];
+
+                foreach ($fields as $fieldKey => $field) {
+                    $fieldId = $field['id'] ?? '';
+
+                    if (strpos($fieldId, 'new') !== 0) {
+                        $pages[$pageKey]['rows'][$rowKey]['fields'][$fieldKey]['id'] = 'new' . rand();
+                    }
+                }
+            }
+        }
+
+        $configData['data']['pages'] = $pages;
+
+        return $configData;
     }
 }
