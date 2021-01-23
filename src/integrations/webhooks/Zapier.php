@@ -83,7 +83,7 @@ class Zapier extends Webhook
             $webhook = $form->settings->integrations[$this->handle]['webhook'] ?? $this->webhook;
 
             $payload = $this->generatePayloadValues($submission);
-            $response = $this->getClient()->request('POST', Craft::parseEnv($webhook), $payload);
+            $response = $this->getClient()->request('POST', $this->getWebhookUrl($webhook, $submission), $payload);
 
             $json = Json::decode((string)$response->getBody());
 
@@ -110,7 +110,7 @@ class Zapier extends Webhook
         try {
             $payload = $this->generatePayloadValues($submission);
 
-            $response = $this->getClient()->request('POST', Craft::parseEnv($this->webhook), $payload);
+            $response = $this->getClient()->request('POST', $this->getWebhookUrl($this->webhook, $submission), $payload);
         } catch (\Throwable $e) {
             Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [
                 'message' => $e->getMessage(),

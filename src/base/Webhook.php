@@ -110,4 +110,14 @@ abstract class Webhook extends Integration implements IntegrationInterface
 
         return $event->payload;
     }
+
+    /**
+     * @inheritDoc
+     */
+    protected function getWebhookUrl($url, Submission $submission): array
+    {
+        $url = Craft::$app->getView()->renderObjectTemplate($url, $submission);
+
+        return Craft::parseEnv($url);
+    }
 }
