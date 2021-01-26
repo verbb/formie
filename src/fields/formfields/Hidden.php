@@ -219,6 +219,7 @@ class Hidden extends FormField implements PreviewableFieldInterface
             SchemaHelper::handleField(),
             SchemaHelper::cssClasses(),
             SchemaHelper::containerAttributesField(),
+            SchemaHelper::inputAttributesField(),
         ];
     }
 }
