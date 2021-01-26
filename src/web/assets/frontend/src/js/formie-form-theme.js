@@ -214,11 +214,12 @@ export class FormieFormTheme {
         var formData = new FormData(this.$form);
         var excludedItems = ['g-recaptcha-response', 'CRAFT_CSRF_TOKEN'];
 
-        formData.forEach((value, key) => {
-            if (!excludedItems.includes(key)) {
-                hash[key] = value;
+        for (var pair of formData.entries()) {
+            if (!excludedItems.includes(pair[0])) {
+                // eslint-disable-next-line
+                hash[pair[0]] = pair[1];
             }
-        });
+        }
 
         return JSON.stringify(hash);
     }
