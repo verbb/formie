@@ -329,9 +329,16 @@ class SubmissionsController extends Controller
 
         $currentPage = null;
         
-        if ($pageIndex = $request->getBodyParam('pageIndex')) {
+        if ($pageIndex = $request->getParam('pageIndex')) {
             $pages = $form->getPages();
             $currentPage = $pages[$pageIndex];
+        }
+
+        // Allow full submission payload to be provided for multi-page forms.
+        // Skip straight to the last page.
+        if ($request->getParam('completeSubmission')) {
+            $pages = $form->getPages();
+            $form->setCurrentPage($pages[count($pages) - 1]);
         }
 
         // Check for the next page - if there is one
