@@ -1,5 +1,22 @@
 # Changelog
 
+## 1.3.14 - 2021-01-28
+
+### Added
+- Add `completeSubmission` param to forms, to allow providing a full payload and complete the submission.
+
+### Changed
+- Saving spam submissions is now enabled by default.
+- Agree field description static translation is now defined in `site.php`.
+
+### Fixed
+- Fixed IE11 compatibility with some front-end fields (Address, Phone, Repeater).
+- Fixed hidden fields not having input attributes setting.
+- Fixed description for Agree field being translated twice.
+- Fixed error in Craft 3.6+.
+- Fixed submissions failing if `spamKeywords` setting was invalid.
+- Fixed error when querying form settings using GraphQL
+
 ## 1.3.13 - 2021-01-24
 
 ### Added
