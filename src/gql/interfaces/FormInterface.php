@@ -2,14 +2,14 @@
 namespace verbb\formie\gql\interfaces;
 
 use verbb\formie\elements\Form;
-use verbb\formie\gql\types\generators\FormGenerator;
 use verbb\formie\gql\arguments\FieldArguments;
 use verbb\formie\gql\arguments\FormArguments;
 use verbb\formie\gql\interfaces\FieldInterface;
-use verbb\formie\gql\interfaces\FormSettingsInterface;
 use verbb\formie\gql\interfaces\PageInterface;
 use verbb\formie\gql\interfaces\RowInterface;
 use verbb\formie\gql\interfaces\FormInterface as FormInterfaceLocal;
+use verbb\formie\gql\types\FormSettingsType;
+use verbb\formie\gql\types\generators\FormGenerator;
 
 use craft\gql\base\InterfaceType as BaseInterfaceType;
 use craft\gql\interfaces\Element;
@@ -82,7 +82,7 @@ class FormInterface extends Element
             ],
             'settings' => [
                 'name' => 'settings',
-                'type' => FormSettingsInterface::getType(),
+                'type' => FormSettingsType::getType(),
                 'description' => 'The form’s settings.'
             ],
         ]), self::getName());
