@@ -279,6 +279,7 @@ class Emails extends Component
             if (!$event->isValid) {
                 $error = Craft::t('formie', 'Notification email for submission "{submission}" was cancelled by Formie.', [
                     'submission' => $submission->id ?? 'new',
+                    'email' => Json::encode($this->_serializeEmail($newEmail)),
                 ]);
 
                 Formie::error($error);
@@ -289,6 +290,7 @@ class Emails extends Component
             if (!Craft::$app->getMailer()->send($newEmail)) {
                 $error = Craft::t('formie', 'Notification email could not be sent for submission “{submission}”.', [
                     'submission' => $submission->id ?? 'new',
+                    'email' => Json::encode($this->_serializeEmail($newEmail)),
                 ]);
 
                 Formie::error($error);
@@ -304,6 +306,7 @@ class Emails extends Component
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
                 'submission' => $submission->id ?? 'new',
+                'email' => Json::encode($this->_serializeEmail($newEmail)),
             ]);
 
             Formie::error($error);
@@ -466,5 +469,31 @@ class Emails extends Component
         $path = $asset->getVolume()->getRootPath() . DIRECTORY_SEPARATOR . $asset->getPath();
 
         return FileHelper::normalizePath($path);
+    }
+
+    private function _serializeEmail($email)
+    {
+        $htmlBody = $email->getSwiftMessage()->getBody();
+        $children = $email->getSwiftMessage()->getChildren();
+
+        // Getting the content from an email is a little more involved...
+        if (!$htmlBody && $children) {
+            foreach ($children as $child) {
+                if ($child->getContentType() == 'text/html') {
+                    $htmlBody = $child->getBody();
+                }
+            }
+        }
+
+        return [
+            'charset' => $email->getCharset(),
+            'from' => $email->getFrom(),
+            'replyTo' => $email->getReplyTo(),
+            'to' => $email->getTo(),
+            'cc' => $email->getCc(),
+            'bcc' => $email->getBcc(),
+            'subject' => $email->getSubject(),
+            'body' => $htmlBody,
+        ];
     }
 }
