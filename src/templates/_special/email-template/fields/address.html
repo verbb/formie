@@ -3,6 +3,10 @@
         <strong>{{ field.name | t }}</strong><br>
     {% endif %}
 
+    {% if field.autocompleteEnabled %}
+        <strong>{{ field.autocompleteLabel | t }}: </strong>{{ value.autocomplete ?? ('No response.' | t('formie')) }}<br>
+    {% endif %}
+
     {% if field.address1Enabled %}
         <strong>{{ field.address1Label | t }}: </strong>{{ value.address1 ?? ('No response.' | t('formie')) }}<br>
     {% endif %}
