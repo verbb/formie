@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.3.15 - 2021-01-29
+
+### Added
+- Added more logging info for email notifications, when failed to send.
+
+### Fixed
+- Fixed an error when viewing sent notifications, when the submission was deleted.
+- Fixed some errors for sent notifications for a deleted submission or form.
+- Fixed Zoho integration where the authentication response didn’t contain the required `api_domain`.
+- Fixed Salesforce integration where the authentication response didn’t contain the required `instance_url`.
+- Fixed failed email notifications not showing the full error in the control panel, when running email notifications via queues.
+
 ## 1.3.14 - 2021-01-28
 
 ### Added
