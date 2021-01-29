@@ -182,7 +182,7 @@ class SentNotification extends Element
     /**
      * @inheritDoc
      */
-    public function getForm(): Form
+    public function getForm()
     {
         if (!$this->_form) {
             $this->_form = Form::find()->id($this->formId)->one();
@@ -194,7 +194,7 @@ class SentNotification extends Element
     /**
      * @inheritDoc
      */
-    public function getSubmission(): Submission
+    public function getSubmission()
     {
         if (!$this->_submission) {
             $this->_submission = Submission::find()->id($this->submissionId)->one();
