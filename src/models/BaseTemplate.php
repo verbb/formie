@@ -87,11 +87,16 @@ abstract class BaseTemplate extends Model
             // Check how to validate templates
             if ($this->hasSingleTemplate) {
                 if (!$view->doesTemplateExist($this->$attribute)) {
-                    $validator->addError(
-                        $this,
-                        $attribute,
-                        Craft::t('formie', 'The template does not exist.')
-                    ); 
+                    $path = Craft::$app->getPath()->getSiteTemplatesPath() . DIRECTORY_SEPARATOR . $this->$attribute;
+                    $path = FileHelper::normalizePath($path);
+
+                    if (!is_dir($path)) {
+                        $validator->addError(
+                            $this,
+                            $attribute,
+                            Craft::t('formie', 'The template does not exist.')
+                        );
+                    }
                 }
             } else {
                 $path = Craft::$app->getPath()->getSiteTemplatesPath() . DIRECTORY_SEPARATOR . $this->$attribute;
