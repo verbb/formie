@@ -29,6 +29,7 @@ abstract class BaseTemplate extends Model
     public $dateDeleted;
     public $uid;
     
+    public $copyTemplates = false;
     public $hasSingleTemplate = false;
 
 

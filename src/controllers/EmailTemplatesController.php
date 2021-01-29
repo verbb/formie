@@ -90,10 +90,11 @@ class EmailTemplatesController extends Controller
         $template->name = $request->getBodyParam('name');
         $template->handle = $request->getBodyParam('handle');
         $template->template = preg_replace('/\/index(?:\.html|\.twig)?$/', '', $request->getBodyParam('template'));
+        $template->copyTemplates = $request->getBodyParam('copyTemplates', false);
 
         // Save it
         if (Formie::$plugin->getEmailTemplates()->saveTemplate($template)) {
-            if ($request->getBodyParam('copyTemplates', false)) {
+            if ($template->copyTemplates) {
                 FileHelper::copyTemplateDirectory('@verbb/formie/templates/_special/email-template', $template->template);
             }
 
