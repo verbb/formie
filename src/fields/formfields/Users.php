@@ -94,15 +94,8 @@ class Users extends CraftUsers implements FormFieldInterface
      */
     public function getFieldDefaults(): array
     {
-        $group = null;
-        $groups = Craft::$app->getUserGroups()->getAllGroups();
-
-        if (!empty($groups)) {
-            $group = 'group:' . $groups[0]->uid;
-        }
-
         return [
-            'source' => $group,
+            'sources' => '*',
             'placeholder' => Craft::t('formie', 'Select a user'),
         ];
     }
