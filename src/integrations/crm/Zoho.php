@@ -126,6 +126,10 @@ class Zoho extends Crm
     {
         // Save these properties for later...
         $this->apiDomain = $token->getValues()['api_domain'] ?? '';
+
+        if (!$this->apiDomain) {
+            throw new \Exception('Zoho response missing `api_domain`.');
+        }
     }
 
 
