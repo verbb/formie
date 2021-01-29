@@ -94,6 +94,10 @@ class Salesforce extends Crm
     {
         // Save these properties for later...
         $this->apiDomain = $token->getValues()['instance_url'] ?? '';
+
+        if (!$this->apiDomain) {
+            throw new \Exception('Salesforce response missing `instance_url`.');
+        }
     }
 
 
