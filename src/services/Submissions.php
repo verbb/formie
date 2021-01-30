@@ -316,8 +316,6 @@ class Submissions extends Component
             $submissions = Submission::find()
                 ->dateCreated('< ' . $date->format('c'))
                 ->formId($form['id'])
-                ->isIncomplete(null)
-                ->isSpam(null)
                 ->all();
 
             if ($submissions && $consoleInstance) {
