@@ -10,6 +10,7 @@ use verbb\formie\events\ModifyElementFieldQueryEvent;
 use verbb\formie\helpers\SchemaHelper;
 
 use Craft;
+use craft\base\ElementInterface;
 use craft\elements\User;
 use craft\fields\Users as CraftUsers;
 use craft\helpers\ArrayHelper;
@@ -75,6 +76,18 @@ class Users extends CraftUsers implements FormFieldInterface
 
     // Public Methods
     // =========================================================================
+
+    /**
+     * @inheritDoc
+     */
+    public function serializeValueForExport($value, ElementInterface $element = null)
+    {
+        $value = $this->_all($value, $element);
+
+        return array_reduce($value->all(), function($acc, $input) {
+            return $acc . $input->name;
+        }, '');
+    }
 
     /**
      * @inheritDoc
