@@ -83,7 +83,8 @@
             "developers/front-end-css",
             "developers/front-end-js",
             "developers/javascript-api",
-            "developers/graphql"
+            "developers/graphql",
+            "developers/console-commands"
         ]
     },
     {
