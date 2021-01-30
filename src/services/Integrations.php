@@ -353,8 +353,9 @@ class Integrations extends Component
     public function updateIntegrationToken(IntegrationInterface $integration, $token)
     {
         // Direct DB update to keep it out of PC, plus speed
+        // Update the settings as some providers add from provider callback.
         return Craft::$app->getDb()->createCommand()
-            ->update('{{%formie_integrations}}', ['tokenId' => $token], ['id' => $integration->id])
+            ->update('{{%formie_integrations}}', ['tokenId' => $token, 'settings' => Json::encode($integration->settings)], ['id' => $integration->id])
             ->execute();
     }
 
