@@ -415,7 +415,7 @@ class IntegrationsController extends Controller
         
         if (!Formie::$plugin->getTokens()->deleteTokenById($integration->tokenId)) {
             $error = Craft::t('formie', 'Unable to delete token - {errors}.', [
-                'errors' => Json::encode($token->getErrors()),
+                'errors' => Json::encode($integration->getErrors()),
             ]);
 
             Formie::error($error);
