@@ -225,6 +225,25 @@ Event::on(Submissions::class, Submissions::EVENT_BEFORE_TRIGGER_INTEGRATION, fun
 });
 ```
 
+### The `modifyFieldExport` event
+The event that is triggered after a field's value has been prepped for export.
+
+Modify the `fieldValue` event property to set the value used in exports.
+
+```php
+use verbb\formie\elements\exporters\SubmissionExport;
+use verbb\formie\events\ModifyFieldExportEvent;
+use yii\base\Event;
+
+Event::on(SubmissionExport::class, SubmissionExport::EVENT_MODIFY_FIELD_EXPORT, function(ModifyFieldExportEvent $event) {
+    $field = $event->field;
+    $value = $event->value;
+    $element = $event->element;
+    $fieldValue = $event->fieldValue;
+    // ...
+});
+```
+
 
 
 ## Field Events

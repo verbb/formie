@@ -1,6 +1,8 @@
 <?php
 namespace verbb\formie\elements\exporters;
 
+use verbb\formie\events\ModifyFieldExportEvent;
+
 use Craft;
 use craft\base\EagerLoadingFieldInterface;
 use craft\base\ElementExporter;
@@ -9,6 +11,15 @@ use craft\elements\db\ElementQueryInterface;
 
 class SubmissionExport extends ElementExporter
 {
+    // Constants
+    // =========================================================================
+
+    const EVENT_MODIFY_FIELD_EXPORT = 'modifyFieldExport';
+
+
+    // Static Methods
+    // =========================================================================
+    
     /**
      * @inheritdoc
      */
@@ -16,6 +27,10 @@ class SubmissionExport extends ElementExporter
     {
         return Craft::t('formie', 'Default');
     }
+
+
+    // Public Methods
+    // =========================================================================
 
     /**
      * @inheritdoc
@@ -65,13 +80,33 @@ class SubmissionExport extends ElementExporter
                     if (method_exists($field, 'serializeValueForExport')) {
                         $fieldValue = $field->serializeValueForExport($value, $element);
 
+                        // Fire a 'modifyFieldExport' event
+                        $event = new ModifyFieldExportEvent([
+                            'field' => $field,
+                            'value' => $value,
+                            'element' => $element,
+                            'fieldValue' => $fieldValue,
+                        ]);
+                        $this->trigger(self::EVENT_MODIFY_FIELD_EXPORT, $event);
+
+                        $fieldValue = $event->fieldValue;
+
                         if (is_array($fieldValue)) {
                             $row = array_merge($row, $fieldValue);
                         } else {
                             $row[$field->handle] = $fieldValue;
                         }
                     } else {
-                        $row[$field->handle] = $field->serializeValue($value, $element);
+                        // Fire a 'modifyFieldExport' event
+                        $event = new ModifyFieldExportEvent([
+                            'field' => $field,
+                            'value' => $value,
+                            'element' => $element,
+                            'fieldValue' => $field->serializeValue($value, $element),
+                        ]);
+                        $this->trigger(self::EVENT_MODIFY_FIELD_EXPORT, $event);
+
+                        $row[$field->handle] = $event->fieldValue;
                     }
                 }
             }
