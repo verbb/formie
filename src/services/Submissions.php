@@ -278,7 +278,7 @@ class Submissions extends Component
             $dataRetentionValue = (int)$form['dataRetentionValue'];
 
             // Setup intervals, depending on the setting
-            $intervalLookup = ['hours' => 'H', 'days' => 'D', 'weeks' => 'W', 'months' => 'M', 'years' => 'Y'];
+            $intervalLookup = ['minutes' => 'i', 'hours' => 'H', 'days' => 'D', 'weeks' => 'W', 'months' => 'M', 'years' => 'Y'];
             $intervalValue = $intervalLookup[$dataRetention] ?? '';
 
             if (!$intervalValue || !$dataRetentionValue) {
