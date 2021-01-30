@@ -7,6 +7,7 @@ use verbb\formie\base\FormFieldTrait;
 use verbb\formie\elements\actions\SetSubmissionSpam;
 use verbb\formie\elements\actions\SetSubmissionStatus;
 use verbb\formie\elements\db\SubmissionQuery;
+use verbb\formie\events\ModifyFieldValueForIntegrationEvent;
 use verbb\formie\events\SubmissionMarkedAsSpamEvent;
 use verbb\formie\events\SubmissionRulesEvent;
 use verbb\formie\fields\formfields\FileUpload;
@@ -36,6 +37,7 @@ class Submission extends Element
 
     const EVENT_DEFINE_RULES = 'defineSubmissionRules';
     const EVENT_BEFORE_MARKED_AS_SPAM = 'beforeMarkedAsSpam';
+    const EVENT_MODIFY_FIELD_VALUE_FOR_INTEGRATION = 'modifyFieldValueForIntegration';
 
 
     // Public Properties
@@ -604,7 +606,15 @@ class Submission extends Element
                     $value = $field->serializeValue($value, $this);
                 }
 
-                $serializedValues[$field->handle] = $value;
+                // Fire a 'modifyFieldValueForIntegration' event
+                $event = new ModifyFieldValueForIntegrationEvent([
+                    'field' => $field,
+                    'value' => $value,
+                    'submission' => $this,
+                ]);
+                $this->trigger(self::EVENT_MODIFY_FIELD_VALUE_FOR_INTEGRATION, $event);
+
+                $serializedValues[$field->handle] = $event->value;
             }
         }
 

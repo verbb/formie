@@ -244,6 +244,24 @@ Event::on(SubmissionExport::class, SubmissionExport::EVENT_MODIFY_FIELD_EXPORT, 
 });
 ```
 
+### The `modifyFieldValueForIntegration` event
+The event that is triggered after a field's value has been prepped for all integrations.
+
+Modify the `value` event property to set the value used by integrations.
+
+```php
+use verbb\formie\elements\Submission;
+use verbb\formie\events\ModifyFieldValueForIntegrationEvent;
+use yii\base\Event;
+
+Event::on(Submission::class, Submission::EVENT_MODIFY_FIELD_VALUE_FOR_INTEGRATION, function(ModifyFieldValueForIntegrationEvent $event) {
+    $field = $event->field;
+    $value = $event->value;
+    $submission = $event->submission;
+    // ...
+});
+```
+
 
 
 ## Field Events
