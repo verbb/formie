@@ -708,8 +708,10 @@ class Submission extends Element
     {
         $form = $this->getForm();
 
-        if ($form && ($submission = $form->getCurrentSubmission()) && $submission->id == $this->id) {
-            $form->resetCurrentSubmission();
+        if (!Craft::$app->getRequest()->getIsConsoleRequest()) {
+            if ($form && ($submission = $form->getCurrentSubmission()) && $submission->id == $this->id) {
+                $form->resetCurrentSubmission();
+            }
         }
 
         return parent::beforeDelete();
