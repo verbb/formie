@@ -82,6 +82,18 @@ class Entries extends CraftEntries implements FormFieldInterface
     /**
      * @inheritDoc
      */
+    public function serializeValueForExport($value, ElementInterface $element = null)
+    {
+        $value = $this->_all($value, $element);
+
+        return array_reduce($value->all(), function($acc, $input) {
+            return $acc . $input->title;
+        }, '');
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function getExtraBaseFieldConfig(): array
     {
         $options = $this->getSourceOptions();
