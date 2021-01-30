@@ -212,7 +212,7 @@ class Submissions extends Component
     /**
      * Deletes incomplete submissions older than the configured interval.
      */
-    public function pruneIncompleteSubmissions()
+    public function pruneIncompleteSubmissions($consoleInstance = null)
     {
         /* @var Settings $settings */
         $settings = Formie::$plugin->getSettings();
@@ -251,11 +251,23 @@ class Submissions extends Component
                 ->orderBy(['dateCreated' => SORT_DESC])
                 ->all();
 
+            if ($submissions && $consoleInstance) {
+                $consoleInstance->stdout('Preparing to prune ' . count($submissions) . ' submissions.' . PHP_EOL, Console::FG_YELLOW);
+            }
+
             foreach ($submissions as $submission) {
                 try {
                     Craft::$app->getElements()->deleteElement($submission, true);
+
+                    if ($consoleInstance) {
+                        $consoleInstance->stdout("Pruned spam submission with ID: #{$submission->id}." . PHP_EOL, Console::FG_GREEN);
+                    }
                 } catch (Throwable $e) {
                     Formie::error("Failed to prune spam submission with ID: #{$submission->id}." . $e->getMessage());
+
+                    if ($consoleInstance) {
+                        $consoleInstance->stdout("Failed to prune spam submission with ID: #{$submission->id}. " . $e->getMessage() . PHP_EOL, Console::FG_RED);
+                    }
                 }
             }
         }
@@ -306,7 +318,7 @@ class Submissions extends Component
                 ->formId($form['id'])
                 ->all();
 
-            if ($submissions) {
+            if ($submissions && $consoleInstance) {
                 $consoleInstance->stdout('Preparing to prune ' . count($submissions) . ' submissions.' . PHP_EOL, Console::FG_YELLOW);
             }
 

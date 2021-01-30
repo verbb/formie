@@ -282,7 +282,7 @@ class Syncs extends Component
      * @throws Throwable
      * @throws \yii\db\StaleObjectException
      */
-    public function pruneSyncs()
+    public function pruneSyncs($consoleInstance = null)
     {
         foreach ($this->getAllSyncs() as $sync) {
             if (!$sync->hasFields()) {

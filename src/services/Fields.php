@@ -412,7 +412,7 @@ class Fields extends Component
     /**
      * Deletes any fields that aren't attached to a form anymore.
      */
-    public function deleteOrphanedFields()
+    public function deleteOrphanedFields($consoleInstance = null)
     {
         $allFieldIds = [];
         $forms = Form::find()->trashed(null)->all();

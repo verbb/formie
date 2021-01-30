@@ -689,7 +689,7 @@ class Forms extends Component
      *
      * @throws \yii\db\Exception
      */
-    public function pruneContentTables()
+    public function pruneContentTables($consoleInstance = null)
     {
         $db = Craft::$app->getDb();
 
