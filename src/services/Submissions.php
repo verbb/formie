@@ -234,7 +234,7 @@ class Submissions extends Component
             try {
                 Craft::$app->getElements()->deleteElement($submission, true);
             } catch (Throwable $e) {
-                Formie::error('Failed to prune submission with ID: #' . $submission->id);
+                Formie::error("Failed to prune submission with ID: #{$submission->id}." . $e->getMessage());
             }
         }
 
@@ -255,7 +255,7 @@ class Submissions extends Component
                 try {
                     Craft::$app->getElements()->deleteElement($submission, true);
                 } catch (Throwable $e) {
-                    Formie::error('Failed to prune spam submission with ID: #' . $submission->id);
+                    Formie::error("Failed to prune spam submission with ID: #{$submission->id}." . $e->getMessage());
                 }
             }
         }
@@ -318,10 +318,10 @@ class Submissions extends Component
                         $consoleInstance->stdout("Pruned submission with ID: #{$submission->id}." . PHP_EOL, Console::FG_GREEN);
                     }
                 } catch (Throwable $e) {
-                    Formie::error('Failed to prune submission with ID: #' . $submission->id);
+                    Formie::error("Failed to prune submission with ID: #{$submission->id}." . $e->getMessage());
 
                     if ($consoleInstance) {
-                        $consoleInstance->stdout("Failed to prune submission with ID: #{$submission->id}." . PHP_EOL, Console::FG_RED);
+                        $consoleInstance->stdout("Failed to prune submission with ID: #{$submission->id}. " . $e->getMessage() . PHP_EOL, Console::FG_RED);
                     }
                 }
             }
@@ -381,7 +381,7 @@ class Submissions extends Component
                 try {
                     Craft::$app->getElements()->deleteElement($submission);
                 } catch (Throwable $e) {
-                    Formie::error('Failed to delete user submission with ID: #' . $submission->id);
+                    Formie::error("Failed to delete user submission with ID: #{$submission->id}." . $e->getMessage());
                 }
             }
         }
@@ -407,7 +407,7 @@ class Submissions extends Component
             try {
                 Craft::$app->getElements()->restoreElement($submission);
             } catch (Throwable $e) {
-                Formie::error('Failed to restore user submission with ID: #' . $submission->id);
+                Formie::error("Failed to restore user submission with ID: #{$submission->id}." . $e->getMessage());
             }
         }
     }
