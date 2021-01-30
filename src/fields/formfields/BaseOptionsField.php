@@ -53,6 +53,25 @@ abstract class BaseOptionsField extends CraftBaseOptionsField
     /**
      * @inheritDoc
      */
+    public function serializeValueForExport($value, ElementInterface $element = null)
+    {
+        if ($value instanceof MultiOptionsFieldData) {
+            $values = [];
+
+            foreach ($value as $selectedValue) {
+                /** @var OptionData $selectedValue */
+                $values[] = $selectedValue->value;
+            }
+
+            return implode(', ', $values);
+        }
+
+        return (string)$value;
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function getValue(ElementInterface $element)
     {
         $value = $element->getFieldValue($this->handle);
