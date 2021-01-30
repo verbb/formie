@@ -77,6 +77,14 @@ class Agree extends FormField implements PreviewableFieldInterface
     /**
      * @inheritDoc
      */
+    public function serializeValueForExport($value, ElementInterface $element = null)
+    {
+        return ($value) ? $this->checkedValue : $this->uncheckedValue;
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function getDescriptionHtml()
     {
         $html = $this->_getHtmlContent($this->description);
