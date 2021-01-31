@@ -204,6 +204,7 @@ Because Formie's JavaScript is loaded with `defer`, this means that regardless o
 
 In this scenario, you should listen to the `onFormieInit` event, which is fired when Formie's JS has been loaded.
 
+:::code
 ```js
 let $form = document.querySelector('#formie-form-1');
 $form.addEventListener('onFormieInit', (e) => {
@@ -211,14 +212,16 @@ $form.addEventListener('onFormieInit', (e) => {
 
     // ...
 });
+```
 
-// jQuery
+```jQuery
 $('#formie-form-1').on('onFormieInit', function(e) {
     let Formie = e.detail.formie;
 
     // ...
 });
 ```
+:::
 
 
 
@@ -227,6 +230,7 @@ Our JS hijacks the native submit handler of a form, and wraps it in a number of 
 ### The `onBeforeFormieSubmit` event
 The event that is triggered before a form is submitted, and before validation is triggered. You can cancel a submission by using `preventDefault()`.
 
+:::code
 ```js
 let $form = document.querySelector('#formie-form-1');
 $form.addEventListener('onBeforeFormieSubmit', (e) => {
@@ -234,20 +238,23 @@ $form.addEventListener('onBeforeFormieSubmit', (e) => {
 
     // ...
 });
+```
 
-// jQuery
+```jQuery
 $('#formie-form-1').on('onBeforeFormieSubmit', function(e) {
     e.preventDefault();
 
     // ...
 });
 ```
+:::
 
 
 
 ### The `onFormieValidate` event
 The event that is triggered before a form is submitted, but after validation is triggered. You can cancel a submission by using `preventDefault()`.
 
+:::code
 ```js
 let $form = document.querySelector('#formie-form-1');
 $form.addEventListener('onFormieValidate', (e) => {
@@ -256,8 +263,9 @@ $form.addEventListener('onFormieValidate', (e) => {
     let submitHandler = e.detail.submitHandler;
     // ...
 });
+```
 
-// jQuery
+```jQuery
 $('#formie-form-1').on('onFormieValidate', function(e) {
     e.preventDefault();
 
@@ -265,12 +273,14 @@ $('#formie-form-1').on('onFormieValidate', function(e) {
     // ...
 });
 ```
+:::
 
 
 
 ### The `onAfterFormieSubmit` event
 The event that is triggered after a form is submitted.
 
+:::code
 ```js
 let $form = document.querySelector('#formie-form-1');
 $form.addEventListener('onAfterFormieSubmit', (e) => {
@@ -279,8 +289,9 @@ $form.addEventListener('onAfterFormieSubmit', (e) => {
     let data = e.detail;
     // ...
 });
+```
 
-// jQuery
+```jQuery
 $('#formie-form-1').on('onAfterFormieSubmit', function(e) {
     e.preventDefault();
 
@@ -288,12 +299,14 @@ $('#formie-form-1').on('onAfterFormieSubmit', function(e) {
     // ...
 });
 ```
+:::
 
 
 
 ### The `onFormieSubmitError` event
 The event that is triggered if an error on submission is detected. This can also be called manually through `formSubmitError()`.
 
+:::code
 ```js
 let $form = document.querySelector('#formie-form-1');
 $form.addEventListener('onFormieSubmitError', (e) => {
@@ -301,14 +314,16 @@ $form.addEventListener('onFormieSubmitError', (e) => {
 
     // ...
 });
+```
 
-// jQuery
+```jQuery
 $('#formie-form-1').on('onFormieSubmitError', function(e) {
     e.preventDefault();
 
     // ...
 });
 ```
+:::
 
 
 ## Submit Handling
