@@ -93,6 +93,7 @@ fetch('/', {
     body: data,
     headers: {
         'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
     },
 }).then(function(response) {
     response.json().then(function(data) {
@@ -119,3 +120,28 @@ $.ajax({
 });
 ```
 :::
+
+If you're unable to use `FormData` or `serialize()`, or you're constructing the payload for the action yourself, you'll need to provide the CSRF token and the action to perform in your payload.
+
+```twig
+<script type="text/javascript">
+    window.csrfTokenName = "{{ craft.app.config.general.csrfTokenName|e('js') }}";
+    window.csrfTokenValue = "{{ craft.app.request.csrfToken|e('js') }}";
+</script>
+```
+
+```js
+let data = {
+    action: 'formie/submissions/submit',
+    handle: 'contactForm',
+    siteId: 1,
+    fields: {
+        yourName: 'Peter Sherman',
+        emailAddress: 'psherman@wallaby.com',
+        message: 'Hello there!',
+    },
+};
+
+// Add the CSRF Token
+data[csrfTokenName] = csrfTokenValue;
+```
