@@ -1,5 +1,32 @@
 # Changelog
 
+## 1.3.16 - 2021-01-31
+
+### Added
+-Added autocomplete value to Address field in email templates.
+-Added `SubmissionExport::EVENT_MODIFY_FIELD_EXPORT` to allow modification of values for fields when exporting submissions.
+-Added `Submission::EVENT_MODIFY_FIELD_VALUE_FOR_INTEGRATION` to allow modification of submission field values before they’re used in Integrations.
+-Added `minutes` as an option for submission data retention.
+-Added more feedback for garbage-collection tasks when run directly from the CLI.
+
+### Fixed
+- Fixed an error when creating new email templates in an empty directory.
+- Fixed email and form templates not retaining “Copy Templates” value after validation.
+- Fixed Users field not setting “All users” as default sources when creating a new field.
+- Fixed Variant field not exporting correctly.
+- Fixed Users field not exporting correctly.
+- Fixed Tags field not exporting correctly.
+- Fixed Products field not exporting correctly.
+- Fixed File Upload field not exporting correctly.
+- Fixed Entries field not exporting correctly.
+- Fixed Categories field not exporting correctly.
+- Fixed Checkboxes field not exporting correctly.
+- Fixed Agree field not exporting correctly.
+- Fixed an error when trying to delete submissions from the CLI.
+- Fixed an error when disconnecting an OAuth-based integration.
+- Fixed Salesforce and Zoho CRM integrations not persisting values returned from provider authentication.
+- Ensure error message is logged for failed pruning of submission tasks.
+
 ## 1.3.15 - 2021-01-29
 
 ### Added
