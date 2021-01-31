@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.3.16.1 - 2021-01-31
+
+### Fixed
+- Fix an error with `ModifyFieldValueForIntegrationEvent`.
+
 ## 1.3.16 - 2021-01-31
 
 ### Added
