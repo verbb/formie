@@ -20,26 +20,14 @@ class ConditionsHelper
         $ruler = new Ruler();
 
         $ruler->getDefaultAsserter()->setOperator('contains', function($subject, $pattern) {
-            if (is_array($subject)) {
-                $subject = self::recursiveImplode(' ', $subject);
-            }
-
             return StringHelper::contains($subject, $pattern);
         });
 
         $ruler->getDefaultAsserter()->setOperator('startswith', function($subject, $pattern) {
-            if (is_array($subject)) {
-                $subject = self::recursiveImplode(' ', $subject);
-            }
-
             return StringHelper::startsWith($subject, $pattern);
         });
 
         $ruler->getDefaultAsserter()->setOperator('endswith', function($subject, $pattern) {
-            if (is_array($subject)) {
-                $subject = self::recursiveImplode(' ', $subject);
-            }
-
             return StringHelper::endsWith($subject, $pattern);
         });
 

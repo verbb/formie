@@ -414,6 +414,11 @@ class Notifications extends Component
                             $condition['field'] = ArrayHelper::getValue($serializedFieldValues, $condition['field']);
                         }
 
+                        // Check for array values, we should always be comparing strings
+                        if (is_array($condition['field'])) {
+                            $condition['field'] = ConditionsHelper::recursiveImplode(' ', $condition['field']);
+                        }
+
                         // Protect against empty conditions
                         if (!trim(ConditionsHelper::recursiveImplode('', $condition))) {
                             continue;
