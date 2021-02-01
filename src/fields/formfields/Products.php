@@ -87,6 +87,16 @@ class Products extends CommerceProducts implements FormFieldInterface
     /**
      * @inheritDoc
      */
+    public function serializeValueForIntegration($value, ElementInterface $element = null)
+    {
+        return array_map(function($input) {
+            return $input->title;
+        }, $this->_all($value, $element)->all());
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function getExtraBaseFieldConfig(): array
     {
         $options = $this->getSourceOptions();
