@@ -425,7 +425,7 @@ class Notifications extends Component
                         $results[] = $ruler->assert($rule, $context);
                     } catch (\Throwable $e) {
                         Formie::error(Craft::t('formie', 'Failed to parse conditional “{rule}”: “{message}” {file}:{line}', [
-                            'rule' => implode(' ', $condition),
+                            'rule' => trim($this->recursiveImplode('', $condition)),
                             'message' => $e->getMessage(),
                             'file' => $e->getFile(),
                             'line' => $e->getLine(),
