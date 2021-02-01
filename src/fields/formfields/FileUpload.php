@@ -109,6 +109,28 @@ class FileUpload extends CraftAssets implements FormFieldInterface
     /**
      * @inheritDoc
      */
+    public function serializeValueForExport($value, ElementInterface $element = null)
+    {
+        $value = $this->_all($value, $element);
+
+        return array_reduce($value->all(), function($acc, $input) {
+            return $acc . $input->url;
+        }, '');
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function serializeValueForIntegration($value, ElementInterface $element = null)
+    {
+        return array_map(function($input) {
+            return $input->url;
+        }, $this->_all($value, $element)->all());
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function serializeValueForWebhook($value, ElementInterface $element = null)
     {
         $values = [];
@@ -118,18 +140,6 @@ class FileUpload extends CraftAssets implements FormFieldInterface
         }
 
         return $values;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function serializeValueForExport($value, ElementInterface $element = null)
-    {
-        $value = $this->_all($value, $element);
-
-        return array_reduce($value->all(), function($acc, $input) {
-            return $acc . $input->url;
-        }, '');
     }
 
     /**
