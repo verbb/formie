@@ -415,7 +415,7 @@ class Notifications extends Component
                         }
 
                         // Protect against empty conditions
-                        if (!trim($this->recursiveImplode('', $condition))) {
+                        if (!trim(ConditionsHelper::recursiveImplode('', $condition))) {
                             continue;
                         }
 
@@ -425,7 +425,7 @@ class Notifications extends Component
                         $results[] = $ruler->assert($rule, $context);
                     } catch (\Throwable $e) {
                         Formie::error(Craft::t('formie', 'Failed to parse conditional “{rule}”: “{message}” {file}:{line}', [
-                            'rule' => trim($this->recursiveImplode('', $condition)),
+                            'rule' => trim(ConditionsHelper::recursiveImplode('', $condition)),
                             'message' => $e->getMessage(),
                             'file' => $e->getFile(),
                             'line' => $e->getLine(),
@@ -735,36 +735,5 @@ class Notifications extends Component
         }
 
         return new NotificationRecord();
-    }
-
-    /**
-     * Recursively implodes an array with optional key inclusion
-     * 
-     * Example of $include_keys output: key, value, key, value, key, value
-     * 
-     * @access  public
-     * @param   array   $array         multi-dimensional array to recursively implode
-     * @param   string  $glue          value that glues elements together   
-     * @param   bool    $include_keys  include keys before their values
-     * @param   bool    $trim_all      trim ALL whitespace from string
-     * @return  string  imploded array
-     */ 
-    private function recursiveImplode($glue = ',', array $array, $include_keys = false, $trim_all = true)
-    {
-        $glued_string = '';
-
-        // Recursively iterates array and adds key/value to glued string
-        array_walk_recursive($array, function($value, $key) use ($glue, $include_keys, &$glued_string) {
-            $include_keys && $glued_string .= $key.$glue;
-            $glued_string .= $value.$glue;
-        });
-
-        // Removes last $glue from string
-        strlen($glue) > 0 && $glued_string = substr($glued_string, 0, -strlen($glue));
-
-        // Trim ALL whitespace
-        $trim_all && $glued_string = preg_replace("/(\s)/ixsm", '', $glued_string);
-
-        return (string)$glued_string;
     }
 }
