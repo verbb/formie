@@ -8,11 +8,11 @@
 ## 1.3.16 - 2021-01-31
 
 ### Added
--Added autocomplete value to Address field in email templates.
--Added `SubmissionExport::EVENT_MODIFY_FIELD_EXPORT` to allow modification of values for fields when exporting submissions.
--Added `Submission::EVENT_MODIFY_FIELD_VALUE_FOR_INTEGRATION` to allow modification of submission field values before they’re used in Integrations.
--Added `minutes` as an option for submission data retention.
--Added more feedback for garbage-collection tasks when run directly from the CLI.
+- Added autocomplete value to Address field in email templates.
+- Added `SubmissionExport::EVENT_MODIFY_FIELD_EXPORT` to allow modification of values for fields when exporting submissions.
+- Added `Submission::EVENT_MODIFY_FIELD_VALUE_FOR_INTEGRATION` to allow modification of submission field values before they’re used in Integrations.
+- Added `minutes` as an option for submission data retention.
+- Added more feedback for garbage-collection tasks when run directly from the CLI.
 
 ### Fixed
 - Fixed an error when creating new email templates in an empty directory.
