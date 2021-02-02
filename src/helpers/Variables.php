@@ -20,12 +20,6 @@ use Throwable;
 
 class Variables
 {
-    // Properties
-    // =========================================================================
-
-    public static $extras = [];
-
-
     // Public Static Methods
     // =========================================================================
 
@@ -159,11 +153,9 @@ class Variables
         // This helps to only cache it per-submission, when being run in queues.
         $cacheKey = $submission->id ?? $form->id ?? rand();
 
-        $extras = self::$extras[$cacheKey] ?? [];
-
         // Check to see if we have these already calculated for the request and submission
         // Just saves a good bunch of calculating values like looping through fields
-        if (!$extras) {
+        if (!Formie::$plugin->getRenderCache()->getGlobalVariables($cacheKey)) {
             // User Info
             $currentUser = Craft::$app->getUser()->getIdentity();
             $userId = $currentUser->id ?? '';
@@ -191,12 +183,7 @@ class Variables
             // Form Info
             $formName = $form->title ?? '';
 
-            $fieldHtml = self::getFormFieldsHtml($form, $notification, $submission);
-            $fieldContentHtml = self::getFormFieldsHtml($form, $notification, $submission, true);
-
-            $extras = self::$extras[$cacheKey] = [
-                'allFields' => $fieldHtml,
-                'allContentFields' => $fieldContentHtml,
+            Formie::$plugin->getRenderCache()->setGlobalVariables($cacheKey, [
                 'formName' => $formName,
                 'submissionUrl' => $submission->cpEditUrl ?? '',
                 'submissionId' => $submission->id ?? '',
@@ -219,27 +206,47 @@ class Variables
                 'userFullName' => $userFullName,
                 'userFirstName' => $userFirstName,
                 'userLastName' => $userLastName,
-            ];
-
-            // Old and deprecated methods. Ensure all fields are prefixed with 'field:', but too tricky to migrate...
-            $extras = array_merge($extras, self::_getParsedFieldValuesLegacy($form, $notification, $submission));
-
-            // Properly parse field values
-            $extras = array_merge($extras, self::_getParsedFieldValues($form, $submission, $notification));
+            ]);
 
             // Add support for all global sets
             foreach (Craft::$app->getGlobals()->getAllSets() as $globalSet) {
-                $extras[$globalSet->handle] = $globalSet;
+                Formie::$plugin->getRenderCache()->setGlobalVariables($cacheKey, [
+                    $globalSet->handle => $globalSet
+                ]);
             }
-
-            self::$extras[$cacheKey] = $extras;
         }
+
+        // Cache field's separately, as they rely on both a submission and notification, which might not be available
+        // for earlier calls to `getParsedValue()`, but should be cached anyway, as they're the most expensive calls.
+        if (!Formie::$plugin->getRenderCache()->getFieldVariables($cacheKey)) {
+            $fieldHtml = self::getFormFieldsHtml($form, $notification, $submission);
+            $fieldContentHtml = self::getFormFieldsHtml($form, $notification, $submission, true);
+
+            $fieldVariables = [
+                'allFields' => $fieldHtml,
+                'allContentFields' => $fieldContentHtml,
+            ];
+
+            // Old and deprecated methods. Ensure all fields are prefixed with 'field:', but too tricky to migrate...
+            // TODO: Remove at next breakpoint
+            $fieldVariables = array_merge($fieldVariables, self::_getParsedFieldValuesLegacy($form, $notification, $submission));
+
+            // Properly parse field values
+            $fieldVariables = array_merge($fieldVariables, self::_getParsedFieldValues($form, $submission, $notification));
+
+            // Don't save anything unless we have values
+            $fieldVariables = array_filter($fieldVariables);
+
+            Formie::$plugin->getRenderCache()->setFieldVariables($cacheKey, $fieldVariables);
+        }
+
+        $variables = Formie::$plugin->getRenderCache()->getVariables($cacheKey);
 
         // Try to parse submission + extra variables
         $view = Craft::$app->getView();
 
         try {
-            return $view->renderObjectTemplate($value, $submission, $extras);
+            return $view->renderObjectTemplate($value, $submission, $variables);
         } catch (Throwable $e) {
             Formie::error(Craft::t('formie', 'Failed to render dynamic string “{value}”. Template error: “{message}” {file}:{line}', [
                 'value' => $originalValue,

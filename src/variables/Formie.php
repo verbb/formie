@@ -1,11 +1,6 @@
 <?php
 namespace verbb\formie\variables;
 
-use Craft;
-
-use craft\errors\MissingComponentException;
-use Twig\Markup;
-
 use verbb\formie\Formie as FormiePlugin;
 use verbb\formie\base\FormFieldInterface;
 use verbb\formie\base\FormFieldTrait;
@@ -17,7 +12,13 @@ use verbb\formie\elements\db\FormQuery;
 use verbb\formie\elements\db\SubmissionQuery;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\FieldLayoutPage;
+use verbb\formie\models\Notification;
 use verbb\formie\services\Rendering;
+
+use Craft;
+use craft\errors\MissingComponentException;
+
+use Twig\Markup;
 
 class Formie
 {
@@ -207,9 +208,9 @@ class Formie
      * @param Form $form
      * @return string|null
      */
-    public function getParsedValue($value, Submission $submission, Form $form = null)
+    public function getParsedValue($value, Submission $submission, Form $form = null, Notification $notification = null)
     {
-        return Variables::getParsedValue($value, $submission, $form);
+        return Variables::getParsedValue($value, $submission, $form, $notification);
     }
 
     public function populateFormValues($form, $values)

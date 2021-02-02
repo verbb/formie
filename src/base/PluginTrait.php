@@ -10,6 +10,7 @@ use verbb\formie\services\FormTemplates;
 use verbb\formie\services\Integrations;
 use verbb\formie\services\Notifications;
 use verbb\formie\services\Phone;
+use verbb\formie\services\RenderCache;
 use verbb\formie\services\Rendering;
 use verbb\formie\services\NestedFields;
 use verbb\formie\services\SentNotifications;
@@ -85,6 +86,11 @@ trait PluginTrait
         return $this->get('phone');
     }
 
+    public function getRenderCache(): RenderCache
+    {
+        return $this->get('renderCache');
+    }
+
     public function getRendering(): Rendering
     {
         return $this->get('rendering');
@@ -151,6 +157,7 @@ trait PluginTrait
             'nestedFields' => NestedFields::class,
             'notifications' => Notifications::class,
             'phone' => Phone::class,
+            'renderCache' => RenderCache::class,
             'rendering' => Rendering::class,
             'sentNotifications' => SentNotifications::class,
             'service' => Service::class,
