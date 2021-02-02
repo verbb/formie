@@ -6,19 +6,21 @@ export class FormieCheckboxRadio {
         this.form = this.$form.form;
         this.$field = settings.$field;
 
-        this.initInputs();
-        this.initRequiredCheckboxes();
+        if (this.$field) {
+            this.initInputs();
+            this.initRequiredCheckboxes();
+        }
     }
 
     initInputs() {
-        const $inputs = this.$form.querySelectorAll('[type=checkbox], [type=radio]');
+        const $inputs = this.$field.querySelectorAll('[type=checkbox], [type=radio]');
 
         $inputs.forEach(($input) => {
             this.form.addEventListener($input, eventKey('click'), (e) => {
                 if (e.target.checked) {
                     if (e.target.getAttribute('type') === 'radio') {
                         const inputName = e.target.getAttribute('name');
-                        const $radioButtons = this.$form.querySelectorAll('[name="' + inputName + '"] ');
+                        const $radioButtons = this.$field.querySelectorAll('[name="' + inputName + '"] ');
 
                         $radioButtons.forEach(($radioButton) => {
                             $radioButton.removeAttribute('checked');
@@ -37,7 +39,7 @@ export class FormieCheckboxRadio {
     }
 
     initRequiredCheckboxes() {
-        const $checkboxFields = this.$form.querySelectorAll('.fui-type-checkboxes.fui-field-required');
+        const $checkboxFields = this.$field.querySelectorAll('.fui-type-checkboxes.fui-field-required');
 
         $checkboxFields.forEach(($checkboxField) => {
             const $checkboxInputs = $checkboxField.querySelectorAll('[type="checkbox"]');
