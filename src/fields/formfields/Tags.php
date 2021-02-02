@@ -8,6 +8,7 @@ use verbb\formie\base\RelationFieldTrait;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\models\Notification;
 
 use Craft;
 use craft\base\ElementInterface;
@@ -208,12 +209,12 @@ class Tags extends CraftTags implements FormFieldInterface
     /**
      * @inheritDoc
      */
-    public function getEmailHtml(Submission $submission, $value, array $options = null)
+    public function getEmailHtml(Submission $submission, Notification $notification, $value, array $options = null)
     {
         // Ensure we return back the correct, prepped query for emails. Just as we would be submissions.
         $value = $this->_all($value, $submission);
 
-        return $this->traitGetEmailHtml($submission, $value, $options);
+        return $this->traitGetEmailHtml($submission, $notification, $value, $options);
     }
 
     /**

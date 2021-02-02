@@ -5,6 +5,7 @@ use verbb\formie\base\FormField;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyPurifierConfigEvent;
 use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\models\Notification;
 
 use Craft;
 use craft\base\ElementInterface;
@@ -98,7 +99,7 @@ class Html extends FormField
     /**
      * @inheritDoc
      */
-    public function getEmailHtml(Submission $submission, $value, array $options = null)
+    public function getEmailHtml(Submission $submission, Notification $notification, $value, array $options = null)
     {
         return false;
     }

@@ -435,7 +435,7 @@ trait FormFieldTrait
 
         // Parse the default value for variables
         if (!is_array($value) && !is_object($value)) {
-            $value = Variables::getParsedValue($value, null, null);
+            $value = Variables::getParsedValue($value);
         }
 
         return $value;
@@ -666,17 +666,17 @@ trait FormFieldTrait
     /**
      * @inheritDoc
      */
-    public function getEmailHtml(Submission $submission, $value, array $options = null)
+    public function getEmailHtml(Submission $submission, Notification $notification, $value, array $options = null)
     {
         $view = Craft::$app->getView();
         $oldTemplatesPath = $view->getTemplatesPath();
 
         try {
-            $templatesPath = Formie::$plugin->getRendering()->getEmailComponentTemplatePath($submission->notification, static::getEmailTemplatePath());
+            $templatesPath = Formie::$plugin->getRendering()->getEmailComponentTemplatePath($notification, static::getEmailTemplatePath());
 
             $view->setTemplatesPath($templatesPath);
 
-            $inputOptions = $this->getEmailOptions($submission, $value, $options);
+            $inputOptions = $this->getEmailOptions($submission, $notification, $value, $options);
             $html = Craft::$app->getView()->renderTemplate(static::getEmailTemplatePath(), $inputOptions);
             $html = Template::raw($html);
         } catch (Exception $e) {
@@ -684,6 +684,7 @@ trait FormFieldTrait
             try {
                 $content = (string)($value ? $value : Craft::t('formie', 'No response.'));
                 $hideName = $options['hideName'] ?? false;
+
                 if (!$hideName) {
                     $content = Html::tag('strong', $this->name) . '<br>' . $content;
                 }
@@ -696,15 +697,17 @@ trait FormFieldTrait
         }
 
         $view->setTemplatesPath($oldTemplatesPath);
+
         return $html;
     }
 
     /**
      * @inheritDoc
      */
-    public function getEmailOptions(Submission $submission, $value, array $options = null): array
+    public function getEmailOptions(Submission $submission, Notification $notification, $value, array $options = null): array
     {
         return [
+            'notification' => $notification,
             'submission' => $submission,
             'name' => $this->handle,
             'value' => $value,

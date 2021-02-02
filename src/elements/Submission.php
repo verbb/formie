@@ -52,7 +52,6 @@ class Submission extends Element
     public $isSpam = false;
     public $spamReason;
 
-    public $notification;
     public $validateCurrentPageOnly;
 
 

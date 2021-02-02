@@ -56,8 +56,6 @@ class Emails extends Component
 
     public function renderEmail(Notification $notification, Submission $submission)
     {
-        $submission->notification = $notification;
-
         // Set Craft to the site template mode
         $view = Craft::$app->getView();
         $view->setTemplateMode($view::TEMPLATE_MODE_SITE);
@@ -73,8 +71,8 @@ class Emails extends Component
 
         $craftMailSettings = App::mailSettings();
 
-        $fromEmail = Variables::getParsedValue((string)$notification->from, $submission, $form) ?: $craftMailSettings->fromEmail;
-        $fromName = Variables::getParsedValue((string)$notification->fromName, $submission, $form) ?: $craftMailSettings->fromName;
+        $fromEmail = Variables::getParsedValue((string)$notification->from, $submission, $form, $notification) ?: $craftMailSettings->fromEmail;
+        $fromName = Variables::getParsedValue((string)$notification->fromName, $submission, $form, $notification) ?: $craftMailSettings->fromName;
 
         $fromEmail = $this->_getFilteredString($fromEmail);
         $fromName = $this->_getFilteredString($fromName);
@@ -89,7 +87,7 @@ class Emails extends Component
 
         // To:
         try {
-            $to = Variables::getParsedValue((string)$notification->to, $submission, $form);
+            $to = Variables::getParsedValue((string)$notification->to, $submission, $form, $notification);
             $to = $this->_getParsedEmails($to);
 
             if ($to) {
@@ -115,7 +113,7 @@ class Emails extends Component
         // BCC:
         if ($notification->bcc) {
             try {
-                $bcc = Variables::getParsedValue((string)$notification->bcc, $submission, $form);
+                $bcc = Variables::getParsedValue((string)$notification->bcc, $submission, $form, $notification);
                 $bcc = $this->_getParsedEmails($bcc);
 
                 if ($bcc) {
@@ -136,7 +134,7 @@ class Emails extends Component
         // CC:
         if ($notification->cc) {
             try {
-                $cc = Variables::getParsedValue((string)$notification->cc, $submission, $form);
+                $cc = Variables::getParsedValue((string)$notification->cc, $submission, $form, $notification);
                 $cc = $this->_getParsedEmails($cc);
 
                 if ($cc) {
@@ -157,7 +155,7 @@ class Emails extends Component
         // Reply To:
         if ($notification->replyTo) {
             try {
-                $replyTo = Variables::getParsedValue((string)$notification->replyTo, $submission, $form);
+                $replyTo = Variables::getParsedValue((string)$notification->replyTo, $submission, $form, $notification);
                 $newEmail->setReplyTo($replyTo);
             } catch (Throwable $e) {
                 $error = Craft::t('formie', 'Notification email parse error for ReplyTo: {value}”. Template error: “{message}” {file}:{line}', [
@@ -173,7 +171,7 @@ class Emails extends Component
 
         // Subject:
         try {
-            $subject = Variables::getParsedValue((string)$notification->subject, $submission, $form);
+            $subject = Variables::getParsedValue((string)$notification->subject, $submission, $form, $notification);
             $newEmail->setSubject($subject);
         } catch (Throwable $e) {
             $error = Craft::t('formie', 'Notification email parse error for Subject: {value}”. Template error: “{message}” {file}:{line}', [
@@ -208,7 +206,7 @@ class Emails extends Component
         // Render HTML body
         try {
             // Render the body content for the notification
-            $parsedContent = Variables::getParsedValue($notification->getParsedContent(), $submission, $form);
+            $parsedContent = Variables::getParsedValue($notification->getParsedContent(), $submission, $form, $notification);
 
             // Add it to our render variables
             $renderVariables['contentHtml'] = Template::raw($parsedContent);

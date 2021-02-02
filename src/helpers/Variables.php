@@ -7,6 +7,7 @@ use verbb\formie\base\SubFieldInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\fields\formfields\Date;
+use verbb\formie\models\Notification;
 
 use Craft;
 use craft\errors\SiteNotFoundException;
@@ -134,7 +135,7 @@ class Variables
      * @param Form $form
      * @return string|null
      */
-    public static function getParsedValue($value, Submission $submission = null, Form $form = null)
+    public static function getParsedValue($value, Submission $submission = null, Form $form = null, Notification $notification = null)
     {
         $originalValue = $value;
 
@@ -190,8 +191,8 @@ class Variables
             // Form Info
             $formName = $form->title ?? '';
 
-            $fieldHtml = self::getFormFieldsHtml($form, $submission);
-            $fieldContentHtml = self::getFormFieldsHtml($form, $submission, true);
+            $fieldHtml = self::getFormFieldsHtml($form, $notification, $submission);
+            $fieldContentHtml = self::getFormFieldsHtml($form, $notification, $submission, true);
 
             $extras = self::$extras[$cacheKey] = [
                 'allFields' => $fieldHtml,
@@ -221,10 +222,10 @@ class Variables
             ];
 
             // Old and deprecated methods. Ensure all fields are prefixed with 'field:', but too tricky to migrate...
-            $extras = array_merge($extras, self::_getParsedFieldValuesLegacy($form, $submission));
+            $extras = array_merge($extras, self::_getParsedFieldValuesLegacy($form, $notification, $submission));
 
             // Properly parse field values
-            $extras = array_merge($extras, self::_getParsedFieldValues($form, $submission));
+            $extras = array_merge($extras, self::_getParsedFieldValues($form, $submission, $notification));
 
             // Add support for all global sets
             foreach (Craft::$app->getGlobals()->getAllSets() as $globalSet) {
@@ -254,11 +255,11 @@ class Variables
     /**
      * @inheritdoc
      */
-    public static function getFormFieldsHtml($form, $submission, $excludeEmpty = false, $asArray = false)
+    public static function getFormFieldsHtml($form, $notification, $submission, $excludeEmpty = false, $asArray = false)
     {
         $fieldItems = $asArray ? [] : '';
 
-        if (!$form) {
+        if (!$form || !$submission || !$notification) {
             return $fieldItems;
         }
 
@@ -274,7 +275,7 @@ class Variables
                 continue;
             }
 
-            $html = $field->getEmailHtml($submission, $value);
+            $html = $field->getEmailHtml($submission, $notification, $value);
 
             if ($html === false) {
                 continue;
@@ -299,11 +300,15 @@ class Variables
     /**
      * @inheritdoc
      */
-    private static function _getParsedFieldValuesLegacy($form, $submission)
+    private static function _getParsedFieldValuesLegacy($form, $notification, $submission)
     {
         $values = [];
 
-        $parsedFieldContent = self::getFormFieldsHtml($form, $submission, true, true);
+        if (!$form || !$submission || !$notification) {
+            return $values;
+        }
+
+        $parsedFieldContent = self::getFormFieldsHtml($form, $notification, $submission, true, true);
 
         // For now, only handle element fields, which need HTML generated
         if ($submission && $submission->getFieldLayout()) {
@@ -334,15 +339,19 @@ class Variables
     /**
      * @inheritdoc
      */
-    private static function _getParsedFieldValues($form, $submission)
+    private static function _getParsedFieldValues($form, $submission, $notification)
     {
         $values = [];
+
+        if (!$form || !$submission || !$notification) {
+            return $values;
+        }
 
         if ($submission && $submission->getFieldLayout()) {
             foreach ($submission->getFieldLayout()->getFields() as $field) {
                 $submissionValue = $submission->getFieldValue($field->handle);
 
-                $values = array_merge($values, self::_getParsedFieldValue($field, $submissionValue, $submission));
+                $values = array_merge($values, self::_getParsedFieldValue($field, $submissionValue, $submission, $notification));
             }
         }
 
@@ -352,11 +361,15 @@ class Variables
     /**
      * @inheritdoc
      */
-    private static function _getParsedFieldValue($field, $submissionValue, $submission)
+    private static function _getParsedFieldValue($field, $submissionValue, $submission, $notification)
     {
         $values = [];
 
-        $parsedContent = (string)$field->getEmailHtml($submission, $submissionValue);
+        if (!$submission || !$notification) {
+            return $values;
+        }
+
+        $parsedContent = (string)$field->getEmailHtml($submission, $notification, $submissionValue);
 
         $prefix = 'field.';
 
@@ -374,7 +387,7 @@ class Variables
             if ($submissionValue && $row = $submissionValue->one()) {
                 foreach ($row->getFieldLayout()->getFields() as $nestedField) {
                     $submissionValue = $row->getFieldValue($nestedField->handle);
-                    $fieldValues = self::_getParsedFieldValue($nestedField, $submissionValue, $submission);
+                    $fieldValues = self::_getParsedFieldValue($nestedField, $submissionValue, $submission, $notification);
 
                     foreach ($fieldValues as $key => $fieldValue) {
                         $handle = "{$prefix}{$field->handle}." . str_replace($prefix, '', $key);
