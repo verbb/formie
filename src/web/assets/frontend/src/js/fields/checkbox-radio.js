@@ -39,21 +39,17 @@ export class FormieCheckboxRadio {
     }
 
     initRequiredCheckboxes() {
-        const $checkboxFields = this.$field.querySelectorAll('.fui-type-checkboxes.fui-field-required');
+        const $checkboxInputs = this.$field.querySelectorAll('[type="checkbox"]');
 
-        $checkboxFields.forEach(($checkboxField) => {
-            const $checkboxInputs = $checkboxField.querySelectorAll('[type="checkbox"]');
+        $checkboxInputs.forEach(($checkboxInput) => {
+            this.form.addEventListener($checkboxInput, eventKey('change'), (e) => {
+                this.onCheckboxChanged($checkboxInputs, this.isChecked($checkboxInputs));
+            }, false);
 
-            $checkboxInputs.forEach(($checkboxInput) => {
-                this.form.addEventListener($checkboxInput, eventKey('change'), (e) => {
-                    this.onCheckboxChanged($checkboxInputs, this.isChecked($checkboxInputs));
-                }, false);
-
-                // For any checked fields, trigger this event now
-                if ($checkboxInput.checked) {
-                    $checkboxInput.dispatchEvent(new Event('change', { bubbles: true }));
-                }
-            });
+            // For any checked fields, trigger this event now
+            if ($checkboxInput.checked) {
+                $checkboxInput.dispatchEvent(new Event('change', { bubbles: true }));
+            }
         });
     }
 
