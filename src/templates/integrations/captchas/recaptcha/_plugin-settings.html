@@ -147,3 +147,30 @@
     options: languageOptions,
     warning: macros.configWarning('language', 'formie'),
 }) }}
+
+{% js %}
+
+// Fix some fields being the same across multiple recaptchas. Sync them!
+$('[name="integrations[recaptcha][settings][badge]"]').on('change', function(e) {
+    var $select = $(this);
+    var $selects = $('[name="integrations[recaptcha][settings][badge]"]');
+
+    $selects.each(function(index, element) {
+        if ($(element).attr('id') != $select.attr('id')) {
+            $(element).val($select.val())
+        }
+    })
+});
+
+$('[name="integrations[recaptcha][settings][language]"]').on('change', function(e) {
+    var $select = $(this);
+    var $selects = $('[name="integrations[recaptcha][settings][language]"]');
+
+    $selects.each(function(index, element) {
+        if ($(element).attr('id') != $select.attr('id')) {
+            $(element).val($select.val())
+        }
+    })
+});
+
+{% endjs %}
