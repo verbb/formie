@@ -27,7 +27,7 @@
         <div class="fui-input-container">
             {% hook 'formie.subfield.input-start' %}
 
-            {% include ["fields/address/_#{handle}", 'fields/address/_input'] with {
+            {{ formieInclude(["fields/address/_#{handle}", 'fields/address/_input'], {
                 autocomplete: autocomplete,
                 placeholder: attribute(field, "#{handle}Placeholder") | t,
                 required: required,
@@ -37,7 +37,7 @@
                     (handle): '',
                 },
                 id: inputId,
-            } %}
+            }) }}
 
             {% hook 'formie.subfield.input-end' %}
         </div>
