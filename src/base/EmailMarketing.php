@@ -64,7 +64,7 @@ abstract class EmailMarketing extends Integration implements IntegrationInterfac
     /**
      * @inheritDoc
      */
-    public function getFormSettingsHtml(Form $form): string
+    public function getFormSettingsHtml($form): string
     {
         $handle = StringHelper::toKebabCase($this->displayName());
 

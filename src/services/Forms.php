@@ -775,7 +775,7 @@ class Forms extends Component
             ];
         }
 
-        if ($form && ($user->checkPermission('formie-manageFormIntegrations') || $user->checkPermission("formie-manageFormIntegrations{$suffix}"))) {
+        if ($user->checkPermission('formie-manageFormIntegrations') || $user->checkPermission("formie-manageFormIntegrations{$suffix}")) {
             $tabs[] = [
                 'label' => Craft::t('formie', 'Integrations'),
                 'value' => 'integrations',

@@ -58,7 +58,7 @@ abstract class Webhook extends Integration implements IntegrationInterface
     /**
      * @inheritDoc
      */
-    public function getFormSettingsHtml(Form $form): string
+    public function getFormSettingsHtml($form): string
     {
         $handle = StringHelper::toKebabCase($this->displayName());
 
