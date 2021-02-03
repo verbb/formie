@@ -54,7 +54,7 @@ export class Formie {
 
         // Find all `data-field-config` attributes for the current page and form
         // and build an object of them to initialize when loaded.
-        this.fieldConfigs = this.parseFieldConfig($form, $form);
+        form.fieldConfigs = this.parseFieldConfig($form);
 
         // Is there any additional JS config registered for this form?
         if (registeredJs.length) {
@@ -81,7 +81,9 @@ export class Formie {
                         }
 
                         if (config.module) {
-                            var fieldConfigs = this.fieldConfigs[config.module];
+                            var fieldConfigs = form.fieldConfigs[config.module];
+
+                            console.log(fieldConfigs);
 
                             if (fieldConfigs && fieldConfigs.length) {
                                 fieldConfigs.forEach(fieldConfig => {
@@ -99,10 +101,10 @@ export class Formie {
         }
     }
 
-    parseFieldConfig($element, $form) {
+    parseFieldConfig($form) {
         var config = {};
 
-        $element.querySelectorAll('[data-field-config]').forEach(($field) => {
+        $form.querySelectorAll('[data-field-config]').forEach(($field) => {
             var fieldConfig = JSON.parse($field.getAttribute('data-field-config'));
 
             // Some fields supply multiple modules, so normalise for ease-of-processing

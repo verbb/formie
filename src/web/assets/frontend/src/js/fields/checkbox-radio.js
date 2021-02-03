@@ -6,17 +6,9 @@ export class FormieCheckboxRadio {
         this.form = this.$form.form;
         this.$field = settings.$field;
 
-        console.log('--------------------------');
-        console.log('Init FormieCheckboxRadio');
-
-        console.log(settings);
-        console.log(this.$field);
-
         if (this.$field) {
             this.initInputs();
             this.initRequiredCheckboxes();
-        } else {
-            console.error('Unable to find checkbox/radio fields');
         }
     }
 
@@ -47,20 +39,10 @@ export class FormieCheckboxRadio {
     }
 
     initRequiredCheckboxes() {
-        console.log('Init initRequiredCheckboxes');
-
         const $checkboxInputs = this.$field.querySelectorAll('[type="checkbox"]');
 
-        console.log('initRequiredCheckboxes: ' + $checkboxInputs.length);
-
         $checkboxInputs.forEach(($checkboxInput) => {
-            console.log('initRequiredCheckboxes bind event');
-            console.log($checkboxInput);
-
             this.form.addEventListener($checkboxInput, eventKey('change'), (e) => {
-                console.log('initRequiredCheckboxes change triggered');
-                console.log(e.target);
-
                 this.onCheckboxChanged($checkboxInputs, this.isChecked($checkboxInputs));
             }, false);
 
