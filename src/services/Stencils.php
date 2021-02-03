@@ -181,6 +181,17 @@ class Stencils extends Component
         // Prepare the stencil data for saving.
         $configData = $this->_prepDataForSave($configData);
 
+        // For new stencils, check for any globally enabled captchas and set as enabled
+        if ($isNewStencil) {
+            $captchas = Formie::$plugin->getIntegrations()->getAllCaptchas();
+
+            foreach ($captchas as $captcha) {
+                if ($captcha->enabled) {
+                    $configData['data']['settings']['integrations'][$captcha->handle]['enabled'] = true;
+                }
+            }
+        }
+
         $configPath = self::CONFIG_STENCILS_KEY . '.' . $stencilUid;
         $projectConfig->set($configPath, $configData);
 
