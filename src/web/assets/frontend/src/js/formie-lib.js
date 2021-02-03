@@ -83,8 +83,6 @@ export class Formie {
                         if (config.module) {
                             var fieldConfigs = form.fieldConfigs[config.module];
 
-                            console.log(fieldConfigs);
-
                             if (fieldConfigs && fieldConfigs.length) {
                                 fieldConfigs.forEach(fieldConfig => {
                                     // Yes, I'm aware of `eval()` but its pretty safe as it's
