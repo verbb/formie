@@ -277,10 +277,10 @@ class Emails extends Component
             if (!$event->isValid) {
                 $error = Craft::t('formie', 'Notification email for submission "{submission}" was cancelled by Formie.', [
                     'submission' => $submission->id ?? 'new',
-                    'email' => Json::encode($this->_serializeEmail($newEmail)),
                 ]);
 
                 Formie::error($error);
+                Formie::error(Json::encode($this->_serializeEmail($newEmail)));
 
                 return ['error' => $error];
             }
@@ -288,10 +288,10 @@ class Emails extends Component
             if (!Craft::$app->getMailer()->send($newEmail)) {
                 $error = Craft::t('formie', 'Notification email could not be sent for submission “{submission}”.', [
                     'submission' => $submission->id ?? 'new',
-                    'email' => Json::encode($this->_serializeEmail($newEmail)),
                 ]);
 
                 Formie::error($error);
+                Formie::error(Json::encode($this->_serializeEmail($newEmail)));
 
                 return ['error' => $error];
             }
@@ -304,10 +304,10 @@ class Emails extends Component
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
                 'submission' => $submission->id ?? 'new',
-                'email' => Json::encode($this->_serializeEmail($newEmail)),
             ]);
 
             Formie::error($error);
+            Formie::error(Json::encode($this->_serializeEmail($newEmail)));
 
             return ['error' => $error];
         }
