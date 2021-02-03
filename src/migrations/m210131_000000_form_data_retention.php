@@ -20,9 +20,20 @@ class m210131_000000_form_data_retention extends Migration
      */
     public function safeUp()
     {
-        $this->alterColumn('{{%formie_forms}}', 'dataRetention', $this->enum('dataRetention', ['forever', 'minutes', 'hours', 'days', 'weeks', 'months', 'years'])
-            ->defaultValue('forever')
-            ->notNull());
+        $items = ['forever', 'minutes', 'hours', 'days', 'weeks', 'months', 'years'];
+
+        if ($this->db->getIsPgsql()) {
+            // Manually construct the SQL for Postgres
+            $checkSql = '[[dataRetention]] in (' . implode(',', array_map(function(string $item) {
+                return $this->db->quoteValue($item);
+            }, $items)) . ')';
+
+            $this->execute("alter table {{%formie_forms}} drop constraint {{%formie_forms_dataRetention_check}}, add check ($checkSql)");
+        } else {
+            $this->alterColumn('{{%formie_forms}}', 'dataRetention', $this->enum('dataRetention', $items)
+                ->defaultValue('forever')
+                ->notNull());
+        }
     }
 
     /**
