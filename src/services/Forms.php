@@ -190,6 +190,17 @@ class Forms extends Component
                 }
             }
 
+            // For new forms, check for any globally enabled captchas and set as enabled
+            if ($isNewForm) {
+                $captchas = Formie::$plugin->getIntegrations()->getAllCaptchas();
+
+                foreach ($captchas as $captcha) {
+                    if ($captcha->enabled) {
+                        $form->settings->integrations[$captcha->handle]['enabled'] = true;
+                    }
+                }
+            }
+
             $success = $fieldsService->saveLayout($fieldLayout);
 
             // Set content table back to original value.
