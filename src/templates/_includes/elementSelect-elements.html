@@ -1,0 +1,7 @@
+{% for element in elements %}
+    {% include "_elements/element" with {
+        context: 'field',
+        size: 'small',
+        name: 'elementSelect',
+    } %}
+{% endfor %}

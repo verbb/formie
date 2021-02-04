@@ -179,6 +179,17 @@ trait RelationFieldTrait
         return null;
     }
 
+    public function getDefaultValueQuery()
+    {
+        $defaultValue = $this->defaultValue ?? [];
+
+        if ($ids = ArrayHelper::getColumn($defaultValue, 'id')) {
+            return static::elementType()::find()->id($ids);
+        }
+
+        return null;
+    }
+
 
     // Private Methods
     // =========================================================================

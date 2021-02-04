@@ -136,6 +136,13 @@ class SchemaHelper
         ], $config);
     }
 
+    public static function elementSelectField($config = [])
+    {
+        return array_merge([
+            'type' => 'elementSelect',
+        ], $config);
+    }
+
 
     // Reusable
     // =========================================================================

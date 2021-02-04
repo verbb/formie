@@ -208,6 +208,10 @@ export default Vue => {
                     repeatable: 'TableRow',
                 },
             },
+
+            elementSelect: {
+                component: 'ElementSelectField',
+            },
         },
 
         slotComponents: {

@@ -129,6 +129,14 @@ class Entries extends CraftEntries implements FormFieldInterface
     /**
      * @inheritDoc
      */
+    public function getDefaultValue($attributePrefix = '')
+    {
+        return $this->getDefaultValueQuery();
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function getPreviewInputHtml(): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/entries/preview', [
@@ -284,6 +292,17 @@ class Entries extends CraftEntries implements FormFieldInterface
                 'showAllOption' => true,
                 'element-class' => count($options) < 2 ? 'hidden' : false,
                 'warning' => count($options) < 2 ? Craft::t('formie', 'No sections available. View [section settings]({link}).', ['link' => UrlHelper::cpUrl('settings/sections') ]) : false,
+            ]),
+            SchemaHelper::elementSelectField([
+                'label' => Craft::t('formie', 'Default Value'),
+                'help' => Craft::t('formie', 'Select a default entry to be selected.'),
+                'name' => 'defaultValue',
+                'selectionLabel' => $this->defaultSelectionLabel(),
+                'config' => [
+                    'jsClass' => $this->inputJsClass,
+                    'elementType' => static::elementType(),
+                    'limit' => '1',
+                ],
             ]),
         ];
     }

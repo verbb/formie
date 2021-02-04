@@ -7,6 +7,7 @@ use verbb\formie\base\FormFieldTrait;
 use verbb\formie\base\RelationFieldTrait;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
+use verbb\formie\elements\Tag as FormieTag;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\Notification;
 
@@ -188,6 +189,14 @@ class Tags extends CraftTags implements FormFieldInterface
     /**
      * @inheritDoc
      */
+    public function getDefaultValue($attributePrefix = '')
+    {
+        return $this->getDefaultValueQuery();
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function getPreviewInputHtml(): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/tags/preview', [
@@ -284,6 +293,16 @@ class Tags extends CraftTags implements FormFieldInterface
                 'required' => true,
                 'element-class' => count($options) === 1 ? 'hidden' : false,
                 'warning' => count($options) === 1 ? Craft::t('formie', 'No tag groups available. View [tag settings]({link}).', ['link' => UrlHelper::cpUrl('settings/tags') ]) : false,
+            ]),
+            SchemaHelper::elementSelectField([
+                'label' => Craft::t('formie', 'Default Value'),
+                'help' => Craft::t('formie', 'Select default tags to be selected.'),
+                'name' => 'defaultValue',
+                'selectionLabel' => $this->defaultSelectionLabel(),
+                'config' => [
+                    'jsClass' => $this->inputJsClass,
+                    'elementType' => FormieTag::class,
+                ],
             ]),
         ];
     }

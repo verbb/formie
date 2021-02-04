@@ -128,6 +128,14 @@ class Variants extends CommerceVariants implements FormFieldInterface
     /**
      * @inheritDoc
      */
+    public function getDefaultValue($attributePrefix = '')
+    {
+        return $this->getDefaultValueQuery();
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function getPreviewInputHtml(): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/variants/preview', [
@@ -227,6 +235,17 @@ class Variants extends CommerceVariants implements FormFieldInterface
                 'required' => true,
                 'element-class' => count($options) === 1 ? 'hidden' : false,
                 'warning' => count($options) === 1 ? Craft::t('formie', 'No product types available. View [product type settings]({link}).', ['link' => UrlHelper::cpUrl('commerce/settings/producttypes') ]) : false,
+            ]),
+            SchemaHelper::elementSelectField([
+                'label' => Craft::t('formie', 'Default Value'),
+                'help' => Craft::t('formie', 'Select a default variant to be selected.'),
+                'name' => 'defaultValue',
+                'selectionLabel' => $this->defaultSelectionLabel(),
+                'config' => [
+                    'jsClass' => $this->inputJsClass,
+                    'elementType' => static::elementType(),
+                    'limit' => '1',
+                ],
             ]),
         ];
     }

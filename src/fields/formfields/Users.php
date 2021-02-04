@@ -127,6 +127,14 @@ class Users extends CraftUsers implements FormFieldInterface
     /**
      * @inheritDoc
      */
+    public function getDefaultValue($attributePrefix = '')
+    {
+        return $this->getDefaultValueQuery();
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function getPreviewInputHtml(): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/users/preview', [
@@ -218,6 +226,17 @@ class Users extends CraftUsers implements FormFieldInterface
                 'required' => true,
                 'element-class' => count($options) < 2 ? 'hidden' : false,
                 'warning' => count($options) < 2 ? Craft::t('formie', 'No user groups available. View [user group settings]({link}).', ['link' => UrlHelper::cpUrl('settings/users') ]) : false,
+            ]),
+            SchemaHelper::elementSelectField([
+                'label' => Craft::t('formie', 'Default Value'),
+                'help' => Craft::t('formie', 'Select a default user to be selected.'),
+                'name' => 'defaultValue',
+                'selectionLabel' => $this->defaultSelectionLabel(),
+                'config' => [
+                    'jsClass' => $this->inputJsClass,
+                    'elementType' => static::elementType(),
+                    'limit' => '1',
+                ],
             ]),
         ];
     }
