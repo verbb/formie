@@ -75,20 +75,17 @@ export class Formie {
 
                     // Initialize all matching fields - their config is already rendered in templates
                     $script.onload = () => {
-                        // Mostly for captchas, but might change this...
-                        if (config.onload) {
-                            eval(config.onload);
-                        }
-
                         if (config.module) {
                             var fieldConfigs = form.fieldConfigs[config.module];
 
                             if (fieldConfigs && fieldConfigs.length) {
                                 fieldConfigs.forEach(fieldConfig => {
-                                    // Yes, I'm aware of `eval()` but its pretty safe as it's
-                                    // only provided from the field or captcha class - no user data.
-                                    eval(`new ${config.module}(fieldConfig)`);
+                                    this.initFieldClass(config.module, fieldConfig);
                                 });
+                            }
+
+                            if (config.settings) {
+                                this.initFieldClass(config.module, config.settings);
                             }
                         }
                     };
@@ -96,6 +93,14 @@ export class Formie {
 
                 form.$registeredJs.appendChild($script);
             });
+        }
+    }
+
+    initFieldClass(className, params) {
+        var moduleClass = window[className];
+
+        if (moduleClass) {
+            new moduleClass(params);
         }
     }
 

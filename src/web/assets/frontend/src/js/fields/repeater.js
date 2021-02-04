@@ -65,11 +65,17 @@ export class FormieRepeater {
 
             Object.keys(fieldConfigs).forEach(module => {
                 fieldConfigs[module].forEach(fieldConfig => {
-                    // Yes, I'm aware of `eval()` but its pretty safe as it's
-                    // only provided from the field or captcha class - no user data.
-                    eval(`new ${module}(fieldConfig)`);
+                    this.initFieldClass(module, fieldConfig);
                 }); 
             });
+        }
+    }
+
+    initFieldClass(className, params) {
+        var moduleClass = window[className];
+
+        if (moduleClass) {
+            new moduleClass(params);
         }
     }
 
