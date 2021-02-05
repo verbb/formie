@@ -261,6 +261,38 @@ class Entries extends CraftEntries implements FormFieldInterface
     /**
      * @inheritDoc
      */
+    public function defineLabelSourceOptions()
+    {
+        $options = [
+            ['value' => 'title', 'label' => Craft::t('app', 'Title')],
+            ['value' => 'slug', 'label' => Craft::t('app', 'Slug')],
+            ['value' => 'uri', 'label' => Craft::t('app', 'URI')],
+            ['value' => 'postDate', 'label' => Craft::t('app', 'Post Date')],
+            ['value' => 'expiryDate', 'label' => Craft::t('app', 'Expiry Date')],
+        ];
+
+        foreach ($this->availableSources() as $source) {
+            if (!isset($source['heading'])) {
+                $sectionId = $source['criteria']['sectionId'] ?? null;
+
+                if ($sectionId && !is_array($sectionId)) {
+                    $entryTypes = Craft::$app->sections->getEntryTypesBySectionId($sectionId);
+
+                    foreach ($entryTypes as $entryType) {
+                        $fields = $this->getStringCustomFieldOptions($entryType->getFields());
+
+                        $options = array_merge($options, $fields);
+                    }
+                }
+            }
+        }
+
+        return $options;
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function defineGeneralSchema(): array
     {
         $options = $this->getSourceOptions();
@@ -305,6 +337,8 @@ class Entries extends CraftEntries implements FormFieldInterface
      */
     public function defineSettingsSchema(): array
     {
+        $labelSourceOptions = $this->getLabelSourceOptions();
+
         return [
             SchemaHelper::lightswitchField([
                 'label' => Craft::t('formie', 'Required Field'),
@@ -325,6 +359,12 @@ class Entries extends CraftEntries implements FormFieldInterface
                 'size' => '3',
                 'class' => 'text',
                 'validation' => 'optional|number|min:0',
+            ]),
+            SchemaHelper::selectField([
+                'label' => Craft::t('formie', 'Label Source'),
+                'help' => Craft::t('formie', 'Select what to use as the label for each entry.'),
+                'name' => 'labelSource',
+                'options' => $labelSourceOptions,
             ]),
         ];
     }

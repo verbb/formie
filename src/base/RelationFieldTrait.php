@@ -12,6 +12,7 @@ use craft\fields\data\MultiOptionsFieldData;
 use craft\fields\data\OptionData;
 use craft\fields\data\SingleOptionFieldData;
 use craft\helpers\ArrayHelper;
+use craft\helpers\Db;
 use craft\helpers\Html;
 use craft\helpers\ElementHelper;
 use craft\helpers\Template as TemplateHelper;
@@ -22,6 +23,7 @@ trait RelationFieldTrait
     // =========================================================================
 
     public $displayType = 'dropdown';
+    public $labelSource = 'title';
 
 
     // Public Methods
@@ -51,7 +53,7 @@ trait RelationFieldTrait
         $value = $this->_all($value, $element);
 
         return array_reduce($value->all(), function($acc, $input) {
-            return $acc . (string)$input;
+            return $acc . $this->_getElementLabel($input);
         }, '');
     }
 
@@ -61,7 +63,7 @@ trait RelationFieldTrait
     public function serializeValueForIntegration($value, ElementInterface $element = null)
     {
         return array_map(function($input) {
-            return (string)$input;
+            return $this->_getElementLabel($input);
         }, $this->_all($value, $element)->all());
     }
 
@@ -71,7 +73,7 @@ trait RelationFieldTrait
     public function getPreviewElements(): array
     {
         $options = array_map(function($input) {
-            return ['label' => (string)$input, 'value' => $input->id];
+            return ['label' => $this->_getElementLabel($input), 'value' => $input->id];
         }, $this->getElementsQuery()->limit(5)->all());
 
         return [
@@ -93,7 +95,7 @@ trait RelationFieldTrait
 
             // Maintain an options array so we can keep track of the label in Vue, not just the saved value
             $settings['defaultValueOptions'] = array_map(function($input) {
-                return ['label' => (string)$input, 'value' => $input->id];
+                return ['label' => $this->_getElementLabel($input), 'value' => $input->id];
             }, $elements);
 
             // Render the HTML needed for the element select field (for default value). jQuery needs DOM manipulation
@@ -296,7 +298,7 @@ trait RelationFieldTrait
         }
 
         foreach ($this->getElementsQuery()->all() as $element) {
-            $options[] = ['label' => (string)$element, 'value' => $element->id];
+            $options[] = ['label' => $this->_getElementLabel($element), 'value' => $element->id];
         }
 
         return $options;
@@ -312,7 +314,7 @@ trait RelationFieldTrait
 
             if ($value) {
                 foreach ($value->all() as $element) {
-                    $options[] = new OptionData((string)$element, $element->id, true);
+                    $options[] = new OptionData($this->_getElementLabel($element), $element->id, true);
                 }
             }
 
@@ -322,7 +324,7 @@ trait RelationFieldTrait
         if ($this->displayType === 'radio') {
             if ($value) {
                 if ($element = $value->one()) {
-                    return new SingleOptionFieldData((string)$element, $element->id, true);
+                    return new SingleOptionFieldData($this->_getElementLabel($element), $element->id, true);
                 }
             }
 
@@ -332,12 +334,66 @@ trait RelationFieldTrait
         if ($this->displayType === 'dropdown') {
             if ($value) {
                 if ($element = $value->one()) {
-                    return new SingleOptionFieldData((string)$element, $element->id, true);
+                    return new SingleOptionFieldData($this->_getElementLabel($element), $element->id, true);
                 }
             }
 
             return null;
         }
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function defineLabelSourceOptions()
+    {
+        return [];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getLabelSourceOptions()
+    {
+        $options = array_merge([
+            ['value' => 'id', 'label' => Craft::t('app', 'ID')],
+        ], $this->defineLabelSourceOptions(), [
+            ['value' => 'dateCreated', 'label' => Craft::t('app', 'Date Created')],
+            ['value' => 'dateUpdated', 'label' => Craft::t('app', 'Date Updated')],
+        ]);
+
+        return $options;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected function getStringCustomFieldOptions($fields)
+    {
+        $options = [];
+
+        // Better to opt-out fields so we can always allow third-party ones which are impossible to check
+        $excludedFields = [
+            \craft\fields\Assets::class,
+            \craft\fields\Categories::class,
+            \craft\fields\Checkboxes::class,
+            \craft\fields\Entries::class,
+            \craft\fields\Matrix::class,
+            \craft\fields\MultiSelect::class,
+            \craft\fields\Table::class,
+            \craft\fields\Tags::class,
+            \craft\fields\Users::class,
+        ];
+
+        foreach ($fields as $field) {
+            if (in_array(get_class($field), $excludedFields)) {
+                 continue;
+            }
+
+            $options[] = ['label' => $field->name, 'value' => $field->handle];
+        }
+
+        return $options;
     }
 
 
@@ -364,4 +420,19 @@ trait RelationFieldTrait
         }
         return $clone;
     }
+
+    /**
+     * @inheritDoc
+     */
+    private function _getElementLabel($element)
+    {
+        try {
+            return (string)$element->{$this->labelSource};
+        } catch (\Throwable $e) {
+
+        }
+
+        return $element->title;
+    }
+
 }

@@ -295,6 +295,36 @@ class Tags extends CraftTags implements FormFieldInterface
     /**
      * @inheritDoc
      */
+    public function defineLabelSourceOptions()
+    {
+        $options = [
+            ['value' => 'title', 'label' => Craft::t('app', 'Title')],
+        ];
+
+        // Craft::dd($this->availableSources());
+
+        foreach ($this->availableSources() as $source) {
+            if (!isset($source['heading'])) {
+                $groupId = $source['criteria']['groupId'] ?? null;
+
+                if ($groupId && !is_array($groupId)) {
+                    $group = Craft::$app->getTags()->getTagGroupById($groupId);
+
+                    if ($group) {
+                        $fields = $this->getStringCustomFieldOptions($group->getFields());
+
+                        $options = array_merge($options, $fields);
+                    }
+                }
+            }
+        }
+
+        return $options;
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function defineGeneralSchema(): array
     {
         $options = $this->getSourceOptions();
@@ -338,6 +368,8 @@ class Tags extends CraftTags implements FormFieldInterface
      */
     public function defineSettingsSchema(): array
     {
+        $labelSourceOptions = $this->getLabelSourceOptions();
+        
         return [
             SchemaHelper::lightswitchField([
                 'label' => Craft::t('formie', 'Required Field'),
@@ -350,6 +382,20 @@ class Tags extends CraftTags implements FormFieldInterface
                     'help' => Craft::t('formie', 'When validating the form, show this message if an error occurs. Leave empty to retain the default message.'),
                     'name' => 'errorMessage',
                 ]),
+            ]),
+            SchemaHelper::textField([
+                'label' => Craft::t('formie', 'Limit'),
+                'help' => Craft::t('formie', 'Limit the number of selectable variants.'),
+                'name' => 'limit',
+                'size' => '3',
+                'class' => 'text',
+                'validation' => 'optional|number|min:0',
+            ]),
+            SchemaHelper::selectField([
+                'label' => Craft::t('formie', 'Label Source'),
+                'help' => Craft::t('formie', 'Select what to use as the label for each entry.'),
+                'name' => 'labelSource',
+                'options' => $labelSourceOptions,
             ]),
         ];
     }

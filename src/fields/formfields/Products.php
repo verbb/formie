@@ -15,8 +15,8 @@ use craft\base\ElementInterface;
 use craft\helpers\ArrayHelper;
 use craft\helpers\UrlHelper;
 
+use craft\commerce\Plugin as Commerce;
 use craft\commerce\elements\Product;
-use craft\commerce\Plugin;
 use craft\commerce\fields\Products as CommerceProducts;
 
 class Products extends CommerceProducts implements FormFieldInterface
@@ -195,6 +195,40 @@ class Products extends CommerceProducts implements FormFieldInterface
     /**
      * @inheritDoc
      */
+    public function defineLabelSourceOptions()
+    {
+        $options = [
+            ['value' => 'title', 'label' => Craft::t('app', 'Title')],
+            ['value' => 'defaultSku', 'label' => Craft::t('app', 'SKU')],
+            ['value' => 'defaultPrice', 'label' => Craft::t('app', 'Price')],
+            ['value' => 'defaultHeight', 'label' => Craft::t('app', 'Height')],
+            ['value' => 'defaultLength', 'label' => Craft::t('app', 'Length')],
+            ['value' => 'defaultWidth', 'label' => Craft::t('app', 'Width')],
+            ['value' => 'defaultWeight', 'label' => Craft::t('app', 'Weight')],
+            ['value' => 'postDate', 'label' => Craft::t('app', 'Post Date')],
+            ['value' => 'expiryDate', 'label' => Craft::t('app', 'Expiry Date')],
+        ];
+
+        foreach ($this->availableSources() as $source) {
+            if (!isset($source['heading'])) {
+                $typeId = $source['criteria']['typeId'] ?? null;
+
+                if ($typeId && !is_array($typeId)) {
+                    $productType = Commerce::getInstance()->getProductTypes()->getProductTypeById($typeId);
+
+                    $fields = $this->getStringCustomFieldOptions($productType->getFields());
+
+                    $options = array_merge($options, $fields);
+                }
+            }
+        }
+
+        return $options;
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function defineGeneralSchema(): array
     {
         $options = $this->getSourceOptions();
@@ -239,6 +273,8 @@ class Products extends CommerceProducts implements FormFieldInterface
      */
     public function defineSettingsSchema(): array
     {
+        $labelSourceOptions = $this->getLabelSourceOptions();
+        
         return [
             SchemaHelper::lightswitchField([
                 'label' => Craft::t('formie', 'Required Field'),
@@ -259,6 +295,12 @@ class Products extends CommerceProducts implements FormFieldInterface
                 'size' => '3',
                 'class' => 'text',
                 'validation' => 'optional|number|min:0',
+            ]),
+            SchemaHelper::selectField([
+                'label' => Craft::t('formie', 'Label Source'),
+                'help' => Craft::t('formie', 'Select what to use as the label for each entry.'),
+                'name' => 'labelSource',
+                'options' => $labelSourceOptions,
             ]),
         ];
     }

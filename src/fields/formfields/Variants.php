@@ -15,9 +15,9 @@ use craft\base\ElementInterface;
 use craft\helpers\ArrayHelper;
 use craft\helpers\UrlHelper;
 
+use craft\commerce\Plugin as Commerce;
 use craft\commerce\elements\Variant;
 use craft\commerce\models\ProductType;
-use craft\commerce\Plugin;
 use craft\commerce\fields\Variants as CommerceVariants;
 
 class Variants extends CommerceVariants implements FormFieldInterface
@@ -205,6 +205,38 @@ class Variants extends CommerceVariants implements FormFieldInterface
     /**
      * @inheritDoc
      */
+    public function defineLabelSourceOptions()
+    {
+        $options = [
+            ['value' => 'title', 'label' => Craft::t('app', 'Title')],
+            ['value' => 'sku', 'label' => Craft::t('app', 'SKU')],
+            ['value' => 'price', 'label' => Craft::t('app', 'Price')],
+            ['value' => 'height', 'label' => Craft::t('app', 'Height')],
+            ['value' => 'length', 'label' => Craft::t('app', 'Length')],
+            ['value' => 'width', 'label' => Craft::t('app', 'Width')],
+            ['value' => 'weight', 'label' => Craft::t('app', 'Weight')],
+        ];
+
+        foreach ($this->availableSources() as $source) {
+            if (!isset($source['heading'])) {
+                $typeId = $source['criteria']['typeId'] ?? null;
+
+                if ($typeId && !is_array($typeId)) {
+                    $productType = Commerce::getInstance()->getProductTypes()->getProductTypeById($typeId);
+
+                    $fields = $this->getStringCustomFieldOptions($productType->getFields());
+
+                    $options = array_merge($options, $fields);
+                }
+            }
+        }
+
+        return $options;
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function defineGeneralSchema(): array
     {
         $options = $this->getSourceOptions();
@@ -248,6 +280,8 @@ class Variants extends CommerceVariants implements FormFieldInterface
      */
     public function defineSettingsSchema(): array
     {
+        $labelSourceOptions = $this->getLabelSourceOptions();
+        
         return [
             SchemaHelper::lightswitchField([
                 'label' => Craft::t('formie', 'Required Field'),
@@ -268,6 +302,12 @@ class Variants extends CommerceVariants implements FormFieldInterface
                 'size' => '3',
                 'class' => 'text',
                 'validation' => 'optional|number|min:0',
+            ]),
+            SchemaHelper::selectField([
+                'label' => Craft::t('formie', 'Label Source'),
+                'help' => Craft::t('formie', 'Select what to use as the label for each entry.'),
+                'name' => 'labelSource',
+                'options' => $labelSourceOptions,
             ]),
         ];
     }
