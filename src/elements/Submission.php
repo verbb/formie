@@ -232,6 +232,7 @@ class Submission extends Element
         // Fire a 'defineSubmissionRules' event
         $event = new SubmissionRulesEvent([
             'rules' => $rules,
+            'submission' => $this,
         ]);
         $this->trigger(self::EVENT_DEFINE_RULES, $event);
 

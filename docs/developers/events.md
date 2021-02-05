@@ -104,6 +104,7 @@ use verbb\formie\events\SubmissionRulesEvent;
 use yii\base\Event;
 
 Event::on(Submission::class, Submission::EVENT_DEFINE_RULES, function(SubmissionRulesEvent $event) {
+    $submission = $event->submission;
     $rules = $event->rules;
     // ...
 });
