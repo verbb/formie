@@ -148,6 +148,18 @@ class SharpSpring extends Crm
                     'handle' => 'title',
                     'name' => Craft::t('formie', 'Title'),
                 ]),
+                new IntegrationField([
+                    'handle' => 'trackingID',
+                    'name' => Craft::t('formie', 'Tracking ID'),
+                ]),
+                new IntegrationField([
+                    'handle' => 'campaignID',
+                    'name' => Craft::t('formie', 'Campaign IDs'),
+                ]),
+                new IntegrationField([
+                    'handle' => 'accountID',
+                    'name' => Craft::t('formie', 'Account IDs'),
+                ]),
             ], $this->_getCustomFields($fields));
 
             $settings = [
@@ -171,6 +183,11 @@ class SharpSpring extends Crm
     {
         try {
             $contactValues = $this->getFieldMappingValues($submission, $this->contactFieldMapping, 'contact');
+
+            // Handle Tracking ID in case it's not set, try a cookie
+            if (!isset($contactValues['trackingID'])) {
+                $contactValues['trackingID'] = $_COOKIE['__ss_tk'] ?? '';
+            }
 
             $contactPayload = [
                 'method' => 'createLeads',
