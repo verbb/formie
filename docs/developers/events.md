@@ -107,6 +107,9 @@ Event::on(Submission::class, Submission::EVENT_DEFINE_RULES, function(Submission
     $submission = $event->submission;
     $rules = $event->rules;
     // ...
+
+    // Add a required field for field with handle `emailAddress`
+    $event->rules[] = [['field:emailAddress'], 'required'];
 });
 ```
 
