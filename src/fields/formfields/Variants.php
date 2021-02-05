@@ -34,6 +34,8 @@ class Variants extends CommerceVariants implements FormFieldInterface
     use FormFieldTrait, RelationFieldTrait {
         getFrontEndInputOptions as traitGetFrontendInputOptions;
         getEmailHtml as traitGetEmailHtml;
+        getSavedFieldConfig as traitGetSavedFieldConfig;
+        RelationFieldTrait::getIsFieldset insteadof FormFieldTrait;
     }
 
 
@@ -68,7 +70,7 @@ class Variants extends CommerceVariants implements FormFieldInterface
     /**
      * @var string
      */
-    protected $inputTemplate = 'formie/_includes/elementSelect';
+    protected $inputTemplate = 'formie/_includes/element-select-input';
 
     /**
      * @var ProductType
@@ -82,23 +84,11 @@ class Variants extends CommerceVariants implements FormFieldInterface
     /**
      * @inheritDoc
      */
-    public function serializeValueForExport($value, ElementInterface $element = null)
+    public function getSavedFieldConfig(): array
     {
-        $value = $this->_all($value, $element);
+        $settings = $this->traitGetSavedFieldConfig();
 
-        return array_reduce($value->all(), function($acc, $input) {
-            return $acc . $input->title;
-        }, '');
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function serializeValueForIntegration($value, ElementInterface $element = null)
-    {
-        return array_map(function($input) {
-            return $input->title;
-        }, $this->_all($value, $element)->all());
+        return $this->modifyFieldSettings($settings);
     }
 
     /**
@@ -149,7 +139,7 @@ class Variants extends CommerceVariants implements FormFieldInterface
     public function getFrontEndInputOptions(Form $form, $value, array $options = null): array
     {
         $inputOptions = $this->traitGetFrontendInputOptions($form, $value, $options);
-        $inputOptions['variantsQuery'] = $this->getVariantsQuery();
+        $inputOptions['variantsQuery'] = $this->getElementsQuery();
 
         return $inputOptions;
     }
@@ -170,7 +160,7 @@ class Variants extends CommerceVariants implements FormFieldInterface
      *
      * @return Variant[]
      */
-    public function getVariantsQuery()
+    public function getElementsQuery()
     {
         $query = Variant::find();
 
@@ -187,6 +177,8 @@ class Variants extends CommerceVariants implements FormFieldInterface
         if (Craft::$app->getIsMultiSite()) {
             $query->siteId(Craft::$app->getSites()->getCurrentSite()->id);
         }
+
+        $query->limit($this->limit);
 
         $query->orderBy('title ASC');
 
@@ -219,12 +211,14 @@ class Variants extends CommerceVariants implements FormFieldInterface
 
         return [
             SchemaHelper::labelField(),
-            SchemaHelper::textField([
-                'label' => Craft::t('formie', 'Placeholder'),
-                'help' => Craft::t('formie', 'The option shown initially, when no option is selected.'),
-                'name' => 'placeholder',
-                'validation' => 'required',
-                'required' => true,
+            SchemaHelper::toggleContainer('settings.displayType=dropdown', [
+                SchemaHelper::textField([
+                    'label' => Craft::t('formie', 'Placeholder'),
+                    'help' => Craft::t('formie', 'The option shown initially, when no option is selected.'),
+                    'name' => 'placeholder',
+                    'validation' => 'required',
+                    'required' => true,
+                ]),
             ]),
             SchemaHelper::selectField([
                 'label' => Craft::t('formie', 'Source'),
@@ -244,7 +238,6 @@ class Variants extends CommerceVariants implements FormFieldInterface
                 'config' => [
                     'jsClass' => $this->inputJsClass,
                     'elementType' => static::elementType(),
-                    'limit' => '1',
                 ],
             ]),
         ];
@@ -285,6 +278,16 @@ class Variants extends CommerceVariants implements FormFieldInterface
     public function defineAppearanceSchema(): array
     {
         return [
+            SchemaHelper::selectField([
+                'label' => Craft::t('formie', 'Display Type'),
+                'help' => Craft::t('formie', 'Set different display layouts for this field.'),
+                'name' => 'displayType',
+                'options' => [
+                    [ 'label' => Craft::t('formie', 'Dropdown'), 'value' => 'dropdown' ],
+                    [ 'label' => Craft::t('formie', 'Checkboxes'), 'value' => 'checkboxes' ],
+                    [ 'label' => Craft::t('formie', 'Radio Buttons'), 'value' => 'radio' ],
+                ],
+            ]),
             SchemaHelper::labelPosition($this),
             SchemaHelper::instructions(),
             SchemaHelper::instructionsPosition($this),

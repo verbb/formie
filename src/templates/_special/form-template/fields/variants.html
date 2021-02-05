@@ -1,27 +1,32 @@
-{% set multiple = field.limit > 1 %}
-{% set valueIds = value.ids() ?? [] %}
-{% set variants = variantsQuery.all() ?? [] %}
+{% set value = field.getDisplayTypeValue(value) %}
 
-{% set attributes = {
-    id: options.id,
-    class: [ 'fui-select' ],
-    name: field.handle ~ '[]',
-    required: field.required ? true : false,
-    multiple: multiple,
-    data: {
-        'fui-message': field.settings.errorMessage | t,
-    },
-    aria: {
-        required: field.required ? 'true' : 'false',
-    },
-} | merge(field.getInputAttributes()) %}
+{% if field.displayType == 'dropdown' %}
+    {% set attributes = {
+        id: options.id,
+        class: [ 'fui-select' ],
+        name: field.handle ~ '[]',
+        required: field.required ? true : false,
+        data: {
+            'fui-message': field.settings.errorMessage | t,
+        },
+        aria: {
+            required: field.required ? 'true' : 'false',
+        },
+    } | merge(field.getInputAttributes()) %}
 
-<select {{ attr(attributes) }}>
-    <option value="">{{ field.placeholder | t }}</option>
+    <select {{ attr(attributes) }}>
+        {% for option in field.getFieldOptions() %}
+            {% set selected = value and value.value ? value.value == option.value : (option.isDefault ?? false) %}
 
-    {% for variant in variants %}
-        <option value="{{ variant.id }}" {{- variant.id in valueIds ? ' selected' }}>
-            {{ variant.title | t }}
-        </option>
-    {% endfor %}
-</select>
+            <option value="{{ option.value }}" {{ selected ? ' selected' }}>{{ option.label | t }}</option>
+        {% endfor %}
+    </select>
+{% endif %}
+
+{% if field.displayType == 'checkboxes' %}
+    {% include 'fields/checkboxes' %}
+{% endif %}
+
+{% if field.displayType == 'radio' %}
+    {% include 'fields/radio' with { fieldName: field.handle ~ '[]' } %}
+{% endif %}

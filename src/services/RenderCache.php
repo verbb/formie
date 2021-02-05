@@ -11,6 +11,7 @@ class RenderCache extends Component
 
     public $globalvariables = [];
     public $fieldVariables = [];
+    public $elementFieldElements = [];
 
 
     // Public Methods
@@ -39,6 +40,16 @@ class RenderCache extends Component
     public function getVariables($key)
     {
         return array_merge($this->getGlobalVariables($key), $this->getFieldVariables($key));
+    }
+
+    public function getElementFieldElements($key)
+    {
+        return $this->elementFieldElements[$key] ?? [];
+    }
+
+    public function setElementFieldElements($key, $value)
+    {
+        $this->elementFieldElements[$key] = $value;
     }
 
 }

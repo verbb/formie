@@ -70,6 +70,8 @@
 import { parseDate } from '../utils/string';
 
 export default {
+    name: 'DatePreview',
+
     props: {
         field: {
             type: Object,

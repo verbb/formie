@@ -8,6 +8,9 @@ use craft\base\Element;
 use craft\base\ElementInterface;
 use craft\elements\db\ElementQuery;
 use craft\elements\db\ElementQueryInterface;
+use craft\fields\data\MultiOptionsFieldData;
+use craft\fields\data\OptionData;
+use craft\fields\data\SingleOptionFieldData;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Html;
 use craft\helpers\ElementHelper;
@@ -15,9 +18,100 @@ use craft\helpers\Template as TemplateHelper;
 
 trait RelationFieldTrait
 {
+    // Properties
+    // =========================================================================
+
+    public $displayType = 'dropdown';
+
+
     // Public Methods
     // =========================================================================
 
+    /**
+     * @inheritDoc
+     */
+    public function getIsFieldset(): bool
+    {
+        if ($this->displayType === 'checkboxes') {
+            return true;
+        }
+
+        if ($this->displayType === 'radio') {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function serializeValueForExport($value, ElementInterface $element = null)
+    {
+        $value = $this->_all($value, $element);
+
+        return array_reduce($value->all(), function($acc, $input) {
+            return $acc . (string)$input;
+        }, '');
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function serializeValueForIntegration($value, ElementInterface $element = null)
+    {
+        return array_map(function($input) {
+            return (string)$input;
+        }, $this->_all($value, $element)->all());
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getPreviewElements(): array
+    {
+        $options = array_map(function($input) {
+            return ['label' => (string)$input, 'value' => $input->id];
+        }, $this->getElementsQuery()->limit(5)->all());
+
+        return [
+            'total' => $this->getElementsQuery()->count(),
+            'options' => $options,
+        ];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function modifyFieldSettings($settings)
+    {
+        $defaultValue = $this->defaultValue ?? [];
+
+        // For a default value, supply extra content that can't be called directly in Vue, like it can in Twig.
+        if ($ids = ArrayHelper::getColumn($defaultValue, 'id')) {
+            $elements = static::elementType()::find()->id($ids)->all();
+
+            // Maintain an options array so we can keep track of the label in Vue, not just the saved value
+            $settings['defaultValueOptions'] = array_map(function($input) {
+                return ['label' => (string)$input, 'value' => $input->id];
+            }, $elements);
+
+            // Render the HTML needed for the element select field (for default value). jQuery needs DOM manipulation
+            // so while gross, we have to supply the raw HTML, as opposed to models in the Vue-way.
+            $settings['defaultValueHtml'] = Craft::$app->getView()->renderTemplate('formie/_includes/element-select-inuput-elements', ['elements' => $elements]);
+        }
+
+        // For certain display types, pre-fetch elements for use in the preview in the CP for the field. Saves an initial Ajax request
+        if ($this->displayType === 'checkboxes' || $this->displayType === 'radio') {
+            $settings['elements'] = $this->getPreviewElements();
+        }
+
+        return $settings;
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function getCpElementHtml(array &$context)
     {
         if (!isset($context['element'])) {
@@ -188,6 +282,62 @@ trait RelationFieldTrait
         }
 
         return null;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getFieldOptions()
+    {
+        $options = [];
+
+        if ($this->displayType === 'dropdown') {
+            $options[] = ['label' => $this->placeholder, 'value' => ''];
+        }
+
+        foreach ($this->getElementsQuery()->all() as $element) {
+            $options[] = ['label' => (string)$element, 'value' => $element->id];
+        }
+
+        return $options;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getDisplayTypeValue($value)
+    {
+        if ($this->displayType === 'checkboxes') {
+            $options = [];
+
+            if ($value) {
+                foreach ($value->all() as $element) {
+                    $options[] = new OptionData((string)$element, $element->id, true);
+                }
+            }
+
+            return new MultiOptionsFieldData($options);
+        }
+
+        if ($this->displayType === 'radio') {
+            if ($value) {
+                if ($element = $value->one()) {
+                    return new SingleOptionFieldData((string)$element, $element->id, true);
+                }
+            }
+
+            return null;
+        }
+
+        if ($this->displayType === 'dropdown') {
+            if ($value) {
+                if ($element = $value->one()) {
+                    return new SingleOptionFieldData((string)$element, $element->id, true);
+                }
+            }
+
+            return null;
+        }
     }
 
 

@@ -8,6 +8,7 @@ use verbb\formie\base\RelationFieldTrait;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\elements\Tag as FormieTag;
+use verbb\formie\events\ModifyElementFieldQueryEvent;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\Notification;
 
@@ -15,6 +16,7 @@ use Craft;
 use craft\base\ElementInterface;
 use craft\elements\Tag;
 use craft\fields\Tags as CraftTags;
+use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 use craft\helpers\StringHelper;
 use craft\helpers\UrlHelper;
@@ -24,12 +26,19 @@ use Throwable;
 
 class Tags extends CraftTags implements FormFieldInterface
 {
+    // Constants
+    // =========================================================================
+
+    const EVENT_MODIFY_ELEMENT_QUERY = 'modifyElementQuery';
+
     // Traits
     // =========================================================================
 
     use FormFieldTrait, RelationFieldTrait {
         getFrontEndInputOptions as traitGetFrontendInputOptions;
         getEmailHtml as traitGetEmailHtml;
+        getSavedFieldConfig as traitGetSavedFieldConfig;
+        RelationFieldTrait::getIsFieldset insteadof FormFieldTrait;
     }
 
 
@@ -64,7 +73,7 @@ class Tags extends CraftTags implements FormFieldInterface
     /**
      * @var string
      */
-    protected $inputTemplate = 'formie/_includes/elementSelect';
+    protected $inputTemplate = 'formie/_includes/element-select-input';
 
     /**
      * @var TagGroup
@@ -74,6 +83,16 @@ class Tags extends CraftTags implements FormFieldInterface
 
     // Public Methods
     // =========================================================================
+
+    /**
+     * @inheritDoc
+     */
+    public function getSavedFieldConfig(): array
+    {
+        $settings = $this->traitGetSavedFieldConfig();
+
+        return $this->modifyFieldSettings($settings);
+    }
 
     /**
      * @inheritDoc
@@ -131,28 +150,6 @@ class Tags extends CraftTags implements FormFieldInterface
             ->siteId($siteId)
             ->id(array_filter($tagsIds))
             ->fixedOrder();
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function serializeValueForExport($value, ElementInterface $element = null)
-    {
-        $value = $this->_all($value, $element);
-
-        return array_reduce($value->all(), function($acc, $input) {
-            return $acc . $input->title;
-        }, '');
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function serializeValueForIntegration($value, ElementInterface $element = null)
-    {
-        return array_map(function($input) {
-            return $input->title;
-        }, $this->_all($value, $element)->all());
     }
 
     /**
@@ -269,6 +266,33 @@ class Tags extends CraftTags implements FormFieldInterface
     }
 
     /**
+     * Returns the list of selectable tags.
+     *
+     * @return Tag[]
+     */
+    public function getElementsQuery()
+    {
+        $query = Tag::find();
+
+        if ($group = $this->_getTagGroup()) {
+            $query->group($group);
+        }
+
+        $query->limit($this->limit);
+
+        $query->orderBy('title ASC');
+
+        // Fire a 'modifyElementFieldQuery' event
+        $event = new ModifyElementFieldQueryEvent([
+            'query' => $query,
+            'field' => $this,
+        ]);
+        $this->trigger(self::EVENT_MODIFY_ELEMENT_QUERY, $event);
+
+        return $event->query;
+    }
+
+    /**
      * @inheritDoc
      */
     public function defineGeneralSchema(): array
@@ -277,12 +301,14 @@ class Tags extends CraftTags implements FormFieldInterface
 
         return [
             SchemaHelper::labelField(),
-            SchemaHelper::textField([
-                'label' => Craft::t('formie', 'Placeholder'),
-                'help' => Craft::t('formie', 'The option shown initially, when no option is selected.'),
-                'name' => 'placeholder',
-                'validation' => 'required',
-                'required' => true,
+            SchemaHelper::toggleContainer('settings.displayType=dropdown', [
+                SchemaHelper::textField([
+                    'label' => Craft::t('formie', 'Placeholder'),
+                    'help' => Craft::t('formie', 'The option shown initially, when no option is selected.'),
+                    'name' => 'placeholder',
+                    'validation' => 'required',
+                    'required' => true,
+                ]),
             ]),
             SchemaHelper::selectField([
                 'label' => Craft::t('formie', 'Source'),
@@ -334,6 +360,16 @@ class Tags extends CraftTags implements FormFieldInterface
     public function defineAppearanceSchema(): array
     {
         return [
+            SchemaHelper::selectField([
+                'label' => Craft::t('formie', 'Display Type'),
+                'help' => Craft::t('formie', 'Set different display layouts for this field.'),
+                'name' => 'displayType',
+                'options' => [
+                    [ 'label' => Craft::t('formie', 'Dropdown'), 'value' => 'dropdown' ],
+                    [ 'label' => Craft::t('formie', 'Checkboxes'), 'value' => 'checkboxes' ],
+                    [ 'label' => Craft::t('formie', 'Radio Buttons'), 'value' => 'radio' ],
+                ],
+            ]),
             SchemaHelper::labelPosition($this),
             SchemaHelper::instructions(),
             SchemaHelper::instructionsPosition($this),

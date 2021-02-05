@@ -448,7 +448,7 @@ class Fields extends Component
     public function getSavedFieldConfig(FormFieldInterface $field)
     {
         /* @var FormField $field */
-        $config = $field->getAttributes(['id', 'name', 'handle']);
+        $config = $field->getSavedFieldConfig();
 
         $config['label'] = $field->name;
         $config['icon'] = $field->getSvgIcon();

@@ -27,6 +27,7 @@ class FileUpload extends CraftAssets implements FormFieldInterface
     use FormFieldTrait, RelationFieldTrait {
         getFrontEndInputOptions as traitGetFrontendInputOptions;
         getSettingGqlType as traitGetSettingGqlType;
+        FormFieldTrait::getIsFieldset insteadof RelationFieldTrait;
     }
 
 
@@ -65,7 +66,7 @@ class FileUpload extends CraftAssets implements FormFieldInterface
     public $uploadLocationSubpath;
     public $useSingleFolder = true;
 
-    protected $inputTemplate = 'formie/_includes/elementSelect';
+    protected $inputTemplate = 'formie/_includes/element-select-input';
 
 
     // Public Methods

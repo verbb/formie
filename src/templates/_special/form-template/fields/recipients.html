@@ -11,5 +11,5 @@
 {% endif %}
 
 {% if field.displayType == 'radio' %}
-    {% include 'fields/radio' %}
+    {% include 'fields/radio' with { fieldName: field.handle ~ '[]' } %}
 {% endif %}

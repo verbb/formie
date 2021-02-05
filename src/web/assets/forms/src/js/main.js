@@ -26,6 +26,7 @@ import FormBuilder from './components/FormBuilder.vue';
 import FieldRepeater from './components/FieldRepeater.vue';
 import FieldGroup from './components/FieldGroup.vue';
 import DatePreview from './components/DatePreview.vue';
+import ElementFieldPreview from './components/ElementFieldPreview.vue';
 import NotificationsBuilder from './components/NotificationsBuilder.vue';
 import NotificationPreview from './components/NotificationPreview.vue';
 import NotificationTest from './components/NotificationTest.vue';
@@ -36,7 +37,8 @@ import IntegrationFormSettings from './components/IntegrationFormSettings.vue';
 // Globally register components
 Vue.component('FieldRepeater', FieldRepeater);
 Vue.component('FieldGroup', FieldGroup);
-Vue.component('DatePreview', DatePreview);
+Vue.component('FieldGroup', FieldGroup);
+Vue.component('ElementFieldPreview', ElementFieldPreview);
 Vue.component('NotificationPreview', NotificationPreview);
 Vue.component('NotificationTest', NotificationTest);
 Vue.component('FieldSelect', FieldSelect);

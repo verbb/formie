@@ -14,6 +14,9 @@ use Craft;
 use craft\base\ElementInterface;
 use craft\elements\User;
 use craft\fields\Users as CraftUsers;
+use craft\fields\data\MultiOptionsFieldData;
+use craft\fields\data\OptionData;
+use craft\fields\data\SingleOptionFieldData;
 use craft\helpers\ArrayHelper;
 use craft\helpers\UrlHelper;
 
@@ -33,6 +36,8 @@ class Users extends CraftUsers implements FormFieldInterface
     use FormFieldTrait, RelationFieldTrait {
         getFrontEndInputOptions as traitGetFrontendInputOptions;
         getEmailHtml as traitGetEmailHtml;
+        getSavedFieldConfig as traitGetSavedFieldConfig;
+        RelationFieldTrait::getIsFieldset insteadof FormFieldTrait;
     }
 
 
@@ -67,7 +72,7 @@ class Users extends CraftUsers implements FormFieldInterface
     /**
      * @var string
      */
-    protected $inputTemplate = 'formie/_includes/elementSelect';
+    protected $inputTemplate = 'formie/_includes/element-select-input';
 
     /**
      * @var UserGroup
@@ -81,23 +86,11 @@ class Users extends CraftUsers implements FormFieldInterface
     /**
      * @inheritDoc
      */
-    public function serializeValueForExport($value, ElementInterface $element = null)
+    public function getSavedFieldConfig(): array
     {
-        $value = $this->_all($value, $element);
+        $settings = $this->traitGetSavedFieldConfig();
 
-        return array_reduce($value->all(), function($acc, $input) {
-            return $acc . $input->name;
-        }, '');
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function serializeValueForIntegration($value, ElementInterface $element = null)
-    {
-        return array_map(function($input) {
-            return $input->name;
-        }, $this->_all($value, $element)->all());
+        return $this->modifyFieldSettings($settings);
     }
 
     /**
@@ -148,7 +141,7 @@ class Users extends CraftUsers implements FormFieldInterface
     public function getFrontEndInputOptions(Form $form, $value, array $options = null): array
     {
         $inputOptions = $this->traitGetFrontendInputOptions($form, $value, $options);
-        $inputOptions['usersQuery'] = $this->getUsersQuery();
+        $inputOptions['usersQuery'] = $this->getElementsQuery();
 
         return $inputOptions;
     }
@@ -169,7 +162,7 @@ class Users extends CraftUsers implements FormFieldInterface
      *
      * @return User[]
      */
-    public function getUsersQuery()
+    public function getElementsQuery()
     {
         $query = User::find();
 
@@ -187,6 +180,8 @@ class Users extends CraftUsers implements FormFieldInterface
             // Apply the criteria on our query
             Craft::configure($query, $criteria);
         }
+
+        $query->limit($this->limit);
 
         $query->orderBy('title ASC');
 
@@ -209,12 +204,14 @@ class Users extends CraftUsers implements FormFieldInterface
 
         return [
             SchemaHelper::labelField(),
-            SchemaHelper::textField([
-                'label' => Craft::t('formie', 'Placeholder'),
-                'help' => Craft::t('formie', 'The option shown initially, when no option is selected.'),
-                'name' => 'placeholder',
-                'validation' => 'required',
-                'required' => true,
+            SchemaHelper::toggleContainer('settings.displayType=dropdown', [
+                SchemaHelper::textField([
+                    'label' => Craft::t('formie', 'Placeholder'),
+                    'help' => Craft::t('formie', 'The option shown initially, when no option is selected.'),
+                    'name' => 'placeholder',
+                    'validation' => 'required',
+                    'required' => true,
+                ]),
             ]),
             SchemaHelper::checkboxSelectField([
                 'label' => Craft::t('formie', 'Sources'),
@@ -235,7 +232,6 @@ class Users extends CraftUsers implements FormFieldInterface
                 'config' => [
                     'jsClass' => $this->inputJsClass,
                     'elementType' => static::elementType(),
-                    'limit' => '1',
                 ],
             ]),
         ];
@@ -276,6 +272,16 @@ class Users extends CraftUsers implements FormFieldInterface
     public function defineAppearanceSchema(): array
     {
         return [
+            SchemaHelper::selectField([
+                'label' => Craft::t('formie', 'Display Type'),
+                'help' => Craft::t('formie', 'Set different display layouts for this field.'),
+                'name' => 'displayType',
+                'options' => [
+                    [ 'label' => Craft::t('formie', 'Dropdown'), 'value' => 'dropdown' ],
+                    [ 'label' => Craft::t('formie', 'Checkboxes'), 'value' => 'checkboxes' ],
+                    [ 'label' => Craft::t('formie', 'Radio Buttons'), 'value' => 'radio' ],
+                ],
+            ]),
             SchemaHelper::labelPosition($this),
             SchemaHelper::instructions(),
             SchemaHelper::instructionsPosition($this),

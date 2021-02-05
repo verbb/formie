@@ -1,6 +1,6 @@
 <template>
     <div :id="id" class="elementselect">
-        <div ref="elementSelectElements" class="elements"></div>
+        <div class="elements" v-html="defaultValueHtml"></div>
 
         <div class="flex">
             <button type="button" class="btn add icon dashed">{{ attributes.selectionLabel }}</button>
@@ -20,7 +20,6 @@ export default {
         return {
             id: 'element-' + Craft.randomString(10),
             modal: null,
-            fetchedElementHtml: '',
         };
     },
 
@@ -40,6 +39,22 @@ export default {
 
             return [];
         },
+
+        displayType() {
+            if (this.$editingField) {
+                return this.$editingField.field.settings.displayType;
+            }
+
+            return 'dropdown';
+        },
+
+        defaultValueHtml() {
+            if (this.$editingField) {
+                return this.$editingField.field.defaultValueHtml;
+            }
+
+            return '';
+        },
     },
 
     watch: {
@@ -52,6 +67,11 @@ export default {
             // Create a new element select instance when changing sources
             this.createModal();
         },
+
+        displayType(newValue) {
+            // Create a new element select instance when changing sources
+            this.createModal();
+        },
     },
 
     created() {
@@ -61,37 +81,12 @@ export default {
     },
 
     mounted() {
-        this.$nextTick().then(() => {
-            this.createModal();
-
-            // Fetch the elements, if any
-            if (this.context.model.length) {
-                this.$axios.post(Craft.getActionUrl('formie/fields/render-elements'), { elements: this.context.model }).then((response) => {
-                    if (response.data) {
-                        // Set a flag to we know we've got out data
-                        this.fetchedElementHtml = response.data;
-
-                        // Have to directly modify the DOM for jQuery to pick this up...
-                        this.$refs.elementSelectElements.innerHTML = response.data;
-
-                        // Now trigger JS to kick in
-                        this.createModal();
-                    }
-                }).catch(error => {
-                    console.log(error);
-                });
-            }
-        });
+        this.createModal();
     },
 
     methods: {
         createModal() {
             var { config } = this.attributes;
-
-            // If we have elements, wait until we fetch the HTML, then render
-            if (this.context.model.length && !this.fetchedElementHtml) {
-                return;
-            }
 
             if (config) {
                 config.id = this.id;
@@ -103,6 +98,11 @@ export default {
                 // Handle single-sources element select fields
                 if (this.source && this.source.length) {
                     config.sources = [this.source];
+                }
+
+                // Limit depending on display type
+                if (this.displayType !== 'checkboxes') {
+                    config.limit = 1;
                 }
 
                 // Check if the modal has been created already - only create it once
@@ -123,13 +123,21 @@ export default {
         },
 
         onSelectElements(elements) {
-            this.context.model = elements.map(element => {
-                return { id: element.id, siteId: element.siteId };
-            });
+            this.domToModel();
         },
 
-        onRemoveElements(elements) {
-            this.context.model = [];
+        onRemoveElements() {
+            this.domToModel();
+        },
+
+        domToModel() {
+            var elements = [];
+
+            this.modal.$elements.each((index, $element) => {
+                elements.push({ id: $element.dataset.id, siteId: $element.dataset.siteId });
+            });
+
+            this.context.model = elements;
         },
     },
 };

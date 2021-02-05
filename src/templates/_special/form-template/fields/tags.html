@@ -1,25 +1,37 @@
-{% set valueJson = value ? value.all() | map(tag => {
-    value: tag.title,
-    id: tag.id,
-}) : [] %}
+{% set value = field.getDisplayTypeValue(value) %}
 
-{% set attributes = {
-    id: options.id,
-    class: [ 'fui-input' ],
-    name: field.handle,
-    required: field.required ? true : false,
-    value: valueJson ? valueJson | json_encode : '',
-    autocomplete: 'off',
-    data: {
-        'formie-tags': tags,
-        'fui-message': field.settings.errorMessage | t,
-    },
-    aria: {
-        required: field.required ? 'true' : 'false',
-    },
-} | merge(field.getInputAttributes()) %}
+{% if field.displayType == 'dropdown' %}
+    {% set valueJson = value ? value.all() | map(tag => {
+        value: tag.title,
+        id: tag.id,
+    }) : [] %}
 
-<input {{ attr(attributes) }} />
+    {% set attributes = {
+        id: options.id,
+        class: [ 'fui-input' ],
+        name: field.handle,
+        required: field.required ? true : false,
+        value: valueJson ? valueJson | json_encode : '',
+        autocomplete: 'off',
+        data: {
+            'formie-tags': tags,
+            'fui-message': field.settings.errorMessage | t,
+        },
+        aria: {
+            required: field.required ? 'true' : 'false',
+        },
+    } | merge(field.getInputAttributes()) %}
 
-{% set cssFile = view.getAssetManager().getPublishedUrl('@verbb/formie/web/assets/frontend/dist/css/fields/tags.css', true) %}
-{% do view.registerCssFile(cssFile) %}
+    <input {{ attr(attributes) }} />
+
+    {% set cssFile = view.getAssetManager().getPublishedUrl('@verbb/formie/web/assets/frontend/dist/css/fields/tags.css', true) %}
+    {% do view.registerCssFile(cssFile) %}
+{% endif %}
+
+{% if field.displayType == 'checkboxes' %}
+    {% include 'fields/checkboxes' %}
+{% endif %}
+
+{% if field.displayType == 'radio' %}
+    {% include 'fields/radio' with { fieldName: field.handle ~ '[]' } %}
+{% endif %}

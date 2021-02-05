@@ -359,6 +359,14 @@ trait FormFieldTrait
     /**
      * @inheritDoc
      */
+    public function getSavedFieldConfig(): array
+    {
+        return $this->getAttributes(['id', 'name', 'handle']);
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function getFieldDefaults(): array
     {
         return [];
