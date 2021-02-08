@@ -144,6 +144,8 @@ This is the interface implemented by all forms.
 | `rows`| `[RowInterface]` | The form’s rows.
 | `fields`| `[FieldInterface]` | The form’s fields.
 | `settings`| `[FormSettingsInterface]` | The form’s settings.
+| `configJson`| `String` | The form’s config as JSON.
+| `templateHtml`| `String` | The form’s rendered HTML.
 
 
 ### The `FormSettingsInterface` interface

@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\gql\interfaces;
 
+use verbb\formie\Formie;
 use verbb\formie\elements\Form;
 use verbb\formie\gql\arguments\FieldArguments;
 use verbb\formie\gql\arguments\FormArguments;
@@ -84,6 +85,19 @@ class FormInterface extends Element
                 'name' => 'settings',
                 'type' => FormSettingsType::getType(),
                 'description' => 'The form’s settings.'
+            ],
+            'configJson' => [
+                'name' => 'configJson',
+                'type' => Type::string(),
+                'description' => 'The form’s config as JSON.'
+            ],
+            'templateHtml' => [
+                'name' => 'templateHtml',
+                'type' => Type::string(),
+                'description' => 'The form’s rendered HTML.',
+                'resolve' => function ($source) {
+                    return Formie::getInstance()->getRendering()->renderForm($source);
+                },
             ],
         ]), self::getName());
     }
