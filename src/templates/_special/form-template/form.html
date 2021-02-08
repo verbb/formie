@@ -38,6 +38,8 @@
     } | merge(options.formAttributes ?? {}) %}
 
     <div class="fui-i">
+        {% set showForm = true %}
+        {% set currentPage = form.getCurrentPage() %}
         {% set submitted = craft.formie.plugin.service.getFlash(form.id, 'submitted') %}
 
         {% if submission is defined and form.settings.submitAction == 'message' %}
@@ -57,9 +59,11 @@
             {% endif %}
         {% endif %}
 
-        {% set currentPage = form.getCurrentPage() %}
+        {% if submitted and form.settings.submitAction == 'message' and form.settings.submitActionFormHide %}
+            {% set showForm = false %}
+        {% endif %}
 
-        {% if not submitted or not form.settings.submitActionFormHide %}
+        {% if showForm %}
             <form {{ attr(attributes) }}>
                 {{ csrfInput() }}
                 {{ actionInput(form.getActionUrl()) }}
