@@ -84,7 +84,7 @@ class Rendering extends Component
             'options' => $options,
             'submission' => $submission,
             'jsVariables' => $jsVariables,
-        ], View::TEMPLATE_MODE_SITE);
+        ]);
 
         $view->setTemplatesPath(Craft::$app->path->getSiteTemplatesPath());
 
@@ -159,7 +159,7 @@ class Rendering extends Component
             'page' => $page,
             'options' => $options,
             'submission' => $submission,
-        ], View::TEMPLATE_MODE_SITE);
+        ]);
 
         $view->setTemplatesPath($oldTemplatesPath);
 
@@ -218,7 +218,7 @@ class Rendering extends Component
             'handle' => $field->handle,
             'options' => $options,
             'element' => $element,
-        ], View::TEMPLATE_MODE_SITE);
+        ]);
 
         $view->setTemplatesPath($oldTemplatePath);
 
