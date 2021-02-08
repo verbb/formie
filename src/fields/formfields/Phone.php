@@ -222,6 +222,14 @@ class Phone extends FormField implements SubfieldInterface, PreviewableFieldInte
     /**
      * @inheritDoc
      */
+    public function getIsTextInput(): bool
+    {
+        return !$this->countryEnabled;
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function validateRequiredFields(ElementInterface $element)
     {
         if ($this->required) {
