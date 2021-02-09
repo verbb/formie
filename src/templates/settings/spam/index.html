@@ -66,7 +66,7 @@
 
         {{ forms.textareaField({
             label: 'Spam Keywords' | t('formie'),
-            instructions: 'If a submission contains any of these words (in any field), it will be marked as spam. One word or IP address per line. It will also match words within other words (eg. ’craft’ will match ’crafty’). Case insensitive.' | t('formie'),
+            instructions: 'If a submission contains any of these words (in any field), it will be marked as spam. One word or IP address per line. It will also match words within other words (e.g. ’craft’ will match ’crafty’). Case insensitive.' | t('formie'),
             name: 'spamKeywords',
             rows: 10,
             value: settings.spamKeywords,

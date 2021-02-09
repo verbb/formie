@@ -282,7 +282,7 @@ return [
     'Submission Message' => 'Submission Message',
     'This text will be shown as an error after submission.' => 'This text will be shown as an error after submission.',
     'Spam Keywords' => 'Spam Keywords',
-    'If a submission contains any of these words (in any field), it will be marked as spam. One word or IP address per line. It will also match words within other words (eg. ’craft’ will match ’crafty’). Case insensitive.' => 'If a submission contains any of these words (in any field), it will be marked as spam. One word or IP address per line. It will also match words within other words (eg. ’craft’ will match ’crafty’). Case insensitive.',
+    'If a submission contains any of these words (in any field), it will be marked as spam. One word or IP address per line. It will also match words within other words (e.g. ’craft’ will match ’crafty’). Case insensitive.' => 'If a submission contains any of these words (in any field), it will be marked as spam. One word or IP address per line. It will also match words within other words (e.g. ’craft’ will match ’crafty’). Case insensitive.',
     'Save' => 'Save',
     'New Template' => 'New Template',
     'Email Templates' => 'Email Templates',
