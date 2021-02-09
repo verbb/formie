@@ -78,17 +78,23 @@ export class Formie {
                     // Initialize all matching fields - their config is already rendered in templates
                     $script.onload = () => {
                         if (config.module) {
+                            var combinedConfig = {};
                             var fieldConfigs = form.fieldConfigs[config.module];
 
+                            // Because fields can have multiple settings, just combine them
                             if (fieldConfigs && fieldConfigs.length) {
                                 fieldConfigs.forEach(fieldConfig => {
-                                    this.initFieldClass(config.module, fieldConfig);
+                                    combinedConfig = { ...combinedConfig, ...fieldConfig };
                                 });
                             }
 
+                            // Some fields offer settings from the CP
                             if (config.settings) {
-                                this.initFieldClass(config.module, config.settings);
+                                combinedConfig = { ...combinedConfig, ...config.settings };
                             }
+
+                            // Initialize the JS class, with our combined settings
+                            this.initFieldClass(config.module, combinedConfig);
                         }
                     };
                 }
