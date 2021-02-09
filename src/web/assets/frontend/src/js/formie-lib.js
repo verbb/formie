@@ -31,11 +31,13 @@ export class Formie {
         }));
     }
 
-    initForm($form) {
-        // Initialize the form class with the `data-config` param on the form
-        var formConfig = JSON.parse($form.getAttribute('data-config'));
+    initForm($form, formConfig = {}) {
+        if (isEmpty(formConfig)) {
+            // Initialize the form class with the `data-config` param on the form
+            formConfig = JSON.parse($form.getAttribute('data-config'));
+        }
 
-        if (!formConfig) {
+        if (isEmpty(formConfig)) {
             console.error('Unable to parse `data-config` form attribute for config. Ensure this attribute exists on your form and contains valid JSON.');
 
             return;
