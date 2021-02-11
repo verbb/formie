@@ -31,11 +31,13 @@ export class Formie {
         }));
     }
 
-    initForm($form) {
-        // Initialize the form class with the `data-config` param on the form
-        var formConfig = JSON.parse($form.getAttribute('data-config'));
+    initForm($form, formConfig = {}) {
+        if (isEmpty(formConfig)) {
+            // Initialize the form class with the `data-config` param on the form
+            formConfig = JSON.parse($form.getAttribute('data-config'));
+        }
 
-        if (!formConfig) {
+        if (isEmpty(formConfig)) {
             console.error('Unable to parse `data-config` form attribute for config. Ensure this attribute exists on your form and contains valid JSON.');
 
             return;
@@ -76,17 +78,23 @@ export class Formie {
                     // Initialize all matching fields - their config is already rendered in templates
                     $script.onload = () => {
                         if (config.module) {
+                            var combinedConfig = {};
                             var fieldConfigs = form.fieldConfigs[config.module];
 
+                            // Because fields can have multiple settings, just combine them
                             if (fieldConfigs && fieldConfigs.length) {
                                 fieldConfigs.forEach(fieldConfig => {
-                                    this.initFieldClass(config.module, fieldConfig);
+                                    combinedConfig = { ...combinedConfig, ...fieldConfig };
                                 });
                             }
 
+                            // Some fields offer settings from the CP
                             if (config.settings) {
-                                this.initFieldClass(config.module, config.settings);
+                                combinedConfig = { ...combinedConfig, ...config.settings };
                             }
+
+                            // Initialize the JS class, with our combined settings
+                            this.initFieldClass(config.module, combinedConfig);
                         }
                     };
                 }

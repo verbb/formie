@@ -84,6 +84,8 @@ abstract class BaseOptionsField extends CraftBaseOptionsField
                 /** @var OptionData $selectedValue */
                 $values[] = $selectedValue->value;
             }
+
+            return $values;
         }
 
         return null;
