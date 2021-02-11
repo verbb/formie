@@ -37,7 +37,7 @@ import IntegrationFormSettings from './components/IntegrationFormSettings.vue';
 // Globally register components
 Vue.component('FieldRepeater', FieldRepeater);
 Vue.component('FieldGroup', FieldGroup);
-Vue.component('FieldGroup', FieldGroup);
+Vue.component('DatePreview', DatePreview);
 Vue.component('ElementFieldPreview', ElementFieldPreview);
 Vue.component('NotificationPreview', NotificationPreview);
 Vue.component('NotificationTest', NotificationTest);
