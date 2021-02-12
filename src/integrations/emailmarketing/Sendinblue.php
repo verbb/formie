@@ -63,9 +63,7 @@ class Sendinblue extends EmailMarketing
         $settings = [];
 
         try {
-            $response = $this->request('GET', 'contacts/lists');
-
-            $lists = $response['lists'] ?? [];
+            $lists = $this->_getPaginated('contacts/lists', 'lists');
 
             foreach ($lists as $list) {
                 $listFields = [
@@ -180,5 +178,31 @@ class Sendinblue extends EmailMarketing
             'base_uri' => 'https://api.sendinblue.com/v3/',
             'headers' => ['api-key' => Craft::parseEnv($this->apiKey)],
         ]);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    private function _getPaginated($endpoint, $param, $limit = 50, $offset = 0, $items = [])
+    {
+        $response = $this->request('GET', $endpoint, [
+            'query' => [
+                'limit' => $limit,
+                'offset' => $offset,
+            ]
+        ]);
+
+        $newItems = $response[$param] ?? [];
+        $total = $response['count'] ?? 0;
+
+        if ($newItems) {
+            $items = array_merge($items, $newItems);
+
+            if (count($items) < $total) {
+                $items = $this->_getPaginated($endpoint, $param, $limit, $offset + $limit, $items);
+            }
+        }
+
+        return $items;
     }
 }
