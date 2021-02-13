@@ -1,5 +1,52 @@
 # Changelog
 
+## 1.3.17 - 2021-02-13
+
+### Added
+- Added better caching to `getParsedValue`, which fix a few rare issues with field rendering stale content.
+- Allow `formieInclude()` to allow multiple templates (array syntax) to be passed in to be resolve.
+- Added support for Integration settings for Stencils.
+- Added support for paginated lists for Sendinblue integration.
+- Added error logging for email delivery.
+- Added ability to set the default value for all Element fields.
+- Added checkboxes and radio button display types for Element fields.
+- Added support to Element fields to customise the content used for labels, instead of just title.
+- Added `submission` to `Submission::EVENT_DEFINE_RULES` event.
+- Added Tracking, Account and Campaign IDs to SharpSpring CRM integration.
+- Added `configJson` and `templateHtml` to FormInterface for GraphQL.
+- Added `ModifyFormRenderOptionsEvent`. (thanks @jaydensmith).
+- Added `getIsTextInput` method to Phone field. (thanks @jaydensmith).
+- Added `formConfig` to the `initForm()` JS function to provide an object with the form config, rather than rely on the DOM to set it (using `setAttribute('data-config’)`).
+
+### Changed
+- Changed `Field::getEmailHtml()` to require a notification model.
+- Any globally-enabled captchas will be automatically enabled on new forms.
+- Any globally-enabled captchas will be automatically enabled on new stencils.
+
+### Fixed
+- Fixed an error for email notifications if its conditions contained an element field, set to `contains` as a condition.
+- Fixed Variant field not providing data to integrations correctly.
+- Fixed Categories field not providing data to integrations correctly.
+- Fixed Entries field not providing data to integrations correctly.
+- Fixed File Upload field not providing data to integrations correctly.
+- Fixed Products field not providing data to integrations correctly.
+- Fixed Tags field not providing data to integrations correctly.
+- Fixed Users field not providing data to integrations correctly.
+- Fixed email notification conditions not properly testing against element field values (entries, categories, etc).
+- Fixed checkbox and radio fields having JS validation checks bound multiple times in a form.
+- Fixed checkbox fields producing multiple errors.
+- Fixed some reCAPTCHA plugin settings not saving correctly.
+- Fixed reCAPTCHA not initializing when the surrounding form was initially hidden (for example, in a modal).
+- Fixed multiple forms on a single page not having their associated field JS initialized properly.
+- Fixed migration error for Postgres.
+- Fixed security warnings of using `eval()` in front-end JS, despite it being safe to call.
+- Fixed edit field button in control panel sizing being too small.
+- Fixed assuming `TEMPLATE_MODE_SITE` when rendering templates for forms, pages and fields.
+- Fixed template conditional that could cause the form to be hidden if “Hide Form” was set, but “Action on Submit” was set to “Display a message”.
+- Fixed a JS error with some fields (address auto-complete, multi-line) in some instances.
+- Fixed minor `e.g.` typo for stencils.
+- Fixed `getValue` method on BaseOptionsField not returning correctly. (thanks @javangriff).
+
 ## 1.3.16.1 - 2021-01-31
 
 ### Fixed
