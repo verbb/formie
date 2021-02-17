@@ -6,6 +6,8 @@ use craft\base\Model;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 
+use yii\base\InvalidConfigException;
+
 class IntegrationFormSettings extends Model
 {
     // Properties
