@@ -443,10 +443,29 @@ class HubSpot extends Crm
                  continue;
             }
 
+            // Add in any options for some fields
+            $options = [];
+            $fieldOptions = $field['options'] ?? [];
+
+            foreach ($fieldOptions as $key => $fieldOption) {
+                $options[] = [
+                    'label' => $fieldOption['label'],
+                    'value' => $fieldOption['value'],
+                ];
+            }
+
+            if ($options) {
+                $options = [
+                    'label' => $field['label'],
+                    'options' => $options,
+                ];
+            }
+
             $customFields[] = new IntegrationField([
                 'handle' => $field['name'],
                 'name' => $field['label'],
                 'type' => $this->_convertFieldType($field['type']),
+                'options' => $options,
             ]);
         }
 
