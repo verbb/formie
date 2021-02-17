@@ -821,6 +821,46 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         return $event->isValid;
     }
 
+    /**
+     * @inheritDoc
+     */
+    protected function enforceOptInField(Submission $submission)
+    {
+        // Default is just always do it!
+        if (!$this->optInField) {
+            return true;
+        }
+
+        $fieldValue = null;
+        $fieldHandle = str_replace(['{', '}'], ['', ''], $this->optInField);
+
+        try {
+            $fieldValue = $submission->getFieldValue($fieldHandle);
+        } catch (\Throwable $e) {
+
+        }
+
+        if ($fieldValue === null) {
+            Integration::log($this, Craft::t('formie', 'Unable to find field “{field}” for opt-in in submission.', [
+                'field' => $this->optInField,
+            ]));
+
+            return false;
+        }
+
+        // Just a simple 'falsey' check is good enough
+        if (!$fieldValue) {
+            Integration::log($this, Craft::t('formie', 'Opting-out. Field “{field}” has value “{value}”.', [
+                'field' => $this->optInField,
+                'value' => $fieldValue,
+            ]));
+
+            return false;
+        }
+
+        return true;
+    }
+
 
     // Private Methods
     // =========================================================================

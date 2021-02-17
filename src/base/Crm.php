@@ -4,6 +4,7 @@ namespace verbb\formie\base;
 use verbb\formie\Formie;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
+use verbb\formie\events\SendIntegrationPayloadEvent;
 use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
@@ -15,6 +16,12 @@ use craft\helpers\UrlHelper;
 
 abstract class Crm extends Integration implements IntegrationInterface
 {
+    // Properties
+    // =========================================================================
+
+    public $optInField;
+
+
     // Static Methods
     // =========================================================================
     
@@ -86,5 +93,31 @@ abstract class Crm extends Integration implements IntegrationInterface
         $fields = $this->getFormSettingValue($fieldSettings);
 
         return parent::getFieldMappingValues($submission, $fieldMapping, $fields);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected function beforeSendPayload(Submission $submission, $endpoint, &$payload, $method)
+    {
+        $event = new SendIntegrationPayloadEvent([
+            'submission' => $submission,
+            'payload' => $payload,
+            'integration' => $this,
+        ]);
+        $this->trigger(self::EVENT_BEFORE_SEND_PAYLOAD, $event);
+
+        if (!$event->isValid) {
+            Integration::log($this, 'Sending payload cancelled by event hook.');
+        }
+
+        // Also, check for opt-in fields. This allows the above event to potentially alter things
+        if (!$this->enforceOptInField($submission)) {
+            Integration::log($this, 'Sending payload cancelled by opt-in field.');
+
+            return false;
+        }
+
+        return $event->isValid;
     }
 }
