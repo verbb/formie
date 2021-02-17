@@ -82,7 +82,7 @@
             toggle: 'map-to-form',
         }) }}
 
-        <div class="{{ not mapToForm ? 'hidden' }}">
+        <div id="map-to-form" class="{{ not mapToForm ? 'hidden' }}">
             <div class="field">
                 <div class="heading">
                     <label id="sourceId-label" for="sourceId" class="required">{{ 'Form' | t('formie') }}</label>
@@ -116,7 +116,7 @@
                 <span v-html="errorMessage"></span>
             </div>
 
-            <div id="map-to-form">
+            <div>
                 <integration-field-mapping
                     label="{{ 'Form Field Mapping' | t('formie') }}"
                     instructions="{{ 'Choose how your form fields should map to your {name} Form fields.' | t('formie', { name: integration.displayName() }) }}"
