@@ -140,7 +140,7 @@
     value: dataRetention,
 }) }}
 
-<div class="fui-dr-hours fui-dr-days fui-dr-weeks fui-dr-months fui-dr-years {{ dataRetention == 'forever' ? 'hidden' }}">
+<div class="fui-dr-minutes fui-dr-hours fui-dr-days fui-dr-weeks fui-dr-months fui-dr-years {{ dataRetention == 'forever' ? 'hidden' }}">
     {{ forms.textField({
         label: 'Data Retention Duration' | t('formie'),
         instructions: 'After this duration has been met, submissions will be deleted.' | t('formie'),
