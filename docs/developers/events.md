@@ -946,6 +946,8 @@ Event::on(Mailchimp::class, Mailchimp::EVENT_BEFORE_SEND_PAYLOAD, function(SendI
     $submission = $event->submission;
     $payload = $event->payload;
     $integration = $event->integration;
+    $endpoint = $event->endpoint;
+    $method = $event->method;
     // ...
 });
 ```

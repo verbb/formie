@@ -125,6 +125,8 @@ abstract class EmailMarketing extends Integration implements IntegrationInterfac
             'submission' => $submission,
             'payload' => $payload,
             'integration' => $this,
+            'endpoint' => $endpoint,
+            'method' => $method,
         ]);
         $this->trigger(self::EVENT_BEFORE_SEND_PAYLOAD, $event);
 
