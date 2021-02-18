@@ -528,11 +528,13 @@ class Submissions extends Component
 
         if (($fieldLayout = $submission->getFieldLayout()) !== null) {
             foreach ($fieldLayout->getFields() as $field) {
-                try {
-                    $fieldValues[] = (string)$submission->getFieldValue($field->handle);
-                } catch (\Throwable $e) {
+                $value = $submission->getFieldValue($field->handle);
+
+                if ($value instanceof NestedFieldRowQuery) {
                     continue;
                 }
+
+                $fieldValues[] = (string)$value;
             }
         }
 
