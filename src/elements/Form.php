@@ -996,13 +996,13 @@ class Form extends Element
 
         // Add any JS per-field
         foreach ($this->getFields() as $field) {
-            $js = $field->getFrontEndJsModules();
-
-            // Handle multiple registrations
-            if (isset($js[0])) {
-                $registeredJs = array_merge($registeredJs, $js);
-            } else {
-                $registeredJs[] = $js;
+            if ($js = $field->getFrontEndJsModules()) {
+                // Handle multiple registrations
+                if (isset($js[0])) {
+                    $registeredJs = array_merge($registeredJs, $js);
+                } else {
+                    $registeredJs[] = $js;
+                }
             }
         }
 
@@ -1011,12 +1011,12 @@ class Form extends Element
         $captchas = Formie::$plugin->getIntegrations()->getAllEnabledCaptchasForForm($this, null, true);
 
         foreach ($captchas as $captcha) {
-            $js = $captcha->getFrontEndJsVariables($this);
-
-            if (isset($js[0])) {
-                $registeredJs = array_merge($registeredJs, $js);
-            } else {
-                $registeredJs[] = $js;
+            if ($js = $captcha->getFrontEndJsVariables($this)) {
+                if (isset($js[0])) {
+                    $registeredJs = array_merge($registeredJs, $js);
+                } else {
+                    $registeredJs[] = $js;
+                }
             }
         }
 

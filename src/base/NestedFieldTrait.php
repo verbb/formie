@@ -259,13 +259,13 @@ trait NestedFieldTrait
 
         // Check for any nested fields
         foreach ($this->getFields() as $field) {
-            $js = $field->getFrontEndJsModules();
-
-            // Handle multiple registrations
-            if (isset($js[0])) {
-                $modules = array_merge($modules, $js);
-            } else {
-                $modules[] = $js;
+            if ($js = $field->getFrontEndJsModules()) {
+                // Handle multiple registrations
+                if (isset($js[0])) {
+                    $modules = array_merge($modules, $js);
+                } else {
+                    $modules[] = $js;
+                }
             }
         }
 
