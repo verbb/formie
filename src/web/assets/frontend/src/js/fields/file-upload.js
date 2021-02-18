@@ -13,23 +13,55 @@ export class FormieFileUpload {
         // Add our custom validations logic and methods
         e.detail.validatorSettings.customValidations = {
             ...e.detail.validatorSettings.customValidations,
-            ...this.getFileSizeLimitRule(),
+            ...this.getFileSizeMinLimitRule(),
+            ...this.getFileSizeMaxLimitRule(),
             ...this.getFileLimitRule(),
         };
 
         // Add our custom messages
         e.detail.validatorSettings.messages = {
             ...e.detail.validatorSettings.messages,
-            ...this.getFileSizeLimitMessage(),
+            ...this.getFileSizeMinLimitMessage(),
+            ...this.getFileSizeMaxLimitMessage(),
             ...this.getFileLimitMessage(),
         };
     }
 
-    getFileSizeLimitRule() {
+    getFileSizeMinLimitRule() {
         return {
-            fileSizeLimit(field) {
+            fileSizeMinLimit(field) {
                 const type = field.getAttribute('type');
-                const sizeLimit = field.getAttribute('data-size-limit');
+                const sizeLimit = field.getAttribute('data-size-min-limit');
+                const sizeBytes = parseFloat(sizeLimit) * 1024 * 1024;
+
+                if (type !== 'file' || !sizeBytes) {
+                    return;
+                }
+
+                for (const file of field.files) {
+                    if (file.size < sizeBytes) {
+                        return true;
+                    }
+                }
+            },
+        };
+    }
+
+    getFileSizeMinLimitMessage() {
+        return {
+            fileSizeMinLimit(field) {
+                return t('File must be larger than {filesize} MB.', {
+                    filesize: field.getAttribute('data-size-min-limit'),
+                });
+            },
+        };
+    }
+
+    getFileSizeMaxLimitRule() {
+        return {
+            fileSizeMaxLimit(field) {
+                const type = field.getAttribute('type');
+                const sizeLimit = field.getAttribute('data-size-max-limit');
                 const sizeBytes = parseFloat(sizeLimit) * 1024 * 1024;
 
                 if (type !== 'file' || !sizeBytes) {
@@ -45,11 +77,11 @@ export class FormieFileUpload {
         };
     }
 
-    getFileSizeLimitMessage() {
+    getFileSizeMaxLimitMessage() {
         return {
-            fileSizeLimit(field) {
+            fileSizeMaxLimit(field) {
                 return t('File must be smaller than {filesize} MB.', {
-                    filesize: field.getAttribute('data-size-limit'),
+                    filesize: field.getAttribute('data-size-max-limit'),
                 });
             },
         };
