@@ -340,6 +340,8 @@ trait RelationFieldTrait
 
             return null;
         }
+
+        return $value;
     }
 
     /**

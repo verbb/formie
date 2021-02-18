@@ -39,6 +39,7 @@ class Tags extends CraftTags implements FormFieldInterface
         getEmailHtml as traitGetEmailHtml;
         getSavedFieldConfig as traitGetSavedFieldConfig;
         RelationFieldTrait::getIsFieldset insteadof FormFieldTrait;
+        getDisplayTypeValue as traitGetDisplayTypeValue;
     }
 
 
@@ -320,6 +321,19 @@ class Tags extends CraftTags implements FormFieldInterface
         }
 
         return $options;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getDisplayTypeValue($value)
+    {
+        // Special case for 'dropdown' in that its a tag-select/create field
+        if ($this->displayType === 'dropdown') {
+            return $value;
+        }
+
+        return $this->traitGetDisplayTypeValue($value);
     }
 
     /**
