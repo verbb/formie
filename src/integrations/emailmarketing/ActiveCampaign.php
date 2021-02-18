@@ -66,16 +66,16 @@ class ActiveCampaign extends EmailMarketing
         try {
             $lists = $this->_getPaginated('lists');
 
+            // While we're at it, fetch the fields for the list
+            $response = $this->request('GET', 'fields', [
+                'query' => [
+                    'limit' => 100,
+                ],
+            ]);
+
+            $fields = $response['fields'] ?? [];
+
             foreach ($lists as $list) {
-                // While we're at it, fetch the fields for the list
-                $response = $this->request('GET', 'fields', [
-                    'query' => [
-                        'limit' => 100,
-                    ],
-                ]);
-
-                $fields = $response['fields'] ?? [];
-
                 $listFields = array_merge([
                     new IntegrationField([
                         'handle' => 'email',

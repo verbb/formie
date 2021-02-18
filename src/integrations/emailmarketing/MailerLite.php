@@ -64,11 +64,11 @@ class MailerLite extends EmailMarketing
 
         try {
             $lists = $this->request('GET', 'groups');
+            
+            // While we're at it, fetch the fields for the list
+            $fields = $this->request('GET', 'fields');
 
             foreach ($lists as $list) {
-                // While we're at it, fetch the fields for the list
-                $fields = $this->request('GET', 'fields');
-            
                 $listFields = $this->_getCustomFields($fields);
 
                 $settings['lists'][] = new IntegrationCollection([

@@ -64,13 +64,12 @@ class Autopilot extends EmailMarketing
 
         try {
             $response = $this->request('GET', 'lists');
-
             $lists = $response['lists'] ?? [];
 
-            foreach ($lists as $list) {
-                // While we're at it, fetch the fields for the list
-                $fields = $this->request('GET', 'contacts/custom_fields');
+            // While we're at it, fetch the fields for the list
+            $fields = $this->request('GET', 'contacts/custom_fields');
 
+            foreach ($lists as $list) {
                 $listFields = array_merge([
                     new IntegrationField([
                         'handle' => 'Email',

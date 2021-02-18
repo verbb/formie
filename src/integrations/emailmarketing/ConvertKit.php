@@ -67,11 +67,11 @@ class ConvertKit extends EmailMarketing
             $response = $this->request('GET', 'forms');
             $lists = $response['forms'] ?? [];
 
-            foreach ($lists as $list) {
-                // While we're at it, fetch the fields for the list
-                $response = $this->request('GET', 'custom_fields');
-                $fields = $response['custom_fields'] ?? [];
+            // While we're at it, fetch the fields for the list
+            $response = $this->request('GET', 'custom_fields');
+            $fields = $response['custom_fields'] ?? [];
 
+            foreach ($lists as $list) {
                 $listFields = [
                     new IntegrationField([
                         'handle' => 'Email',
