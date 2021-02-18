@@ -447,7 +447,7 @@ class Submissions extends Component
 
         foreach ($excludes as $exclude) {
             // Check if string contains
-            if (strtolower($exclude) && strstr($fieldValues, strtolower($exclude))) {
+            if (strtolower($exclude) && strstr(strtolower($fieldValues), strtolower($exclude))) {
                 $submission->isSpam = true;
                 $submission->spamReason = Craft::t('formie', 'Contains banned keyword: “{c}”', ['c' => $exclude]);
 
