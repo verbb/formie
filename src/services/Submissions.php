@@ -526,10 +526,13 @@ class Submissions extends Component
     {
         $fieldValues = [];
 
-        foreach ($submission->getSerializedFieldValues() as $fieldValue) {
-            // TODO: handle array values (repeater fields).
-            if (!is_array($fieldValue) && (string)$fieldValue) {
-                $fieldValues[] = (string)$fieldValue;
+        if (($fieldLayout = $submission->getFieldLayout()) !== null) {
+            foreach ($fieldLayout->getFields() as $field) {
+                try {
+                    $fieldValues[] = (string)$submission->getFieldValue($field->handle);
+                } catch (\Throwable $e) {
+                    continue;
+                }
             }
         }
 
