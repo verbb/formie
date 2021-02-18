@@ -456,6 +456,13 @@ class Emails extends Component
                 $this->_tempAttachments[] = $path = $asset->getCopyOfFile();
             }
 
+            // Check for asset size, 0kb files are technically invalid (or at least spammy)
+            if (!$asset->size) {
+                Formie::log('Not attaching “' . ${$asset->filename} . '” due to invalid file size.');
+
+                continue;
+            }
+
             if ($path) {
                 $message->attach($path, ['fileName' => $asset->filename]);
             }
