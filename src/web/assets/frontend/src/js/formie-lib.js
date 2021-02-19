@@ -56,7 +56,7 @@ export class Formie {
 
         // Find all `data-field-config` attributes for the current page and form
         // and build an object of them to initialize when loaded.
-        form.fieldConfigs = this.parseFieldConfig($form);
+        form.fieldConfigs = this.parseFieldConfig($form, $form);
 
         // Is there any additional JS config registered for this form?
         if (registeredJs.length) {
@@ -108,10 +108,11 @@ export class Formie {
         }
     }
 
-    parseFieldConfig($form) {
+    // Note the use of $form and $element to habdle Repeater
+    parseFieldConfig($element, $form) {
         var config = {};
 
-        $form.querySelectorAll('[data-field-config]').forEach(($field) => {
+        $element.querySelectorAll('[data-field-config]').forEach(($field) => {
             var fieldConfig = JSON.parse($field.getAttribute('data-field-config'));
 
             // Some fields supply multiple modules, so normalise for ease-of-processing

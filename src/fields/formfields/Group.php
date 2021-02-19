@@ -120,6 +120,15 @@ class Group extends FormField implements NestedFieldInterface, EagerLoadingField
     /**
      * @inheritDoc
      */
+    public function getConfigJson()
+    {
+        // Group fields themselves should not contain the inner field's JS
+        return null;
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function defineGeneralSchema(): array
     {
         return [
