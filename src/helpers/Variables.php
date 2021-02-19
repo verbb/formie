@@ -350,7 +350,7 @@ class Variables
     {
         $values = [];
 
-        if (!$form || !$submission || !$notification) {
+        if (!$form || !$submission) {
             return $values;
         }
 
@@ -372,11 +372,15 @@ class Variables
     {
         $values = [];
 
-        if (!$submission || !$notification) {
+        if (!$submission) {
             return $values;
         }
 
-        $parsedContent = (string)$field->getEmailHtml($submission, $notification, $submissionValue);
+        $parsedContent = '';
+
+        if ($notification) {
+            $parsedContent = (string)$field->getEmailHtml($submission, $notification, $submissionValue);
+        }
 
         $prefix = 'field.';
 
