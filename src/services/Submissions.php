@@ -19,6 +19,7 @@ use verbb\formie\models\Settings;
 
 use Craft;
 use craft\db\Query;
+use craft\elements\db\ElementQuery;
 use craft\events\DefineUserContentSummaryEvent;
 use craft\events\ModelEvent;
 use craft\helpers\Console;
@@ -532,7 +533,17 @@ class Submissions extends Component
                     $value = $submission->getFieldValue($field->handle);
 
                     if ($value instanceof NestedFieldRowQuery) {
+                        $values = [];
+
+                        foreach ($value->all() as $row) {
+                            $fieldValues[] = $this->_getContentAsString($row);
+                        }
+
                         continue;
+                    }
+
+                    if ($value instanceof ElementQuery) {
+                        $value = $value->one();
                     }
 
                     $fieldValues[] = (string)$value;
