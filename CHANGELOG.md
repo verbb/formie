@@ -1,5 +1,34 @@
 # Changelog
 
+## 1.3.18 - 2021-02-20
+
+### Added
+- Added support for HubSpot form integration.
+- Added opt-in field support to all CRM integrations.
+- Added support for field options defined in HubSpot (for dropdown, select, etc).
+- Added custom field support for Sendinblue integration.
+- Added `Min File Size` setting for File Upload fields.
+- Added support for global variables in Spam Keywords.
+
+### Changed
+- Update some email marketing integrations to fetch custom list fields more efficiently.
+- Prevent email notifications sending 0kb file uploads. This can lead to spam filters marking the email as invalid.
+
+### Fixed
+- Fixed "minutes" to be given a retention length. (thanks @nickdunn).
+- Fixed `endpoint` and `method` properties missing from `SendIntegrationPayloadEvent` for Email Marketing and CRM integrations.
+- Fixed nested fields (Group, Repeater) not having inner field JS initialized properly.
+- Fixed spam checks for some field types.
+- Fixed tag fields throwing an error when set to “dropdown” and editing a submission.
+- Fixed case insensitivity (not working) for spam keywords.
+- Fixed multiple fields with JS config not initialising correctly.
+- Fixed Group or Repeater nested fields not getting unqiue handles when cloning.
+- Fixed Repeater fields not having their inner fields’ JS initialized properly.
+- Fixed some fields (Element, Repeater, Group) not extracting content for spam keyword checks.
+- Fixed submission success messages including submission content not working.
+- Fixed existing fields not appearing for the form builder.
+- Fixed some fields (plain text and other simple fields) not having their labels correctly translated for email notifications.
+
 ## 1.3.17 - 2021-02-13
 
 ### Added
