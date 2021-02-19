@@ -578,6 +578,19 @@ const getters = {
         return flatMap(allFields, 'handle');
     },
 
+    fieldHandlesForField: (state, getters) => (id) => {
+        const field = getters.fields.find(field => {
+            return field.id === id;
+        });
+
+        if (field) {
+            const allFields = flatMap(field.rows, 'fields');
+            return flatMap(allFields, 'handle');
+        }
+
+        return [];
+    },
+
     fieldHandlesExcluding: (state, getters, rootState, rootGetters) => (id) => {
         const allRows = flatMap(state.pages, 'rows');
         let allFields = flatMap(allRows, 'fields');
