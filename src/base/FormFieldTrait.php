@@ -694,7 +694,7 @@ trait FormFieldTrait
                 $hideName = $options['hideName'] ?? false;
 
                 if (!$hideName) {
-                    $content = Html::tag('strong', $this->name) . '<br>' . $content;
+                    $content = Html::tag('strong', Craft::t('site', $this->name)) . '<br>' . $content;
                 }
 
                 $html = Html::tag('p', $content);
