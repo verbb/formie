@@ -78,23 +78,19 @@ export class Formie {
                     // Initialize all matching fields - their config is already rendered in templates
                     $script.onload = () => {
                         if (config.module) {
-                            var combinedConfig = {};
                             var fieldConfigs = form.fieldConfigs[config.module];
 
-                            // Because fields can have multiple settings, just combine them
-                            if (fieldConfigs && fieldConfigs.length) {
+                            // Handle multiple fields on a page, creating a new JS class instance for each
+                            if (fieldConfigs && Array.isArray(fieldConfigs) && fieldConfigs.length) {
                                 fieldConfigs.forEach(fieldConfig => {
-                                    combinedConfig = { ...combinedConfig, ...fieldConfig };
+                                    this.initJsClass(config.module, fieldConfig);
                                 });
                             }
 
-                            // Some fields offer settings from the CP
+                            // Handle captchas that have global settings, instead of per-field
                             if (config.settings) {
-                                combinedConfig = { ...combinedConfig, ...config.settings };
+                                this.initJsClass(config.module, config.settings);
                             }
-
-                            // Initialize the JS class, with our combined settings
-                            this.initFieldClass(config.module, combinedConfig);
                         }
                     };
                 }
@@ -104,7 +100,7 @@ export class Formie {
         }
     }
 
-    initFieldClass(className, params) {
+    initJsClass(className, params) {
         var moduleClass = window[className];
 
         if (moduleClass) {

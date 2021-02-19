@@ -996,13 +996,8 @@ class Form extends Element
 
         // Add any JS per-field
         foreach ($this->getFields() as $field) {
-            if ($js = $field->getFrontEndJsModules()) {
-                // Handle multiple registrations
-                if (isset($js[0])) {
-                    $registeredJs = array_merge($registeredJs, $js);
-                } else {
-                    $registeredJs[] = $js;
-                }
+            if ($fieldJs = $this->_getFrontEndJsModules($field)) {
+                $registeredJs = array_merge($registeredJs, $fieldJs);
             }
         }
 
@@ -1386,5 +1381,26 @@ class Form extends Element
         }
 
         return $editableIds;
+    }
+
+    private function _getFrontEndJsModules($field)
+    {
+        // Rip out any settings for clarity. These are output directly by the individual fields
+        // all we want here is the module src and name to supply the form rendering with what additional
+        // JS classes/modules we actually need - no config!
+        if ($js = $field->getFrontEndJsModules()) {
+            // Normalise for processing. Fields can have multiple modules
+            if (!isset($js[0])) {
+                $js = [$js];
+            }
+
+            foreach ($js as &$config) {
+                ArrayHelper::remove($config, 'settings');
+            }
+
+            return $js;
+        }
+
+        return [];
     }
 }
