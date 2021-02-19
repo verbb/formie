@@ -11,6 +11,7 @@ use verbb\formie\events\SubmissionEvent;
 use verbb\formie\events\SendNotificationEvent;
 use verbb\formie\events\TriggerIntegrationEvent;
 use verbb\formie\fields\formfields;
+use verbb\formie\helpers\Variables;
 use verbb\formie\jobs\SendNotification;
 use verbb\formie\jobs\TriggerIntegration;
 use verbb\formie\models\FakeElement;
@@ -441,6 +442,16 @@ class Submissions extends Component
         }
 
         $excludes = $this->_getArrayFromMultiline($settings->spamKeywords);
+
+        // Handle any Twig used in the field
+        foreach ($excludes as $key => $exclude) {
+            if (strstr($exclude, '{')) {
+                unset($excludes[$key]);
+
+                $parsedString = $this->_getArrayFromMultiline(Variables::getParsedValue($exclude));
+                $excludes = array_merge($excludes, $parsedString);
+            }
+        }
 
         // Build a string based on field content - much easier to find values
         // in a single string than iterate through multiple arrays
