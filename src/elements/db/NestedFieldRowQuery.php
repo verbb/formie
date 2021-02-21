@@ -44,6 +44,8 @@ class NestedFieldRowQuery extends ElementQuery
      */
     public $ownerId;
 
+    private $_blocks = [];
+
 
     // Public Methods
     // =========================================================================
@@ -98,6 +100,39 @@ class NestedFieldRowQuery extends ElementQuery
         $this->siteId = $owner->siteId;
 
         return $this;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function setBlocks($blocks)
+    {
+        $this->_blocks = $blocks;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function all($db = null)
+    {
+        if ($this->_blocks) {
+            // Override the default `.all()` behaviour to return any pre-defined blocks instead of querying the db.
+            return $this->_blocks;
+        }
+
+        return parent::all($db);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function one($db = null)
+    {
+        if ($this->_blocks) {
+            return reset($this->_blocks) ?: null;
+        }
+
+        return parent::one($db);
     }
 
 
