@@ -3,11 +3,11 @@ When rendering a form, you might like to populate the values of a field with som
 
 ```twig
 {# Sets the field with handle `text` to "Some Value" for the form with a handle `contactForm` #}
-{% do craft.formie.populateFormValues('contactForm', { text: "Some Value" }) %}
+{% do craft.formie.populateFormValues('contactForm', { text: 'Some Value' }) %}
 
 {# or use a `form` object #}
 {% set form = craft.formie.forms({ handle: 'contactForm' }).one() %}
-{% do craft.formie.populateFormValues(form, { text: "Some Value" }) %}
+{% do craft.formie.populateFormValues(form, { text: 'Some Value' }) %}
 
 {# Must be done before the `renderForm()` #}
 {{ craft.formie.renderForm('contactForm') }}
@@ -52,6 +52,33 @@ When using a Recipients field, you can hard-code the recipient for the field. De
 ```
 
 For all options, the email address is never exposed in the HTML source of the page, keeping your recipient's emails safe. For Checkboxes, Radio and Dropdown, an ID value is used to reference the real email defined in the field settings. For a Hidden field, which allows for much more arbitrary template-level email definitions, the provided email values are encoded with a string unique to your site.
+
+## Repeater
+To populate a Repeater field, you'll also be creating the "blocks", as well as defining the inner field values. For instance, you might like to create 2 Repeater blocks on the page, with the first having one value, the next another. You'll need to provide the value as an array of objects.
+
+```twig
+{% do craft.formie.populateFormValues(form, {
+    repeaterFieldHandle: [
+        {
+            text: 'Some Value',
+        },
+        {
+            text: 'Another Value',
+        },
+    ],
+}) %}
+```
+
+## Group
+To populate values for fields within a Group field, you'll need to supply both the handle for the Group field, and the values for the inner fields as you normally would.
+
+```twig
+{% do craft.formie.populateFormValues(form, {
+    groupFieldHandle: {
+        text: 'Some Value',
+    },
+}) %}
+```
 
 ## Populating from URL
 You can also make use of populating fields from a URL, using parameters in a query string. For each field, you'll have the option to specify the parameter in the URL query string you want to populate the field with. This provides the flexibility of your URL not having to match the field handles of each field.
