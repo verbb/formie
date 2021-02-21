@@ -179,8 +179,7 @@ class Products extends CommerceProducts implements FormFieldInterface
         }
 
         $query->limit($this->limit);
-
-        $query->orderBy('title ASC');
+        $query->orderBy($this->orderBy);
 
         // Fire a 'modifyElementFieldQuery' event
         $event = new ModifyElementFieldQueryEvent([
@@ -298,9 +297,15 @@ class Products extends CommerceProducts implements FormFieldInterface
             ]),
             SchemaHelper::selectField([
                 'label' => Craft::t('formie', 'Label Source'),
-                'help' => Craft::t('formie', 'Select what to use as the label for each entry.'),
+                'help' => Craft::t('formie', 'Select what to use as the label for each product.'),
                 'name' => 'labelSource',
                 'options' => $labelSourceOptions,
+            ]),
+            SchemaHelper::selectField([
+                'label' => Craft::t('formie', 'Options Order'),
+                'help' => Craft::t('formie', 'Select what order to show products by.'),
+                'name' => 'orderBy',
+                'options' => $this->getOrderByOptions(),
             ]),
         ];
     }

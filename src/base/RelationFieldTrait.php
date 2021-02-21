@@ -24,6 +24,7 @@ trait RelationFieldTrait
 
     public $displayType = 'dropdown';
     public $labelSource = 'title';
+    public $orderBy = 'title ASC';
 
 
     // Public Methods
@@ -363,6 +364,21 @@ trait RelationFieldTrait
             ['value' => 'dateCreated', 'label' => Craft::t('app', 'Date Created')],
             ['value' => 'dateUpdated', 'label' => Craft::t('app', 'Date Updated')],
         ]);
+
+        return $options;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getOrderByOptions()
+    {
+        $options = [];
+
+        foreach ($this->getLabelSourceOptions() as $opt) {
+            $options[] = ['value' => $opt['value'] . ' ASC', 'label' => $opt['label'] . ' Ascending'];
+            $options[] = ['value' => $opt['value'] . ' DESC', 'label' => $opt['label'] . ' Descending'];
+        }
 
         return $options;
     }

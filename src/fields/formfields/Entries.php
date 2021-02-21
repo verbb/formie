@@ -198,8 +198,7 @@ class Entries extends CraftEntries implements FormFieldInterface
         }
 
         $query->limit($this->limit);
-
-        $query->orderBy('title ASC');
+        $query->orderBy($this->orderBy);
 
         // Fire a 'modifyElementFieldQuery' event
         $event = new ModifyElementFieldQueryEvent([
@@ -365,6 +364,12 @@ class Entries extends CraftEntries implements FormFieldInterface
                 'help' => Craft::t('formie', 'Select what to use as the label for each entry.'),
                 'name' => 'labelSource',
                 'options' => $labelSourceOptions,
+            ]),
+            SchemaHelper::selectField([
+                'label' => Craft::t('formie', 'Options Order'),
+                'help' => Craft::t('formie', 'Select what order to show entries by.'),
+                'name' => 'orderBy',
+                'options' => $this->getOrderByOptions(),
             ]),
         ];
     }
