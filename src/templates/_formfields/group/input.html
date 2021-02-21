@@ -3,7 +3,7 @@
 {% set fields = nestedField.getFieldLayout().getFields() %}
 
 {% namespace namespace %}
-    <div class="pane">
+    <div class="fui-group-field pane">
         {% for row in rows %}
             {% set rowId = row.id %}
             {{ hiddenInput("#{name}[sortOrder][]", rowId) }}
