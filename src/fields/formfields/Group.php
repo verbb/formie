@@ -120,6 +120,26 @@ class Group extends FormField implements NestedFieldInterface, EagerLoadingField
     /**
      * @inheritDoc
      */
+    public function populateValue($value)
+    {
+        if (!is_array($value)) {
+            return;
+        }
+
+        if ($fields = $this->getFields()) {
+            foreach ($fields as $field) {
+                $fieldValue = $value[$field->handle] ?? null;
+
+                if ($fieldValue) {
+                    $field->populateValue($fieldValue);
+                }
+            }
+        }
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function getConfigJson()
     {
         // Group fields themselves should not contain the inner field's JS
