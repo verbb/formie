@@ -124,6 +124,11 @@ class Agile extends Crm
                     'name' => Craft::t('formie', 'Star Value'),
                 ]),
                 new IntegrationField([
+                    'handle' => 'tags',
+                    'name' => Craft::t('formie', 'Tags'),
+                    'type' => IntegrationField::TYPE_ARRAY,
+                ]),
+                new IntegrationField([
                     'handle' => 'first_name',
                     'name' => Craft::t('formie', 'First Name'),
                     'required' => true,
