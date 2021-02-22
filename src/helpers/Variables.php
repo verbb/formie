@@ -407,6 +407,8 @@ class Variables
                     }
                 }
             }
+        } else if ($field instanceof BaseRelationField) {
+            $values["{$prefix}{$field->handle}"] = $parsedContent;
         } else {
             // Try to convert as a simple string value, if not, fall back on email template
             try {
