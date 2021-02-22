@@ -18,6 +18,7 @@ use verbb\formie\services\Statuses;
 use Craft;
 use craft\base\Element;
 use craft\db\Query;
+use craft\db\Table;
 use craft\elements\Entry;
 use craft\elements\actions\Delete;
 use craft\elements\actions\Restore;
@@ -1284,6 +1285,7 @@ class Form extends Element
             'title' => ['label' => Craft::t('app', 'Title')],
             'handle' => ['label' => Craft::t('app', 'Handle')],
             'template' => ['label' => Craft::t('app', 'Template')],
+            'usageCount' => ['label' => Craft::t('formie', 'Usage Count')],
             'dateCreated' => ['label' =>Craft::t('app', 'Date Created')],
             'dateUpdated' => ['label' => Craft::t('app', 'Date Updated')],
         ];
@@ -1328,6 +1330,19 @@ class Form extends Element
                 'attribute' => 'id',
             ],
         ];
+    }
+
+    protected function tableAttributeHtml(string $attribute): string
+    {
+        switch ($attribute) {
+            case 'usageCount':
+                return (new Query())
+                    ->from([Table::RELATIONS])
+                    ->where(['targetId' => $this->id])
+                    ->count();
+        }
+
+        return parent::tableAttributeHtml($attribute);
     }
 
 
