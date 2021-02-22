@@ -23,7 +23,7 @@ Clicking "Save" in the notification modal won't immediately save the notificatio
 :::
 
 ## Email Content
-The email content field is a rich-text field providing basic formatting functionality. Due to the complexities of email rendering, this is kept simple on purpose. If you wish to build custom templates for your emails, read the [Email Templates](docs:feature-tour/email-templates) docs.
+The email content field is a rich-text field providing basic formatting functionality. Due to the complexities of email rendering, this is kept simple on purpose. If you wish to build custom templates for your emails, read the [Email Templates](docs:template-guides/email-templates) docs.
 
 One feature of this field is the variable select field. This allows you to pull in dynamic content from Craft, or from the submission this email notification is made on. Commonly, you'll want to use the "All Fields" option to generate a full list of field's and their content, producing similar content to:
 
