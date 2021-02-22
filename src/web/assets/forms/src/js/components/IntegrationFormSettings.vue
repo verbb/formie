@@ -97,7 +97,7 @@ export default {
             return fields;
         },
                       
-        refresh() {
+        refresh(payloadParams = {}) {
             this.success = false;
             this.error = false;
             this.errorMessage = '';
@@ -106,6 +106,7 @@ export default {
             const payload = {
                 formId: this.form.id,
                 integration: this.handle,
+                ...payloadParams,
             };
 
             this.$axios.post(Craft.getActionUrl('formie/integrations/form-settings'), payload).then((response) => {

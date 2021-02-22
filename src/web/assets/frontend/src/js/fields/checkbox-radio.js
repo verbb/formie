@@ -9,6 +9,7 @@ export class FormieCheckboxRadio {
         if (this.$field) {
             this.initInputs();
             this.initRequiredCheckboxes();
+            this.initToggleCheckboxes();
         }
     }
 
@@ -50,6 +51,24 @@ export class FormieCheckboxRadio {
             if ($checkboxInput.checked) {
                 $checkboxInput.dispatchEvent(new Event('change', { bubbles: true }));
             }
+        });
+    }
+
+    initToggleCheckboxes() {
+        const $checkboxInputs = this.$field.querySelectorAll('[type="checkbox"]');
+        const $checkboxToggles = this.$field.querySelectorAll('[type="checkbox"][data-checkbox-toggle]');
+
+        $checkboxToggles.forEach(($checkboxToggle) => {
+            this.form.addEventListener($checkboxToggle, eventKey('change'), (e) => {
+                var isChecked = e.target.checked;
+
+                // Toggle all checkboxes in this field
+                $checkboxInputs.forEach(($checkboxInput) => {
+                    if ($checkboxInput !== e.target) {
+                        $checkboxInput.checked = isChecked;
+                    }
+                });
+            }, false);
         });
     }
 

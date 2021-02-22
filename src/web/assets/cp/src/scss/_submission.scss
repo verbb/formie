@@ -48,3 +48,12 @@
 .fui-repeater-row .fui-fieldset {
     position: static;
 }
+
+.fui-repeater-row .field {
+    flex: 1;
+    margin: 0 10px !important;
+}
+
+.fui-group-field {
+    padding: 15px;
+}

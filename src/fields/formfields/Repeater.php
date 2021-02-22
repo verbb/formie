@@ -181,6 +181,36 @@ class Repeater extends FormField implements NestedFieldInterface, EagerLoadingFi
     }
 
     /**
+     * @inheritDoc
+     */
+    public function populateValue($value)
+    {
+        if (!is_array($value) || !isset($value[0])) {
+            return;
+        }
+
+        $blocks = [];
+
+        foreach ($value as $i => $fieldContent) {
+            try {
+                $row = new NestedFieldRow();
+                $row->id = 'new' . ($i + 1);
+                $row->fieldId = $this->id;
+                $row->setFieldValues($fieldContent);
+
+                $blocks[] = $row;
+            } catch (\Throwable $e) {
+                continue;
+            }
+        }
+
+        if ($blocks) {
+            $this->defaultValue = new NestedFieldRowQuery(NestedFieldRow::class);
+            $this->defaultValue->setBlocks($blocks);
+        }
+    }
+
+    /**
      * @inheritdoc
      */
     public function getFrontEndJsModules()

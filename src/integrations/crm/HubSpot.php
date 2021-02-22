@@ -25,9 +25,12 @@ class HubSpot extends Crm
     public $mapToContact = false;
     public $mapToDeal = false;
     public $mapToCompany = false;
+    public $mapToForm = false;
     public $contactFieldMapping;
     public $dealFieldMapping;
     public $companyFieldMapping;
+    public $formFieldMapping;
+    public $formId;
 
 
     // Public Methods
@@ -60,7 +63,6 @@ class HubSpot extends Crm
 
         $contact = $this->getFormSettingValue('contact');
         $deal = $this->getFormSettingValue('deal');
-        $company = $this->getFormSettingValue('company');
 
         // Validate the following when saving form settings
         $rules[] = [['contactFieldMapping'], 'validateFieldMapping', 'params' => $contact, 'when' => function($model) {
@@ -79,95 +81,120 @@ class HubSpot extends Crm
      */
     public function fetchFormSettings()
     {
-        $settings = [];
         $dealPipelinesOptions = [];
         $dealStageOptions = [];
 
         try {
-            $response = $this->request('GET', 'crm/v3/pipelines/deals');
-            $pipelines = $response['results'] ?? [];
+            // Just fetch the forms and their fields
+            if (Craft::$app->getRequest()->getParam('refreshForms')) {
+                // Reset the forms
+                $settings['forms'] = [];
 
-            foreach ($pipelines as $pipeline) {
-                $dealPipelinesOptions[] = [
-                    'label' => $pipeline['label'],
-                    'value' => $pipeline['id'],
-                ];
+                $forms = $this->request('GET', 'forms/v2/forms');
 
-                $stages = $pipeline['stages'] ?? [];
-
-                foreach ($stages as $stage) {
-                    $dealStageOptions[] = [
-                        'label' => $pipeline['label'] . ': ' . $stage['label'],
-                        'value' => $stage['id'],
-                    ];
+                foreach ($forms as $form) {
+                    $settings['forms'][] = new IntegrationCollection([
+                        'id' => $form['portalId'] . '__' . $form['guid'],
+                        'name' => $form['name'],
+                        'fields' => $this->_getFormFields($form),
+                    ]);
                 }
+            } else {
+                $response = $this->request('GET', 'crm/v3/pipelines/deals');
+                $pipelines = $response['results'] ?? [];
+
+                foreach ($pipelines as $pipeline) {
+                    $dealPipelinesOptions[] = [
+                        'label' => $pipeline['label'],
+                        'value' => $pipeline['id'],
+                    ];
+
+                    $stages = $pipeline['stages'] ?? [];
+
+                    foreach ($stages as $stage) {
+                        $dealStageOptions[] = [
+                            'label' => $pipeline['label'] . ': ' . $stage['label'],
+                            'value' => $stage['id'],
+                        ];
+                    }
+                }
+
+                // Get Contacts fields
+                $response = $this->request('GET', 'crm/v3/properties/contacts');
+                $fields = $response['results'] ?? [];
+
+                $contactFields = array_merge([
+                    new IntegrationField([
+                        'handle' => 'email',
+                        'name' => Craft::t('formie', 'Email'),
+                        'required' => true,
+                    ]),
+                ], $this->_getCustomFields($fields, ['email']));
+
+                // Get Companies fields
+                $response = $this->request('GET', 'crm/v3/properties/companies');
+                $fields = $response['results'] ?? [];
+
+                $companyFields = array_merge([
+                    new IntegrationField([
+                        'handle' => 'name',
+                        'name' => Craft::t('formie', 'Name'),
+                        'required' => true,
+                    ]),
+                ], $this->_getCustomFields($fields, ['name']));
+
+                // Get Deals fields
+                $response = $this->request('GET', 'crm/v3/properties/deals');
+                $fields = $response['results'] ?? [];
+
+                $dealFields = array_merge([
+                    new IntegrationField([
+                        'handle' => 'dealname',
+                        'name' => Craft::t('formie', 'Deal Name'),
+                        'required' => true,
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'pipeline',
+                        'name' => Craft::t('formie', 'Deal Pipeline'),
+                        'required' => true,
+                        'options' => [
+                            'label' => Craft::t('formie', 'Pipelines'),
+                            'options' => $dealPipelinesOptions,
+                        ],
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'dealstage',
+                        'name' => Craft::t('formie', 'Deal Stage'),
+                        'required' => true,
+                        'options' => [
+                            'label' => Craft::t('formie', 'Stages'),
+                            'options' => $dealStageOptions,
+                        ],
+                    ]),
+                ], $this->_getCustomFields($fields, ['dealname', 'pipeline', 'dealstage']));
+
+                $settings = [
+                    'contact' => $contactFields,
+                    'deal' => $dealFields,
+                    'company' => $companyFields,
+                ];
             }
-
-            // Get Contacts fields
-            $response = $this->request('GET', 'crm/v3/properties/contacts');
-            $fields = $response['results'] ?? [];
-
-            $contactFields = array_merge([
-                new IntegrationField([
-                    'handle' => 'email',
-                    'name' => Craft::t('formie', 'Email'),
-                    'required' => true,
-                ]),
-            ], $this->_getCustomFields($fields, ['email']));
-
-            // Get Companies fields
-            $response = $this->request('GET', 'crm/v3/properties/companies');
-            $fields = $response['results'] ?? [];
-
-            $companyFields = array_merge([
-                new IntegrationField([
-                    'handle' => 'name',
-                    'name' => Craft::t('formie', 'Name'),
-                    'required' => true,
-                ]),
-            ], $this->_getCustomFields($fields, ['name']));
-
-            // Get Deals fields
-            $response = $this->request('GET', 'crm/v3/properties/deals');
-            $fields = $response['results'] ?? [];
-
-            $dealFields = array_merge([
-                new IntegrationField([
-                    'handle' => 'dealname',
-                    'name' => Craft::t('formie', 'Deal Name'),
-                    'required' => true,
-                ]),
-                new IntegrationField([
-                    'handle' => 'pipeline',
-                    'name' => Craft::t('formie', 'Deal Pipeline'),
-                    'required' => true,
-                    'options' => [
-                        'label' => Craft::t('formie', 'Pipelines'),
-                        'options' => $dealPipelinesOptions,
-                    ],
-                ]),
-                new IntegrationField([
-                    'handle' => 'dealstage',
-                    'name' => Craft::t('formie', 'Deal Stage'),
-                    'required' => true,
-                    'options' => [
-                        'label' => Craft::t('formie', 'Stages'),
-                        'options' => $dealStageOptions,
-                    ],
-                ]),
-            ], $this->_getCustomFields($fields, ['dealname', 'pipeline', 'dealstage']));
-
-            $settings = [
-                'contact' => $contactFields,
-                'deal' => $dealFields,
-                'company' => $companyFields,
-            ];
         } catch (\Throwable $e) {
             Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
             ]), true);
+        }
+
+        // Because we have split settings for partial settings fetches, enssure we populate settings from cache
+        // So we need to unserialize the cached form settings, and combine with any new settings and return
+        $cachedSettings = $this->cache['settings'] ?? [];
+
+        if ($cachedSettings) {
+            $formSettings = new IntegrationFormSettings();
+            $formSettings->unserialize($cachedSettings);
+            $settings = array_merge($formSettings->collections, $settings);
         }
 
         return new IntegrationFormSettings($settings);
@@ -182,6 +209,7 @@ class HubSpot extends Crm
             $contactValues = $this->getFieldMappingValues($submission, $this->contactFieldMapping, 'contact');
             $dealValues = $this->getFieldMappingValues($submission, $this->dealFieldMapping, 'deal');
             $companyValues = $this->getFieldMappingValues($submission, $this->companyFieldMapping, 'company');
+            $formValues = $this->getFieldMappingValues($submission, $this->formFieldMapping, 'forms');
 
             $contactId = null;
 
@@ -250,6 +278,56 @@ class HubSpot extends Crm
                     return false;
                 }
             }
+
+            if ($this->mapToForm) {
+                $request = Craft::$app->getRequest();
+
+                // Prepare the payload for HubSpot, required for v1 API
+                $formPayload = [];
+
+                foreach ($formValues as $key => $value) {
+                    $formPayload['fields'][] = [
+                        'name' => $key,
+                        'value' => $value,
+                    ];
+                }
+
+                // Setup Hubspot's context
+                $formPayload['context'] = [
+                    'ipAddress' => $request->remoteIP ?? '',
+                    'pageUri' => $request->referrer ?? '',
+                ];
+
+                $hutk = $formValues['trackingID'] ?? $_COOKIE['hubspotutk'] ?? '';
+
+                if ($hutk) {
+                    $formPayload['context']['hutk'] = $hutk;
+                }
+
+                list($portalId, $formGuid) = explode('__', $this->formId);
+
+                // Bloody HubSpot have old APIs, so they require a separate endpoint
+                $endpoint = "submissions/v3/integration/submit/${portalId}/${formGuid}";
+                $payload = $formPayload;
+                $method = 'POST';
+                $uri = $endpoint;
+                $options = [
+                    'json' => $payload,
+                ];
+
+                // Allow events to cancel sending
+                if (!$this->beforeSendPayload($submission, $endpoint, $payload, $method)) {
+                    return true;
+                }
+
+                $response = $this->getFormsClient()->request($method, ltrim($uri, '/'), $options);
+                $response = Json::decode((string)$response->getBody());
+
+                // Allow events to say the response is invalid
+                if (!$this->afterSendPayload($submission, $endpoint, $payload, $method, $response)) {
+                    return true;
+                }
+            }
         } catch (\Throwable $e) {
             Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [
                 'message' => $e->getMessage(),
@@ -302,6 +380,16 @@ class HubSpot extends Crm
         ]);
     }
 
+    /**
+     * @inheritDoc
+     */
+    protected function getFormsClient()
+    {
+        return Craft::createGuzzleClient([
+            'base_uri' => 'https://api.hsforms.com/',
+        ]);
+    }
+
 
     // Private Methods
     // =========================================================================
@@ -337,7 +425,11 @@ class HubSpot extends Crm
         ];
 
         foreach ($fields as $key => $field) {
-            if ($field['modificationMetadata']['readOnlyValue'] || $field['hidden'] || $field['calculated']) {
+            $readOnlyValue = $field['modificationMetadata']['readOnlyValue'] ?? false;
+            $hidden = $field['hidden'] ?? false;
+            $calculated = $field['calculated'] ?? false;
+
+            if ($readOnlyValue || $hidden || $calculated) {
                 continue;
             }
 
@@ -351,13 +443,57 @@ class HubSpot extends Crm
                  continue;
             }
 
+            // Add in any options for some fields
+            $options = [];
+            $fieldOptions = $field['options'] ?? [];
+
+            foreach ($fieldOptions as $key => $fieldOption) {
+                $options[] = [
+                    'label' => $fieldOption['label'],
+                    'value' => $fieldOption['value'],
+                ];
+            }
+
+            if ($options) {
+                $options = [
+                    'label' => $field['label'],
+                    'options' => $options,
+                ];
+            }
+
             $customFields[] = new IntegrationField([
                 'handle' => $field['name'],
                 'name' => $field['label'],
                 'type' => $this->_convertFieldType($field['type']),
+                'options' => $options,
             ]);
         }
 
         return $customFields;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    private function _getFormFields($form)
+    {
+        $fields = [];
+
+        $formFieldGroups = $form['formFieldGroups'] ?? [];
+
+        foreach ($formFieldGroups as $formFieldGroup) {
+            $formFields = $formFieldGroup['fields'] ?? [];
+
+            foreach ($formFields as $formField) {
+                $fields[] = $formField;
+            }
+        }
+
+        return array_merge([
+            new IntegrationField([
+                'handle' => 'trackingID',
+                'name' => Craft::t('formie', 'Tracking ID'),
+            ]),
+        ], $this->_getCustomFields($fields));
     }
 }

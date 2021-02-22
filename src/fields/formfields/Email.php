@@ -7,6 +7,7 @@ use verbb\formie\helpers\SchemaHelper;
 use Craft;
 use craft\base\ElementInterface;
 use craft\base\PreviewableFieldInterface;
+use craft\helpers\ArrayHelper;
 
 use yii\validators\EmailValidator;
 
@@ -32,6 +33,13 @@ class Email extends FormField implements PreviewableFieldInterface
     }
 
 
+    // Properties
+    // =========================================================================
+
+    public $validateDomain = false;
+    public $blockedDomains = [];
+
+
     // Public Methods
     // =========================================================================
 
@@ -49,9 +57,43 @@ class Email extends FormField implements PreviewableFieldInterface
     public function getElementValidationRules(): array
     {
         $rules = parent::getElementValidationRules();
-        $rules[] = [$this->handle, EmailValidator::class, 'skipOnEmpty' => true];
+
+        $rules[] = [
+            $this->handle,
+            EmailValidator::class,
+            'skipOnEmpty' => true,
+            'checkDNS' => $this->validateDomain,
+        ];
+
+        $rules[] = 'validateDomain';
 
         return $rules;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function validateDomain(ElementInterface $element)
+    {
+        if (!$this->blockedDomains || !is_array($this->blockedDomains)) {
+            return;
+        }
+
+        $blockedDomains = ArrayHelper::getColumn($this->blockedDomains, 'value');
+
+        $value = $element->getFieldValue($this->handle);
+
+        $domain = explode('@', $value)[1] ?? null;
+
+        if ($domain) {
+            $domain = trim($domain);
+
+            if (in_array($domain, $blockedDomains)) {
+                $element->addError($this->handle, Craft::t('formie', '“{domain}” is not allowed.', [
+                    'domain' => $domain,
+                ]));
+            }
+        }
     }
 
     /**
@@ -116,6 +158,26 @@ class Email extends FormField implements PreviewableFieldInterface
                 ]),
             ]),
             SchemaHelper::prePopulate(),
+            SchemaHelper::lightswitchField([
+                'label' => Craft::t('formie', 'Validate Domain (DNS)'),
+                'help' => Craft::t('formie', 'Whether to validate the domain name provided for the email via DNS record lookup. This can help ensure users enter valid email addresses.'),
+                'name' => 'validateDomain',
+            ]),
+            SchemaHelper::tableField([
+                'label' => Craft::t('formie', 'Blocked Domains'),
+                'help' => Craft::t('formie', 'Define a list of domain names to block. Users entering email addresses containing these domains will be blocked from using them.'),
+                'name' => 'blockedDomains',
+                'newRowDefaults' => [
+                    'domain' => '',
+                ],
+                'columns' => [
+                    [
+                        'type' => 'value',
+                        'label' => Craft::t('formie', 'Domain'),
+                        'class' => 'singleline-cell textual',
+                    ],
+                ],
+            ]),
         ];
     }
 

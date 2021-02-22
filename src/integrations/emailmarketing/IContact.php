@@ -68,14 +68,13 @@ class IContact extends EmailMarketing
 
         try {
             $response = $this->request('GET', 'lists');
-
             $lists = $response['lists'] ?? [];
 
-            foreach ($lists as $list) {
-                // While we're at it, fetch the fields for the list
-                $response = $this->request('GET', 'customfields');
-                $fields = $response['customfields'] ?? [];
+            // While we're at it, fetch the fields for the list
+            $response = $this->request('GET', 'customfields');
+            $fields = $response['customfields'] ?? [];
 
+            foreach ($lists as $list) {
                 $listFields = array_merge([
                     new IntegrationField([
                         'handle' => 'email',

@@ -7,6 +7,7 @@
                 :key="row.id"
                 :row-index="index"
                 :field-id="id"
+                :parent-field-id="field.id"
                 v-bind="row"
             />
 

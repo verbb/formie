@@ -72,9 +72,7 @@ class Javascript extends Captcha
 
         // Set a hidden field with no value and use javascript to set it.
         $output = '<input type="hidden" id="' . $uniqueId . '" name="' . $sessionId . '" />';
-        $js = '(function(){ document.getElementById("' . $uniqueId . '").value = "' . $value . '"; })();';
-
-        Craft::$app->getView()->registerJs($js, View::POS_END);
+        $output .= '<script>(function(){ document.getElementById("' . $uniqueId . '").value = "' . $value . '"; })();</script>';
 
         // Set the init time, if we need it
         if ($this->minTime) {

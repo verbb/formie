@@ -9,5 +9,5 @@ When creating a new email template, be sure to give it a name, handle and set th
 You'll notice there's a "Copy Templates" field. You can use this to copy the default template into the provided folder to get off to an even quicker start to customise the template.
 :::
 
-For more information about the actual templating for email templates, head to our [Email Templates](docs:feature-tour/email-templates) templating guide.
+For more information about the actual templating for email templates, head to our [Email Templates](docs:template-guides/email-templates) templating guide.
 

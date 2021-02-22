@@ -62,11 +62,11 @@ class GetResponse extends EmailMarketing
     {
         $settings = [];
             $lists = $this->request('GET', 'campaigns');
+            
+            // While we're at it, fetch the fields for the list
+            $fields = $this->request('GET', 'custom-fields');
 
             foreach ($lists as $list) {
-                // While we're at it, fetch the fields for the list
-                $fields = $this->request('GET', 'custom-fields');
-
                 $listFields = array_merge([
                     new IntegrationField([
                         'handle' => 'email',

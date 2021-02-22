@@ -11,6 +11,7 @@ use verbb\formie\events\SubmissionEvent;
 use verbb\formie\events\SendNotificationEvent;
 use verbb\formie\events\TriggerIntegrationEvent;
 use verbb\formie\fields\formfields;
+use verbb\formie\helpers\Variables;
 use verbb\formie\jobs\SendNotification;
 use verbb\formie\jobs\TriggerIntegration;
 use verbb\formie\models\FakeElement;
@@ -19,6 +20,7 @@ use verbb\formie\models\Settings;
 
 use Craft;
 use craft\db\Query;
+use craft\elements\db\ElementQuery;
 use craft\events\DefineUserContentSummaryEvent;
 use craft\events\ModelEvent;
 use craft\helpers\Console;
@@ -441,13 +443,23 @@ class Submissions extends Component
 
         $excludes = $this->_getArrayFromMultiline($settings->spamKeywords);
 
+        // Handle any Twig used in the field
+        foreach ($excludes as $key => $exclude) {
+            if (strstr($exclude, '{')) {
+                unset($excludes[$key]);
+
+                $parsedString = $this->_getArrayFromMultiline(Variables::getParsedValue($exclude));
+                $excludes = array_merge($excludes, $parsedString);
+            }
+        }
+
         // Build a string based on field content - much easier to find values
         // in a single string than iterate through multiple arrays
         $fieldValues = $this->_getContentAsString($submission);
 
         foreach ($excludes as $exclude) {
             // Check if string contains
-            if (strtolower($exclude) && strstr($fieldValues, strtolower($exclude))) {
+            if (strtolower($exclude) && strstr(strtolower($fieldValues), strtolower($exclude))) {
                 $submission->isSpam = true;
                 $submission->spamReason = Craft::t('formie', 'Contains banned keyword: “{c}”', ['c' => $exclude]);
 
@@ -526,10 +538,29 @@ class Submissions extends Component
     {
         $fieldValues = [];
 
-        foreach ($submission->getSerializedFieldValues() as $fieldValue) {
-            // TODO: handle array values (repeater fields).
-            if (!is_array($fieldValue) && (string)$fieldValue) {
-                $fieldValues[] = (string)$fieldValue;
+        if (($fieldLayout = $submission->getFieldLayout()) !== null) {
+            foreach ($fieldLayout->getFields() as $field) {
+                try {
+                    $value = $submission->getFieldValue($field->handle);
+
+                    if ($value instanceof NestedFieldRowQuery) {
+                        $values = [];
+
+                        foreach ($value->all() as $row) {
+                            $fieldValues[] = $this->_getContentAsString($row);
+                        }
+
+                        continue;
+                    }
+
+                    if ($value instanceof ElementQuery) {
+                        $value = $value->one();
+                    }
+
+                    $fieldValues[] = (string)$value;
+                } catch (\Throwable $e) {
+                    continue;
+                }
             }
         }
 

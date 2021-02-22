@@ -59,6 +59,7 @@ class FileUpload extends CraftAssets implements FormFieldInterface
      */
     public $searchable = true;
     public $sizeLimit;
+    public $sizeMinLimit;
     public $limitFiles;
     public $restrictFiles;
     public $allowedKinds;
@@ -338,8 +339,18 @@ class FileUpload extends CraftAssets implements FormFieldInterface
                 'validation' => 'optional|number|min:0',
             ]),
             SchemaHelper::textField([
-                'label' => Craft::t('formie', 'Limit File Size'),
-                'help' => Craft::t('formie', 'Limit the size of the files a user can upload.'),
+                'label' => Craft::t('formie', 'Min File Size'),
+                'help' => Craft::t('formie', 'Set the minimum size of the files a user can upload.'),
+                'name' => 'sizeMinLimit',
+                'size' => '3',
+                'class' => 'text',
+                'type' => 'textWithSuffix',
+                'suffix' => Craft::t('formie', 'MB'),
+                'validation' => 'optional|number|min:0',
+            ]),
+            SchemaHelper::textField([
+                'label' => Craft::t('formie', 'Max File Size'),
+                'help' => Craft::t('formie', 'Set the maxiumum size of the files a user can upload.'),
                 'name' => 'sizeLimit',
                 'size' => '3',
                 'class' => 'text',

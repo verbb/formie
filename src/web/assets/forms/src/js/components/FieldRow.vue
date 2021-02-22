@@ -26,6 +26,7 @@
                 :field-id="fieldId"
                 :field="field"
                 v-bind="field"
+                :parent-field-id="parentFieldId"
             />
         </div>
 
@@ -85,6 +86,11 @@ export default {
         fields: {
             type: Array,
             default: () => [],
+        },
+
+        parentFieldId: {
+            type: [String, Number],
+            default: '',
         },
     },
 

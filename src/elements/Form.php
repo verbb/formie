@@ -18,6 +18,7 @@ use verbb\formie\services\Statuses;
 use Craft;
 use craft\base\Element;
 use craft\db\Query;
+use craft\db\Table;
 use craft\elements\Entry;
 use craft\elements\actions\Delete;
 use craft\elements\actions\Restore;
@@ -996,13 +997,8 @@ class Form extends Element
 
         // Add any JS per-field
         foreach ($this->getFields() as $field) {
-            $js = $field->getFrontEndJsModules();
-
-            // Handle multiple registrations
-            if (isset($js[0])) {
-                $registeredJs = array_merge($registeredJs, $js);
-            } else {
-                $registeredJs[] = $js;
+            if ($fieldJs = $this->_getFrontEndJsModules($field)) {
+                $registeredJs = array_merge($registeredJs, $fieldJs);
             }
         }
 
@@ -1011,12 +1007,12 @@ class Form extends Element
         $captchas = Formie::$plugin->getIntegrations()->getAllEnabledCaptchasForForm($this, null, true);
 
         foreach ($captchas as $captcha) {
-            $js = $captcha->getFrontEndJsVariables($this);
-
-            if (isset($js[0])) {
-                $registeredJs = array_merge($registeredJs, $js);
-            } else {
-                $registeredJs[] = $js;
+            if ($js = $captcha->getFrontEndJsVariables($this)) {
+                if (isset($js[0])) {
+                    $registeredJs = array_merge($registeredJs, $js);
+                } else {
+                    $registeredJs[] = $js;
+                }
             }
         }
 
@@ -1289,6 +1285,7 @@ class Form extends Element
             'title' => ['label' => Craft::t('app', 'Title')],
             'handle' => ['label' => Craft::t('app', 'Handle')],
             'template' => ['label' => Craft::t('app', 'Template')],
+            'usageCount' => ['label' => Craft::t('formie', 'Usage Count')],
             'dateCreated' => ['label' =>Craft::t('app', 'Date Created')],
             'dateUpdated' => ['label' => Craft::t('app', 'Date Updated')],
         ];
@@ -1333,6 +1330,19 @@ class Form extends Element
                 'attribute' => 'id',
             ],
         ];
+    }
+
+    protected function tableAttributeHtml(string $attribute): string
+    {
+        switch ($attribute) {
+            case 'usageCount':
+                return (new Query())
+                    ->from([Table::RELATIONS])
+                    ->where(['targetId' => $this->id])
+                    ->count();
+        }
+
+        return parent::tableAttributeHtml($attribute);
     }
 
 
@@ -1386,5 +1396,26 @@ class Form extends Element
         }
 
         return $editableIds;
+    }
+
+    private function _getFrontEndJsModules($field)
+    {
+        // Rip out any settings for clarity. These are output directly by the individual fields
+        // all we want here is the module src and name to supply the form rendering with what additional
+        // JS classes/modules we actually need - no config!
+        if ($js = $field->getFrontEndJsModules()) {
+            // Normalise for processing. Fields can have multiple modules
+            if (!isset($js[0])) {
+                $js = [$js];
+            }
+
+            foreach ($js as &$config) {
+                ArrayHelper::remove($config, 'settings');
+            }
+
+            return $js;
+        }
+
+        return [];
     }
 }

@@ -1,3 +1,26 @@
+{% macro toggleCheckbox(options, field) %}
+    {% set optionId = options.id ~ '-toggle' %}
+
+    <div class="fui-checkbox">
+        {% set attributes = {
+            id: optionId,
+            class: [
+                'fui-input',
+                'fui-checkbox-input',
+            ],
+            type: 'checkbox',
+            data: {
+                'checkbox-toggle': true,
+            },
+        } | merge(field.getInputAttributes()) %}
+
+        <input {{ attr(attributes) }} />
+        <label for="{{ optionId }}" class="fui-checkbox-label">{{ field.toggleCheckboxLabel | t }}</label>
+    </div>
+{% endmacro %}
+
+{% from _self import toggleCheckbox %}
+
 <fieldset class="fui-fieldset fui-layout-{{ field.settings.layout ?? 'vertical' }}" id="{{ options.id }}">
     {{ formieInclude('_includes/legend', { position: 'above' }) }}
 
@@ -8,6 +31,10 @@
     <input type="hidden" aria-hidden="true" aria-checked="false" name="{{ field.handle }}" value="">
 
     <div class="fui-layout-wrap">
+        {% if field.toggleCheckbox == 'top' and field.toggleCheckboxLabel %}
+            {{ toggleCheckbox(options, field) }}
+        {% endif %}
+
         {% for option in fieldOptions ?? field.getFieldOptions() %}
             {% set optionId = options.id ~ '-' ~ option.value | kebab %}
             {% set selected = value ? value.contains(option.value) : (option.isDefault ?? false) %}
@@ -37,6 +64,10 @@
                 <label for="{{ optionId }}" class="fui-checkbox-label">{{ option.label | t }}</label>
             </div>
         {% endfor %}
+
+        {% if field.toggleCheckbox == 'bottom' and field.toggleCheckboxLabel %}
+            {{ toggleCheckbox(options, field) }}
+        {% endif %}
     </div>
 
     {# For this field, they're the same #}

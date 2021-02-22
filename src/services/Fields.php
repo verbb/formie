@@ -267,7 +267,7 @@ class Fields extends Component
      */
     public function getExistingFields($excludeForm = null): array
     {
-        if ($this->_existingFields !== null) {
+        if ($this->_existingFields) {
             return $this->_existingFields;
         }
 

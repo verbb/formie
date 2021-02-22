@@ -120,11 +120,11 @@ class ConstantContact extends EmailMarketing
             $response = $this->request('GET', 'contact_lists');
             $lists = $response['lists'] ?? [];
 
-            foreach ($lists as $list) {
-                // While we're at it, fetch the fields for the list
-                $response = $this->request('GET', 'contact_custom_fields');
-                $fields = $response['custom_fields'] ?? [];
+            // While we're at it, fetch the fields for the list
+            $response = $this->request('GET', 'contact_custom_fields');
+            $fields = $response['custom_fields'] ?? [];
 
+            foreach ($lists as $list) {
                 $listFields = array_merge([
                     new IntegrationField([
                         'handle' => 'email',
