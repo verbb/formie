@@ -31,8 +31,6 @@ Your templates have access to the following variables:
 
 Variable | Description
 --- | ---
-'notification', 'submission', 'form'
-
 `notification` | A [ Notification](docs:developers/notification) object, for current email notification.
 `submission` | A [Submission](docs:developers/submission) object, for what the email is notifying about.
 `form` | A [Form](docs:developers/form) object, for what the email is notifying about.
