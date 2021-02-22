@@ -32,6 +32,12 @@ class Email extends FormField implements PreviewableFieldInterface
     }
 
 
+    // Properties
+    // =========================================================================
+
+    public $validateDomain = false;
+
+
     // Public Methods
     // =========================================================================
 
@@ -49,7 +55,12 @@ class Email extends FormField implements PreviewableFieldInterface
     public function getElementValidationRules(): array
     {
         $rules = parent::getElementValidationRules();
-        $rules[] = [$this->handle, EmailValidator::class, 'skipOnEmpty' => true];
+        $rules[] = [
+            $this->handle,
+            EmailValidator::class,
+            'skipOnEmpty' => true,
+            'checkDNS' => $this->validateDomain,
+        ];
 
         return $rules;
     }
@@ -114,6 +125,11 @@ class Email extends FormField implements PreviewableFieldInterface
                     'help' => Craft::t('formie', 'When validating the form, show this message if an error occurs. Leave empty to retain the default message.'),
                     'name' => 'errorMessage',
                 ]),
+            ]),
+            SchemaHelper::lightswitchField([
+                'label' => Craft::t('formie', 'Validate Domain (DNS)'),
+                'help' => Craft::t('formie', 'Whether to validate the domain name provided for the email via DNS record lookup. This can help ensure users enter valid email addresses.'),
+                'name' => 'validateDomain',
             ]),
             SchemaHelper::prePopulate(),
         ];
