@@ -289,15 +289,20 @@ class HubSpot extends Crm
                 }
 
                 // Setup Hubspot's context
-                $formPayload['context'] = [
-                    'ipAddress' => $request->remoteIP ?? '',
-                    'pageUri' => $request->referrer ?? '',
-                ];
-
                 $hutk = $formValues['trackingID'] ?? $_COOKIE['hubspotutk'] ?? '';
+                $ipAddress = $request->remoteIP ?? '';
+                $pageUri = $request->referrer ?? '';
 
                 if ($hutk) {
                     $formPayload['context']['hutk'] = $hutk;
+                }
+
+                if ($ipAddress) {
+                    $formPayload['context']['ipAddress'] = $ipAddress;
+                }
+
+                if ($pageUri) {
+                    $formPayload['context']['pageUri'] = $pageUri;
                 }
 
                 list($portalId, $formGuid) = explode('__', $this->formId);
