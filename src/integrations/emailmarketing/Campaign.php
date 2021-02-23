@@ -130,11 +130,7 @@ class Campaign extends EmailMarketing
             // Subscribe them to the mailing list
             CampaignPlugin::$plugin->forms->subscribeContact($contact, $list, 'formie', $this->referrer, true);
         } catch (\Throwable $e) {
-            Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [
-                'message' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-            ]), true);
+            Integration::apiError($this, $e);
 
             return false;
         }

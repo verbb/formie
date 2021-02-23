@@ -26,6 +26,7 @@ use craft\helpers\StringHelper;
 use craft\web\Response;
 
 use League\OAuth2\Client\Provider\GenericProvider;
+use GuzzleHttp\Exception\RequestException;
 
 abstract class Integration extends SavableComponent implements IntegrationInterface
 {
@@ -136,6 +137,29 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         if ($throwError) {
             throw new IntegrationException($message);
         }
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public static function apiError($integration, $exception)
+    {
+        $messageText = $exception->getMessage();
+
+        // Check for Guzzle errors, which are truncated in the exception `getMessage()`.
+        if ($exception instanceof RequestException) {
+            $messageText = (string)$exception->getResponse()->getBody()->getContents();
+        }
+
+        $message = Craft::t('formie', 'API error: “{message}” {file}:{line}', [
+            'message' => $messageText,
+            'file' => $exception->getFile(),
+            'line' => $exception->getLine(),
+        ]);
+
+        Formie::error($integration->name . ': ' . $message);
+
+        throw new IntegrationException($message);
     }
 
 
