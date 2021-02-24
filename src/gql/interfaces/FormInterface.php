@@ -102,9 +102,20 @@ class FormInterface extends Element
                         'description' => 'The form template HTML will be rendered with these JSON serialized options.',
                         'type' => Type::string(),
                     ],
+                    'populateFormValues' => [
+                        'name' => 'populateFormValues',
+                        'description' => 'The form field values will be populated with these JSON serialized options.',
+                        'type' => Type::string(),
+                    ],
                 ],
                 'resolve' => function ($source, $arguments) {
                     $options = Json::decodeIfJson($arguments['options'] ?? null);
+                    $populateFormValues = Json::decodeIfJson($arguments['populateFormValues'] ?? null);
+
+                    if ($populateFormValues) {
+                        Formie::getInstance()->getRendering()->populateFormValues($source, $populateFormValues);
+                    }
+
                     return Formie::getInstance()->getRendering()->renderForm($source, $options);
                 },
             ],
