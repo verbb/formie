@@ -404,6 +404,11 @@ trait FormFieldTrait
         // If we pass in an element (submission), fetch the value on that
         $value = $element->{$handle} ?? null;
 
+        // If we pass in an array, fetch the value on that
+        if (is_array($element)) {
+            $value = $element[$handle] ?? null;
+        }
+
         // Otherwise, check if there are any default values
         if ($value === null) {
             $defaultValue = $this->getDefaultValue($attributePrefix);
