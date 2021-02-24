@@ -414,6 +414,17 @@ class Infusionsoft extends Crm
                 ],
             ];
         }
+        
+        $number = ArrayHelper::remove($payload, 'number');
+
+        if ($number) {
+            $payload['phone_numbers'] = [
+                [
+                    'number' => $number,
+                    'field' => 'PHONE1',
+                ],
+            ];
+        }
 
         $address = array_filter([
             'country_code' => ArrayHelper::remove($payload, 'country_code'),
