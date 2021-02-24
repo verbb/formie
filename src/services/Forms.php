@@ -7,6 +7,7 @@ use verbb\formie\base\NestedFieldInterface;
 use verbb\formie\base\NestedFieldTrait;
 use verbb\formie\base\FormField;
 use verbb\formie\elements\Form;
+use verbb\formie\helpers\HandleHelper;
 use verbb\formie\migrations\CreateFormContentTable;
 use verbb\formie\models\FieldLayout;
 use verbb\formie\models\FieldLayoutPage;
@@ -405,7 +406,13 @@ class Forms extends Component
         }
 
         if ($duplicate) {
-            $form->handle = $form->handle . rand();
+            // Generate a new handle, nicely
+            $formHandles = (new Query())
+                ->select(['handle'])
+                ->from('{{%formie_forms}}')
+                ->column();
+
+            $form->handle = HandleHelper::getUniqueHandle($formHandles, $form->handle);
 
             // Have to save to get an ID.
             // Formie::$plugin->getForms()->saveForm($form);
