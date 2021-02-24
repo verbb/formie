@@ -1,5 +1,29 @@
 # Changelog
 
+## 1.3.19 - 2021-02-24
+
+### Added
+- Added support for `populateFormValues` to Group fields.
+- Added support for `populateFormValues` to Repeater fields.
+- Added “Order By” setting for all element fields to control the order options are rendered by.
+- Added Checkbox Toggle to Checkboxes fields, providing the ability to toggle all checkbox fields at once.
+- Added “Usage Count” column to Forms, to show the number of elements relating to each form.
+- Added “Validate Domain (DNS)” setting for email address fields.
+- Added “Blocked Domains” setting for email address fields.
+- Added tags to Agile CRM integration. (thanks @jaydensmith).
+
+### Fixed
+- Fixed element fields not rendering correctly in email notifications, when including a single field token.
+- Fixed “Resend” button when editing a sent notification.
+- Fixed provider errors for all integrations getting truncated text.
+- Fixed potential issue with `siteRootUrl` on site setups with redirects setup to include trailing slashes in URLs.
+- Fixed a HubSpot integration form error when some context values (IP) isn’t always available.
+- Fixed “Save as a new Form” not generating a nice, sequential handle.
+- Fixed an issue where a failed “Save as new form” would retain the incorrect form settings.
+- Fixed form errors not showing full error text in control panel.
+- Fixed Repeater and Group field styling when editing a submission in the control panel.
+- Fixed JavaScript captcha when using template caching not working.
+
 ## 1.3.18 - 2021-02-20
 
 ### Added
