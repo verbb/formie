@@ -374,7 +374,13 @@ Craft.Formie = Garnish.Base.extend({
                 },
 
                 onError(data) {
-                    Craft.cp.displayError(Craft.t('formie', 'Unable to save form.'));
+                    let message = 'Unable to save form.';
+
+                    if (data.errors) {
+                        message = 'Unable to save form: ' + JSON.stringify(data.errors) + '.';
+                    }
+
+                    Craft.cp.displayError(Craft.t('formie', message));
                     this.$events.$emit('formie:save-form-loading', false);
 
                     // TODO: Clean this up...
