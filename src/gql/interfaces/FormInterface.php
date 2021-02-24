@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\gql\interfaces;
 
+use craft\helpers\Json;
 use verbb\formie\Formie;
 use verbb\formie\elements\Form;
 use verbb\formie\gql\arguments\FieldArguments;
@@ -95,8 +96,16 @@ class FormInterface extends Element
                 'name' => 'templateHtml',
                 'type' => Type::string(),
                 'description' => 'The form’s rendered HTML.',
-                'resolve' => function ($source) {
-                    return Formie::getInstance()->getRendering()->renderForm($source);
+                'args' => [
+                    'options' => [
+                        'name' => 'options',
+                        'description' => 'The form template HTML will be rendered with these JSON serialized options.',
+                        'type' => Type::string(),
+                    ],
+                ],
+                'resolve' => function ($source, $arguments) {
+                    $options = Json::decodeIfJson($arguments['options'] ?? null);
+                    return Formie::getInstance()->getRendering()->renderForm($source, $options);
                 },
             ],
         ]), self::getName());
