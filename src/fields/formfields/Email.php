@@ -167,6 +167,7 @@ class Email extends FormField implements PreviewableFieldInterface
                 'label' => Craft::t('formie', 'Blocked Domains'),
                 'help' => Craft::t('formie', 'Define a list of domain names to block. Users entering email addresses containing these domains will be blocked from using them.'),
                 'name' => 'blockedDomains',
+                'validation' => '',
                 'newRowDefaults' => [
                     'domain' => '',
                 ],
