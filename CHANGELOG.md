@@ -7,7 +7,7 @@
 - Added `options` GraphQL argument to pass options into `templateHtml` render function. (thanks @jaydensmith).
 
 ### Fixed
- Fixed validation error for new Email Address fields, introduced in 1.3.19.
+- Fixed validation error for new Email Address fields, introduced in 1.3.19.
 
 ## 1.3.19 - 2021-02-24
 
