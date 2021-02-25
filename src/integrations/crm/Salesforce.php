@@ -18,6 +18,8 @@ use craft\helpers\DateTimeHelper;
 use craft\helpers\Json;
 use craft\web\View;
 
+use DateTime;
+
 class Salesforce extends Crm
 {
     // Properties
@@ -328,11 +330,7 @@ class Salesforce extends Crm
                     }
                 } catch (\Throwable $e) {
                     // Ignore duplicate warnings and continue, but still log
-                    Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [
-                        'message' => $e->getMessage(),
-                        'file' => $e->getFile(),
-                        'line' => $e->getLine(),
-                    ]));
+                    Integration::apiError($this, $e);
                 }
             }
 
