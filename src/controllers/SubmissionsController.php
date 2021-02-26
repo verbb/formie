@@ -320,6 +320,8 @@ class SubmissionsController extends Controller
         $handle = $request->getRequiredBodyParam('handle');
         $goingBack = false;
 
+        Formie::log("Submission triggered for ${handle}.");
+
         /* @var Form $form */
         $form = Form::find()->handle($handle)->one();
 
