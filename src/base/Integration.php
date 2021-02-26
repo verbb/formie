@@ -142,7 +142,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     /**
      * @inheritDoc
      */
-    public static function apiError($integration, $exception)
+    public static function apiError($integration, $exception, $throwError = true)
     {
         $messageText = $exception->getMessage();
 
@@ -159,7 +159,9 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
 
         Formie::error($integration->name . ': ' . $message);
 
-        throw new IntegrationException($message);
+        if ($throwError) {
+            throw new IntegrationException($message);
+        }
     }
 
 

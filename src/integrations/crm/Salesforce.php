@@ -330,7 +330,7 @@ class Salesforce extends Crm
                     }
                 } catch (\Throwable $e) {
                     // Ignore duplicate warnings and continue, but still log
-                    Integration::apiError($this, $e);
+                    Integration::apiError($this, $e, false);
                 }
             }
 
