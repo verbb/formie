@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.3.20 - 2021-02-26
+
+### Added
+- Added logging to submit action, capturing form content immediately and saving to logs.
+
+### Changed
+- Allow both 0.3.0 and 0.4.0 guzzlehttp/oauth-subscriber. (thanks @verbeeksteven).
+
+### Fixed
+- Fixed sub-fields (Name, Address, etc) not working for pre-populating values.
+- Fixed value of checkbox fields for integrations when mapping to a plain text field. Field values are now sent as comma-separated.
+- Fixed InfusionSoft sending incorrect Phone Number payload values. (thanks @dubcanada).
+- Fixed submission error logs not saving log information for ajax forms.
+- Fixed Salesforce duplicate leads throwing an error.
+
 ## 1.3.19.1 - 2021-02-24
 
 ### Added
