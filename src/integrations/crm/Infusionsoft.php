@@ -404,7 +404,7 @@ class Infusionsoft extends Crm
             ],
         ];
 
-        $phone = ArrayHelper::remove($payload, 'phone');
+        $phone = ArrayHelper::remove($payload, 'number');
 
         if ($phone) {
             $payload['phone_numbers'] = [
