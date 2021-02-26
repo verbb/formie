@@ -385,17 +385,23 @@ export class FormieFormTheme {
         const formData = new FormData(this.$form);
 
         const xhr = new XMLHttpRequest();
-        xhr.open('POST', this.settings.siteRootUrl);
+        xhr.open('POST', this.settings.siteRootUrl, true);
         xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
         xhr.setRequestHeader('Accept', 'application/json');
+        xhr.setRequestHeader('Cache-Control', 'no-cache');
+        xhr.timeout = 10000; // 10s
 
         this.beforeSubmit();
 
-        xhr.onreadystatechange = () => {
-            if (xhr.readyState !== 4) {
-                return;
-            }
+        xhr.ontimeout = () => {
+            this.onAjaxError(t('The request timed out.'));
+        };
 
+        xhr.onerror = (e) => {
+            this.onAjaxError(t('The request encountered a network error. Please try again.'));
+        };
+
+        xhr.onload = () => {
             if (xhr.status >= 200 && xhr.status < 300) {
                 try {
                     const response = JSON.parse(xhr.responseText);
