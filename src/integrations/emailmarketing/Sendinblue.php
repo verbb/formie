@@ -63,26 +63,19 @@ class Sendinblue extends EmailMarketing
         $settings = [];
 
         try {
-            $response = $this->request('GET', 'contacts/lists');
+            $lists = $this->_getPaginated('contacts/lists', 'lists');
 
-            $lists = $response['lists'] ?? [];
+            $response = $this->request('GET', 'contacts/attributes');
+            $fields = $response['attributes'] ?? [];
 
             foreach ($lists as $list) {
-                $listFields = [
+                $listFields = array_merge([
                     new IntegrationField([
                         'handle' => 'email',
                         'name' => Craft::t('formie', 'Email'),
                         'required' => true,
                     ]),
-                    new IntegrationField([
-                        'handle' => 'FIRSTNAME',
-                        'name' => Craft::t('formie', 'First Name'),
-                    ]),
-                    new IntegrationField([
-                        'handle' => 'LASTNAME',
-                        'name' => Craft::t('formie', 'Last Name'),
-                    ]),
-                ];
+                ], $this->_getCustomFields($fields));
 
                 $settings['lists'][] = new IntegrationCollection([
                     'id' => (string)$list['id'],
@@ -91,11 +84,7 @@ class Sendinblue extends EmailMarketing
                 ]);
             }
         } catch (\Throwable $e) {
-            Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [
-                'message' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-            ]), true);
+            Integration::apiError($this, $e);
         }
 
         return new IntegrationFormSettings($settings);
@@ -125,11 +114,7 @@ class Sendinblue extends EmailMarketing
                 return true;
             }
         } catch (\Throwable $e) {
-            Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [
-                'message' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-            ]), true);
+            Integration::apiError($this, $e);
 
             return false;
         }
@@ -151,11 +136,7 @@ class Sendinblue extends EmailMarketing
                 return false;
             }
         } catch (\Throwable $e) {
-            Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [
-                'message' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-            ]), true);
+            Integration::apiError($this, $e);
 
             return false;
         }
@@ -180,5 +161,94 @@ class Sendinblue extends EmailMarketing
             'base_uri' => 'https://api.sendinblue.com/v3/',
             'headers' => ['api-key' => Craft::parseEnv($this->apiKey)],
         ]);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    private function _getPaginated($endpoint, $param, $limit = 50, $offset = 0, $items = [])
+    {
+        $response = $this->request('GET', $endpoint, [
+            'query' => [
+                'limit' => $limit,
+                'offset' => $offset,
+            ]
+        ]);
+
+        $newItems = $response[$param] ?? [];
+        $total = $response['count'] ?? 0;
+
+        if ($newItems) {
+            $items = array_merge($items, $newItems);
+
+            if (count($items) < $total) {
+                $items = $this->_getPaginated($endpoint, $param, $limit, $offset + $limit, $items);
+            }
+        }
+
+        return $items;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    private function _convertFieldType($fieldType)
+    {
+        $fieldTypes = [
+            'float' => IntegrationField::TYPE_NUMBER,
+            'date' => IntegrationField::TYPE_DATETIME,
+            'boolean' => IntegrationField::TYPE_BOOLEAN,
+        ];
+
+        return $fieldTypes[$fieldType] ?? IntegrationField::TYPE_STRING;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    private function _getCustomFields($fields, $excludeNames = [])
+    {
+        $customFields = [];
+
+        foreach ($fields as $key => $field) {
+            // Exclude any names
+            if (in_array($field['name'], $excludeNames)) {
+                continue;
+            }
+
+            // Ignore a calculated value field
+            if (isset($field['calculatedValue'])) {
+                continue;
+            }
+
+            $type = $field['type'] ?? '';
+
+            // Add in any options for some fields
+            $options = [];
+            $fieldOptions = $field['enumeration'] ?? [];
+
+            foreach ($fieldOptions as $key => $fieldOption) {
+                $options[] = [
+                    'label' => $fieldOption['label'],
+                    'value' => $fieldOption['value'],
+                ];
+            }
+
+            if ($options) {
+                $options = [
+                    'label' => $field['name'],
+                    'options' => $options,
+                ];
+            }
+
+            $customFields[] = new IntegrationField([
+                'handle' => $field['name'],
+                'name' => $field['name'],
+                'type' => $this->_convertFieldType($type),
+                'options' => $options,
+            ]);
+        }
+
+        return $customFields;
     }
 }

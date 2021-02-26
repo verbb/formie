@@ -1,15 +1,17 @@
 <?php
 namespace verbb\formie\gql\interfaces;
 
+use craft\helpers\Json;
+use verbb\formie\Formie;
 use verbb\formie\elements\Form;
-use verbb\formie\gql\types\generators\FormGenerator;
 use verbb\formie\gql\arguments\FieldArguments;
 use verbb\formie\gql\arguments\FormArguments;
 use verbb\formie\gql\interfaces\FieldInterface;
-use verbb\formie\gql\interfaces\FormSettingsInterface;
 use verbb\formie\gql\interfaces\PageInterface;
 use verbb\formie\gql\interfaces\RowInterface;
 use verbb\formie\gql\interfaces\FormInterface as FormInterfaceLocal;
+use verbb\formie\gql\types\FormSettingsType;
+use verbb\formie\gql\types\generators\FormGenerator;
 
 use craft\gql\base\InterfaceType as BaseInterfaceType;
 use craft\gql\interfaces\Element;
@@ -82,8 +84,40 @@ class FormInterface extends Element
             ],
             'settings' => [
                 'name' => 'settings',
-                'type' => FormSettingsInterface::getType(),
+                'type' => FormSettingsType::getType(),
                 'description' => 'The form’s settings.'
+            ],
+            'configJson' => [
+                'name' => 'configJson',
+                'type' => Type::string(),
+                'description' => 'The form’s config as JSON.'
+            ],
+            'templateHtml' => [
+                'name' => 'templateHtml',
+                'type' => Type::string(),
+                'description' => 'The form’s rendered HTML.',
+                'args' => [
+                    'options' => [
+                        'name' => 'options',
+                        'description' => 'The form template HTML will be rendered with these JSON serialized options.',
+                        'type' => Type::string(),
+                    ],
+                    'populateFormValues' => [
+                        'name' => 'populateFormValues',
+                        'description' => 'The form field values will be populated with these JSON serialized options.',
+                        'type' => Type::string(),
+                    ],
+                ],
+                'resolve' => function ($source, $arguments) {
+                    $options = Json::decodeIfJson($arguments['options'] ?? null);
+                    $populateFormValues = Json::decodeIfJson($arguments['populateFormValues'] ?? null);
+
+                    if ($populateFormValues) {
+                        Formie::getInstance()->getRendering()->populateFormValues($source, $populateFormValues);
+                    }
+
+                    return Formie::getInstance()->getRendering()->renderForm($source, $options);
+                },
             ],
         ]), self::getName());
     }

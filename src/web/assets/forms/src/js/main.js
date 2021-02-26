@@ -26,6 +26,7 @@ import FormBuilder from './components/FormBuilder.vue';
 import FieldRepeater from './components/FieldRepeater.vue';
 import FieldGroup from './components/FieldGroup.vue';
 import DatePreview from './components/DatePreview.vue';
+import ElementFieldPreview from './components/ElementFieldPreview.vue';
 import NotificationsBuilder from './components/NotificationsBuilder.vue';
 import NotificationPreview from './components/NotificationPreview.vue';
 import NotificationTest from './components/NotificationTest.vue';
@@ -37,6 +38,7 @@ import IntegrationFormSettings from './components/IntegrationFormSettings.vue';
 Vue.component('FieldRepeater', FieldRepeater);
 Vue.component('FieldGroup', FieldGroup);
 Vue.component('DatePreview', DatePreview);
+Vue.component('ElementFieldPreview', ElementFieldPreview);
 Vue.component('NotificationPreview', NotificationPreview);
 Vue.component('NotificationTest', NotificationTest);
 Vue.component('FieldSelect', FieldSelect);
@@ -66,6 +68,7 @@ Craft.Formie = Garnish.Base.extend({
         store.dispatch('formie/setExistingNotifications', settings.existingNotifications);
         store.dispatch('formie/setEmailTemplates', settings.emailTemplates);
         store.dispatch('formie/setReservedHandles', settings.reservedHandles);
+        store.dispatch('formie/setStatuses', settings.statuses);
 
         new Vue({
             el: '#fui-page-title',
@@ -371,7 +374,13 @@ Craft.Formie = Garnish.Base.extend({
                 },
 
                 onError(data) {
-                    Craft.cp.displayError(Craft.t('formie', 'Unable to save form.'));
+                    let message = 'Unable to save form.';
+
+                    if (data.errors) {
+                        message = 'Unable to save form: ' + JSON.stringify(data.errors) + '.';
+                    }
+
+                    Craft.cp.displayError(Craft.t('formie', message));
                     this.$events.$emit('formie:save-form-loading', false);
 
                     // TODO: Clean this up...

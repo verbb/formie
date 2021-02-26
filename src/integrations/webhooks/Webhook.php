@@ -84,7 +84,7 @@ class Webhook extends BaseWebhook
             $webhook = $form->settings->integrations[$this->handle]['webhook'] ?? $this->webhook;
 
             $payload = $this->generatePayloadValues($submission);
-            $response = $this->getClient()->request('POST', Craft::parseEnv($webhook), $payload);
+            $response = $this->getClient()->request('POST', $this->getWebhookUrl($webhook, $submission), $payload);
 
             $rawResponse = (string)$response->getBody();
             $json = Json::decode($rawResponse);
@@ -103,11 +103,7 @@ class Webhook extends BaseWebhook
                 'response' => $rawResponse ?? '',
             ]));
 
-            Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [
-                'message' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-            ]), true);
+            Integration::apiError($this, $e);
         }
 
         return new IntegrationFormSettings($settings);
@@ -121,7 +117,7 @@ class Webhook extends BaseWebhook
         try {
             $payload = $this->generatePayloadValues($submission);
 
-            $response = $this->getClient()->request('POST', Craft::parseEnv($this->webhook), $payload);
+            $response = $this->getClient()->request('POST', $this->getWebhookUrl($this->webhook, $submission), $payload);
         } catch (\Throwable $e) {
             // Save a different payload to logs
             Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}. Payload: “{payload}”. Response: “{response}”', [
@@ -132,11 +128,7 @@ class Webhook extends BaseWebhook
                 'response' => $rawResponse,
             ]));
 
-            Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [
-                'message' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-            ]), true);
+            Integration::apiError($this, $e);
 
             return false;
         }

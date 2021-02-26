@@ -6,7 +6,7 @@
     {{ formieInclude('_includes/instructions', { position: 'fieldset-start' }) }}
 
     <div class="fui-layout-wrap">
-        {% for option in field.getFieldOptions() %}
+        {% for option in fieldOptions ?? field.getFieldOptions() %}
             {% set optionId = options.id ~ '-' ~ option.value | kebab %}
             {% set selected = value and value.value ? option.value == value.value : (option.isDefault ?? false) %}
 
@@ -18,7 +18,7 @@
                         'fui-radio-input',
                     ],
                     type: 'radio',
-                    name: field.handle,
+                    name: fieldName ?? field.handle,
                     required: field.required ? true : false,
                     value: option.value,
                     checked: selected,

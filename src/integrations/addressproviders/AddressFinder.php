@@ -26,21 +26,10 @@ class AddressFinder extends AddressProvider
     public $apiKey;
     public $countryCode;
     public $widgetOptions = [];
-    private $uniqueId;
 
 
     // Public Methods
     // =========================================================================
-
-    /**
-     * @inheritDoc
-     */
-    public function init()
-    {
-        parent::init();
-
-        $this->uniqueId = uniqid(self::AF_INPUT_NAME, false);
-    }
 
     /**
      * @inheritDoc
@@ -86,7 +75,6 @@ class AddressFinder extends AddressProvider
 
         $html = Craft::$app->getView()->renderTemplate('formie/integrations/address-providers/address-finder/_input', [
             'field' => $field,
-            'data' => $this->uniqueId,
             'options' => $options,
         ]);
 
@@ -104,7 +92,7 @@ class AddressFinder extends AddressProvider
     /**
      * @inheritDoc
      */
-    public function getFrontEndJsVariables(Form $form, $field = null)
+    public function getFrontEndJsVariables($field = null)
     {
         if (!$this->hasValidSettings()) {
             return null;
@@ -113,18 +101,13 @@ class AddressFinder extends AddressProvider
         $settings = [
             'apiKey' => Craft::parseEnv($this->apiKey),
             'countryCode' => $this->countryCode,
-            'container' => $this->uniqueId,
             'widgetOptions' => $this->_getOptions(),
-            'fieldContainer' => 'data-address-id-' . $field->id,
-            'formId' => 'formie-form-' . $form->id,
         ];
 
-        $src = Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/addressproviders/dist/js/address-finder.js', true);
-        $onload = 'new FormieAddressFinder(' . Json::encode($settings) . ');';
-
         return [
-            'src' => $src,
-            'onload' => $onload,
+            'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/addressproviders/dist/js/address-finder.js', true),
+            'module' => 'FormieAddressFinder',
+            'settings' => $settings,
         ];
     }
 

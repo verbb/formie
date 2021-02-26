@@ -14,6 +14,10 @@ use craft\mail\transportadapters\Smtp;
 
 use yii\base\Component;
 
+use DateInterval;
+use DateTime;
+use Throwable;
+
 class SentNotifications extends Component
 {
     // Public Methods

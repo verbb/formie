@@ -40,6 +40,7 @@ use craft\events\RegisterElementExportersEvent;
 use craft\events\RegisterEmailMessagesEvent;
 use craft\events\RegisterGqlMutationsEvent;
 use craft\events\RegisterGqlQueriesEvent;
+use craft\events\RegisterGqlSchemaComponentsEvent;
 use craft\events\RegisterGqlTypesEvent;
 use craft\events\RegisterTemplateRootsEvent;
 use craft\events\RegisterUserPermissionsEvent;
@@ -54,6 +55,9 @@ use craft\helpers\UrlHelper;
 use craft\web\twig\variables\CraftVariable;
 use craft\web\View;
 
+use craft\gatsbyhelper\events\RegisterSourceNodeTypesEvent;
+use craft\gatsbyhelper\services\SourceNodes;
+
 use yii\base\Event;
 
 class Formie extends Plugin
@@ -61,7 +65,7 @@ class Formie extends Plugin
     // Public Properties
     // =========================================================================
 
-    public $schemaVersion = '1.1.5';
+    public $schemaVersion = '1.1.6';
     public $hasCpSettings = true;
     public $hasCpSection = true;
 
@@ -308,17 +312,76 @@ class Formie extends Plugin
             }
         });
 
-        if (version_compare(Craft::$app->getVersion(), '3.5', '>=')) {
-            Event::on(Gql::class, Gql::EVENT_REGISTER_GQL_MUTATIONS, function(RegisterGqlMutationsEvent $event) {
-                $mutations = [
-                    SubmissionMutation::getMutations(),
+        Event::on(Gql::class, Gql::EVENT_REGISTER_GQL_MUTATIONS, function(RegisterGqlMutationsEvent $event) {
+            $mutations = [
+                SubmissionMutation::getMutations(),
+            ];
+
+            foreach ($mutations as $k => $v) {
+                foreach ($v as $key => $value) {
+                    $event->mutations[$key] = $value;
+                }
+            }
+        });
+
+        Event::on(Gql::class, Gql::EVENT_REGISTER_GQL_SCHEMA_COMPONENTS, function(RegisterGqlSchemaComponentsEvent $event) {
+            $label = Craft::t('formie', 'Formie');
+
+            $forms = Form::find()->all();
+
+            $event->queries[$label]['formieForms.all:read'] = ['label' => Craft::t('formie', 'View all forms')];
+
+            foreach ($forms as $form) {
+                $suffix = 'formieForms.' . $form->uid;
+                $event->queries[$label][$suffix . ':read'] = ['label' => Craft::t('formie', 'View “{form}” form', ['form' => Craft::t('site', $form->title)])];
+            }
+
+            $event->queries[$label]['formieSubmissions.all:read'] = ['label' => Craft::t('formie', 'View all submissions')];
+
+            foreach ($forms as $form) {
+                $suffix = 'formieSubmissions.' . $form->uid;
+                $event->queries[$label][$suffix . ':read'] = ['label' => Craft::t('formie', 'View submissions for form “{form}”', ['form' => Craft::t('site', $form->title)])];
+            }
+
+            $event->mutations[$label]['formieSubmissions.all:edit'] = [
+                'label' => Craft::t('formie', 'Edit all submissions'),
+                'nested' => [
+                    'formieSubmissions.all:create' => ['label' => Craft::t('app', 'Create all submissions')],
+                    'formieSubmissions.all:save' => ['label' => Craft::t('app', 'Modify all submissions')],
+                    'formieSubmissions.all:delete' => ['label' => Craft::t('app', 'Delete all submissions')],
+                ],
+            ];
+
+            foreach ($forms as $form) {
+                $suffix = 'formieSubmissions.' . $form->uid;
+                $event->mutations[$label][$suffix . ':edit'] = [
+                    'label' => Craft::t('formie', 'Edit submissions for form “{form}”', ['form' => Craft::t('site', $form->title)]),
+                    'nested' => [
+                        $suffix . ':create' => ['label' => Craft::t('app', 'Create submissions for form “{form}”', ['form' => Craft::t('site', $form->title)])],
+                        $suffix . ':save' => ['label' => Craft::t('app', 'Modify submissions for form “{form}”', ['form' => Craft::t('site', $form->title)])],
+                        $suffix . ':delete' => ['label' => Craft::t('app', 'Delete submissions for form “{form}”', ['form' => Craft::t('site', $form->title)])],
+                    ],
+                ];
+            }
+        });
+
+        if (class_exists(SourceNodes::class)) {
+            Event::on(SourceNodes::class, SourceNodes::EVENT_REGISTER_SOURCE_NODE_TYPES, function(RegisterSourceNodeTypesEvent $event) {
+                $event->types[] = [
+                    'node' => 'formieForm',
+                    'list' => 'formieForms',
+                    'filterArgument' => '',
+                    'filterTypeExpression' => '(.+)_Form',
+                    'targetInterface' => FormInterface::getName(),
                 ];
 
-                foreach ($mutations as $k => $v) {
-                    foreach ($v as $key => $value) {
-                        $event->mutations[$key] = $value;
-                    }
-                }
+                $event->types[] = [
+                    'node' => 'formieSubmission',
+                    'list' => 'formieSubmissions',
+                    'filterArgument' => '',
+                    'filterTypeExpression' => '(.+)_Submission',
+                    'targetInterface' => SubmissionInterface::getName(),
+                ];
             });
         }
     }

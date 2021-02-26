@@ -1,5 +1,4 @@
 import recaptcha from './inc/recaptcha';
-import { isVisible } from './inc/visible';
 
 export class FormieRecaptchaV2Checkbox {
     constructor(settings = {}) {
@@ -54,14 +53,17 @@ export class FormieRecaptchaV2Checkbox {
     renderCaptcha() {
         this.$placeholder = null;
 
+        // Get the active page
+        var { $currentPage } = this.$form.form.formTheme;
+
         // Get the current page's captcha - find the first placeholder that's non-invisible
         this.$placeholders.forEach($placeholder => {
-            if (isVisible($placeholder)) {
+            if ($currentPage && $currentPage.contains($placeholder)) {
                 this.$placeholder = $placeholder;
             }
         });
 
-        if (!this.$placeholder) {
+        if (this.$placeholder === null) {
             // This is okay in some instances - notably for multi-page forms where the captcha
             // should only be shown on the last step. But its nice to log this anyway
             console.log('Unable to find ReCAPTCHA placeholder for #' + this.formId);

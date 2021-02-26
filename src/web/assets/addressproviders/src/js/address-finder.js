@@ -1,66 +1,76 @@
 export class FormieAddressFinder {
     constructor(settings = {}) {
+        this.$form = settings.$form;
+        this.form = this.$form.form;
+        this.$field = settings.$field;
+        this.$input = this.$field.querySelector('[data-autocomplete]');
+        this.scriptId = 'FORMIE_ADDRESS_FINDER_SCRIPT';
+
         this.apiKey = settings.apiKey;
         this.countryCode = settings.countryCode;
-        this.container = settings.container;
-        this.formId = settings.formId;
-        this.fieldContainer = settings.fieldContainer;
         this.widgetOptions = settings.widgetOptions;
 
-        this.$form = document.querySelector('#' + this.formId);
+        // Keep track of how many times we try to load.
+        this.retryTimes = 0;
+        this.maxRetryTimes = 150;
+        this.waitTimeout = 200;
 
-        if (!this.$form) {
-            console.error('Unable to find form #' + this.formId);
-
-            return;
-        }
-
-        this.$field = this.$form.querySelector('[' + settings.fieldContainer + ']');
-
-        if (!this.$field) {
-            console.error('Unable to find field [' + settings.fieldContainer + ']');
-
-            return;
-        }
-
-        this.$input = document.querySelector('[data-' + this.container + ']');
-
-        if (!this.$input) {
-            console.error('Unable to find input [data-' + this.container + ']');
-
-            return;
-        }
-
-        this.downloadAF();
+        this.initScript();
     }
 
-    downloadAF() {
-        var initAF = () => {
-            var widget = new AddressFinder.Widget(this.$input, this.apiKey, this.countryCode, this.widgetOptions);
+    initScript() {
+        // Prevent the script from loading multiple times (which throw warnings anyway)
+        if (!document.getElementById(this.scriptId)) {
+            var script = document.createElement('script');
+            script.src = 'https://api.addressfinder.io/assets/v3/widget.js';
+            script.defer = true;
+            script.async = true;
+            script.id = this.scriptId;
+            script.onload = () => {
+                this.initAutocomplete();
+            };
+
+            document.body.appendChild(script);
+        } else {
+            // Script already present, but might not be loaded yet...
+            this.waitForLoad();
+        }
+    }
+
+    waitForLoad() {
+        // Prevent running forever
+        if (this.retryTimes > this.maxRetryTimes) {
+            console.error('Unable to load AddressFinder API after ' + this.retryTimes + ' times.');
+            return;
+        }
         
-            widget.on('result:select', (fullAddress, metaData) => {
+        if (typeof AddressFinder === 'undefined') {
+            this.retryTimes += 1;
+            
+            setTimeout(this.waitForLoad.bind(this), this.waitTimeout);
+        } else {
+            this.initAutocomplete();
+        }
+    }
 
-                // We want to reverse if there's a unit number
-                if (metaData.address_line_2) {
-                    this.setFieldValue('[data-address1]', metaData.address_line_2);
-                    this.setFieldValue('[data-address2]', metaData.address_line_1);
-                } else {
-                    this.setFieldValue('[data-address1]', metaData.address_line_1);
-                    this.setFieldValue('[data-address2]', '');
-                }
+    initAutocomplete() {
+        var widget = new AddressFinder.Widget(this.$input, this.apiKey, this.countryCode, this.widgetOptions);
+        
+        widget.on('result:select', (fullAddress, metaData) => {
+            // We want to reverse if there's a unit number
+            if (metaData.address_line_2) {
+                this.setFieldValue('[data-address1]', metaData.address_line_2);
+                this.setFieldValue('[data-address2]', metaData.address_line_1);
+            } else {
+                this.setFieldValue('[data-address1]', metaData.address_line_1);
+                this.setFieldValue('[data-address2]', '');
+            }
 
-                this.setFieldValue('[data-city]', metaData.locality_name);
-                this.setFieldValue('[data-zip]', metaData.postcode);
-                this.setFieldValue('[data-state]', metaData.state_territory);
-                this.setFieldValue('[data-country]', this.countryCode);
-            });
-        };
-
-        var script = document.createElement('script');
-        script.src = 'https://api.addressfinder.io/assets/v3/widget.js';
-        script.async = true;
-        script.onload = initAF;
-        document.body.appendChild(script);
+            this.setFieldValue('[data-city]', metaData.locality_name);
+            this.setFieldValue('[data-zip]', metaData.postcode);
+            this.setFieldValue('[data-state]', metaData.state_territory);
+            this.setFieldValue('[data-country]', this.countryCode);
+        });
     }
 
     setFieldValue(selector, value) {

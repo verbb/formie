@@ -130,6 +130,14 @@ class Phone extends FormField implements SubfieldInterface, PreviewableFieldInte
     /**
      * @inheritDoc
      */
+    public function serializeValueForExport($value, ElementInterface $element = null)
+    {
+        return (string)$value;
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function serializeValueForIntegration($value, ElementInterface $element = null)
     {
         if ($this->countryEnabled) {
@@ -142,25 +150,17 @@ class Phone extends FormField implements SubfieldInterface, PreviewableFieldInte
     /**
      * @inheritdoc
      */
-    public function getFrontEndJsVariables(Form $form)
+    public function getFrontEndJsModules()
     {
-        $src = Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/fields/phone-country.js', true);
-        $fieldId = StringHelper::toKebabCase($form->handle) . '-' . StringHelper::toKebabCase($this->handle);
-        $countryFieldId = StringHelper::toKebabCase($form->handle) . '-' . StringHelper::toKebabCase($this->handle) . '-country';
-
-        $settings = [
-            'formId' => $form->id,
-            'fieldId' => $fieldId,
-            'countryFieldId' => $countryFieldId,
-            'countryShowDialCode' => $this->countryShowDialCode,
-            'countryDefaultValue' => $this->countryDefaultValue,
-            'countryAllowed' => $this->countryAllowed,
-        ];
-
         if ($this->countryEnabled) {
             return [
-                'src' => $src,
-                'onload' => 'new FormiePhoneCountry(' . Json::encode($settings) . ');',
+                'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/fields/phone-country.js', true),
+                'module' => 'FormiePhoneCountry',
+                'settings' => [
+                    'countryShowDialCode' => $this->countryShowDialCode,
+                    'countryDefaultValue' => $this->countryDefaultValue,
+                    'countryAllowed' => $this->countryAllowed,
+                ],
             ];
         }
     }
@@ -209,10 +209,22 @@ class Phone extends FormField implements SubfieldInterface, PreviewableFieldInte
                 'handle' => 'country',
             ],
             [
+                'label' => Craft::t('formie', 'Country Code'),
+                'handle' => 'countryCode',
+            ],
+            [
                 'label' => Craft::t('formie', 'Number'),
                 'handle' => 'number',
             ],
         ];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getIsTextInput(): bool
+    {
+        return !$this->countryEnabled;
     }
 
     /**
@@ -223,20 +235,11 @@ class Phone extends FormField implements SubfieldInterface, PreviewableFieldInte
         if ($this->required) {
             $value = $element->getFieldValue($this->handle);
 
-            if ($this->countryEnabled && StringHelper::isBlank($value->country)) {
-                $element->addError(
-                    $this->handle,
-                    Craft::t('formie', '"{label}" cannot be blank.', [
-                        'label' => $this->countryLabel,
-                    ])
-                );
-            }
-
             if (StringHelper::isBlank($value->number)) {
                 $element->addError(
                     $this->handle,
                     Craft::t('formie', '"{label}" cannot be blank.', [
-                        'label' => $this->numberLabel,
+                        'label' => $this->name,
                     ])
                 );
             }

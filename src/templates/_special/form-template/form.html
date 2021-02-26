@@ -2,7 +2,7 @@
     Default Formie Template
 
     Any templates for forms, pages and fields contained in this directory will
-    be used instead of the default formie template. You can delete and template
+    be used instead of the default formie template. You can delete any template
     file not prefixed by an underscore, and the default template for that component
     will be used instead.
 
@@ -38,6 +38,8 @@
     } | merge(options.formAttributes ?? {}) %}
 
     <div class="fui-i">
+        {% set showForm = true %}
+        {% set currentPage = form.getCurrentPage() %}
         {% set submitted = craft.formie.plugin.service.getFlash(form.id, 'submitted') %}
 
         {% if submission is defined and form.settings.submitAction == 'message' %}
@@ -57,14 +59,17 @@
             {% endif %}
         {% endif %}
 
-        {% set currentPage = form.getCurrentPage() %}
+        {% if submitted and form.settings.submitAction == 'message' and form.settings.submitActionFormHide %}
+            {% set showForm = false %}
+        {% endif %}
 
-        {% if not submitted or not form.settings.submitActionFormHide %}
+        {% if showForm %}
             <form {{ attr(attributes) }}>
                 {{ csrfInput() }}
                 {{ actionInput(form.getActionUrl()) }}
                 {{ hiddenInput('handle', form.handle) }}
                 {{ hiddenInput('siteId', craft.app.sites.currentSite.id) }}
+                {{ hiddenInput('pageIndex', form.getCurrentPageIndex()) }}
 
                 {% if submission and submission.id %}
                     {{ hiddenInput('submissionId', submission.id) }}

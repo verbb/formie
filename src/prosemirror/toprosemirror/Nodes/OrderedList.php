@@ -14,7 +14,10 @@ class OrderedList extends Node
         return [
             'type' => 'ordered_list',
             'attrs' => [
-                'order' => 1,
+                'order' =>
+                    $this->DOMNode->getAttribute('start') ?
+                    (int) $this->DOMNode->getAttribute('start') :
+                    1,
             ],
         ];
     }

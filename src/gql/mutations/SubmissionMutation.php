@@ -12,7 +12,6 @@ use craft\gql\base\ElementMutationArguments;
 use craft\gql\base\ElementMutationResolver;
 use craft\gql\base\Mutation;
 use craft\helpers\Gql;
-use craft\helpers\Gql as GqlHelper;
 
 use GraphQL\Type\Definition\Type;
 
@@ -31,10 +30,22 @@ class SubmissionMutation extends Mutation
         $createDeleteMutation = false;
 
         foreach (Form::find()->all() as $form) {
-            $mutation = static::createSaveMutation($form);
-            $mutationList[$mutation['name']] = $mutation;
+            $scope = 'formieSubmissions.' . $form->uid;
 
-            if (!$createDeleteMutation) {
+            $canCreateAll = Gql::canSchema('formieSubmissions.all', 'create');
+            $canSaveAll = Gql::canSchema('formieSubmissions.all', 'save');
+            $canDeleteAll = Gql::canSchema('formieSubmissions.all', 'delete');
+            
+            $canCreate = Gql::canSchema($scope, 'create');
+            $canSave = Gql::canSchema($scope, 'save');
+            $canDelete = Gql::canSchema($scope, 'delete');
+
+            if ($canCreateAll || $canSaveAll || $canCreate || $canSave) {
+                $mutation = static::createSaveMutation($form);
+                $mutationList[$mutation['name']] = $mutation;
+            }
+
+            if (!$createDeleteMutation && ($canDeleteAll || $canDelete)) {
                 $createDeleteMutation = true;
             }
         }
@@ -42,7 +53,10 @@ class SubmissionMutation extends Mutation
         if ($createDeleteMutation) {
             $mutationList['deleteSubmission'] = [
                 'name' => 'deleteSubmission',
-                'args' => ['id' => Type::nonNull(Type::int())],
+                'args' => [
+                    'id' => Type::nonNull(Type::int()),
+                    'siteId' => Type::nonNull(Type::int()),
+                ],
                 'resolve' => [Craft::createObject(SubmissionResolver::class), 'deleteSubmission'],
                 'description' => 'Delete a submission.',
                 'type' => Type::boolean(),

@@ -26,6 +26,12 @@ class SubmissionGenerator implements GeneratorInterface, SingleGeneratorInterfac
         $gqlTypes = [];
 
         foreach (Form::find()->all() as $form) {
+            $requiredContexts = Submission::gqlScopesByContext($form);
+
+            if (!GqlHelper::isSchemaAwareOf($requiredContexts)) {
+                continue;
+            }
+            
             $type = static::generateType($form);
             $gqlTypes[$type->name] = $type;
         }

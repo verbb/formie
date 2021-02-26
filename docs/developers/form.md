@@ -44,7 +44,7 @@ Method | Description
 `getEnabledNotifications()` | Returns all enabled [Notification](docs:developers/notification) objects for this form.
 `getRedirectUrl()` | Returns the URL for the redirection upon final submission of the form.
 `getRedirectEntry()` | Returns the [Entry](https://docs.craftcms.com/api/v3/craft-elements-entry.html) used for redirection, if applicable.
-`getCaptchas()` | Returns all enabled [Captcha](docs:integration/captchas) objects for this form.
+`getCaptchas()` | Returns all enabled [Captcha](docs:integrations/captchas) objects for this form.
 
 ## Form Settings
 Each form has a collection of settings associated with it.

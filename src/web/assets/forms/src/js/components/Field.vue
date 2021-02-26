@@ -28,6 +28,7 @@
                 pageIndex,
                 columnIndex,
             }"
+            :hide-image-html="!isSafari"
             @click.prevent="editField"
             @dragstart="dragStart"
             @dragend="dragEnd"
@@ -166,6 +167,11 @@ export default {
         brandNewField: {
             type: Boolean,
             default: false,
+        },
+
+        parentFieldId: {
+            type: [String, Number],
+            default: '',
         },
     },
 
@@ -341,6 +347,11 @@ export default {
             // Let's get smart about generating a handle. Check if its unique - if it isn't, make it unique
             const generatedHandle = generateHandle(this.field.label);
             let handles = this.$store.getters['form/fieldHandles'];
+
+            // Get field handles for the parent field (group, repeater)
+            if (this.parentFieldId) {
+                handles = this.$store.getters['form/fieldHandlesForField'](this.parentFieldId);
+            }
 
             const value = getNextAvailableHandle(handles, generatedHandle, 0);
             let newHandle = value.substr(0, 58);

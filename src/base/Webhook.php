@@ -58,7 +58,7 @@ abstract class Webhook extends Integration implements IntegrationInterface
     /**
      * @inheritDoc
      */
-    public function getFormSettingsHtml(Form $form): string
+    public function getFormSettingsHtml($form): string
     {
         $handle = StringHelper::toKebabCase($this->displayName());
 
@@ -109,5 +109,15 @@ abstract class Webhook extends Integration implements IntegrationInterface
         $this->trigger(self::EVENT_MODIFY_WEBHOOK_PAYLOAD, $event);
 
         return $event->payload;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected function getWebhookUrl($url, Submission $submission)
+    {
+        $url = Craft::$app->getView()->renderObjectTemplate($url, $submission);
+
+        return Craft::parseEnv($url);
     }
 }

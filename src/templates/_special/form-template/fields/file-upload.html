@@ -1,4 +1,5 @@
-{% set sizeLimit = field.sizeLimit ?? 0 %}
+{% set sizeMaxLimit = field.sizeLimit ?? 0 %}
+{% set sizeMinLimit = field.sizeMinLimit ?? 0 %}
 {% set limitFiles = field.limitFiles ?? 0 %}
 
 {% set attributes = {
@@ -10,7 +11,8 @@
     multiple: limitFiles != 1,
     accept: field.accept,
     data: {
-        'size-limit': field.sizeLimit,
+        'size-min-limit': sizeMinLimit,
+        'size-max-limit': sizeMaxLimit,
         'file-limit': limitFiles,
         'fui-message': field.settings.errorMessage | t,
     },
@@ -20,3 +22,23 @@
 } | merge(field.getInputAttributes()) %}
 
 <input {{ attr(attributes) }} />
+
+{% if value %}
+    {% set elements = value.all() %}
+
+    {% if elements %}
+        <div class="fui-file-summary">
+            {% if elements | length == 1 %}
+                <p>{{ '{num} file uploaded.' | t('formie', { num: elements | length }) }}</p>
+            {% else %}
+                <p>{{ '{num} files uploaded.' | t('formie', { num: elements | length }) }}</p>
+            {% endif %}
+
+            <ul>
+                {% for element in elements %}
+                    <li>{{ element.filename }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+{% endif %}

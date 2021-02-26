@@ -10,10 +10,10 @@
             "attachFiles":true,
             "content":"[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"A user submission has been made on the \\\"\"},{\"type\":\"variableTag\",\"attrs\":{\"label\":\"Form Name\",\"value\":\"{formName}\"}},{\"type\":\"text\",\"text\":\"\\\" form on \"},{\"type\":\"variableTag\",\"attrs\":{\"label\":\"Site Name\",\"value\":\"{siteName}\"}},{\"type\":\"text\",\"text\":\" at \"},{\"type\":\"variableTag\",\"attrs\":{\"label\":\"Timestamp (yyyy-mm-dd hh:mm:ss)\",\"value\":\"{timestamp}\"}}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"Their submission details are:\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"variableTag\",\"attrs\":{\"label\":\"All Form Fields\",\"value\":\"{allFields}\"}}]}]",
             "enabled":true,
-            "from":"{emailAddress}",
+            "from":"{field.emailAddress}",
             "id":"new981-8077",
             "name":"Admin Notification",
-            "replyTo":"{emailAddress}",
+            "replyTo":"{field.emailAddress}",
             "subject":"A new submission was made on \"{formName}\"",
             "templateId":"",
             "to":"{systemEmail}"
@@ -26,7 +26,7 @@
             "name":"User Notification",
             "subject":"Thanks for contacting us!",
             "templateId":"",
-            "to":"{emailAddress}"
+            "to":"{field.emailAddress}"
         }
     ],
     "pages":[
@@ -48,7 +48,7 @@
                                 "firstNameDefaultValue":"",
                                 "firstNameEnabled":true,
                                 "firstNameLabel":"First Name",
-                                "firstNamePlaceholder":"eg. Peter",
+                                "firstNamePlaceholder":"e.g. Peter",
                                 "firstNameRequired":true,
                                 "handle":"yourName",
                                 "instructions":"Please enter your full name.",
@@ -59,7 +59,7 @@
                                 "lastNameDefaultValue":"",
                                 "lastNameEnabled":true,
                                 "lastNameLabel":"Last Name",
-                                "lastNamePlaceholder":"eg. Sherman",
+                                "lastNamePlaceholder":"e.g. Sherman",
                                 "lastNameRequired":true,
                                 "limitType":"characters",
                                 "middleNameCollapsed":true,
@@ -95,7 +95,7 @@
                                 "label":"Email Address",
                                 "labelPosition":"",
                                 "limitType":"characters",
-                                "placeholder":"eg. psherman@wallaby.com",
+                                "placeholder":"e.g. psherman@wallaby.com",
                                 "required":true
                             },
                             "type":"verbb\\formie\\fields\\formfields\\Email"
@@ -119,7 +119,7 @@
                                 "label":"Message",
                                 "labelPosition":"",
                                 "limitType":"characters",
-                                "placeholder":"eg. The reason for my enquiry is...",
+                                "placeholder":"e.g. The reason for my enquiry is...",
                                 "required":true
                             },
                             "type":"verbb\\formie\\fields\\formfields\\MultiLineText"

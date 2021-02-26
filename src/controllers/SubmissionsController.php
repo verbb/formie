@@ -120,6 +120,12 @@ class SubmissionsController extends Controller
         $variables['continueEditingUrl'] = $variables['baseCpEditUrl'] .
             (Craft::$app->getIsMultiSite() && Craft::$app->getSites()->currentSite->id !== $variables['site']->id ? '/' . $variables['site']->handle : '');
 
+        $formConfigJson = $variables['submission']->getForm()->getFrontEndJsVariables();
+
+        // Add some settings just for submission editing
+        $formConfigJson['settings']['outputJsTheme'] = false;
+        $variables['formConfigJson'] = $formConfigJson;
+
         return $this->renderTemplate('formie/submissions/_edit', $variables);
     }
 
@@ -204,6 +210,8 @@ class SubmissionsController extends Controller
         if ($submission->hasErrors()) {
             $errors = $submission->getErrors();
 
+            Formie::error(Craft::t('app', 'Couldn’t save submission due to errors - {e}.', ['e' => Json::encode($errors)]));
+
             if ($request->getAcceptsJson()) {
                 return $this->asJson([
                     'success' => false,
@@ -212,8 +220,6 @@ class SubmissionsController extends Controller
             }
 
             Craft::$app->getSession()->setError(Craft::t('formie', 'Couldn’t save submission due to errors.'));
-
-            Formie::error(Craft::t('app', 'Couldn’t save submission due to errors - {e}.', ['e' => Json::encode($errors)]));
 
             Craft::$app->getUrlManager()->setRouteParams([
                 'form' => $submission->getForm(),
@@ -227,6 +233,8 @@ class SubmissionsController extends Controller
         if (!Craft::$app->getElements()->saveElement($submission)) {
             $errors = $submission->getErrors();
 
+            Formie::error(Craft::t('app', 'Couldn’t save submission - {e}.', ['e' => Json::encode($errors)]));
+
             if ($request->getAcceptsJson()) {
                 return $this->asJson([
                     'success' => false,
@@ -235,8 +243,6 @@ class SubmissionsController extends Controller
             }
 
             Craft::$app->getSession()->setError(Craft::t('formie', 'Couldn’t save submission.'));
-
-            Formie::error(Craft::t('app', 'Couldn’t save submission - {e}.', ['e' => Json::encode($errors)]));
 
             // Send the submission back to the template
             Craft::$app->getUrlManager()->setRouteParams([
@@ -314,11 +320,27 @@ class SubmissionsController extends Controller
         $handle = $request->getRequiredBodyParam('handle');
         $goingBack = false;
 
+        Formie::log("Submission triggered for ${handle}.");
+
         /* @var Form $form */
         $form = Form::find()->handle($handle)->one();
 
         if (!$form) {
             throw new BadRequestHttpException("No form exists with the handle \"$handle\"");
+        }
+
+        $currentPage = null;
+        
+        if ($pageIndex = $request->getParam('pageIndex')) {
+            $pages = $form->getPages();
+            $currentPage = $pages[$pageIndex];
+        }
+
+        // Allow full submission payload to be provided for multi-page forms.
+        // Skip straight to the last page.
+        if ($request->getParam('completeSubmission')) {
+            $pages = $form->getPages();
+            $form->setCurrentPage($pages[count($pages) - 1]);
         }
 
         // Check for the next page - if there is one
@@ -392,10 +414,15 @@ class SubmissionsController extends Controller
             $submission->isIncomplete = true;
         }
 
-        $submission->validate();
+        // Don't validate when going back
+        if (!$goingBack) {
+            $submission->validate();
+        }
 
         if ($submission->hasErrors()) {
             $errors = $submission->getErrors();
+
+            Formie::error(Craft::t('app', 'Couldn’t save submission due to errors - {e}.', ['e' => Json::encode($errors)]));
 
             if ($request->getAcceptsJson()) {
                 return $this->_returnJsonResponse(false, $submission, $form, $nextPage, [
@@ -405,8 +432,6 @@ class SubmissionsController extends Controller
             }
 
             Formie::$plugin->getService()->setError($form->id, $errorMessage);
-
-            Formie::error(Craft::t('app', 'Couldn’t save submission due to errors - {e}.', ['e' => Json::encode($errors)]));
 
             Craft::$app->getUrlManager()->setRouteParams([
                 'form' => $form,
@@ -460,6 +485,8 @@ class SubmissionsController extends Controller
         if (!$success) {
             $errors = $submission->getErrors();
 
+            Formie::error(Craft::t('app', 'Couldn’t save submission due to errors - {e}.', ['e' => Json::encode($errors)]));
+
             if ($request->getAcceptsJson()) {
                 return $this->_returnJsonResponse(false, $submission, $form, $nextPage, [
                     'errors' => $errors,
@@ -468,8 +495,6 @@ class SubmissionsController extends Controller
             }
 
             Formie::$plugin->getService()->setError($form->id, $errorMessage);
-
-            Formie::error(Craft::t('app', 'Couldn’t save submission due to errors - {e}.', ['e' => Json::encode($errors)]));
 
             Craft::$app->getUrlManager()->setRouteParams([
                 'form' => $form,
@@ -629,7 +654,15 @@ class SubmissionsController extends Controller
 
     private function _returnJsonResponse($success, $submission, $form, $nextPage, $extras = [])
     {
-        $redirectUrl = Craft::$app->getView()->renderObjectTemplate($form->getRedirectUrl(), $submission);
+        // Try and get the redirect from the template, as it might've been altered in templates
+        $redirect = Craft::$app->getRequest()->getValidatedBodyParam('redirect');
+
+        // Otherwise, use the form defined
+        if (!$redirect) {
+            $redirect = $form->getRedirectUrl();
+        }
+
+        $redirectUrl = Craft::$app->getView()->renderObjectTemplate($redirect, $submission);
 
         $params = array_merge([
             'success' => $success,

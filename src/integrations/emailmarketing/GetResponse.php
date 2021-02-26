@@ -62,11 +62,11 @@ class GetResponse extends EmailMarketing
     {
         $settings = [];
             $lists = $this->request('GET', 'campaigns');
+            
+            // While we're at it, fetch the fields for the list
+            $fields = $this->request('GET', 'custom-fields');
 
             foreach ($lists as $list) {
-                // While we're at it, fetch the fields for the list
-                $fields = $this->request('GET', 'custom-fields');
-
                 $listFields = array_merge([
                     new IntegrationField([
                         'handle' => 'email',
@@ -88,11 +88,7 @@ class GetResponse extends EmailMarketing
         try {
             
         } catch (\Throwable $e) {
-            Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [
-                'message' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-            ]), true);
+            Integration::apiError($this, $e);
         }
 
         return new IntegrationFormSettings($settings);
@@ -144,11 +140,7 @@ class GetResponse extends EmailMarketing
                 return true;
             }
         } catch (\Throwable $e) {
-            Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [
-                'message' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-            ]), true);
+            Integration::apiError($this, $e);
 
             return false;
         }
@@ -171,11 +163,7 @@ class GetResponse extends EmailMarketing
             }
 
         } catch (\Throwable $e) {
-            Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [
-                'message' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-            ]), true);
+            Integration::apiError($this, $e);
 
             return false;
         }

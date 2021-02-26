@@ -11,6 +11,7 @@ use verbb\formie\events\SubmissionEvent;
 use verbb\formie\events\SendNotificationEvent;
 use verbb\formie\events\TriggerIntegrationEvent;
 use verbb\formie\fields\formfields;
+use verbb\formie\helpers\Variables;
 use verbb\formie\jobs\SendNotification;
 use verbb\formie\jobs\TriggerIntegration;
 use verbb\formie\models\FakeElement;
@@ -19,6 +20,7 @@ use verbb\formie\models\Settings;
 
 use Craft;
 use craft\db\Query;
+use craft\elements\db\ElementQuery;
 use craft\events\DefineUserContentSummaryEvent;
 use craft\events\ModelEvent;
 use craft\helpers\Console;
@@ -212,7 +214,7 @@ class Submissions extends Component
     /**
      * Deletes incomplete submissions older than the configured interval.
      */
-    public function pruneIncompleteSubmissions()
+    public function pruneIncompleteSubmissions($consoleInstance = null)
     {
         /* @var Settings $settings */
         $settings = Formie::$plugin->getSettings();
@@ -234,7 +236,7 @@ class Submissions extends Component
             try {
                 Craft::$app->getElements()->deleteElement($submission, true);
             } catch (Throwable $e) {
-                Formie::error('Failed to prune submission with ID: #' . $submission->id);
+                Formie::error("Failed to prune submission with ID: #{$submission->id}." . $e->getMessage());
             }
         }
 
@@ -251,11 +253,23 @@ class Submissions extends Component
                 ->orderBy(['dateCreated' => SORT_DESC])
                 ->all();
 
+            if ($submissions && $consoleInstance) {
+                $consoleInstance->stdout('Preparing to prune ' . count($submissions) . ' submissions.' . PHP_EOL, Console::FG_YELLOW);
+            }
+
             foreach ($submissions as $submission) {
                 try {
                     Craft::$app->getElements()->deleteElement($submission, true);
+
+                    if ($consoleInstance) {
+                        $consoleInstance->stdout("Pruned spam submission with ID: #{$submission->id}." . PHP_EOL, Console::FG_GREEN);
+                    }
                 } catch (Throwable $e) {
-                    Formie::error('Failed to prune spam submission with ID: #' . $submission->id);
+                    Formie::error("Failed to prune spam submission with ID: #{$submission->id}." . $e->getMessage());
+
+                    if ($consoleInstance) {
+                        $consoleInstance->stdout("Failed to prune spam submission with ID: #{$submission->id}. " . $e->getMessage() . PHP_EOL, Console::FG_RED);
+                    }
                 }
             }
         }
@@ -278,7 +292,7 @@ class Submissions extends Component
             $dataRetentionValue = (int)$form['dataRetentionValue'];
 
             // Setup intervals, depending on the setting
-            $intervalLookup = ['hours' => 'H', 'days' => 'D', 'weeks' => 'W', 'months' => 'M', 'years' => 'Y'];
+            $intervalLookup = ['minutes' => 'MIN', 'hours' => 'H', 'days' => 'D', 'weeks' => 'W', 'months' => 'M', 'years' => 'Y'];
             $intervalValue = $intervalLookup[$dataRetention] ?? '';
 
             if (!$intervalValue || !$dataRetentionValue) {
@@ -291,7 +305,11 @@ class Submissions extends Component
                 $dataRetentionValue = $dataRetentionValue * 7;
             }
 
-            $period = ($intervalValue === 'H') ? 'PT' : 'P';
+            $period = ($intervalValue === 'H' || $intervalValue === 'MIN') ? 'PT' : 'P';
+
+            if ($intervalValue === 'MIN') {
+                $intervalValue = 'M';
+            }
 
             $interval = new DateInterval("{$period}{$dataRetentionValue}{$intervalValue}");
             $date = new DateTime();
@@ -302,7 +320,7 @@ class Submissions extends Component
                 ->formId($form['id'])
                 ->all();
 
-            if ($submissions) {
+            if ($submissions && $consoleInstance) {
                 $consoleInstance->stdout('Preparing to prune ' . count($submissions) . ' submissions.' . PHP_EOL, Console::FG_YELLOW);
             }
 
@@ -314,10 +332,10 @@ class Submissions extends Component
                         $consoleInstance->stdout("Pruned submission with ID: #{$submission->id}." . PHP_EOL, Console::FG_GREEN);
                     }
                 } catch (Throwable $e) {
-                    Formie::error('Failed to prune submission with ID: #' . $submission->id);
+                    Formie::error("Failed to prune submission with ID: #{$submission->id}." . $e->getMessage());
 
                     if ($consoleInstance) {
-                        $consoleInstance->stdout("Failed to prune submission with ID: #{$submission->id}." . PHP_EOL, Console::FG_RED);
+                        $consoleInstance->stdout("Failed to prune submission with ID: #{$submission->id}. " . $e->getMessage() . PHP_EOL, Console::FG_RED);
                     }
                 }
             }
@@ -377,7 +395,7 @@ class Submissions extends Component
                 try {
                     Craft::$app->getElements()->deleteElement($submission);
                 } catch (Throwable $e) {
-                    Formie::error('Failed to delete user submission with ID: #' . $submission->id);
+                    Formie::error("Failed to delete user submission with ID: #{$submission->id}." . $e->getMessage());
                 }
             }
         }
@@ -403,7 +421,7 @@ class Submissions extends Component
             try {
                 Craft::$app->getElements()->restoreElement($submission);
             } catch (Throwable $e) {
-                Formie::error('Failed to restore user submission with ID: #' . $submission->id);
+                Formie::error("Failed to restore user submission with ID: #{$submission->id}." . $e->getMessage());
             }
         }
     }
@@ -425,13 +443,23 @@ class Submissions extends Component
 
         $excludes = $this->_getArrayFromMultiline($settings->spamKeywords);
 
+        // Handle any Twig used in the field
+        foreach ($excludes as $key => $exclude) {
+            if (strstr($exclude, '{')) {
+                unset($excludes[$key]);
+
+                $parsedString = $this->_getArrayFromMultiline(Variables::getParsedValue($exclude));
+                $excludes = array_merge($excludes, $parsedString);
+            }
+        }
+
         // Build a string based on field content - much easier to find values
         // in a single string than iterate through multiple arrays
         $fieldValues = $this->_getContentAsString($submission);
 
         foreach ($excludes as $exclude) {
             // Check if string contains
-            if (strstr($fieldValues, strtolower($exclude))) {
+            if (strtolower($exclude) && strstr(strtolower($fieldValues), strtolower($exclude))) {
                 $submission->isSpam = true;
                 $submission->spamReason = Craft::t('formie', 'Contains banned keyword: “{c}”', ['c' => $exclude]);
 
@@ -497,7 +525,7 @@ class Submissions extends Component
             $array = array_map('trim', explode(PHP_EOL, $string));
         }
 
-        return $array;
+        return array_filter($array);
     }
 
     /**
@@ -510,10 +538,29 @@ class Submissions extends Component
     {
         $fieldValues = [];
 
-        foreach ($submission->getSerializedFieldValues() as $fieldValue) {
-            // TODO: handle array values (repeater fields).
-            if (!is_array($fieldValue) && (string)$fieldValue) {
-                $fieldValues[] = (string)$fieldValue;
+        if (($fieldLayout = $submission->getFieldLayout()) !== null) {
+            foreach ($fieldLayout->getFields() as $field) {
+                try {
+                    $value = $submission->getFieldValue($field->handle);
+
+                    if ($value instanceof NestedFieldRowQuery) {
+                        $values = [];
+
+                        foreach ($value->all() as $row) {
+                            $fieldValues[] = $this->_getContentAsString($row);
+                        }
+
+                        continue;
+                    }
+
+                    if ($value instanceof ElementQuery) {
+                        $value = $value->one();
+                    }
+
+                    $fieldValues[] = (string)$value;
+                } catch (\Throwable $e) {
+                    continue;
+                }
             }
         }
 
@@ -565,7 +612,7 @@ class Submissions extends Component
 
                     if ($fieldLayout = $field->getFieldLayout()) {
                         $content = $this->_getFakeFieldContent($fieldLayout->getFields());
-                        $query->setFieldValues($content);
+                        $query->setFieldValues($content, $fieldLayout);
                     }
 
                     $fieldContent[$field->handle] = $query;
@@ -591,7 +638,17 @@ class Submissions extends Component
 
                     break;
                 case formfields\Phone::class:
-                    $fieldContent[$field->handle] = $faker->phoneNumber;
+                    if ($field->countryEnabled) {
+                        $number = $faker->e164PhoneNumber;
+
+                        $phoneUtil = \libphonenumber\PhoneNumberUtil::getInstance();
+                        $numberProto = $phoneUtil->parse($number);
+
+                        $fieldContent[$field->handle]['number'] = $number;
+                        $fieldContent[$field->handle]['country'] = $phoneUtil->getRegionCodeForNumber($numberProto);
+                    } else {
+                        $fieldContent[$field->handle] = $faker->phoneNumber;
+                    }
 
                     break;
                 case formfields\Radio::class:

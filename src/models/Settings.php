@@ -77,7 +77,7 @@ class Settings extends Model
     public $useQueueForIntegrations = true;
 
     // Spam
-    public $saveSpam = false;
+    public $saveSpam = true;
     public $spamLimit = 500;
     public $spamBehaviour = self::SPAM_BEHAVIOUR_SUCCESS;
     public $spamKeywords = '';
@@ -87,6 +87,8 @@ class Settings extends Model
     public $sendEmailAlerts = false;
     public $sentNotifications = true;
     public $alertEmails;
+
+    public $captchas = [];
 
 
     // Public Methods

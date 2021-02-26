@@ -25,21 +25,10 @@ class Google extends AddressProvider
 
     public $apiKey;
     public $options = [];
-    private $uniqueId;
 
 
     // Public Methods
     // =========================================================================
-
-    /**
-     * @inheritDoc
-     */
-    public function init()
-    {
-        parent::init();
-
-        $this->uniqueId = uniqid(self::GOOGLE_INPUT_NAME, false);
-    }
 
     /**
      * @inheritDoc
@@ -85,7 +74,6 @@ class Google extends AddressProvider
 
         $html = Craft::$app->getView()->renderTemplate('formie/integrations/address-providers/google-places/_input', [
             'field' => $field,
-            'data' => $this->uniqueId,
             'options' => $options,
         ]);
 
@@ -103,7 +91,7 @@ class Google extends AddressProvider
     /**
      * @inheritDoc
      */
-    public function getFrontEndJsVariables(Form $form, $field = null)
+    public function getFrontEndJsVariables($field = null)
     {
         if (!$this->hasValidSettings()) {
             return null;
@@ -111,18 +99,13 @@ class Google extends AddressProvider
 
         $settings = [
             'apiKey' => Craft::parseEnv($this->apiKey),
-            'container' => $this->uniqueId,
             'options' => $this->_getOptions(),
-            'fieldContainer' => 'data-address-id-' . $field->id,
-            'formId' => 'formie-form-' . $form->id,
         ];
 
-        $src = Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/addressproviders/dist/js/google-address.js', true);
-        $onload = 'new FormieGoogleAddress(' . Json::encode($settings) . ');';
-
         return [
-            'src' => $src,
-            'onload' => $onload,
+            'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/addressproviders/dist/js/google-address.js', true),
+            'module' => 'FormieGoogleAddress',
+            'settings' => $settings,
         ];
     }
 

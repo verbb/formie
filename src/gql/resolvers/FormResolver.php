@@ -2,8 +2,10 @@
 namespace verbb\formie\gql\resolvers;
 
 use verbb\formie\elements\Form;
+use verbb\formie\helpers\Gql as GqlHelper;
 
 use craft\gql\base\ElementResolver;
+use craft\helpers\Db;
 
 use GraphQL\Type\Definition\ResolveInfo;
 
@@ -26,6 +28,16 @@ class FormResolver extends ElementResolver
 
         foreach ($arguments as $key => $value) {
             $query->$key($value);
+        }
+
+        $pairs = GqlHelper::extractAllowedEntitiesFromSchema('read');
+
+        if (!GqlHelper::canQueryForms()) {
+            return [];
+        }
+
+        if (!GqlHelper::canSchema('formieForms.all')) {
+            $query->andWhere(['in', 'elements.id', array_values(Db::idsByUids('{{%formie_forms}}', $pairs['formieForms']))]);
         }
 
         return $query;

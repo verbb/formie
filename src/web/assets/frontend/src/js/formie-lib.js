@@ -9,7 +9,14 @@ export class Formie {
     }
 
     initForms() {
+        // TODO: Change this to not be an ID for greater flexibility at the next breakpoint
         this.$forms = document.querySelectorAll('form[id^="formie-form-"]') || [];
+
+        // We use this in the CP, where it's a bit tricky to add a form ID. So check just in case.
+        // Might also be handy for front-end too!
+        if (!this.$forms.length) {
+            this.$forms = document.querySelectorAll('div[id^="formie-form-"]') || [];
+        }
 
         this.$forms.forEach($form => {
             this.initForm($form);
@@ -24,11 +31,13 @@ export class Formie {
         }));
     }
 
-    initForm($form) {
-        // Initialize the form class with the `data-config` param on the form
-        var formConfig = JSON.parse($form.getAttribute('data-config'));
+    initForm($form, formConfig = {}) {
+        if (isEmpty(formConfig)) {
+            // Initialize the form class with the `data-config` param on the form
+            formConfig = JSON.parse($form.getAttribute('data-config'));
+        }
 
-        if (!formConfig) {
+        if (isEmpty(formConfig)) {
             console.error('Unable to parse `data-config` form attribute for config. Ensure this attribute exists on your form and contains valid JSON.');
 
             return;
@@ -44,6 +53,10 @@ export class Formie {
         var form = new FormieFormBase(formConfig);
 
         this.forms.push(form);
+
+        // Find all `data-field-config` attributes for the current page and form
+        // and build an object of them to initialize when loaded.
+        form.fieldConfigs = this.parseFieldConfig($form, $form);
 
         // Is there any additional JS config registered for this form?
         if (registeredJs.length) {
@@ -62,11 +75,22 @@ export class Formie {
                     $script.src = config.src;
                     $script.defer = true;
 
-                    // Parse any JS onload code we have. Yes, I'm aware of `eval()` but its pretty safe as it's
-                    // only provided from the field or captcha class - no user data.
-                    $script.onload = function() {
-                        if (config.onload) {
-                            eval(config.onload);
+                    // Initialize all matching fields - their config is already rendered in templates
+                    $script.onload = () => {
+                        if (config.module) {
+                            var fieldConfigs = form.fieldConfigs[config.module];
+
+                            // Handle multiple fields on a page, creating a new JS class instance for each
+                            if (fieldConfigs && Array.isArray(fieldConfigs) && fieldConfigs.length) {
+                                fieldConfigs.forEach(fieldConfig => {
+                                    this.initJsClass(config.module, fieldConfig);
+                                });
+                            }
+
+                            // Handle captchas that have global settings, instead of per-field
+                            if (config.settings) {
+                                this.initJsClass(config.module, config.settings);
+                            }
                         }
                     };
                 }
@@ -74,6 +98,44 @@ export class Formie {
                 form.$registeredJs.appendChild($script);
             });
         }
+    }
+
+    initJsClass(className, params) {
+        var moduleClass = window[className];
+
+        if (moduleClass) {
+            new moduleClass(params);
+        }
+    }
+
+    // Note the use of $form and $element to habdle Repeater
+    parseFieldConfig($element, $form) {
+        var config = {};
+
+        $element.querySelectorAll('[data-field-config]').forEach(($field) => {
+            var fieldConfig = JSON.parse($field.getAttribute('data-field-config'));
+
+            // Some fields supply multiple modules, so normalise for ease-of-processing
+            if (!Array.isArray(fieldConfig)) {
+                fieldConfig = [fieldConfig];
+            }
+
+            fieldConfig.forEach((nestedFieldConfig) => {
+                if (!config[nestedFieldConfig.module]) {
+                    config[nestedFieldConfig.module] = [];
+                }
+
+                // Provide field classes with the data they need
+                config[nestedFieldConfig.module].push({
+                    $form,
+                    $field,
+                    ...nestedFieldConfig,
+                });
+
+            });
+        });
+
+        return config;
     }
 
     getForm($form) {

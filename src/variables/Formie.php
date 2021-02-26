@@ -1,11 +1,6 @@
 <?php
 namespace verbb\formie\variables;
 
-use Craft;
-
-use craft\errors\MissingComponentException;
-use Twig\Markup;
-
 use verbb\formie\Formie as FormiePlugin;
 use verbb\formie\base\FormFieldInterface;
 use verbb\formie\base\FormFieldTrait;
@@ -17,7 +12,13 @@ use verbb\formie\elements\db\FormQuery;
 use verbb\formie\elements\db\SubmissionQuery;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\FieldLayoutPage;
+use verbb\formie\models\Notification;
 use verbb\formie\services\Rendering;
+
+use Craft;
+use craft\errors\MissingComponentException;
+
+use Twig\Markup;
 
 class Formie
 {
@@ -207,9 +208,9 @@ class Formie
      * @param Form $form
      * @return string|null
      */
-    public function getParsedValue($value, Submission $submission, Form $form = null)
+    public function getParsedValue($value, Submission $submission, Form $form = null, Notification $notification = null)
     {
-        return Variables::getParsedValue($value, $submission, $form);
+        return Variables::getParsedValue($value, $submission, $form, $notification);
     }
 
     public function populateFormValues($form, $values)
@@ -266,21 +267,6 @@ class Formie
                 'webhooks' => ['title' => Craft::t('formie', 'Webhooks')],
                 'miscellaneous' => ['title' => Craft::t('formie', 'Miscellaneous')],
             ];
-
-            $plugins = [];
-
-            if (FormiePlugin::$plugin->getService()->isPluginInstalledAndEnabled('freeform')) {
-                $plugins['migrate/freeform'] = ['title' => Craft::t('formie', 'Freeform')];
-            }
-
-            if (FormiePlugin::$plugin->getService()->isPluginInstalledAndEnabled('sprout-forms')) {
-                $plugins['migrate/sprout-forms'] = ['title' => Craft::t('formie', 'Sprout Forms')];
-            }
-
-            if ($plugins) {
-                $navItems['migrations-heading'] = ['heading' => Craft::t('formie', 'Migrations')];
-                $navItems = array_merge($navItems, $plugins);
-            }
         } else {
             $navItems = [
                 'integrations-heading' => ['heading' => Craft::t('formie', 'Integrations')],
@@ -291,6 +277,21 @@ class Formie
                 'webhooks' => ['title' => Craft::t('formie', 'Webhooks')],
                 'miscellaneous' => ['title' => Craft::t('formie', 'Miscellaneous')],
             ];
+        }
+
+        $plugins = [];
+
+        if (FormiePlugin::$plugin->getService()->isPluginInstalledAndEnabled('freeform')) {
+            $plugins['migrate/freeform'] = ['title' => Craft::t('formie', 'Freeform')];
+        }
+
+        if (FormiePlugin::$plugin->getService()->isPluginInstalledAndEnabled('sprout-forms')) {
+            $plugins['migrate/sprout-forms'] = ['title' => Craft::t('formie', 'Sprout Forms')];
+        }
+
+        if ($plugins) {
+            $navItems['migrations-heading'] = ['heading' => Craft::t('formie', 'Migrations')];
+            $navItems = array_merge($navItems, $plugins);
         }
 
         return $navItems;

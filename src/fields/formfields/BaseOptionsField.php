@@ -1,14 +1,15 @@
 <?php
 namespace verbb\formie\fields\formfields;
 
+use verbb\formie\base\FormFieldTrait;
+use verbb\formie\models\IntegrationField;
+
+use Craft;
 use craft\base\ElementInterface;
+use craft\fields\BaseOptionsField as CraftBaseOptionsField;
 use craft\fields\data\MultiOptionsFieldData;
 use craft\fields\data\OptionData;
 use craft\fields\data\SingleOptionFieldData;
-use verbb\formie\base\FormFieldTrait;
-
-use Craft;
-use craft\fields\BaseOptionsField as CraftBaseOptionsField;
 
 abstract class BaseOptionsField extends CraftBaseOptionsField
 {
@@ -53,6 +54,40 @@ abstract class BaseOptionsField extends CraftBaseOptionsField
     /**
      * @inheritDoc
      */
+    public function serializeValueForExport($value, ElementInterface $element = null)
+    {
+        if ($value instanceof MultiOptionsFieldData) {
+            $values = [];
+
+            foreach ($value as $selectedValue) {
+                /** @var OptionData $selectedValue */
+                $values[] = $selectedValue->value;
+            }
+
+            return implode(', ', $values);
+        }
+
+        return (string)$value;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getFieldMappedValueForIntegration(IntegrationField $integrationField, $formField, $value, $submission)
+    {
+        // If mapping to a string-based integration field, return multi-values as CSV
+        if ($integrationField->getType() === IntegrationField::TYPE_STRING) {
+            if (is_array($value)) {
+                return implode(', ', $value);
+            }
+        }
+
+        return $value;
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function getValue(ElementInterface $element)
     {
         $value = $element->getFieldValue($this->handle);
@@ -65,6 +100,8 @@ abstract class BaseOptionsField extends CraftBaseOptionsField
                 /** @var OptionData $selectedValue */
                 $values[] = $selectedValue->value;
             }
+
+            return $values;
         }
 
         return null;

@@ -32,6 +32,9 @@ return [
         'useQueueForNotifications' => true,
         'useQueueForIntegrations' => true,
 
+        // Sent Notifications
+        'maxSentNotificationsAge' => 30,
+
         // Spam
         'saveSpam' => false,
         'spamLimit' => 500,
@@ -69,6 +72,9 @@ return [
 - `maxIncompleteSubmissionAge` - The maximum age of an incomplete submission in days before it is deleted in garbage collection. Set to 0 to disable automatic deletion.
 - `useQueueForNotifications` - Whether to use Craft‘s queue system to trigger emails. This is highly, **highly** recommended to prevent slow submissions for your users. This may be useful to disable for local development.
 - `useQueueForIntegrations` - Whether to use Craft‘s queue system to trigger integrations. This is highly, **highly** recommended to prevent slow submissions for your users. This may be useful to disable for local development.
+
+#### Sent Notifications
+- `maxSentNotificationsAge` - The number of days to keep sent notifications before they are deleted permanently. Set to 0 to disable automatic deletion.
 
 #### Spam
 - `saveSpam` - Whether to save spam submissions to the database.

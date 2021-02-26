@@ -45,6 +45,8 @@ class Checkboxes extends BaseOptionsField implements FormFieldInterface
 
     public $multi = true;
     public $layout;
+    public $toggleCheckbox;
+    public $toggleCheckboxLabel;
 
 
     // Public Methods
@@ -121,14 +123,11 @@ class Checkboxes extends BaseOptionsField implements FormFieldInterface
     /**
      * @inheritdoc
      */
-    public function getFrontEndJsVariables(Form $form)
+    public function getFrontEndJsModules()
     {
-        $src = Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/fields/checkbox-radio.js', true);
-        $onload = 'new FormieCheckboxRadio(' . Json::encode(['formId' => $form->id]) . ');';
-
         return [
-            'src' => $src,
-            'onload' => $onload,
+            'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/fields/checkbox-radio.js', true),
+            'module' => 'FormieCheckboxRadio',
         ];
     }
 
@@ -197,6 +196,23 @@ class Checkboxes extends BaseOptionsField implements FormFieldInterface
                 ]),
             ]),
             SchemaHelper::prePopulate(),
+            SchemaHelper::selectField([
+                'label' => Craft::t('formie', 'Add Toggle Checkbox'),
+                'help' => Craft::t('formie', 'Whether to add an additional checkbox to toggle all checkboxes in this field by.'),
+                'name' => 'toggleCheckbox',
+                'options' => [
+                    [ 'label' => Craft::t('formie', 'None'), 'value' => '' ],
+                    [ 'label' => Craft::t('formie', 'Top of List'), 'value' => 'top' ],
+                    [ 'label' => Craft::t('formie', 'Bottom of List'), 'value' => 'bottom' ],
+                ],
+            ]),
+            SchemaHelper::toggleContainer('settings.toggleCheckbox', [
+                SchemaHelper::textField([
+                    'label' => Craft::t('formie', 'Toggle Checkbox Label'),
+                    'help' => Craft::t('formie', 'Enter the label for the toggle checkbox field.'),
+                    'name' => 'toggleCheckboxLabel',
+                ]),
+            ]),
         ];
     }
 

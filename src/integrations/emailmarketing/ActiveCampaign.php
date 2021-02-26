@@ -64,14 +64,18 @@ class ActiveCampaign extends EmailMarketing
         $settings = [];
 
         try {
-            $response = $this->request('GET', 'lists');
-            $lists = $response['lists'] ?? [];
+            $lists = $this->_getPaginated('lists');
+
+            // While we're at it, fetch the fields for the list
+            $response = $this->request('GET', 'fields', [
+                'query' => [
+                    'limit' => 100,
+                ],
+            ]);
+
+            $fields = $response['fields'] ?? [];
 
             foreach ($lists as $list) {
-                // While we're at it, fetch the fields for the list
-                $response = $this->request('GET', 'fields');
-                $fields = $response['fields'] ?? [];
-
                 $listFields = array_merge([
                     new IntegrationField([
                         'handle' => 'email',
@@ -99,11 +103,7 @@ class ActiveCampaign extends EmailMarketing
                 ]);
             }
         } catch (\Throwable $e) {
-            Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [
-                'message' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-            ]), true);
+            Integration::apiError($this, $e);
         }
 
         return new IntegrationFormSettings($settings);
@@ -163,11 +163,7 @@ class ActiveCampaign extends EmailMarketing
                 return true;
             }
         } catch (\Throwable $e) {
-            Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [
-                'message' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-            ]), true);
+            Integration::apiError($this, $e);
 
             return false;
         }
@@ -181,13 +177,9 @@ class ActiveCampaign extends EmailMarketing
     public function fetchConnection(): bool
     {
         try {
-            $response = $this->request('GET', '');
+            $response = $this->request('GET', 'contacts');
         } catch (\Throwable $e) {
-            Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [
-                'message' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-            ]), true);
+            Integration::apiError($this, $e);
 
             return false;
         }
@@ -291,5 +283,29 @@ class ActiveCampaign extends EmailMarketing
         }
 
         return $customFields;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    private function _getPaginated($endpoint, $limit = 100, $offset = 0, $items = [])
+    {
+        $response = $this->request('GET', $endpoint, [
+            'query' => [
+                'limit' => $limit,
+                'offset' => $offset,
+            ]
+        ]);
+
+        $newItems = $response[$endpoint] ?? [];
+        $total = $response['meta']['total'] ?? 0;
+
+        $items = array_merge($items, $newItems);
+
+        if (count($items) < $total) {
+            $items = array_merge($items, $this->_getPaginated($endpoint, $limit, $offset + $limit, $items));
+        }
+
+        return $items;
     }
 }

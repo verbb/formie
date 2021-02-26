@@ -2,8 +2,12 @@
 {% import '_includes/forms' as forms %}
 {% import 'verbb-base/_macros' as macros %}
 
-{% do view.registerAssetBundle('verbb\\formie\\web\\assets\\forms\\FormsAsset') %}
 {% do view.registerAssetBundle('verbb\\formie\\web\\assets\\cp\\CpAsset') -%}
+
+{% set jsFile = view.getAssetManager().getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/formie.js', true) %}
+{% do view.registerJsFile(jsFile) %}
+
+{% set form = submission.getForm() %}
 
 {% set crumbs = [
     { label: craft.formie.getPluginName() | t('formie'), url: url('formie') },
@@ -17,6 +21,8 @@
 
 {% set bodyClass = 'fui-body fui-submission' %}
 {% set selectedSubnavItem = 'submissions' %}
+
+{% hook 'formie.cp.submissions.edit' %}
 
 {% block actionButton %}
 
@@ -51,43 +57,53 @@
 
 {% block content %}
 
-{# Helps with JS, that would otherwise only apply for the front-end #}
-<div id="{{ submission.form.formId }}">
-    <input type="hidden" name="action" value="formie/submissions/save-submission">
-    <input type="hidden" name="handle" value="{{ submission.form.handle }}">
-    {{ redirectInput('formie/submissions') }}
-    {{ csrfInput() }}
+{% set attributes = {
+    id: form.formId,
+    data: {
+        config: formConfigJson,
+    }
+} %}
 
-    {% if submission.id %}
-        <input type="hidden" name="submissionId" value="{{ submission.id }}">
-    {% endif %}
+<div {{ attr(attributes) }}>
+    <div class="fui-i">
+        <input type="hidden" name="action" value="formie/submissions/save-submission">
+        <input type="hidden" name="handle" value="{{ submission.form.handle }}">
+        {{ redirectInput('formie/submissions') }}
+        {{ csrfInput() }}
 
-    {% if craft.app.getIsMultiSite() %}
-        <input type="hidden" name="siteId" value="{{ submission.siteId }}">
-    {% endif %}
+        {% if submission.id %}
+            <input type="hidden" name="submissionId" value="{{ submission.id }}">
+        {% endif %}
 
-    <div id="fields">
-        {% set fieldLayout = submission.getFieldLayout() %}
+        {% if craft.app.getIsMultiSite() %}
+            <input type="hidden" name="siteId" value="{{ submission.siteId }}">
+        {% endif %}
 
-        {% for tab in fieldLayout.getTabs() %}
-            <div id="{{ tab.getHtmlId() }}"{% if not loop.first %} class="hidden"{% endif %}>
-                {% set rows = craft.formie.plugin.fields.groupIntoRows(tab.getFields()) %}
+        <div id="fields">
+            {% set fieldLayout = submission.getFieldLayout() %}
 
-                {% namespace 'fields' %}
-                    {% for row in rows %}
-                        {% for field in row.fields %}
-                            {% include '_includes/field' with {
-                                field: field,
-                                element: submission,
-                                required: field.required,
-                            } %}
+            {% for tab in fieldLayout.getTabs() %}
+                <div id="{{ tab.getHtmlId() }}"{% if not loop.first %} class="hidden"{% endif %}>
+                    {% set rows = craft.formie.plugin.fields.groupIntoRows(tab.getFields()) %}
+
+                    {% namespace 'fields' %}
+                        {% for row in rows %}
+                            {% for field in row.fields %}
+                                {% include '_includes/field' with {
+                                    field: field,
+                                    element: submission,
+                                    required: field.required,
+                                } %}
+                            {% endfor %}
                         {% endfor %}
-                    {% endfor %}
-                {% endnamespace %}
-            </div>
-        {% endfor %}
+                    {% endnamespace %}
+                </div>
+            {% endfor %}
+        </div>
     </div>
 </div>
+
+{% hook 'formie.cp.submissions.edit.content' %}
 
 {% endblock %}
 
@@ -175,7 +191,7 @@
     </div>
 {% endif %}
 
-{% if submission.user %}
+{% if submission.getUser() %}
     <div id="meta-details" class="meta">
         <div class="field">
             <div class="heading">
@@ -183,7 +199,7 @@
             </div>
 
             <div class="input ltr">
-                <a href="{{ submission.user.cpEditUrl }}">{{ submission.user }}</a>
+                <a href="{{ submission.getUser().cpEditUrl }}">{{ submission.getUser() }}</a>
             </div>
         </div>
     </div>
@@ -214,6 +230,8 @@
         </div>
     {% endblock %}
 </div>
+
+{% hook 'formie.cp.submissions.edit.details' %}
 
 {% endblock %}
 

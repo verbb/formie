@@ -5,3 +5,55 @@
 #fields .field .fui-row:not(:last-child) {
     margin-bottom: 24px;
 }
+
+// Import fields used on the front-end, but also in submissions
+@import '../../../frontend/src/scss/variables';
+@import '../../../frontend/src/scss/fields/rich-text';
+@import '../../../frontend/src/scss/fields/repeater';
+@import '~craftcms-sass/mixins';
+
+
+
+// ==========================================================================
+// Field Overrides
+// ==========================================================================
+
+.fui-rich-text-button {
+    border: 0;
+}
+
+.fui-rich-text-content {
+    padding: 50px 0.75rem 0.5rem;
+    border: 1px solid #CBD5E0;
+    border-radius: 0.25rem;
+    background-color: #fff;
+
+    &:focus {
+        @include input-focused-styles;
+    }
+}
+
+.fui-instructions {
+    color: #718096;
+    font-size: 0.875rem;
+    line-height: 1.25;
+    display: block;
+    margin-top: 0.5rem;
+}
+
+.fui-repeater-remove-btn {
+    background-color: #d8dee7;
+}
+
+.fui-repeater-row .fui-fieldset {
+    position: static;
+}
+
+.fui-repeater-row .field {
+    flex: 1;
+    margin: 0 10px !important;
+}
+
+.fui-group-field {
+    padding: 15px;
+}

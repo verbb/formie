@@ -4,6 +4,7 @@ namespace verbb\formie\fields\formfields;
 use verbb\formie\base\FormField;
 use verbb\formie\base\NestedFieldInterface;
 use verbb\formie\base\NestedFieldTrait;
+use verbb\formie\elements\Form;
 use verbb\formie\elements\db\NestedFieldRowQuery;
 use verbb\formie\helpers\SchemaHelper;
 
@@ -114,6 +115,35 @@ class Group extends FormField implements NestedFieldInterface, EagerLoadingField
         return Craft::$app->getView()->renderTemplate('formie/_formfields/group/preview', [
             'field' => $this
         ]);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function populateValue($value)
+    {
+        if (!is_array($value)) {
+            return;
+        }
+
+        if ($fields = $this->getFields()) {
+            foreach ($fields as $field) {
+                $fieldValue = $value[$field->handle] ?? null;
+
+                if ($fieldValue) {
+                    $field->populateValue($fieldValue);
+                }
+            }
+        }
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getConfigJson()
+    {
+        // Group fields themselves should not contain the inner field's JS
+        return null;
     }
 
     /**

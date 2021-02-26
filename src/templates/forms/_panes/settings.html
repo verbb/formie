@@ -91,7 +91,16 @@
     toggle: 'collect-user',
 }) }}
 
-{% set dataRetention = form.dataRetention ?? 'forever' %}
+{# Annoying, but different settings for top-level #}
+{% if stencil is defined %}
+    {% set dataRetention = form.data.dataRetention ?? 'forever' %}
+    {% set dataRetentionValue = form.data.dataRetentionValue ?? null %}
+    {% set fileUploadsAction = form.data.fileUploadsAction ?? 'retain' %}
+{% else %}
+    {% set dataRetention = form.dataRetention ?? 'forever' %}
+    {% set dataRetentionValue = form.dataRetentionValue ?? null %}
+    {% set fileUploadsAction = form.fileUploadsAction ?? 'retain' %}
+{% endif %}
 
 {{ forms.selectField({
     label: 'Data Retention' | t('formie'),
@@ -101,6 +110,10 @@
     options: [{
         label: 'Forever' | t('formie'),
         value: 'forever',
+    },
+    {
+        label: 'Number of minutes' | t('formie'),
+        value: 'minutes',
     },
     {
         label: 'Number of hours' | t('formie'),
@@ -127,7 +140,7 @@
     value: dataRetention,
 }) }}
 
-<div class="fui-dr-hours fui-dr-days fui-dr-weeks fui-dr-months fui-dr-years {{ dataRetention == 'forever' ? 'hidden' }}">
+<div class="fui-dr-minutes fui-dr-hours fui-dr-days fui-dr-weeks fui-dr-months fui-dr-years {{ dataRetention == 'forever' ? 'hidden' }}">
     {{ forms.textField({
         label: 'Data Retention Duration' | t('formie'),
         instructions: 'After this duration has been met, submissions will be deleted.' | t('formie'),
@@ -135,7 +148,7 @@
         name: 'dataRetentionValue',
         type: 'number',
         size: 3,
-        value: form.dataRetentionValue ?? null,
+        value: dataRetentionValue,
     }) }}
 </div>
 
@@ -152,7 +165,7 @@
         label: 'Delete files' | t('formie'),
         value: 'delete',
     }],
-    value: form.fileUploadsAction ?? 'retain',
+    value: fileUploadsAction,
 }) }}
 
 <hr>

@@ -8,16 +8,113 @@ use craft\base\Element;
 use craft\base\ElementInterface;
 use craft\elements\db\ElementQuery;
 use craft\elements\db\ElementQueryInterface;
+use craft\fields\data\MultiOptionsFieldData;
+use craft\fields\data\OptionData;
+use craft\fields\data\SingleOptionFieldData;
 use craft\helpers\ArrayHelper;
+use craft\helpers\Db;
 use craft\helpers\Html;
 use craft\helpers\ElementHelper;
 use craft\helpers\Template as TemplateHelper;
 
 trait RelationFieldTrait
 {
+    // Properties
+    // =========================================================================
+
+    public $displayType = 'dropdown';
+    public $labelSource = 'title';
+    public $orderBy = 'title ASC';
+
+
     // Public Methods
     // =========================================================================
 
+    /**
+     * @inheritDoc
+     */
+    public function getIsFieldset(): bool
+    {
+        if ($this->displayType === 'checkboxes') {
+            return true;
+        }
+
+        if ($this->displayType === 'radio') {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function serializeValueForExport($value, ElementInterface $element = null)
+    {
+        $value = $this->_all($value, $element);
+
+        return array_reduce($value->all(), function($acc, $input) {
+            return $acc . $this->_getElementLabel($input);
+        }, '');
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function serializeValueForIntegration($value, ElementInterface $element = null)
+    {
+        return array_map(function($input) {
+            return $this->_getElementLabel($input);
+        }, $this->_all($value, $element)->all());
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getPreviewElements(): array
+    {
+        $options = array_map(function($input) {
+            return ['label' => $this->_getElementLabel($input), 'value' => $input->id];
+        }, $this->getElementsQuery()->limit(5)->all());
+
+        return [
+            'total' => $this->getElementsQuery()->count(),
+            'options' => $options,
+        ];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function modifyFieldSettings($settings)
+    {
+        $defaultValue = $this->defaultValue ?? [];
+
+        // For a default value, supply extra content that can't be called directly in Vue, like it can in Twig.
+        if ($ids = ArrayHelper::getColumn($defaultValue, 'id')) {
+            $elements = static::elementType()::find()->id($ids)->all();
+
+            // Maintain an options array so we can keep track of the label in Vue, not just the saved value
+            $settings['defaultValueOptions'] = array_map(function($input) {
+                return ['label' => $this->_getElementLabel($input), 'value' => $input->id];
+            }, $elements);
+
+            // Render the HTML needed for the element select field (for default value). jQuery needs DOM manipulation
+            // so while gross, we have to supply the raw HTML, as opposed to models in the Vue-way.
+            $settings['defaultValueHtml'] = Craft::$app->getView()->renderTemplate('formie/_includes/element-select-inuput-elements', ['elements' => $elements]);
+        }
+
+        // For certain display types, pre-fetch elements for use in the preview in the CP for the field. Saves an initial Ajax request
+        if ($this->displayType === 'checkboxes' || $this->displayType === 'radio') {
+            $settings['elements'] = $this->getPreviewElements();
+        }
+
+        return $settings;
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function getCpElementHtml(array &$context)
     {
         if (!isset($context['element'])) {
@@ -179,6 +276,144 @@ trait RelationFieldTrait
         return null;
     }
 
+    public function getDefaultValueQuery()
+    {
+        $defaultValue = $this->defaultValue ?? [];
+
+        if ($ids = ArrayHelper::getColumn($defaultValue, 'id')) {
+            return static::elementType()::find()->id($ids);
+        }
+
+        return null;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getFieldOptions()
+    {
+        $options = [];
+
+        if ($this->displayType === 'dropdown') {
+            $options[] = ['label' => $this->placeholder, 'value' => ''];
+        }
+
+        foreach ($this->getElementsQuery()->all() as $element) {
+            $options[] = ['label' => $this->_getElementLabel($element), 'value' => $element->id];
+        }
+
+        return $options;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getDisplayTypeValue($value)
+    {
+        if ($this->displayType === 'checkboxes') {
+            $options = [];
+
+            if ($value) {
+                foreach ($value->all() as $element) {
+                    $options[] = new OptionData($this->_getElementLabel($element), $element->id, true);
+                }
+            }
+
+            return new MultiOptionsFieldData($options);
+        }
+
+        if ($this->displayType === 'radio') {
+            if ($value) {
+                if ($element = $value->one()) {
+                    return new SingleOptionFieldData($this->_getElementLabel($element), $element->id, true);
+                }
+            }
+
+            return null;
+        }
+
+        if ($this->displayType === 'dropdown') {
+            if ($value) {
+                if ($element = $value->one()) {
+                    return new SingleOptionFieldData($this->_getElementLabel($element), $element->id, true);
+                }
+            }
+
+            return null;
+        }
+
+        return $value;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function defineLabelSourceOptions()
+    {
+        return [];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getLabelSourceOptions()
+    {
+        $options = array_merge([
+            ['value' => 'id', 'label' => Craft::t('app', 'ID')],
+        ], $this->defineLabelSourceOptions(), [
+            ['value' => 'dateCreated', 'label' => Craft::t('app', 'Date Created')],
+            ['value' => 'dateUpdated', 'label' => Craft::t('app', 'Date Updated')],
+        ]);
+
+        return $options;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getOrderByOptions()
+    {
+        $options = [];
+
+        foreach ($this->getLabelSourceOptions() as $opt) {
+            $options[] = ['value' => $opt['value'] . ' ASC', 'label' => $opt['label'] . ' Ascending'];
+            $options[] = ['value' => $opt['value'] . ' DESC', 'label' => $opt['label'] . ' Descending'];
+        }
+
+        return $options;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected function getStringCustomFieldOptions($fields)
+    {
+        $options = [];
+
+        // Better to opt-out fields so we can always allow third-party ones which are impossible to check
+        $excludedFields = [
+            \craft\fields\Assets::class,
+            \craft\fields\Categories::class,
+            \craft\fields\Checkboxes::class,
+            \craft\fields\Entries::class,
+            \craft\fields\Matrix::class,
+            \craft\fields\MultiSelect::class,
+            \craft\fields\Table::class,
+            \craft\fields\Tags::class,
+            \craft\fields\Users::class,
+        ];
+
+        foreach ($fields as $field) {
+            if (in_array(get_class($field), $excludedFields)) {
+                 continue;
+            }
+
+            $options[] = ['label' => $field->name, 'value' => $field->handle];
+        }
+
+        return $options;
+    }
+
 
     // Private Methods
     // =========================================================================
@@ -203,4 +438,19 @@ trait RelationFieldTrait
         }
         return $clone;
     }
+
+    /**
+     * @inheritDoc
+     */
+    private function _getElementLabel($element)
+    {
+        try {
+            return (string)$element->{$this->labelSource};
+        } catch (\Throwable $e) {
+
+        }
+
+        return $element->title;
+    }
+
 }

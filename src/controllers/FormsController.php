@@ -158,14 +158,20 @@ class FormsController extends Controller
                 $notifications = $form->getNotifications();
                 $notificationsConfig = Formie::$plugin->getNotifications()->getNotificationsConfig($notifications);
 
-                return $this->asJson([
+                $json = [
                     'success' => false,
                     'id' => $form->id,
-                    'config' => $form->getFormConfig(),
                     'notifications' => $notificationsConfig,
                     'errors' => $form->getErrors(),
                     'fieldLayoutId' => $form->fieldLayoutId,
-                ]);
+                ];
+
+                // Don't return the config if there's an error on duplicate - settings will have changed
+                if (!$duplicate) {
+                    $json['config'] = $form->getFormConfig();
+                }
+
+                return $this->asJson($json);
             }
 
             Craft::$app->getSession()->setError(Craft::t('formie', 'Couldn’t save form.'));
@@ -181,6 +187,9 @@ class FormsController extends Controller
         $notifications = $form->getNotifications();
         $notificationsConfig = Formie::$plugin->getNotifications()->getNotificationsConfig($notifications);
 
+        // Check if we need to update the permissions for this user.
+        $this->_updateFormPermission($form);
+
         if ($request->getAcceptsJson()) {
             return $this->asJson([
                 'success' => true,
@@ -195,9 +204,6 @@ class FormsController extends Controller
         }
 
         Craft::$app->getSession()->setNotice(Craft::t('formie', 'Form saved.'));
-
-        // Check if we need to update the permissions for this user.
-        $this->_updateFormPermission($form);
 
         return $this->redirectToPostedUrl($form);
     }

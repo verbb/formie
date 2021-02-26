@@ -121,7 +121,7 @@ class NestedFieldRow extends Element implements BlockElementInterface
      */
     public static function isLocalized(): bool
     {
-        return false;
+        return true;
     }
 
     /**

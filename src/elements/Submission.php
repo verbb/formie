@@ -7,6 +7,7 @@ use verbb\formie\base\FormFieldTrait;
 use verbb\formie\elements\actions\SetSubmissionSpam;
 use verbb\formie\elements\actions\SetSubmissionStatus;
 use verbb\formie\elements\db\SubmissionQuery;
+use verbb\formie\events\ModifyFieldValueForIntegrationEvent;
 use verbb\formie\events\SubmissionMarkedAsSpamEvent;
 use verbb\formie\events\SubmissionRulesEvent;
 use verbb\formie\fields\formfields\FileUpload;
@@ -36,6 +37,7 @@ class Submission extends Element
 
     const EVENT_DEFINE_RULES = 'defineSubmissionRules';
     const EVENT_BEFORE_MARKED_AS_SPAM = 'beforeMarkedAsSpam';
+    const EVENT_MODIFY_FIELD_VALUE_FOR_INTEGRATION = 'modifyFieldValueForIntegration';
 
 
     // Public Properties
@@ -50,7 +52,6 @@ class Submission extends Element
     public $isSpam = false;
     public $spamReason;
 
-    public $notification;
     public $validateCurrentPageOnly;
 
 
@@ -152,7 +153,7 @@ class Submission extends Element
      */
     public static function gqlScopesByContext($context): array
     {
-        return ['submission.' . $context->uid];
+        return ['formieSubmissions.' . $context->uid];
     }
 
     /**
@@ -177,26 +178,30 @@ class Submission extends Element
     protected function defineRules(): array
     {
         $rules = parent::defineRules();
-        $fields = $this->getFieldLayout()->getFields();
+        $fields = [];
+        
+        if ($fieldLayout = $this->getFieldLayout()) {
+            $fields = $this->getFieldLayout()->getFields();
 
-        // Check when we're doing a submission from the front-end, and we choose to validate the current page only
-        // Remove any custom fields that aren't in the current page. These are added by default
-        if ($this->validateCurrentPageOnly) {
-            $currentPageFields = $this->form->getCurrentPage()->getFields();
+            // Check when we're doing a submission from the front-end, and we choose to validate the current page only
+            // Remove any custom fields that aren't in the current page. These are added by default
+            if ($this->validateCurrentPageOnly) {
+                $currentPageFields = $this->form->getCurrentPage()->getFields();
 
-            // Organise fields, so they're easier to check against
-            $currentPageFieldHandles = ArrayHelper::getColumn($currentPageFields, 'handle');
+                // Organise fields, so they're easier to check against
+                $currentPageFieldHandles = ArrayHelper::getColumn($currentPageFields, 'handle');
 
-            foreach ($rules as $key => $rule) {
-                // foreach ($fields as $field) {
-                list($attribute, $validator) = $rule;
-                $attribute = is_array($attribute) ? $attribute[0] : $attribute;
+                foreach ($rules as $key => $rule) {
+                    // foreach ($fields as $field) {
+                    list($attribute, $validator) = $rule;
+                    $attribute = is_array($attribute) ? $attribute[0] : $attribute;
 
-                if (strpos($attribute, 'field:') !== false) {
-                    $handle = str_replace('field:', '', $attribute);
+                    if (strpos($attribute, 'field:') !== false) {
+                        $handle = str_replace('field:', '', $attribute);
 
-                    if (!in_array($handle, $currentPageFieldHandles)) {
-                        unset($rules[$key]);
+                        if (!in_array($handle, $currentPageFieldHandles)) {
+                            unset($rules[$key]);
+                        }
                     }
                 }
             }
@@ -227,6 +232,7 @@ class Submission extends Element
         // Fire a 'defineSubmissionRules' event
         $event = new SubmissionRulesEvent([
             'rules' => $rules,
+            'submission' => $this,
         ]);
         $this->trigger(self::EVENT_DEFINE_RULES, $event);
 
@@ -258,7 +264,7 @@ class Submission extends Element
                 if (!in_array($form->id, $ids)) {
                     continue;
                 }
-            } else if ($ids === 'none') {
+            } else if ($ids === 0) {
                 continue;
             }
 
@@ -321,7 +327,8 @@ class Submission extends Element
         $validates = parent::validate($attributeNames, $clearErrors);
 
         $form = $this->getForm();
-        if ($form->requireUser) {
+
+        if ($form && $form->requireUser) {
             if (!Craft::$app->getUser()->getIdentity()) {
                 $this->addError('form', Craft::t('formie', 'You must be logged in to submit this form.'));
             }
@@ -400,7 +407,7 @@ class Submission extends Element
      */
     public function getFieldLayout()
     {
-        if (!$this->_fieldLayout) {
+        if (!$this->_fieldLayout && $this->getForm()) {
             $this->_fieldLayout = $this->getForm()->getFormFieldLayout();
         }
 
@@ -412,8 +419,8 @@ class Submission extends Element
      */
     public function getFieldContext(): string
     {
-        if (!$this->_fieldContext) {
-            $this->_fieldContext = "formie:{$this->getForm()->uid}";
+        if (!$this->_fieldContext && $this->getFormRecord()) {
+            $this->_fieldContext = "formie:{$this->getFormRecord()->uid}";
         }
 
         return $this->_fieldContext;
@@ -424,8 +431,8 @@ class Submission extends Element
      */
     public function getContentTable(): string
     {
-        if (!$this->_contentTable) {
-            $this->_contentTable = $this->getForm()->fieldContentTable;
+        if (!$this->_contentTable && $this->getFormRecord()) {
+            $this->_contentTable = $this->getFormRecord()->fieldContentTable;
         }
 
         return $this->_contentTable;
@@ -450,10 +457,17 @@ class Submission extends Element
      *
      * @return Form
      */
-    public function getForm(): Form
+    public function getForm()
     {
         if (!$this->_form) {
-            $this->_form = Form::find()->id($this->formId)->one();
+            $query = Form::find()->id($this->formId);
+
+            // If this submission has been trashed, ensure to find the trashed form
+            if ($this->trashed) {
+                $query->trashed(true);
+            }
+
+            $this->_form = $query->one();
         }
 
         return $this->_form;
@@ -468,6 +482,24 @@ class Submission extends Element
     {
         $this->_form = $form;
         $this->formId = $form->id;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getFormRecord()
+    {
+        if ($this->formId) {
+            if ($form = Formie::$plugin->getForms()->getFormRecord($this->formId)) {
+                return $form;
+            }
+        }
+
+        if ($this->_form) {
+            return $this->_form;
+        }
+
+        return null;
     }
 
     /**
@@ -541,12 +573,16 @@ class Submission extends Element
      */
     public function getValues($page)
     {
-        $form = $this->getForm();
-        $fields = $page ? $page->getFields() : $form->getFields();
-
         $values = [];
-        foreach ($fields as $field) {
-            $values[$field->handle] = $field->getValue($this);
+
+        $form = $this->getForm();
+
+        if ($form) {
+            $fields = $page ? $page->getFields() : $form->getFields();
+
+            foreach ($fields as $field) {
+                $values[$field->handle] = $field->getValue($this);
+            }
         }
 
         return $values;
@@ -570,7 +606,15 @@ class Submission extends Element
                     $value = $field->serializeValue($value, $this);
                 }
 
-                $serializedValues[$field->handle] = $value;
+                // Fire a 'modifyFieldValueForIntegration' event
+                $event = new ModifyFieldValueForIntegrationEvent([
+                    'field' => $field,
+                    'value' => $value,
+                    'submission' => $this,
+                ]);
+                $this->trigger(self::EVENT_MODIFY_FIELD_VALUE_FOR_INTEGRATION, $event);
+
+                $serializedValues[$field->handle] = $event->value;
             }
         }
 
@@ -664,8 +708,10 @@ class Submission extends Element
     {
         $form = $this->getForm();
 
-        if (($submission = $form->getCurrentSubmission()) && $submission->id == $this->id) {
-            $form->resetCurrentSubmission();
+        if (!Craft::$app->getRequest()->getIsConsoleRequest()) {
+            if ($form && ($submission = $form->getCurrentSubmission()) && $submission->id == $this->id) {
+                $form->resetCurrentSubmission();
+            }
         }
 
         return parent::beforeDelete();
@@ -683,7 +729,7 @@ class Submission extends Element
         // it's file is hard-deleted gone, so we cannot restore a file upload. I'm aware of `keepFileOnDelete`, but there's
         // no way to remove that file on hard-delete, so that won't work.
         // See https://github.com/craftcms/cms/issues/5074
-        if ($form->fileUploadsAction === 'delete') {
+        if ($form && $form->fileUploadsAction === 'delete') {
             foreach ($form->getFields() as $field) {
                 if ($field instanceof FileUpload) {
                     $assets = $this->getFieldValue($field->handle)->all();
@@ -759,7 +805,8 @@ class Submission extends Element
         switch ($attribute) {
             case 'form':
                 $form = $this->getForm();
-                return $form->title;
+
+                return $form->title ?? '';
             default:
                 return parent::tableAttributeHtml($attribute);
         }

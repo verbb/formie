@@ -26,21 +26,10 @@ class Algolia extends AddressProvider
     public $apiKey;
     public $appId;
     public $reconfigurableOptions = [];
-    private $uniqueId;
 
 
     // Public Methods
     // =========================================================================
-
-    /**
-     * @inheritDoc
-     */
-    public function init()
-    {
-        parent::init();
-
-        $this->uniqueId = uniqid(self::ALGOLIA_INPUT_NAME, false);
-    }
 
     /**
      * @inheritDoc
@@ -86,7 +75,6 @@ class Algolia extends AddressProvider
 
         $html = Craft::$app->getView()->renderTemplate('formie/integrations/address-providers/algolia-places/_input', [
             'field' => $field,
-            'data' => $this->uniqueId,
             'options' => $options,
         ]);
 
@@ -104,7 +92,7 @@ class Algolia extends AddressProvider
     /**
      * @inheritDoc
      */
-    public function getFrontEndJsVariables(Form $form, $field = null)
+    public function getFrontEndJsVariables($field = null)
     {
         if (!$this->hasValidSettings()) {
             return null;
@@ -114,18 +102,13 @@ class Algolia extends AddressProvider
         $settings = [
             'appId' => Craft::parseEnv($this->apiKey),
             'apiKey' => Craft::parseEnv($this->appId),
-            'container' => $this->uniqueId,
             'reconfigurableOptions' => $this->_getOptions(),
-            'fieldContainer' => 'data-address-id-' . $field->id,
-            'formId' => 'formie-form-' . $form->id,
         ];
 
-        $src = Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/addressproviders/dist/js/algolia-places.js', true);
-        $onload = 'new FormieAlgoliaPlaces(' . Json::encode($settings) . ');';
-
         return [
-            'src' => $src,
-            'onload' => $onload,
+            'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/addressproviders/dist/js/algolia-places.js', true),
+            'module' => 'FormieAlgoliaPlaces',
+            'settings' => $settings,
         ];
     }
 

@@ -23,7 +23,7 @@ Clicking "Save" in the notification modal won't immediately save the notificatio
 :::
 
 ## Email Content
-The email content field is a rich-text field providing basic formatting functionality. Due to the complexities of email rendering, this is kept simple on purpose. If you wish to build custom templates for your emails, read the [Email Templates](docs:feature-tour/email-templates) docs.
+The email content field is a rich-text field providing basic formatting functionality. Due to the complexities of email rendering, this is kept simple on purpose. If you wish to build custom templates for your emails, read the [Email Templates](docs:template-guides/email-templates) docs.
 
 One feature of this field is the variable select field. This allows you to pull in dynamic content from Craft, or from the submission this email notification is made on. Commonly, you'll want to use the "All Fields" option to generate a full list of field's and their content, producing similar content to:
 
@@ -70,3 +70,24 @@ Dummy content will be generated for fields.
 
 ## Send Test Email
 Emails can be sent as a test to a nominated email. This will essentially send the content as shown in the Email Preview to the email address, and is considerably useful for testing email deliverability and other issues.
+
+## Conditions
+Email notifications can also have set conditions on whether they send or not. Through the conditions builder, you can create complex rules for each of your email notifications.
+
+<img src="https://verbb.io/uploads/plugins/formie/formie-notification-conditions.png" />
+
+First, it's a matter of choosing whether you want these sets of rules to "Send" or "Not Send" the email notification. For example, you might like to only send an email notification if the users' email isn't for a number of domain names.
+
+Then, you can set whether to match against "All" rules, or just "Any" rule.
+
+Finally, building your conditions is a matter of specifying 3 important bits of information: "Field", "Condition", "Value". For "Field", pick the field you want to test a condition against. A "Condition" will be one of the following:
+
+- `is`
+- `is not`
+- `greater than`
+- `less than`
+- `contains`
+- `starts with`
+- `ends with`
+
+And provide a "Value" you wish to compare against. For fields that support set options (Dropdown, Radio, Checkboxes), you must pick from your list of defined options. Otherwise, text values are supported.

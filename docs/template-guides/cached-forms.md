@@ -53,7 +53,7 @@ Let's take a look at an example in action.
     // Wait until the DOM is ready
     document.addEventListener('DOMContentLoaded', (event) => {
         // Fetch the form we want to deal with
-        let $form = document.querySelector('#formie-form-{{ form.id }}');
+        let $form = document.querySelector('#{{ form.formId }}');
 
         // Find the CSRF token hidden input, so we can replace it
         let $csrfInput = $form.querySelector('input[name="CRAFT_CSRF_TOKEN"]');

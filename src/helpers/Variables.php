@@ -2,8 +2,12 @@
 namespace verbb\formie\helpers;
 
 use verbb\formie\Formie;
+use verbb\formie\base\NestedFieldInterface;
+use verbb\formie\base\SubFieldInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
+use verbb\formie\fields\formfields\Date;
+use verbb\formie\models\Notification;
 
 use Craft;
 use craft\errors\SiteNotFoundException;
@@ -16,12 +20,6 @@ use Throwable;
 
 class Variables
 {
-    // Properties
-    // =========================================================================
-
-    public static $extras = [];
-
-
     // Public Static Methods
     // =========================================================================
 
@@ -131,7 +129,7 @@ class Variables
      * @param Form $form
      * @return string|null
      */
-    public static function getParsedValue($value, Submission $submission = null, Form $form = null)
+    public static function getParsedValue($value, Submission $submission = null, Form $form = null, Notification $notification = null)
     {
         $originalValue = $value;
 
@@ -155,11 +153,9 @@ class Variables
         // This helps to only cache it per-submission, when being run in queues.
         $cacheKey = $submission->id ?? $form->id ?? rand();
 
-        $extras = self::$extras[$cacheKey] ?? [];
-
         // Check to see if we have these already calculated for the request and submission
         // Just saves a good bunch of calculating values like looping through fields
-        if (!$extras) {
+        if (!Formie::$plugin->getRenderCache()->getGlobalVariables($cacheKey)) {
             // User Info
             $currentUser = Craft::$app->getUser()->getIdentity();
             $userId = $currentUser->id ?? '';
@@ -187,12 +183,7 @@ class Variables
             // Form Info
             $formName = $form->title ?? '';
 
-            $fieldHtml = self::getFormFieldsHtml($form, $submission);
-            $fieldContentHtml = self::getFormFieldsHtml($form, $submission, true);
-
-            $extras = self::$extras[$cacheKey] = [
-                'allFields' => $fieldHtml,
-                'allContentFields' => $fieldContentHtml,
+            Formie::$plugin->getRenderCache()->setGlobalVariables($cacheKey, [
                 'formName' => $formName,
                 'submissionUrl' => $submission->cpEditUrl ?? '',
                 'submissionId' => $submission->id ?? '',
@@ -215,19 +206,47 @@ class Variables
                 'userFullName' => $userFullName,
                 'userFirstName' => $userFirstName,
                 'userLastName' => $userLastName,
+            ]);
+
+            // Add support for all global sets
+            foreach (Craft::$app->getGlobals()->getAllSets() as $globalSet) {
+                Formie::$plugin->getRenderCache()->setGlobalVariables($cacheKey, [
+                    $globalSet->handle => $globalSet
+                ]);
+            }
+        }
+
+        // Cache field's separately, as they rely on both a submission and notification, which might not be available
+        // for earlier calls to `getParsedValue()`, but should be cached anyway, as they're the most expensive calls.
+        if (!Formie::$plugin->getRenderCache()->getFieldVariables($cacheKey)) {
+            $fieldHtml = self::getFormFieldsHtml($form, $notification, $submission);
+            $fieldContentHtml = self::getFormFieldsHtml($form, $notification, $submission, true);
+
+            $fieldVariables = [
+                'allFields' => $fieldHtml,
+                'allContentFields' => $fieldContentHtml,
             ];
 
-            // Special checks for some fields that generate HTML
-            $extras = array_merge($extras, self::_getParsedFieldValues($form, $submission));
+            // Old and deprecated methods. Ensure all fields are prefixed with 'field:', but too tricky to migrate...
+            // TODO: Remove at next breakpoint
+            $fieldVariables = array_merge($fieldVariables, self::_getParsedFieldValuesLegacy($form, $notification, $submission));
 
-            self::$extras[$cacheKey] = $extras;
+            // Properly parse field values
+            $fieldVariables = array_merge($fieldVariables, self::_getParsedFieldValues($form, $submission, $notification));
+
+            // Don't save anything unless we have values
+            $fieldVariables = array_filter($fieldVariables);
+
+            Formie::$plugin->getRenderCache()->setFieldVariables($cacheKey, $fieldVariables);
         }
+
+        $variables = Formie::$plugin->getRenderCache()->getVariables($cacheKey);
 
         // Try to parse submission + extra variables
         $view = Craft::$app->getView();
 
         try {
-            return $view->renderObjectTemplate($value, $submission, $extras);
+            return $view->renderObjectTemplate($value, $submission, $variables);
         } catch (Throwable $e) {
             Formie::error(Craft::t('formie', 'Failed to render dynamic string “{value}”. Template error: “{message}” {file}:{line}', [
                 'value' => $originalValue,
@@ -243,11 +262,11 @@ class Variables
     /**
      * @inheritdoc
      */
-    public static function getFormFieldsHtml($form, $submission, $excludeEmpty = false, $asArray = false)
+    public static function getFormFieldsHtml($form, $notification, $submission, $excludeEmpty = false, $asArray = false)
     {
         $fieldItems = $asArray ? [] : '';
 
-        if (!$form) {
+        if (!$form || !$submission || !$notification) {
             return $fieldItems;
         }
 
@@ -263,7 +282,7 @@ class Variables
                 continue;
             }
 
-            $html = $field->getEmailHtml($submission, $value);
+            $html = $field->getEmailHtml($submission, $notification, $value);
 
             if ($html === false) {
                 continue;
@@ -288,15 +307,20 @@ class Variables
     /**
      * @inheritdoc
      */
-    private static function _getParsedFieldValues($form, $submission)
+    private static function _getParsedFieldValuesLegacy($form, $notification, $submission)
     {
         $values = [];
 
-        $parsedFieldContent = self::getFormFieldsHtml($form, $submission, true, true);
+        if (!$form || !$submission || !$notification) {
+            return $values;
+        }
+
+        $parsedFieldContent = self::getFormFieldsHtml($form, $notification, $submission, true, true);
 
         // For now, only handle element fields, which need HTML generated
         if ($submission && $submission->getFieldLayout()) {
             foreach ($submission->getFieldLayout()->getFields() as $field) {
+                // Element fields
                 if ($field instanceof BaseRelationField) {
                     $parsedContent = $parsedFieldContent[$field->handle] ?? '';
 
@@ -304,9 +328,120 @@ class Variables
                         $values[$field->handle . '_html'] = $parsedContent;
                     }
                 }
+
+                // Date fields
+                if ($field instanceof Date) {
+                    $parsedContent = $submission[$field->handle] ?? '';
+
+                    if ($parsedContent && $parsedContent instanceof DateTime) {
+                        $values[$field->handle] = $parsedContent->format('Y-m-d H:i:s');
+                    }
+                }
             }
         }
 
         return $values;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    private static function _getParsedFieldValues($form, $submission, $notification)
+    {
+        $values = [];
+
+        if (!$form || !$submission) {
+            return $values;
+        }
+
+        if ($submission && $submission->getFieldLayout()) {
+            foreach ($submission->getFieldLayout()->getFields() as $field) {
+                $submissionValue = $submission->getFieldValue($field->handle);
+
+                $values = array_merge($values, self::_getParsedFieldValue($field, $submissionValue, $submission, $notification));
+            }
+        }
+
+        return self::_expandArray($values);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    private static function _getParsedFieldValue($field, $submissionValue, $submission, $notification)
+    {
+        $values = [];
+
+        if (!$submission) {
+            return $values;
+        }
+
+        $parsedContent = '';
+
+        if ($notification) {
+            $parsedContent = (string)$field->getEmailHtml($submission, $notification, $submissionValue);
+        }
+
+        $prefix = 'field.';
+
+        if ($field instanceof Date) {
+            if ($submissionValue && $submissionValue instanceof DateTime) {
+                $values["{$prefix}{$field->handle}"] = $submissionValue->format('Y-m-d H:i:s');
+            }
+        } else if ($field instanceof SubFieldInterface && $field->hasSubfields()) {
+            foreach ($field->getSubFieldOptions() as $subfield) {
+                $handle = "{$prefix}{$field->handle}.{$subfield['handle']}";
+                
+                $values[$handle] = $submissionValue[$subfield['handle']] ?? '';
+            }
+        } else if ($field instanceof NestedFieldInterface) {
+            if ($submissionValue && $row = $submissionValue->one()) {
+                foreach ($row->getFieldLayout()->getFields() as $nestedField) {
+                    $submissionValue = $row->getFieldValue($nestedField->handle);
+                    $fieldValues = self::_getParsedFieldValue($nestedField, $submissionValue, $submission, $notification);
+
+                    foreach ($fieldValues as $key => $fieldValue) {
+                        $handle = "{$prefix}{$field->handle}." . str_replace($prefix, '', $key);
+
+                        $values[$handle] = $fieldValue;
+                    }
+                }
+            }
+        } else if ($field instanceof BaseRelationField) {
+            $values["{$prefix}{$field->handle}"] = $parsedContent;
+        } else {
+            // Try to convert as a simple string value, if not, fall back on email template
+            try {
+                $values["{$prefix}{$field->handle}"] = (string)$submissionValue;
+            } catch (\Throwable $e) {
+                if ($parsedContent) {
+                    $values["{$prefix}{$field->handle}"] = $parsedContent;
+                }
+            }
+        }
+
+        return $values;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    private static function _expandArray($array)
+    {
+        $result = [];
+
+        foreach ($array as $key => $value) {
+            if (is_array($value)) {
+                $value = self::_expandArray($value);
+            }
+
+            foreach (array_reverse(explode(".", $key)) as $key) {
+                $value = [$key => $value];
+            }
+
+            $result = array_merge_recursive($result, $value);
+        }
+
+        return $result;
     }
 }

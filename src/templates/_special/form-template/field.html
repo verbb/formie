@@ -17,8 +17,8 @@
 {% set html %}
     {% hook 'formie.field.field-before' %}
 
-    {% if field.renderLabel %}
-        <div class="fui-field-container">
+    <div class="fui-field-container">
+        {% if field.renderLabel %}
             {% hook 'formie.field.field-start' %}
 
             {{ formieInclude('_includes/label', { position: 'above' }) }}
@@ -46,9 +46,7 @@
             {% endif %}
 
             {% hook 'formie.field.field-end' %}
-        </div>
-    {% else %}
-        <div class="fui-field-container">
+        {% else %}
             {% hook 'formie.field.field-start' %}
 
             <div class="fui-input-container">
@@ -64,8 +62,8 @@
             {% endif %}
 
             {% hook 'formie.field.field-end' %}
-        </div>
-    {% endif %}
+        {% endif %}
+    </div>
 
     {% hook 'formie.field.field-after' %}
 {% endset %}
@@ -89,6 +87,9 @@
         field.isTextInput ? 'fui-text-input-field',
         field.cssClasses ?? '',
     ],
+    data: {
+        'field-config': field.getConfigJson(),
+    },
     html: html,
 } | merge(fieldAttributes) | merge(containerAttributes) %}
 

@@ -2,22 +2,15 @@ import { eventKey } from '../utils/utils';
 
 export class FormieTextLimit {
     constructor(settings = {}) {
-        this.formId = '#formie-form-' + settings.formId;
-        this.fieldId = '#fields-' + settings.fieldId;
+        this.$form = settings.$form;
+        this.form = this.$form.form;
+        this.$field = settings.$field;
+        this.$text = this.$field.querySelector('[data-max-limit]');
 
-        this.$form = document.querySelector(this.formId);
-        this.$field = document.querySelector(this.fieldId);
-        this.$text = document.querySelector(this.fieldId + '-max');
-
-        if (this.$form && this.$field && this.$text) {
-            this.form = this.$form.form;
-
+        if (this.$text) {
             this.initTextMax();
         } else {
-            // Only an error if a single-page form (any submit method), or a multi-page ajax form.
-            if (!settings.formSettings.hasMultiplePages || (settings.formSettings.submitMethod === 'ajax' && settings.formSettings.hasMultiplePages)) {
-                console.error('Unable to find text limit ' + this.formId + ' ' + this.fieldId);
-            }
+            console.error('Unable to find rich text field “[data-max-limit]”');
         }
     }
 
@@ -36,7 +29,12 @@ export class FormieTextLimit {
 
     characterCheck(e) {
         setTimeout(() => {
-            var charactersLeft = this.maxChars - e.target.value.length;
+            // If we're using a rich text editor, treat it a little differently
+            var isRichText = e.target.hasAttribute('contenteditable');
+
+            var value = isRichText ? e.target.innerHTML : e.target.value;
+
+            var charactersLeft = this.maxChars - value.length;
 
             if (charactersLeft <= 0) {
                 charactersLeft = '0';
@@ -50,11 +48,16 @@ export class FormieTextLimit {
 
     wordCheck(e) {
         setTimeout(() => {
-            var wordCount = e.target.value.split(/\S+/).length - 1;
+            // If we're using a rich text editor, treat it a little differently
+            var isRichText = e.target.hasAttribute('contenteditable');
+
+            var value = isRichText ? e.target.innerHTML : e.target.value;
+            
+            var wordCount = value.split(/\S+/).length - 1;
             var regex = new RegExp('^\\s*\\S+(?:\\s+\\S+){0,' + (this.maxWords - 1) + '}');
             
             if (wordCount >= this.maxWords) {
-                this.$field.value = e.target.value.match(regex);
+                this.$field.value = value.match(regex);
             }
 
             var wordsLeft = this.maxWords - wordCount;

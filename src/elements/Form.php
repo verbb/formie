@@ -18,6 +18,7 @@ use verbb\formie\services\Statuses;
 use Craft;
 use craft\base\Element;
 use craft\db\Query;
+use craft\db\Table;
 use craft\elements\Entry;
 use craft\elements\actions\Delete;
 use craft\elements\actions\Restore;
@@ -66,11 +67,17 @@ class Form extends Element
     // Private Properties
     // =========================================================================
 
+    private $_fieldLayout;
+    private $_formFieldLayout;
+    private $_fields;
+    private $_pages;
     private $_template;
     private $_defaultStatus;
     private $_submitActionEntry;
     private $_notifications;
     private $_editingSubmission;
+    private $_formId;
+    private static $_layoutsByType;
 
 
     // Static
@@ -166,6 +173,18 @@ class Form extends Element
         }
 
         return $sources;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected static function defineFieldLayouts(string $source): array
+    {
+        if (self::$_layoutsByType !== null) {
+            return self::$_layoutsByType;
+        }
+        
+        return self::$_layoutsByType = Craft::$app->getFields()->getLayoutsByType(static::class);
     }
 
     /**
@@ -281,9 +300,14 @@ class Form extends Element
      */
     public function getFormFieldLayout()
     {
+        if ($this->_formFieldLayout !== null) {
+            return $this->_formFieldLayout;
+        }
+
         /* @var FieldLayoutBehavior $behavior */
         $behavior = $this->getBehavior('fieldLayout');
-        return $behavior->getFieldLayout();
+        
+        return $this->_formFieldLayout = $behavior->getFieldLayout();
     }
 
     /**
@@ -301,6 +325,10 @@ class Form extends Element
      */
     public function getFieldLayout()
     {
+        if ($this->_fieldLayout !== null) {
+            return $this->_fieldLayout;
+        }
+
         try {
             $template = $this->getTemplate();
         } catch (InvalidConfigException $e) {
@@ -312,7 +340,7 @@ class Form extends Element
             return null;
         }
 
-        return $template->getFieldLayout();
+        return $this->_fieldLayout = $template->getFieldLayout();
     }
 
     /**
@@ -484,7 +512,19 @@ class Form extends Element
      */
     public function getFormId()
     {
-        return "formie-form-{$this->id}";
+        if ($this->_formId) {
+            return $this->_formId;
+        }
+        
+        return $this->_formId = uniqid("formie-form-{$this->id}");
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setFormId($value)
+    {
+        $this->_formId = $value;
     }
 
     /**
@@ -502,6 +542,10 @@ class Form extends Element
      */
     public function getPages(): array
     {
+        if ($this->_pages !== null) {
+            return $this->_pages;
+        }
+
         // Check for a deleted form
         try {
             $fieldLayout = $this->getFormFieldLayout();
@@ -513,7 +557,7 @@ class Form extends Element
             return [];
         }
 
-        return $fieldLayout->getTabs();
+        return $this->_pages = $fieldLayout->getTabs();
     }
 
     /**
@@ -801,13 +845,17 @@ class Form extends Element
      */
     public function getFields(): array
     {
+        if ($this->_fields !== null) {
+            return $this->_fields;
+        }
+
         $fieldLayout = $this->getFormFieldLayout();
 
         if (!$fieldLayout) {
             return [];
         }
 
-        return $fieldLayout->getFields();
+        return $this->_fields = $fieldLayout->getFields();
     }
 
     /**
@@ -920,6 +968,11 @@ class Form extends Element
 
         // Only provide what we need, both for security/privacy but also DOM size
         $settings = [
+            // Send the site-relative root. This is to ensure submission requests are setup
+            // to go to the root of a multi site. Important for sub-directory setups where
+            // posting to '/' would be the incorrect primary site.
+            'siteRootUrl' => UrlHelper::siteUrl(''),
+
             'submitMethod' => $this->settings->submitMethod,
             'submitActionMessage' => $this->settings->getSubmitActionMessage() ?? '',
             'submitActionMessageTimeout' => $this->settings->submitActionMessageTimeout,
@@ -944,13 +997,8 @@ class Form extends Element
 
         // Add any JS per-field
         foreach ($this->getFields() as $field) {
-            $js = $field->getFrontEndJsVariables($this);
-
-            // Handle multiple registrations
-            if (isset($js[0])) {
-                $registeredJs = array_merge($registeredJs, $js);
-            } else {
-                $registeredJs[] = $js;
+            if ($fieldJs = $this->_getFrontEndJsModules($field)) {
+                $registeredJs = array_merge($registeredJs, $fieldJs);
             }
         }
 
@@ -959,19 +1007,20 @@ class Form extends Element
         $captchas = Formie::$plugin->getIntegrations()->getAllEnabledCaptchasForForm($this, null, true);
 
         foreach ($captchas as $captcha) {
-            $js = $captcha->getFrontEndJsVariables($this);
-
-            if (isset($js[0])) {
-                $registeredJs = array_merge($registeredJs, $js);
-            } else {
-                $registeredJs[] = $js;
+            if ($js = $captcha->getFrontEndJsVariables($this)) {
+                if (isset($js[0])) {
+                    $registeredJs = array_merge($registeredJs, $js);
+                } else {
+                    $registeredJs[] = $js;
+                }
             }
         }
 
-        // Cleanup
-        $registeredJs = array_values(array_filter($registeredJs));
+        // Cleanup - Ensure we don't include JS multiple times
+        $registeredJs = array_values(array_unique(array_filter($registeredJs), SORT_REGULAR));
 
         return [
+            'formHashId' => $this->getFormId(),
             'formId' => $this->id,
             'formHandle' => $this->handle,
             'registeredJs' => $registeredJs,
@@ -1019,6 +1068,18 @@ class Form extends Element
     public function setSettings($settings)
     {
         $this->settings->setAttributes($settings, false);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setFieldSettings($handle, $settings)
+    {
+        $field = $this->getFieldByHandle($handle);
+
+        if ($field) {
+            $field->setAttributes($settings, false);
+        }
     }
 
 
@@ -1131,6 +1192,22 @@ class Form extends Element
     /**
      * @inheritDoc
      */
+    public function afterDelete()
+    {
+        // Delete any submissions made on this form.
+        $submissions = Submission::find()->formId($this->id)->all();
+        $elementsService = Craft::$app->getElements();
+
+        foreach ($submissions as $submission) {
+            if (!$elementsService->deleteElement($submission)) {
+                Formie::error("Unable to delete submission ”{$submission->id}” for form ”{$this->id}”: " . Json::encode($submission->getErrors()) . ".");
+            }
+        }
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function beforeRestore(): bool
     {
         if (!parent::beforeRestore()) {
@@ -1182,6 +1259,16 @@ class Form extends Element
             Craft::warning("Form {$this->id} content table {$this->fieldContentTable} not found.");
         }
 
+        // Restore any submissions deleted
+        $submissions = Submission::find()->formId($this->id)->trashed(true)->all();
+        $elementsService = Craft::$app->getElements();
+
+        foreach ($submissions as $submission) {
+            if (!$elementsService->restoreElement($submission)) {
+                Formie::error("Unable to restore submission ”{$submission->id}” for form ”{$this->id}”: " . Json::encode($submission->getErrors()) . ".");
+            }
+        }
+
         parent::afterRestore();
     }
 
@@ -1198,6 +1285,7 @@ class Form extends Element
             'title' => ['label' => Craft::t('app', 'Title')],
             'handle' => ['label' => Craft::t('app', 'Handle')],
             'template' => ['label' => Craft::t('app', 'Template')],
+            'usageCount' => ['label' => Craft::t('formie', 'Usage Count')],
             'dateCreated' => ['label' =>Craft::t('app', 'Date Created')],
             'dateUpdated' => ['label' => Craft::t('app', 'Date Updated')],
         ];
@@ -1242,6 +1330,19 @@ class Form extends Element
                 'attribute' => 'id',
             ],
         ];
+    }
+
+    protected function tableAttributeHtml(string $attribute): string
+    {
+        switch ($attribute) {
+            case 'usageCount':
+                return (new Query())
+                    ->from([Table::RELATIONS])
+                    ->where(['targetId' => $this->id])
+                    ->count();
+        }
+
+        return parent::tableAttributeHtml($attribute);
     }
 
 
@@ -1295,5 +1396,26 @@ class Form extends Element
         }
 
         return $editableIds;
+    }
+
+    private function _getFrontEndJsModules($field)
+    {
+        // Rip out any settings for clarity. These are output directly by the individual fields
+        // all we want here is the module src and name to supply the form rendering with what additional
+        // JS classes/modules we actually need - no config!
+        if ($js = $field->getFrontEndJsModules()) {
+            // Normalise for processing. Fields can have multiple modules
+            if (!isset($js[0])) {
+                $js = [$js];
+            }
+
+            foreach ($js as &$config) {
+                ArrayHelper::remove($config, 'settings');
+            }
+
+            return $js;
+        }
+
+        return [];
     }
 }

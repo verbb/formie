@@ -1,5 +1,4 @@
 import recaptcha from './inc/recaptcha';
-import { isVisible } from './inc/visible';
 
 export class FormieRecaptchaV3 {
     constructor(settings = {}) {
@@ -52,9 +51,12 @@ export class FormieRecaptchaV3 {
     renderCaptcha() {
         this.$placeholder = null;
 
+        // Get the active page
+        var { $currentPage } = this.$form.form.formTheme;
+
         // Get the current page's captcha - find the first placeholder that's non-invisible
         this.$placeholders.forEach($placeholder => {
-            if (isVisible($placeholder)) {
+            if ($currentPage && $currentPage.contains($placeholder)) {
                 this.$placeholder = $placeholder;
             }
         });

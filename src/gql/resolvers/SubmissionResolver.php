@@ -2,8 +2,10 @@
 namespace verbb\formie\gql\resolvers;
 
 use verbb\formie\elements\Submission;
+use verbb\formie\helpers\Gql as GqlHelper;
 
 use craft\gql\base\ElementResolver;
+use craft\helpers\Db;
 
 use GraphQL\Type\Definition\ResolveInfo;
 
@@ -26,6 +28,16 @@ class SubmissionResolver extends ElementResolver
 
         foreach ($arguments as $key => $value) {
             $query->$key($value);
+        }
+
+        $pairs = GqlHelper::extractAllowedEntitiesFromSchema('read');
+
+        if (!GqlHelper::canQuerySubmissions()) {
+            return [];
+        }
+
+        if (!GqlHelper::canSchema('formieSubmissions.all')) {
+            $query->andWhere(['in', 'formId', array_values(Db::idsByUids('{{%formie_forms}}', $pairs['formieSubmissions']))]);
         }
 
         return $query;

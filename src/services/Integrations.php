@@ -55,7 +55,6 @@ class Integrations extends Component
     const EVENT_BEFORE_APPLY_INTEGRATION_DELETE = 'beforeApplyIntegrationDelete';
     const EVENT_AFTER_DELETE_INTEGRATION = 'afterDeleteIntegration';
     const CONFIG_INTEGRATIONS_KEY = 'formie.integrations';
-    const CONFIG_CAPTCHAS_KEY = 'plugins.formie.settings.captchas';
 
 
     // Properties
@@ -121,7 +120,10 @@ class Integrations extends Component
 
         $crm = [
             crm\ActiveCampaign::class,
+            crm\Agile::class,
             crm\Avochato::class,
+            crm\Capsule::class,
+            crm\Copper::class,
             // crm\Creatio::class,
             crm\Freshdesk::class,
             crm\Freshsales::class,
@@ -343,6 +345,18 @@ class Integrations extends Component
         }
 
         return true;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function updateIntegrationToken(IntegrationInterface $integration, $token)
+    {
+        // Direct DB update to keep it out of PC, plus speed
+        // Update the settings as some providers add from provider callback.
+        return Craft::$app->getDb()->createCommand()
+            ->update('{{%formie_integrations}}', ['tokenId' => $token, 'settings' => Json::encode($integration->settings)], ['id' => $integration->id])
+            ->execute();
     }
 
     /**
@@ -621,15 +635,15 @@ class Integrations extends Component
      */
     public function getAllCaptchas(): array
     {
-        $captchas = [];
+        $settings = Formie::$plugin->getSettings();
 
-        $projectConfig = Craft::$app->getProjectConfig();
+        $captchas = [];
 
         foreach ($this->getIntegrationTypes(Integration::TYPE_CAPTCHA) as $captchaClass) {
             $class = new $captchaClass();
 
             // Load in any settings from PC
-            $config = $projectConfig->get(self::CONFIG_CAPTCHAS_KEY . '.' . $class->getHandle());
+            $config = $settings->captchas[$class->getHandle()] ?? [];
             $config['type'] = $captchaClass;
 
             $captchas[] = $this->createIntegration($config);
@@ -735,7 +749,7 @@ class Integrations extends Component
      */
     public function saveCaptcha(Integration $integration): bool
     {
-        $projectConfig = Craft::$app->getProjectConfig();
+        $settings = Formie::$plugin->getSettings();
 
         // Fire an 'afterSaveIntegration' event
         if ($this->hasEventHandlers(self::EVENT_BEFORE_SAVE_INTEGRATION)) {
@@ -749,14 +763,17 @@ class Integrations extends Component
             return false;
         }
 
-        $configData = [
+        $settings->captchas[$integration->getHandle()] = [
             'type' => get_class($integration),
             'enabled' => $integration->enabled,
-            'settings' => ProjectConfigHelper::packAssociativeArrays($integration->getSettings()),
+            'settings' => $integration->getSettings(),
         ];
 
-        $configPath = self::CONFIG_CAPTCHAS_KEY . '.' . $integration->getHandle();
-        $projectConfig->set($configPath, $configData);
+        $pluginSettingsSaved = Craft::$app->getPlugins()->savePluginSettings(Formie::$plugin, $settings->toArray());
+
+        if (!$pluginSettingsSaved) {
+            return false;
+        }
 
         // Fire an 'afterSaveIntegration' event
         if ($this->hasEventHandlers(self::EVENT_AFTER_SAVE_INTEGRATION)) {

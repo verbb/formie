@@ -10,11 +10,13 @@ use verbb\formie\helpers\ConditionsHelper;
 use verbb\formie\helpers\RichTextHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\Notification;
+use verbb\formie\models\Stencil;
 use verbb\formie\records\Notification as NotificationRecord;
 
 use Craft;
 use craft\db\Query;
 use craft\helpers\ArrayHelper;
+use craft\helpers\StringHelper;
 use craft\helpers\Json;
 
 use yii\base\Component;
@@ -30,6 +32,8 @@ class Notifications extends Component
     const EVENT_BEFORE_DELETE_NOTIFICATION = 'beforeDeleteNotification';
     const EVENT_AFTER_DELETE_NOTIFICATION = 'afterDeleteNotification';
     const EVENT_MODIFY_EXISTING_NOTIFICATIONS = 'modifyExistingNotifications';
+
+    private $_existingNotifications;
 
 
     // Public Methods
@@ -280,27 +284,58 @@ class Notifications extends Component
      */
     public function getExistingNotifications($excludeForm = null): array
     {
+        if ($this->_existingNotifications !== null) {
+            return $this->_existingNotifications;
+        }
+
         $query = Form::find()->orderBy('title ASC');
 
         // Exclude the current form.
-        if ($excludeForm) {
+        if ($excludeForm && $excludeForm instanceof Form) {
             $query = $query->id("not {$excludeForm->id}");
         }
 
         /* @var Form[] $forms */
         $forms = $query->all();
+        $stencils = Formie::$plugin->getStencils()->getAllStencils();
 
-        $notifications = Formie::$plugin->getNotifications()->getAllNotifications();
-        $allNotifications = $this->getNotificationsConfig($notifications);
+        // Exclude the current stencil.
+        if ($excludeForm && $excludeForm instanceof Stencil) {
+            $filteredStencils = [];
+
+            foreach ($stencils as $stencil) {
+                if ($stencil->id != $excludeForm->id) {
+                    $filteredStencils[] = $stencil;
+                }
+            }
+
+            $stencils = $filteredStencils;
+        }
+
         $existingNotifications = [];
+        $formNotifications = [];
+        $stencilNotifications = [];
 
-        $notifications = [];
+        foreach ($forms as $form) {
+            $formNotifications = array_merge($formNotifications, $this->getNotificationsConfig($form->getNotifications()));
+        }
+
+        foreach ($stencils as $stencil) {
+            $stencilNotifications = array_merge($stencilNotifications, $this->getNotificationsConfig($stencil->getNotifications()));
+        }
 
         $existingNotifications[] = [
             'key' => '*',
             'label' => Craft::t('formie', 'All notifications'),
-            'notifications' => $allNotifications,
+            'notifications' => array_merge($formNotifications, $stencilNotifications),
         ];
+
+        if ($formNotifications) {
+            $existingNotifications[] = [
+                'heading' => Craft::t('formie', 'Forms'),
+                'notifications' => [],
+            ];
+        }
 
         foreach ($forms as $form) {
             $formNotifications = $this->getNotificationsConfig($form->getNotifications());
@@ -314,14 +349,35 @@ class Notifications extends Component
             }
         }
 
+        if ($stencilNotifications) {
+            $existingNotifications[] = [
+                'heading' => Craft::t('formie', 'Stencils'),
+                'notifications' => [],
+            ];
+        }
+
+        foreach ($stencils as $stencil) {
+            $formNotifications = $this->getNotificationsConfig($stencil->getNotifications());
+
+            if ($formNotifications) {
+                $existingNotifications[] = [
+                    'key' => $stencil->handle,
+                    'label' => $stencil->title,
+                    'notifications' => $formNotifications,
+                ];
+            }
+        }
+
         // Fire a 'modifyExistingNotifications' event
         $event = new ModifyExistingNotificationsEvent([
             'notifications' => $existingNotifications,
         ]);
         $this->trigger(self::EVENT_MODIFY_EXISTING_NOTIFICATIONS, $event);
 
-        return $event->notifications;
+        return $this->_existingNotifications = $event->notifications;
     }
+
+
 
     /**
      * Returns whether the notification has passed conditional evaluation. A `true` result means the notification
@@ -346,12 +402,25 @@ class Notifications extends Component
                     try {
                         $rule = "field {$condition['condition']} value";
 
-                        // Parse the field handle first to get the submission value
                         $condition['field'] = str_replace(['{', '}'], ['', ''], $condition['field']);
-                        $condition['field'] = ArrayHelper::getValue($serializedFieldValues, $condition['field']);
+
+                        // Check to see if this is a custom field, or an attribute on the submission
+                        if (StringHelper::startsWith($condition['field'], 'submission:')) {
+                            $condition['field'] = str_replace('submission:', '', $condition['field']);
+
+                            $condition['field'] = ArrayHelper::getValue($submission, $condition['field']);
+                        } else {
+                            // Parse the field handle first to get the submission value
+                            $condition['field'] = ArrayHelper::getValue($serializedFieldValues, $condition['field']);
+                        }
+
+                        // Check for array values, we should always be comparing strings
+                        if (is_array($condition['field'])) {
+                            $condition['field'] = ConditionsHelper::recursiveImplode(' ', $condition['field']);
+                        }
 
                         // Protect against empty conditions
-                        if (!trim(implode('', $condition))) {
+                        if (!trim(ConditionsHelper::recursiveImplode('', $condition))) {
                             continue;
                         }
 
@@ -361,7 +430,7 @@ class Notifications extends Component
                         $results[] = $ruler->assert($rule, $context);
                     } catch (\Throwable $e) {
                         Formie::error(Craft::t('formie', 'Failed to parse conditional “{rule}”: “{message}” {file}:{line}', [
-                            'rule' => implode(' ', $condition),
+                            'rule' => trim(ConditionsHelper::recursiveImplode('', $condition)),
                             'message' => $e->getMessage(),
                             'file' => $e->getFile(),
                             'line' => $e->getLine(),
@@ -619,8 +688,6 @@ class Notifications extends Component
             ]),
         ];
     }
-
-
 
 
     // Private Methods

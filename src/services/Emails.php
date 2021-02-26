@@ -56,8 +56,6 @@ class Emails extends Component
 
     public function renderEmail(Notification $notification, Submission $submission)
     {
-        $submission->notification = $notification;
-
         // Set Craft to the site template mode
         $view = Craft::$app->getView();
         $view->setTemplateMode($view::TEMPLATE_MODE_SITE);
@@ -73,11 +71,11 @@ class Emails extends Component
 
         $craftMailSettings = App::mailSettings();
 
-        $fromEmail = Variables::getParsedValue((string)$notification->from, $submission, $form) ?: $craftMailSettings->fromEmail;
-        $fromName = Variables::getParsedValue((string)$notification->fromName, $submission, $form) ?: $craftMailSettings->fromName;
+        $fromEmail = Variables::getParsedValue((string)$notification->from, $submission, $form, $notification) ?: $craftMailSettings->fromEmail;
+        $fromName = Variables::getParsedValue((string)$notification->fromName, $submission, $form, $notification) ?: $craftMailSettings->fromName;
 
-        $fromEmail = Craft::parseEnv($fromEmail);
-        $fromName = Craft::parseEnv($fromName);
+        $fromEmail = $this->_getFilteredString($fromEmail);
+        $fromName = $this->_getFilteredString($fromName);
 
         if ($fromEmail) {
             $newEmail->setFrom($fromEmail);
@@ -89,7 +87,7 @@ class Emails extends Component
 
         // To:
         try {
-            $to = Variables::getParsedValue((string)$notification->to, $submission, $form);
+            $to = Variables::getParsedValue((string)$notification->to, $submission, $form, $notification);
             $to = $this->_getParsedEmails($to);
 
             if ($to) {
@@ -115,7 +113,7 @@ class Emails extends Component
         // BCC:
         if ($notification->bcc) {
             try {
-                $bcc = Variables::getParsedValue((string)$notification->bcc, $submission, $form);
+                $bcc = Variables::getParsedValue((string)$notification->bcc, $submission, $form, $notification);
                 $bcc = $this->_getParsedEmails($bcc);
 
                 if ($bcc) {
@@ -136,7 +134,7 @@ class Emails extends Component
         // CC:
         if ($notification->cc) {
             try {
-                $cc = Variables::getParsedValue((string)$notification->cc, $submission, $form);
+                $cc = Variables::getParsedValue((string)$notification->cc, $submission, $form, $notification);
                 $cc = $this->_getParsedEmails($cc);
 
                 if ($cc) {
@@ -157,7 +155,7 @@ class Emails extends Component
         // Reply To:
         if ($notification->replyTo) {
             try {
-                $replyTo = Variables::getParsedValue((string)$notification->replyTo, $submission, $form);
+                $replyTo = Variables::getParsedValue((string)$notification->replyTo, $submission, $form, $notification);
                 $newEmail->setReplyTo($replyTo);
             } catch (Throwable $e) {
                 $error = Craft::t('formie', 'Notification email parse error for ReplyTo: {value}”. Template error: “{message}” {file}:{line}', [
@@ -173,7 +171,7 @@ class Emails extends Component
 
         // Subject:
         try {
-            $subject = Variables::getParsedValue((string)$notification->subject, $submission, $form);
+            $subject = Variables::getParsedValue((string)$notification->subject, $submission, $form, $notification);
             $newEmail->setSubject($subject);
         } catch (Throwable $e) {
             $error = Craft::t('formie', 'Notification email parse error for Subject: {value}”. Template error: “{message}” {file}:{line}', [
@@ -186,7 +184,7 @@ class Emails extends Component
             return ['error' => $error];
         }
 
-        // Fetch the emil template for the notification - if we're using one
+        // Fetch the email template for the notification - if we're using one
         $emailTemplate = Formie::$plugin->getEmailTemplates()->getTemplateById($notification->templateId);
 
         // We always need a template, so log the error, but use the default built-in one.
@@ -198,7 +196,7 @@ class Emails extends Component
             if (!$view->doesTemplateExist($emailTemplate->template)) {
                 // Let's press on if we can't find the template - use the default
                 Formie::error(Craft::t('formie', 'Notification email template does not exist at “{templatePath}”.', [
-                    'templatePath' => $templatePath,
+                    'templatePath' => $emailTemplate->template,
                 ]));
             } else {
                 $templatePath = $emailTemplate->template;
@@ -208,7 +206,7 @@ class Emails extends Component
         // Render HTML body
         try {
             // Render the body content for the notification
-            $parsedContent = Variables::getParsedValue($notification->getParsedContent(), $submission, $form);
+            $parsedContent = Variables::getParsedValue($notification->getParsedContent(), $submission, $form, $notification);
 
             // Add it to our render variables
             $renderVariables['contentHtml'] = Template::raw($parsedContent);
@@ -282,6 +280,7 @@ class Emails extends Component
                 ]);
 
                 Formie::error($error);
+                Formie::error(Json::encode($this->_serializeEmail($newEmail)));
 
                 return ['error' => $error];
             }
@@ -292,6 +291,7 @@ class Emails extends Component
                 ]);
 
                 Formie::error($error);
+                Formie::error(Json::encode($this->_serializeEmail($newEmail)));
 
                 return ['error' => $error];
             }
@@ -307,6 +307,7 @@ class Emails extends Component
             ]);
 
             Formie::error($error);
+            Formie::error(Json::encode($this->_serializeEmail($newEmail)));
 
             return ['error' => $error];
         }
@@ -390,6 +391,11 @@ class Emails extends Component
         return $html->getText();
     }
 
+    private function _getFilteredString($string)
+    {
+        return Craft::parseEnv(trim($string));
+    }
+
     private function _getParsedEmails($emails)
     {
         $emails = str_replace(';', ',', $emails);
@@ -397,8 +403,13 @@ class Emails extends Component
         $emailsEnv = [];
 
         foreach (array_filter($emails) as $email) {
-            $emailsEnv[] = Craft::parseEnv($email);
+            // Prevent non-utf characters sneaking in.
+            $email = StringHelper::convertToUtf8($email);
+
+            $emailsEnv[] = Craft::parseEnv(trim($email));
         }
+
+        $emailsEnv = array_filter($emailsEnv);
 
         return $emailsEnv;
     }
@@ -445,6 +456,13 @@ class Emails extends Component
                 $this->_tempAttachments[] = $path = $asset->getCopyOfFile();
             }
 
+            // Check for asset size, 0kb files are technically invalid (or at least spammy)
+            if (!$asset->size) {
+                Formie::log('Not attaching “' . ${$asset->filename} . '” due to invalid file size.');
+
+                continue;
+            }
+
             if ($path) {
                 $message->attach($path, ['fileName' => $asset->filename]);
             }
@@ -456,5 +474,31 @@ class Emails extends Component
         $path = $asset->getVolume()->getRootPath() . DIRECTORY_SEPARATOR . $asset->getPath();
 
         return FileHelper::normalizePath($path);
+    }
+
+    private function _serializeEmail($email)
+    {
+        $htmlBody = $email->getSwiftMessage()->getBody();
+        $children = $email->getSwiftMessage()->getChildren();
+
+        // Getting the content from an email is a little more involved...
+        if (!$htmlBody && $children) {
+            foreach ($children as $child) {
+                if ($child->getContentType() == 'text/html') {
+                    $htmlBody = $child->getBody();
+                }
+            }
+        }
+
+        return [
+            'charset' => $email->getCharset(),
+            'from' => $email->getFrom(),
+            'replyTo' => $email->getReplyTo(),
+            'to' => $email->getTo(),
+            'cc' => $email->getCc(),
+            'bcc' => $email->getBcc(),
+            'subject' => $email->getSubject(),
+            'body' => $htmlBody,
+        ];
     }
 }

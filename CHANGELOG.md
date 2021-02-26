@@ -1,6 +1,418 @@
 # Changelog
 
-## 1.3.0- 2020-11-25
+## 1.3.20 - 2021-02-26
+
+### Added
+- Added logging to submit action, capturing form content immediately and saving to logs.
+
+### Changed
+- Allow both 0.3.0 and 0.4.0 guzzlehttp/oauth-subscriber. (thanks @verbeeksteven).
+
+### Fixed
+- Fixed sub-fields (Name, Address, etc) not working for pre-populating values.
+- Fixed value of checkbox fields for integrations when mapping to a plain text field. Field values are now sent as comma-separated.
+- Fixed InfusionSoft sending incorrect Phone Number payload values. (thanks @dubcanada).
+- Fixed submission error logs not saving log information for ajax forms.
+- Fixed Salesforce duplicate leads throwing an error.
+
+## 1.3.19.1 - 2021-02-24
+
+### Added
+- Added `populateFormValues ` GraphQL argument to pass options into `templateHtml` render function. (thanks @jaydensmith).
+- Added `options` GraphQL argument to pass options into `templateHtml` render function. (thanks @jaydensmith).
+
+### Fixed
+- Fixed validation error for new Email Address fields, introduced in 1.3.19.
+
+## 1.3.19 - 2021-02-24
+
+### Added
+- Added support for `populateFormValues` to Group fields.
+- Added support for `populateFormValues` to Repeater fields.
+- Added “Order By” setting for all element fields to control the order options are rendered by.
+- Added Checkbox Toggle to Checkboxes fields, providing the ability to toggle all checkbox fields at once.
+- Added “Usage Count” column to Forms, to show the number of elements relating to each form.
+- Added “Validate Domain (DNS)” setting for email address fields.
+- Added “Blocked Domains” setting for email address fields.
+- Added tags to Agile CRM integration. (thanks @jaydensmith).
+
+### Fixed
+- Fixed element fields not rendering correctly in email notifications, when including a single field token.
+- Fixed “Resend” button when editing a sent notification.
+- Fixed provider errors for all integrations getting truncated text.
+- Fixed potential issue with `siteRootUrl` on site setups with redirects setup to include trailing slashes in URLs.
+- Fixed a HubSpot integration form error when some context values (IP) isn’t always available.
+- Fixed “Save as a new Form” not generating a nice, sequential handle.
+- Fixed an issue where a failed “Save as new form” would retain the incorrect form settings.
+- Fixed form errors not showing full error text in control panel.
+- Fixed Repeater and Group field styling when editing a submission in the control panel.
+- Fixed JavaScript captcha when using template caching not working.
+
+## 1.3.18 - 2021-02-20
+
+### Added
+- Added support for HubSpot form integration.
+- Added opt-in field support to all CRM integrations.
+- Added support for field options defined in HubSpot (for dropdown, select, etc).
+- Added custom field support for Sendinblue integration.
+- Added `Min File Size` setting for File Upload fields.
+- Added support for global variables in Spam Keywords.
+
+### Changed
+- Update some email marketing integrations to fetch custom list fields more efficiently.
+- Prevent email notifications sending 0kb file uploads. This can lead to spam filters marking the email as invalid.
+
+### Fixed
+- Fixed "minutes" to be given a retention length. (thanks @nickdunn).
+- Fixed `endpoint` and `method` properties missing from `SendIntegrationPayloadEvent` for Email Marketing and CRM integrations.
+- Fixed nested fields (Group, Repeater) not having inner field JS initialized properly.
+- Fixed spam checks for some field types.
+- Fixed tag fields throwing an error when set to “dropdown” and editing a submission.
+- Fixed case insensitivity (not working) for spam keywords.
+- Fixed multiple fields with JS config not initialising correctly.
+- Fixed Group or Repeater nested fields not getting unqiue handles when cloning.
+- Fixed Repeater fields not having their inner fields’ JS initialized properly.
+- Fixed some fields (Element, Repeater, Group) not extracting content for spam keyword checks.
+- Fixed submission success messages including submission content not working.
+- Fixed existing fields not appearing for the form builder.
+- Fixed some fields (plain text and other simple fields) not having their labels correctly translated for email notifications.
+
+## 1.3.17 - 2021-02-13
+
+### Added
+- Added better caching to `getParsedValue`, which fix a few rare issues with field rendering stale content.
+- Allow `formieInclude()` to allow multiple templates (array syntax) to be passed in to be resolve.
+- Added support for Integration settings for Stencils.
+- Added support for paginated lists for Sendinblue integration.
+- Added error logging for email delivery.
+- Added ability to set the default value for all Element fields.
+- Added checkboxes and radio button display types for Element fields.
+- Added support to Element fields to customise the content used for labels, instead of just title.
+- Added `submission` to `Submission::EVENT_DEFINE_RULES` event.
+- Added Tracking, Account and Campaign IDs to SharpSpring CRM integration.
+- Added `configJson` and `templateHtml` to FormInterface for GraphQL.
+- Added `ModifyFormRenderOptionsEvent`. (thanks @jaydensmith).
+- Added `getIsTextInput` method to Phone field. (thanks @jaydensmith).
+- Added `formConfig` to the `initForm()` JS function to provide an object with the form config, rather than rely on the DOM to set it (using `setAttribute('data-config’)`).
+
+### Changed
+- Changed `Field::getEmailHtml()` to require a notification model.
+- Any globally-enabled captchas will be automatically enabled on new forms.
+- Any globally-enabled captchas will be automatically enabled on new stencils.
+
+### Fixed
+- Fixed an error for email notifications if its conditions contained an element field, set to `contains` as a condition.
+- Fixed Variant field not providing data to integrations correctly.
+- Fixed Categories field not providing data to integrations correctly.
+- Fixed Entries field not providing data to integrations correctly.
+- Fixed File Upload field not providing data to integrations correctly.
+- Fixed Products field not providing data to integrations correctly.
+- Fixed Tags field not providing data to integrations correctly.
+- Fixed Users field not providing data to integrations correctly.
+- Fixed email notification conditions not properly testing against element field values (entries, categories, etc).
+- Fixed checkbox and radio fields having JS validation checks bound multiple times in a form.
+- Fixed checkbox fields producing multiple errors.
+- Fixed some reCAPTCHA plugin settings not saving correctly.
+- Fixed reCAPTCHA not initializing when the surrounding form was initially hidden (for example, in a modal).
+- Fixed multiple forms on a single page not having their associated field JS initialized properly.
+- Fixed migration error for Postgres.
+- Fixed security warnings of using `eval()` in front-end JS, despite it being safe to call.
+- Fixed edit field button in control panel sizing being too small.
+- Fixed assuming `TEMPLATE_MODE_SITE` when rendering templates for forms, pages and fields.
+- Fixed template conditional that could cause the form to be hidden if “Hide Form” was set, but “Action on Submit” was set to “Display a message”.
+- Fixed a JS error with some fields (address auto-complete, multi-line) in some instances.
+- Fixed minor `e.g.` typo for stencils.
+- Fixed `getValue` method on BaseOptionsField not returning correctly. (thanks @javangriff).
+
+## 1.3.16.1 - 2021-01-31
+
+### Fixed
+- Fix an error with `ModifyFieldValueForIntegrationEvent`.
+
+## 1.3.16 - 2021-01-31
+
+### Added
+- Added autocomplete value to Address field in email templates.
+- Added `SubmissionExport::EVENT_MODIFY_FIELD_EXPORT` to allow modification of values for fields when exporting submissions.
+- Added `Submission::EVENT_MODIFY_FIELD_VALUE_FOR_INTEGRATION` to allow modification of submission field values before they’re used in Integrations.
+- Added `minutes` as an option for submission data retention.
+- Added more feedback for garbage-collection tasks when run directly from the CLI.
+
+### Fixed
+- Fixed an error when creating new email templates in an empty directory.
+- Fixed email and form templates not retaining “Copy Templates” value after validation.
+- Fixed Users field not setting “All users” as default sources when creating a new field.
+- Fixed Variant field not exporting correctly.
+- Fixed Users field not exporting correctly.
+- Fixed Tags field not exporting correctly.
+- Fixed Products field not exporting correctly.
+- Fixed File Upload field not exporting correctly.
+- Fixed Entries field not exporting correctly.
+- Fixed Categories field not exporting correctly.
+- Fixed Checkboxes field not exporting correctly.
+- Fixed Agree field not exporting correctly.
+- Fixed an error when trying to delete submissions from the CLI.
+- Fixed an error when disconnecting an OAuth-based integration.
+- Fixed Salesforce and Zoho CRM integrations not persisting values returned from provider authentication.
+- Ensure error message is logged for failed pruning of submission tasks.
+
+## 1.3.15 - 2021-01-29
+
+### Added
+- Added more logging info for email notifications, when failed to send.
+
+### Fixed
+- Fixed an error when viewing sent notifications, when the submission was deleted.
+- Fixed some errors for sent notifications for a deleted submission or form.
+- Fixed Zoho integration where the authentication response didn’t contain the required `api_domain`.
+- Fixed Salesforce integration where the authentication response didn’t contain the required `instance_url`.
+- Fixed failed email notifications not showing the full error in the control panel, when running email notifications via queues.
+
+## 1.3.14 - 2021-01-28
+
+### Added
+- Add `completeSubmission` param to forms, to allow providing a full payload and complete the submission.
+
+### Changed
+- Saving spam submissions is now enabled by default.
+- Agree field description static translation is now defined in `site.php`.
+
+### Fixed
+- Fixed IE11 compatibility with some front-end fields (Address, Phone, Repeater).
+- Fixed hidden fields not having input attributes setting.
+- Fixed description for Agree field being translated twice.
+- Fixed error in Craft 3.6+.
+- Fixed submissions failing if `spamKeywords` setting was invalid.
+- Fixed error when querying form settings using GraphQL
+
+## 1.3.13 - 2021-01-24
+
+### Added
+- Added support to Mailchimp integration for tags.
+
+### Fixed
+- Fixed an error with Webhook integrations.
+
+## 1.3.12 - 2021-01-23
+
+### Added
+- Added support for selecting existing notifications from stencils, when adding a notification to a form.
+- Added support for Webhook integration URLs to contain submission variables through shorthand Twig.
+- Added support for Freeform and Sprout Form migrations to be run when `allowAdminChanges = false`.
+
+### Fixed
+- Fixed existing notifications not appearing when editing a stencil.
+- Fixed some potential errors with Sprout Forms migration and address/name fields.
+- Fixed Freeform migration not migrating fields correctly.
+- Fixed Sprout Forms migration not migrating fields correctly.
+- Fixed Sprout Forms migration for Agree field, where the message description would be blank.
+- Fixed Sprout Forms migration for File Upload field, where the selected volume wasn’t migrated.
+- Fixed Sprout Forms migration for Categories, Entries, Tags and User fields, not setting the `selectionLabel` to the `placeholder` value. 
+- Fixed some potential errors with Sprout Forms migration and phone fields.
+- Fixed “Save as Stencil” not saving data correctly, by not stripping out page, row and field IDs.
+
+## 1.3.11 - 2021-01-21
+
+### Added
+- Added a ‘pageIndex’ param to the submit action. (thanks @joshuabaker).
+- Added pagination-helper for ActiveCampaign integrations. The integration will now automatically fetch greater-than 100 resources such as lists.
+
+### Changed
+- Changed ActiveCampaign integrations to fetch at least 100 of each resource.
+
+### Fixed
+- Fixed deprecation notice for Repeater field. (thanks @danieladarve).
+- Fixed ajax forms not redirecting correctly, when overriding `redirectUrl` in templates.
+- Fixed HTML field not parsing Twig content in some instances.
+- Fixed Entry mapping throwing an error when setting the author to an Entry field.
+- Fixed ActiveCampaign integration not showing connection status correctly.
+- Fixed sub-fields (Name, Address, Phone) not having their values concatenated for integrations, when not selecting a sub-field.
+
+## 1.3.10 - 2021-01-16
+
+### Added
+- File Upload fields now show a summary of uploaded files for multi-page forms. When navigating back to a page with the field, you'll see this summary.
+- Ajax-enabled multi-page forms now smooth-scrolls to the top of the loaded page when going to the previous or next pages.
+- Front-end validation now adds a `fui-error` class on the `fui-field` element, when a validation error occurs, instead of just on the input.
+
+### Fixed
+- Fixed an error when using checkboxes in email notification conditions.
+- Fixed a potential error when viewing a submission in the control panel.
+- Fixed Address field auto-complete value not persisting on front-end submissions.
+- Fixed being unable to set the `siteId` of submissions through GraphQL.
+- Fixed submissions not being able to be mutated through GraphQL for non-public schemas.
+- Fixed Group and Repeater fields not saving content correctly for non-primary sites.
+- Fixed flicker in Safari for the form builder, when hovering over draggable elements.
+- Fixed Phone field exporting not formatting international phone numbers correctly.
+- Fixed Phone field not always remembering the country dial code selected.
+- Fixed Phone field triggering content change warnings for country-enabled fields. This was due to numbers being formatted on-load..
+
+## 1.3.9 - 2021-01-12
+
+### Added
+- Added support for Gatsby Source Plugin and Form elements.
+- Added support for Gatsby Source Plugin and Submission elements.
+- Added support to set the `formId` for a form. This is used as the unique identifier for the `id` attribute and connection JS to the form.
+
+### Changed
+- User element integrations now clear any field content mapped to the password field, once the user element is created.
+
+### Fixed
+- Fixed name and address fields not showing content in columns, when editing a submission in the control panel.
+- Fixed some fields (checkboxes) throwing errors in email notifications.
+- Fixed non-multiple name field causing an error in email notifications.
+- Fixed non-utf8 characters in email notification email values causing errors.
+- Fixed email notification logging message to properly include the template it tried to resolve.
+
+## 1.3.8 - 2021-01-10
+
+### Added
+- Added “Country Code” to Phone model, allowing the raw country code (eg “+1”) to be used in email notifications and submissions for a Phone field
+- Added `form.setFieldSettings()` function to provide render-time overrides to form fields and their settings.
+
+### Changed
+- Change email notification variable output to only contain the value for the field, instead of including the field label/name.
+
+### Fixed
+- Fixed default stencil’s “To” and “Reply To” variable fields not being correct.
+- Fixed email notification preview not working for stencils
+- Fixed form templates with custom template path not saving correctly
+- Fixed JavaScript captcha not working correctly for multiple instances of the same form on a page.
+- Fixed an error with the HTML field
+- Fixed server-side validation errors with Phone field
+- Fixed phone numbers not being created as international numbers, when previewing an email notification
+
+## 1.3.7 - 2020-12-23
+
+### Fixed
+- Fixed Agile CRM mapping email, website and phone to contacts. 
+- Fixed deleting a submission via GraphQL not returning the correct success/fail state.
+- Fixed deleting a submission via GraphQL not working for non-default sites.
+
+## 1.3.6 - 2020-12-22
+
+### Fixed
+- Fixed element integrations not having their error messages translated correctly (and not containing the required logging detail).
+
+## 1.3.5 - 2020-12-22
+
+### Added
+- Added ability to provide htmlpurifier config JSON files for HTML fields.
+- Added `ModifyPurifierConfigEvent`.
+- Added Agile CRM integration.
+- Added Copper CRM integration.
+- Added Capsule CRM integration.
+- Added all global sets into variable-enabled fields.
+
+### Changed
+- Improve performance for very large forms and fields.
+
+### Fixed
+- Fixed an error when viewing a trashed submission, with custom fields selected in columns.
+- Fixed no captchas appearing in plugin settings.
+- Fixed potential error thrown, when trying to catch _other_ errors during older updates.
+- Fixed Oauth-based integrations not allowing connection when `'allowAdminChanges' => false`.
+- Fixed an error with the recipients field.
+- Fixed form permissions not always being run for new forms.
+- Fixed “Save as a new form” not working in some cases.
+- Fixed multi-page form submissions incorrectly validating fields when going back to a previous page.
+- Fixed some fields not displaying correctly in notification emails.
+- Fixed sent notifications not always showing the HTML body content.
+- Fixed form and email templates not resolving to single template files correctly.
+- Fixed an error when trying to delete a submission using GraphQL.
+
+## 1.3.4 - 2020-12-16
+
+### Added
+- Added `formie.cp.submissions.edit` template hook.
+- Added `formie.cp.submissions.edit.content` template hook.
+- Added `formie.cp.submissions.edit.details` |template hook.
+- Added `formie.cp.sentNotifications.edit` template hook.
+- Added `formie.cp.sentNotifications.edit.content` template hook.
+- Added `formie.cp.sentNotifications.edit.details` template hook.
+- Update Autopilot integration to include more default fields and fix list-subscribing.
+- Added ability to add soft line-breaks to email notifications and other rich-text enable fields.
+
+### Changed
+- Pages now have a unique ID, inherited from the form’s `formId`.
+
+### Fixed
+- Fixed rendering the same form multiple times on a page not working correctly.
+- Fixed “Unknown Integration” error message when trying to connect an integration with `allowAdminChanges = false`.
+- Fixed captcha settings resetting when saving plugin settings.
+- Fixed the `siteRootUrl` to trim the trailing slash if present. This is an issue on some systems (Servd) where URLs with a trailing slash are redirected.
+- Fixed field/notification edit modals not getting properly reset when hidden.
+- Fixed HTML field errors when the vendor folder didn’t have write permissions (such as Servd).
+
+## 1.3.3 - 2020-12-06
+
+> {warning} If you are overriding templates for `field.html`, you **must** update your template to include `data-field-config="{{ field.getConfigJson(form) | json_encode | raw }}"`. This is the new and improved method for fields to define their config settings, picked up by JavaScript classes. Without making this change, field JS will not work. Refer to [this commit change](https://github.com/verbb/formie/commit/c5d5eda10b39063e1cf782b38f84bebe0da6fdf9#diff-ba26d5dbf9dcd3281c9b0b3c16f822eff1d2943c2134518d4ecea26d10907be4R90-R92).
+
+### Added
+- Added `defaultState` for GraphQL queries for Agree fields. This replaces `defaultValue`.
+- Added `defaultDate` for GraphQL queries for Date fields. This replaces `defaultValue`.
+- Added “Current URL” to hidden field default value options.
+- Added `data-field-config` attribute to all fields that require JS.
+- Added `getConfigJson()` for all fields to define settings for JS modules.
+
+### Changed
+- Formie now requires Craft 3.5+.
+- Form queries via GraphQL are now no longer automatically included in the public schema.
+- Submission queries via GraphQL are now no longer automatically included in the public schema.
+- Submission mutations via GraphQL are now no longer automatically included in the public schema.
+- When (soft) deleting a form, any submissions will also be (soft) deleted. These are also restored if the form is restored.
+- Refactor JS behaviour for fields that require it. We now use a `data-field-config` attribute on the field to store JS module settings. This is then initialized once the JS has been lazy-loaded. This allows us to split configuration from initialization and may also help with custom JS.
+- Renamed `Field::getFrontEndJsVariables()` to `Field::getFrontEndJsModules()`.
+- Improve handling of multi-page non-ajax forms, where some fields required JS. Formie now detects what JS needs to be used for the current page for a page-reload form, or the entire form for an ajax form.
+- Improve field JS to stop relying on IDs or classes to hook into field functionality. It now determines this through `data-field-config` attribute on the field wrapper element. This should allow for greater template flexibility.
+- Submissions now make use of the same JS/CSS code that the front-end does.
+
+### Fixed
+- Fixed errors when garbage collection is called for sent notifications.
+- Fixed when deleting a form, the submissions for that form weren't also deleted.
+- Fixed an error when trying to view a submission on a deleted form.
+- Fixed some GraphQL attributes not being cast to the correct type.
+- Fixed some GraphQL errors for some fields.
+- Fixed an error when trying to permanently delete a form.
+- Fixed an error with date field using a default value.
+- Fixed console error for multi-page non-ajax forms containing a phone field.
+- Fixed repeater and group fields not initializing their inner fields’ JS.
+- Fixed JS module code for fields being loaded multiple times when initially loading the page.
+- Fixed an error for address providers when used in a Repeater field.
+- Fixed address providers not checking if their provider JS is loaded correctly, in some instances.
+- Fixed multi-line rich text fields loading Font Awesome multiple times.
+- Fixed checkbox/radio fields not validation correctly inside a Repeater field.
+- Fixed warnings/errors for JS fields, where their inputs might not exist on a page.
+- Fixed Algolia Places not working correctly.
+- Fixed issue where multiple ajax-based forms on a single page would have validation triggered across all forms.
+- Fixed incorrect error being shown when custom server-side errors for fields are defined.
+- Fixed an error when an email notification's sender email wasn't properly filtered.
+- Fixed incorrect output in email notifications when using date fields.
+
+## 1.3.2 - 2020-11-28
+
+### Added
+- Added support for using the submission ID, Title and Status in notification conditions.
+
+### Fixed
+- Fixed notification conditions not saving correctly when a field with options (dropdown, etc) was selected.
+- Fixed “Submission Message” and “Error Message Position” form message parsing HTML incorrectly in some cases.
+- Fixed agree field description parsing HTML incorrectly in some cases.
+- Fix an error when editing stencils.
+- Fix minor error handling for GQL mutations.
+
+## 1.3.1 - 2020-11-26
+
+### Added
+- Allow field type classes to provide their own GQL attribute mappings for attributes.
+
+### Fixed
+- Fixed Ajax submissions not resolving to the correct current site when using sub-directories for sites, causing translation issues.
+- Fixed agree field description not translating correctly.
+- Fixed error when querying `allowedKinds` as an attribute on a file upload field with GQL.
+- Fixed lack of server-side email validation for email fields.
+
+## 1.3.0 - 2020-11-25
 
 ### Added
 - Added Sent Notifications section, providing information on sent email notifications. Each Sent Notification contains delivery information and the ability to preview what was sent.
@@ -13,13 +425,14 @@
 - Added country flags and international/national validation to Phone fields.
 - Added new MultiSelect Vue component, for use in custom field schema settings.
 - Added ability to control whether form submissions are stored permanently or not.
-- Added settings for form submission data rentention for hours, days, weeks, months and years.
+- Added settings for form submission data retention for hours, days, weeks, months and years.
 - Added indicator when editing a submission when it's associated with a user.
 - Added `submission->getUser()`.
 - Added support for when deleted a user, any submissions associated to them can be transferred to another user, or deleted.
 - Added when deleting a user, a summary of their submissions (if any) is shown in the prompt.
 - Added support for when restoring a deleted user, we restore any associated submissions.
-- Added settings for form submission data rentention for uploaded files.
+- Added settings for form submission data retention for uploaded files.
+- Added `maxSentNotificationsAge` plugin setting to control sent notification pruning.
 - Added `formie/gc/delete-orphaned-fields` console command.
 - Added `formie/gc/prune-syncs` console command.
 - Added `formie/gc/prune-incomplete-submissions` console command.
@@ -31,7 +444,7 @@
 ### Changed
 - Refactored Phone fields to no longer use a separate dropdown for country code.
 - When deleting a user, any form submissions related to that user will be deleted, or transferred to a user of your choice. This only applies if you use the "Collect User" setting for your forms.
-- Lock `fakerphp/faker` at 1.9.1 due to PHP compatibiity. Hopefully also fix some composer issues when updating with `./craft update all`.
+- Lock `fakerphp/faker` at 1.9.1 due to PHP compatibility. Hopefully also fix some composer issues when updating with `./craft update all`.
 
 ### Fixed
 - Fixed critical errors when a fields' setting was removed before migration can take place (looking at you `descriptionHtml` attribute).

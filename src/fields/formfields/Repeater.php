@@ -8,7 +8,6 @@ use verbb\formie\elements\Form;
 use verbb\formie\elements\db\NestedFieldRowQuery;
 use verbb\formie\elements\NestedFieldRow;
 use verbb\formie\helpers\SchemaHelper;
-use verbb\formie\web\assets\repeater\RepeaterAsset;
 
 use Craft;
 use craft\base\EagerLoadingFieldInterface;
@@ -26,7 +25,9 @@ class Repeater extends FormField implements NestedFieldInterface, EagerLoadingFi
     // Traits
     // =========================================================================
 
-    use NestedFieldTrait;
+    use NestedFieldTrait {
+        getFrontEndJsModules as traitGetFrontEndJsModules;
+    }
 
 
     // Static Methods
@@ -162,48 +163,10 @@ class Repeater extends FormField implements NestedFieldInterface, EagerLoadingFi
      */
     public function getInputHtml($value, ElementInterface $element = null): string
     {
-        /** @var Element $element */
-        if ($element !== null && $element->hasEagerLoadedElements($this->handle)) {
-            $value = $element->getEagerLoadedElements($this->handle);
-        }
-
-        if ($value instanceof NestedFieldRowQuery) {
-            $value = $value->getCachedResult() ?? $value->limit(null)->anyStatus()->all();
-        }
-
-        $view = Craft::$app->getView();
-        $id = $view->formatInputId($this->handle);
-
-        // Get the row data
-        $rowInfo = $this->_getRowInfoForInput($element);
-
-        $createDefaultRows = $this->minRows != 0;
-
-        $view->registerAssetBundle(RepeaterAsset::class);
-
-        $js = 'var repeaterInput = new Craft.Formie.Repeater.Input(' .
-            '"' . $view->namespaceInputId($id) . '", ' .
-            Json::encode($rowInfo, JSON_UNESCAPED_UNICODE) . ', ' .
-            '"' . $view->namespaceInputName($this->handle) . '", ' .
-            Json::encode($this, JSON_UNESCAPED_UNICODE) .
-        ');';
-
-        // Safe to create the default blocks?
-        if ($createDefaultRows) {
-            $minRows = $this->minRows ?? 0;
-
-            for ($i = count($value); $i < $minRows; $i++) {
-                $js .= "\nrepeaterInput.addRow();";
-            }
-        }
-
-        $view->registerJs($js, View::POS_END);
-
-        return $view->renderTemplate('formie/_formfields/repeater/input', [
-            'id' => $id,
+        return Craft::$app->getView()->renderTemplate('formie/_formfields/repeater/input', [
             'name' => $this->handle,
-            'rows' => $value,
-            'nestedField' => $this,
+            'value' => $value,
+            'field' => $this,
         ]);
     }
 
@@ -218,25 +181,63 @@ class Repeater extends FormField implements NestedFieldInterface, EagerLoadingFi
     }
 
     /**
+     * @inheritDoc
+     */
+    public function populateValue($value)
+    {
+        if (!is_array($value) || !isset($value[0])) {
+            return;
+        }
+
+        $blocks = [];
+
+        foreach ($value as $i => $fieldContent) {
+            try {
+                $row = new NestedFieldRow();
+                $row->id = 'new' . ($i + 1);
+                $row->fieldId = $this->id;
+                $row->setFieldValues($fieldContent);
+
+                $blocks[] = $row;
+            } catch (\Throwable $e) {
+                continue;
+            }
+        }
+
+        if ($blocks) {
+            $this->defaultValue = new NestedFieldRowQuery(NestedFieldRow::class);
+            $this->defaultValue->setBlocks($blocks);
+        }
+    }
+
+    /**
      * @inheritdoc
      */
-    public function getFrontEndJsVariables(Form $form)
+    public function getFrontEndJsModules()
     {
-        $settings = [
-            'fieldId' => $this->getHtmlWrapperId($form),
-            'formSettings' => [
-                'hasMultiplePages' => $form->hasMultiplePages(),
-                'submitMethod' => $form->settings->submitMethod,
-            ],
-        ];
+        $modules = [];
         
-        $src = Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/fields/repeater.js', true);
-        $onload = 'new FormieRepeater(' . Json::encode($settings) . ');';
-
-        return [
-            'src' => $src,
-            'onload' => $onload,
+        $modules[] = [
+            'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/fields/repeater.js', true),
+            'module' => 'FormieRepeater',
         ];
+
+        // Ensure we also load any JS in nested fields
+        $modules = array_merge($modules, $this->traitGetFrontEndJsModules());
+
+        return $modules;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getConfigJson()
+    {
+        // Override `getConfigJson` as we don't want to initialise any inner fields immediately.
+        // Even if there are min-rows, JS is the one to create the blocks, and initialize inner field JS.
+        return Json::encode([
+            'module' => 'FormieRepeater',
+        ]);
     }
 
     /**
@@ -301,72 +302,5 @@ class Repeater extends FormField implements NestedFieldInterface, EagerLoadingFi
             SchemaHelper::cssClasses(),
             SchemaHelper::containerAttributesField(),
         ];
-    }
-
-
-    // Private Properties
-    // =========================================================================
-
-    /**
-     * Returns info field types for the repeater field input.
-     *
-     * @param ElementInterface|null $element
-     * @return array|null
-     * @throws Throwable
-     */
-    private function _getRowInfoForInput(ElementInterface $element = null)
-    {
-        $settings = $this->getSettings();
-
-        $view = Craft::$app->getView();
-
-        // Set a temporary namespace for these
-        $originalNamespace = $view->getNamespace();
-        $namespace = $view->namespaceInputName($this->handle . '[rows][__ROW__][fields]', $originalNamespace);
-        $view->setNamespace($namespace);
-
-        // Create a fake NestedFieldRow so the field types have a way to get at the owner element, if there is one
-        $row = new NestedFieldRow();
-        $row->fieldId = $this->id;
-
-        if ($element) {
-            $row->setOwner($element);
-            $row->siteId = $element->siteId;
-        }
-
-        if ($fieldLayout = $this->getFieldLayout()) {
-            $fieldLayoutFields = $fieldLayout->getFields();
-
-            foreach ($fieldLayoutFields as $field) {
-                $field->setIsFresh(true);
-            }
-
-            $view->startJsBuffer();
-
-            $bodyHtml = $view->namespaceInputs($view->renderTemplate('formie/_formfields/repeater/fields', [
-                'namespace' => null,
-                'fields' => $fieldLayoutFields,
-                'element' => $row,
-                'settings' => $settings,
-            ]));
-
-            // Reset $_isFresh's
-            foreach ($fieldLayoutFields as $field) {
-                $field->setIsFresh(null);
-            }
-
-            $footHtml = $view->clearJsBuffer();
-
-            $view->setNamespace($originalNamespace);
-
-            return [
-                'bodyHtml' => $bodyHtml,
-                'footHtml' => $footHtml,
-            ];
-        }
-
-        $view->setNamespace($originalNamespace);
-
-        return null;
     }
 }

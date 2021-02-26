@@ -64,6 +64,8 @@ class Hidden extends FormField implements PreviewableFieldInterface
                 $this->defaultValue = $request->getUserAgent();
             } elseif ($this->defaultOption === 'referUrl') {
                 $this->defaultValue = $request->getReferrer();
+            } elseif ($this->defaultOption === 'currentUrl') {
+                $this->defaultValue = $request->getAbsoluteUrl();
             } elseif ($this->defaultOption === 'userId') {
                 $this->defaultValue = $currentUser->id ?? null;
             } elseif ($this->defaultOption === 'username') {
@@ -170,6 +172,7 @@ class Hidden extends FormField implements PreviewableFieldInterface
                 'options' => [
                     [ 'label' => Craft::t('formie', 'Date (mm/dd/yyyy)'), 'value' => 'dateUs' ],
                     [ 'label' => Craft::t('formie', 'Date (dd/mm/yyyy)'), 'value' => 'dateInt' ],
+                    [ 'label' => Craft::t('formie', 'Current URL'), 'value' => 'currentUrl' ],
                     [ 'label' => Craft::t('formie', 'HTTP User Agent'), 'value' => 'userAgent' ],
                     [ 'label' => Craft::t('formie', 'HTTP Refer URL'), 'value' => 'referUrl' ],
                     [ 'label' => Craft::t('formie', 'User ID'), 'value' => 'userId' ],
@@ -216,6 +219,7 @@ class Hidden extends FormField implements PreviewableFieldInterface
             SchemaHelper::handleField(),
             SchemaHelper::cssClasses(),
             SchemaHelper::containerAttributesField(),
+            SchemaHelper::inputAttributesField(),
         ];
     }
 }

@@ -16,6 +16,7 @@ use craft\base\ElementInterface;
 use craft\gql\types\DateTime as DateTimeType;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Html;
+use craft\helpers\Json;
 use craft\helpers\Template;
 use craft\helpers\StringHelper;
 use craft\validators\HandleValidator;
@@ -358,6 +359,14 @@ trait FormFieldTrait
     /**
      * @inheritDoc
      */
+    public function getSavedFieldConfig(): array
+    {
+        return $this->getAttributes(['id', 'name', 'handle']);
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function getFieldDefaults(): array
     {
         return [];
@@ -394,6 +403,11 @@ trait FormFieldTrait
 
         // If we pass in an element (submission), fetch the value on that
         $value = $element->{$handle} ?? null;
+
+        // If we pass in an array, fetch the value on that
+        if (is_array($element)) {
+            $value = $element[$handle] ?? null;
+        }
 
         // Otherwise, check if there are any default values
         if ($value === null) {
@@ -433,7 +447,9 @@ trait FormFieldTrait
         }
 
         // Parse the default value for variables
-        $value = Variables::getParsedValue($value, null, null);
+        if (!is_array($value) && !is_object($value)) {
+            $value = Variables::getParsedValue($value);
+        }
 
         return $value;
     }
@@ -619,7 +635,7 @@ trait FormFieldTrait
     /**
      * @inheritDoc
      */
-    public function getFrontEndJsVariables(Form $form)
+    public function getFrontEndJsModules()
     {
         return null;
     }
@@ -627,17 +643,53 @@ trait FormFieldTrait
     /**
      * @inheritDoc
      */
-    public function getEmailHtml(Submission $submission, $value, array $options = null)
+    public function getConfigJson()
+    {
+        // From the provided JS module config, extract just the settings and module name
+        // for use inline in the HTML. We load the scripts async, and rely on the HTML for
+        // fields to output their config, so it's reliable and works for on-demand HTML (repeater)
+        $modules = $this->getFrontEndJsModules();
+
+         // Normalise to handle multiple module registrations
+        if (!isset($modules[0])) {
+            $modules = [$modules];
+        }
+
+        if ($modules) {
+            $config = [];
+
+            foreach ($modules as $module) {
+                $settings = $module['settings'] ?? [];
+                $settings['module'] = $module['module'] ?? '';
+                $settings = array_filter($settings);
+
+                if ($settings) {
+                    $config[] = $settings;
+                }
+            }
+
+            if ($config) {
+                return Json::encode($config);
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getEmailHtml(Submission $submission, Notification $notification, $value, array $options = null)
     {
         $view = Craft::$app->getView();
         $oldTemplatesPath = $view->getTemplatesPath();
 
         try {
-            $templatesPath = Formie::$plugin->getRendering()->getEmailComponentTemplatePath($submission->notification, static::getEmailTemplatePath());
+            $templatesPath = Formie::$plugin->getRendering()->getEmailComponentTemplatePath($notification, static::getEmailTemplatePath());
 
             $view->setTemplatesPath($templatesPath);
 
-            $inputOptions = $this->getEmailOptions($submission, $value, $options);
+            $inputOptions = $this->getEmailOptions($submission, $notification, $value, $options);
             $html = Craft::$app->getView()->renderTemplate(static::getEmailTemplatePath(), $inputOptions);
             $html = Template::raw($html);
         } catch (Exception $e) {
@@ -645,8 +697,9 @@ trait FormFieldTrait
             try {
                 $content = (string)($value ? $value : Craft::t('formie', 'No response.'));
                 $hideName = $options['hideName'] ?? false;
+
                 if (!$hideName) {
-                    $content = Html::tag('strong', $this->name) . '<br>' . $content;
+                    $content = Html::tag('strong', Craft::t('site', $this->name)) . '<br>' . $content;
                 }
 
                 $html = Html::tag('p', $content);
@@ -657,15 +710,17 @@ trait FormFieldTrait
         }
 
         $view->setTemplatesPath($oldTemplatesPath);
+
         return $html;
     }
 
     /**
      * @inheritDoc
      */
-    public function getEmailOptions(Submission $submission, $value, array $options = null): array
+    public function getEmailOptions(Submission $submission, Notification $notification, $value, array $options = null): array
     {
         return [
+            'notification' => $notification,
             'submission' => $submission,
             'name' => $this->handle,
             'value' => $value,
@@ -730,10 +785,11 @@ trait FormFieldTrait
             $fieldInfo = $fieldTypes[$attribute] ?? [];
             $schemaType = $fieldInfo['type'] ?? $fieldInfo['component'] ?? 'text';
 
-            $gqlSettingTypes[$attribute] = [
-                'name' => $attribute,
-                'type' => $this->getSettingGqlType($attribute, $schemaType, $fieldInfo),
-            ];
+            $gqlAttribute = $this->getSettingGqlType($attribute, $schemaType, $fieldInfo);
+
+            if ($gqlAttribute) {
+                $gqlSettingTypes[$attribute] = $gqlAttribute;
+            }
         }
 
         return $gqlSettingTypes;
@@ -748,41 +804,45 @@ trait FormFieldTrait
     }
 
 
-    // Private Methods
+    // Protected Methods
     // =========================================================================
-
-    /**
-     * Returns the kebab-case name of the field class.
-     *
-     * @return string
-     */
-    private static function _getKebabName()
-    {
-        $classNameParts = explode('\\', static::class);
-        $end = array_pop($classNameParts);
-
-        return StringHelper::toKebabCase($end);
-    }
 
     /**
      * Returns the GraphQL-equivalent datatype based on a provided field's handle or schema type
      */
-    private function getSettingGqlType($attribute, $type, $fieldInfo)
+    protected function getSettingGqlType($attribute, $type, $fieldInfo)
     {
-        if ($type === 'lightswitch') {
-            return Type::boolean();
+        // Define any non-string properties
+        $attributesDefinitions = [
+            'containerAttributes' => Type::listOf(FieldAttributeGenerator::generateType()),
+            'inputAttributes' => Type::listOf(FieldAttributeGenerator::generateType()),
+            'required' => Type::boolean(),
+            'limit' => Type::boolean(),
+            'multiple' => Type::boolean(),
+            'limitAmount' => Type::int(),
+        ];
+
+        $attributesDefinition = $attributesDefinitions[$attribute] ?? null;
+
+        if ($attributesDefinition) {
+            return [
+                'name' => $attribute,
+                'type' => $attributesDefinition,
+            ];
         }
 
-        if ($type === 'date') {
-            return DateTimeType::getType();
-        }
+        $typeDefinitions = [
+            'lightswitch' => Type::boolean(),
+            'date' => DateTimeType::getType(),
+        ];
 
-        if ($attribute === 'containerAttributes') {
-            return Type::listOf(FieldAttributeGenerator::generateType());
-        }
+        $typeDefinition = $typeDefinitions[$type] ?? null;
 
-        if ($attribute === 'inputAttributes') {
-            return Type::listOf(FieldAttributeGenerator::generateType());
+        if ($typeDefinition) {
+            return [
+                'name' => $attribute,
+                'type' => $typeDefinition,
+            ];
         }
 
         if ($type === 'table-block') {
@@ -818,5 +878,22 @@ trait FormFieldTrait
         }
 
         return Type::string();
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    /**
+     * Returns the kebab-case name of the field class.
+     *
+     * @return string
+     */
+    private static function _getKebabName()
+    {
+        $classNameParts = explode('\\', static::class);
+        $end = array_pop($classNameParts);
+
+        return StringHelper::toKebabCase($end);
     }
 }

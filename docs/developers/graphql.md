@@ -144,6 +144,8 @@ This is the interface implemented by all forms.
 | `rows`| `[RowInterface]` | The form’s rows.
 | `fields`| `[FieldInterface]` | The form’s fields.
 | `settings`| `[FormSettingsInterface]` | The form’s settings.
+| `configJson`| `String` | The form’s config as JSON.
+| `templateHtml`| `String` | The form’s rendered HTML.
 
 
 ### The `FormSettingsInterface` interface
@@ -225,7 +227,6 @@ This is the interface implemented by all fields. Note that as settings are speci
 | `limitType`| `String` | The field’s limit type.
 | `limitAmount`| `Int` | The field’s limit amount.
 | `placeholder`| `String` | The field’s placeholder.
-| `defaultValue`| `String` | The field’s limit type.
 | `errorMessage`| `String` | The field’s error message.
 | `labelPosition`| `String` | The field’s label position.
 | `instructionsPosition`| `String` | The field’s instructions position.
@@ -234,6 +235,16 @@ This is the interface implemented by all fields. Note that as settings are speci
 | `inputAttributes`| `String` | The field’s input attributes.
 
 Once using the necessary [Inline Fragments](https://graphql.org/learn/queries/#inline-fragments) for each field type, you'll have access to the same variables as described on the [Field](docs:developers/field) docs.
+
+#### Agree Fields
+| Field | Type | Description
+| - | - | -
+| `defaultState`| `Boolean` | The field’s default value.
+
+#### Date Fields
+| Field | Type | Description
+| - | - | -
+| `defaultDate`| `Date` | The field’s default value.
 
 #### Nested Fields
 For nested fields like Group and Repeater, you have access to `nestedRows` and `fields`.
@@ -411,9 +422,9 @@ You'll notice the `contactForm_yourName_FormieNameInput` type being used. This f
 To delete a submission use the `deleteSubmission` mutation, which requires the `id` of the submission that must be deleted. It returns a boolean value as the result to indicate whether the operation was successful.
 
 ```json
-// Query to delete a submission with ID of `1110`.
+// Query to delete a submission with ID of `1110` for a site with an ID of `2`.
 mutation deleteSubmission {
-    deleteSubmission(id:1110)
+    deleteSubmission(id:1110 siteId:2)
 }
 ```
 

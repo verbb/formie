@@ -221,22 +221,11 @@ class Table extends CraftTable implements FormFieldInterface
     /**
      * @inheritdoc
      */
-    public function getFrontEndJsVariables(Form $form)
+    public function getFrontEndJsModules()
     {
-        $settings = [
-            'fieldId' => $this->getHtmlWrapperId($form),
-            'formSettings' => [
-                'hasMultiplePages' => $form->hasMultiplePages(),
-                'submitMethod' => $form->settings->submitMethod,
-            ],
-        ];
-
-        $src = Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/fields/table.js', true);
-        $onload = 'new FormieTable(' . Json::encode($settings) . ');';
-
         return [
-            'src' => $src,
-            'onload' => $onload,
+            'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/fields/table.js', true),
+            'module' => 'FormieTable',
         ];
     }
 

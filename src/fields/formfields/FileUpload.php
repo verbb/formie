@@ -17,6 +17,8 @@ use craft\fields\Assets as CraftAssets;
 use craft\helpers\Assets;
 use craft\helpers\Json;
 
+use GraphQL\Type\Definition\Type;
+
 class FileUpload extends CraftAssets implements FormFieldInterface
 {
     // Traits
@@ -24,6 +26,8 @@ class FileUpload extends CraftAssets implements FormFieldInterface
 
     use FormFieldTrait, RelationFieldTrait {
         getFrontEndInputOptions as traitGetFrontendInputOptions;
+        getSettingGqlType as traitGetSettingGqlType;
+        FormFieldTrait::getIsFieldset insteadof RelationFieldTrait;
     }
 
 
@@ -55,6 +59,7 @@ class FileUpload extends CraftAssets implements FormFieldInterface
      */
     public $searchable = true;
     public $sizeLimit;
+    public $sizeMinLimit;
     public $limitFiles;
     public $restrictFiles;
     public $allowedKinds;
@@ -62,7 +67,7 @@ class FileUpload extends CraftAssets implements FormFieldInterface
     public $uploadLocationSubpath;
     public $useSingleFolder = true;
 
-    protected $inputTemplate = 'formie/_includes/elementSelect';
+    protected $inputTemplate = 'formie/_includes/element-select-input';
 
 
     // Public Methods
@@ -101,6 +106,28 @@ class FileUpload extends CraftAssets implements FormFieldInterface
         }
 
         return $values;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function serializeValueForExport($value, ElementInterface $element = null)
+    {
+        $value = $this->_all($value, $element);
+
+        return array_reduce($value->all(), function($acc, $input) {
+            return $acc . $input->url;
+        }, '');
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function serializeValueForIntegration($value, ElementInterface $element = null)
+    {
+        return array_map(function($input) {
+            return $input->url;
+        }, $this->_all($value, $element)->all());
     }
 
     /**
@@ -241,14 +268,11 @@ class FileUpload extends CraftAssets implements FormFieldInterface
     /**
      * @inheritdoc
      */
-    public function getFrontEndJsVariables(Form $form)
+    public function getFrontEndJsModules()
     {
-        $src = Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/fields/file-upload.js', true);
-        $onload = 'new FormieFileUpload(' . Json::encode(['formId' => $form->id]) . ');';
-
         return [
-            'src' => $src,
-            'onload' => $onload,
+            'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/fields/file-upload.js', true),
+            'module' => 'FormieFileUpload',
         ];
     }
 
@@ -315,8 +339,18 @@ class FileUpload extends CraftAssets implements FormFieldInterface
                 'validation' => 'optional|number|min:0',
             ]),
             SchemaHelper::textField([
-                'label' => Craft::t('formie', 'Limit File Size'),
-                'help' => Craft::t('formie', 'Limit the size of the files a user can upload.'),
+                'label' => Craft::t('formie', 'Min File Size'),
+                'help' => Craft::t('formie', 'Set the minimum size of the files a user can upload.'),
+                'name' => 'sizeMinLimit',
+                'size' => '3',
+                'class' => 'text',
+                'type' => 'textWithSuffix',
+                'suffix' => Craft::t('formie', 'MB'),
+                'validation' => 'optional|number|min:0',
+            ]),
+            SchemaHelper::textField([
+                'label' => Craft::t('formie', 'Max File Size'),
+                'help' => Craft::t('formie', 'Set the maxiumum size of the files a user can upload.'),
                 'name' => 'sizeLimit',
                 'size' => '3',
                 'class' => 'text',
@@ -361,6 +395,21 @@ class FileUpload extends CraftAssets implements FormFieldInterface
             SchemaHelper::containerAttributesField(),
             SchemaHelper::inputAttributesField(),
         ];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected function getSettingGqlType($attribute, $type, $fieldInfo)
+    {
+        if ($attribute === 'allowedKinds') {
+            return [
+                'name' => $attribute,
+                'type' => Type::listOf(Type::string()),
+            ];
+        }
+
+        return $this->traitGetSettingGqlType($attribute, $type, $fieldInfo);
     }
 
 

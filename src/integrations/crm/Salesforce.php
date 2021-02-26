@@ -18,6 +18,8 @@ use craft\helpers\DateTimeHelper;
 use craft\helpers\Json;
 use craft\web\View;
 
+use DateTime;
+
 class Salesforce extends Crm
 {
     // Properties
@@ -94,6 +96,10 @@ class Salesforce extends Crm
     {
         // Save these properties for later...
         $this->apiDomain = $token->getValues()['instance_url'] ?? '';
+
+        if (!$this->apiDomain) {
+            throw new \Exception('Salesforce response missing `instance_url`.');
+        }
     }
 
 
@@ -199,11 +205,7 @@ class Salesforce extends Crm
                 'account' => $accountFields,
             ];
         } catch (\Throwable $e) {
-            Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [
-                'message' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-            ]), true);
+            Integration::apiError($this, $e);
         }
 
         return new IntegrationFormSettings($settings);
@@ -328,11 +330,7 @@ class Salesforce extends Crm
                     }
                 } catch (\Throwable $e) {
                     // Ignore duplicate warnings and continue, but still log
-                    Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [
-                        'message' => $e->getMessage(),
-                        'file' => $e->getFile(),
-                        'line' => $e->getLine(),
-                    ]));
+                    Integration::apiError($this, $e, false);
                 }
             }
 
@@ -377,11 +375,7 @@ class Salesforce extends Crm
                 }
             }
         } catch (\Throwable $e) {
-            Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [
-                'message' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-            ]), true);
+            Integration::apiError($this, $e);
 
             return false;
         }

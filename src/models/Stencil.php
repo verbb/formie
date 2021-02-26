@@ -332,4 +332,26 @@ class Stencil extends Model
             $this->_defaultStatus = $this->defaultStatusId = null;
         }
     }
+
+    /**
+     * Returns a collection of notification models, from their serialized data.
+     *
+     * @return Status
+     */
+    public function getNotifications()
+    {
+        $notificationsData = $this->data->notifications ?? [];
+
+        if ($notificationsData) {
+            $notifications = [];
+
+            foreach ($notificationsData as $notificationData) {
+                $notifications[] = new Notification($notificationData);
+            }
+
+            return $notifications;
+        }
+
+        return [];
+    }
 }

@@ -12,15 +12,11 @@ class Image extends Node
     public function data()
     {
         return [
-            'type' => 'text',
-            'text' => $this->DOMNode->getAttribute('src'),
-            'marks' => [
-                [
-                    'type' => 'link',
-                    'attrs' => [
-                        'href' => $this->DOMNode->getAttribute('src'),
-                    ],
-                ],
+            'type' => 'image',
+            'attrs' => [
+                'alt' => $this->DOMNode->hasAttribute('alt') ? $this->DOMNode->getAttribute('alt') : null,
+                'src' => $this->DOMNode->hasAttribute('src') ? $this->DOMNode->getAttribute('src') : null,
+                'title' => $this->DOMNode->hasAttribute('title') ? $this->DOMNode->getAttribute('title') : null,
             ],
         ];
     }

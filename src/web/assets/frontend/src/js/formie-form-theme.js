@@ -2,7 +2,7 @@ import { Bouncer } from './utils/bouncer';
 
 export class FormieFormTheme {
     constructor(config = {}) {
-        this.formId = `#formie-form-${config.formId}`;
+        this.formId = `#${config.formHashId}`;
         this.$form = document.querySelector(this.formId);
         this.config = config;
         this.settings = config.settings;
@@ -106,16 +106,21 @@ export class FormieFormTheme {
         }, 500);
 
         // After we clear any error, validate the fielset again. Mostly so we can remove global errors
-        this.form.addEventListener(document, 'bouncerRemoveError', (e) => {
+        this.form.addEventListener(this.$form, 'bouncerRemoveError', (e) => {
             this.validate(false);
         });
 
         // Override error messages defined in DOM - Bouncer only uses these as a last resort
         // In future updates, we can probably remove this
-        this.form.addEventListener(document, 'bouncerShowError', (e) => {
+        this.form.addEventListener(this.$form, 'bouncerShowError', (e) => {
             var $field = e.target;
             var $fieldContainer = $field.closest('.fui-field');
             var message = $field.getAttribute('data-fui-message');
+
+            // If there's a server error, it takes priority.
+            if (e.detail && e.detail.errors && e.detail.errors.serverMessage) {
+                message = e.detail.errors.serverMessage;
+            }
 
             // Check if we need to move the error out of the .fui-input-container node.
             // Only the input itself should be in here.
@@ -209,11 +214,12 @@ export class FormieFormTheme {
         var formData = new FormData(this.$form);
         var excludedItems = ['g-recaptcha-response', 'CRAFT_CSRF_TOKEN'];
 
-        formData.forEach((value, key) => {
-            if (!excludedItems.includes(key)) {
-                hash[key] = value;
+        for (var pair of formData.entries()) {
+            if (!excludedItems.includes(pair[0])) {
+                // eslint-disable-next-line
+                hash[pair[0]] = pair[1];
             }
-        });
+        }
 
         return JSON.stringify(hash);
     }
@@ -379,17 +385,23 @@ export class FormieFormTheme {
         const formData = new FormData(this.$form);
 
         const xhr = new XMLHttpRequest();
-        xhr.open('POST', '/');
+        xhr.open('POST', this.settings.siteRootUrl, true);
         xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
         xhr.setRequestHeader('Accept', 'application/json');
+        xhr.setRequestHeader('Cache-Control', 'no-cache');
+        xhr.timeout = 10000; // 10s
 
         this.beforeSubmit();
 
-        xhr.onreadystatechange = () => {
-            if (xhr.readyState !== 4) {
-                return;
-            }
+        xhr.ontimeout = () => {
+            this.onAjaxError(t('The request timed out.'));
+        };
 
+        xhr.onerror = (e) => {
+            this.onAjaxError(t('The request encountered a network error. Please try again.'));
+        };
+
+        xhr.onload = () => {
             if (xhr.status >= 200 && xhr.status < 300) {
                 try {
                     const response = JSON.parse(xhr.responseText);
@@ -435,7 +447,7 @@ export class FormieFormTheme {
                 const $field = document.querySelector(`[name="fields[${handle}]"]`);
 
                 if ($field) {
-                    this.validator.showError($field, { customMessage: error });
+                    this.validator.showError($field, { serverMessage: error });
 
                     // Focus on the first error
                     if (index === 0) {
@@ -537,7 +549,7 @@ export class FormieFormTheme {
 
         $allPages.forEach($page => {
             // Show the current page
-            if ($page.id === 'formie-p-' + data.nextPageId) {
+            if ($page.id === `${this.getPageId(data.nextPageId)}`) {
                 $page.classList.remove('fui-hidden');
             } else {
                 $page.classList.add('fui-hidden');
@@ -569,10 +581,20 @@ export class FormieFormTheme {
 
         // Update the current page
         this.setCurrentPage(data.nextPageId);
+
+        // Smooth-scroll to the top of the form.
+        window.scrollTo({
+            top: this.$form.getBoundingClientRect().top + window.pageYOffset - 50,
+            behavior: 'smooth',
+        });
     }
 
     setCurrentPage(pageId) {
-        this.currentPageId = `#formie-p-${pageId}`;
+        this.currentPageId = `#${this.getPageId(pageId)}`;
         this.$currentPage = document.querySelector(this.currentPageId);
+    }
+
+    getPageId(pageId) {
+        return `${this.config.formHashId}-p-${pageId}`;
     }
 }

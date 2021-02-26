@@ -1,5 +1,4 @@
 import recaptcha from './inc/recaptcha';
-import { isVisible } from './inc/visible';
 
 export class FormieRecaptchaV2Invisible {
     constructor(settings = {}) {
@@ -35,6 +34,8 @@ export class FormieRecaptchaV2Invisible {
         // We can have multiple captchas per form (for ajax), so store them and render only when we need
         this.$placeholders = this.$form.querySelectorAll('.formie-recaptcha-placeholder');
 
+        // console.log(this.$placeholders);
+
         if (!this.$placeholders) {
             console.error('Unable to find any ReCAPTCHA placeholders for #' + this.formId);
 
@@ -52,9 +53,12 @@ export class FormieRecaptchaV2Invisible {
     renderCaptcha() {
         this.$placeholder = null;
 
-        // Get the current page's captcha - find the first placeholder that's non-invisible
+        // Get the active page
+        var { $currentPage } = this.$form.form.formTheme;
+
+        // Get the current page's captcha
         this.$placeholders.forEach($placeholder => {
-            if (isVisible($placeholder)) {
+            if ($currentPage && $currentPage.contains($placeholder)) {
                 this.$placeholder = $placeholder;
             }
         });

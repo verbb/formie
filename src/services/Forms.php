@@ -7,6 +7,7 @@ use verbb\formie\base\NestedFieldInterface;
 use verbb\formie\base\NestedFieldTrait;
 use verbb\formie\base\FormField;
 use verbb\formie\elements\Form;
+use verbb\formie\helpers\HandleHelper;
 use verbb\formie\migrations\CreateFormContentTable;
 use verbb\formie\models\FieldLayout;
 use verbb\formie\models\FieldLayoutPage;
@@ -15,6 +16,7 @@ use verbb\formie\records\Form as FormRecord;
 
 use Craft;
 use craft\base\Component;
+use craft\db\Query;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Db;
 use craft\helpers\DateTimeHelper;
@@ -66,6 +68,16 @@ class Forms extends Component
     }
 
     /**
+     * @inheritDoc
+     */
+    public function getFormRecord($formId)
+    {
+        $result = $this->_createFormsQuery($formId)->one();
+
+        return ($result) ? new Form($result) : null;
+    }
+
+    /**
      * Saves a form.
      *
      * @param Form $form
@@ -103,6 +115,7 @@ class Forms extends Component
         try {
             // Prep the fields for save
             $fieldLayout = $form->getFormFieldLayout();
+            
             foreach ($fieldLayout->getFields() as $field) {
                 $field->context = $form->getFormFieldContext();
                 $fieldsService->prepFieldForSave($field);
@@ -178,6 +191,17 @@ class Forms extends Component
                 }
             }
 
+            // For new forms, check for any globally enabled captchas and set as enabled
+            if ($isNewForm) {
+                $captchas = Formie::$plugin->getIntegrations()->getAllCaptchas();
+
+                foreach ($captchas as $captcha) {
+                    if ($captcha->enabled) {
+                        $form->settings->integrations[$captcha->handle]['enabled'] = true;
+                    }
+                }
+            }
+
             $success = $fieldsService->saveLayout($fieldLayout);
 
             // Set content table back to original value.
@@ -196,6 +220,7 @@ class Forms extends Component
 
             $notificationsService = Formie::$plugin->getNotifications();
             $notifications = $form->getNotifications();
+
             foreach ($notifications as $notification) {
                 $notification->formId = $form->id;
                 $notificationsService->saveNotification($notification);
@@ -204,6 +229,7 @@ class Forms extends Component
             // Prune deleted notifications.
             if (!$isNewForm) {
                 $allNotifications = $notificationsService->getFormNotifications($form);
+
                 foreach ($allNotifications as $notification) {
                     if (!ArrayHelper::contains($notifications, 'id', $notification->id)) {
                         $notificationsService->deleteNotificationById($notification->id);
@@ -234,32 +260,44 @@ class Forms extends Component
         $db = Craft::$app->getDb();
         $db->getSchema()->refresh();
 
-        $transaction = $db->beginTransaction();
-        try {
-            // Rename the content table. This is so we can easily determine soft-deleted
-            // form content tables to cleanup later, or restore
-            $newContentTableName = $this->defineContentTableName($form, false, true);
-
-            MigrationHelper::renameTable($form->fieldContentTable, $newContentTableName);
-
+        // If we are deleting a trashed form, we're killing stuff for good.
+        if ($form->trashed) {
+            // Permanently drop the content table
             $db->createCommand()
-                ->update('{{%formie_forms}}', ['fieldContentTable' => $newContentTableName], [
-                    'id' => $form->id,
-                ])->execute();
-
-            $form->fieldContentTable = $newContentTableName;
-
-            if ($fieldLayout = $form->getFormFieldLayout()) {
-                Craft::$app->getFields()->deleteLayout($fieldLayout);
-            }
-
-            $transaction->commit();
+                ->dropTableIfExists($form->fieldContentTable)
+                ->execute();
 
             return true;
-        } catch (Throwable $e) {
-            $transaction->rollBack();
-            throw $e;
+        } else {
+            $transaction = $db->beginTransaction();
+            try {
+                // Rename the content table. This is so we can easily determine soft-deleted
+                // form content tables to cleanup later, or restore
+                $newContentTableName = $this->defineContentTableName($form, false, true);
+
+                MigrationHelper::renameTable($form->fieldContentTable, $newContentTableName);
+
+                $db->createCommand()
+                    ->update('{{%formie_forms}}', ['fieldContentTable' => $newContentTableName], [
+                        'id' => $form->id,
+                    ])->execute();
+
+                $form->fieldContentTable = $newContentTableName;
+
+                if ($fieldLayout = $form->getFormFieldLayout()) {
+                    Craft::$app->getFields()->deleteLayout($fieldLayout);
+                }
+
+                $transaction->commit();
+
+                return true;
+            } catch (Throwable $e) {
+                $transaction->rollBack();
+                throw $e;
+            }
         }
+
+        return false;
     }
 
     /**
@@ -368,10 +406,16 @@ class Forms extends Component
         }
 
         if ($duplicate) {
-            $form->handle = $form->handle . rand();
+            // Generate a new handle, nicely
+            $formHandles = (new Query())
+                ->select(['handle'])
+                ->from('{{%formie_forms}}')
+                ->column();
+
+            $form->handle = HandleHelper::getUniqueHandle($formHandles, $form->handle);
 
             // Have to save to get an ID.
-            Formie::$plugin->getForms()->saveForm($form, false);
+            // Formie::$plugin->getForms()->saveForm($form);
         }
 
         if ($stencilId = $request->getParam('applyStencilId')) {
@@ -663,7 +707,7 @@ class Forms extends Component
      *
      * @throws \yii\db\Exception
      */
-    public function pruneContentTables()
+    public function pruneContentTables($consoleInstance = null)
     {
         $db = Craft::$app->getDb();
 
@@ -712,7 +756,7 @@ class Forms extends Component
             }
         }
 
-        $suffix = ':' . $form->uid;
+        $suffix = ':' . ($form->uid ?? '');
 
         if ($user->checkPermission('formie-manageFormAppearance') || $user->checkPermission("formie-manageFormAppearance{$suffix}")) {
             $tabs[] = [
@@ -738,7 +782,7 @@ class Forms extends Component
             ];
         }
 
-        if ($form && ($user->checkPermission('formie-manageFormIntegrations') || $user->checkPermission("formie-manageFormIntegrations{$suffix}"))) {
+        if ($user->checkPermission('formie-manageFormIntegrations') || $user->checkPermission("formie-manageFormIntegrations{$suffix}")) {
             $tabs[] = [
                 'label' => Craft::t('formie', 'Integrations'),
                 'value' => 'integrations',
@@ -797,6 +841,25 @@ class Forms extends Component
 
     // Private Methods
     // =========================================================================
+
+    /**
+     * Returns a Query object prepped for retrieving forms.
+     *
+     * @return Query
+     */
+    private function _createFormsQuery($formId): Query
+    {
+        return (new Query())
+            ->select([
+                'id',
+                'handle',
+                'fieldLayoutId',
+                'fieldContentTable',
+                'uid',
+            ])
+            ->from(['{{%formie_forms}}'])
+            ->where(['id' => $formId]);
+    }
 
     /**
      * Creates the content table for a form.

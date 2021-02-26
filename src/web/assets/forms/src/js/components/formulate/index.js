@@ -10,6 +10,7 @@ import ToggleGroup from './ToggleGroup.vue';
 import BoxField from './inputs/BoxField.vue';
 import CheckboxSelectField from './inputs/CheckboxSelectField.vue';
 import DateField from './inputs/DateField.vue';
+import ElementSelectField from './inputs/ElementSelectField.vue';
 import HandleField from './inputs/HandleField.vue';
 import LightswitchField from './inputs/LightswitchField.vue';
 import RichTextField from './richtext/RichTextField.vue';
@@ -38,6 +39,7 @@ export default {
     BoxField,
     CheckboxSelectField,
     DateField,
+    ElementSelectField,
     HandleField,
     LightswitchField,
     RichTextField,

@@ -68,14 +68,13 @@ class IContact extends EmailMarketing
 
         try {
             $response = $this->request('GET', 'lists');
-
             $lists = $response['lists'] ?? [];
 
-            foreach ($lists as $list) {
-                // While we're at it, fetch the fields for the list
-                $response = $this->request('GET', 'customfields');
-                $fields = $response['customfields'] ?? [];
+            // While we're at it, fetch the fields for the list
+            $response = $this->request('GET', 'customfields');
+            $fields = $response['customfields'] ?? [];
 
+            foreach ($lists as $list) {
                 $listFields = array_merge([
                     new IntegrationField([
                         'handle' => 'email',
@@ -143,11 +142,7 @@ class IContact extends EmailMarketing
                 ]);
             }
         } catch (\Throwable $e) {
-            Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [
-                'message' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-            ]), true);
+            Integration::apiError($this, $e);
         }
 
         return new IntegrationFormSettings($settings);
@@ -215,11 +210,7 @@ class IContact extends EmailMarketing
                 return false;
             }
         } catch (\Throwable $e) {
-            Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [
-                'message' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-            ]), true);
+            Integration::apiError($this, $e);
 
             return false;
         }
@@ -235,11 +226,7 @@ class IContact extends EmailMarketing
         try {
             $response = $this->request('GET', 'lists');
         } catch (\Throwable $e) {
-            Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [
-                'message' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-            ]), true);
+            Integration::apiError($this, $e);
 
             return false;
         }

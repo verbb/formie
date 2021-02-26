@@ -4,6 +4,7 @@ namespace verbb\formie\jobs;
 use verbb\formie\Formie;
 
 use Craft;
+use craft\helpers\Json;
 use craft\queue\BaseJob;
 
 class SendNotification extends BaseJob
@@ -51,7 +52,7 @@ class SendNotification extends BaseJob
             // Check if should send the nominated admin(s) an email about this error.
             Formie::$plugin->getEmails()->sendFailAlertEmail($notification, $submission, $sentResponse);
 
-            throw new \Exception('Failed to send notification email.');
+            throw new \Exception('Failed to send notification email: ' . Json::encode($sentResponse) . '.');
         }
 
         $this->setProgress($queue, 1);

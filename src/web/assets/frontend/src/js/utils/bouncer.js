@@ -571,6 +571,13 @@ export const Bouncer = function(selector, options) {
         field.classList.add(settings.fieldClass);
         field.setAttribute('aria-describedby', error.id);
         field.setAttribute('aria-invalid', true);
+
+        // TODO: think of a way to make this less opinionated
+        var $fieldNode = field.closest('.fui-field');
+
+        if ($fieldNode) {
+            $fieldNode.classList.add(settings.fieldClass);
+        }
     };
 
     /**
@@ -628,6 +635,13 @@ export const Bouncer = function(selector, options) {
         field.classList.remove(settings.fieldClass);
         field.removeAttribute('aria-describedby');
         field.removeAttribute('aria-invalid');
+
+        // TODO: think of a way to make this less opinionated
+        var $fieldNode = field.closest('.fui-field');
+
+        if ($fieldNode) {
+            $fieldNode.classList.remove(settings.fieldClass);
+        }
     };
 
     /**

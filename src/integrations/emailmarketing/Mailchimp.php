@@ -91,6 +91,11 @@ class Mailchimp extends EmailMarketing
                     ]),
                 ], $this->_getCustomFields($fields));
 
+                $listFields[] = new IntegrationField([
+                    'handle' => 'tags',
+                    'name' => Craft::t('formie', 'Tags'),
+                ]);
+
                 $settings['lists'][] = new IntegrationCollection([
                     'id' => $list['id'],
                     'name' => $list['name'],
@@ -98,11 +103,7 @@ class Mailchimp extends EmailMarketing
                 ]);
             }
         } catch (\Throwable $e) {
-            Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [
-                'message' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-            ]), true);
+            Integration::apiError($this, $e);
         }
 
         return new IntegrationFormSettings($settings);
@@ -120,6 +121,9 @@ class Mailchimp extends EmailMarketing
             $email = ArrayHelper::remove($fieldValues, 'email_address');
             $emailHash = md5(strtolower($email));
 
+            // Pull out tags for later
+            $tags = ArrayHelper::remove($fieldValues, 'tags');
+
             $payload = [
                 'email_address' => $email,
                 'status' => (bool)$this->useDoubleOptIn ? 'pending' : 'subscribed',
@@ -134,13 +138,24 @@ class Mailchimp extends EmailMarketing
             if ($response === false) {
                 return true;
             }
+
+            // Process any tags, we need to fetch them first, then add or delete them.
+            if ($tags) {
+                // Cleanup and handle multiple tags
+                $tags = array_filter(array_map('trim', explode(',', $tags)));
+
+                if ($tags) {
+                    $payload = [
+                        'tags' => array_map(function($tag) {
+                            return ['name' => $tag, 'status' => 'active'];
+                        }, $tags),
+                    ];
+
+                    $response = $this->deliverPayload($submission, "lists/{$this->listId}/members/{$emailHash}/tags", $payload);
+                }
+            }
         } catch (\Throwable $e) {
-            Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}. Payload: “{payload}”', [
-                'message' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-                'payload' => Json::encode($payload),
-            ]), true);
+            Integration::apiError($this, $e);
 
             return false;
         }
@@ -168,11 +183,7 @@ class Mailchimp extends EmailMarketing
                 return false;
             }
         } catch (\Throwable $e) {
-            Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [
-                'message' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-            ]), true);
+            Integration::apiError($this, $e);
 
             return false;
         }

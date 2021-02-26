@@ -176,16 +176,24 @@ export default {
     },
 
     destroy() {
-        Vue.prototype.$editingField = null;
+        this.destroy();
     },
 
     methods: {
+        destroy() {
+            Vue.prototype.$editingField = null;
+        },
+
         hideModal() {
             this.$emit('close');
+
+            this.destroy();
         },
 
         deleteField() {
             this.$emit('delete');
+
+            this.destroy();
         },
 
         tabErrorClass(tab) {

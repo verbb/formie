@@ -190,21 +190,23 @@ interface FormFieldInterface extends ComponentInterface
      * Returns an array of options that will be passed into the render function.
      *
      * @param Submission $submission
+     * @param Notification $notification
      * @param mixed $value
      * @param array|null $options
      * @return array
      */
-    public function getEmailOptions(Submission $submission, $value, array $options = null): array;
+    public function getEmailOptions(Submission $submission, Notification $notification, $value, array $options = null): array;
 
     /**
      * Gets the email HTML for this field.
      *
      * @param Submission $submission
+     * @param Notification $notification
      * @param mixed $value
      * @param array|null $options
      * @return Markup
      */
-    public function getEmailHtml(Submission $submission, $value, array $options = null);
+    public function getEmailHtml(Submission $submission, Notification $notification, $value, array $options = null);
 
     /**
      * Returns the namespace for this field.

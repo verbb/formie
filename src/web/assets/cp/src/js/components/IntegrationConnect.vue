@@ -75,6 +75,11 @@ export default {
             // Serialize the integration pane
             var $form = document.getElementById('main-form');
 
+            // Check for when `allowAdminChanges = false` on production - no form
+            if (!$form) {
+                $form = document.getElementById('main');
+            }
+
             if ($form) {
                 inputs = $form.querySelectorAll('input, select, textarea');
             }

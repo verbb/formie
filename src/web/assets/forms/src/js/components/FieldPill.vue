@@ -1,5 +1,11 @@
 <template>
-    <drag class="fui-field-pill" :transfer-data="{ trigger: 'pill', supportsNested: fieldtype.supportsNested, type }" @dragstart="dragStart" @dragend="dragEnd">
+    <drag
+        class="fui-field-pill"
+        :hide-image-html="!isSafari"
+        :transfer-data="{ trigger: 'pill', supportsNested: fieldtype.supportsNested, type }"
+        @dragstart="dragStart"
+        @dragend="dragEnd"
+    >
         <span class="fui-field-pill-icon" v-html="fieldtype.icon"></span>
         <span class="fui-field-pill-name">{{ fieldtype.label }}</span>
         <span class="fui-field-pill-drag"></span>

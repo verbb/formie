@@ -1,28 +1,47 @@
 {% set element = element ?? null %}
-{% set namespace = namespace is defined ? namespace : 'fields' %}
 
-{% namespace namespace %}
-    {% for field in fields %}
-        <div class="thin rowHeader">
-            <span class="heading-text {% if field.required %}required{% endif %}">
-                {{ field.name | t('site') }}
+{% set html %}
+    <fieldset class="fui-fieldset">
+        {% set id = row.id ?? '__ROW__' %}
+        
+        {% namespace "rows[#{id}][fields]" %}
+            {# There will only ever be 1 page. #}
+            {% set page = field.fieldLayout.pages[0] ?? null %}
+            
+            {% if page %}
+                <div class="fui-field-rows">
+                    {% for row in page.rows %}
+                        <div class="fui-row fui-page-row">
+                            {% for field in row.fields %}
+                                {% include 'formie/_formfields/repeater/field' with {
+                                    field: field,
+                                    required: field.required,
+                                    element: element,
+                                } only %}
+                            {% endfor %}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endnamespace %}
 
-                {% if field.instructions %}
-                    <span class="info">{{ field.instructions | t('site') | md | raw }}</span>
-                {% endif %}
-            </span>
-        </div>
+        {% set buttonAttributes = {
+            class: 'btn fui-repeater-remove-btn',
+            type: 'button',
+            data: {
+                'remove-repeater-row': field.handle,
+            }
+        } %}
 
-        <div class="repeater-layout-row-new-field">
-            {% include 'formie/_formfields/repeater/field' with {
-                field: field,
-                required: field.required,
-                element: element,
-                static: static ?? false,
-                registerDeltas: registerDeltas ?? false,
-            } only %}
-        </div>
+        <button {{ attr(buttonAttributes) }}>
+            {{ 'Remove' | t('formie') }}
+        </button>
 
-        <div class="blank-spacer"></div>
-    {% endfor %}
-{% endnamespace %}
+        {{ hiddenInput('sortOrder[]', id) }}
+    </fieldset>
+{% endset %}
+
+{{ tag('div', {
+    class: 'fui-repeater-row',
+    html: html,
+}) }}

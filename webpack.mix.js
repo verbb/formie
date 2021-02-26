@@ -27,16 +27,6 @@ mix.js(assetsPath + '/forms/src/js/main.js', assetsPath + '/forms/dist/js');
 mix.copy(assetsPath + '/forms/src/fonts', assetsPath + '/forms/dist/fonts');
 
 
-//
-// Repeater
-//
-
-// Setup and configure Sass
-mix.sass(assetsPath + '/repeater/src/scss/style.scss', assetsPath + '/repeater/dist/css');
-
-// Setup and configure JS
-mix.js(assetsPath + '/repeater/src/js/main.js', assetsPath + '/repeater/dist/js');
-
 
 //
 // Front-End

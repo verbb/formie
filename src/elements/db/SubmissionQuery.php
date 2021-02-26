@@ -239,9 +239,17 @@ class SubmissionQuery extends ElementQuery
     {
         // This method won't get called if $this->formId isn't set to a single int
         /** @var Form $form */
-        $form = Form::find()->id($this->formId)->one();
+        try {
+            $form = Form::find()->id($this->formId)->one();
 
-        return $form->getFields();
+            if ($form) {
+                return $form->getFields();
+            }
+        } catch (\Throwable $e) {
+            // This will throw an error when restoring a form - but that's okay
+        }
+
+        return [];
     }
 
     /**

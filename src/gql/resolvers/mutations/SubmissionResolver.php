@@ -36,6 +36,8 @@ class SubmissionResolver extends ElementMutationResolver
         $elementService = Craft::$app->getElements();
 
         if ($canIdentify) {
+            $this->requireSchemaAction('formieSubmissions.' . $form->uid, 'save');
+
             if (!empty($arguments['uid'])) {
                 $submission = $elementService->createElementQuery(Submission::class)->uid($arguments['uid'])->one();
             } else {
@@ -46,6 +48,8 @@ class SubmissionResolver extends ElementMutationResolver
                 throw new Error('No such submission exists');
             }
         } else {
+            $this->requireSchemaAction('formieSubmissions.' . $form->uid, 'create');
+
             $submission = $elementService->createElement(['type' => Submission::class, 'formId' => $form->id]);
         }
 
@@ -89,7 +93,7 @@ class SubmissionResolver extends ElementMutationResolver
         $submission->validate();
 
         if ($submission->hasErrors()) {
-            throw new Error('Unable to save submission: ' . Json::encode($submission->hasErrors()));
+            throw new Error('Unable to save submission: ' . Json::encode($submission->getErrors()));
         }
 
         // Check against all enabled captchas. Also take into account multi-pages
@@ -128,25 +132,27 @@ class SubmissionResolver extends ElementMutationResolver
         }
 
         if (!$success) {
-            throw new Error('Unable to save submission: ' . Json::encode($submission->hasErrors()));
+            throw new Error('Unable to save submission: ' . Json::encode($submission->getErrors()));
         }
 
-        return $elementService->getElementById($submission->id, Submission::class);
+        return $elementService->getElementById($submission->id, Submission::class, $submission->siteId);
     }
 
     public function deleteSubmission($source, array $arguments, $context, ResolveInfo $resolveInfo)
     {
         $submissionId = $arguments['id'];
+        $siteId = $arguments['siteId'] ?? null;
 
         $elementService = Craft::$app->getElements();
-        $submission = $elementService->getElementById($submissionId, Submission::class);
+        $submission = $elementService->getElementById($submissionId, Submission::class, $siteId);
 
         if (!$submission) {
-            return true;
+            return false;
         }
 
-        $elementService->deleteElementById($submissionId);
+        $formUid = Db::uidById('{{%formie_forms}}', $submission->getForm()->id);
+        $this->requireSchemaAction('formieSubmissions.' . $formUid, 'delete');
 
-        return true;
+        return $elementService->deleteElementById($submissionId, Submission::class, $siteId);
     }
 }

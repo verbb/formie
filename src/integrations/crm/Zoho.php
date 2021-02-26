@@ -126,6 +126,10 @@ class Zoho extends Crm
     {
         // Save these properties for later...
         $this->apiDomain = $token->getValues()['api_domain'] ?? '';
+
+        if (!$this->apiDomain) {
+            throw new \Exception('Zoho response missing `api_domain`.');
+        }
     }
 
 
@@ -213,11 +217,7 @@ class Zoho extends Crm
                 'account' => $accountFields,
             ];
         } catch (\Throwable $e) {
-            Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [
-                'message' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-            ]), true);
+            Integration::apiError($this, $e);
         }
 
         return new IntegrationFormSettings($settings);
@@ -341,11 +341,7 @@ class Zoho extends Crm
                 }
             }
         } catch (\Throwable $e) {
-            Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [
-                'message' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-            ]), true);
+            Integration::apiError($this, $e);
 
             return false;
         }

@@ -18,6 +18,32 @@ Event::on(Form::class, Form::EVENT_MODIFY_FORM_CAPTCHAS, function(ModifyFormCapt
 });
 ```
 
+### The `beforeSaveForm` event
+The event that is triggered before a form is saved. You can set `$event->isValid` to false to prevent saving.
+
+```php
+use verbb\formie\elements\Form;
+use yii\base\Event;
+
+Event::on(Form::class, Form::EVENT_BEFORE_SAVE, function(Event $event) {
+    $form = $event->sender;
+
+    $event->isValid = false;
+});
+```
+
+### The `afterSaveForm` event
+The event that is triggered after a form is saved.
+
+```php
+use verbb\formie\elements\Form;
+use yii\base\Event;
+
+Event::on(Form::class, Form::EVENT_AFTER_SAVE, function(Event $event) {
+    $form = $event->sender;
+});
+```
+
 
 
 ## Form Render Events
@@ -78,8 +104,12 @@ use verbb\formie\events\SubmissionRulesEvent;
 use yii\base\Event;
 
 Event::on(Submission::class, Submission::EVENT_DEFINE_RULES, function(SubmissionRulesEvent $event) {
+    $submission = $event->submission;
     $rules = $event->rules;
     // ...
+
+    // Add a required field for field with handle `emailAddress`
+    $event->rules[] = [['field:emailAddress'], 'required'];
 });
 ```
 
@@ -101,8 +131,38 @@ Event::on(Submission::class, Submission::EVENT_BEFORE_MARKED_AS_SPAM, function(S
 });
 ```
 
+### The `beforeSaveSubmission` event
+The event that is triggered before a submission is saved. For multi-page forms, this event will occur on each page submission, as the submission is saved in its incomplete state.
+
+You can set `$event->isValid` to false to prevent saving.
+
+```php
+use verbb\formie\elements\Submission;
+use yii\base\Event;
+
+Event::on(Submission::class, Submission::EVENT_BEFORE_SAVE, function(Event $event) {
+    $submission = $event->sender;
+
+    $event->isValid = false;
+});
+```
+
+### The `afterSaveSubmission` event
+The event that is triggered after a submission is saved. For multi-page forms, this event will occur on each page submission, as the submission is saved in its incomplete state.
+
+Do note the difference between this event and `afterSubmission`.
+
+```php
+use verbb\formie\elements\Submission;
+use yii\base\Event;
+
+Event::on(Submission::class, Submission::EVENT_AFTER_SAVE, function(Event $event) {
+    $submission = $event->sender;
+});
+```
+
 ### The `afterSubmission` event
-The event that is triggered after a submission has been made, whether successful or not.
+The event that is triggered after a submission has been completed, whether successful or not. For multi-page forms, this is triggered when the final page has been reached and submitted.
 
 You should always check `$event->success` if you want to ensure your event only triggers on submissions that have been successful.
 
@@ -165,6 +225,43 @@ use yii\base\Event;
 Event::on(Submissions::class, Submissions::EVENT_BEFORE_TRIGGER_INTEGRATION, function(SendNotificationEvent $event) {
     $submissionId = $event->submissionId;
     $integration = $event->integration;
+    // ...
+});
+```
+
+### The `modifyFieldExport` event
+The event that is triggered after a field's value has been prepped for export.
+
+Modify the `fieldValue` event property to set the value used in exports.
+
+```php
+use verbb\formie\elements\exporters\SubmissionExport;
+use verbb\formie\events\ModifyFieldExportEvent;
+use yii\base\Event;
+
+Event::on(SubmissionExport::class, SubmissionExport::EVENT_MODIFY_FIELD_EXPORT, function(ModifyFieldExportEvent $event) {
+    $field = $event->field;
+    $value = $event->value;
+    $element = $event->element;
+    $fieldValue = $event->fieldValue;
+    // ...
+});
+```
+
+### The `modifyFieldValueForIntegration` event
+The event that is triggered after a field's value has been prepped for all integrations.
+
+Modify the `value` event property to set the value used by integrations.
+
+```php
+use verbb\formie\elements\Submission;
+use verbb\formie\events\ModifyFieldValueForIntegrationEvent;
+use yii\base\Event;
+
+Event::on(Submission::class, Submission::EVENT_MODIFY_FIELD_VALUE_FOR_INTEGRATION, function(ModifyFieldValueForIntegrationEvent $event) {
+    $field = $event->field;
+    $value = $event->value;
+    $submission = $event->submission;
     // ...
 });
 ```
@@ -355,6 +452,22 @@ Event::on(Entries::class, Entries::EVENT_MODIFY_ELEMENT_QUERY, function(ModifyEl
 });
 ```
 
+
+## HTML Field Events
+
+### The `modifyPurifierConfig` event
+The event that is triggered to modify the HTML Purifier config.
+
+```php
+use verbb\formie\events\ModifyPurifierConfigEvent;
+use verbb\formie\fields\formfields\Html;
+use HTMLPurifier_AttrDef_Text;
+use yii\base\Event;
+
+Event::on(Html::class, Html::EVENT_MODIFY_PURIFIER_CONFIG, function(ModifyPurifierConfigEvent $e) {
+    $e->config->getHTMLDefinition(true)->addAttribute('span', 'data-type', new HTMLPurifier_AttrDef_Text());
+});
+```
 
 
 ## Synced Field Events
@@ -833,6 +946,8 @@ Event::on(Mailchimp::class, Mailchimp::EVENT_BEFORE_SEND_PAYLOAD, function(SendI
     $submission = $event->submission;
     $payload = $event->payload;
     $integration = $event->integration;
+    $endpoint = $event->endpoint;
+    $method = $event->method;
     // ...
 });
 ```

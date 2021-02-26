@@ -8,13 +8,15 @@ use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyElementFieldQueryEvent;
 use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\models\Notification;
 
 use Craft;
+use craft\base\ElementInterface;
 use craft\helpers\ArrayHelper;
 use craft\helpers\UrlHelper;
 
+use craft\commerce\Plugin as Commerce;
 use craft\commerce\elements\Product;
-use craft\commerce\Plugin;
 use craft\commerce\fields\Products as CommerceProducts;
 
 class Products extends CommerceProducts implements FormFieldInterface
@@ -31,6 +33,8 @@ class Products extends CommerceProducts implements FormFieldInterface
     use FormFieldTrait, RelationFieldTrait {
         getFrontEndInputOptions as traitGetFrontendInputOptions;
         getEmailHtml as traitGetEmailHtml;
+        getSavedFieldConfig as traitGetSavedFieldConfig;
+        RelationFieldTrait::getIsFieldset insteadof FormFieldTrait;
     }
 
 
@@ -65,11 +69,21 @@ class Products extends CommerceProducts implements FormFieldInterface
     /**
      * @var string
      */
-    protected $inputTemplate = 'formie/_includes/elementSelect';
+    protected $inputTemplate = 'formie/_includes/element-select-input';
 
 
     // Public Methods
     // =========================================================================
+
+    /**
+     * @inheritDoc
+     */
+    public function getSavedFieldConfig(): array
+    {
+        $settings = $this->traitGetSavedFieldConfig();
+
+        return $this->modifyFieldSettings($settings);
+    }
 
     /**
      * @inheritDoc
@@ -98,6 +112,14 @@ class Products extends CommerceProducts implements FormFieldInterface
     /**
      * @inheritDoc
      */
+    public function getDefaultValue($attributePrefix = '')
+    {
+        return $this->getDefaultValueQuery();
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function getPreviewInputHtml(): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/products/preview', [
@@ -111,7 +133,7 @@ class Products extends CommerceProducts implements FormFieldInterface
     public function getFrontEndInputOptions(Form $form, $value, array $options = null): array
     {
         $inputOptions = $this->traitGetFrontendInputOptions($form, $value, $options);
-        $inputOptions['productsQuery'] = $this->getProductsQuery();
+        $inputOptions['productsQuery'] = $this->getElementsQuery();
 
         return $inputOptions;
     }
@@ -119,12 +141,12 @@ class Products extends CommerceProducts implements FormFieldInterface
     /**
      * @inheritDoc
      */
-    public function getEmailHtml(Submission $submission, $value, array $options = null)
+    public function getEmailHtml(Submission $submission, Notification $notification, $value, array $options = null)
     {
         // Ensure we return back the correct, prepped query for emails. Just as we would be submissions.
         $value = $this->_all($value, $submission);
 
-        return $this->traitGetEmailHtml($submission, $value, $options);
+        return $this->traitGetEmailHtml($submission, $notification, $value, $options);
     }
 
     /**
@@ -132,7 +154,7 @@ class Products extends CommerceProducts implements FormFieldInterface
      *
      * @return Product[]
      */
-    public function getProductsQuery()
+    public function getElementsQuery()
     {
         $query = Product::find();
 
@@ -156,7 +178,8 @@ class Products extends CommerceProducts implements FormFieldInterface
             $query->siteId(Craft::$app->getSites()->getCurrentSite()->id);
         }
 
-        $query->orderBy('title ASC');
+        $query->limit($this->limit);
+        $query->orderBy($this->orderBy);
 
         // Fire a 'modifyElementFieldQuery' event
         $event = new ModifyElementFieldQueryEvent([
@@ -171,18 +194,54 @@ class Products extends CommerceProducts implements FormFieldInterface
     /**
      * @inheritDoc
      */
+    public function defineLabelSourceOptions()
+    {
+        $options = [
+            ['value' => 'title', 'label' => Craft::t('app', 'Title')],
+            ['value' => 'defaultSku', 'label' => Craft::t('app', 'SKU')],
+            ['value' => 'defaultPrice', 'label' => Craft::t('app', 'Price')],
+            ['value' => 'defaultHeight', 'label' => Craft::t('app', 'Height')],
+            ['value' => 'defaultLength', 'label' => Craft::t('app', 'Length')],
+            ['value' => 'defaultWidth', 'label' => Craft::t('app', 'Width')],
+            ['value' => 'defaultWeight', 'label' => Craft::t('app', 'Weight')],
+            ['value' => 'postDate', 'label' => Craft::t('app', 'Post Date')],
+            ['value' => 'expiryDate', 'label' => Craft::t('app', 'Expiry Date')],
+        ];
+
+        foreach ($this->availableSources() as $source) {
+            if (!isset($source['heading'])) {
+                $typeId = $source['criteria']['typeId'] ?? null;
+
+                if ($typeId && !is_array($typeId)) {
+                    $productType = Commerce::getInstance()->getProductTypes()->getProductTypeById($typeId);
+
+                    $fields = $this->getStringCustomFieldOptions($productType->getFields());
+
+                    $options = array_merge($options, $fields);
+                }
+            }
+        }
+
+        return $options;
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function defineGeneralSchema(): array
     {
         $options = $this->getSourceOptions();
 
         return [
             SchemaHelper::labelField(),
-            SchemaHelper::textField([
-                'label' => Craft::t('formie', 'Placeholder'),
-                'help' => Craft::t('formie', 'The option shown initially, when no option is selected.'),
-                'name' => 'placeholder',
-                'validation' => 'required',
-                'required' => true,
+            SchemaHelper::toggleContainer('settings.displayType=dropdown', [
+                SchemaHelper::textField([
+                    'label' => Craft::t('formie', 'Placeholder'),
+                    'help' => Craft::t('formie', 'The option shown initially, when no option is selected.'),
+                    'name' => 'placeholder',
+                    'validation' => 'required',
+                    'required' => true,
+                ]),
             ]),
             SchemaHelper::checkboxSelectField([
                 'label' => Craft::t('formie', 'Sources'),
@@ -195,6 +254,16 @@ class Products extends CommerceProducts implements FormFieldInterface
                 'element-class' => count($options) < 2 ? 'hidden' : false,
                 'warning' => count($options) < 2 ? Craft::t('formie', 'No product types available. View [product type settings]({link}).', ['link' => UrlHelper::cpUrl('commerce/settings/producttypes') ]) : false,
             ]),
+            SchemaHelper::elementSelectField([
+                'label' => Craft::t('formie', 'Default Value'),
+                'help' => Craft::t('formie', 'Select a default product to be selected.'),
+                'name' => 'defaultValue',
+                'selectionLabel' => $this->defaultSelectionLabel(),
+                'config' => [
+                    'jsClass' => $this->inputJsClass,
+                    'elementType' => static::elementType(),
+                ],
+            ]),
         ];
     }
 
@@ -203,6 +272,8 @@ class Products extends CommerceProducts implements FormFieldInterface
      */
     public function defineSettingsSchema(): array
     {
+        $labelSourceOptions = $this->getLabelSourceOptions();
+        
         return [
             SchemaHelper::lightswitchField([
                 'label' => Craft::t('formie', 'Required Field'),
@@ -224,6 +295,18 @@ class Products extends CommerceProducts implements FormFieldInterface
                 'class' => 'text',
                 'validation' => 'optional|number|min:0',
             ]),
+            SchemaHelper::selectField([
+                'label' => Craft::t('formie', 'Label Source'),
+                'help' => Craft::t('formie', 'Select what to use as the label for each product.'),
+                'name' => 'labelSource',
+                'options' => $labelSourceOptions,
+            ]),
+            SchemaHelper::selectField([
+                'label' => Craft::t('formie', 'Options Order'),
+                'help' => Craft::t('formie', 'Select what order to show products by.'),
+                'name' => 'orderBy',
+                'options' => $this->getOrderByOptions(),
+            ]),
         ];
     }
 
@@ -233,6 +316,16 @@ class Products extends CommerceProducts implements FormFieldInterface
     public function defineAppearanceSchema(): array
     {
         return [
+            SchemaHelper::selectField([
+                'label' => Craft::t('formie', 'Display Type'),
+                'help' => Craft::t('formie', 'Set different display layouts for this field.'),
+                'name' => 'displayType',
+                'options' => [
+                    [ 'label' => Craft::t('formie', 'Dropdown'), 'value' => 'dropdown' ],
+                    [ 'label' => Craft::t('formie', 'Checkboxes'), 'value' => 'checkboxes' ],
+                    [ 'label' => Craft::t('formie', 'Radio Buttons'), 'value' => 'radio' ],
+                ],
+            ]),
             SchemaHelper::labelPosition($this),
             SchemaHelper::instructions(),
             SchemaHelper::instructionsPosition($this),

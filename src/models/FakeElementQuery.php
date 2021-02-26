@@ -17,9 +17,15 @@ class FakeElementQuery extends ElementQuery
     /**
      * @return string
      */
-    public function setFieldValues($values)
+    public function setFieldValues($values, $fieldLayout = null)
     {
-        $this->_fieldValues[] = new FakeElement($values);
+        $element = new FakeElement($values);
+
+        if ($fieldLayout) {
+            $element->fieldLayoutId = $fieldLayout->id;
+        }
+
+        $this->_fieldValues[] = $element;
     }
 
     /**
@@ -27,7 +33,7 @@ class FakeElementQuery extends ElementQuery
      */
     public function one($db = null)
     {
-        return $this->_fieldValues;
+        return $this->_fieldValues[0] ?? null;
     }
 
     /**

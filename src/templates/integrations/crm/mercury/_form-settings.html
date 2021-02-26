@@ -5,6 +5,16 @@
 {% set mapToContact = form.settings.integrations[handle].mapToContact ?? '' %}
 {% set mapToOpportunity = form.settings.integrations[handle].mapToOpportunity ?? '' %}
 
+<field-select
+    label="{{ 'Opt-In Field' | t('formie') }}"
+    instructions="{{ 'Choose a field to opt-in to {name}. For example, you might only wish to record user data if they provide a value for a field of your choice - commonly, an Agree field.' | t('formie', { name: integration.displayName() }) }}"
+    id="opt-in-field"
+    name="optInField"
+    :value="get(form, 'settings.integrations.{{ handle }}.optInField')"
+></field-select>
+
+<hr>
+
 <integration-form-settings handle="{{ handle }}" :form-settings="{{ formSettings | json_encode }}" inline-template>
     <div>
         <div class="field">

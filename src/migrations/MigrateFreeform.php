@@ -105,8 +105,6 @@ class MigrateFreeform extends Migration
                 $form->settings->storeData = $storeDataProp->getValue($f) ?? true;
             }
 
-            Formie::$plugin->getForms()->saveForm($form);
-
             if ($fieldLayout = $this->_buildFieldLayout($freeformForm)) {
                 $form->setFormFieldLayout($fieldLayout);
             }

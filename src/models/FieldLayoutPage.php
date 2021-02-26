@@ -118,17 +118,15 @@ class FieldLayoutPage extends CraftFieldLayoutTab
         ArrayHelper::multisort($fields, 'sortOrder');
         $this->_fields = $fields;
 
-        // TODO: remove after next version breakpoint
-        if (version_compare(Craft::$app->getVersion(), '3.5.0-RC1.0', '>=')) {
-            $this->elements = [];
-            foreach ($this->_fields as $field) {
-                $this->elements[] = Craft::createObject([
-                    'class' => CustomField::class,
-                    'required' => $field->required,
-                ], [
-                    $field,
-                ]);
-            }
+        $this->elements = [];
+        
+        foreach ($this->_fields as $field) {
+            $this->elements[] = Craft::createObject([
+                'class' => CustomField::class,
+                'required' => $field->required,
+            ], [
+                $field,
+            ]);
         }
     }
 

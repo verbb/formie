@@ -64,11 +64,11 @@ class MailerLite extends EmailMarketing
 
         try {
             $lists = $this->request('GET', 'groups');
+            
+            // While we're at it, fetch the fields for the list
+            $fields = $this->request('GET', 'fields');
 
             foreach ($lists as $list) {
-                // While we're at it, fetch the fields for the list
-                $fields = $this->request('GET', 'fields');
-            
                 $listFields = $this->_getCustomFields($fields);
 
                 $settings['lists'][] = new IntegrationCollection([
@@ -78,11 +78,7 @@ class MailerLite extends EmailMarketing
                 ]);
             }
         } catch (\Throwable $e) {
-            Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [
-                'message' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-            ]), true);
+            Integration::apiError($this, $e);
         }
 
         return new IntegrationFormSettings($settings);
@@ -123,11 +119,7 @@ class MailerLite extends EmailMarketing
                 return false;
             }
         } catch (\Throwable $e) {
-            Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [
-                'message' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-            ]), true);
+            Integration::apiError($this, $e);
 
             return false;
         }
@@ -149,11 +141,7 @@ class MailerLite extends EmailMarketing
                 return false;
             }
         } catch (\Throwable $e) {
-            Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [
-                'message' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-            ]), true);
+            Integration::apiError($this, $e);
 
             return false;
         }

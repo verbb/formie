@@ -28,6 +28,9 @@ abstract class BaseTemplate extends Model
     public $sortOrder;
     public $dateDeleted;
     public $uid;
+    
+    public $copyTemplates = false;
+    public $hasSingleTemplate = false;
 
 
     // Public Methods
@@ -82,15 +85,31 @@ abstract class BaseTemplate extends Model
             $oldTemplatesPath = $view->getTemplatesPath();
             $view->setTemplatesPath($templatesPath);
 
-            $path = Craft::$app->getPath()->getSiteTemplatesPath() . DIRECTORY_SEPARATOR . $this->$attribute;
-            $path = FileHelper::normalizePath($path);
+            // Check how to validate templates
+            if ($this->hasSingleTemplate) {
+                if (!$view->doesTemplateExist($this->$attribute)) {
+                    $path = Craft::$app->getPath()->getSiteTemplatesPath() . DIRECTORY_SEPARATOR . $this->$attribute;
+                    $path = FileHelper::normalizePath($path);
 
-            if (!is_dir($path)) {
-                $validator->addError(
-                    $this,
-                    $attribute,
-                    Craft::t('formie', 'The template directory does not exist.')
-                );
+                    if (!is_dir($path)) {
+                        $validator->addError(
+                            $this,
+                            $attribute,
+                            Craft::t('formie', 'The template does not exist.')
+                        );
+                    }
+                }
+            } else {
+                $path = Craft::$app->getPath()->getSiteTemplatesPath() . DIRECTORY_SEPARATOR . $this->$attribute;
+                $path = FileHelper::normalizePath($path);
+
+                if (!is_dir($path)) {
+                    $validator->addError(
+                        $this,
+                        $attribute,
+                        Craft::t('formie', 'The template directory does not exist.')
+                    );
+                }
             }
 
             $view->setTemplatesPath($oldTemplatesPath);

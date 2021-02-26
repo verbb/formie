@@ -90,7 +90,12 @@ class ActiveCampaign extends Crm
 
         // Populate some options for some values
         try {
-            $response = $this->request('GET', 'dealGroups');
+            $response = $this->request('GET', 'dealGroups', [
+                'query' => [
+                    'limit' => 100,
+                ],
+            ]);
+
             $dealGroups = $response['dealGroups'] ?? [];
             $dealStages = $response['dealStages'] ?? [];
 
@@ -108,8 +113,7 @@ class ActiveCampaign extends Crm
                 ];
             }
 
-            $response = $this->request('GET', 'lists');
-            $lists = $response['lists'] ?? [];
+            $lists = $this->_getPaginated('lists');
 
             foreach ($lists as $list) {
                 $listOptions[] = [
@@ -119,7 +123,12 @@ class ActiveCampaign extends Crm
             }
 
             // Get Contacts fields
-            $response = $this->request('GET', 'fields');
+            $response = $this->request('GET', 'fields', [
+                'query' => [
+                    'limit' => 100,
+                ],
+            ]);
+
             $fields = $response['fields'] ?? [];
 
             $contactFields = array_merge([
@@ -151,7 +160,12 @@ class ActiveCampaign extends Crm
             ], $this->_getCustomFields($fields));
 
             // Get Deals fields
-            $response = $this->request('GET', 'dealCustomFieldMeta');
+            $response = $this->request('GET', 'dealCustomFieldMeta', [
+                'query' => [
+                    'limit' => 100,
+                ],
+            ]);
+
             $fields = $response['dealCustomFieldMeta'] ?? [];
 
             $dealFields = array_merge([
@@ -225,7 +239,12 @@ class ActiveCampaign extends Crm
             ], $this->_getCustomFields($fields));
 
             // Get Account fields
-            $response = $this->request('GET', 'accountCustomFieldMeta');
+            $response = $this->request('GET', 'accountCustomFieldMeta', [
+                'query' => [
+                    'limit' => 100,
+                ],
+            ]);
+
             $fields = $response['accountCustomFieldMeta'] ?? [];
 
             $accountFields = array_merge([
@@ -242,11 +261,7 @@ class ActiveCampaign extends Crm
                 'account' => $accountFields,
             ];
         } catch (\Throwable $e) {
-            Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [
-                'message' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-            ]), true);
+            Integration::apiError($this, $e);
         }
 
         return new IntegrationFormSettings($settings);
@@ -327,7 +342,11 @@ class ActiveCampaign extends Crm
                 ];
 
                 // Try to find the account first
-                $response = $this->request('GET', 'accounts');
+                $response = $this->request('GET', 'accounts', [
+                    'query' => [
+                        'limit' => 100,
+                    ],
+                ]);
 
                 $accounts = $response['accounts'] ?? [];
                 $accountId = '';
@@ -359,7 +378,12 @@ class ActiveCampaign extends Crm
                     ];
 
                     // Don't proceed with an update if already associated
-                    $response = $this->request('GET', 'accountContacts');
+                    $response = $this->request('GET', 'accountContacts', [
+                        'query' => [
+                            'limit' => 100,
+                        ],
+                    ]);
+
                     $accountContacts = $response['accountContacts'][0]['id'] ?? '';
 
                     if (!$accountContacts) {
@@ -399,11 +423,7 @@ class ActiveCampaign extends Crm
                 }
             }
         } catch (\Throwable $e) {
-            Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [
-                'message' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-            ]), true);
+            Integration::apiError($this, $e);
 
             return false;
         }
@@ -417,13 +437,9 @@ class ActiveCampaign extends Crm
     public function fetchConnection(): bool
     {
         try {
-            $response = $this->request('GET', '');
+            $response = $this->request('GET', 'contacts');
         } catch (\Throwable $e) {
-            Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [
-                'message' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-            ]), true);
+            Integration::apiError($this, $e);
 
             return false;
         }
@@ -544,5 +560,29 @@ class ActiveCampaign extends Crm
         }
 
         return $customFields;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    private function _getPaginated($endpoint, $limit = 100, $offset = 0, $items = [])
+    {
+        $response = $this->request('GET', $endpoint, [
+            'query' => [
+                'limit' => $limit,
+                'offset' => $offset,
+            ]
+        ]);
+
+        $newItems = $response[$endpoint] ?? [];
+        $total = $response['meta']['total'] ?? 0;
+
+        $items = array_merge($items, $newItems);
+
+        if (count($items) < $total) {
+            $items = array_merge($items, $this->_getPaginated($endpoint, $limit, $offset + $limit, $items));
+        }
+
+        return $items;
     }
 }

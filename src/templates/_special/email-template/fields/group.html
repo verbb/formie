@@ -12,7 +12,7 @@
                     {% for field in fields %}
                         {% set fieldValue = (row ? row.getFieldValue(field.handle) : field.normalizeValue(null)) %}
 
-                        {% set html = field.getEmailHtml(submission, fieldValue, {
+                        {% set html = field.getEmailHtml(submission, notification, fieldValue, {
                             hideName: true,
                         }) %}
 

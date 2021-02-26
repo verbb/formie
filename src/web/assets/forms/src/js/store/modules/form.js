@@ -408,20 +408,17 @@ const getters = {
                             if (allowedTypes.includes(subfield.type)) {
                                 fields.push({
                                     label: field.label + ': ' + subfield.label,
-                                    value: '{' + field.handle + '.one().' + subfield.handle + ' ?? null}',
+                                    value: '{field.' + field.handle + '.' + subfield.handle + '}',
                                 });
                             }
                         });
                     });
-                } else if (field.isElementField) {
-                    // Is this an element field? Special template syntax
-                    fields.push({
-                        label: field.label,
-                        value: '{' + field.handle + '_html}',
-                    });
                 } else {
                     if (allowedTypes.includes(field.type)) {
-                        fields.push({ label: field.label, value: '{' + field.handle + '}' });
+                        fields.push({
+                            label: field.label,
+                            value: '{field.' + field.handle + '}',
+                        });
                     }
                 }
             }
@@ -469,7 +466,7 @@ const getters = {
                     field.subfieldOptions.forEach(subfield => {
                         fields.push({
                             label: field.label + ': ' + subfield.label,
-                            value: '{' + field.handle + '.' + subfield.handle + '}',
+                            value: '{field.' + field.handle + '.' + subfield.handle + '}',
                         });
                     });
                 } else if (field.type === 'verbb\\formie\\fields\\formfields\\Group' && field.rows) {
@@ -479,20 +476,17 @@ const getters = {
                             if (allowedTypes.includes(subfield.type)) {
                                 fields.push({
                                     label: field.label + ': ' + subfield.label,
-                                    value: '{' + field.handle + '.one().' + subfield.handle + ' ?? null}',
+                                    value: '{field.' + field.handle + '.' + subfield.handle + '}',
                                 });
                             }
                         });
                     });
-                } else if (field.isElementField) {
-                    // Is this an element field? Special template syntax
-                    fields.push({
-                        label: field.label,
-                        value: '{' + field.handle + '_html}',
-                    });
                 } else {
                     if (allowedTypes.includes(field.type)) {
-                        fields.push({ label: field.label, value: '{' + field.handle + '}' });
+                        fields.push({
+                            label: field.label,
+                            value: '{field.' + field.handle + '}',
+                        });
                     }
                 }
             }
@@ -524,7 +518,7 @@ const getters = {
                             id: field.id,
                             type: field.type,
                             label: field.label + ': ' + subfield.label,
-                            value: '{' + field.handle + '.' + subfield.handle + '}',
+                            value: '{field.' + field.handle + '.' + subfield.handle + '}',
                         });
                     });
                 } else if (field.type === 'verbb\\formie\\fields\\formfields\\Group' && field.rows) {
@@ -535,22 +529,16 @@ const getters = {
                                 id: field.id,
                                 type: field.type,
                                 label: field.label + ': ' + subfield.label,
-                                value: '{' + field.handle + '.one().' + subfield.handle + ' ?? null}',
+                                value: '{field.' + field.handle + '.' + subfield.handle + '}',
                             });
                         });
-                    });
-                } else if (field.isElementField) {
-                    // Is this an element field? Special template syntax
-                    fields.push({
-                        label: field.label,
-                        value: '{' + field.handle + '_html}',
                     });
                 } else {
                     fields.push({ 
                         id: field.id,
                         type: field.type,
                         label: field.label, 
-                        value: '{' + field.handle + '}',
+                        value: '{field.' + field.handle + '}',
                     });
                 }
             }
@@ -588,6 +576,19 @@ const getters = {
         const allRows = flatMap(state.pages, 'rows');
         const allFields = flatMap(allRows, 'fields');
         return flatMap(allFields, 'handle');
+    },
+
+    fieldHandlesForField: (state, getters) => (id) => {
+        const field = getters.fields.find(field => {
+            return field.id === id;
+        });
+
+        if (field) {
+            const allFields = flatMap(field.rows, 'fields');
+            return flatMap(allFields, 'handle');
+        }
+
+        return [];
     },
 
     fieldHandlesExcluding: (state, getters, rootState, rootGetters) => (id) => {

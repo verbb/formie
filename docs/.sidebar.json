@@ -17,13 +17,15 @@
             "feature-tour/fields",
             "feature-tour/synced-fields",
             "feature-tour/existing-fields",
-            "feature-tour/email-notifications",
             "feature-tour/submissions",
+            "feature-tour/email-notifications",
+            "feature-tour/sent-notifications",
             "feature-tour/integrations",
             "feature-tour/stencils",
             "feature-tour/spam-protection",
             "feature-tour/form-templates",
-            "feature-tour/email-templates"
+            "feature-tour/email-templates",
+            "feature-tour/data-retention"
         ]
     },
     {
@@ -82,7 +84,8 @@
             "developers/front-end-css",
             "developers/front-end-js",
             "developers/javascript-api",
-            "developers/graphql"
+            "developers/graphql",
+            "developers/console-commands"
         ]
     },
     {

@@ -23,6 +23,9 @@
         name: 'country' | namespaceInputName(field.handle),
         value: value.country ?? null,
         type: 'hidden',
+        data: {
+            country: '',
+        }
     }) }} />
 
     {% do view.registerCssFile(view.getAssetManager().getPublishedUrl('@verbb/formie/web/assets/frontend/dist/css/fields/phone-country.css', true)) %}

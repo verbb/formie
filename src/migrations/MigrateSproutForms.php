@@ -14,6 +14,7 @@ use verbb\formie\models\Notification;
 use verbb\formie\models\Phone;
 use verbb\formie\models\FieldLayout;
 use verbb\formie\models\FieldLayoutPage;
+use verbb\formie\prosemirror\toprosemirror\Renderer;
 
 use Craft;
 use craft\base\FieldInterface;
@@ -106,8 +107,6 @@ class MigrateSproutForms extends Migration
             $form->settings->submitActionMessage = $sproutFormsForm->successMessage;
             $form->settings->storeData = $sproutFormsForm->saveData ?? true;
 
-            Formie::$plugin->getForms()->saveForm($form);
-
             if ($fieldLayout = $this->_buildFieldLayout($sproutFormsForm)) {
                 $form->setFormFieldLayout($fieldLayout);
             }
@@ -186,12 +185,12 @@ class MigrateSproutForms extends Migration
                             $value = $entry->getFieldValue($field->handle);
 
                             $address = new Address();
-                            $address->address1 = $value->address1;
-                            $address->address2 = $value->address2;
-                            $address->address3 = $value->address3;
-                            $address->city = $value->locality;
-                            $address->state = $value->administrativeArea;
-                            $address->country = $value->countryCode;
+                            $address->address1 = $value->address1 ?? '';
+                            $address->address2 = $value->address2 ?? '';
+                            $address->address3 = $value->address3 ?? '';
+                            $address->city = $value->locality ?? '';
+                            $address->state = $value->administrativeArea ?? '';
+                            $address->country = $value->countryCode ?? '';
 
                             $submission->setFieldValue($field->handle, $address);
                             break;
@@ -200,10 +199,11 @@ class MigrateSproutForms extends Migration
                             $value = $entry->getFieldValue($field->handle);
 
                             $name = new Name();
-                            $name->prefix = $value->prefix;
-                            $name->firstName = $value->firstName;
-                            $name->middleName = $value->middleName;
-                            $name->lastName = $value->lastName;
+
+                            $name->prefix = $value->prefix ?? '';
+                            $name->firstName = $value->firstName ?? '';
+                            $name->middleName = $value->middleName ?? '';
+                            $name->lastName = $value->lastName ?? '';
 
                             $submission->setFieldValue($field->handle, $name);
                             break;
@@ -215,9 +215,13 @@ class MigrateSproutForms extends Migration
                             $newField = $this->_form->getFieldByHandle($field->handle);
 
                             $phone = new Phone();
-                            $phone->number = $value->phone;
-                            $phone->hasCountryCode = !!$value->country;
-                            $phone->country = $value->country ?: $newField->countryDefaultValue;
+                            $phone->number = $value->phone ?? '';
+
+                            $country = $value->country ?? '';
+                            $countryDefaultValue = $value->countryDefaultValue ?? '';
+
+                            $phone->hasCountryCode = !!$country;
+                            $phone->country = $country ?: $countryDefaultValue;
 
                             $submission->setFieldValue($field->handle, $phone);
                             break;
@@ -358,8 +362,8 @@ class MigrateSproutForms extends Migration
 
                 foreach ($tab->getFields() as $field) {
                     if ($newField = $this->_mapField($field)) {
-
                         $newField->validate();
+
                         if ($newField->hasErrors()) {
                             $this->stdout("    > Failed to save field “{$newField->handle}”.", Console::FG_RED);
 
@@ -421,6 +425,7 @@ class MigrateSproutForms extends Migration
                 $newField = new formfields\Categories();
                 $this->_applyFieldDefaults($newField);
 
+                $newField->placeholder = $field->selectionLabel;
                 $newField->groupId = $field->groupId;
                 $newField->branchLimit = $field->branchLimit;
                 $newField->source = $field->source;
@@ -445,6 +450,8 @@ class MigrateSproutForms extends Migration
                 /* @var sproutfields\Date $field */
                 $newField = new formfields\Date();
                 $this->_applyFieldDefaults($newField);
+
+                $newField->displayType = 'calendar';
                 break;
             case sproutfields\Dropdown::class:
                 /* @var sproutfields\Dropdown $field */
@@ -470,6 +477,7 @@ class MigrateSproutForms extends Migration
                 $newField = new formfields\Entries();
                 $this->_applyFieldDefaults($newField);
 
+                $newField->placeholder = $field->selectionLabel;
                 $newField->groupId = $field->groupId;
                 $newField->limit = $field->limit;
                 $newField->source = $field->source;
@@ -480,7 +488,7 @@ class MigrateSproutForms extends Migration
                 $newField = new formfields\FileUpload();
                 $this->_applyFieldDefaults($newField);
 
-                $newField->uploadLocationSource = $field->defaultUploadLocationSource;
+                $newField->uploadLocationSource = str_replace('volume', 'folder', $field->defaultUploadLocationSource);
                 $newField->uploadLocationSubpath = $field->defaultUploadLocationSubpath;
                 $newField->restrictFiles = !empty($field->allowedKinds);
                 $newField->allowedKinds = $field->allowedKinds ?? [];
@@ -552,7 +560,9 @@ class MigrateSproutForms extends Migration
                 $newField = new formfields\Agree();
                 $this->_applyFieldDefaults($newField);
 
-                $newField->description = $field->optInMessage;
+                $description = (new Renderer)->render('<p>' . $field->optInMessage . '</p>');
+
+                $newField->description = $description['content'];
                 $newField->checkedValue = $field->optInValueWhenTrue;
                 $newField->uncheckedValue = $field->optInValueWhenFalse;
                 break;
@@ -591,6 +601,7 @@ class MigrateSproutForms extends Migration
                 $newField = new formfields\Tags();
                 $this->_applyFieldDefaults($newField);
 
+                $newField->placeholder = $field->selectionLabel;
                 $newField->groupId = $field->groupId;
                 $newField->limit = $field->limit;
                 $newField->source = $field->source;
@@ -601,6 +612,7 @@ class MigrateSproutForms extends Migration
                 $newField = new formfields\Users();
                 $this->_applyFieldDefaults($newField);
 
+                $newField->placeholder = $field->selectionLabel;
                 $newField->limit = $field->limit;
                 $newField->source = $field->source;
                 $newField->sources = $field->sources;

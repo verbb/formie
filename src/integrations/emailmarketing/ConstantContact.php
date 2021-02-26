@@ -120,11 +120,11 @@ class ConstantContact extends EmailMarketing
             $response = $this->request('GET', 'contact_lists');
             $lists = $response['lists'] ?? [];
 
-            foreach ($lists as $list) {
-                // While we're at it, fetch the fields for the list
-                $response = $this->request('GET', 'contact_custom_fields');
-                $fields = $response['custom_fields'] ?? [];
+            // While we're at it, fetch the fields for the list
+            $response = $this->request('GET', 'contact_custom_fields');
+            $fields = $response['custom_fields'] ?? [];
 
+            foreach ($lists as $list) {
                 $listFields = array_merge([
                     new IntegrationField([
                         'handle' => 'email',
@@ -164,11 +164,7 @@ class ConstantContact extends EmailMarketing
                 ]);
             }
         } catch (\Throwable $e) {
-            Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [
-                'message' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-            ]), true);
+            Integration::apiError($this, $e);
         }
 
         return new IntegrationFormSettings($settings);
@@ -219,11 +215,7 @@ class ConstantContact extends EmailMarketing
                 return false;
             }
         } catch (\Throwable $e) {
-            Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [
-                'message' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-            ]), true);
+            Integration::apiError($this, $e);
 
             return false;
         }

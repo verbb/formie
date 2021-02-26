@@ -61,16 +61,18 @@ class Javascript extends Captcha
 
         // Create the unique token 
         $uniqueId = uniqid(self::JAVASCRIPT_INPUT_NAME . '_', false);
-        $value = uniqid();
+
+        $value = Craft::$app->getSession()->get($sessionId);
+        if (!$value) {
+            $value = uniqid();
+        }
 
         // Save the generated input value so we can validate it properly. Also make it per-form
         Craft::$app->getSession()->set($sessionId, $value);
 
         // Set a hidden field with no value and use javascript to set it.
         $output = '<input type="hidden" id="' . $uniqueId . '" name="' . $sessionId . '" />';
-        $js = '(function(){ document.getElementById("' . $uniqueId . '").value = "' . $value . '"; })();';
-
-        Craft::$app->getView()->registerJs($js, View::POS_END);
+        $output .= '<script>(function(){ document.getElementById("' . $uniqueId . '").value = "' . $value . '"; })();</script>';
 
         // Set the init time, if we need it
         if ($this->minTime) {

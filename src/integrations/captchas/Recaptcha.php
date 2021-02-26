@@ -67,7 +67,7 @@ class Recaptcha extends Captcha
     /**
      * @inheritDoc
      */
-    public function getFormSettingsHtml(Form $form): string
+    public function getFormSettingsHtml($form): string
     {
         return Craft::$app->getView()->renderTemplate('formie/integrations/captchas/recaptcha/_form-settings', [
             'integration' => $this,
@@ -105,7 +105,7 @@ class Recaptcha extends Captcha
     {
         $settings = [
             'siteKey' => Craft::parseEnv($this->siteKey),
-            'formId' => 'formie-form-' . $form->id,
+            'formId' => $form->getFormId(),
             'theme' => $this->theme,
             'size' => $this->size,
             'badge' => $this->badge,
@@ -116,31 +116,31 @@ class Recaptcha extends Captcha
 
         if ($this->type === self::RECAPTCHA_TYPE_V3) {
             $src = Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/captchas/dist/js/recaptcha-v3.js', true);
-            $onload = 'new FormieRecaptchaV3(' . Json::encode($settings) . ');';
 
             return [
                 'src' => $src,
-                'onload' => $onload,
+                'module' => 'FormieRecaptchaV3',
+                'settings' => $settings,
             ];
         }
 
         if ($this->type === self::RECAPTCHA_TYPE_V2_CHECKBOX) {
             $src = Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/captchas/dist/js/recaptcha-v2-checkbox.js', true);
-            $onload = 'new FormieRecaptchaV2Checkbox(' . Json::encode($settings) . ');';
 
             return [
                 'src' => $src,
-                'onload' => $onload,
+                'module' => 'FormieRecaptchaV2Checkbox',
+                'settings' => $settings,
             ];
         }
 
         if ($this->type === self::RECAPTCHA_TYPE_V2_INVISIBLE) {
             $src = Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/captchas/dist/js/recaptcha-v2-invisible.js', true);
-            $onload = 'new FormieRecaptchaV2Invisible(' . Json::encode($settings) . ');';
 
             return [
                 'src' => $src,
-                'onload' => $onload,
+                'module' => 'FormieRecaptchaV2Invisible',
+                'settings' => $settings,
             ];
         }
 

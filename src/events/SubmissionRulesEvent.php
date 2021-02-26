@@ -8,6 +8,7 @@ class SubmissionRulesEvent extends Event
     // Properties
     // =========================================================================
 
+    public $submission;
     public $rules;
     
 }

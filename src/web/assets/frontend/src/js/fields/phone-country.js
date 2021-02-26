@@ -3,23 +3,19 @@ import intlTelInput from 'intl-tel-input';
 
 export class FormiePhoneCountry {
     constructor(settings = {}) {
-        this.formId = '#formie-form-' + settings.formId;
-        this.fieldId = '#fields-' + settings.fieldId;
-        this.countryFieldId = '#fields-' + settings.countryFieldId;
+        this.$form = settings.$form;
+        this.form = this.$form.form;
+        this.$field = settings.$field.querySelector('input[type="tel"]');
+        this.$countryInput = settings.$field.querySelector('[data-country]');
+
         this.countryShowDialCode = settings.countryShowDialCode;
         this.countryDefaultValue = settings.countryDefaultValue;
         this.countryAllowed = settings.countryAllowed;
 
-        this.$form = document.querySelector(this.formId);
-        this.$field = document.querySelector(this.formId + ' ' + this.fieldId);
-        this.$countryInput = document.querySelector(this.formId + ' ' + this.countryFieldId);
-
-        if (this.$form && this.$field) {
-            this.form = this.$form.form;
-
+        if (this.$field && this.$countryInput) {
             this.initValidator();
         } else {
-            console.error('Unable to find ' + this.formId + ' ' + this.fieldId);
+            console.error('Unable to find country field “input[type="tel"]” or “[data-country]”');
         }
     }
 
@@ -32,6 +28,7 @@ export class FormiePhoneCountry {
             separateDialCode: false,
             initialCountry: 'auto',
             autoPlaceholder: 'off',
+            formatOnDisplay: false,
             utilsScript: 'https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/js/utils.min.js',
         };
 
@@ -70,6 +67,11 @@ export class FormiePhoneCountry {
         // Also add the hidden input for the country code
         this.$field.$countryInput = this.$countryInput;
 
+        // If the country input has a value, set the country
+        if (this.$field.$countryInput && this.$field.$countryInput.value) {
+            this.validator.setCountry(this.$field.$countryInput.value);
+        }
+
         // Emit an "init" event
         this.$field.dispatchEvent(new CustomEvent('init', {
             bubbles: true,
@@ -80,8 +82,21 @@ export class FormiePhoneCountry {
             },
         }));
 
+        // Update the hidden country field when selected
+        this.form.addEventListener(this.$field, eventKey('countrychange'), this.countryChange.bind(this));
+
         // Attach custom validation
         this.form.addEventListener(this.$form, eventKey('registerFormieValidation'), this.registerValidation.bind(this));
+    }
+
+    countryChange(e) {
+        var countryData = this.validator.getSelectedCountryData();
+        var selectedCountryCode = countryData.iso2;
+
+        // Save the country code to the hidden input
+        if (this.$countryInput && selectedCountryCode) {
+            this.$countryInput.value = selectedCountryCode.toUpperCase();
+        }
     }
 
     registerValidation(e) {

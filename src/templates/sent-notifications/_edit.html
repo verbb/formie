@@ -14,6 +14,8 @@
 {% set bodyClass = 'fui-body' %}
 {% set selectedSubnavItem = 'sentNotifications' %}
 
+{% hook 'formie.cp.sentNotifications.edit' %}
+
 {% block actionButton %}
 
 <input type="hidden" name="sentNotificationId" value="{{ sentNotification.id }}">
@@ -26,6 +28,8 @@
 
 {% include 'formie/sent-notifications/_includes/preview' %}
 
+{% hook 'formie.cp.sentNotifications.edit.content' %}
+
 {% endblock %}
 
 {% block details %}
@@ -37,7 +41,7 @@
         </div>
 
         <div class="input ltr">
-            <a class="js-fui-notification-modal-resend-btn btn small formsubmit" data-id="{{ sentNotification.id }}">{{ 'Resend' | t('formie') }}</a>
+            <a class="js-fui-notification-modal-resend-btn btn small" data-id="{{ sentNotification.id }}">{{ 'Resend' | t('formie') }}</a>
         </div>
     </div>
 
@@ -47,7 +51,11 @@
         </div>
 
         <div class="input ltr">
-            <a href="{{ sentNotification.form.cpEditUrl }}">{{ sentNotification.form }}</a>
+            {% if sentNotification.form %}
+                <a href="{{ sentNotification.form.cpEditUrl }}">{{ sentNotification.form }}</a>
+            {% else %}
+                {{ 'Deleted' | t('formie') }}
+            {% endif %}
         </div>
     </div>
 
@@ -57,7 +65,11 @@
         </div>
 
         <div class="input ltr">
-            <a href="{{ sentNotification.submission.cpEditUrl }}">{{ sentNotification.submission }}</a>
+            {% if sentNotification.submission %}
+                <a href="{{ sentNotification.submission.cpEditUrl }}">{{ sentNotification.submission }}</a>
+            {% else %}
+                {{ 'Deleted' | t('formie') }}
+            {% endif %}
         </div>
     </div>
 </div>
@@ -77,5 +89,7 @@
         {% endfor %}
     {% endblock %}
 </div>
+
+{% hook 'formie.cp.sentNotifications.edit.details' %}
 
 {% endblock %}

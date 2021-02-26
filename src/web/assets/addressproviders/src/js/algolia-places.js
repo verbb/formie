@@ -2,40 +2,19 @@ const places = require('places.js');
 
 export class FormieAlgoliaPlaces {
     constructor(settings = {}) {
+        this.$form = settings.$form;
+        this.form = this.$form.form;
+        this.$field = settings.$field;
+        this.$input = this.$field.querySelector('[data-autocomplete]');
+
         this.appId = settings.appId;
         this.apiKey = settings.apiKey;
-        this.container = settings.container;
-        this.formId = settings.formId;
-        this.fieldContainer = settings.fieldContainer;
         this.reconfigurableOptions = settings.reconfigurableOptions;
 
-        this.$form = document.querySelector('#' + this.formId);
-
-        if (!this.$form) {
-            console.error('Unable to find form #' + this.formId);
-
-            return;
-        }
-
-        this.$field = this.$form.querySelector('[' + settings.fieldContainer + ']');
-
-        if (!this.$field) {
-            console.error('Unable to find field [' + settings.fieldContainer + ']');
-
-            return;
-        }
-
-        this.$input = document.querySelector('[data-' + settings.container + ']');
-
-        if (!this.$input) {
-            console.error('Unable to find input [data-' + settings.container + ']');
-
-            return;
-        }
-
+        // I have no idea what fresh hell this is, but the keys are swapped!
         const placesAutocomplete = places({
-            appId: this.appId,
-            apiKey: this.apiKey,
+            appId: this.apiKey,
+            apiKey: this.appId,
             container: this.$input,
         });
 

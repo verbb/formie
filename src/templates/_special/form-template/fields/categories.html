@@ -1,76 +1,32 @@
-{% set valueIds = value.ids() ?? [] %}
-{% set categories = categoriesQuery.all() ?? [] %}
+{% set value = field.getDisplayTypeValue(value) %}
 
-{% if not isMultiLevel %}
-    {% set multiple = field.branchLimit > 1 %}
-
+{% if field.displayType == 'dropdown' %}
     {% set attributes = {
         id: options.id,
         class: [ 'fui-select' ],
         name: field.handle ~ '[]',
         required: field.required ? true : false,
-        multiple: multiple,
         data: {
             'fui-message': field.settings.errorMessage | t,
         },
         aria: {
             required: field.required ? 'true' : 'false',
         },
-    } %}
+    } | merge(field.getInputAttributes()) %}
 
     <select {{ attr(attributes) }}>
-        <option value="">{{ field.placeholder | t }}</option>
+        {% for option in field.getFieldOptions() %}
+            {% set selected = value and value.value ? value.value == option.value : (option.isDefault ?? false) %}
 
-        {% for category in categories %}
-            <option value="{{ category.id }}" {{- category.id in valueIds ? ' selected' }}>
-                {{ category.title | t }}
-            </option>
+            <option value="{{ option.value }}" {{ selected ? ' selected' }}>{{ option.label | t }}</option>
         {% endfor %}
     </select>
-{% else %}
-    <fieldset class="fui-fieldset">
-        {{ formieInclude('_includes/legend', { position: 'above' }) }}
+{% endif %}
 
-        {{ formieInclude('_includes/instructions', { position: 'fieldset-start' }) }}
+{% if field.displayType == 'checkboxes' %}
+    {% include 'fields/checkboxes' %}
+{% endif %}
 
-        <ul id="{{ options.id }}" data-limit="{{ field.branchLimit }}">
-            {% nav category in categories %}
-                {% set optionId = options.id ~ '-' ~ category.id | kebab %}
-                {% set selected = category.id in valueIds %}
-
-                <li>
-                    {% set attributes = {
-                        id: optionId,
-                        class: [
-                            'fui-input',
-                            allowMultiple ? 'fui-checkbox-input' : 'fui-radio-input',
-                        ],
-                        type: allowMultiple ? 'checkbox' : 'radio',
-                        name: field.handle ~ '[]',
-                        value: category.id,
-                        checked: selected,
-                        data: {
-                            'fui-message': field.settings.errorMessage | t,
-                        },
-                    } %}
-
-                    <input {{ attr(attributes) }} />
-                    <label for="{{ optionId }}" class="fui-label {{ allowMultiple ? 'fui-checkbox-label' : 'fui-radio-label' }}"
-                    >
-                        {{ category.title | t }}
-                    </label>
-
-                    {% ifchildren %}
-                        <ul>
-                            {% children %}
-                        </ul>
-                    {% endifchildren %}
-                </li>
-            {% endnav %}
-        </ul>
-
-        {{ formieInclude('_includes/instructions', { position: 'fieldset-end' }) }}
-
-        {{ formieInclude('_includes/legend', { position: 'below' }) }}
-    </fieldset>
+{% if field.displayType == 'radio' %}
+    {% include 'fields/radio' with { fieldName: field.handle ~ '[]' } %}
 {% endif %}

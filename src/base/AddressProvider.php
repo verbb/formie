@@ -100,7 +100,7 @@ abstract class AddressProvider extends Integration implements IntegrationInterfa
      *
      * @return string
      */
-    public function getFrontEndJsVariables(Form $form, $field = null)
+    public function getFrontEndJsVariables($field = null)
     {
         return null;
     }

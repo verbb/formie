@@ -9,6 +9,7 @@ const state = {
     emailTemplates: [],
     existingFields: [],
     existingNotifications: [],
+    statuses: [],
 };
 
 // Mutations are functions responsible in directly mutating store state.
@@ -46,6 +47,14 @@ const mutations = {
             }
         }
     },
+
+    SET_STATUSES(state, config) {
+        for (const prop in config) {
+            if (Object.hasOwnProperty.call(config, prop)) {
+                Vue.set(state.statuses, prop, config[prop]);
+            }
+        }
+    },
 };
 
 // Actions exist to call mutations. Actions are also responsible in performing any
@@ -68,6 +77,10 @@ const actions = {
     setExistingNotifications(context, config) {
         context.commit('SET_EXISTING_NOTIFICATIONS', config);
     },
+
+    setStatuses(context, config) {
+        context.commit('SET_STATUSES', config);
+    },
 };
 
 // Getters are to a Vuex store what computed properties are to a Vue component.
@@ -88,6 +101,10 @@ const getters = {
 
     existingNotifications: (state) => () => {
         return state.existingNotifications;
+    },
+
+    statuses: (state) => () => {
+        return state.statuses;
     },
 };
 

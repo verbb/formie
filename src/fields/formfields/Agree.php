@@ -14,6 +14,7 @@ use craft\helpers\Json;
 use craft\helpers\Template;
 
 use yii\db\Schema;
+use GraphQL\Type\Definition\Type;
 
 class Agree extends FormField implements PreviewableFieldInterface
 {
@@ -76,11 +77,28 @@ class Agree extends FormField implements PreviewableFieldInterface
     /**
      * @inheritDoc
      */
+    public function serializeValueForExport($value, ElementInterface $element = null)
+    {
+        return ($value) ? $this->checkedValue : $this->uncheckedValue;
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function getDescriptionHtml()
     {
         $html = $this->_getHtmlContent($this->description);
 
-        return Template::raw(Craft::t('formie', $html));
+        return Template::raw(Craft::t('site', $html));
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getDefaultState()
+    {
+        // An alias for `defaultValue` for GQL, as `defaultValue` returns a boolean, not string
+        return $this->defaultValue;
     }
 
     /**
@@ -115,6 +133,19 @@ class Agree extends FormField implements PreviewableFieldInterface
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/agree/preview', [
             'field' => $this,
+        ]);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getSettingGqlTypes()
+    {
+        return array_merge(parent::getSettingGqlTypes(), [
+            'descriptionHtml' => [
+                'name' => 'descriptionHtml',
+                'type' => Type::string(),
+            ],
         ]);
     }
 
@@ -203,9 +234,33 @@ class Agree extends FormField implements PreviewableFieldInterface
     }
 
 
+    // Protected Methods
+    // =========================================================================
+      
+    /**
+     * @inheritDoc
+     */
+    protected function getSettingGqlType($attribute, $type, $fieldInfo)
+    {
+        // Disable normal `defaultValue` as it is a boolean, not string. We can't have the same attributes 
+        // return multiple types. Instead, return `defaultState` as the attribute name and correct type.
+        if ($attribute === 'defaultValue') {
+            return [
+                'name' => 'defaultState',
+                'type' => Type::boolean(),
+            ];
+        }
+
+        return parent::getSettingGqlType($attribute, $type, $fieldInfo);
+    }
+
+
     // Private Methods
     // =========================================================================
-
+    
+    /**
+     * @inheritDoc
+     */
     private function _getHtmlContent($content)
     {
         if (is_string($content)) {
@@ -221,7 +276,7 @@ class Agree extends FormField implements PreviewableFieldInterface
 
         // Strip out paragraphs, replace with `<br>`
         $html = str_replace(['<p>', '</p>'], ['', '<br>'], $html);
-        $html = trim($html, '<br>');
+        $html = preg_replace('/(<br>)+$/', '', $html);
 
         // Prosemirror will use `htmlentities` for special characters, but doesn't play nice
         // with static translations. Convert them back.

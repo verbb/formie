@@ -2,28 +2,26 @@ import { eventKey } from '../utils/utils';
 
 export class FormieCheckboxRadio {
     constructor(settings = {}) {
-        this.formId = '#formie-form-' + settings.formId;
-        this.$form = document.querySelector(this.formId);
+        this.$form = settings.$form;
+        this.form = this.$form.form;
+        this.$field = settings.$field;
 
-        if (this.$form) {
-            this.form = this.$form.form;
-
+        if (this.$field) {
             this.initInputs();
             this.initRequiredCheckboxes();
-        } else {
-            console.error('Unable to find ' + this.formId);
+            this.initToggleCheckboxes();
         }
     }
 
     initInputs() {
-        const $inputs = this.$form.querySelectorAll('[type=checkbox], [type=radio]');
+        const $inputs = this.$field.querySelectorAll('[type=checkbox], [type=radio]');
 
         $inputs.forEach(($input) => {
             this.form.addEventListener($input, eventKey('click'), (e) => {
                 if (e.target.checked) {
                     if (e.target.getAttribute('type') === 'radio') {
                         const inputName = e.target.getAttribute('name');
-                        const $radioButtons = this.$form.querySelectorAll('[name="' + inputName + '"] ');
+                        const $radioButtons = this.$field.querySelectorAll('[name="' + inputName + '"] ');
 
                         $radioButtons.forEach(($radioButton) => {
                             $radioButton.removeAttribute('checked');
@@ -42,21 +40,35 @@ export class FormieCheckboxRadio {
     }
 
     initRequiredCheckboxes() {
-        const $checkboxFields = this.$form.querySelectorAll('.fui-type-checkboxes.fui-field-required');
+        const $checkboxInputs = this.$field.querySelectorAll('[type="checkbox"]');
 
-        $checkboxFields.forEach(($checkboxField) => {
-            const $checkboxInputs = $checkboxField.querySelectorAll('[type="checkbox"]');
+        $checkboxInputs.forEach(($checkboxInput) => {
+            this.form.addEventListener($checkboxInput, eventKey('change'), (e) => {
+                this.onCheckboxChanged($checkboxInputs, this.isChecked($checkboxInputs));
+            }, false);
 
-            $checkboxInputs.forEach(($checkboxInput) => {
-                this.form.addEventListener($checkboxInput, eventKey('change'), (e) => {
-                    this.onCheckboxChanged($checkboxInputs, this.isChecked($checkboxInputs));
-                }, false);
+            // For any checked fields, trigger this event now
+            if ($checkboxInput.checked) {
+                $checkboxInput.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+        });
+    }
 
-                // For any checked fields, trigger this event now
-                if ($checkboxInput.checked) {
-                    $checkboxInput.dispatchEvent(new Event('change', { bubbles: true }));
-                }
-            });
+    initToggleCheckboxes() {
+        const $checkboxInputs = this.$field.querySelectorAll('[type="checkbox"]');
+        const $checkboxToggles = this.$field.querySelectorAll('[type="checkbox"][data-checkbox-toggle]');
+
+        $checkboxToggles.forEach(($checkboxToggle) => {
+            this.form.addEventListener($checkboxToggle, eventKey('change'), (e) => {
+                var isChecked = e.target.checked;
+
+                // Toggle all checkboxes in this field
+                $checkboxInputs.forEach(($checkboxInput) => {
+                    if ($checkboxInput !== e.target) {
+                        $checkboxInput.checked = isChecked;
+                    }
+                });
+            }, false);
         });
     }
 

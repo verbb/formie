@@ -92,6 +92,7 @@ class FormTemplatesController extends Controller
         $template->handle = $request->getBodyParam('handle');
         $template->template = preg_replace('/\/index(?:\.html|\.twig)?$/', '', $request->getBodyParam('template'));
         $template->useCustomTemplates = $request->getBodyParam('useCustomTemplates');
+        $template->copyTemplates = $request->getBodyParam('copyTemplates', false);
         $template->outputCssLayout = $request->getBodyParam('outputCssLayout');
         $template->outputCssTheme = $request->getBodyParam('outputCssTheme');
         $template->outputJsBase = $request->getBodyParam('outputJsBase');
@@ -106,7 +107,7 @@ class FormTemplatesController extends Controller
 
         // Save it
         if (Formie::$plugin->getFormTemplates()->saveTemplate($template)) {
-            if ($request->getBodyParam('copyTemplates', false)) {
+            if ($template->copyTemplates) {
                 FileHelper::copyTemplateDirectory('@verbb/formie/templates/_special/form-template', $template->template);
             }
 

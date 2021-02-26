@@ -79,6 +79,7 @@ class Fields extends Component
 
     private $_fields = [];
     private $_layoutsById = [];
+    private $_existingFields = [];
 
 
     // Public Methods
@@ -266,6 +267,10 @@ class Fields extends Component
      */
     public function getExistingFields($excludeForm = null): array
     {
+        if ($this->_existingFields) {
+            return $this->_existingFields;
+        }
+
         $query = Form::find()->orderBy('title ASC');
 
         // Exclude the current form.
@@ -360,7 +365,7 @@ class Fields extends Component
         ]);
         $this->trigger(self::EVENT_MODIFY_EXISTING_FIELDS, $event);
 
-        return $event->fields;
+        return $this->_existingFields = $event->fields;
     }
 
     /**
@@ -407,7 +412,7 @@ class Fields extends Component
     /**
      * Deletes any fields that aren't attached to a form anymore.
      */
-    public function deleteOrphanedFields()
+    public function deleteOrphanedFields($consoleInstance = null)
     {
         $allFieldIds = [];
         $forms = Form::find()->trashed(null)->all();
@@ -443,7 +448,7 @@ class Fields extends Component
     public function getSavedFieldConfig(FormFieldInterface $field)
     {
         /* @var FormField $field */
-        $config = $field->getAttributes(['id', 'name', 'handle']);
+        $config = $field->getSavedFieldConfig();
 
         $config['label'] = $field->name;
         $config['icon'] = $field->getSvgIcon();

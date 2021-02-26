@@ -26,6 +26,7 @@ use craft\helpers\StringHelper;
 use craft\web\Response;
 
 use League\OAuth2\Client\Provider\GenericProvider;
+use GuzzleHttp\Exception\RequestException;
 
 abstract class Integration extends SavableComponent implements IntegrationInterface
 {
@@ -138,6 +139,31 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         }
     }
 
+    /**
+     * @inheritDoc
+     */
+    public static function apiError($integration, $exception, $throwError = true)
+    {
+        $messageText = $exception->getMessage();
+
+        // Check for Guzzle errors, which are truncated in the exception `getMessage()`.
+        if ($exception instanceof RequestException) {
+            $messageText = (string)$exception->getResponse()->getBody()->getContents();
+        }
+
+        $message = Craft::t('formie', 'API error: “{message}” {file}:{line}', [
+            'message' => $messageText,
+            'file' => $exception->getFile(),
+            'line' => $exception->getLine(),
+        ]);
+
+        Formie::error($integration->name . ': ' . $message);
+
+        if ($throwError) {
+            throw new IntegrationException($message);
+        }
+    }
+
 
     // Public Methods
     // =========================================================================
@@ -231,7 +257,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     /**
      * @inheritDoc
      */
-    public function getFormSettingsHtml(Form $form): string
+    public function getFormSettingsHtml($form): string
     {
         return '';
     }
@@ -819,6 +845,46 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         }
 
         return $event->isValid;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected function enforceOptInField(Submission $submission)
+    {
+        // Default is just always do it!
+        if (!$this->optInField) {
+            return true;
+        }
+
+        $fieldValue = null;
+        $fieldHandle = str_replace(['{', '}'], ['', ''], $this->optInField);
+
+        try {
+            $fieldValue = $submission->getFieldValue($fieldHandle);
+        } catch (\Throwable $e) {
+
+        }
+
+        if ($fieldValue === null) {
+            Integration::log($this, Craft::t('formie', 'Unable to find field “{field}” for opt-in in submission.', [
+                'field' => $this->optInField,
+            ]));
+
+            return false;
+        }
+
+        // Just a simple 'falsey' check is good enough
+        if (!$fieldValue) {
+            Integration::log($this, Craft::t('formie', 'Opting-out. Field “{field}” has value “{value}”.', [
+                'field' => $this->optInField,
+                'value' => $fieldValue,
+            ]));
+
+            return false;
+        }
+
+        return true;
     }
 
 

@@ -62,7 +62,7 @@ abstract class Captcha extends Integration implements IntegrationInterface
     /**
      * @inheritDoc
      */
-    public function getFormSettingsHtml(Form $form): string
+    public function getFormSettingsHtml($form): string
     {
         return Craft::$app->getView()->renderTemplate('formie/integrations/captchas/_form-settings', [
             'integration' => $this,

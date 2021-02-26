@@ -4,7 +4,7 @@ import { FormieFormTheme } from './formie-form-theme';
 
 export class FormieFormBase {
     constructor(config = {}) {
-        this.formId = `#formie-form-${config.formId}`;
+        this.formId = `#${config.formHashId}`;
         this.$form = document.querySelector(this.formId);
         this.config = config;
         this.settings = config.settings;

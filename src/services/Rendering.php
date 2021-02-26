@@ -6,6 +6,7 @@ use verbb\formie\base\FormField;
 use verbb\formie\base\FormFieldInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
+use verbb\formie\events\ModifyFormRenderOptionsEvent;
 use verbb\formie\events\ModifyRenderEvent;
 use verbb\formie\models\FieldLayoutPage;
 use verbb\formie\models\FormTemplate;
@@ -34,6 +35,7 @@ class Rendering extends Component
     const EVENT_MODIFY_RENDER_FORM = 'modifyRenderForm';
     const EVENT_MODIFY_RENDER_PAGE = 'modifyRenderPage';
     const EVENT_MODIFY_RENDER_FIELD = 'modifyRenderField';
+    const EVENT_MODIFY_FORM_RENDER_OPTIONS = 'modifyFormRenderOptions';
     const RENDER_TYPE_CSS = 'css';
     const RENDER_TYPE_JS = 'js';
 
@@ -69,6 +71,14 @@ class Rendering extends Component
             return null;
         }
 
+        // Fire a 'modifyFormRenderOptions' event
+        $event = new ModifyFormRenderOptionsEvent([
+            'form' => $form,
+            'options' => $options,
+        ]);
+        $this->trigger(self::EVENT_MODIFY_FORM_RENDER_OPTIONS, $event);
+        $options = $event->options;
+
         $view = Craft::$app->getView();
 
         $templatePath = $this->getFormComponentTemplatePath($form, 'form');
@@ -84,7 +94,7 @@ class Rendering extends Component
             'options' => $options,
             'submission' => $submission,
             'jsVariables' => $jsVariables,
-        ], View::TEMPLATE_MODE_SITE);
+        ]);
 
         $view->setTemplatesPath(Craft::$app->path->getSiteTemplatesPath());
 
@@ -159,7 +169,7 @@ class Rendering extends Component
             'page' => $page,
             'options' => $options,
             'submission' => $submission,
-        ], View::TEMPLATE_MODE_SITE);
+        ]);
 
         $view->setTemplatesPath($oldTemplatesPath);
 
@@ -218,7 +228,7 @@ class Rendering extends Component
             'handle' => $field->handle,
             'options' => $options,
             'element' => $element,
-        ], View::TEMPLATE_MODE_SITE);
+        ]);
 
         $view->setTemplatesPath($oldTemplatePath);
 

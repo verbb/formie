@@ -148,17 +148,25 @@ class SharpSpring extends Crm
                     'handle' => 'title',
                     'name' => Craft::t('formie', 'Title'),
                 ]),
+                new IntegrationField([
+                    'handle' => 'trackingID',
+                    'name' => Craft::t('formie', 'Tracking ID'),
+                ]),
+                new IntegrationField([
+                    'handle' => 'campaignID',
+                    'name' => Craft::t('formie', 'Campaign IDs'),
+                ]),
+                new IntegrationField([
+                    'handle' => 'accountID',
+                    'name' => Craft::t('formie', 'Account IDs'),
+                ]),
             ], $this->_getCustomFields($fields));
 
             $settings = [
                 'contact' => $contactFields,
             ];
         } catch (\Throwable $e) {
-            Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [
-                'message' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-            ]), true);
+            Integration::apiError($this, $e);
         }
 
         return new IntegrationFormSettings($settings);
@@ -172,6 +180,11 @@ class SharpSpring extends Crm
         try {
             $contactValues = $this->getFieldMappingValues($submission, $this->contactFieldMapping, 'contact');
 
+            // Handle Tracking ID in case it's not set, try a cookie
+            if (!isset($contactValues['trackingID'])) {
+                $contactValues['trackingID'] = $_COOKIE['__ss_tk'] ?? '';
+            }
+
             $contactPayload = [
                 'method' => 'createLeads',
                 'params' => ['objects' => [$contactValues]],
@@ -184,11 +197,7 @@ class SharpSpring extends Crm
                 return true;
             }
         } catch (\Throwable $e) {
-            Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [
-                'message' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-            ]), true);
+            Integration::apiError($this, $e);
 
             return false;
         }
@@ -204,11 +213,7 @@ class SharpSpring extends Crm
         try {
             $response = $this->request('GET', '');
         } catch (\Throwable $e) {
-            Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}', [
-                'message' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-            ]), true);
+            Integration::apiError($this, $e);
 
             return false;
         }
