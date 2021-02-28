@@ -29,6 +29,7 @@
             nextPage ? 'fui-next',
         ],
         type: 'submit',
+        'data-field-conditions': page.settings.getConditionsJson(),
     } | merge(options.buttons.submit ?? {}) | merge(inputAttributes) %}
 
     <button {{ attr(submitAttributes) }}>

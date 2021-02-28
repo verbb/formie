@@ -4,6 +4,7 @@ namespace verbb\formie\models;
 use Craft;
 use craft\base\Model;
 use craft\helpers\ArrayHelper;
+use craft\helpers\Json;
 
 use yii\behaviors\AttributeTypecastBehavior;
 
@@ -19,6 +20,8 @@ class PageSettings extends Model
     public $cssClasses;
     public $containerAttributes;
     public $inputAttributes;
+    public $enableConditions;
+    public $conditions;
 
 
     // Public Methods
@@ -79,5 +82,30 @@ class PageSettings extends Model
         }
 
         return ArrayHelper::map($this->inputAttributes, 'label', 'value');
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getConditionsJson()
+    {
+        if ($this->enableConditions) {
+            $conditionSettings = Json::decode($this->conditions) ?? [];
+            $conditions = $conditionSettings['conditions'] ?? [];
+
+            // Prep the conditions for JS
+            foreach ($conditions as &$condition) {
+                ArrayHelper::remove($condition, 'id');
+
+                // Dot-notation to name input syntax
+                $condition['field'] = 'fields[' . str_replace(['{', '}', '.'], ['', '', ']['], $condition['field']) . ']';
+            }
+
+            $conditionSettings['conditions'] = $conditions;
+
+            return Json::encode($conditionSettings);
+        }
+
+        return null;
     }
 }

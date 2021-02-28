@@ -9,7 +9,7 @@
                         <option value="hide">{{ 'Hide' | t('formie') }}</option>
                     </select>
                 </div>
-                {{ 'this field if' | t('formie') }}
+                {{ descriptionText | t('formie') }}
                 <div class="select small">
                     <select v-model="settings.conditionRule">
                         <option value="all">{{ 'All' | t('formie') }}</option>
@@ -133,6 +133,9 @@ export default {
             }
 
             return [];
+        },
+        descriptionText() {
+            return this.context.attributes.descriptionText || 'this field if';
         },
     },
 

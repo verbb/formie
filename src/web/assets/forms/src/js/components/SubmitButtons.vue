@@ -90,7 +90,13 @@ export default {
                         'cssClasses',
                     ],
                 },
-
+                {
+                    label: this.$options.filters.t('Conditions', 'formie'),
+                    fields: [
+                        'enableConditions',
+                        'conditions',
+                    ],
+                },
             ];
         },
 
@@ -208,6 +214,30 @@ export default {
                                     type: 'value',
                                     label: 'Value',
                                     class: 'singleline-cell textual',
+                                },
+                            ],
+                        },
+                    ],
+                },
+                {
+                    component: 'tab-panel',
+                    'data-tab-panel': 'General',
+                    children: [
+                        {
+                            type: 'lightswitch',
+                            labelPosition: 'before',
+                            label: this.$options.filters.t('Enable Conditions', 'formie'),
+                            help: this.$options.filters.t('Whether to enable conditional logic to control how the next button is shown.', 'formie'),
+                            name: 'enableConditions',
+                        },
+                        {
+                            component: 'toggle-group',
+                            conditional: 'settings.enableConditions',
+                            children: [
+                                {
+                                    type: 'fieldConditions',
+                                    name: 'conditions',
+                                    descriptionText: 'the next button if',
                                 },
                             ],
                         },

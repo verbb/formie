@@ -34,6 +34,12 @@
     .fui-btn {
         margin-left: 0.5rem;
         margin-right: 0.5rem;
+
+        // For conditions - better than classes, and doesn't rely on toggling
+        // between none/block. Maybe we don't want the field to be display: block?
+        &[data-conditionally-hidden] {
+            display: none;
+        }
     }
 }
 

@@ -576,6 +576,17 @@ class Form extends Element
         return false;
     }
 
+    public function hasButtonConditions(): bool
+    {
+        foreach ($this->getPages() as $page) {
+            if ($page->settings->enableConditions) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
+
     /**
      * Returns true if the form has more than 1 page.
      *
@@ -1033,7 +1044,7 @@ class Form extends Element
         }
 
         // See if we have any conditions setup for the form. No need to include otherwise
-        if ($this->hasFieldConditions()) {
+        if ($this->hasFieldConditions() || $this->hasButtonConditions()) {
             $registeredJs[] = [
                 'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/fields/conditions.js', true),
                 'module' => 'FormieConditions',
