@@ -449,6 +449,17 @@ class Tags extends CraftTags implements FormFieldInterface
         ];
     }
 
+    /**
+     * @inheritDoc
+     */
+    public function defineConditionsSchema(): array
+    {
+        return [
+            SchemaHelper::enableConditionsField(),
+            SchemaHelper::conditionsField(),
+        ];
+    }
+
 
     // Private Methods
     // =========================================================================

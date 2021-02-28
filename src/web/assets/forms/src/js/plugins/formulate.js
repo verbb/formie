@@ -164,6 +164,11 @@ export default Vue => {
                 component: 'NotificationConditions',
             },
 
+            fieldConditions: {
+                classification: 'text',
+                component: 'FieldConditions',
+            },
+
             date: {
                 component: 'DateField',
             },

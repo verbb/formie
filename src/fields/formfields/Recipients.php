@@ -269,6 +269,17 @@ class Recipients extends FormField
         ];
     }
 
+    /**
+     * @inheritDoc
+     */
+    public function defineConditionsSchema(): array
+    {
+        return [
+            SchemaHelper::enableConditionsField(),
+            SchemaHelper::conditionsField(),
+        ];
+    }
+
 
     // Private Methods
     // =========================================================================

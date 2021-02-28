@@ -677,6 +677,17 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
     /**
      * @inheritDoc
      */
+    public function defineConditionsSchema(): array
+    {
+        return [
+            SchemaHelper::enableConditionsField(),
+            SchemaHelper::conditionsField(),
+        ];
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function getContentGqlMutationArgumentType()
     {
         return AddressInputType::getType($this);

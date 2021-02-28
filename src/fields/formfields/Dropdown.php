@@ -249,4 +249,15 @@ class Dropdown extends BaseOptionsField implements FormFieldInterface
             SchemaHelper::inputAttributesField(),
         ];
     }
+
+    /**
+     * @inheritDoc
+     */
+    public function defineConditionsSchema(): array
+    {
+        return [
+            SchemaHelper::enableConditionsField(),
+            SchemaHelper::conditionsField(),
+        ];
+    }
 }

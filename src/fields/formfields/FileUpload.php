@@ -400,6 +400,17 @@ class FileUpload extends CraftAssets implements FormFieldInterface
     /**
      * @inheritDoc
      */
+    public function defineConditionsSchema(): array
+    {
+        return [
+            SchemaHelper::enableConditionsField(),
+            SchemaHelper::conditionsField(),
+        ];
+    }
+
+    /**
+     * @inheritDoc
+     */
     protected function getSettingGqlType($attribute, $type, $fieldInfo)
     {
         if ($attribute === 'allowedKinds') {

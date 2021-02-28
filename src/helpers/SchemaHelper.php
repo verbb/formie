@@ -292,6 +292,25 @@ class SchemaHelper
         ]), $config);
     }
 
+    public static function enableConditionsField($config = [])
+    {
+        return self::lightswitchField(array_merge([
+            'label' => Craft::t('formie', 'Enable Conditions'),
+            'help' => Craft::t('formie', 'Whether to enable conditional logic to control how this field is shown.'),
+            'name' => 'enableConditions',
+        ], $config));
+    }
+
+    public static function conditionsField($config = [])
+    {
+        return self::toggleContainer('settings.enableConditions', array_merge([
+            [
+                'type' => 'fieldConditions',
+                'name' => 'conditions',
+            ],
+        ], $config));
+    }
+
     public static function extractFieldsFromSchema($fieldSchema, $names = [])
     {
         foreach ($fieldSchema as $field) {

@@ -25,6 +25,7 @@ import TableRepeatableProvider from './table/TableRepeatableProvider.vue';
 import TableRow from './table/TableRow.vue';
 
 import NotificationConditions from './NotificationConditions.vue';
+import FieldConditions from './FieldConditions.vue';
 
 export default {
     Help,
@@ -54,4 +55,5 @@ export default {
     TableRow,
 
     NotificationConditions,
+    FieldConditions,
 };

@@ -428,6 +428,17 @@ class Table extends CraftTable implements FormFieldInterface
         ];
     }
 
+    /**
+     * @inheritDoc
+     */
+    public function defineConditionsSchema(): array
+    {
+        return [
+            SchemaHelper::enableConditionsField(),
+            SchemaHelper::conditionsField(),
+        ];
+    }
+
 
     // Private Methods
     // =========================================================================

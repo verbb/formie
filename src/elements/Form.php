@@ -561,6 +561,22 @@ class Form extends Element
     }
 
     /**
+     * Returns true if anu form field has conditions configured.
+     *
+     * @return bool
+     */
+    public function hasFieldConditions(): bool
+    {
+        foreach ($this->getFields() as $field) {
+            if ($field->enableConditions) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * Returns true if the form has more than 1 page.
      *
      * @return bool
@@ -1014,6 +1030,14 @@ class Form extends Element
                     $registeredJs[] = $js;
                 }
             }
+        }
+
+        // See if we have any conditions setup for the form. No need to include otherwise
+        if ($this->hasFieldConditions()) {
+            $registeredJs[] = [
+                'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/fields/conditions.js', true),
+                'module' => 'FormieConditions',
+            ];
         }
 
         // Cleanup - Ensure we don't include JS multiple times

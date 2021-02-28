@@ -370,4 +370,15 @@ class Categories extends CraftCategories implements FormFieldInterface
             SchemaHelper::containerAttributesField(),
         ];
     }
+
+    /**
+     * @inheritDoc
+     */
+    public function defineConditionsSchema(): array
+    {
+        return [
+            SchemaHelper::enableConditionsField(),
+            SchemaHelper::conditionsField(),
+        ];
+    }
 }

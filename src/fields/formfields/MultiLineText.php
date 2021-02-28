@@ -256,4 +256,15 @@ class MultiLineText extends FormField implements PreviewableFieldInterface
             SchemaHelper::inputAttributesField(),
         ];
     }
+
+    /**
+     * @inheritDoc
+     */
+    public function defineConditionsSchema(): array
+    {
+        return [
+            SchemaHelper::enableConditionsField(),
+            SchemaHelper::conditionsField(),
+        ];
+    }
 }

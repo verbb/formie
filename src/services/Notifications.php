@@ -377,8 +377,6 @@ class Notifications extends Component
         return $this->_existingNotifications = $event->notifications;
     }
 
-
-
     /**
      * Returns whether the notification has passed conditional evaluation. A `true` result means the notification
      * should be sent, whilst a `false` result means the notification should not send.
@@ -389,66 +387,9 @@ class Notifications extends Component
     {
         if ($notification->enableConditions) {
             $conditionSettings = Json::decode($notification->conditions) ?? [];
-            $conditions = $conditionSettings['conditions'] ?? [];
 
-            if ($conditionSettings && $conditions) {
-                $results = [];
-                $ruler = ConditionsHelper::getRuler();
-
-                // Fetch the values, serialized for notifications
-                $serializedFieldValues = $submission->getSerializedFieldValuesForIntegration();
-
-                foreach ($conditions as $condition) {
-                    try {
-                        $rule = "field {$condition['condition']} value";
-
-                        $condition['field'] = str_replace(['{', '}'], ['', ''], $condition['field']);
-
-                        // Check to see if this is a custom field, or an attribute on the submission
-                        if (StringHelper::startsWith($condition['field'], 'submission:')) {
-                            $condition['field'] = str_replace('submission:', '', $condition['field']);
-
-                            $condition['field'] = ArrayHelper::getValue($submission, $condition['field']);
-                        } else {
-                            // Parse the field handle first to get the submission value
-                            $condition['field'] = ArrayHelper::getValue($serializedFieldValues, $condition['field']);
-                        }
-
-                        // Check for array values, we should always be comparing strings
-                        if (is_array($condition['field'])) {
-                            $condition['field'] = ConditionsHelper::recursiveImplode(' ', $condition['field']);
-                        }
-
-                        // Protect against empty conditions
-                        if (!trim(ConditionsHelper::recursiveImplode('', $condition))) {
-                            continue;
-                        }
-
-                        $context = ConditionsHelper::getContext($condition);
-
-                        // Test the condition
-                        $results[] = $ruler->assert($rule, $context);
-                    } catch (\Throwable $e) {
-                        Formie::error(Craft::t('formie', 'Failed to parse conditional “{rule}”: “{message}” {file}:{line}', [
-                            'rule' => trim(ConditionsHelper::recursiveImplode('', $condition)),
-                            'message' => $e->getMessage(),
-                            'file' => $e->getFile(),
-                            'line' => $e->getLine(),
-                        ]));
-
-                        continue;
-                    }
-                }
-
-                $result = false;
-
-                // Check to see how to compare the result (any or all).
-                if ($conditionSettings['conditionRule'] === 'all') {
-                    // Are _all_ the conditions the same?
-                    $result = (bool)array_product($results);
-                } else {
-                    $result = (bool)in_array(true, $results);
-                }
+            if ($conditionSettings) {
+                $result = ConditionsHelper::getConditionalTestResult($conditionSettings, $submission);
 
                 // Lastly, check to see if we should return true or false depending on if we want to send or not
                 if ($conditionSettings['sendRule'] === 'send') {

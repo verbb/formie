@@ -233,6 +233,17 @@ class Agree extends FormField implements PreviewableFieldInterface
         ];
     }
 
+    /**
+     * @inheritDoc
+     */
+    public function defineConditionsSchema(): array
+    {
+        return [
+            SchemaHelper::enableConditionsField(),
+            SchemaHelper::conditionsField(),
+        ];
+    }
+
 
     // Protected Methods
     // =========================================================================

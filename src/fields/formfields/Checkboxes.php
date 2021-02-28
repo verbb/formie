@@ -251,4 +251,15 @@ class Checkboxes extends BaseOptionsField implements FormFieldInterface
             ]),
         ];
     }
+
+    /**
+     * @inheritDoc
+     */
+    public function defineConditionsSchema(): array
+    {
+        return [
+            SchemaHelper::enableConditionsField(),
+            SchemaHelper::conditionsField(),
+        ];
+    }
 }

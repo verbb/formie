@@ -40,7 +40,7 @@ export class FormieCheckboxRadio {
     }
 
     initRequiredCheckboxes() {
-        const $checkboxInputs = this.$field.querySelectorAll('[type="checkbox"]');
+        const $checkboxInputs = this.$field.querySelectorAll('[type="checkbox"][required]');
 
         $checkboxInputs.forEach(($checkboxInput) => {
             this.form.addEventListener($checkboxInput, eventKey('change'), (e) => {

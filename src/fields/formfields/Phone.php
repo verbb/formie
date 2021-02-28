@@ -370,4 +370,15 @@ class Phone extends FormField implements SubfieldInterface, PreviewableFieldInte
             SchemaHelper::inputAttributesField(),
         ];
     }
+
+    /**
+     * @inheritDoc
+     */
+    public function defineConditionsSchema(): array
+    {
+        return [
+            SchemaHelper::enableConditionsField(),
+            SchemaHelper::conditionsField(),
+        ];
+    }
 }

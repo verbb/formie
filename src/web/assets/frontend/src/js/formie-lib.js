@@ -91,6 +91,11 @@ export class Formie {
                             if (config.settings) {
                                 this.initJsClass(config.module, config.settings);
                             }
+
+                            // Special handling for some JS modules
+                            if (config.module === 'FormieConditions') {
+                                this.initJsClass(config.module, { $form });
+                            }
                         }
                     };
                 }

@@ -343,4 +343,15 @@ class Products extends CommerceProducts implements FormFieldInterface
             SchemaHelper::inputAttributesField(),
         ];
     }
+
+    /**
+     * @inheritDoc
+     */
+    public function defineConditionsSchema(): array
+    {
+        return [
+            SchemaHelper::enableConditionsField(),
+            SchemaHelper::conditionsField(),
+        ];
+    }
 }

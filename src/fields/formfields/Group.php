@@ -179,4 +179,15 @@ class Group extends FormField implements NestedFieldInterface, EagerLoadingField
             SchemaHelper::containerAttributesField(),
         ];
     }
+
+    /**
+     * @inheritDoc
+     */
+    public function defineConditionsSchema(): array
+    {
+        return [
+            SchemaHelper::enableConditionsField(),
+            SchemaHelper::conditionsField(),
+        ];
+    }
 }

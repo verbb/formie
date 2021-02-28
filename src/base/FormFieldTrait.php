@@ -5,6 +5,7 @@ use verbb\formie\Formie;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\fields\formfields\BaseOptionsField;
+use verbb\formie\helpers\ConditionsHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\Variables;
 use verbb\formie\gql\types\generators\FieldAttributeGenerator;
@@ -46,6 +47,8 @@ trait FormFieldTrait
     public $cssClasses;
     public $containerAttributes;
     public $inputAttributes;
+    public $enableConditions;
+    public $conditions;
 
     /**
      * @var int
@@ -468,6 +471,7 @@ trait FormFieldTrait
             'Settings',
             'Appearance',
             'Advanced',
+            'Conditions',
         ];
 
         foreach ($definedTabs as $definedTab) {
@@ -674,6 +678,57 @@ trait FormFieldTrait
         }
 
         return null;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getConditionsJson()
+    {
+        if ($this->enableConditions) {
+            $conditionSettings = Json::decode($this->conditions) ?? [];
+            $conditions = $conditionSettings['conditions'] ?? [];
+
+            $namespace = $this->getNamespace();
+
+            // Prep the conditions for JS
+            foreach ($conditions as &$condition) {
+                ArrayHelper::remove($condition, 'id');
+
+                // Dot-notation to name input syntax
+                $condition['field'] = $namespace . '[' . str_replace(['{', '}', '.'], ['', '', ']['], $condition['field']) . ']';
+            }
+
+            $conditionSettings['conditions'] = $conditions;
+
+            return Json::encode($conditionSettings);
+        }
+
+        return null;
+    }
+
+    /**
+     * Returns whether the field has passed conditional evaluation and is hidden.
+     */
+    public function isConditionallyHidden($submission)
+    {
+        if ($this->enableConditions) {
+            $conditionSettings = Json::decode($this->conditions) ?? [];
+
+            if ($conditionSettings) {
+                // A `true` result means the field passed the evaluation and that it has a value, whilst a `false` result means
+                // it didn't (for instance the field doesn't have a value)
+                $result = ConditionsHelper::getConditionalTestResult($conditionSettings, $submission);
+
+                // Depending on if we show or hide the field when evaluating. If `false` and set to show, it means
+                // the field is hidden and the conditions to show it aren't met. Therefore, report back that this field is hidden.
+                if (($result && $conditionSettings['showRule'] !== 'show') || (!$result && $conditionSettings['showRule'] === 'show')) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     /**

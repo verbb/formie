@@ -178,11 +178,8 @@ class Submission extends Element
     protected function defineRules(): array
     {
         $rules = parent::defineRules();
-        $fields = [];
         
         if ($fieldLayout = $this->getFieldLayout()) {
-            $fields = $this->getFieldLayout()->getFields();
-
             // Check when we're doing a submission from the front-end, and we choose to validate the current page only
             // Remove any custom fields that aren't in the current page. These are added by default
             if ($this->validateCurrentPageOnly) {
@@ -192,7 +189,6 @@ class Submission extends Element
                 $currentPageFieldHandles = ArrayHelper::getColumn($currentPageFields, 'handle');
 
                 foreach ($rules as $key => $rule) {
-                    // foreach ($fields as $field) {
                     list($attribute, $validator) = $rule;
                     $attribute = is_array($attribute) ? $attribute[0] : $attribute;
 
@@ -205,22 +201,39 @@ class Submission extends Element
                     }
                 }
             }
-        }
 
-        // Add custom error messages to fields with custom message set.
-        foreach ($rules as &$rule) {
-            /* @var FormField|FormFieldTrait $field */
-            foreach ($fields as $field) {
-                if (!$field->errorMessage) {
-                    continue;
+            $fields = $this->getFieldLayout()->getFields();
+
+            // Evaulate field conditions. What if this is a required field, but conditionally hidden?
+            foreach ($rules as $key => $rule) {
+                foreach ($fields as $field) {
+                    list($attribute, $validator) = $rule;
+                    $attribute = is_array($attribute) ? $attribute[0] : $attribute;
+
+                    if ($attribute === "field:{$field->handle}" && $validator === 'required') {
+                        // If this field is conditionally hidden, remove it from validation
+                        if ($field->isConditionallyHidden($this)) {
+                            unset($rules[$key]);
+                        }
+                    }
                 }
+            }
 
-                list($attribute, $validator) = $rule;
-                $attribute = is_array($attribute) ? $attribute[0] : $attribute;
+            // Add custom error messages to fields with custom message set.
+            foreach ($rules as &$rule) {
+                /* @var FormField|FormFieldTrait $field */
+                foreach ($fields as $field) {
+                    if (!$field->errorMessage) {
+                        continue;
+                    }
 
-                if ($attribute === "field:{$field->handle}" && $validator === 'required') {
-                    $rule['message'] = $field->errorMessage;
-                    break;
+                    list($attribute, $validator) = $rule;
+                    $attribute = is_array($attribute) ? $attribute[0] : $attribute;
+
+                    if ($attribute === "field:{$field->handle}" && $validator === 'required') {
+                        $rule['message'] = $field->errorMessage;
+                        break;
+                    }
                 }
             }
         }

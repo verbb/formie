@@ -519,6 +519,17 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
     /**
      * @inheritDoc
      */
+    public function defineConditionsSchema(): array
+    {
+        return [
+            SchemaHelper::enableConditionsField(),
+            SchemaHelper::conditionsField(),
+        ];
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function getContentGqlMutationArgumentType()
     {
         return NameInputType::getType($this);

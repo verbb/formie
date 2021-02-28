@@ -543,6 +543,17 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
         ];
     }
 
+    /**
+     * @inheritDoc
+     */
+    public function defineConditionsSchema(): array
+    {
+        return [
+            SchemaHelper::enableConditionsField(),
+            SchemaHelper::conditionsField(),
+        ];
+    }
+
 
     // Protected Methods
     // =========================================================================

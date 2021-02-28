@@ -72,13 +72,12 @@
 }
 
 .fui-field-rows {
-    margin-bottom: -1.25rem;
+    margin-bottom: -$row-gutter;
 }
 
 .fui-row {
     margin-left: -$field-gutter;
     margin-right: -$field-gutter;
-    margin-bottom: 1.25rem;
 }
 
 

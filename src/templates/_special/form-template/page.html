@@ -21,9 +21,7 @@
         {% endif %}
 
         {% for row in page.rows %}
-            {% set visibleFields = craft.formie.getVisibleFields(row) %}
-
-            <div class="{{ (visibleFields | length) ? 'fui-row fui-page-row' : 'fui-row-empty' }}">
+            <div class="fui-row fui-page-row">
                 {% for field in row.fields %}
                     {{ craft.formie.renderField(form, field, options) }}
                 {% endfor %}
