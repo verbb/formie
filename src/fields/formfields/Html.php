@@ -65,8 +65,12 @@ class Html extends FormField
      */
     public function getRenderedHtmlContent()
     {
+        $htmlContent = trim($this->htmlContent);
+
         // Render Twig content first
-        $htmlContent = Craft::$app->getView()->renderString($this->htmlContent);
+        if ($htmlContent) {
+            $htmlContent = Craft::$app->getView()->renderString($this->htmlContent);
+        }
 
         // Ensure we run it all through purifier
         $htmlContent = HTMLPurifier::process($htmlContent, $this->_getPurifierConfig());
