@@ -106,7 +106,7 @@ export default {
         // But make sure to find the largest column, becuase they can be deleted, we can't
         // rely on the length of the array
         this.totalColumns = Math.max(Math.max.apply(Math, this.context.model.map((o) => {
-            if (o.id) { return o.id.replace('col', ''); }
+            if (o.id) { return o.id.toString().replace('col', ''); }
         })), this.context.model.length) || 0;
     },
 
