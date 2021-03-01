@@ -2,9 +2,17 @@
 
 ## 1.4.0 - 2021-
 
+- Added field conditions, to conditionally show/hide fields according to your logic.
+- Added page button conditions, to conditionally show/hide next button according to your logic.
+- Added page conditions, to conditionally show/hide page according to your logic.
+- All-new page settings manager for form builder.
 
-
-
+- Fixed JS errors showing in form builder error alert.
+- Fixed page errors not showing on page labels in the control panel form builder.
+- Fixed page models being re-created after saving the form multiple times.
+- Fixed form page and row IDs being stripped upon failed validation in the form builder.
+- Fixed potential issue with table input in form builder, when rows don't have proper IDs.
+- Fixed page settings getting re-created unnecessarily.
 
 ## 1.3.20 - 2021-02-26
 
