@@ -912,7 +912,13 @@ class Fields extends Component
     public function savePages(FieldLayout $fieldLayout)
     {
         foreach ($fieldLayout->getPages() as $page) {
-            $record = new PageSettings();
+            // Try to find the page settings first
+            $record = PageSettings::find()->where(['fieldLayoutId' => $fieldLayout->id, 'fieldLayoutTabId' => $page->id])->one();
+
+            if (!$record) {
+                $record = new PageSettings();
+            }
+
             $isNew = $record->getIsNewRecord();
 
             $record->settings = $page->settings;
