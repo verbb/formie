@@ -503,6 +503,13 @@ class Forms extends Component
             $page->sortOrder = '' . $pageIndex;
             $page->setFields($pageFields);
 
+            // Handle page ID - new or existing
+            $page->id = $pageData['id'] ?? null;
+
+            if (strpos($page->id, 'new') === 0) {
+                $page->id = null;
+            }
+
             // Set page settings.
             $pageSettings = $pageData['settings'] ?? [];
             unset($pageSettings['label']);
