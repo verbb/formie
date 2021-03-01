@@ -14,7 +14,7 @@
     "/frontend/dist/css/fields/phone-country.css": "/frontend/dist/css/fields/phone-country.css?id=682387651ca24e0e344d",
     "/frontend/dist/css/fields/tags.css": "/frontend/dist/css/fields/tags.css?id=12d7d3c75f0d71e19ab4",
     "/cp/dist/css/formie-cp.css": "/cp/dist/css/formie-cp.css?id=5d239a9ff515ef026ff0",
-    "/frontend/dist/js/fields/checkbox-radio.js": "/frontend/dist/js/fields/checkbox-radio.js?id=ae9619f8a4e71255d5c6",
+    "/frontend/dist/js/fields/checkbox-radio.js": "/frontend/dist/js/fields/checkbox-radio.js?id=b8a86f2933cc8bf54f9a",
     "/frontend/dist/js/fields/file-upload.js": "/frontend/dist/js/fields/file-upload.js?id=6bc997b488a1cd210fbd",
     "/frontend/dist/js/fields/phone-country.js": "/frontend/dist/js/fields/phone-country.js?id=19645aebb3cf10b1722a",
     "/frontend/dist/js/fields/repeater.js": "/frontend/dist/js/fields/repeater.js?id=923369915e9f9566f449",
@@ -22,5 +22,5 @@
     "/frontend/dist/js/fields/table.js": "/frontend/dist/js/fields/table.js?id=1770f35326a268ee8b22",
     "/frontend/dist/js/fields/tags.js": "/frontend/dist/js/fields/tags.js?id=ccdb0c5e538029374c42",
     "/frontend/dist/js/fields/text-limit.js": "/frontend/dist/js/fields/text-limit.js?id=e5f8290ec1ff0e94b0c9",
-    "/frontend/dist/js/formie.js": "/frontend/dist/js/formie.js?id=a68e5dcbeb2e9d0b8970"
+    "/frontend/dist/js/formie.js": "/frontend/dist/js/formie.js?id=dad86e6d9cfaab933a90"
 }

@@ -385,7 +385,7 @@ export class FormieFormTheme {
         const formData = new FormData(this.$form);
 
         const xhr = new XMLHttpRequest();
-        xhr.open('POST', this.settings.siteRootUrl, true);
+        xhr.open('POST', '/', true);
         xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
         xhr.setRequestHeader('Accept', 'application/json');
         xhr.setRequestHeader('Cache-Control', 'no-cache');

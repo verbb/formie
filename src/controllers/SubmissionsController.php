@@ -158,12 +158,12 @@ class SubmissionsController extends Controller
             }
         } else {
             $submission = new Submission();
-            $submission->siteId = $siteId ?? $submission->siteId;
         }
 
         $form = $submission->form;
 
         // Now populate the rest of it from the post data
+        $submission->siteId = $siteId ?? $submission->siteId;
         $submission->enabled = true;
         $submission->enabledForSite = true;
         $submission->title = $request->getBodyParam('title', $submission->title);

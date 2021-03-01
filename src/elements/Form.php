@@ -968,11 +968,6 @@ class Form extends Element
 
         // Only provide what we need, both for security/privacy but also DOM size
         $settings = [
-            // Send the site-relative root. This is to ensure submission requests are setup
-            // to go to the root of a multi site. Important for sub-directory setups where
-            // posting to '/' would be the incorrect primary site.
-            'siteRootUrl' => UrlHelper::siteUrl(''),
-
             'submitMethod' => $this->settings->submitMethod,
             'submitActionMessage' => $this->settings->getSubmitActionMessage() ?? '',
             'submitActionMessageTimeout' => $this->settings->submitActionMessageTimeout,
