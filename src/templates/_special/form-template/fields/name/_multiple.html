@@ -1,5 +1,5 @@
 <fieldset class="fui-fieldset" aria-labelledby="{{ options.labelId }}">
-    {{ formieInclude('_includes/legend', { position: 'above' }) }}
+    {{ formieInclude('_includes/legend', { position: 'above', labelId: options.labelId }) }}
 
     {{ formieInclude('_includes/instructions', { position: 'fieldset-start' }) }}
 
@@ -15,5 +15,5 @@
 
     {{ formieInclude('_includes/instructions', { position: 'fieldset-end' }) }}
 
-    {{ formieInclude('_includes/legend', { position: 'below' }) }}
+    {{ formieInclude('_includes/legend', { position: 'below', labelId: options.labelId }) }}
 </fieldset>
