@@ -2,6 +2,7 @@ import Vue from 'vue';
 import config from './config.js';
 import get from 'lodash/get';
 import isEmpty from 'lodash/isEmpty';
+import { newId } from './utils/string';
 
 // Apply our config settings, which do most of the grunt work
 Vue.use(config);
@@ -330,6 +331,22 @@ Craft.Formie = Garnish.Base.extend({
 
                         this.$axios.post(Craft.getActionUrl(actionUrl), data).then(({ data }) => {
                             if (data && data.config) {
+                                // Because of how validation works on the Craft side, any new pages with an id of `newXXXX-XXXX` will be
+                                // stripped out. This is because we _have_ to strip them out as they need to be `null` to be saved properly.
+                                // But on failed validation, they're stripped out and we end up with all sorts of issues. This is the same for
+                                // rows. So - always ensure pages and rows have an ID.
+                                data.config.pages.forEach(page => {
+                                    if (!page.id) {
+                                        page.id = newId();
+                                    }
+
+                                    page.rows.forEach(row => {
+                                        if (!row.id) {
+                                            row.id = newId();
+                                        }
+                                    });
+                                });
+
                                 store.dispatch('form/setFormConfig', data.config);
                                 store.dispatch('notifications/setNotifications', data.notifications);
                             }
