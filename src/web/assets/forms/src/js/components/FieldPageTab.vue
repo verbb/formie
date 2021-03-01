@@ -21,7 +21,10 @@
 <script>
 import { mapState } from 'vuex';
 import { Drop } from 'vue-drag-drop';
+
 import flattenDeep from 'lodash/flattenDeep';
+import isEmpty from 'lodash/isEmpty';
+
 import { newId } from '../utils/string';
 
 export default {
@@ -45,6 +48,11 @@ export default {
         active: {
             type: String,
             default: '',
+        },
+
+        errors: {
+            type: [Object, Array],
+            default: () => {},
         },
     },
 
@@ -71,6 +79,10 @@ export default {
             var hasError = false;
 
             var fields = this.$store.getters['form/fieldsForPage'](this.pageIndex);
+
+            if (!isEmpty(this.errors)) {
+                hasError = true;
+            }
 
             fields.forEach(field => {
                 if (field.hasError) {

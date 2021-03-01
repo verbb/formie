@@ -8,6 +8,7 @@
                 :page-index="index"
                 :label="page.label"
                 :active="value"
+                :errors="page.errors"
                 @selected="selectTab"
             />
         </ul>
