@@ -228,15 +228,15 @@ export default {
                             labelPosition: 'before',
                             label: this.$options.filters.t('Enable Conditions', 'formie'),
                             help: this.$options.filters.t('Whether to enable conditional logic to control how the next button is shown.', 'formie'),
-                            name: 'enableConditions',
+                            name: 'enableNextButtonConditions',
                         },
                         {
                             component: 'toggle-group',
-                            conditional: 'settings.enableConditions',
+                            conditional: 'settings.enableNextButtonConditions',
                             children: [
                                 {
                                     type: 'fieldConditions',
-                                    name: 'conditions',
+                                    name: 'nextButtonConditions',
                                     descriptionText: 'the next button if',
                                 },
                             ],

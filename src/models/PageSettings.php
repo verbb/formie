@@ -20,8 +20,10 @@ class PageSettings extends Model
     public $cssClasses;
     public $containerAttributes;
     public $inputAttributes;
-    public $enableConditions;
-    public $conditions;
+    public $enableNextButtonConditions = false;
+    public $nextButtonConditions = [];
+    public $enablePageConditions = false;
+    public $pageConditions = [];
 
 
     // Public Methods
@@ -89,8 +91,8 @@ class PageSettings extends Model
      */
     public function getConditionsJson()
     {
-        if ($this->enableConditions) {
-            $conditionSettings = Json::decode($this->conditions) ?? [];
+        if ($this->enableNextButtonConditions) {
+            $conditionSettings = Json::decode($this->nextButtonConditions) ?? [];
             $conditions = $conditionSettings['conditions'] ?? [];
 
             // Prep the conditions for JS

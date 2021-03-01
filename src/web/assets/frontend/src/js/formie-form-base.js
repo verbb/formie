@@ -60,11 +60,11 @@ export class FormieFormBase {
 
     submitForm() {
         // Check if we're going back, and attach an input to tell formie not to validate
-        if (this.$form.goToPage) {
+        if (this.$form.goBack) {
             const $backButtonInput = document.createElement('input');
             $backButtonInput.setAttribute('type', 'hidden');
-            $backButtonInput.setAttribute('name', 'goToPageId');
-            $backButtonInput.setAttribute('value', this.$form.goToPage);
+            $backButtonInput.setAttribute('name', 'goingBack');
+            $backButtonInput.setAttribute('value', 'true');
             this.$form.appendChild($backButtonInput);
         }
 

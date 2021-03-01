@@ -178,19 +178,21 @@ class SubmissionsController extends Controller
 
         // Check if this is a front-end edit
         if ($request->getIsSiteRequest()) {
-            $goingBack = false;
+            $goingBack = (bool)$request->getBodyParam('goingBack');
 
             // Ensure we set the current submission on the form. This keeps track of session info for
             // multi-page forms, separate to "new" submissions
             $form->setSubmission($submission);
 
             // Check for the next page - if there is one
-            $nextPage = $form->getNextPage();
+            $nextPage = $form->getNextPage(null, $submission);
 
             // Or, if we've passed in a specific page to go to
             if ($goToPageId = $request->getBodyParam('goToPageId')) {
                 $goingBack = true;
                 $nextPage = ArrayHelper::firstWhere($form->getPages(), 'id', $goToPageId);
+            } else if ($goingBack) {
+                $nextPage = $form->getPreviousPage(null, $submission);
             }
 
             // Don't validate when going back
@@ -318,7 +320,7 @@ class SubmissionsController extends Controller
         $formieSettings = Formie::$plugin->getSettings();
 
         $handle = $request->getRequiredBodyParam('handle');
-        $goingBack = false;
+        $goingBack = (bool)$request->getBodyParam('goingBack');
 
         Formie::log("Submission triggered for ${handle}.");
 
@@ -341,15 +343,6 @@ class SubmissionsController extends Controller
         if ($request->getParam('completeSubmission')) {
             $pages = $form->getPages();
             $form->setCurrentPage($pages[count($pages) - 1]);
-        }
-
-        // Check for the next page - if there is one
-        $nextPage = $form->getNextPage();
-
-        // Or, if we've passed in a specific page to go to
-        if ($goToPageId = $request->getBodyParam('goToPageId')) {
-            $goingBack = true;
-            $nextPage = ArrayHelper::firstWhere($form->getPages(), 'id', $goToPageId);
         }
 
         $settings = $form->settings;
@@ -396,6 +389,17 @@ class SubmissionsController extends Controller
             $timeZone = Craft::$app->getTimeZone();
             $now = new DateTime('now', new DateTimeZone($timeZone));
             $submission->title = $now->format('Y-m-d H:i');
+        }
+
+        // Check for the next page - if there is one
+        $nextPage = $form->getNextPage(null, $submission);
+
+        // Or, if we've passed in a specific page to go to
+        if ($goToPageId = $request->getBodyParam('goToPageId')) {
+            $goingBack = true;
+            $nextPage = ArrayHelper::firstWhere($form->getPages(), 'id', $goToPageId);
+        } else if ($goingBack) {
+            $nextPage = $form->getPreviousPage(null, $submission);
         }
 
         // Don't validate when going back

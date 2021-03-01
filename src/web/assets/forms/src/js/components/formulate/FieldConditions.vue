@@ -134,6 +134,7 @@ export default {
 
             return [];
         },
+        
         descriptionText() {
             return this.context.attributes.descriptionText || 'this field if';
         },

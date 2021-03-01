@@ -2,12 +2,12 @@
     "/addressproviders/dist/js/address-finder.js": "/addressproviders/dist/js/address-finder.js?id=705c6fe5ec0f6781a5f8",
     "/addressproviders/dist/js/algolia-places.js": "/addressproviders/dist/js/algolia-places.js?id=a4d8a66bc93fe7da8900",
     "/addressproviders/dist/js/google-address.js": "/addressproviders/dist/js/google-address.js?id=72a4983483df1fd9acd8",
-    "/captchas/dist/js/recaptcha-v2-checkbox.js": "/captchas/dist/js/recaptcha-v2-checkbox.js?id=520f3fd0d5eca8ceaf53",
-    "/captchas/dist/js/recaptcha-v2-invisible.js": "/captchas/dist/js/recaptcha-v2-invisible.js?id=c2de8ce5df9182d97e3c",
-    "/captchas/dist/js/recaptcha-v3.js": "/captchas/dist/js/recaptcha-v3.js?id=7661ec0c7420e9b974d2",
+    "/captchas/dist/js/recaptcha-v2-checkbox.js": "/captchas/dist/js/recaptcha-v2-checkbox.js?id=1b0e02db04bb407a62c1",
+    "/captchas/dist/js/recaptcha-v2-invisible.js": "/captchas/dist/js/recaptcha-v2-invisible.js?id=3664b0f6bb86726390f8",
+    "/captchas/dist/js/recaptcha-v3.js": "/captchas/dist/js/recaptcha-v3.js?id=952064fa75dbcd7e8e33",
     "/cp/dist/js/formie-cp.js": "/cp/dist/js/formie-cp.js?id=af730c3fbb5652a84775",
-    "/cp/dist/js/integration-settings.js": "/cp/dist/js/integration-settings.js?id=0b56fdc007cf793e18bd",
-    "/forms/dist/js/main.js": "/forms/dist/js/main.js?id=0c0f5fe6a4ab7ec43123",
+    "/cp/dist/js/integration-settings.js": "/cp/dist/js/integration-settings.js?id=5ef814b48ce75af477bb",
+    "/forms/dist/js/main.js": "/forms/dist/js/main.js?id=36b36709101f1bd383ae",
     "/forms/dist/css/style.css": "/forms/dist/css/style.css?id=8f058d2e8f9ff2df7ff9",
     "/frontend/dist/css/formie-base.css": "/frontend/dist/css/formie-base.css?id=889b2aecb6c4427b54e9",
     "/frontend/dist/css/formie-theme.css": "/frontend/dist/css/formie-theme.css?id=c33e3fe27b989dd89197",
@@ -23,5 +23,5 @@
     "/frontend/dist/js/fields/table.js": "/frontend/dist/js/fields/table.js?id=1770f35326a268ee8b22",
     "/frontend/dist/js/fields/tags.js": "/frontend/dist/js/fields/tags.js?id=ccdb0c5e538029374c42",
     "/frontend/dist/js/fields/text-limit.js": "/frontend/dist/js/fields/text-limit.js?id=e5f8290ec1ff0e94b0c9",
-    "/frontend/dist/js/formie.js": "/frontend/dist/js/formie.js?id=04eeed69c9e8f581dd8c"
+    "/frontend/dist/js/formie.js": "/frontend/dist/js/formie.js?id=a42a583111c4b956c93d"
 }

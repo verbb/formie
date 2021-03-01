@@ -47,9 +47,8 @@
                 'fui-prev',
             ],
             type: 'submit',
-            name: 'goToPageId',
-            value: prevPage.id,
-            onclick: 'this.form.goToPage = this.value;',
+            name: 'goingBack',
+            onclick: 'this.form.goBack = true;',
         } | merge(options.buttons.prev ?? {}) | merge(inputAttributes) %}
 
         <button {{ attr(prevAttributes) }}>

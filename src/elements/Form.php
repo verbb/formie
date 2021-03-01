@@ -579,7 +579,7 @@ class Form extends Element
     public function hasButtonConditions(): bool
     {
         foreach ($this->getPages() as $page) {
-            if ($page->settings->enableConditions) {
+            if ($page->settings->enableNextButtonConditions) {
                 return true;
             }
         }
@@ -636,7 +636,7 @@ class Form extends Element
      * @param FieldLayoutPage|null $currentPage
      * @return FieldLayoutPage|null
      */
-    public function getPreviousPage($currentPage = null)
+    public function getPreviousPage($currentPage = null, $submission = null)
     {
         $pages = $this->getPages();
 
@@ -655,6 +655,14 @@ class Form extends Element
 
         $prev = prev($pages);
 
+        // Handle if the next page should be conditionally skipped
+        if ($prev && $submission) {
+            if ($prev->isConditionallyHidden($submission)) {
+                // Call again to get the next non-hidden page.
+                $prev = $this->getPreviousPage($prev, $submission);
+            }
+        }
+
         return $prev ?: null;
     }
 
@@ -664,7 +672,7 @@ class Form extends Element
      * @param FieldLayoutPage|null $currentPage
      * @return FieldLayoutPage|null
      */
-    public function getNextPage($currentPage = null)
+    public function getNextPage($currentPage = null, $submission = null)
     {
         $pages = $this->getPages();
 
@@ -682,6 +690,14 @@ class Form extends Element
         }
 
         $next = next($pages);
+
+        // Handle if the next page should be conditionally skipped
+        if ($next && $submission) {
+            if ($next->isConditionallyHidden($submission)) {
+                // Call again to get the next non-hidden page.
+                $next = $this->getNextPage($next, $submission);
+            }
+        }
 
         return $next ?: null;
     }

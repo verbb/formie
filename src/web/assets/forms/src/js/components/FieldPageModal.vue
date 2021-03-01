@@ -44,12 +44,24 @@
                                 autocomplete="off"
                                 :label="$options.filters.t('Page Label', 'formie')"
                                 :help="$options.filters.t('The label for this page.', 'formie')"
-                                name="label"
                                 validation="required"
                                 :validation-name="$options.filters.t('Page Label', 'formie')"
                                 :required="true"
                                 :error="get(page.errors, 'name.0')"
                             />
+
+                            <FormulateInput
+                                v-model="page.settings.enablePageConditions"
+                                type="lightswitch"
+                                label-position="before"
+                                :label="$options.filters.t('Enable Conditions', 'formie')"
+                                :help="$options.filters.t('Whether to enable conditional logic to control how this page is shown.', 'formie')"
+                            />
+
+                            <ToggleGroup conditional="settings.enablePageConditions" :model="page">
+                                <!-- eslint-disable-next-line -->
+                                <FormulateInput v-model="page.settings.pageConditions" type="fieldConditions" descriptionText="this page if" />
+                            </ToggleGroup>
 
                             <div v-if="pages.length > 1">
                                 <hr>
@@ -82,6 +94,7 @@ import { newId } from '../utils/string';
 import Draggable from '@vuedraggable';
 
 import Modal from './Modal.vue';
+import ToggleGroup from './formulate/ToggleGroup.vue';
 
 export default {
     name: 'FieldPageModal',
@@ -89,6 +102,7 @@ export default {
     components: {
         Modal,
         Draggable,
+        ToggleGroup,
     },
 
     props: {
@@ -151,6 +165,7 @@ export default {
             this.pages.push({
                 id: newPageId,
                 label: Craft.t('formie', 'New Page'),
+                enableConditions: false,
                 rows: [],
             });
 

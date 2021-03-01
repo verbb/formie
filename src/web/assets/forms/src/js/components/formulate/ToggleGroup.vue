@@ -13,7 +13,7 @@ export default {
 
     computed: {
         conditional() {
-            var model = null;
+            var model = this.$attrs.model || null;
 
             if (this.$editingField) {
                 model = this.$editingField.field;

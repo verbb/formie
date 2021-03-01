@@ -114,7 +114,7 @@ export class FormieRecaptchaV2Checkbox {
     onValidate(e) {
         // Don't validate if we're going back in the form
         // Or, if there's no captcha on this page
-        if (this.$form.goToPage || this.$placeholder === null) {
+        if (this.$form.goBack || this.$placeholder === null) {
             return;
         }
 

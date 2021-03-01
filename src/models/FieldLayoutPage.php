@@ -1,6 +1,10 @@
 <?php
 namespace verbb\formie\models;
 
+use verbb\formie\Formie;
+use verbb\formie\base\FormFieldInterface;
+use verbb\formie\helpers\ConditionsHelper;
+
 use Craft;
 use craft\base\Field;
 use craft\base\FieldInterface;
@@ -9,9 +13,6 @@ use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 use craft\models\FieldLayout as CraftFieldLayout;
 use craft\models\FieldLayoutTab as CraftFieldLayoutTab;
-
-use verbb\formie\base\FormFieldInterface;
-use verbb\formie\Formie;
 
 use yii\base\InvalidConfigException;
 
@@ -139,5 +140,29 @@ class FieldLayoutPage extends CraftFieldLayoutTab
         /* @var FormFieldInterface[] $pageFields */
         $pageFields = $this->getFields();
         return Formie::$plugin->getFields()->groupIntoRows($pageFields);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function isConditionallyHidden($submission)
+    {
+        if ($this->settings->enablePageConditions) {
+            $conditionSettings = Json::decode($this->settings->pageConditions) ?? [];
+
+            if ($conditionSettings) {
+                // A `true` result means the field passed the evaluation and that it has a value, whilst a `false` result means
+                // it didn't (for instance the field doesn't have a value)
+                $result = ConditionsHelper::getConditionalTestResult($conditionSettings, $submission);
+
+                // Depending on if we show or hide the field when evaluating. If `false` and set to show, it means
+                // the field is hidden and the conditions to show it aren't met. Therefore, report back that this field is hidden.
+                if (($result && $conditionSettings['showRule'] !== 'show') || (!$result && $conditionSettings['showRule'] === 'show')) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 }

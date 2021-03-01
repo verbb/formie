@@ -105,7 +105,7 @@ export class FormieRecaptchaV3 {
 
     onValidate(e) {
         // Don't validate if we're going back in the form
-        if (this.$form.goToPage || this.$placeholder === null) {
+        if (this.$form.goBack || this.$placeholder === null) {
             return;
         }
 

@@ -170,7 +170,7 @@ export class FormieFormTheme {
 
     onValidate(e) {
         // Bypass validation and custom event handling if going back
-        if (!this.$form.goToPage && !this.validate()) {
+        if (!this.$form.goBack && !this.validate()) {
             this.onFormError();
 
             // Set a flag on the event, so other listeners can potentially do something
@@ -361,14 +361,14 @@ export class FormieFormTheme {
 
     removeBackInput() {
         // Remove the hidden back input sent in any previous step
-        var $backButtonInput = this.$form.querySelector('[name="goToPageId"][type="hidden"]');
+        var $backButtonInput = this.$form.querySelector('[name="goingBack"][type="hidden"]');
 
         if ($backButtonInput) {
             $backButtonInput.remove();
         }
 
         // Reset the chosen page
-        this.$form.goToPage = null;
+        this.$form.goBack = null;
     }
 
     beforeSubmit() {
@@ -492,7 +492,7 @@ export class FormieFormTheme {
 
         // Remove the back button - not great UX to go back to a finished form
         // Remember, its the button and the hidden input
-        var $backButtonInputs = this.$form.querySelectorAll('[name="goToPageId"]');
+        var $backButtonInputs = this.$form.querySelectorAll('[name="goingBack"]');
 
         $backButtonInputs.forEach($backButtonInput => {
             $backButtonInput.remove();
