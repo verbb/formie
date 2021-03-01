@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.3.21 - 2021-03-01
+
+### Fixed
+- Updated front-end JS to catch ajax-based forms network errors and timeouts.
+- Fixed toggling checkboxes triggering required states, when the field wasn’t required at all.
+- Removed `siteRootUrl` for included JS, causing issues with JS form submissions on some sites, where cross-domain issues arise. Rely on `siteId` param to determine current site..
+- Fixed an error with HTML field when “HTML Content” was empty.
+- Fixed Name, Address and Date fields not applying an `id` attribute of legends for accessibility.
+- Ensure all front-end field legends output, even when hidden (using `fui-sr-only`) for accessibility.
+
 ## 1.3.20 - 2021-02-26
 
 ### Added
