@@ -66,7 +66,6 @@ class FileUpload extends CraftAssets implements FormFieldInterface
     public $uploadLocationSource;
     public $uploadLocationSubpath;
     public $useSingleFolder = true;
-    public $useDragDrop = false;
 
     protected $inputTemplate = 'formie/_includes/element-select-input';
 
@@ -271,21 +270,10 @@ class FileUpload extends CraftAssets implements FormFieldInterface
      */
     public function getFrontEndJsModules()
     {
-        $modules = [];
-        
-        $modules[] = [
+        return [
             'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/fields/file-upload.js', true),
             'module' => 'FormieFileUpload',
         ];
-
-        if ($this->useDragDrop) {
-            $modules[] = [
-                'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/fields/drag-drop-upload.js', true),
-                'module' => 'FormieDragDropUpload',
-            ];
-        }
-
-        return $modules;
     }
 
     /**
@@ -380,11 +368,6 @@ class FileUpload extends CraftAssets implements FormFieldInterface
                     'name' => 'allowedKinds',
                     'options' => $this->getFileKindOptions(),
                 ]),
-            ]),
-            SchemaHelper::lightswitchField([
-                'label' => Craft::t('formie', 'Use Drag and Drop Uploader'),
-                'help' => Craft::t('formie', 'Whether this field should use a drag and drop uploader.'),
-                'name' => 'useDragDrop',
             ]),
         ];
     }

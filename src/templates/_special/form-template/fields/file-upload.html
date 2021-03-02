@@ -2,20 +2,9 @@
 {% set sizeMinLimit = field.sizeMinLimit ?? 0 %}
 {% set limitFiles = field.limitFiles ?? 0 %}
 
-{% set json = [] %}
-
-{% if value %}
-    {% for item in value.all() %}
-        {% set json = json | merge([{ name: item.filename, url: item.url }]) %}
-    {% endfor %}
-{% endif %}
-
 {% set attributes = {
     type: 'file',
-    class: [
-        'fui-input',
-        field.settings.useDragDrop ? 'fui-hidden2' : null,
-    ],
+    class: [ 'fui-input' ],
     id: options.id,
     name: field.handle ~ '[]',
     required: field.required ? true : false,
@@ -26,7 +15,6 @@
         'size-max-limit': sizeMaxLimit,
         'file-limit': limitFiles,
         'fui-message': field.settings.errorMessage | t,
-        'uploaded': json ? json | json_encode : null,
     },
     aria: {
         required: field.required ? 'true' : 'false',

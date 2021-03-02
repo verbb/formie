@@ -40,16 +40,15 @@ mix.sass(assetsPath + '/frontend/src/scss/fields/tags.scss', assetsPath + '/fron
 
 // Setup and configure JS
 mix.js(assetsPath + '/frontend/src/js/formie.js', assetsPath + '/frontend/dist/js');
-mix.js(assetsPath + '/frontend/src/js/fields/checkbox-radio.js', assetsPath + '/frontend/dist/js/fields');
-mix.js(assetsPath + '/frontend/src/js/fields/conditions.js', assetsPath + '/frontend/dist/js/fields');
-mix.js(assetsPath + '/frontend/src/js/fields/drag-drop-upload.js', assetsPath + '/frontend/dist/js/fields');
 mix.js(assetsPath + '/frontend/src/js/fields/file-upload.js', assetsPath + '/frontend/dist/js/fields');
 mix.js(assetsPath + '/frontend/src/js/fields/phone-country.js', assetsPath + '/frontend/dist/js/fields');
 mix.js(assetsPath + '/frontend/src/js/fields/repeater.js', assetsPath + '/frontend/dist/js/fields');
-mix.js(assetsPath + '/frontend/src/js/fields/rich-text.js', assetsPath + '/frontend/dist/js/fields');
 mix.js(assetsPath + '/frontend/src/js/fields/table.js', assetsPath + '/frontend/dist/js/fields');
 mix.js(assetsPath + '/frontend/src/js/fields/tags.js', assetsPath + '/frontend/dist/js/fields');
+mix.js(assetsPath + '/frontend/src/js/fields/checkbox-radio.js', assetsPath + '/frontend/dist/js/fields');
 mix.js(assetsPath + '/frontend/src/js/fields/text-limit.js', assetsPath + '/frontend/dist/js/fields');
+mix.js(assetsPath + '/frontend/src/js/fields/rich-text.js', assetsPath + '/frontend/dist/js/fields');
+mix.js(assetsPath + '/frontend/src/js/fields/conditions.js', assetsPath + '/frontend/dist/js/fields');
 
 
 //
