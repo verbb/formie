@@ -282,6 +282,11 @@ class HubSpot extends Crm
                 $formPayload = [];
 
                 foreach ($formValues as $key => $value) {
+                    // Don't include the tracking ID, it's invalid to HubSpot
+                    if ($key === 'trackingID') {
+                        continue;
+                    }
+
                     $formPayload['fields'][] = [
                         'name' => $key,
                         'value' => $value,
