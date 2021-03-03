@@ -395,7 +395,7 @@ class SubmissionsController extends Controller
         if (!$submission->title) {
             $timeZone = Craft::$app->getTimeZone();
             $now = new DateTime('now', new DateTimeZone($timeZone));
-            $submission->title = $now->format('Y-m-d H:i');
+            $submission->title = $now->format('D, d M Y H:i:s');
         }
 
         // Don't validate when going back
