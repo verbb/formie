@@ -7,10 +7,11 @@ use verbb\formie\helpers\SchemaHelper;
 use Craft;
 use craft\base\ElementInterface;
 use craft\base\PreviewableFieldInterface;
-use craft\i18n\Locale;
+use craft\gql\types\Number as NumberType;
 use craft\helpers\Db;
 use craft\helpers\Localization;
 use craft\helpers\Template;
+use craft\i18n\Locale;
 
 use LitEmoji\LitEmoji;
 use Twig\Markup;
@@ -303,6 +304,26 @@ class Number extends FormField implements PreviewableFieldInterface
             SchemaHelper::cssClasses(),
             SchemaHelper::containerAttributesField(),
             SchemaHelper::inputAttributesField(),
+        ];
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getContentGqlType()
+    {
+        return NumberType::getType();
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getContentGqlMutationArgumentType()
+    {
+        return [
+            'name' => $this->handle,
+            'type' => NumberType::getType(),
+            'description' => $this->instructions,
         ];
     }
 }
