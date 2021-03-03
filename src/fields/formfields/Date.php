@@ -10,7 +10,7 @@ use verbb\formie\helpers\SchemaHelper;
 use Craft;
 use craft\base\ElementInterface;
 use craft\base\PreviewableFieldInterface;
-use craft\gql\types\DateTime as GqlDateTime;
+use craft\gql\types\DateTime as DateTimeType;
 use craft\helpers\DateTimeHelper;
 use craft\helpers\StringHelper;
 
@@ -557,10 +557,30 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
         if ($attribute === 'defaultValue') {
             return [
                 'name' => 'defaultDate',
-                'type' => GqlDateTime::getType(),
+                'type' => DateTimeType::getType(),
             ];
         }
 
         return parent::getSettingGqlType($attribute, $type, $fieldInfo);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getContentGqlType()
+    {
+        return DateTimeType::getType();
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getContentGqlMutationArgumentType()
+    {
+        return [
+            'name' => $this->handle,
+            'type' => DateTimeType::getType(),
+            'description' => $this->instructions,
+        ];
     }
 }
