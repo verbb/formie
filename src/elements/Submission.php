@@ -463,7 +463,7 @@ class Submission extends Element
 
             // Rather than re-save, directly update the submission record
             Craft::$app->getDb()->createCommand()->update('{{%formie_submissions}}', ['title' => $customTitle], ['id' => $this->id])->execute();
-            Craft::$app->getDb()->createCommand()->update('{{%formie_content}}', ['title' => $customTitle], ['elementId' => $this->id])->execute();
+            Craft::$app->getDb()->createCommand()->update('{{%content}}', ['title' => $customTitle], ['elementId' => $this->id])->execute();
         }
     }
 
