@@ -735,14 +735,13 @@ class SubmissionsController extends Controller
             }
         }
 
-        // Set the custom title
-        $submission->title = Variables::getParsedValue($form->settings->submissionTitleFormat, $submission, $form);
+        // Set the default title for the submission
+        $now = new DateTime('now', new DateTimeZone(Craft::$app->getTimeZone()));
+        $submission->title = $now->format('D, d M Y H:i:s');
 
-        // But always ensure there's a title
-        if (!$submission->title) {
-            $timeZone = Craft::$app->getTimeZone();
-            $now = new DateTime('now', new DateTimeZone($timeZone));
-            $submission->title = $now->format('D, d M Y H:i:s');
+        // Set the custom title - only if set to save parsing
+        if ($form->settings->submissionTitleFormat) {
+            $submission->title = Variables::getParsedValue($form->settings->submissionTitleFormat, $submission, $form);
         }
 
         return $submission;
