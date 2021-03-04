@@ -165,6 +165,7 @@ export default {
                 options: [
                     { label: Craft.t('formie', 'Title'), value: '{submission:title}' },
                     { label: Craft.t('formie', 'ID'), value: '{submission:id}' },
+                    { label: Craft.t('formie', 'Form Name'), value: '{submission:formName}' },
                 ],
             });
 

@@ -321,24 +321,6 @@ class Submission extends Element
     }
 
     /**
-     * @inheritDoc
-     */
-    public function validate($attributeNames = null, $clearErrors = true)
-    {
-        $validates = parent::validate($attributeNames, $clearErrors);
-
-        $form = $this->getForm();
-
-        if ($form && $form->requireUser) {
-            if (!Craft::$app->getUser()->getIdentity()) {
-                $this->addError('form', Craft::t('formie', 'You must be logged in to submit this form.'));
-            }
-        }
-
-        return $validates;
-    }
-
-    /**
      * @inheritdoc
      */
     public static function eagerLoadingMap(array $sourceElements, string $handle)
@@ -390,6 +372,24 @@ class Submission extends Element
         ];
 
         return $behaviors;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function validate($attributeNames = null, $clearErrors = true)
+    {
+        $validates = parent::validate($attributeNames, $clearErrors);
+
+        $form = $this->getForm();
+
+        if ($form && $form->requireUser) {
+            if (!Craft::$app->getUser()->getIdentity()) {
+                $this->addError('form', Craft::t('formie', 'You must be logged in to submit this form.'));
+            }
+        }
+
+        return $validates;
     }
 
     /**
@@ -515,6 +515,16 @@ class Submission extends Element
         }
 
         return null;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getFormName()
+    {
+        if ($form = $this->getForm()) {
+            return $form->title;
+        }
     }
 
     /**
