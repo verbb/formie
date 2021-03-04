@@ -273,6 +273,10 @@ class Variables
         $view->setTemplateMode($view::TEMPLATE_MODE_CP);
 
         foreach ($form->getFields() as $field) {
+            if (!$field->includeInEmail) {
+                continue;
+            }
+
             $value = $submission->getFieldValue($field->handle);
 
             if (empty($value) && $excludeEmpty) {

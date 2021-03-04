@@ -207,6 +207,11 @@ class Hidden extends FormField implements PreviewableFieldInterface
     {
         return [
             SchemaHelper::prePopulate(),
+            SchemaHelper::lightswitchField([
+                'label' => Craft::t('formie', 'Include in Email Notifications'),
+                'help' => Craft::t('formie', 'Whether the content of this field should be included in email notifications.'),
+                'name' => 'includeInEmail',
+            ]),
         ];
     }
 

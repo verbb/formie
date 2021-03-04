@@ -46,6 +46,7 @@ trait FormFieldTrait
     public $cssClasses;
     public $containerAttributes;
     public $inputAttributes;
+    public $includeInEmail = true;
 
     /**
      * @var int
