@@ -7,6 +7,7 @@ use verbb\formie\base\SubFieldInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\fields\formfields\Date;
+use verbb\formie\fields\formfields\MultiLineText;
 use verbb\formie\models\Notification;
 
 use Craft;
@@ -216,29 +217,25 @@ class Variables
             }
         }
 
-        // Cache field's separately, as they rely on both a submission and notification, which might not be available
-        // for earlier calls to `getParsedValue()`, but should be cached anyway, as they're the most expensive calls.
-        if (!Formie::$plugin->getRenderCache()->getFieldVariables($cacheKey)) {
-            $fieldHtml = self::getFormFieldsHtml($form, $notification, $submission);
-            $fieldContentHtml = self::getFormFieldsHtml($form, $notification, $submission, true);
+        $fieldHtml = self::getFormFieldsHtml($form, $notification, $submission);
+        $fieldContentHtml = self::getFormFieldsHtml($form, $notification, $submission, true);
 
-            $fieldVariables = [
-                'allFields' => $fieldHtml,
-                'allContentFields' => $fieldContentHtml,
-            ];
+        $fieldVariables = [
+            'allFields' => $fieldHtml,
+            'allContentFields' => $fieldContentHtml,
+        ];
 
-            // Old and deprecated methods. Ensure all fields are prefixed with 'field:', but too tricky to migrate...
-            // TODO: Remove at next breakpoint
-            $fieldVariables = array_merge($fieldVariables, self::_getParsedFieldValuesLegacy($form, $notification, $submission));
+        // Old and deprecated methods. Ensure all fields are prefixed with 'field:', but too tricky to migrate...
+        // TODO: Remove at next breakpoint
+        $fieldVariables = array_merge($fieldVariables, self::_getParsedFieldValuesLegacy($form, $notification, $submission));
 
-            // Properly parse field values
-            $fieldVariables = array_merge($fieldVariables, self::_getParsedFieldValues($form, $submission, $notification));
+        // Properly parse field values
+        $fieldVariables = array_merge($fieldVariables, self::_getParsedFieldValues($form, $submission, $notification));
 
-            // Don't save anything unless we have values
-            $fieldVariables = array_filter($fieldVariables);
+        // Don't save anything unless we have values
+        $fieldVariables = array_filter($fieldVariables);
 
-            Formie::$plugin->getRenderCache()->setFieldVariables($cacheKey, $fieldVariables);
-        }
+        Formie::$plugin->getRenderCache()->setFieldVariables($cacheKey, $fieldVariables);
 
         $variables = Formie::$plugin->getRenderCache()->getVariables($cacheKey);
 
@@ -408,6 +405,8 @@ class Variables
                 }
             }
         } else if ($field instanceof BaseRelationField) {
+            $values["{$prefix}{$field->handle}"] = $parsedContent;
+        } else if ($field instanceof MultiLineText) {
             $values["{$prefix}{$field->handle}"] = $parsedContent;
         } else {
             // Try to convert as a simple string value, if not, fall back on email template
