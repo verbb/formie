@@ -104,6 +104,7 @@ class Hidden extends FormField implements PreviewableFieldInterface
         return [
             'labelPosition' => HiddenPosition::class,
             'defaultOption' => 'custom',
+            'includeInEmail' => true,
         ];
     }
 

@@ -35,6 +35,7 @@ class Variables
             [ 'label' => Craft::t('formie', 'Form'), 'heading' => true ],
             [ 'label' => Craft::t('formie', 'All Form Fields'), 'value' => '{allFields}' ],
             [ 'label' => Craft::t('formie', 'All Non Empty Fields'), 'value' => '{allContentFields}' ],
+            [ 'label' => Craft::t('formie', 'All Visible Fields'), 'value' => '{allVisibleFields}' ],
             [ 'label' => Craft::t('formie', 'Form Name'), 'value' => '{formName}' ],
             [ 'label' => Craft::t('formie', 'Submission CP URL'), 'value' => '{submissionUrl}' ],
             [ 'label' => Craft::t('formie', 'Submission ID'), 'value' => '{submissionId}' ],
@@ -219,10 +220,12 @@ class Variables
 
         $fieldHtml = self::getFormFieldsHtml($form, $notification, $submission);
         $fieldContentHtml = self::getFormFieldsHtml($form, $notification, $submission, true);
+        $fieldVisibleHtml = self::getFormFieldsHtml($form, $notification, $submission, false, true);
 
         $fieldVariables = [
             'allFields' => $fieldHtml,
             'allContentFields' => $fieldContentHtml,
+            'allVisibleFields' => $fieldVisibleHtml,
         ];
 
         // Old and deprecated methods. Ensure all fields are prefixed with 'field:', but too tricky to migrate...
@@ -259,7 +262,7 @@ class Variables
     /**
      * @inheritdoc
      */
-    public static function getFormFieldsHtml($form, $notification, $submission, $excludeEmpty = false, $asArray = false)
+    public static function getFormFieldsHtml($form, $notification, $submission, $excludeEmpty = false, $excludeHidden = false, $asArray = false)
     {
         $fieldItems = $asArray ? [] : '';
 
@@ -274,6 +277,10 @@ class Variables
 
         foreach ($form->getFields() as $field) {
             if (!$field->includeInEmail) {
+                continue;
+            }
+
+            if ($excludeHidden && !$field->getIsVisible()) {
                 continue;
             }
 
@@ -316,7 +323,7 @@ class Variables
             return $values;
         }
 
-        $parsedFieldContent = self::getFormFieldsHtml($form, $notification, $submission, true, true);
+        $parsedFieldContent = self::getFormFieldsHtml($form, $notification, $submission, true, true, true);
 
         // For now, only handle element fields, which need HTML generated
         if ($submission && $submission->getFieldLayout()) {
