@@ -314,11 +314,13 @@ class SubmissionsController extends Controller
         $this->requirePostRequest();
         $request = Craft::$app->getRequest();
 
+        $goingBack = false;
+        $currentPage = null;
+
         /* @var Settings $settings */
         $formieSettings = Formie::$plugin->getSettings();
 
         $handle = $request->getRequiredBodyParam('handle');
-        $goingBack = false;
 
         Formie::log("Submission triggered for ${handle}.");
 
@@ -329,8 +331,6 @@ class SubmissionsController extends Controller
             throw new BadRequestHttpException("No form exists with the handle \"$handle\"");
         }
 
-        $currentPage = null;
-        
         if ($pageIndex = $request->getParam('pageIndex')) {
             $pages = $form->getPages();
             $currentPage = $pages[$pageIndex];
@@ -352,51 +352,11 @@ class SubmissionsController extends Controller
             $nextPage = ArrayHelper::firstWhere($form->getPages(), 'id', $goToPageId);
         }
 
-        $settings = $form->settings;
         $defaultStatus = $form->getDefaultStatus();
         $errorMessage = $form->settings->getErrorMessage();
 
-        if ($submissionId = $request->getBodyParam('submissionId')) {
-            $submission = Submission::find()
-                ->id($submissionId)
-                ->isIncomplete(true)
-                ->one();
-
-            if (!$submission) {
-                throw new BadRequestHttpException("No submission exists with the ID \"$submissionId\"");
-            }
-        } else {
-            $submission = new Submission();
-            $submission->setForm($form);
-        }
-
-        $submission->siteId = $request->getParam('siteId') ?: Craft::$app->getSites()->getCurrentSite()->id;
-
-        Craft::$app->getContent()->populateElementContent($submission);
-        $submission->setFieldValuesFromRequest($this->_namespace);
-        $submission->setFieldParamNamespace($this->_namespace);
-
-        if ($form->settings->collectIp) {
-            $submission->ipAddress = Craft::$app->getRequest()->userIP;
-        }
-
-        if ($form->settings->collectUser) {
-            if ($user = Craft::$app->getUser()->getIdentity()) {
-                $submission->setUser($user);
-            }
-        }
-
-        $submission->title = Variables::getParsedValue(
-            $settings->submissionTitleFormat,
-            $submission,
-            $form
-        );
-
-        if (!$submission->title) {
-            $timeZone = Craft::$app->getTimeZone();
-            $now = new DateTime('now', new DateTimeZone($timeZone));
-            $submission->title = $now->format('D, d M Y H:i:s');
-        }
+        // Get the submission, or create a new one
+        $submission = $this->_populateSubmission($form);
 
         // Don't validate when going back
         if (!$goingBack) {
@@ -739,5 +699,52 @@ class SubmissionsController extends Controller
         }
 
         return null;
+    }
+
+    private function _populateSubmission($form)
+    {
+        $request = Craft::$app->getRequest();
+
+        if ($submissionId = $request->getBodyParam('submissionId')) {
+            $submission = Submission::find()
+                ->id($submissionId)
+                ->isIncomplete(true)
+                ->one();
+
+            if (!$submission) {
+                throw new BadRequestHttpException("No submission exists with the ID \"$submissionId\"");
+            }
+        } else {
+            $submission = new Submission();
+        }
+
+        $submission->setForm($form);
+        $submission->siteId = $request->getParam('siteId') ?: Craft::$app->getSites()->getCurrentSite()->id;
+
+        Craft::$app->getContent()->populateElementContent($submission);
+        $submission->setFieldValuesFromRequest($this->_namespace);
+        $submission->setFieldParamNamespace($this->_namespace);
+
+        if ($form->settings->collectIp) {
+            $submission->ipAddress = Craft::$app->getRequest()->userIP;
+        }
+
+        if ($form->settings->collectUser) {
+            if ($user = Craft::$app->getUser()->getIdentity()) {
+                $submission->setUser($user);
+            }
+        }
+
+        // Set the custom title
+        $submission->title = Variables::getParsedValue($form->settings->submissionTitleFormat, $submission, $form);
+
+        // But always ensure there's a title
+        if (!$submission->title) {
+            $timeZone = Craft::$app->getTimeZone();
+            $now = new DateTime('now', new DateTimeZone($timeZone));
+            $submission->title = $now->format('D, d M Y H:i:s');
+        }
+
+        return $submission;
     }
 }
