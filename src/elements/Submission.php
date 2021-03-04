@@ -773,6 +773,7 @@ class Submission extends Element
     {
         return [
             'title' => ['label' => Craft::t('app', 'Title')],
+            'id' => ['label' => Craft::t('app', 'ID')],
             'form' => ['label' => Craft::t('formie', 'Form')],
             'dateCreated' => ['label' =>Craft::t('app', 'Date Created')],
             'dateUpdated' => ['label' => Craft::t('app', 'Date Updated')],
