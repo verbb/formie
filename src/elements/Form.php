@@ -1278,6 +1278,7 @@ class Form extends Element
     {
         return [
             'title' => ['label' => Craft::t('app', 'Title')],
+            'id' => ['label' => Craft::t('app', 'ID')],
             'handle' => ['label' => Craft::t('app', 'Handle')],
             'template' => ['label' => Craft::t('app', 'Template')],
             'usageCount' => ['label' => Craft::t('formie', 'Usage Count')],
