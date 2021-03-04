@@ -425,6 +425,12 @@ class SubmissionsController extends Controller
         // Save the submission
         $success = Craft::$app->getElements()->saveElement($submission, false);
 
+        // Set the custom title - only if set to save parsing, and after the submission is saved
+        // so we have access to not only field variables, but submission attributes
+        if (trim($form->settings->submissionTitleFormat)) {
+            $submission->updateTitle($form);
+        }
+
         // Run this regardless of the success state, or incomplete state
         Formie::$plugin->getSubmissions()->onAfterSubmission($success, $submission);
 
@@ -735,14 +741,9 @@ class SubmissionsController extends Controller
             }
         }
 
-        // Set the default title for the submission
+        // Set the default title for the submission so it can save correctly
         $now = new DateTime('now', new DateTimeZone(Craft::$app->getTimeZone()));
         $submission->title = $now->format('D, d M Y H:i:s');
-
-        // Set the custom title - only if set to save parsing
-        if ($form->settings->submissionTitleFormat) {
-            $submission->title = Variables::getParsedValue($form->settings->submissionTitleFormat, $submission, $form);
-        }
 
         return $submission;
     }

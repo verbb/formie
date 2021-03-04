@@ -11,6 +11,7 @@ use verbb\formie\events\ModifyFieldValueForIntegrationEvent;
 use verbb\formie\events\SubmissionMarkedAsSpamEvent;
 use verbb\formie\events\SubmissionRulesEvent;
 use verbb\formie\fields\formfields\FileUpload;
+use verbb\formie\helpers\Variables;
 use verbb\formie\models\FieldLayoutPage;
 use verbb\formie\models\Settings;
 use verbb\formie\models\Status;
@@ -450,6 +451,20 @@ class Submission extends Element
         }
 
         return $url;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function updateTitle($form)
+    {
+        if ($customTitle = Variables::getParsedValue($form->settings->submissionTitleFormat, $this, $form)) {
+            $this->title = $customTitle;
+
+            // Rather than re-save, directly update the submission record
+            Craft::$app->getDb()->createCommand()->update('{{%formie_submissions}}', ['title' => $customTitle], ['id' => $this->id])->execute();
+            Craft::$app->getDb()->createCommand()->update('{{%formie_content}}', ['title' => $customTitle], ['elementId' => $this->id])->execute();
+        }
     }
 
     /**
