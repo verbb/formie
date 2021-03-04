@@ -88,6 +88,7 @@ class SentNotification extends Element
                 'key' => '*',
                 'label' => Craft::t('formie', 'All forms'),
                 'criteria' => ['formId' => $ids],
+                'defaultSort' => ['elements.dateCreated', 'desc']
             ]
         ];
 
@@ -112,6 +113,7 @@ class SentNotification extends Element
                     'handle' => $form->handle,
                 ],
                 'criteria' => ['formId' => $form->id],
+                'defaultSort' => ['elements.dateCreated', 'desc']
             ];
         }
 
