@@ -5,6 +5,7 @@ use verbb\formie\Formie;
 use verbb\formie\base\FormField;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
+use verbb\formie\events\SubmissionEvent;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\Settings;
 use verbb\formie\web\assets\cp\CpAsset;
@@ -34,6 +35,12 @@ use Throwable;
 
 class SubmissionsController extends Controller
 {
+    // Constants
+    // =========================================================================
+
+    const EVENT_AFTER_SUBMISSION_REQUEST = 'afterSubmissionRequest';
+
+
     // Protected Properties
     // =========================================================================
 
@@ -487,6 +494,13 @@ class SubmissionsController extends Controller
             // Delete the incomplete submission we've been using
             $form->resetCurrentSubmission();
         }
+
+        // Fire an 'afterSubmission' event
+        $event = new SubmissionEvent([
+            'submission' => $submission,
+            'success' => $success,
+        ]);
+        $this->trigger(self::EVENT_AFTER_SUBMISSION_REQUEST, $event);
 
         if ($request->getAcceptsJson()) {
             return $this->_returnJsonResponse($success, $submission, $form, $nextPage);
