@@ -129,10 +129,56 @@ class User extends Element
     /**
      * @inheritDoc
      */
+    public function getUpdateAttributes()
+    {
+        $attributes = [
+            new IntegrationField([
+                'name' => Craft::t('app', 'ID'),
+                'handle' => 'id',
+            ]),
+            new IntegrationField([
+                'name' => Craft::t('app', 'Username'),
+                'handle' => 'username',
+            ]),
+            new IntegrationField([
+                'name' => Craft::t('app', 'First Name'),
+                'handle' => 'firstName',
+            ]),
+            new IntegrationField([
+                'name' => Craft::t('app', 'Last Name'),
+                'handle' => 'lastName',
+            ]),
+            new IntegrationField([
+                'name' => Craft::t('app', 'Email'),
+                'handle' => 'email',
+            ]),
+        ];
+
+        $userFieldLayout = Craft::$app->getFields()->getLayoutByType(UserElement::class);
+
+        foreach ($userFieldLayout->getFields() as $field) {
+            if (!$this->fieldCanBeUniqueId($field)) {
+                continue;
+            }
+
+            $attributes[] = new IntegrationField([
+                'handle' => $field->handle,
+                'name' => $field->name,
+                'type' => $this->getFieldTypeForField(get_class($field)),
+            ]);
+        }
+
+
+        return $attributes;
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function sendPayload(Submission $submission)
     {
         try {
-            $user = new UserElement();
+            $user = $this->getElementForPayload(UserElement::class, $submission);
 
             $userGroups = [];
 
@@ -147,7 +193,7 @@ class User extends Element
             }
 
             $attributeValues = $this->getFieldMappingValues($submission, $this->attributeMapping, $this->getElementAttributes());
-            
+
             foreach ($attributeValues as $userFieldHandle => $fieldValue) {
                 $user->{$userFieldHandle} = $fieldValue;
             }

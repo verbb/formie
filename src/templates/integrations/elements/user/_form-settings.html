@@ -58,3 +58,26 @@
         </ul>
     </div>
 </integration-form-settings>
+
+{% set updateElement = form.settings.integrations[handle].updateElement ?? false %}
+
+{{ forms.lightswitchField({
+    label: 'Update Users' | t('formie'),
+    instructions: 'Whether this integration should update an existing user if found, or always create a new user. ' | t('formie'),
+    id: 'updateElement',
+    name: 'updateElement',
+    on: updateElement,
+    toggle: 'update-element',
+}) }}
+
+<div id="update-element" class="{% if not updateElement %}hidden{% endif %}">
+    <integration-field-mapping
+        label="{{ 'Update Element Mapping' | t('formie') }}"
+        instructions="{{ 'Select the fields you want to use to check for existing elements. Formie will look for existing elements with the attributes chosen and the values provided in the submission.' | t('formie') }}"
+        name-label="{{ integration.displayName() }}"
+        id="update-element-mapping"
+        name="updateElementMapping"
+        :value="get(form, 'settings.integrations.{{ handle }}.updateElementMapping')"
+        :rows="{{ integration.getUpdateAttributes() | json_encode }}"
+    ></integration-field-mapping>
+</div>
