@@ -5,11 +5,13 @@
 - Added field conditions, to conditionally show/hide fields according to your logic.
 - Added page button conditions, to conditionally show/hide next button according to your logic.
 - Added page conditions, to conditionally show/hide page according to your logic.
-- All-new page settings manager for form builder.
-- Added min and max date options for Date fields.
-- Added "Enable Content Encryption" setting on Address, Email, Hidden, Multi-Line Text, Name, Phone, Recipients and Single-Line Text fields. This will encrypt submission content in the database, preventing human-readable data for sensitive fields.
+- Added all-new page settings manager for form builder. Allows for more settings and flexibility going forward.
+- Added “Min Date” and “Max Date” options for Date fields.
+- Added “Enable Content Encryption” setting on Address, Email, Hidden, Multi-Line Text, Name, Phone, Recipients and Single-Line Text fields. This will encrypt submission content in the database, preventing human-readable data for sensitive fields.
+- Added “Unique Value” to Email field, to control users filling out a form only once.
 
-- Date fields can now use [Flatpickr.js]() when rendered as a calendar.
+- Formie now requires Craft 3.6+.
+- Date fields can now use [Flatpickr.js](https://flatpickr.js.org/) when rendered as a calendar.
 - Date fields can now content-manage their date and time format.
 
 - Fixed JS errors showing in form builder error alert.
@@ -18,6 +20,8 @@
 - Fixed form page and row IDs being stripped upon failed validation in the form builder.
 - Fixed potential issue with table input in form builder, when rows don't have proper IDs.
 - Fixed page settings getting re-created unnecessarily.
+- Fixed clicking on page tabs on the front-end not working correctly.
+- Fixed an incompatibility with PHP 8.
 
 ## 1.3.20 - 2021-02-26
 
