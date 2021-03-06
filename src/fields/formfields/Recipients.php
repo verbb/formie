@@ -70,6 +70,8 @@ class Recipients extends FormField
      */
     public function normalizeValue($value, ElementInterface $element = null)
     {
+        $value = parent::normalizeValue($value, $element);
+
         // Sort out multiple options being set
         if (is_string($value) && Json::isJsonObject($value)) {
             $value = implode(',', array_filter(Json::decode($value)));
@@ -266,6 +268,7 @@ class Recipients extends FormField
             SchemaHelper::cssClasses(),
             SchemaHelper::containerAttributesField(),
             SchemaHelper::inputAttributesField(),
+            SchemaHelper::enableContentEncryptionField(),
         ];
     }
 

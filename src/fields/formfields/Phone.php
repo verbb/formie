@@ -97,6 +97,7 @@ class Phone extends FormField implements SubfieldInterface, PreviewableFieldInte
      */
     public function normalizeValue($value, ElementInterface $element = null)
     {
+        $value = parent::normalizeValue($value, $element);
         $value = Json::decodeIfJson($value);
 
         if ($value instanceof PhoneModel) {
@@ -121,10 +122,10 @@ class Phone extends FormField implements SubfieldInterface, PreviewableFieldInte
     public function serializeValue($value, ElementInterface $element = null)
     {
         if ($value instanceof PhoneModel) {
-            return Json::encode($value);
+            $value = Json::encode($value);
         }
 
-        return $value;
+        return parent::serializeValue($value, $element);
     }
 
     /**
@@ -368,6 +369,7 @@ class Phone extends FormField implements SubfieldInterface, PreviewableFieldInte
             SchemaHelper::cssClasses(),
             SchemaHelper::containerAttributesField(),
             SchemaHelper::inputAttributesField(),
+            SchemaHelper::enableContentEncryptionField(),
         ];
     }
 

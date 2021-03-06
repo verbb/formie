@@ -189,6 +189,7 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
      */
     public function normalizeValue($value, ElementInterface $element = null)
     {
+        $value = parent::normalizeValue($value, $element);
         $value = Json::decodeIfJson($value);
 
         if ($value instanceof AddressModel) {
@@ -204,10 +205,10 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
     public function serializeValue($value, ElementInterface $element = null)
     {
         if ($value instanceof AddressModel) {
-            return Json::encode($value);
+            $value = Json::encode($value);
         }
 
-        return $value;
+        return parent::serializeValue($value, $element);
     }
 
     /**
@@ -671,6 +672,7 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
             SchemaHelper::handleField(),
             SchemaHelper::cssClasses(),
             SchemaHelper::containerAttributesField(),
+            SchemaHelper::enableContentEncryptionField(),
         ];
     }
 

@@ -311,6 +311,15 @@ class SchemaHelper
         ], $config));
     }
 
+    public static function enableContentEncryptionField($config = [])
+    {
+        return self::lightswitchField(array_merge([
+            'label' => Craft::t('formie', 'Enable Content Encryption'),
+            'help' => Craft::t('formie', 'Whether to encrypt for content saved for this field for data-security purposes.'),
+            'name' => 'enableContentEncryption',
+        ], $config));
+    }
+
     public static function extractFieldsFromSchema($fieldSchema, $names = [])
     {
         foreach ($fieldSchema as $field) {

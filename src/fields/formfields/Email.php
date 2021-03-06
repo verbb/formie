@@ -204,6 +204,7 @@ class Email extends FormField implements PreviewableFieldInterface
             SchemaHelper::cssClasses(),
             SchemaHelper::containerAttributesField(),
             SchemaHelper::inputAttributesField(),
+            SchemaHelper::enableContentEncryptionField(),
         ];
     }
 

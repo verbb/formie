@@ -152,6 +152,7 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
      */
     public function normalizeValue($value, ElementInterface $element = null)
     {
+        $value = parent::normalizeValue($value, $element);
         $value = Json::decodeIfJson($value);
 
         if (is_array($value)) {
@@ -170,10 +171,10 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
     public function serializeValue($value, ElementInterface $element = null)
     {
         if ($value instanceof NameModel) {
-            return Json::encode($value);
+            $value = Json::encode($value);
         }
 
-        return $value;
+        return parent::serializeValue($value, $element);
     }
 
     /**
@@ -513,6 +514,7 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
             SchemaHelper::handleField(),
             SchemaHelper::cssClasses(),
             SchemaHelper::containerAttributesField(),
+            SchemaHelper::enableContentEncryptionField(),
         ];
     }
 

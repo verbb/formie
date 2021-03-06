@@ -49,6 +49,7 @@ trait FormFieldTrait
     public $inputAttributes;
     public $enableConditions;
     public $conditions;
+    public $enableContentEncryption = false;
 
     /**
      * @var int
@@ -149,11 +150,47 @@ trait FormFieldTrait
     }
 
     /**
+     * @inheritdoc
+     */
+    public function serializeValue($value, ElementInterface $element = null)
+    {
+        $value = parent::serializeValue($value, $element);
+
+        // Handle if we need to save field content as encrypted
+        if ($this->enableContentEncryption) {
+            if (is_string($value)) {
+                $value = StringHelper::encenc($value);
+            }
+        }
+
+        return $value;
+    }
+
+    /**
      * @inheritDoc
      */
     public function serializeValueForWebhook($value, ElementInterface $element = null)
     {
         return parent::serializeValue($value, $element);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function normalizeValue($value, ElementInterface $element = null)
+    {
+        $value = parent::normalizeValue($value, $element);
+
+        // Check if the string contains a previously encypted version, or the field is enabled
+        // This might occur if the field was set to encrypted, but changed later. We still need to
+        // decrypt field content
+        if (is_string($value)) {
+            if ($this->enableContentEncryption || strpos($value, 'base64:') !== false) {
+                $value = StringHelper::decdec($value);
+            }
+        }
+
+        return $value;
     }
 
     /**
