@@ -437,7 +437,80 @@ mutation saveSubmission($yourName:contactForm_yourName_FormieNameInput $yourAddr
 }
 ```
 
-You'll notice the `contactForm_yourName_FormieNameInput` type being used. This follows the structure of `{formHandle}_{fieldHandle}_FormieNameInput`.
+You'll notice the `contactForm_yourName_FormieNameInput` type being used. This follows the structure of `{formHandle}_{fieldHandle}_FormieNameInput`. There are also a number of other input types to consider.
+
+#### Address Field
+```json
+// Query
+mutation saveSubmission($yourAddress:contactForm_yourAddress_FormieAddressInput) {
+    save_contactForm_Submission(yourAddress: $yourAddress) {
+        yourAddress
+    }
+}
+
+// Query Variables
+{
+    "yourAddress": {
+        "address1": "42 Wallaby Way",
+        "city": "Sydney",
+        "zip": "2000",
+        "state": "NSW",
+        "country": "Australia"
+    }
+}
+```
+
+#### Group Field
+```json
+// Query
+mutation saveSubmission($groupField:contactForm_groupField_FormieGroupInput) {
+    save_contactForm_Submission(groupField: $groupField) {
+        groupField {
+            firstValue: firstValue
+            secondValue: secondValue
+        }
+    }
+}
+
+// Query Variables
+{
+    "groupField": {
+        "firstValue": "This content",
+        "secondValue": "is for groups"
+    }
+}
+```
+
+#### Repeater Field
+```json
+// Query
+mutation saveSubmission($repeaterField:contactForm_repeaterField_FormieRepeaterInput) {
+    save_contactForm_Submission(repeaterField: $repeaterField) {
+        repeaterField {
+            rows: {
+                field1: field1
+                field2: field2
+            }
+        }
+    }
+}
+
+// Query Variables
+{
+    "repeaterField": {
+        "rows": [
+            {
+                "field1": "First Block - Field 1",
+                "field2": "First Block - Field 2"
+            },
+            {
+                "field1": "Second Block - Field 1",
+                "field2": "Second Block - Field 2"
+            }
+        ]
+    }
+}
+```
 
 
 #### Deleting a submission
