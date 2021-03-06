@@ -157,6 +157,55 @@ class Entry extends Element
     /**
      * @inheritDoc
      */
+    public function getUpdateAttributes()
+    {
+        $attributes = [
+            new IntegrationField([
+                'name' => Craft::t('app', 'ID'),
+                'handle' => 'id',
+            ]),
+            new IntegrationField([
+                'name' => Craft::t('app', 'Title'),
+                'handle' => 'title',
+            ]),
+            new IntegrationField([
+                'name' => Craft::t('app', 'Slug'),
+                'handle' => 'slug',
+            ]),
+            new IntegrationField([
+                'name' => Craft::t('app', 'Site'),
+                'handle' => 'site',
+            ]),
+        ];
+
+        $sections = Craft::$app->getSections()->getAllSections();
+
+        foreach ($sections as $section) {
+            if ($section->type === 'single') {
+                continue;
+            }
+
+            foreach ($section->getEntryTypes() as $entryType) {
+                foreach ($entryType->getFieldLayout()->getFields() as $field) {
+                    if (!$this->fieldCanBeUniqueId($field)) {
+                        continue;
+                    }
+
+                    $attributes[] = new IntegrationField([
+                        'handle' => $field->handle,
+                        'name' => $field->name,
+                        'type' => $this->getFieldTypeForField(get_class($field)),
+                    ]);
+                }
+            }
+        }
+
+        return $attributes;
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function sendPayload(Submission $submission)
     {
         if (!$this->entryTypeId) {
@@ -168,7 +217,7 @@ class Entry extends Element
         try {
             $entryType = Craft::$app->getSections()->getEntryTypeById($this->entryTypeId);
 
-            $entry = new EntryElement();
+            $entry = $this->getElementForPayload(EntryElement::class, $submission);
             $entry->typeId = $entryType->id;
             $entry->sectionId = $entryType->sectionId;
 
