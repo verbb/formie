@@ -78,6 +78,7 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
     public $secondPlaceholder;
     public $ampmLabel;
     public $ampmPlaceholder;
+    public $useDatePicker = true;
 
 
     // Public Methods
@@ -194,6 +195,7 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
             'secondPlaceholder' => '',
             'ampmLabel' => Craft::t('formie', 'AM/PM'),
             'ampmPlaceholder' => '',
+            'useDatePicker' => true,
         ];
     }
 
@@ -387,6 +389,37 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
     }
 
     /**
+     * @inheritdoc
+     */
+    public function getFrontEndJsModules()
+    {
+        if ($this->displayType === 'calendar' && $this->useDatePicker) {
+            $locale = Craft::$app->locale->id;
+
+            // Handle language variants
+            if (preg_match('/^([a-z]{2})-/', $locale, $matches)) {
+                $locale = $matches[1];
+            }
+
+            $supportedLocales = ['ar', 'at', 'az', 'be', 'bg', 'bn', 'cat', 'cs', 'cy', 'da', 'de', 'eo', 'es', 'et', 'fa', 'fi', 'fo', 'fr', 'gr', 'he', 'hi', 'hr', 'hu', 'id', 'is', 'it', 'ja', 'km', 'ko', 'kz', 'lt', 'lv', 'mk', 'mn', 'ms', 'my', 'nl', 'no', 'pa', 'pl', 'pt', 'ro', 'ru', 'si', 'sk', 'sl', 'sq', 'sr-cyr', 'sr', 'sv', 'th', 'tr', 'uk', 'vn', 'zh-tw', 'zh'];
+
+            if (in_array(strtolower($locale), $supportedLocales, true)) {
+                $locale = strtolower($locale);
+            }
+
+            return [
+                'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/fields/date-picker.js', true),
+                'module' => 'FormieDatePicker',
+                'settings' => [
+                    'dateFormat' => $this->includeTime ? $this->dateFormat . ' ' . $this->timeFormat : $this->dateFormat,
+                    'includeTime' => $this->includeTime,
+                    'locale' => $locale,
+                ],
+            ];
+        }
+    }
+
+    /**
      * @inheritDoc
      */
     public function defineGeneralSchema(): array
@@ -492,39 +525,46 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
             SchemaHelper::labelPosition($this),
             SchemaHelper::toggleContainer('!settings.displayType=calendar', [
                 SchemaHelper::subfieldLabelPosition(),
+            ]),
+            SchemaHelper::selectField([
+                'label' => Craft::t('formie', 'Date Format'),
+                'help' => Craft::t('formie', 'Select what format to present dates as.'),
+                'name' => 'dateFormat',
+                'options' => [
+                    [ 'label' => 'YYYY-MM-DD', 'value' => 'Y-m-d' ],
+                    [ 'label' => 'MM-DD-YYYY', 'value' => 'm-d-Y' ],
+                    [ 'label' => 'DD-MM-YYYY', 'value' => 'd-m-Y' ],
+                    [ 'label' => 'YYYY/MM/DD', 'value' => 'Y/m/d' ],
+                    [ 'label' => 'MM/DD/YYYY', 'value' => 'm/d/Y' ],
+                    [ 'label' => 'DD/MM/YYYY', 'value' => 'd/m/Y' ],
+                    [ 'label' => 'YYYY.MM.DD', 'value' => 'Y.m.d' ],
+                    [ 'label' => 'MM.DD.YYYY', 'value' => 'm.d.Y' ],
+                    [ 'label' => 'DD.MM.YYYY', 'value' => 'd.m.Y' ],
+                ],
+            ]),
+            SchemaHelper::toggleContainer('settings.includeTime', [
                 SchemaHelper::selectField([
-                    'label' => Craft::t('formie', 'Date Format'),
+                    'label' => Craft::t('formie', 'Time Format'),
                     'help' => Craft::t('formie', 'Select what format to present dates as.'),
-                    'name' => 'dateFormat',
+                    'name' => 'timeFormat',
                     'options' => [
-                        [ 'label' => 'YYYY-MM-DD', 'value' => 'Y-m-d' ],
-                        [ 'label' => 'MM-DD-YYYY', 'value' => 'm-d-Y' ],
-                        [ 'label' => 'DD-MM-YYYY', 'value' => 'd-m-Y' ],
-                        [ 'label' => 'YYYY/MM/DD', 'value' => 'Y/m/d' ],
-                        [ 'label' => 'MM/DD/YYYY', 'value' => 'm/d/Y' ],
-                        [ 'label' => 'DD/MM/YYYY', 'value' => 'd/m/Y' ],
-                        [ 'label' => 'YYYY.MM.DD', 'value' => 'Y.m.d' ],
-                        [ 'label' => 'MM.DD.YYYY', 'value' => 'm.d.Y' ],
-                        [ 'label' => 'DD.MM.YYYY', 'value' => 'd.m.Y' ],
+                        [ 'label' => '23:59:59 (HH:M:S)', 'value' => 'H:i:s' ],
+                        [ 'label' => '03:59:59 PM (H:M:S AM/PM)', 'value' => 'H:i:s A' ],
+                        [ 'label' => '23:59 (HH:M)', 'value' => 'H:i' ],
+                        [ 'label' => '03:59 PM (H:M AM/PM)', 'value' => 'H:i A' ],
+                        [ 'label' => '59:59 (M:S)', 'value' => 'i:s' ],
                     ],
-                ]),
-                SchemaHelper::toggleContainer('settings.includeTime', [
-                    SchemaHelper::selectField([
-                        'label' => Craft::t('formie', 'Time Format'),
-                        'help' => Craft::t('formie', 'Select what format to present dates as.'),
-                        'name' => 'timeFormat',
-                        'options' => [
-                            [ 'label' => '23:59:59 (HH:M:S)', 'value' => 'H:i:s' ],
-                            [ 'label' => '03:59:59 PM (H:M:S AM/PM)', 'value' => 'H:i:s A' ],
-                            [ 'label' => '23:59 (HH:M)', 'value' => 'H:i' ],
-                            [ 'label' => '03:59 PM (H:M AM/PM)', 'value' => 'H:i A' ],
-                            [ 'label' => '59:59 (M:S)', 'value' => 'i:s' ],
-                        ],
-                    ]),
                 ]),
             ]),
             SchemaHelper::instructions(),
             SchemaHelper::instructionsPosition($this),
+            SchemaHelper::toggleContainer('settings.displayType=calendar', [
+                SchemaHelper::lightswitchField([
+                    'label' => Craft::t('formie', 'Use Date Picker'),
+                    'help' => Craft::t('formie', 'Whether this field should use the bundled cross-browser datepicker (Flatpickr.js) when rendering this field.'),
+                    'name' => 'useDatePicker',
+                ]),
+            ]),
         ];
     }
 

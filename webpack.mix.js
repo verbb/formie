@@ -49,6 +49,7 @@ mix.js(assetsPath + '/frontend/src/js/fields/checkbox-radio.js', assetsPath + '/
 mix.js(assetsPath + '/frontend/src/js/fields/text-limit.js', assetsPath + '/frontend/dist/js/fields');
 mix.js(assetsPath + '/frontend/src/js/fields/rich-text.js', assetsPath + '/frontend/dist/js/fields');
 mix.js(assetsPath + '/frontend/src/js/fields/conditions.js', assetsPath + '/frontend/dist/js/fields');
+mix.js(assetsPath + '/frontend/src/js/fields/date-picker.js', assetsPath + '/frontend/dist/js/fields');
 
 
 //

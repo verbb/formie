@@ -49,6 +49,7 @@
         "axios": "^0.21.1",
         "core-js": "^3.6.5",
         "flat": "^5.0.0",
+        "flatpickr": "^4.6.9",
         "formdata-polyfill": "^3.0.20",
         "intl-tel-input": "^17.0.8",
         "md5-hex": "^3.0.1",
