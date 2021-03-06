@@ -68,6 +68,16 @@ class Forms extends Component
     }
 
     /**
+     * Returns all active forms.
+     *
+     * @return Form[]
+     */
+    public function getAllForms()
+    {
+        return Form::find()->all();
+    }
+
+    /**
      * @inheritDoc
      */
     public function getFormRecord($formId)

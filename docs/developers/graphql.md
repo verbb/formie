@@ -329,6 +329,29 @@ This query is used to query for [Submission](docs:developers/submission) objects
 | `orderBy`| `String` | Sets the field the returned elements should be ordered by.
 | `form`| `[String]` | Narrows the query results based on the form’s handle.
 
+#### Nested Fields
+An example for querying Repeater and Group field content.
+
+```json
+{
+    submissions (handle: "contactForm") {
+        title
+        
+        ... on contactForm_Submission {
+            groupFieldHandle {
+                myFieldHandle
+            }
+
+            repeaterFieldHandle {
+                rows {
+                    myFieldHandle
+                }
+            }
+        }
+    }
+}
+```
+
 ## Mutations
 Mutations in GraphQL provide a way of modifying data. The actual mutations will vary depending on the schema. There are some common mutations per GraphQL object type as well as type-specific mutations.
 

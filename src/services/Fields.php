@@ -39,6 +39,7 @@ use craft\fields\BaseRelationField;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Component as ComponentHelper;
 use craft\helpers\Db;
+use craft\helpers\Json;
 use craft\validators\HandleValidator;
 
 use ReflectionClass;
@@ -738,7 +739,9 @@ class Fields extends Component
             ->all();
 
         foreach ($results as $result) {
-            $fields[] = Formie::$plugin->getFields()->createField($result);
+            $field = Formie::$plugin->getFields()->createField($result);
+            
+            $fields[] = $field;
         }
 
         return $fields;
@@ -774,6 +777,13 @@ class Fields extends Component
         if (!empty($config['id']) && empty($config['uid']) && is_numeric($config['id'])) {
             $uid = Db::uidById(CraftTable::FIELDS, $config['id']);
             $config['uid'] = $uid;
+        }
+
+        // Do a little shuffle to retain the form id.
+        if (!empty($config['settings'])) {
+            $settings = Json::decodeIfJson($config['settings']);
+            unset($settings['formId']);
+            $config['settings'] = Json::encode($settings);
         }
 
         try {

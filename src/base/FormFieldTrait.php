@@ -68,7 +68,6 @@ trait FormFieldTrait
      */
     public $isNested = false;
 
-
     // Private Properties
     // =========================================================================
 
@@ -76,6 +75,10 @@ trait FormFieldTrait
      * @var Form
      */
     private $_form;
+    /**
+     * @var NestedFieldInterface
+     */
+    private $_container;
     private $_namespace = 'fields';
 
 
@@ -251,6 +254,32 @@ trait FormFieldTrait
         ];
 
         return $rules;
+    }
+
+    /**
+     * @return NestedFieldInterface|Form|null
+     */
+    public function getFieldContext()
+    {
+        return $this->isNested ? $this->getContainer() : $this->getForm();
+    }
+
+    /**
+     * Set the container for a nested field.
+     * @param NestedFieldInterface $container
+     */
+    public function setContainer(NestedFieldInterface $container)
+    {
+        $this->_container = $container;
+    }
+
+    /**
+     * Return the container if this is a nested field.
+     * @param NestedFieldInterface $container
+     */
+    public function getContainer()
+    {
+        return $this->_container;
     }
 
     /**

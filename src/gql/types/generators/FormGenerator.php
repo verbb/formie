@@ -2,6 +2,7 @@
 namespace verbb\formie\gql\types\generators;
 
 use verbb\formie\elements\Form;
+use verbb\formie\Formie;
 use verbb\formie\gql\arguments\FormArguments;
 use verbb\formie\gql\interfaces\FormInterface;
 use verbb\formie\gql\types\FormType;
@@ -23,24 +24,28 @@ class FormGenerator implements GeneratorInterface
         $gqlTypes = [];
         $typeName = Form::gqlTypeNameByContext(null);
 
-        $contentFields = Craft::$app->getFields()->getLayoutByType(Form::class)->getFields();
-        $contentFieldGqlTypes = [];
+        $forms = Formie::getInstance()->getForms()->getAllForms();
 
-        /** @var Field $contentField */
-        foreach ($contentFields as $contentField) {
-            $contentFieldGqlTypes[$contentField->handle] = $contentField->getContentGqlType();
-        }
+        foreach ($forms as $form) {
+            $contentFields = $form->getFields();
+            $contentFieldGqlTypes = [];
 
-        $formFields = TypeManager::prepareFieldDefinitions(array_merge(FormInterface::getFieldDefinitions(), $contentFieldGqlTypes), $typeName);
-
-        // Generate a type for each entry type
-        $gqlTypes[$typeName] = GqlEntityRegistry::getEntity($typeName) ?: GqlEntityRegistry::createEntity($typeName, new FormType([
-            'name' => $typeName,
-            'fields' => function() use ($formFields) {
-                return $formFields;
+            /** @var Field $contentField */
+            foreach ($contentFields as $contentField) {
+                $contentFieldGqlTypes[$contentField->handle] = $contentField->getContentGqlType();
             }
-        ]));
 
+            $formFields = TypeManager::prepareFieldDefinitions(array_merge(FormInterface::getFieldDefinitions(), $contentFieldGqlTypes), $typeName);
+
+            // Generate a type for each entry type
+            $gqlTypes[$typeName] = GqlEntityRegistry::getEntity($typeName) ?: GqlEntityRegistry::createEntity($typeName, new FormType([
+                'name' => $typeName,
+                'fields' => function() use ($formFields) {
+                    return $formFields;
+                }
+            ]));
+        }
+        
         return $gqlTypes;
     }
 }
