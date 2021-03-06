@@ -7,6 +7,7 @@ use verbb\formie\helpers\SchemaHelper;
 use Craft;
 use craft\base\ElementInterface;
 use craft\base\PreviewableFieldInterface;
+use craft\db\Query;
 use craft\helpers\ArrayHelper;
 
 use yii\validators\EmailValidator;
@@ -38,6 +39,7 @@ class Email extends FormField implements PreviewableFieldInterface
 
     public $validateDomain = false;
     public $blockedDomains = [];
+    public $uniqueValue = false;
 
 
     // Public Methods
@@ -58,14 +60,17 @@ class Email extends FormField implements PreviewableFieldInterface
     {
         $rules = parent::getElementValidationRules();
 
-        $rules[] = [
-            $this->handle,
-            EmailValidator::class,
-            'skipOnEmpty' => true,
-            'checkDNS' => $this->validateDomain,
-        ];
+        if ($this->validateDomain) {
+            $rules[] = [$this->handle, EmailValidator::class, 'skipOnEmpty' => true, 'checkDNS' => true];
+        }
 
-        $rules[] = 'validateDomain';
+        if ($this->blockedDomains && is_array($this->blockedDomains)) {
+            $rules[] = 'validateDomain';
+        }
+
+        if ($this->uniqueValue) {
+            $rules[] = 'validateUniqueEmail';
+        }
 
         return $rules;
     }
@@ -75,10 +80,6 @@ class Email extends FormField implements PreviewableFieldInterface
      */
     public function validateDomain(ElementInterface $element)
     {
-        if (!$this->blockedDomains || !is_array($this->blockedDomains)) {
-            return;
-        }
-
         $blockedDomains = ArrayHelper::getColumn($this->blockedDomains, 'value');
 
         $value = $element->getFieldValue($this->handle);
@@ -93,6 +94,31 @@ class Email extends FormField implements PreviewableFieldInterface
                     'domain' => $domain,
                 ]));
             }
+        }
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function validateUniqueEmail(ElementInterface $element)
+    {
+        $value = $element->getFieldValue($this->handle);
+        $value = trim($value);
+
+        // Use a DB lookup for performance
+        $fieldHandle = $element->fieldColumnPrefix . $this->handle;
+        $contentTable = $element->contentTable;
+
+        $emailExists = (new Query())
+            ->select($fieldHandle)
+            ->from($contentTable)
+            ->where([$fieldHandle => $value])
+            ->exists();
+
+        if ($emailExists) {
+            $element->addError($this->handle, Craft::t('formie', '“{name}” must be unique.', [
+                'name' => $this->name,
+            ]));
         }
     }
 
@@ -158,6 +184,11 @@ class Email extends FormField implements PreviewableFieldInterface
                 ]),
             ]),
             SchemaHelper::prePopulate(),
+            SchemaHelper::lightswitchField([
+                'label' => Craft::t('formie', 'Unique Value'),
+                'help' => Craft::t('formie', 'Whether to limit user input to unique values only. This will require that a value entered in this field does not already exist in a submission for this field and form.'),
+                'name' => 'uniqueValue',
+            ]),
             SchemaHelper::lightswitchField([
                 'label' => Craft::t('formie', 'Validate Domain (DNS)'),
                 'help' => Craft::t('formie', 'Whether to validate the domain name provided for the email via DNS record lookup. This can help ensure users enter valid email addresses.'),
