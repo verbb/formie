@@ -193,6 +193,7 @@ class User extends Element
             }
 
             $attributeValues = $this->getFieldMappingValues($submission, $this->attributeMapping, $this->getElementAttributes());
+            $attributeValues = array_filter($attributeValues);
 
             foreach ($attributeValues as $userFieldHandle => $fieldValue) {
                 $user->{$userFieldHandle} = $fieldValue;
@@ -200,6 +201,7 @@ class User extends Element
 
             $fields = $this->getFormSettingValue('elements')[0]->fields ?? [];
             $fieldValues = $this->getFieldMappingValues($submission, $this->fieldMapping, $fields);
+            $fieldValues = array_filter($fieldValues);
 
             $user->setFieldValues($fieldValues);
 
