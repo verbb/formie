@@ -14,8 +14,8 @@ export class FormieDatePicker {
         this.dateFormat = settings.dateFormat;
         this.includeTime = settings.includeTime;
         this.locale = settings.locale;
-
-        console.log(settings);
+        this.minDate = settings.minDate;
+        this.maxDate = settings.maxDate;
 
         this.initDatePicker();
     }
@@ -28,6 +28,8 @@ export class FormieDatePicker {
             enableTime: this.includeTime,
             hourIncrement: 1,
             minuteIncrement: 1,
+            minDate: this.minDate,
+            maxDate: this.maxDate,
         };
 
         // Emit an "beforeInit" event

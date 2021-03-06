@@ -79,6 +79,8 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
     public $ampmLabel;
     public $ampmPlaceholder;
     public $useDatePicker = true;
+    public $minDate;
+    public $maxDate;
 
 
     // Public Methods
@@ -407,6 +409,17 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
                 $locale = strtolower($locale);
             }
 
+            $minDate = null;
+            $maxDate = null;
+
+            if ($minDate = DateTimeHelper::toDateTime($this->minDate)) {
+                $minDate = $minDate->format($this->dateFormat);
+            }
+
+            if ($maxDate = DateTimeHelper::toDateTime($this->maxDate)) {
+                $maxDate = $maxDate->format($this->dateFormat);
+            }
+
             return [
                 'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/fields/date-picker.js', true),
                 'module' => 'FormieDatePicker',
@@ -414,6 +427,8 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
                     'dateFormat' => $this->includeTime ? $this->dateFormat . ' ' . $this->timeFormat : $this->dateFormat,
                     'includeTime' => $this->includeTime,
                     'locale' => $locale,
+                    'minDate' => $minDate,
+                    'maxDate' => $maxDate,
                 ],
             ];
         }
@@ -513,6 +528,18 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
                 ]),
             ]),
             SchemaHelper::prePopulate(),
+            SchemaHelper::toggleContainer('settings.displayType=calendar', [
+                SchemaHelper::dateField([
+                    'label' => Craft::t('formie', 'Min Date'),
+                    'help' => Craft::t('formie', 'Set a minimum date for dates to be picked from.'),
+                    'name' => 'minDate',
+                ]),
+                SchemaHelper::dateField([
+                    'label' => Craft::t('formie', 'Max Date'),
+                    'help' => Craft::t('formie', 'Set a maximum date for dates to be picked up to.'),
+                    'name' => 'maxDate',
+                ]),
+            ]),
         ];
     }
 
