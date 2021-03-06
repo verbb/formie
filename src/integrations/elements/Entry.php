@@ -11,6 +11,7 @@ use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
+use craft\base\Element as CraftElement;
 use craft\elements\Entry as EntryElement;
 use craft\elements\User;
 use craft\helpers\ArrayHelper;
@@ -26,6 +27,7 @@ class Entry extends Element
 
     public $entryTypeId;
     public $defaultAuthorId;
+    public $createDraft;
 
 
     // Public Methods
@@ -239,6 +241,30 @@ class Entry extends Element
             $fieldValues = array_filter($fieldValues);
 
             $entry->setFieldValues($fieldValues);
+
+            // Check if we need to create a new draft
+            if ($this->createDraft) {
+                $authorId = $entry->authorId ?? Craft::$app->getUser()->getId();
+
+                // Is this a brand-new entry?
+                if (!$entry->id) {
+                    $entry->setScenario(CraftElement::SCENARIO_ESSENTIALS);
+                    
+                    if (!Craft::$app->getDrafts()->saveElementAsDraft($entry, $authorId)) {
+                        Formie::error(Craft::t('formie', 'Unable to save “{type}” draft element integration. Error: {error}.', [
+                            'type' => $this->handle,
+                            'error' => Json::encode($entry->getErrors()),
+                        ]));
+                        
+                        return false;
+                    }
+                } else {
+                    // Otherwise, create a new draft on the entry
+                    Craft::$app->getDrafts()->createDraft($entry, $authorId);
+                }
+
+                return true;
+            }
 
             if (!$entry->validate()) {
                 Formie::error(Craft::t('formie', 'Unable to validate “{type}” element integration. Error: {error}.', [

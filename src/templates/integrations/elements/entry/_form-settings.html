@@ -79,7 +79,16 @@
     </div>
 </integration-form-settings>
 
+{% set createDraft = form.settings.integrations[handle].createDraft ?? false %}
 {% set updateElement = form.settings.integrations[handle].updateElement ?? false %}
+
+{{ forms.lightswitchField({
+    label: 'Create a New Draft' | t('formie'),
+    instructions: 'Whether to create a new draft entry. If an existing entry is found, a new draft will be created on the original entry, instead of updating the existing entry. ' | t('formie'),
+    id: 'createDraft',
+    name: 'createDraft',
+    on: createDraft,
+}) }}
 
 {{ forms.lightswitchField({
     label: 'Update Entries' | t('formie'),
