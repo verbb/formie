@@ -44,9 +44,9 @@ use craft\events\RegisterGqlSchemaComponentsEvent;
 use craft\events\RegisterGqlTypesEvent;
 use craft\events\RegisterTemplateRootsEvent;
 use craft\events\RegisterUserPermissionsEvent;
-use craft\services\Gc;
 use craft\services\Elements;
 use craft\services\Fields;
+use craft\services\Gc;
 use craft\services\Gql;
 use craft\services\ProjectConfig;
 use craft\services\SystemMessages;
@@ -65,7 +65,7 @@ class Formie extends Plugin
     // Public Properties
     // =========================================================================
 
-    public $schemaVersion = '1.1.6';
+    public $schemaVersion = '1.1.7';
     public $hasCpSettings = true;
     public $hasCpSection = true;
 

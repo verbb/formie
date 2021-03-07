@@ -1,0 +1,102 @@
+<?php
+namespace verbb\formie\services;
+
+use verbb\formie\elements\Submission;
+
+use Craft;
+use craft\base\Component;
+use craft\db\Query;
+use craft\helpers\Db;
+
+class Relations extends Component
+{
+    // Public Methods
+    // =========================================================================
+    
+    /**
+     * @inheritdoc
+     */
+    public function getRelations(Submission $submission)
+    {
+        $elements = [];
+
+        $relations = (new Query())
+            ->from(['{{%formie_relations}}'])
+            ->where(['targetId' => $submission->id])
+            ->all();
+
+        foreach ($relations as $relation) {
+            $element = Craft::$app->getElements()->getElementById($relation['sourceId'], $relation['type'], $relation['sourceSiteId']);
+
+            if ($element) {
+                $elements[] = $element;
+            }
+        }
+
+        return $elements;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getSubmissionRelations($element)
+    {
+        $elements = [];
+
+        $relations = (new Query())
+            ->from(['{{%formie_relations}}'])
+            ->where(['targetId' => $submission->id])
+            ->all();
+
+        foreach ($relations as $relation) {
+            $element = Craft::$app->getElements()->getElementById($relation['sourceId'], $relation['type'], $relation['sourceSiteId']);
+
+            if ($element) {
+                $elements[] = $element;
+            }
+        }
+
+        return $elements;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function saveRelations(Submission $submission)
+    {
+        $form = $submission->getForm();
+
+        if (!$form) {
+            return;
+        }
+
+        $relations = $form->getRelations();
+
+        if (!$relations) {
+            return;
+        }
+
+        $db = Craft::$app->getDb();
+        $values = [];
+
+        // Keep relations fresh
+        Db::delete('{{%formie_relations}}', ['targetId' => $submission->id], [], $db);
+
+        // Reset auto-increment
+        $db->createCommand()->resetSequence('{{%formie_relations}}', '1')->execute();
+
+        foreach ($relations as $relation) {
+            $values[] = [
+                $relation['type'],
+                $relation['id'],
+                $relation['siteId'],
+                $submission->id,
+            ];
+        }
+
+        Db::batchInsert('{{%formie_relations}}', ['type', 'sourceId', 'sourceSiteId', 'targetId'], $values, true, $db);
+
+        // Clear relations cache on the form
+        $form->clearRelations();
+    }
+}

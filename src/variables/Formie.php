@@ -313,4 +313,12 @@ class Formie
 
         return $fields;
     }
+
+    /**
+     * @inheritdoc
+     */
+    public function getSubmissionRelations($element)
+    {
+        return Formie::$plugin->getRelations()->getSubmissionRelations($element);
+    }
 }

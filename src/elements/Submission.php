@@ -637,6 +637,14 @@ class Submission extends Element
     /**
      * @inheritdoc
      */
+    public function getRelations()
+    {
+        return Formie::$plugin->getRelations()->getRelations($this);
+    }
+
+    /**
+     * @inheritdoc
+     */
     public function getGqlTypeName(): string
     {
         return static::gqlTypeNameByContext($this->getForm());
@@ -710,6 +718,9 @@ class Submission extends Element
         $record->dateUpdated = $this->dateUpdated;
 
         $record->save(false);
+
+        // Check to see if we need to save any relations
+        Formie::$plugin->getRelations()->saveRelations($this);
 
         parent::afterSave($isNew);
     }

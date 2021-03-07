@@ -132,6 +132,17 @@ class Install extends Migration
             'uid' => $this->uid(),
         ]);
 
+        $this->createTable('{{%formie_relations}}', [
+            'id' => $this->primaryKey(),
+            'type' => $this->string(255)->notNull(),
+            'sourceId' => $this->integer()->notNull(),
+            'sourceSiteId' => $this->integer(),
+            'targetId' => $this->integer()->notNull(),
+            'dateCreated' => $this->dateTime()->notNull(),
+            'dateUpdated' => $this->dateTime()->notNull(),
+            'uid' => $this->uid(),
+        ]);
+
         $this->createTable('{{%formie_syncs}}', [
             'id' => $this->primaryKey(),
             'dateCreated' => $this->dateTime()->notNull(),
@@ -312,6 +323,10 @@ class Install extends Migration
         $this->createIndex(null, '{{%formie_nestedfieldrows}}', 'ownerId', false);
         $this->createIndex(null, '{{%formie_nestedfieldrows}}', 'fieldId', false);
         $this->createIndex(null, '{{%formie_nestedfieldrows}}', 'sortOrder', false);
+        $this->createIndex(null, '{{%formie_relations}}', ['sourceId', 'sourceSiteId', 'targetId'], true);
+        $this->createIndex(null, '{{%formie_relations}}', ['sourceId'], false);
+        $this->createIndex(null, '{{%formie_relations}}', ['targetId'], false);
+        $this->createIndex(null, '{{%formie_relations}}', ['sourceSiteId'], false);
         $this->createIndex(null, '{{%formie_syncfields}}', ['syncId', 'fieldId'], true);
         $this->createIndex(null, '{{%formie_submissions}}', 'formId', false);
         $this->createIndex(null, '{{%formie_submissions}}', 'statusId', false);
@@ -339,6 +354,9 @@ class Install extends Migration
         $this->addForeignKey(null, '{{%formie_nestedfieldrows}}', ['id'], '{{%elements}}', ['id'], 'CASCADE', null);
         $this->addForeignKey(null, '{{%formie_nestedfieldrows}}', ['ownerId'], '{{%elements}}', ['id'], 'CASCADE', null);
         $this->addForeignKey(null, '{{%formie_nestedfieldrows}}', ['fieldId'], '{{%fields}}', ['id'], 'CASCADE', null);
+        $this->addForeignKey(null, '{{%formie_relations}}', ['sourceId'], '{{%elements}}', ['id'], 'CASCADE', null);
+        $this->addForeignKey(null, '{{%formie_relations}}', ['sourceSiteId'], '{{%sites}}', ['id'], 'CASCADE', 'CASCADE');
+        $this->addForeignKey(null, '{{%formie_relations}}', ['targetId'], '{{%elements}}', ['id'], 'CASCADE', null);
         $this->addForeignKey(null, '{{%formie_syncfields}}', ['syncId'], '{{%formie_syncs}}', ['id'], 'CASCADE', null);
         $this->addForeignKey(null, '{{%formie_syncfields}}', ['fieldId'], '{{%fields}}', ['id'], 'CASCADE', null);
         $this->addForeignKey(null, '{{%formie_submissions}}', ['id'], '{{%elements}}', ['id'], 'CASCADE', null);

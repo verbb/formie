@@ -6,12 +6,12 @@ use verbb\formie\base\FormFieldInterface;
 use verbb\formie\base\IntegrationInterface;
 use verbb\formie\behaviors\FieldLayoutBehavior;
 use verbb\formie\elements\db\FormQuery;
+use verbb\formie\models\FieldLayout;
+use verbb\formie\models\FieldLayoutPage;
+use verbb\formie\models\FormSettings;
 use verbb\formie\models\FormTemplate;
 use verbb\formie\models\Notification;
 use verbb\formie\models\Status;
-use verbb\formie\models\FormSettings;
-use verbb\formie\models\FieldLayout;
-use verbb\formie\models\FieldLayoutPage;
 use verbb\formie\records\Form as FormRecord;
 use verbb\formie\services\Statuses;
 
@@ -1131,6 +1131,44 @@ class Form extends Element
         if ($field) {
             $field->setAttributes($settings, false);
         }
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setRelations($elements)
+    {
+        if ($elements && is_array($elements)) {
+            $relations = [];
+
+            foreach ($elements as $element) {
+                $relations[] = [
+                    'id' => $element['id'],
+                    'siteId' => $element['siteId'],
+                    'type' => get_class($element),
+                ];
+            }
+
+            if ($relations) {
+                Craft::$app->getSession()->set($this->_getSessionKey('relations'), $relations);
+            }
+        }
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getRelations()
+    {
+        return Craft::$app->getSession()->get($this->_getSessionKey('relations'));
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function clearRelations()
+    {
+        return Craft::$app->getSession()->remove($this->_getSessionKey('relations'));
     }
 
 

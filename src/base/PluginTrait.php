@@ -8,11 +8,12 @@ use verbb\formie\services\Fields;
 use verbb\formie\services\Forms;
 use verbb\formie\services\FormTemplates;
 use verbb\formie\services\Integrations;
+use verbb\formie\services\NestedFields;
 use verbb\formie\services\Notifications;
 use verbb\formie\services\Phone;
+use verbb\formie\services\Relations;
 use verbb\formie\services\RenderCache;
 use verbb\formie\services\Rendering;
-use verbb\formie\services\NestedFields;
 use verbb\formie\services\SentNotifications;
 use verbb\formie\services\Service;
 use verbb\formie\services\Statuses;
@@ -86,6 +87,11 @@ trait PluginTrait
         return $this->get('phone');
     }
 
+    public function getRelations(): Relations
+    {
+        return $this->get('relations');
+    }
+
     public function getRenderCache(): RenderCache
     {
         return $this->get('renderCache');
@@ -157,6 +163,7 @@ trait PluginTrait
             'nestedFields' => NestedFields::class,
             'notifications' => Notifications::class,
             'phone' => Phone::class,
+            'relations' => Relations::class,
             'renderCache' => RenderCache::class,
             'rendering' => Rendering::class,
             'sentNotifications' => SentNotifications::class,
