@@ -290,6 +290,16 @@ trait RelationFieldTrait
     /**
      * @inheritDoc
      */
+    public function populateValue($value)
+    {
+        $query = static::elementType()::find()->id($value);
+
+        $this->defaultValue = $query;
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function getFieldOptions()
     {
         $options = [];

@@ -14,21 +14,21 @@ When rendering a form, you might like to populate the values of a field with som
 ```
 
 ### Element Fields
-For some element fields (Entries, Categories, Tags, Users, Products, Variants), you'll need to supply the value of an element query, instead of just the ID of the element you want to populate. For example, for an Entries field:
+For element fields (Entries, Categories, Tags, Users, Products, Variants), you'll need to supply an array of element IDs for the elements you want to populate. For example, for an Entries field:
 
 ```twig
 {% do craft.formie.populateFormValues(form, {
-    entriesField: craft.entries.id(123),
+    entriesField: [123, 5625],
 }) %}
 ```
 
-Here, we're settings the Entries field (with a handle `entriesField`) to an Entry query. Note how we're _not_ using `.one()` here. This is because element fields require a query, not just an ID.
+Here, we're settings the Entries field (with a handle `entriesField`) to contain two entries, one with the ID of `123`, the other to `5625`.
 
 You can do the same for other elements:
 
 ```twig
 {% do craft.formie.populateFormValues(form, {
-    productsField: craft.products.id(6457),
+    productsField: [6457],
 }) %}
 ```
 
