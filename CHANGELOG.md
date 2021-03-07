@@ -26,6 +26,9 @@
 - Fixed clicking on page tabs on the front-end not working correctly.
 - Fixed an incompatibility with PHP 8.
 
+### Breaking Changes
+- If you use `craft.formie.populateFormValues()` in your templates to populate **element fields**, please note the changed syntax via the [docs](https://verbb.io/craft-plugins/formie/docs/template-guides/populating-forms#element-fields). This has changed from `entriesField: craft.entries.id(123)` to `entriesField: [123]`.
+
 ## 1.3.20 - 2021-02-26
 
 ### Added

@@ -211,6 +211,22 @@ class Repeater extends FormField implements NestedFieldInterface, EagerLoadingFi
     }
 
     /**
+     * @inheritDoc
+     */
+    public function parsePopulatedFieldValues($value, $element)
+    {
+        // For when parsing populated content from the cache, when the field is visibly disabled
+        // It's supplied in a format that makes sense for `populateValue()` but not for `$element->setFieldValue()`.
+        $rows = [];
+
+        foreach ($value as $i => $fields) {
+            $rows['new' . ($i + 1)]['fields'] = $fields;
+        }
+
+        return $rows;
+    }
+
+    /**
      * @inheritdoc
      */
     public function getFrontEndJsModules()
@@ -286,6 +302,7 @@ class Repeater extends FormField implements NestedFieldInterface, EagerLoadingFi
     public function defineAppearanceSchema(): array
     {
         return [
+            SchemaHelper::visibility(),
             SchemaHelper::labelPosition($this),
             SchemaHelper::instructions(),
             SchemaHelper::instructionsPosition($this),

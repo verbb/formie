@@ -579,6 +579,38 @@ class Submission extends Element
     }
 
     /**
+     * @inheritdoc
+     */
+    public function setFieldValuesFromRequest(string $paramNamespace = '')
+    {
+        $this->setPopulatedFieldValues();
+
+        parent::setFieldValuesFromRequest($paramNamespace);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function setPopulatedFieldValues()
+    {
+        if ($form = $this->getForm()) {
+            // A little extra work here to handle visibly disabled fields
+            $disabledValues = $form->getPopulatedFieldValues() ?? [];
+
+            foreach ($disabledValues as $key => $value) {
+                try {
+                    // Special handling for group/repeater which would be otherwise pretty verbose to supply
+                    $value = $form->getFieldByHandle($key)->parsePopulatedFieldValues($value, $this);
+
+                    $this->setFieldValue($key, $value);
+                } catch (\Throwable $e) {
+                    continue;
+                }
+            }
+        }
+    }
+
+    /**
      * Returns all field values.
      *
      * @param FieldLayoutPage|null
@@ -721,6 +753,11 @@ class Submission extends Element
 
         // Check to see if we need to save any relations
         Formie::$plugin->getRelations()->saveRelations($this);
+
+        // Clear any populated field content, as it'll already have been applied
+        if ($form = $this->getForm()) {
+            $form->clearPopulatedFieldValues();
+        }
 
         parent::afterSave($isNew);
     }

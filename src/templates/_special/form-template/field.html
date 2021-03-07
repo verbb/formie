@@ -86,6 +86,7 @@
         field.isSelect ? 'fui-select-field',
         field.isTextInput ? 'fui-text-input-field',
         field.cssClasses ?? '',
+        field.isHidden() ? 'fui-hidden',
     ],
     data: {
         'field-config': field.getConfigJson(),

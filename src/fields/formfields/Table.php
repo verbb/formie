@@ -410,6 +410,7 @@ class Table extends CraftTable implements FormFieldInterface
     public function defineAppearanceSchema(): array
     {
         return [
+            SchemaHelper::visibility(),
             SchemaHelper::labelPosition($this),
             SchemaHelper::instructions(),
             SchemaHelper::instructionsPosition($this),

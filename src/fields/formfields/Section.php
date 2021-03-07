@@ -125,6 +125,7 @@ class Section extends FormField
     public function defineAppearanceSchema(): array
     {
         return [
+            SchemaHelper::visibility(),
             SchemaHelper::selectField([
                 'label' => Craft::t('formie', 'Border'),
                 'help' => Craft::t('formie', 'Add a border to this section.'),

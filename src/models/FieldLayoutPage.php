@@ -135,10 +135,17 @@ class FieldLayoutPage extends CraftFieldLayoutTab
      * @return FieldInterface[]
      * @throws InvalidConfigException
      */
-    public function getRows()
+    public function getRows($includeDisabled = true)
     {
         /* @var FormFieldInterface[] $pageFields */
-        $pageFields = $this->getFields();
+        $pageFields = $this->getFields($includeDisabled);
+
+        foreach ($pageFields as $key => $field) {
+            if ($includeDisabled === false && $field->visibility === 'disabled') {
+                unset($pageFields[$key]);
+            }
+        }
+
         return Formie::$plugin->getFields()->groupIntoRows($pageFields);
     }
 

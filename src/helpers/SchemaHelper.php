@@ -320,6 +320,21 @@ class SchemaHelper
         ], $config));
     }
 
+    public static function visibility($config = [])
+    {
+        return array_merge(self::selectField([
+            'label' => Craft::t('formie', 'Visiblity'),
+            'help' => Craft::t('formie', 'The visibility of the field on the front-end.'),
+            'info' => Craft::t('formie', 'A “Hidden” field will be hidden from view, but still rendered. A “Disabled” field will not be rendered on the page at all.'),
+            'name' => 'visibility',
+            'options' => [
+                ['label' => Craft::t('formie', 'Visible'), 'value' => ''],
+                ['label' => Craft::t('formie', 'Hidden'), 'value' => 'hidden'],
+                ['label' => Craft::t('formie', 'Disabled'), 'value' => 'disabled'],
+            ],
+        ]), $config);
+    }
+
     public static function extractFieldsFromSchema($fieldSchema, $names = [])
     {
         foreach ($fieldSchema as $field) {

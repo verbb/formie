@@ -437,13 +437,29 @@ class Rendering extends Component
             return null;
         }
 
+        $disabledValues = [];
+
         // Try to populate fields with their default value
         foreach ($values as $key => $value) {
-            try {
-                $form->getFieldByHandle($key)->populateValue($value);
-            } catch (\Throwable $e) {
-                continue;
-            }
+            // try {
+                $field = $form->getFieldByHandle($key);
+
+                // Store any visibly disabled fields against the form to apply later
+                if ($field->visibility === 'disabled') {
+                    $disabledValues[$key] = $value;
+
+                    
+                }
+
+                $field->populateValue($value);
+            // } catch (\Throwable $e) {
+            //     continue;
+            // }
+        }
+
+        if ($disabledValues) {
+            // Apply any disabled field values via session cache, to keep out of requests
+            $form->setPopulatedFieldValues($disabledValues);
         }
     }
 

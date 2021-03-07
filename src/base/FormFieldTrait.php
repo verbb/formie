@@ -203,6 +203,14 @@ trait FormFieldTrait
     }
 
     /**
+     * @inheritDoc
+     */
+    public function parsePopulatedFieldValues($value, $element)
+    {
+        return $value;
+    }
+
+    /**
      * @inheritdoc
      */
     public function settingsAttributes(): array

@@ -205,6 +205,7 @@ class MultiLineText extends FormField implements PreviewableFieldInterface
     public function defineAppearanceSchema(): array
     {
         return [
+            SchemaHelper::visibility(),
             SchemaHelper::lightswitchField([
                 'label' => Craft::t('formie', 'Use Rich Text Field'),
                 'help' => Craft::t('formie', 'Whether to display this field with a rich text editor for users to enter their content with.'),

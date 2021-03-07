@@ -20,7 +20,7 @@
             <legend class="fui-page-title">{{ page.name | t }}</legend>
         {% endif %}
 
-        {% for row in page.rows %}
+        {% for row in page.getRows(false) %}
             <div class="fui-row fui-page-row">
                 {% for field in row.fields %}
                     {{ craft.formie.renderField(form, field, options) }}

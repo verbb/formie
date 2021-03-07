@@ -140,6 +140,20 @@ class Group extends FormField implements NestedFieldInterface, EagerLoadingField
     /**
      * @inheritDoc
      */
+    public function parsePopulatedFieldValues($value, $element)
+    {
+        // For when parsing populated content from the cache, when the field is visibly disabled
+        // It's supplied in a format that makes sense for `populateValue()` but not for `$element->setFieldValue()`.
+        return [
+            'new1' => [
+                'fields' => $value,
+            ],
+        ];
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function getConfigJson()
     {
         // Group fields themselves should not contain the inner field's JS
@@ -162,6 +176,7 @@ class Group extends FormField implements NestedFieldInterface, EagerLoadingField
     public function defineAppearanceSchema(): array
     {
         return [
+            SchemaHelper::visibility(),
             SchemaHelper::labelPosition($this),
             SchemaHelper::instructions(),
             SchemaHelper::instructionsPosition($this),

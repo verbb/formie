@@ -28,6 +28,7 @@ class FileUpload extends CraftAssets implements FormFieldInterface
         getFrontEndInputOptions as traitGetFrontendInputOptions;
         getSettingGqlType as traitGetSettingGqlType;
         FormFieldTrait::getIsFieldset insteadof RelationFieldTrait;
+        RelationFieldTrait::populateValue insteadof FormFieldTrait;
     }
 
 
@@ -378,6 +379,7 @@ class FileUpload extends CraftAssets implements FormFieldInterface
     public function defineAppearanceSchema(): array
     {
         return [
+            SchemaHelper::visibility(),
             SchemaHelper::labelPosition($this),
             SchemaHelper::instructions(),
             SchemaHelper::instructionsPosition($this),

@@ -222,6 +222,7 @@ class Checkboxes extends BaseOptionsField implements FormFieldInterface
     public function defineAppearanceSchema(): array
     {
         return [
+            SchemaHelper::visibility(),
             SchemaHelper::selectField([
                 'label' => Craft::t('formie', 'Layout'),
                 'help' => Craft::t('formie', 'Select which layout to use for these fields.'),

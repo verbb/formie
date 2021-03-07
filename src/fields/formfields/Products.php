@@ -35,6 +35,7 @@ class Products extends CommerceProducts implements FormFieldInterface
         getEmailHtml as traitGetEmailHtml;
         getSavedFieldConfig as traitGetSavedFieldConfig;
         RelationFieldTrait::getIsFieldset insteadof FormFieldTrait;
+        RelationFieldTrait::populateValue insteadof FormFieldTrait;
     }
 
 
@@ -316,6 +317,7 @@ class Products extends CommerceProducts implements FormFieldInterface
     public function defineAppearanceSchema(): array
     {
         return [
+            SchemaHelper::visibility(),
             SchemaHelper::selectField([
                 'label' => Craft::t('formie', 'Display Type'),
                 'help' => Craft::t('formie', 'Set different display layouts for this field.'),

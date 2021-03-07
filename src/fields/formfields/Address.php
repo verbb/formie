@@ -656,6 +656,7 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
     public function defineAppearanceSchema(): array
     {
         return [
+            SchemaHelper::visibility(),
             SchemaHelper::labelPosition($this),
             SchemaHelper::subfieldLabelPosition(),
             SchemaHelper::instructions(),

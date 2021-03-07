@@ -882,6 +882,42 @@ class Form extends Element
     }
 
     /**
+     * @inheritDoc
+     */
+    public function setPopulatedFieldValues($values)
+    {
+        if (Craft::$app->getRequest()->getIsConsoleRequest()) {
+            return;
+        }
+
+        Craft::$app->getSession()->set($this->_getSessionKey('populatedFieldValues'), $values);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getPopulatedFieldValues()
+    {
+        if (Craft::$app->getRequest()->getIsConsoleRequest()) {
+            return [];
+        }
+
+        return Craft::$app->getSession()->get($this->_getSessionKey('populatedFieldValues'));
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function clearPopulatedFieldValues()
+    {
+        if (Craft::$app->getRequest()->getIsConsoleRequest()) {
+            return;
+        }
+        
+        return Craft::$app->getSession()->remove($this->_getSessionKey('populatedFieldValues'));
+    }
+
+    /**
      * Returns the form’s fields.
      *
      * @return FormFieldInterface[] The form’s fields.
@@ -1138,6 +1174,10 @@ class Form extends Element
      */
     public function setRelations($elements)
     {
+        if (Craft::$app->getRequest()->getIsConsoleRequest()) {
+            return;
+        }
+
         if ($elements && is_array($elements)) {
             $relations = [];
 
@@ -1160,6 +1200,10 @@ class Form extends Element
      */
     public function getRelations()
     {
+        if (Craft::$app->getRequest()->getIsConsoleRequest()) {
+            return [];
+        }
+
         return Craft::$app->getSession()->get($this->_getSessionKey('relations'));
     }
 
@@ -1168,6 +1212,10 @@ class Form extends Element
      */
     public function clearRelations()
     {
+        if (Craft::$app->getRequest()->getIsConsoleRequest()) {
+            return;
+        }
+
         return Craft::$app->getSession()->remove($this->_getSessionKey('relations'));
     }
 

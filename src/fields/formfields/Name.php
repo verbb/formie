@@ -496,6 +496,7 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
     public function defineAppearanceSchema(): array
     {
         return [
+            SchemaHelper::visibility(),
             SchemaHelper::labelPosition($this),
             SchemaHelper::toggleContainer('settings.useMultipleFields', [
                 SchemaHelper::subfieldLabelPosition(),

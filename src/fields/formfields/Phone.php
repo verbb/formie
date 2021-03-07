@@ -353,6 +353,7 @@ class Phone extends FormField implements SubfieldInterface, PreviewableFieldInte
     public function defineAppearanceSchema(): array
     {
         return [
+            SchemaHelper::visibility(),
             SchemaHelper::labelPosition($this),
             SchemaHelper::instructions(),
             SchemaHelper::instructionsPosition($this),
