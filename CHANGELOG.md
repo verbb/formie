@@ -10,11 +10,16 @@
 - Added “Min Date” and “Max Date” options for Date fields.
 - Added “Enable Content Encryption” setting on Address, Email, Hidden, Multi-Line Text, Name, Phone, Recipients and Single-Line Text fields. This will encrypt submission content in the database, preventing human-readable data for sensitive fields.
 - Added “Unique Value” to Email field, to control users filling out a form only once.
+- Added “Visibility” setting to all fields. Allows you to set any field to hidden, or exclude from rendering. Visibly disabled fields can still have their content set through your templates with `craft.formie.populateFormValues()`, but the benefit is this content is not exposed in front-end templates.
+- Added “Predefined Options” to Checkboxes, Radio and Dropdown fields. Select from 25 predefined options, or provide your own through events.
+- Added “Bulk Insert” to Checkboxes, Radio and Dropdown fields.
 
 ### Changed
 - Formie now requires Craft 3.6+.
 - Date fields can now use [Flatpickr.js](https://flatpickr.js.org/) when rendered as a calendar.
 - Date fields can now content-manage their date and time format.
+- Rename `field->getIsVisible()` to `field->getIsHidden()`.
+- Change syntax for populating element fields, when using `populateFormValues()`.
 
 ### Fixed
 - Fixed JS errors showing in form builder error alert.
@@ -25,6 +30,9 @@
 - Fixed page settings getting re-created unnecessarily.
 - Fixed clicking on page tabs on the front-end not working correctly.
 - Fixed an incompatibility with PHP 8.
+
+### Removed
+- Removed `craft.formie.getVisibleFields()`.
 
 ### Breaking Changes
 - If you use `craft.formie.populateFormValues()` in your templates to populate **element fields**, please note the changed syntax via the [docs](https://verbb.io/craft-plugins/formie/docs/template-guides/populating-forms#element-fields). This has changed from `entriesField: craft.entries.id(123)` to `entriesField: [123]`.
