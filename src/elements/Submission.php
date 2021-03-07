@@ -583,19 +583,9 @@ class Submission extends Element
      */
     public function setFieldValuesFromRequest(string $paramNamespace = '')
     {
-        $this->setPopulatedFieldValues();
-
-        parent::setFieldValuesFromRequest($paramNamespace);
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function setPopulatedFieldValues()
-    {
+        // A little extra work here to handle visibly disabled fields
         if ($form = $this->getForm()) {
-            // A little extra work here to handle visibly disabled fields
-            $disabledValues = $form->getPopulatedFieldValues() ?? [];
+            $disabledValues = $form->getPopulatedFieldValuesFromRequest();
 
             foreach ($disabledValues as $key => $value) {
                 try {
@@ -608,6 +598,8 @@ class Submission extends Element
                 }
             }
         }
+
+        parent::setFieldValuesFromRequest($paramNamespace);
     }
 
     /**
@@ -753,11 +745,6 @@ class Submission extends Element
 
         // Check to see if we need to save any relations
         Formie::$plugin->getRelations()->saveRelations($this);
-
-        // Clear any populated field content, as it'll already have been applied
-        if ($form = $this->getForm()) {
-            $form->clearPopulatedFieldValues();
-        }
 
         parent::afterSave($isNew);
     }

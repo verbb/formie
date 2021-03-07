@@ -441,20 +441,18 @@ class Rendering extends Component
 
         // Try to populate fields with their default value
         foreach ($values as $key => $value) {
-            // try {
+            try {
                 $field = $form->getFieldByHandle($key);
 
                 // Store any visibly disabled fields against the form to apply later
                 if ($field->visibility === 'disabled') {
                     $disabledValues[$key] = $value;
-
-                    
                 }
 
                 $field->populateValue($value);
-            // } catch (\Throwable $e) {
-            //     continue;
-            // }
+            } catch (\Throwable $e) {
+                continue;
+            }
         }
 
         if ($disabledValues) {

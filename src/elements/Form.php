@@ -27,6 +27,7 @@ use craft\errors\MissingComponentException;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 use craft\helpers\MigrationHelper;
+use craft\helpers\StringHelper;
 use craft\helpers\UrlHelper;
 use craft\models\FieldLayout as CraftFieldLayout;
 use craft\validators\HandleValidator;
@@ -881,16 +882,39 @@ class Form extends Element
         return 'formie/submissions/submit';
     }
 
+    private $_relations = [];
+    private $_populatedFieldValues = [];
+
     /**
      * @inheritDoc
      */
-    public function setPopulatedFieldValues($values)
+    public function getRelations()
     {
-        if (Craft::$app->getRequest()->getIsConsoleRequest()) {
-            return;
-        }
+        return StringHelper::encenc(Json::encode($this->_relations));
+    }
 
-        Craft::$app->getSession()->set($this->_getSessionKey('populatedFieldValues'), $values);
+    /**
+     * @inheritDoc
+     */
+    public function getRelationsFromRequest()
+    {
+        $value = (string)Craft::$app->getRequest()->getBodyParam('relations', '');
+
+        return Json::decode(StringHelper::decdec($value));
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setRelations($elements = [])
+    {
+        foreach ($elements as $element) {
+            $this->_relations[] = [
+                'id' => $element['id'],
+                'siteId' => $element['siteId'],
+                'type' => get_class($element),
+            ];
+        }
     }
 
     /**
@@ -898,23 +922,25 @@ class Form extends Element
      */
     public function getPopulatedFieldValues()
     {
-        if (Craft::$app->getRequest()->getIsConsoleRequest()) {
-            return [];
-        }
-
-        return Craft::$app->getSession()->get($this->_getSessionKey('populatedFieldValues'));
+        return StringHelper::encenc(Json::encode($this->_populatedFieldValues));
     }
 
     /**
      * @inheritDoc
      */
-    public function clearPopulatedFieldValues()
+    public function getPopulatedFieldValuesFromRequest()
     {
-        if (Craft::$app->getRequest()->getIsConsoleRequest()) {
-            return;
-        }
-        
-        return Craft::$app->getSession()->remove($this->_getSessionKey('populatedFieldValues'));
+        $value = (string)Craft::$app->getRequest()->getBodyParam('extraFields', '');
+
+        return Json::decode(StringHelper::decdec($value));
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setPopulatedFieldValues($values)
+    {
+        $this->_populatedFieldValues = $values;
     }
 
     /**
@@ -1167,56 +1193,6 @@ class Form extends Element
         if ($field) {
             $field->setAttributes($settings, false);
         }
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function setRelations($elements)
-    {
-        if (Craft::$app->getRequest()->getIsConsoleRequest()) {
-            return;
-        }
-
-        if ($elements && is_array($elements)) {
-            $relations = [];
-
-            foreach ($elements as $element) {
-                $relations[] = [
-                    'id' => $element['id'],
-                    'siteId' => $element['siteId'],
-                    'type' => get_class($element),
-                ];
-            }
-
-            if ($relations) {
-                Craft::$app->getSession()->set($this->_getSessionKey('relations'), $relations);
-            }
-        }
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getRelations()
-    {
-        if (Craft::$app->getRequest()->getIsConsoleRequest()) {
-            return [];
-        }
-
-        return Craft::$app->getSession()->get($this->_getSessionKey('relations'));
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function clearRelations()
-    {
-        if (Craft::$app->getRequest()->getIsConsoleRequest()) {
-            return;
-        }
-
-        return Craft::$app->getSession()->remove($this->_getSessionKey('relations'));
     }
 
 
@@ -1489,10 +1465,10 @@ class Form extends Element
     /**
      * @inheritDoc
      */
-    private function _getSessionKey($key)
+    private function _getSessionKey($key, $useSubmissionId = true)
     {
         // Return a different session namespace when editing a submission
-        if ($this->_editingSubmission && $this->_editingSubmission->id) {
+        if ($useSubmissionId && $this->_editingSubmission && $this->_editingSubmission->id) {
             return 'formie:' . $this->id . ':' . $this->_editingSubmission->id . ':' . $key;
         }
 

@@ -71,6 +71,14 @@
                 {{ hiddenInput('siteId', craft.app.sites.currentSite.id) }}
                 {{ hiddenInput('pageIndex', form.getCurrentPageIndex()) }}
 
+                {% if form.getRelations() %}
+                    {{ hiddenInput('relations', form.getRelations()) }}
+                {% endif %}
+
+                {% if form.getPopulatedFieldValues() %}
+                    {{ hiddenInput('extraFields', form.getPopulatedFieldValues()) }}
+                {% endif %}
+
                 {% if submission and submission.id %}
                     {{ hiddenInput('submissionId', submission.id) }}
                 {% endif %}

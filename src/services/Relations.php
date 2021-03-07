@@ -71,7 +71,7 @@ class Relations extends Component
             return;
         }
 
-        $relations = $form->getRelations();
+        $relations = $form->getRelationsFromRequest();
 
         if (!$relations) {
             return;
@@ -96,8 +96,5 @@ class Relations extends Component
         }
 
         Db::batchInsert('{{%formie_relations}}', ['type', 'sourceId', 'sourceSiteId', 'targetId'], $values, true, $db);
-
-        // Clear relations cache on the form
-        $form->clearRelations();
     }
 }
