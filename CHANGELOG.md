@@ -2,6 +2,7 @@
 
 ## 1.4.0 - 2021-
 
+### Added
 - Added field conditions, to conditionally show/hide fields according to your logic.
 - Added page button conditions, to conditionally show/hide next button according to your logic.
 - Added page conditions, to conditionally show/hide page according to your logic.
@@ -10,10 +11,12 @@
 - Added “Enable Content Encryption” setting on Address, Email, Hidden, Multi-Line Text, Name, Phone, Recipients and Single-Line Text fields. This will encrypt submission content in the database, preventing human-readable data for sensitive fields.
 - Added “Unique Value” to Email field, to control users filling out a form only once.
 
+### Changed
 - Formie now requires Craft 3.6+.
 - Date fields can now use [Flatpickr.js](https://flatpickr.js.org/) when rendered as a calendar.
 - Date fields can now content-manage their date and time format.
 
+### Fixed
 - Fixed JS errors showing in form builder error alert.
 - Fixed page errors not showing on page labels in the control panel form builder.
 - Fixed page models being re-created after saving the form multiple times.

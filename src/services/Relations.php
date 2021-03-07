@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\services;
 
+use verbb\formie\Formie;
 use verbb\formie\elements\Submission;
 
 use Craft;
@@ -45,11 +46,11 @@ class Relations extends Component
 
         $relations = (new Query())
             ->from(['{{%formie_relations}}'])
-            ->where(['targetId' => $submission->id])
+            ->where(['sourceId' => $element->id, 'sourceSiteId' => $element->siteId])
             ->all();
 
         foreach ($relations as $relation) {
-            $element = Craft::$app->getElements()->getElementById($relation['sourceId'], $relation['type'], $relation['sourceSiteId']);
+            $element = Craft::$app->getElements()->getElementById($relation['targetId'], Submission::class);
 
             if ($element) {
                 $elements[] = $element;

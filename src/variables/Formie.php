@@ -319,6 +319,6 @@ class Formie
      */
     public function getSubmissionRelations($element)
     {
-        return Formie::$plugin->getRelations()->getSubmissionRelations($element);
+        return FormiePlugin::$plugin->getRelations()->getSubmissionRelations($element);
     }
 }
