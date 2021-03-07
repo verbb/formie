@@ -50,6 +50,7 @@ trait FormFieldTrait
     public $enableConditions;
     public $conditions;
     public $enableContentEncryption = false;
+    public $visibility;
 
     /**
      * @var int
@@ -375,9 +376,9 @@ trait FormFieldTrait
     /**
      * @inheritDoc
      */
-    public function getIsVisible(): bool
+    public function getIsHidden(): bool
     {
-        return true;
+        return $this->visibility === 'hidden';
     }
 
     /**

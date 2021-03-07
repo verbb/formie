@@ -91,9 +91,9 @@ class Hidden extends FormField implements PreviewableFieldInterface
     /**
      * @inheritDoc
      */
-    public function getIsVisible(): bool
+    public function getIsHidden(): bool
     {
-        return false;
+        return true;
     }
 
     /**
