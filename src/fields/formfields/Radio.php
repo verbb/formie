@@ -138,6 +138,8 @@ class Radio extends BaseOptionsField implements FormFieldInterface
                 'help' => Craft::t('formie', 'Define the available options for users to select from.'),
                 'name' => 'options',
                 'allowMultipleDefault' => false,
+                'enableBulkOptions' => true,
+                'predefinedOptions' => $this->getPredefinedOptions(),
                 'newRowDefaults' => [
                     'label' => '',
                     'value' => '',

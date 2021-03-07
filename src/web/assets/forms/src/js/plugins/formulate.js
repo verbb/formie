@@ -203,6 +203,8 @@ export default Vue => {
                         'confirmDelete',
                         'confirmMessage',
                         'newRowDefaults',
+                        'enableBulkOptions',
+                        'predefinedOptions',
                         'columns',
                         'generateHandle',
                         'generateValue',

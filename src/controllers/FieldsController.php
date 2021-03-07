@@ -46,4 +46,13 @@ class FieldsController extends Controller
         return $this->asJson($elements);
     }
 
+    public function actionGetPredefinedOptions()
+    {
+        $type = Craft::$app->getRequest()->getParam('option');
+
+        $options = Formie::$plugin->getPredefinedOptions()->getPredefinedOptionsForType($type);
+
+        return $this->asJson($options);
+    }
+
 }

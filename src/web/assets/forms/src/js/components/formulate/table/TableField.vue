@@ -1,5 +1,19 @@
 <template>
     <div :class="context.classes.element" :data-is-repeatable="context.repeatable">
+        <div v-if="enableBulkOptions" tabindex="0" class="btn add icon fui-table-bulk-add-btn" @click.prevent="openModal">
+            {{ 'Bulk add options' | t('formie') }}
+        </div>
+
+        <table-bulk-options
+            v-if="enableBulkOptions && modalActive"
+            ref="bulkOptionsModal"
+            v-model="context.model"
+            :predefined-options="predefinedOptions"
+            :visible="modalVisible"
+            :table-field="this"
+            @close="onModalClose"
+        />
+
         <table ref="table" class="editable fullwidth">
             <thead v-if="showHeader">
                 <tr>
@@ -26,11 +40,17 @@
 <script>
 import get from 'lodash/get';
 
+import TableBulkOptions from './TableBulkOptions.vue';
+
 import { setId } from '@braid/vue-formulate/src/libs/utils';
 import { newId } from '../../../utils/string';
 
 export default {
     name: 'TableField',
+
+    components: {
+        TableBulkOptions,
+    },
 
     props: {
         context: {
@@ -42,6 +62,8 @@ export default {
     data() {
         return {
             totalColumns: 0,
+            modalActive: false,
+            modalVisible: false,
         };
     },
 
@@ -95,9 +117,20 @@ export default {
         useColumnIds() {
             return this._getSlotProp('useColumnIds', false);
         },
+
+        enableBulkOptions() {
+            return this._getSlotProp('enableBulkOptions', false);
+        },
+
+        predefinedOptions() {
+            return this._getSlotProp('predefinedOptions', false);
+        },
     },
 
     created() {
+        // Testing
+        // this.openModal();
+
         if (!Array.isArray(this.context.model)) {
             this.context.model = [];
         }
@@ -127,8 +160,23 @@ export default {
             return null;
         },
 
-        addItem() {
+        setItems(items) {
+            // Reset the model
+            this.context.model = [];
+
+            // Add each item properly
+            items.forEach(item => {
+                this.addItem(item);
+            });
+        },
+
+        addItem(item = {}) {
             let { newRowDefaults } = this;
+
+            // If we're passing in specific item data
+            if (item) {
+                newRowDefaults = item;
+            }
 
             if (typeof newRowDefaults === 'function') {
                 newRowDefaults = newRowDefaults();
@@ -200,7 +248,31 @@ export default {
                 this.context.model = (new Array(this.items.length - 1)).fill('').map(() => setId({}));
             }
         },
+
+        openModal() {
+            this.modalVisible = true;
+            this.modalActive = true;
+        },
+
+        onModalClose() {
+            this.modalVisible = false;
+            this.modalActive = false;
+        },
     },
 };
 
 </script>
+
+<style lang="scss" scoped>
+
+.fui-table-bulk-add-btn {
+    position: absolute;
+    top: -36px;
+    right: 0;
+    font-size: 12px;
+    border-radius: 3px;
+    padding: 5px 12px;
+    height: auto;
+}
+
+</style>

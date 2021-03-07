@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\fields\formfields;
 
+use verbb\formie\Formie;
 use verbb\formie\base\FormFieldTrait;
 use verbb\formie\models\IntegrationField;
 
@@ -207,5 +208,13 @@ abstract class BaseOptionsField extends CraftBaseOptionsField
     public function getSavedSettings(): array
     {
         return $this->getSettings();
+    }
+    
+    /**
+     * @inheritDoc
+     */
+    protected function getPredefinedOptions()
+    {
+        return Formie::$plugin->getPredefinedOptions()->getPredefinedOptions();
     }
 }

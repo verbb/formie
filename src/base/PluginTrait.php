@@ -11,6 +11,7 @@ use verbb\formie\services\Integrations;
 use verbb\formie\services\NestedFields;
 use verbb\formie\services\Notifications;
 use verbb\formie\services\Phone;
+use verbb\formie\services\PredefinedOptions;
 use verbb\formie\services\Relations;
 use verbb\formie\services\RenderCache;
 use verbb\formie\services\Rendering;
@@ -85,6 +86,11 @@ trait PluginTrait
     public function getPhone(): Phone
     {
         return $this->get('phone');
+    }
+
+    public function getPredefinedOptions(): PredefinedOptions
+    {
+        return $this->get('predefinedOptions');
     }
 
     public function getRelations(): Relations
@@ -163,6 +169,7 @@ trait PluginTrait
             'nestedFields' => NestedFields::class,
             'notifications' => Notifications::class,
             'phone' => Phone::class,
+            'predefinedOptions' => PredefinedOptions::class,
             'relations' => Relations::class,
             'renderCache' => RenderCache::class,
             'rendering' => Rendering::class,
