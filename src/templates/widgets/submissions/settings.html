@@ -1,0 +1,58 @@
+{% import '_includes/forms' as forms %}
+
+<div id="{{ id }}">
+    {{ forms.textField({
+        label: 'Title' | t,
+        instructions: 'Set a title for this widget.' | t,
+        id: 'title',
+        name: 'title',
+        value: widget.title,
+        errors: widget.getErrors('title'),
+    }) }}
+
+    {{ forms.selectField({
+        label: 'Display Type' | t,
+        instructions: 'Select how to display submission data.' | t,
+        id: 'displayType',
+        name: 'displayType',
+        value: widget.displayType,
+        options: [
+            { label: 'List' | t, value: 'list' },
+            { label: 'Pie Chart' | t, value: 'pie' },
+            { label: 'Line Chart' | t, value: 'line' },
+        ],
+        errors: widget.getErrors('displayType'),
+        toggle: true,
+        targetPrefix: 'type-',
+    }) }}
+
+    <div id="type-list" class="{% if widget.displayType != 'list' %}hidden{% endif %}">
+        {{ forms.textField({
+            label: 'Limit' | t,
+            instructions: 'The maximum number of submissions to show.' | t,
+            id: 'limit',
+            name: 'limit',
+            value: widget.limit,
+            errors: widget.getErrors('limit'),
+        }) }}
+    </div>
+
+    <div id="type-pie" class="{% if widget.displayType != 'pie' %}hidden{% endif %}">
+        {% include 'formie/widgets/_includes/_dateRangeField' with { id: namespaceId, widget: widget } %}
+    </div>
+
+    <div id="type-line" class="{% if widget.displayType != 'line' %}hidden{% endif %}">
+        {% include 'formie/widgets/_includes/_dateRangeField' with { id: namespaceId, widget: widget } %}
+    </div>
+
+    {{ forms.checkboxSelectField({
+        label: 'Forms' | t,
+        instructions: 'Select which forms to show submissions for.' | t,
+        id: 'formIds',
+        name: 'formIds',
+        options: formOptions,
+        values: widget.formIds | length ? widget.formIds : '*',
+        errors: widget.getErrors('formIds'),
+        showAllOption: true,
+    }) }}
+</div>

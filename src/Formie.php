@@ -28,6 +28,7 @@ use verbb\formie\services\Statuses as StatusesService;
 use verbb\formie\services\Stencils as StencilsService;
 use verbb\formie\variables\Formie as FormieVariable;
 use verbb\formie\web\twig\Extension;
+use verbb\formie\widgets\RecentSubmissions;
 
 use Craft;
 use craft\base\Plugin;
@@ -44,6 +45,7 @@ use craft\events\RegisterGqlSchemaComponentsEvent;
 use craft\events\RegisterGqlTypesEvent;
 use craft\events\RegisterTemplateRootsEvent;
 use craft\events\RegisterUserPermissionsEvent;
+use craft\services\Dashboard;
 use craft\services\Elements;
 use craft\services\Fields;
 use craft\services\Gc;
@@ -102,6 +104,7 @@ class Formie extends Plugin
         $this->_registerEmailMessages();
         $this->_registerElementExports();
         $this->_registerTemplateRoots();
+        $this->_registerWidgets();
 
         // Add default captcha integrations
         Craft::$app->view->hook('formie.buttons.before', static function(array &$context) {
@@ -470,6 +473,13 @@ class Formie extends Plugin
     {
         Event::on(View::class, View::EVENT_REGISTER_SITE_TEMPLATE_ROOTS, function(RegisterTemplateRootsEvent $e) {
             $e->roots[$this->id] = $this->getBasePath() . DIRECTORY_SEPARATOR . 'templates/_special';
+        });
+    }
+
+    private function _registerWidgets()
+    {
+        Event::on(Dashboard::class, Dashboard::EVENT_REGISTER_WIDGET_TYPES, function(RegisterComponentTypesEvent $event) {
+            $event->types[] = RecentSubmissions::class;
         });
     }
 }

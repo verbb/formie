@@ -1,0 +1,89 @@
+<div class="fui-recent-submissions-container">
+    {% if widget.displayType == 'list' %}
+        {% if submissions %}
+            <table class="data fullwidth">
+                <thead>
+                    <tr>
+                        <th>{{ 'Title' | t }}</th>
+                        <th>{{ 'Form' | t }}</th>
+                        <th>{{ 'Date' | t }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for submission in submissions %}
+                        <tr>
+                            <td>
+                                <div class="element small hasstatus">
+                                    <span class="status on"></span>
+                                    <a href="{{ submission.getCpEditUrl() }}">{{ submission.title }}</a>
+                                </div>
+                            </td>
+
+                            <td>
+                                {{ submission.form.title }}
+                            </td>
+
+                            <td>{{ submission.dateCreated | date('short') }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>{{ 'No submissions.' | t }}</p>
+        {% endif %}
+    {% endif %}
+
+    {% if widget.displayType == 'pie' %}
+        <div>
+            <canvas id="{{ namespaceId }}" height="250"></canvas>
+        </div>
+
+        {% js %}
+            var revChart = new Craft.Formie.Chart('{{ namespaceId }}', {
+                chart: {
+                    type: 'doughnut',
+                    data: {
+                        labels: {{ labels | json_encode | raw }},
+                        datasets: [
+                            {
+                                label: Craft.escapeHtml(Craft.t('formie', 'Submissions')),
+                                data: {{ totalSubmissions | json_encode | raw }}
+                            }
+                        ]
+                    }
+                }
+            });
+        {% endjs %}
+    {% endif %}
+
+    {% if widget.displayType == 'line' %}
+        <div class="formie-widget-linechart-wrapper--full formie-widget-linechart-wrapper--no-x-axis">
+            <canvas id="{{ namespaceId }}" height="75"></canvas>
+        </div>
+
+        {% js %}
+            new Craft.Formie.Chart('{{ namespaceId }}', {
+                chart: {
+                    type: 'line',
+                    data: {
+                        labels: {{ labels | json_encode | raw }},
+                        datasets: {{ datasets | json_encode | raw }},
+                    },
+                    options: {
+                        legend: {
+                            display: true,
+                        },
+                        scales: {
+                            yAxes: [{
+                                display: false,
+                            }],
+                            xAxes: [{
+                                display: false,
+                            }]
+                        }
+                    }
+                }
+            });
+        {% endjs %}
+    {% endif %}
+</div>

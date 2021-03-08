@@ -77,6 +77,17 @@ mix.js(assetsPath + '/cp/src/js/integration-settings.js', assetsPath + '/cp/dist
 mix.sass(assetsPath + '/cp/src/scss/formie-cp.scss', assetsPath + '/cp/dist/css');
 
 
+//
+// Widgets
+//
+
+// Setup and configure JS
+mix.js(assetsPath + '/widgets/src/js/formie-widgets.js', assetsPath + '/widgets/dist/js');
+
+// Setup and configure Sass
+mix.sass(assetsPath + '/widgets/src/scss/formie-widgets.scss', assetsPath + '/widgets/dist/css');
+
+
 
 // Optimise images and SVGs
 mix.imagemin([
