@@ -91,7 +91,7 @@ You can also dynamically override any settings for the field.
 ```twig
 {% set form = craft.formie.forms.handle('contactForm').one() %}
 
-{% do form.setFieldSettings({
+{% do form.setFieldSettings('plainText', {
     {# Override the name (label) for the field #}
     name: 'Overridden Label',
 }) %}
@@ -99,4 +99,4 @@ You can also dynamically override any settings for the field.
 {{ craft.formie.renderForm(form) }}
 ```
 
-The above would override the name (label) setting for the field, regardless of what is defined in the field's settings. See the [Field Settings](docs:developers/field) docs for a full list of available settings to override.
+The above would override the name (label) setting for the field with a handle of `plainText`, regardless of what is defined in the field's settings. See the [Field Settings](docs:developers/field) docs for a full list of available settings to override.
