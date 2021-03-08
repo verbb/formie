@@ -13,6 +13,7 @@
 - Added “Visibility” setting to all fields. Allows you to set any field to hidden, or exclude from rendering. Visibly disabled fields can still have their content set through your templates with `craft.formie.populateFormValues()`, but the benefit is this content is not exposed in front-end templates.
 - Added “Predefined Options” to Checkboxes, Radio and Dropdown fields. Select from 25 predefined options, or provide your own through events.
 - Added “Bulk Insert” to Checkboxes, Radio and Dropdown fields.
+- Added “Recent Submissions” dashboard widget. Provides table, pie or line charts of recent submissions for a provided date range.
 
 ### Changed
 - Formie now requires Craft 3.6+.
