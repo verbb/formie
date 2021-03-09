@@ -779,13 +779,6 @@ class Fields extends Component
             $config['uid'] = $uid;
         }
 
-        // Do a little shuffle to retain the form id.
-        if (!empty($config['settings'])) {
-            $settings = Json::decodeIfJson($config['settings']);
-            unset($settings['formId']);
-            $config['settings'] = Json::encode($settings);
-        }
-
         try {
             $field = ComponentHelper::createComponent($config, FieldInterface::class);
         } catch (MissingComponentException $e) {

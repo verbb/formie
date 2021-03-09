@@ -173,6 +173,9 @@ class Forms extends Component
                     $refId = $field->id;
                 }
 
+                // Ensure fields retain a formId
+                $field->formId = $form->id;
+
                 /* @var FormField $field */
                 $fieldsService->saveField($field);
 

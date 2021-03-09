@@ -165,6 +165,9 @@ class NestedFields extends Component
                 }
 
                 foreach ($fieldLayout->getFields() as $field) {
+                    // Ensure fields retain a formId
+                    $field->formId = $nestedField->formId;
+
                     /* @var FormField $field */
                     $fieldsService->saveField($field);
                 }
