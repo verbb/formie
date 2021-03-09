@@ -397,7 +397,7 @@ class Emails extends Component
 
     private function _getFilteredString($string)
     {
-        return Craft::parseEnv(trim($string));
+        return trim(Craft::parseEnv(trim($string)));
     }
 
     private function _getParsedEmails($emails)
@@ -410,7 +410,7 @@ class Emails extends Component
             // Prevent non-utf characters sneaking in.
             $email = StringHelper::convertToUtf8($email);
 
-            $emailsEnv[] = Craft::parseEnv(trim($email));
+            $emailsEnv[] = trim(Craft::parseEnv(trim($email)));
         }
 
         $emailsEnv = array_filter($emailsEnv);
