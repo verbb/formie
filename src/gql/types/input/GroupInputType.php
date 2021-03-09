@@ -29,6 +29,9 @@ class GroupInputType extends InputObjectType
 
         $groupFields = [];
         foreach ($fields as $field) {
+            $field->isNested = true;
+            $field->setContainer($context);
+            
             $fieldInput = $field->getContentGqlMutationArgumentType();
             $groupFields[$field->handle] = $fieldInput;
         }

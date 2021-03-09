@@ -259,7 +259,7 @@ trait FormFieldTrait
     /**
      * @return NestedFieldInterface|Form|null
      */
-    public function getFieldContext()
+    public function getGqlFieldContext()
     {
         return $this->isNested ? $this->getContainer() : $this->getForm();
     }
