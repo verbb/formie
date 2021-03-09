@@ -1,5 +1,39 @@
 # Changelog
 
+## 1.3.22 - 2021-03-09
+
+### Added
+- Added “ID” to available submissions index columns.
+- Added “ID” to available forms index columns.
+- Added “Submission ID” to the edit page for submissions.
+- Added “Form Name” to integration mapping and email notification condition variable pickers.
+- Added setting to Hidden field to include or exclude their content in email notifications.
+- Added “All Visible Fields” options to email notifications, outputting field content only for fields that are visible.
+- Added `EVENT_AFTER_SUBMISSION_REQUEST`.
+- Added support for querying and mutating Group and Repeater fields for GraphQL.
+- Added support for updating entries for Entry integration.
+- Added support for updating users for User integration.
+- Added support for creating a new draft for Entry element integration.
+
+### Changed
+- Update default submission titles to `D, d M Y H:i:s` (eg, “Thu, 04 Mar 2021 10:50:16”).
+- Minor performance improvement when submitting submissions, when no custom title format is set.
+
+### Fixed
+- Fixed Number field not having the correct type for GraphQL queries.
+- Fixed an error with HubSpot CRM, when mapping a field to the Tracking ID for forms.
+- Fixed Date field not having the correct type for GraphQL queries.
+- Fixed reCAPTCHA placeholders not being found for custom-templated forms that have no pages containers.
+- Fixed custom submission titles not working correctly when using submission attributes (namely submission ID).
+- Fixed Sent Notifications index not ordering by descending by default.
+- Fixed multi-line text fields not having their content passed through `nl2br` in email notifications.
+- Fixed address fields not showing the correct preview in the control panel when “Auto-complete” was enabled.
+- Fixed element integrations incorrectly mapping fields and attributes when no value supplied.
+- Fixed fields not having their `formId` attribute set correctly.
+- Fixed GQL errors when querying subfields inside group/repeater fields.
+- Fixed “Reply To” setting for email notifications not being properly parsed for environment variables.
+- Fixed email parsing error for email notifications in rare circumstances (where an env variable contained spaces).
+
 ## 1.3.21 - 2021-03-01
 
 ### Fixed
