@@ -156,7 +156,11 @@ class Emails extends Component
         if ($notification->replyTo) {
             try {
                 $replyTo = Variables::getParsedValue((string)$notification->replyTo, $submission, $form, $notification);
-                $newEmail->setReplyTo($replyTo);
+                $replyTo = $this->_getParsedEmails($replyTo);
+
+                if ($replyTo) {
+                    $newEmail->setReplyTo($replyTo);
+                }
             } catch (Throwable $e) {
                 $error = Craft::t('formie', 'Notification email parse error for ReplyTo: {value}”. Template error: “{message}” {file}:{line}', [
                     'value' => $notification->replyTo,
