@@ -383,9 +383,11 @@ export class FormieFormTheme {
 
     ajaxSubmit() {
         const formData = new FormData(this.$form);
+        const method = this.$form.getAttribute('method');
+        const action = this.$form.getAttribute('action');
 
         const xhr = new XMLHttpRequest();
-        xhr.open('POST', '/', true);
+        xhr.open(method ? method : 'POST', action ? action : window.location.href, true);
         xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
         xhr.setRequestHeader('Accept', 'application/json');
         xhr.setRequestHeader('Cache-Control', 'no-cache');
