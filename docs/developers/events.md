@@ -485,6 +485,22 @@ Event::on(Html::class, Html::EVENT_MODIFY_PURIFIER_CONFIG, function(ModifyPurifi
 ```
 
 
+## Name Field Events
+
+### The `modifyPrefixOptions` event
+The event that is triggered to modify the Prefix options for the field.
+
+```php
+use verbb\formie\events\ModifyNamePrefixOptionsEvent;
+use verbb\formie\fields\formfields\Name;
+use yii\base\Event;
+
+Event::on(Name::class, Name::EVENT_MODIFY_PREFIX_OPTIONS, function(ModifyNamePrefixOptionsEvent $e) {
+    $e->options[] = ['label' => Craft::t('formie', 'Mx.'), 'value' => 'mx'];
+});
+```
+
+
 ## Synced Field Events
 
 ### The `beforeSaveSyncedField` event
