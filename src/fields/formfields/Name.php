@@ -65,6 +65,7 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
             ['label' => Craft::t('formie', 'Mrs.'), 'value' => 'mrs'],
             ['label' => Craft::t('formie', 'Ms.'), 'value' => 'ms'],
             ['label' => Craft::t('formie', 'Miss.'), 'value' => 'miss'],
+            ['label' => Craft::t('formie', 'Mx.'), 'value' => 'mx'],
             ['label' => Craft::t('formie', 'Dr.'), 'value' => 'dr'],
             ['label' => Craft::t('formie', 'Prof.'), 'value' => 'prof'],
         ];
