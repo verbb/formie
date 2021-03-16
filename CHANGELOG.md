@@ -1,5 +1,26 @@
 # Changelog
 
+## 1.3.23 - 2021-03-16
+
+### Added
+- Added `modifyPrefixOptions` event for name fields.
+- Added `Mx.` to name field prefixes.
+- Allow the `<form>` element to defined the `action` and `method` settings of Ajax requests, and fix POST-ing to site roots with redirects configured.
+
+### Fixed
+- Fixed `redirectUrl` not working correctly when using `form.setSettings()` in your templates for Ajax forms.
+- Fixed the default template in the control panel (when clicking on “Formie” in the CP nav) throwing an error when trying to load a page the user doesn’t have access to.
+- Fixed Sent Notification preview column throwing an error in the control panel.
+- Fixed being unable to save a submission in the control panel, when specific form permissions were set.
+- Fixed an error when rendering elements fields as checkboxes.
+- Cleanup uninstall, fix an error during uninstall, fix not deleting submissions and forms on uninstall.
+- Fixed Categories fields not populating their value correctly when `limit` was also set.
+- Fixed Entries fields not populating their value correctly when `limit` was also set.
+- Fixed Products fields not populating their value correctly when `limit` was also set.
+- Fixed Tags fields not populating their value correctly when `limit` was also set.
+- Fixed Users fields not populating their value correctly when `limit` was also set.
+- Fixed Variants fields not populating their value correctly when `limit` was also set.
+
 ## 1.3.22 - 2021-03-09
 
 ### Added
