@@ -43,9 +43,7 @@
             } %}
 
             <select {{ attr(attributes) }}>
-                {% if placeholder %}
-                    <option value="" disabled {{- not selected ? ' selected' }}>{{ placeholder }}</option>
-                {% endif %}
+                <option value="" disabled {{- not selected ? ' selected' }}>{{ placeholder }}</option>
 
                 {% if attrs.options is defined %}
                     {% for option in attrs.options %}
@@ -55,7 +53,7 @@
                     {% endfor %}
                 {% else %}
                     {% for i in attrs.min..attrs.max %}
-                        <option value="{{ i }}" {{- i == selected ? ' selected' }}>{{ i }}</option>
+                        <option value="{{ i }}" {{- i is same as(selected) ? ' selected' }}>{{ i }}</option>
                     {% endfor %}
                 {% endif %}
             </select>

@@ -97,6 +97,8 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
             }
         } elseif ($this->defaultOption === 'today') {
             $this->defaultValue = self::toDateTime(new DateTime());
+        } else {
+            $this->defaultValue = '';
         }
     }
 
@@ -208,6 +210,7 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
         $maxYear = $year + 100;
 
         $yearOptions = [];
+
         for ($y = $minYear; $y < $maxYear; ++$y) {
             $yearOptions[] = ['value' => $y, 'label' => $y];
         }

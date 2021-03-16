@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+- Fixed Date fields throwing an error when the default date set to "None" and rendering inputs or a dropdown.
+- Fixed Date fields always selecting the first option in the list, when set to dropdown. 
+
 ## 1.3.23 - 2021-03-16
 
 ### Added
