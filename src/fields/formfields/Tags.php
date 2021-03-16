@@ -279,6 +279,22 @@ class Tags extends CraftTags implements FormFieldInterface
             $query->group($group);
         }
 
+        // Check if a default value has been set, and set it before limiting
+        if ($this->defaultValue) {
+            $ids = [];
+
+            // Handle the two ways a default value can be set
+            if ($this->defaultValue instanceof ElementQueryInterface) {
+                $ids = $this->defaultValue->id;
+            } else {
+                $ids = ArrayHelper::getColumn($this->defaultValue, 'id');
+            }
+            
+            if ($ids) {
+                $query->id($ids);
+            }
+        }
+
         $query->limit($this->limit);
 
         $query->orderBy('title ASC');
