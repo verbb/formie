@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.3.24 - 2021-03-18
 
 ### Changed
 - Refactor JavaScript captcha for more error-handling, support for cached forms and removal of inline `<script>` tags.
@@ -10,6 +10,8 @@
 - Fixed Date fields always selecting the first option in the list, when set to dropdown.
 - Fixed JavaScript captcha outputting inline `<script>` tags.
 - Fixed JavaScript captcha throwing a "modified form" browser warning.
+- Fixed form settings not updating when using Blitz caching.
+- Fixed element fields restricting values to only the default value.
 
 ## 1.3.23 - 2021-03-16
 
