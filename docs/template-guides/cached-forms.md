@@ -37,6 +37,9 @@ To get around this, you'll need to call `craft.formie.registerAssets()` outside 
 </html>
 ```
 
+### Refreshing CSRF Token
+Whilst the form will now be cached, this will cause issues with Formie's CSRF token, which is also cached. This needs to be unique per-request, so we need a method of being able to update this. Continue reading the next section for a more detailed explanation.
+
 ## Static Caching
 It's quite commonplace to implement full-page static caching on sites. For Craft, we highly recommend the [Blitz](https://plugins.craftcms.com/blitz) plugin, but you can use any number of methods to statically cache your pages. 
 

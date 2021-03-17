@@ -6,6 +6,7 @@ use verbb\formie\elements\Submission;
 use verbb\formie\base\Captcha;
 
 use Craft;
+use craft\helpers\Json;
 use craft\web\View;
 
 class Javascript extends Captcha
@@ -57,29 +58,48 @@ class Javascript extends Captcha
      */
     public function getFrontEndHtml(Form $form, $page = null): string
     {
-        $sessionId = $this->getSessionKey($form, $page);
+        $sessionKey = $this->getSessionKey($form, $page);
 
-        // Create the unique token 
-        $uniqueId = uniqid(self::JAVASCRIPT_INPUT_NAME . '_', false);
+        // Set the init time, if we need it
+        if ($this->minTime) {
+            Craft::$app->getSession()->set($sessionKey . '_init', time());
+        }
 
-        $value = Craft::$app->getSession()->get($sessionId);
+        return '<div class="formie-jscaptcha-placeholder"></div>';
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getFrontEndJsVariables(Form $form, $page = null)
+    {
+        $sessionKey = $this->getSessionKey($form, $page);
+
+        $value = Craft::$app->getSession()->get($sessionKey);
+
         if (!$value) {
             $value = uniqid();
         }
 
         // Save the generated input value so we can validate it properly. Also make it per-form
-        Craft::$app->getSession()->set($sessionId, $value);
+        Craft::$app->getSession()->set($sessionKey, $value);
 
-        // Set a hidden field with no value and use javascript to set it.
-        $output = '<input type="hidden" id="' . $uniqueId . '" name="' . $sessionId . '" />';
-        $output .= '<script>(function(){ document.getElementById("' . $uniqueId . '").value = "' . $value . '"; })();</script>';
+        $settings = [
+            'formId' => $form->getFormId(),
+            'sessionKey' => $sessionKey,
+        ];
 
-        // Set the init time, if we need it
-        if ($this->minTime) {
-            Craft::$app->getSession()->set($sessionId . '_init', time());
-        }
+        $src = Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/captchas/dist/js/javascript.js', true);
 
-        return $output;
+        // Add the JS value separately, so it's not cached in the form as settings
+        $js = 'window.Formie' . $sessionKey . '=' . Json::encode($value) . ';';
+        Craft::$app->getView()->registerJs($js, View::POS_END);
+
+        return [
+            'src' => $src,
+            'module' => 'FormieJSCaptcha',
+            'settings' => $settings,
+        ];
     }
 
     /**
@@ -96,7 +116,7 @@ class Javascript extends Captcha
         $jsset = Craft::$app->getRequest()->getParam($sessionId);
 
         // Compare the two - in case someone is being sneaky and just providing _any_ value for the captcha
-        if ($value !== $jsset) {   
+        if ($value !== $jsset) {
             return false;            
         }
 

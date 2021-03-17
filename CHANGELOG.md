@@ -2,9 +2,14 @@
 
 ## Unreleased
 
+### Changed
+- Refactor JavaScript captcha for more error-handling, support for cached forms and removal of inline `<script>` tags.
+
 ### Fixed
 - Fixed Date fields throwing an error when the default date set to "None" and rendering inputs or a dropdown.
-- Fixed Date fields always selecting the first option in the list, when set to dropdown. 
+- Fixed Date fields always selecting the first option in the list, when set to dropdown.
+- Fixed JavaScript captcha outputting inline `<script>` tags.
+- Fixed JavaScript captcha throwing a "modified form" browser warning.
 
 ## 1.3.23 - 2021-03-16
 

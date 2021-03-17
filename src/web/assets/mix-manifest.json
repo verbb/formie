@@ -2,11 +2,12 @@
     "/addressproviders/dist/js/address-finder.js": "/addressproviders/dist/js/address-finder.js?id=ac9bafc6b19e17ec40e7",
     "/addressproviders/dist/js/algolia-places.js": "/addressproviders/dist/js/algolia-places.js?id=76b2a1e63afd1a705091",
     "/addressproviders/dist/js/google-address.js": "/addressproviders/dist/js/google-address.js?id=2891dc15e8f418a16d33",
+    "/captchas/dist/js/javascript.js": "/captchas/dist/js/javascript.js?id=38f78be818a1497e6a1a",
     "/captchas/dist/js/recaptcha-v2-checkbox.js": "/captchas/dist/js/recaptcha-v2-checkbox.js?id=dcc4f41c1c9bdcad4b0b",
     "/captchas/dist/js/recaptcha-v2-invisible.js": "/captchas/dist/js/recaptcha-v2-invisible.js?id=6cc62d0c12b6842d513c",
     "/captchas/dist/js/recaptcha-v3.js": "/captchas/dist/js/recaptcha-v3.js?id=943dbb4dc2d26f761f9c",
-    "/cp/dist/js/formie-cp.js": "/cp/dist/js/formie-cp.js?id=ade6400f1dae766989f3",
-    "/cp/dist/js/integration-settings.js": "/cp/dist/js/integration-settings.js?id=2c31297d5da0d4161286",
+    "/cp/dist/js/formie-cp.js": "/cp/dist/js/formie-cp.js?id=af730c3fbb5652a84775",
+    "/cp/dist/js/integration-settings.js": "/cp/dist/js/integration-settings.js?id=fe4d4963910580be7978",
     "/forms/dist/js/main.js": "/forms/dist/js/main.js?id=a58c745b80ccde83ac5d",
     "/forms/dist/css/style.css": "/forms/dist/css/style.css?id=8f058d2e8f9ff2df7ff9",
     "/frontend/dist/css/formie-base.css": "/frontend/dist/css/formie-base.css?id=889b2aecb6c4427b54e9",
@@ -22,5 +23,5 @@
     "/frontend/dist/js/fields/table.js": "/frontend/dist/js/fields/table.js?id=1770f35326a268ee8b22",
     "/frontend/dist/js/fields/tags.js": "/frontend/dist/js/fields/tags.js?id=ccdb0c5e538029374c42",
     "/frontend/dist/js/fields/text-limit.js": "/frontend/dist/js/fields/text-limit.js?id=e5f8290ec1ff0e94b0c9",
-    "/frontend/dist/js/formie.js": "/frontend/dist/js/formie.js?id=e28ba53ec8cb3f233e07"
+    "/frontend/dist/js/formie.js": "/frontend/dist/js/formie.js?id=ba7a55cbf23feeb5f1d7"
 }

@@ -212,10 +212,12 @@ export class FormieFormTheme {
         var hash = {};
 
         var formData = new FormData(this.$form);
-        var excludedItems = ['g-recaptcha-response', 'CRAFT_CSRF_TOKEN'];
+        var excludedItems = ['g-recaptcha-response', 'CRAFT_CSRF_TOKEN', '__JSCHK'];
 
         for (var pair of formData.entries()) {
-            if (!excludedItems.includes(pair[0])) {
+            var isExcluded = excludedItems.filter(item => pair[0].startsWith(item));
+
+            if (!isExcluded.length) {
                 // eslint-disable-next-line
                 hash[pair[0]] = pair[1];
             }
