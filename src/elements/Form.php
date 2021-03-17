@@ -528,6 +528,19 @@ class Form extends Element
     }
 
     /**
+     * @inheritdoc
+     */
+    public function getDirtyAttributes(): array
+    {
+        // This is here to prompt Blitz that a change has been made on the form when it saves
+        // because the form settings don't use delta updates, which Blitz relies on. Keep an eye on
+        // what potential issues this might bring up...
+        $this->setDirtyAttributes(['title']);
+
+        return parent::getDirtyAttributes();
+    }
+
+    /**
      * @inheritDoc
      */
     public function getConfigJson()
