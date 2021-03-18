@@ -159,7 +159,6 @@ class VCita extends Crm
 
             if ($existingClient) {
                 $response = $this->deliverPayload($submission, "clients/{$existingClient}", $clientPayload, 'PUT');
-
             } else {
                 $response = $this->deliverPayload($submission, 'clients', $clientPayload);
             }
