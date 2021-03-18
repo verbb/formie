@@ -62,6 +62,16 @@
             warning: macros.configWarning('enableUnloadWarning', 'formie'),
         }) }}
 
+        {{ forms.textField({
+            label: 'Ajax Submission Timeout' | t('formie'),
+            instructions: 'Set the number of seconds to set the timeout for Ajax-based forms. This should only be adjusted for forms where a large timeout is expected, such as heavy use of file upload fields. This is also only applicable when using the Theme JS. Default to 10 seconds.' | t('formie'),
+            name: 'ajaxTimeout',
+            size: 4,
+            placeholder: 10,
+            errors: settings.getErrors('ajaxTimeout'),
+            warning: macros.configWarning('ajaxTimeout', 'formie'),
+        }) }}
+
         <hr>
 
         <h4>{{ 'General Fields' | t('formie') }}</h4>

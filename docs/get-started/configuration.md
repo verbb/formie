@@ -2,7 +2,7 @@
 
 Create an `formie.php` file under your `/config` directory with the following options available to you. You can also use multi-environment options to change these per environment.
 
-The below shows the defaults already used by Formie.
+The below shows the defaults already used by Formie, so you don't need to add these options unless you want to modify the values.
 
 ```php
 <?php
@@ -16,6 +16,7 @@ return [
         'defaultFormTemplate' => '',
         'defaultEmailTemplate' => '',
         'enableUnloadWarning' => true,
+        'ajaxTimeout' => 10,
 
         // General Fields
         'defaultLabelPosition' => 'above-input',
@@ -57,6 +58,7 @@ return [
 - `defaultFormTemplate` - The handle for the default form template used for new forms. Formie‘s defaults will be used if not specified.
 - `defaultEmailTemplate` - The handle for the default email template used for new forms. Formie's defaults will be used if not specified.
 - `enableUnloadWarning` - Whether front-end forms should trigger an "unload" warning when a form‘s content has changed and the user tries to navigate away without submitting.
+- `ajaxTimeout` - Set the timeout in seconds for Ajax/XHR requests when using the front-end JS. Default to 10 seconds.
 
 ### General Fields
 - `defaultLabelPosition` - The default label position for new forms and fields.

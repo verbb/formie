@@ -393,7 +393,7 @@ export class FormieFormTheme {
         xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
         xhr.setRequestHeader('Accept', 'application/json');
         xhr.setRequestHeader('Cache-Control', 'no-cache');
-        xhr.timeout = 10000; // 10s
+        xhr.timeout = (this.settings.ajaxTimeout || 10) * 1000;
 
         this.beforeSubmit();
 

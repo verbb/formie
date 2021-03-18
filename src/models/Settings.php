@@ -41,6 +41,7 @@ class Settings extends Model
     public $defaultFormTemplate = '';
     public $defaultEmailTemplate = '';
     public $enableUnloadWarning = true;
+    public $ajaxTimeout = 10;
 
     // General Fields
     public $defaultLabelPosition = AboveInput::class;

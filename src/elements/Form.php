@@ -999,6 +999,7 @@ class Form extends Element
             'currentPageId' => $this->getCurrentPage()->id ?? '',
             'outputJsTheme' => $this->getFrontEndTemplateOption('outputJsTheme'),
             'enableUnloadWarning' => $pluginSettings->enableUnloadWarning,
+            'ajaxTimeout' => $pluginSettings->ajaxTimeout,
         ];
 
         $registeredJs = [];
