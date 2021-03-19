@@ -146,8 +146,6 @@ class SubmissionsController extends Controller
     {
         $this->requirePostRequest();
 
-        $this->requirePermission('formie-editSubmissions');
-
         // Get the requested submission
         $request = Craft::$app->getRequest();
         $submissionId = $request->getBodyParam('submissionId');
@@ -168,6 +166,13 @@ class SubmissionsController extends Controller
         }
 
         $form = $submission->form;
+
+        // Check against permissions to save at all, or per-form
+        if (!Craft::$app->getUser()->checkPermission('formie-editSubmissions')) {
+            if (!Craft::$app->getUser()->checkPermission('formie-manageSubmission:' . $form->uid)) {
+                throw new ForbiddenHttpException('User is not permitted to perform this action');
+            }
+        }
 
         // Now populate the rest of it from the post data
         $submission->siteId = $siteId ?? $submission->siteId;
