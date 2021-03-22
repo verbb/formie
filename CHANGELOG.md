@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.3.25 - 2021-03-22
+
+### Added
+- Added “Ajax Submission Timeout” form setting to control the timeout for the XHR request, for Ajax-based forms, using the Theme JS..
+
+### Fixed
+- Fixed Agile CRM integration not updating existing contacts correctly.
+- Fixed Sendinblue integration not subscribing users to the chosen list.
+- Fixed an error when saving a submission in the control panel with a user with restricted permissions.
+
 ## 1.3.24 - 2021-03-18
 
 ### Changed
