@@ -3,7 +3,7 @@
 ## 1.3.25 - 2021-03-22
 
 ### Added
-- Added “Ajax Submission Timeout” form setting to control the timeout for the XHR request, for Ajax-based forms, using the Theme JS..
+- Added “Ajax Submission Timeout” form setting to control the timeout for the XHR request, for Ajax-based forms, using the Theme JS.
 
 ### Fixed
 - Fixed Agile CRM integration not updating existing contacts correctly.
