@@ -25,7 +25,7 @@
                     class: [ 'fui-input' ],
                     name: 'date' | namespaceInputName(field.handle),
                     required: field.required ? true : false,
-                    value: value ? (value | date('Y-m-d')) : null,
+                    value: value ? (value | date('Y-m-d', false)) : null,
                     data: {
                         'fui-message': field.settings.errorMessage | t,
                     },
@@ -66,7 +66,7 @@
                         class: [ 'fui-input' ],
                         name: 'time' | namespaceInputName(field.handle),
                         required: field.required ? true : false,
-                        value: value ? (value | date('H:i')) : null,
+                        value: value ? (value | date('H:i', false)) : null,
                         data: {
                             'fui-message': field.settings.errorMessage | t,
                         },
