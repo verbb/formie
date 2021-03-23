@@ -31,7 +31,7 @@ class AddressInputType extends InputObjectType
 
         $fields = [];
 
-        $subFields = ['address1', 'address2', 'address3', 'city', 'state', 'zip', 'country'];
+        $subFields = ['autocomplete', 'address1', 'address2', 'address3', 'city', 'state', 'zip', 'country'];
 
         foreach ($subFields as $subField) {
             $required = $subField . 'Required';
@@ -69,6 +69,7 @@ class AddressInputType extends InputObjectType
         }
 
         $addressModel = new AddressModel();
+        $addressModel->autocomplete = $value['autocomplete'] ?? null;
         $addressModel->address1 = $value['address1'] ?? null;
         $addressModel->address2 = $value['address2'] ?? null;
         $addressModel->address3 = $value['address3'] ?? null;
