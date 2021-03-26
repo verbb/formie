@@ -191,8 +191,9 @@ class Scoro extends Crm
             $contactId = $response['data']['contact_id'] ?? '';
 
             if (!$contactId) {
-                Integration::error($this, Craft::t('formie', 'Missing return “contactId” {response}', [
+                Integration::error($this, Craft::t('formie', 'Missing return “contactId” {response}. Sent payload {payload}', [
                     'response' => Json::encode($response),
+                    'payload' => Json::encode($contactPayload),
                 ]), true);
 
                 return false;

@@ -328,8 +328,9 @@ class Freshdesk extends Crm
                 $contactId = $response['id'] ?? '';
 
                 if (!$contactId) {
-                    Integration::error($this, Craft::t('formie', 'Missing return “contactId” {response}', [
+                    Integration::error($this, Craft::t('formie', 'Missing return “contactId” {response}. Sent payload {payload}', [
                         'response' => Json::encode($response),
+                        'payload' => Json::encode($contactPayload),
                     ]), true);
 
                     return false;
@@ -365,8 +366,9 @@ class Freshdesk extends Crm
             $ticketId = $response['id'] ?? '';
 
             if (!$ticketId) {
-                Integration::error($this, Craft::t('formie', 'Missing return “ticketId” {response}', [
+                Integration::error($this, Craft::t('formie', 'Missing return “ticketId” {response}. Sent payload {payload}', [
                     'response' => Json::encode($response),
+                    'payload' => Json::encode($ticketPayload),
                 ]), true);
 
                 return false;

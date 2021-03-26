@@ -251,8 +251,9 @@ class Zoho extends Crm
                 $contactId = $response['data'][0]['details']['id'] ?? '';
 
                 if (!$contactId) {
-                    Integration::error($this, Craft::t('formie', 'Missing return “contactId” {response}', [
+                    Integration::error($this, Craft::t('formie', 'Missing return “contactId” {response}. Sent payload {payload}', [
                         'response' => Json::encode($response),
+                        'payload' => Json::encode($contactPayload),
                     ]), true);
 
                     return false;
@@ -274,8 +275,9 @@ class Zoho extends Crm
                 $accountId = $response['data'][0]['details']['id'] ?? '';
 
                 if (!$accountId) {
-                    Integration::error($this, Craft::t('formie', 'Missing return “accountId” {response}', [
+                    Integration::error($this, Craft::t('formie', 'Missing return “accountId” {response}. Sent payload {payload}', [
                         'response' => Json::encode($response),
+                        'payload' => Json::encode($accountPayload),
                     ]), true);
 
                     return false;
@@ -296,8 +298,9 @@ class Zoho extends Crm
                 $dealId = $response['data'][0]['details']['id'] ?? '';
 
                 if (!$dealId) {
-                    Integration::error($this, Craft::t('formie', 'Missing return “dealId” {response}', [
+                    Integration::error($this, Craft::t('formie', 'Missing return “dealId” {response}. Sent payload {payload}', [
                         'response' => Json::encode($response),
+                        'payload' => Json::encode($dealPayload),
                     ]), true);
 
                     return false;
@@ -333,8 +336,9 @@ class Zoho extends Crm
                 $leadId = $response['data'][0]['details']['id'] ?? '';
 
                 if (!$leadId) {
-                    Integration::error($this, Craft::t('formie', 'Missing return “leadId” {response}', [
+                    Integration::error($this, Craft::t('formie', 'Missing return “leadId” {response}. Sent payload {payload}', [
                         'response' => Json::encode($response),
+                        'payload' => Json::encode($leadPayload),
                     ]), true);
 
                     return false;

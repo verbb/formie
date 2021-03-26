@@ -403,8 +403,9 @@ class Agile extends Crm
                 $contactId = $response['id'] ?? '';
 
                 if (!$contactId) {
-                    Integration::error($this, Craft::t('formie', 'Missing return “contactId” {response}', [
+                    Integration::error($this, Craft::t('formie', 'Missing return “contactId” {response}. Sent payload {payload}', [
                         'response' => Json::encode($response),
+                        'payload' => Json::encode($contactPayload),
                     ]), true);
 
                     return false;
@@ -429,8 +430,9 @@ class Agile extends Crm
                 $dealId = $response['id'] ?? '';
 
                 if (!$dealId) {
-                    Integration::error($this, Craft::t('formie', 'Missing return “dealId” {response}', [
+                    Integration::error($this, Craft::t('formie', 'Missing return “dealId” {response}. Sent payload {payload}', [
                         'response' => Json::encode($response),
+                        'payload' => Json::encode($dealPayload),
                     ]), true);
 
                     return false;
@@ -459,8 +461,9 @@ class Agile extends Crm
                 $taskId = $response['id'] ?? '';
 
                 if (!$taskId) {
-                    Integration::error($this, Craft::t('formie', 'Missing return “taskId” {response}', [
+                    Integration::error($this, Craft::t('formie', 'Missing return “taskId” {response}. Sent payload {payload}', [
                         'response' => Json::encode($response),
+                        'payload' => Json::encode($taskPayload),
                     ]), true);
 
                     return false;

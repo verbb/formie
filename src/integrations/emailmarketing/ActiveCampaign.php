@@ -142,8 +142,9 @@ class ActiveCampaign extends EmailMarketing
             $contactId = $response['contact']['id'] ?? '';
 
             if (!$contactId) {
-                Integration::error($this, Craft::t('formie', 'Missing return “contactId” {response}', [
+                Integration::error($this, Craft::t('formie', 'Missing return “contactId” {response}. Sent payload {payload}', [
                     'response' => Json::encode($response),
+                    'payload' => Json::encode($payload),
                 ]), true);
 
                 return false;

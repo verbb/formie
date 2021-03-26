@@ -178,8 +178,9 @@ class IContact extends EmailMarketing
             $contactId = $response['contacts'][0]['contactId'] ?? '';
 
             if (!$contactId) {
-                Integration::error($this, Craft::t('formie', 'API error: “{response}”', [
+                Integration::error($this, Craft::t('formie', 'API error: “{response}”. Sent payload {payload}', [
                     'response' => Json::encode($response),
+                    'payload' => Json::encode($payload),
                 ]), true);
 
                 return false;
@@ -203,8 +204,9 @@ class IContact extends EmailMarketing
             $failed = $response['failed'] ?? [];
 
             if ($failed) {
-                Integration::error($this, Craft::t('formie', 'API error: “{response}”', [
+                Integration::error($this, Craft::t('formie', 'API error: “{response}”. Sent payload {payload}', [
                     'response' => Json::encode($response),
+                    'payload' => Json::encode($payload),
                 ]), true);
 
                 return false;

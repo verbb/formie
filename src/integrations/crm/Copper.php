@@ -527,8 +527,9 @@ class Copper extends Crm
                 $peopleId = $response['id'] ?? '';
 
                 if (!$peopleId) {
-                    Integration::error($this, Craft::t('formie', 'Missing return “peopleId” {response}', [
+                    Integration::error($this, Craft::t('formie', 'Missing return “peopleId” {response}. Sent payload {payload}', [
                         'response' => Json::encode($response),
+                        'payload' => Json::encode($peoplePayload),
                     ]), true);
 
                     return false;
@@ -549,8 +550,9 @@ class Copper extends Crm
                 $leadId = $response['id'] ?? '';
 
                 if (!$peopleId) {
-                    Integration::error($this, Craft::t('formie', 'Missing return “leadId” {response}', [
+                    Integration::error($this, Craft::t('formie', 'Missing return “leadId” {response}. Sent payload {payload}', [
                         'response' => Json::encode($response),
+                        'payload' => Json::encode($leadPayload),
                     ]), true);
 
                     return false;
@@ -575,8 +577,9 @@ class Copper extends Crm
                 $opportunityId = $response['id'] ?? '';
 
                 if (!$opportunityId) {
-                    Integration::error($this, Craft::t('formie', 'Missing return “opportunityId” {response}', [
+                    Integration::error($this, Craft::t('formie', 'Missing return “opportunityId” {response}. Sent payload {payload}', [
                         'response' => Json::encode($response),
+                        'payload' => Json::encode($opportunityPayload),
                     ]), true);
 
                     return false;
@@ -597,8 +600,9 @@ class Copper extends Crm
                 $taskId = $response['id'] ?? '';
 
                 if (!$taskId) {
-                    Integration::error($this, Craft::t('formie', 'Missing return “taskId” {response}', [
+                    Integration::error($this, Craft::t('formie', 'Missing return “taskId” {response}. Sent payload {payload}', [
                         'response' => Json::encode($response),
+                        'payload' => Json::encode($taskPayload),
                     ]), true);
 
                     return false;
