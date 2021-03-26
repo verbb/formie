@@ -49,10 +49,12 @@ class Phone extends Model
             } catch (NumberParseException $e) {
                 if ($this->number) {
                     return '(' . $this->country . ') ' . (string)$this->number;
-                } else {
+                } else if ($this->country) {
                     return Craft::t('formie', '({country}) Not provided.', [
                         'country' => $this->country,
                     ]);
+                } else {
+                    return '';
                 }
             }
         } else {
