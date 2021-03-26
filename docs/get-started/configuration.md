@@ -45,7 +45,7 @@ return [
 
         // Alerts
         'sendEmailAlerts' => false,
-        'alertEmails',
+        'alertEmails' => [],
     ]
 ];
 ```
@@ -87,11 +87,21 @@ return [
 
 ### Alerts
 - `sendEmailAlerts` - Whether an email alert should be sent to a nominated email when an email notification fails to send.
-- `alertEmails` - A collection of emails that alerts should be sent to.
+- `alertEmails` - A collection of emails that alerts should be sent to. See below for an example.
 
 ## Control Panel
 
 You can also manage configuration settings through the Control Panel by visiting Settings → Formie.
+
+### Alerts Configuration
+Supply a nested array for the name and email of each contact to receive alert notifications. The first index should contain the name, with the second index the email address.
+
+```php
+'alertEmails' => [
+    ['Primary Name', 'admin@site.com'],
+    ['Secondary Admin Name', 'admin-alt@site.com'],
+],
+```
 
 ## Rich Text Configuration
 Formie uses a Rich Text field for numerous settings for forms, notifications and more. This field is powered by [TipTap](https://tiptap.scrumpy.io/). You have control over the configuration of these Rich Text fields, by providing a `.json` file with its configurations, very similar to how the [Redactor](https://plugins.craftcms.com/redactor) plugin works.
