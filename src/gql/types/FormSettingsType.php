@@ -3,6 +3,7 @@ namespace verbb\formie\gql\types;
 
 use craft\gql\base\ObjectType;
 use craft\gql\GqlEntityRegistry;
+use craft\helpers\Json;
 
 use GraphQL\Type\Definition\Type;
 
@@ -115,6 +116,14 @@ class FormSettingsType extends ObjectType
                     'name' => 'progressPosition',
                     'type' => Type::string(),
                     'description' => 'The form’s progress bar position.'
+                ],
+                'integrations' => [
+                    'name' => 'integrations',
+                    'type' => Type::listOf(FormIntegrationsType::getType()),
+                    'description' => 'The form’s integrations.',
+                    'resolve' => function ($source, $arguments) {
+                        return $source->getEnabledIntegrations();
+                    },
                 ],
             ],
         ]));

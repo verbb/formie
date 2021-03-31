@@ -172,6 +172,18 @@ This is the interface implemented by all forms.
 | `defaultLabelPosition`| `String` | The form’s default label position for fields.
 | `defaultInstructionsPosition`| `String` | The form’s default instructions position for fields.
 | `progressPosition`| `String` | The form’s progress bar position.
+| `integrations`| `[FormIntegrationsInterface]` | The form’s enabled integrations.
+
+
+### The `FormIntegrationsInterface` interface
+This is the interface implemented by all form integrations.
+
+| Field | Type | Description
+| - | - | -
+| `name`| `String` | The integration’s name.
+| `handle`| `String` | The integration’s handle.
+| `enabled`| `Boolean` | Whether the integration is enabled.
+| `settings`| `String` | The integration’s settings as a JSON string.
 
 
 ### The `PageInterface` interface
