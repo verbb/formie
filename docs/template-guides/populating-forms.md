@@ -13,6 +13,10 @@ When rendering a form, you might like to populate the values of a field with som
 {{ craft.formie.renderForm('contactForm') }}
 ```
 
+:::tip
+Looking to update or override settings for the field before they're rendered? Look at [Override Field Settings](docs:template-guides/rendering-fields#override-field-settings). This includes setting available options for Dropdown, Checkbox, Radio and similar fields.
+::
+
 ### Element Fields
 For some element fields (Entries, Categories, Tags, Users, Products, Variants), you'll need to supply the value of an element query, instead of just the ID of the element you want to populate. For example, for an Entries field:
 
