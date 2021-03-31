@@ -5,7 +5,6 @@ use verbb\formie\Formie;
 use verbb\formie\base\NestedFieldInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
-use verbb\formie\events\EmailEvent;
 use verbb\formie\events\MailEvent;
 use verbb\formie\fields\formfields\FileUpload;
 use verbb\formie\helpers\Variables;
@@ -275,6 +274,8 @@ class Emails extends Component
         try {
             $event = new MailEvent([
                 'email' => $newEmail,
+                'notification' => $notification,
+                'submission' => $submission,
             ]);
             $this->trigger(self::EVENT_BEFORE_SEND_MAIL, $event);
 
@@ -320,6 +321,8 @@ class Emails extends Component
         if ($this->hasEventHandlers(self::EVENT_AFTER_SEND_MAIL)) {
             $this->trigger(self::EVENT_AFTER_SEND_MAIL, new MailEvent([
                 'email' => $newEmail,
+                'notification' => $notification,
+                'submission' => $submission,
             ]));
         }
 

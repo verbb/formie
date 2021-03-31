@@ -711,6 +711,8 @@ use yii\base\Event;
 
 Event::on(Emails::class, Emails::EVENT_AFTER_SEND_MAIL, function(Event $event) {
     $email = $event->email;
+    $submission = $event->submission;
+    $notification = $event->notification;
     // ...
 });
 ```
