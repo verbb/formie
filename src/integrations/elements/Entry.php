@@ -9,6 +9,7 @@ use verbb\formie\elements\Submission;
 use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
+use verbb\formie\models\IntegrationResponse;
 
 use Craft;
 use craft\base\Element as CraftElement;
@@ -211,8 +212,8 @@ class Entry extends Element
     public function sendPayload(Submission $submission)
     {
         if (!$this->entryTypeId) {
-            Formie::error('Unable to save element integration. No `entryTypeId`.');
-
+            Integration::error(Craft::t('formie', 'Unable to save element integration. No `entryTypeId`.'), true);
+            
             return false;
         }
 
@@ -251,10 +252,10 @@ class Entry extends Element
                     $entry->setScenario(CraftElement::SCENARIO_ESSENTIALS);
                     
                     if (!Craft::$app->getDrafts()->saveElementAsDraft($entry, $authorId)) {
-                        Formie::error(Craft::t('formie', 'Unable to save “{type}” draft element integration. Error: {error}.', [
+                        Integration::error(Craft::t('formie', 'Unable to save “{type}” draft element integration. Error: {error}.', [
                             'type' => $this->handle,
                             'error' => Json::encode($entry->getErrors()),
-                        ]));
+                        ]), true);
                         
                         return false;
                     }
@@ -267,19 +268,19 @@ class Entry extends Element
             }
 
             if (!$entry->validate()) {
-                Formie::error(Craft::t('formie', 'Unable to validate “{type}” element integration. Error: {error}.', [
+                Integration::error($this, Craft::t('formie', 'Unable to validate “{type}” element integration. Error: {error}.', [
                     'type' => $this->handle,
                     'error' => Json::encode($entry->getErrors()),
-                ]));
+                ]), true);
 
                 return false;
             }
 
             if (!Craft::$app->getElements()->saveElement($entry)) {
-                Formie::error(Craft::t('formie', 'Unable to save “{type}” element integration. Error: {error}.', [
+                Integration::error(Craft::t('formie', 'Unable to save “{type}” element integration. Error: {error}.', [
                     'type' => $this->handle,
                     'error' => Json::encode($entry->getErrors()),
-                ]));
+                ]), true);
                 
                 return false;
             }
@@ -293,7 +294,7 @@ class Entry extends Element
 
             Formie::error($error);
 
-            return false;
+            return new IntegrationResponse(false, $error);
         }
 
         return true;

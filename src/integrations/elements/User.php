@@ -9,6 +9,7 @@ use verbb\formie\elements\Submission;
 use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
+use verbb\formie\models\IntegrationResponse;
 
 use Craft;
 use craft\elements\User as UserElement;
@@ -206,19 +207,19 @@ class User extends Element
             $user->setFieldValues($fieldValues);
 
             if (!$user->validate()) {
-                Formie::error(Craft::t('formie', 'Unable to validate “{type}” element integration. Error: {error}.', [
+                Integration::error(Craft::t('formie', 'Unable to validate “{type}” element integration. Error: {error}.', [
                     'type' => $this->handle,
                     'error' => Json::encode($user->getErrors()),
-                ]));
+                ]), true);
 
                 return false;
             }
 
             if (!Craft::$app->getElements()->saveElement($user)) {
-                Formie::error(Craft::t('formie', 'Unable to save “{type}” element integration. Error: {error}.', [
+                Integration::error(Craft::t('formie', 'Unable to save “{type}” element integration. Error: {error}.', [
                     'type' => $this->handle,
                     'error' => Json::encode($user->getErrors()),
-                ]));
+                ]), true);
                 
                 return false;
             }
@@ -247,10 +248,10 @@ class User extends Element
                 $submission->setFieldValue($passwordFieldHandle, '');
             
                 if (!Craft::$app->getElements()->saveElement($submission, false)) {
-                    Formie::error(Craft::t('formie', 'Unable to save “{type}” element integration. Error: {error}.', [
+                    Integration::error(Craft::t('formie', 'Unable to save “{type}” element integration. Error: {error}.', [
                         'type' => $this->handle,
                         'error' => Json::encode($submission->getErrors()),
-                    ]));
+                    ]), true);
                     
                     return false;
                 }
@@ -266,7 +267,7 @@ class User extends Element
 
             Formie::error($error);
 
-            return false;
+            return new IntegrationResponse(false, $error);
         }
 
         return true;
