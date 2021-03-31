@@ -99,4 +99,18 @@ You can also dynamically override any settings for the field.
 {{ craft.formie.renderForm(form) }}
 ```
 
-The above would override the name (label) setting for the field with a handle of `plainText`, regardless of what is defined in the field's settings. See the [Field Settings](docs:developers/field) docs for a full list of available settings to override.
+The above would override the name (label) setting for the field with a handle of `plainText`, regardless of what is defined in the field's settings. 
+
+Or, you could override the options available for a Dropdown field.
+
+```twig
+{% do form.setFieldSettings('dropdownField', {
+    {# Override the options for the field #}
+    options: [
+        { label: 'Override One', value: 'override-one', isDefault: false },
+        { label: 'Override Two', value: 'override-two', isDefault: false },
+    ],
+}) %}
+```
+
+See the [Field Settings](docs:developers/field) docs for a full list of available settings to override.
