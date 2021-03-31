@@ -135,6 +135,10 @@ class SubmissionResolver extends ElementMutationResolver
             throw new Error('Unable to save submission: ' . Json::encode($submission->getErrors()));
         }
 
+        if (!$submission->id) {
+            throw new Error('Unable to save submission ' . $submission->id . ': ' . Json::encode($submission->getErrors()));
+        }
+
         return $elementService->getElementById($submission->id, Submission::class, $submission->siteId);
     }
 
