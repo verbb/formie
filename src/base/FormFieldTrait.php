@@ -373,6 +373,14 @@ trait FormFieldTrait
     /**
      * @inheritDoc
      */
+    public function getIsCosmetic(): bool
+    {
+        return false;
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function getExtraBaseFieldConfig(): array
     {
         return [];

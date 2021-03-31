@@ -459,6 +459,7 @@ class Fields extends Component
         $config['hasError'] = (bool)$field->getErrors();
         $config['settings'] = $field->getSavedSettings();
         $config['isTextInput'] = $field->getIsTextInput();
+        $config['isCosmetic'] = $field->getIsCosmetic();
 
         // Indicates whether the field is currently synced to another field.
         $config['isSynced'] = Formie::$plugin->getSyncs()->isSynced($field);

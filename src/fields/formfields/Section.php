@@ -55,6 +55,14 @@ class Section extends FormField
     /**
      * @inheritDoc
      */
+    public function getIsCosmetic(): bool
+    {
+        return true;
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function renderLabel(): bool
     {
         return false;
