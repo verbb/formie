@@ -2,7 +2,7 @@
 
 ## 1.3.26 - 2021-04-02
 
--### Added
+### Added
  Added `autocomplete` option to Address field, for use in GraphQL.
 - Added payload info to integration logging.
 - Added `FormIntegrationsInterface` for GraphQL, to return information of integrations for a form.
