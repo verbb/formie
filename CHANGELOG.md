@@ -1,5 +1,30 @@
 # Changelog
 
+## 1.3.26 - 2021-04-02
+
+-### Added
+ Added `autocomplete` option to Address field, for use in GraphQL.
+- Added payload info to integration logging.
+- Added `FormIntegrationsInterface` for GraphQL, to return information of integrations for a form.
+- Added `notification` and `submission` properties to `Emails::EVENT_AFTER_SEND_MAIL`.
+- Added `siteId` as a mappable attributes for entry element integrations.
+- Added support for entry element integrations to have the entry `siteId` attribute set to the same site the submission is made on, by default.
+
+### Changed
+- Improve element integration error logging.
+- Disable Section and HTML fields from being able to be used in integration mapping (they do nothing).
+
+### Fixed
+- Fixed incorrect validation message for Time field in Date field, complaining about 24-hour values.
+- Fixed Time field for Date fields incorrectly converting time values to site timezone.
+- Fixed multi-line fields with rich text set, not rendering raw HTML in email notifications.
+- Fixed Phone field values potentially returning an invalid value, when no value provided.
+- Fixed an error (not firing) for a failed submission through GraphQL mutations.
+- Fixed GraphQL mutations permissions for submissions.
+- Fixed entry element integration not working correctly for entry types with dynamic title.
+- Fixed an error when trying to parse Checkboxes and Multi-Dropdown fields for spam-checks.
+- Fixed error when trying to output Checkboxes and Multi-Dropdown fields in email notifications.
+
 ## 1.3.25 - 2021-03-22
 
 ### Added
