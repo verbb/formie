@@ -121,6 +121,10 @@ class Entry extends Element
                 'handle' => 'title',
             ]),
             new IntegrationField([
+                'name' => Craft::t('app', 'Site ID'),
+                'handle' => 'siteId',
+            ]),
+            new IntegrationField([
                 'name' => Craft::t('app', 'Slug'),
                 'handle' => 'slug',
             ]),
