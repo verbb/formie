@@ -23,6 +23,7 @@ use craft\db\Query;
 use craft\elements\db\ElementQuery;
 use craft\events\DefineUserContentSummaryEvent;
 use craft\events\ModelEvent;
+use craft\fields\data\MultiOptionsFieldData;
 use craft\helpers\Console;
 use craft\helpers\Json;
 
@@ -555,6 +556,10 @@ class Submissions extends Component
 
                     if ($value instanceof ElementQuery) {
                         $value = $value->one();
+                    }
+
+                    if ($value instanceof MultiOptionsFieldData) {
+                        $value = implode(' ', $value->getOptions());
                     }
 
                     $fieldValues[] = (string)$value;
