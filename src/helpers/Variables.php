@@ -13,6 +13,7 @@ use verbb\formie\models\Notification;
 use Craft;
 use craft\errors\SiteNotFoundException;
 use craft\fields\BaseRelationField;
+use craft\fields\data\MultiOptionsFieldData;
 use craft\helpers\App;
 
 use DateTime;
@@ -419,6 +420,8 @@ class Variables
             $values["{$prefix}{$field->handle}"] = $parsedContent;
         } else if ($field instanceof MultiLineText) {
             $values["{$prefix}{$field->handle}"] = $parsedContent;
+        } else if ($submissionValue instanceof MultiOptionsFieldData) {
+            $values["{$prefix}{$field->handle}"] = implode(', ', $submissionValue->getOptions());
         } else {
             // Try to convert as a simple string value, if not, fall back on email template
             try {
