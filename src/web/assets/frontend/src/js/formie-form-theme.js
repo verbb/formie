@@ -184,6 +184,16 @@ export class FormieFormTheme {
         // Stop base behaviour of just submitting the form
         e.preventDefault();
 
+        // Check if the submit button has a `name` attribute. If so, we need to append a hidden input
+        // to the form, as JS-submitted forms won't pass on the submit button value as its programatically submitted.
+        if (this.$submitBtn && this.$submitBtn.getAttribute('name')) {
+            const name = this.$submitBtn.getAttribute('name');
+            const value = this.$submitBtn.getAttribute('value');
+
+            // Add a hidden input, if it doesn't exist
+            this.updateOrCreateHiddenInput(name, value);
+        }
+
         // Either staight submit, or use Ajax
         if (this.settings.submitMethod === 'ajax') {
             this.ajaxSubmit();
@@ -535,16 +545,20 @@ export class FormieFormTheme {
         }
 
         // Add the hidden submission input, if it doesn't exist
-        var $input = this.$form.querySelector('[name="submissionId"][type="hidden"]');
+        this.updateOrCreateHiddenInput('submissionId', data.submissionId);
+    }
+
+    updateOrCreateHiddenInput(name, value) {
+        var $input = this.$form.querySelector('[name="' + name + '"][type="hidden"]');
 
         if (!$input) {
             $input = document.createElement('input');
             $input.setAttribute('type', 'hidden');
-            $input.setAttribute('name', 'submissionId');
+            $input.setAttribute('name', name);
             this.$form.appendChild($input);
         }
 
-        $input.setAttribute('value', data.submissionId);
+        $input.setAttribute('value', value);
     }
 
     togglePage(data) {
