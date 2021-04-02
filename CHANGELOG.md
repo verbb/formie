@@ -3,7 +3,7 @@
 ## 1.3.26 - 2021-04-02
 
 ### Added
- Added `autocomplete` option to Address field, for use in GraphQL.
+- Added `autocomplete` option to Address field, for use in GraphQL.
 - Added payload info to integration logging.
 - Added `FormIntegrationsInterface` for GraphQL, to return information of integrations for a form.
 - Added `notification` and `submission` properties to `Emails::EVENT_AFTER_SEND_MAIL`.
