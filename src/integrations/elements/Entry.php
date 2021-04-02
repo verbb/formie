@@ -225,6 +225,7 @@ class Entry extends Element
             $entryType = Craft::$app->getSections()->getEntryTypeById($this->entryTypeId);
 
             $entry = $this->getElementForPayload(EntryElement::class, $submission);
+            $entry->siteId = $submission->siteId;
             $entry->typeId = $entryType->id;
             $entry->sectionId = $entryType->sectionId;
 
