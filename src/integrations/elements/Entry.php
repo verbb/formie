@@ -242,6 +242,7 @@ class Entry extends Element
             $fieldValues = array_filter($fieldValues);
 
             $entry->setFieldValues($fieldValues);
+            $entry->updateTitle();
 
             // Check if we need to create a new draft
             if ($this->createDraft) {
