@@ -95,68 +95,85 @@ class Fields extends Component
     {
         $registeredFields = $this->getRegisteredFields();
 
-        $elementFields = [
+        $internalFields = array_filter([
+            ArrayHelper::remove($registeredFields, formfields\MissingField::class),
+        ]);
+
+        $commonFields = array_filter([
+            ArrayHelper::remove($registeredFields, formfields\SingleLineText::class),
+            ArrayHelper::remove($registeredFields, formfields\MultiLineText::class),
+            ArrayHelper::remove($registeredFields, formfields\Radio::class),
+            ArrayHelper::remove($registeredFields, formfields\Checkboxes::class),
+            ArrayHelper::remove($registeredFields, formfields\Dropdown::class),
+            ArrayHelper::remove($registeredFields, formfields\Number::class),
+            ArrayHelper::remove($registeredFields, formfields\Name::class),
+            ArrayHelper::remove($registeredFields, formfields\Email::class),
+            ArrayHelper::remove($registeredFields, formfields\Phone::class),
+            ArrayHelper::remove($registeredFields, formfields\Agree::class),
+        ]);
+
+        $advancedFields = array_filter([
+            ArrayHelper::remove($registeredFields, formfields\Date::class),
+            ArrayHelper::remove($registeredFields, formfields\Address::class),
+            ArrayHelper::remove($registeredFields, formfields\FileUpload::class),
+            ArrayHelper::remove($registeredFields, formfields\Recipients::class),
+            ArrayHelper::remove($registeredFields, formfields\Hidden::class),
+            ArrayHelper::remove($registeredFields, formfields\Repeater::class),
+            ArrayHelper::remove($registeredFields, formfields\Table::class),
+            ArrayHelper::remove($registeredFields, formfields\Group::class),
+            ArrayHelper::remove($registeredFields, formfields\Heading::class),
+            ArrayHelper::remove($registeredFields, formfields\Section::class),
+            ArrayHelper::remove($registeredFields, formfields\Html::class),
+        ]);
+
+        $elementFields = array_filter([
             ArrayHelper::remove($registeredFields, formfields\Entries::class),
             ArrayHelper::remove($registeredFields, formfields\Categories::class),
             ArrayHelper::remove($registeredFields, formfields\Tags::class),
-        ];
+        ]);
 
         if (Craft::$app->getEdition() === Craft::Pro) {
-            $elementFields = array_merge($elementFields, [
+            $elementFields = array_merge($elementFields, array_filter([
                 ArrayHelper::remove($registeredFields, formfields\Users::class),
-            ]);
+            ]));
         }
 
         if (Formie::$plugin->getService()->isPluginInstalledAndEnabled('commerce')) {
-            $elementFields = array_merge($elementFields, [
+            $elementFields = array_merge($elementFields, array_filter([
                 ArrayHelper::remove($registeredFields, formfields\Products::class),
                 ArrayHelper::remove($registeredFields, formfields\Variants::class),
-            ]);
+            ]));
         }
 
-        $groupedFields = [
-            [
+        $groupedFields = [];
+
+        if ($internalFields) {
+            $groupedFields[] = [
                 'label' => Craft::t('formie', 'Internal'),
-                'fields' => [
-                    ArrayHelper::remove($registeredFields, formfields\MissingField::class),
-                ],
-            ],
-            [
+                'fields' => $internalFields,
+            ];
+        }
+
+        if ($commonFields) {
+            $groupedFields[] = [
                 'label' => Craft::t('formie', 'Common Fields'),
-                'fields' => [
-                    ArrayHelper::remove($registeredFields, formfields\SingleLineText::class),
-                    ArrayHelper::remove($registeredFields, formfields\MultiLineText::class),
-                    ArrayHelper::remove($registeredFields, formfields\Radio::class),
-                    ArrayHelper::remove($registeredFields, formfields\Checkboxes::class),
-                    ArrayHelper::remove($registeredFields, formfields\Dropdown::class),
-                    ArrayHelper::remove($registeredFields, formfields\Number::class),
-                    ArrayHelper::remove($registeredFields, formfields\Name::class),
-                    ArrayHelper::remove($registeredFields, formfields\Email::class),
-                    ArrayHelper::remove($registeredFields, formfields\Phone::class),
-                    ArrayHelper::remove($registeredFields, formfields\Agree::class),
-                ],
-            ],
-            [
+                'fields' => $commonFields,
+            ];
+        }
+
+        if ($advancedFields) {
+            $groupedFields[] = [
                 'label' => Craft::t('formie', 'Advanced Fields'),
-                'fields' => [
-                    ArrayHelper::remove($registeredFields, formfields\Date::class),
-                    ArrayHelper::remove($registeredFields, formfields\Address::class),
-                    ArrayHelper::remove($registeredFields, formfields\FileUpload::class),
-                    ArrayHelper::remove($registeredFields, formfields\Recipients::class),
-                    ArrayHelper::remove($registeredFields, formfields\Hidden::class),
-                    ArrayHelper::remove($registeredFields, formfields\Repeater::class),
-                    ArrayHelper::remove($registeredFields, formfields\Table::class),
-                    ArrayHelper::remove($registeredFields, formfields\Group::class),
-                    ArrayHelper::remove($registeredFields, formfields\Heading::class),
-                    ArrayHelper::remove($registeredFields, formfields\Section::class),
-                    ArrayHelper::remove($registeredFields, formfields\Html::class),
-                ],
-            ],
-            [
+                'fields' => $advancedFields,
+            ];
+        }
+
+        if ($elementFields) {
+            $groupedFields[] = [
                 'label' => Craft::t('formie', 'Element Fields'),
                 'fields' => $elementFields,
-            ],
-        ];
+            ];
+        }
 
         // Any custom fields
         if ($registeredFields) {
@@ -251,6 +268,10 @@ class Fields extends Component
         ]);
 
         $this->trigger(self::EVENT_REGISTER_FIELDS, $event);
+
+        // Missing Field cannot be removed
+        $event->fields[] = formfields\MissingField::class;
+        $event->fields = array_unique($event->fields);
 
         foreach ($event->fields as $class) {
             $this->_fields[$class] = new $class;
@@ -787,7 +808,7 @@ class Fields extends Component
             $config['expectedType'] = $config['type'];
             unset($config['type']);
 
-            $field = new MissingField($config);
+            $field = new formfields\MissingField($config);
         }
 
         return $field;
