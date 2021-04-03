@@ -342,9 +342,13 @@ class Rendering extends Component
     {
         return $this->_getTranslatedStrings([
             'File {filename} must be smaller than {filesize} MB.',
+            'File must be smaller than {filesize} MB.',
+            'File must be larger than {filesize} MB.',
             'Choose up to {files} files.',
+            '{num} characters left',
+            '{num} words left',
 
-            // Error messages
+            // Field validation messages
             'This field is required.',
             'Please select a value.',
             'Please select a value.',
@@ -362,8 +366,12 @@ class Rendering extends Component
             'Please select a value that is no less than {min}.',
             'Please shorten this text to no more than {maxLength} characters. You are currently using {length} characters.',
             'Please lengthen this text to {minLength} characters or more. You are currently using {length} characters.',
+            'There was an error with this field.',
 
             'Unable to parse response `{e}`.',
+            'Are you sure you want to leave?',
+            'The request timed out.',
+            'The request encountered a network error. Please try again.',
         ]);
     }
 
