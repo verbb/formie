@@ -922,11 +922,13 @@ class Form extends Element
      *
      * @return String
      */
-    public function getRedirectUrl()
+    public function getRedirectUrl($checkLastPage = true)
     {
         // We don't want to show the redirect URL on unfinished mutli-page forms, so check first
-        if (!$this->isLastPage() && $this->settings->submitMethod == 'page-reload') {
-            return '';
+        if ($this->settings->submitMethod == 'page-reload') {
+            if ($checkLastPage && !$this->isLastPage()) {
+                return '';
+            }
         }
 
         // Allow settings to statically set the redirect URL (from templates)

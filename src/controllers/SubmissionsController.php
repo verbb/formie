@@ -524,6 +524,15 @@ class SubmissionsController extends Controller
             return $this->refresh();
         }
 
+        // If this is being forced-completed, handle the redirect URL now. This isn't included
+        // in the request, to ensure users don't inspect the form for non last-page multi-page forms.
+        if ($request->getParam('completeSubmission')) {
+            // Bypass the last-page check
+            $url = $form->getRedirectUrl(false);
+
+            return $this->redirectToPostedUrl($submission, $url);
+        }
+
         return $this->redirectToPostedUrl($submission);
     }
 
