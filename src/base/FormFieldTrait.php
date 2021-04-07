@@ -329,6 +329,14 @@ trait FormFieldTrait
     {
         return StringHelper::toKebabCase($this->namespace . ' ' . $this->getHtmlId($form) . ' wrap');
     }
+    
+    /**
+     * @inheritDoc
+     */
+    public function getType()
+    {
+        return static::class;
+    }
 
     /**
      * @inheritDoc
@@ -554,7 +562,7 @@ trait FormFieldTrait
         $instructionsPositions = Formie::$plugin->getFields()->getInstructionsPositionsArray($this);
 
         $config = [
-            'type' => static::class,
+            'type' => $this->getType(),
             'label' => $this->displayName(),
             'defaults' => $this->getAllFieldDefaults(),
             'icon' => $this->getSvgIcon(),
