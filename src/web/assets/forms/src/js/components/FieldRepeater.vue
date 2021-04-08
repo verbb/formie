@@ -7,7 +7,7 @@
                 :key="row.id"
                 :row-index="index"
                 :field-id="id"
-                :parent-field-id="field.id"
+                :parent-field-id="field.vid"
                 v-bind="row"
             />
 
@@ -39,7 +39,7 @@ export default {
 
     props: {
         id: {
-            type: [String, Number],
+            type: String,
             required: true,
         },
     },

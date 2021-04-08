@@ -64,7 +64,7 @@
                 />
             </div>
 
-            <field-preview :id="field.id" class="fui-field-preview" :class="`fui-type-${nameKebab}`" :expected-type="expectedType" />
+            <field-preview :id="field.vid" class="fui-field-preview" :class="`fui-type-${nameKebab}`" :expected-type="expectedType" />
 
             <vue-simple-markdown v-if="fieldtype.data.warning" class="warning with-icon" :source="fieldtype.data.warning" />
 
@@ -170,7 +170,7 @@ export default {
         },
 
         parentFieldId: {
-            type: [String, Number],
+            type: String,
             default: '',
         },
     },
@@ -218,7 +218,7 @@ export default {
         },
 
         fieldHandles() {
-            return this.$store.getters['form/fieldHandlesExcluding'](this.field.id);
+            return this.$store.getters['form/fieldHandlesExcluding'](this.field.vid);
         },
 
         fieldCanRequire() {
@@ -239,7 +239,7 @@ export default {
             if (typeof disallowedField === 'boolean') {
                 return disallowedField;
             } else if (typeof disallowedField === 'function') {
-                const field = this.$store.getters['form/field'](this.field.id);
+                const field = this.$store.getters['form/field'](this.field.vid);
                 return disallowedField(field);
             }
 
@@ -305,7 +305,7 @@ export default {
 
         onModalCancel() {
             if (this.brandNewField) {
-                this.$store.dispatch('form/deleteField', { id: this.field.id });
+                this.$store.dispatch('form/deleteField', { id: this.field.vid });
             }
         },
 
@@ -369,7 +369,7 @@ export default {
                     row.id = newId();
 
                     row.fields.forEach(field => {
-                        field.id = newId();
+                        field.vid = newId();
                     });
                 });
             }
@@ -400,7 +400,7 @@ export default {
             const confirmationMessage = Craft.t('formie', 'Are you sure you want to delete “{name}”?', { name });
 
             if (confirm(confirmationMessage)) {
-                this.$store.dispatch('form/deleteField', { id: this.field.id });
+                this.$store.dispatch('form/deleteField', { id: this.field.vid });
             }
         },
 

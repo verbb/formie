@@ -51,7 +51,7 @@ export default {
     },
 
     computed: {
-        localSourceValue() {
+        proxySourceValue() {
             if (this.$editingField) {
                 return this.$editingField.field.label;
             }
@@ -63,9 +63,9 @@ export default {
             return this.sourceValue;
         },
 
-        localFieldId() {
+        proxyFieldId() {
             if (this.$editingField) {
-                return this.$editingField.field.id;
+                return this.$editingField.field.vid;
             }
 
             if (this.context.slotProps.label.fieldId !== undefined) {
@@ -75,7 +75,7 @@ export default {
             return this.fieldId;
         },
 
-        localCollection() {
+        proxyCollection() {
             if (this.context.slotProps.label.collection !== undefined) {
                 return this.context.slotProps.label.collection;
             }
@@ -85,7 +85,7 @@ export default {
     },
 
     watch: {
-        localSourceValue(newValue) {
+        proxySourceValue(newValue) {
             // We only care when there's not a handle set
             if (this.savedValue === '') {
                 this.generateHandle();
@@ -107,11 +107,11 @@ export default {
             }
 
             // Let's get smart about generating a handle. Check if its unqique - if it isn't, make it unique
-            const generatedHandle = generateHandle(this.localSourceValue);
-            let handles = this.$store.getters['form/fieldHandlesExcluding'](this.localFieldId);
+            const generatedHandle = generateHandle(this.proxySourceValue);
+            let handles = this.$store.getters['form/fieldHandlesExcluding'](this.proxyFieldId);
 
-            if (this.localCollection.length) {
-                handles = this.localCollection;
+            if (this.proxyCollection.length) {
+                handles = this.proxyCollection;
             }
 
             const value = getNextAvailableHandle(handles, generatedHandle, 0);

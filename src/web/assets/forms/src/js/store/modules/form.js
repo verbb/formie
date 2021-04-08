@@ -6,6 +6,7 @@ import filter from 'lodash/filter';
 import omitBy from 'lodash/omitBy';
 import md5Hex from 'md5-hex';
 import { toBoolean } from '../../utils/bool';
+import { newId } from '../../utils/string';
 
 // State is simply an object that contains the properties that need to be shared within the application:
 // The state must return a function to make the module reusable.
@@ -37,6 +38,42 @@ const getRows = payload => {
 // In addition, Actions may or may not pass in a payload as the second argument:
 const mutations = {
     SET_FORM_CONFIG(state, config) {
+        // Ensure all fields have a `vid` set, which we use in Vue to uniquely identify fields
+        // As we want to keep `id` reserved for server-side, saved field models. This helps
+        // separate Vue instances of fields, while not setting the IDs to `new-2546` which doesn't
+        // play well server-side (Postgres). More to the point, when validation fails server-side, the IDs
+        // will have been stripped out from the field model so they correctly save server side, but
+        // this wreaks havoc in Vue, as fields have lost their IDs.
+        // Maybe a better way to prep this instead of the massive nesting below??
+        if (config.pages && Array.isArray(config.pages)) {
+            config.pages.forEach(page => {
+                if (page.rows && Array.isArray(page.rows)) {
+                    page.rows.forEach(row => {
+                        if (row.fields && Array.isArray(row.fields)) {
+                            row.fields.forEach(field => {
+                                if (!field.vid) {
+                                    field.vid = newId();
+
+                                    // For nested fields - more rows/fields!
+                                    if (field.rows && Array.isArray(field.rows)) {
+                                        field.rows.forEach(nestedRow => {
+                                            if (nestedRow.fields && Array.isArray(nestedRow.fields)) {
+                                                nestedRow.fields.forEach(nestedField => {
+                                                    if (!nestedField.vid) {
+                                                        nestedField.vid = newId();
+                                                    }
+                                                });
+                                            }
+                                        });
+                                    }
+                                }
+                            });
+                        }
+                    });
+                }
+            });
+        }
+
         for (const prop in config) {
             if (Object.hasOwnProperty.call(config, prop)) {
                 Vue.set(state, prop, config[prop]);
@@ -194,8 +231,9 @@ const mutations = {
         forEach(state.pages, (page) => {
             forEach(page.rows, (row) => {
                 forEach(row.fields, (field, key) => {
+
                     // noinspection EqualityComparisonWithCoercionJS
-                    if (field && field.id == id) {
+                    if (field && field.vid == id) {
                         row.fields.splice(key, 1);
                         return false;
                     }
@@ -204,7 +242,7 @@ const mutations = {
                         forEach(field.rows, (repeaterRow) => {
                             forEach(repeaterRow.fields, (repeaterField, repeaterKey) => {
                                 // noinspection EqualityComparisonWithCoercionJS
-                                if (repeaterField && repeaterField.id == id) {
+                                if (repeaterField && repeaterField.vid == id) {
                                     repeaterRow.fields.splice(repeaterKey, 1);
                                     return false;
                                 }
@@ -345,10 +383,10 @@ const getters = {
         return {};
     },
 
-    field: (state) => (id) => {
+    field: (state) => (vid) => {
         const allFields = getters.fields(state);
 
-        return find(allFields, { id });
+        return find(allFields, { vid });
     },
 
     fields: (state) => {
@@ -516,6 +554,7 @@ const getters = {
                     field.subfieldOptions.forEach(subfield => {
                         fields.push({
                             id: field.id,
+                            vid: field.vid,
                             type: field.type,
                             label: field.label + ': ' + subfield.label,
                             value: '{field.' + field.handle + '.' + subfield.handle + '}',
@@ -527,6 +566,7 @@ const getters = {
                         row.fields.forEach(subfield => {
                             fields.push({
                                 id: field.id,
+                                vid: field.vid,
                                 type: field.type,
                                 label: field.label + ': ' + subfield.label,
                                 value: '{field.' + field.handle + '.' + subfield.handle + '}',
@@ -536,6 +576,7 @@ const getters = {
                 } else {
                     fields.push({ 
                         id: field.id,
+                        vid: field.vid,
                         type: field.type,
                         label: field.label, 
                         value: '{field.' + field.handle + '}',
@@ -578,9 +619,9 @@ const getters = {
         return flatMap(allFields, 'handle');
     },
 
-    fieldHandlesForField: (state, getters) => (id) => {
+    fieldHandlesForField: (state, getters) => (vid) => {
         const field = getters.fields.find(field => {
-            return field.id === id;
+            return field.vid === vid;
         });
 
         if (field) {
@@ -591,11 +632,11 @@ const getters = {
         return [];
     },
 
-    fieldHandlesExcluding: (state, getters, rootState, rootGetters) => (id) => {
+    fieldHandlesExcluding: (state, getters, rootState, rootGetters) => (vid) => {
         const allRows = flatMap(state.pages, 'rows');
         let allFields = flatMap(allRows, 'fields');
 
-        allFields = omitBy(allFields, { id });
+        allFields = omitBy(allFields, { vid });
 
         let fieldHandles = flatMap(allFields, 'handle');
 
