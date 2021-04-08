@@ -1,5 +1,5 @@
 <template>
-    <button v-tooltip="button.text" class="btn fui-toolbar-btn" :class="{ active }" @click.prevent="editor.commands[button.command](button.args)">
+    <button v-tooltip="button.text" class="btn fui-toolbar-btn" :class="{ active }" @click.prevent="applyButton(button)">
         <i v-if="button.icon" class="far" :class="'fa-' + button.icon"></i>
         <div v-if="button.html" class="flex flex-nowrap items-center" v-html="button.html"></div>
     </button>
@@ -34,6 +34,12 @@ export default {
         editor: {
             type: Object,
             default: () => {},
+        },
+    },
+
+    methods: {
+        applyButton(button) {
+            this.editor.commands[button.command](button.args);
         },
     },
 };
