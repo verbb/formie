@@ -619,14 +619,21 @@ const getters = {
         return flatMap(allFields, 'handle');
     },
 
-    fieldHandlesForField: (state, getters) => (vid) => {
+    fieldHandlesForField: (state, getters, rootState, rootGetters) => (vid) => {
         const field = getters.fields.find(field => {
             return field.vid === vid;
         });
 
         if (field) {
             const allFields = flatMap(field.rows, 'fields');
-            return flatMap(allFields, 'handle');
+
+            let fieldHandles = flatMap(allFields, 'handle');
+
+            // Fetch all reserved handles
+            const reservedHandles = rootGetters['formie/reservedHandles']();
+            fieldHandles = fieldHandles.concat(reservedHandles);
+
+            return fieldHandles;
         }
 
         return [];

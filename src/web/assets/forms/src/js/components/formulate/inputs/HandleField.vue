@@ -110,6 +110,11 @@ export default {
             const generatedHandle = generateHandle(this.proxySourceValue);
             let handles = this.$store.getters['form/fieldHandlesExcluding'](this.proxyFieldId);
 
+            // For Repeater/Groups, we need to fetch handles from the field
+            if (this.$editingField && this.$editingField.parentFieldId) {
+                handles = this.$store.getters['form/fieldHandlesForField'](this.$editingField.parentFieldId);
+            }
+
             if (this.proxyCollection.length) {
                 handles = this.proxyCollection;
             }
