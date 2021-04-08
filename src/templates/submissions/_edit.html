@@ -89,11 +89,15 @@
                     {% namespace 'fields' %}
                         {% for row in rows %}
                             {% for field in row.fields %}
-                                {% include '_includes/field' with {
-                                    field: field,
-                                    element: submission,
-                                    required: field.required,
-                                } %}
+                                {% if field.type == 'verbb\\formie\\fields\\formfields\\Heading' %}
+                                    {% include 'formie/_formfields/heading/input' %}
+                                {% else %}
+                                    {% include '_includes/field' with {
+                                        field: field,
+                                        element: submission,
+                                        required: field.required,
+                                    } %}
+                                {% endif %}
                             {% endfor %}
                         {% endfor %}
                     {% endnamespace %}
