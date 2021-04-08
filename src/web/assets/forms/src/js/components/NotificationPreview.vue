@@ -24,12 +24,12 @@
 
             <div v-if="email.cc" class="fui-email-meta">
                 <div class="fui-email-meta-label">{{ 'Cc:' | t('formie') }}</div>
-                <div class="fui-email-meta-value">{{ email.cc }}</div>
+                <div class="fui-email-meta-value">{{ emailAddress(email.cc) }}</div>
             </div>
 
             <div v-if="email.bcc" class="fui-email-meta">
                 <div class="fui-email-meta-label">{{ 'Bcc:' | t('formie') }}</div>
-                <div class="fui-email-meta-value">{{ email.bcc }}</div>
+                <div class="fui-email-meta-value">{{ emailAddress(email.bcc) }}</div>
             </div>
 
             <div class="fui-email-meta">
