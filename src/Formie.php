@@ -32,7 +32,11 @@ use verbb\formie\web\twig\Extension;
 use Craft;
 use craft\base\Plugin;
 use craft\controllers\UsersController;
+use craft\console\Application as ConsoleApplication;
+use craft\console\Controller as ConsoleController;
+use craft\console\controllers\ResaveController;
 use craft\elements\User as UserElement;
+use craft\events\DefineConsoleActionsEvent;
 use craft\events\FieldLayoutEvent;
 use craft\events\RebuildConfigEvent;
 use craft\events\RegisterComponentTypesEvent;
@@ -102,6 +106,7 @@ class Formie extends Plugin
         $this->_registerEmailMessages();
         $this->_registerElementExports();
         $this->_registerTemplateRoots();
+        $this->_registerResaveCommand();
 
         // Add default captcha integrations
         Craft::$app->view->hook('formie.buttons.before', static function(array &$context) {
@@ -470,6 +475,50 @@ class Formie extends Plugin
     {
         Event::on(View::class, View::EVENT_REGISTER_SITE_TEMPLATE_ROOTS, function(RegisterTemplateRootsEvent $e) {
             $e->roots[$this->id] = $this->getBasePath() . DIRECTORY_SEPARATOR . 'templates/_special';
+        });
+    }
+
+    private function _registerResaveCommand()
+    {
+        if (!Craft::$app instanceof ConsoleApplication) {
+            return;
+        }
+
+        Event::on(ResaveController::class, ConsoleController::EVENT_DEFINE_ACTIONS, function(DefineConsoleActionsEvent $e) {
+            $e->actions['formie-forms'] = [
+                'action' => function(): int {
+                    $controller = Craft::$app->controller;
+                    $query = Form::find();
+                    return $controller->saveElements($query);
+                },
+                'options' => [],
+                'helpSummary' => 'Re-saves Formie forms.',
+            ];
+
+            $e->actions['formie-submissions'] = [
+                'action' => function(): int {
+                    $controller = Craft::$app->controller;
+                    
+                    if ($controller->formId !== null) {
+                        $formIds = explode(',', $controller->formId);
+                    } else {
+                        $formIds = Form::find()->ids();
+                    }
+
+                    foreach ($formIds as $formId) {
+                        $query = Submission::find();
+                        $query->formId($formId);
+                        $controller->saveElements($query);
+                    }
+
+                    return true;
+                },
+                'options' => ['formId'],
+                'helpSummary' => 'Re-saves Forms submissions.',
+                'optionsHelp' => [
+                    'formId' => 'The form ID of the submissions to resave.',
+                ],
+            ];
         });
     }
 }
