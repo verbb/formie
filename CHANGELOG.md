@@ -16,13 +16,13 @@
 - Fixed auto-handle generation for forms and fields producing incorrect values when starting with a number.
 - Fixed missing `type` attribute on form fields.
 - Fixed form builder fields having their IDs stripped from requests, when validation fails, causing sync issues.
-- Fixed Group or Repeater nested fields not getting unqiue handles.
+- Fixed Group or Repeater nested fields not getting unique handles.
 - Fixed Rich rich text link editing not working.
 - Fixed CC and BCC showing emails incorrectly for email notification previews.
 - Fixed heading showing field label in edit submissions in control panel.
 - Fixed Heading, HTML and Section fields appearing in exports as columns.
 - Fixed being unable to select site-specific entries for “Redirect Entry”.
-- Fixed Sendinblue email marketing integration throwing an error when only emaila address is mapped.
+- Fixed Sendinblue email marketing integration throwing an error when only email address is mapped.
 
 ## 1.3.26 - 2021-04-02
 
