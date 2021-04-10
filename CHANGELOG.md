@@ -1,5 +1,29 @@
 # Changelog
 
+## 1.3.27 - 2021-04-11
+
+### Added
+- Added extra error-catching to send notification queue job.
+- Added `resave/formie-submissions` and `resave/formie-forms` console commands.
+
+### Changed
+- Update translation strings.
+
+### Fixed
+- Fixed `completeSubmission` buttons not working correctly with client-side validation enabled.
+- Fixed an error when un-registering fieldtypes.
+- Fixed lack of redirect support for Page Reload forms, when `completeSubmission` is used.
+- Fixed auto-handle generation for forms and fields producing incorrect values when starting with a number.
+- Fixed missing `type` attribute on form fields.
+- Fixed form builder fields having their IDs stripped from requests, when validation fails, causing sync issues.
+- Fixed Group or Repeater nested fields not getting unqiue handles.
+- Fixed Rich rich text link editing not working.
+- Fixed CC and BCC showing emails incorrectly for email notification previews.
+- Fixed heading showing field label in edit submissions in control panel.
+- Fixed Heading, HTML and Section fields appearing in exports as columns.
+- Fixed being unable to select site-specific entries for “Redirect Entry”.
+- Fixed Sendinblue email marketing integration throwing an error when only emaila address is mapped.
+
 ## 1.3.26 - 2021-04-02
 
 ### Added
