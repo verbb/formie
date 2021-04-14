@@ -26,6 +26,9 @@ We're using the `.html` extension here for clarity. You can use `.twig` or whate
 - `field.html`
 - `page.html`
 - `_includes/`
+    - `label.html`
+    - `submit.html`
+    - `...`
 - `fields/`
     - `address/`
         - `country.html`
