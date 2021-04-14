@@ -10,10 +10,17 @@ By default, Formie comes with a set of front-end templates for your form, which 
 - JavaScript for validation, Ajax submission and more
 
 ## Form Fields
-For each form template, you can also add custom fields, which will be added to the form builder. Similar to other elements, you can include group fields into tabs. Each tab will appear in the order you specify on the form builder. 
+For each form template, you can also add custom fields, which will be added to the form builder. Similar to other elements, you can include group fields into tabs. Each tab will appear in the order you specify on the form builder.
+
 
 ## Custom Templates
-You can provide your own custom templates to control every aspect of the form's output. Create a new form template, and assign the "HTML Template" field to the template directory your custom templates sit. For example, if your templates exist in `templates/_forms`, you would enter `_forms`.
+You can provide your own custom templates to control every aspect of the form's output. To get started, navigate to **Formie** → **Settings** → **Form Templates**.
+
+Create a new form template, and assign the "HTML Template" field to the template directory your custom templates sit. For example, if your templates exist in `templates/_forms`, you would enter `_forms`.
+
+:::tip
+You can't modify Formie's default Form Templates. Instead, you'll want to create a new Form Template, and ensure your forms use that.
+:::
 
 You can choose to use Formie's provided CSS and JS, or provide your own.
 
