@@ -137,16 +137,23 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
 
         if ($this->displayType !== 'calendar') {
             $format = $this->dateFormat;
+
             if ($this->includeTime) {
                 $format .= ' ' . $this->timeFormat;
             }
 
-            $formatted = preg_replace_callback('/[A-Za-z]/', function($matches) use ($value) {
-                return StringHelper::padLeft($value[$matches[0]], 2, '0');
-            }, $format);
+            if (is_array($value)) {
+                $value = array_filter($value);
+            }
 
-            if (($date = DateTime::createFromFormat($format, $formatted)) !== false) {
-                return $date;
+            if ($value) {
+                $formatted = preg_replace_callback('/[A-Za-z]/', function($matches) use ($value) {
+                    return StringHelper::padLeft($value[$matches[0]], 2, '0');
+                }, $format);
+
+                if (($date = DateTime::createFromFormat($format, $formatted)) !== false) {
+                    return $date;
+                }
             }
         }
 
