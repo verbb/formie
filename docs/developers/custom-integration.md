@@ -11,13 +11,13 @@ use verbb\formie\services\Integrations;
 use yii\base\Event;
 
 Event::on(Integrations::class, Integrations::EVENT_REGISTER_INTEGRATIONS, function(RegisterIntegrationsEvent $event) {
-    $event->captchas[] = new ExampleCaptcha();
-    $event->addressProviders[] = new ExampleAddressProvider();
-    $event->elements[] = new ExampleElement();
-    $event->emailMarketing[] = new ExampleEmailMarketing();
-    $event->crm[] = new ExampleCrm();
-    $event->webhooks[] = new ExampleWebhooks();
-    $event->miscellaneous[] = new ExampleMiscellaneous();
+    $event->captchas[] = ExampleCaptcha::class;
+    $event->addressProviders[] = ExampleAddressProvider::class;
+    $event->elements[] = ExampleElement::class;
+    $event->emailMarketing[] = ExampleEmailMarketing::class;
+    $event->crm[] = ExampleCrm::class;
+    $event->webhooks[] = ExampleWebhooks::class;
+    $event->miscellaneous[] = ExampleMiscellaneous::class;
     // ...
 });
 ```
@@ -234,7 +234,7 @@ class ExampleElement extends Element
         ]);
     }
 
-    public function getFormSettingsHtml(): string
+    public function getFormSettingsHtml($form): string
     {
         return Craft::$app->getView()->renderTemplate('path/to/settings', [
             'integration' => $this,
@@ -275,7 +275,7 @@ class ExampleElement extends Element
         ];
     }
 
-    public function sendPayload(Submission $submission)
+    public function sendPayload(Submission $submission): bool
     {
         $element = new YourElement();
 
@@ -362,7 +362,7 @@ class ExampleEmailMarketing extends EmailMarketing
         ]);
     }
 
-    public function getFormSettingsHtml(): string
+    public function getFormSettingsHtml($form): string
     {
         return Craft::$app->getView()->renderTemplate('path/to/settings', [
             'integration' => $this,
@@ -409,7 +409,7 @@ class ExampleEmailMarketing extends EmailMarketing
         return new IntegrationFormSettings($settings);
     }
 
-    public function sendPayload(Submission $submission)
+    public function sendPayload(Submission $submission): bool
     {
         // Fetch the form settings for our field mapping
         $fieldValues = $this->getFieldMappingValues($submission, $this->fieldMapping);
@@ -493,7 +493,7 @@ class ExampleCrm extends Crm
         ]);
     }
 
-    public function getFormSettingsHtml(): string
+    public function getFormSettingsHtml($form): string
     {
         return Craft::$app->getView()->renderTemplate('path/to/settings', [
             'integration' => $this,
@@ -538,7 +538,7 @@ class ExampleCrm extends Crm
         ]);
     }
 
-    public function sendPayload(Submission $submission)
+    public function sendPayload(Submission $submission): bool
     {
         // Fetch the form settings for our field mapping - for each collection of data
         $contactValues = $this->getFieldMappingValues($submission, $this->contactFieldMapping, 'contact');
@@ -634,7 +634,7 @@ class ExampleWebhook extends Webhook
         ]);
     }
 
-    public function getFormSettingsHtml(): string
+    public function getFormSettingsHtml($form): string
     {
         return Craft::$app->getView()->renderTemplate('path/to/settings', [
             'integration' => $this,
@@ -666,7 +666,7 @@ class ExampleWebhook extends Webhook
         ]);
     }
 
-    public function sendPayload(Submission $submission)
+    public function sendPayload(Submission $submission): bool
     {
         // Generate a payload of values to send to the webhook
         $payload = $this->generatePayloadValues($submission);
