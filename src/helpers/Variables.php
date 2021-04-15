@@ -421,7 +421,9 @@ class Variables
         } else if ($field instanceof MultiLineText) {
             $values["{$prefix}{$field->handle}"] = $parsedContent;
         } else if ($submissionValue instanceof MultiOptionsFieldData) {
-            $values["{$prefix}{$field->handle}"] = implode(', ', $submissionValue->getOptions());
+            $values["{$prefix}{$field->handle}"] = implode(', ', array_map(function($item) {
+                return $item->value;
+            }, (array)$submissionValue));
         } else {
             // Try to convert as a simple string value, if not, fall back on email template
             try {

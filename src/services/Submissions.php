@@ -559,7 +559,9 @@ class Submissions extends Component
                     }
 
                     if ($value instanceof MultiOptionsFieldData) {
-                        $value = implode(' ', $value->getOptions());
+                        $value = implode(' ', array_map(function($item) {
+                            return $item->value;
+                        }, (array)$value));
                     }
 
                     $fieldValues[] = (string)$value;
