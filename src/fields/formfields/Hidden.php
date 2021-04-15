@@ -74,7 +74,7 @@ class Hidden extends FormField implements PreviewableFieldInterface
                 $this->defaultValue = $currentUser->email ?? null;
             } elseif ($this->defaultOption === 'userIp') {
                 $this->defaultValue = $request->getUserIP();
-            } elseif ($this->defaultOption === 'query') {
+            } elseif ($this->defaultOption === 'query' && $this->queryParameter) {
                 $this->defaultValue = $request->getParam($this->queryParameter);
             }
         }
