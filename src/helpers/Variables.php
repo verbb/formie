@@ -66,6 +66,7 @@ class Variables
     {
         return [
             [ 'label' => Craft::t('formie', 'General'), 'heading' => true ],
+            [ 'label' => Craft::t('formie', 'System Name'), 'value' => '{systemName}' ],
             [ 'label' => Craft::t('formie', 'Site Name'), 'value' => '{siteName}' ],
             [ 'label' => Craft::t('formie', 'Timestamp'), 'value' => '{timestamp}' ],
             [ 'label' => Craft::t('formie', 'Date (mm/dd/yyyy)'), 'value' => '{dateUs}' ],
