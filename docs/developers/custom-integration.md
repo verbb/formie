@@ -238,6 +238,7 @@ class ExampleElement extends Element
     {
         return Craft::$app->getView()->renderTemplate('path/to/settings', [
             'integration' => $this,
+            'form' => $form,
         ]);
     }
 
@@ -366,6 +367,7 @@ class ExampleEmailMarketing extends EmailMarketing
     {
         return Craft::$app->getView()->renderTemplate('path/to/settings', [
             'integration' => $this,
+            'form' => $form,
         ]);
     }
 
@@ -497,6 +499,7 @@ class ExampleCrm extends Crm
     {
         return Craft::$app->getView()->renderTemplate('path/to/settings', [
             'integration' => $this,
+            'form' => $form,
         ]);
     }
 
@@ -638,6 +641,7 @@ class ExampleWebhook extends Webhook
     {
         return Craft::$app->getView()->renderTemplate('path/to/settings', [
             'integration' => $this,
+            'form' => $form,
         ]);
     }
 
