@@ -67,7 +67,7 @@ class ExampleCaptcha extends Captcha
 
     public function getIconUrl(): string
     {
-        return __DIR__ . '/my-path/icon.svg';
+        return Craft::$app->getAssetManager()->getPublishedUrl("@modules/mymodule/resources/icon.svg", true);
     }
 
     public function getDescription(): string
@@ -147,7 +147,7 @@ class ExampleAddressProvider extends AddressProvider
 
     public function getIconUrl(): string
     {
-        return __DIR__ . '/my-path/icon.svg';
+        return Craft::$app->getAssetManager()->getPublishedUrl("@modules/mymodule/resources/icon.svg", true);
     }
 
     public function getDescription(): string
@@ -219,7 +219,7 @@ class ExampleElement extends Element
 
     public function getIconUrl(): string
     {
-        return __DIR__ . '/my-path/icon.svg';
+        return Craft::$app->getAssetManager()->getPublishedUrl("@modules/mymodule/resources/icon.svg", true);
     }
 
     public function getDescription(): string
@@ -348,7 +348,7 @@ class ExampleEmailMarketing extends EmailMarketing
 
     public function getIconUrl(): string
     {
-        return __DIR__ . '/my-path/icon.svg';
+        return Craft::$app->getAssetManager()->getPublishedUrl("@modules/mymodule/resources/icon.svg", true);
     }
 
     public function getDescription(): string
@@ -480,7 +480,7 @@ class ExampleCrm extends Crm
 
     public function getIconUrl(): string
     {
-        return __DIR__ . '/my-path/icon.svg';
+        return Craft::$app->getAssetManager()->getPublishedUrl("@modules/mymodule/resources/icon.svg", true);
     }
 
     public function getDescription(): string
@@ -622,7 +622,7 @@ class ExampleWebhook extends Webhook
 
     public function getIconUrl(): string
     {
-        return __DIR__ . '/my-path/icon.svg';
+        return Craft::$app->getAssetManager()->getPublishedUrl("@modules/mymodule/resources/icon.svg", true);
     }
 
     public function getDescription(): string
