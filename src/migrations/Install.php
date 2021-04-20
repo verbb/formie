@@ -162,48 +162,6 @@ class Install extends Migration
             'uid' => $this->uid(),
         ]);
 
-        $this->createTable('{{%formie_relations}}', [
-            'id' => $this->primaryKey(),
-            'type' => $this->string(255)->notNull(),
-            'sourceId' => $this->integer()->notNull(),
-            'sourceSiteId' => $this->integer(),
-            'targetId' => $this->integer()->notNull(),
-            'dateCreated' => $this->dateTime()->notNull(),
-            'dateUpdated' => $this->dateTime()->notNull(),
-            'uid' => $this->uid(),
-        ]);
-
-        $this->createTable('{{%formie_syncs}}', [
-            'id' => $this->primaryKey(),
-            'dateCreated' => $this->dateTime()->notNull(),
-            'dateUpdated' => $this->dateTime()->notNull(),
-            'uid' => $this->uid(),
-        ]);
-
-        $this->createTable('{{%formie_syncfields}}', [
-            'id' => $this->primaryKey(),
-            'syncId' => $this->integer()->notNull(),
-            'fieldId' => $this->integer()->notNull(),
-            'dateCreated' => $this->dateTime()->notNull(),
-            'dateUpdated' => $this->dateTime()->notNull(),
-            'uid' => $this->uid(),
-        ]);
-
-        $this->createTable('{{%formie_submissions}}', [
-            'id' => $this->primaryKey(),
-            'title' => $this->string(255)->notNull(),
-            'formId' => $this->integer()->notNull(),
-            'statusId' => $this->integer(),
-            'userId' => $this->integer(),
-            'isIncomplete' => $this->boolean()->defaultValue(false),
-            'isSpam' => $this->boolean()->defaultValue(false),
-            'spamReason' => $this->text(),
-            'ipAddress' => $this->string(),
-            'dateCreated' => $this->dateTime()->notNull(),
-            'dateUpdated' => $this->dateTime()->notNull(),
-            'uid' => $this->uid(),
-        ]);
-
         $this->createTable('{{%formie_notifications}}', [
             'id' => $this->primaryKey(),
             'formId' => $this->integer()->notNull(),
@@ -232,6 +190,17 @@ class Install extends Migration
             'fieldLayoutId' => $this->integer()->notNull(),
             'fieldLayoutTabId' => $this->integer()->notNull(),
             'settings' => $this->text(),
+            'dateCreated' => $this->dateTime()->notNull(),
+            'dateUpdated' => $this->dateTime()->notNull(),
+            'uid' => $this->uid(),
+        ]);
+
+        $this->createTable('{{%formie_relations}}', [
+            'id' => $this->primaryKey(),
+            'type' => $this->string(255)->notNull(),
+            'sourceId' => $this->integer()->notNull(),
+            'sourceSiteId' => $this->integer(),
+            'targetId' => $this->integer()->notNull(),
             'dateCreated' => $this->dateTime()->notNull(),
             'dateUpdated' => $this->dateTime()->notNull(),
             'uid' => $this->uid(),
@@ -312,17 +281,17 @@ class Install extends Migration
             'uid' => $this->uid(),
         ]);
 
-        $this->createTable('{{%formie_syncfields}}', [
+        $this->createTable('{{%formie_syncs}}', [
             'id' => $this->primaryKey(),
-            'syncId' => $this->integer()->notNull(),
-            'fieldId' => $this->integer()->notNull(),
             'dateCreated' => $this->dateTime()->notNull(),
             'dateUpdated' => $this->dateTime()->notNull(),
             'uid' => $this->uid(),
         ]);
 
-        $this->createTable('{{%formie_syncs}}', [
+        $this->createTable('{{%formie_syncfields}}', [
             'id' => $this->primaryKey(),
+            'syncId' => $this->integer()->notNull(),
+            'fieldId' => $this->integer()->notNull(),
             'dateCreated' => $this->dateTime()->notNull(),
             'dateUpdated' => $this->dateTime()->notNull(),
             'uid' => $this->uid(),
@@ -370,7 +339,6 @@ class Install extends Migration
         $this->createIndex(null, '{{%formie_submissions}}', 'userId', false);
         $this->createIndex(null, '{{%formie_syncfields}}', ['syncId', 'fieldId'], true);
     }
-    }
 
     public function addForeignKeys()
     {
@@ -385,22 +353,13 @@ class Install extends Migration
         $this->addForeignKey(null, '{{%formie_nestedfieldrows}}', ['id'], '{{%elements}}', ['id'], 'CASCADE', null);
         $this->addForeignKey(null, '{{%formie_nestedfieldrows}}', ['ownerId'], '{{%elements}}', ['id'], 'CASCADE', null);
         $this->addForeignKey(null, '{{%formie_nestedfieldrows}}', ['fieldId'], '{{%fields}}', ['id'], 'CASCADE', null);
-        $this->addForeignKey(null, '{{%formie_relations}}', ['sourceId'], '{{%elements}}', ['id'], 'CASCADE', null);
-        $this->addForeignKey(null, '{{%formie_relations}}', ['sourceSiteId'], '{{%sites}}', ['id'], 'CASCADE', 'CASCADE');
-        $this->addForeignKey(null, '{{%formie_relations}}', ['targetId'], '{{%elements}}', ['id'], 'CASCADE', null);
-        $this->addForeignKey(null, '{{%formie_syncfields}}', ['syncId'], '{{%formie_syncs}}', ['id'], 'CASCADE', null);
-        $this->addForeignKey(null, '{{%formie_syncfields}}', ['fieldId'], '{{%fields}}', ['id'], 'CASCADE', null);
-        $this->addForeignKey(null, '{{%formie_submissions}}', ['id'], '{{%elements}}', ['id'], 'CASCADE', null);
-        $this->addForeignKey(null, '{{%formie_submissions}}', ['formId'], '{{%formie_forms}}', ['id'], 'CASCADE', null);
-        $this->addForeignKey(null, '{{%formie_submissions}}', ['statusId'], '{{%formie_statuses}}', ['id'], 'SET NULL', null);
-        $this->addForeignKey(null, '{{%formie_submissions}}', ['userId'], '{{%users}}', ['id'], 'SET NULL', null);
-        $this->addForeignKey(null, '{{%formie_stencils}}', ['templateId'], '{{%formie_formtemplates}}', ['id'], 'SET NULL', null);
-        $this->addForeignKey(null, '{{%formie_stencils}}', ['defaultStatusId'], '{{%formie_statuses}}', ['id'], 'SET NULL', null);
-        $this->addForeignKey(null, '{{%formie_formtemplates}}', ['fieldLayoutId'], '{{%fieldlayouts}}', ['id'], 'CASCADE', null);
         $this->addForeignKey(null, '{{%formie_notifications}}', ['formId'], '{{%formie_forms}}', ['id'], 'CASCADE', null);
         $this->addForeignKey(null, '{{%formie_notifications}}', ['templateId'], '{{%formie_emailtemplates}}', ['id'], 'SET NULL', null);
         $this->addForeignKey(null, '{{%formie_pagesettings}}', ['fieldLayoutId'], '{{%fieldlayouts}}', ['id'], 'CASCADE', null);
         $this->addForeignKey(null, '{{%formie_pagesettings}}', ['fieldLayoutTabId'], '{{%fieldlayouttabs}}', ['id'], 'CASCADE', null);
+        $this->addForeignKey(null, '{{%formie_relations}}', ['sourceId'], '{{%elements}}', ['id'], 'CASCADE', null);
+        $this->addForeignKey(null, '{{%formie_relations}}', ['sourceSiteId'], '{{%sites}}', ['id'], 'CASCADE', 'CASCADE');
+        $this->addForeignKey(null, '{{%formie_relations}}', ['targetId'], '{{%elements}}', ['id'], 'CASCADE', null);
         $this->addForeignKey(null, '{{%formie_rows}}', ['fieldLayoutId'], '{{%fieldlayouts}}', ['id'], 'CASCADE', null);
         $this->addForeignKey(null, '{{%formie_rows}}', ['fieldLayoutFieldId'], '{{%fieldlayoutfields}}', ['id'], 'CASCADE', null);
         $this->addForeignKey(null, '{{%formie_sentnotifications}}', ['id'], '{{%elements}}', ['id'], 'CASCADE', null);
