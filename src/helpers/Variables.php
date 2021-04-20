@@ -282,7 +282,7 @@ class Variables
                 continue;
             }
 
-            if ($excludeHidden && !$field->getIsVisible()) {
+            if ($excludeHidden && $field->getIsHidden()) { 
                 continue;
             }
 

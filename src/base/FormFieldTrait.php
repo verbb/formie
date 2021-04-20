@@ -423,14 +423,6 @@ trait FormFieldTrait
     /**
      * @inheritDoc
      */
-    public function getIsVisible(): bool
-    {
-        return true;
-    }
-
-    /**
-     * @inheritDoc
-     */
     public function getIsCosmetic(): bool
     {
         return false;
