@@ -15,6 +15,7 @@
             "feature-tour/forms",
             "feature-tour/multi-page",
             "feature-tour/fields",
+            "feature-tour/conditions",
             "feature-tour/synced-fields",
             "feature-tour/existing-fields",
             "feature-tour/submissions",
@@ -43,7 +44,8 @@
             "template-guides/cached-forms",
             "template-guides/editing-submissions",
             "template-guides/populating-forms",
-            "template-guides/selecting-forms"
+            "template-guides/selecting-forms",
+            "template-guides/relations"
         ]
     },
     {

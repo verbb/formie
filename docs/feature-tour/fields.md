@@ -24,6 +24,10 @@ Instructions Position | How the instructions for the field should be positioned.
 CSS Classes | Add classes to be outputted on this field’s container.
 Container Attributes | Add attributes to be outputted on this field’s container.
 Input Atributes | Add attributes to be outputted on this field’s input.
+Visibility | See below.
+
+### Visibility
+You can set any field to be "Hidden" on the front-end. This will still be available in the source of the page, but hidden for general users. You can also set it to be "Disabled", where the field is never rendered on the front-end, but can still have its value set via [Field Population](docs:template-guides/populating-forms). This can be benefitial if you're concerned with tampering of the HTML before submission.
 
 See the full [Field](docs:developers/field) documentation for more.
 
@@ -349,3 +353,883 @@ Setting | Description
 Placeholder | The option shown initially, when no option is selected.
 Source | Which source do you want to select variants from?
 Limit | Limit the number of selectable variants.
+
+
+## Predefined Field Options
+For Dropdown, Checkboxes and Radio Buttons, Formie provides a collection of preset options for common scenarios for you to pick from. This might be useful to quickly populate an entire Dropdown with a list of countries, states, languages, currencies and lots more.
+
+You can also select what content to use for the Label and Value of each option. For instance, you might like to label the option as Australia, but have the value as the abbreviated "AU".
+
+The below is a list of options Formie provides by default.
+
+### Countries
+- Afghanistan
+- Albania
+- Algeria
+- American Samoa
+- Andorra
+- Angola
+- Anguilla
+- Antarctica
+- Antigua & Barbuda
+- Argentina
+- Armenia
+- Aruba
+- Australia
+- Austria
+- Azerbaijan
+- Bahamas
+- Bahrain
+- Bangladesh
+- Barbados
+- Belarus
+- Belgium
+- Belize
+- Benin
+- Bermuda
+- Bhutan
+- Bolivia
+- Bosnia
+- Botswana
+- Bouvet Island
+- Brazil
+- British Indian Ocean Territory
+- British Virgin Islands
+- Brunei
+- Bulgaria
+- Burkina Faso
+- Burundi
+- Cambodia
+- Cameroon
+- Canada
+- Cape Verde
+- Caribbean Netherlands
+- Cayman Islands
+- Central African Republic
+- Chad
+- Chile
+- China
+- Christmas Island
+- Cocos (Keeling) Islands
+- Colombia
+- Comoros
+- Congo - Brazzaville
+- Congo - Kinshasa
+- Cook Islands
+- Costa Rica
+- Croatia
+- Cuba
+- Curaçao
+- Cyprus
+- Czechia
+- Côte d’Ivoire
+- Denmark
+- Djibouti
+- Dominica
+- Dominican Republic
+- Ecuador
+- Egypt
+- El Salvador
+- Equatorial Guinea
+- Eritrea
+- Estonia
+- Eswatini
+- Ethiopia
+- Falkland Islands
+- Faroe Islands
+- Fiji
+- Finland
+- France
+- French Guiana
+- French Polynesia
+- French Southern Territories
+- Gabon
+- Gambia
+- Georgia
+- Germany
+- Ghana
+- Gibraltar
+- Greece
+- Greenland
+- Grenada
+- Guadeloupe
+- Guam
+- Guatemala
+- Guernsey
+- Guinea
+- Guinea-Bissau
+- Guyana
+- Haiti
+- Heard & McDonald Islands
+- Honduras
+- Hong Kong
+- Hungary
+- Iceland
+- India
+- Indonesia
+- Iran
+- Iraq
+- Ireland
+- Isle of Man
+- Israel
+- Italy
+- Jamaica
+- Japan
+- Jersey
+- Jordan
+- Kazakhstan
+- Kenya
+- Kiribati
+- Kuwait
+- Kyrgyzstan
+- Laos
+- Latvia
+- Lebanon
+- Lesotho
+- Liberia
+- Libya
+- Liechtenstein
+- Lithuania
+- Luxembourg
+- Macau
+- Madagascar
+- Malawi
+- Malaysia
+- Maldives
+- Mali
+- Malta
+- Marshall Islands
+- Martinique
+- Mauritania
+- Mauritius
+- Mayotte
+- Mexico
+- Micronesia
+- Moldova
+- Monaco
+- Mongolia
+- Montenegro
+- Montserrat
+- Morocco
+- Mozambique
+- Myanmar
+- Namibia
+- Nauru
+- Nepal
+- Netherlands
+- New Caledonia
+- New Zealand
+- Nicaragua
+- Niger
+- Nigeria
+- Niue
+- Norfolk Island
+- North Korea
+- North Macedonia
+- Northern Mariana Islands
+- Norway
+- Oman
+- Pakistan
+- Palau
+- Palestine
+- Panama
+- Papua New Guinea
+- Paraguay
+- Peru
+- Philippines
+- Pitcairn Islands
+- Poland
+- Portugal
+- Puerto Rico
+- Qatar
+- Romania
+- Russia
+- Rwanda
+- Réunion
+- Samoa
+- San Marino
+- Saudi Arabia
+- Senegal
+- Serbia
+- Seychelles
+- Sierra Leone
+- Singapore
+- Sint Maarten
+- Slovakia
+- Slovenia
+- Solomon Islands
+- Somalia
+- South Africa
+- South Georgia & South Sandwich Islands
+- South Korea
+- South Sudan
+- Spain
+- Sri Lanka
+- St. Barthélemy
+- St. Helena
+- St. Kitts & Nevis
+- St. Lucia
+- St. Martin
+- St. Pierre & Miquelon
+- St. Vincent & Grenadines
+- Sudan
+- Suriname
+- Svalbard & Jan Mayen
+- Sweden
+- Switzerland
+- Syria
+- São Tomé & Príncipe
+- Taiwan
+- Tajikistan
+- Tanzania
+- Thailand
+- Timor-Leste
+- Togo
+- Tokelau
+- Tonga
+- Trinidad & Tobago
+- Tunisia
+- Turkey
+- Turkmenistan
+- Turks & Caicos Islands
+- Tuvalu
+- U.S. Outlying Islands
+- U.S. Virgin Islands
+- UK
+- US
+- Uganda
+- Ukraine
+- United Arab Emirates
+- Uruguay
+- Uzbekistan
+- Vanuatu
+- Vatican City
+- Venezuela
+- Vietnam
+- Wallis & Futuna
+- Western Sahara
+- Yemen
+- Zambia
+- Zimbabwe
+- Åland Islands
+
+### States (Australia)
+- Australian Capital Territory
+- New South Wales
+- Northern Territory
+- Queensland
+- South Australia
+- Tasmania
+- Victoria
+- Western Australia
+
+### States (Canada)
+- Alberta
+- British Columbia
+- Manitoba
+- New Brunswick
+- Newfoundland and Labrador
+- Northwest Territories
+- Nova Scotia
+- Nunavut
+- Ontario
+- Prince Edward Island
+- Quebec
+- Saskatchewan
+- Yukon
+
+### States (USA)
+- Alabama
+- Alaska
+- Arizona
+- Arkansas
+- California
+- Colorado
+- Connecticut
+- Delaware
+- Florida
+- Georgia
+- Hawaii
+- Idaho
+- Illinois
+- Indiana
+- Iowa
+- Kansas
+- Kentucky
+- Louisiana
+- Maine
+- Maryland
+- Massachusetts
+- Michigan
+- Minnesota
+- Mississippi
+- Missouri
+- Montana
+- Nebraska
+- Nevada
+- New Hampshire
+- New Jersey
+- New Mexico
+- New York
+- North Carolina
+- North Dakota
+- Ohio
+- Oklahoma
+- Oregon
+- Pennsylvania
+- Rhode Island
+- South Carolina
+- South Dakota
+- Tennessee
+- Texas
+- Utah
+- Vermont
+- Virginia
+- Washington
+- West Virginia
+- Wisconsin
+- Wyoming
+
+### Continents
+- Africa
+- Antarctica
+- Asia
+- Australia
+- Europe
+- North America
+- South America
+
+### Days
+- Sunday
+- Monday
+- Tuesday
+- Wednesday
+- Thursday
+- Friday
+- Saturday
+
+### Months
+- January
+- February
+- March
+- April
+- May
+- June
+- July
+- August
+- September
+- October
+- November
+- December
+
+### Currencies
+- Afghani
+- Algerian Dinar
+- Argentine Peso
+- Armenian Dram
+- Aruban Florin
+- Australian Dollar
+- Azerbaijan Manat
+- Bahamian Dollar
+- Bahraini Dinar
+- Baht
+- Balboa,US Dollar
+- Barbados Dollar
+- Belarusian Ruble
+- Belize Dollar
+- Bermudian Dollar
+- Boliviano
+- Bolívar
+- Brazilian Real
+- Brunei Dollar
+- Bulgarian Lev
+- Burundi Franc
+- CFA Franc BCEAO
+- CFA Franc BEAC
+- CFP Franc
+- Cabo Verde Escudo
+- Canadian Dollar
+- Cayman Islands Dollar
+- Chilean Peso
+- Colombian Peso
+- Comorian Franc
+- Congolese Franc
+- Convertible Mark
+- Cordoba Oro
+- Costa Rican Colon
+- Cuban Peso,Peso Convertible
+- Czech Koruna
+- Dalasi
+- Danish Krone
+- Denar
+- Djibouti Franc
+- Dobra
+- Dominican Peso
+- Dong
+- East Caribbean Dollar
+- Egyptian Pound
+- El Salvador Colon,US Dollar
+- Ethiopian Birr
+- Euro
+- Fiji Dollar
+- Forint
+- Ghana Cedi
+- Gibraltar Pound
+- Gourde,US Dollar
+- Guarani
+- Guinean Franc
+- Guyana Dollar
+- Hong Kong Dollar
+- Hryvnia
+- Iceland Krona
+- Indian Rupee
+- Indian Rupee,Ngultrum
+- Iranian Rial
+- Iraqi Dinar
+- Jamaican Dollar
+- Jordanian Dinar
+- Kenyan Shilling
+- Kina
+- Kuna
+- Kuwaiti Dinar
+- Kwanza
+- Kyat
+- Lao Kip
+- Lari
+- Lebanese Pound
+- Lek
+- Lempira
+- Leone
+- Liberian Dollar
+- Libyan Dinar
+- Lilangeni
+- Loti,Rand
+- Malagasy Ariary
+- Malawi Kwacha
+- Malaysian Ringgit
+- Mauritius Rupee
+- Mexican Peso
+- Moldovan Leu
+- Moroccan Dirham
+- Mozambique Metical
+- Naira
+- Nakfa
+- Namibia Dollar,Rand
+- Nepalese Rupee
+- Netherlands Antillean Guilder
+- New Israeli Sheqel
+- New Zealand Dollar
+- No universal currency
+- North Korean Won
+- Norwegian Krone
+- Ouguiya
+- Pakistan Rupee
+- Pataca
+- Pa’anga
+- Peso Uruguayo
+- Philippine Peso
+- Pound Sterling
+- Pula
+- Qatari Rial
+- Quetzal
+- Rand
+- Rial Omani
+- Riel
+- Romanian Leu
+- Rufiyaa
+- Rupiah
+- Russian Ruble
+- Rwanda Franc
+- Saint Helena Pound
+- Saudi Riyal
+- Serbian Dinar
+- Seychelles Rupee
+- Singapore Dollar
+- Sol
+- Solomon Islands Dollar
+- Som
+- Somali Shilling
+- Somoni
+- South Sudanese Pound
+- Sri Lanka Rupee
+- Sudanese Pound
+- Surinam Dollar
+- Swedish Krona
+- Swiss Franc
+- Syrian Pound
+- Taka
+- Tala
+- Tanzanian Shilling
+- Tenge
+- Trinidad and Tobago Dollar
+- Tugrik
+- Tunisian Dinar
+- Turkish Lira
+- Turkmenistan New Manat
+- UAE Dirham
+- US Dollar
+- Uganda Shilling
+- Uzbekistan Sum
+- Vatu
+- Won
+- Yemeni Rial
+- Yen
+- Yuan Renminbi
+- Zambian Kwacha
+- Zimbabwe Dollar
+- Zloty
+
+### Languages
+- Abkhazian
+- Afar
+- Afrikaans
+- Akan
+- Albanian
+- Amharic
+- Arabic
+- Aragonese
+- Armenian
+- Assamese
+- Avaric
+- Avestan
+- Aymara
+- Azerbaijani
+- Bambara
+- Bashkir
+- Basque
+- Belarusian
+- Bengali
+- Bihari languages
+- Bislama
+- Bokmål, Norwegian; Norwegian Bokmål
+- Bosnian
+- Breton
+- Bulgarian
+- Burmese
+- Catalan; Valencian
+- Central Khmer
+- Chamorro
+- Chechen
+- Chichewa; Chewa; Nyanja
+- Chinese
+- Church Slavic; Old Slavonic; Church Slavonic; Old Bulgarian; Old Church Slavonic
+- Chuvash
+- Cornish
+- Corsican
+- Cree
+- Croatian
+- Czech
+- Danish
+- Divehi; Dhivehi; Maldivian
+- Dutch; Flemish
+- Dzongkha
+- English
+- Esperanto
+- Estonian
+- Ewe
+- Faroese
+- Fijian
+- Finnish
+- French
+- Fulah
+- Gaelic; Scottish Gaelic
+- Galician
+- Ganda
+- Georgian
+- German
+- Greek, Modern (1453-)
+- Guarani
+- Gujarati
+- Haitian; Haitian Creole
+- Hausa
+- Hebrew
+- Herero
+- Hindi
+- Hiri Motu
+- Hungarian
+- Icelandic
+- Ido
+- Igbo
+- Indonesian
+- Interlingua (International Auxiliary Language Association)
+- Interlingue; Occidental
+- Inuktitut
+- Inupiaq
+- Irish
+- Italian
+- Japanese
+- Javanese
+- Kalaallisut; Greenlandic
+- Kannada
+- Kanuri
+- Kashmiri
+- Kazakh
+- Kikuyu; Gikuyu
+- Kinyarwanda
+- Kirghiz; Kyrgyz
+- Komi
+- Kongo
+- Korean
+- Kuanyama; Kwanyama
+- Kurdish
+- Lao
+- Latin
+- Latvian
+- Limburgan; Limburger; Limburgish
+- Lingala
+- Lithuanian
+- Luba-Katanga
+- Luxembourgish; Letzeburgesch
+- Macedonian
+- Malagasy
+- Malay
+- Malayalam
+- Maltese
+- Manx
+- Maori
+- Marathi
+- Marshallese
+- Mongolian
+- Nauru
+- Navajo; Navaho
+- Ndebele, North; North Ndebele
+- Ndebele, South; South Ndebele
+- Ndonga
+- Nepali
+- Northern Sami
+- Norwegian
+- Norwegian Nynorsk; Nynorsk, Norwegian
+- Occitan (post 1500)
+- Ojibwa
+- Oriya
+- Oromo
+- Ossetian; Ossetic
+- Pali
+- Panjabi; Punjabi
+- Persian
+- Polish
+- Portuguese
+- Pushto; Pashto
+- Quechua
+- Romanian; Moldavian; Moldovan
+- Romansh
+- Rundi
+- Russian
+- Samoan
+- Sango
+- Sanskrit
+- Sardinian
+- Serbian
+- Shona
+- Sichuan Yi; Nuosu
+- Sindhi
+- Sinhala; Sinhalese
+- Slovak
+- Slovenian
+- Somali
+- Sotho, Southern
+- Spanish; Castilian
+- Sundanese
+- Swahili
+- Swati
+- Swedish
+- Tagalog
+- Tahitian
+- Tajik
+- Tamil
+- Tatar
+- Telugu
+- Thai
+- Tibetan
+- Tigrinya
+- Tonga (Tonga Islands)
+- Tsonga
+- Tswana
+- Turkish
+- Turkmen
+- Twi
+- Uighur; Uyghur
+- Ukrainian
+- Urdu
+- Uzbek
+- Venda
+- Vietnamese
+- Volapük
+- Walloon
+- Welsh
+- Western Frisian
+- Wolof
+- Xhosa
+- Yiddish
+- Yoruba
+- Zhuang; Chuang
+- Zulu
+
+### Industry
+- Accounting/Finance
+- Advertising/Public Relations
+- Aerospace/Aviation
+- Arts/Entertainment/Publishing
+- Automotive
+- Banking/Mortgage
+- Business Development
+- Business Opportunity
+- Clerical/Administrative
+- Construction/Facilities
+- Consumer Goods
+- Customer Service
+- Education/Training
+- Energy/Utilities
+- Engineering
+- Government/Military
+- Green
+- Healthcare
+- Hospitality/Travel
+- Human Resources
+- Installation/Maintenance
+- Insurance
+- Internet
+- Job Search Aids
+- Law Enforcement/Security
+- Legal
+- Management/Executive
+- Manufacturing/Operations
+- Marketing
+- Non-Profit/Volunteer
+- Pharmaceutical/Biotech
+- Professional Services
+- QA/Quality Control
+- Real Estate
+- Restaurant/Food Service
+- Retail
+- Sales
+- Science/Research
+- Skilled Labor
+- Technology
+- Telecommunications
+- Transportation/Logistics
+- Other
+
+### Education
+- High School
+- Associate Degree
+- Bachelor‘s Degree
+- Graduate or Professional Degree
+- Some College
+- Other
+- Prefer not to answer
+
+### Employment
+- Full-Time
+- Part-Time
+- Self-Employed
+- Homemaker
+- Retired
+- Student
+- Prefer not to answer
+
+### Marital Status
+- Single
+- Married
+- Divorced
+- Widowed
+- Prefer not to answer
+
+### Age
+- Under 18
+- 18-24
+- 25-34
+- 35-44
+- 45-54
+- 55-64
+- 65 or above
+- Prefer not to answer
+
+### Gender
+- Male
+- Female
+- Neither
+- Prefer not to answer
+
+### Size
+- Extra Extra Small
+- Extra Small
+- Small
+- Medium
+- Large
+- Extra Large
+- Extra Extra Large
+
+### Acceptability
+- Acceptable
+- Somewhat acceptable
+- Neutral
+- Unacceptable
+- Totally unacceptable
+- Not applicable
+
+### Agreement
+- Strongly agree
+- Agree
+- Neutral
+- Disagree
+- Strongly disagree
+- Not applicable
+
+### Comparison
+- Much Better
+- Somewhat Better
+- About the Same
+- Somewhat Worse
+- Much Worse
+- Not applicable
+
+### Difficulty
+- Very easy
+- Easy
+- Neutral
+- Difficult
+- Very difficult
+- Not applicable
+
+### How Long
+- Less than a month
+- 1-6 months
+- 1-3 years
+- Over 3 years
+- Never used
+
+### How Often
+- Every day
+- Once a week
+- 2 to 3 times a week
+- Once a month
+- 2 to 3 times a month
+- Less than once a month
+
+### Importance
+- Very important
+- Important
+- Neutral
+- Somewhat important
+- Not at all important
+- Not applicable
+
+### Satisfaction
+- Very satisfied
+- Satisfied
+- Neutral
+- Unsatisfied
+- Very unsatisfied
+- Not applicable
+
+### Would You
+- Definitely
+- Probably
+- Neutral
+- Probably Not
+- Definitely Not
+- Not applicable
+
+
+You can also register your own [predefined options](docs:developers/events#predefined-field-options)

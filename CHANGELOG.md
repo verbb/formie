@@ -2,6 +2,8 @@
 
 ## 1.4.0 - 2021-
 
+> {warning} Please read through the Breaking Changes before updating.
+
 ### Added
 - Added field conditions, to conditionally show/hide fields according to your logic.
 - Added page button conditions, to conditionally show/hide next button according to your logic.

@@ -30,3 +30,6 @@ The easiest method is to setup a cron job on your server to ensure submissions a
 The above command would run every minute around the clock, ensuring submissions are pruned according to your data retention settings, for all forms on your site.
 
 You may also want to disable viewing the Submissions information in the control panel for your users. You can use the Permissions available to all users to control this by editing their user account.
+
+## Encrypt Submission Content
+For an added layer of privacy, you can set any field to have their content encrypted. This means that their content cannot be viewed in its raw form in the database, however the form submission data can still be viewed in the control panel, for authenticated users.

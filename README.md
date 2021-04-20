@@ -14,6 +14,7 @@ Formie is a Craft CMS plugin for creating user-friendly forms that your content 
 - Store submissions in the control panel, in case you want to view the users' submission later.
 - **Stencils** - A quick and easy way to create new forms. Stencils include your form settings, fields and notifications.
 - Multiple options to control how forms submit. Show a success message, redirect to an entry, or stay on the same page.
+- Conditions for pages, fields, buttons and email notifications.
 - Switch form submissions to be page-reload (POST), or async (Ajax).
 - Spam protection - Fight spam with our in-built keyword blocking and submission behaviour control.
 - Integrations API - Captchas, Address Providers, Elements, Email Marketing, CRM, Webhooks, Miscellanous.
@@ -28,6 +29,7 @@ Formie is a Craft CMS plugin for creating user-friendly forms that your content 
 - Customise your submit buttons - even multiple submits for multi-page forms.
 - Pick from existing fields with ease.
 - **Synced fields** - Create your fields in one place, then use them everywhere!
+- **Conditions** - Hide or show fields based on other fields' values.
 
 ### Email Notifications
 - Multiple email notifications per-form. Notify your staff and customers at the same time about their submissions.
@@ -37,6 +39,7 @@ Formie is a Craft CMS plugin for creating user-friendly forms that your content 
 - Auto plain text conversion of HTML emails.
 - Preview your emails, so you're 100% certain how they'll look.
 - Send test emails, for delivery troubleshooting and real-world previews.
+- **Conditions** - Choose to send or prevent sending email notifications depending on field values.
 
 ### Templates
 - Out-of-the-box templates, including CSS styles and JS functionality. Show great-looking forms that are user-friendly and follow best-practices with a single line of Twig.
