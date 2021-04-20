@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.4.0.1 - 2021-04-21
+
+### Fixed
+- Fix fatal errors when installing from a fresh install.
+
 ## 1.4.0 - 2021-04-20
 
 > {warning} Please read through the Breaking Changes before updating.
