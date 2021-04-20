@@ -151,6 +151,31 @@ class FieldInterface extends BaseInterfaceType
                 'type' => Type::listOf(FieldAttributeGenerator::generateType()),
                 'description' => 'The field’s input attributes.'
             ],
+            'includeInEmail' => [
+                'name' => 'includeInEmail',
+                'type' => Type::boolean(),
+                'description' => 'Whether the field should be included in email content.'
+            ],
+            'enableConditions' => [
+                'name' => 'enableConditions',
+                'type' => Type::boolean(),
+                'description' => 'Whether the field has conditions enabled.'
+            ],
+            'conditions' => [
+                'name' => 'conditions',
+                'type' => Type::string(),
+                'description' => 'The field’s conditions.'
+            ],
+            'enableContentEncryption' => [
+                'name' => 'enableContentEncryption',
+                'type' => Type::boolean(),
+                'description' => 'Whether the field has content encryption enabled.'
+            ],
+            'visibility' => [
+                'name' => 'visibility',
+                'type' => Type::string(),
+                'description' => 'The field’s visibility.'
+            ],
         ]), self::getName());
     }
 }

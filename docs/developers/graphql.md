@@ -245,6 +245,11 @@ This is the interface implemented by all fields. Note that as settings are speci
 | `cssClasses`| `String` | The field’s CSS classes.
 | `containerAttributes`| `String` | The field’s container attributes.
 | `inputAttributes`| `String` | The field’s input attributes.
+| `includeInEmail`| `Boolean` | Whether the field should be included in email content.
+| `enableConditions`| `Boolean` | Whether the field has conditions enabled.
+| `conditions`| `String` | The field’s conditions.
+| `enableContentEncryption`| `Boolean` | Whether the field has content encryption enabled.
+| `visibility`| `String` | The field’s visibility.
 
 Once using the necessary [Inline Fragments](https://graphql.org/learn/queries/#inline-fragments) for each field type, you'll have access to the same variables as described on the [Field](docs:developers/field) docs.
 
