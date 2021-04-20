@@ -61,7 +61,7 @@ export default {
 
         // Init jQuery datepicker
         if (dateInput) {
-            const $picker = $(dateInput).datepicker($.extend({
+            this.$datePicker = $(dateInput).datepicker($.extend({
                 altFormat: 'yy-mm-dd',
                 onSelect: (dateText, inst) => {
                     var dateFormatted = inst.selectedYear + '-' + (inst.selectedMonth + 1) + '-' + inst.selectedDay;
@@ -74,16 +74,27 @@ export default {
                 },
             }, Craft.datepickerOptions));
 
+            this.$datePicker.on('change', (e) => {
+                // Update the model if the date is removed
+                if (!$(e.target).val()) {
+                    this.context.model = Object.assign(this.context.model, {
+                        date: '',
+                        jsDate: '',
+                        timezone: Craft.timezone,
+                    });
+                }
+            });
+
             if (this.context.model && this.context.model.date) {
-                $picker.datepicker('setDate', new Date(parseDate(this.context.model)));
+                this.$datePicker.datepicker('setDate', new Date(parseDate(this.context.model)));
             }
         }
 
         // The time input is always available so we have a ref - but is hidden
         if (timeInput) {
-            const $timePicker = $(timeInput).timepicker($.extend({}, Craft.timepickerOptions));
+            this.$timePicker = $(timeInput).timepicker($.extend({}, Craft.timepickerOptions));
 
-            $timePicker.on('change', (e) => {
+            this.$timePicker.on('change', (e) => {
                 this.context.model = Object.assign(this.context.model, {
                     time: e.target.value,
                     timezone: Craft.timezone,
@@ -91,11 +102,10 @@ export default {
             });
 
             if (this.context.model && this.context.model.date) {
-                $timePicker.timepicker('setTime', new Date(this.context.model.date));
+                this.$timePicker.timepicker('setTime', new Date(this.context.model.date));
             }
         }
     },
-
 };
 
 </script>
