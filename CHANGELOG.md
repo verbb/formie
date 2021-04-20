@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.4.0 - 2021-
+## 1.4.0 - 2021-04-20
 
 > {warning} Please read through the Breaking Changes before updating.
 
@@ -16,6 +16,7 @@
 - Added “Predefined Options” to Checkboxes, Radio and Dropdown fields. Select from 25 predefined options, or provide your own through events.
 - Added “Bulk Insert” to Checkboxes, Radio and Dropdown fields.
 - Added “Recent Submissions” dashboard widget. Provides table, pie or line charts of recent submissions for a provided date range.
+- Added `System Name` to available variables for variable picker.
 
 ### Changed
 - Formie now requires Craft 3.6+.
@@ -23,6 +24,7 @@
 - Date fields can now content-manage their date and time format.
 - Rename `field->getIsVisible()` to `field->getIsHidden()`.
 - Change syntax for populating element fields, when using `populateFormValues()`.
+- Removed duplicate “Pre-populate” field settings for Hidden fields
 
 ### Fixed
 - Fixed JS errors showing in form builder error alert.
@@ -33,6 +35,11 @@
 - Fixed page settings getting re-created unnecessarily.
 - Fixed clicking on page tabs on the front-end not working correctly.
 - Fixed an incompatibility with PHP 8.
+- Fixed reCAPTCHA v2 Checkbox working incorrectly for Ajax-based, multi-page forms with client-side validation enabled.
+- Fixed escaping HTML in rich text field for email notifications.
+- Fixed an error with empty Date fields, when formatted as inputs.
+- Fixed an error with Hidden fields using “Query Parameter” and an empty string as a value.
+- Fixed Checkboxes fields outputting all options in email notifications.
 
 ### Removed
 - Removed `craft.formie.getVisibleFields()`.
