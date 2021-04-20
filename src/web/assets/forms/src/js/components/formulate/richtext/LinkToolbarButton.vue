@@ -3,7 +3,6 @@
         <button v-tooltip="button.text" class="btn fui-toolbar-btn" :class="{ active }" @click.prevent="showLinkToolbar(getMarkAttrs('link'))">
             <i class="far" :class="'fa-' + button.icon"></i>
         </button>
-
         <link-toolbar
             v-if="showingToolbar"
             :initial-link-attrs="linkAttrs"
@@ -59,6 +58,17 @@ export default {
         };
     },
 
+    created() {
+        this.field.$on('link-selected', (selection) => {
+            // eslint-disable-next-line
+            const { attrs } = selection.content().content.content[0].content.content[0].content.content[0].marks[0];
+
+            this.showLinkToolbar(attrs);
+        });
+
+        this.field.$on('link-deselected', () => this.$emit('deselected'));
+    },
+
     methods: {
         showLinkToolbar(attrs) {
             this.showingToolbar = false;
@@ -77,7 +87,7 @@ export default {
         },
 
         clickAway() {
-            this.showingToolbar = false;
+            // this.showingToolbar = false;
         },
     },
 };

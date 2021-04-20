@@ -51,7 +51,9 @@ export class FormieRecaptchaV2Checkbox {
     }
 
     renderCaptcha() {
-        this.$placeholder = null;
+        // Default to the first placeholder available.
+        // eslint-disable-next-line
+        this.$placeholder = this.$placeholders[0];
 
         // Get the active page
         var { $currentPage } = this.$form.form.formTheme;

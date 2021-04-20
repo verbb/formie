@@ -88,9 +88,7 @@ export default {
     created() {
         this.targetBlank = this.linkAttrs.href ? this.linkAttrs.target == '_blank' : '';
 
-        if (!this.linkAttrs.href) {
-            this.edit();
-        }
+        this.edit();
     },
 
     methods: {
@@ -126,6 +124,10 @@ export default {
         },
 
         sanitizeLink(link) {
+            if (!link) {
+                return '';
+            }
+            
             const str = link.trim();
 
             return str.match(/^\w[\w\-_.]+\.(co|uk|com|org|net|gov|biz|info|us|eu|de|fr|it|es|pl|nz)/i) ? 'https://' + str : str;
@@ -206,7 +208,7 @@ export default {
     background-color: transparent;
     box-shadow: none;
     border-style: none;
-    width: 240px;
+    width: 100%;
     outline: none;
     flex: 1 1 0%;
     line-height: normal;

@@ -165,12 +165,18 @@ export default {
                 options: [
                     { label: Craft.t('formie', 'Title'), value: '{submission:title}' },
                     { label: Craft.t('formie', 'ID'), value: '{submission:id}' },
+                    { label: Craft.t('formie', 'Form Name'), value: '{submission:formName}' },
                 ],
             });
 
             var customFields = [];
 
             fields.forEach(field => {
+                // Exclude cosmetic fields (with no value)
+                if (field.isCosmetic) {
+                    return;
+                }
+
                 // If this field is nested itself, don't show. The outer field takes care of that below
                 if (!toBoolean(field.isNested)) {
                     // Don't show a nested field on its own

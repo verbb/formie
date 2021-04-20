@@ -4,21 +4,23 @@ namespace verbb\formie\fields\formfields;
 use verbb\formie\base\FormField;
 use verbb\formie\base\NestedFieldInterface;
 use verbb\formie\base\NestedFieldTrait;
-use verbb\formie\elements\Form;
 use verbb\formie\elements\db\NestedFieldRowQuery;
 use verbb\formie\elements\NestedFieldRow;
+use verbb\formie\gql\types\input\RepeaterInputType;
+use verbb\formie\gql\types\RowType;
 use verbb\formie\helpers\SchemaHelper;
 
 use Craft;
 use craft\base\EagerLoadingFieldInterface;
 use craft\base\Element;
 use craft\base\ElementInterface;
-use craft\helpers\Html;
+use craft\gql\GqlEntityRegistry;
 use craft\helpers\Json;
 use craft\validators\ArrayValidator;
-use craft\web\View;
 
-use Throwable;
+use GraphQL\Type\Definition\InputObjectType;
+use GraphQL\Type\Definition\ObjectType;
+use GraphQL\Type\Definition\Type;
 
 class Repeater extends FormField implements NestedFieldInterface, EagerLoadingFieldInterface
 {
@@ -330,5 +332,52 @@ class Repeater extends FormField implements NestedFieldInterface, EagerLoadingFi
             SchemaHelper::enableConditionsField(),
             SchemaHelper::conditionsField(),
         ];
+    }
+    
+    /**
+     * @inheritDoc
+     */
+    public function getContentGqlMutationArgumentType()
+    {
+        return RepeaterInputType::getType($this);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getContentGqlType()
+    {
+        $typeName = $this->getForm()->handle . '_' . $this->handle . '_FormieRepeaterField';
+
+        if ($inputType = GqlEntityRegistry::getEntity($typeName)) {
+            return $inputType;
+        }
+
+        $rowTypeName = $typeName . 'Row';
+        $repeaterFields = [];
+
+        foreach ($this->getFields() as $field) {
+            $repeaterFields[$field->handle] = $field->getContentGqlType();
+        }
+
+        $rowType = GqlEntityRegistry::createEntity($rowTypeName, new RowType([
+            'name' => $rowTypeName,
+            'fields' => function() use ($repeaterFields) {
+                return $repeaterFields;
+            },
+        ]));
+
+        return GqlEntityRegistry::createEntity($typeName, new ObjectType([
+            'name' => $typeName,
+            'fields' => [
+                'rows' => [
+                    'name' => 'rows',
+                    'type' => Type::listOf($rowType),
+                    'resolve' => function ($rootValue) {
+                        return $rootValue;
+                    }
+                ]
+            ]
+        ]));
     }
 }

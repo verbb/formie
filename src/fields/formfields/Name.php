@@ -8,16 +8,24 @@ use verbb\formie\Formie;
 use verbb\formie\gql\types\input\NameInputType;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\Name as NameModel;
+use verbb\formie\events\ModifyNamePrefixOptionsEvent;
 
 use Craft;
 use craft\base\ElementInterface;
 use craft\base\PreviewableFieldInterface;
 use craft\helpers\Json;
 
+use yii\base\Event;
 use yii\db\Schema;
 
 class Name extends FormField implements SubfieldInterface, PreviewableFieldInterface
 {
+    // Constants
+    // =========================================================================
+
+    const EVENT_MODIFY_PREFIX_OPTIONS = 'modifyPrefixOptions';
+
+
     // Traits
     // =========================================================================
 
@@ -52,14 +60,23 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
      */
     public static function getPrefixOptions()
     {
-        return [
+        $options = [
             ['label' => Craft::t('formie', 'Mr.'), 'value' => 'mr'],
             ['label' => Craft::t('formie', 'Mrs.'), 'value' => 'mrs'],
             ['label' => Craft::t('formie', 'Ms.'), 'value' => 'ms'],
             ['label' => Craft::t('formie', 'Miss.'), 'value' => 'miss'],
+            ['label' => Craft::t('formie', 'Mx.'), 'value' => 'mx'],
             ['label' => Craft::t('formie', 'Dr.'), 'value' => 'dr'],
             ['label' => Craft::t('formie', 'Prof.'), 'value' => 'prof'],
         ];
+
+        $event = new ModifyNamePrefixOptionsEvent([
+            'options' => $options,
+        ]);
+
+        Event::trigger(static::class, self::EVENT_MODIFY_PREFIX_OPTIONS, $event);
+
+        return $event->options;
     }
 
 

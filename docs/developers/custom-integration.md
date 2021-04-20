@@ -11,13 +11,13 @@ use verbb\formie\services\Integrations;
 use yii\base\Event;
 
 Event::on(Integrations::class, Integrations::EVENT_REGISTER_INTEGRATIONS, function(RegisterIntegrationsEvent $event) {
-    $event->captchas[] = new ExampleCaptcha();
-    $event->addressProviders[] = new ExampleAddressProvider();
-    $event->elements[] = new ExampleElement();
-    $event->emailMarketing[] = new ExampleEmailMarketing();
-    $event->crm[] = new ExampleCrm();
-    $event->webhooks[] = new ExampleWebhooks();
-    $event->miscellaneous[] = new ExampleMiscellaneous();
+    $event->captchas[] = ExampleCaptcha::class;
+    $event->addressProviders[] = ExampleAddressProvider::class;
+    $event->elements[] = ExampleElement::class;
+    $event->emailMarketing[] = ExampleEmailMarketing::class;
+    $event->crm[] = ExampleCrm::class;
+    $event->webhooks[] = ExampleWebhooks::class;
+    $event->miscellaneous[] = ExampleMiscellaneous::class;
     // ...
 });
 ```
@@ -67,7 +67,7 @@ class ExampleCaptcha extends Captcha
 
     public function getIconUrl(): string
     {
-        return __DIR__ . '/my-path/icon.svg';
+        return Craft::$app->getAssetManager()->getPublishedUrl("@modules/mymodule/resources/icon.svg", true);
     }
 
     public function getDescription(): string
@@ -147,7 +147,7 @@ class ExampleAddressProvider extends AddressProvider
 
     public function getIconUrl(): string
     {
-        return __DIR__ . '/my-path/icon.svg';
+        return Craft::$app->getAssetManager()->getPublishedUrl("@modules/mymodule/resources/icon.svg", true);
     }
 
     public function getDescription(): string
@@ -219,7 +219,7 @@ class ExampleElement extends Element
 
     public function getIconUrl(): string
     {
-        return __DIR__ . '/my-path/icon.svg';
+        return Craft::$app->getAssetManager()->getPublishedUrl("@modules/mymodule/resources/icon.svg", true);
     }
 
     public function getDescription(): string
@@ -234,10 +234,11 @@ class ExampleElement extends Element
         ]);
     }
 
-    public function getFormSettingsHtml(): string
+    public function getFormSettingsHtml($form): string
     {
         return Craft::$app->getView()->renderTemplate('path/to/settings', [
             'integration' => $this,
+            'form' => $form,
         ]);
     }
 
@@ -275,7 +276,7 @@ class ExampleElement extends Element
         ];
     }
 
-    public function sendPayload(Submission $submission)
+    public function sendPayload(Submission $submission): bool
     {
         $element = new YourElement();
 
@@ -347,7 +348,7 @@ class ExampleEmailMarketing extends EmailMarketing
 
     public function getIconUrl(): string
     {
-        return __DIR__ . '/my-path/icon.svg';
+        return Craft::$app->getAssetManager()->getPublishedUrl("@modules/mymodule/resources/icon.svg", true);
     }
 
     public function getDescription(): string
@@ -362,10 +363,11 @@ class ExampleEmailMarketing extends EmailMarketing
         ]);
     }
 
-    public function getFormSettingsHtml(): string
+    public function getFormSettingsHtml($form): string
     {
         return Craft::$app->getView()->renderTemplate('path/to/settings', [
             'integration' => $this,
+            'form' => $form,
         ]);
     }
 
@@ -409,7 +411,7 @@ class ExampleEmailMarketing extends EmailMarketing
         return new IntegrationFormSettings($settings);
     }
 
-    public function sendPayload(Submission $submission)
+    public function sendPayload(Submission $submission): bool
     {
         // Fetch the form settings for our field mapping
         $fieldValues = $this->getFieldMappingValues($submission, $this->fieldMapping);
@@ -478,7 +480,7 @@ class ExampleCrm extends Crm
 
     public function getIconUrl(): string
     {
-        return __DIR__ . '/my-path/icon.svg';
+        return Craft::$app->getAssetManager()->getPublishedUrl("@modules/mymodule/resources/icon.svg", true);
     }
 
     public function getDescription(): string
@@ -493,10 +495,11 @@ class ExampleCrm extends Crm
         ]);
     }
 
-    public function getFormSettingsHtml(): string
+    public function getFormSettingsHtml($form): string
     {
         return Craft::$app->getView()->renderTemplate('path/to/settings', [
             'integration' => $this,
+            'form' => $form,
         ]);
     }
 
@@ -538,7 +541,7 @@ class ExampleCrm extends Crm
         ]);
     }
 
-    public function sendPayload(Submission $submission)
+    public function sendPayload(Submission $submission): bool
     {
         // Fetch the form settings for our field mapping - for each collection of data
         $contactValues = $this->getFieldMappingValues($submission, $this->contactFieldMapping, 'contact');
@@ -619,7 +622,7 @@ class ExampleWebhook extends Webhook
 
     public function getIconUrl(): string
     {
-        return __DIR__ . '/my-path/icon.svg';
+        return Craft::$app->getAssetManager()->getPublishedUrl("@modules/mymodule/resources/icon.svg", true);
     }
 
     public function getDescription(): string
@@ -634,10 +637,11 @@ class ExampleWebhook extends Webhook
         ]);
     }
 
-    public function getFormSettingsHtml(): string
+    public function getFormSettingsHtml($form): string
     {
         return Craft::$app->getView()->renderTemplate('path/to/settings', [
             'integration' => $this,
+            'form' => $form,
         ]);
     }
 
@@ -666,7 +670,7 @@ class ExampleWebhook extends Webhook
         ]);
     }
 
-    public function sendPayload(Submission $submission)
+    public function sendPayload(Submission $submission): bool
     {
         // Generate a payload of values to send to the webhook
         $payload = $this->generatePayloadValues($submission);

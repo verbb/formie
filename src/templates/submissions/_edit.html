@@ -14,7 +14,7 @@
     { label: 'Submissions' | t('formie'), url: url('formie/submissions') },
 ] %}
 
-{% if currentUser.can('formie-editSubmissions') %}
+{% if currentUser.can('formie-editSubmissions') or currentUser.can('formie-manageSubmission:' ~ form.uid) %}
     {% set fullPageForm = true %}
     {% set saveShortcutRedirect = continueEditingUrl %}
 {% endif %}
@@ -26,7 +26,7 @@
 
 {% block actionButton %}
 
-{% if currentUser.can('formie-editSubmissions') %}
+{% if currentUser.can('formie-editSubmissions') or currentUser.can('formie-manageSubmission:' ~ form.uid) %}
     <div class="buttons">
         <div class="btngroup submit">
             <input type="submit" class="btn submit" value="{{ 'Save' | t('formie') }}">
@@ -89,11 +89,15 @@
                     {% namespace 'fields' %}
                         {% for row in rows %}
                             {% for field in row.fields %}
-                                {% include '_includes/field' with {
-                                    field: field,
-                                    element: submission,
-                                    required: field.required,
-                                } %}
+                                {% if field.type == 'verbb\\formie\\fields\\formfields\\Heading' %}
+                                    {% include 'formie/_formfields/heading/input' %}
+                                {% else %}
+                                    {% include '_includes/field' with {
+                                        field: field,
+                                        element: submission,
+                                        required: field.required,
+                                    } %}
+                                {% endif %}
                             {% endfor %}
                         {% endfor %}
                     {% endnamespace %}
@@ -110,6 +114,16 @@
 {% block details %}
 
 <div id="settings" class="meta">
+    <div class="field">
+        <div class="heading">
+            <label class="">{{ 'Submission ID' | t('formie') }}</label>
+        </div>
+
+        <div class="input ltr">
+            {{ submission.id }}
+        </div>
+    </div>
+
     <div class="field">
         <div class="heading">
             <label class="">{{ 'Form Name' | t('formie') }}</label>

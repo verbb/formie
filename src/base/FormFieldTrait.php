@@ -47,6 +47,7 @@ trait FormFieldTrait
     public $cssClasses;
     public $containerAttributes;
     public $inputAttributes;
+    public $includeInEmail = true;
     public $enableConditions;
     public $conditions;
     public $enableContentEncryption = false;
@@ -80,6 +81,10 @@ trait FormFieldTrait
      * @var Form
      */
     private $_form;
+    /**
+     * @var NestedFieldInterface
+     */
+    private $_container;
     private $_namespace = 'fields';
 
 
@@ -302,6 +307,32 @@ trait FormFieldTrait
     }
 
     /**
+     * @return NestedFieldInterface|Form|null
+     */
+    public function getGqlFieldContext()
+    {
+        return $this->isNested ? $this->getContainer() : $this->getForm();
+    }
+
+    /**
+     * Set the container for a nested field.
+     * @param NestedFieldInterface $container
+     */
+    public function setContainer(NestedFieldInterface $container)
+    {
+        $this->_container = $container;
+    }
+
+    /**
+     * Return the container if this is a nested field.
+     * @param NestedFieldInterface $container
+     */
+    public function getContainer()
+    {
+        return $this->_container;
+    }
+
+    /**
      * @return Form|null
      */
     public function getForm()
@@ -348,6 +379,14 @@ trait FormFieldTrait
     {
         return StringHelper::toKebabCase($this->namespace . ' ' . $this->getHtmlId($form) . ' wrap');
     }
+    
+    /**
+     * @inheritDoc
+     */
+    public function getType()
+    {
+        return static::class;
+    }
 
     /**
      * @inheritDoc
@@ -379,6 +418,38 @@ trait FormFieldTrait
     public function hasSubfields(): bool
     {
         return false;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getIsVisible(): bool
+    {
+        return true;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getIsCosmetic(): bool
+    {
+        return false;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getIsHidden(): bool
+    {
+        return $this->visibility === 'hidden';
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getIsHidden(): bool
+    {
+        return $this->visibility === 'hidden';
     }
 
     /**
@@ -566,7 +637,7 @@ trait FormFieldTrait
         $instructionsPositions = Formie::$plugin->getFields()->getInstructionsPositionsArray($this);
 
         $config = [
-            'type' => static::class,
+            'type' => $this->getType(),
             'label' => $this->displayName(),
             'defaults' => $this->getAllFieldDefaults(),
             'icon' => $this->getSvgIcon(),

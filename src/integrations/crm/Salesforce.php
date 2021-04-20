@@ -237,8 +237,9 @@ class Salesforce extends Crm
                 $accountId = $response['id'] ?? '';
 
                 if (!$accountId) {
-                    Integration::error($this, Craft::t('formie', 'Missing return “accountId” {response}', [
+                    Integration::error($this, Craft::t('formie', 'Missing return “accountId” {response}. Sent payload {payload}', [
                         'response' => Json::encode($response),
+                        'payload' => Json::encode($contactPayload),
                     ]), true);
 
                     return false;
@@ -281,8 +282,9 @@ class Salesforce extends Crm
                     $contactId = $response['id'] ?? '';
 
                     if (!$contactId) {
-                        Integration::error($this, Craft::t('formie', 'Missing return “contactId” {response}', [
+                        Integration::error($this, Craft::t('formie', 'Missing return “contactId” {response}. Sent payload {payload}', [
                             'response' => Json::encode($response),
+                            'payload' => Json::encode($contactPayload),
                         ]), true);
 
                         return false;
@@ -322,8 +324,9 @@ class Salesforce extends Crm
                     $leadId = $response['id'] ?? '';
 
                     if (!$leadId) {
-                        Integration::error($this, Craft::t('formie', 'Missing return “leadId” {response}', [
+                        Integration::error($this, Craft::t('formie', 'Missing return “leadId” {response}. Sent payload {payload}', [
                             'response' => Json::encode($response),
+                            'payload' => Json::encode($leadPayload),
                         ]), true);
 
                         return false;
@@ -367,8 +370,9 @@ class Salesforce extends Crm
                 $opportunityId = $response['id'] ?? '';
 
                 if (!$opportunityId) {
-                    Integration::error($this, Craft::t('formie', 'Missing return “opportunityId” {response}', [
+                    Integration::error($this, Craft::t('formie', 'Missing return “opportunityId” {response}. Sent payload {payload}', [
                         'response' => Json::encode($response),
+                        'payload' => Json::encode($opportunityPayload),
                     ]), true);
 
                     return false;

@@ -96,7 +96,7 @@ class Renderer
                 $html[] = $this->renderNode($nestedNode);
             }
         } elseif (isset($node->text)) {
-            $html[] = htmlentities($node->text, ENT_QUOTES);
+            $html[] = $node->text;
         } elseif ($text = $renderClass->text()) {
             $html[] = $text;
         }

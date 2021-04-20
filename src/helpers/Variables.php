@@ -7,11 +7,13 @@ use verbb\formie\base\SubFieldInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\fields\formfields\Date;
+use verbb\formie\fields\formfields\MultiLineText;
 use verbb\formie\models\Notification;
 
 use Craft;
 use craft\errors\SiteNotFoundException;
 use craft\fields\BaseRelationField;
+use craft\fields\data\MultiOptionsFieldData;
 use craft\helpers\App;
 
 use DateTime;
@@ -34,6 +36,7 @@ class Variables
             [ 'label' => Craft::t('formie', 'Form'), 'heading' => true ],
             [ 'label' => Craft::t('formie', 'All Form Fields'), 'value' => '{allFields}' ],
             [ 'label' => Craft::t('formie', 'All Non Empty Fields'), 'value' => '{allContentFields}' ],
+            [ 'label' => Craft::t('formie', 'All Visible Fields'), 'value' => '{allVisibleFields}' ],
             [ 'label' => Craft::t('formie', 'Form Name'), 'value' => '{formName}' ],
             [ 'label' => Craft::t('formie', 'Submission CP URL'), 'value' => '{submissionUrl}' ],
             [ 'label' => Craft::t('formie', 'Submission ID'), 'value' => '{submissionId}' ],
@@ -63,6 +66,7 @@ class Variables
     {
         return [
             [ 'label' => Craft::t('formie', 'General'), 'heading' => true ],
+            [ 'label' => Craft::t('formie', 'System Name'), 'value' => '{systemName}' ],
             [ 'label' => Craft::t('formie', 'Site Name'), 'value' => '{siteName}' ],
             [ 'label' => Craft::t('formie', 'Timestamp'), 'value' => '{timestamp}' ],
             [ 'label' => Craft::t('formie', 'Date (mm/dd/yyyy)'), 'value' => '{dateUs}' ],
@@ -216,29 +220,27 @@ class Variables
             }
         }
 
-        // Cache field's separately, as they rely on both a submission and notification, which might not be available
-        // for earlier calls to `getParsedValue()`, but should be cached anyway, as they're the most expensive calls.
-        if (!Formie::$plugin->getRenderCache()->getFieldVariables($cacheKey)) {
-            $fieldHtml = self::getFormFieldsHtml($form, $notification, $submission);
-            $fieldContentHtml = self::getFormFieldsHtml($form, $notification, $submission, true);
+        $fieldHtml = self::getFormFieldsHtml($form, $notification, $submission);
+        $fieldContentHtml = self::getFormFieldsHtml($form, $notification, $submission, true);
+        $fieldVisibleHtml = self::getFormFieldsHtml($form, $notification, $submission, false, true);
 
-            $fieldVariables = [
-                'allFields' => $fieldHtml,
-                'allContentFields' => $fieldContentHtml,
-            ];
+        $fieldVariables = [
+            'allFields' => $fieldHtml,
+            'allContentFields' => $fieldContentHtml,
+            'allVisibleFields' => $fieldVisibleHtml,
+        ];
 
-            // Old and deprecated methods. Ensure all fields are prefixed with 'field:', but too tricky to migrate...
-            // TODO: Remove at next breakpoint
-            $fieldVariables = array_merge($fieldVariables, self::_getParsedFieldValuesLegacy($form, $notification, $submission));
+        // Old and deprecated methods. Ensure all fields are prefixed with 'field:', but too tricky to migrate...
+        // TODO: Remove at next breakpoint
+        $fieldVariables = array_merge($fieldVariables, self::_getParsedFieldValuesLegacy($form, $notification, $submission));
 
-            // Properly parse field values
-            $fieldVariables = array_merge($fieldVariables, self::_getParsedFieldValues($form, $submission, $notification));
+        // Properly parse field values
+        $fieldVariables = array_merge($fieldVariables, self::_getParsedFieldValues($form, $submission, $notification));
 
-            // Don't save anything unless we have values
-            $fieldVariables = array_filter($fieldVariables);
+        // Don't save anything unless we have values
+        $fieldVariables = array_filter($fieldVariables);
 
-            Formie::$plugin->getRenderCache()->setFieldVariables($cacheKey, $fieldVariables);
-        }
+        Formie::$plugin->getRenderCache()->setFieldVariables($cacheKey, $fieldVariables);
 
         $variables = Formie::$plugin->getRenderCache()->getVariables($cacheKey);
 
@@ -262,7 +264,7 @@ class Variables
     /**
      * @inheritdoc
      */
-    public static function getFormFieldsHtml($form, $notification, $submission, $excludeEmpty = false, $asArray = false)
+    public static function getFormFieldsHtml($form, $notification, $submission, $excludeEmpty = false, $excludeHidden = false, $asArray = false)
     {
         $fieldItems = $asArray ? [] : '';
 
@@ -276,6 +278,14 @@ class Variables
         $view->setTemplateMode($view::TEMPLATE_MODE_CP);
 
         foreach ($form->getFields() as $field) {
+            if (!$field->includeInEmail) {
+                continue;
+            }
+
+            if ($excludeHidden && !$field->getIsVisible()) {
+                continue;
+            }
+
             $value = $submission->getFieldValue($field->handle);
 
             if (empty($value) && $excludeEmpty) {
@@ -315,7 +325,7 @@ class Variables
             return $values;
         }
 
-        $parsedFieldContent = self::getFormFieldsHtml($form, $notification, $submission, true, true);
+        $parsedFieldContent = self::getFormFieldsHtml($form, $notification, $submission, true, true, true);
 
         // For now, only handle element fields, which need HTML generated
         if ($submission && $submission->getFieldLayout()) {
@@ -409,6 +419,12 @@ class Variables
             }
         } else if ($field instanceof BaseRelationField) {
             $values["{$prefix}{$field->handle}"] = $parsedContent;
+        } else if ($field instanceof MultiLineText) {
+            $values["{$prefix}{$field->handle}"] = $parsedContent;
+        } else if ($submissionValue instanceof MultiOptionsFieldData) {
+            $values["{$prefix}{$field->handle}"] = implode(', ', array_map(function($item) {
+                return $item->value;
+            }, (array)$submissionValue));
         } else {
             // Try to convert as a simple string value, if not, fall back on email template
             try {

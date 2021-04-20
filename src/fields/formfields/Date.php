@@ -10,7 +10,7 @@ use verbb\formie\helpers\SchemaHelper;
 use Craft;
 use craft\base\ElementInterface;
 use craft\base\PreviewableFieldInterface;
-use craft\gql\types\DateTime as GqlDateTime;
+use craft\gql\types\DateTime as DateTimeType;
 use craft\helpers\DateTimeHelper;
 use craft\helpers\StringHelper;
 
@@ -100,6 +100,8 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
             }
         } elseif ($this->defaultOption === 'today') {
             $this->defaultValue = self::toDateTime(new DateTime());
+        } else {
+            $this->defaultValue = '';
         }
     }
 
@@ -138,16 +140,23 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
 
         if ($this->displayType !== 'calendar') {
             $format = $this->dateFormat;
+
             if ($this->includeTime) {
                 $format .= ' ' . $this->timeFormat;
             }
 
-            $formatted = preg_replace_callback('/[A-Za-z]/', function($matches) use ($value) {
-                return StringHelper::padLeft($value[$matches[0]], 2, '0');
-            }, $format);
+            if (is_array($value)) {
+                $value = array_filter($value);
+            }
 
-            if (($date = DateTime::createFromFormat($format, $formatted)) !== false) {
-                return $date;
+            if ($value) {
+                $formatted = preg_replace_callback('/[A-Za-z]/', function($matches) use ($value) {
+                    return StringHelper::padLeft($value[$matches[0]], 2, '0');
+                }, $format);
+
+                if (($date = DateTime::createFromFormat($format, $formatted)) !== false) {
+                    return $date;
+                }
             }
         }
 
@@ -212,6 +221,7 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
         $maxYear = $year + 100;
 
         $yearOptions = [];
+
         for ($y = $minYear; $y < $maxYear; ++$y) {
             $yearOptions[] = ['value' => $y, 'label' => $y];
         }
@@ -636,10 +646,30 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
         if ($attribute === 'defaultValue') {
             return [
                 'name' => 'defaultDate',
-                'type' => GqlDateTime::getType(),
+                'type' => DateTimeType::getType(),
             ];
         }
 
         return parent::getSettingGqlType($attribute, $type, $fieldInfo);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getContentGqlType()
+    {
+        return DateTimeType::getType();
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getContentGqlMutationArgumentType()
+    {
+        return [
+            'name' => $this->handle,
+            'type' => DateTimeType::getType(),
+            'description' => $this->instructions,
+        ];
     }
 }

@@ -306,8 +306,9 @@ class ActiveCampaign extends Crm
                 $contactId = $response['contact']['id'] ?? '';
 
                 if (!$contactId) {
-                    Integration::error($this, Craft::t('formie', 'Missing return “contactId” {response}', [
+                    Integration::error($this, Craft::t('formie', 'Missing return “contactId” {response}. Sent payload {payload}', [
                         'response' => Json::encode($response),
+                        'payload' => Json::encode($contactPayload),
                     ]), true);
 
                     return false;

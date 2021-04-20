@@ -2,7 +2,7 @@
 
 Create an `formie.php` file under your `/config` directory with the following options available to you. You can also use multi-environment options to change these per environment.
 
-The below shows the defaults already used by Formie.
+The below shows the defaults already used by Formie, so you don't need to add these options unless you want to modify the values.
 
 ```php
 <?php
@@ -16,6 +16,7 @@ return [
         'defaultFormTemplate' => '',
         'defaultEmailTemplate' => '',
         'enableUnloadWarning' => true,
+        'ajaxTimeout' => 10,
 
         // General Fields
         'defaultLabelPosition' => 'above-input',
@@ -44,7 +45,7 @@ return [
 
         // Alerts
         'sendEmailAlerts' => false,
-        'alertEmails',
+        'alertEmails' => [],
     ]
 ];
 ```
@@ -57,6 +58,7 @@ return [
 - `defaultFormTemplate` - The handle for the default form template used for new forms. Formie‘s defaults will be used if not specified.
 - `defaultEmailTemplate` - The handle for the default email template used for new forms. Formie's defaults will be used if not specified.
 - `enableUnloadWarning` - Whether front-end forms should trigger an "unload" warning when a form‘s content has changed and the user tries to navigate away without submitting.
+- `ajaxTimeout` - Set the timeout in seconds for Ajax/XHR requests when using the front-end JS. Default to 10 seconds.
 
 ### General Fields
 - `defaultLabelPosition` - The default label position for new forms and fields.
@@ -85,11 +87,21 @@ return [
 
 ### Alerts
 - `sendEmailAlerts` - Whether an email alert should be sent to a nominated email when an email notification fails to send.
-- `alertEmails` - A collection of emails that alerts should be sent to.
+- `alertEmails` - A collection of emails that alerts should be sent to. See below for an example.
 
 ## Control Panel
 
 You can also manage configuration settings through the Control Panel by visiting Settings → Formie.
+
+### Alerts Configuration
+Supply a nested array for the name and email of each contact to receive alert notifications. The first index should contain the name, with the second index the email address.
+
+```php
+'alertEmails' => [
+    ['Primary Name', 'admin@site.com'],
+    ['Secondary Admin Name', 'admin-alt@site.com'],
+],
+```
 
 ## Rich Text Configuration
 Formie uses a Rich Text field for numerous settings for forms, notifications and more. This field is powered by [TipTap](https://tiptap.scrumpy.io/). You have control over the configuration of these Rich Text fields, by providing a `.json` file with its configurations, very similar to how the [Redactor](https://plugins.craftcms.com/redactor) plugin works.

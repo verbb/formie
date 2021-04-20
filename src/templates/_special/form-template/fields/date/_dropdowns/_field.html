@@ -7,7 +7,7 @@
     {% if handle == 'ampm' %}
         {% set selected = value %}
     {% else %}
-        {% set selected = value ? (value | date(char) * 1) : null %}
+        {% set selected = value ? (value | date(char, false) * 1) : null %}
     {% endif %}
 
     {% set labelPosition = craft.formie.getLabelPosition(field, form, true) %}
@@ -43,9 +43,7 @@
             } %}
 
             <select {{ attr(attributes) }}>
-                {% if placeholder %}
-                    <option value="" disabled {{- not selected ? ' selected' }}>{{ placeholder }}</option>
-                {% endif %}
+                <option value="" disabled {{- not selected ? ' selected' }}>{{ placeholder }}</option>
 
                 {% if attrs.options is defined %}
                     {% for option in attrs.options %}
@@ -55,7 +53,7 @@
                     {% endfor %}
                 {% else %}
                     {% for i in attrs.min..attrs.max %}
-                        <option value="{{ i }}" {{- i == selected ? ' selected' }}>{{ i }}</option>
+                        <option value="{{ i }}" {{- i is same as(selected) ? ' selected' }}>{{ i }}</option>
                     {% endfor %}
                 {% endif %}
             </select>

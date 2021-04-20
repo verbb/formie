@@ -184,6 +184,16 @@ export class FormieFormTheme {
         // Stop base behaviour of just submitting the form
         e.preventDefault();
 
+        // Check if the submit button has a `name` attribute. If so, we need to append a hidden input
+        // to the form, as JS-submitted forms won't pass on the submit button value as its programatically submitted.
+        if (this.$submitBtn && this.$submitBtn.getAttribute('name')) {
+            const name = this.$submitBtn.getAttribute('name');
+            const value = this.$submitBtn.getAttribute('value');
+
+            // Add a hidden input, if it doesn't exist
+            this.updateOrCreateHiddenInput(name, value);
+        }
+
         // Either staight submit, or use Ajax
         if (this.settings.submitMethod === 'ajax') {
             this.ajaxSubmit();
@@ -212,10 +222,12 @@ export class FormieFormTheme {
         var hash = {};
 
         var formData = new FormData(this.$form);
-        var excludedItems = ['g-recaptcha-response', 'CRAFT_CSRF_TOKEN'];
+        var excludedItems = ['g-recaptcha-response', 'CRAFT_CSRF_TOKEN', '__JSCHK'];
 
         for (var pair of formData.entries()) {
-            if (!excludedItems.includes(pair[0])) {
+            var isExcluded = excludedItems.filter(item => pair[0].startsWith(item));
+
+            if (!isExcluded.length) {
                 // eslint-disable-next-line
                 hash[pair[0]] = pair[1];
             }
@@ -383,13 +395,15 @@ export class FormieFormTheme {
 
     ajaxSubmit() {
         const formData = new FormData(this.$form);
+        const method = this.$form.getAttribute('method');
+        const action = this.$form.getAttribute('action');
 
         const xhr = new XMLHttpRequest();
-        xhr.open('POST', this.settings.siteRootUrl, true);
+        xhr.open(method ? method : 'POST', action ? action : window.location.href, true);
         xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
         xhr.setRequestHeader('Accept', 'application/json');
         xhr.setRequestHeader('Cache-Control', 'no-cache');
-        xhr.timeout = 10000; // 10s
+        xhr.timeout = (this.settings.ajaxTimeout || 10) * 1000;
 
         this.beforeSubmit();
 
@@ -477,12 +491,12 @@ export class FormieFormTheme {
         }
 
         // If we're redirecting away, do it immediately for nicer UX
-        if (this.settings.submitAction === 'entry' || this.settings.submitAction === 'url') {
-            if (this.settings.submitActionTab === 'same-tab') {
-                window.location.href = data.redirectUrl;
-            } else if (this.settings.submitActionTab === 'new-tab') {
+        if (data.redirectUrl) {
+            if (this.settings.submitActionTab === 'new-tab') {
                 window.open(data.redirectUrl, '_blank');
             }
+
+            window.location.href = data.redirectUrl;
 
             return;
         }
@@ -531,16 +545,20 @@ export class FormieFormTheme {
         }
 
         // Add the hidden submission input, if it doesn't exist
-        var $input = this.$form.querySelector('[name="submissionId"][type="hidden"]');
+        this.updateOrCreateHiddenInput('submissionId', data.submissionId);
+    }
+
+    updateOrCreateHiddenInput(name, value) {
+        var $input = this.$form.querySelector('[name="' + name + '"][type="hidden"]');
 
         if (!$input) {
             $input = document.createElement('input');
             $input.setAttribute('type', 'hidden');
-            $input.setAttribute('name', 'submissionId');
+            $input.setAttribute('name', name);
             this.$form.appendChild($input);
         }
 
-        $input.setAttribute('value', data.submissionId);
+        $input.setAttribute('value', value);
     }
 
     togglePage(data) {

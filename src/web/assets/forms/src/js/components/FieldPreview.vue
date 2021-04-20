@@ -12,7 +12,7 @@ export default {
 
     props: {
         id: {
-            type: [String, Number],
+            type: String,
             default: '',
         },
 

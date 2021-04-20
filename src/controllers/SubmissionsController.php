@@ -5,6 +5,7 @@ use verbb\formie\Formie;
 use verbb\formie\base\FormField;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
+use verbb\formie\events\SubmissionEvent;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\Settings;
 use verbb\formie\web\assets\cp\CpAsset;
@@ -34,6 +35,12 @@ use Throwable;
 
 class SubmissionsController extends Controller
 {
+    // Constants
+    // =========================================================================
+
+    const EVENT_AFTER_SUBMISSION_REQUEST = 'afterSubmissionRequest';
+
+
     // Protected Properties
     // =========================================================================
 
@@ -158,12 +165,19 @@ class SubmissionsController extends Controller
             }
         } else {
             $submission = new Submission();
-            $submission->siteId = $siteId ?? $submission->siteId;
         }
 
         $form = $submission->form;
 
+        // Check against permissions to save at all, or per-form
+        if (!Craft::$app->getUser()->checkPermission('formie-editSubmissions')) {
+            if (!Craft::$app->getUser()->checkPermission('formie-manageSubmission:' . $form->uid)) {
+                throw new ForbiddenHttpException('User is not permitted to perform this action');
+            }
+        }
+
         // Now populate the rest of it from the post data
+        $submission->siteId = $siteId ?? $submission->siteId;
         $submission->enabled = true;
         $submission->enabledForSite = true;
         $submission->title = $request->getBodyParam('title', $submission->title);
@@ -315,6 +329,9 @@ class SubmissionsController extends Controller
     {
         $this->requirePostRequest();
         $request = Craft::$app->getRequest();
+        $goingBack = false;
+
+        $currentPage = null;
 
         /* @var Settings $settings */
         $formieSettings = Formie::$plugin->getSettings();
@@ -331,8 +348,6 @@ class SubmissionsController extends Controller
             throw new BadRequestHttpException("No form exists with the handle \"$handle\"");
         }
 
-        $currentPage = null;
-        
         if ($pageIndex = $request->getParam('pageIndex')) {
             $pages = $form->getPages();
             $currentPage = $pages[$pageIndex];
@@ -401,6 +416,12 @@ class SubmissionsController extends Controller
         } else if ($goingBack) {
             $nextPage = $form->getPreviousPage(null, $submission);
         }
+        $defaultStatus = $form->getDefaultStatus();
+
+        $errorMessage = $form->settings->getErrorMessage();
+
+        // Get the submission, or create a new one
+        $submission = $this->_populateSubmission($form);
 
         // Don't validate when going back
         if (!$goingBack) {
@@ -469,6 +490,12 @@ class SubmissionsController extends Controller
         // Save the submission
         $success = Craft::$app->getElements()->saveElement($submission, false);
 
+        // Set the custom title - only if set to save parsing, and after the submission is saved
+        // so we have access to not only field variables, but submission attributes
+        if (trim($form->settings->submissionTitleFormat)) {
+            $submission->updateTitle($form);
+        }
+
         // Run this regardless of the success state, or incomplete state
         Formie::$plugin->getSubmissions()->onAfterSubmission($success, $submission);
 
@@ -526,6 +553,13 @@ class SubmissionsController extends Controller
             $form->resetCurrentSubmission();
         }
 
+        // Fire an 'afterSubmission' event
+        $event = new SubmissionEvent([
+            'submission' => $submission,
+            'success' => $success,
+        ]);
+        $this->trigger(self::EVENT_AFTER_SUBMISSION_REQUEST, $event);
+
         if ($request->getAcceptsJson()) {
             return $this->_returnJsonResponse($success, $submission, $form, $nextPage);
         }
@@ -541,6 +575,15 @@ class SubmissionsController extends Controller
             Formie::$plugin->getService()->setNotice($form->id, $form->settings->getSubmitActionMessage($submission));
 
             return $this->refresh();
+        }
+
+        // If this is being forced-completed, handle the redirect URL now. This isn't included
+        // in the request, to ensure users don't inspect the form for non last-page multi-page forms.
+        if ($request->getParam('completeSubmission')) {
+            // Bypass the last-page check
+            $url = $form->getRedirectUrl(false);
+
+            return $this->redirectToPostedUrl($submission, $url);
         }
 
         return $this->redirectToPostedUrl($submission);
@@ -743,5 +786,46 @@ class SubmissionsController extends Controller
         }
 
         return null;
+    }
+
+    private function _populateSubmission($form)
+    {
+        $request = Craft::$app->getRequest();
+
+        if ($submissionId = $request->getBodyParam('submissionId')) {
+            $submission = Submission::find()
+                ->id($submissionId)
+                ->isIncomplete(true)
+                ->one();
+
+            if (!$submission) {
+                throw new BadRequestHttpException("No submission exists with the ID \"$submissionId\"");
+            }
+        } else {
+            $submission = new Submission();
+        }
+
+        $submission->setForm($form);
+        $submission->siteId = $request->getParam('siteId') ?: Craft::$app->getSites()->getCurrentSite()->id;
+
+        Craft::$app->getContent()->populateElementContent($submission);
+        $submission->setFieldValuesFromRequest($this->_namespace);
+        $submission->setFieldParamNamespace($this->_namespace);
+
+        if ($form->settings->collectIp) {
+            $submission->ipAddress = Craft::$app->getRequest()->userIP;
+        }
+
+        if ($form->settings->collectUser) {
+            if ($user = Craft::$app->getUser()->getIdentity()) {
+                $submission->setUser($user);
+            }
+        }
+
+        // Set the default title for the submission so it can save correctly
+        $now = new DateTime('now', new DateTimeZone(Craft::$app->getTimeZone()));
+        $submission->title = $now->format('D, d M Y H:i:s');
+
+        return $submission;
     }
 }

@@ -74,7 +74,7 @@ class Hidden extends FormField implements PreviewableFieldInterface
                 $this->defaultValue = $currentUser->email ?? null;
             } elseif ($this->defaultOption === 'userIp') {
                 $this->defaultValue = $request->getUserIP();
-            } elseif ($this->defaultOption === 'query') {
+            } elseif ($this->defaultOption === 'query' && $this->queryParameter) {
                 $this->defaultValue = $request->getParam($this->queryParameter);
             }
         }
@@ -104,6 +104,7 @@ class Hidden extends FormField implements PreviewableFieldInterface
         return [
             'labelPosition' => HiddenPosition::class,
             'defaultOption' => 'custom',
+            'includeInEmail' => true,
         ];
     }
 
@@ -206,7 +207,11 @@ class Hidden extends FormField implements PreviewableFieldInterface
     public function defineSettingsSchema(): array
     {
         return [
-            SchemaHelper::prePopulate(),
+            SchemaHelper::lightswitchField([
+                'label' => Craft::t('formie', 'Include in Email Notifications'),
+                'help' => Craft::t('formie', 'Whether the content of this field should be included in email notifications.'),
+                'name' => 'includeInEmail',
+            ]),
         ];
     }
 

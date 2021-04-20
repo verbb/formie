@@ -1,0 +1,5 @@
+{% if field.useRichText %}
+    {{ value | raw }}
+{% else %}
+    {{ value | nl2br }}
+{% endif %}

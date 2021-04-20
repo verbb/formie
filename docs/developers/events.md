@@ -266,6 +266,21 @@ Event::on(Submission::class, Submission::EVENT_MODIFY_FIELD_VALUE_FOR_INTEGRATIO
 });
 ```
 
+### The `afterSubmissionRequest` event
+The event that is triggered after a submission has been completed, whether successful or not. This is triggered on the controller action endpoint, so should primarily be used for redirection hijacking, or any other use-case that needs to occur in the controller.
+
+```php
+use verbb\formie\controllers\SubmissionsController;
+use verbb\formie\events\SubmissionEvent;
+use yii\base\Event;
+
+Event::on(SubmissionsController::class, SubmissionsController::EVENT_AFTER_SUBMISSION_REQUEST, function(SubmissionEvent $event) {
+    $submission = $event->submission;
+    $success = $event->success;
+    // ...
+});
+```
+
 
 
 ## Field Events
@@ -466,6 +481,22 @@ use yii\base\Event;
 
 Event::on(Html::class, Html::EVENT_MODIFY_PURIFIER_CONFIG, function(ModifyPurifierConfigEvent $e) {
     $e->config->getHTMLDefinition(true)->addAttribute('span', 'data-type', new HTMLPurifier_AttrDef_Text());
+});
+```
+
+
+## Name Field Events
+
+### The `modifyPrefixOptions` event
+The event that is triggered to modify the Prefix options for the field.
+
+```php
+use verbb\formie\events\ModifyNamePrefixOptionsEvent;
+use verbb\formie\fields\formfields\Name;
+use yii\base\Event;
+
+Event::on(Name::class, Name::EVENT_MODIFY_PREFIX_OPTIONS, function(ModifyNamePrefixOptionsEvent $e) {
+    $e->options[] = ['label' => Craft::t('formie', 'Mx.'), 'value' => 'mx'];
 });
 ```
 
@@ -680,6 +711,8 @@ use yii\base\Event;
 
 Event::on(Emails::class, Emails::EVENT_AFTER_SEND_MAIL, function(Event $event) {
     $email = $event->email;
+    $submission = $event->submission;
+    $notification = $event->notification;
     // ...
 });
 ```

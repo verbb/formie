@@ -9,8 +9,10 @@ use verbb\formie\elements\Submission;
 use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
+use verbb\formie\models\IntegrationResponse;
 
 use Craft;
+use craft\base\Element as CraftElement;
 use craft\elements\Entry as EntryElement;
 use craft\elements\User;
 use craft\helpers\ArrayHelper;
@@ -26,6 +28,7 @@ class Entry extends Element
 
     public $entryTypeId;
     public $defaultAuthorId;
+    public $createDraft;
 
 
     // Public Methods
@@ -118,6 +121,10 @@ class Entry extends Element
                 'handle' => 'title',
             ]),
             new IntegrationField([
+                'name' => Craft::t('app', 'Site ID'),
+                'handle' => 'siteId',
+            ]),
+            new IntegrationField([
                 'name' => Craft::t('app', 'Slug'),
                 'handle' => 'slug',
             ]),
@@ -157,23 +164,74 @@ class Entry extends Element
     /**
      * @inheritDoc
      */
+    public function getUpdateAttributes()
+    {
+        $attributes = [
+            new IntegrationField([
+                'name' => Craft::t('app', 'ID'),
+                'handle' => 'id',
+            ]),
+            new IntegrationField([
+                'name' => Craft::t('app', 'Title'),
+                'handle' => 'title',
+            ]),
+            new IntegrationField([
+                'name' => Craft::t('app', 'Slug'),
+                'handle' => 'slug',
+            ]),
+            new IntegrationField([
+                'name' => Craft::t('app', 'Site'),
+                'handle' => 'site',
+            ]),
+        ];
+
+        $sections = Craft::$app->getSections()->getAllSections();
+
+        foreach ($sections as $section) {
+            if ($section->type === 'single') {
+                continue;
+            }
+
+            foreach ($section->getEntryTypes() as $entryType) {
+                foreach ($entryType->getFieldLayout()->getFields() as $field) {
+                    if (!$this->fieldCanBeUniqueId($field)) {
+                        continue;
+                    }
+
+                    $attributes[] = new IntegrationField([
+                        'handle' => $field->handle,
+                        'name' => $field->name,
+                        'type' => $this->getFieldTypeForField(get_class($field)),
+                    ]);
+                }
+            }
+        }
+
+        return $attributes;
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function sendPayload(Submission $submission)
     {
         if (!$this->entryTypeId) {
-            Formie::error('Unable to save element integration. No `entryTypeId`.');
-
+            Integration::error(Craft::t('formie', 'Unable to save element integration. No `entryTypeId`.'), true);
+            
             return false;
         }
 
         try {
             $entryType = Craft::$app->getSections()->getEntryTypeById($this->entryTypeId);
 
-            $entry = new EntryElement();
+            $entry = $this->getElementForPayload(EntryElement::class, $submission);
+            $entry->siteId = $submission->siteId;
             $entry->typeId = $entryType->id;
             $entry->sectionId = $entryType->sectionId;
 
             $attributeValues = $this->getFieldMappingValues($submission, $this->attributeMapping, $this->getElementAttributes());
-            
+            $attributeValues = array_filter($attributeValues);
+
             foreach ($attributeValues as $entryFieldHandle => $fieldValue) {
                 if ($entryFieldHandle === 'author') {
                     if (isset($fieldValue[0])) {
@@ -186,23 +244,49 @@ class Entry extends Element
 
             $fields = $this->_getEntryTypeSettings()->fields ?? [];
             $fieldValues = $this->getFieldMappingValues($submission, $this->fieldMapping, $fields);
+            $fieldValues = array_filter($fieldValues);
 
             $entry->setFieldValues($fieldValues);
+            $entry->updateTitle();
+
+            // Check if we need to create a new draft
+            if ($this->createDraft) {
+                $authorId = $entry->authorId ?? Craft::$app->getUser()->getId();
+
+                // Is this a brand-new entry?
+                if (!$entry->id) {
+                    $entry->setScenario(CraftElement::SCENARIO_ESSENTIALS);
+                    
+                    if (!Craft::$app->getDrafts()->saveElementAsDraft($entry, $authorId)) {
+                        Integration::error(Craft::t('formie', 'Unable to save “{type}” draft element integration. Error: {error}.', [
+                            'type' => $this->handle,
+                            'error' => Json::encode($entry->getErrors()),
+                        ]), true);
+                        
+                        return false;
+                    }
+                } else {
+                    // Otherwise, create a new draft on the entry
+                    Craft::$app->getDrafts()->createDraft($entry, $authorId);
+                }
+
+                return true;
+            }
 
             if (!$entry->validate()) {
-                Formie::error(Craft::t('formie', 'Unable to validate “{type}” element integration. Error: {error}.', [
+                Integration::error($this, Craft::t('formie', 'Unable to validate “{type}” element integration. Error: {error}.', [
                     'type' => $this->handle,
                     'error' => Json::encode($entry->getErrors()),
-                ]));
+                ]), true);
 
                 return false;
             }
 
             if (!Craft::$app->getElements()->saveElement($entry)) {
-                Formie::error(Craft::t('formie', 'Unable to save “{type}” element integration. Error: {error}.', [
+                Integration::error(Craft::t('formie', 'Unable to save “{type}” element integration. Error: {error}.', [
                     'type' => $this->handle,
                     'error' => Json::encode($entry->getErrors()),
-                ]));
+                ]), true);
                 
                 return false;
             }
@@ -216,7 +300,7 @@ class Entry extends Element
 
             Formie::error($error);
 
-            return false;
+            return new IntegrationResponse(false, $error);
         }
 
         return true;

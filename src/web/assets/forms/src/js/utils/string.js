@@ -1,9 +1,10 @@
-export const generateHandle = function(sourceValue) {
+export const generateHandle = function(sourceValue, handleCasing = 'camelCase', allowNonAlphaStart = false) {
     // Remove HTML tags
     let handle = sourceValue.replace('/<(.*?)>/g', '');
 
     // Remove inner-word punctuation
-    handle = handle.replace(/['"‘’“”[]\(\){}:]/g, '');
+    // eslint-disable-next-line
+    handle = handle.replace(/['"‘’“”\[\]\(\)\{\}:]/g, '');
 
     // Make it lowercase
     handle = handle.toLowerCase();
@@ -11,13 +12,26 @@ export const generateHandle = function(sourceValue) {
     // Convert extended ASCII characters to basic ASCII
     handle = Craft.asciiString(handle);
 
+    if (!allowNonAlphaStart) {
+        // Handle must start with a letter
+        handle = handle.replace(/^[^a-z]+/, '');
+    }
+
     // Get the "words"
     const words = Craft.filterArray(handle.split(/[^a-z0-9]+/));
     handle = '';
 
+    if (handleCasing === 'snake') {
+        return words.join('_');
+    }
+
+    if (handleCasing === 'kebab') {
+        return words.join('-');
+    }
+
     // Make it camelCase
     for (let i = 0; i < words.length; i++) {
-        if (i === 0) {
+        if (handleCasing !== 'pascal' && i === 0) {
             handle += words[i];
         } else {
             handle += words[i].charAt(0).toUpperCase() + words[i].substr(1);

@@ -9,6 +9,7 @@ use verbb\formie\elements\Submission;
 use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
+use verbb\formie\models\IntegrationResponse;
 
 use Craft;
 use craft\elements\User as UserElement;
@@ -129,10 +130,56 @@ class User extends Element
     /**
      * @inheritDoc
      */
+    public function getUpdateAttributes()
+    {
+        $attributes = [
+            new IntegrationField([
+                'name' => Craft::t('app', 'ID'),
+                'handle' => 'id',
+            ]),
+            new IntegrationField([
+                'name' => Craft::t('app', 'Username'),
+                'handle' => 'username',
+            ]),
+            new IntegrationField([
+                'name' => Craft::t('app', 'First Name'),
+                'handle' => 'firstName',
+            ]),
+            new IntegrationField([
+                'name' => Craft::t('app', 'Last Name'),
+                'handle' => 'lastName',
+            ]),
+            new IntegrationField([
+                'name' => Craft::t('app', 'Email'),
+                'handle' => 'email',
+            ]),
+        ];
+
+        $userFieldLayout = Craft::$app->getFields()->getLayoutByType(UserElement::class);
+
+        foreach ($userFieldLayout->getFields() as $field) {
+            if (!$this->fieldCanBeUniqueId($field)) {
+                continue;
+            }
+
+            $attributes[] = new IntegrationField([
+                'handle' => $field->handle,
+                'name' => $field->name,
+                'type' => $this->getFieldTypeForField(get_class($field)),
+            ]);
+        }
+
+
+        return $attributes;
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function sendPayload(Submission $submission)
     {
         try {
-            $user = new UserElement();
+            $user = $this->getElementForPayload(UserElement::class, $submission);
 
             $userGroups = [];
 
@@ -147,30 +194,32 @@ class User extends Element
             }
 
             $attributeValues = $this->getFieldMappingValues($submission, $this->attributeMapping, $this->getElementAttributes());
-            
+            $attributeValues = array_filter($attributeValues);
+
             foreach ($attributeValues as $userFieldHandle => $fieldValue) {
                 $user->{$userFieldHandle} = $fieldValue;
             }
 
             $fields = $this->getFormSettingValue('elements')[0]->fields ?? [];
             $fieldValues = $this->getFieldMappingValues($submission, $this->fieldMapping, $fields);
+            $fieldValues = array_filter($fieldValues);
 
             $user->setFieldValues($fieldValues);
 
             if (!$user->validate()) {
-                Formie::error(Craft::t('formie', 'Unable to validate “{type}” element integration. Error: {error}.', [
+                Integration::error(Craft::t('formie', 'Unable to validate “{type}” element integration. Error: {error}.', [
                     'type' => $this->handle,
                     'error' => Json::encode($user->getErrors()),
-                ]));
+                ]), true);
 
                 return false;
             }
 
             if (!Craft::$app->getElements()->saveElement($user)) {
-                Formie::error(Craft::t('formie', 'Unable to save “{type}” element integration. Error: {error}.', [
+                Integration::error(Craft::t('formie', 'Unable to save “{type}” element integration. Error: {error}.', [
                     'type' => $this->handle,
                     'error' => Json::encode($user->getErrors()),
-                ]));
+                ]), true);
                 
                 return false;
             }
@@ -199,10 +248,10 @@ class User extends Element
                 $submission->setFieldValue($passwordFieldHandle, '');
             
                 if (!Craft::$app->getElements()->saveElement($submission, false)) {
-                    Formie::error(Craft::t('formie', 'Unable to save “{type}” element integration. Error: {error}.', [
+                    Integration::error(Craft::t('formie', 'Unable to save “{type}” element integration. Error: {error}.', [
                         'type' => $this->handle,
                         'error' => Json::encode($submission->getErrors()),
-                    ]));
+                    ]), true);
                     
                     return false;
                 }
@@ -218,7 +267,7 @@ class User extends Element
 
             Formie::error($error);
 
-            return false;
+            return new IntegrationResponse(false, $error);
         }
 
         return true;

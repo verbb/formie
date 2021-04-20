@@ -55,6 +55,14 @@ class Section extends FormField
     /**
      * @inheritDoc
      */
+    public function getIsCosmetic(): bool
+    {
+        return true;
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function renderLabel(): bool
     {
         return false;
@@ -108,6 +116,14 @@ class Section extends FormField
     public function getEmailHtml(Submission $submission, Notification $notification, $value, array $options = null)
     {
         return Html::tag('hr');
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function serializeValueForExport($value, ElementInterface $element = null)
+    {
+        return [];
     }
 
     /**

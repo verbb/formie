@@ -112,8 +112,9 @@ class MailerLite extends EmailMarketing
             $contactId = $response['id'] ?? '';
 
             if (!$contactId) {
-                Integration::error($this, Craft::t('formie', 'API error: “{response}”', [
+                Integration::error($this, Craft::t('formie', 'API error: “{response}”. Sent payload {payload}', [
                     'response' => Json::encode($response),
+                    'payload' => Json::encode($payload),
                 ]), true);
 
                 return false;

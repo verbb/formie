@@ -103,10 +103,13 @@ class Sendinblue extends EmailMarketing
 
             $payload = [
                 'email' => $email,
-                'listIds' => [$this->listId],
-                'attributes' => $fieldValues,
+                'listIds' => [(int)$this->listId],
                 'updateEnabled' => true,
             ];
+
+            if ($fieldValues) {
+                $payload['attributes'] = $fieldValues;
+            }
 
             $response = $this->deliverPayload($submission, 'contacts', $payload);
 

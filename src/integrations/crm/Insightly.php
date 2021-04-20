@@ -273,8 +273,9 @@ class Insightly extends Crm
             $contactId = $response['CONTACT_ID'] ?? '';
 
             if (!$contactId) {
-                Integration::error($this, Craft::t('formie', 'Missing return “contactId” {response}', [
+                Integration::error($this, Craft::t('formie', 'Missing return “contactId” {response}. Sent payload {payload}', [
                     'response' => Json::encode($response),
+                    'payload' => Json::encode($contactPayload),
                 ]), true);
 
                 return false;
@@ -295,8 +296,9 @@ class Insightly extends Crm
             $leadId = $response['LEAD_ID'] ?? '';
 
             if (!$leadId) {
-                Integration::error($this, Craft::t('formie', 'Missing return “leadId” {response}', [
+                Integration::error($this, Craft::t('formie', 'Missing return “leadId” {response}. Sent payload {payload}', [
                     'response' => Json::encode($response),
+                    'payload' => Json::encode($leadPayload),
                 ]), true);
 
                 return false;

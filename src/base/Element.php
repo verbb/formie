@@ -19,6 +19,8 @@ abstract class Element extends Integration implements IntegrationInterface
 
     public $attributeMapping;
     public $fieldMapping;
+    public $updateElement = false;
+    public $updateElementMapping;
 
 
     // Static Methods
@@ -120,5 +122,64 @@ abstract class Element extends Integration implements IntegrationInterface
         ];
 
         return $fieldTypeMap[$fieldClass] ?? IntegrationField::TYPE_STRING;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected function fieldCanBeUniqueId($field)
+    {
+        $type = get_class($field);
+
+        $supportedFields = [
+            fields\Checkboxes::class,
+            fields\Color::class,
+            fields\Date::class,
+            fields\Dropdown::class,
+            fields\Email::class,
+            fields\Lightswitch::class,
+            fields\MultiSelect::class,
+            fields\Number::class,
+            fields\PlainText::class,
+            fields\RadioButtons::class,
+            fields\Url::class,
+        ];
+
+        if (in_array($type, $supportedFields, true)) {
+            return true;
+        }
+
+        // Include any field types that extend one of the above
+        foreach ($supportedFields as $supportedField) {
+            if (is_a($type, $supportedField, true)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected function getElementForPayload($elementType, $submission)
+    {
+        $element = new $elementType();
+
+        // Check if configuring update, and find an existing element, depending on mapping
+        $updateElementValues = $this->getFieldMappingValues($submission, $this->updateElementMapping, $this->getUpdateAttributes());
+        $updateElementValues = array_filter($updateElementValues);
+
+        if ($updateElementValues) {
+            $query = $elementType::find($updateElementValues);
+
+            Craft::configure($query, $updateElementValues);
+
+            if ($foundElement = $query->one()) {
+                $element = $foundElement;
+            }
+        }
+
+        return $element;
     }
 }

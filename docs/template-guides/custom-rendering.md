@@ -273,5 +273,5 @@ Whilst we've covered the basics, there's still plenty of things left to address,
 The above is a quick guide to the basics, but be warned that you'll be required to keep an eye on Formie's templates and development, in order to keep up with any core changes for your templates. We highly recommend you test your template code to ensure Formie's JavaScript works with your HTML markup as well, particularly for things like Captchas.
 
 :::tip
-Check out the raw templates on [Formie's Github](https://github.com/verbb/formie/tree/craft-3/src/templates/_special) - they'll be the most up to date. This example serves as a brief, cut-down version of what Formie does under the hood, to use these templates as further inspiration for your own templates.
+Check out the raw templates on [Formie's Github](https://github.com/verbb/formie/tree/craft-3/src/templates/_special/form-template) - they'll be the most up to date. This example serves as a brief, cut-down version of what Formie does under the hood, to use these templates as further inspiration for your own templates.
 :::

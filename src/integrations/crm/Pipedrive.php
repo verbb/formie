@@ -181,8 +181,9 @@ class Pipedrive extends Crm
                 $organizationId = $response['data']['id'] ?? '';
 
                 if (!$organizationId) {
-                    Integration::error($this, Craft::t('formie', 'Missing return “organizationId” {response}', [
+                    Integration::error($this, Craft::t('formie', 'Missing return “organizationId” {response}. Sent payload {payload}', [
                         'response' => Json::encode($response),
+                        'payload' => Json::encode($contactPayload),
                     ]), true);
 
                     return false;
@@ -207,8 +208,9 @@ class Pipedrive extends Crm
                 $personId = $response['data']['id'] ?? '';
 
                 if (!$personId) {
-                    Integration::error($this, Craft::t('formie', 'Missing return “personId” {response}', [
+                    Integration::error($this, Craft::t('formie', 'Missing return “personId” {response}. Sent payload {payload}', [
                         'response' => Json::encode($response),
+                        'payload' => Json::encode($personPayload),
                     ]), true);
 
                     return false;
@@ -237,8 +239,9 @@ class Pipedrive extends Crm
                 $dealId = $response['data']['id'] ?? '';
 
                 if (!$dealId) {
-                    Integration::error($this, Craft::t('formie', 'Missing return “dealId” {response}', [
+                    Integration::error($this, Craft::t('formie', 'Missing return “dealId” {response}. Sent payload {payload}', [
                         'response' => Json::encode($response),
+                        'payload' => Json::encode($dealPayload),
                     ]), true);
 
                     return false;
@@ -267,8 +270,9 @@ class Pipedrive extends Crm
                 $leadId = $response['data']['id'] ?? '';
 
                 if (!$leadId) {
-                    Integration::error($this, Craft::t('formie', 'Missing return “leadId” {response}', [
+                    Integration::error($this, Craft::t('formie', 'Missing return “leadId” {response}. Sent payload {payload}', [
                         'response' => Json::encode($response),
+                        'payload' => Json::encode($leadPayload),
                     ]), true);
 
                     return false;
@@ -302,8 +306,9 @@ class Pipedrive extends Crm
                 $noteId = $response['data']['id'] ?? '';
 
                 if (!$noteId) {
-                    Integration::error($this, Craft::t('formie', 'Missing return “noteId” {response}', [
+                    Integration::error($this, Craft::t('formie', 'Missing return “noteId” {response}. Sent payload {payload}', [
                         'response' => Json::encode($response),
+                        'payload' => Json::encode($notePayload),
                     ]), true);
 
                     return false;

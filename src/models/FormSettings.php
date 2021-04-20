@@ -11,6 +11,7 @@ use verbb\formie\prosemirror\tohtml\Renderer as HtmlRenderer;
 
 use Craft;
 use craft\base\Model;
+use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 
 use yii\behaviors\AttributeTypecastBehavior;
@@ -178,6 +179,34 @@ class FormSettings extends Model
     public function getErrorMessageHtml()
     {
         return $this->_getHtmlContent($this->errorMessage);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getEnabledIntegrations()
+    {
+        $enabledIntegrations = [];
+
+        // Use all integrations + captchas
+        $integrations = array_merge(Formie::$plugin->getIntegrations()->getAllIntegrations(), Formie::$plugin->getIntegrations()->getAllCaptchas());
+
+        // Find all the form-enabled integrations
+        $formIntegrationSettings = $this->integrations ?? [];
+        $enabledFormSettings = ArrayHelper::where($formIntegrationSettings, 'enabled', true);
+
+        foreach ($enabledFormSettings as $handle => $formSettings) {
+            $integration = ArrayHelper::firstWhere($integrations, 'handle', $handle);
+
+            // If this disabled globally? Then don't include it, otherwise populate the settings
+            if ($integration && $integration->enabled) {
+                $integration->setAttributes($formSettings, false);
+
+                $enabledIntegrations[] = $integration;
+            }
+        }
+
+        return $enabledIntegrations;
     }
 
 

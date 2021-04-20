@@ -28,6 +28,10 @@ class Address extends Model
      */
     public function __toString()
     {
+        if ($this->autocomplete) {
+            return $this->autocomplete;
+        }
+
         $address = ArrayHelper::filterEmptyStringsFromArray([
             StringHelper::trim($this->address1 ?? ''),
             StringHelper::trim($this->address2 ?? ''),

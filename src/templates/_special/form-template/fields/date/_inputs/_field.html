@@ -6,7 +6,7 @@
     {% if handle == 'ampm' %}
         {% set selected = value %}
     {% else %}
-        {% set selected = value ? (value | date(char) * 1) : null %}
+        {% set selected = value ? (value | date(char, false) * 1) : null %}
     {% endif %}
 
     {% set labelPosition = craft.formie.getLabelPosition(field, form, true) %}
@@ -44,9 +44,7 @@
                     } %}
 
                     <select {{ attr(attributes) }}>
-                        {% if placeholder %}
-                            <option value="" disabled {{- not selected ? ' selected' }}>{{ placeholder }}</option>
-                        {% endif %}
+                        <option value="" disabled {{- not selected ? ' selected' }}>{{ placeholder }}</option>
 
                         {% for option in attrs.options %}
                             <option value="{{ option.value }}" {{- option.value == selected ? ' selected' }}>

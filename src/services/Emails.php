@@ -5,7 +5,6 @@ use verbb\formie\Formie;
 use verbb\formie\base\NestedFieldInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
-use verbb\formie\events\EmailEvent;
 use verbb\formie\events\MailEvent;
 use verbb\formie\fields\formfields\FileUpload;
 use verbb\formie\helpers\Variables;
@@ -156,7 +155,11 @@ class Emails extends Component
         if ($notification->replyTo) {
             try {
                 $replyTo = Variables::getParsedValue((string)$notification->replyTo, $submission, $form, $notification);
-                $newEmail->setReplyTo($replyTo);
+                $replyTo = $this->_getParsedEmails($replyTo);
+
+                if ($replyTo) {
+                    $newEmail->setReplyTo($replyTo);
+                }
             } catch (Throwable $e) {
                 $error = Craft::t('formie', 'Notification email parse error for ReplyTo: {value}”. Template error: “{message}” {file}:{line}', [
                     'value' => $notification->replyTo,
@@ -271,6 +274,8 @@ class Emails extends Component
         try {
             $event = new MailEvent([
                 'email' => $newEmail,
+                'notification' => $notification,
+                'submission' => $submission,
             ]);
             $this->trigger(self::EVENT_BEFORE_SEND_MAIL, $event);
 
@@ -316,6 +321,8 @@ class Emails extends Component
         if ($this->hasEventHandlers(self::EVENT_AFTER_SEND_MAIL)) {
             $this->trigger(self::EVENT_AFTER_SEND_MAIL, new MailEvent([
                 'email' => $newEmail,
+                'notification' => $notification,
+                'submission' => $submission,
             ]));
         }
 
@@ -393,7 +400,7 @@ class Emails extends Component
 
     private function _getFilteredString($string)
     {
-        return Craft::parseEnv(trim($string));
+        return trim(Craft::parseEnv(trim($string)));
     }
 
     private function _getParsedEmails($emails)
@@ -406,7 +413,7 @@ class Emails extends Component
             // Prevent non-utf characters sneaking in.
             $email = StringHelper::convertToUtf8($email);
 
-            $emailsEnv[] = Craft::parseEnv(trim($email));
+            $emailsEnv[] = trim(Craft::parseEnv(trim($email)));
         }
 
         $emailsEnv = array_filter($emailsEnv);

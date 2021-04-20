@@ -78,3 +78,35 @@
         </ul>
     </div>
 </integration-form-settings>
+
+{% set createDraft = form.settings.integrations[handle].createDraft ?? false %}
+{% set updateElement = form.settings.integrations[handle].updateElement ?? false %}
+
+{{ forms.lightswitchField({
+    label: 'Create a New Draft' | t('formie'),
+    instructions: 'Whether to create a new draft entry. If an existing entry is found, a new draft will be created on the original entry, instead of updating the existing entry. ' | t('formie'),
+    id: 'createDraft',
+    name: 'createDraft',
+    on: createDraft,
+}) }}
+
+{{ forms.lightswitchField({
+    label: 'Update Entries' | t('formie'),
+    instructions: 'Whether this integration should update an existing entry if found, or always create a new entry. ' | t('formie'),
+    id: 'updateElement',
+    name: 'updateElement',
+    on: updateElement,
+    toggle: 'update-element',
+}) }}
+
+<div id="update-element" class="{% if not updateElement %}hidden{% endif %}">
+    <integration-field-mapping
+        label="{{ 'Update Element Mapping' | t('formie') }}"
+        instructions="{{ 'Select the fields you want to use to check for existing elements. Formie will look for existing elements with the attributes chosen and the values provided in the submission.' | t('formie') }}"
+        name-label="{{ integration.displayName() }}"
+        id="update-element-mapping"
+        name="updateElementMapping"
+        :value="get(form, 'settings.integrations.{{ handle }}.updateElementMapping')"
+        :rows="{{ integration.getUpdateAttributes() | json_encode }}"
+    ></integration-field-mapping>
+</div>

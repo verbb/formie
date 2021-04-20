@@ -19,7 +19,7 @@
             <field
                 v-for="(field, index) in fields"
                 ref="fields"
-                :key="field.id"
+                :key="field.vid"
                 :column-index="index"
                 :page-index="pageIndex"
                 :row-index="rowIndex"
@@ -79,7 +79,7 @@ export default {
         },
 
         fieldId: {
-            type: [String, Number],
+            type: String,
             default: '',
         },
 
@@ -89,7 +89,7 @@ export default {
         },
 
         parentFieldId: {
-            type: [String, Number],
+            type: String,
             default: '',
         },
     },

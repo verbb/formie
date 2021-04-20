@@ -232,8 +232,9 @@ class HubSpot extends Crm
                 $contactId = $response['vid'] ?? '';
 
                 if (!$contactId) {
-                    Integration::error($this, Craft::t('formie', 'Missing return “contactId” {response}', [
+                    Integration::error($this, Craft::t('formie', 'Missing return “contactId” {response}. Sent payload {payload}', [
                         'response' => Json::encode($response),
+                        'payload' => Json::encode($contactPayload),
                     ]), true);
 
                     return false;
@@ -267,8 +268,9 @@ class HubSpot extends Crm
                 $dealId = $response['dealId'] ?? '';
 
                 if (!$dealId) {
-                    Integration::error($this, Craft::t('formie', 'Missing return “dealId” {response}', [
+                    Integration::error($this, Craft::t('formie', 'Missing return “dealId” {response}. Sent payload {payload}', [
                         'response' => Json::encode($response),
+                        'payload' => Json::encode($dealPayload),
                     ]), true);
 
                     return false;
@@ -282,6 +284,11 @@ class HubSpot extends Crm
                 $formPayload = [];
 
                 foreach ($formValues as $key => $value) {
+                    // Don't include the tracking ID, it's invalid to HubSpot
+                    if ($key === 'trackingID') {
+                        continue;
+                    }
+
                     $formPayload['fields'][] = [
                         'name' => $key,
                         'value' => $value,

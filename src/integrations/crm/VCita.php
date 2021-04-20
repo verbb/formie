@@ -159,7 +159,6 @@ class VCita extends Crm
 
             if ($existingClient) {
                 $response = $this->deliverPayload($submission, "clients/{$existingClient}", $clientPayload, 'PUT');
-
             } else {
                 $response = $this->deliverPayload($submission, 'clients', $clientPayload);
             }
@@ -171,8 +170,9 @@ class VCita extends Crm
             $clientId = $response['data']['client']['id'] ?? '';
 
             if (!$clientId) {
-                Integration::error($this, Craft::t('formie', 'Missing return “clientId” {response}', [
+                Integration::error($this, Craft::t('formie', 'Missing return “clientId” {response}. Sent payload {payload}', [
                     'response' => Json::encode($response),
+                    'payload' => Json::encode($clientPayload),
                 ]), true);
 
                 return false;

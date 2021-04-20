@@ -68,6 +68,16 @@ class Forms extends Component
     }
 
     /**
+     * Returns all active forms.
+     *
+     * @return Form[]
+     */
+    public function getAllForms()
+    {
+        return Form::find()->all();
+    }
+
+    /**
      * @inheritDoc
      */
     public function getFormRecord($formId)
@@ -162,6 +172,9 @@ class Forms extends Component
                 if ($field->getIsRef()) {
                     $refId = $field->id;
                 }
+
+                // Ensure fields retain a formId
+                $field->formId = $form->id;
 
                 /* @var FormField $field */
                 $fieldsService->saveField($field);

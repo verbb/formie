@@ -38,6 +38,147 @@
 ### Breaking Changes
 - If you use `craft.formie.populateFormValues()` in your templates to populate **element fields**, please note the changed syntax via the [docs](https://verbb.io/craft-plugins/formie/docs/template-guides/populating-forms#element-fields). This has changed from `entriesField: craft.entries.id(123)` to `entriesField: [123]`.
 
+## 1.3.27 - 2021-04-11
+
+### Added
+- Added extra error-catching to send notification queue job.
+- Added `resave/formie-submissions` and `resave/formie-forms` console commands.
+
+### Changed
+- Update translation strings.
+
+### Fixed
+- Fixed `completeSubmission` buttons not working correctly with client-side validation enabled.
+- Fixed an error when un-registering fieldtypes.
+- Fixed lack of redirect support for Page Reload forms, when `completeSubmission` is used.
+- Fixed auto-handle generation for forms and fields producing incorrect values when starting with a number.
+- Fixed missing `type` attribute on form fields.
+- Fixed form builder fields having their IDs stripped from requests, when validation fails, causing sync issues.
+- Fixed Group or Repeater nested fields not getting unique handles.
+- Fixed Rich rich text link editing not working.
+- Fixed CC and BCC showing emails incorrectly for email notification previews.
+- Fixed heading showing field label in edit submissions in control panel.
+- Fixed Heading, HTML and Section fields appearing in exports as columns.
+- Fixed being unable to select site-specific entries for “Redirect Entry”.
+- Fixed Sendinblue email marketing integration throwing an error when only email address is mapped.
+
+## 1.3.26 - 2021-04-02
+
+### Added
+- Added `autocomplete` option to Address field, for use in GraphQL.
+- Added payload info to integration logging.
+- Added `FormIntegrationsInterface` for GraphQL, to return information of integrations for a form.
+- Added `notification` and `submission` properties to `Emails::EVENT_AFTER_SEND_MAIL`.
+- Added `siteId` as a mappable attributes for entry element integrations.
+- Added support for entry element integrations to have the entry `siteId` attribute set to the same site the submission is made on, by default.
+
+### Changed
+- Improve element integration error logging.
+- Disable Section and HTML fields from being able to be used in integration mapping (they do nothing).
+
+### Fixed
+- Fixed incorrect validation message for Time field in Date field, complaining about 24-hour values.
+- Fixed Time field for Date fields incorrectly converting time values to site timezone.
+- Fixed multi-line fields with rich text set, not rendering raw HTML in email notifications.
+- Fixed Phone field values potentially returning an invalid value, when no value provided.
+- Fixed an error (not firing) for a failed submission through GraphQL mutations.
+- Fixed GraphQL mutations permissions for submissions.
+- Fixed entry element integration not working correctly for entry types with dynamic title.
+- Fixed an error when trying to parse Checkboxes and Multi-Dropdown fields for spam-checks.
+- Fixed error when trying to output Checkboxes and Multi-Dropdown fields in email notifications.
+
+## 1.3.25 - 2021-03-22
+
+### Added
+- Added “Ajax Submission Timeout” form setting to control the timeout for the XHR request, for Ajax-based forms, using the Theme JS.
+
+### Fixed
+- Fixed Agile CRM integration not updating existing contacts correctly.
+- Fixed Sendinblue integration not subscribing users to the chosen list.
+- Fixed an error when saving a submission in the control panel with a user with restricted permissions.
+
+## 1.3.24 - 2021-03-18
+
+### Changed
+- Refactor JavaScript captcha for more error-handling, support for cached forms and removal of inline `<script>` tags.
+
+### Fixed
+- Fixed Date fields throwing an error when the default date set to "None" and rendering inputs or a dropdown.
+- Fixed Date fields always selecting the first option in the list, when set to dropdown.
+- Fixed JavaScript captcha outputting inline `<script>` tags.
+- Fixed JavaScript captcha throwing a "modified form" browser warning.
+- Fixed form settings not updating when using Blitz caching.
+- Fixed element fields restricting values to only the default value.
+
+## 1.3.23 - 2021-03-16
+
+### Added
+- Added `modifyPrefixOptions` event for name fields.
+- Added `Mx.` to name field prefixes.
+- Allow the `<form>` element to defined the `action` and `method` settings of Ajax requests, and fix POST-ing to site roots with redirects configured.
+
+### Fixed
+- Fixed `redirectUrl` not working correctly when using `form.setSettings()` in your templates for Ajax forms.
+- Fixed the default template in the control panel (when clicking on “Formie” in the CP nav) throwing an error when trying to load a page the user doesn’t have access to.
+- Fixed Sent Notification preview column throwing an error in the control panel.
+- Fixed being unable to save a submission in the control panel, when specific form permissions were set.
+- Fixed an error when rendering elements fields as checkboxes.
+- Cleanup uninstall, fix an error during uninstall, fix not deleting submissions and forms on uninstall.
+- Fixed Categories fields not populating their value correctly when `limit` was also set.
+- Fixed Entries fields not populating their value correctly when `limit` was also set.
+- Fixed Products fields not populating their value correctly when `limit` was also set.
+- Fixed Tags fields not populating their value correctly when `limit` was also set.
+- Fixed Users fields not populating their value correctly when `limit` was also set.
+- Fixed Variants fields not populating their value correctly when `limit` was also set.
+
+## 1.3.22 - 2021-03-09
+
+### Added
+- Added “ID” to available submissions index columns.
+- Added “ID” to available forms index columns.
+- Added “Submission ID” to the edit page for submissions.
+- Added “Form Name” to integration mapping and email notification condition variable pickers.
+- Added setting to Hidden field to include or exclude their content in email notifications.
+- Added “All Visible Fields” options to email notifications, outputting field content only for fields that are visible.
+- Added `EVENT_AFTER_SUBMISSION_REQUEST`.
+- Added support for querying and mutating Group and Repeater fields for GraphQL.
+- Added support for updating entries for Entry integration.
+- Added support for updating users for User integration.
+- Added support for creating a new draft for Entry element integration.
+
+### Changed
+- Update default submission titles to `D, d M Y H:i:s` (eg, “Thu, 04 Mar 2021 10:50:16”).
+- Date fields can now use [Flatpickr.js](https://flatpickr.js.org/) when rendered as a calendar.
+- Minor performance improvement when submitting submissions, when no custom title format is set.
+- Rename `field->getIsVisible()` to `field->getIsHidden()`.
+- Change syntax for populating element fields, when using `populateFormValues()`.
+
+### Fixed
+- Fixed Number field not having the correct type for GraphQL queries.
+- Fixed an error with HubSpot CRM, when mapping a field to the Tracking ID for forms.
+- Fixed Date field not having the correct type for GraphQL queries.
+- Fixed reCAPTCHA placeholders not being found for custom-templated forms that have no pages containers.
+- Fixed custom submission titles not working correctly when using submission attributes (namely submission ID).
+- Fixed Sent Notifications index not ordering by descending by default.
+- Fixed multi-line text fields not having their content passed through `nl2br` in email notifications.
+- Fixed address fields not showing the correct preview in the control panel when “Auto-complete” was enabled.
+- Fixed element integrations incorrectly mapping fields and attributes when no value supplied.
+- Fixed fields not having their `formId` attribute set correctly.
+- Fixed GQL errors when querying subfields inside group/repeater fields.
+- Fixed “Reply To” setting for email notifications not being properly parsed for environment variables.
+- Fixed email parsing error for email notifications in rare circumstances (where an env variable contained spaces).
+
+## 1.3.21 - 2021-03-01
+- Removed `craft.formie.getVisibleFields()`.
+
+### Fixed
+- Updated front-end JS to catch ajax-based forms network errors and timeouts.
+- Fixed toggling checkboxes triggering required states, when the field wasn’t required at all.
+- Removed `siteRootUrl` for included JS, causing issues with JS form submissions on some sites, where cross-domain issues arise. Rely on `siteId` param to determine current site..
+- Fixed an error with HTML field when “HTML Content” was empty.
+- Fixed Name, Address and Date fields not applying an `id` attribute of legends for accessibility.
+- Ensure all front-end field legends output, even when hidden (using `fui-sr-only`) for accessibility.
+
 ## 1.3.20 - 2021-02-26
 
 ### Added

@@ -10,6 +10,7 @@ use Craft;
 use craft\gql\base\ElementMutationResolver;
 use craft\helpers\Db;
 use craft\helpers\Json;
+use craft\helpers\Gql;
 
 use GraphQL\Error\Error;
 use GraphQL\Type\Definition\ResolveInfo;
@@ -35,8 +36,17 @@ class SubmissionResolver extends ElementMutationResolver
         $canIdentify = !empty($arguments['id']) || !empty($arguments['uid']);
         $elementService = Craft::$app->getElements();
 
+        $canCreateAll = Gql::canSchema('formieSubmissions.all', 'create');
+        $canSaveAll = Gql::canSchema('formieSubmissions.all', 'save');
+        
+        $scope = 'formieSubmissions.' . $form->uid;
+        $canCreate = Gql::canSchema($scope, 'create');
+        $canSave = Gql::canSchema($scope, 'save');
+
         if ($canIdentify) {
-            $this->requireSchemaAction('formieSubmissions.' . $form->uid, 'save');
+            if (!$canSaveAll && !$canSave) {
+                throw new Error('Unable to perform the action.');
+            }
 
             if (!empty($arguments['uid'])) {
                 $submission = $elementService->createElementQuery(Submission::class)->uid($arguments['uid'])->one();
@@ -48,7 +58,9 @@ class SubmissionResolver extends ElementMutationResolver
                 throw new Error('No such submission exists');
             }
         } else {
-            $this->requireSchemaAction('formieSubmissions.' . $form->uid, 'create');
+            if (!$canCreateAll && !$canCreate) {
+                throw new Error('Unable to perform the action.');
+            }
 
             $submission = $elementService->createElement(['type' => Submission::class, 'formId' => $form->id]);
         }
@@ -131,8 +143,12 @@ class SubmissionResolver extends ElementMutationResolver
             }
         }
 
-        if (!$success) {
+        if (!$success || $submission->hasErrors()) {
             throw new Error('Unable to save submission: ' . Json::encode($submission->getErrors()));
+        }
+
+        if (!$submission->id) {
+            throw new Error('Unable to save submission ' . $submission->id . ': ' . Json::encode($submission->getErrors()));
         }
 
         return $elementService->getElementById($submission->id, Submission::class, $submission->siteId);
@@ -151,7 +167,14 @@ class SubmissionResolver extends ElementMutationResolver
         }
 
         $formUid = Db::uidById('{{%formie_forms}}', $submission->getForm()->id);
-        $this->requireSchemaAction('formieSubmissions.' . $formUid, 'delete');
+
+        $scope = 'formieSubmissions.' . $formUid;
+        $canDeleteAll = Gql::canSchema('formieSubmissions.all', 'delete');
+        $canDelete = Gql::canSchema($scope, 'delete');
+
+        if (!$canDeleteAll && !$canDelete) {
+            throw new Error('Unable to perform the action.');
+        }
 
         return $elementService->deleteElementById($submissionId, Submission::class, $siteId);
     }

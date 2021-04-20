@@ -172,6 +172,18 @@ This is the interface implemented by all forms.
 | `defaultLabelPosition`| `String` | The form’s default label position for fields.
 | `defaultInstructionsPosition`| `String` | The form’s default instructions position for fields.
 | `progressPosition`| `String` | The form’s progress bar position.
+| `integrations`| `[FormIntegrationsInterface]` | The form’s enabled integrations.
+
+
+### The `FormIntegrationsInterface` interface
+This is the interface implemented by all form integrations.
+
+| Field | Type | Description
+| - | - | -
+| `name`| `String` | The integration’s name.
+| `handle`| `String` | The integration’s handle.
+| `enabled`| `Boolean` | Whether the integration is enabled.
+| `settings`| `String` | The integration’s settings as a JSON string.
 
 
 ### The `PageInterface` interface
@@ -329,6 +341,29 @@ This query is used to query for [Submission](docs:developers/submission) objects
 | `orderBy`| `String` | Sets the field the returned elements should be ordered by.
 | `form`| `[String]` | Narrows the query results based on the form’s handle.
 
+#### Nested Fields
+An example for querying Repeater and Group field content.
+
+```json
+{
+    submissions (handle: "contactForm") {
+        title
+        
+        ... on contactForm_Submission {
+            groupFieldHandle {
+                myFieldHandle
+            }
+
+            repeaterFieldHandle {
+                rows {
+                    myFieldHandle
+                }
+            }
+        }
+    }
+}
+```
+
 ## Mutations
 Mutations in GraphQL provide a way of modifying data. The actual mutations will vary depending on the schema. There are some common mutations per GraphQL object type as well as type-specific mutations.
 
@@ -414,7 +449,80 @@ mutation saveSubmission($yourName:contactForm_yourName_FormieNameInput $yourAddr
 }
 ```
 
-You'll notice the `contactForm_yourName_FormieNameInput` type being used. This follows the structure of `{formHandle}_{fieldHandle}_FormieNameInput`.
+You'll notice the `contactForm_yourName_FormieNameInput` type being used. This follows the structure of `{formHandle}_{fieldHandle}_FormieNameInput`. There are also a number of other input types to consider.
+
+#### Address Field
+```json
+// Query
+mutation saveSubmission($yourAddress:contactForm_yourAddress_FormieAddressInput) {
+    save_contactForm_Submission(yourAddress: $yourAddress) {
+        yourAddress
+    }
+}
+
+// Query Variables
+{
+    "yourAddress": {
+        "address1": "42 Wallaby Way",
+        "city": "Sydney",
+        "zip": "2000",
+        "state": "NSW",
+        "country": "Australia"
+    }
+}
+```
+
+#### Group Field
+```json
+// Query
+mutation saveSubmission($groupField:contactForm_groupField_FormieGroupInput) {
+    save_contactForm_Submission(groupField: $groupField) {
+        groupField {
+            firstValue: firstValue
+            secondValue: secondValue
+        }
+    }
+}
+
+// Query Variables
+{
+    "groupField": {
+        "firstValue": "This content",
+        "secondValue": "is for groups"
+    }
+}
+```
+
+#### Repeater Field
+```json
+// Query
+mutation saveSubmission($repeaterField:contactForm_repeaterField_FormieRepeaterInput) {
+    save_contactForm_Submission(repeaterField: $repeaterField) {
+        repeaterField {
+            rows: {
+                field1: field1
+                field2: field2
+            }
+        }
+    }
+}
+
+// Query Variables
+{
+    "repeaterField": {
+        "rows": [
+            {
+                "field1": "First Block - Field 1",
+                "field2": "First Block - Field 2"
+            },
+            {
+                "field1": "Second Block - Field 1",
+                "field2": "Second Block - Field 2"
+            }
+        ]
+    }
+}
+```
 
 
 #### Deleting a submission

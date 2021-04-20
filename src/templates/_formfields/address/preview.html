@@ -5,53 +5,51 @@
     </div>
 </div>
 
-<div v-else>
-    <div v-if="field.settings.address1Enabled" class="fui-row">
-        <div class="fui-col">
-            <label class="fui-field-label">${ field.settings.address1Label } <span v-if="field.settings.address1Required" class="error">*</span></label>
-            <input type="text" class="fui-field-input" :placeholder="field.settings.address1Placeholder" :value="field.settings.address1DefaultValue">
-        </div>
+<div v-if="field.settings.address1Enabled" class="fui-row">
+    <div class="fui-col">
+        <label class="fui-field-label">${ field.settings.address1Label } <span v-if="field.settings.address1Required" class="error">*</span></label>
+        <input type="text" class="fui-field-input" :placeholder="field.settings.address1Placeholder" :value="field.settings.address1DefaultValue">
+    </div>
+</div>
+
+<div v-if="field.settings.address2Enabled" class="fui-row">
+    <div class="fui-col">
+        <label class="fui-field-label">${ field.settings.address2Label } <span v-if="field.settings.address2Required" class="error">*</span></label>
+        <input type="text" class="fui-field-input" :placeholder="field.settings.address2Placeholder" :value="field.settings.address2DefaultValue">
+    </div>
+</div>
+
+<div v-if="field.settings.address3Enabled" class="fui-row">
+    <div class="fui-col">
+        <label class="fui-field-label">${ field.settings.address3Label } <span v-if="field.settings.address3Required" class="error">*</span></label>
+        <input type="text" class="fui-field-input" :placeholder="field.settings.address3Placeholder" :value="field.settings.address3DefaultValue">
+    </div>
+</div>
+
+<div v-if="field.settings.cityEnabled || field.settings.stateEnabled" class="fui-row">
+    <div v-if="field.settings.cityEnabled" class="fui-col-auto">
+        <label class="fui-field-label">${ field.settings.cityLabel } <span v-if="field.settings.cityRequired" class="error">*</span></label>
+        <input type="text" class="fui-field-input" :placeholder="field.settings.cityPlaceholder" :value="field.settings.cityDefaultValue">
     </div>
 
-    <div v-if="field.settings.address2Enabled" class="fui-row">
-        <div class="fui-col">
-            <label class="fui-field-label">${ field.settings.address2Label } <span v-if="field.settings.address2Required" class="error">*</span></label>
-            <input type="text" class="fui-field-input" :placeholder="field.settings.address2Placeholder" :value="field.settings.address2DefaultValue">
-        </div>
+    <div v-if="field.settings.stateEnabled" class="fui-col-auto">
+        <label class="fui-field-label">${ field.settings.stateLabel } <span v-if="field.settings.stateRequired" class="error">*</span></label>
+        <input type="text" class="fui-field-input" :placeholder="field.settings.statePlaceholder" :value="field.settings.stateDefaultValue">
+    </div>
+</div>
+
+<div v-if="field.settings.zipEnabled || field.settings.countryEnabled" class="fui-row">
+    <div v-if="field.settings.zipEnabled" class="fui-col-auto">
+        <label class="fui-field-label">${ field.settings.zipLabel } <span v-if="field.settings.zipRequired" class="error">*</span></label>
+        <input type="number" class="fui-field-input" :placeholder="field.settings.zipPlaceholder" :value="field.settings.zipDefaultValue">
     </div>
 
-    <div v-if="field.settings.address3Enabled" class="fui-row">
-        <div class="fui-col">
-            <label class="fui-field-label">${ field.settings.address3Label } <span v-if="field.settings.address3Required" class="error">*</span></label>
-            <input type="text" class="fui-field-input" :placeholder="field.settings.address3Placeholder" :value="field.settings.address3DefaultValue">
-        </div>
-    </div>
+    <div v-if="field.settings.countryEnabled" class="fui-col-auto">
+        <label class="fui-field-label">${ field.settings.countryLabel } <span v-if="field.settings.countryRequired" class="error">*</span></label>
 
-    <div v-if="field.settings.cityEnabled || field.settings.stateEnabled" class="fui-row">
-        <div v-if="field.settings.cityEnabled" class="fui-col-auto">
-            <label class="fui-field-label">${ field.settings.cityLabel } <span v-if="field.settings.cityRequired" class="error">*</span></label>
-            <input type="text" class="fui-field-input" :placeholder="field.settings.cityPlaceholder" :value="field.settings.cityDefaultValue">
-        </div>
-
-        <div v-if="field.settings.stateEnabled" class="fui-col-auto">
-            <label class="fui-field-label">${ field.settings.stateLabel } <span v-if="field.settings.stateRequired" class="error">*</span></label>
-            <input type="text" class="fui-field-input" :placeholder="field.settings.statePlaceholder" :value="field.settings.stateDefaultValue">
-        </div>
-    </div>
-
-    <div v-if="field.settings.zipEnabled || field.settings.countryEnabled" class="fui-row">
-        <div v-if="field.settings.zipEnabled" class="fui-col-auto">
-            <label class="fui-field-label">${ field.settings.zipLabel } <span v-if="field.settings.zipRequired" class="error">*</span></label>
-            <input type="number" class="fui-field-input" :placeholder="field.settings.zipPlaceholder" :value="field.settings.zipDefaultValue">
-        </div>
-
-        <div v-if="field.settings.countryEnabled" class="fui-col-auto">
-            <label class="fui-field-label">${ field.settings.countryLabel } <span v-if="field.settings.countryRequired" class="error">*</span></label>
-
-            <select class="fui-field-select" :value="field.settings.countryDefaultValue">
-                <option value="" disabled selected>${ field.settings.countryPlaceholder }</option>
-                <option v-for="country in fieldType.data.countries" :value="country.value">${ country.label }</option>
-            </select>
-        </div>
+        <select class="fui-field-select" :value="field.settings.countryDefaultValue">
+            <option value="" disabled selected>${ field.settings.countryPlaceholder }</option>
+            <option v-for="country in fieldType.data.countries" :value="country.value">${ country.label }</option>
+        </select>
     </div>
 </div>

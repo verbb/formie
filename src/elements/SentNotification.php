@@ -15,6 +15,7 @@ use craft\elements\db\ElementQueryInterface;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Html;
 use craft\helpers\Json;
+use craft\helpers\StringHelper;
 use craft\helpers\Template;
 use craft\helpers\UrlHelper;
 
@@ -88,6 +89,7 @@ class SentNotification extends Element
                 'key' => '*',
                 'label' => Craft::t('formie', 'All forms'),
                 'criteria' => ['formId' => $ids],
+                'defaultSort' => ['elements.dateCreated', 'desc']
             ]
         ];
 
@@ -112,6 +114,7 @@ class SentNotification extends Element
                     'handle' => $form->handle,
                 ],
                 'criteria' => ['formId' => $form->id],
+                'defaultSort' => ['elements.dateCreated', 'desc']
             ];
         }
 
@@ -297,6 +300,8 @@ class SentNotification extends Element
                     'data-id' => $this->id,
                     'title' => Craft::t('formie', 'Resend'),
                 ]);
+            case 'preview':
+                return StringHelper::safeTruncate($this->body, 50);
             default:
                 return parent::tableAttributeHtml($attribute);
         }

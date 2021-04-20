@@ -341,3 +341,45 @@ Setting | Description
 `placeholder` | The option shown initially, when no option is selected.
 `source `| Which source do you want to select variants from?
 `limit` | Limit the number of selectable variants.
+
+# Custom Validation
+You can add custom validation to field, to handle all manner of scenarios. To do this, you'll need to create a custom module to contain PHP code for the validation logic.
+
+:::tip
+Make sure you’re comfortable [creating a plugin or module for Craft CMS](https://craftcms.com/docs/3.x/extend/). Take a look at this [Knowledge Base](https://craftcms.com/knowledge-base/custom-module-events) article for a complete example.
+:::
+
+If you write your own plugin or module, you’ll want to use its `init()` method to subscribe to an event on the `Submission` object to add your validation rules. Your event listener can add additional [validation rules](https://www.yiiframework.com/doc/guide/2.0/en/input-validation#declaring-rules) for fields.
+
+For example, let's say we have a field with a handle `emailAddress` which we'd like required. We could do this with the following.
+
+```php
+use verbb\formie\elements\Submission;
+use verbb\formie\events\SubmissionRulesEvent;
+use yii\base\Event;
+
+Event::on(Submission::class, Submission::EVENT_DEFINE_RULES, function(SubmissionRulesEvent $event) {
+    $event->rules[] = [['field:emailAddress'], 'required'];
+});
+```
+
+Or, maybe we only want a field required when another field is a certain value.
+
+```php
+Event::on(Submission::class, Submission::EVENT_DEFINE_RULES, function(SubmissionRulesEvent $event) {
+    $event->rules[] = [['field:emailAddress'], 'required', 'when' => function($model) {
+        return $model->subscribeMe;
+    }]];
+});
+```
+
+Here, we check if a field with handle `subscribeMe` is truthy, and if so make the `emailAddress` field required.
+
+Another example could be limiting a field to be numeric, and a maximum length.
+
+```php
+Event::on(Submission::class, Submission::EVENT_DEFINE_RULES, function(SubmissionRulesEvent $event) {
+    $event->rules[] = [[‘field:accountNumber'], 'number', 'integerOnly' => true, ‘max’ => 9];
+});
+```
+ 

@@ -6,12 +6,17 @@ use verbb\formie\base\NestedFieldInterface;
 use verbb\formie\base\NestedFieldTrait;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\db\NestedFieldRowQuery;
+use verbb\formie\gql\types\input\GroupInputType;
 use verbb\formie\helpers\SchemaHelper;
 
 use Craft;
 use craft\base\EagerLoadingFieldInterface;
 use craft\base\Element;
 use craft\base\ElementInterface;
+use craft\gql\GqlEntityRegistry;
+use craft\helpers\Gql;
+
+use GraphQL\Type\Definition\ObjectType;
 
 class Group extends FormField implements NestedFieldInterface, EagerLoadingFieldInterface
 {
@@ -204,5 +209,42 @@ class Group extends FormField implements NestedFieldInterface, EagerLoadingField
             SchemaHelper::enableConditionsField(),
             SchemaHelper::conditionsField(),
         ];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getContentGqlMutationArgumentType()
+    {
+        return GroupInputType::getType($this);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getContentGqlType()
+    {
+        $typeName = $this->getForm()->handle . '_' . $this->handle . '_FormieGroupField';
+
+        if ($inputType = GqlEntityRegistry::getEntity($typeName)) {
+            return $inputType;
+        }
+
+        $groupFields = [];
+
+        foreach ($this->getFields() as $field) {
+            $groupFields[$field->handle] = $field->getContentGqlType();
+        }
+
+        return GqlEntityRegistry::createEntity($typeName, new ObjectType([
+            'name' => $typeName,
+            'fields' => function() use ($groupFields) {
+                return $groupFields;
+            },
+            'resolveField' => function ($source, $args, $context, $info) {
+                $fieldName = Gql::getFieldNameWithAlias($info, $source, $context);
+                return $source[0][$fieldName] ?? null;
+            }
+        ]));
     }
 }

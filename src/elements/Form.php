@@ -529,6 +529,19 @@ class Form extends Element
     }
 
     /**
+     * @inheritdoc
+     */
+    public function getDirtyAttributes(): array
+    {
+        // This is here to prompt Blitz that a change has been made on the form when it saves
+        // because the form settings don't use delta updates, which Blitz relies on. Keep an eye on
+        // what potential issues this might bring up...
+        $this->setDirtyAttributes(['title']);
+
+        return parent::getDirtyAttributes();
+    }
+
+    /**
      * @inheritDoc
      */
     public function getConfigJson()
@@ -1014,11 +1027,13 @@ class Form extends Element
      *
      * @return String
      */
-    public function getRedirectUrl()
+    public function getRedirectUrl($checkLastPage = true)
     {
         // We don't want to show the redirect URL on unfinished mutli-page forms, so check first
-        if (!$this->isLastPage() && $this->settings->submitMethod == 'page-reload') {
-            return '';
+        if ($this->settings->submitMethod == 'page-reload') {
+            if ($checkLastPage && !$this->isLastPage()) {
+                return '';
+            }
         }
 
         // Allow settings to statically set the redirect URL (from templates)
@@ -1073,11 +1088,6 @@ class Form extends Element
 
         // Only provide what we need, both for security/privacy but also DOM size
         $settings = [
-            // Send the site-relative root. This is to ensure submission requests are setup
-            // to go to the root of a multi site. Important for sub-directory setups where
-            // posting to '/' would be the incorrect primary site.
-            'siteRootUrl' => UrlHelper::siteUrl(''),
-
             'submitMethod' => $this->settings->submitMethod,
             'submitActionMessage' => $this->settings->getSubmitActionMessage() ?? '',
             'submitActionMessageTimeout' => $this->settings->submitActionMessageTimeout,
@@ -1096,6 +1106,7 @@ class Form extends Element
             'currentPageId' => $this->getCurrentPage()->id ?? '',
             'outputJsTheme' => $this->getFrontEndTemplateOption('outputJsTheme'),
             'enableUnloadWarning' => $pluginSettings->enableUnloadWarning,
+            'ajaxTimeout' => $pluginSettings->ajaxTimeout,
         ];
 
         $registeredJs = [];
@@ -1396,6 +1407,7 @@ class Form extends Element
     {
         return [
             'title' => ['label' => Craft::t('app', 'Title')],
+            'id' => ['label' => Craft::t('app', 'ID')],
             'handle' => ['label' => Craft::t('app', 'Handle')],
             'template' => ['label' => Craft::t('app', 'Template')],
             'usageCount' => ['label' => Craft::t('formie', 'Usage Count')],

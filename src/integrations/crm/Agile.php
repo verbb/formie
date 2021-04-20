@@ -358,6 +358,9 @@ class Agile extends Crm
             $dealValues = $this->getFieldMappingValues($submission, $this->dealFieldMapping, 'deal');
             $taskValues = $this->getFieldMappingValues($submission, $this->taskFieldMapping, 'task');
 
+            // Save for later, before `_prepCustomFields()` modifies this.
+            $email = $contactValues['email'] ?? '';
+
             // Directly modify the field values first
             $contactFields = $this->_prepCustomFields($contactValues, ['first_name', 'last_name', 'company', 'title']);
             $dealFields = $this->_prepCustomFields($dealValues);
@@ -372,7 +375,26 @@ class Agile extends Crm
                     'properties' => $contactFields,
                 ]);
 
-                $response = $this->deliverPayload($submission, 'contacts', $contactPayload);
+                // Check to see if this contact already exists, and update
+                $response = $this->request('GET', "contacts/search/email/${email}");
+                $existingContact = $response['id'] ?? '';
+
+                if ($existingContact) {
+                    $contactPayload = array_merge(['id' => $existingContact], $contactPayload);
+
+                    // We have to update the contact properties, and a few other items in separate calls - gah.
+                    $response = $this->deliverPayload($submission, "contacts/edit-properties", $contactPayload, 'PUT');
+
+                    $tags = $contactPayload['tags'] ?? [];
+
+                    if ($tags) {
+                        $tagsPayload = ['id' => $existingContact, 'tags' => $tags];
+                        
+                        $response = $this->deliverPayload($submission, 'contacts/edit/tags', $tagsPayload, 'PUT');
+                    }
+                } else {
+                    $response = $this->deliverPayload($submission, 'contacts', $contactPayload);
+                }
 
                 if ($response === false) {
                     return true;
@@ -381,8 +403,9 @@ class Agile extends Crm
                 $contactId = $response['id'] ?? '';
 
                 if (!$contactId) {
-                    Integration::error($this, Craft::t('formie', 'Missing return “contactId” {response}', [
+                    Integration::error($this, Craft::t('formie', 'Missing return “contactId” {response}. Sent payload {payload}', [
                         'response' => Json::encode($response),
+                        'payload' => Json::encode($contactPayload),
                     ]), true);
 
                     return false;
@@ -407,8 +430,9 @@ class Agile extends Crm
                 $dealId = $response['id'] ?? '';
 
                 if (!$dealId) {
-                    Integration::error($this, Craft::t('formie', 'Missing return “dealId” {response}', [
+                    Integration::error($this, Craft::t('formie', 'Missing return “dealId” {response}. Sent payload {payload}', [
                         'response' => Json::encode($response),
+                        'payload' => Json::encode($dealPayload),
                     ]), true);
 
                     return false;
@@ -437,8 +461,9 @@ class Agile extends Crm
                 $taskId = $response['id'] ?? '';
 
                 if (!$taskId) {
-                    Integration::error($this, Craft::t('formie', 'Missing return “taskId” {response}', [
+                    Integration::error($this, Craft::t('formie', 'Missing return “taskId” {response}. Sent payload {payload}', [
                         'response' => Json::encode($response),
+                        'payload' => Json::encode($taskPayload),
                     ]), true);
 
                     return false;

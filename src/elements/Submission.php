@@ -11,6 +11,7 @@ use verbb\formie\events\ModifyFieldValueForIntegrationEvent;
 use verbb\formie\events\SubmissionMarkedAsSpamEvent;
 use verbb\formie\events\SubmissionRulesEvent;
 use verbb\formie\fields\formfields\FileUpload;
+use verbb\formie\helpers\Variables;
 use verbb\formie\models\FieldLayoutPage;
 use verbb\formie\models\Settings;
 use verbb\formie\models\Status;
@@ -333,24 +334,6 @@ class Submission extends Element
     }
 
     /**
-     * @inheritDoc
-     */
-    public function validate($attributeNames = null, $clearErrors = true)
-    {
-        $validates = parent::validate($attributeNames, $clearErrors);
-
-        $form = $this->getForm();
-
-        if ($form && $form->requireUser) {
-            if (!Craft::$app->getUser()->getIdentity()) {
-                $this->addError('form', Craft::t('formie', 'You must be logged in to submit this form.'));
-            }
-        }
-
-        return $validates;
-    }
-
-    /**
      * @inheritdoc
      */
     public static function eagerLoadingMap(array $sourceElements, string $handle)
@@ -402,6 +385,24 @@ class Submission extends Element
         ];
 
         return $behaviors;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function validate($attributeNames = null, $clearErrors = true)
+    {
+        $validates = parent::validate($attributeNames, $clearErrors);
+
+        $form = $this->getForm();
+
+        if ($form && $form->requireUser) {
+            if (!Craft::$app->getUser()->getIdentity()) {
+                $this->addError('form', Craft::t('formie', 'You must be logged in to submit this form.'));
+            }
+        }
+
+        return $validates;
     }
 
     /**
@@ -466,6 +467,20 @@ class Submission extends Element
     }
 
     /**
+     * @inheritDoc
+     */
+    public function updateTitle($form)
+    {
+        if ($customTitle = Variables::getParsedValue($form->settings->submissionTitleFormat, $this, $form)) {
+            $this->title = $customTitle;
+
+            // Rather than re-save, directly update the submission record
+            Craft::$app->getDb()->createCommand()->update('{{%formie_submissions}}', ['title' => $customTitle], ['id' => $this->id])->execute();
+            Craft::$app->getDb()->createCommand()->update('{{%content}}', ['title' => $customTitle], ['elementId' => $this->id])->execute();
+        }
+    }
+
+    /**
      * Gets the submission's form.
      *
      * @return Form
@@ -513,6 +528,16 @@ class Submission extends Element
         }
 
         return null;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getFormName()
+    {
+        if ($form = $this->getForm()) {
+            return $form->title;
+        }
     }
 
     /**
@@ -821,6 +846,7 @@ class Submission extends Element
     {
         return [
             'title' => ['label' => Craft::t('app', 'Title')],
+            'id' => ['label' => Craft::t('app', 'ID')],
             'form' => ['label' => Craft::t('formie', 'Form')],
             'dateCreated' => ['label' =>Craft::t('app', 'Date Created')],
             'dateUpdated' => ['label' => Craft::t('app', 'Date Updated')],

@@ -59,10 +59,8 @@ const getters = {
             field = find(state, { type: 'verbb\\formie\\fields\\formfields\\MissingField' });
         }
 
-        const id = newId();
-
         const newField = {
-            id,
+            vid: newId(),
             type,
             columnWidth: 12,
             hasLabel: field.hasLabel,

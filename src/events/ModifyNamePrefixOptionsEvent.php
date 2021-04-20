@@ -3,12 +3,11 @@ namespace verbb\formie\events;
 
 use yii\base\Event;
 
-class EmailEvent extends Event
+class ModifyNamePrefixOptionsEvent extends Event
 {
     // Properties
     // =========================================================================
 
-    public $email;
-    public $isNew = false;
+    public $options;
     
 }

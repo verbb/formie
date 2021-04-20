@@ -21,7 +21,7 @@ function canDrag(sourcePageIndex, sourceField, dragData) {
 
     // Disallow moving a field from inside one repeater to another repeater.
     if (dragData.fieldId && sourceField && sourceField.supportsNested) {
-        if (dragData.fieldId != sourceField.id) {
+        if (dragData.fieldId != sourceField.vid) {
             return false;
         }
     }
