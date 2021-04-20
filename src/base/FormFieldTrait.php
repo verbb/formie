@@ -447,22 +447,6 @@ trait FormFieldTrait
     /**
      * @inheritDoc
      */
-    public function getIsHidden(): bool
-    {
-        return $this->visibility === 'hidden';
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getIsHidden(): bool
-    {
-        return $this->visibility === 'hidden';
-    }
-
-    /**
-     * @inheritDoc
-     */
     public function getExtraBaseFieldConfig(): array
     {
         return [];
