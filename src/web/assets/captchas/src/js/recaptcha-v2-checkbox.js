@@ -51,12 +51,11 @@ export class FormieRecaptchaV2Checkbox {
     }
 
     renderCaptcha() {
-        // Default to the first placeholder available.
-        // eslint-disable-next-line
-        this.$placeholder = this.$placeholders[0];
+        this.$placeholder = null;
 
         // Get the active page
         var { $currentPage } = this.$form.form.formTheme;
+        var { hasMultiplePages } = this.$form.form.settings;
 
         // Get the current page's captcha - find the first placeholder that's non-invisible
         this.$placeholders.forEach($placeholder => {
@@ -64,6 +63,12 @@ export class FormieRecaptchaV2Checkbox {
                 this.$placeholder = $placeholder;
             }
         });
+
+        // If a single-page form, get the first placeholder
+        if (!hasMultiplePages && this.$placeholder === null) {
+            // eslint-disable-next-line
+            this.$placeholder = this.$placeholders[0];
+        }
 
         if (this.$placeholder === null) {
             // This is okay in some instances - notably for multi-page forms where the captcha
