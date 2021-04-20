@@ -996,6 +996,7 @@ class Form extends Element
             'loadingIndicatorText' => $this->settings->loadingIndicatorText,
             'validationOnSubmit' => $this->settings->validationOnSubmit,
             'validationOnFocus' => $this->settings->validationOnFocus,
+            'hasMultiplePages' => $this->hasMultiplePages(),
 
             'redirectUrl' => $this->getRedirectUrl(),
             'currentPageId' => $this->getCurrentPage()->id ?? '',
