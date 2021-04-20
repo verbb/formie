@@ -2,12 +2,13 @@
     "/addressproviders/dist/js/address-finder.js": "/addressproviders/dist/js/address-finder.js?id=684ac2a2e601e5e866ec",
     "/addressproviders/dist/js/algolia-places.js": "/addressproviders/dist/js/algolia-places.js?id=22a3b93ef80d6af23fed",
     "/addressproviders/dist/js/google-address.js": "/addressproviders/dist/js/google-address.js?id=bb4f8a8b777528d3b546",
-    "/captchas/dist/js/recaptcha-v2-checkbox.js": "/captchas/dist/js/recaptcha-v2-checkbox.js?id=eee5ef9afaf3f6221f2c",
-    "/captchas/dist/js/recaptcha-v2-invisible.js": "/captchas/dist/js/recaptcha-v2-invisible.js?id=e1b9c1a08b6d39a52670",
-    "/captchas/dist/js/recaptcha-v3.js": "/captchas/dist/js/recaptcha-v3.js?id=67a584ce4bad11d2def0",
-    "/cp/dist/js/formie-cp.js": "/cp/dist/js/formie-cp.js?id=98bdeeb9674891f3b9c2",
-    "/cp/dist/js/integration-settings.js": "/cp/dist/js/integration-settings.js?id=907b479672f64c76ff6b",
-    "/forms/dist/js/main.js": "/forms/dist/js/main.js?id=efd81e46a7d7001cc1fd",
+    "/captchas/dist/js/javascript.js": "/captchas/dist/js/javascript.js?id=803160f800c87103321c",
+    "/captchas/dist/js/recaptcha-v2-checkbox.js": "/captchas/dist/js/recaptcha-v2-checkbox.js?id=6a9d0c2ad35262c31912",
+    "/captchas/dist/js/recaptcha-v2-invisible.js": "/captchas/dist/js/recaptcha-v2-invisible.js?id=1d7ffaa251d27493d66f",
+    "/captchas/dist/js/recaptcha-v3.js": "/captchas/dist/js/recaptcha-v3.js?id=f015aa3da04eb20086ad",
+    "/cp/dist/js/formie-cp.js": "/cp/dist/js/formie-cp.js?id=f9663a62cf79687998ee",
+    "/cp/dist/js/integration-settings.js": "/cp/dist/js/integration-settings.js?id=ef696c8b3645455863a2",
+    "/forms/dist/js/main.js": "/forms/dist/js/main.js?id=924f126d1a90fd932f16",
     "/forms/dist/css/style.css": "/forms/dist/css/style.css?id=8f058d2e8f9ff2df7ff9",
     "/frontend/dist/css/formie-base.css": "/frontend/dist/css/formie-base.css?id=889b2aecb6c4427b54e9",
     "/frontend/dist/css/formie-theme.css": "/frontend/dist/css/formie-theme.css?id=c33e3fe27b989dd89197",
@@ -25,6 +26,6 @@
     "/frontend/dist/js/fields/table.js": "/frontend/dist/js/fields/table.js?id=1770f35326a268ee8b22",
     "/frontend/dist/js/fields/tags.js": "/frontend/dist/js/fields/tags.js?id=ccdb0c5e538029374c42",
     "/frontend/dist/js/fields/text-limit.js": "/frontend/dist/js/fields/text-limit.js?id=e5f8290ec1ff0e94b0c9",
-    "/frontend/dist/js/formie.js": "/frontend/dist/js/formie.js?id=a42a583111c4b956c93d",
-    "/widgets/dist/js/formie-widgets.js": "/widgets/dist/js/formie-widgets.js?id=b013875f0b2c0072e8d4"
+    "/frontend/dist/js/formie.js": "/frontend/dist/js/formie.js?id=d3c178ee502d8b6cba73",
+    "/widgets/dist/js/formie-widgets.js": "/widgets/dist/js/formie-widgets.js?id=f0ade55d4623f65ccc08"
 }
