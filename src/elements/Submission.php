@@ -487,7 +487,7 @@ class Submission extends Element
      */
     public function getForm()
     {
-        if (!$this->_form) {
+        if (!$this->_form && $this->formId) {
             $query = Form::find()->id($this->formId);
 
             // If this submission has been trashed, ensure to find the trashed form
