@@ -612,14 +612,16 @@ class Submission extends Element
         if ($form = $this->getForm()) {
             $disabledValues = $form->getPopulatedFieldValuesFromRequest();
 
-            foreach ($disabledValues as $key => $value) {
-                try {
-                    // Special handling for group/repeater which would be otherwise pretty verbose to supply
-                    $value = $form->getFieldByHandle($key)->parsePopulatedFieldValues($value, $this);
+            if ($disabledValues && is_array($disabledValues)) {
+                foreach ($disabledValues as $key => $value) {
+                    try {
+                        // Special handling for group/repeater which would be otherwise pretty verbose to supply
+                        $value = $form->getFieldByHandle($key)->parsePopulatedFieldValues($value, $this);
 
-                    $this->setFieldValue($key, $value);
-                } catch (\Throwable $e) {
-                    continue;
+                        $this->setFieldValue($key, $value);
+                    } catch (\Throwable $e) {
+                        continue;
+                    }
                 }
             }
         }
