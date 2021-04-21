@@ -83,6 +83,10 @@ class FieldLayout extends CraftFieldLayout
      */
     public function getTabs(): array
     {
+        // Ensure we prep tabs normally, like Craft would.
+        parent::getTabs();
+
+        // But return our Pages models instead as "tabs".
         return $this->getPages();
     }
 
