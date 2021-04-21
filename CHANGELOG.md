@@ -1,9 +1,19 @@
 # Changelog
 
+## 1.4.1 - 2021-04-21
+
+### Added
+- Added `includeInEmail`, `enableConditions`, `conditions`, `enableContentEncryption`, `visibility` to FieldInterface for GraphQL.
+- Added “Spam Reason” and “IP Address” to available columns when viewing submissions in the control panel.
+
+### Fixed
+- Fixed potentially fetching the incorrect form for a submission, in some cases.
+- Fixed an error when saving a submission through the control panel.
+
 ## 1.4.0.1 - 2021-04-21
 
 ### Fixed
-- Fix fatal errors when installing from a fresh install.
+- Fixed fatal errors when installing from a fresh install.
 
 ## 1.4.0 - 2021-04-20
 
