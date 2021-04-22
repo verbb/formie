@@ -389,7 +389,7 @@ class Variables
         $parsedContent = '';
 
         if ($notification) {
-            $parsedContent = (string)$field->getEmailHtml($submission, $notification, $submissionValue);
+            $parsedContent = (string)$field->getEmailHtml($submission, $notification, $submissionValue, ['hideName' => true]);
         }
 
         $prefix = 'field.';
