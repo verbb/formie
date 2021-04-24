@@ -188,7 +188,7 @@ class Categories extends CraftCategories implements FormFieldInterface
         }
 
         // Check if a default value has been set AND we're limiting. We need to resolve the value before limiting
-        if ($this->defaultValue && $this->limit) {
+        if ($this->defaultValue && $this->limitOptions) {
             $ids = [];
 
             // Handle the two ways a default value can be set
@@ -203,7 +203,7 @@ class Categories extends CraftCategories implements FormFieldInterface
             }
         }
 
-        $query->limit($this->limit);
+        $query->limit($this->limitOptions);
         $query->orderBy($this->orderBy);
 
         // Fire a 'modifyElementFieldQuery' event
@@ -335,6 +335,14 @@ class Categories extends CraftCategories implements FormFieldInterface
                 'label' => Craft::t('formie', 'Branch Limit'),
                 'help' => Craft::t('formie', 'Limit the number of selectable category branches.'),
                 'name' => 'branchLimit',
+                'size' => '3',
+                'class' => 'text',
+                'validation' => 'optional|number|min:0',
+            ]),
+            SchemaHelper::textField([
+                'label' => Craft::t('formie', 'Limit Options'),
+                'help' => Craft::t('formie', 'Limit the number of available categories.'),
+                'name' => 'limitOptions',
                 'size' => '3',
                 'class' => 'text',
                 'validation' => 'optional|number|min:0',

@@ -22,6 +22,7 @@ trait RelationFieldTrait
     // Properties
     // =========================================================================
 
+    public $limitOptions;
     public $displayType = 'dropdown';
     public $labelSource = 'title';
     public $orderBy = 'title ASC';
