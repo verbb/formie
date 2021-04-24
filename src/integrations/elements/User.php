@@ -179,7 +179,7 @@ class User extends Element
      */
     public function sendPayload(Submission $submission)
     {
-        // try {
+        try {
             $user = $this->getElementForPayload(UserElement::class, $submission);
 
             $userGroups = [];
@@ -264,18 +264,18 @@ class User extends Element
                 }
             }
 
-        // } catch (\Throwable $e) {
-        //     $error = Craft::t('formie', 'Element integration failed for submission “{submission}”. Error: {error} {file}:{line}', [
-        //         'error' => $e->getMessage(),
-        //         'file' => $e->getFile(),
-        //         'line' => $e->getLine(),
-        //         'submission' => $submission->id,
-        //     ]);
+        } catch (\Throwable $e) {
+            $error = Craft::t('formie', 'Element integration failed for submission “{submission}”. Error: {error} {file}:{line}', [
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'submission' => $submission->id,
+            ]);
 
-        //     Formie::error($error);
+            Formie::error($error);
 
-        //     return new IntegrationResponse(false, $error);
-        // }
+            return new IntegrationResponse(false, $error);
+        }
 
         return true;
     }
