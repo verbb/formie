@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.4.2 - 2021-04-24
+
+### Added
+- Added `mergeUserGroups` option for User element integrations to allow merging of existing user groups, if updating an existing user.
+- Added “Interest Categories” support for Mailchimp integration.
+- Added `disabledFields` plugin setting to control any globally disabled fields for the form builder.
+
+### Changed
+- Changed `limit` to `limitOptions` for element fields, to allow for both limiting the options available in fields, but also how many can be selected.
+
+### Fixed
+- Fixed being unable to fetch submission fields directly via `submission.fieldLayout.getField(fieldHandle)`.
+- Fixed multi-line text fields not showing its field label when using “All Fields” in email notifications.
+- Fixed some errors thrown in Freeform migration due to unsupported fields.
+
 ## 1.4.1 - 2021-04-21
 
 ### Added
