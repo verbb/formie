@@ -3,6 +3,7 @@
 {% set handle = integration.handle %}
 {% set formSettings = integration.getFormSettings().getSettings() %}
 {% set activateUser = form.settings.integrations[handle].activateUser ?? false %}
+{% set mergeUserGroups = form.settings.integrations[handle].mergeUserGroups ?? false %}
 {% set sendActivationEmail = form.settings.integrations[handle].sendActivationEmail ?? true %}
 {% set groupIds = form.settings.integrations[handle].groupIds ?? [] %}
 
@@ -80,4 +81,11 @@
         :value="get(form, 'settings.integrations.{{ handle }}.updateElementMapping')"
         :rows="{{ integration.getUpdateAttributes() | json_encode }}"
     ></integration-field-mapping>
+                                
+    {{ forms.lightswitchField({
+        label: 'Merge User Groups' | t('formie'),
+        instructions: 'Whether existing user groups should be merged with any set above. Otherwise, any existing user groups will be overwritten.' | t('formie'),
+        name: 'mergeUserGroups',
+        on: mergeUserGroups,
+    }) }}
 </div>

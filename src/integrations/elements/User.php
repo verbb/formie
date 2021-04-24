@@ -27,6 +27,7 @@ class User extends Element
 
     public $groupIds = [];
     public $activateUser = false;
+    public $mergeUserGroups = false;
     public $sendActivationEmail = true;
 
 
@@ -178,10 +179,14 @@ class User extends Element
      */
     public function sendPayload(Submission $submission)
     {
-        try {
+        // try {
             $user = $this->getElementForPayload(UserElement::class, $submission);
 
             $userGroups = [];
+
+            if ($this->mergeUserGroups) {
+                $userGroups = $user->getGroups();
+            }
 
             foreach ($this->groupIds as $groupId) {
                 if ($group = Craft::$app->getUserGroups()->getGroupById($groupId)) {
@@ -235,7 +240,9 @@ class User extends Element
             }
 
             if ($userGroups) {
-                Craft::$app->getUsers()->assignUserToGroups($user->id, $this->groupIds);
+                $groupIds = ArrayHelper::getColumn($userGroups, 'id');
+
+                Craft::$app->getUsers()->assignUserToGroups($user->id, $groupIds);
             }
 
             // Important to wipe out the field mapped to their password, and save the submission. We don't want to permanently
@@ -257,18 +264,18 @@ class User extends Element
                 }
             }
 
-        } catch (\Throwable $e) {
-            $error = Craft::t('formie', 'Element integration failed for submission “{submission}”. Error: {error} {file}:{line}', [
-                'error' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-                'submission' => $submission->id,
-            ]);
+        // } catch (\Throwable $e) {
+        //     $error = Craft::t('formie', 'Element integration failed for submission “{submission}”. Error: {error} {file}:{line}', [
+        //         'error' => $e->getMessage(),
+        //         'file' => $e->getFile(),
+        //         'line' => $e->getLine(),
+        //         'submission' => $submission->id,
+        //     ]);
 
-            Formie::error($error);
+        //     Formie::error($error);
 
-            return new IntegrationResponse(false, $error);
-        }
+        //     return new IntegrationResponse(false, $error);
+        // }
 
         return true;
     }
