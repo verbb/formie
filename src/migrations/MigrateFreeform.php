@@ -180,6 +180,26 @@ class MigrateFreeform extends Migration
 
                 try {
                     switch (get_class($field)) {
+                        case freeformfields\Pro\ConfirmationField::class:
+                            // Not implemented
+                            continue;
+
+                        case freeformfields\Pro\OpinionScaleField::class:
+                            // Not implemented
+                            continue;
+
+                        case freeformfields\Pro\RatingField::class:
+                            // Not implemented
+                            continue;
+
+                        case freeformfields\Pro\RichTextField::class:
+                            // Not implemented
+                            continue;
+
+                        case freeformfields\Pro\SignatureField::class:
+                            // Not implemented
+                            continue;
+
                         case freeformfields\DynamicRecipientField::class:
                             // Not implemented
                             continue;
