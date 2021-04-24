@@ -96,6 +96,37 @@ class Mailchimp extends EmailMarketing
                     'name' => Craft::t('formie', 'Tags'),
                 ]);
 
+                // Handle any interest groups
+                $response = $this->request('GET', 'lists/' . $list['id'] . '/interest-categories');
+
+                $options = [];
+                $categories = $response['categories'] ?? [];
+
+                foreach ($categories as $category) {
+                    $response = $this->request('GET', 'lists/' . $list['id'] . '/interest-categories/' . $category['id'] . '/interests');
+                    $interests = $response['interests'] ?? [];
+
+                    $opts = [];
+
+                    foreach ($interests as $interest) {
+                        $opts[] = [
+                            'label' => $interest['name'],
+                            'value' => $interest['id'],
+                        ];
+                    }
+
+                    $options = [
+                        'label' => Craft::t('formie', 'Category - {title}', ['title' => $category['title']]),
+                        'options' => $opts,
+                    ];
+                }
+
+                $listFields[] = new IntegrationField([
+                    'handle' => 'interestCategories',
+                    'name' => Craft::t('formie', 'Interest Categories'),
+                    'options' => $options,
+                ]);
+
                 $settings['lists'][] = new IntegrationCollection([
                     'id' => $list['id'],
                     'name' => $list['name'],
@@ -121,8 +152,9 @@ class Mailchimp extends EmailMarketing
             $email = ArrayHelper::remove($fieldValues, 'email_address');
             $emailHash = md5(strtolower($email));
 
-            // Pull out tags for later
+            // Pull out stuff for later
             $tags = ArrayHelper::remove($fieldValues, 'tags');
+            $interestCategories = ArrayHelper::remove($fieldValues, 'interestCategories');
 
             $payload = [
                 'email_address' => $email,
@@ -131,6 +163,18 @@ class Mailchimp extends EmailMarketing
 
             if ($fieldValues) {
                 $payload['merge_fields'] = $fieldValues;
+            }
+
+            // Process any interest categories.
+            if ($interestCategories) {
+                // Cleanup and handle multiple categories. They must have their IDs provided
+                $categories = array_filter(array_map('trim', explode(',', $interestCategories)));
+
+                if ($categories) {
+                    foreach ($categories as $categoryId) {
+                        $payload['interests'][$categoryId] = true;
+                    }
+                }
             }
 
             $response = $this->deliverPayload($submission, "lists/{$this->listId}/members/$emailHash", $payload, 'PUT');
