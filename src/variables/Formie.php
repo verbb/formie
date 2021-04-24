@@ -243,6 +243,7 @@ class Formie
             $navItems = [
                 'general' => ['title' => Craft::t('formie', 'General Settings')],
                 'forms' => ['title' => Craft::t('formie', 'Forms')],
+                'fields' => ['title' => Craft::t('formie', 'Fields')],
                 
                 'behavior-heading' => ['heading' => Craft::t('formie', 'Behavior')],
                 'notifications' => ['title' => Craft::t('formie', 'Email Notifications')],

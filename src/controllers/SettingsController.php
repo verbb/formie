@@ -37,6 +37,26 @@ class SettingsController extends Controller
         return $this->renderTemplate('formie/settings/forms', compact('settings', 'formTemplates', 'emailTemplates'));
     }
 
+    public function actionFields(): Response
+    {
+        $settings = Formie::$plugin->getSettings();
+
+        $disabledFields = [];
+
+        foreach (Formie::$plugin->getFields()->getRegisteredFields() as $field) {
+            if ($field instanceof \verbb\formie\fields\formfields\MissingField) {
+                continue;
+            }
+
+            $disabledFields[] = [
+                'label' => $field::displayName(),
+                'value' => get_class($field),
+            ];
+        }
+
+        return $this->renderTemplate('formie/settings/fields', compact('settings', 'disabledFields'));
+    }
+
     public function actionSubmissions(): Response
     {
         $settings = Formie::$plugin->getSettings();

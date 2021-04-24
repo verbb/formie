@@ -43,6 +43,9 @@ class Settings extends Model
     public $enableUnloadWarning = true;
     public $ajaxTimeout = 10;
 
+    // Fields
+    public $disabledFields = [];
+
     // General Fields
     public $defaultLabelPosition = AboveInput::class;
     public $defaultInstructionsPosition = BelowInput::class;

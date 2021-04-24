@@ -222,6 +222,9 @@ class Fields extends Component
             return $this->_fields;
         }
 
+        $settings = Formie::$plugin->getSettings();
+        $disabledFields = $settings->disabledFields;
+
         $fields = [
             formfields\Address::class,
             formfields\Agree::class,
@@ -274,6 +277,11 @@ class Fields extends Component
         $event->fields = array_unique($event->fields);
 
         foreach ($event->fields as $class) {
+            // Check against plugin settings whether to exclude or not
+            if (is_array($disabledFields) && in_array($class, $disabledFields)) {
+                continue;
+            }
+
             $this->_fields[$class] = new $class;
         }
 

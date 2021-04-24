@@ -37,6 +37,7 @@ trait Routes
             $event->rules['formie/settings'] = 'formie/settings/index';
             $event->rules['formie/settings/general'] = 'formie/settings/index';
             $event->rules['formie/settings/forms'] = 'formie/settings/forms';
+            $event->rules['formie/settings/fields'] = 'formie/settings/fields';
             $event->rules['formie/settings/submissions'] = 'formie/settings/submissions';
             $event->rules['formie/settings/spam'] = 'formie/settings/spam';
             $event->rules['formie/settings/notifications'] = 'formie/notifications/index';
@@ -74,8 +75,6 @@ trait Routes
             $event->rules['formie/settings/miscellaneous'] = 'formie/integration-settings/miscellaneous-index';
             $event->rules['formie/settings/miscellaneous/new'] = 'formie/integration-settings/edit-miscellaneous';
             $event->rules['formie/settings/miscellaneous/edit/<integrationId:\d+>'] = 'formie/integration-settings/edit-miscellaneous';
-            $event->rules['formie/settings/permissions'] = 'formie/permissions/index';
-            $event->rules['formie/settings/fields'] = 'formie/fields/index';
         });
     }
 }
