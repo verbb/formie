@@ -1032,7 +1032,7 @@ return [
     'Select which {name} sheet to add rows to.' => 'Select which {name} sheet to add rows to.',
     'Choose how your form fields should map to your {name} columns.' => 'Choose how your form fields should map to your {name} columns.',
     'Proxy Redirect URI' => 'Proxy Redirect URI',
-    'Whether to proxy the redirect URI through Verbb‘s servers. This should **only** be used for local testing. See [docs]() for more.' => 'Whether to proxy the redirect URI through Verbb‘s servers. This should **only** be used for local testing. See [docs]() for more.',
+    'Whether to proxy the redirect URI through Verbb‘s servers. This should **only** be used for local testing. See [docs](https://verbb.io/craft-plugins/formie/docs/integrations/miscellaneous-integrations#local-testing-proxy) for more.' => 'Whether to proxy the redirect URI through Verbb‘s servers. This should **only** be used for local testing. See [docs]() for more.',
     'Spreadsheet ID' => 'Spreadsheet ID',
     'Enter your {name} Spreadsheet ID here.' => 'Enter your {name} Spreadsheet ID here.',
     'Channel Type' => 'Channel Type',

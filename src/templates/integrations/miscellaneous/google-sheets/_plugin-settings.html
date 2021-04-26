@@ -29,7 +29,7 @@
 
 {{ forms.lightswitchField({
     label: 'Proxy Redirect URI' | t('formie'),
-    instructions: 'Whether to proxy the redirect URI through Verbb‘s servers. This should **only** be used for local testing. See [docs]() for more.' | t('formie') | md,
+    instructions: 'Whether to proxy the redirect URI through Verbb‘s servers. This should **only** be used for local testing. See [docs](https://verbb.io/craft-plugins/formie/docs/integrations/miscellaneous-integrations#local-testing-proxy) for more.' | t('formie') | md,
     name: 'proxyRedirect',
     on: integration.settings.proxyRedirect ?? false,
     warning: macros.configWarning('proxyRedirect', 'formie'),
