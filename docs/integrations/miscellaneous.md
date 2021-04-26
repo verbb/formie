@@ -21,15 +21,17 @@ Is your provider not in the list above? [Contact us](https://verbb.io/contact) t
 Follow the below steps to connect to the Google Sheets API.
 
 ### Step 1. Connect to the Google Sheets API
-1. Go to the <a href="https://console.developers.google.com/cloud-resource-manager" target="_blank">Google API Console</a>.
+1. Go to the <a href="https://console.cloud.google.com/apis/credentials" target="_blank">Google API Console</a>.
 1. Select an existing project or create a new one.
-1. Go to the **API Manager** and enable the **Google Drive API** and **Google Sheets API** for the project.
-1. Next, go to the **API Manager** → **Credentials** section.
-1. Click **Create Credentials** → **OAuth 2.0 client ID**.
-    1. In the popup select the **Application Type** as **Web application**.
-    1. In the field **Authorized redirect URI**, enter the value from the **Redirect URI** field in Formie.
-    1. Then click the **Create Client ID** button, then navigate to API Keys section.
-1. After the popup closes copy the **Client ID** and **Client Secret** values and paste into the fields in Formie.
+1. Go to the **APIs & Services** → **Library**  and enable the **Google Drive API** and **Google Sheets API** for the project.
+1. Next, go to the **APIs & Services** → **Credentials** section.
+1. Click **Create Credentials** → **OAuth client ID**.
+    1. On the following page, select the **Application Type** as **Web application**.
+    1. Provide a suitable **Name** to you can identify it in your Google account. This is not required by Formie.
+    1. Under the **Authorized JavaScript origins**, click **Add URI** and enter your project's Site URL.
+    1. Under the **Authorized redirect URIs**, click **Add URI** and enter the value from the **Redirect URI** field in Formie.
+    1. Then click the **Create** button.
+1. Once created, a popup will appear with your OAuth credentials. Copy the **Client ID** and **Client Secret** values and paste into the fields in Formie.
 
 ### Step 2. Test Connection
 1. Save this integration.
