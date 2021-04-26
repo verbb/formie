@@ -114,3 +114,21 @@ Follow the below steps to connect to the Trello API.
 1. Click **Save** to save the form.
 
 
+## Local Testing Proxy
+Some integration providers are configured through OAuth, which involves a round trip from your Craft install, to the providers authentication servers, and back again. For some providers - like Google - they require your Craft install to be on a public domain with SSL enabled. In practice, you might like to test out the integrations locally on your testing environment, which may not be on a publicly accessible domain.
+
+Formie can help with this, by providing a **Proxy Redirect URI** for some integrations. What this does is modify the URL for the redirect to Verbb servers, to redirect back to your install.
+
+For example, you might have a Redirect URI like the following:
+
+```
+http://formie.test/actions/formie/integrations/callback
+```
+
+Using this URL for providers won't work, as it'll detect `.test` is a non-public domain name. Using the Proxy Redirect URI will change the redirect URL to be:
+
+```
+https://formie.verbb.io?return=http://formie.test/actions/formie/integrations/callback
+```
+
+Here, it routes the request through to our Verbb servers, which forwards on the request to the URL in the `return` parameter (which would be your local project).
