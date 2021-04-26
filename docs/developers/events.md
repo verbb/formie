@@ -266,6 +266,21 @@ Event::on(Submission::class, Submission::EVENT_MODIFY_FIELD_VALUE_FOR_INTEGRATIO
 });
 ```
 
+### The `beforeSubmissionRequest` event
+The event that is triggered before a submission is validated. This is triggered on the controller action endpoint, so should primarily be used for modification of the submission before validation, or any other use-case that needs to occur in the controller.
+
+```php
+use verbb\formie\controllers\SubmissionsController;
+use verbb\formie\events\SubmissionEvent;
+use yii\base\Event;
+
+Event::on(SubmissionsController::class, SubmissionsController::EVENT_BEFORE_SUBMISSION_REQUEST, function(SubmissionEvent $event) {
+    $submission = $event->submission;
+    $success = $event->success;
+    // ...
+});
+```
+
 ### The `afterSubmissionRequest` event
 The event that is triggered after a submission has been completed, whether successful or not. This is triggered on the controller action endpoint, so should primarily be used for redirection hijacking, or any other use-case that needs to occur in the controller.
 

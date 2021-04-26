@@ -38,6 +38,7 @@ class SubmissionsController extends Controller
     // Constants
     // =========================================================================
 
+    const EVENT_BEFORE_SUBMISSION_REQUEST = 'beforeSubmissionRequest';
     const EVENT_AFTER_SUBMISSION_REQUEST = 'afterSubmissionRequest';
 
 
@@ -416,8 +417,8 @@ class SubmissionsController extends Controller
         } else if ($goingBack) {
             $nextPage = $form->getPreviousPage(null, $submission);
         }
-        $defaultStatus = $form->getDefaultStatus();
 
+        $defaultStatus = $form->getDefaultStatus();
         $errorMessage = $form->settings->getErrorMessage();
 
         // Get the submission, or create a new one
@@ -438,6 +439,16 @@ class SubmissionsController extends Controller
         } else {
             $submission->isIncomplete = true;
         }
+
+        // Fire an 'beforeSubmissionRequest' event
+        $event = new SubmissionEvent([
+            'submission' => $submission,
+            'success' => $success,
+        ]);
+        $this->trigger(self::EVENT_BEFORE_SUBMISSION_REQUEST, $event);
+
+        // Allow the event to modify the submission
+        $submission = $event->submission;
 
         // Don't validate when going back
         if (!$goingBack) {
@@ -553,7 +564,7 @@ class SubmissionsController extends Controller
             $form->resetCurrentSubmission();
         }
 
-        // Fire an 'afterSubmission' event
+        // Fire an 'afterSubmissionRequest' event
         $event = new SubmissionEvent([
             'submission' => $submission,
             'success' => $success,
