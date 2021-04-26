@@ -216,7 +216,7 @@ class Fields extends Component
     /**
      * @return array
      */
-    public function getRegisteredFields(): array
+    public function getRegisteredFields($excludeDisabled = true): array
     {
         if (count($this->_fields)) {
             return $this->_fields;
@@ -278,7 +278,7 @@ class Fields extends Component
 
         foreach ($event->fields as $class) {
             // Check against plugin settings whether to exclude or not
-            if (is_array($disabledFields) && in_array($class, $disabledFields)) {
+            if ($excludeDisabled && is_array($disabledFields) && in_array($class, $disabledFields)) {
                 continue;
             }
 

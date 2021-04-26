@@ -43,7 +43,7 @@ class SettingsController extends Controller
 
         $disabledFields = [];
 
-        foreach (Formie::$plugin->getFields()->getRegisteredFields() as $field) {
+        foreach (Formie::$plugin->getFields()->getRegisteredFields(false) as $field) {
             if ($field instanceof \verbb\formie\fields\formfields\MissingField) {
                 continue;
             }
