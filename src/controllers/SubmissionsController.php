@@ -443,7 +443,6 @@ class SubmissionsController extends Controller
         // Fire an 'beforeSubmissionRequest' event
         $event = new SubmissionEvent([
             'submission' => $submission,
-            'success' => $success,
         ]);
         $this->trigger(self::EVENT_BEFORE_SUBMISSION_REQUEST, $event);
 
