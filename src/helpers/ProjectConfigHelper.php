@@ -22,7 +22,7 @@ class ProjectConfigHelper
         $output['emailTemplates'] = self::_getEmailTemplatesData();
         $output['integrations'] = self::_getIntegrationsData();
 
-        return $output;
+        return array_filter($output);
     }
 
 
