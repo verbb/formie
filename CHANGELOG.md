@@ -1,5 +1,22 @@
 # Changelog
 
+## 1.4.3 - 2021-04-28
+
+### Added
+- Added `EVENT_BEFORE_SUBMISSION_REQUEST`.
+
+### Changed
+- Updated Date field to show Time field for a calendar view, only if opting-in to Flatpickr (which includes it).
+- Disabled autocomplete on Date fields in “Calendar” view, which obscures the date picker.
+- Removed additional time field when “Calendar” is picked for a Date field.
+- Updated Google Sheet instructions.
+- Updated “Proxy Redirect URI” docs URL.
+
+### Fixed
+- Fixed plugin-disabled fields not working correctly, once they’ve been disabled (being unable to re-enable).
+- Fixed Date field values not saving correctly when using “Calendar”.
+- Fixed empty `formie.yaml` file being created on project config rebuild events.
+
 ## 1.4.2 - 2021-04-24
 
 ### Added
