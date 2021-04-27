@@ -32,6 +32,7 @@
                     name: (hasTimeField ? 'date' : 'datetime') | namespaceInputName(field.handle),
                     required: field.required ? true : false,
                     value: value ? (value | date('Y-m-d', false)) : null,
+                    autocomplete: 'off',
                     data: {
                         'fui-message': field.settings.errorMessage | t,
                     },
