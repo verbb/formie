@@ -16,6 +16,23 @@
                     </span>
                 </div>
             </div>
+
+            <div v-if="field.settings.includeTime && !field.settings.useDatePicker" class="fui-col-auto">
+                <label v-if="field.settings.timeLabel" class="fui-field-label">{{ field.settings.timeLabel }}</label>
+                    
+                <div class="fui-field-preview">
+                    <input
+                        v-if="field.settings.includeTime"
+                        type="text"
+                        class="fui-field-input"
+                        :value="time"
+                    >
+
+                    <span class="fui-field-icon">
+                        <slot></slot>
+                    </span>
+                </div>
+            </div>
         </div>
 
         <div v-else-if="field.settings.displayType === 'dropdowns'">

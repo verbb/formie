@@ -1,3 +1,9 @@
+{% set hasTimeField = false %}
+
+{% if field.settings.includeTime and not field.settings.useDatePicker %}
+    {% set hasTimeField = true %}
+{% endif %}
+
 <div class="fui-field-rows">
     <div class="fui-row">
         <div class="fui-field">
@@ -23,7 +29,7 @@
                     type: 'date',
                     id: options.id,
                     class: [ 'fui-input' ],
-                    name: 'datetime' | namespaceInputName(field.handle),
+                    name: (hasTimeField ? 'date' : 'datetime') | namespaceInputName(field.handle),
                     required: field.required ? true : false,
                     value: value ? (value | date('Y-m-d', false)) : null,
                     data: {
@@ -41,5 +47,47 @@
 
             {% hook 'formie.subfield.field-end' %}
         </div>
+
+        {% if hasTimeField %}
+            <div class="fui-field">
+                {% hook 'formie.subfield.field-start' %}
+
+                {% hook 'formie.subfield.input-before' %}
+
+                {{ formieInclude('_includes/label', {
+                    field: null,
+                    id: 'date-time',
+                    required: field.required ? true : false,
+                    fieldName: field.settings.timeLabel ?: '&nbsp;',
+                    labelPosition: craft.formie.getLabelPosition(field, form, true),
+                    position: 'above',
+                }) }}
+
+                <div class="fui-input-container">
+                    {% hook 'formie.subfield.input-start' %}
+
+                    <input {{ attr({
+                        type: 'time',
+                        id: options.id,
+                        class: [ 'fui-input' ],
+                        name: 'time' | namespaceInputName(field.handle),
+                        required: field.required ? true : false,
+                        value: value ? (value | date('H:i', false)) : null,
+                        data: {
+                            'fui-message': field.settings.errorMessage | t,
+                        },
+                        aria: {
+                            required: field.required ? 'true' : 'false',
+                        },
+                    } | merge(field.getInputAttributes())) }} />
+
+                    {% hook 'formie.subfield.input-end' %}
+                </div>
+
+                {% hook 'formie.subfield.input-after' %}
+
+                {% hook 'formie.subfield.field-end' %}
+            </div>
+        {% endif %}
     </div>
 </div>
