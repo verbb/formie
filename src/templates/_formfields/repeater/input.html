@@ -25,9 +25,9 @@
         {{ field.addLabel }}
     </button>
 
-    <script type="text/template" data-repeater-template="{{ field.handle }}">
+    <div data-table-template="{{ field.handle }}" style="display:none;">
         {% include 'formie/_formfields/repeater/fields' %}
-    </script>
+    </div>
 {% endnamespace %}
 
 {% endblock %}

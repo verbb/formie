@@ -80,10 +80,10 @@
     </fieldset>
 {% endnamespace %}
 
-<script type="text/template" data-table-template="{{ field.handle }}">
+<div data-table-template="{{ field.handle }}" style="display:none;">
     {% namespace field.handle %}
         {% include 'fields/table/_row' with {
             index: '__ROW__'
         } %}
     {% endnamespace %}
-</script>
+</div>

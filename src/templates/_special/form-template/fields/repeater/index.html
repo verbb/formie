@@ -51,9 +51,9 @@
         {{ formieInclude('_includes/legend', { position: 'below' }) }}
     </fieldset>
 
-    <script type="text/template" data-repeater-template="{{ field.handle }}">
+    <div data-repeater-template="{{ field.handle }}" style="display:none;">
         {% include 'fields/repeater/_row' with {
             id: '__ROW__'
         } %}
-    </script>
+    </div>
 {% endnamespace %}
