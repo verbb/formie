@@ -6,7 +6,7 @@ This is specifically for Google Tag Manager and triggering data layer events, bu
 :::
 
 ## Page Reload
-If your form is set to Page Reload, you can use the following to detect whether the form has been submitted. This will take into account mutli-page forms, and will only be true when a form is completed.
+If your form is set to Page Reload, you can use the following to detect whether the form has been submitted. This will take into account multi-page forms, and will only be true when a form is completed.
 
 ```twig
 {% set form = craft.formie.forms({ handle: 'contactForm' }).one() %}
