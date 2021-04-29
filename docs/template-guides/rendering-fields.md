@@ -56,7 +56,7 @@ If you are using custom templates, you can also pass in a number of options to t
 {% endfor %}
 ```
 
-# Rendering Layout
+## Rendering Layout
 You can also render fields in the layout you build in the form builder, with pages, rows and columns. To do this, we'll need to loop through each page, loop through each row, then finally loop through each field.
 
 ```twig

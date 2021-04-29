@@ -9,7 +9,7 @@ Each field varies by its type, allowing for different functionality and behaviou
 Looking for custom fields? Developers can create their own custom fields to extend the functionality of Formie. Read the [Custom Field](docs:developers/custom-field) docs for more.
 :::
 
-# Settings
+## Settings
 All fields have a standard collection of settings.
 
 Attribute | Description
@@ -33,12 +33,12 @@ See the full [Field](docs:developers/field) documentation for more.
 
 In addition some fields have some additional specific settings, described below.
 
-# Field Types
+## Field Types
 Formie provides 26 different fields for use in your forms.
 
 
 
-## Address
+### Address
 A field for addresses. There are a number of sub-fields that can be enabled as required:
 
 - Address 1
@@ -51,10 +51,10 @@ A field for addresses. There are a number of sub-fields that can be enabled as r
 
 
 
-## Agree
+### Agree
 A field for a single checkbox. Its ideal purpose is to be an agreement checkbox for terms & conditions, or similar. It can be marked as required or not as well as have its checked and unchecked values set.
 
-### Settings
+#### Settings
 Setting | Description
 --- | ---
 Description | The description for the field. This will be shown next to the checkbox.
@@ -64,10 +64,10 @@ Default Value | The default value for the field when it loads.
 
 
 
-## Categories
+### Categories
 A field for users to select categories from a dropdown field.
 
-### Settings
+#### Settings
 Setting | Description
 --- | ---
 Placeholder | The option shown initially, when no option is selected.
@@ -76,10 +76,10 @@ Branch Limit | Limit the number of selectable category branches.
 
 
 
-## Checkboxes
+### Checkboxes
 A field for a collection of checkboxes for the user to pick one or many options, each with their own label and value.
 
-### Settings
+#### Settings
 Setting | Description
 --- | ---
 Options | Define the available options for users to select from.
@@ -87,14 +87,14 @@ Layout | Select which layout to use for these fields.
 
 
 
-## Date/Time
+### Date/Time
 A field to select the date or time, or both. There are some different display types:
 
 - Calendar
 - Dropdown fields (a field for year, month, etc)
 - Text input fields (a field for year, month, etc)
 
-### Settings
+#### Settings
 Setting | Description
 --- | ---
 Include Time | Whether this field should include the time.
@@ -103,10 +103,10 @@ Display Type | Set different display layouts for this field.
 
 
 
-## Dropdown
+### Dropdown
 A field for users select from a dropdown field. The field can also get to to allow multiple options to be set.
 
-### Settings
+#### Settings
 Setting | Description
 --- | ---
 Placeholder | The option shown initially, when no option is selected.
@@ -115,10 +115,10 @@ Options | Define the available options for users to select from.
 
 
 
-## Email Address
+### Email Address
 A field for users to enter their email. This is `<input type="email">` field.
 
-### Settings
+#### Settings
 Setting | Description
 --- | ---
 Placeholder | The text that will be shown if the field doesn’t have a value.
@@ -126,10 +126,10 @@ Default Value | Entering a default value will place the value in the field when 
 
 
 
-## Entries
+### Entries
 A field for users to select entries from a dropdown field.
 
-### Settings
+#### Settings
 Setting | Description
 --- | ---
 Placeholder | The option shown initially, when no option is selected.
@@ -138,10 +138,10 @@ Limit | Limit the number of selectable entries.
 
 
 
-## File Upload
+### File Upload
 A field for users to upload images from their device. This is `<input type="file">` field. It provides the following additional settings:
 
-### Settings
+#### Settings
 Setting | Description
 --- | ---
 Upload Location | 
@@ -151,45 +151,45 @@ Restrict allowed file types |
 
 
 
-## Group
+### Group
 A field to allow grouping of additional fields, in much the same way a row is grouped, by placing fields into columns. Grouped fields can have up to 4 fields in columns.
 
 
 
-## Heading
+### Heading
 A field to show text in a heading.
 
-### Settings
+#### Settings
 Setting | Description
 --- | ---
 Heading Size | Choose the size for the heading.
 
 
 
-## Hidden
+### Hidden
 A field to create a hidden input. This is `<input type="hidden">` field.
 
-### Settings
+#### Settings
 Setting | Description
 --- | ---
 Default Value | |Entering a default value will place the value in the field when it loads.
 
 
 
-## Html
+### Html
 A field to allow any HTML code to be shown on the form. Useful for `<iframe>` embeds, or any arbitrary HTML.
 
-### Settings
+#### Settings
 Setting | Description
 --- | ---
 HTML Content | Enter HTML content to be rendered for this field.
 
 
 
-## Multi-Line Text
+### Multi-Line Text
 A field for text entry that runs over multiple lines. This is a `<textarea>` input.
 
-### Settings
+#### Settings
 Setting | Description
 --- | ---
 Placeholder | The text that will be shown if the field doesn’t have a value.
@@ -199,7 +199,7 @@ Limit | Enter the number of characters or words to limit this field by.
 
 
 
-## Name
+### Name
 A field for users to enter the name. Can be used as a single `<input type="text">` input, or split into several sub-fields:
 
 - Prefix
@@ -207,17 +207,17 @@ A field for users to enter the name. Can be used as a single `<input type="text"
 - Middle Name
 - Last Name
 
-### Settings
+#### Settings
 Setting | Description
 --- | ---
 Use Multiple Name Fields | Whether this field should use multiple fields for users to enter their details.
 
 
 
-## Number
+### Number
 A field to enter a validated number. This is a `<input type="number">` field.
 
-### Settings
+#### Settings
 Setting | Description
 --- | ---
 Placeholder | The text that will be shown if the field doesn’t have a value.
@@ -227,20 +227,20 @@ Decimal Points | Set the number of decimal points to format the field value.
 
 
 
-## Phone
+### Phone
 A field to enter a phone number. This is a `<input type="tel">` field.
 
-### Settings
+#### Settings
 Setting | Description
 --- | ---
 Show Country Code Dropdown | Whether to show an additional dropdown for selecting the country code.
 
 
 
-## Products
+### Products
 A field for users to select products from a dropdown field.
 
-### Settings
+#### Settings
 Setting | Description
 --- | ---
 Placeholder | The option shown initially, when no option is selected.
@@ -249,10 +249,10 @@ Limit | Limit the number of selectable products.
 
 
 
-## Radio
+### Radio
 A field for radio button groups, for the user to pick a single option from.
 
-### Settings
+#### Settings
 Setting | Description
 --- | ---
 Options | Define the available options for users to select from.
@@ -260,10 +260,10 @@ Layout | Select which layout to use for these fields.
 
 
 
-## Repeater
+### Repeater
 A field to allow multiple sub-fields (similar to Group), but they are repeatable. Users can generate new rows of inputs as required. Sub-fields can be laid out in a similar fashion to rows, by placing fields into columns.
 
-### Settings
+#### Settings
 Setting | Description
 --- | ---
 Add Label | The label for the button that adds another instance.
@@ -272,19 +272,19 @@ Maximum instances | The maximum required number of instances of this repeater's 
 
 
 
-## Recipients
+### Recipients
 A field to allow a dynamic recipient to be set for the submission, and used in email notifications. Any email addresses defined by this field are protected, preventing them from being scraped by bots or other parties.
 
-### Settings
+#### Settings
 Setting | Description
 --- | ---
 Display Type | What sort of field to show on the front-end for users.
 
 
-## Section
+### Section
 A UI element to split field content with a `<hr>` element.
 
-### Settings
+#### Settings
 Setting | Description
 --- | ---
 Border | Add a border to this section.
@@ -293,10 +293,10 @@ Border Color | Set the border color.
 
 
 
-## Single-Line Text
+### Single-Line Text
 A field for the user to enter text. This is a `<input type="text">` field.
 
-### Settings
+#### Settings
 Setting | Description
 --- | ---
 Placeholder | The text that will be shown if the field doesn’t have a value.
@@ -306,10 +306,10 @@ Limit | Enter the number of characters or words to limit this field by.
 
 
 
-## Table
+### Table
 A field showing values in a tabular format. Similar to a Repeater field, users can add more rows of content, but is more simplistic than a Repeater field.
 
-### Settings
+#### Settings
 Setting | Description
 --- | ---
 Table Columns | Define the columns your table should have.
@@ -321,10 +321,10 @@ Maximum instances | The maximum required number of rows in this table that must 
 
 
 
-## Tags
+### Tags
 A field for users to select or create tag elements.
 
-### Settings
+#### Settings
 Setting | Description
 --- | ---
 Placeholder | The option shown initially, when no option is selected.
@@ -332,10 +332,10 @@ Source | Which source do you want to select tags from?
 
 
 
-## Users
+### Users
 A field for users to select users from a dropdown field.
 
-### Settings
+#### Settings
 Setting | Description
 --- | ---
 Placeholder | The option shown initially, when no option is selected.
@@ -344,10 +344,10 @@ Limit | Limit the number of selectable users.
 
 
 
-## Variants
+### Variants
 A field for users to select variants from a dropdown field.
 
-### Settings
+#### Settings
 Setting | Description
 --- | ---
 Placeholder | The option shown initially, when no option is selected.

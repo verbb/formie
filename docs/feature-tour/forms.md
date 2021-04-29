@@ -5,7 +5,7 @@ Forms are the core feature of Formie, and likely where you'll head first! They a
 Looking to make the switch to Formie? Read our [blog post](https://verbb.io/blog/introducing-formie) on why we built Formie.
 :::
 
-# Form Builder
+## Form Builder
 The form builder is a powerful and intuitive drag-and-drop interface to allow you to quickly build a form. To get started, drag a field from the right-hand sidebar onto the left-hand pane. A large dropzone will appear for new forms as a prompt to where to drop the field. For forms with existing fields, light blue dropzones will appear suggesting where to place a field.
 
 <img src="https://verbb.io/uploads/plugins/formie/formie-form-builder.png" />
@@ -20,10 +20,10 @@ You can also click anywhere on the field's preview to open up the field editor m
 
 In the same way, you can edit the buttons of a form by clicking on the red button. For multi-page forms, you'll have the option of two buttons for going back to a previous page.
 
-# Form Settings
+## Form Settings
 There are a number of settings for forms. Each tab has an associated permission, which we highly encourage to use for clients using forms, so as not to overwhelm with options.
 
-## Appearance
+### Appearance
 General appearance attributes can be managed here, including:
 
 - Whether the title of this form should be included on the page when rendering the form.
@@ -34,7 +34,7 @@ General appearance attributes can be managed here, including:
 - Set a default label position that fields will by default have their label position set to.
 - Set a default instructions position that fields will by default have their instructions position set to.
 
-## Behaviour
+### Behaviour
 The behaviour section provides options on how the form and submission behaves to users. This includes:
 
 - How the form should be submissed, via Page Reload, or Ajax
@@ -50,15 +50,15 @@ The behaviour section provides options on how the form and submission behaves to
     - Enabling on-submit
     - Enabling on-blur (when typing)
 
-## Email Notifications
+### Email Notifications
 Email notifications are an important part of forms, to both notify the user their submission has been received, and to notfy admin's of their submission so they can action.
 
 Each notification is form-specific, and you can create as many notifications as required. Refer to [Email Notifications](docs:feature-tour/email-notifications)
 
-## Integrations
+### Integrations
 All available integration will be listed for a form. Each integration can be enabled or disabled for a specific form. By default, these will use their globally enabled or disabled state, set at the plugin level. Any additional settings for your integrations for a form can be found here.
 
-## Settings
+### Settings
 Additional (advanced) settings can be managed on a form, including:
 
 - The name for the form

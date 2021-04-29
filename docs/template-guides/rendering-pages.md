@@ -55,7 +55,7 @@ If you are using custom templates, you can also pass in a number of options to t
 {% endif %}
 ```
 
-# Rendering Rows & Fields
+## Rendering Rows & Fields
 You can render rows for a page, rather than relying on the render function to output them. In this instance, you would want to [Render the Field](docs:template-guides/rendering-fields), rather than the entire page.
 
 ```twig
@@ -82,7 +82,7 @@ You can render rows for a page, rather than relying on the render function to ou
 </form>
 ```
 
-# Getting Pages
+## Getting Pages
 As shown above, we can fetch all available pages on a form using `form.getPages()`. 
 
 ```twig

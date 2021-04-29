@@ -39,7 +39,7 @@ Method | Description
 `afterCreateField()` | A function called after a field has been created in the control panel.
 
 
-# Field Settings
+## Field Settings
 The settings for a field will differ per-type, but the following are general settings applicable to all fields.
 
 Attribute | Description
@@ -50,7 +50,7 @@ Attribute | Description
 `containerAttributes` | A collection of attributes added to the outer container of a field.
 `inputAttributes` | A collection of attributes added to the `input` element of a field - where applicable.
 
-## Address
+### Address
 Setting | Description
 --- | ---
 `address1Label` | The label for the Address 1 sub-field.
@@ -104,7 +104,7 @@ Setting | Description
 `countryEnabled` | Whether the Country sub-field is enabled in the control panel.
 
 
-## Agree
+### Agree
 Setting | Description
 --- | ---
 `description` | The description for the field. This will be shown next to the checkbox.
@@ -113,7 +113,7 @@ Setting | Description
 `defaultValue` | The default value for the field when it loads.
 
 
-## Categories
+### Categories
 Setting | Description
 --- | ---
 `placeholder` | The option shown initially, when no option is selected.
@@ -121,14 +121,14 @@ Setting | Description
 `branchLimit` | Limit the number of selectable category branches.
 
 
-## Checkboxes
+### Checkboxes
 Setting | Description
 --- | ---
 `options` | Define the available options for users to select from.
 `layout` | Select which layout to use for these fields.
 
 
-## Date/Time
+### Date/Time
 Setting | Description
 --- | ---
 `includeTime` | Whether this field should include the time.
@@ -136,21 +136,21 @@ Setting | Description
 `displayType` | Set different display layouts for this field.
 
 
-## Dropdown
+### Dropdown
 Setting | Description
 --- | ---
 `multiple` | Whether this field should allow multiple options to be selected.
 `options` | Define the available options for users to select from.
 
 
-## Email Address
+### Email Address
 Setting | Description
 --- | ---
 `placeholder` | The text that will be shown if the field doesn’t have a value.
 `defaultValue` | Entering a default value will place the value in the field when it loads.
 
 
-## Entries
+### Entries
 Setting | Description
 --- | ---
 `placeholder` | The option shown initially, when no option is selected.
@@ -158,7 +158,7 @@ Setting | Description
 `limit` | Limit the number of selectable entries.
 
 
-## File Upload
+### File Upload
 Setting | Description
 --- | ---
 `uploadLocationSource` | The volume for files to be uploaded into.
@@ -167,15 +167,15 @@ Setting | Description
 `sizeLimit` | Limit the size of the files a user can upload.
 `allowedKinds` | A collection of allowed mime-types the user can upload.
 
-## Group
+### Group
 
 
-## Heading
+### Heading
 Setting | Description
 --- | ---
 `headingSize` | Choose the size for the heading.
 
-## Hidden
+### Hidden
 Setting | Description
 --- | ---
 `defaultOption` | The selected option for the preset default value chosen.
@@ -183,13 +183,13 @@ Setting | Description
 `queryParameter` | If `query` string is selected for the `defaultOption`, this will contain the query string parameter to look up.
 
 
-## Html
+### Html
 Setting | Description
 --- | ---
 `htmlContent` | Enter HTML content to be rendered for this field.
 
 
-## Multi-Line Text
+### Multi-Line Text
 Setting | Description
 --- | ---
 `placeholder` | The text that will be shown if the field doesn’t have a value.
@@ -201,7 +201,7 @@ Setting | Description
 `richTextButtons` | An array of available buttons the Rich Text field should use. Consult the [Pell](https://github.com/jaredreich/pell) docs for these options.
 
 
-## Name
+### Name
 Setting | Description
 --- | ---
 `useMultipleFields` | Whether this field should use multiple fields for users to enter their details.
@@ -235,7 +235,7 @@ Setting | Description
 `lastNameEnabled` | Whether the Last Name sub-field is enabled in the control panel.
 
 
-## Number
+### Number
 Setting | Description
 --- | ---
 `placeholder` | The text that will be shown if the field doesn’t have a value.
@@ -246,7 +246,7 @@ Setting | Description
 `decimals` | Set the number of decimal points to format the field value.
 
 
-## Phone
+### Phone
 Setting | Description
 --- | ---
 `showCountryCode` | Whether to show an additional dropdown for selecting the country code.
@@ -261,7 +261,7 @@ Setting | Description
 `numberCollapsed` | Whether the Number sub-field is collapsed in the control panel.
 
 
-## Products
+### Products
 Setting | Description
 --- | ---
 `placeholder` | The option shown initially, when no option is selected.
@@ -269,14 +269,14 @@ Setting | Description
 `limit` | Limit the number of selectable products.
 
 
-## Radio
+### Radio
 Setting | Description
 --- | ---
 `options` | Define the available options for users to select from.
 `layout` | Select which layout to use for these fields.
 
 
-## Repeater
+### Repeater
 Setting | Description
 --- | ---
 `addLabel` | The label for the button that adds another instance.
@@ -284,14 +284,14 @@ Setting | Description
 `maxRows` | The maximum required number of instances of this repeater's fields that must be completed.
 
 
-## Recipients
+### Recipients
 Setting | Description
 --- | ---
 `displayType` | What sort of field to show on the front-end for users.
 `options` | Define the available options for users to select from.
 
 
-## Section
+### Section
 Setting | Description
 --- | ---
 `border` | Add a border to this section.
@@ -299,7 +299,7 @@ Setting | Description
 `borderColor` | Set the border color.
 
 
-## Single-Line Text
+### Single-Line Text
 Setting | Description
 --- | ---
 `placeholder` | The text that will be shown if the field doesn’t have a value.
@@ -309,7 +309,7 @@ Setting | Description
 `limitAmount` | The number of character or words to limit this field by.
 
 
-## Table
+### Table
 Setting | Description
 --- | ---
 `columns` | Define the columns your table should have.
@@ -320,14 +320,14 @@ Setting | Description
 `maxRows` | The maximum required number of rows in this table that must be completed.
 
 
-## Tags
+### Tags
 Setting | Description
 --- | ---
 `placeholder` | The option shown initially, when no option is selected.
 `source` | Which source do you want to select tags from?
 
 
-## Users
+### Users
 Setting | Description
 --- | ---
 `placeholder` | The option shown initially, when no option is selected.
@@ -335,14 +335,14 @@ Setting | Description
 `limit` | Limit the number of selectable users.
 
 
-## Variants
+### Variants
 Setting | Description
 --- | ---
 `placeholder` | The option shown initially, when no option is selected.
 `source `| Which source do you want to select variants from?
 `limit` | Limit the number of selectable variants.
 
-# Custom Validation
+## Custom Validation
 You can add custom validation to field, to handle all manner of scenarios. To do this, you'll need to create a custom module to contain PHP code for the validation logic.
 
 :::tip

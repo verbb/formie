@@ -1,7 +1,7 @@
 # Form Templates
 Formie comes with all the required Twig templates to make your forms look great. Additionally, we provide CSS and JS outputted alongside to form to ensure you can use forms out-of-the-box with no configuration. Read more about [Form Templates](docs:feature-tour/form-templates).
 
-# Custom Templates
+## Custom Templates
 While Formie's default templates suit most needs, you can of course roll your own templates, so you have total control over the form, field, layout and more.
 
 :::warning
