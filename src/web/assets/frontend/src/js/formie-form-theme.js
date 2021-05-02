@@ -537,6 +537,9 @@ export class FormieFormTheme {
 
         // Reset the form hash, as all has been saved
         this.savedFormHash = this.hashForm();
+
+        // Reset the submission ID in case we want to go again
+        this.updateOrCreateHiddenInput('submissionId', '');
     }
 
     updateSubmissionInput(data) {
