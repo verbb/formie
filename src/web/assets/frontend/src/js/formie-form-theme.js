@@ -348,7 +348,12 @@ export class FormieFormTheme {
                     if (this.settings.submitActionFormHide) {
                         this.$form.parentNode.insertBefore($alert, this.$form);
                     } else {
-                        this.$submitBtn.parentNode.parentNode.insertBefore($alert, this.$submitBtn.parentNode);
+                        // Check if there's a submit button still. Might've been removed for multi-page, ajax.
+                        if (this.$submitBtn.parentNode) {
+                            this.$submitBtn.parentNode.parentNode.insertBefore($alert, this.$submitBtn.parentNode);
+                        } else {
+                            this.$form.parentNode.insertBefore($alert, this.$form.nextSibling);
+                        }
                     }
                 } else {
                     this.$form.parentNode.insertBefore($alert, this.$form);
@@ -504,20 +509,30 @@ export class FormieFormTheme {
         // Delay this a little, in case we're redirecting away - better UX to just keep it loading
         this.removeLoading();
 
-        // Remove the back button - not great UX to go back to a finished form
-        // Remember, its the button and the hidden input
-        var $backButtonInputs = this.$form.querySelectorAll('[name="goingBack"]');
-
-        $backButtonInputs.forEach($backButtonInput => {
-            $backButtonInput.remove();
-        });
-
-        // Also remove the submit button for a multi-page form. Its bad UX to show you can
-        // submit a multi-page form again, at the end. In fact, we'll probably get errors -
-        // but this is totally fine for a single-page ajax form.
+        // For multi-page ajax forms, deal with them a little differently.
         if (data.totalPages > 1) {
-            if (this.$submitBtn) {
-                this.$submitBtn.remove();
+            // If we have a success message at the top, go to the first page
+            if (this.settings.submitActionMessagePosition == 'top-form') {
+                this.togglePage({
+                    nextPageIndex: 0,
+                    nextPageId: this.settings.pages[0].id,
+                    totalPages: this.settings.pages.length,
+                });
+            } else {
+                // Otherwise, we want to hide the buttons because we have to stay on the last page
+                // to show the success message at the bottom of the form. Otherwise, showing it on the
+                // first page of an empty form is just plain weird UX.
+                if (this.$submitBtn) {
+                    this.$submitBtn.remove();
+                }
+
+                // Remove the back button - not great UX to go back to a finished form
+                // Remember, its the button and the hidden input
+                var $backButtonInputs = this.$form.querySelectorAll('[name="goingBack"]');
+
+                $backButtonInputs.forEach($backButtonInput => {
+                    $backButtonInput.remove();
+                });
             }
         }
 
@@ -535,11 +550,11 @@ export class FormieFormTheme {
         // Reset values regardless, for the moment
         this.$form.reset();
 
-        // Reset the form hash, as all has been saved
-        this.savedFormHash = this.hashForm();
-
         // Reset the submission ID in case we want to go again
         this.updateOrCreateHiddenInput('submissionId', '');
+
+        // Reset the form hash, as all has been saved
+        this.savedFormHash = this.hashForm();
     }
 
     updateSubmissionInput(data) {

@@ -1102,6 +1102,7 @@ class Form extends Element
             'validationOnSubmit' => $this->settings->validationOnSubmit,
             'validationOnFocus' => $this->settings->validationOnFocus,
             'hasMultiplePages' => $this->hasMultiplePages(),
+            'pages' => $this->getPages(),
 
             'redirectUrl' => $this->getRedirectUrl(),
             'currentPageId' => $this->getCurrentPage()->id ?? '',
