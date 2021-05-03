@@ -219,6 +219,9 @@ class SubmissionsController extends Controller
             // Check if we're on the last page of the form, or need to keep going
             if (empty($nextPage)) {
                 $submission->validateCurrentPageOnly = false;
+
+                // Always ensure the submission is completed at the end
+                $submission->isIncomplete = false;
             }
         }
 
