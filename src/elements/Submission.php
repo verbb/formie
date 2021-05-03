@@ -25,6 +25,7 @@ use craft\elements\actions\Restore;
 use craft\elements\db\ElementQueryInterface;
 use craft\elements\User;
 use craft\helpers\ArrayHelper;
+use craft\helpers\Cp;
 use craft\helpers\Json;
 use craft\helpers\UrlHelper;
 
@@ -852,6 +853,7 @@ class Submission extends Element
             'form' => ['label' => Craft::t('formie', 'Form')],
             'spamReason' => ['label' => Craft::t('app', 'Spam Reason')],
             'ipAddress' => ['label' => Craft::t('app', 'IP Address')],
+            'userId' => ['label' => Craft::t('app', 'User')],
             'dateCreated' => ['label' => Craft::t('app', 'Date Created')],
             'dateUpdated' => ['label' => Craft::t('app', 'Date Updated')],
         ];
@@ -885,6 +887,9 @@ class Submission extends Element
                 $form = $this->getForm();
 
                 return $form->title ?? '';
+            case 'userId':
+                $user = $this->getUser();
+                return $user ? Cp::elementHtml($user) : '';
             default:
                 return parent::tableAttributeHtml($attribute);
         }
