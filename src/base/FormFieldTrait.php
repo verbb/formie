@@ -968,6 +968,9 @@ trait FormFieldTrait
             'limit' => Type::boolean(),
             'multiple' => Type::boolean(),
             'limitAmount' => Type::int(),
+            'includeInEmail' => Type::boolean(),
+            'enableContentEncryption' => Type::boolean(),
+            'enableConditions' => Type::boolean(),
         ];
 
         $attributesDefinition = $attributesDefinitions[$attribute] ?? null;
