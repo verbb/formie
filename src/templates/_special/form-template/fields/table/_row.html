@@ -46,8 +46,8 @@
                     id: rowId,
                     type: 'date',
                     class: 'fui-input',
-                    value: row[colId] ?? '',
-                    name: "#{index}[#{colId}]",
+                    value: row[colId].format('Y-m-d') ?? '',
+                    name: "#{index}[#{colId}][date]",
                 }) }} />
             </td>
         {% case 'select' %}
@@ -99,8 +99,8 @@
                     id: rowId,
                     type: 'time',
                     class: 'fui-input',
-                    value: row[colId] ?? '',
-                    name: "#{index}[#{colId}]",
+                    value: row[colId].format('H:i') ?? '',
+                    name: "#{index}[#{colId}][time]",
                 }) }}>
             </td>
         {% case 'url' %}

@@ -25,6 +25,7 @@
                         <tr class="fui-table-row">
                             {% include 'fields/table/_row' with {
                                 index: rowId,
+                                row: row,
                             } %}
                         </tr>
                     {% endfor %}
@@ -42,7 +43,7 @@
                         <tr class="fui-table-row">
                             {% include 'fields/table/_row' with {
                                 index: loop.index0,
-                                row: null,
+                                row: [],
                             } %}
                         </tr>
                     {% endfor %}
@@ -83,7 +84,8 @@
 <div data-table-template="{{ field.handle }}" style="display:none;">
     {% namespace field.handle %}
         {% include 'fields/table/_row' with {
-            index: '__ROW__'
+            index: '__ROW__',
+            row: [],
         } %}
     {% endnamespace %}
 </div>
