@@ -34,6 +34,11 @@ export class FormieFormTheme {
         if (this.settings.enableUnloadWarning) {
             this.addFormUnloadEventListener();
         }
+
+        // Listen to tabs being clicked for ajax-enabled forms
+        if (this.settings.submitMethod === 'ajax') {
+            this.formTabEventListener();
+        }
     }
 
     initValidator() {
@@ -215,6 +220,25 @@ export class FormieFormTheme {
             if (this.savedFormHash !== this.hashForm()) {
                 e.returnValue = t('Are you sure you want to leave?');
             }
+        });
+    }
+
+    formTabEventListener() {
+        var $tabs = this.$form.querySelectorAll('[data-fui-page-tab-anchor]');
+
+        $tabs.forEach(($tab) => {
+            this.form.addEventListener($tab, 'click', (e) => {
+                e.preventDefault();
+
+                var pageIndex = e.target.getAttribute('data-fui-page-index');
+                var pageId = e.target.getAttribute('data-fui-page-id');
+
+                this.togglePage({
+                    nextPageIndex: pageIndex,
+                    nextPageId: pageId,
+                    totalPages: this.settings.pages.length,
+                });
+            });
         });
     }
 

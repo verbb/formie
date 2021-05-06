@@ -1,14 +1,14 @@
 {% if form.hasMultiplePages and form.settings.displayPageTabs %}
-    <div class="fui-tabs">
+    <div class="fui-tabs" data-fui-page-tabs>
         {% for p in form.pages %}
-            <div id="fui-tab-{{ p.id }}" class="fui-tab {{ (p.id == currentPage.id) ? 'fui-tab-active' }}">
+            <div id="fui-tab-{{ p.id }}" class="fui-tab {{ (p.id == currentPage.id) ? 'fui-tab-active' }}" data-fui-page-tab>
                 {%- set params = { handle: form.handle, pageId: p.id } -%}
 
                 {%- if submission and submission.id and form.isEditingSubmission() -%}
                     {%- set params = params | merge({ submissionId: submission.id }) -%}
                 {%- endif -%}
 
-                <a href="{{ actionUrl('formie/submissions/set-page', params) }}">
+                <a href="{{ actionUrl('formie/submissions/set-page', params) }}" data-fui-page-tab-anchor data-fui-page-index="{{ loop.index0 }}" data-fui-page-id="{{ p.id }}">
                     {{ p.name | t }}
                 </a>
             </div>
