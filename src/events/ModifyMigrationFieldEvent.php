@@ -1,13 +1,15 @@
 <?php
 namespace verbb\formie\events;
 
-use yii\base\Event;
+use craft\events\CancelableEvent;
 
-class ModifyMigrationFieldEvent extends Event
+class ModifyMigrationFieldEvent extends CancelableEvent
 {
     // Properties
     // =========================================================================
 
+    public $form;
+    public $originForm;
     public $field;
     public $newField;
     

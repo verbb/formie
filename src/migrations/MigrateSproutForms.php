@@ -407,6 +407,22 @@ class MigrateSproutForms extends Migration
 
                 foreach ($tab->getFields() as $field) {
                     if ($newField = $this->_mapField($field)) {
+                        // Fire a 'modifyField' event
+                        $event = new ModifyMigrationFieldEvent([
+                            'form' => $this->_form,
+                            'originForm' => $form,
+                            'field' => $field,
+                            'newField' => $newField,
+                        ]);
+                        $this->trigger(self::EVENT_MODIFY_FIELD, $event);
+
+                        $newField = $event->newField;
+
+                        if (!$event->isValid) {
+                            $this->stdout("    > Skipped field “{$newField->handle}” due to event cancellation.", Console::FG_YELLOW);
+                            continue;
+                        }
+
                         $newField->validate();
 
                         if ($newField->hasErrors()) {
@@ -677,14 +693,7 @@ class MigrateSproutForms extends Migration
             $newField->required = !!$field->required;
         }
 
-        // Fire a 'modifyField' event
-        $event = new ModifyMigrationFieldEvent([
-            'field' => $field,
-            'newField' => $newField,
-        ]);
-        $this->trigger(self::EVENT_MODIFY_FIELD, $event);
-
-        return $event->newField;
+        return $newField;
     }
 
     private function _applyFieldDefaults(FormFieldInterface &$field)
