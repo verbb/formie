@@ -732,7 +732,7 @@ class Form extends Element
 
         // Return the index of the current page, in all our pages. Just for convenience
         if ($currentPage) {
-            $index = array_search($currentPage, $pages);
+            $index = array_search($currentPage->id, ArrayHelper::getColumn($pages, 'id'), true);
 
             if ($index) {
                 return $index;
