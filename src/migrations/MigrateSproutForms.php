@@ -50,6 +50,7 @@ class MigrateSproutForms extends Migration
     const EVENT_MODIFY_FIELD = 'modifyField';
     const EVENT_MODIFY_FORM = 'modifyForm';
     const EVENT_MODIFY_NOTIFICATION = 'modifyNotification';
+    const EVENT_MODIFY_SUBMISSION = 'modifySubmission';
 
 
     // Properties
@@ -256,16 +257,28 @@ class MigrateSproutForms extends Migration
                 }
             }
 
-            if (!Craft::$app->getElements()->saveElement($submission)) {
-                $this->stdout("    > Failed to save submission “{$submission->id}”.", Console::FG_RED);
+            // Fire a 'modifySubmission' event
+            $event = new ModifyMigrationSubmissionEvent([
+                'form' => $this->_form,
+                'submission' => $submission,
+            ]);
+            $this->trigger(self::EVENT_MODIFY_SUBMISSION, $event);
 
-                foreach ($submission->getErrors() as $attr => $errors) {
+            if (!$event->isValid) {
+                $this->stdout("    > Skipped submission due to event cancellation.", Console::FG_YELLOW);
+                continue;
+            }
+
+            if (!Craft::$app->getElements()->saveElement($event->submission)) {
+                $this->stdout("    > Failed to save submission “{$event->submission->id}”.", Console::FG_RED);
+
+                foreach ($event->submission->getErrors() as $attr => $errors) {
                     foreach ($errors as $error) {
                         $this->stdout("    > $attr: $error", Console::FG_RED);
                     }
                 }
             } else {
-                $this->stdout("    > Migrated submission “{$submission->id}”.", Console::FG_GREEN);
+                $this->stdout("    > Migrated submission “{$event->submission->id}”.", Console::FG_GREEN);
             }
         }
 

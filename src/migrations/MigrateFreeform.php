@@ -8,6 +8,7 @@ use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyMigrationFieldEvent;
 use verbb\formie\events\ModifyMigrationFormEvent;
 use verbb\formie\events\ModifyMigrationNotificationEvent;
+use verbb\formie\events\ModifyMigrationSubmissionEvent;
 use verbb\formie\fields\formfields;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\Notification;
@@ -43,6 +44,7 @@ class MigrateFreeform extends Migration
     const EVENT_MODIFY_FIELD = 'modifyField';
     const EVENT_MODIFY_FORM = 'modifyForm';
     const EVENT_MODIFY_NOTIFICATION = 'modifyNotification';
+    const EVENT_MODIFY_SUBMISSION = 'modifySubmission';
 
 
     // Properties
@@ -269,8 +271,20 @@ class MigrateFreeform extends Migration
                 }
             }
 
-            if (!Craft::$app->getElements()->saveElement($submission)) {
-                $this->stdout("    > Failed to save submission “{$submission->id}”.", Console::FG_RED);
+            // Fire a 'modifySubmission' event
+            $event = new ModifyMigrationSubmissionEvent([
+                'form' => $this->_form,
+                'submission' => $submission,
+            ]);
+            $this->trigger(self::EVENT_MODIFY_SUBMISSION, $event);
+
+            if (!$event->isValid) {
+                $this->stdout("    > Skipped submission due to event cancellation.", Console::FG_YELLOW);
+                continue;
+            }
+
+            if (!Craft::$app->getElements()->saveElement($event->submission)) {
+                $this->stdout("    > Failed to save submission “{$event->submission->id}”.", Console::FG_RED);
 
                 foreach ($submission->getErrors() as $attr => $errors) {
                     foreach ($errors as $error) {
@@ -278,7 +292,7 @@ class MigrateFreeform extends Migration
                     }
                 }
             } else {
-                $this->stdout("    > Migrated submission “{$submission->id}”.", Console::FG_GREEN);
+                $this->stdout("    > Migrated submission “{$event->submission->id}”.", Console::FG_GREEN);
             }
         }
 
