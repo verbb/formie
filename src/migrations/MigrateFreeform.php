@@ -6,6 +6,7 @@ use verbb\formie\base\FormFieldInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyMigrationFieldEvent;
+use verbb\formie\events\ModifyMigrationFormEvent;
 use verbb\formie\fields\formfields;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\Notification;
@@ -39,6 +40,7 @@ class MigrateFreeform extends Migration
     // =========================================================================
 
     const EVENT_MODIFY_FIELD = 'modifyField';
+    const EVENT_MODIFY_FORM = 'modifyForm';
 
 
     // Properties
@@ -105,8 +107,22 @@ class MigrateFreeform extends Migration
                 $form->settings->storeData = $storeDataProp->getValue($f) ?? true;
             }
 
+            // Fire a 'modifyForm' event
+            $event = new ModifyMigrationFormEvent([
+                'form' => $freeformForm,
+                'newForm' => $form,
+            ]);
+            $this->trigger(self::EVENT_MODIFY_FORM, $event);
+
+            $form = $this->_form = $event->form;
+
             if ($fieldLayout = $this->_buildFieldLayout($freeformForm)) {
                 $form->setFormFieldLayout($fieldLayout);
+            }
+
+            if (!$event->isValid) {
+                $this->stdout("    > Skipped form due to event cancellation.", Console::FG_YELLOW);
+                return $form;
             }
 
             if (!Formie::$plugin->getForms()->saveForm($form)) {
