@@ -91,6 +91,8 @@
 </template>
 
 <script>
+import truncate from 'lodash/truncate';
+
 import { newId } from '../../utils/string';
 import { toBoolean } from '../../utils/bool';
 
@@ -302,7 +304,7 @@ export default {
                                 field,
                                 subfield,
                                 type: field.type,
-                                label: field.label + ': ' + subfield.label,
+                                label: truncate(field.label, { length: 42 }) + ': ' + truncate(subfield.label, { length: 42 }),
                                 value: '{' + field.handle + '.' + subfield.handle + '}',
                             });
                         });
@@ -314,7 +316,7 @@ export default {
                                     field,
                                     subfield,
                                     type: field.type,
-                                    label: field.label + ': ' + subfield.label,
+                                    label: truncate(field.label, { length: 42 }) + ': ' + truncate(subfield.label, { length: 42 }),
                                     value: '{' + field.handle + '.one().' + subfield.handle + ' ?? null}',
                                 });
                             });
@@ -323,7 +325,7 @@ export default {
                         customFields.push({ 
                             field,
                             type: field.type,
-                            label: field.label, 
+                            label: truncate(field.label, { length: 42 }), 
                             value: '{' + field.handle + '}',
                         });
                     }
