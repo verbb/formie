@@ -118,7 +118,7 @@ class MigrateFreeform extends Migration
             ]);
             $this->trigger(self::EVENT_MODIFY_FORM, $event);
 
-            $form = $this->_form = $event->form;
+            $form = $this->_form = $event->newForm;
 
             if ($fieldLayout = $this->_buildFieldLayout($freeformForm)) {
                 $form->setFormFieldLayout($fieldLayout);
