@@ -688,6 +688,7 @@ class MigrateSproutForms extends Migration
         $newField->handle = $field->handle;
         $newField->placeholder = $field->placeholder ?? '';
         $newField->cssClasses = $field->cssClasses ?? '';
+        $newField->instructions = $field->instructions ?? '';
 
         if (!$newField instanceof formfields\Address and !$newField instanceof formfields\Name) {
             $newField->required = !!$field->required;
