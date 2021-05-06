@@ -7,6 +7,8 @@ use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyMigrationFieldEvent;
 use verbb\formie\events\ModifyMigrationFormEvent;
+use verbb\formie\events\ModifyMigrationNotificationEvent;
+use verbb\formie\events\ModifyMigrationSubmissionEvent;
 use verbb\formie\fields\formfields;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\Address;
@@ -47,6 +49,7 @@ class MigrateSproutForms extends Migration
 
     const EVENT_MODIFY_FIELD = 'modifyField';
     const EVENT_MODIFY_FORM = 'modifyForm';
+    const EVENT_MODIFY_NOTIFICATION = 'modifyNotification';
 
 
     // Properties
@@ -310,7 +313,20 @@ class MigrateSproutForms extends Migration
                     $body = $this->_tokenizeNotificationBody($notification->defaultBody);
                     $newNotification->content = Json::encode($body);
 
-                    if (Formie::$plugin->getNotifications()->saveNotification($newNotification)) {
+                    // Fire a 'modifyNotification' event
+                    $event = new ModifyMigrationNotificationEvent([
+                        'form' => $this->_form,
+                        'notification' => $notification,
+                        'newNotification' => $newNotification,
+                    ]);
+                    $this->trigger(self::EVENT_MODIFY_NOTIFICATION, $event);
+
+                    if (!$event->isValid) {
+                        $this->stdout("    > Skipped notification due to event cancellation.", Console::FG_YELLOW);
+                        continue;
+                    }
+
+                    if (Formie::$plugin->getNotifications()->saveNotification($event->newNotification)) {
                         $this->stdout("    > Migrated notification “{$notification->title}”.", Console::FG_GREEN);
                     } else {
                         $this->stdout("    > Failed to save notification “{$notification->title}”.", Console::FG_RED);

@@ -7,6 +7,7 @@ use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyMigrationFieldEvent;
 use verbb\formie\events\ModifyMigrationFormEvent;
+use verbb\formie\events\ModifyMigrationNotificationEvent;
 use verbb\formie\fields\formfields;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\Notification;
@@ -41,6 +42,7 @@ class MigrateFreeform extends Migration
 
     const EVENT_MODIFY_FIELD = 'modifyField';
     const EVENT_MODIFY_FORM = 'modifyForm';
+    const EVENT_MODIFY_NOTIFICATION = 'modifyNotification';
 
 
     // Properties
@@ -310,7 +312,20 @@ class MigrateFreeform extends Migration
                 $body = $this->_tokenizeNotificationBody($notification->getBodyText());
                 $newNotification->content = Json::encode($body);
 
-                if (Formie::$plugin->getNotifications()->saveNotification($newNotification)) {
+                // Fire a 'modifyNotification' event
+                $event = new ModifyMigrationNotificationEvent([
+                    'form' => $this->_form,
+                    'notification' => $notification,
+                    'newNotification' => $newNotification,
+                ]);
+                $this->trigger(self::EVENT_MODIFY_NOTIFICATION, $event);
+
+                if (!$event->isValid) {
+                    $this->stdout("    > Skipped notification due to event cancellation.", Console::FG_YELLOW);
+                    return;
+                }
+
+                if (Formie::$plugin->getNotifications()->saveNotification($event->newNotification)) {
                     $this->stdout("    > Migrated notification “{$notification->name}”. You may need to check the notification body.", Console::FG_GREEN);
                 } else {
                     $this->stdout("    > Failed to save notification “{$notification->name}”.", Console::FG_RED);
