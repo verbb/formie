@@ -238,6 +238,14 @@ export class FormieFormTheme {
                     nextPageId: pageId,
                     totalPages: this.settings.pages.length,
                 });
+
+                // Ensure we still update the current page server-side
+                const xhr = new XMLHttpRequest();
+                xhr.open('GET', e.target.getAttribute('href'), true);
+                xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+                xhr.setRequestHeader('Accept', 'application/json');
+                xhr.setRequestHeader('Cache-Control', 'no-cache');
+                xhr.send();
             });
         });
     }
