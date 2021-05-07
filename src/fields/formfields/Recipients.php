@@ -68,6 +68,14 @@ class Recipients extends FormField
     /**
      * @inheritDoc
      */
+    public function renderLabel(): bool
+    {
+        return !$this->getIsFieldset();
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function normalizeValue($value, ElementInterface $element = null)
     {
         $value = parent::normalizeValue($value, $element);
