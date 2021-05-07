@@ -111,6 +111,14 @@ class Table extends CraftTable implements FormFieldInterface
     }
 
     /**
+     * @inheritDoc
+     */
+    public function renderLabel(): bool
+    {
+        return !$this->getIsFieldset();
+    }
+
+    /**
      * @inheritdoc
      */
     public function getElementValidationRules(): array

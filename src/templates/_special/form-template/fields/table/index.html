@@ -4,7 +4,7 @@
     <fieldset class="fui-fieldset">
         {{ formieInclude('_includes/legend', { position: 'above' }) }}
 
-        {{ formieInclude('_includes/instructions', { position: 'fieldset-start' }) }}
+        {{ formieInclude('_includes/instructions', { position: 'above' }) }}
 
         <table class="fui-table">
             <thead>
@@ -13,7 +13,7 @@
                         <th
                             data-handle="{{ col.handle }}"
                             data-type="{{ col.type }}"
-                            {% if col.width %}width="{{ col.width }}"{% endif %}
+                            {% if col.width is defined and col.width %}width="{{ col.width }}"{% endif %}
                         >{{ col.heading }}</th>
                     {% endfor %}
                 </tr>
@@ -75,7 +75,7 @@
             <button {{ attr(buttonAttributes) }}>{{ field.addRowLabel }}</button>
         {% endif %}
 
-        {{ formieInclude('_includes/instructions', { position: 'fieldset-end' }) }}
+        {{ formieInclude('_includes/instructions', { position: 'below' }) }}
 
         {{ formieInclude('_includes/legend', { position: 'below' }) }}
     </fieldset>
