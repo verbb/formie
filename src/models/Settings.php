@@ -48,7 +48,7 @@ class Settings extends Model
 
     // General Fields
     public $defaultLabelPosition = AboveInput::class;
-    public $defaultInstructionsPosition = BelowInput::class;
+    public $defaultInstructionsPosition = AboveInput::class;
 
     // Fields
     public $defaultFileUploadVolume = '';
