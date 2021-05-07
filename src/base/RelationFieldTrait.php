@@ -50,6 +50,14 @@ trait RelationFieldTrait
     /**
      * @inheritDoc
      */
+    public function renderLabel(): bool
+    {
+        return !$this->getIsFieldset();
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function serializeValueForExport($value, ElementInterface $element = null)
     {
         $value = $this->_all($value, $element);
