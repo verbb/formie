@@ -293,6 +293,7 @@ export default {
                     value = JSON.parse(value);
                 } catch (e) {
                     console.log(e);
+                    console.log(value);
                 }
             }
 

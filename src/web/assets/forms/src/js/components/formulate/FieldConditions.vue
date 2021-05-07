@@ -167,13 +167,18 @@ export default {
                 return this.defaultSettings;
             }
 
-            try {
-                parsedValue = JSON.parse(value);
-            } catch (e) {
-                console.log(e);
+            if (!Array.isArray(value)) {
+                try {
+                    parsedValue = JSON.parse(value);
+                } catch (e) {
+                    console.log(e);
+                    console.log(value);
+                }
+            } else {
+                parsedValue = value;
             }
 
-            if (parsedValue) {
+            if (parsedValue && parsedValue.conditions) {
                 // Prep rows with their correct value types
                 parsedValue.conditions.forEach(row => {
                     var field = this.getField(row.field);
