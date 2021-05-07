@@ -6,9 +6,7 @@ use verbb\formie\base\FormFieldInterface;
 use verbb\formie\base\NestedFieldInterface;
 use verbb\formie\base\Position;
 use verbb\formie\base\SubfieldInterface;
-use verbb\formie\fields\formfields\Categories;
-use verbb\formie\fields\formfields\Checkboxes;
-use verbb\formie\fields\formfields\Radio;
+use verbb\formie\fields\formfields;
 
 class FieldsetEnd extends Position
 {
@@ -38,10 +36,7 @@ class FieldsetEnd extends Position
     public static function supports(FormFieldInterface $field = null): bool
     {
         return $field instanceof NestedFieldInterface ||
-            $field instanceof SubfieldInterface ||
-            $field instanceof Checkboxes ||
-            $field instanceof Radio ||
-            $field instanceof Categories;
+            $field instanceof SubfieldInterface;
     }
 
     /**
