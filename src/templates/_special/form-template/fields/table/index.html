@@ -81,11 +81,12 @@
     </fieldset>
 {% endnamespace %}
 
-<div data-table-template="{{ field.handle }}" style="display:none;">
+{# We can't use `script` because of Vue3 issues, and can't use `div` as it'' strip out `td` elements #}
+<table data-table-template="{{ field.handle }}" style="display:none;">
     {% namespace field.handle %}
         {% include 'fields/table/_row' with {
             index: '__ROW__',
             row: [],
         } %}
     {% endnamespace %}
-</div>
+</table>

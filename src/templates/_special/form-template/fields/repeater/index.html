@@ -51,6 +51,7 @@
         {{ formieInclude('_includes/legend', { position: 'below' }) }}
     </fieldset>
 
+    {# We can't use `script` because of Vue3 issues #}
     <div data-repeater-template="{{ field.handle }}" style="display:none;">
         {% include 'fields/repeater/_row' with {
             id: '__ROW__'
