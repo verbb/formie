@@ -204,6 +204,7 @@ class SchemaHelper
             'label' => Craft::t('formie', 'Instructions'),
             'help' => Craft::t('formie', 'Instructions to guide the user when filling out this form.'),
             'name' => 'instructions',
+            'rows' => '4',
         ]), $config);
     }
 
