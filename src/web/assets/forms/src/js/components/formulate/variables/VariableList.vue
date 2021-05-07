@@ -6,15 +6,16 @@
             role="option"
             :class="{ 'fui-list-item-heading': variable.heading }"
             :data-value="variable.value"
-            :data-label="variable.label"
+            :data-label="truncate(variable.label, { length: 42 })"
             @click.prevent="addVariable"
         >
-            {{ variable.label }}
+            {{ truncate(variable.label, { length: 42 }) }}
         </li>
     </ul>
 </template>
 
 <script>
+import truncate from 'lodash/truncate';
 
 export default {
     name: 'VariableList',
@@ -30,8 +31,12 @@ export default {
             default: () => [],
         },
     },
-
+    
     methods: {
+        truncate(string, options) {
+            return truncate(string, options);
+        },
+
         addVariable(e) {
             this.$emit('updated', e);
         },
