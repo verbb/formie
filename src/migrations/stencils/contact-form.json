@@ -144,7 +144,7 @@
         "availabilityMessageDate":null,
         "availabilityMessageSubmissions":null,
         "collectIp":"",
-        "defaultInstructionsPosition":"verbb\\formie\\positions\\BelowInput",
+        "defaultInstructionsPosition":"verbb\\formie\\positions\\AboveInput",
         "defaultLabelPosition":"verbb\\formie\\positions\\AboveInput",
         "displayCurrentPageTitle":"",
         "displayFormTitle":"",
