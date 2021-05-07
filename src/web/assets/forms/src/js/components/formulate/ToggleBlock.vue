@@ -120,9 +120,11 @@ export default {
             this.isCollapsed = !this.isEnabled;
 
             // Update the settings model. Seemingly need a delay here, not _quite_ sure why...
-            setTimeout(() => {
-                this.$set(this.$editingField.field.settings, this.context.attributes.blockHandle + 'Collapsed', this.isCollapsed);
-            }, 100);
+            if (this.$editingField) {
+                setTimeout(() => {
+                    this.$set(this.$editingField.field.settings, this.context.attributes.blockHandle + 'Collapsed', this.isCollapsed);
+                }, 100);
+            }
         },
 
         toggleCollapse(value) {

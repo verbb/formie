@@ -84,7 +84,9 @@ export default {
             const columns = this._getSlotProp('columns');
 
             if (typeof columns === 'string') {
-                return get(this.$editingField.field, columns);
+                if (this.$editingField) {
+                    return get(this.$editingField.field, columns);
+                }
             }
 
             if (columns !== undefined) {
