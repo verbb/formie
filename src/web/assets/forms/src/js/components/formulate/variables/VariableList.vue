@@ -45,7 +45,7 @@ export default {
 .fui-variable-list {
     position: absolute;
     width: auto;
-    top: 33px;
+    top: 100%;
     left: auto;
     right: 0;
     max-height: 200px;

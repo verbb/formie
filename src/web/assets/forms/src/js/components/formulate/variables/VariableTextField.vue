@@ -193,6 +193,9 @@ export default {
 
 .fui-field-add-variable-icon {
     position: absolute;
+    display: flex;
+    align-items: center;
+    height: calc(100% - 18px);
     top: 50%;
     right: 1px;
     padding: 8px 10px;
@@ -244,10 +247,10 @@ export default {
     // Override tiptap
     .ProseMirror {
         outline: none;
-        word-wrap: normal;
-        white-space: pre;
+        // word-wrap: normal;
+        // white-space: pre;
         overflow: hidden;
-        padding: 6px 9px;
+        padding: 6px 45px 6px 9px;
 
         @include input-styles;
 
