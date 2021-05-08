@@ -155,7 +155,8 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
                 }, $format);
 
                 if (($date = DateTime::createFromFormat($format, $formatted)) !== false) {
-                    return $date;
+                    // Always ensure we strip out the timezone
+                    return self::toDateTime($date->format('Y-m-d H:i:s'));
                 }
             }
         }
