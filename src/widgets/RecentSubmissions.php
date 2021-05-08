@@ -234,8 +234,8 @@ class RecentSubmissions extends Widget
         $endDate = null;
 
         if ($this->dateRange == self::DATE_RANGE_CUSTOM) {
-            $startDate = $this->startDate;
-            $endDate = $this->endDate;
+            $startDate = DateTimeHelper::toDateTime($this->startDate);
+            $endDate = DateTimeHelper::toDateTime($this->endDate);
         } else if ($this->dateRange) {
             $startDate = $this->_getStartDate($this->dateRange);
             $endDate = $this->_getEndDate($this->dateRange);
@@ -370,7 +370,7 @@ class RecentSubmissions extends Widget
     private function getDateRangeInterval()
     {
         if ($this->dateRange == self::DATE_RANGE_CUSTOM) {
-            $interval = date_diff($this->startDate, $this->endDate);
+            $interval = date_diff(DateTimeHelper::toDateTime($this->startDate), DateTimeHelper::toDateTime($this->endDate));
             return ($interval->days > 90) ? 'month' : 'day';
         }
 
