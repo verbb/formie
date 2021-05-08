@@ -7,6 +7,7 @@ use verbb\formie\elements\SentNotification;
 use Craft;
 use craft\helpers\App;
 use craft\helpers\Json;
+use craft\helpers\StringHelper;
 use craft\mail\Mailer as CraftMailer;
 use craft\mail\Message;
 use craft\mail\transportadapters\BaseTransportAdapter;
@@ -54,11 +55,14 @@ class SentNotifications extends Component
             $replyToName = ($result = array_values($replyTo)) ? $result[0] : '';
         }
 
+        // Make sure to truncate values
+        $subject = StringHelper::safeTruncate($email->getSubject(), 255);
+
         $sentNotification = new SentNotification();
-        $sentNotification->title = $email->getSubject();
+        $sentNotification->title = $subject;
         $sentNotification->formId = $submission->formId;
         $sentNotification->submissionId = $submission->id;
-        $sentNotification->subject = $email->getSubject();
+        $sentNotification->subject = $subject;
         $sentNotification->to = $toEmail;
         $sentNotification->replyTo = $replyToEmail;
         $sentNotification->replyToName = $replyToName;
