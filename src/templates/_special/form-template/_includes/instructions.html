@@ -1,5 +1,5 @@
 {% set instructionsPosition = (instructionsPosition ?? craft.formie.getInstructionsPosition(field, form)) %}
 
 {% if field.instructions and instructionsPosition.shouldDisplay(position) %}
-    <div class="fui-instructions">{{ field.instructions | t | markdown }}</div>
+    <div class="fui-instructions">{{ field.instructions | t | md }}</div>
 {% endif %}

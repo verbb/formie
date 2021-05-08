@@ -14,7 +14,7 @@
                             data-handle="{{ col.handle }}"
                             data-type="{{ col.type }}"
                             {% if col.width is defined and col.width %}width="{{ col.width }}"{% endif %}
-                        >{{ col.heading | md }}</th>
+                        >{{ col.heading | t | md }}</th>
                     {% endfor %}
                 </tr>
             </thead>
