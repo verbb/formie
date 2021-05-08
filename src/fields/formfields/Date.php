@@ -139,11 +139,9 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
         }
 
         if ($this->displayType !== 'calendar') {
-            $format = $this->dateFormat;
-
-            if ($this->includeTime) {
-                $format .= ' ' . $this->timeFormat;
-            }
+            // Always use the full format to store dates, even if only dates enabled.
+            // This helps to set all non-included items (like time for date-only) to zero.
+            $format = $this->dateFormat . ' ' . $this->timeFormat;
 
             if (is_array($value)) {
                 $value = array_filter($value);
@@ -151,7 +149,10 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
 
             if ($value) {
                 $formatted = preg_replace_callback('/[A-Za-z]/', function($matches) use ($value) {
-                    return StringHelper::padLeft($value[$matches[0]], 2, '0');
+                    // Handle time or other omitted parts of date/time string. Set to zero.
+                    $part = $value[$matches[0]] ?? '0';
+
+                    return StringHelper::padLeft($part, 2, '0');
                 }, $format);
 
                 if (($date = DateTime::createFromFormat($format, $formatted)) !== false) {
