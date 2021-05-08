@@ -134,7 +134,6 @@ class Table extends CraftTable implements FormFieldInterface
                 'tooMany' => Craft::t('formie', '{attribute} should contain at most {max, number} {max, plural, one{row} other{rows}}.'),
                 'message' => Craft::t('formie', '{attribute} must have one item.'),
                 'skipOnEmpty' => !($this->minRows || $this->maxRows),
-                'on' => Element::SCENARIO_LIVE,
             ];
         }
 
@@ -288,6 +287,26 @@ class Table extends CraftTable implements FormFieldInterface
         $this->columns = $columns;
 
         return parent::beforeSave($isNew);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function normalizeValue($value, ElementInterface $element = null)
+    {
+        $value = parent::normalizeValue($value, $element);
+
+        // Because we have to have our row template as HTML due to Vue3 support (not in a `script` tag)
+        // it unfortunately gets submitted as content for the field. We need to filter out - its invalid.
+        if (is_array($value)) {
+            foreach ($value as $k => $v) {
+                if ($k === '__ROW__') {
+                    unset($value[$k]);
+                }
+            }
+        }
+
+        return $value;
     }
 
     /**
