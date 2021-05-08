@@ -436,6 +436,16 @@ trait NestedFieldTrait
             $query->setCachedResult($this->_createRowsFromSerializedData($value, $element));
         }
 
+        // Because we have to have our row template as HTML due to Vue3 support (not in a `script` tag)
+        // it unfortunately gets submitted as content for the field. We need to filter out - its invalid.
+        // if (is_array($value)) {
+        //     foreach ($value as $k => $v) {
+        //         if ($k === '__ROW__') {
+        //             unset($value[$k]);
+        //         }
+        //     }
+        // }
+
         return $query;
     }
 
@@ -641,6 +651,24 @@ trait NestedFieldTrait
 
         $fieldNamespace = $this->getNamespace();
         $baseRowFieldNamespace = $fieldNamespace ? "{$fieldNamespace}.{$this->handle}" : null;
+
+        // Because we have to have our row template as HTML due to Vue3 support (not in a `script` tag)
+        // it unfortunately gets submitted as content for the field. We need to filter out - its invalid.
+        if (isset($value['rows']) && is_array($value['rows'])) {
+            foreach ($value['rows'] as $k => $v) {
+                if ($k === '__ROW__') {
+                    unset($value['rows'][$k]);
+                }
+            }
+        }
+
+        if (isset($value['sortOrder']) && is_array($value['sortOrder'])) {
+            foreach ($value['sortOrder'] as $k => $v) {
+                if ($v === '__ROW__') {
+                    unset($value['sortOrder'][$k]);
+                }
+            }
+        }
 
         // Was the value posted in the new (delta) format?
         if (isset($value['rows']) || isset($value['sortOrder'])) {
