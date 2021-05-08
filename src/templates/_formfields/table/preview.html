@@ -12,4 +12,12 @@
             </td>
         </tr>
     </tbody>
+
+    <tbody v-else-if="field.settings.minRows">
+        <tr v-for="i in (field.settings.minRows + 1)" :key="i">
+            <td class="singleline-cell textual" v-for="(column, index) in field.settings.columns" :key="index">
+                <textarea rows="1" style="min-height: 36px;" :placeholder="column.heading"></textarea>
+            </td>
+        </tr>
+    </tbody>
 </table>
