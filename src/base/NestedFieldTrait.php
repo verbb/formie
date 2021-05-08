@@ -436,16 +436,6 @@ trait NestedFieldTrait
             $query->setCachedResult($this->_createRowsFromSerializedData($value, $element));
         }
 
-        // Because we have to have our row template as HTML due to Vue3 support (not in a `script` tag)
-        // it unfortunately gets submitted as content for the field. We need to filter out - its invalid.
-        // if (is_array($value)) {
-        //     foreach ($value as $k => $v) {
-        //         if ($k === '__ROW__') {
-        //             unset($value[$k]);
-        //         }
-        //     }
-        // }
-
         return $query;
     }
 
