@@ -1434,6 +1434,14 @@ class Form extends Element
     }
 
     /**
+     * @inheritdoc
+     */
+    protected static function defineSearchableAttributes(): array
+    {
+        return ['title', 'handle'];
+    }
+
+    /**
      * @inheritDoc
      */
     protected static function defineSortOptions(): array
