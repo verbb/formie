@@ -225,6 +225,11 @@ export default {
             if (field && field.field && field.field.settings) {
                 var options = field.field.settings.options || [];
 
+                // Check for group/repeater fields
+                if (field.field.supportsNested) {
+                    options = field.subfield.settings.options || [];
+                }
+
                 // Only allow picking for 'is' and 'is not'
                 if (options.length && ['=', '!='].includes(condition)) {
                     return 'select';
@@ -250,6 +255,12 @@ export default {
         getValueOptions(field, condition) {
             // Check if there are any specific options
             if (field && field.field && field.field.settings) {
+                var options = field.field.settings.options || [];
+                
+                // Check for group/repeater fields
+                if (field.field.supportsNested) {
+                    options = field.subfield.settings.options || [];
+                }
 
                 // Special case for agree fields
                 if (field.type === 'verbb\\formie\\fields\\formfields\\Agree') {
@@ -259,7 +270,7 @@ export default {
                     ];
                 }
             
-                return field.field.settings.options || [];
+                return options;
             }
 
             // Handle submission options which have statically defined options
