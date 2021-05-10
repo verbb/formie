@@ -1,5 +1,56 @@
 # Changelog
 
+## 1.4.4 - 2021-05-10
+
+### Added
+- Added “User” column to submissions index.
+- Added `EVENT_MODIFY_FORM` to Sprout Forms/Freeform migrations.
+- Added `EVENT_MODIFY_NOTIFICATION ` to Sprout Forms/Freeform migrations.
+- Added `EVENT_MODIFY_SUBMISSION ` to Sprout Forms/Freeform migrations.
+- Allow table field column headings to contain markdown.
+- Allow table field column headings to be site-translated.
+
+### Changed
+- Change behavior for multi-page ajax forms to reset to the first page on success (when showing a message).
+- Update `EVENT_MODIFY_FIELD` for Sprout Forms/Freeform migrations.
+- For ajax-enabled forms, clicking on tabs (on the front-end) now navigates directly to that page.
+- Allow text field-based field settings to have more height in the form builder.
+- Update default “Contact Form” stencil to have instructions show “Above Input”.
+- Update default instructions position to “Above Input”.
+- Update `<th>` styles for front-end table fields.
+
+### Fixed
+- Fixed an error when trying to submit an ajax-enabled form again, without refreshing the page.
+- Fixed editing an incomplete submission on the front-end, not completing after final submission.
+- Fixed `includeInEmail`, `enableContentEncryption` and `enableConditions` GraphQL type definitions.
+- Fixed date and time fields within Table not working correctly.
+- Fixed `formie_relations` db table not being removed on uninstall.
+- Fixed a potential PHP error when trying to find the current page index for a form.
+- Fixed SproutForms migration not including field instructions.
+- Fixed focus state borders for tabs in the control panel.
+- Fixed layout issue for conditions builder with very long field names.
+- Fixed current page not persisting when clicking on a tab for an ajax form.
+- Fixed new rows for table fields not rendering correctly.
+- Fixed some JS errors in the form builder when editing a table field.
+- Fixed JS warning in form builder when editing field conditions.
+- Fixed variable tag fields not displaying correctly when long text is provided.
+- Fixed variable-picker not displaying options correctly if supplied with long field names.
+- Fixed instructions showing multiple times for element fields.
+- Fixed instructions showing multiple times for recipients field checkboxes.
+- Fixed table field instructions position.
+- Fixed not being able to search forms via their handle in the control panel.
+- Fixed an error when sending a test notification, with for notifications with long subjects.
+- Fixed an error with submissions widget when using custom date ranges.
+- Fixed non-calendar date fields incorrectly storing timezone information.
+- Fixed non-calendar date-only fields incorrectly storing current time information.
+- Fixed showing a single row for table field preview in the form builder, when no defaults set.
+- Fixed not showing minimum rows for table field preview in the form builder.
+- Fixed table field containing invalid extra data, due to Vue3 compatibility change.
+- Fixed repeater field containing invalid extra data, due to Vue3 compatibility change.
+- Fixed date field email incorrectly using timezone information.
+- Fixed non-calendar date fields not producing correct email content values.
+- Fixed conditions builder not being able to pick values for certain fields (dropdown, radio, checkboxes) when they were in a Group field.
+
 ## 1.4.3 - 2021-04-28
 
 ### Added
