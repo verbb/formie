@@ -397,6 +397,23 @@ class Variables
         if ($field instanceof Date) {
             if ($submissionValue && $submissionValue instanceof DateTime) {
                 $values["{$prefix}{$field->handle}"] = $submissionValue->format('Y-m-d H:i:s');
+
+                // Generate additional values
+                if ($field->displayType !== 'calendar') {
+                    $props = [
+                        'year' => 'Y',
+                        'month' => 'm',
+                        'day' => 'd',
+                        'hour' => 'H',
+                        'minute' => 'i',
+                        'second' => 's',
+                        'ampm' => 'a',
+                    ];
+
+                    foreach ($props as $k => $format) {
+                        $values["{$prefix}{$field->handle}.{$k}"] = $submissionValue->format($format);
+                    }
+                }
             }
         } else if ($field instanceof SubFieldInterface && $field->hasSubfields()) {
             foreach ($field->getSubFieldOptions() as $subfield) {
