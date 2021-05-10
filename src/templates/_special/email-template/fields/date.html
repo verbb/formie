@@ -3,5 +3,5 @@
         <strong>{{ field.name | t }}</strong><br>
     {% endif %}
 
-    {{ value ? value | date('Y-m-d H:i:s') : ('No response.' | t('formie')) }}
+    {{ value ? value | date('Y-m-d H:i:s', false) : ('No response.' | t('formie')) }}
 </p>
