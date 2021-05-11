@@ -148,6 +148,9 @@ mix.webpackConfig({
             '@vuedraggable': path.resolve(__dirname, assetsPath + '/forms/src/js/vendor/vuedraggable'),
             '@accessible-tabs': path.resolve(__dirname, assetsPath + '/forms/src/js/vendor/vue-accessible-tabs'),
         }
+    },
+    externals: {
+        vue: 'Vue',
     }
 });
 
