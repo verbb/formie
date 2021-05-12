@@ -14,6 +14,7 @@ use verbb\formie\models\IntegrationFormSettings;
 use Craft;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
+use craft\helpers\StringHelper;
 use craft\web\View;
 
 class Mailchimp extends EmailMarketing
@@ -127,6 +128,23 @@ class Mailchimp extends EmailMarketing
                     'options' => $options,
                 ]);
 
+                // Fetch marketing permissions
+                $response = $this->request('GET', 'lists/' . $list['id'] . '/members', [
+                    'query' => [
+                        'count' => 1,
+                        'fields' => ['members.id', 'members.marketing_permissions'],
+                    ],
+                ]);
+
+                $marketingPermissions = $response['members'][0]['marketing_permissions'] ?? [];
+
+                foreach ($marketingPermissions as $marketingPermission) {
+                    $listFields[] = new IntegrationField([
+                        'handle' => 'gdpr:' . $marketingPermission['marketing_permission_id'],
+                        'name' => Craft::t('formie', '(GDPR) {text}', ['text' => $marketingPermission['text']]),
+                    ]);
+                }
+
                 $settings['lists'][] = new IntegrationCollection([
                     'id' => $list['id'],
                     'name' => $list['name'],
@@ -160,6 +178,18 @@ class Mailchimp extends EmailMarketing
                 'email_address' => $email,
                 'status' => (bool)$this->useDoubleOptIn ? 'pending' : 'subscribed',
             ];
+
+            // Handle marketing permissions
+            foreach ($fieldValues as $key => $fieldValue) {
+                if (StringHelper::startsWith($key, 'gdpr:')) {
+                    $field = ArrayHelper::remove($fieldValues, $key);
+
+                    $payload['marketing_permissions'][] = [
+                        'marketing_permission_id' => str_replace('gdpr:', '', $key),
+                        'enabled' => !empty($fieldValue),
+                    ];
+                }
+            }
 
             if ($fieldValues) {
                 $payload['merge_fields'] = $fieldValues;
