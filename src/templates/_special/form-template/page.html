@@ -1,8 +1,10 @@
+{% set currentPage = form.getCurrentPage() %}
+
 {% set attributes = {
     id: "#{form.formId}-p-#{page.id}",
     class: [
         'fui-page',
-        form.hasMultiplePages and form.settings.submitMethod == 'ajax' and page != form.getCurrentPage() ? 'fui-hidden',
+        form.hasMultiplePages and form.settings.submitMethod == 'ajax' and page.id != currentPage.id ? 'fui-hidden',
     ],
     data: {
         index: page.sortOrder,
