@@ -54,7 +54,13 @@ export class FormieRecaptchaV2Checkbox {
         this.$placeholder = null;
 
         // Get the active page
-        var { $currentPage } = this.$form.form.formTheme;
+        var $currentPage = null;
+
+        if (this.$form.form.formTheme) {
+            // eslint-disable-next-line
+            $currentPage = this.$form.form.formTheme.$currentPage;
+        }
+
         var { hasMultiplePages } = this.$form.form.settings;
 
         // Get the current page's captcha - find the first placeholder that's non-invisible
