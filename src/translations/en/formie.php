@@ -1288,7 +1288,7 @@ return [
     'Limit the number of selectable variants.' => 'Limit the number of selectable variants.',
     'File Upload' => 'File Upload',
     'Upload Location' => 'Upload Location',
-    'Note that the subfolder path can contain variables like {slug} or {author.username}.' => 'Note that the subfolder path can contain variables like {slug} or {author.username}.',
+    'Note that the subfolder path can contain variables like {myFieldHandle}.' => 'Note that the subfolder path can contain variables like {myFieldHandle}.',
     'Limit Number of Files' => 'Limit Number of Files',
     'Limit the number of files a user can upload.' => 'Limit the number of files a user can upload.',
     'Min File Size' => 'Min File Size',
