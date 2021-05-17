@@ -287,7 +287,7 @@ class FileUpload extends CraftAssets implements FormFieldInterface
             SchemaHelper::labelField(),
             [
                 'label' => Craft::t('formie', 'Upload Location'),
-                'help' => Craft::t('formie', 'Note that the subfolder path can contain variables like {slug} or {author.username}.'),
+                'help' => Craft::t('formie', 'Note that the subfolder path can contain variables like {myFieldHandle}.'),
                 'type' => 'fieldWrap',
                 'children' => [
                     [
