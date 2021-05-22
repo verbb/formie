@@ -43,6 +43,7 @@ class Hidden extends FormField implements PreviewableFieldInterface
 
     public $defaultOption;
     public $queryParameter;
+    public $cookieName;
 
 
     // Public Methods
@@ -76,6 +77,8 @@ class Hidden extends FormField implements PreviewableFieldInterface
                 $this->defaultValue = $request->getUserIP();
             } elseif ($this->defaultOption === 'query' && $this->queryParameter) {
                 $this->defaultValue = $request->getParam($this->queryParameter);
+            } elseif ($this->defaultOption === 'cookie' && $this->cookieName) {
+                $this->defaultValue = $_COOKIE[$this->cookieName] ?? '';
             }
         }
     }
@@ -131,6 +134,22 @@ class Hidden extends FormField implements PreviewableFieldInterface
     }
 
     /**
+     * @inheritdoc
+     */
+    public function getFrontEndJsModules()
+    {
+        if ($this->defaultOption === 'cookie' && $this->cookieName) {
+            return [
+                'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/fields/hidden.js', true),
+                'module' => 'FormieHidden',
+                'settings' => [
+                    'cookieName' => $this->cookieName,
+                ],
+            ];
+        }
+    }
+
+    /**
      * @inheritDoc
      */
     public function getFrontEndInputOptions(Form $form, $value, array $options = null): array
@@ -180,8 +199,9 @@ class Hidden extends FormField implements PreviewableFieldInterface
                     [ 'label' => Craft::t('formie', 'Username'), 'value' => 'username' ],
                     [ 'label' => Craft::t('formie', 'User Email'), 'value' => 'userEmail' ],
                     [ 'label' => Craft::t('formie', 'User IP Address'), 'value' => 'userIp' ],
-                    [ 'label' => Craft::t('formie', 'Custom Value'), 'value' => 'custom' ],
+                    [ 'label' => Craft::t('formie', 'Cookie Value'), 'value' => 'cookie' ],
                     [ 'label' => Craft::t('formie', 'Query Parameter'), 'value' => 'query' ],
+                    [ 'label' => Craft::t('formie', 'Custom Value'), 'value' => 'custom' ],
                 ],
             ]),
             SchemaHelper::toggleContainer('settings.defaultOption=custom', [
@@ -196,6 +216,13 @@ class Hidden extends FormField implements PreviewableFieldInterface
                     'label' => Craft::t('formie', 'Query Parameter'),
                     'help' => Craft::t('formie', 'Entering the query parameter to populate the value of the field when it loads.'),
                     'name' => 'queryParameter',
+                ]),
+            ]),
+            SchemaHelper::toggleContainer('settings.defaultOption=cookie', [
+                SchemaHelper::textField([
+                    'label' => Craft::t('formie', 'Cookie Name'),
+                    'help' => Craft::t('formie', 'Enter the name of the cookie to use as the value of this field.'),
+                    'name' => 'cookieName',
                 ]),
             ]),
         ];

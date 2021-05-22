@@ -28,7 +28,7 @@ export class FormieFormTheme {
         this.addSubmitEventListener();
 
         // Save the form's current state so we can tell if its changed later on
-        this.savedFormHash = this.hashForm();
+        this.updateFormHash();
 
         // Listen to form changes if the user tries to reload
         if (this.settings.enableUnloadWarning) {
@@ -205,7 +205,7 @@ export class FormieFormTheme {
         } else {
             // Before a server-side submit, refresh the saved hash immediately. Otherwise, the native submit
             // handler - which technically unloads the page - will trigger the changed alert.
-            this.savedFormHash = this.hashForm();
+            this.updateFormHash();
 
             this.$form.submit();
         }
@@ -266,6 +266,10 @@ export class FormieFormTheme {
         }
 
         return JSON.stringify(hash);
+    }
+
+    updateFormHash() {
+        this.savedFormHash = this.hashForm();
     }
 
     validate(focus = true) {
@@ -516,7 +520,7 @@ export class FormieFormTheme {
         this.afterAjaxSubmit(data);
 
         // Reset the form hash, as all has been saved
-        this.savedFormHash = this.hashForm();
+        this.updateFormHash();
 
         // Check if we need to proceed to the next page
         if (data.nextPageId) {
@@ -586,7 +590,7 @@ export class FormieFormTheme {
         this.updateOrCreateHiddenInput('submissionId', '');
 
         // Reset the form hash, as all has been saved
-        this.savedFormHash = this.hashForm();
+        this.updateFormHash();
     }
 
     updateSubmissionInput(data) {
