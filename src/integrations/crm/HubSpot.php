@@ -400,7 +400,8 @@ class HubSpot extends Crm
     private function _convertFieldType($fieldType)
     {
         $fieldTypes = [
-            'bool' => IntegrationField::TYPE_BOOLEAN,
+            'booleancheckbox' => IntegrationField::TYPE_BOOLEAN,
+            'date' => IntegrationField::TYPE_DATE,
             'number' => IntegrationField::TYPE_NUMBER,
         ];
 
@@ -464,7 +465,7 @@ class HubSpot extends Crm
             $customFields[] = new IntegrationField([
                 'handle' => $field['name'],
                 'name' => $field['label'],
-                'type' => $this->_convertFieldType($field['type']),
+                'type' => $this->_convertFieldType($field['fieldType']),
                 'options' => $options,
             ]);
         }
