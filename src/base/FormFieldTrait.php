@@ -943,6 +943,9 @@ trait FormFieldTrait
         return $gqlSettingTypes;
     }
 
+    /**
+     * @inheritDoc
+     */
     public function getGqlTypeName()
     {
         $classNameParts = explode('\\', static::class);

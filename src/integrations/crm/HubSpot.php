@@ -7,6 +7,7 @@ use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\errors\IntegrationException;
 use verbb\formie\events\SendIntegrationPayloadEvent;
+use verbb\formie\events\ParseMappedFieldValueEvent;
 use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
@@ -15,6 +16,8 @@ use Craft;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 use craft\web\View;
+
+use yii\base\Event;
 
 class HubSpot extends Crm
 {
@@ -35,6 +38,32 @@ class HubSpot extends Crm
 
     // Public Methods
     // =========================================================================
+    
+    /**
+     * @inheritDoc
+     */
+    public function init()
+    {
+        parent::init();
+
+        // Special handling for single checkbox boolean fields for HubSpot
+        Event::on(self::class, self::EVENT_PARSE_MAPPED_FIELD_VALUE, function(ParseMappedFieldValueEvent $event) {
+            if ($event->integrationField->getType() === IntegrationField::TYPE_BOOLEAN) {
+                $value = $event->value;
+
+                // If a non-plain value, and the field doesn't implement a __toString, can't reliably serialize it...
+                if (is_array($value) || (is_object($value) && !method_exists($value, '__toString'))) {
+                    $event->value = false;
+                } else {
+                    $event->value = (bool)$value;
+                }
+
+                // HubSpot needs this as a string value.
+                $event->value = ($event->value === true) ? 'true' : 'false';
+                $event->handled = true;
+            }
+        });
+    }
 
     /**
      * @inheritDoc
