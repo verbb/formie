@@ -46,20 +46,25 @@ class HubSpot extends Crm
     {
         parent::init();
 
-        // Special handling for single checkbox boolean fields for HubSpot
         Event::on(self::class, self::EVENT_PARSE_MAPPED_FIELD_VALUE, function(ParseMappedFieldValueEvent $event) {
+            // Special handling for single checkbox boolean fields for HubSpot
             if ($event->integrationField->getType() === IntegrationField::TYPE_BOOLEAN) {
-                $value = $event->value;
-
                 // If a non-plain value, and the field doesn't implement a __toString, can't reliably serialize it...
-                if (is_array($value) || (is_object($value) && !method_exists($value, '__toString'))) {
+                if (is_array($event->value) || (is_object($event->value) && !method_exists($event->value, '__toString'))) {
                     $event->value = false;
                 } else {
-                    $event->value = (bool)$value;
+                    $event->value = (bool)$event->value;
                 }
 
                 // HubSpot needs this as a string value.
                 $event->value = ($event->value === true) ? 'true' : 'false';
+                $event->handled = true;
+            }
+
+            // Special handling for arrays for checkboxes
+            if ($event->integrationField->getType() === IntegrationField::TYPE_ARRAY) {
+                $event->value = (is_array($event->value)) ? $event->value : [$event->value];
+                $event->value = implode(';', $event->value);
                 $event->handled = true;
             }
         });
@@ -429,6 +434,7 @@ class HubSpot extends Crm
     private function _convertFieldType($fieldType)
     {
         $fieldTypes = [
+            'checkbox' => IntegrationField::TYPE_ARRAY,
             'booleancheckbox' => IntegrationField::TYPE_BOOLEAN,
             'date' => IntegrationField::TYPE_DATE,
             'number' => IntegrationField::TYPE_NUMBER,
