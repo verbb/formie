@@ -6,6 +6,7 @@ use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyPurifierConfigEvent;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\Notification;
+use verbb\formie\positions\Hidden as HiddenPosition;
 
 use Craft;
 use craft\base\ElementInterface;
@@ -84,6 +85,16 @@ class Html extends FormField
         $htmlContent = HTMLPurifier::process($htmlContent, $this->_getPurifierConfig());
 
         return $htmlContent;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getFieldDefaults(): array
+    {
+        return [
+            'labelPosition' => HiddenPosition::class,
+        ];
     }
 
     /**
