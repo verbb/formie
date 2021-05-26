@@ -289,7 +289,16 @@ class MigrateSproutForms extends Migration
     {
         /* @var NotificationEmail[] $notifications */
         $notifications = SproutBaseEmail::$app->notifications->getAllNotificationEmails();
-        $total = count($notifications);
+        $total = 0;
+
+        foreach ($notifications as $notification) {
+            $options = $notification->getOptions();
+            $formIds = $options['formIds'] ?? [];
+
+            if (in_array($this->_sproutForm->id, $formIds)) {
+                $total++;
+            }
+        }
 
         $this->stdout("Notifications: Preparing to migrate $total notifications.");
 
