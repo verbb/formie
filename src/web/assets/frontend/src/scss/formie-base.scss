@@ -70,3 +70,37 @@
     flex-wrap: wrap;
 }
 
+
+// ==========================================================================
+// Forms - Submit
+// ==========================================================================
+
+.fui-btn-container {
+    display: flex;
+    justify-content: flex-start;
+
+    &.fui-btn-right {
+        justify-content: flex-end;
+    }
+
+    &.fui-btn-center {
+        justify-content: center;
+    }
+
+    &.fui-btn-left-right {
+        justify-content: space-between;
+    }
+
+    .fui-btn {
+        // For conditions - better than classes, and doesn't rely on toggling
+        // between none/block. Maybe we don't want the field to be display: block?
+        &[data-conditionally-hidden] {
+            display: none;
+        }
+    }
+}
+
+.fui-submit {
+    order: 10;
+}
+

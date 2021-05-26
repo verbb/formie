@@ -13,33 +13,13 @@
 // ==========================================================================
 
 .fui-btn-container {
-    display: flex;
     padding-top: 1rem;
     margin-left: -0.5rem;
     margin-right: -0.5rem;
-    justify-content: flex-start;
-
-    &.fui-btn-right {
-        justify-content: flex-end;
-    }
-
-    &.fui-btn-center {
-        justify-content: center;
-    }
-
-    &.fui-btn-left-right {
-        justify-content: space-between;
-    }
 
     .fui-btn {
         margin-left: 0.5rem;
         margin-right: 0.5rem;
-
-        // For conditions - better than classes, and doesn't rely on toggling
-        // between none/block. Maybe we don't want the field to be display: block?
-        &[data-conditionally-hidden] {
-            display: none;
-        }
     }
 }
 
@@ -47,7 +27,6 @@
     color: #fff;
     background-color: $primary-color;
     border-color: $primary-color;
-    order: 10;
 
     &.fui-loading::after {
         border-bottom-color: #fff;
