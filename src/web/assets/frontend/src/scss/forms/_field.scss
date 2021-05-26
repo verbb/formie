@@ -10,12 +10,6 @@
     &:not(.fui-type-hidden-field) {
         margin-bottom: $row-gutter;
     }
-
-    // For conditions - better than classes, and doesn't rely on toggling
-    // between none/block. Maybe we don't want the field to be display: block?
-    &[data-conditionally-hidden] {
-        display: none;
-    }
 }
 
 .fui-label-left-input {
