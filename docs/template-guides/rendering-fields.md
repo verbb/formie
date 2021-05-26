@@ -113,4 +113,4 @@ Or, you could override the options available for a Dropdown field.
 }) %}
 ```
 
-See the [Field Settings](docs:developers/field) docs for a full list of available settings to override.
+See the [Field Settings](docs:developers/field#field-settings) docs for a full list of available settings to override.
