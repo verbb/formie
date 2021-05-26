@@ -41,13 +41,14 @@
     {% else %}
         {% set forms = craft.freeform.forms() %}
 
-        {{ forms.checkboxGroupField({
+        {{ forms.checkboxSelectField({
             label: 'Forms' | t('formie'),
             name: 'formIds',
+            showAllOption: true,
             options: forms | map(form => {
                 label: form.name,
                 value: form.id,
-            })
+            }),
         }) }}
     {% endif %}
 
