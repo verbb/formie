@@ -30,6 +30,7 @@ class Extension extends Twig_Extension
             new Twig_SimpleFunction('getRichTextConfig', [new RichTextHelper(), 'getRichTextConfig']),
             new Twig_SimpleFunction('formieInclude', [$this, 'formieInclude'], ['needs_environment' => true, 'needs_context' => true, 'is_safe' => ['all']]),
             new Twig_SimpleFunction('formieSiteInclude', [$this, 'formieSiteInclude'], ['needs_environment' => true, 'needs_context' => true, 'is_safe' => ['all']]),
+            new Twig_SimpleFunction('formiePluginInclude', [$this, 'formiePluginInclude'], ['needs_environment' => true, 'needs_context' => true, 'is_safe' => ['all']]),
         ];
     }
 
@@ -75,6 +76,22 @@ class Extension extends Twig_Extension
 
         $oldTemplatesPath = $view->getTemplatesPath();
         $view->setTemplatesPath(Craft::$app->path->getSiteTemplatesPath());
+
+        $result = twig_include($env, $context, $template, $variables, $withContext, $ignoreMissing, $sandboxed);
+
+        $view->setTemplatesPath($oldTemplatesPath);
+
+        return $result;
+    }
+
+    public function formiePluginInclude(Twig_Environment $env, $context, $template, $variables = [], $withContext = true, $ignoreMissing = false, $sandboxed = false)
+    {
+        $view = $context['view'];
+
+        $oldTemplatesPath = $view->getTemplatesPath();
+
+        $templatePath = Craft::getAlias('@verbb/formie/templates/_special/form-template');
+        $view->setTemplatesPath($templatePath);
 
         $result = twig_include($env, $context, $template, $variables, $withContext, $ignoreMissing, $sandboxed);
 
