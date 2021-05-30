@@ -118,7 +118,8 @@ class FileUpload extends CraftAssets implements FormFieldInterface
         $value = $this->_all($value, $element);
 
         return array_reduce($value->all(), function($acc, $input) {
-            return $acc . $input->url;
+            // Handle when volumes don't have a public URL
+            return $acc . ($input->url ?? $input->filename);
         }, '');
     }
 
@@ -128,7 +129,8 @@ class FileUpload extends CraftAssets implements FormFieldInterface
     public function serializeValueForIntegration($value, ElementInterface $element = null)
     {
         return array_map(function($input) {
-            return $input->url;
+            // Handle when volumes don't have a public URL
+            return $input->url ?? $input->filename;
         }, $this->_all($value, $element)->all());
     }
 
