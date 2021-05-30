@@ -299,6 +299,23 @@ class Formie
     }
 
     /**
+     * @return array
+     */
+    public function getVisibleFields($row): array
+    {
+        $fields = [];
+        $rowFields = $row['fields'] ?? [];
+
+        foreach ($rowFields as $field) {
+            if (!$field->getIsHidden()) {
+                $fields[] = $field;
+            }
+        }
+
+        return $fields;
+    }
+
+    /**
      * @inheritdoc
      */
     public function getSubmissionRelations($element)
