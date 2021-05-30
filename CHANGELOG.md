@@ -1,5 +1,36 @@
 # Changelog
 
+## 1.4.5 - 2021-05-30
+
+### Added
+- Added `fui-row-empty` class to rows that only have hidden fields.
+- Added `craft.formie.getVisibleFields()` to return the number of non-hidden fields for a given row.
+- Added “All” checkbox option when migrating Sprout Forms of Freeform forms.
+- Added `formiePluginInclude()` twig function to allow including stock Formie form templates.
+- Added ability to set a cookie value to the default value of a hidden field.
+- Added GDPR marketing permissions to Mailchimp email marketing integration.
+
+### Changed
+- Moved `data-conditionally-hidden` styles to core CSS (rather than theme CSS).
+- Moved layout styles for form buttons to core CSS, rather than theme CSS. Opinionated styles still kept in theme.
+- HTML fields now have their label set as hidden by default.
+- Updated file upload file location instruction text.
+
+### Fixed
+- Fixed an error when trying to save sent notifications, where `body` and `htmlBody` were more than 64kb.
+- Fixed Recipients field values not populating `Single/MultiOptionFieldData`, providing access to option labels and values.
+- Fixed File Upload exports not exporting the filename of an asset, when `Assets in this volume have public URLs` setting was turned off for a volume.
+- Fixed template layout error when changing the form template for a form.
+- Fixed sprout forms migration for HTML and Section fields, where their label was hidden.
+- Fixed sprout forms migration showing the incorrect number of notifications to migrate.
+- Fixed some breadcrumb links in settings pages.
+- Fixed HubSpot multiple checkbox fields not having their values prepared correctly.
+- Fixed HubSpot single checkbox fields not having their value prepared correctly.
+- Fixed HubSpot integration not assigning correct field mapping types for single checkbox and date fields (from HubSpot).
+- Fixed reCAPTCHA errors when Theme JS is disabled.
+- Fixed potential error in page-compare templates for ajax-based forms, for PHP 7.4+.
+- Removed duplicate Vue dependancy, causing some conflicts with other plugins using Vue.
+
 ## 1.4.4 - 2021-05-10
 
 ### Added
