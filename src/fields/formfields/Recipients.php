@@ -321,6 +321,29 @@ class Recipients extends FormField
             }
         }
 
+        // Ensure we return values properly, if we're using dropdown/checkboxes/radio layout
+        if (in_array($this->displayType, ['dropdown', 'radio'])) {
+            // Fetch the option for the value
+            foreach ($this->options as $key => $option) {
+                if ((string)$option['value'] === (string)$value) {
+                    $value = new SingleOptionFieldData($option['label'], $option['value'], true);
+                    break;
+                }
+            }
+        } else if ($this->displayType === 'checkboxes') {
+            $options = [];
+            $value = explode(',', $value);
+
+            // Fetch the option for the value
+            foreach ($this->options as $key => $option) {
+                if (in_array((string)$option['value'], $value, true)) {
+                    $options[] = new OptionData($option['label'], $option['value'], true);
+                }
+            }
+
+            $value = new MultiOptionsFieldData($options);
+        }
+
         return $value;
     }
 
