@@ -724,7 +724,8 @@ trait FormFieldTrait
         // Expand this as we allow more field options in render functions
         $fieldNamespace = $options['fieldNamespace'] ?? null;
 
-        if ($fieldNamespace) {
+        // Allow the use of falsey namespaces
+        if ($fieldNamespace !== null) {
             $this->setNamespace($fieldNamespace);
         }
     }
