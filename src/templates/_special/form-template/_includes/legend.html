@@ -1,7 +1,7 @@
 {% set legendPosition = (labelPosition ?? craft.formie.getLabelPosition(field, form)) %}
 {% set isHidden = legendPosition == 'hidden' %}
 
-{% if legendPosition.shouldDisplay(position) or isHidden %}
+{% if legendPosition.shouldDisplay(position) or (isHidden and position == 'above') %}
     {% set attributes = {
         id: labelId ?? null,
         class: [
