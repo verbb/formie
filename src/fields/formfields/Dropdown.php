@@ -46,9 +46,8 @@ class Dropdown extends BaseOptionsField implements FormFieldInterface
      */
     public function init()
     {
-        if ($this->multiple) {
-            $this->multi = true;
-        }
+        // Mirror to native `multi` attribute
+        $this->setMultiple($this->multiple);
 
         parent::init();
     }
