@@ -464,3 +464,134 @@ public function getFrontEndJs(Form $form)
     ];
 }
 ```
+
+
+### Date Fields
+
+When using the Date Picker option for date fields, you can access Flatpickr settings, and modify them through JavaScript.
+
+### The `beforeInit` event
+The event that is triggered before the Flatpickr date picker is initialized.
+
+```js
+// Fetch all Date fields - specifically the input. Events are bound on the input element
+let $fields = document.querySelectorAll('.fui-type-date-time input');
+
+// For each field, bind on the `beforeInit` event
+$fields.forEach($field => {
+    $field.addEventListener('beforeInit', (e) => {
+        let datePickerField = e.detail.datepicker;
+        let options = e.detail.options;
+
+        // Modify any Flatpickr options
+        e.detail.options.minDate = '2021-06-03';
+    });
+});
+```
+
+The above example uses the `beforeInit` event to modify the config for Flatpickr. There's event data in the event's `detail` attribute, which you can modify.
+
+### The `afterInit` event
+The event that is triggered after the Flatpickr date picker is initialized.
+
+```js
+// Fetch all Date fields - specifically the input. Events are bound on the input element
+let $fields = document.querySelectorAll('.fui-type-date-time input');
+
+// For each field, bind on the `afterInit` event
+$fields.forEach($field => {
+    $field.addEventListener('afterInit', (e) => {
+        let datePickerField = e.detail.datepicker;
+        let options = e.detail.options;
+    });
+});
+```
+
+
+### Phone Fields
+
+### The `init` event
+The event that is triggered before the phone number library is initialized.
+
+```js
+// Fetch all Phone fields - specifically the input. Events are bound on the input element
+let $fields = document.querySelectorAll('.fui-type-phone input');
+
+// For each field, bind on the `init` event
+$fields.forEach($field => {
+    $field.addEventListener('init', (e) => {
+        let phoneCountryField = e.detail.phoneCountry;
+        let validator = e.detail.validator;
+        let validatorOptions = e.detail.validatorOptions;
+    });
+});
+```
+
+
+### Repeater Fields
+
+### The `init` event
+The event that is triggered before the repeater field is initialized.
+
+```js
+// Fetch all Repeater fields
+let $fields = document.querySelectorAll('.fui-type-repeater');
+
+// For each field, bind on the `init` event
+$fields.forEach($field => {
+    $field.addEventListener('init', (e) => {
+        let repeaterField = e.detail.repeater;
+    });
+});
+```
+
+### The `init` event
+The event that is triggered after a new row has been appended to the repeater.
+
+```js
+// Fetch all Repeater fields
+let $fields = document.querySelectorAll('.fui-type-repeater');
+
+// For each field, bind on the `append` event
+$fields.forEach($field => {
+    $field.addEventListener('append', (e) => {
+        let $row = e.detail.row;
+        let $form = e.detail.form;
+    });
+});
+```
+
+
+### Table Fields
+
+### The `init` event
+The event that is triggered before the table field is initialized.
+
+```js
+// Fetch all Table fields
+let $fields = document.querySelectorAll('.fui-type-table');
+
+// For each field, bind on the `init` event
+$fields.forEach($field => {
+    $field.addEventListener('init', (e) => {
+        let tableField = e.detail.table;
+    });
+});
+```
+
+### The `init` event
+The event that is triggered after a new row has been appended to the table.
+
+```js
+// Fetch all Table fields
+let $fields = document.querySelectorAll('.fui-type-table');
+
+// For each field, bind on the `append` event
+$fields.forEach($field => {
+    $field.addEventListener('append', (e) => {
+        let $row = e.detail.row;
+        let $form = e.detail.form;
+    });
+});
+```
+
