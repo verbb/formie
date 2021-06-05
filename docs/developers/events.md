@@ -44,6 +44,33 @@ Event::on(Form::class, Form::EVENT_AFTER_SAVE, function(Event $event) {
 });
 ```
 
+### The `beforeDeleteForm` event
+The event that is triggered before a form is deleted.
+
+The `isValid` event property can be set to `false` to prevent the the deletion from proceeding.
+
+```php
+use verbb\formie\elements\Form;
+use yii\base\Event;
+
+Event::on(Form::class, Form::EVENT_BEFORE_DELETE, function(Event $event) {
+    $form = $event->sender;
+    $event->isValid = false;
+});
+```
+
+### The `afterDeleteForm` event
+The event that is triggered after a form is deleted.
+
+```php
+use verbb\formie\elements\Form;
+use yii\base\Event;
+
+Event::on(Form::class, Form::EVENT_AFTER_DELETE, function(Event $event) {
+    $form = $event->sender;
+});
+```
+
 
 
 ## Form Render Events
@@ -192,6 +219,33 @@ Event::on(Submissions::class, Submissions::EVENT_AFTER_INCOMPLETE_SUBMISSION, fu
     $submission = $event->submission;
     $success = $event->success;
     // ...
+});
+```
+
+### The `beforeDeleteSubmission` event
+The event that is triggered before a submission is deleted.
+
+The `isValid` event property can be set to `false` to prevent the the deletion from proceeding.
+
+```php
+use verbb\formie\elements\Submission;
+use yii\base\Event;
+
+Event::on(Submission::class, Submission::EVENT_BEFORE_DELETE, function(Event $event) {
+    $submission = $event->sender;
+    $event->isValid = false;
+});
+```
+
+### The `afterDeleteSubmission` event
+The event that is triggered after a submission is deleted.
+
+```php
+use verbb\formie\elements\Submission;
+use yii\base\Event;
+
+Event::on(Submission::class, Submission::EVENT_AFTER_DELETE, function(Event $event) {
+    $submission = $event->sender;
 });
 ```
 
