@@ -145,7 +145,7 @@ class Form extends Element
      */
     public static function defineSources(string $context = null): array
     {
-        $ids = self::_getEditableFormIds();
+        $ids = self::_getAvailableFormIds();
         
         $sources = [
             [
@@ -1500,7 +1500,7 @@ class Form extends Element
     /**
      * @inheritDoc
      */
-    private static function _getEditableFormIds()
+    private static function _getAvailableFormIds()
     {
         $userSession = Craft::$app->getUser();
 
@@ -1513,7 +1513,7 @@ class Form extends Element
             ->all();
 
         // Can the user edit _every_ form?
-        if ($userSession->checkPermission('formie-editForms')) {
+        if ($userSession->checkPermission('formie-viewForms')) {
             $editableIds = ArrayHelper::getColumn($formInfo, 'id');
         } else {
             // Find all UIDs the user has permission to

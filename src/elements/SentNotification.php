@@ -82,7 +82,7 @@ class SentNotification extends Element
     {
         $forms = Form::find()->all();
 
-        $ids = self::_getEditableFormIds();
+        $ids = self::_getAvailableFormIds();
 
         $sources = [
             [
@@ -336,7 +336,7 @@ class SentNotification extends Element
     /**
      * @inheritDoc
      */
-    private static function _getEditableFormIds()
+    private static function _getAvailableFormIds()
     {
         $userSession = Craft::$app->getUser();
 
@@ -349,7 +349,7 @@ class SentNotification extends Element
             ->all();
 
         // Can the user edit _every_ form?
-        if ($userSession->checkPermission('formie-editSubmissions')) {
+        if ($userSession->checkPermission('formie-viewSubmissions')) {
             $editableIds = ArrayHelper::getColumn($formInfo, 'id');
         } else {
             // Find all UIDs the user has permission to
