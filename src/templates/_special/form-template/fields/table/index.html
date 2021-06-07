@@ -79,14 +79,13 @@
 
         {{ formieInclude('_includes/legend', { position: 'below' }) }}
     </fieldset>
-{% endnamespace %}
 
-{# We can't use `script` because of Vue3 issues, and can't use `div` as it'' strip out `td` elements #}
-<table data-table-template="{{ field.handle }}" style="display:none;">
-    {% namespace field.handle %}
+    {# Have to use the `script` tag here to place the script outside of a Vue3 wrapper #}
+    {# as Vue3 will strip out inline `script` tags (all other scenarios would be fine) #}
+    {% script with { type: 'text/x-template', 'data-table-template': field.handle } %}
         {% include 'fields/table/_row' with {
-            index: '__ROW__',
+            id: '__ROW__',
             row: [],
         } %}
-    {% endnamespace %}
-</table>
+    {% endscript %}
+{% endnamespace %}

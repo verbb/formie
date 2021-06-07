@@ -51,10 +51,11 @@
         {{ formieInclude('_includes/legend', { position: 'below' }) }}
     </fieldset>
 
-    {# We can't use `script` because of Vue3 issues #}
-    <div data-repeater-template="{{ field.handle }}" style="display:none;">
+    {# Have to use the `script` tag here to place the script outside of a Vue3 wrapper #}
+    {# as Vue3 will strip out inline `script` tags (all other scenarios would be fine) #}
+    {% script with { type: 'text/x-template', 'data-repeater-template': field.handle } %}
         {% include 'fields/repeater/_row' with {
-            id: '__ROW__'
+            id: '__ROW__',
         } %}
-    </div>
+    {% endscript %}
 {% endnamespace %}
