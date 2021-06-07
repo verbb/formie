@@ -20,7 +20,7 @@ class BaseController extends Controller
         $url = "formie/{$settings->defaultPage}";
 
         // Check if they have permission to the page they're going to
-        if ($settings->defaultPage === 'forms' && !Craft::$app->getUser()->checkPermission('formie-manageForms')) {
+        if ($settings->defaultPage === 'forms' && !Craft::$app->getUser()->checkPermission('formie-viewForms')) {
             $url = $this->_getFirstAvailablePage();
         }
 

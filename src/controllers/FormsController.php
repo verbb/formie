@@ -34,7 +34,7 @@ class FormsController extends Controller
      */
     public function init()
     {
-        $this->requirePermission('formie-manageForms');
+        $this->requirePermission('formie-viewForms');
 
         parent::init();
     }

@@ -71,7 +71,7 @@ class Formie extends Plugin
     // Public Properties
     // =========================================================================
 
-    public $schemaVersion = '1.1.9';
+    public $schemaVersion = '1.1.10';
     public $hasCpSettings = true;
     public $hasCpSection = true;
 
@@ -135,7 +135,7 @@ class Formie extends Plugin
 
         $nav['label'] = $this->getPluginName();
 
-        if (Craft::$app->getUser()->checkPermission('formie-manageForms')) {
+        if (Craft::$app->getUser()->checkPermission('formie-viewForms')) {
             $nav['subnav']['forms'] = [
                 'label' => Craft::t('formie', 'Forms'),
                 'url' => 'formie/forms',
@@ -228,7 +228,7 @@ class Formie extends Plugin
             }
 
             $event->permissions['Formie'] = [
-                'formie-manageForms' => ['label' => Craft::t('formie', 'View forms'), 'nested' => $formPermissions],
+                'formie-viewForms' => ['label' => Craft::t('formie', 'View forms'), 'nested' => $formPermissions],
                 'formie-viewSubmissions' => ['label' => Craft::t('formie', 'View submissions'), 'nested' => $submissionPermissions],
                 'formie-viewSentNotifications' => ['label' => Craft::t('formie', 'View sent notifications')],
             ];
