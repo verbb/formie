@@ -50,12 +50,18 @@
 
         {{ formieInclude('_includes/legend', { position: 'below' }) }}
     </fieldset>
+{% endnamespace %}
 
-    {# Have to use the `script` tag here to place the script outside of a Vue3 wrapper #}
-    {# as Vue3 will strip out inline `script` tags (all other scenarios would be fine) #}
-    {% script with { type: 'text/x-template', 'data-repeater-template': field.handle } %}
+{# Have to use the `script` tag here to place the script outside of a Vue3 wrapper #}
+{# as Vue3 will strip out inline `script` tags (all other scenarios would be fine) #}
+{% script with { type: 'text/x-template', 'data-repeater-template': field.handle } %}
+    {# `namespace` won't work outside `script` tag, so extra work here, particularly #}
+    {# to deal with higher-level namespaces like the default `fields`. #}
+    {% set ns = field.namespace == null ? field.handle : "#{field.namespace}[#{field.handle}]" %}
+
+    {% namespace ns %}
         {% include 'fields/repeater/_row' with {
             id: '__ROW__',
         } %}
-    {% endscript %}
-{% endnamespace %}
+    {% endnamespace %}
+{% endscript %}
