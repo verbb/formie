@@ -1,4 +1,5 @@
 {% for colId, col in field.columns %}
+    {% set index = index ?? 0 %}
     {% set rowId = "row-#{index}-#{colId}" %}
 
     {% switch col.type %}
