@@ -181,6 +181,7 @@ class User extends Element
     {
         try {
             $user = $this->getElementForPayload(UserElement::class, $submission);
+            $user->pending = true;
 
             $userGroups = [];
 
