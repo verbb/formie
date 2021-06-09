@@ -299,6 +299,12 @@ Follow the below steps to connect to the Mailchimp API.
 1. Enable the integration and fill out all required fields.
 1. Click **Save** to save the form.
 
+### Additional Features
+- Supports [Double Opt-in](https://mailchimp.com/help/about-double-opt-in/).
+- Supports [Tags](https://mailchimp.com/help/manage-tags/).
+- Supports [Groups](https://mailchimp.com/help/getting-started-with-groups/).
+- Supports [GDPR Fields](https://mailchimp.com/help/collect-consent-with-gdpr-forms/).
+
 
 ## MailerLite
 Follow the below steps to connect to the MailerLite API.
