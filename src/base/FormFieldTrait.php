@@ -872,7 +872,7 @@ trait FormFieldTrait
                 $html = Html::tag('p', $content);
             } catch (Throwable $e) {
                 $html = '';
-                Formie::error('Failed to render email field content: ' . $e->getMessage());
+                Formie::error('Failed to render email field content for ' . $this->handle . ': ' . $e->getMessage());
             }
         }
 
