@@ -6,6 +6,8 @@ export class FormieTable {
         this.form = this.$form.form;
         this.$field = settings.$field;
 
+        this.static = settings.static;
+
         this.initTable();
     }
 

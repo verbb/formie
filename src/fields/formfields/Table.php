@@ -233,6 +233,9 @@ class Table extends CraftTable implements FormFieldInterface
         return [
             'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/fields/table.js', true),
             'module' => 'FormieTable',
+            'settings' => [
+                'static' => $this->static,
+            ],
         ];
     }
 

@@ -127,16 +127,18 @@
     {% endswitch %}
 {% endfor %}
 
-{% set buttonAttributes = {
-    class: 'fui-btn fui-table-remove-btn',
-    type: 'button',
-    data: {
-        'remove-table-row': field.handle,
-    }
-} %}
+{% if not field.static %}
+    {% set buttonAttributes = {
+        class: 'fui-btn fui-table-remove-btn',
+        type: 'button',
+        data: {
+            'remove-table-row': field.handle,
+        }
+    } %}
 
-<td data-col-remove>
-    <button {{ attr(buttonAttributes) }}>
-        {{ 'Remove' | t('formie') }}
-    </button>
-</td>
+    <td data-col-remove>
+        <button {{ attr(buttonAttributes) }}>
+            {{ 'Remove' | t('formie') }}
+        </button>
+    </td>
+{% endif %}
