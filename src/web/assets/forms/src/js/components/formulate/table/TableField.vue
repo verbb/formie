@@ -39,6 +39,7 @@
 
 <script>
 import get from 'lodash/get';
+import isEmpty from 'lodash/isEmpty';
 
 import TableBulkOptions from './TableBulkOptions.vue';
 
@@ -168,15 +169,15 @@ export default {
 
             // Add each item properly
             items.forEach(item => {
-                this.addItem(item);
+                this.addItem(null, item);
             });
         },
 
-        addItem(item = {}) {
+        addItem(e, item = {}) {
             let { newRowDefaults } = this;
 
             // If we're passing in specific item data
-            if (item) {
+            if (!isEmpty(item)) {
                 newRowDefaults = item;
             }
 
