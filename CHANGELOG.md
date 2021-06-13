@@ -1,5 +1,39 @@
 # Changelog
 
+## 1.4.6 - 2021-06-13
+
+### Added
+- Added extra logging output for failed field email rendering.
+- Added “Submission” column to sent notifications index.
+- Added “Email Notification Name” column to sent notifications index.
+- Added `notificationId` to a sent notification, ensuring we keep track of when notification was sent.
+- Added name of email notification to logging when sending fails.
+- Editing a field in the form builder now shows its field type.
+
+### Changed
+- Update some UI elements to better fit CP UI colours.
+- Changed User element integrations to import new users as pending.
+- Changed `formie-manageForms` permission to `formie-viewForms`.
+- Allow `fieldNamespace` form render setting to be `false` to exclude the default `fields` namespace for input name attributes.
+
+### Fixed
+- Fixed being able to remove static table field rows in front-end forms.
+- Fixed table field dropdown columns not having their options saved for brand-new table fields.
+- Fixed table fields not getting the correct defaults when adding new columns.
+- Fixed an error when viewing a preview of a sent notification, in some cases.
+- Fixed Google Sheets integration not working correctly.
+- Fixed an error when trying to disconnect from a OAuth-based integration.
+- Fixed field conditions not working correctly, when an entire page is conditionally hidden.
+- Fixed conditionally hidden fields having custom validation rules triggered, when they shouldn’t be validated at all.
+- Fixed an error when Phone fields are conditionally hidden, and required.
+- Fixed namespace issue (due to new `{% script %}` tag) for Repeater and Table fields.
+- Fixed an error for table field rows.
+- Fixed Table and Repeater fields by switching back row templates to `script` but still works properly with Vue3 (the original issue).
+- Fixed requiring edit permissions to select forms/submissions from fields in entries.
+- Fixed an error of Dropdown fields where toggling “Allow Multiple” would produce an error.
+- Fixed some fields with hidden labels rendering a hidden `<legend>` element twice.
+- Fixed exporting Repeater/Table fields not working correctly when submissions had variations in the rows.
+
 ## 1.4.5 - 2021-05-30
 
 ### Added
