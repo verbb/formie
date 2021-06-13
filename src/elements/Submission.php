@@ -212,7 +212,7 @@ class Submission extends Element
                     list($attribute, $validator) = $rule;
                     $attribute = is_array($attribute) ? $attribute[0] : $attribute;
 
-                    if ($attribute === "field:{$field->handle}" && $validator === 'required') {
+                    if ($attribute === "field:{$field->handle}") {
                         // If this field is conditionally hidden, remove it from validation
                         if ($field->isConditionallyHidden($this)) {
                             unset($rules[$key]);
@@ -232,7 +232,7 @@ class Submission extends Element
                     list($attribute, $validator) = $rule;
                     $attribute = is_array($attribute) ? $attribute[0] : $attribute;
 
-                    if ($attribute === "field:{$field->handle}" && $validator === 'required') {
+                    if ($attribute === "field:{$field->handle}") {
                         $rule['message'] = $field->errorMessage;
                         break;
                     }
