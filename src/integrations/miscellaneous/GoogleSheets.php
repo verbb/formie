@@ -221,7 +221,7 @@ class GoogleSheets extends Miscellaneous
             $fieldValues = $this->getFieldMappingValues($submission, $this->fieldMapping);
 
             // Fetch the columns from our private stash
-            $columns = $this->getFormSettings()['columns'] ?? [];
+            $columns = $this->getFormSettings()->collections['columns'] ?? [];
             $rowValues = [];
 
             foreach ($columns as $key => $column) {
@@ -232,9 +232,11 @@ class GoogleSheets extends Miscellaneous
                 'values' => [$rowValues],
             ];
 
-            $range = "'{$this->sheetId}'";
+            // Statically set the first column to determine where to start our range. Google will sometimes set the
+            // 'table' of content to be incorrect, if there are gaps in columns. Here, we account for that.
+            $range = "'{$this->sheetId}'!A1";
 
-            $response = $this->deliverPayload($submission, "values/{$range}:append?valueInputOption=RAW", $payload);
+            $response = $this->deliverPayload($submission, "values/{$range}:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS", $payload);
 
             if ($response === false) {
                 return true;
