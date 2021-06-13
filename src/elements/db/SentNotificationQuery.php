@@ -78,6 +78,7 @@ class SentNotificationQuery extends ElementQuery
             'formie_sentnotifications.title',
             'formie_sentnotifications.formId',
             'formie_sentnotifications.submissionId',
+            'formie_sentnotifications.notificationId',
             'formie_sentnotifications.subject',
             'formie_sentnotifications.to',
             'formie_sentnotifications.cc',

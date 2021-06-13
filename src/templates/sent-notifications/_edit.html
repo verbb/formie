@@ -72,6 +72,20 @@
             {% endif %}
         </div>
     </div>
+
+    <div class="field">
+        <div class="heading">
+            <label class="">{{ 'Notification' | t('formie') }}</label>
+        </div>
+
+        <div class="input ltr">
+            {% if sentNotification.notification %}
+                {{ sentNotification.notification }}
+            {% else %}
+                {{ 'Deleted' | t('formie') }}
+            {% endif %}
+        </div>
+    </div>
 </div>
 
 <div id="meta-details" class="meta read-only">

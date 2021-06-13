@@ -71,7 +71,7 @@ class Formie extends Plugin
     // Public Properties
     // =========================================================================
 
-    public $schemaVersion = '1.1.10';
+    public $schemaVersion = '1.1.11';
     public $hasCpSettings = true;
     public $hasCpSection = true;
 

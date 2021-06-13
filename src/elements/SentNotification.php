@@ -28,6 +28,7 @@ class SentNotification extends Element
     public $title;
     public $formId;
     public $submissionId;
+    public $notificationId;
     public $subject;
     public $to;
     public $cc;
@@ -46,6 +47,7 @@ class SentNotification extends Element
 
     private $_form;
     private $_submission;
+    private $_notification;
 
 
     // Static
@@ -206,6 +208,18 @@ class SentNotification extends Element
         return $this->_submission;
     }
 
+    /**
+     * @inheritDoc
+     */
+    public function getNotification()
+    {
+        if (!$this->_notification) {
+            $this->_notification = Formie::$plugin->getNotifications()->getNotificationById($this->notificationId);
+        }
+
+        return $this->_notification;
+    }
+
 
     // Events
     // =========================================================================
@@ -229,6 +243,7 @@ class SentNotification extends Element
         $record->title = $this->title;
         $record->formId = $this->formId;
         $record->submissionId = $this->submissionId;
+        $record->notificationId = $this->notificationId;
         $record->subject = $this->subject;
         $record->to = $this->to;
         $record->cc = $this->cc;

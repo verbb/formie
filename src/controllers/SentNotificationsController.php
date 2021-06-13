@@ -135,7 +135,7 @@ class SentNotificationsController extends Controller
         }
 
         // Log the sent notification - if enabled
-        Formie::$plugin->getSentNotifications()->saveSentNotification($sentNotification->submission, $newEmail);
+        Formie::$plugin->getSentNotifications()->saveSentNotification($sentNotification->submission, $sentNotification->notification, $newEmail);
 
         $message = Craft::t('formie', 'Notification email was resent successfully.');
         
@@ -218,7 +218,7 @@ class SentNotificationsController extends Controller
             }
 
             // Log the sent notification - if enabled
-            Formie::$plugin->getSentNotifications()->saveSentNotification($sentNotification->submission, $newEmail);
+            Formie::$plugin->getSentNotifications()->saveSentNotification($sentNotification->submission, $sentNotification->notification, $newEmail);
         }
 
         $message = Craft::t('formie', '{count} notification emails resent successfully.', ['count' => count($ids)]);
