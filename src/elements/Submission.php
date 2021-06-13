@@ -78,6 +78,7 @@ class Submission extends Element
     private $_fieldLayout;
     private $_fieldContext;
     private $_contentTable;
+    private $_pagesForField;
 
 
     // Static
@@ -684,6 +685,28 @@ class Submission extends Element
         }
 
         return $serializedValues;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getFieldPages()
+    {
+        if ($this->_pagesForField) {
+            return $this->_pagesForField;
+        }
+
+        $this->_pagesForField = [];
+
+        if ($fieldLayout = $this->getForm()->getFormFieldLayout()) {
+            foreach ($fieldLayout->getPages() as $page) {
+                foreach ($page->getFields() as $field) {
+                    $this->_pagesForField[$field->handle] = $page;
+                }
+            }
+        }
+
+        return $this->_pagesForField;
     }
 
     /**

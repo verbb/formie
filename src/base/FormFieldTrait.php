@@ -801,11 +801,22 @@ trait FormFieldTrait
         return null;
     }
 
+    public function getPage($submission)
+    {
+        $pages = $submission->getFieldPages();
+
+        return $pages[$this->handle] ?? null;
+    }
+
     /**
      * Returns whether the field has passed conditional evaluation and is hidden.
      */
     public function isConditionallyHidden($submission)
     {
+        $isFieldHidden = false;
+        $isPageHidden = false;
+
+        // Check if the field itself is hidden
         if ($this->enableConditions) {
             $conditionSettings = Json::decode($this->conditions) ?? [];
 
@@ -817,12 +828,19 @@ trait FormFieldTrait
                 // Depending on if we show or hide the field when evaluating. If `false` and set to show, it means
                 // the field is hidden and the conditions to show it aren't met. Therefore, report back that this field is hidden.
                 if (($result && $conditionSettings['showRule'] !== 'show') || (!$result && $conditionSettings['showRule'] === 'show')) {
-                    return true;
+                    $isFieldHidden = true;
                 }
             }
         }
 
-        return false;
+        // Also check if the field is in a hidden page
+        if (!$isFieldHidden) {
+            if ($page = $this->getPage($submission)) {
+                $isPageHidden = $page->isConditionallyHidden($submission);
+            }
+        }
+
+        return $isFieldHidden || $isPageHidden;
     }
 
     /**
