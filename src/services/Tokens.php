@@ -104,7 +104,7 @@ class Tokens extends Component
 
     public function deleteTokenById(int $tokenId): bool
     {
-        $token = $this->getTokenById($tokenId);
+        $token = $this->getTokenById($tokenId, false);
 
         if (!$token) {
             return false;
