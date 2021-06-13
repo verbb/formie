@@ -74,6 +74,10 @@ export default {
             deep: true,
             handler(newValue) {
                 newValue.options.forEach((item, index) => {
+                    if (!this.$parent.model.options) {
+                        this.$parent.model.options = [];
+                    }
+
                     this.$parent.model.options[index] = item;
                 });
             },
