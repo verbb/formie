@@ -277,6 +277,7 @@ class SentNotification extends Element
             'form' => ['label' => Craft::t('formie', 'Form')],
             'to' => ['label' => Craft::t('formie', 'Recipient')],
             'subject' => ['label' => Craft::t('formie', 'Subject')],
+            'notificationName' => ['label' => Craft::t('formie', 'Email Notification Name')],
             'resend' => ['label' => Craft::t('formie', 'Resend')],
             'preview' => ['label' => Craft::t('formie', 'Preview'), 'icon' => 'view'],
         ];
@@ -317,6 +318,8 @@ class SentNotification extends Element
                 ]);
             case 'preview':
                 return $this->body ? StringHelper::safeTruncate($this->body, 50) : '';
+            case 'notificationName':
+                return $this->title;
             default:
                 return parent::tableAttributeHtml($attribute);
         }
