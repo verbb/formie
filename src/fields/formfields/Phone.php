@@ -236,7 +236,7 @@ class Phone extends FormField implements SubfieldInterface, PreviewableFieldInte
         if ($this->required) {
             $value = $element->getFieldValue($this->handle);
 
-            if (StringHelper::isBlank($value->number)) {
+            if (StringHelper::isBlank((string)$value->number)) {
                 $element->addError(
                     $this->handle,
                     Craft::t('formie', '"{label}" cannot be blank.', [
