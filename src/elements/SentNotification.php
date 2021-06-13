@@ -293,7 +293,7 @@ class SentNotification extends Element
     {
         switch ($attribute) {
             case 'form':
-                return $this->getForm()->title;
+                return $this->getForm()->title ?? '';
             case 'resend':
                 return Html::a(Craft::t('formie', 'Resend'), '#', [
                     'class' => 'btn small formsubmit js-fui-notification-modal-resend-btn',
@@ -301,7 +301,7 @@ class SentNotification extends Element
                     'title' => Craft::t('formie', 'Resend'),
                 ]);
             case 'preview':
-                return StringHelper::safeTruncate($this->body, 50);
+                return $this->body ? StringHelper::safeTruncate($this->body, 50) : '';
             default:
                 return parent::tableAttributeHtml($attribute);
         }
