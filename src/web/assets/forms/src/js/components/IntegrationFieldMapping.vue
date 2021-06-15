@@ -225,6 +225,7 @@ export default {
     display: flex;
     align-items: center;
     margin: 0 10px;
+    text-align: left;
 }
 
 </style>
