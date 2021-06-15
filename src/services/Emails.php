@@ -292,7 +292,7 @@ class Emails extends Component
             }
 
             if (!Craft::$app->getMailer()->send($newEmail)) {
-                $error = Craft::t('formie', 'Notification email “{notification}” could not be sent for submission “{submission}”.', [
+                $error = Craft::t('formie', 'Notification email “{notification}” could not be sent for submission “{submission}”. The mailer service failed to send the notification.', [
                     'notification' => $notification->name,
                     'submission' => $submission->id ?? 'new',
                 ]);
