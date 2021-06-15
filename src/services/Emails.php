@@ -286,7 +286,7 @@ class Emails extends Component
                 ]);
 
                 Formie::error($error);
-                Formie::error(Json::encode($this->_serializeEmail($newEmail)));
+                Formie::error('Email payload: ' . Json::encode($this->_serializeEmail($newEmail)));
 
                 return ['error' => $error];
             }
@@ -298,7 +298,7 @@ class Emails extends Component
                 ]);
 
                 Formie::error($error);
-                Formie::error(Json::encode($this->_serializeEmail($newEmail)));
+                Formie::error('Email payload: ' . Json::encode($this->_serializeEmail($newEmail)));
 
                 return ['error' => $error];
             }
@@ -315,7 +315,7 @@ class Emails extends Component
             ]);
 
             Formie::error($error);
-            Formie::error(Json::encode($this->_serializeEmail($newEmail)));
+            Formie::error('Email payload: ' . Json::encode($this->_serializeEmail($newEmail)));
 
             return ['error' => $error];
         }
