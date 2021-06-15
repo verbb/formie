@@ -224,6 +224,9 @@ class GoogleSheets extends Miscellaneous
             $columns = $this->getFormSettings()->collections['columns'] ?? [];
             $rowValues = [];
 
+            // Just in case...
+            $columns = array_values(array_filter($columns));
+
             foreach ($columns as $key => $column) {
                 $rowValues[$key] = $fieldValues[$column] ?? '';
             }
