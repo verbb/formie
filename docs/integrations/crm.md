@@ -369,7 +369,7 @@ Follow the below steps to connect to the Salesforce API.
         - **Perform requests on your behalf at any time (refresh_token, offline_access)**.
 1. Click the **Save** button.
 1. Copy the **Consumer Key** from Salesforce and paste in the **Consumer Key** field in Formie.
-1. Copy the **AConsumer Secret** from Salesforce and paste in the **Consumer Secret** field in Formie.
+1. Copy the **Consumer Secret** from Salesforce and paste in the **Consumer Secret** field in Formie.
 1. Click on the **Manage** button.
 1. Click on the **Edit Policies** button.
 1. In the **OAuth policies** section:
