@@ -471,6 +471,9 @@ export const Bouncer = function(selector, options) {
 
         // If the message should come after the field
         if (settings.messageAfterField) {
+            if (!target) {
+                target = field;
+            }
 
             // If there's no next sibling, create one
             if (!target.nextSibling) {
