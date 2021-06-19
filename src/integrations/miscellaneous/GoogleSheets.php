@@ -170,7 +170,8 @@ class GoogleSheets extends Miscellaneous
         try {
             $spreadsheet = $this->request('GET', '');
             $allSheets = $spreadsheet['sheets'] ?? [];
-            $sheets = [];
+            $columns = [];
+            $savedColumns = [];
 
             foreach ($allSheets as $key => $sheet) {
                 $response = $this->request('GET', "values/'{$sheet['properties']['title']}'!A1:ZZZ1", [
@@ -180,7 +181,7 @@ class GoogleSheets extends Miscellaneous
                 $allColumns = $response['values'][0] ?? [];
 
                 // Save this for later, we need to when sending
-                $savedColumns = $allColumns;
+                $savedColumns[$sheet['properties']['title']] = $allColumns;
 
                 // But we want to only show columns with a header to map
                 $allColumns = array_filter($allColumns);
@@ -221,7 +222,7 @@ class GoogleSheets extends Miscellaneous
             $fieldValues = $this->getFieldMappingValues($submission, $this->fieldMapping);
 
             // Fetch the columns from our private stash
-            $columns = $this->getFormSettings()->collections['columns'] ?? [];
+            $columns = $this->getFormSettings()->collections['columns'][$this->sheetId] ?? [];
             $rowValues = [];
 
             // Just in case...
