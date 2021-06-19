@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.4.7 - 2021-06-19
+
+### Added
+- Added more logging for mailer-based errors for failed email notifications.
+
+### Fixed
+- Potential fix for Google Sheets not inserting into correct columns in some instances.
+- Fixed minor alignment for field mapping table text.
+- Fixed Google Sheets integration not working correctly when switching between multiple sheets. Please ensure you refresh your form integration settings.
+- Fixed a JS error for client-side validation when using custom form rendering.
+
 ## 1.4.6 - 2021-06-13
 
 ### Added
