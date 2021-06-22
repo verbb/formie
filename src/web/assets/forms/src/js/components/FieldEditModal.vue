@@ -3,7 +3,7 @@
         <modal ref="modal" modal-class="fui-edit-field-modal" :is-visible="visible" @close="onCancel">
             <template slot="header">
                 <h3 class="fui-modal-title">{{ 'Edit Field' | t('formie') }}</h3>
-                <div class="fui-modal-fieldtype">{{ fieldtype.label }}</div>
+                <div v-if="showFieldType" class="fui-modal-fieldtype">{{ fieldtype.label }}</div>
 
                 <div class="fui-dialog-close" @click.prevent="onCancel"></div>
             </template>
@@ -80,6 +80,11 @@ export default {
         },
 
         canDelete: {
+            type: Boolean,
+            default: true,
+        },
+
+        showFieldType: {
             type: Boolean,
             default: true,
         },

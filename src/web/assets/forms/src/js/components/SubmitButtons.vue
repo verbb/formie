@@ -19,6 +19,7 @@
             :can-delete="false"
             :fields-schema="fieldsSchema"
             :tabs-schema="tabsSchema"
+            :show-field-type="false"
             @close="onModalClose"
             @cancel="onModalCancel"
         />
