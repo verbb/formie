@@ -253,7 +253,10 @@ class Forms extends Component
             $transaction->commit();
         } catch (Throwable $e) {
             $transaction->rollBack();
-            throw $e;
+            
+            Formie::error('Unable to save form “' . $form->handle . '”: ' . $e->getMessage());
+
+            return false;
         }
 
         return true;
