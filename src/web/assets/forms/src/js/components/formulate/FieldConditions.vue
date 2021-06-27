@@ -223,11 +223,13 @@ export default {
         getValueType(field, condition) {
             // Check if there are any specific options
             if (field && field.field && field.field.settings) {
+                var testField = field;
                 var options = field.field.settings.options || [];
 
                 // Check for group/repeater fields
                 if (field.field.supportsNested) {
                     options = field.subfield.settings.options || [];
+                    testField = field.subfield;
                 }
 
                 // Only allow picking for 'is' and 'is not'
@@ -236,7 +238,7 @@ export default {
                 }
 
                 // Special case for agree fields
-                if (field.type === 'verbb\\formie\\fields\\formfields\\Agree' && ['=', '!='].includes(condition)) {
+                if (testField.type === 'verbb\\formie\\fields\\formfields\\Agree' && ['=', '!='].includes(condition)) {
                     return 'select';
                 }
             }
@@ -255,15 +257,17 @@ export default {
         getValueOptions(field, condition) {
             // Check if there are any specific options
             if (field && field.field && field.field.settings) {
+                var testField = field;
                 var options = field.field.settings.options || [];
                 
                 // Check for group/repeater fields
                 if (field.field.supportsNested) {
                     options = field.subfield.settings.options || [];
+                    testField = field.subfield;
                 }
 
                 // Special case for agree fields
-                if (field.type === 'verbb\\formie\\fields\\formfields\\Agree') {
+                if (testField.type === 'verbb\\formie\\fields\\formfields\\Agree') {
                     return [
                         { label: 'Checked', value: '1' },
                         { label: 'Unchecked', value: '0' },
