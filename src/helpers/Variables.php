@@ -2,12 +2,13 @@
 namespace verbb\formie\helpers;
 
 use verbb\formie\Formie;
-use verbb\formie\base\NestedFieldInterface;
 use verbb\formie\base\SubFieldInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\fields\formfields\Date;
+use verbb\formie\fields\formfields\Group;
 use verbb\formie\fields\formfields\MultiLineText;
+use verbb\formie\fields\formfields\Repeater;
 use verbb\formie\models\Notification;
 
 use Craft;
@@ -421,7 +422,7 @@ class Variables
                 
                 $values[$handle] = $submissionValue[$subfield['handle']] ?? '';
             }
-        } else if ($field instanceof NestedFieldInterface) {
+        } else if ($field instanceof Group) {
             if ($submissionValue && $row = $submissionValue->one()) {
                 foreach ($row->getFieldLayout()->getFields() as $nestedField) {
                     $submissionValue = $row->getFieldValue($nestedField->handle);
@@ -437,6 +438,8 @@ class Variables
         } else if ($field instanceof BaseRelationField) {
             $values["{$prefix}{$field->handle}"] = $parsedContent;
         } else if ($field instanceof MultiLineText) {
+            $values["{$prefix}{$field->handle}"] = $parsedContent;
+        } else if ($field instanceof Repeater) {
             $values["{$prefix}{$field->handle}"] = $parsedContent;
         } else if ($submissionValue instanceof MultiOptionsFieldData) {
             $values["{$prefix}{$field->handle}"] = implode(', ', array_map(function($item) {
