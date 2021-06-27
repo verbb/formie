@@ -639,9 +639,20 @@ const getters = {
         return [];
     },
 
-    fieldHandlesExcluding: (state, getters, rootState, rootGetters) => (vid) => {
+    fieldHandlesExcluding: (state, getters, rootState, rootGetters) => (vid, parentId) => {
         const allRows = flatMap(state.pages, 'rows');
         let allFields = flatMap(allRows, 'fields');
+
+        // When supplying a parent field, limit handles to children of the parent
+        if (parentId) {
+            const field = getters.fields.find(field => {
+                return field.vid === parentId;
+            });
+
+            if (field) {
+                allFields = flatMap(field.rows, 'fields');
+            }
+        }
 
         allFields = omitBy(allFields, { vid });
 

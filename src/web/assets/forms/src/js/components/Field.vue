@@ -218,7 +218,7 @@ export default {
         },
 
         fieldHandles() {
-            return this.$store.getters['form/fieldHandlesExcluding'](this.field.vid);
+            return this.$store.getters['form/fieldHandlesExcluding'](this.field.vid, this.parentFieldId);
         },
 
         fieldCanRequire() {
@@ -353,6 +353,7 @@ export default {
                 handles = this.$store.getters['form/fieldHandlesForField'](this.parentFieldId);
             }
 
+            // Generate a unique handle, and ensure its under the 64 char db limit (factoring in `field_`)
             const value = getNextAvailableHandle(handles, generatedHandle, 0);
             let newHandle = value.substr(0, 58);
 

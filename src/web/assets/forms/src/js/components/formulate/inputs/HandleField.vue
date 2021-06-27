@@ -106,14 +106,12 @@ export default {
                 this.rotate = this.rotate + 180;
             }
 
+            // For Repeater/Groups, we need to fetch handles from the parent field for the nested field
+            let parentFieldId = (this.$editingField && this.$editingField.parentFieldId) ? this.$editingField.parentFieldId : null;
+
             // Let's get smart about generating a handle. Check if its unqique - if it isn't, make it unique
             const generatedHandle = generateHandle(this.proxySourceValue);
-            let handles = this.$store.getters['form/fieldHandlesExcluding'](this.proxyFieldId);
-
-            // For Repeater/Groups, we need to fetch handles from the field
-            if (this.$editingField && this.$editingField.parentFieldId) {
-                handles = this.$store.getters['form/fieldHandlesForField'](this.$editingField.parentFieldId);
-            }
+            let handles = this.$store.getters['form/fieldHandlesExcluding'](this.proxyFieldId, parentFieldId);
 
             if (this.proxyCollection.length) {
                 handles = this.proxyCollection;
