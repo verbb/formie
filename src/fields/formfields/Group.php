@@ -224,7 +224,7 @@ class Group extends FormField implements NestedFieldInterface, EagerLoadingField
      */
     public function getContentGqlType()
     {
-        $typeName = $this->getForm()->handle . '_' . $this->handle . '_FormieGroupField';
+        $typeName = ($this->getForm()->handle ?? '') . '_' . $this->handle . '_FormieGroupField';
 
         if ($inputType = GqlEntityRegistry::getEntity($typeName)) {
             return $inputType;

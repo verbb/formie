@@ -347,7 +347,7 @@ class Repeater extends FormField implements NestedFieldInterface, EagerLoadingFi
      */
     public function getContentGqlType()
     {
-        $typeName = $this->getForm()->handle . '_' . $this->handle . '_FormieRepeaterField';
+        $typeName = ($this->getForm()->handle ?? '') . '_' . $this->handle . '_FormieRepeaterField';
 
         if ($inputType = GqlEntityRegistry::getEntity($typeName)) {
             return $inputType;
