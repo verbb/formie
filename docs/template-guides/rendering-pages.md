@@ -8,7 +8,7 @@ Rendering a page can be acheived with the following Twig.
 
 {% for page in form.getPages() %}
     {{ craft.formie.renderPage(form, page) }}
-{% endif %}
+{% endfor %}
 ```
 
 Here, we fetch the [Form](docs:developers/form) object, call `getPages()` to fetch all the pages the form has, and loop through them. Even for single-page forms, `getPages()` will return an array of [Page](docs:developers/page) objects.

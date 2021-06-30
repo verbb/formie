@@ -34,7 +34,7 @@ Renders a single page, taking into account custom [Form Templates](docs:feature-
 
 {% for page in form.getPages() %}
     {{ craft.formie.renderPage(form, page) }}
-{% endif %}
+{% endfor %}
 ```
 
 
