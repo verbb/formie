@@ -213,7 +213,7 @@ class User extends Element
             $user->setFieldValues($fieldValues);
 
             if (!$user->validate()) {
-                Integration::error(Craft::t('formie', 'Unable to validate “{type}” element integration. Error: {error}.', [
+                Integration::error($this, Craft::t('formie', 'Unable to validate “{type}” element integration. Error: {error}.', [
                     'type' => $this->handle,
                     'error' => Json::encode($user->getErrors()),
                 ]), true);
@@ -222,7 +222,7 @@ class User extends Element
             }
 
             if (!Craft::$app->getElements()->saveElement($user)) {
-                Integration::error(Craft::t('formie', 'Unable to save “{type}” element integration. Error: {error}.', [
+                Integration::error($this, Craft::t('formie', 'Unable to save “{type}” element integration. Error: {error}.', [
                     'type' => $this->handle,
                     'error' => Json::encode($user->getErrors()),
                 ]), true);
@@ -256,7 +256,7 @@ class User extends Element
                 $submission->setFieldValue($passwordFieldHandle, '');
             
                 if (!Craft::$app->getElements()->saveElement($submission, false)) {
-                    Integration::error(Craft::t('formie', 'Unable to save “{type}” element integration. Error: {error}.', [
+                    Integration::error($this, Craft::t('formie', 'Unable to save “{type}” element integration. Error: {error}.', [
                         'type' => $this->handle,
                         'error' => Json::encode($submission->getErrors()),
                     ]), true);

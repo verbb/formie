@@ -216,7 +216,7 @@ class Entry extends Element
     public function sendPayload(Submission $submission)
     {
         if (!$this->entryTypeId) {
-            Integration::error(Craft::t('formie', 'Unable to save element integration. No `entryTypeId`.'), true);
+            Integration::error($this, Craft::t('formie', 'Unable to save element integration. No `entryTypeId`.'), true);
             
             return false;
         }
@@ -258,7 +258,7 @@ class Entry extends Element
                     $entry->setScenario(CraftElement::SCENARIO_ESSENTIALS);
                     
                     if (!Craft::$app->getDrafts()->saveElementAsDraft($entry, $authorId)) {
-                        Integration::error(Craft::t('formie', 'Unable to save “{type}” draft element integration. Error: {error}.', [
+                        Integration::error($this, Craft::t('formie', 'Unable to save “{type}” draft element integration. Error: {error}.', [
                             'type' => $this->handle,
                             'error' => Json::encode($entry->getErrors()),
                         ]), true);
@@ -283,7 +283,7 @@ class Entry extends Element
             }
 
             if (!Craft::$app->getElements()->saveElement($entry)) {
-                Integration::error(Craft::t('formie', 'Unable to save “{type}” element integration. Error: {error}.', [
+                Integration::error($this, Craft::t('formie', 'Unable to save “{type}” element integration. Error: {error}.', [
                     'type' => $this->handle,
                     'error' => Json::encode($entry->getErrors()),
                 ]), true);
