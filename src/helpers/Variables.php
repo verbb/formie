@@ -448,6 +448,11 @@ class Variables
         } else {
             // Try to convert as a simple string value, if not, fall back on email template
             try {
+                // Override the value for emails if encrypting
+                if ($this->enableContentEncryption) {
+                    $submissionValue = '••••••••••••••••••••••••••••••••';
+                }
+                
                 $values["{$prefix}{$field->handle}"] = (string)$submissionValue;
             } catch (\Throwable $e) {
                 if ($parsedContent) {
