@@ -24,7 +24,9 @@ export class FormieDatePicker {
         const defaultOptions = {
             disableMobile: true,
             allowInput: true,
-            dateFormat: this.dateFormat,
+            altInput: true,
+            altFormat: this.dateFormat,
+            dateFormat: 'Y-m-d',
             enableTime: this.includeTime,
             hourIncrement: 1,
             minuteIncrement: 1,
