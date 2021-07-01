@@ -3,6 +3,7 @@ namespace verbb\formie\base;
 
 use verbb\formie\Formie;
 use verbb\formie\elements\Form;
+use verbb\formie\elements\NestedFieldRow;
 use verbb\formie\elements\Submission;
 use verbb\formie\fields\formfields\BaseOptionsField;
 use verbb\formie\helpers\ConditionsHelper;
@@ -777,7 +778,7 @@ trait FormFieldTrait
     /**
      * @inheritDoc
      */
-    public function getConditionsJson()
+    public function getConditionsJson($element = null)
     {
         if ($this->enableConditions) {
             $conditionSettings = Json::decode($this->conditions) ?? [];
@@ -791,6 +792,12 @@ trait FormFieldTrait
 
                 // Dot-notation to name input syntax
                 $condition['field'] = $namespace . '[' . str_replace(['{', '}', '.'], ['', '', ']['], $condition['field']) . ']';
+                
+                // A little extra work for Group/Repeater fields, which conditions would be set with `new1`.
+                // When going back to a previous page this will be replaced with the blockId and the condition won't work.
+                if ($element instanceof NestedFieldRow && $element->id) {
+                    $condition['field'] = preg_replace('/\[new\d*\]/', "[$element->id]", $condition['field']);
+                }
             }
 
             $conditionSettings['conditions'] = $conditions;
