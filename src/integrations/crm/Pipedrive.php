@@ -380,7 +380,7 @@ class Pipedrive extends Crm
             'set' => IntegrationField::TYPE_ARRAY,
             'phone' => IntegrationField::TYPE_ARRAY,
             'int' => IntegrationField::TYPE_NUMBER,
-            'double' => IntegrationField::TYPE_NUMBER,
+            'double' => IntegrationField::TYPE_FLOAT,
             'monetary' => IntegrationField::TYPE_NUMBER,
             'user' => IntegrationField::TYPE_NUMBER,
             'org' => IntegrationField::TYPE_NUMBER,

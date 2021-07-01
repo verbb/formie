@@ -419,11 +419,11 @@ class Zoho extends Crm
             'timestamp' => IntegrationField::TYPE_DATETIME,
             'boolean' => IntegrationField::TYPE_BOOLEAN,
             'integer' => IntegrationField::TYPE_NUMBER,
-            'number' => IntegrationField::TYPE_NUMBER,
+            'number' => IntegrationField::TYPE_FLOAT,
             'bigint' => IntegrationField::TYPE_NUMBER,
-            'currency' => IntegrationField::TYPE_NUMBER,
-            'double' => IntegrationField::TYPE_NUMBER,
-            'decimal' => IntegrationField::TYPE_NUMBER,
+            'currency' => IntegrationField::TYPE_FLOAT,
+            'double' => IntegrationField::TYPE_FLOAT,
+            'decimal' => IntegrationField::TYPE_FLOAT,
         ];
 
         return $fieldTypes[$fieldType] ?? IntegrationField::TYPE_STRING;

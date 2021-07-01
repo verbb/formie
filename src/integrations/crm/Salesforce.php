@@ -446,9 +446,9 @@ class Salesforce extends Crm
             'boolean' => IntegrationField::TYPE_BOOLEAN,
             'multipicklist' => IntegrationField::TYPE_ARRAY,
             'int' => IntegrationField::TYPE_NUMBER,
-            'number' => IntegrationField::TYPE_NUMBER,
-            'currency' => IntegrationField::TYPE_NUMBER,
-            'double' => IntegrationField::TYPE_NUMBER,
+            'number' => IntegrationField::TYPE_FLOAT,
+            'currency' => IntegrationField::TYPE_FLOAT,
+            'double' => IntegrationField::TYPE_FLOAT,
             'date' => IntegrationField::TYPE_DATE,
             'datetime' => IntegrationField::TYPE_DATETIME,
         ];

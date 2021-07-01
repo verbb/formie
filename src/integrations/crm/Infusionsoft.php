@@ -326,9 +326,9 @@ class Infusionsoft extends Crm
     {
         $fieldTypes = [
             'ListBox' => IntegrationField::TYPE_ARRAY,
-            'Number' => IntegrationField::TYPE_NUMBER,
+            'Number' => IntegrationField::TYPE_FLOAT,
             'WholeNumber' => IntegrationField::TYPE_NUMBER,
-            'Currency' => IntegrationField::TYPE_NUMBER,
+            'Currency' => IntegrationField::TYPE_FLOAT,
             'Date' => IntegrationField::TYPE_DATE,
             'DateTime' => IntegrationField::TYPE_DATETIME,
         ];

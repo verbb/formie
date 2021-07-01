@@ -667,7 +667,7 @@ class Copper extends Crm
     private function _convertFieldType($fieldType)
     {
         $fieldTypes = [
-            'Float' => IntegrationField::TYPE_NUMBER,
+            'Float' => IntegrationField::TYPE_FLOAT,
             'Checkbox' => IntegrationField::TYPE_BOOLEAN,
             'Date' => IntegrationField::TYPE_DATE,
             'MultiSelect' => IntegrationField::TYPE_ARRAY,

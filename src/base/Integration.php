@@ -776,6 +776,15 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
             return intval($value);
         }
 
+        if ($integrationField->getType() === IntegrationField::TYPE_FLOAT) {
+            // If a non-plain value, and the field doesn't implement a __toString, can't reliably serialize it...
+            if (is_array($value) || (is_object($value) && !method_exists($value, '__toString'))) {
+                return 0.0;
+            }
+
+            return floatval($value);
+        }
+
         if ($integrationField->getType() === IntegrationField::TYPE_STRING) {
             // If a non-plain value, and the field doesn't implement a __toString, can't reliably serialize it...
             if (is_array($value) || (is_object($value) && !method_exists($value, '__toString'))) {

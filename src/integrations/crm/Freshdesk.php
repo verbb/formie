@@ -431,7 +431,7 @@ class Freshdesk extends Crm
         $fieldTypes = [
             'custom_date' => IntegrationField::TYPE_DATETIME,
             'custom_checkbox' => IntegrationField::TYPE_BOOLEAN,
-            'custom_decimal' => IntegrationField::TYPE_NUMBER,
+            'custom_decimal' => IntegrationField::TYPE_FLOAT,
             'custom_number' => IntegrationField::TYPE_NUMBER,
         ];
 

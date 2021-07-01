@@ -198,7 +198,7 @@ class Sendinblue extends EmailMarketing
     private function _convertFieldType($fieldType)
     {
         $fieldTypes = [
-            'float' => IntegrationField::TYPE_NUMBER,
+            'float' => IntegrationField::TYPE_FLOAT,
             'date' => IntegrationField::TYPE_DATETIME,
             'boolean' => IntegrationField::TYPE_BOOLEAN,
         ];

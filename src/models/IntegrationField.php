@@ -11,6 +11,7 @@ class IntegrationField extends Model
 
     const TYPE_STRING = 'string';
     const TYPE_NUMBER = 'number';
+    const TYPE_FLOAT = 'float';
     const TYPE_BOOLEAN = 'boolean';
     const TYPE_DATE = 'date';
     const TYPE_DATETIME = 'datetime';

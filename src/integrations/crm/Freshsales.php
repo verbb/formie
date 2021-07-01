@@ -678,7 +678,7 @@ class Freshsales extends Crm
         $fieldTypes = [
             'date' => IntegrationField::TYPE_DATETIME,
             'checkbox' => IntegrationField::TYPE_BOOLEAN,
-            'decimal' => IntegrationField::TYPE_NUMBER,
+            'decimal' => IntegrationField::TYPE_FLOAT,
             'number' => IntegrationField::TYPE_NUMBER,
         ];
 
