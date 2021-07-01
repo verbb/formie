@@ -3,6 +3,7 @@ namespace verbb\formie\gql\types;
 
 use craft\gql\base\ObjectType;
 use craft\gql\GqlEntityRegistry;
+use craft\gql\interfaces\elements\Entry as EntryInterface;
 use craft\helpers\Json;
 
 use GraphQL\Type\Definition\Type;
@@ -76,6 +77,19 @@ class FormSettingsType extends ObjectType
                     'name' => 'submitActionMessageTimeout',
                     'type' => Type::int(),
                     'description' => 'The form’s submit success message timeout.'
+                ],
+                'redirectUrl' => [
+                    'name' => 'redirectUrl',
+                    'type' => Type::string(),
+                    'description' => 'The form’s submit action redirect URL.',
+                    'resolve' => function($class) {
+                        return $class->getFormRedirectUrl(false);
+                    },
+                ],
+                'redirectEntry' => [
+                    'name' => 'redirectEntry',
+                    'type' => EntryInterface::getType(),
+                    'description' => 'The form’s submit action entry (for redirection).'
                 ],
                 'errorMessageHtml' => [
                     'name' => 'errorMessageHtml',

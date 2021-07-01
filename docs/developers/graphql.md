@@ -164,6 +164,8 @@ This is the interface implemented by all forms.
 | `submitActionFormHide`| `Boolean` | Whether to hide the form’s success message.
 | `submitActionMessageHtml`| `String` | The form’s submit success message.
 | `submitActionMessageTimeout`| `Integer` | The form’s submit success message timeout.
+| `redirectUrl`| `String` | The form’s submit action redirect URL.
+| `redirectEntry`| `EntryInterface` | The form’s submit action entry (for redirection).
 | `errorMessageHtml`| `String` | The form’s submit error message.
 | `loadingIndicator`| `Boolean` | Whether to show the form’s loading indicator.
 | `loadingIndicatorText`| `String` | The form’s loading indicator text.

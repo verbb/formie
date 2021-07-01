@@ -70,10 +70,15 @@ class FormSettings extends Model
     public $redirectUrl;
     public $defaultEmailTemplateId = '';
 
-
     // TODO: to remove
     public $storeData;
     public $userDeletedAction;
+
+
+    // Private Properties
+    // =========================================================================
+
+    private $_form;
 
 
     // Public Methods
@@ -148,6 +153,22 @@ class FormSettings extends Model
             ]
         ];
     }
+    
+    /**
+     * @inheritDoc
+     */
+    public function getForm()
+    {
+        return $this->_form;
+    }
+    
+    /**
+     * @inheritDoc
+     */
+    public function setForm($value)
+    {
+        $this->_form = $value;
+    }
 
     /**
      * @inheritDoc
@@ -209,10 +230,33 @@ class FormSettings extends Model
         return $enabledIntegrations;
     }
 
+    /**
+     * Gets the form's redirect URL.
+     *
+     * @return String
+     */
+    public function getFormRedirectUrl($checkLastPage = true)
+    {
+        return $this->getForm()->getRedirectUrl($checkLastPage);
+    }
+
+    /**
+     * Gets the form's redirect entry, or null if not set.
+     *
+     * @return Entry|null
+     */
+    public function getRedirectEntry()
+    {
+        return $this->getForm()->getRedirectEntry();
+    }
+
 
     // Private Methods
     // =========================================================================
-
+    
+    /**
+     * @inheritDoc
+     */
     private function _getHtmlContent($content, $submission = null)
     {
         if (is_string($content)) {
