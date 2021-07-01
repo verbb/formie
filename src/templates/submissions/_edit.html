@@ -40,6 +40,12 @@
                             <span class="shortcut">⌘S</span>
                         </a>
                     </li>
+
+                    <li>
+                        <a class="formsubmit" data-param="saveAction" data-value="draft" data-redirect="{{ continueEditingUrl | hash }}">
+                            {{ "Save as draft" | t('app') }}
+                        </a>
+                    </li>
                 </ul>
 
                 {% if submission.id %}

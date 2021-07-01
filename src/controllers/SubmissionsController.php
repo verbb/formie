@@ -191,6 +191,10 @@ class SubmissionsController extends Controller
             $submission->setScenario(Element::SCENARIO_LIVE);
         }
 
+        if ($request->getParam('saveAction') === 'draft') {
+            $submission->setScenario(Element::SCENARIO_ESSENTIALS);
+        }
+
         // Check if this is a front-end edit
         if ($request->getIsSiteRequest()) {
             $goingBack = (bool)$request->getBodyParam('goingBack');
