@@ -4,6 +4,7 @@ namespace verbb\formie\elements;
 use verbb\formie\Formie;
 use verbb\formie\base\FormFieldInterface;
 use verbb\formie\base\IntegrationInterface;
+use verbb\formie\base\NestedFieldInterface;
 use verbb\formie\behaviors\FieldLayoutBehavior;
 use verbb\formie\elements\db\FormQuery;
 use verbb\formie\models\FieldLayout;
@@ -586,6 +587,14 @@ class Form extends Element
         foreach ($this->getFields() as $field) {
             if ($field->enableConditions) {
                 return true;
+            }
+
+            if ($field instanceof NestedFieldInterface) {
+                foreach ($field->getFields() as $nestedField) {
+                    if ($nestedField->enableConditions) {
+                        return true;
+                    }
+                }
             }
         }
 
