@@ -629,6 +629,15 @@ class Submission extends Element
         }
 
         parent::setFieldValuesFromRequest($paramNamespace);
+
+        // Any conditionally hidden fields should have their content excluded when saving.
+        if ($this->getFieldLayout()) {
+            foreach ($this->getFieldLayout()->getFields() as $field) {
+                if ($field->isConditionallyHidden($this)) {
+                    $this->setFieldValue($field->handle, null);
+                }
+            }
+        }
     }
 
     /**
