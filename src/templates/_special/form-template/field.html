@@ -90,7 +90,7 @@
     ],
     data: {
         'field-config': field.getConfigJson(),
-        'field-conditions': field.getConditionsJson(),
+        'field-conditions': field.getConditionsJson(element),
     },
     html: html,
 } | merge(fieldAttributes) | merge(containerAttributes) %}
