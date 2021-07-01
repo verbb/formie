@@ -1,7 +1,11 @@
 {% if form.hasMultiplePages and form.settings.displayPageTabs %}
     <div class="fui-tabs" data-fui-page-tabs>
         {% for p in form.pages %}
-            <div id="fui-tab-{{ p.id }}" class="fui-tab {{ (p.id == currentPage.id) ? 'fui-tab-active' }}" data-fui-page-tab>
+            {% set attributes = {
+                'data-field-conditions': p.getConditionsJson(),
+            } %}
+
+            <div id="fui-tab-{{ p.id }}" class="fui-tab {{ (p.id == currentPage.id) ? 'fui-tab-active' }}" data-fui-page-tab {{ attr(attributes) }}>
                 {%- set params = { handle: form.handle, pageId: p.id } -%}
 
                 {%- if submission and submission.id and form.isEditingSubmission() -%}

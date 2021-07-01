@@ -172,4 +172,29 @@ class FieldLayoutPage extends CraftFieldLayoutTab
 
         return false;
     }
+
+    /**
+     * @inheritDoc
+     */
+    public function getConditionsJson()
+    {
+        if ($this->settings->enablePageConditions) {
+            $conditionSettings = Json::decode($this->settings->pageConditions) ?? [];
+            $conditions = $conditionSettings['conditions'] ?? [];
+
+            // Prep the conditions for JS
+            foreach ($conditions as &$condition) {
+                ArrayHelper::remove($condition, 'id');
+
+                // Dot-notation to name input syntax
+                $condition['field'] = 'fields[' . str_replace(['{', '}', '.'], ['', '', ']['], $condition['field']) . ']';
+            }
+
+            $conditionSettings['conditions'] = $conditions;
+
+            return Json::encode($conditionSettings);
+        }
+
+        return null;
+    }
 }
