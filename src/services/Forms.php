@@ -118,9 +118,10 @@ class Forms extends Component
             $form->oldHandle = $this->getOldHandle($form);
         }
 
+        $db = Craft::$app->getDb();
         $fieldsService = Craft::$app->getFields();
         $contentService = Craft::$app->getContent();
-        $transaction = Craft::$app->db->beginTransaction();
+        $transaction = $db->beginTransaction();
 
         try {
             // Prep the fields for save
@@ -149,8 +150,8 @@ class Forms extends Component
             $contentService->contentTable = $form->fieldContentTable;
 
             // Create table or rename if necessary.
-            if (!Craft::$app->getDb()->tableExists($contentTable)) {
-                if ($oldContentTable && Craft::$app->db->tableExists($oldContentTable)) {
+            if (!$db->tableExists($contentTable)) {
+                if ($oldContentTable && $db->tableExists($oldContentTable)) {
                     MigrationHelper::renameTable($oldContentTable, $contentTable);
                 } else {
                     $this->_createContentTable($contentTable);

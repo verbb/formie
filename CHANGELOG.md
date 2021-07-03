@@ -1,5 +1,33 @@
 # Changelog
 
+## 1.4.8 - 2021-07-03
+
+### Added
+- Added support for more error message details for failed email notifications (for Craft 3.7 beta and greater only).
+- Added `redirectUrl` and `redirectEntry` to GraphQL FormSettings interface.
+- Added “Save as draft” option for submissions to save as a draft state.
+
+### Changed
+- Changed behaviour for conditionally-hidden fields, which now set their value to `null` on submission.
+
+### Fixed
+- Fixed multi-page forms not hiding page tab, if conditionally hidden/shown based on field conditions.
+- Fixed group field conditions not working correctly when revisiting a completed page, on a multi-page form.
+- Fixed group field conditions not working correctly when revisiting a completed page, on a multi-page form.
+- Fixed Group/Repeater inner field conditions not initialising JS correctly, if no other conditions set for the form.
+- Fixed date fields not saving values when format is not set to “YYYY-MM-DD” and using the Flatpickr datepicker.
+- Fixed element integrations not handling decimals when mapping to number fields.
+- Fixed some integrations not casting numbers to floats, when they should be.
+- Fixed element integrations throwing an error when trying to catch errors.
+- Fixed fields set to Enable Content Encryption showing their content in email notifications.
+- Fixed potential GQL issue for Repeater/Group fields when querying.
+- Fixed repeater fields throwing an error in email notifications.
+- Fixed Group/Repeater fields not saving very long field names, when a database table prefix was set.
+- Fixed not showing form errors correctly, in some rare cases.
+- Fixed nested field (in Repeater/Group) validating handles incorrectly, where an outer field and inner field couldn’t have the same handle (which is valid).
+- Fixed Agree field inside Group/Repeater fields being unable to select value when used in conditionals.
+- Fixed submit button edit modal showing “Missing Field” incorrectly.
+
 ## 1.4.7 - 2021-06-19
 
 ### Added
