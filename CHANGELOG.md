@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.4.9 - 2021-07-11
+
+### Changed
+- Removed `from` email from Contact Form stencil. This will default to the system email, and should be used generally for better deliverability.
+- Update Mailchimp integration to use `status_if_new` when using “Double Opt-in”.
+
+### Fixed
+- Fixed global sets not being site-aware for multi-sites, when used in email notifications as variables.
+- Fixed an error that causes variables for email notifications to be incorrectly parsed.
+- Fixed address and name required subfields missing `fui-field-required` class for default templates.
+- Fixed reCAPTCHA v2 invisible captcha capturing tab autofocus in a form.
+- Fixed reCAPTCHA v3 capturing tab autofocus in a form.
+
 ## 1.4.8 - 2021-07-03
 
 ### Added
