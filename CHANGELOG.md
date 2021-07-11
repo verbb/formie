@@ -13,7 +13,6 @@
 ### Fixed
 - Fixed multi-page forms not hiding page tab, if conditionally hidden/shown based on field conditions.
 - Fixed group field conditions not working correctly when revisiting a completed page, on a multi-page form.
-- Fixed group field conditions not working correctly when revisiting a completed page, on a multi-page form.
 - Fixed Group/Repeater inner field conditions not initialising JS correctly, if no other conditions set for the form.
 - Fixed date fields not saving values when format is not set to “YYYY-MM-DD” and using the Flatpickr datepicker.
 - Fixed element integrations not handling decimals when mapping to number fields.
