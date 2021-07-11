@@ -176,6 +176,12 @@ class Variables
             $site = Craft::$app->getSites()->getSiteById($siteId);
             $siteName = $site->name ?? '';
 
+            // Set the current site based on the site saved against the submission. When being run from a queue
+            // there's no concept of the 'site' we're currently on.
+            if ($site) {
+                Craft::$app->getSites()->setCurrentSite($site);
+            }
+
             $craftMailSettings = App::mailSettings();
             $systemEmail = $craftMailSettings->fromEmail;
             $systemReplyTo = $craftMailSettings->replyToEmail;
