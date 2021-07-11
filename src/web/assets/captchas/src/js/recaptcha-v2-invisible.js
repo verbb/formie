@@ -109,6 +109,13 @@ export class FormieRecaptchaV2Invisible {
 
             // Update the placeholder with our ID, in case we need to re-render it
             this.$placeholder.setAttribute('data-recaptcha-id', id);
+
+            // Add a `tabindex` attribute to the iframe to prevent tabbing-to
+            let iframe = this.$placeholder.querySelector('iframe');
+
+            if (iframe) {
+                iframe.setAttribute('tabindex', '-1');
+            }
         });
     }
 
