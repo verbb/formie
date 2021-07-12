@@ -4,6 +4,7 @@ namespace verbb\formie\elements;
 use verbb\formie\Formie;
 use verbb\formie\base\FormField;
 use verbb\formie\base\FormFieldTrait;
+use verbb\formie\base\NestedFieldInterface;
 use verbb\formie\elements\actions\SetSubmissionSpam;
 use verbb\formie\elements\actions\SetSubmissionStatus;
 use verbb\formie\elements\db\SubmissionQuery;
@@ -634,7 +635,12 @@ class Submission extends Element
         if ($this->getFieldLayout()) {
             foreach ($this->getFieldLayout()->getFields() as $field) {
                 if ($field->isConditionallyHidden($this)) {
-                    $this->setFieldValue($field->handle, null);
+                    // Reset the field value - watch out for some fields
+                    if ($field instanceof NestedFieldInterface) {
+                        $this->setFieldValue($field->handle, []);
+                    } else {
+                        $this->setFieldValue($field->handle, null);
+                    }
                 }
             }
         }
