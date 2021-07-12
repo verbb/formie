@@ -578,7 +578,7 @@ class Form extends Element
     }
 
     /**
-     * Returns true if anu form field has conditions configured.
+     * Returns true if any form field has conditions configured.
      *
      * @return bool
      */
@@ -601,6 +601,11 @@ class Form extends Element
         return false;
     }
 
+    /**
+     * Returns true if any page buttons has conditions configured.
+     *
+     * @return bool
+     */
     public function hasButtonConditions(): bool
     {
         foreach ($this->getPages() as $page) {
@@ -610,6 +615,32 @@ class Form extends Element
         }
         
         return false;
+    }
+
+    /**
+     * Returns true if any page has conditions configured.
+     *
+     * @return bool
+     */
+    public function hasPageConditions(): bool
+    {
+        foreach ($this->getPages() as $page) {
+            if ($page->settings->enablePageConditions) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
+
+    /**
+     * Returns true if any field, page buttons or page has conditions configured.
+     *
+     * @return bool
+     */
+    public function hasConditions(): bool
+    {
+        return $this->hasFieldConditions() || $this->hasButtonConditions() || $this->hasPageConditions();
     }
 
     /**
@@ -1146,7 +1177,7 @@ class Form extends Element
         }
 
         // See if we have any conditions setup for the form. No need to include otherwise
-        if ($this->hasFieldConditions() || $this->hasButtonConditions()) {
+        if ($this->hasConditions()) {
             $registeredJs[] = [
                 'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/fields/conditions.js', true),
                 'module' => 'FormieConditions',
