@@ -104,8 +104,15 @@ export class FormieConditions {
                     testOptions.isDate = true;
                 }
 
-                // Handle checkboxes and radio, which are a bit of a pain
-                if (inputType === 'checkbox' || inputType === 'radio') {
+                // Handle agree fields, which are a single checkbox, checked/unchecked
+                if ($target.getAttribute('data-fui-input-type') === 'agree') {
+                    // Convert the value to boolean to compare
+                    result = this.testCondition(logic, (value == '0') ? false : true, $target.checked);
+
+                    results.push(result);
+
+                // Handle (multi) checkboxes and radio, which are a bit of a pain
+                } else if (inputType === 'checkbox' || inputType === 'radio') {
                     // Exclude any checkboxes that don't have conditions setup. We don't need to test against them
                     if ($target.value === value) {
                         // If the checkbox isn't checked, it's automatically false, but important to record
