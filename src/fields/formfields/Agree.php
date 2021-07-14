@@ -172,7 +172,7 @@ class Agree extends FormField implements PreviewableFieldInterface
             ]),
             SchemaHelper::textField([
                 'label' => Craft::t('formie', 'Unchecked Value'),
-                'help' => Craft::t('formie', 'he value of this field when it is unchecked.'),
+                'help' => Craft::t('formie', 'The value of this field when it is unchecked.'),
                 'name' => 'uncheckedValue',
                 'validation' => 'required',
                 'required' => true,
