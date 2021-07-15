@@ -404,8 +404,10 @@ class Emails extends Component
 
     private function _getFilteredString($string)
     {
-        $string = StringHelper::replaceMb4($string, '');
         $string = trim(Craft::parseEnv(trim($string)));
+
+        // Strip out any emoji's
+        $string = trim(StringHelper::replaceMb4($string, ''));
 
         return $string;
     }
