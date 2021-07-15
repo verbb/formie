@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.4.10 - 2021-07-15
+
+### Fixed
+- Fixed Craft 3.7+ incompatibility when creating new fields.
+- Fixed potential issue with sent notifications not saving when long values are used for "From Name".
+- Fixed Date fields not getting correct "fake" values when previewing an email notification.
+- Fixed agree fields conditions, when trying to evaluate an "Unchecked" state.
+- Fixed Group and Repeater fields not having their fields reset if being conditionally hidden with previous content.
+- Fixed conditions JS not outputting when only page-based conditions have been created.
+
 ## 1.4.9 - 2021-07-11
 
 ### Changed
