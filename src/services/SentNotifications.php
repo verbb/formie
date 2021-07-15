@@ -56,7 +56,9 @@ class SentNotifications extends Component
         }
 
         // Make sure to truncate values
-        $subject = StringHelper::safeTruncate($email->getSubject(), 255);
+        $subject = StringHelper::safeTruncate((string)$email->getSubject(), 255);
+        $replyToName = StringHelper::safeTruncate((string)$replyToName, 255);
+        $fromName = StringHelper::safeTruncate((string)$fromName, 255);
 
         $sentNotification = new SentNotification();
         $sentNotification->title = $notification->name;
