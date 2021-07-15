@@ -404,7 +404,10 @@ class Emails extends Component
 
     private function _getFilteredString($string)
     {
-        return trim(Craft::parseEnv(trim($string)));
+        $string = StringHelper::replaceMb4($string, '');
+        $string = trim(Craft::parseEnv(trim($string)));
+
+        return $string;
     }
 
     private function _getParsedEmails($emails)
