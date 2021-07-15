@@ -601,7 +601,7 @@ class Submissions extends Component
 
                     break;
                 case formfields\Date::class:
-                    $fieldContent[$field->handle] = $faker->iso8601;
+                    $fieldContent[$field->handle] = $faker->dateTime();
 
                     break;
                 case formfields\Dropdown::class:
