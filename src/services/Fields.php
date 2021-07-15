@@ -1016,7 +1016,7 @@ class Fields extends Component
      */
     private function _createFieldQuery(): Query
     {
-        return (new Query())
+        $query = (new Query())
             ->select([
                 'fields.id',
                 'fields.dateCreated',
@@ -1033,11 +1033,17 @@ class Fields extends Component
                 'fields.settings',
                 'fields.uid',
             ])
-            ->from([CraftTable::FIELDS . ' fields'])
-            ->orderBy([
-                'fields.name' => SORT_ASC,
-                'fields.handle' => SORT_ASC
-            ]);
+            ->from(['fields' => CraftTable::FIELDS])
+            ->orderBy(['fields.name' => SORT_ASC, 'fields.handle' => SORT_ASC]);
+
+        // TODO: remove schema version condition after next beakpoint
+        $schemaVersion = Craft::$app->getInstalledSchemaVersion();
+        
+        if (version_compare($schemaVersion, '3.7.0', '>=')) {
+            $query->addSelect(['fields.columnSuffix']);
+        }
+
+        return $query;
     }
 
     /**

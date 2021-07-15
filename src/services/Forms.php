@@ -494,6 +494,7 @@ class Forms extends Component
                         'type' => $fieldData['type'],
                         'name' => $fieldData['label'] ?? null,
                         'handle' => $fieldData['handle'] ?? null,
+                        'columnSuffix' => $fieldData['columnSuffix'] ?? null,
                         'rowId' => $fieldData['rowId'] ?? null,
                         'rowIndex' => $rowIndex,
                         'columnWidth' => $columnWidth,
