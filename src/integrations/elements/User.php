@@ -212,6 +212,11 @@ class User extends Element
 
             $user->setFieldValues($fieldValues);
 
+            // Allow events to cancel sending - return as success
+            if (!$this->beforeSendPayload($submission, '', $user, '')) {
+                return true;
+            }
+
             if (!$user->validate()) {
                 Integration::error($this, Craft::t('formie', 'Unable to validate “{type}” element integration. Error: {error}.', [
                     'type' => $this->handle,
@@ -265,6 +270,10 @@ class User extends Element
                 }
             }
 
+            // Allow events to say the response is invalid
+            if (!$this->afterSendPayload($submission, '', $entry, '', [])) {
+                return true;
+            }
         } catch (\Throwable $e) {
             $error = Craft::t('formie', 'Element integration failed for submission “{submission}”. Error: {error} {file}:{line}', [
                 'error' => $e->getMessage(),

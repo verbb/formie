@@ -249,6 +249,11 @@ class Entry extends Element
             $entry->setFieldValues($fieldValues);
             $entry->updateTitle();
 
+            // Allow events to cancel sending - return as success
+            if (!$this->beforeSendPayload($submission, '', $entry, '')) {
+                return true;
+            }
+
             // Check if we need to create a new draft
             if ($this->createDraft) {
                 $authorId = $entry->authorId ?? Craft::$app->getUser()->getId();
@@ -289,6 +294,11 @@ class Entry extends Element
                 ]), true);
                 
                 return false;
+            }
+
+            // Allow events to say the response is invalid
+            if (!$this->afterSendPayload($submission, '', $entry, '', [])) {
+                return true;
             }
         } catch (\Throwable $e) {
             $error = Craft::t('formie', 'Element integration failed for submission “{submission}”. Error: {error} {file}:{line}', [
