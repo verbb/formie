@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.4.11 - 2021-07-25
+
+### Added
+- Added `email`, `notification`, `notificationContent` and `submission` to email notification queue jobs, to assist better with troubleshooting failed queue jobs.
+- Added `payload` to integration queue jobs, to assist better with troubleshooting failed queue jobs.
+
+### Fixed
+- Fixed handling of element integrations where their objects are too complex for queue-logging.
+- Fixed element integrations not firing `EVENT_BEFORE_SEND_PAYLOAD` and `EVENT_AFTER_SEND_PAYLOAD`.
+- Removed incorrect placeholder attribute from Agree field input.
+- Fixed some email notification fields not filtering out incorrect values like emojis.
+
 ## 1.4.10 - 2021-07-15
 
 ### Fixed
