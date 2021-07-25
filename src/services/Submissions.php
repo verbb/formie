@@ -141,7 +141,7 @@ class Submissions extends Component
      * @param Notification $notification
      * @param Submission $submission
      */
-    public function sendNotificationEmail($notification, $submission)
+    public function sendNotificationEmail($notification, $submission, $queueJob = null)
     {
         // Fire a 'beforeSendNotification' event
         $event = new SendNotificationEvent([
@@ -154,7 +154,7 @@ class Submissions extends Component
             return true;
         }
 
-        return Formie::$plugin->getEmails()->sendEmail($event->notification, $event->submission);
+        return Formie::$plugin->getEmails()->sendEmail($event->notification, $event->submission, $queueJob);
     }
 
     /**

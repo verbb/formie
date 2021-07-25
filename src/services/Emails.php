@@ -100,13 +100,13 @@ class Emails extends Component
                 'line' => $e->getLine(),
             ]);
 
-            return ['error' => $error];
+            return ['error' => $error, 'email' => $newEmail];
         }
 
         if (!$newEmail->getTo()) {
             $error = Craft::t('formie', 'Notification email error. No recipient email address found.');
 
-            return ['error' => $error];
+            return ['error' => $error, 'email' => $newEmail];
         }
 
         // BCC:
@@ -126,7 +126,7 @@ class Emails extends Component
                     'line' => $e->getLine(),
                 ]);
 
-                return ['error' => $error];
+                return ['error' => $error, 'email' => $newEmail];
             }
         }
 
@@ -147,7 +147,7 @@ class Emails extends Component
                     'line' => $e->getLine()
                 ]);
 
-                return ['error' => $error];
+                return ['error' => $error, 'email' => $newEmail];
             }
         }
 
@@ -168,7 +168,7 @@ class Emails extends Component
                     'line' => $e->getLine()
                 ]);
 
-                return ['error' => $error];
+                return ['error' => $error, 'email' => $newEmail];
             }
         }
 
@@ -184,7 +184,7 @@ class Emails extends Component
                 'line' => $e->getLine()
             ]);
 
-            return ['error' => $error];
+            return ['error' => $error, 'email' => $newEmail];
         }
 
         // Fetch the email template for the notification - if we're using one
@@ -243,13 +243,13 @@ class Emails extends Component
                 'line' => $e->getLine()
             ]);
 
-            return ['error' => $error];
+            return ['error' => $error, 'email' => $newEmail];
         }
 
         return ['success' => true, 'email' => $newEmail];
     }
 
-    public function sendEmail(Notification $notification, Submission $submission)
+    public function sendEmail(Notification $notification, Submission $submission, $queueJob = null)
     {
         // Render the email
         $emailRender = $this->renderEmail($notification, $submission);
@@ -265,6 +265,11 @@ class Emails extends Component
         }
 
         $newEmail = $emailRender['email'];
+
+        // When in the context of a queue job, add some extra info
+        if ($queueJob) {
+            $queueJob->email = $this->_serializeEmail($newEmail);
+        }
 
         // Attach any file uploads
         if ($notification->attachFiles) {

@@ -19,6 +19,7 @@ use verbb\formie\gql\mutations\SubmissionMutation;
 use verbb\formie\gql\queries\FormQuery;
 use verbb\formie\gql\queries\SubmissionQuery;
 use verbb\formie\helpers\ProjectConfigHelper;
+use verbb\formie\jobs\SendNotification;
 use verbb\formie\jobs\TriggerIntegration;
 use verbb\formie\models\FieldLayout;
 use verbb\formie\models\Settings;
@@ -405,7 +406,7 @@ class Formie extends Plugin
     
         // Add additional error information to queue jobs when there's an error
         Event::on(Queue::class, Queue::EVENT_AFTER_ERROR, function(ExecEvent $event) {
-            if ($event->error && $event->job instanceof TriggerIntegration) {
+            if ($event->error && ($event->job instanceof TriggerIntegration || $event->job instanceof SendNotification)) {
                 $event->job->updatePayload($event);
             }
         });
