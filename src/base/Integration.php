@@ -71,6 +71,9 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
 
     protected $_client;
 
+    // Keep track of whether run in the context of a queue job
+    private $_queueJob;
+
 
     // Static Methods
     // =========================================================================
@@ -268,6 +271,14 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     public function hasValidSettings(): bool
     {
         return true;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setQueueJob($value)
+    {
+        $this->_queueJob = $value;
     }
 
     /**
@@ -815,6 +826,11 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
      */
     protected function beforeSendPayload(Submission $submission, $endpoint, &$payload, $method)
     {
+        // If in the context of a queue. save the payload for debugging
+        if ($this->_queueJob) {
+            $this->_queueJob->payload = $payload;
+        }
+
         $event = new SendIntegrationPayloadEvent([
             'submission' => $submission,
             'payload' => $payload,

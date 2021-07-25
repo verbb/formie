@@ -19,6 +19,7 @@ use verbb\formie\gql\mutations\SubmissionMutation;
 use verbb\formie\gql\queries\FormQuery;
 use verbb\formie\gql\queries\SubmissionQuery;
 use verbb\formie\helpers\ProjectConfigHelper;
+use verbb\formie\jobs\TriggerIntegration;
 use verbb\formie\models\FieldLayout;
 use verbb\formie\models\Settings;
 use verbb\formie\services\EmailTemplates as EmailTemplatesService;
@@ -49,6 +50,7 @@ use craft\events\RegisterGqlSchemaComponentsEvent;
 use craft\events\RegisterGqlTypesEvent;
 use craft\events\RegisterTemplateRootsEvent;
 use craft\events\RegisterUserPermissionsEvent;
+use craft\queue\Queue;
 use craft\services\Dashboard;
 use craft\services\Elements;
 use craft\services\Fields;
@@ -65,6 +67,7 @@ use craft\gatsbyhelper\events\RegisterSourceNodeTypesEvent;
 use craft\gatsbyhelper\services\SourceNodes;
 
 use yii\base\Event;
+use yii\queue\ExecEvent;
 
 class Formie extends Plugin
 {
@@ -399,6 +402,13 @@ class Formie extends Plugin
         Event::on(UsersController::class, UsersController::EVENT_DEFINE_CONTENT_SUMMARY, [$this->getSubmissions(), 'defineUserSubmssions']);
         Event::on(UserElement::class, UserElement::EVENT_AFTER_DELETE, [$this->getSubmissions(), 'deleteUserSubmssions']);
         Event::on(UserElement::class, UserElement::EVENT_AFTER_RESTORE, [$this->getSubmissions(), 'restoreUserSubmssions']);
+    
+        // Add additional error information to queue jobs when there's an error
+        Event::on(Queue::class, Queue::EVENT_AFTER_ERROR, function(ExecEvent $event) {
+            if ($event->error && $event->job instanceof TriggerIntegration) {
+                $event->job->updatePayload($event);
+            }
+        });
     }
 
     private function _registerProjectConfigEventListeners()
