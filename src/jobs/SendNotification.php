@@ -16,7 +16,6 @@ class SendNotification extends BaseJob
     public $submission;
     public $notificationId;
     public $notification;
-    public $notificationContent;
     public $email;
 
 
@@ -49,9 +48,21 @@ class SendNotification extends BaseJob
             throw new \Exception('Unable to find submission: ' . $this->submissionId . '.');
         }
 
-        $this->submission = $submission;
-        $this->notification = $notification;
-        $this->notificationContent = $notification->getParsedContent();
+        $this->submission = $submission->toArray();
+        $this->notification = $notification->toArray();
+        $this->notification['content'] = $notification->getParsedContent();
+
+        // Add a little extra info for submission fields
+        if ($fieldLayout = $submission->getFieldLayout()) {
+            foreach ($fieldLayout->getFields() as $field) {
+                $this->submission['fields'][] = [
+                    'type' => get_class($field),
+                    'handle' => $field->handle,
+                    'settings' => $field->settings,
+                    'value' => $submission->getFieldValue($field->handle),
+                ];
+            }
+        }
 
         $sentResponse = Formie::$plugin->getSubmissions()->sendNotificationEmail($notification, $submission, $this);
         $success = $sentResponse['success'] ?? false;
