@@ -271,7 +271,7 @@ class User extends Element
             }
 
             // Allow events to say the response is invalid
-            if (!$this->afterSendPayload($submission, '', $entry, '', [])) {
+            if (!$this->afterSendPayload($submission, '', $user, '', [])) {
                 return true;
             }
         } catch (\Throwable $e) {
