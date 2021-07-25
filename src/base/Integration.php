@@ -284,6 +284,22 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     /**
      * @inheritDoc
      */
+    public function getQueueJob()
+    {
+        return $this->_queueJob;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setClient($value)
+    {
+        $this->_client = $value;
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function checkConnection($useCache = true): bool
     {
         if ($useCache && $status = $this->getCache('connection')) {
@@ -827,8 +843,8 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     protected function beforeSendPayload(Submission $submission, $endpoint, &$payload, $method)
     {
         // If in the context of a queue. save the payload for debugging
-        if ($this->_queueJob) {
-            $this->_queueJob->payload = $payload;
+        if ($this->getQueueJob()) {
+            $this->getQueueJob()->payload = $payload;
         }
 
         $event = new SendIntegrationPayloadEvent([

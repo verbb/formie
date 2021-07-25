@@ -25,30 +25,36 @@ abstract class BaseJob extends CraftBaseJob
         // debugging, and provides the customer with context on exactly _what_ is trying to be sent.
         // We have to do a direct database update however, because the Job Data is only serialized when the job 
         // is created. The payload is changed via multiple calls in the task, so we want to reflect that,
+        try {
+            // Ensure that the payload is simplified a little. For some instances `serialize()` can't handle Closures
+            // and sometimes the payload is a Craft element, which contains them (potentially).
+            if (property_exists($event->job, 'payload')) {
+                $payload = Json::decode(Json::encode($event->job->payload));
 
-        // Ensure that the payload is simplified a little. For some instances `serialize()` can't handle Closures
-        // and sometimes the payload is a Craft element, which contains them (potentially).
-        if (property_exists($event->job, 'payload') && $event->job->payload instanceof Element) {
-            $payload = Json::decode(Json::encode($event->job->payload));
+                // Add in custom fields with a bit more context
+                if ($event->job->payload instanceof Element) {
+                    foreach ($event->job->payload->getFieldLayout()->getFields() as $field) {
+                        $payload['fields'][] = [
+                            'type' => get_class($field),
+                            'handle' => $field->handle,
+                            'value' => $event->job->payload->getFieldValue($field->handle),
+                        ];
+                    }
+                }
 
-            // Add in custom fields with a bit more context
-            foreach ($event->job->payload->getFieldLayout()->getFields() as $field) {
-                $payload['fields'][] = [
-                    'type' => get_class($field),
-                    'handle' => $field->handle,
-                    'value' => $event->job->payload->getFieldValue($field->handle),
-                ];
+                $event->job->payload = $payload;
             }
 
-            $event->job->payload = $payload;
-        }
-
-        $jobData = $this->_jobData($event->job);
-
-        try {
+            // For integrations, we need to serialize the entire class, but after initial push to the job
+            // there are potentially properties that contain Closures. This which will choke using `serialize()`.
+            // Delete anything that could be an issue. Would be nice if Craft itself handled this?
+            if (property_exists($event->job, 'integration')) {
+                $event->job->integration->setClient(null);
+            }
+            
             // Serialize it again ready to save
-            $message = Craft::$app->getQueue()->serializer->serialize($jobData);
-
+            $message = Craft::$app->getQueue()->serializer->serialize($event->job);
+            
             Db::update(Table::QUEUE, ['job' => $message], ['id' => $event->id], [], false);
         } catch (\Throwable $e) {
             Formie::error(Craft::t('formie', 'Unable to update job info debug: “{message}” {file}:{line}', [
@@ -57,31 +63,5 @@ abstract class BaseJob extends CraftBaseJob
                 'line' => $e->getLine(),
             ]));
         }
-    }
-
-
-    // Private Methods
-    // =========================================================================
-
-    /**
-     * Checks if $job is a resource and if so, convert it to a serialized format.
-     *
-     * @param string|resource $job
-     * @return string
-     */
-    private function _jobData($job)
-    {
-        if (is_resource($job)) {
-            $job = stream_get_contents($job);
-
-            if (is_string($job) && strpos($job, 'x') === 0) {
-                $hex = substr($job, 1);
-                if (StringHelper::isHexadecimal($hex)) {
-                    $job = hex2bin($hex);
-                }
-            }
-        }
-
-        return $job;
     }
 }

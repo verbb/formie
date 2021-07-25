@@ -121,12 +121,17 @@ abstract class EmailMarketing extends Integration implements IntegrationInterfac
      */
     protected function beforeSendPayload(Submission $submission, $endpoint, &$payload, $method)
     {
+        // If in the context of a queue. save the payload for debugging
+        if ($this->getQueueJob()) {
+            $this->getQueueJob()->payload = $payload;
+        }
+
         $event = new SendIntegrationPayloadEvent([
             'submission' => $submission,
             'payload' => $payload,
-            'integration' => $this,
             'endpoint' => $endpoint,
             'method' => $method,
+            'integration' => $this,
         ]);
         $this->trigger(self::EVENT_BEFORE_SEND_PAYLOAD, $event);
 
@@ -140,6 +145,9 @@ abstract class EmailMarketing extends Integration implements IntegrationInterfac
 
             return false;
         }
+
+        // Allow events to alter the payload
+        $payload = $event->payload;
 
         return $event->isValid;
     }
