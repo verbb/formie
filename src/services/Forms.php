@@ -489,18 +489,26 @@ class Forms extends Component
                         $fieldId = null;
                     }
 
-                    $field = Craft::$app->getFields()->createField([
+                    $fieldConfig = [
                         'id' => $fieldId,
                         'type' => $fieldData['type'],
                         'name' => $fieldData['label'] ?? null,
                         'handle' => $fieldData['handle'] ?? null,
-                        'columnSuffix' => $fieldData['columnSuffix'] ?? null,
                         'rowId' => $fieldData['rowId'] ?? null,
                         'rowIndex' => $rowIndex,
                         'columnWidth' => $columnWidth,
                         'settings' => $settings,
                         'required' => (bool)$required,
-                    ]);
+                    ]
+
+                    // TODO: remove schema version condition after next beakpoint
+                    $schemaVersion = Craft::$app->getInstalledSchemaVersion();
+
+                    if (version_compare($schemaVersion, '3.7.0', '>=')) {
+                        $fieldConfig['columnSuffix'] = $fieldData['columnSuffix'] ?? null;
+                    }
+
+                    $field = Craft::$app->getFields()->createField($fieldConfig);
 
                     $field->afterCreateField($fieldData);
 
