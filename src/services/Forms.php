@@ -499,7 +499,7 @@ class Forms extends Component
                         'columnWidth' => $columnWidth,
                         'settings' => $settings,
                         'required' => (bool)$required,
-                    ]
+                    ];
 
                     // TODO: remove schema version condition after next beakpoint
                     $schemaVersion = Craft::$app->getInstalledSchemaVersion();
