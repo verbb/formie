@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.4.12 - 2021-07-28
+
+### Fixed
+- Fixed data-encrypted fields incorrectly using their encrypted content for integrations.
+- Fixed an error when triggering an integration queue job for a non-existant submission.
+- Fixed an error with logging element integration payload fields.
+- Fixed Craft 3.6 incompatibility with Craft 3.7 changes.
+
 ## 1.4.11 - 2021-07-25
 
 ### Added
