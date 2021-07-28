@@ -74,7 +74,7 @@ export class FormieTable {
                 return;
             }
 
-            const id = `${numRows + 1}`;
+            const id = numRows;
             const html = template.innerHTML.replace(/__ROW__/g, id);
 
             let $newRow = document.createElement('tr');
