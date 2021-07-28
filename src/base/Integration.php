@@ -782,6 +782,11 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
             return $formField->getFieldMappedValueForIntegration($integrationField, $formField, $value, $submission);
         }
 
+        // Check to see if we're data-encrypting the field and get the correct content
+        if ($formField->enableContentEncryption) {
+            $value = $formField->normalizeValue($value);
+        }
+
         if ($integrationField->getType() === IntegrationField::TYPE_DATE) {
             if ($date = DateTimeHelper::toDateTime($value)) {
                 return $date->format('Y-m-d');
