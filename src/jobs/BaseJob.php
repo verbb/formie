@@ -34,7 +34,7 @@ abstract class BaseJob extends CraftBaseJob
                 // Add in custom fields with a bit more context
                 if ($event->job->payload instanceof Element) {
                     if ($fieldLayout = $event->job->payload->getFieldLayout()) {
-                        foreach ($fieldLayout->getFieldLayout()->getFields() as $field) {
+                        foreach ($fieldLayout->getFields() as $field) {
                             $payload['fields'][] = [
                                 'type' => get_class($field),
                                 'handle' => $field->handle,
