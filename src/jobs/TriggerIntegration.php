@@ -42,23 +42,26 @@ class TriggerIntegration extends BaseJob
         $submission = Submission::find()
             ->id($this->submissionId)
             ->isIncomplete(null)
+            ->anyStatus()
             ->one();
 
-        // Pass a reference of this class to the integration, to assist with debugging.
-        // Set with a private variable, so it doesn't appear in the queue job data which would be mayhem.
-        $this->integration->setQueueJob($this);
+        if ($submission) {
+            // Pass a reference of this class to the integration, to assist with debugging.
+            // Set with a private variable, so it doesn't appear in the queue job data which would be mayhem.
+            $this->integration->setQueueJob($this);
 
-        $response = Formie::$plugin->getSubmissions()->sendIntegrationPayload($this->integration, $submission);
+            $response = Formie::$plugin->getSubmissions()->sendIntegrationPayload($this->integration, $submission);
 
-        // Check if some integrations return a response object for more detail
-        if ($response instanceof IntegrationResponse) {
-            if (!$response->success) {
-                throw new \Exception('Failed to trigger integration: ' . Json::encode($response->message) . '.');
+            // Check if some integrations return a response object for more detail
+            if ($response instanceof IntegrationResponse) {
+                if (!$response->success) {
+                    throw new \Exception('Failed to trigger integration: ' . Json::encode($response->message) . '.');
+                }
             }
-        }
 
-        if (!$response) {
-            throw new \Exception('Failed to trigger integration. Check the Formie log files.');
+            if (!$response) {
+                throw new \Exception('Failed to trigger integration. Check the Formie log files.');
+            }
         }
 
         $this->setProgress($queue, 1);
