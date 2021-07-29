@@ -370,7 +370,7 @@ trait FormFieldTrait
      */
     public function getHtmlId(Form $form)
     {
-        return StringHelper::toKebabCase($form->handle . ' ' . $this->handle);
+        return StringHelper::toKebabCase($form->formId . ' ' . $this->handle);
     }
 
     /**
