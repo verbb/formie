@@ -40,6 +40,7 @@ class ProjectConfigHelper
                 'name',
                 'handle',
                 'color',
+                'description',
                 'sortOrder',
                 'isDefault',
             ])
@@ -54,6 +55,7 @@ class ProjectConfigHelper
             unset($statusRow['uid']);
 
             $statusRow['sortOrder'] = (int)$statusRow['sortOrder'];
+            $statusRow['isDefault'] = (bool)$statusRow['isDefault'];
 
             $statusData[$statusUid] = $statusRow;
         }
@@ -87,6 +89,7 @@ class ProjectConfigHelper
 
             $data = Json::decodeIfJson($stencilRow['data']);
             $stencilRow['data'] = $data;
+            $stencilRow['defaultStatusId'] = (int)$stencilRow['defaultStatusId'];
 
             $stencilsData[$statusUid] = $stencilRow;
         }
@@ -135,6 +138,11 @@ class ProjectConfigHelper
             unset($templateRow['fieldLayoutId']);
 
             $templateRow['sortOrder'] = (int)$templateRow['sortOrder'];
+            $templateRow['useCustomTemplates'] = (bool)$templateRow['useCustomTemplates'];
+            $templateRow['outputCssTheme'] = (bool)$templateRow['outputCssTheme'];
+            $templateRow['outputCssLayout'] = (bool)$templateRow['outputCssLayout'];
+            $templateRow['outputJsBase'] = (bool)$templateRow['outputJsBase'];
+            $templateRow['outputJsTheme'] = (bool)$templateRow['outputJsTheme'];
 
             $templatesData[$templateUid] = $templateRow;
         }
