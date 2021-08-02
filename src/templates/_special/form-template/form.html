@@ -105,13 +105,9 @@
 
                     {{ formieInclude('_includes/page-tabs') }}
 
-                    {% if form.settings.submitMethod == 'page-reload' %}
-                        {{ craft.formie.renderPage(form, null, options) }}
-                    {% else %}
-                        {% for page in form.pages %}
-                            {{ craft.formie.renderPage(form, page, options) }}
-                        {% endfor %}
-                    {% endif %}
+                    {% for page in form.pages %}
+                        {{ craft.formie.renderPage(form, page, options) }}
+                    {% endfor %}
 
                     {% if form.settings.progressPosition == 'end' %}
                         {{ formieInclude('_includes/progress') }}

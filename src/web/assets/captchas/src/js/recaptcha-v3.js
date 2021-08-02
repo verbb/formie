@@ -31,7 +31,7 @@ export class FormieRecaptchaV3 {
             return;
         }
 
-        // We can have multiple captchas per form (for ajax), so store them and render only when we need
+        // We can have multiple captchas per form, so store them and render only when we need
         this.$placeholders = this.$form.querySelectorAll('.formie-recaptcha-placeholder');
 
         if (!this.$placeholders) {
@@ -76,7 +76,7 @@ export class FormieRecaptchaV3 {
             return;
         }
 
-        // Remove any existing token input (more for ajax multi-pages)
+        // Remove any existing token input
         var $token = this.$form.querySelector('[name="g-recaptcha-response"]');
 
         if ($token) {
