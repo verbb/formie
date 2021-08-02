@@ -14,6 +14,7 @@
         value: valueJson ? valueJson | json_encode : '',
         autocomplete: 'off',
         data: {
+            'fui-id': options.dataId,
             'formie-tags': tags,
             'fui-message': field.settings.errorMessage | t,
         },

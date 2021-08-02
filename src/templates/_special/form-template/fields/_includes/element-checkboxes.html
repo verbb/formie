@@ -1,4 +1,4 @@
-<fieldset class="fui-fieldset fui-layout-{{ field.settings.layout ?? 'vertical' }}" id="{{ options.id }}">
+<fieldset class="fui-fieldset fui-layout-{{ field.settings.layout ?? 'vertical' }}" id="{{ options.id }}" data-fui-id="{{ options.dataId }}">
     {{ formieInclude('_includes/legend', { position: 'above' }) }}
 
     {# For this field, they're the same #}
@@ -10,6 +10,7 @@
     <div class="fui-layout-wrap">
         {% for option in fieldOptions ?? field.getFieldOptions() %}
             {% set optionId = options.id ~ '-' ~ option.value | kebab %}
+            {% set optionDataId = options.dataId ~ '-' ~ option.value | kebab %}
             {% set selected = value ? value.contains(option.value) : (option.isDefault ?? false) %}
 
             <div class="fui-checkbox">
@@ -25,6 +26,7 @@
                     value: option.value,
                     checked: selected,
                     data: {
+                        'fui-id': optionDataId,
                         'fui-message': field.settings.errorMessage | t,
                     },
                     aria: {

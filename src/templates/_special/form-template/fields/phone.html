@@ -8,6 +8,7 @@
     autocomplete: 'tel-national',
     value: value.number ?? null,
     data: {
+        'fui-id': options.dataId,
         'fui-message': field.settings.errorMessage | t,
     },
     aria: {
@@ -24,6 +25,7 @@
         value: value.country ?? null,
         type: 'hidden',
         data: {
+            'fui-id': options.dataId ~ '-country',
             country: '',
         }
     }) }} />

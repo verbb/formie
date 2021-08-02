@@ -7,6 +7,7 @@
         name: field.handle ~ '[]',
         required: field.required ? true : false,
         data: {
+            'fui-id': options.dataId,
             'fui-message': field.settings.errorMessage | t,
         },
         aria: {

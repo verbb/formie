@@ -1,4 +1,5 @@
 {% set id = field.getHtmlId(form) %}
+{% set dataId = field.getHtmlDataId(form) %}
 {% set labelId = "#{id}-label" %}
 {% set labelPosition = craft.formie.getLabelPosition(field, form) %}
 {% set subfieldLabelPosition = craft.formie.getLabelPosition(field, form, true) %}
@@ -6,6 +7,7 @@
 
 {% set inputOptions = {
     id: id,
+    dataId: dataId,
     labelId: labelId,
     field: field,
     renderOptions: options,

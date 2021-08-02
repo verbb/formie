@@ -2,7 +2,10 @@
     type: 'hidden',
     id: options.id,
     name: field.handle,
-    value: defaultValue
+    value: defaultValue,
+    data: {
+        'fui-id': options.dataId,
+    },
 } | merge(field.getInputAttributes()) %}
 
 <input {{ attr(attributes) }} />

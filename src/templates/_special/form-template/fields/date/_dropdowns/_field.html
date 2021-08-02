@@ -2,6 +2,7 @@
     {% set handle = attrs.handle %}
     {% set labelPosition = craft.formie.getLabelPosition(field, form, true) %}
     {% set inputId = handle | namespaceInputId(options.id) %}
+    {% set inputDataId = handle | namespaceInputId(options.dataId) %}
     {% set placeholder = attribute(field, "#{handle}Placeholder") | t %}
 
     {% if handle == 'ampm' %}
@@ -35,6 +36,7 @@
                 name: char | namespaceInputName(field.handle),
                 required: field.required ? true : false,
                 data: {
+                    'fui-id': inputDataId,
                     'fui-message': field.settings.errorMessage | t,
                 },
                 aria: {

@@ -1,5 +1,6 @@
 {% macro toggleCheckbox(options, field) %}
     {% set optionId = options.id ~ '-toggle' %}
+    {% set optionDataId = options.dataId ~ '-toggle' %}
 
     <div class="fui-checkbox">
         {% set attributes = {
@@ -11,6 +12,7 @@
             type: 'checkbox',
             data: {
                 'checkbox-toggle': true,
+                'fui-id': optionDataId,
             },
         } | merge(field.getInputAttributes()) %}
 
@@ -21,7 +23,7 @@
 
 {% from _self import toggleCheckbox %}
 
-<fieldset class="fui-fieldset fui-layout-{{ field.settings.layout ?? 'vertical' }}" id="{{ options.id }}">
+<fieldset class="fui-fieldset fui-layout-{{ field.settings.layout ?? 'vertical' }}" id="{{ options.id }}" data-fui-id="{{ options.dataId }}">
     {{ formieInclude('_includes/legend', { position: 'above' }) }}
 
     {# For this field, they're the same #}
@@ -37,6 +39,7 @@
 
         {% for option in fieldOptions ?? field.getFieldOptions() %}
             {% set optionId = options.id ~ '-' ~ option.value | kebab %}
+            {% set optionDataId = options.dataId ~ '-' ~ option.value | kebab %}
             {% set selected = value ? value.contains(option.value) : (option.isDefault ?? false) %}
 
             <div class="fui-checkbox">
@@ -52,6 +55,7 @@
                     value: option.value,
                     checked: selected,
                     data: {
+                        'fui-id': optionDataId,
                         'fui-message': field.settings.errorMessage | t,
                     },
                     aria: {

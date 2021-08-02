@@ -1,5 +1,6 @@
 {% set html %}
     {% set inputId = handle | namespaceInputId(options.id) %}
+    {% set inputDataId = handle | namespaceInputId(options.dataId) %}
     {% set selected = field.getFieldValue(value, handle, handle) %}
     {% set placeholder = attribute(field, "#{handle}Placeholder") | t %}
     {% set errorMessage = attribute(field, "#{handle}ErrorMessage") | t %}
@@ -33,6 +34,7 @@
                     autocomplete: autocomplete,
                     required: required,
                     data: {
+                        'fui-id': inputDataId,
                         'fui-message': errorMessage,
                     },
                     aria: {
@@ -62,6 +64,7 @@
                     required: required,
                     value: selected,
                     data: {
+                        'fui-id': inputDataId,
                         'fui-message': errorMessage,
                     },
                     aria: {

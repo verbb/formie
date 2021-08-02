@@ -34,6 +34,7 @@
                     value: value ? (value | date('Y-m-d', false)) : null,
                     autocomplete: 'off',
                     data: {
+                        'fui-id': options.dataId,
                         'fui-message': field.settings.errorMessage | t,
                     },
                     aria: {
@@ -75,6 +76,7 @@
                         required: field.required ? true : false,
                         value: value ? (value | date('H:i', false)) : null,
                         data: {
+                            'fui-id': options.dataId,
                             'fui-message': field.settings.errorMessage | t,
                         },
                         aria: {

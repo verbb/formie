@@ -8,6 +8,7 @@
     <div class="fui-layout-wrap">
         {% for option in fieldOptions ?? field.getFieldOptions() %}
             {% set optionId = options.id ~ '-' ~ option.value | kebab %}
+            {% set optionDataId = options.dataId ~ '-' ~ option.value | kebab %}
             {% set selected = value and value.value ? option.value == value.value : (option.isDefault ?? false) %}
 
             <div class="fui-radio">
@@ -23,6 +24,7 @@
                     value: option.value,
                     checked: selected,
                     data: {
+                        'fui-id': optionDataId,
                         'fui-message': field.settings.errorMessage | t,
                     },
                     aria: {

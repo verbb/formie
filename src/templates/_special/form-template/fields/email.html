@@ -8,6 +8,7 @@
     required: field.required ? true : false,
     value: value,
     data: {
+        'fui-id': options.dataId,
         'fui-message': field.settings.errorMessage | t,
     },
     aria: {

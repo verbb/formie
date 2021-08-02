@@ -9,7 +9,8 @@
         data: {
             'fui-message': field.settings.errorMessage | t,
         },
-        aria: {
+        data: {
+            'fui-id': options.dataId,
             required: field.required ? 'true' : 'false',
         },
     } | merge(field.getInputAttributes()) %}

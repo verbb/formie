@@ -1,5 +1,6 @@
 {% set html %}
     {% set inputId = handle | namespaceInputId(options.id) %}
+    {% set inputDataId = handle | namespaceInputId(options.dataId) %}
     {% set errorMessage = attribute(field, "#{handle}ErrorMessage") | t %}
     {% set required = field.required ? field.required : attribute(field, "#{handle}Required") %}
     {% set isHidden = false %}
@@ -28,15 +29,16 @@
             {% hook 'formie.subfield.input-start' %}
 
             {{ formieInclude(["fields/address/_#{handle}", 'fields/address/_input'], {
+                id: inputId,
                 autocomplete: autocomplete,
                 placeholder: attribute(field, "#{handle}Placeholder") | t,
                 required: required,
                 value: field.getFieldValue(value, handle, handle),
                 data: {
+                    'fui-id': inputDataId,
                     'fui-message': errorMessage,
                     (handle): '',
                 },
-                id: inputId,
             }) }}
 
             {% hook 'formie.subfield.input-end' %}

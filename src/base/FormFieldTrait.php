@@ -376,6 +376,14 @@ trait FormFieldTrait
     /**
      * @inheritDoc
      */
+    public function getHtmlDataId(Form $form)
+    {
+        return StringHelper::toKebabCase($form->handle . ' ' . $this->handle);
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function getHtmlWrapperId(Form $form)
     {
         return StringHelper::toKebabCase($this->namespace . ' ' . $this->getHtmlId($form) . ' wrap');
