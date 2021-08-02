@@ -178,15 +178,29 @@ class SubmissionQuery extends ElementQuery
         // Figure out which content table to use
         $this->contentTable = null;
 
-        if (!$this->formId && $this->id) {
-            $formIds = (new Query())
-                ->select(['formId'])
-                ->distinct()
-                ->from(['{{%formie_submissions}}'])
-                ->where(Db::parseParam('id', $this->id))
-                ->column();
+        if (!$this->formId) {
+            $formIds = [];
 
-            $this->formId = count($formIds) === 1 ? $formIds[0] : $formIds;
+            if ($this->id) {
+                $formIds = (new Query())
+                    ->select(['formId'])
+                    ->distinct()
+                    ->from(['{{%formie_submissions}}'])
+                    ->where(Db::parseParam('id', $this->id))
+                    ->column();
+            } else if ($this->uid) {
+                $formIds = (new Query())
+                    ->select(['formId'])
+                    ->distinct()
+                    ->from(['{{%formie_submissions}} submissions'])
+                    ->leftJoin(['{{%elements}} elements'], '[[submissions.id]] = [[elements.id]]')
+                    ->where(Db::parseParam('elements.uid', $this->uid))
+                    ->column();
+            }
+
+            if ($formIds) {
+                $this->formId = count($formIds) === 1 ? $formIds[0] : $formIds;
+            }
         }
 
         if ($this->formId && is_numeric($this->formId) && $form = Formie::$plugin->getForms()->getFormById($this->formId)) {
