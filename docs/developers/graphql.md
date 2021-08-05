@@ -535,7 +535,6 @@ mutation saveSubmission($repeaterField:contactForm_repeaterField_FormieRepeaterI
 
 
 #### Deleting a submission
-
 To delete a submission use the `deleteSubmission` mutation, which requires the `id` of the submission that must be deleted. It returns a boolean value as the result to indicate whether the operation was successful.
 
 ```json
@@ -554,3 +553,24 @@ With the resulting output:
     }
 }
 ```
+
+
+#### Validation
+If a mutation triggers a validation error, you'll get a response back, similar to the below. Here, the example shows the user didn't provide an email address, for the `emailAddress` field, despite it being required. The `message` will always be a JSON-encoded response of errors.
+
+```json
+{
+    "errors": [
+        {
+            "message": "{\"emailAddress\":[\"Email Address cannot be blank.\"]}",
+            "extensions": {
+                "category": "graphql"
+            }
+        }
+    ],
+    "data": {
+        "save_contactForm_Submission": null
+    }
+}
+```
+
