@@ -213,6 +213,7 @@ Setting | Description
 `prefixErrorMessage` | The error message for the Prefix sub-field.
 `prefixCollapsed` | Whether the Prefix sub-field is collapsed in the control panel.
 `prefixEnabled` | Whether the Prefix sub-field is enabled in the control panel.
+`prefixOptions` | An array of options available to pick a prefix from.
 `firstNameLabel` | The label for the First Name sub-field.
 `firstNamePlaceholder` | The placeholder for the First Name sub-field.
 `firstNameDefaultValue` | The default value for the First Name sub-field.

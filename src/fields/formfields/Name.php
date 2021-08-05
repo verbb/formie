@@ -5,6 +5,7 @@ use verbb\formie\base\FormField;
 use verbb\formie\base\SubfieldInterface;
 use verbb\formie\base\SubfieldTrait;
 use verbb\formie\Formie;
+use verbb\formie\gql\types\generators\FieldAttributeGenerator;
 use verbb\formie\gql\types\input\NameInputType;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\Name as NameModel;
@@ -17,6 +18,8 @@ use craft\helpers\Json;
 
 use yii\base\Event;
 use yii\db\Schema;
+
+use GraphQL\Type\Definition\Type;
 
 class Name extends FormField implements SubfieldInterface, PreviewableFieldInterface
 {
@@ -370,6 +373,19 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/name/preview', [
             'field' => $this
+        ]);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getSettingGqlTypes()
+    {
+        return array_merge(parent::getSettingGqlTypes(), [
+            'prefixOptions' => [
+                'name' => 'prefixOptions',
+                'type' => Type::listOf(FieldAttributeGenerator::generateType()),
+            ],
         ]);
     }
 
