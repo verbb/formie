@@ -236,7 +236,9 @@ This is the interface implemented by all fields. Note that as settings are speci
 | `instructions`| `String` | The field’s instructions.
 | `required`| `Boolean` | Whether the field is required.
 | `type`| `String` | The field’s full class type.
+| `typeName`| `String` | The field’s full GQL type.
 | `displayName`| `String` | The field’s display name (last portion of the class).
+| `inputTypeName`| `String` | The field’s full GQL input type. Useful for mutations.
 | `limit`| `Boolean` | Whether the field should limit content.
 | `limitType`| `String` | The field’s limit type.
 | `limitAmount`| `Int` | The field’s limit amount.

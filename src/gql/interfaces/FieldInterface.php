@@ -96,6 +96,32 @@ class FieldInterface extends BaseInterfaceType
                     return array_pop($classNameParts);
                 },
             ],
+            'typeName' => [
+                'name' => 'typeName',
+                'type' => Type::string(),
+                'description' => 'The field’s GQL type.',
+                'resolve' => function($field) {
+                    return $field->getGqlTypeName();
+                },
+            ],
+            'inputTypeName' => [
+                'name' => 'inputTypeName',
+                'type' => Type::string(),
+                'description' => 'The field’s GQL input name.',
+                'resolve' => function($field) {
+                    $inputType = $field->getContentGqlMutationArgumentType();
+
+                    if (is_string($inputType)) {
+                        return $inputType;
+                    }
+
+                    if (is_array($inputType)) {
+                        return $inputType['type'];
+                    }
+
+                    return $inputType;
+                },
+            ],
             'columnWidth' => [
                 'name' => 'columnWidth',
                 'type' => Type::string(),
