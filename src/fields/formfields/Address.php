@@ -7,6 +7,7 @@ use verbb\formie\base\Integration;
 use verbb\formie\base\SubfieldInterface;
 use verbb\formie\base\SubfieldTrait;
 use verbb\formie\elements\Form;
+use verbb\formie\gql\types\generators\FieldAttributeGenerator;
 use verbb\formie\gql\types\input\AddressInputType;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\Address as AddressModel;
@@ -19,6 +20,8 @@ use craft\helpers\Json;
 use craft\helpers\StringHelper;
 
 use CommerceGuys\Addressing\Country\CountryRepository;
+
+use GraphQL\Type\Definition\Type;
 
 use yii\db\Schema;
 
@@ -592,7 +595,7 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
                     'name' => $nestedField['handle'] . 'DefaultValue',
                     'options' => array_merge(
                         [[ 'label' => Craft::t('formie', 'Select an option'), 'value' => '' ]],
-                        static::getCountries()
+                        static::getCountryOptions()
                     ),
                 ]);
             } else {

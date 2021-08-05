@@ -131,8 +131,8 @@ class FormInterface extends Element
                     }
 
                     return [
-                        'name' => Craft::$app->getConfig()->general->csrfTokenName,
-                        'value' => Craft::$app->getRequest()->csrfToken,
+                        'name' => Craft::$app->getRequest()->csrfParam,
+                        'value' => Craft::$app->getRequest()->getCsrfToken(),
                     ];
                 },
             ],

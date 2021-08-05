@@ -102,6 +102,7 @@ Setting | Description
 `countryErrorMessage` | The error message for the Country sub-field.
 `countryCollapsed` | Whether the Country sub-field is collapsed in the control panel.
 `countryEnabled` | Whether the Country sub-field is enabled in the control panel.
+`countryOptions` | An array of options available to pick a country from.
 
 
 ### Agree
