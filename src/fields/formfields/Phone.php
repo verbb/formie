@@ -49,7 +49,7 @@ class Phone extends FormField implements SubfieldInterface, PreviewableFieldInte
      *
      * @return array
      */
-    public static function getCountries()
+    public static function getCountryOptions()
     {
         return Formie::$plugin->getPhone()->getCountries();
     }
@@ -253,7 +253,7 @@ class Phone extends FormField implements SubfieldInterface, PreviewableFieldInte
     public function getExtraBaseFieldConfig(): array
     {
         return [
-            'countries' => static::getCountries(),
+            'countries' => static::getCountryOptions(),
         ];
     }
 
@@ -310,7 +310,7 @@ class Phone extends FormField implements SubfieldInterface, PreviewableFieldInte
                     'help' => Craft::t('formie', 'Select which countries should be available to pick from. By default, all countries are available.'),
                     'name' => 'countryAllowed',
                     'placeholder' => Craft::t('formie', 'Select an option'),
-                    'options' => static::getCountries(),
+                    'options' => static::getCountryOptions(),
                 ]),
                 SchemaHelper::selectField([
                     'label' => Craft::t('formie', 'Country Default Value'),
@@ -318,7 +318,7 @@ class Phone extends FormField implements SubfieldInterface, PreviewableFieldInte
                     'name' => 'countryDefaultValue',
                     'options' => array_merge(
                         [[ 'label' => Craft::t('formie', 'Select an option'), 'value' => '' ]],
-                        static::getCountries()
+                        static::getCountryOptions()
                     ),
                 ]),
             ]),
