@@ -7,6 +7,7 @@ use verbb\formie\helpers\Variables;
 use verbb\formie\models\Settings;
 
 use Craft;
+use craft\base\Element;
 use craft\gql\base\ElementMutationResolver;
 use craft\helpers\Db;
 use craft\helpers\Json;
@@ -99,6 +100,7 @@ class SubmissionResolver extends ElementMutationResolver
         }
 
         // Only handle single-pages in GQL for now
+        $submission->setScenario(Element::SCENARIO_LIVE);
         $submission->isIncomplete = false;
         $submission->validateCurrentPageOnly = false;
 
