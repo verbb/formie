@@ -257,6 +257,7 @@ Setting | Description
 `countryDefaultValue` | The default value for the Country sub-field.
 `countryCollapsed` | Whether the Country sub-field is collapsed in the control panel.
 `countryEnabled` | Whether the Country sub-field is enabled in the control panel.
+`countryOptions` | An array of options available to pick a country from.
 `numberLabel` | The label for the Number sub-field.
 `numberPlaceholder` | The placeholder for the Number sub-field.
 `numberDefaultValue` | The default value for the Number sub-field.

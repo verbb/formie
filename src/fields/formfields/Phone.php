@@ -6,6 +6,7 @@ use verbb\formie\base\SubfieldInterface;
 use verbb\formie\base\SubfieldTrait;
 use verbb\formie\base\FormField;
 use verbb\formie\elements\Form;
+use verbb\formie\gql\types\generators\FieldAttributeGenerator;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\Phone as PhoneModel;
 
@@ -14,6 +15,8 @@ use craft\base\ElementInterface;
 use craft\base\PreviewableFieldInterface;
 use craft\helpers\Json;
 use craft\helpers\StringHelper;
+
+use GraphQL\Type\Definition\Type;
 
 use yii\db\Schema;
 
@@ -276,6 +279,19 @@ class Phone extends FormField implements SubfieldInterface, PreviewableFieldInte
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/phone/preview', [
             'field' => $this
+        ]);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getSettingGqlTypes()
+    {
+        return array_merge(parent::getSettingGqlTypes(), [
+            'countryOptions' => [
+                'name' => 'countryOptions',
+                'type' => Type::listOf(FieldAttributeGenerator::generateType()),
+            ],
         ]);
     }
 
