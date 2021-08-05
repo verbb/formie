@@ -5,13 +5,15 @@
     {% namespace field.handle %}
         <div class="fui-row">
             {% if field.prefixEnabled %}
+                {% set prefixOptions = [{ label: 'Select' | t('formie'), value: '' }] | merge(field.prefixOptions) %}
+
                 <div class="fui-col-2">
                     {{ forms.selectField({
                         label: field.prefixLabel,
                         value: value.prefix ?? '',
                         name: 'prefix',
                         required: field.prefixRequired,
-                        options: field.getPrefixOptions(),
+                        options: prefixOptions,
                     }) }}
                 </div>
             {% endif %}
