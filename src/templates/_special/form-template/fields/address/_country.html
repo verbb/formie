@@ -17,7 +17,7 @@
         </option>
     {% endif %}
 
-    {% for country in field.countries %}
+    {% for country in field.countryOptions %}
         <option value="{{ country.value }}" {{- country.value == value ? ' selected' }}>
             {{ country.label | t }}
         </option>

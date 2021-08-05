@@ -54,7 +54,7 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
      *
      * @return array
      */
-    public static function getCountries()
+    public static function getCountryOptions()
     {
         $locale = Craft::$app->getLocale()->getLanguageID();
 
@@ -241,7 +241,7 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
     public function getExtraBaseFieldConfig(): array
     {
         return [
-            'countries' => static::getCountries(),
+            'countries' => static::getCountryOptions(),
         ];
     }
 
@@ -528,6 +528,19 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
         }
 
         return $integration->getFrontEndJsVariables($this);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getSettingGqlTypes()
+    {
+        return array_merge(parent::getSettingGqlTypes(), [
+            'countryOptions' => [
+                'name' => 'countryOptions',
+                'type' => Type::listOf(FieldAttributeGenerator::generateType()),
+            ],
+        ]);
     }
 
     /**
