@@ -146,6 +146,7 @@ This is the interface implemented by all forms.
 | `settings`| `[FormSettingsInterface]` | The form’s settings.
 | `configJson`| `String` | The form’s config as JSON.
 | `templateHtml`| `String` | The form’s rendered HTML.
+| `csrfToken`| `[CsrfTokenInterface]` | A CSRF token (name and value).
 
 
 ### The `FormSettingsInterface` interface
@@ -290,6 +291,15 @@ For nested fields like Group and Repeater, you have access to `nestedRows` and `
     }
 }
 ```
+
+### The `CsrfTokenInterface` interface
+This is the interface to allow easy retrieval of a CSRF token and value.
+
+| Field | Type | Description
+| - | - | -
+| `name`| `String` | The CSRF name.
+| `value`| `String` | The CSRF token.
+
 
 ## Submissions
 
