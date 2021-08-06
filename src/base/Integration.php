@@ -783,7 +783,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         }
 
         // Check to see if we're data-encrypting the field and get the correct content
-        if ($formField->enableContentEncryption) {
+        if ($formField && $formField->enableContentEncryption) {
             $value = $formField->normalizeValue($value);
         }
 
