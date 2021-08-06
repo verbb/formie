@@ -17,7 +17,7 @@ class SubmissionArguments extends ElementArguments
             'form' => [
                 'name' => 'form',
                 'type' => Type::listOf(Type::string()),
-                'description' => 'Narrows the query results based on the submission’s form handle.'
+                'description' => 'Narrows the query results based on the submission’s form handle.',
             ],
         ]);
     }

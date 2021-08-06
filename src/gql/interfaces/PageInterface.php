@@ -59,22 +59,22 @@ class PageInterface extends BaseInterfaceType
             'name' => [
                 'name' => 'name',
                 'type' => Type::string(),
-                'description' => 'The page’s name.'
+                'description' => 'The page’s name.',
             ],
             'rows' => [
                 'name' => 'rows',
                 'type' => Type::listOf(RowInterface::getType()),
-                'description' => 'The page’s rows.'
+                'description' => 'The page’s rows.',
             ],
             'fields' => [
                 'name' => 'fields',
                 'type' => Type::listOf(FieldInterface::getType()),
-                'description' => 'The page’s fields.'
+                'description' => 'The page’s fields.',
             ],
             'settings' => [
                 'name' => 'settings',
                 'type' => PageSettingsInterface::getType(),
-                'description' => 'The page’s settings.'
+                'description' => 'The page’s settings.',
             ],
         ]), self::getName());
     }

@@ -32,7 +32,7 @@ class FormQuery extends Query
                 'type' => FormInterface::getType(),
                 'args' => FormArguments::getArguments(),
                 'resolve' => FormResolver::class . '::resolveOne',
-                'description' => 'This query is used to query for a single form.'
+                'description' => 'This query is used to query for a single form.',
             ],
             'forms' => [
                 'type' => Type::listOf(FormInterface::getType()),
@@ -44,7 +44,7 @@ class FormQuery extends Query
                 'type' => FormInterface::getType(),
                 'args' => FormArguments::getArguments(),
                 'resolve' => FormResolver::class . '::resolveOne',
-                'description' => 'This query is used to query for a single form.'
+                'description' => 'This query is used to query for a single form.',
             ],
         ];
     }

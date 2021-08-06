@@ -67,32 +67,32 @@ class FormInterface extends Element
             'handle' => [
                 'name' => 'handle',
                 'type' => Type::string(),
-                'description' => 'The form’s handle.'
+                'description' => 'The form’s handle.',
             ],
             'pages' => [
                 'name' => 'pages',
                 'type' => Type::listOf(PageInterface::getType()),
-                'description' => 'The form’s pages.'
+                'description' => 'The form’s pages.',
             ],
             'rows' => [
                 'name' => 'rows',
                 'type' => Type::listOf(RowInterface::getType()),
-                'description' => 'The form’s rows.'
+                'description' => 'The form’s rows.',
             ],
             'fields' => [
                 'name' => 'fields',
                 'type' => Type::listOf(FieldInterface::getType()),
-                'description' => 'The form’s fields.'
+                'description' => 'The form’s fields.',
             ],
             'settings' => [
                 'name' => 'settings',
                 'type' => FormSettingsType::getType(),
-                'description' => 'The form’s settings.'
+                'description' => 'The form’s settings.',
             ],
             'configJson' => [
                 'name' => 'configJson',
                 'type' => Type::string(),
-                'description' => 'The form’s config as JSON.'
+                'description' => 'The form’s config as JSON.',
             ],
             'templateHtml' => [
                 'name' => 'templateHtml',

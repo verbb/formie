@@ -57,7 +57,7 @@ class RowInterface extends BaseInterfaceType
             'fields' => [
                 'name' => 'fields',
                 'type' => Type::listOf(FieldInterface::getType()),
-                'description' => 'The row’s fields.'
+                'description' => 'The row’s fields.',
             ],
         ]), self::getName());
     }

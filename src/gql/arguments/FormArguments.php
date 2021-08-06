@@ -17,7 +17,7 @@ class FormArguments extends ElementArguments
             'handle' => [
                 'name' => 'handle',
                 'type' => Type::listOf(Type::string()),
-                'description' => 'Narrows the query results based on the form’s handle.'
+                'description' => 'Narrows the query results based on the form’s handle.',
             ],
         ]);
     }

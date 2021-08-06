@@ -32,7 +32,7 @@ class SubmissionQuery extends Query
                 'type' => SubmissionInterface::getType(),
                 'args' => SubmissionArguments::getArguments(),
                 'resolve' => SubmissionResolver::class . '::resolveOne',
-                'description' => 'This query is used to query for a single submission.'
+                'description' => 'This query is used to query for a single submission.',
             ],
             'submissions' => [
                 'type' => Type::listOf(SubmissionInterface::getType()),
@@ -44,7 +44,7 @@ class SubmissionQuery extends Query
                 'type' => SubmissionInterface::getType(),
                 'args' => SubmissionArguments::getArguments(),
                 'resolve' => SubmissionResolver::class . '::resolveOne',
-                'description' => 'This query is used to query for a single submission.'
+                'description' => 'This query is used to query for a single submission.',
             ],
         ];
     }

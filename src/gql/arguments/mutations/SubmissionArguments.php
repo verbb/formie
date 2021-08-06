@@ -17,17 +17,17 @@ class SubmissionArguments extends ElementMutationArguments
             'status' => [
                 'name' => 'status',
                 'type' => Type::string(),
-                'description' => 'The submission’s status.'
+                'description' => 'The submission’s status.',
             ],
             'statusId' => [
                 'name' => 'statusId',
                 'type' => Type::int(),
-                'description' => 'The submission’s status ID.'
+                'description' => 'The submission’s status ID.',
             ],
             'siteId' => [
                 'name' => 'siteId',
                 'type' => Type::int(),
-                'description' => 'The submission’s site ID.'
+                'description' => 'The submission’s site ID.',
             ],
         ]);
     }

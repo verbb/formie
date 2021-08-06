@@ -62,12 +62,12 @@ class SubmissionInterface extends Element
             'status' => [
                 'name' => 'status',
                 'type' => Type::string(),
-                'description' => 'The submission’s status.'
+                'description' => 'The submission’s status.',
             ],
             'statusId' => [
                 'name' => 'statusId',
                 'type' => Type::int(),
-                'description' => 'The submission’s status ID.'
+                'description' => 'The submission’s status ID.',
             ],
         ]), self::getName());
     }

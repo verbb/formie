@@ -26,57 +26,56 @@ class FormSettingsType extends ObjectType
                 'displayFormTitle' => [
                     'name' => 'displayFormTitle',
                     'type' => Type::boolean(),
-                    'description' => 'Whether to show the form’s title.'
+                    'description' => 'Whether to show the form’s title.',
                 ],
                 'displayPageTabs' => [
                     'name' => 'displayPageTabs',
                     'type' => Type::boolean(),
-                    'description' => 'Whether to show the form’s page tabs.'
+                    'description' => 'Whether to show the form’s page tabs.',
                 ],
                 'displayCurrentPageTitle' => [
                     'name' => 'displayCurrentPageTitle',
                     'type' => Type::boolean(),
-                    'description' => 'Whether to show the form’s current page title.'
+                    'description' => 'Whether to show the form’s current page title.',
                 ],
                 'displayPageProgress' => [
                     'name' => 'displayPageProgress',
                     'type' => Type::boolean(),
-                    'description' => 'Whether to show the form’s page progress.'
+                    'description' => 'Whether to show the form’s page progress.',
                 ],
                 'submitMethod' => [
                     'name' => 'submitMethod',
                     'type' => Type::string(),
-                    'description' => 'The form’s submit method.'
+                    'description' => 'The form’s submit method.',
                 ],
                 'submitAction' => [
                     'name' => 'submitAction',
                     'type' => Type::string(),
-                    'description' => 'The form’s submit action.'
+                    'description' => 'The form’s submit action.',
                 ],
                 'submitActionTab' => [
                     'name' => 'submitActionTab',
                     'type' => Type::string(),
-                    'description' => 'The form’s submit redirect option (if in new tab or same tab).'
+                    'description' => 'The form’s submit redirect option (if in new tab or same tab).',
                 ],
                 'submitActionUrl' => [
                     'name' => 'submitActionUrl',
                     'type' => Type::string(),
-                    'description' => 'The form’s submit action URL.'
+                    'description' => 'The form’s submit action URL.',
                 ],
                 'submitActionFormHide' => [
                     'name' => 'submitActionFormHide',
                     'type' => Type::boolean(),
-                    'description' => 'Whether to hide the form’s success message.'
+                    'description' => 'Whether to hide the form’s success message.',
                 ],
                 'submitActionMessageHtml' => [
                     'name' => 'submitActionMessageHtml',
                     'type' => Type::string(),
-                    'description' => 'The form’s submit success message.'
+                    'description' => 'The form’s submit success message.',
                 ],
                 'submitActionMessageTimeout' => [
                     'name' => 'submitActionMessageTimeout',
                     'type' => Type::int(),
-                    'description' => 'The form’s submit success message timeout.'
                     'description' => 'The form’s submit success message timeout.',
                     'resolve' => function($class) {
                         return (int)$class->submitActionMessageTimeout;
@@ -93,47 +92,47 @@ class FormSettingsType extends ObjectType
                 'redirectEntry' => [
                     'name' => 'redirectEntry',
                     'type' => EntryInterface::getType(),
-                    'description' => 'The form’s submit action entry (for redirection).'
+                    'description' => 'The form’s submit action entry (for redirection).',
                 ],
                 'errorMessageHtml' => [
                     'name' => 'errorMessageHtml',
                     'type' => Type::string(),
-                    'description' => 'The form’s submit error message.'
+                    'description' => 'The form’s submit error message.',
                 ],
                 'loadingIndicator' => [
                     'name' => 'loadingIndicator',
                     'type' => Type::boolean(),
-                    'description' => 'Whether to show the form’s loading indicator.'
+                    'description' => 'Whether to show the form’s loading indicator.',
                 ],
                 'loadingIndicatorText' => [
                     'name' => 'loadingIndicatorText',
                     'type' => Type::string(),
-                    'description' => 'The form’s loading indicator text.'
+                    'description' => 'The form’s loading indicator text.',
                 ],
                 'validationOnSubmit' => [
                     'name' => 'validationOnSubmit',
                     'type' => Type::boolean(),
-                    'description' => 'Whether to validate the form’s on submit.'
+                    'description' => 'Whether to validate the form’s on submit.',
                 ],
                 'validationOnFocus' => [
                     'name' => 'validationOnFocus',
                     'type' => Type::boolean(),
-                    'description' => 'Whether to validate the form’s on focus.'
+                    'description' => 'Whether to validate the form’s on focus.',
                 ],
                 'defaultLabelPosition' => [
                     'name' => 'defaultLabelPosition',
                     'type' => Type::string(),
-                    'description' => 'The form’s default label position for fields.'
+                    'description' => 'The form’s default label position for fields.',
                 ],
                 'defaultInstructionsPosition' => [
                     'name' => 'defaultInstructionsPosition',
                     'type' => Type::string(),
-                    'description' => 'The form’s default instructions position for fields.'
+                    'description' => 'The form’s default instructions position for fields.',
                 ],
                 'progressPosition' => [
                     'name' => 'progressPosition',
                     'type' => Type::string(),
-                    'description' => 'The form’s progress bar position.'
+                    'description' => 'The form’s progress bar position.',
                 ],
                 'integrations' => [
                     'name' => 'integrations',

@@ -61,22 +61,22 @@ class FieldInterface extends BaseInterfaceType
             'name' => [
                 'name' => 'name',
                 'type' => Type::string(),
-                'description' => 'The field’s name.'
+                'description' => 'The field’s name.',
             ],
             'handle' => [
                 'name' => 'handle',
                 'type' => Type::string(),
-                'description' => 'The field’s handle.'
+                'description' => 'The field’s handle.',
             ],
             'instructions' => [
                 'name' => 'instructions',
                 'type' => Type::string(),
-                'description' => 'The field’s instructions.'
+                'description' => 'The field’s instructions.',
             ],
             'required' => [
                 'name' => 'required',
                 'type' => Type::boolean(),
-                'description' => 'Whether the field is required.'
+                'description' => 'Whether the field is required.',
             ],
             'type' => [
                 'name' => 'type',
@@ -125,82 +125,82 @@ class FieldInterface extends BaseInterfaceType
             'columnWidth' => [
                 'name' => 'columnWidth',
                 'type' => Type::string(),
-                'description' => 'The width of the field’s column.'
+                'description' => 'The width of the field’s column.',
             ],
             'limit' => [
                 'name' => 'limit',
                 'type' => Type::boolean(),
-                'description' => 'Whether the field should limit content.'
+                'description' => 'Whether the field should limit content.',
             ],
             'limitType' => [
                 'name' => 'limitType',
                 'type' => Type::string(),
-                'description' => 'The field’s limit type.'
+                'description' => 'The field’s limit type.',
             ],
             'limitAmount' => [
                 'name' => 'limitAmount',
                 'type' => Type::int(),
-                'description' => 'The field’s limit amount.'
+                'description' => 'The field’s limit amount.',
             ],
             'placeholder' => [
                 'name' => 'placeholder',
                 'type' => Type::string(),
-                'description' => 'The field’s placeholder.'
+                'description' => 'The field’s placeholder.',
             ],
             'errorMessage' => [
                 'name' => 'errorMessage',
                 'type' => Type::string(),
-                'description' => 'The field’s error message.'
+                'description' => 'The field’s error message.',
             ],
             'labelPosition' => [
                 'name' => 'labelPosition',
                 'type' => Type::string(),
-                'description' => 'The field’s label position.'
+                'description' => 'The field’s label position.',
             ],
             'instructionsPosition' => [
                 'name' => 'instructionsPosition',
                 'type' => Type::string(),
-                'description' => 'The field’s instructions position.'
+                'description' => 'The field’s instructions position.',
             ],
             'cssClasses' => [
                 'name' => 'cssClasses',
                 'type' => Type::string(),
-                'description' => 'The field’s CSS classes.'
+                'description' => 'The field’s CSS classes.',
             ],
             'containerAttributes' => [
                 'name' => 'containerAttributes',
                 'type' => Type::listOf(FieldAttributeGenerator::generateType()),
-                'description' => 'The field’s container attributes.'
+                'description' => 'The field’s container attributes.',
             ],
             'inputAttributes' => [
                 'name' => 'inputAttributes',
                 'type' => Type::listOf(FieldAttributeGenerator::generateType()),
-                'description' => 'The field’s input attributes.'
+                'description' => 'The field’s input attributes.',
             ],
             'includeInEmail' => [
                 'name' => 'includeInEmail',
                 'type' => Type::boolean(),
-                'description' => 'Whether the field should be included in email content.'
+                'description' => 'Whether the field should be included in email content.',
             ],
             'enableConditions' => [
                 'name' => 'enableConditions',
                 'type' => Type::boolean(),
-                'description' => 'Whether the field has conditions enabled.'
+                'description' => 'Whether the field has conditions enabled.',
             ],
             'conditions' => [
                 'name' => 'conditions',
                 'type' => Type::string(),
-                'description' => 'The field’s conditions.'
+                'description' => 'The field’s conditions.',
             ],
             'enableContentEncryption' => [
                 'name' => 'enableContentEncryption',
                 'type' => Type::boolean(),
-                'description' => 'Whether the field has content encryption enabled.'
+                'description' => 'Whether the field has content encryption enabled.',
             ],
             'visibility' => [
                 'name' => 'visibility',
                 'type' => Type::string(),
-                'description' => 'The field’s visibility.'
+                'description' => 'The field’s visibility.',
             ],
         ]), self::getName());
     }

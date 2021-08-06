@@ -56,22 +56,22 @@ class PageSettingsInterface extends BaseInterfaceType
             'submitButtonLabel' => [
                 'name' => 'submitButtonLabel',
                 'type' => Type::string(),
-                'description' => 'The page’s submit button label.'
+                'description' => 'The page’s submit button label.',
             ],
             'backButtonLabel' => [
                 'name' => 'backButtonLabel',
                 'type' => Type::string(),
-                'description' => 'The page’s back button label.'
+                'description' => 'The page’s back button label.',
             ],
             'showBackButton' => [
                 'name' => 'showBackButton',
                 'type' => Type::boolean(),
-                'description' => 'Whether to show the page’s back button.'
+                'description' => 'Whether to show the page’s back button.',
             ],
             'buttonsPosition' => [
                 'name' => 'buttonsPosition',
                 'type' => Type::string(),
-                'description' => 'The page’s button positions.'
+                'description' => 'The page’s button positions.',
             ],
         ]), self::getName());
     }
