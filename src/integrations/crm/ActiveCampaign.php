@@ -288,13 +288,13 @@ class ActiveCampaign extends Crm
                 $listId = ArrayHelper::remove($contactValues, 'listId');
 
                 $contactPayload = [
-                    'contact' => [
+                    'contact' => array_filter([
                         'email' => $email,
                         'firstName' => $firstName,
                         'lastName' => $lastName,
                         'phone' => $phone,
                         'fieldValues' => $this->_prepCustomFields($contactValues),
-                    ],
+                    ]),
                 ];
 
                 $response = $this->deliverPayload($submission, 'contact/sync', $contactPayload);
@@ -336,10 +336,10 @@ class ActiveCampaign extends Crm
                 $accountName = ArrayHelper::remove($accountValues, 'name');
 
                 $accountPayload = [
-                    'account' => [
+                    'account' => array_filter([
                         'name' => $accountName,
                         'fields' => $this->_prepAltCustomFields($accountValues),
-                    ],
+                    ]),
                 ];
 
                 // Try to find the account first
@@ -372,10 +372,10 @@ class ActiveCampaign extends Crm
                 // Add the contact to the account, if both were okay
                 if ($accountId && $contactId) {
                     $payload = [
-                        'accountContact' => [
+                        'accountContact' => array_filter([
                             'contact' => $contactId,
                             'account' => $accountId,
-                        ],
+                        ]),
                     ];
 
                     // Don't proceed with an update if already associated
@@ -401,7 +401,7 @@ class ActiveCampaign extends Crm
                 $currency = ArrayHelper::remove($dealValues, 'currency');
 
                 $dealPayload = [
-                    'deal' => [
+                    'deal' => array_filter([
                         'title' => ArrayHelper::remove($dealValues, 'title'),
                         'description' => ArrayHelper::remove($dealValues, 'description'),
                         'account' => $accountId ?? '',
@@ -414,7 +414,7 @@ class ActiveCampaign extends Crm
                         'percent' => ArrayHelper::remove($dealValues, 'percent'),
                         'status' => ArrayHelper::remove($dealValues, 'status'),
                         'fields' => $this->_prepAltCustomFields($dealValues),
-                    ],
+                    ]),
                 ];
 
                 $response = $this->deliverPayload($submission, 'deals', $dealPayload);
@@ -536,6 +536,8 @@ class ActiveCampaign extends Crm
     {
         $customFields = [];
 
+        $fields = array_filter($fields);
+
         foreach ($fields as $key => $value) {
             $customFields[] = [
                 'field' => $key,
@@ -552,6 +554,8 @@ class ActiveCampaign extends Crm
     private function _prepAltCustomFields($fields)
     {
         $customFields = [];
+
+        $fields = array_filter($fields);
 
         foreach ($fields as $key => $value) {
             $customFields[] = [
