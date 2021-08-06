@@ -17,7 +17,11 @@ export class FormieHidden {
 
     initHiddenField() {
         // Populate the input with the cookie value.
-        this.$input.value = this.getCookie(this.cookieName);
+        let cookieValue = this.getCookie(this.cookieName);
+
+        if (cookieValue) {
+            this.$input.value = cookieValue;
+        }
 
         // Update the form hash, so we don't get change warnings
         if (this.form.formTheme) {
