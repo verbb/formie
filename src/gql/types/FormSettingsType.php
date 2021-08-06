@@ -77,6 +77,10 @@ class FormSettingsType extends ObjectType
                     'name' => 'submitActionMessageTimeout',
                     'type' => Type::int(),
                     'description' => 'The form’s submit success message timeout.'
+                    'description' => 'The form’s submit success message timeout.',
+                    'resolve' => function($class) {
+                        return (int)$class->submitActionMessageTimeout;
+                    },
                 ],
                 'redirectUrl' => [
                     'name' => 'redirectUrl',
