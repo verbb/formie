@@ -744,7 +744,11 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
                     $integrationField = ArrayHelper::firstWhere($fieldSettings, 'handle', $tag) ?? new IntegrationField();
                     $fieldValues[$tag] = $this->parseFieldMappedValue($integrationField, $formField, $value, $submission);
                 } catch (\Throwable $e) {
-
+                    Formie::error(Craft::t('formie', 'Error when fetching mapping values.', [
+                        'message' => $e->getMessage(),
+                        'file' => $e->getFile(),
+                        'line' => $e->getLine(),
+                    ]));
                 }
             } else {
                 // Otherwise, might have passed in a direct, static value
@@ -909,7 +913,11 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         try {
             $fieldValue = $submission->getFieldValue($fieldHandle);
         } catch (\Throwable $e) {
-
+            Formie::error(Craft::t('formie', 'Error when fetching opt-in-field.', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]));
         }
 
         if ($fieldValue === null) {
