@@ -568,7 +568,11 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
      */
     public function getContentGqlMutationArgumentType()
     {
-        return NameInputType::getType($this);
+        if ($this->useMultipleFields) {
+            return NameInputType::getType($this);
+        } else {
+            return Type::string();
+        }
     }
     
 }
