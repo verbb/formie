@@ -634,6 +634,26 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
         ];
     }
 
+    /**
+     * @inheritdoc
+     */
+    public function getContentGqlType()
+    {
+        return DateTimeType::getType();
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getContentGqlMutationArgumentType()
+    {
+        return [
+            'name' => $this->handle,
+            'type' => DateTimeType::getType(),
+            'description' => $this->instructions,
+        ];
+    }
+
 
     // Protected Methods
     // =========================================================================
@@ -653,25 +673,5 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
         }
 
         return parent::getSettingGqlType($attribute, $type, $fieldInfo);
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function getContentGqlType()
-    {
-        return DateTimeType::getType();
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function getContentGqlMutationArgumentType()
-    {
-        return [
-            'name' => $this->handle,
-            'type' => DateTimeType::getType(),
-            'description' => $this->instructions,
-        ];
     }
 }
