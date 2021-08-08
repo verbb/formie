@@ -632,7 +632,7 @@ export class FormieFormTheme {
         var $progress = this.$form.querySelector('.fui-progress-bar');
 
         if ($progress) {
-            var pageIndex = data.nextPageIndex + 1;
+            var pageIndex = parseInt(data.nextPageIndex, 10) + 1;
             var progress = Math.round((pageIndex / data.totalPages) * 100);
 
             $progress.style.width = progress + '%';
