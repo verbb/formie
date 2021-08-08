@@ -16,6 +16,8 @@ use craft\fields\data\SingleOptionFieldData;
 use craft\helpers\Json;
 use craft\helpers\StringHelper;
 
+use GraphQL\Type\Definition\Type;
+
 class Recipients extends FormField
 {
     // Static Methods
@@ -290,6 +292,18 @@ class Recipients extends FormField
             SchemaHelper::enableConditionsField(),
             SchemaHelper::conditionsField(),
         ];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getContentGqlMutationArgumentType()
+    {
+        if ($this->displayType === 'checkboxes') {
+            return Type::listOf(Type::string());
+        } else {
+            return Type::string();
+        }
     }
 
 
