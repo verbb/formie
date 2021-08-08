@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\gql\interfaces;
 
+use verbb\formie\fields\formfields\Table;
 use verbb\formie\gql\interfaces\FieldSettingsInterface;
 use verbb\formie\gql\types\SettingType;
 use verbb\formie\gql\types\SettingValue;
@@ -110,6 +111,11 @@ class FieldInterface extends BaseInterfaceType
                 'description' => 'The field’s GQL input name.',
                 'resolve' => function($field) {
                     $inputType = $field->getContentGqlMutationArgumentType();
+
+                    // Table fields don't seem to resolve correctly?
+                    if ($field instanceof Table) {
+                        return '[' . $inputType->name . ']';
+                    }
 
                     if (is_string($inputType)) {
                         return $inputType;
