@@ -258,15 +258,307 @@ This is the interface implemented by all fields. Note that as settings are speci
 
 Once using the necessary [Inline Fragments](https://graphql.org/learn/queries/#inline-fragments) for each field type, you'll have access to the same variables as described on the [Field](docs:developers/field) docs.
 
-#### Agree Fields
+####  Address Fields
 | Field | Type | Description
 | - | - | -
-| `defaultState`| `Boolean` | The field’s default value.
+|`address1Label` | `String` | The label for the Address 1 sub-field.
+|`address1Placeholder` | `String` | The placeholder for the Address 1 sub-field.
+|`address1DefaultValue` | `String` | The default value for the Address 1 sub-field.
+|`address1Required` | `String` | Whether the Address 1 sub-field should be required.
+|`address1ErrorMessage` | `String` | The error message for the Address 1 sub-field.
+|`address1Collapsed` | `Boolean` | Whether the Address 1 sub-field is collapsed in the control panel.
+|`address1Enabled` | `Boolean` | Whether the Address 1 sub-field is enabled in the control panel.
+|`address2Label` | `String` | The label for the Address 2 sub-field.
+|`address2Placeholder` | `String` | The placeholder for the Address 2 sub-field.
+|`address2DefaultValue` | `String` | The default value for the Address 2 sub-field.
+|`address2Required` | `String` | Whether the Address 2 sub-field should be required.
+|`address2ErrorMessage` | `String` | The error message for the Address 2 sub-field.
+|`address2Collapsed` | `Boolean` | Whether the Address 2 sub-field is collapsed in the control panel.
+|`address2Enabled` | `Boolean` | Whether the Address 2 sub-field is enabled in the control panel.
+|`address3Label` | `String` | The label for the Address 3 sub-field.
+|`address3Placeholder` | `String` | The placeholder for the Address 3 sub-field.
+|`address3DefaultValue` | `String` | The default value for the Address 3 sub-field.
+|`address3Required` | `String` | Whether the Address 3 sub-field should be required.
+|`address3ErrorMessage` | `String` | The error message for the Address 3 sub-field.
+|`address3Collapsed` | `Boolean` | Whether the Address 3 sub-field is collapsed in the control panel.
+|`address3Enabled` | `Boolean` | Whether the Address 3 sub-field is enabled in the control panel.
+|`cityLabel` | `String` | The label for the City sub-field.
+|`cityPlaceholder` | `String` | The placeholder for the City sub-field.
+|`cityDefaultValue` | `String` | The default value for the City sub-field.
+|`cityRequired` | `String` | Whether the City sub-field should be required.
+|`cityErrorMessage` | `String` | The error message for the City sub-field.
+|`cityCollapsed` | `Boolean` | Whether the City sub-field is collapsed in the control panel.
+|`cityEnabled` | `Boolean` | Whether the City sub-field is enabled in the control panel.
+|`stateLabel` | `String` | The label for the State sub-field.
+|`statePlaceholder` | `String` | The placeholder for the State sub-field.
+|`stateDefaultValue` | `String` | The default value for the State sub-field.
+|`stateRequired` | `String` | Whether the State sub-field should be required.
+|`stateErrorMessage` | `String` | The error message for the State sub-field.
+|`stateCollapsed` | `Boolean` | Whether the State sub-field is collapsed in the control panel.
+|`stateEnabled` | `Boolean` | Whether the State sub-field is enabled in the control panel.
+|`zipLabel` | `String` | The label for the Zip sub-field.
+|`zipPlaceholder` | `String` | The placeholder for the Zip sub-field.
+|`zipDefaultValue` | `String` | The default value for the Zip sub-field.
+|`zipRequired` | `String` | Whether the Zip sub-field should be required.
+|`zipErrorMessage` | `String` | The error message for the Zip sub-field.
+|`zipCollapsed` | `Boolean` | Whether the Zip sub-field is collapsed in the control panel.
+|`zipEnabled` | `Boolean` | Whether the Zip sub-field is enabled in the control panel.
+|`countryLabel` | `String` | The label for the Country sub-field.
+|`countryPlaceholder` | `String` | The placeholder for the Country sub-field.
+|`countryDefaultValue` | `String` | The default value for the Country sub-field.
+|`countryRequired` | `String` | Whether the Country sub-field should be required.
+|`countryErrorMessage` | `String` | The error message for the Country sub-field.
+|`countryCollapsed` | `Boolean` | Whether the Country sub-field is collapsed in the control panel.
+|`countryEnabled` | `Boolean` | Whether the Country sub-field is enabled in the control panel.
+|`countryOptions` | `FieldAttribute` | An array of options available to pick a country from.
 
-#### Date Fields
+
+####  Agree
 | Field | Type | Description
 | - | - | -
-| `defaultDate`| `Date` | The field’s default value.
+|`description` | `String` | The description for the field.
+|`descriptionHtml` | `String` | The HTML description for the field.
+|`checkedValue ` | `String` | The value of this field when it is checked.
+|`uncheckedValue` | `String` | The value of this field when it is unchecked.
+|`defaultValue` | `String` | The default value for the field when it loads.
+
+
+####  Categories
+| Field | Type | Description
+| - | - | -
+|`placeholder` | `String` | The option shown initially, when no option is selected.
+|`source` | `String` | Which source do you want to select categories from?
+|`branchLimit` | `String` | Limit the number of selectable category branches.
+|`categories` | `CategoryQuery` | The category query for available categories.
+
+
+####  Checkboxes
+| Field | Type | Description
+| - | - | -
+|`options` | `KeyValue` | Define the available options for users to select from.
+|`layout` | `String` | Select which layout to use for these fields.
+|`defaultValue` | `String` | Entering a default value will place the value in the field when it loads.
+
+
+####  Date/Time
+| Field | Type | Description
+| - | - | -
+|`includeTime` | `Boolean` | Whether this field should include the time.
+|`defaultValue` | `String` | Entering a default value will place the value in the field when it loads.
+|`displayType` | `String` | Set different display layouts for this field.
+
+
+####  Dropdown
+| Field | Type | Description
+| - | - | -
+|`multiple` | `Boolean` | Whether this field should allow multiple options to be selected.
+|`options` | `String` | Define the available options for users to select from.
+|`defaultValue` | `String` | Entering a default value will place the value in the field when it loads.
+
+
+####  Email Address
+| Field | Type | Description
+| - | - | -
+|`placeholder` | `String` | The text that will be shown if the field doesn’t have a value.
+|`defaultValue` | `String` | Entering a default value will place the value in the field when it loads.
+
+
+####  Entries
+| Field | Type | Description
+| - | - | -
+|`placeholder` | `String` | The option shown initially, when no option is selected.
+|`sources` | `String` | Which sources do you want to select entries from?
+|`limit` | `String` | Limit the number of selectable entries.
+|`entries` | `EntryQuery` | The entry query for available entries.
+
+
+####  File Upload
+| Field | Type | Description
+| - | - | -
+|`uploadLocationSource` | `String` | The volume for files to be uploaded into.
+|`uploadLocationSubpath` | `String` | The sub-path for the files to be uploaded into.
+|`limitFiles` | `String` | Limit the number of files a user can upload.
+|`sizeLimit` | `String` | Limit the size of the files a user can upload.
+|`allowedKinds` | `String` | A collection of allowed mime-types the user can upload.
+|
+####  Group
+
+
+####  Heading
+| Field | Type | Description
+| - | - | -
+|`headingSize` | `String` | Choose the size for the heading.
+|
+####  Hidden
+| Field | Type | Description
+| - | - | -
+|`defaultOption` | `String` | The selected option for the preset default value chosen.
+|`defaultValue` | `String` | Entering a default value will place the value in the field when it loads. This will be dependant on the value chosen for the `defaultOption`.
+|`queryParameter` | `String` | If `query` string is selected for the `defaultOption`, this will contain the query string parameter to look up.
+
+
+####  Html
+| Field | Type | Description
+| - | - | -
+|`htmlContent` | `String` | Enter HTML content to be rendered for this field.
+
+
+####  Multi-Line Text
+| Field | Type | Description
+| - | - | -
+|`placeholder` | `String` | The text that will be shown if the field doesn’t have a value.
+|`defaultValue` | `String` | Entering a default value will place the value in the field when it loads.
+|`limit` | `String` | Whether to limit the content of this field.
+|`limitType` | `String` | Either `words` or `characters`.
+|`limitAmount` | `String` | The number of character or words to limit this field by.
+|`useRichText` | `String` | Whether the front-end of the field should use a Rich Text editor. This is powered by [Pell](https://github.com/jaredreich/pell).
+|`richTextButtons` | `String` | An array of available buttons the Rich Text field should use. Consult the [Pell](https://github.com/jaredreich/pell) docs for these options.
+
+
+####  Name
+| Field | Type | Description
+| - | - | -
+|`useMultipleFields` | `String` | Whether this field should use multiple fields for users to enter their details.
+|`prefixLabel` | `String` | The label for the Prefix sub-field.
+|`prefixPlaceholder` | `String` | The placeholder for the Prefix sub-field.
+|`prefixDefaultValue` | `String` | The default value for the Prefix sub-field.
+|`prefixRequired` | `String` | Whether the Prefix sub-field should be required.
+|`prefixErrorMessage` | `String` | The error message for the Prefix sub-field.
+|`prefixCollapsed` | `Boolean` | Whether the Prefix sub-field is collapsed in the control panel.
+|`prefixEnabled` | `Boolean` | Whether the Prefix sub-field is enabled in the control panel.
+|`prefixOptions` | `FieldAttribute` | An array of options available to pick a prefix from.
+|`firstNameLabel` | `String` | The label for the First Name sub-field.
+|`firstNamePlaceholder` | `String` | The placeholder for the First Name sub-field.
+|`firstNameDefaultValue` | `String` | The default value for the First Name sub-field.
+|`firstNameRequired` | `String` | Whether the First Name sub-field should be required.
+|`firstNameErrorMessage` | `String` | The error message for the First Name sub-field.
+|`firstNameCollapsed` | `Boolean` | Whether the First Name sub-field is collapsed in the control panel.
+|`firstNameEnabled` | `Boolean` | Whether the First Name sub-field is enabled in the control panel.
+|`middleNameLabel` | `String` | The label for the Middle Name sub-field.
+|`middleNamePlaceholder` | `String` | The placeholder for the Middle Name sub-field.
+|`middleNameDefaultValue` | `String` | The default value for the Middle Name sub-field.
+|`middleNameRequired` | `String` | Whether the Middle Name sub-field should be required.
+|`middleNameErrorMessage` | `String` | The error message for the Middle Name sub-field.
+|`middleNameCollapsed` | `Boolean` | Whether the Middle Name sub-field is collapsed in the control panel.
+|`middleNameEnabled` | `Boolean` | Whether the Middle Name sub-field is enabled in the control panel.
+|`lastNameLabel` | `String` | The label for the Last Name sub-field.
+|`lastNamePlaceholder` | `String` | The placeholder for the Last Name sub-field.
+|`lastNameDefaultValue` | `String` | The default value for the Last Name sub-field.
+|`lastNameRequired` | `String` | Whether the Last Name sub-field should be required.
+|`lastNameErrorMessage` | `String` | The error message for the Last Name sub-field.
+|`lastNameCollapsed` | `Boolean` | Whether the Last Name sub-field is collapsed in the control panel.
+|`lastNameEnabled` | `Boolean` | Whether the Last Name sub-field is enabled in the control panel.
+
+
+####  Number
+| Field | Type | Description
+| - | - | -
+|`placeholder` | `String` | The text that will be shown if the field doesn’t have a value.
+|`defaultValue` | `String` | Entering a default value will place the value in the field when it loads.
+|`limit` | `String` | Whether to limit the numbers for this field.
+|`min` | `String` | The minimum number that can be entered for this field.
+|`max` | `String` | The maximum number that can be entered for this field.
+|`decimals` | `String` | Set the number of decimal points to format the field value.
+
+
+####  Phone
+| Field | Type | Description
+| - | - | -
+|`showCountryCode` | `String` | Whether to show an additional dropdown for selecting the country code.
+|`countryLabel` | `String` | The label for the Country sub-field.
+|`countryPlaceholder` | `String` | The placeholder for the Country sub-field.
+|`countryDefaultValue` | `String` | The default value for the Country sub-field.
+|`countryCollapsed` | `Boolean` | Whether the Country sub-field is collapsed in the control panel.
+|`countryEnabled` | `Boolean` | Whether the Country sub-field is enabled in the control panel.
+|`countryOptions` | `FieldAttribute` | An array of options available to pick a country from.
+|`numberLabel` | `String` | The label for the Number sub-field.
+|`numberPlaceholder` | `String` | The placeholder for the Number sub-field.
+|`numberDefaultValue` | `String` | The default value for the Number sub-field.
+|`numberCollapsed` | `Boolean` | Whether the Number sub-field is collapsed in the control panel.
+
+
+####  Products
+| Field | Type | Description
+| - | - | -
+|`placeholder` | `String` | The option shown initially, when no option is selected.
+|`sources` | `String` | Which sources do you want to select products from?
+|`limit` | `String` | Limit the number of selectable products.
+
+
+####  Radio
+| Field | Type | Description
+| - | - | -
+|`options` | `String` | Define the available options for users to select from.
+|`layout` | `String` | Select which layout to use for these fields.
+
+
+####  Repeater
+| Field | Type | Description
+| - | - | -
+|`addLabel` | `String` | The label for the button that adds another instance.
+|`minRows` | `String` | The minimum required number of instances of this repeater's fields that must be completed.
+|`maxRows` | `String` | The maximum required number of instances of this repeater's fields that must be completed.
+
+
+####  Recipients
+| Field | Type | Description
+| - | - | -
+|`displayType` | `String` | What sort of field to show on the front-end for users.
+|`options` | `String` | Define the available options for users to select from.
+
+
+####  Section
+| Field | Type | Description
+| - | - | -
+|`border` | `String` | Add a border to this section.
+|`borderWidth` | `String` | Set the border width (in pixels).
+|`borderColor` | `String` | Set the border color.
+
+
+####  Single-Line Text
+| Field | Type | Description
+| - | - | -
+|`placeholder` | `String` | The text that will be shown if the field doesn’t have a value.
+|`defaultValue` | `String` | Entering a default value will place the value in the field when it loads.
+|`limit` | `String` | Whether to limit the content of this field.
+|`limitType` | `String` | Either `words` or `characters`.
+|`limitAmount` | `String` | The number of character or words to limit this field by.
+
+
+####  Table
+| Field | Type | Description
+| - | - | -
+|`columns` | `String` | Define the columns your table should have.
+|`defaults` | `String` | Define the default values for the field.
+|`addRowLabel` | `String` | The label for the button that adds another row.
+|`static` | `String` | Whether this field should disallow adding more rows, showing only the default rows.
+|`minRows` | `String` | The minimum required number of rows in this table that must be completed.
+|`maxRows` | `String` | The maximum required number of rows in this table that must be completed.
+
+
+####  Tags
+| Field | Type | Description
+| - | - | -
+|`placeholder` | `String` | The option shown initially, when no option is selected.
+|`source` | `String` | Which source do you want to select tags from?
+|`tags` | `TagQuery` | The tag query for available tags.
+
+
+####  Users
+| Field | Type | Description
+| - | - | -
+|`placeholder` | `String` | The option shown initially, when no option is selected.
+|`sources` | `String` | Which sources do you want to select users from?
+|`limit` | `String` | Limit the number of selectable users.
+|`users` | `UserQuery` | The user query for available users.
+
+
+####  Variants
+| Field | Type | Description
+| - | - | -
+|`placeholder` | `String` | The option shown initially, when no option is selected.
+|`source ` | `String` | Which source do you want to select variants from?
+|`limit` | `String` | Limit the number of selectable variants.
 
 #### Nested Fields
 For nested fields like Group and Repeater, you have access to `nestedRows` and `fields`.
