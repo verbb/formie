@@ -15,6 +15,9 @@ use craft\base\ElementInterface;
 use craft\elements\Entry;
 use craft\elements\db\ElementQueryInterface;
 use craft\fields\Entries as CraftEntries;
+use craft\gql\arguments\elements\Entry as EntryArguments;
+use craft\gql\interfaces\elements\Entry as EntryInterface;
+use craft\gql\resolvers\elements\Entry as EntryResolver;
 use craft\helpers\ArrayHelper;
 use craft\helpers\UrlHelper;
 use craft\records\EntryType as EntryTypeRecord;
@@ -23,6 +26,8 @@ use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
 use yii\base\Exception;
+
+use GraphQL\Type\Definition\Type;
 
 class Entries extends CraftEntries implements FormFieldInterface
 {
@@ -39,6 +44,7 @@ class Entries extends CraftEntries implements FormFieldInterface
         getFrontEndInputOptions as traitGetFrontendInputOptions;
         getEmailHtml as traitGetEmailHtml;
         getSavedFieldConfig as traitGetSavedFieldConfig;
+        getSettingGqlTypes as traitGetSettingGqlTypes;
         RelationFieldTrait::getIsFieldset insteadof FormFieldTrait;
         RelationFieldTrait::populateValue insteadof FormFieldTrait;
         RelationFieldTrait::renderLabel insteadof FormFieldTrait;
@@ -305,6 +311,24 @@ class Entries extends CraftEntries implements FormFieldInterface
         }
 
         return $options;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getSettingGqlTypes()
+    {
+        return array_merge($this->traitGetSettingGqlTypes(), [
+            'entries' => [
+                'name' => 'entries',
+                'type' => Type::listOf(EntryInterface::getType()),
+                'resolve' => EntryResolver::class.'::resolve',
+                'args' => EntryArguments::getArguments(),
+                'resolve' => function($class) {
+                    return $this->getElementsQuery()->all();
+                },
+            ],
+        ]);
     }
 
     /**
