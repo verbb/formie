@@ -17,10 +17,15 @@ use craft\fields\Users as CraftUsers;
 use craft\fields\data\MultiOptionsFieldData;
 use craft\fields\data\OptionData;
 use craft\fields\data\SingleOptionFieldData;
+use craft\gql\arguments\elements\User as UserArguments;
+use craft\gql\interfaces\elements\User as UserInterface;
+use craft\gql\resolvers\elements\User as UserResolver;
 use craft\helpers\ArrayHelper;
 use craft\helpers\UrlHelper;
 
 use craft\models\UserGroup;
+
+use GraphQL\Type\Definition\Type;
 
 class Users extends CraftUsers implements FormFieldInterface
 {
@@ -37,6 +42,7 @@ class Users extends CraftUsers implements FormFieldInterface
         getFrontEndInputOptions as traitGetFrontendInputOptions;
         getEmailHtml as traitGetEmailHtml;
         getSavedFieldConfig as traitGetSavedFieldConfig;
+        getSettingGqlTypes as traitGetSettingGqlTypes;
         RelationFieldTrait::getIsFieldset insteadof FormFieldTrait;
         RelationFieldTrait::populateValue insteadof FormFieldTrait;
         RelationFieldTrait::renderLabel insteadof FormFieldTrait;
@@ -240,6 +246,24 @@ class Users extends CraftUsers implements FormFieldInterface
         }
 
         return $options;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getSettingGqlTypes()
+    {
+        return array_merge($this->traitGetSettingGqlTypes(), [
+            'users' => [
+                'name' => 'users',
+                'type' => Type::listOf(UserInterface::getType()),
+                'resolve' => UserResolver::class.'::resolve',
+                'args' => UserArguments::getArguments(),
+                'resolve' => function($class) {
+                    return $this->getElementsQuery()->all();
+                },
+            ],
+        ]);
     }
 
     /**
