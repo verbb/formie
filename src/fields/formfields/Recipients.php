@@ -78,26 +78,6 @@ class Recipients extends FormField
     /**
      * @inheritDoc
      */
-    public function normalizeValue($value, ElementInterface $element = null)
-    {
-        $value = parent::normalizeValue($value, $element);
-
-        // Sort out multiple options being set
-        if (is_string($value) && Json::isJsonObject($value)) {
-            $value = implode(',', array_filter(Json::decode($value)));
-        }
-
-        if (is_array($value)) {
-            $value = implode(',', array_filter($value));
-        }
-
-        // Convert the placeholder values to their real values
-        return $this->_getRealValue($value);
-    }
-
-    /**
-     * @inheritDoc
-     */
     public function getInputHtml($value, ElementInterface $element = null): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/recipients/input', [
@@ -171,15 +151,28 @@ class Recipients extends FormField
     {
         $inputOptions = parent::getFrontEndInputOptions($form, $value, $options);
 
+        // Decode to get the selected value (if any)
         $selectedValue = $inputOptions['value'] ?? '';
 
-        // Special case for multi options
-        if (strpos($selectedValue, ',') !== false) {
-            $selectedValue = explode(',', $selectedValue);
-        }
-
         // Make sure the front-end uses fake placeholder values
-        $inputOptions['value'] = $this->_getFakeValue($selectedValue);
+        if (in_array($this->displayType, ['dropdown', 'radio'])) {
+            $realValue = $this->_getRealValue($selectedValue);
+
+            if ($realValue) {
+                $inputOptions['value'] = $this->_getFakeValue($realValue->value);
+            }
+        } else if ($this->displayType === 'checkboxes') {
+            if (is_array($selectedValue)) {
+                $realOptions = $this->_getRealValue(implode(',', $selectedValue));
+                $realValues = [];
+
+                foreach ($realOptions as $realOption) {
+                    $realValues[] = $realOption->value;
+                }
+
+                $inputOptions['value'] = $this->_getFakeValue($realValues);
+            }
+        }
 
         return $inputOptions;
     }
