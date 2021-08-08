@@ -26,7 +26,8 @@
             "feature-tour/spam-protection",
             "feature-tour/form-templates",
             "feature-tour/email-templates",
-            "feature-tour/data-retention"
+            "feature-tour/data-retention",
+            "feature-tour/headless"
         ]
     },
     {
