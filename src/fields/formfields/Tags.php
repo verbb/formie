@@ -16,6 +16,9 @@ use Craft;
 use craft\base\ElementInterface;
 use craft\elements\Tag;
 use craft\fields\Tags as CraftTags;
+use craft\gql\arguments\elements\Tag as TagArguments;
+use craft\gql\interfaces\elements\Tag as TagInterface;
+use craft\gql\resolvers\elements\Tag as TagResolver;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 use craft\helpers\StringHelper;
@@ -23,6 +26,8 @@ use craft\helpers\UrlHelper;
 use craft\models\TagGroup;
 
 use Throwable;
+
+use GraphQL\Type\Definition\Type;
 
 class Tags extends CraftTags implements FormFieldInterface
 {
@@ -38,6 +43,7 @@ class Tags extends CraftTags implements FormFieldInterface
         getFrontEndInputOptions as traitGetFrontendInputOptions;
         getEmailHtml as traitGetEmailHtml;
         getSavedFieldConfig as traitGetSavedFieldConfig;
+        getSettingGqlTypes as traitGetSettingGqlTypes;
         RelationFieldTrait::getIsFieldset insteadof FormFieldTrait;
         RelationFieldTrait::populateValue insteadof FormFieldTrait;
         RelationFieldTrait::renderLabel insteadof FormFieldTrait;
@@ -351,6 +357,24 @@ class Tags extends CraftTags implements FormFieldInterface
         }
 
         return $this->traitGetDisplayTypeValue($value);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getSettingGqlTypes()
+    {
+        return array_merge($this->traitGetSettingGqlTypes(), [
+            'tags' => [
+                'name' => 'tags',
+                'type' => Type::listOf(TagInterface::getType()),
+                'resolve' => TagResolver::class.'::resolve',
+                'args' => TagArguments::getArguments(),
+                'resolve' => function($class) {
+                    return $this->getElementsQuery()->all();
+                },
+            ],
+        ]);
     }
 
     /**
