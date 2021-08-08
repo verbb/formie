@@ -14,10 +14,14 @@ use Craft;
 use craft\base\ElementInterface;
 use craft\elements\Category;
 use craft\fields\Categories as CraftCategories;
+use craft\gql\arguments\elements\Category as CategoryArguments;
+use craft\gql\interfaces\elements\Category as CategoryInterface;
+use craft\gql\resolvers\elements\Category as CategoryResolver;
 use craft\helpers\ArrayHelper;
 use craft\helpers\UrlHelper;
-
 use craft\models\CategoryGroup;
+
+use GraphQL\Type\Definition\Type;
 
 class Categories extends CraftCategories implements FormFieldInterface
 {
@@ -34,6 +38,7 @@ class Categories extends CraftCategories implements FormFieldInterface
         getFrontEndInputOptions as traitGetFrontendInputOptions;
         getEmailHtml as traitGetEmailHtml;
         getSavedFieldConfig as traitGetSavedFieldConfig;
+        getSettingGqlTypes as traitGetSettingGqlTypes;
         RelationFieldTrait::getIsFieldset insteadof FormFieldTrait;
         RelationFieldTrait::populateValue insteadof FormFieldTrait;
         RelationFieldTrait::renderLabel insteadof FormFieldTrait;
@@ -269,6 +274,24 @@ class Categories extends CraftCategories implements FormFieldInterface
         }
 
         return $options;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getSettingGqlTypes()
+    {
+        return array_merge($this->traitGetSettingGqlTypes(), [
+            'categories' => [
+                'name' => 'categories',
+                'type' => Type::listOf(CategoryInterface::getType()),
+                'resolve' => CategoryResolver::class.'::resolve',
+                'args' => CategoryArguments::getArguments(),
+                'resolve' => function($class) {
+                    return $this->getElementsQuery()->all();
+                },
+            ],
+        ]);
     }
 
     /**
