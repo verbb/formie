@@ -1,5 +1,52 @@
 # Changelog
 
+## 1.4.13 - 2021-08-09
+
+> {warning} Please read through the Breaking Changes before updating.
+
+### Added
+- Added `field.getHtmlDataId()` which replaces `field.getHtmlId()`.
+- Added `data-fui-id` attribute to all inputs for default templates.
+- Added `typeName` and `inputTypeName` to the FieldInterface for GQL queries.
+- Added `prefixOptions` to Name field for GraphQL queries.
+- Added `countryOptions` to Address field for GraphQL queries.
+- Added `CsrfTokenInterface` to GraphQL `FormInterface` for easier fetching of CSRF details.
+- Added `countryOptions` to Phone field for GraphQL queries.
+- Added some error-handling messages to failed-to-parse integration settings.
+- Added `users` to User fields for GraphQL queries.
+- Added `tags` to Tag fields for GraphQL queries.
+- Added `entries` to Entry fields for GraphQL queries.
+- Added `categories` to Category fields for GraphQL queries.
+
+### Changed
+- All field inputs now have a `data-fui-id`, which replaces the `id` attribute which has been updated to be unique.
+- For multi-page, page reload forms, every page is now rendered, and all page data is submitted. This is now the same behaviour as Ajax-based forms. Validation still only ocurs every page submission.
+- Changed `Phone::getCountries` to `Phone::getCountryOptions`.
+- Changed `Address::getCountries` to `Address::getCountryOptions`.
+
+### Fixed
+- Fixed an error when fetching a submission via its `uid`, not populating form attributes correctly.
+- Fixed rendering the same form multiple times would lead non-unique labels. Causing issues for checkbox/radio/agree fields.
+- Fixed rebuild project config not typecasting some settings correctly (therefore showing changes).
+- Fixed multiple rows in table fields not saving correctly.
+- Fixed multi-page, page reload forms with conditions not working correctly, when page or field conditions are based off previous page values. Ajax-based forms do not have this issue.
+- Fixed progress value being incorrect for Ajax-based forms, when clicking on page tabs.
+- Fixed Name fields incorrectly casted as NameInputType for GraphQL mutations.
+- Fixed Recipients field reporting radio options as multiple.
+- Fixed Table fields not sending the correct input type for GraphQL mutations.
+- Fixed Recipients field incorrectly encoding options for submissions in the control panel, throwing an error.
+- Fixed Recipients field not casting to the correct type for Checkboxes for GraphQL.
+- Fixed `FormSettings::submitActionMessageTimeout` not casting as an int.
+- Fixed Active Campaign CRM integrating overwriting fields for contacts when mapped but no value set.
+- Fixed integrations throwing an error for some fields.
+- Fixed hidden fields configured with a cookie value, getting `undefined` set if the cookie didn't exist.
+- Fixed the Prefix for a Name field defaulting to the first option when viewing a submission.
+- Fixed GraphQL mutation validation errors not always returning a JSON string.
+- Fixed GraphQL submission mutations not validating correctly.
+
+### Breaking Changes
+- If you rely on the `id` attribute of any `<input>` or `<select>` element on the front-end, these have been changed in order for them to be truly unique. For instance `fields-formie-form-formHandle-formField` now becomes `fields-formie-form-56526107b0a3e1eb3-formHandle-formField`. Please instead use the `data-fui-id` attribute for the old value if you need it.
+
 ## 1.4.12 - 2021-07-28
 
 ### Fixed
