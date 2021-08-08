@@ -20,7 +20,7 @@
 
 ### Changed
 - All field inputs now have a `data-fui-id`, which replaces the `id` attribute which has been updated to be unique.
-- For multi-page, page reload forms, every page is now rendered, and all page data is submitted. This is now the same behaviour as Ajax-based forms. Validation still only ocurs every page submission.
+- For multi-page, page reload forms, every page is now rendered, and all page data is submitted. This is now the same behaviour as Ajax-based forms. Validation still only occurs every page submission.
 - Changed `Phone::getCountries` to `Phone::getCountryOptions`.
 - Changed `Address::getCountries` to `Address::getCountryOptions`.
 
