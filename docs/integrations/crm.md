@@ -458,7 +458,7 @@ Follow the below steps to connect to the vCita API.
 
 
 ## Zoho
-Follow the below steps to connect to the ActiveCampaign API.
+Follow the below steps to connect to the Zoho API.
 
 ### Step 1. Connect to the Zoho API
 1. Go to <a href="https://accounts.zoho.com/developerconsole" target="_blank">Zoho API Console</a> and login to your account.
