@@ -128,11 +128,6 @@ class FieldInterface extends BaseInterfaceType
                     return $inputType;
                 },
             ],
-            'columnWidth' => [
-                'name' => 'columnWidth',
-                'type' => Type::string(),
-                'description' => 'The width of the field’s column.',
-            ],
             'limit' => [
                 'name' => 'limit',
                 'type' => Type::boolean(),
