@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.4.14 - 2021-08-17
+
+### Fixed
+- Fix recipients field values not saving correctly.
+
+### Removed
+- Removed `columnWidth` from GraphQL queries (it did nothing).
+
 ## 1.4.13 - 2021-08-09
 
 > {warning} Please read through the Breaking Changes before updating.
