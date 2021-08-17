@@ -70,6 +70,31 @@ class Recipients extends FormField
     /**
      * @inheritDoc
      */
+    public function normalizeValue($value, ElementInterface $element = null)
+    {
+        $value = parent::normalizeValue($value, $element);
+
+        // Sort out multiple options being set
+        if (is_string($value) && Json::isJsonObject($value)) {
+            $values = array_map(function($option) {
+                return $option['value'] ?? '';
+            }, Json::decode($value));
+
+            $value = implode(',', array_filter($values));
+        }
+
+        if (is_array($value)) {
+            $value = implode(',', array_filter($value));
+        }
+
+        // Convert the placeholder values to their real values
+        return $this->_getRealValue($value);
+    }
+
+
+    /**
+     * @inheritDoc
+     */
     public function renderLabel(): bool
     {
         return !$this->getIsFieldset();
@@ -171,6 +196,17 @@ class Recipients extends FormField
                 }
 
                 $inputOptions['value'] = $this->_getFakeValue($realValues);
+            }
+
+            // Convert the MultiOptionsFieldData to an array
+            if ($selectedValue instanceof MultiOptionsFieldData) {
+                $options = [];
+
+                foreach ($selectedValue as $option) {
+                    $options[] = $option->value;
+                }
+
+                $inputOptions['value'] = $this->_getFakeValue($options);
             }
         }
 
@@ -316,7 +352,7 @@ class Recipients extends FormField
 
                 return $this->options[$index]['value'] ?? $value;
             }, $value);
-        } 
+        }
 
         // For hidden fields, there's no CP defined options, so decode its encoded value
         if (strpos($value, 'base64:') !== false) {
