@@ -782,6 +782,8 @@ use yii\base\Event;
 
 Event::on(Emails::class, Emails::EVENT_BEFORE_SEND_MAIL, function(MailEvent $event) {
     $email = $event->email;
+    $submission = $event->submission;
+    $notification = $event->notification;
     // ...
 });
 ```
@@ -790,11 +792,11 @@ Event::on(Emails::class, Emails::EVENT_BEFORE_SEND_MAIL, function(MailEvent $eve
 The event that is triggered after an email is sent.
 
 ```php
-use verbb\formie\events\
+use verbb\formie\events\MailEvent;
 use verbb\formie\services\Emails;
 use yii\base\Event;
 
-Event::on(Emails::class, Emails::EVENT_AFTER_SEND_MAIL, function(Event $event) {
+Event::on(Emails::class, Emails::EVENT_AFTER_SEND_MAIL, function(MailEvent $event) {
     $email = $event->email;
     $submission = $event->submission;
     $notification = $event->notification;
