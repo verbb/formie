@@ -39,6 +39,14 @@
                                 <th style="{{ cellStyle }} background-color: rgba(0, 0, 0, 0.05);">
                                     {{ cellValue }}
                                 </th>
+                            {% case 'date' %}
+                                <td style="{{ cellStyle }}">
+                                    {{ cellValue.format('Y-m-d') ?? '' }}
+                                </td>
+                            {% case 'time' %}
+                                <td style="{{ cellStyle }}">
+                                    {{ cellValue.format('H:i') ?? '' }}
+                                </td>
                             {% default %}
                                 <td style="{{ cellStyle }}">
                                     {{ cellValue }}
