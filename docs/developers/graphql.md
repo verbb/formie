@@ -385,14 +385,14 @@ Once using the necessary [Inline Fragments](https://graphql.org/learn/queries/#i
 |`sizeLimit` | `String` | Limit the size of the files a user can upload.
 |`allowedKinds` | `String` | A collection of allowed mime-types the user can upload.
 |
-####  Group
 
 
 ####  Heading
 | Field | Type | Description
 | - | - | -
 |`headingSize` | `String` | Choose the size for the heading.
-|
+
+
 ####  Hidden
 | Field | Type | Description
 | - | - | -
