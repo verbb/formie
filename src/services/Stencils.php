@@ -236,11 +236,14 @@ class Stencils extends Component
             $stencilRecord = $this->_getStencilsRecord($stencilUid);
             $isNewStencil = $stencilRecord->getIsNewRecord();
 
+            // Check against legacy error
+            $defaultStatusId = $data['defaultStatusId'] ?: null;
+
             $stencilRecord->name = $data['name'];
             $stencilRecord->handle = $data['handle'];
             $stencilRecord->data = $data['data'];
             $stencilRecord->templateId = $data['templateId'];
-            $stencilRecord->defaultStatusId = $data['defaultStatusId'];
+            $stencilRecord->defaultStatusId = $defaultStatusId;
             $stencilRecord->uid = $stencilUid;
 
             // Save the status
