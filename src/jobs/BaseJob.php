@@ -52,6 +52,9 @@ abstract class BaseJob extends CraftBaseJob
             // Delete anything that could be an issue. Would be nice if Craft itself handled this?
             if (property_exists($event->job, 'integration')) {
                 $event->job->integration->setClient(null);
+
+                // Clear out the cache for the same reason (can get immensely large)
+                $event->job->integration->cache = null;
             }
             
             // Serialize it again ready to save
