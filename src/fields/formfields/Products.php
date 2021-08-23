@@ -108,6 +108,8 @@ class Products extends CommerceProducts implements FormFieldInterface
         return [
             'sources' => '*',
             'placeholder' => Craft::t('formie', 'Select a product'),
+            'labelSource' => 'title',
+            'orderBy' => 'title ASC',
         ];
     }
 

@@ -114,6 +114,8 @@ class Variants extends CommerceVariants implements FormFieldInterface
         return [
             'source' => '*',
             'placeholder' => Craft::t('formie', 'Select a variant'),
+            'labelSource' => 'title',
+            'orderBy' => 'title ASC',
         ];
     }
 

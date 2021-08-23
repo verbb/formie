@@ -125,6 +125,8 @@ class Categories extends CraftCategories implements FormFieldInterface
         return [
             'source' => $group,
             'placeholder' => Craft::t('formie', 'Select a category'),
+            'labelSource' => 'title',
+            'orderBy' => 'title ASC',
         ];
     }
 

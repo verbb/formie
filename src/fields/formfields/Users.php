@@ -130,6 +130,8 @@ class Users extends CraftUsers implements FormFieldInterface
         return [
             'sources' => '*',
             'placeholder' => Craft::t('formie', 'Select a user'),
+            'labelSource' => 'email',
+            'orderBy' => 'email ASC',
         ];
     }
 

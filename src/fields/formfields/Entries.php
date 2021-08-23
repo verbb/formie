@@ -121,6 +121,8 @@ class Entries extends CraftEntries implements FormFieldInterface
         return [
             'sources' => '*',
             'placeholder' => Craft::t('formie', 'Select an entry'),
+            'labelSource' => 'title',
+            'orderBy' => 'title ASC',
         ];
     }
 
