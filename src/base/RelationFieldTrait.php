@@ -271,6 +271,9 @@ trait RelationFieldTrait
         // Override the value to get full elements
         $value = $submission->getFieldValue($formField->handle);
 
+        // Set the status to null to include disabled elements
+        $value->status(null);
+
         // Send through a CSV of element titles, when mapping to a string
         if ($integrationField->getType() === IntegrationField::TYPE_STRING) {
             $titles = ArrayHelper::getColumn($value->all(), 'title');
