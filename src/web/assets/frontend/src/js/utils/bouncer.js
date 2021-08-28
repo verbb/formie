@@ -793,6 +793,9 @@ export const Bouncer = function(selector, options) {
         // Special-case for file field, blurs as soon as the selector kicks in
         if (event.target.type === 'file') return;
 
+        // Don't trigger click event handling for checkbox/radio. We should use the change.
+        if (event.target.type === 'checkbox' || event.target.type === 'radio') return;
+
         // Validate the field
         publicAPIs.validate(event.target);
 
@@ -804,8 +807,8 @@ export const Bouncer = function(selector, options) {
         // Only run if the field is in a form to be validated
         if (!event.target.form || !event.target.form.matches(selector)) return;
 
-        // Just deal with file input fields
-        if (event.target.type !== 'file') return;
+        // Only handle change events for some fields
+        if (event.target.type !== 'file' && event.target.type !== 'checkbox' && event.target.type !== 'radio') return;
 
         // Validate the field
         publicAPIs.validate(event.target);
@@ -822,6 +825,28 @@ export const Bouncer = function(selector, options) {
 
         // Only run on fields with errors
         if (!event.target.classList.contains(settings.fieldClass)) return;
+
+        // Don't trigger click event handling for checkbox/radio. We should use the change.
+        if (event.target.type === 'checkbox' || event.target.type === 'radio') return;
+
+        // Validate the field
+        publicAPIs.validate(event.target);
+
+    };
+
+    /**
+     * Run a validation on a fields with errors when the value changes
+     */
+    var clickHandler = function(event) {
+
+        // Only run if the field is in a form to be validated
+        if (!event.target.form || !event.target.form.matches(selector)) return;
+
+        // Only run on fields with errors
+        if (!event.target.classList.contains(settings.fieldClass)) return;
+
+        // Don't trigger click event handling for checkbox/radio. We should use the change.
+        if (event.target.type === 'checkbox' || event.target.type === 'radio') return;
 
         // Validate the field
         publicAPIs.validate(event.target);
@@ -871,7 +896,7 @@ export const Bouncer = function(selector, options) {
             document.removeEventListener('blur', blurHandler, true);
             document.removeEventListener('input', inputHandler, false);
             document.removeEventListener('change', changeHandler, false);
-            document.removeEventListener('click', inputHandler, false);
+            document.removeEventListener('click', clickHandler, false);
         }
         
         if (settings.validateOnSubmit) {
@@ -912,7 +937,7 @@ export const Bouncer = function(selector, options) {
             document.addEventListener('blur', blurHandler, true);
             document.addEventListener('input', inputHandler, false);
             document.addEventListener('change', changeHandler, false);
-            document.addEventListener('click', inputHandler, false);
+            document.addEventListener('click', clickHandler, false);
         }
         
         if (settings.validateOnSubmit) {
