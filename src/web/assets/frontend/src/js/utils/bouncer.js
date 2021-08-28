@@ -170,14 +170,15 @@ export const Bouncer = function(selector, options) {
 
         // Handle checkboxes
         if (field.type === 'checkbox') {
+            // Watch out for grouped checkboxes. Only validate the group as a whole
             var checkboxInputs = field.form.querySelectorAll('[name="' + escapeCharacters(field.name) + '"]:not([type="hidden"])');
 
-            var checkedInputs = Array.prototype.filter.call(checkboxInputs, ((btn) => {
-                return btn.checked;
-            })).length;
+            if (checkboxInputs.length) {
+                var checkedInputs = Array.prototype.filter.call(checkboxInputs, ((btn) => {
+                    return btn.checked;
+                })).length;
 
-            if (checkedInputs === 0) {
-                return (field === checkboxInputs[0]);
+                return !checkedInputs;
             }
 
             return !field.checked;
@@ -414,9 +415,9 @@ export const Bouncer = function(selector, options) {
             id = settings.fieldPrefix + Math.floor(Math.random() * 999);
             field.id = id;
         }
-        if (field.type === 'checkbox') {
-            id += '_' + (field.value || field.id);
-        }
+        // if (field.type === 'checkbox') {
+        //     id += '_' + (field.value || field.id);
+        // }
         return id;
     };
 
