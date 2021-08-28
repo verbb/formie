@@ -414,6 +414,7 @@ class Zoho extends Crm
     {
         $fieldTypes = [
             'jsonobject' => IntegrationField::TYPE_ARRAY,
+            'jsonarray' => IntegrationField::TYPE_ARRAY,
             'date' => IntegrationField::TYPE_DATE,
             'datetime' => IntegrationField::TYPE_DATETIME,
             'timestamp' => IntegrationField::TYPE_DATETIME,
