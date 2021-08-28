@@ -1,9 +1,14 @@
 # Changelog
 
+## 1.4.15 - Unreleased
+
+### Fixed
+- Fixed checkbox validation not working correctly when "Validate When Typing" was enabled.
+
 ## 1.4.14 - 2021-08-17
 
 ### Fixed
-- Fix recipients field values not saving correctly.
+- Fixed recipients field values not saving correctly.
 
 ### Removed
 - Removed `columnWidth` from GraphQL queries (it did nothing).
