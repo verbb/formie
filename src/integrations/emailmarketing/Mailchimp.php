@@ -23,6 +23,7 @@ class Mailchimp extends EmailMarketing
     // =========================================================================
 
     public $apiKey;
+    public $appendTags = false;
     public $useDoubleOptIn = false;
 
 
@@ -220,6 +221,11 @@ class Mailchimp extends EmailMarketing
                 $tags = array_filter(array_map('trim', explode(',', $tags)));
 
                 if ($tags) {
+                    if ($this->appendTags) {
+                        $existingTags = $this->_getExistingTags($emailHash);
+                        $tags = array_merge($tags, $existingTags);
+                    }
+
                     $payload = [
                         'tags' => array_map(function($tag) {
                             return ['name' => $tag, 'status' => 'active'];
@@ -358,5 +364,18 @@ class Mailchimp extends EmailMarketing
         }
 
         return $customFields;
+    }
+
+    /**
+     * Returns a list of existing member tags.
+     *
+     * @param string $emailHash
+     * @return string[]
+     */
+    private function _getExistingTags(string $emailHash): array {
+        $response = $this->request('GET', "lists/{$this->listId}/members/{$emailHash}/tags");
+        return array_map(function($tag) {
+            return $tag['name'];
+        }, $response['tags']);
     }
 }
