@@ -161,8 +161,10 @@ class Variables
         // Check to see if we have these already calculated for the request and submission
         // Just saves a good bunch of calculating values like looping through fields
         if (!Formie::$plugin->getRenderCache()->getGlobalVariables($cacheKey)) {
+            // Get the user making the submission. Some checks to do to get it right.
+            $currentUser = self::_getCurrentUser($submission);
+
             // User Info
-            $currentUser = Craft::$app->getUser()->getIdentity();
             $userId = $currentUser->id ?? '';
             $userEmail = $currentUser->email ?? '';
             $username = $currentUser->username ?? '';
@@ -490,5 +492,26 @@ class Variables
         }
 
         return $result;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    private static function _getCurrentUser($submission = null)
+    {
+        $currentUser = Craft::$app->getUser()->getIdentity();
+
+        // If this is a front-end request, check the current user. This only really applies
+        // if `useQueueForNotifications = false`.
+        if ($currentUser && Craft::$app->getRequest()->getIsSiteRequest()) {
+            return $currentUser;
+        }
+
+        // Is the "Collect User" enabled on the form?
+        if ($submission && $submission->getUser()) {
+            return $submission->getUser();
+        }
+
+        return null;
     }
 }
