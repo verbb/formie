@@ -922,6 +922,8 @@ return [
     'Enter your {name} client folder ID here.' => 'Enter your {name} client folder ID here.',
     'API URL' => 'API URL',
     'Enter your {name} API URL here.' => 'Enter your {name} API URL here.',
+    'Append tags' => 'Append tags',
+    'Whether to append tags to the list of existing member tags.' => 'Whether to append tags to the list of existing member tags.',
     'Use Double Opt in' => 'Use Double Opt in',
     'Enter your {name} Client ID key here.' => 'Enter your {name} Client ID key here.',
     'API App ID' => 'API App ID',
