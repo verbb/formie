@@ -65,6 +65,13 @@
     </div>
 </integration-form-settings>
 
+{{ forms.lightswitchField({
+    label: 'Append Tags' | t('formie'),
+    id: 'appendTags',
+    name: 'appendTags',
+    instructions: 'Whether to append tags to the list of existing member tags.' | t('formie'),
+    on: form.settings.integrations[handle].appendTags ?? false,
+}) }}
 
 {{ forms.lightswitchField({
     label: 'Use Double Opt in' | t('formie'),
