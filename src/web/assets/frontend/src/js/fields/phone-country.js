@@ -153,10 +153,11 @@ export class FormiePhoneCountry {
     getPhoneMessage() {
         return {
             phoneCountry(field) {
-                var errorMap = ['Invalid number', 'Invalid country code', 'Too short', 'Too long', 'Invalid number'];
-                var errorCode = field.validator.getValidationError();
+                const errorMap = ['Invalid number', 'Invalid country code', 'Too short', 'Too long'];
+                const errorCode = field.validator.getValidationError();
+                const errorMessage = errorMap[errorCode] || 'Invalid number';
 
-                return t(errorMap[errorCode]);
+                return t(errorMessage);
             },
         };
     }
