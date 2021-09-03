@@ -372,47 +372,14 @@ class SubmissionsController extends Controller
         $defaultStatus = $form->getDefaultStatus();
         $errorMessage = $form->settings->getErrorMessage();
 
-        if ($submissionId = $request->getBodyParam('submissionId')) {
-            $submission = Submission::find()
-                ->id($submissionId)
-                ->isIncomplete(true)
-                ->one();
-
-            if (!$submission) {
-                throw new BadRequestHttpException("No submission exists with the ID \"$submissionId\"");
-            }
-        } else {
-            $submission = new Submission();
-            $submission->setForm($form);
-        }
-
-        $submission->siteId = $request->getParam('siteId') ?: Craft::$app->getSites()->getCurrentSite()->id;
-
-        Craft::$app->getContent()->populateElementContent($submission);
-        $submission->setFieldValuesFromRequest($this->_namespace);
-        $submission->setFieldParamNamespace($this->_namespace);
-
-        if ($form->settings->collectIp) {
-            $submission->ipAddress = Craft::$app->getRequest()->userIP;
-        }
-
-        if ($form->settings->collectUser) {
-            if ($user = Craft::$app->getUser()->getIdentity()) {
-                $submission->setUser($user);
-            }
-        }
+        // Get the submission, or create a new one
+        $submission = $this->_populateSubmission($form);
 
         $submission->title = Variables::getParsedValue(
             $settings->submissionTitleFormat,
             $submission,
             $form
         );
-
-        if (!$submission->title) {
-            $timeZone = Craft::$app->getTimeZone();
-            $now = new DateTime('now', new DateTimeZone($timeZone));
-            $submission->title = $now->format('Y-m-d H:i');
-        }
 
         // Check for the next page - if there is one
         $nextPage = $form->getNextPage(null, $submission);
@@ -427,9 +394,6 @@ class SubmissionsController extends Controller
 
         $defaultStatus = $form->getDefaultStatus();
         $errorMessage = $form->settings->getErrorMessage();
-
-        // Get the submission, or create a new one
-        $submission = $this->_populateSubmission($form);
 
         // Don't validate when going back
         if (!$goingBack) {
