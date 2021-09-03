@@ -774,9 +774,12 @@ class SubmissionsController extends Controller
         $request = Craft::$app->getRequest();
 
         if ($submissionId = $request->getBodyParam('submissionId')) {
+            // Allow fetching spammed submissions for multi-step forms, where its been flagged as spam
+            // already, but we want to complete the form submission.
             $submission = Submission::find()
                 ->id($submissionId)
                 ->isIncomplete(true)
+                ->isSpam(null)
                 ->one();
 
             if (!$submission) {
