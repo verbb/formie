@@ -804,8 +804,10 @@ class SubmissionsController extends Controller
         }
 
         // Set the default title for the submission so it can save correctly
-        $now = new DateTime('now', new DateTimeZone(Craft::$app->getTimeZone()));
-        $submission->title = $now->format('D, d M Y H:i:s');
+        if (!$submission->title) {
+            $now = new DateTime('now', new DateTimeZone(Craft::$app->getTimeZone()));
+            $submission->title = $now->format('D, d M Y H:i:s');
+        }
 
         return $submission;
     }
