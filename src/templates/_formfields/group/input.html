@@ -4,10 +4,6 @@
 
 {% set id = 'new1' %}
 
-{% namespace field.handle %}
-    {{ hiddenInput('sortOrder[]', id) }}
-{% endnamespace %}
-
 <div class="fui-group-field pane">
     {% namespace "#{field.handle}[rows][#{id}][fields]" %}
         {% for field in field.getFieldLayout().getFields() %}
@@ -19,5 +15,9 @@
         {% endfor %}
     {% endnamespace %}
 </div>
+
+{% namespace field.handle %}
+    {{ hiddenInput('sortOrder[]', id) }}
+{% endnamespace %}
 
 {% endblock %}
