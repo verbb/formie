@@ -1,22 +1,23 @@
-{% set element = element ?? null %}
-{% set namespace = namespace is defined ? namespace : 'fields' %}
-{% set fields = nestedField.getFieldLayout().getFields() %}
+{% extends 'formie/_formfields/field' %}
 
-{% namespace namespace %}
-    <div class="fui-group-field pane">
-        {% for row in rows %}
-            {% set rowId = row.id %}
-            {{ hiddenInput("#{name}[sortOrder][]", rowId) }}
+{% block field %}
 
-            {% for field in fields %}
-                {% include 'formie/_formfields/group/field' with {
-                    first: loop.first,
-                    field: field,
-                    required: field.required,
-                    element: row,
-                    registerDeltas: registerDeltas ?? false,
-                } only %}
-            {% endfor %}
-        {% endfor %}
-    </div>
+{% set id = 'new1' %}
+
+{% namespace field.handle %}
+    {{ hiddenInput('sortOrder[]', id) }}
 {% endnamespace %}
+
+<div class="fui-group-field pane">
+    {% namespace "#{field.handle}[rows][#{id}][fields]" %}
+        {% for field in field.getFieldLayout().getFields() %}
+            {% include 'formie/_formfields/group/field' with {
+                field: field,
+                required: field.required,
+                element: value.one() ?? null,
+            } only %}
+        {% endfor %}
+    {% endnamespace %}
+</div>
+
+{% endblock %}

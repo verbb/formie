@@ -6,14 +6,7 @@
 {% set errors = (element ? element.getErrors(field.handle) : null) %}
 {% set instructions = (field.instructions ? field.instructions|t('site') : null) %}
 
-{% set isDeltaRegistrationActive = view.getIsDeltaRegistrationActive() %}
-{% set registerDeltas = isDeltaRegistrationActive and (registerDeltas ?? false) %}
-{% do view.setIsDeltaRegistrationActive(registerDeltas) %}
-{% do view.registerDeltaName(field.handle) %}
-
 {% set input = field.getInputHtml(value, element) %}
-
-{% do view.setIsDeltaRegistrationActive(isDeltaRegistrationActive) %}
 
 {% if instructions or input %}
     {{ field({
@@ -22,15 +15,9 @@
         instructions: instructions|e,
         id: field.handle,
         errors: errors,
-        first: first,
         fieldAttributes: {
             data: {
                 type: className(field),
-            },
-        },
-        inputAttributes: {
-            data: {
-                'delta-container': true,
             },
         },
     }, input) }}

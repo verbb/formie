@@ -92,23 +92,10 @@ class Group extends FormField implements NestedFieldInterface, EagerLoadingField
      */
     public function getInputHtml($value, ElementInterface $element = null): string
     {
-        /** @var Element $element */
-        if ($element !== null && $element->hasEagerLoadedElements($this->handle)) {
-            $value = $element->getEagerLoadedElements($this->handle);
-        }
-
-        if ($value instanceof NestedFieldRowQuery) {
-            $value = $value->getCachedResult() ?? $value->limit(null)->anyStatus()->all();
-        }
-
-        $view = Craft::$app->getView();
-        $id = $view->formatInputId($this->handle);
-
-        return $view->renderTemplate('formie/_formfields/group/input', [
-            'id' => $id,
+        return Craft::$app->getView()->renderTemplate('formie/_formfields/group/input', [
             'name' => $this->handle,
-            'rows' => $value,
-            'nestedField' => $this,
+            'value' => $value,
+            'field' => $this,
         ]);
     }
 
