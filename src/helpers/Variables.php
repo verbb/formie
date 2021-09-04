@@ -174,12 +174,12 @@ class Variables
             $userIp = $submission->ipAddress ?? '';
 
             // Site Info
-            $siteId = $submission->siteId ?? Craft::$app->getSites()->getPrimarySite()->id;
-            $site = Craft::$app->getSites()->getSiteById($siteId);
+            $site = self::_getSite($submission);
             $siteName = $site->name ?? '';
 
-            // Set the current site based on the site saved against the submission. When being run from a queue
-            // there's no concept of the 'site' we're currently on.
+            // Force-set the current site. This will either be the current site the user is on for front-end requests,
+            // or the site saved against the submission. When being run from a queue there's no concept of the 'site'
+            // we're currently on, so using the `siteId` against the submission is the only way to determine that.
             if ($site) {
                 Craft::$app->getSites()->setCurrentSite($site);
             }
@@ -513,5 +513,29 @@ class Variables
         }
 
         return null;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public static function _getSite($submission)
+    {
+        // Get the current site, based on front-end requests first. This will fail for a queue job.
+        // For front-end requests where we want to parse content, we must respect the current site.
+        $currentSite = Craft::$app->getSites()->getCurrentSite();
+
+        if ($currentSite) {
+            return $currentSite;
+        }
+
+        // Otherwise, use the siteId for the submission
+        $siteId = $submission->siteId ?? null;
+
+        if ($siteId) {
+            return Craft::$app->getSites()->getSiteById($siteId);
+        }
+
+        // If all else fails, the primary site.
+        return Craft::$app->getSites()->getPrimarySite()->id;
     }
 }
