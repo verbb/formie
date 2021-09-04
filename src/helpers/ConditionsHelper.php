@@ -4,6 +4,7 @@ namespace verbb\formie\helpers;
 use verbb\formie\Formie;
 
 use Craft;
+use craft\fields\BaseRelationField;
 use craft\helpers\ArrayHelper;
 use craft\helpers\StringHelper;
 
@@ -56,7 +57,7 @@ class ConditionsHelper
         $ruler = ConditionsHelper::getRuler();
 
         // Fetch the values, serialized for string comparison
-        $serializedFieldValues = $submission->getSerializedFieldValuesForIntegration();
+        $serializedFieldValues = self::_getSerializedFieldValues($submission);
 
         foreach ($conditions as $condition) {
             try {
@@ -142,5 +143,33 @@ class ConditionsHelper
         $trim_all && $glued_string = preg_replace("/(\s)/ixsm", '', $glued_string);
 
         return (string)$glued_string;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    private static function _getSerializedFieldValues($submission): array
+    {
+        $serializedValues = [];
+
+        if ($fieldLayout = $submission->getFieldLayout()) {
+            foreach ($fieldLayout->getFields() as $field) {
+                $value = $submission->getFieldValue($field->handle);
+
+                // Special-handling for element fields which for integrations contain their titles
+                // (or field setting labels), but we want IDs.
+                if ($field instanceof BaseRelationField) {
+                    $value = $field->serializeValue($value, $submission);
+                } else if (method_exists($field, 'serializeValueForIntegration')) {
+                    $value = $field->serializeValueForIntegration($value, $submission);
+                } else {
+                    $value = $field->serializeValue($value, $submission);
+                }
+
+                $serializedValues[$field->handle] = $value;
+            }
+        }
+
+        return $serializedValues;
     }
 }
