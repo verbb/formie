@@ -67,6 +67,11 @@ export class FormieConditions {
             // field that are set to show if conditions are met.
             $field.dispatchEvent(new Event('FormieEvaluateConditions', { bubbles: true }));
         });
+
+        // Update the form hash, so we don't get change warnings
+        if (this.form.formTheme) {
+            this.form.formTheme.updateFormHash();
+        }
     }
 
     evaluateConditions(e) {
