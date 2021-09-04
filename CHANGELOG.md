@@ -1,9 +1,31 @@
 # Changelog
 
-## 1.4.15 - Unreleased
+## 1.4.15 - 2021-09-04
+
+### Added
+- Added support for user-based variables in email notifications to support the recorded user on the submission when "Collect User" is enabled on forms.
+- Added option to Mailchimp integration to append tags. (thanks @boundstate).
+- Added support for Zoho CRM `jsonarray` field types.
+- Element field values used in integrations can now include disabled elements.
 
 ### Fixed
 - Fixed checkbox validation not working correctly when "Validate When Typing" was enabled.
+- Fixed conditions used in forms triggering the "content changed" unload warning, when nothing has changed.
+- Fixed element fields when used in conditional rules not working correctly.
+- Fixed group fields not displaying values correctly, or saving properly in submissions.
+- Fixed `populateFormValues()` changing the current language for multi-site installs.
+- Fixed multi-page forms when marked as spam on a page, not being able to finalise submission.
+- Fixed Phone field country dropdown throwing an error when live validation is set for the form.
+- Fixed Phone field country dropdown throwing an error when a default country was picked, but not included in the "Allowed Countries".
+- Fixed some failed queue jobs for integrations storing large amounts of cache data when not needed.
+- Fixed an error when applying project config, with a stencil with the (incorrect) value of `defaultStatusId = 0`.
+- Fixed table fields in notification emails not rendering correctly when containing time or date columns.
+- Fixed bouncer.js not processing grouped checkboxes correctly.
+- Fixed bouncer.js not properly listening to checkbox change events.
+- Fixed element fields not having their "Label Source" and "Options Order" settings use "Title" as the default for new fields.
+
+### Removed
+- Removed conditional handling for fields when editing a submission. Too complicated to handle both front-end fields and Craft fields.
 
 ## 1.4.14 - 2021-08-17
 
