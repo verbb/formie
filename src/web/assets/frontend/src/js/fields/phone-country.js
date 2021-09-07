@@ -62,7 +62,7 @@ export class FormiePhoneCountry {
         // Ensure the initial country (if set) is in the only countries (if also set)
         if (options.onlyCountries && options.onlyCountries.length && options.initialCountry) {
             if (!options.onlyCountries.includes(options.initialCountry)) {
-                options.onlyCountries.push(options.initialCountry);
+                options.onlyCountries.push(options.initialCountry.toLowerCase());
             }
         }
 
