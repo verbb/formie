@@ -205,6 +205,11 @@ class MigrateFreeform extends Migration
                 $handle = $field->getHandle();
                 $field = $entry->$handle;
 
+                // Special-handling for reserved handles. We should prefix
+                if (in_array(strtolower($handle), $this->_reservedHandles)) {
+                    $handle = 'field_' . $handle;
+                }
+
                 try {
                     switch (get_class($field)) {
                         case freeformfields\Pro\ConfirmationField::class:

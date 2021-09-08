@@ -206,6 +206,13 @@ class MigrateSproutForms extends Migration
             $submission->dateUpdated = $entry->dateUpdated;
 
             foreach ($fields as $field) {
+                $handle = $field->handle;
+
+                // Special-handling for reserved handles. We should prefix
+                if (in_array(strtolower($handle), $this->_reservedHandles)) {
+                    $handle = 'field_' . $handle;
+                }
+
                 try {
                     switch (get_class($field)) {
                         case sproutfields\Address::class:
@@ -220,7 +227,7 @@ class MigrateSproutForms extends Migration
                             $address->state = $value->administrativeArea ?? '';
                             $address->country = $value->countryCode ?? '';
 
-                            $submission->setFieldValue($field->handle, $address);
+                            $submission->setFieldValue($handle, $address);
                             break;
                         case sproutfields\Name::class:
                             /* @var \barrelstrength\sproutbasefields\models\Name $value */
@@ -233,7 +240,7 @@ class MigrateSproutForms extends Migration
                             $name->middleName = $value->middleName ?? '';
                             $name->lastName = $value->lastName ?? '';
 
-                            $submission->setFieldValue($field->handle, $name);
+                            $submission->setFieldValue($handle, $name);
                             break;
                         case sproutfields\Phone::class:
                             /* @var \barrelstrength\sproutbasefields\models\Phone $value */
@@ -251,14 +258,14 @@ class MigrateSproutForms extends Migration
                             $phone->hasCountryCode = !!$country;
                             $phone->country = $country ?: $countryDefaultValue;
 
-                            $submission->setFieldValue($field->handle, $phone);
+                            $submission->setFieldValue($handle, $phone);
                             break;
                         default:
-                            $submission->setFieldValue($field->handle, $entry->getFieldValue($field->handle));
+                            $submission->setFieldValue($handle, $entry->getFieldValue($field->handle));
                             break;
                     }
                 } catch (Throwable $e) {
-                    $this->stdout("    > Failed to migrate “{$field->handle}”.", Console::FG_RED);
+                    $this->stdout("    > Failed to migrate “{$handle}”.", Console::FG_RED);
                     $this->stdout("    > `{$this->getExceptionTraceAsString($e)}`", Console::FG_RED);
 
                     continue;
