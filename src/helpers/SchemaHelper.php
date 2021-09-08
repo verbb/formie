@@ -336,6 +336,22 @@ class SchemaHelper
         ]), $config);
     }
 
+    public static function columnTypeField($config = [])
+    {
+        return array_merge(self::selectField([
+            'label' => Craft::t('formie', 'Column Type'),
+            'help' => Craft::t('formie', 'The type of column this field should get in the database.'),
+            'warning' => Craft::t('formie', 'Changing this may result in data loss.'),
+            'name' => 'columnType',
+            'options' => [
+                ['label' => Craft::t('formie', 'Automatic'), 'value' => ''],
+                ['label' => Craft::t('formie', 'varchar (255B)'), 'value' => 'string'],
+                ['label' => Craft::t('formie', 'text (~64KB)'), 'value' => 'text'],
+                ['label' => Craft::t('formie', 'mediumtext (~16MB)'), 'value' => 'mediumtext'],
+            ],
+        ]), $config);
+    }
+
     public static function extractFieldsFromSchema($fieldSchema, $names = [])
     {
         foreach ($fieldSchema as $field) {

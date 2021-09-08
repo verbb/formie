@@ -44,6 +44,7 @@ class Hidden extends FormField implements PreviewableFieldInterface
     public $defaultOption;
     public $queryParameter;
     public $cookieName;
+    public $columnType;
 
 
     // Public Methods
@@ -81,6 +82,18 @@ class Hidden extends FormField implements PreviewableFieldInterface
                 $this->defaultValue = $_COOKIE[$this->cookieName] ?? '';
             }
         }
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getContentColumnType(): string
+    {
+        if ($this->columnType) {
+            return $this->columnType;
+        }
+
+        return parent::getContentColumnType();
     }
 
     /**
@@ -253,6 +266,7 @@ class Hidden extends FormField implements PreviewableFieldInterface
             SchemaHelper::containerAttributesField(),
             SchemaHelper::inputAttributesField(),
             SchemaHelper::enableContentEncryptionField(),
+            SchemaHelper::columnTypeField(),
         ];
     }
 }
