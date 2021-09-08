@@ -758,7 +758,7 @@ class MigrateFreeform extends Migration
         }
 
         // Special-handling for reserved handles. We should prefix
-        if (in_array($newField->handle, $this->_reservedHandles)) {
+        if (in_array(strtolower($newField->handle), $this->_reservedHandles)) {
             $newHandle = 'field_' . $newField->handle;
 
             $this->stdout("    > Handle “{$newField->handle}” is a reserved word, will use “{$newHandle}” instead.", Console::FG_YELLOW);
