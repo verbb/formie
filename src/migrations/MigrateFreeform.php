@@ -65,12 +65,19 @@ class MigrateFreeform extends Migration
      */
     private $_form;
 
+    /**
+     * @var array
+     */
+    private $_reservedHandles;
+
 
     /**
      * @inheritdoc
      */
     public function safeUp()
     {
+        $this->_reservedHandles = Formie::$plugin->getFields()->getReservedHandles();
+
         if ($this->_freeformForm = Freeform::getInstance()->forms->getFormById($this->formId)) {
             if ($this->_form = $this->_migrateForm()) {
                 $this->_migrateSubmissions();
@@ -748,6 +755,15 @@ class MigrateFreeform extends Migration
 
         if (!$newField->handle) {
             $newField->handle = $field->getHandle();
+        }
+
+        // Special-handling for reserved handles. We should prefix
+        if (in_array($newField->handle, $this->_reservedHandles)) {
+            $newHandle = 'field_' . $newField->handle;
+
+            $this->stdout("    > Handle “{$newField->handle}” is a reserved word, will use “{$newHandle}” instead.", Console::FG_YELLOW);
+            
+            $newField->handle = $newHandle;
         }
 
         $newField->instructions = $field->getInstructions();

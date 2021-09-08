@@ -72,12 +72,19 @@ class MigrateSproutForms extends Migration
      */
     private $_form;
 
+    /**
+     * @var array
+     */
+    private $_reservedHandles;
+
 
     /**
      * @inheritdoc
      */
     public function safeUp()
     {
+        $this->_reservedHandles = Formie::$plugin->getFields()->getReservedHandles();
+        
         /* @var SproutFormsForm $sproutFormsForm */
         if ($this->_sproutForm = SproutFormsForm::find()->id($this->formId)->one()) {
             if ($this->_form = $this->_migrateForm()) {
@@ -699,6 +706,15 @@ class MigrateSproutForms extends Migration
         $newField->placeholder = $field->placeholder ?? '';
         $newField->cssClasses = $field->cssClasses ?? '';
         $newField->instructions = $field->instructions ?? '';
+
+        // Special-handling for reserved handles. We should prefix
+        if (in_array($newField->handle, $this->_reservedHandles)) {
+            $newHandle = 'field_' . $newField->handle;
+
+            $this->stdout("    > Handle “{$newField->handle}” is a reserved word, will use “{$newHandle}” instead.", Console::FG_YELLOW);
+            
+            $newField->handle = $newHandle;
+        }
 
         if (!$newField instanceof formfields\Address and !$newField instanceof formfields\Name) {
             $newField->required = !!$field->required;
