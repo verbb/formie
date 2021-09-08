@@ -79,6 +79,12 @@ class MigrationsController extends Controller
         Craft::$app->getDb()->backup();
 
         $formIds = Craft::$app->getRequest()->getParam('formIds');
+
+        // Handle picking "all"
+        if ($formIds === '*') {
+            $formIds = Freeform::getInstance()->forms->getAllFormIds();
+        }
+
         $forms = array_map([Freeform::getInstance()->forms, 'getFormById'], $formIds);
 
         $outputs = [];
