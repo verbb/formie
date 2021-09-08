@@ -132,6 +132,22 @@ class GoogleSheets extends Miscellaneous
     /**
      * @inheritDoc
      */
+    public function init()
+    {
+        // Allow an .env var to override the proxy state. Due to it being a lightswitch
+        // we can't set an override any other way.
+        $proxyRedirect = Craft::parseEnv('$FORMIE_INTEGRATION_PROXY_REDIRECT');
+
+        if (!is_null($proxyRedirect)) {
+            $this->proxyRedirect = $proxyRedirect;
+        }
+
+        return parent::init();
+    }
+
+    /**
+     * @inheritDoc
+     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'Google Sheets');

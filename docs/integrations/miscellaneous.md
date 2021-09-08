@@ -132,3 +132,9 @@ https://formie.verbb.io?return=http://formie.test/actions/formie/integrations/ca
 ```
 
 Here, it routes the request through to our Verbb servers, which forwards on the request to the URL in the `return` parameter (which would be your local project).
+
+You can also set this option via a `.env` variable to either `true` or `false`.
+
+```
+FORMIE_INTEGRATION_PROXY_REDIRECT="true"
+```
