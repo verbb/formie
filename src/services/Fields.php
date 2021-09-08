@@ -459,9 +459,6 @@ class Fields extends Component
 
         foreach ($this->getAllFields() as $field) {
             if (!in_array($field->id, $allFieldIds)) {
-                // A table name that doesn't exist. The table doesn't exist anymore.
-                $uid = substr($field->context, 7);
-                Craft::$app->getContent()->contentTable = "fmc_$uid";
                 Craft::$app->getFields()->deleteField($field);
             }
         }
