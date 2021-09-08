@@ -11,6 +11,7 @@ use Craft;
 use craft\base\ElementInterface;
 use craft\base\PreviewableFieldInterface;
 use craft\helpers\DateTimeHelper;
+use craft\helpers\UrlHelper;
 use craft\web\View;
 
 use Throwable;
@@ -68,6 +69,8 @@ class Hidden extends FormField implements PreviewableFieldInterface
                 $this->defaultValue = $request->getReferrer();
             } elseif ($this->defaultOption === 'currentUrl') {
                 $this->defaultValue = $request->getAbsoluteUrl();
+            } elseif ($this->defaultOption === 'currentUrlNoQueryString') {
+                $this->defaultValue = UrlHelper::stripQueryString($request->getAbsoluteUrl());
             } elseif ($this->defaultOption === 'userId') {
                 $this->defaultValue = $currentUser->id ?? null;
             } elseif ($this->defaultOption === 'username') {
@@ -206,6 +209,7 @@ class Hidden extends FormField implements PreviewableFieldInterface
                     [ 'label' => Craft::t('formie', 'Date (mm/dd/yyyy)'), 'value' => 'dateUs' ],
                     [ 'label' => Craft::t('formie', 'Date (dd/mm/yyyy)'), 'value' => 'dateInt' ],
                     [ 'label' => Craft::t('formie', 'Current URL'), 'value' => 'currentUrl' ],
+                    [ 'label' => Craft::t('formie', 'Current URL (without Query String)'), 'value' => 'currentUrlNoQueryString' ],
                     [ 'label' => Craft::t('formie', 'HTTP User Agent'), 'value' => 'userAgent' ],
                     [ 'label' => Craft::t('formie', 'HTTP Refer URL'), 'value' => 'referUrl' ],
                     [ 'label' => Craft::t('formie', 'User ID'), 'value' => 'userId' ],
