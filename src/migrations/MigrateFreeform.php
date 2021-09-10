@@ -97,6 +97,7 @@ class MigrateFreeform extends Migration
 
     private function _migrateForm()
     {
+        $settings = Formie::$plugin->getSettings();
         $transaction = Craft::$app->db->beginTransaction();
         $freeformForm = $this->_freeformForm;
 
@@ -110,6 +111,9 @@ class MigrateFreeform extends Migration
             $form->settings->submitMethod = $freeformForm->getForm()->isAjaxEnabled() ? 'ajax' : 'page-reload';
             $form->settings->submitActionUrl = $freeformForm->returnUrl;
             $form->settings->submitAction = 'url';
+
+            // Set default template
+            $form->templateId = $settings->getDefaultFormTemplateId();
 
             // "storeData" is private.
             if ($f = $freeformForm->getForm()) {

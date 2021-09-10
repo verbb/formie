@@ -104,6 +104,7 @@ class MigrateSproutForms extends Migration
 
     private function _migrateForm()
     {
+        $settings = Formie::$plugin->getSettings();
         $transaction = Craft::$app->db->beginTransaction();
         $sproutFormsForm = $this->_sproutForm;
 
@@ -120,6 +121,9 @@ class MigrateSproutForms extends Migration
             $form->settings->submitAction = 'url';
             $form->settings->submitActionMessage = $sproutFormsForm->successMessage;
             $form->settings->storeData = $sproutFormsForm->saveData ?? true;
+
+            // Set default template
+            $form->templateId = $settings->getDefaultFormTemplateId();
 
             // Fire a 'modifyForm' event
             $event = new ModifyMigrationFormEvent([
