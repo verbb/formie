@@ -14,6 +14,7 @@ use verbb\formie\helpers\Variables;
 use verbb\formie\models\Notification;
 use verbb\formie\models\FieldLayout;
 use verbb\formie\models\FieldLayoutPage;
+use verbb\formie\positions\Hidden as HiddenPosition;
 
 use Craft;
 use craft\db\Migration;
@@ -632,7 +633,7 @@ class MigrateFreeform extends Migration
                 $newField->name = Craft::t('formie', 'HTML Field');
                 $newField->handle = 'html' . rand();
                 $newField->htmlContent = $field->getValue();
-                $newField->labelPosition = 'hidden';
+                $newField->labelPosition = HiddenPosition::class;
                 break;
 
             case freeformfields\Pro\InvisibleField::class:
