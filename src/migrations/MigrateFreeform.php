@@ -630,8 +630,8 @@ class MigrateFreeform extends Migration
                 $newField = new formfields\Html();
                 $this->_applyFieldDefaults($newField);
 
-                $newField->name = Craft::t('formie', 'HTML Field');
                 $newField->handle = 'html' . rand();
+                $newField->name = $field->getLabel();
                 $newField->htmlContent = $field->getValue();
                 $newField->labelPosition = HiddenPosition::class;
                 break;
