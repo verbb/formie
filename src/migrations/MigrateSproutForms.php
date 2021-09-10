@@ -206,12 +206,8 @@ class MigrateSproutForms extends Migration
             $submission->dateUpdated = $entry->dateUpdated;
 
             foreach ($fields as $field) {
-                $handle = $field->handle;
-
-                // Special-handling for reserved handles. We should prefix
-                if (in_array(strtolower($handle), $this->_reservedHandles)) {
-                    $handle = 'field_' . $handle;
-                }
+                // Parse the handle for a few things just in case
+                $handle = $this->_getFieldHandle($field->handle, false);
 
                 try {
                     switch (get_class($field)) {
@@ -714,20 +710,39 @@ class MigrateSproutForms extends Migration
         $newField->cssClasses = $field->cssClasses ?? '';
         $newField->instructions = $field->instructions ?? '';
 
-        // Special-handling for reserved handles. We should prefix
-        if (in_array(strtolower($newField->handle), $this->_reservedHandles)) {
-            $newHandle = 'field_' . $newField->handle;
-
-            $this->stdout("    > Handle “{$newField->handle}” is a reserved word, will use “{$newHandle}” instead.", Console::FG_YELLOW);
-            
-            $newField->handle = $newHandle;
-        }
+        // Parse the handle for a few things just in case
+        $newField->handle = $this->_getFieldHandle($newField->handle);
 
         if (!$newField instanceof formfields\Address and !$newField instanceof formfields\Name) {
             $newField->required = !!$field->required;
         }
 
         return $newField;
+    }
+
+    private function _getFieldHandle($currentHandle, $showLog = true)
+    {
+        $newHandle = $currentHandle;
+
+        // Special-handling for reserved handles. We should prefix
+        if (in_array(strtolower($currentHandle), $this->_reservedHandles)) {
+            $newHandle = 'field_' . $currentHandle;
+
+            if ($showLog) {
+                $this->stdout("    > Handle “{$currentHandle}” is a reserved word, will use “{$newHandle}” instead.", Console::FG_YELLOW);
+            }
+        }
+
+        // Remove any dashes (maybe open up to other characters?)
+        if (strstr($newHandle, '-')) {
+            $newHandle = str_replace('-', '_', $newHandle);
+
+            if ($showLog) {
+                $this->stdout("    > Handle “{$currentHandle}” contains an invalid character, will use “{$newHandle}” instead.", Console::FG_YELLOW);
+            }
+        }
+
+        return $newHandle;
     }
 
     private function _applyFieldDefaults(FormFieldInterface &$field)
