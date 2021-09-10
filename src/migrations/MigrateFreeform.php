@@ -315,6 +315,8 @@ class MigrateFreeform extends Migration
 
     private function _migrateNotifications()
     {
+        $settings = Formie::$plugin->getSettings();
+        
         $this->_freeformForm;
 
         $props = $this->_freeformForm->getForm()->getAdminNotificationProperties();
@@ -333,7 +335,7 @@ class MigrateFreeform extends Migration
                 $newNotification->from = $notification->getFromEmail();
                 $newNotification->fromName = $notification->getFromName();
                 $newNotification->replyTo = $notification->getReplyToEmail();
-                $newNotification->templateId = null;
+                $newNotification->templateId = $settings->getDefaultEmailTemplateId();
                 $newNotification->attachFiles = $notification->isIncludeAttachmentsEnabled();
                 $newNotification->enabled = true;
 

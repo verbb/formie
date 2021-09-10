@@ -302,6 +302,8 @@ class MigrateSproutForms extends Migration
 
     private function _migrateNotifications()
     {
+        $settings = Formie::$plugin->getSettings();
+        
         /* @var NotificationEmail[] $notifications */
         $notifications = SproutBaseEmail::$app->notifications->getAllNotificationEmails();
         $total = 0;
@@ -343,7 +345,7 @@ class MigrateSproutForms extends Migration
                     $newNotification->from = $notification->fromEmail;
                     $newNotification->fromName = $notification->fromName;
                     $newNotification->replyTo = $notification->replyToEmail;
-                    $newNotification->templateId = null;
+                    $newNotification->templateId = $settings->getDefaultEmailTemplateId();
                     $newNotification->attachFiles = !!$notification->enableFileAttachments;
                     $newNotification->enabled = !!$notification->enabled;
 
