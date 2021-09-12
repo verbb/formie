@@ -1,5 +1,29 @@
 # Changelog
 
+## 1.4.16 - 2021-09-13
+
+### Added
+- Added `FORMIE_INTEGRATION_PROXY_REDIRECT` env variable for integrations.
+- Added `Current URL (without Query String)` option for hidden fields.
+- Added ability for hidden fields to set their column type, to assist with capturing large field values.
+
+### Changed
+- Changed Freefom migrations for a HTML field to use `hash` as the field handle instead of a randomly generated handle.
+- Changed Freefom migrations for a HTML field to use `HTML` as the field name.
+- Freeform/Sprout Forms migrations now auto-prefix fields that have reserved words as their handle.
+
+### Fixed
+- Fixed migrated email notifications not respecting the "Default Email Template" plugin setting.
+- Fixed migrated forms not respecting the "Default Form Template" plugin setting.
+- Fixed an error when migrating a Freeform form, containing a HTML field.
+- Fixed Freeform/Sprout Forms migrations when fields contain invalid characters.
+- Fixed "Undefined variable" error when failed email notifications with attachments throws an error itself.
+- Fixed an error when running garbage collection on deleted forms.
+- Fixed an error when trying to migrate "all" Freeform forms.
+- Fixed Phone field country dropdown throwing an error when a default country was picked, but not included in the "Allowed Countries".
+- Fixed an error when saving a submission from the command line.
+- Fixed Checkboxes field not applying default checkboxes.
+
 ## 1.4.15 - 2021-09-04
 
 ### Added
