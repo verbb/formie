@@ -541,4 +541,35 @@ $submission = \verbb\formie\elements\Submission::find()
 ```
 :::
 
+
+
+### `userId`
+
+Narrows the query results based on the submission owner user, per their IDs.
+
+Possible values include:
+
+| Value | Fetches submissions…
+| - | -
+| `1` | with a user ID of 1.
+| `'not 1'` | not with a user ID of 1.
+| `[1, 2]` | with a user ID of 1 or 2.
+| `['not', 1, 2]` | not with a user ID of 1 or 2.
+
+::: code
+```twig
+{# Fetch submissions with a user ID of 1 #}
+{% set submissions = craft.formie.submissions()
+    .userId(1)
+    .all() %}
+```
+
+```php
+// Fetch submissions with a user ID of 1
+$submissions = \verbb\formie\elements\Submission::find()
+    ->userId(1)
+    ->all();
+```
+:::
+
 <!-- END PARAMS -->
