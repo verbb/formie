@@ -251,8 +251,34 @@ $('#formie-form-1').on('onBeforeFormieSubmit', function(e) {
 
 
 
+### The `onBeforeFormieValidate` event
+The event that is triggered before a form is submitted, and before the validation is triggered. This is the event that is raised for captchas, which validate before form validation. You can cancel a submission by using `preventDefault()`.
+
+:::code
+```js
+let $form = document.querySelector('#formie-form-1');
+$form.addEventListener('onBeforeFormieValidate', (e) => {
+    e.preventDefault();
+
+    let submitHandler = e.detail.submitHandler;
+    // ...
+});
+```
+
+```jQuery
+$('#formie-form-1').on('onBeforeFormieValidate', function(e) {
+    e.preventDefault();
+
+    let submitHandler = e.detail.submitHandler;
+    // ...
+});
+```
+:::
+
+
+
 ### The `onFormieValidate` event
-The event that is triggered before a form is submitted, but after validation is triggered. You can cancel a submission by using `preventDefault()`.
+The event that is triggered before a form is submitted, but after validation is triggered. You can use this event to handle custom validation. You can cancel a submission by using `preventDefault()`.
 
 :::code
 ```js
@@ -267,6 +293,32 @@ $form.addEventListener('onFormieValidate', (e) => {
 
 ```jQuery
 $('#formie-form-1').on('onFormieValidate', function(e) {
+    e.preventDefault();
+
+    let submitHandler = e.detail.submitHandler;
+    // ...
+});
+```
+:::
+
+
+
+### The `onAfterFormieValidate` event
+The event that is triggered before a form is submitted, after validation is triggered and after `onFormieValidate`. Like the `onFormieValidate` event, you can also use this to handle custom validation, if for some reason you prefer it to happen after all other validation events have been triggered. You can cancel a submission by using `preventDefault()`.
+
+:::code
+```js
+let $form = document.querySelector('#formie-form-1');
+$form.addEventListener('onAfterFormieValidate', (e) => {
+    e.preventDefault();
+
+    let submitHandler = e.detail.submitHandler;
+    // ...
+});
+```
+
+```jQuery
+$('#formie-form-1').on('onAfterFormieValidate', function(e) {
     e.preventDefault();
 
     let submitHandler = e.detail.submitHandler;
