@@ -44,7 +44,7 @@ export class FormieRecaptchaV3 {
         this.renderCaptcha();
 
         // Attach a custom event listener on the form
-        this.$form.addEventListener('onFormieValidate', this.onValidate.bind(this));
+        this.$form.addEventListener('onBeforeFormieValidate', this.onValidate.bind(this));
         this.$form.addEventListener('onAfterFormieSubmit', this.onAfterSubmit.bind(this));
     }
 

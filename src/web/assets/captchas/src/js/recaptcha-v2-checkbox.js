@@ -46,7 +46,7 @@ export class FormieRecaptchaV2Checkbox {
 
         // Attach a custom event listener on the form
         this.$form.addEventListener('onBeforeFormieSubmit', this.onBeforeSubmit.bind(this));
-        this.$form.addEventListener('onFormieValidate', this.onValidate.bind(this));
+        this.$form.addEventListener('onBeforeFormieValidate', this.onValidate.bind(this));
         this.$form.addEventListener('onAfterFormieSubmit', this.onAfterSubmit.bind(this));
     }
 
