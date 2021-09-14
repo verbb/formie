@@ -156,14 +156,16 @@ class Recipients extends FormField
      */
     public function getFieldOptions()
     {
-        // Don't expose the value (email address) in the front end to prevent scaping
+        // Don't expose the value (email address) in the front end to prevent scraping
         $options = [];
 
         foreach ($this->options as $key => $value) {
             $options[$key] = $value;
 
-            // Swap the value with the index
-            $options[$key]['value'] = 'id:' . $key;
+            // Swap the value with the index - if there is a value, otherwise leave blank
+            if ($options[$key]['value']) {
+                $options[$key]['value'] = 'id:' . $key;
+            }
         }
 
         return $options;
