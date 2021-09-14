@@ -38,38 +38,41 @@ export class FormieFormBase {
             // Add a little delay for UX
             setTimeout(() => {
                 // Create an event for before validation. This is mostly for captchas
-                const beforeValidateEvent = this.eventObject('onBeforeFormieValidate', {
+                const captchaValidateEvent = this.eventObject('onFormieCaptchaValidate', {
                     submitHandler: this,
                 });
 
-                if (!this.$form.dispatchEvent(beforeValidateEvent)) {
+                console.log('captchaValidateEvent');
+
+                if (!this.$form.dispatchEvent(captchaValidateEvent)) {
                     return;
                 }
 
-                // Create an event for front-end validation (our own JS)
-                const validateEvent = this.eventObject('onFormieValidate', {
-                    submitHandler: this,
-                });
-
-                if (!this.$form.dispatchEvent(validateEvent)) {
-                    return;
-                }
-
-                // Create an event for after validation. This is mostly for third-parties.
-                const afterValidateEvent = this.eventObject('onAfterFormieValidate', {
-                    submitHandler: this,
-                });
-
-                if (!this.$form.dispatchEvent(afterValidateEvent)) {
-                    return;
-                }
-
+                // Proceed with submitting the form, which raises other validation events
                 this.submitForm();
             }, 300);
         }, false);
     }
 
     submitForm() {
+        // Create an event for front-end validation (our own JS)
+        const validateEvent = this.eventObject('onFormieValidate', {
+            submitHandler: this,
+        });
+
+        if (!this.$form.dispatchEvent(validateEvent)) {
+            return;
+        }
+
+        // Create an event for after validation. This is mostly for third-parties.
+        const afterValidateEvent = this.eventObject('onAfterFormieValidate', {
+            submitHandler: this,
+        });
+
+        if (!this.$form.dispatchEvent(afterValidateEvent)) {
+            return;
+        }
+
         // Check if we're going back, and attach an input to tell formie not to validate
         if (this.$form.goBack) {
             const $backButtonInput = document.createElement('input');

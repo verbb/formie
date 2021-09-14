@@ -3,9 +3,9 @@
     "/addressproviders/dist/js/algolia-places.js": "/addressproviders/dist/js/algolia-places.js?id=5977d7be8a5ae6bb25cd",
     "/addressproviders/dist/js/google-address.js": "/addressproviders/dist/js/google-address.js?id=a8264f838a44c44ecd0f",
     "/captchas/dist/js/javascript.js": "/captchas/dist/js/javascript.js?id=eb3de7e5c69959579180",
-    "/captchas/dist/js/recaptcha-v2-checkbox.js": "/captchas/dist/js/recaptcha-v2-checkbox.js?id=8377f9b1f0fe3adc4a78",
-    "/captchas/dist/js/recaptcha-v2-invisible.js": "/captchas/dist/js/recaptcha-v2-invisible.js?id=28fa8eb0b7ac04565796",
-    "/captchas/dist/js/recaptcha-v3.js": "/captchas/dist/js/recaptcha-v3.js?id=cd859ff1a4dadb0f3d8b",
+    "/captchas/dist/js/recaptcha-v2-checkbox.js": "/captchas/dist/js/recaptcha-v2-checkbox.js?id=86bf8c907a5242058a48",
+    "/captchas/dist/js/recaptcha-v2-invisible.js": "/captchas/dist/js/recaptcha-v2-invisible.js?id=3ed0325b3504dad680a9",
+    "/captchas/dist/js/recaptcha-v3.js": "/captchas/dist/js/recaptcha-v3.js?id=35722461d70e4149b419",
     "/cp/dist/js/formie-cp.js": "/cp/dist/js/formie-cp.js?id=28162cc0ba4aaee8309d",
     "/cp/dist/js/integration-settings.js": "/cp/dist/js/integration-settings.js?id=60a332319e89f5d810b2",
     "/forms/dist/js/main.js": "/forms/dist/js/main.js?id=e3ff2420b3aa50e5cf74",
@@ -27,6 +27,6 @@
     "/frontend/dist/js/fields/table.js": "/frontend/dist/js/fields/table.js?id=8e159d7b449fe1c1e84d",
     "/frontend/dist/js/fields/tags.js": "/frontend/dist/js/fields/tags.js?id=1784d086ac7ba394bd00",
     "/frontend/dist/js/fields/text-limit.js": "/frontend/dist/js/fields/text-limit.js?id=5c38dc97e2eb9adf578d",
-    "/frontend/dist/js/formie.js": "/frontend/dist/js/formie.js?id=8cfb41930a85203128b2",
+    "/frontend/dist/js/formie.js": "/frontend/dist/js/formie.js?id=86019c6138eb37fbf058",
     "/widgets/dist/js/formie-widgets.js": "/widgets/dist/js/formie-widgets.js?id=63088769b26ab159f1bc"
 }

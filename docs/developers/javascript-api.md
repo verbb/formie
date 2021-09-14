@@ -251,13 +251,13 @@ $('#formie-form-1').on('onBeforeFormieSubmit', function(e) {
 
 
 
-### The `onBeforeFormieValidate` event
-The event that is triggered before a form is submitted, and before the validation is triggered. This is the event that is raised for captchas, which validate before form validation. You can cancel a submission by using `preventDefault()`.
+### The `onFormieCaptchaValidate` event
+The event that is triggered before a form is submitted, and before the validation is triggered. This event is specifically for captchas, triggered before client-side validation runs. You can cancel a submission by using `preventDefault()`.
 
 :::code
 ```js
 let $form = document.querySelector('#formie-form-1');
-$form.addEventListener('onBeforeFormieValidate', (e) => {
+$form.addEventListener('onFormieCaptchaValidate', (e) => {
     e.preventDefault();
 
     let submitHandler = e.detail.submitHandler;
@@ -266,7 +266,7 @@ $form.addEventListener('onBeforeFormieValidate', (e) => {
 ```
 
 ```jQuery
-$('#formie-form-1').on('onBeforeFormieValidate', function(e) {
+$('#formie-form-1').on('onFormieCaptchaValidate', function(e) {
     e.preventDefault();
 
     let submitHandler = e.detail.submitHandler;
