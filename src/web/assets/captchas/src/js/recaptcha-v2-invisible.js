@@ -143,6 +143,11 @@ export class FormieRecaptchaV2Invisible {
     onVerify(token) {
         // Submit the form - we've hijacked it up until now
         if (this.submitHandler) {
+            // Call the form validation hooks first
+            if (!this.submitHandler.validate() || !this.submitHandler.afterValidate()) {
+                return;
+            }
+
             this.submitHandler.submitForm();
         }
     }

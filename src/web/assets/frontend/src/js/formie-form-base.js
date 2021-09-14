@@ -42,9 +42,12 @@ export class FormieFormBase {
                     submitHandler: this,
                 });
 
-                console.log('captchaValidateEvent');
-
                 if (!this.$form.dispatchEvent(captchaValidateEvent)) {
+                    return;
+                }
+
+                // Call the validation hooks
+                if (!this.validate() || !this.afterValidate()) {
                     return;
                 }
 
@@ -54,25 +57,25 @@ export class FormieFormBase {
         }, false);
     }
 
-    submitForm() {
+    validate() {
         // Create an event for front-end validation (our own JS)
         const validateEvent = this.eventObject('onFormieValidate', {
             submitHandler: this,
         });
 
-        if (!this.$form.dispatchEvent(validateEvent)) {
-            return;
-        }
+        return this.$form.dispatchEvent(validateEvent);
+    }
 
+    afterValidate() {
         // Create an event for after validation. This is mostly for third-parties.
         const afterValidateEvent = this.eventObject('onAfterFormieValidate', {
             submitHandler: this,
         });
 
-        if (!this.$form.dispatchEvent(afterValidateEvent)) {
-            return;
-        }
+        return this.$form.dispatchEvent(afterValidateEvent);
+    }
 
+    submitForm() {
         // Check if we're going back, and attach an input to tell formie not to validate
         if (this.$form.goBack) {
             const $backButtonInput = document.createElement('input');
