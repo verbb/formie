@@ -375,12 +375,6 @@ class SubmissionsController extends Controller
         // Get the submission, or create a new one
         $submission = $this->_populateSubmission($form);
 
-        $submission->title = Variables::getParsedValue(
-            $settings->submissionTitleFormat,
-            $submission,
-            $form
-        );
-
         // Check for the next page - if there is one
         $nextPage = $form->getNextPage(null, $submission);
 
@@ -805,6 +799,12 @@ class SubmissionsController extends Controller
                 $submission->setUser($user);
             }
         }
+
+        $submission->title = Variables::getParsedValue(
+            $form->settings->submissionTitleFormat,
+            $submission,
+            $form
+        );
 
         // Set the default title for the submission so it can save correctly
         if (!$submission->title) {
