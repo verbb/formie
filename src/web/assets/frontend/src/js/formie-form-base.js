@@ -27,12 +27,8 @@ export class FormieFormBase {
         this.addEventListener(this.$form, 'submit', (e) => {
             e.preventDefault();
 
-            const beforeSubmitEvent = new CustomEvent('onBeforeFormieSubmit', {
-                bubbles: true,
-                cancelable: true,
-                detail: {
-                    submitHandler: this,
-                },
+            const beforeSubmitEvent = this.eventObject('onBeforeFormieSubmit', {
+                submitHandler: this,
             });
 
             if (!this.$form.dispatchEvent(beforeSubmitEvent)) {
@@ -41,15 +37,30 @@ export class FormieFormBase {
 
             // Add a little delay for UX
             setTimeout(() => {
-                const validateEvent = new CustomEvent('onFormieValidate', {
-                    bubbles: true,
-                    cancelable: true,
-                    detail: {
-                        submitHandler: this,
-                    },
+                // Create an event for before validation. This is mostly for captchas
+                const beforeValidateEvent = this.eventObject('onBeforeFormieValidate', {
+                    submitHandler: this,
+                });
+
+                if (!this.$form.dispatchEvent(beforeValidateEvent)) {
+                    return;
+                }
+
+                // Create an event for front-end validation (our own JS)
+                const validateEvent = this.eventObject('onFormieValidate', {
+                    submitHandler: this,
                 });
 
                 if (!this.$form.dispatchEvent(validateEvent)) {
+                    return;
+                }
+
+                // Create an event for after validation. This is mostly for third-parties.
+                const afterValidateEvent = this.eventObject('onAfterFormieValidate', {
+                    submitHandler: this,
+                });
+
+                if (!this.$form.dispatchEvent(afterValidateEvent)) {
                     return;
                 }
 
@@ -68,12 +79,8 @@ export class FormieFormBase {
             this.$form.appendChild($backButtonInput);
         }
 
-        const submitEvent = new CustomEvent('onFormieSubmit', {
-            bubbles: true,
-            cancelable: true,
-            detail: {
-                submitHandler: this,
-            },
+        const submitEvent = this.eventObject('onFormieSubmit', {
+            submitHandler: this,
         });
 
         if (!this.$form.dispatchEvent(submitEvent)) {
@@ -158,5 +165,13 @@ export class FormieFormBase {
             eventInfo.element.removeEventListener(event.split('.')[0], eventInfo.func);
             delete this.listeners[event];
         }
+    }
+
+    eventObject(name, detail) {
+        return new CustomEvent(name, {
+            bubbles: true,
+            cancelable: true,
+            detail,
+        });
     }
 }
