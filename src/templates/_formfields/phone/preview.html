@@ -4,6 +4,6 @@
         <select class="fui-field-select fui-phone-flag-select"></select>
     </div>
 
-    <input type="text" class="fui-field-input" :placeholder="field.settings.placeholder" :value="field.settings.defaultValue">
+    <input type="text" class="fui-field-input" :placeholder="field.settings.placeholder" :value="field.settings.defaultValue" :style="field.settings.countryEnabled ? 'padding-left: 55px;' : ''">
     <span class="fui-field-icon">{{ field.getSvgIcon() | raw }}</span>
 </div>
