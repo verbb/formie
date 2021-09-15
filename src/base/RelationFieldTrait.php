@@ -281,8 +281,14 @@ trait RelationFieldTrait
             return implode(', ', $titles);
         }
 
+        // When an array, assume a collection of IDs
         if ($integrationField->getType() === IntegrationField::TYPE_ARRAY) {
             return $value->ids();
+        }
+
+        // When a number, assume a single ID
+        if ($integrationField->getType() === IntegrationField::TYPE_NUMBER) {
+            return $value->ids()[0] ?? null;
         }
 
         return null;

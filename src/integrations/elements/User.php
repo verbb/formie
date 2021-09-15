@@ -125,6 +125,11 @@ class User extends Element
                 'name' => Craft::t('app', 'Password'),
                 'handle' => 'newPassword',
             ]),
+            new IntegrationField([
+                'name' => Craft::t('app', 'Photo'),
+                'handle' => 'photo',
+                'type' => IntegrationField::TYPE_NUMBER,
+            ]),
         ];
     }
 
@@ -202,9 +207,8 @@ class User extends Element
             $attributeValues = $this->getFieldMappingValues($submission, $this->attributeMapping, $this->getElementAttributes());
             $attributeValues = array_filter($attributeValues);
 
-            foreach ($attributeValues as $userFieldHandle => $fieldValue) {
-                $user->{$userFieldHandle} = $fieldValue;
-            }
+            // Set the attributes on the user element
+            $this->_setElementAttributes($user, $attributeValues);
 
             $fields = $this->getFormSettingValue('elements')[0]->fields ?? [];
             $fieldValues = $this->getFieldMappingValues($submission, $this->fieldMapping, $fields);
@@ -305,5 +309,23 @@ class User extends Element
         }
 
         return $userGroups;
+    }
+    
+    /**
+     * @inheritDoc
+     */
+    private function _setElementAttributes($user, $attributes)
+    {
+        foreach ($attributes as $userFieldHandle => $fieldValue) {
+            // Special handling for photo - must be an asset. Actually provided as an Asset ID.
+            if ($userFieldHandle === 'photo') {
+                // Fetch the asset, if it exists
+                $asset = Craft::$app->getAssets()->getAssetById($fieldValue);
+
+                $fieldValue = $asset ?? null;
+            }
+
+            $user->{$userFieldHandle} = $fieldValue;
+        }
     }
 }
