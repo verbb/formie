@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.4.17 - 2021-09-17
+
+### Added
+- Added `onBeforeFormieValidate` and `onAfterFormieValidate` JS events.
+- Added support for user photo uploading (via File Upload fields), for User element integrations.
+
+### Changed
+- Changed reCAPTCHA captchas now use `onBeforeFormieValidate` to hook into validation, allowing third-party handling of validation events for JS.
+
+### Fixed
+- Fixed placeholder text for Phone field in the form builder, when country dropdown was enabled.
+- Fixed checkbox fields having their default options set when editing a submission.
+- Fixed submission titles not generating correctly in some circumstances.
+- Fixed Recipients dropdown field when an option has no value, not validating correctly.
+
 ## 1.4.16 - 2021-09-13
 
 ### Added
