@@ -113,4 +113,10 @@ Or, you could override the options available for a Dropdown field.
 }) %}
 ```
 
+:::warning
+Note that you cannot add new options dynamically to fields with options, such as Dropdown, Radio Buttons and Checkboxes. This is because validation for the field needs to check that the value provided is in the collection of allowed options you've defined for the field. Setting it to a value that is not in the options for the field will result in a validation error.
+
+If you want a dynamically-generated Dropdown field, we would suggest using a Hidden field, and override the template for how it looks, to change it to a `<select>` instead of a hidden input. [Read more](https://github.com/verbb/formie/issues/415)
+:::
+
 See the [Field Settings](docs:developers/field#field-settings) docs for a full list of available settings to override.
