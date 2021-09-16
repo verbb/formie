@@ -3,11 +3,11 @@
 ## 1.4.17 - 2021-09-17
 
 ### Added
-- Added `onBeforeFormieValidate` and `onAfterFormieValidate` JS events.
+- Added `onFormieCaptchaValidate` and `onAfterFormieValidate` JS events.
 - Added support for user photo uploading (via File Upload fields), for User element integrations.
 
 ### Changed
-- Changed reCAPTCHA captchas now use `onBeforeFormieValidate` to hook into validation, allowing third-party handling of validation events for JS.
+- Changed reCAPTCHA captchas now use `onFormieCaptchaValidate` to hook into validation, allowing third-party handling of validation events for JS.
 
 ### Fixed
 - Fixed placeholder text for Phone field in the form builder, when country dropdown was enabled.
