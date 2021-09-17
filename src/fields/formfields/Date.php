@@ -6,6 +6,7 @@ use verbb\formie\base\FormField;
 use verbb\formie\base\SubfieldInterface;
 use verbb\formie\base\SubfieldTrait;
 use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\models\IntegrationField;
 
 use Craft;
 use craft\base\ElementInterface;
@@ -375,6 +376,19 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
         return Craft::$app->getView()->renderTemplate('formie/_formfields/date/preview', [
             'field' => $this
         ]);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getFieldMappedValueForIntegration(IntegrationField $integrationField, $formField, $value, $submission)
+    {
+        // If a string value is requested for a date, return the ISO 8601 date string
+        if ($integrationField->getType() === IntegrationField::TYPE_STRING) {
+            return $value->format('c');
+        }
+
+        return $value;
     }
 
     /**
