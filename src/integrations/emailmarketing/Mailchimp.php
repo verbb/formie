@@ -316,7 +316,6 @@ class Mailchimp extends EmailMarketing
     {
         $fieldTypes = [
             'number' => IntegrationField::TYPE_NUMBER,
-            'phone' => IntegrationField::TYPE_NUMBER,
         ];
 
         return $fieldTypes[$fieldType] ?? IntegrationField::TYPE_STRING;
