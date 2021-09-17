@@ -281,7 +281,8 @@ class Tags extends CraftTags implements FormFieldInterface
      */
     public function getElementsQuery()
     {
-        $query = Tag::find();
+        // Use the currently-set element query, or create a new one.
+        $query = $this->elementsQuery ?? Tag::find();
 
         if ($group = $this->_getTagGroup()) {
             $query->group($group);

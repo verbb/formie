@@ -173,7 +173,8 @@ class Entries extends CraftEntries implements FormFieldInterface
      */
     public function getElementsQuery()
     {
-        $query = Entry::find();
+        // Use the currently-set element query, or create a new one.
+        $query = $this->elementsQuery ?? Entry::find();
 
         if ($this->sources !== '*') {
             $criteria = [];

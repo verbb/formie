@@ -182,7 +182,8 @@ class Users extends CraftUsers implements FormFieldInterface
      */
     public function getElementsQuery()
     {
-        $query = User::find();
+        // Use the currently-set element query, or create a new one.
+        $query = $this->elementsQuery ?? User::find();
 
         if ($this->sources !== '*') {
             $criteria = [];

@@ -179,7 +179,8 @@ class Categories extends CraftCategories implements FormFieldInterface
      */
     public function getElementsQuery()
     {
-        $query = Category::find();
+        // Use the currently-set element query, or create a new one.
+        $query = $this->elementsQuery ?? Category::find();
 
         if ($this->source !== '*') {
             // Try to find the criteria we're restricting by - if any

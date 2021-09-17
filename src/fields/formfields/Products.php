@@ -160,7 +160,8 @@ class Products extends CommerceProducts implements FormFieldInterface
      */
     public function getElementsQuery()
     {
-        $query = Product::find();
+        // Use the currently-set element query, or create a new one.
+        $query = $this->elementsQuery ?? Product::find();
 
         if ($this->sources !== '*') {
             $criteria = [];

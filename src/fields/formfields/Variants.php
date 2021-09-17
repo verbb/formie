@@ -166,7 +166,8 @@ class Variants extends CommerceVariants implements FormFieldInterface
      */
     public function getElementsQuery()
     {
-        $query = Variant::find();
+        // Use the currently-set element query, or create a new one.
+        $query = $this->elementsQuery ?? Variant::find();
 
         if ($this->source !== '*') {
             // Try to find the criteria we're restricting by - if any

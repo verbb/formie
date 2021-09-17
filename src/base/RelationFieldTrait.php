@@ -26,6 +26,8 @@ trait RelationFieldTrait
     public $displayType = 'dropdown';
     public $labelSource = 'title';
     public $orderBy = 'title ASC';
+    
+    protected $elementsQuery = null;
 
 
     // Public Methods
@@ -294,6 +296,9 @@ trait RelationFieldTrait
         return null;
     }
 
+    /**
+     * @inheritDoc
+     */
     public function getDefaultValueQuery()
     {
         $defaultValue = $this->defaultValue ?? [];
@@ -371,6 +376,14 @@ trait RelationFieldTrait
         }
 
         return $value;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setElementsQuery($query)
+    {
+        $this->elementsQuery = $query;
     }
 
     /**
