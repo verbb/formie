@@ -1,15 +1,16 @@
 <?php
 namespace verbb\formie\fields\formfields;
 
+use verbb\formie\Formie;
 use verbb\formie\base\FormField;
 use verbb\formie\base\SubfieldInterface;
 use verbb\formie\base\SubfieldTrait;
-use verbb\formie\Formie;
+use verbb\formie\events\ModifyNamePrefixOptionsEvent;
 use verbb\formie\gql\types\generators\FieldAttributeGenerator;
 use verbb\formie\gql\types\input\NameInputType;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\Name as NameModel;
-use verbb\formie\events\ModifyNamePrefixOptionsEvent;
+use verbb\formie\positions\FieldsetStart;
 
 use Craft;
 use craft\base\ElementInterface;
@@ -268,6 +269,8 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
             'lastNameLabel' => Craft::t('formie', 'Last Name'),
             'lastNameDefaultValue' => '',
             'lastNamePrePopulate' => '',
+
+            'instructionsPosition' => FieldsetStart::class,
         ];
     }
 

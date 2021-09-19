@@ -11,6 +11,7 @@ use verbb\formie\gql\types\generators\FieldAttributeGenerator;
 use verbb\formie\gql\types\input\AddressInputType;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\Address as AddressModel;
+use verbb\formie\positions\FieldsetStart;
 
 use Craft;
 use craft\base\ElementInterface;
@@ -301,6 +302,8 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
             'countryLabel' => Craft::t('formie', 'Country'),
             'countryDefaultValue' => '',
             'countryPrePopulate' => '',
+
+            'instructionsPosition' => FieldsetStart::class,
         ];
     }
 

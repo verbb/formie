@@ -51,7 +51,7 @@
                                 "firstNameRequired":true,
                                 "handle":"yourName",
                                 "instructions":"Please enter your full name.",
-                                "instructionsPosition":"",
+                                "instructionsPosition":"verbb\\formie\\positions\\FieldsetStart",
                                 "label":"Your Name",
                                 "labelPosition":"verbb\\formie\\positions\\Hidden",
                                 "lastNameCollapsed":false,
