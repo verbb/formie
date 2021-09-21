@@ -520,7 +520,7 @@ public function getFrontEndJs(Form $form)
 
 ### Date Fields
 
-When using the Date Picker option for date fields, you can access Flatpickr settings, and modify them through JavaScript.
+When using the Date Picker option for date fields, you can access [Flatpickr](https://flatpickr.js.org/) settings, and modify them through JavaScript.
 
 ### The `beforeInit` event
 The event that is triggered before the Flatpickr date picker is initialized.
@@ -643,6 +643,50 @@ $fields.forEach($field => {
     $field.addEventListener('append', (e) => {
         let $row = e.detail.row;
         let $form = e.detail.form;
+    });
+});
+```
+
+
+### Tag Fields
+
+For Tags element fields, you can access [tagify](https://github.com/yairEO/tagify) settings, and modify them through JavaScript.
+
+### The `beforeInit` event
+The event that is triggered before tagify is initialized.
+
+```js
+// Fetch all Tags fields - specifically the input. Events are bound on the input element
+let $fields = document.querySelectorAll('.fui-type-date-time input');
+
+// For each field, bind on the `beforeInit` event
+$fields.forEach($field => {
+    $field.addEventListener('beforeInit', (e) => {
+        let tagField = e.detail.tagField;
+        let options = e.detail.options;
+
+        // Modify any tagify options
+        e.detail.options.duplicates = true;
+        e.detail.options.dropdown.maxItems = 20;
+    });
+});
+```
+
+The above example uses the `beforeInit` event to modify the config for tagify. There's event data in the event's `detail` attribute, which you can modify.
+
+### The `afterInit` event
+The event that is triggered after tagify is initialized.
+
+```js
+// Fetch all Tags fields - specifically the input. Events are bound on the input element
+let $fields = document.querySelectorAll('.fui-type-date-time input');
+
+// For each field, bind on the `afterInit` event
+$fields.forEach($field => {
+    $field.addEventListener('afterInit', (e) => {
+        let tagField = e.detail.tagField;
+        let tagify = e.detail.tagify;
+        let options = e.detail.options;
     });
 });
 ```

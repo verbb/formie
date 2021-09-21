@@ -18,9 +18,35 @@ export class FormieTags {
             // Maximum compatibility.
             const tags = JSON.parse($input.getAttribute('data-formie-tags'));
 
-            $input.tagify = new Tagify($input, {
+            const defaultOptions = {
                 whitelist: tags,
-            });
+            };
+
+            // Emit an "beforeInit" event
+            const beforeInitEvent = this.$field.dispatchEvent(new CustomEvent('beforeInit', {
+                bubbles: true,
+                detail: {
+                    tagField: this,
+                    options: defaultOptions,
+                },
+            }));
+
+            const options = {
+                ...defaultOptions,
+                ...beforeInitEvent.options,
+            };
+
+            $input.tagify = new Tagify($input, options);
+
+            // Emit an "afterInit" event
+            this.$field.dispatchEvent(new CustomEvent('afterInit', {
+                bubbles: true,
+                detail: {
+                    tagField: this,
+                    tagify: $input.tagify,
+                    options,
+                },
+            }));
         });
     }
 }
