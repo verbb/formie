@@ -23,7 +23,7 @@ export class FormieTags {
             };
 
             // Emit an "beforeInit" event
-            const beforeInitEvent = this.$field.dispatchEvent(new CustomEvent('beforeInit', {
+            const beforeInitEvent = $input.dispatchEvent(new CustomEvent('beforeInit', {
                 bubbles: true,
                 detail: {
                     tagField: this,
@@ -39,7 +39,7 @@ export class FormieTags {
             $input.tagify = new Tagify($input, options);
 
             // Emit an "afterInit" event
-            this.$field.dispatchEvent(new CustomEvent('afterInit', {
+            $input.dispatchEvent(new CustomEvent('afterInit', {
                 bubbles: true,
                 detail: {
                     tagField: this,

@@ -657,7 +657,7 @@ The event that is triggered before tagify is initialized.
 
 ```js
 // Fetch all Tags fields - specifically the input. Events are bound on the input element
-let $fields = document.querySelectorAll('.fui-type-date-time input');
+let $fields = document.querySelectorAll('.fui-type-tags input');
 
 // For each field, bind on the `beforeInit` event
 $fields.forEach($field => {
@@ -679,7 +679,7 @@ The event that is triggered after tagify is initialized.
 
 ```js
 // Fetch all Tags fields - specifically the input. Events are bound on the input element
-let $fields = document.querySelectorAll('.fui-type-date-time input');
+let $fields = document.querySelectorAll('.fui-type-tags input');
 
 // For each field, bind on the `afterInit` event
 $fields.forEach($field => {
