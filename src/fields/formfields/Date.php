@@ -14,6 +14,7 @@ use craft\base\PreviewableFieldInterface;
 use craft\gql\types\DateTime as DateTimeType;
 use craft\helpers\DateTimeHelper;
 use craft\helpers\StringHelper;
+use craft\i18n\Locale;
 
 use DateTime;
 use yii\db\Schema;
@@ -124,6 +125,22 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
         }
         
         return false;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getTableAttributeHtml($value, ElementInterface $element): string
+    {
+        if (!$value) {
+            return '';
+        }
+
+        if ($this->includeTime) {
+            return Craft::$app->getFormatter()->asDatetime($value, Locale::LENGTH_SHORT);
+        }
+
+        return Craft::$app->getFormatter()->asDate($value, Locale::LENGTH_SHORT);
     }
 
     /**
