@@ -109,6 +109,13 @@ class Email extends FormField implements PreviewableFieldInterface
         $fieldHandle = $element->fieldColumnPrefix . $this->handle;
         $contentTable = $element->contentTable;
 
+        // TODO: remove schema version condition after next beakpoint
+        if (version_compare(Craft::$app->getInstalledSchemaVersion(), '3.7.0', '>=')) {
+            if ($this->columnSuffix) {
+                $fieldHandle .= '_' . $this->columnSuffix;
+            }
+        }
+
         $emailExists = (new Query())
             ->select($fieldHandle)
             ->from($contentTable)
