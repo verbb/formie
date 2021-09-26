@@ -26,7 +26,7 @@ export class FormieDatePicker {
             allowInput: true,
             altInput: true,
             altFormat: this.dateFormat,
-            dateFormat: 'Y-m-d',
+            dateFormat: 'Y-m-d H:i:S',
             enableTime: this.includeTime,
             hourIncrement: 1,
             minuteIncrement: 1,
