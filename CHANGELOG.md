@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.4.18 - 2021-09-26
+
+### Added
+- Added `beforeInit` and `afterInit` JS events for Tag fields.
+
+### Fixed
+- Fixed Date fields (calendar and date picker) not saving time values correctly.
+- Fixed Email fields with "Unique Value" set throwing an error on Craft 3.7+.
+- Fixed Date fields throwing an error when used in the submission element index columns.
+- Fixed Name and Address fields not having their instructions position set correctly for new fields.
+- Fixed Date fields not always returning a formatted date as a string, when used in integrations.
+- Fixed Mailchimp email marketing integration not casting phone numbers to the correct type in some instances.
+- Allow element fields to modify the element query in templates.
+
 ## 1.4.17 - 2021-09-17
 
 ### Added
