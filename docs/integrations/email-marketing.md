@@ -28,8 +28,8 @@ Formie integrates with the following providers:
 - Autopilot
 - AWeber
 - Benchmark
-- [Campaign Plugin](https://plugins.craftcms.com/campaign)
 - Campaign Monitor
+- [Campaign Plugin](https://plugins.craftcms.com/campaign)
 - Constant Contact
 - ConvertKit
 - Drip
@@ -158,6 +158,10 @@ Follow the below steps to connect to the Campaign Monitor API.
 1. In the left-hand sidebar, select the name you gave the integration.
 1. Enable the integration and fill out all required fields.
 1. Click **Save** to save the form.
+
+
+## Campaign Plugin
+The [Campaign Plugin](https://plugins.craftcms.com/campaign) requires no setup or settings, other than having the plugin installed and active.
 
 
 ## Constant Contact
