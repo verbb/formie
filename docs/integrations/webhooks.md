@@ -8,10 +8,15 @@ There are 2 types of Webhooks Formie provides.
 ## Webhook
 A general-purpose webhook can be use to send any URL you provide with the payload of content. This can be use to POST-forward content to a URL you choose.
 
-### Step 1. Add your Webhook URL
+### Step 1. Create the Integration
+1. Navigate to **Formie** → **Settings** → **Webhooks**.
+1. Click the **New Integration** button.
+1. Select Webhook as the **Integration Provider**.
+
+### Step 2. Add your Webhook URL
 1. Add your URL to the **Webhook URL** field in Formie.
 
-### Step 2. Form Setting & Test Payload
+### Step 3. Form Setting & Test Payload
 1. Go to the form you want to enable this integration on.
 1. Click the **Integrations** tab.
 1. In the left-hand sidebar, select the name you gave the integration.
@@ -23,14 +28,19 @@ A general-purpose webhook can be use to send any URL you provide with the payloa
 ## Zapier
 Follow the below steps to connect to the Zapier API.
 
-### Step 1. Connect to the Zapier API
+### Step 1. Create the Integration
+1. Navigate to **Formie** → **Settings** → **Webhooks**.
+1. Click the **New Integration** button.
+1. Select Zapier as the **Integration Provider**.
+
+### Step 2. Connect to the Zapier API
 1. Go to <a href="https://zapier.com/app/zaps" target="_blank">Zapier</a> and create a new Zap.
 1. For the **Choose App & Event** value, enter **Webhooks by Zapier**.
 1. For the **Choose Trigger Event** value, enter **Catch Hook**.
 1. Click **Continue**.
 1. Copy the **Custom Webhook URL** into the **Webhook** field in Formie.
 
-### Step 2. Form Setting & Test Payload
+### Step 3. Form Setting & Test Payload
 1. Go to the form you want to enable this integration on.
 1. Click the **Integrations** tab.
 1. In the left-hand sidebar, select the name you gave the integration.

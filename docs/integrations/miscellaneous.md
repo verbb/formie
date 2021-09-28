@@ -20,7 +20,12 @@ Is your provider not in the list above? [Contact us](https://verbb.io/contact) t
 ## Google Sheets
 Follow the below steps to connect to the Google Sheets API.
 
-### Step 1. Connect to the Google Sheets API
+### Step 1. Create the Integration
+1. Navigate to **Formie** → **Settings** → **Miscellaneous**.
+1. Click the **New Integration** button.
+1. Select Google Sheets as the **Integration Provider**.
+
+### Step 2. Connect to the Google Sheets API
 1. Go to the <a href="https://console.cloud.google.com/apis/credentials" target="_blank">Google API Console</a>.
 1. Select an existing project or create a new one.
 1. Go to the **APIs & Services** → **Library**  and enable the **Google Drive API** and **Google Sheets API** for the project.
@@ -33,12 +38,12 @@ Follow the below steps to connect to the Google Sheets API.
     1. Then click the **Create** button.
 1. Once created, a popup will appear with your OAuth credentials. Copy the **Client ID** and **Client Secret** values and paste into the fields in Formie.
 
-### Step 2. Test Connection
+### Step 3. Test Connection
 1. Save this integration.
 1. Click on the **Connect** button in the right-hand sidebar.
 1. You‘ll be redirected to Google, where you must approve Formie to access your Google account.
 
-### Step 3. Form Setting
+### Step 4. Form Setting
 1. Go to the form you want to enable this integration on.
 1. Click the **Integrations** tab.
 1. In the left-hand sidebar, select the name you gave the integration.
@@ -49,17 +54,22 @@ Follow the below steps to connect to the Google Sheets API.
 ## Monday
 Follow the below steps to connect to the Monday API.
 
-### Step 1. Connect to the Monday API
+### Step 1. Create the Integration
+1. Navigate to **Formie** → **Settings** → **Miscellaneous**.
+1. Click the **New Integration** button.
+1. Select Monday as the **Integration Provider**.
+
+### Step 2. Connect to the Monday API
 1. Go to <a href="https://app.ontraport.com/" target="_blank">Monday</a> and login to your account.
 1. Click on your profile dropdown on the bottom-left of the screen, and select **Admin**.
 1. In the left-hand sidebar menu, click on **API**.
 1. Copy the **API v2 Token** from Monday and paste in the **API Key** field in Formie.
 
-### Step 2. Test Connection
+### Step 3. Test Connection
 1. Save this integration.
 1. Click on the **Refresh** button in the right-hand sidebar.
 
-### Step 3. Form Setting
+### Step 4. Form Setting
 1. Go to the form you want to enable this integration on.
 1. Click the **Integrations** tab.
 1. In the left-hand sidebar, select the name you gave the integration.
@@ -70,7 +80,12 @@ Follow the below steps to connect to the Monday API.
 ## Slack
 Follow the below steps to connect to the Slack API.
 
-### Step 1. Connect to the Slack API
+### Step 1. Create the Integration
+1. Navigate to **Formie** → **Settings** → **Miscellaneous**.
+1. Click the **New Integration** button.
+1. Select Slack as the **Integration Provider**.
+
+### Step 2. Connect to the Slack API
 1. Go to the <a href="https://api.slack.com/apps?new_app=1" target="_blank">Slack App Center</a>.
 1. Create a new app, by entering an **App Name** and **Development Slack Workspace**.
 1. In the left-hand sidebar, under **Settings**, click **Basic Information**.
@@ -79,12 +94,12 @@ Follow the below steps to connect to the Slack API.
 1. In the section **Redirect URLs**, click the **Add New Redirect URL** button and enter the value from the **Redirect URI** field in Formie.
 1. Then click the **Add** button, then click the **Save URLs** button.
 
-### Step 2. Test Connection
+### Step 3. Test Connection
 1. Save this integration.
 1. Click on the **Connect** button in the right-hand sidebar.
 1. You‘ll be redirected to Slack, where you must approve Formie to access your Slack account.
 
-### Step 3. Form Setting
+### Step 4. Form Setting
 1. Go to the form you want to enable this integration on.
 1. Click the **Integrations** tab.
 1. In the left-hand sidebar, select the name you gave the integration.
@@ -95,18 +110,23 @@ Follow the below steps to connect to the Slack API.
 ## Trello
 Follow the below steps to connect to the Trello API.
 
-### Step 1. Connect to the Trello API
+### Step 1. Create the Integration
+1. Navigate to **Formie** → **Settings** → **Miscellaneous**.
+1. Click the **New Integration** button.
+1. Select Trello as the **Integration Provider**.
+
+### Step 2. Connect to the Trello API
 1. Go to the <a href="https://trello.com/app-key" target="_blank">Trello API Key</a> page.
 1. Under the **Developer API Keys** heading, copy the **Key** value into the **Client ID** field in Formie.
 1. Under the **Allowed Origins** heading, enter the value from the **Redirect URI** field in Formie into the text field under **New Allowed Origin** and hit **Submit**.
 1. Under the **OAuth** heading, copy the **Secret** value into the **Client Secret** field in Formie.
 
-### Step 2. Test Connection
+### Step 3. Test Connection
 1. Save this integration.
 1. Click on the **Connect** button in the right-hand sidebar.
 1. You‘ll be redirected to Trello, where you must approve Formie to access your Trello account.
 
-### Step 3. Form Setting
+### Step 4. Form Setting
 1. Go to the form you want to enable this integration on.
 1. Click the **Integrations** tab.
 1. In the left-hand sidebar, select the name you gave the integration.
