@@ -116,10 +116,12 @@ class Email extends FormField implements PreviewableFieldInterface
             }
         }
 
+        // Be sure to check only against completed submission content
         $emailExists = (new Query())
             ->select($fieldHandle)
-            ->from($contentTable)
-            ->where([$fieldHandle => $value])
+            ->from(['c' => $contentTable])
+            ->where([$fieldHandle => $value, 'isIncomplete' => false])
+            ->leftJoin(['s' => '{{%formie_submissions}}'], "[[s.id]] = [[c.elementId]]")
             ->exists();
 
         if ($emailExists) {
