@@ -10,7 +10,7 @@ By overriding template files, you will no longer receive bug fixes and improveme
 
 The great thing about Formie's custom templates is that it doesn't have to be all-or-nothing. You can choose to override a single template, or all. For instance, you might have very specific markup needs to a Select field. You can override just the template for the select field, and nothing else.
 
-To get started, navigate to **Formie** → **Settings** → **Form Templates** and create a new template. We recommend you select **Copy Templates** when creating your Form Templates, so you can remove any HTML template you're not overriding, which will resolve back to Formie's defaults.
+To get started, navigate to **Formie** → **Settings** → **Form Templates** and create a new template. If you're going to use **Use Custom Template**, we recommend you select **Copy Templates** when creating, so you can remove any HTML template you're not overriding, which will resolve back to Formie's defaults. That way, you're starting off with the templates Formie already uses as a basis for your custom templates.
 
 :::tip
 You can't modify Formie's default Form Templates. Instead, you'll want to create a new Form Template, and ensure your forms use that. This gives you the benefit of being able to easily manage _multiple_ custom templates across your forms.
