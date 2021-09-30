@@ -455,15 +455,22 @@ class Fields extends Component
             }
         }
 
-        $oldContentTable = Craft::$app->getContent()->contentTable;
-
         foreach ($this->getAllFields() as $field) {
             if (!in_array($field->id, $allFieldIds)) {
-                Craft::$app->getFields()->deleteField($field);
+                // Just a sanity check to protect against any non-Formie contexted fields
+                if (!strstr($field->context, 'formie:')) {
+                    continue;
+                }
+
+                // Be careful when deleting a field. `getFields()->deleteField()` will try and cleanup the content
+                // column on the global scope. We can't change the contentTable because the form where this is
+                // stored is gone (because this is an orphaned field, we know that). So we must to a direct delete
+                // which is mostly okay, as Formie fields aren't stored in project config.
+                Db::delete(CraftTable::FIELDS, [
+                    'id' => $field->id,
+                ]);
             }
         }
-
-        Craft::$app->getContent()->contentTable = $oldContentTable;
     }
 
     /**
