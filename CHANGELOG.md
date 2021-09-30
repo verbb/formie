@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.4.19 - 2021-09-30
+
+### Fixed
+- Fixed an error when garbage-collecting orphaned fields, where globally-context fields with the same handle would have their content columns removed. This only affects installs where a Formie field and non-Formie field have the same handle **and** the Formie field has been marked as orphaned (the owner form has been deleted). As such, this should only happen in rare circumstances.
+- Fixed email fields set to have unique values not working correctly for multi-page forms.
+
 ## 1.4.18 - 2021-09-26
 
 ### Added
