@@ -4,6 +4,7 @@ namespace verbb\formie\fields\formfields;
 use verbb\formie\base\FormField;
 use verbb\formie\helpers\RichTextHelper;
 use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\models\IntegrationField;
 use verbb\formie\positions\Hidden as HiddenPosition;
 use verbb\formie\prosemirror\tohtml\Renderer as HtmlRenderer;
 
@@ -80,6 +81,19 @@ class Agree extends FormField implements PreviewableFieldInterface
     public function serializeValueForExport($value, ElementInterface $element = null)
     {
         return ($value) ? $this->checkedValue : $this->uncheckedValue;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getFieldMappedValueForIntegration(IntegrationField $integrationField, $formField, $value, $submission)
+    {
+        // If we're expecting a string, not a boolean, return the checked/unchecked values
+        if ($integrationField->getType() === IntegrationField::TYPE_STRING) {
+            return $this->serializeValueForExport($value, $submission);
+        }
+
+        return $value;
     }
 
     /**
