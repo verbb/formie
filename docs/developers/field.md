@@ -391,16 +391,32 @@ Event::on(Submission::class, Submission::EVENT_DEFINE_RULES, function(Submission
 Instead, you'll want to add a conditional check what form you're creating a submission on.
 
 ```php
-use verbb\formie\elements\Submission;
-use verbb\formie\events\SubmissionRulesEvent;
-use yii\base\Event;
-
 Event::on(Submission::class, Submission::EVENT_DEFINE_RULES, function(SubmissionRulesEvent $event) {
     $form = $event->submission->getForm();
 
     // Only apply this custom validation for the form with handle `contactForm`
     if ($form->handle === 'contactForm') {
         $event->rules[] = [['field:emailAddress'], 'required'];
+    }
+});
+```
+
+If you have a lot of forms, or would rather not conditionally check _every_ form for your site, you can loop through the available fields for the submission, to add a check whether the field exists. This can be useful if you want to enforce a validation for all email fields across your site, but not every form has an `emailAddress` field.
+
+```php
+Event::on(Submission::class, Submission::EVENT_DEFINE_RULES, function(SubmissionRulesEvent $event) {
+    if ($fieldLayout = $event->submission->getFieldLayout()) {
+        foreach ($fieldLayout->getFields() as $field) {
+            // Check against the handle of the field
+            if ($field->handle === 'emailAddress') {
+                $event->rules[] = [['field:emailAddress'], 'required'];
+            }
+
+            // Or, for a more global-check - against the type of the field
+            if ($field instanceof \verbb\formie\fields\formfields\Email) {
+                $event->rules[] = [['field:emailAddress'], 'required'];
+            }
+        }
     }
 });
 ```
