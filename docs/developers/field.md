@@ -385,4 +385,23 @@ Event::on(Submission::class, Submission::EVENT_DEFINE_RULES, function(Submission
     $event->rules[] = [[‘field:accountNumber'], 'number', 'integerOnly' => true, ‘max’ => 9];
 });
 ```
+
+**However**, the above rules are applied to _every_ submission, which will throw an error if you set a rule for a field that doesn't exist on the form for the submission you're creating. The above example assumes you have a field with the handle `emailAddress` for every form, which may not always be the case, especially if you have multiple forms.
+
+Instead, you'll want to add a conditional check what form you're creating a submission on.
+
+```php
+use verbb\formie\elements\Submission;
+use verbb\formie\events\SubmissionRulesEvent;
+use yii\base\Event;
+
+Event::on(Submission::class, Submission::EVENT_DEFINE_RULES, function(SubmissionRulesEvent $event) {
+    $form = $event->submission->getForm();
+
+    // Only apply this custom validation for the form with handle `contactForm`
+    if ($form->handle === 'contactForm') {
+        $event->rules[] = [['field:emailAddress'], 'required'];
+    }
+});
+```
  
