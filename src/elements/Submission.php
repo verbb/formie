@@ -985,7 +985,7 @@ class Submission extends Element
             ->all();
 
         // Can the user edit _every_ form?
-        if ($userSession->checkPermission('formie-viewSubmissions')) {
+        if ($userSession->checkPermission('formie-editSubmissions')) {
             $editableIds = ArrayHelper::getColumn($formInfo, 'id');
         } else {
             // Find all UIDs the user has permission to
