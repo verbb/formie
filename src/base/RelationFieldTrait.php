@@ -303,6 +303,10 @@ trait RelationFieldTrait
     {
         $defaultValue = $this->defaultValue ?? [];
 
+        if ($defaultValue instanceof ElementQuery) {
+            $defaultValue = $defaultValue->all();
+        }
+
         if ($ids = ArrayHelper::getColumn($defaultValue, 'id')) {
             return static::elementType()::find()->id($ids);
         }
