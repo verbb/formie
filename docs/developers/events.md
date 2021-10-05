@@ -140,24 +140,6 @@ Event::on(Submission::class, Submission::EVENT_DEFINE_RULES, function(Submission
 });
 ```
 
-### The `beforeMarkedAsSpam` event
-The event that is triggered before the submission which has been marked as spam, is marked as spam.
-
-The `isValid` event property can be set to `false` to prevent the submission from being marked as spam.
-
-```php
-use verbb\formie\elements\Submission;
-use verbb\formie\events\SubmissionMarkedAsSpamEvent;
-use yii\base\Event;
-
-Event::on(Submission::class, Submission::EVENT_BEFORE_MARKED_AS_SPAM, function(SubmissionMarkedAsSpamEvent $event) {
-    $submission = $event->submission;
-    $isNew = $event->isNew;
-    $isValid = $event->isValid;
-    // ...
-});
-```
-
 ### The `beforeSaveSubmission` event
 The event that is triggered before a submission is saved. For multi-page forms, this event will occur on each page submission, as the submission is saved in its incomplete state.
 
@@ -350,6 +332,62 @@ Event::on(SubmissionsController::class, SubmissionsController::EVENT_AFTER_SUBMI
 });
 ```
 
+
+## Spam Events
+
+### The `beforeMarkedAsSpam` event
+The event that is triggered before the submission which has been marked as spam, is marked as spam. This event fires only after the submission has already been marked as spam.
+
+The `isValid` event property can be set to `false` to prevent the submission from being marked as spam.
+
+```php
+use verbb\formie\elements\Submission;
+use verbb\formie\events\SubmissionMarkedAsSpamEvent;
+use yii\base\Event;
+
+Event::on(Submission::class, Submission::EVENT_BEFORE_MARKED_AS_SPAM, function(SubmissionMarkedAsSpamEvent $event) {
+    $submission = $event->submission;
+    $isNew = $event->isNew;
+    $isValid = $event->isValid;
+    // ...
+});
+```
+
+### The `beforeSpamCheck` event
+The event that is triggered before spam checks are carried out. These are not captcha checks, but Formie's spam checking like keywords.
+
+You can use `$event->submission->isSpam` to modify the behaviour of whether Formie identifies the submission as spam or not.
+
+```php
+use verbb\formie\events\SubmissionSpamCheckEvent;
+use verbb\formie\services\Submissions;
+use yii\base\Event;
+
+Event::on(Submissions::class, Submissions::EVENT_BEFORE_SPAM_CHECK, function(SubmissionSpamCheckEvent $event) {
+    $submission = $event->submission;
+
+    // Flag this submission as spam
+    $event->submission->isSpam = true;
+});
+```
+
+### The `afterSpamCheck` event
+The event that is triggered after spam checks have been carried out. These are not captcha checks, but Formie's spam checking like keywords.
+
+You can use `$event->submission->isSpam` to modify the behaviour of whether Formie identifies the submission as spam or not.
+
+```php
+use verbb\formie\events\SubmissionSpamCheckEvent;
+use verbb\formie\services\Submissions;
+use yii\base\Event;
+
+Event::on(Submissions::class, Submissions::EVENT_AFTER_SPAM_CHECK, function(SubmissionSpamCheckEvent $event) {
+    $submission = $event->submission;
+
+    // Flag this submission as spam
+    $event->submission->isSpam = true;
+});
+```
 
 
 ## Field Events

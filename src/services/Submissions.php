@@ -7,8 +7,9 @@ use verbb\formie\controllers\SubmissionsController;
 use verbb\formie\elements\NestedFieldRow;
 use verbb\formie\elements\Submission;
 use verbb\formie\elements\db\NestedFieldRowQuery;
-use verbb\formie\events\SubmissionEvent;
 use verbb\formie\events\SendNotificationEvent;
+use verbb\formie\events\SubmissionEvent;
+use verbb\formie\events\SubmissionSpamCheckEvent;
 use verbb\formie\events\TriggerIntegrationEvent;
 use verbb\formie\fields\formfields;
 use verbb\formie\helpers\Variables;
@@ -42,6 +43,8 @@ class Submissions extends Component
 
     const EVENT_AFTER_SUBMISSION = 'afterSubmission';
     const EVENT_AFTER_INCOMPLETE_SUBMISSION = 'afterIncompleteSubmission';
+    const EVENT_BEFORE_SPAM_CHECK = 'beforeSpamCheck';
+    const EVENT_AFTER_SPAM_CHECK = 'afterSpamCheck';
     const EVENT_BEFORE_SEND_NOTIFICATION = 'beforeSendNotification';
     const EVENT_BEFORE_TRIGGER_INTEGRATION = 'beforeTriggerIntegration';
 
@@ -437,44 +440,54 @@ class Submissions extends Component
         /* @var Settings $settings */
         $settings = Formie::$plugin->getSettings();
 
-        // Is it already spam? Return
-        if ($submission->isSpam) {
-            return;
-        }
+        // Fire an 'beforeSpamCheck' event
+        $event = new SubmissionSpamCheckEvent([
+            'submission' => $submission,
+        ]);
+        $this->trigger(self::EVENT_BEFORE_SPAM_CHECK, $event);
 
-        $excludes = $this->_getArrayFromMultiline($settings->spamKeywords);
+        // Is it already spam?
+        if (!$submission->isSpam) {
+            $excludes = $this->_getArrayFromMultiline($settings->spamKeywords);
 
-        // Handle any Twig used in the field
-        foreach ($excludes as $key => $exclude) {
-            if (strstr($exclude, '{')) {
-                unset($excludes[$key]);
+            // Handle any Twig used in the field
+            foreach ($excludes as $key => $exclude) {
+                if (strstr($exclude, '{')) {
+                    unset($excludes[$key]);
 
-                $parsedString = $this->_getArrayFromMultiline(Variables::getParsedValue($exclude));
-                $excludes = array_merge($excludes, $parsedString);
+                    $parsedString = $this->_getArrayFromMultiline(Variables::getParsedValue($exclude));
+                    $excludes = array_merge($excludes, $parsedString);
+                }
+            }
+
+            // Build a string based on field content - much easier to find values
+            // in a single string than iterate through multiple arrays
+            $fieldValues = $this->_getContentAsString($submission);
+
+            foreach ($excludes as $exclude) {
+                // Check if string contains
+                if (strtolower($exclude) && strstr(strtolower($fieldValues), strtolower($exclude))) {
+                    $submission->isSpam = true;
+                    $submission->spamReason = Craft::t('formie', 'Contains banned keyword: “{c}”', ['c' => $exclude]);
+
+                    break;
+                }
+
+                // Check for IPs
+                if ($submission->ipAddress && $submission->ipAddress === $exclude) {
+                    $submission->isSpam = true;
+                    $submission->spamReason = Craft::t('formie', 'Contains banned IP: “{c}”', ['c' => $exclude]);
+
+                    break;
+                }
             }
         }
 
-        // Build a string based on field content - much easier to find values
-        // in a single string than iterate through multiple arrays
-        $fieldValues = $this->_getContentAsString($submission);
-
-        foreach ($excludes as $exclude) {
-            // Check if string contains
-            if (strtolower($exclude) && strstr(strtolower($fieldValues), strtolower($exclude))) {
-                $submission->isSpam = true;
-                $submission->spamReason = Craft::t('formie', 'Contains banned keyword: “{c}”', ['c' => $exclude]);
-
-                break;
-            }
-
-            // Check for IPs
-            if ($submission->ipAddress && $submission->ipAddress === $exclude) {
-                $submission->isSpam = true;
-                $submission->spamReason = Craft::t('formie', 'Contains banned IP: “{c}”', ['c' => $exclude]);
-
-                break;
-            }
-        }
+        // Fire an 'afterSpamCheck' event
+        $event = new SubmissionSpamCheckEvent([
+            'submission' => $submission,
+        ]);
+        $this->trigger(self::EVENT_AFTER_SPAM_CHECK, $event);
     }
 
     /**
