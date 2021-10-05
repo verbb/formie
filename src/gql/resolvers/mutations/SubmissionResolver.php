@@ -125,6 +125,9 @@ class SubmissionResolver extends ElementMutationResolver
         // Final spam checks for things like keywords
         Formie::$plugin->getSubmissions()->spamChecks($submission);
 
+        // Check events right before our saving
+        Formie::$plugin->getSubmissions()->onBeforeSubmission($submission);
+
         // Save the submission
         $success = Craft::$app->getElements()->saveElement($submission, false);
 

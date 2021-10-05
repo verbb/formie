@@ -170,6 +170,34 @@ Event::on(Submission::class, Submission::EVENT_AFTER_SAVE, function(Event $event
 });
 ```
 
+### The `beforeSubmission` event
+The event that is triggered before a submission has been completed. For multi-page forms, this is triggered when the final page has been reached and is being submitted.
+
+```php
+use verbb\formie\events\SubmissionEvent;
+use verbb\formie\services\Submissions;
+use yii\base\Event;
+
+Event::on(Submissions::class, Submissions::EVENT_BEFORE_SUBMISSION, function(SubmissionEvent $event) {
+    $submission = $event->submission;
+    // ...
+});
+```
+
+### The `beforeIncompleteSubmission` event
+The event that is triggered before a submission has been made, but is incomplete. This is primarily for multi-page forms, where this event is fired on each submission of each page, except the final page.
+
+```php
+use verbb\formie\events\SubmissionEvent;
+use verbb\formie\services\Submissions;
+use yii\base\Event;
+
+Event::on(Submissions::class, Submissions::EVENT_BEFORE_INCOMPLETE_SUBMISSION, function(SubmissionEvent $event) {
+    $submission = $event->submission;
+    // ...
+});
+```
+
 ### The `afterSubmission` event
 The event that is triggered after a submission has been completed, whether successful or not. For multi-page forms, this is triggered when the final page has been reached and submitted.
 

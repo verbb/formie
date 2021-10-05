@@ -41,6 +41,8 @@ class Submissions extends Component
     // Constants
     // =========================================================================
 
+    const EVENT_BEFORE_SUBMISSION = 'beforeSubmission';
+    const EVENT_BEFORE_INCOMPLETE_SUBMISSION = 'beforeIncompleteSubmission';
     const EVENT_AFTER_SUBMISSION = 'afterSubmission';
     const EVENT_AFTER_INCOMPLETE_SUBMISSION = 'afterIncompleteSubmission';
     const EVENT_BEFORE_SPAM_CHECK = 'beforeSpamCheck';
@@ -64,6 +66,31 @@ class Submissions extends Component
         /* @var Submission $submission */
         $submission = Craft::$app->getElements()->getElementById($submissionId, Submission::class, $siteId);
         return $submission;
+    }
+
+    /**
+     * Executed before a submission has been saved.
+     *
+     * @param Submission $submission
+     * @see SubmissionsController::actionSubmit()
+     */
+    public function onBeforeSubmission(Submission $submission)
+    {
+        if ($submission->isIncomplete) {
+            // Fire an 'beforeIncompleteSubmission' event
+            $event = new SubmissionEvent([
+                'submission' => $submission,
+            ]);
+            $this->trigger(self::EVENT_BEFORE_INCOMPLETE_SUBMISSION, $event);
+
+            return;
+        }
+
+        // Fire an 'beforeSubmission' event
+        $event = new SubmissionEvent([
+            'submission' => $submission,
+        ]);
+        $this->trigger(self::EVENT_BEFORE_SUBMISSION, $event);
     }
 
     /**
