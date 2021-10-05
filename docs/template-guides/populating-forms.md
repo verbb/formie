@@ -36,6 +36,33 @@ You can do the same for other elements:
 }) %}
 ```
 
+### Group
+To populate values for fields within a Group field, you'll need to supply both the handle for the Group field, and the values for the inner fields as you normally would.
+
+```twig
+{% do craft.formie.populateFormValues(form, {
+    groupFieldHandle: {
+        text: 'Some Value',
+    },
+}) %}
+```
+
+### Phone
+Because a Phone field can handle the country code and the actual phone number, you have two options when populating the field. You can either provide just the phone number, or an object with the number and the two-letter ISO country code to pre-select the country dropdown.
+
+```twig
+{% do craft.formie.populateFormValues(form, {
+    {# For a phone number field #}
+    phoneFieldHandle: '0412345678',
+
+    {# For a phone number field with a country dropdown #}
+    phoneWithCountryFieldHandle: {
+        number: '0412345678',
+        country: 'AU',
+    },
+}) %}
+```
+
 ### Recipients
 When using a Recipients field, you can hard-code the recipient for the field. Depending on what display type you've chosen will depend on the available options to set. Notably, only the "Checkboxes" and "Hidden" display types can support multiple recipients.
 
@@ -57,7 +84,7 @@ When using a Recipients field, you can hard-code the recipient for the field. De
 
 For all options, the email address is never exposed in the HTML source of the page, keeping your recipient's emails safe. For Checkboxes, Radio and Dropdown, an ID value is used to reference the real email defined in the field settings. For a Hidden field, which allows for much more arbitrary template-level email definitions, the provided email values are encoded with a string unique to your site.
 
-## Repeater
+### Repeater
 To populate a Repeater field, you'll also be creating the "blocks", as well as defining the inner field values. For instance, you might like to create 2 Repeater blocks on the page, with the first having one value, the next another. You'll need to provide the value as an array of objects.
 
 ```twig
@@ -70,17 +97,6 @@ To populate a Repeater field, you'll also be creating the "blocks", as well as d
             text: 'Another Value',
         },
     ],
-}) %}
-```
-
-## Group
-To populate values for fields within a Group field, you'll need to supply both the handle for the Group field, and the values for the inner fields as you normally would.
-
-```twig
-{% do craft.formie.populateFormValues(form, {
-    groupFieldHandle: {
-        text: 'Some Value',
-    },
 }) %}
 ```
 

@@ -285,6 +285,14 @@ class Phone extends FormField implements SubfieldInterface, PreviewableFieldInte
     /**
      * @inheritDoc
      */
+    public function populateValue($value)
+    {
+        $this->defaultValue = $this->normalizeValue($value);
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function getSettingGqlTypes()
     {
         return array_merge(parent::getSettingGqlTypes(), [
