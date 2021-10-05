@@ -48,7 +48,9 @@ class Phone extends Model
                 return $phoneUtil->format($numberProto, PhoneNumberFormat::INTERNATIONAL);
             } catch (NumberParseException $e) {
                 if ($this->number) {
-                    return '(' . $this->country . ') ' . (string)$this->number;
+                    $countryString = $this->country ? '(' . $this->country . ') ' : '';
+                    
+                    return $countryString . (string)$this->number;
                 } else if ($this->country) {
                     return Craft::t('formie', '({country}) Not provided.', [
                         'country' => $this->country,
