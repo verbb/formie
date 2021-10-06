@@ -488,6 +488,11 @@ class Emails extends Component
                 $message->attach($path, ['fileName' => $asset->filename]);
             }
         }
+
+        // Fix a bug with SwiftMailer where setting an attachment clears out the body of the email!
+        $body = $message->getSwiftMessage()->getBody();
+        $message->setHtmlBody($body);
+        $message->setTextBody($body);
     }
 
     private function _getFullAssetFilePath(Asset $asset): string
