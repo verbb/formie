@@ -490,9 +490,23 @@ class Emails extends Component
         }
 
         // Fix a bug with SwiftMailer where setting an attachment clears out the body of the email!
-        $body = $message->getSwiftMessage()->getBody();
-        $message->setHtmlBody($body);
-        $message->setTextBody($body);
+        $textBody = $message->getSwiftMessage()->getBody();
+        $htmlBody = $message->getSwiftMessage()->getBody();
+        $children = $message->getSwiftMessage()->getChildren();
+
+        // Getting the content from an email is a little more involved...
+        if (!$htmlBody && $children) {
+            foreach ($children as $child) {
+                if ($child->getContentType() == 'text/html') {
+                    $htmlBody = $child->getBody();
+                } else if ($child->getContentType() == 'text/plain') {
+                    $textBody = $child->getBody();
+                }
+            }
+        }
+
+        $message->setHtmlBody($htmlBody);
+        $message->setTextBody($textBody);
     }
 
     private function _getFullAssetFilePath(Asset $asset): string
