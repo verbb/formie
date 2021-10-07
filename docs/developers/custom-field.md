@@ -18,7 +18,7 @@ Fields should extend the `FormField` base class. Where it's not possible to exte
 
 For more complex fields that have sub-fields, you should implement the `SubfieldInterface` interface and use the `SubfieldTrait` trait.
 
-In both bases, our `FormField` class itself extends from Craft's [Field](docs:developers/field) class. This means any methods, attributes or functionality used by regular Craft fields, can be used for your custom Formie fields.
+In both cases, our `FormField` class itself extends from Craft's [Field](docs:developers/field) class. This means any methods, attributes or functionality used by regular Craft fields, can be used for your custom Formie fields.
 
 ## Methods
 
