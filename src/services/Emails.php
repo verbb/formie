@@ -224,9 +224,15 @@ class Emails extends Component
                 $oldTemplateMode = $view->getTemplateMode();
                 $view->setTemplateMode($view::TEMPLATE_MODE_CP);
 
-                $body = $view->renderTemplate('formie/_special/email-template', $renderVariables);
+                $templatePath = 'formie/_special/email-template';
+                $body = $view->renderTemplate($templatePath, $renderVariables);
 
                 $view->setTemplateMode($oldTemplateMode);
+            }
+
+            // Handle an empty string, something likely gone wrong.
+            if ($body === '') {
+                throw new Exception('Email body render returned empty. Please check your email content for invalid variables.');
             }
 
             $newEmail->setHtmlBody($body);
