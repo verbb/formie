@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+- Fixed Agree fields not working correctly for Email Notification conditions.
+- Fixed Dropdown fields not working correctly for Email Notification conditions.
+- Fixed Date fields not working correctly for Email Notification conditions.
+- Fixed Group and Repeater fields not working correctly for Email Notification conditions.
+
 ## 1.4.19 - 2021-09-30
 
 ### Fixed

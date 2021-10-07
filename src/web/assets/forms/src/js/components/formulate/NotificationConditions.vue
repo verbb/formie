@@ -209,10 +209,22 @@ export default {
         getValueType(field, condition) {
             // Check if there are any specific options
             if (field && field.field && field.field.settings) {
+                var testField = field;
                 var options = field.field.settings.options || [];
+
+                // Check for group/repeater fields
+                if (field.field.supportsNested) {
+                    options = field.subfield.settings.options || [];
+                    testField = field.subfield;
+                }
 
                 // Only allow picking for 'is' and 'is not'
                 if (options.length && ['=', '!='].includes(condition)) {
+                    return 'select';
+                }
+
+                // Special case for agree fields
+                if (testField.type === 'verbb\\formie\\fields\\formfields\\Agree' && ['=', '!='].includes(condition)) {
                     return 'select';
                 }
             }
@@ -231,7 +243,24 @@ export default {
         getValueOptions(field, condition) {
             // Check if there are any specific options
             if (field && field.field && field.field.settings) {
-                return field.field.settings.options || [];
+                var testField = field;
+                var options = field.field.settings.options || [];
+                
+                // Check for group/repeater fields
+                if (field.field.supportsNested) {
+                    options = field.subfield.settings.options || [];
+                    testField = field.subfield;
+                }
+
+                // Special case for agree fields
+                if (testField.type === 'verbb\\formie\\fields\\formfields\\Agree') {
+                    return [
+                        { label: 'Checked', value: '1' },
+                        { label: 'Unchecked', value: '0' },
+                    ];
+                }
+            
+                return options;
             }
 
             // Handle submission options which have statically defined options
@@ -322,10 +351,18 @@ export default {
                                     subfield,
                                     type: field.type,
                                     label: truncate(field.label, { length: 42 }) + ': ' + truncate(subfield.label, { length: 42 }),
-                                    value: '{' + field.handle + '.one().' + subfield.handle + ' ?? null}',
+                                    value: '{' + field.handle + '.rows.new1.fields.' + subfield.handle + '}',
                                 });
                             });
                         });
+                    } else if (field.type === 'verbb\\formie\\fields\\formfields\\Date') {
+                        // Special handling for date fields for now
+                        customFields.push({ 
+                            field,
+                            type: field.type,
+                            label: truncate(field.label, { length: 42 }), 
+                            value: '{' + field.handle + '.date}',
+                        });                        
                     } else {
                         customFields.push({ 
                             field,
