@@ -372,7 +372,7 @@ Possible values include:
 | `'not foo'` | not of a template with a handle of `foo`.
 | `['foo', 'bar']` | of a template with a handle of `foo` or `bar`.
 | `['not', 'foo', 'bar']` | not of a template with a handle of `foo` or `bar`.
-| an [FormTemplate](docs:developers/form-template) object | of a template represented by the object.
+| a Form Template object | of a template represented by the object.
 
 ::: code
 ```twig

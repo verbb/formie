@@ -12,7 +12,7 @@ The form builder is a powerful and intuitive drag-and-drop interface to allow yo
 
 Fields can be laid out in a series of columns and rows. For more complex forms, you can create additional pages, splitting fields over multiple pages. Fields can also be dragged-and-dropped to other pages.
 
-To ease the use of having lots of fields, you can also select [Existing Fields](docs:feature-tour/existing-fields) to add to your form. From these existing fields, you can choose whether to add the field as a copy of the original field, or maintain a link to the original field as a [Synced Field](docs:feature-tour/synced-field).
+To ease the use of having lots of fields, you can also select [Existing Fields](docs:feature-tour/existing-fields) to add to your form. From these existing fields, you can choose whether to add the field as a copy of the original field, or maintain a link to the original field as a [Synced Field](docs:feature-tour/synced-fields).
 
 Hovering over any field will show a settings icon in the top-right of a field. Clicking this provides quick options for a field, such as editing, cloning, requiring, or deleting the field. Cloning a field will create a new field directly below it.
 
