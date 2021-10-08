@@ -23,17 +23,19 @@ export class FormieTags {
             };
 
             // Emit an "beforeInit" event
-            const beforeInitEvent = $input.dispatchEvent(new CustomEvent('beforeInit', {
+            const beforeInitEvent = new CustomEvent('beforeInit', {
                 bubbles: true,
                 detail: {
                     tagField: this,
                     options: defaultOptions,
                 },
-            }));
+            });
+
+            $input.dispatchEvent(beforeInitEvent);
 
             const options = {
                 ...defaultOptions,
-                ...beforeInitEvent.options,
+                ...beforeInitEvent.details.options,
             };
 
             $input.tagify = new Tagify($input, options);
