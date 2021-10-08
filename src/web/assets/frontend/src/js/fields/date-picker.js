@@ -35,17 +35,19 @@ export class FormieDatePicker {
         };
 
         // Emit an "beforeInit" event
-        const beforeInitEvent = this.$field.dispatchEvent(new CustomEvent('beforeInit', {
+        const beforeInitEvent = new CustomEvent('beforeInit', {
             bubbles: true,
             detail: {
                 datepicker: this,
                 options: defaultOptions,
             },
-        }));
+        });
+
+        this.$field.dispatchEvent(beforeInitEvent);
 
         const options = {
             ...defaultOptions,
-            ...beforeInitEvent.options,
+            ...beforeInitEvent.detail.options,
         };
 
         this.datepicker = flatpickr(this.$field, options);
