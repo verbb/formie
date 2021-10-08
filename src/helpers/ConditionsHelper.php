@@ -25,15 +25,15 @@ class ConditionsHelper
         $ruler = new Ruler();
 
         $ruler->getDefaultAsserter()->setOperator('contains', function($subject, $pattern) {
-            return StringHelper::contains($subject, $pattern);
+            return StringHelper::contains((string)$subject, $pattern);
         });
 
         $ruler->getDefaultAsserter()->setOperator('startswith', function($subject, $pattern) {
-            return StringHelper::startsWith($subject, $pattern);
+            return StringHelper::startsWith((string)$subject, $pattern);
         });
 
         $ruler->getDefaultAsserter()->setOperator('endswith', function($subject, $pattern) {
-            return StringHelper::endsWith($subject, $pattern);
+            return StringHelper::endsWith((string)$subject, $pattern);
         });
 
         return $ruler;
