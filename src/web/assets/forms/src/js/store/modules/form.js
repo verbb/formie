@@ -510,11 +510,18 @@ const getters = {
                 } else if (field.type === 'verbb\\formie\\fields\\formfields\\Group' && field.rows) {
                     // Is this a group field that supports nesting?
                     field.rows.forEach(row => {
-                        row.fields.forEach(subfield => {
-                            if (allowedTypes.includes(subfield.type)) {
+                        row.fields.forEach(groupfield => {
+                            if (groupfield.subfieldOptions && groupfield.hasSubfields) {
+                                groupfield.subfieldOptions.forEach(subfield => {
+                                    fields.push({
+                                        label: field.label + ': ' + groupfield.label + ': ' + subfield.label,
+                                        value: '{field.' + field.handle + '.' + groupfield.handle + '.' + subfield.handle + '}',
+                                    });
+                                });
+                            } else if (allowedTypes.includes(groupfield.type)) {
                                 fields.push({
-                                    label: field.label + ': ' + subfield.label,
-                                    value: '{field.' + field.handle + '.' + subfield.handle + '}',
+                                    label: field.label + ': ' + groupfield.label,
+                                    value: '{field.' + field.handle + '.' + groupfield.handle + '}',
                                 });
                             }
                         });
@@ -563,14 +570,26 @@ const getters = {
                 } else if (field.type === 'verbb\\formie\\fields\\formfields\\Group' && field.rows) {
                     // Is this a group field that supports nesting?
                     field.rows.forEach(row => {
-                        row.fields.forEach(subfield => {
-                            fields.push({
-                                id: field.id,
-                                vid: field.vid,
-                                type: field.type,
-                                label: field.label + ': ' + subfield.label,
-                                value: '{field.' + field.handle + '.' + subfield.handle + '}',
-                            });
+                        row.fields.forEach(groupfield => {
+                            if (groupfield.subfieldOptions && groupfield.hasSubfields) {
+                                groupfield.subfieldOptions.forEach(subfield => {
+                                    fields.push({
+                                        id: field.id,
+                                        vid: field.vid,
+                                        type: field.type,
+                                        label: field.label + ': ' + groupfield.label + ': ' + subfield.label,
+                                        value: '{field.' + field.handle + '.' + groupfield.handle + '.' + subfield.handle + '}',
+                                    });
+                                });
+                            } else {
+                                fields.push({
+                                    id: field.id,
+                                    vid: field.vid,
+                                    type: field.type,
+                                    label: field.label + ': ' + groupfield.label,
+                                    value: '{field.' + field.handle + '.' + groupfield.handle + '}',
+                                });
+                            }
                         });
                     });
                 } else {
