@@ -981,7 +981,11 @@ class Form extends Element
      */
     public function getPopulatedFieldValues()
     {
-        return StringHelper::encenc(Json::encode($this->_populatedFieldValues));
+        if ($values = $this->_populatedFieldValues) {
+            return StringHelper::encenc(Json::encode($values));
+        }
+
+        return '';
     }
 
     /**
