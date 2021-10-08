@@ -945,7 +945,11 @@ class Form extends Element
      */
     public function getRelations()
     {
-        return StringHelper::encenc(Json::encode($this->_relations));
+        if ($values = $this->_relations) {
+            return StringHelper::encenc(Json::encode($values));
+        }
+
+        return '';
     }
 
     /**
