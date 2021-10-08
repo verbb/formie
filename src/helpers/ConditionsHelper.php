@@ -2,6 +2,7 @@
 namespace verbb\formie\helpers;
 
 use verbb\formie\Formie;
+use verbb\formie\fields\formfields\Group;
 
 use Craft;
 use craft\fields\BaseRelationField;
@@ -160,6 +161,11 @@ class ConditionsHelper
                 // (or field setting labels), but we want IDs.
                 if ($field instanceof BaseRelationField) {
                     $value = $field->serializeValue($value, $submission);
+                } else if ($field instanceof Group) {
+                    // Handling for Group fields who have a particular structure
+                    $rows = array_values($field->serializeValue($value, $submission))[0] ?? [];
+
+                    $value = ['rows' => ['new1' => $rows]];
                 } else if (method_exists($field, 'serializeValueForIntegration')) {
                     $value = $field->serializeValueForIntegration($value, $submission);
                 } else {
