@@ -34,7 +34,18 @@ export class FormieConditions {
                     $targets = $multiFields;
                 }
 
-                if (!$targets) {
+                // Special handling for Repeater/Groups that have `new1` in their name but for page reload forms
+                // this will be replaced by the blockId, and will fail to match the conditions settings.
+                if ((!$targets || !$targets.length) && condition.field.includes('[new1]')) {
+                    // Get tricky with Regex. Find the element that matches everything except `[new1]` for `[1234]`.
+                    // Escape special characters `[]` in the string, and swap `[new1]` with `[\d+]`.
+                    const regexString = condition.field.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/new1/g, '\\d+');
+
+                    // Find all targets via Regex.
+                    $targets = this.querySelectorAllRegex(new RegExp(regexString), 'name');
+                }
+
+                if (!$targets || !$targets.length) {
                     return;
                 }
 
@@ -233,6 +244,18 @@ export class FormieConditions {
         }
 
         return result;
+    }
+
+    querySelectorAllRegex(regex, attributeToSearch) {
+        const output = [];
+
+        for (let element of this.$form.querySelectorAll(`[${attributeToSearch}]`)) {
+            if (regex.test(element.getAttribute(attributeToSearch))) {
+                output.push(element);
+            }
+        }
+
+        return output;
     }
 }
 
