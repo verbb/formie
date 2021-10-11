@@ -149,6 +149,13 @@ class Webhook extends BaseWebhook
             return $this->_client;
         }
 
-        return $this->_client = Craft::createGuzzleClient();
+        $options = [];
+
+        // Disable SSL verification for local dev (devMode enabled) to save some heartache.
+        if (Craft::$app->getConfig()->getGeneral()->devMode) {
+            $options['verify'] = false;
+        }
+
+        return $this->_client = Craft::createGuzzleClient($options);
     }
 }
