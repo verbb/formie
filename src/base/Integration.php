@@ -150,7 +150,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         $messageText = $exception->getMessage();
 
         // Check for Guzzle errors, which are truncated in the exception `getMessage()`.
-        if ($exception instanceof RequestException) {
+        if ($exception instanceof RequestException && $exception->getResponse()) {
             $messageText = (string)$exception->getResponse()->getBody()->getContents();
         }
 
