@@ -6,6 +6,7 @@
 - Added `verify = false` to Guzzle requests for Webhook integrations, when `devMode` is enabled.
 - Added `EVENT_BEFORE_SUBMISSION` and `EVENT_BEFORE_INCOMPLETE_SUBMISSION` events.
 - Added `EVENT_BEFORE_SPAM_CHECK` and `EVENT_AFTER_SPAM_CHECK` events.
+- Improved error message when email notification body content returns no content. Some email providers hard-fail when trying to send an empty email.
 
 ### Fixed
 - Fixed Agree fields not working correctly for Email Notification conditions.
@@ -23,7 +24,6 @@
 - Fixed Page Reload forms not evaluating conditions in Group fields, for multi-page forms.
 - Fixed Group fields not evaluating field conditions correctly when sending email notifications.
 - Fixed sub-fields within Group fields not working correctly for variable picker, for email notifications.
-- Improved error message when email notification body content returns no content. Some email providers hard-fail when trying to send an empty email.
 - Fixed when attaching the PDF to an email notification, can sometimes clear the body content of the email.
 - Fixed Phone number field values sometimes showing `()` when a country code wasn't provided.
 - Fixed `populateFormValues` not working with Phone fields.
