@@ -6,7 +6,7 @@
             {{ formieInclude('_includes/instructions', { position: 'fieldset-start' }) }}
 
             {% set block = value.one() ?? null %}
-            {% if block %}
+            {% if block and block.id %}
                 {% include 'fields/group/_row' with {
                     id: block.id,
                 } %}
