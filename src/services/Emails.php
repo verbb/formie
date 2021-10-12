@@ -433,6 +433,9 @@ class Emails extends Component
             // Prevent non-utf characters sneaking in.
             $email = StringHelper::convertToUtf8($email);
 
+            // Also check for control characters, which aren't included above
+            $email = preg_replace('/[^\PC\s]/u', '', $email);
+
             $emailsEnv[] = trim(Craft::parseEnv(trim($email)));
         }
 
