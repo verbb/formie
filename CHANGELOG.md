@@ -1,12 +1,35 @@
 # Changelog
 
-## Unreleased
+## 1.4.20 - 2021-10-12
+
+### Added
+- Added `verify = false` to Guzzle requests for Webhook integrations, when `devMode` is enabled.
+- Added `EVENT_BEFORE_SUBMISSION` and `EVENT_BEFORE_INCOMPLETE_SUBMISSION` events.
+- Added `EVENT_BEFORE_SPAM_CHECK` and `EVENT_AFTER_SPAM_CHECK` events.
 
 ### Fixed
 - Fixed Agree fields not working correctly for Email Notification conditions.
 - Fixed Dropdown fields not working correctly for Email Notification conditions.
 - Fixed Date fields not working correctly for Email Notification conditions.
 - Fixed Group and Repeater fields not working correctly for Email Notification conditions.
+- Fixed Table fields inside a Group field not saving correctly.
+- Fixed an issue where Group fields, inner fields would receive the incorrect namespace, when validation for the form page failed and page reload enabled.
+- Fixed an error for the Webhook integration in some cases when an error occurs.
+- Fixed Tag fields and their `beforeInit` options not being applied to Tagify.
+- Fixed Date fields and their `beforeInit` options not being applied to Flatpickr.
+- Fixed `relations` in POST requests for submissions being always present, when not always needed.
+- Fixed `extraFields` in POST requests for submissions being always present, when not always needed.
+- Fixed an error with `contains`, `startswith` and `endswith` field conditions, when dealing with empty values.
+- Fixed Page Reload forms not evaluating conditions in Group fields, for multi-page forms.
+- Fixed Group fields not evaluating field conditions correctly when sending email notifications.
+- Fixed sub-fields within Group fields not working correctly for variable picker, for email notifications.
+- Improved error message when email notification body content returns no content. Some email providers hard-fail when trying to send an empty email.
+- Fixed when attaching the PDF to an email notification, can sometimes clear the body content of the email.
+- Fixed Phone number field values sometimes showing `()` when a country code wasn't provided.
+- Fixed `populateFormValues` not working with Phone fields.
+- Fixed a deprecation when calling `populateFormValues` when populating elements fields.
+- Fixed individual permissions for submissions not working for user permissions.
+- Fixed Agree fields not using their "Checked/Unchecked Value" values in integrations, when the destination field in the integration allows string text.
 
 ## 1.4.19 - 2021-09-30
 
