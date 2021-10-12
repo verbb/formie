@@ -17,12 +17,12 @@ use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
 use craft\base\SavableComponent;
-use craft\validators\HandleValidator;
-use craft\validators\UniqueValidator;
 use craft\helpers\ArrayHelper;
 use craft\helpers\DateTimeHelper;
 use craft\helpers\Json;
 use craft\helpers\StringHelper;
+use craft\validators\HandleValidator;
+use craft\validators\UniqueValidator;
 use craft\web\Response;
 
 use League\OAuth2\Client\Provider\GenericProvider;
@@ -928,8 +928,18 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
             return false;
         }
 
-        // Just a simple 'falsey' check is good enough
-        if (!$fieldValue) {
+        // Do some checks depending on the field value type
+        $hasOptedIn = true;
+
+        // For Checkboxes fields, we'll have an object, but let's check for anything iterable just to be safe
+        if (is_iterable($fieldValue)) {
+            $hasOptedIn = (bool)count($fieldValue);
+        } else if (!$fieldValue) {
+            $hasOptedIn = false;
+        }
+
+        // For everything else, just a simple 'falsey' check is good enough
+        if (!$hasOptedIn) {
             Integration::log($this, Craft::t('formie', 'Opting-out. Field “{field}” has value “{value}”.', [
                 'field' => $this->optInField,
                 'value' => $fieldValue,
