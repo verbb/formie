@@ -86,9 +86,7 @@
 {% script with { type: 'text/x-template', 'data-table-template': field.handle } %}
     {# `namespace` won't work outside `script` tag, so extra work here, particularly #}
     {# to deal with higher-level namespaces like the default `fields`. #}
-    {% set ns = field.namespace == null ? field.handle : "#{field.namespace}[#{field.handle}]" %}
-
-    {% namespace ns %}
+    {% namespace craft.formie.getFieldNamespaceForScript(field) %}
         {% include 'fields/table/_row' with {
             index: '__ROW__',
             row: [],
