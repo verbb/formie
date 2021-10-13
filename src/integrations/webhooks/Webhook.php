@@ -114,9 +114,9 @@ class Webhook extends BaseWebhook
      */
     public function sendPayload(Submission $submission): bool
     {
+        $payload = $this->generatePayloadValues($submission);
+        
         try {
-            $payload = $this->generatePayloadValues($submission);
-
             $response = $this->getClient()->request('POST', $this->getWebhookUrl($this->webhook, $submission), $payload);
         } catch (\Throwable $e) {
             // Save a different payload to logs
