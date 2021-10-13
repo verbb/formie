@@ -147,14 +147,10 @@ class Sendinblue extends EmailMarketing
         return true;
     }
 
-
-    // Protected Methods
-    // =========================================================================
-
     /**
      * @inheritDoc
      */
-    protected function getClient()
+    public function getClient()
     {
         if ($this->_client) {
             return $this->_client;
@@ -165,6 +161,10 @@ class Sendinblue extends EmailMarketing
             'headers' => ['api-key' => Craft::parseEnv($this->apiKey)],
         ]);
     }
+
+
+    // Private Methods
+    // =========================================================================
 
     /**
      * @inheritDoc

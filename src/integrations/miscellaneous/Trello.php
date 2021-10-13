@@ -204,14 +204,10 @@ class Trello extends Miscellaneous
         return true;
     }
 
-
-    // Private Methods
-    // =========================================================================
-
     /**
      * @inheritDoc
      */
-    protected function getClient()
+    public function getClient()
     {
         if ($this->_client) {
             return $this->_client;

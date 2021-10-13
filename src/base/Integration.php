@@ -660,14 +660,10 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         return null;
     }
 
-
-    // Protected Methods
-    // =========================================================================
-
     /**
      * @inheritDoc
      */
-    protected function request(string $method, string $uri, array $options = [])
+    public function request(string $method, string $uri, array $options = [])
     {
         $response = $this->getClient()->request($method, ltrim($uri, '/'), $options);
 
@@ -677,7 +673,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     /**
      * @inheritDoc
      */
-    protected function deliverPayload($submission, $endpoint, $payload, $method = 'POST')
+    public function deliverPayload($submission, $endpoint, $payload, $method = 'POST')
     {
         // Allow events to cancel sending
         if (!$this->beforeSendPayload($submission, $endpoint, $payload, $method)) {
@@ -699,7 +695,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     /**
      * @inheritDoc
      */
-    protected function getFieldMappingValues(Submission $submission, $fieldMapping, $fieldSettings = [])
+    public function getFieldMappingValues(Submission $submission, $fieldMapping, $fieldSettings = [])
     {
         $fieldValues = [];
 
@@ -762,7 +758,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     /**
      * @inheritDoc
      */
-    protected function parseFieldMappedValue(IntegrationField $integrationField, $formField, $value, $submission)
+    public function parseFieldMappedValue(IntegrationField $integrationField, $formField, $value, $submission)
     {
         // Allow events to modify the parsed value
         if ($this->hasEventHandlers(self::EVENT_PARSE_MAPPED_FIELD_VALUE)) {
@@ -849,7 +845,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     /**
      * @inheritDoc
      */
-    protected function beforeSendPayload(Submission $submission, $endpoint, &$payload, $method)
+    public function beforeSendPayload(Submission $submission, $endpoint, &$payload, $method)
     {
         // If in the context of a queue. save the payload for debugging
         if ($this->getQueueJob()) {
@@ -878,7 +874,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     /**
      * @inheritDoc
      */
-    protected function afterSendPayload(Submission $submission, $endpoint, $payload, $method, $response)
+    public function afterSendPayload(Submission $submission, $endpoint, $payload, $method, $response)
     {
         $event = new SendIntegrationPayloadEvent([
             'submission' => $submission,
@@ -900,7 +896,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     /**
      * @inheritDoc
      */
-    protected function enforceOptInField(Submission $submission)
+    public function enforceOptInField(Submission $submission)
     {
         // Default is just always do it!
         if (!$this->optInField) {

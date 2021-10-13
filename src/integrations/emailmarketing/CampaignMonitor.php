@@ -179,14 +179,10 @@ class CampaignMonitor extends EmailMarketing
         return true;
     }
 
-
-    // Protected Methods
-    // =========================================================================
-
     /**
      * @inheritDoc
      */
-    protected function getClient()
+    public function getClient()
     {
         if ($this->_client) {
             return $this->_client;

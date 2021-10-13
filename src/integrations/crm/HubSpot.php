@@ -35,6 +35,8 @@ class HubSpot extends Crm
     public $formFieldMapping;
     public $formId;
 
+    private $_formsClient;
+
 
     // Public Methods
     // =========================================================================
@@ -395,14 +397,10 @@ class HubSpot extends Crm
         return true;
     }
 
-
-    // Protected Methods
-    // =========================================================================
-
     /**
      * @inheritDoc
      */
-    protected function getClient()
+    public function getClient()
     {
         if ($this->_client) {
             return $this->_client;
@@ -417,9 +415,13 @@ class HubSpot extends Crm
     /**
      * @inheritDoc
      */
-    protected function getFormsClient()
+    public function getFormsClient()
     {
-        return Craft::createGuzzleClient([
+        if ($this->_formsClient) {
+            return $this->_formsClient;
+        }
+
+        return $this->_formsClient = Craft::createGuzzleClient([
             'base_uri' => 'https://api.hsforms.com/',
         ]);
     }
