@@ -114,6 +114,8 @@ class Webhook extends BaseWebhook
      */
     public function sendPayload(Submission $submission): bool
     {
+        $payload = [];
+
         try {
             $payload = $this->generatePayloadValues($submission);
 
@@ -125,7 +127,7 @@ class Webhook extends BaseWebhook
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
                 'payload' => Json::encode($payload),
-                'response' => $rawResponse,
+                'response' => $rawResponse ?? '',
             ]));
 
             Integration::apiError($this, $e);
