@@ -184,6 +184,11 @@ export const Bouncer = function(selector, options) {
             return !field.checked;
         }
 
+        // Don't validate any hidden fields
+        if (field.type === 'hidden') {
+            return false;
+        }
+
         // Get the field value length
         var { length } = field.value;
 
