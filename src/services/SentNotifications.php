@@ -6,6 +6,7 @@ use verbb\formie\elements\SentNotification;
 
 use Craft;
 use craft\helpers\App;
+use craft\helpers\Db;
 use craft\helpers\Json;
 use craft\helpers\StringHelper;
 use craft\mail\Mailer as CraftMailer;
@@ -165,7 +166,7 @@ class SentNotifications extends Component
         $date->sub($interval);
 
         $sentNotifications = SentNotification::find()
-            ->dateUpdated('< ' . $date->format('c'))
+            ->dateUpdated('< ' . Db::prepareDateForDb($date))
             ->all();
 
         foreach ($sentNotifications as $sentNotification) {

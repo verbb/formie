@@ -26,6 +26,7 @@ use craft\events\DefineUserContentSummaryEvent;
 use craft\events\ModelEvent;
 use craft\fields\data\MultiOptionsFieldData;
 use craft\helpers\Console;
+use craft\helpers\Db;
 use craft\helpers\Json;
 
 use yii\base\Event;
@@ -260,7 +261,7 @@ class Submissions extends Component
 
         $submissions = Submission::find()
             ->isIncomplete(true)
-            ->dateUpdated('< ' . $date->format('c'))
+            ->dateUpdated('< ' .  Db::prepareDateForDb($date))
             ->all();
 
         foreach ($submissions as $submission) {
@@ -347,7 +348,7 @@ class Submissions extends Component
             $date->sub($interval);
 
             $submissions = Submission::find()
-                ->dateCreated('< ' . $date->format('c'))
+                ->dateCreated('< ' . Db::prepareDateForDb($date))
                 ->formId($form['id'])
                 ->all();
 
