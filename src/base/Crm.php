@@ -80,14 +80,10 @@ abstract class Crm extends Integration implements IntegrationInterface
         return UrlHelper::cpUrl('formie/settings/crm/edit/' . $this->id);
     }
 
-
-    // Protected Methods
-    // =========================================================================
-
     /**
      * @inheritDoc
      */
-    protected function getFieldMappingValues(Submission $submission, $fieldMapping, $fieldSettings = [])
+    public function getFieldMappingValues(Submission $submission, $fieldMapping, $fieldSettings = [])
     {
         // A quick shortcut to keep CRM's simple, just pass in a string to the namespace
         $fields = $this->getFormSettingValue($fieldSettings);
@@ -98,7 +94,7 @@ abstract class Crm extends Integration implements IntegrationInterface
     /**
      * @inheritDoc
      */
-    protected function beforeSendPayload(Submission $submission, $endpoint, &$payload, $method)
+    public function beforeSendPayload(Submission $submission, $endpoint, &$payload, $method)
     {
         // If in the context of a queue. save the payload for debugging
         if ($this->getQueueJob()) {

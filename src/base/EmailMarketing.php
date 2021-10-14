@@ -101,14 +101,10 @@ abstract class EmailMarketing extends Integration implements IntegrationInterfac
         return $rules;
     }
 
-
-    // Protected Methods
-    // =========================================================================
-
     /**
      * @inheritDoc
      */
-    protected function getFieldMappingValues(Submission $submission, $fieldMapping, $fieldSettings = [])
+    public function getFieldMappingValues(Submission $submission, $fieldMapping, $fieldSettings = [])
     {
         // A quick shortcut as all email marketing integrations are the same field mapping-wise
         $fields = $this->_getListSettings()->fields ?? [];
@@ -119,7 +115,7 @@ abstract class EmailMarketing extends Integration implements IntegrationInterfac
     /**
      * @inheritDoc
      */
-    protected function beforeSendPayload(Submission $submission, $endpoint, &$payload, $method)
+    public function beforeSendPayload(Submission $submission, $endpoint, &$payload, $method)
     {
         // If in the context of a queue. save the payload for debugging
         if ($this->getQueueJob()) {
