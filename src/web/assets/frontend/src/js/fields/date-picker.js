@@ -63,6 +63,11 @@ export class FormieDatePicker {
 
         // Load in the locale as required
         this.loadLocale();
+
+        // Update the form hash, so we don't get change warnings
+        if (this.form.formTheme) {
+            this.form.formTheme.updateFormHash();
+        }
     }
 
     loadLocale() {

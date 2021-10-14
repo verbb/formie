@@ -18,7 +18,7 @@
     "/widgets/dist/css/formie-widgets.css": "/widgets/dist/css/formie-widgets.css?id=38a2727ea05d3d5ef7a0",
     "/frontend/dist/js/fields/checkbox-radio.js": "/frontend/dist/js/fields/checkbox-radio.js?id=544e5440e02472a96091",
     "/frontend/dist/js/fields/conditions.js": "/frontend/dist/js/fields/conditions.js?id=36d1e2dbd1e276c15919",
-    "/frontend/dist/js/fields/date-picker.js": "/frontend/dist/js/fields/date-picker.js?id=ae0175de65c0f022c0ef",
+    "/frontend/dist/js/fields/date-picker.js": "/frontend/dist/js/fields/date-picker.js?id=191c21ee0aae86998207",
     "/frontend/dist/js/fields/file-upload.js": "/frontend/dist/js/fields/file-upload.js?id=b88213278b7129d85233",
     "/frontend/dist/js/fields/hidden.js": "/frontend/dist/js/fields/hidden.js?id=0c2c55de065cab9a0b94",
     "/frontend/dist/js/fields/phone-country.js": "/frontend/dist/js/fields/phone-country.js?id=88525c6482bee63f58b0",
@@ -27,6 +27,6 @@
     "/frontend/dist/js/fields/table.js": "/frontend/dist/js/fields/table.js?id=8e159d7b449fe1c1e84d",
     "/frontend/dist/js/fields/tags.js": "/frontend/dist/js/fields/tags.js?id=06b71d6360481742e2ee",
     "/frontend/dist/js/fields/text-limit.js": "/frontend/dist/js/fields/text-limit.js?id=5c38dc97e2eb9adf578d",
-    "/frontend/dist/js/formie.js": "/frontend/dist/js/formie.js?id=b3f8c2be9aefa4e6d226",
+    "/frontend/dist/js/formie.js": "/frontend/dist/js/formie.js?id=737aff95be911d2df2e2",
     "/widgets/dist/js/formie-widgets.js": "/widgets/dist/js/formie-widgets.js?id=63088769b26ab159f1bc"
 }
