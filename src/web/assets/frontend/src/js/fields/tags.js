@@ -35,7 +35,7 @@ export class FormieTags {
 
             const options = {
                 ...defaultOptions,
-                ...beforeInitEvent.details.options,
+                ...beforeInitEvent.detail.options,
             };
 
             $input.tagify = new Tagify($input, options);
