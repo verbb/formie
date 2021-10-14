@@ -522,8 +522,9 @@ Craft.Formie.NewForm = Garnish.Base.extend({
 
             watch: {
                 name(val) {
-                    // Let's get smart about generating a handle. Check if its unqique - if it isn't, make it unique
-                    this.handle = getNextAvailableHandle(this.handles, generateHandle(this.name), 0);
+                    // Let's get smart about generating a handle. Check if its unique - if it isn't, make it unique
+                    // Be sure to restrict handles well below their limit
+                    this.handle = getNextAvailableHandle(this.handles, generateHandle(this.name), 0).substr(0, 50);
                 },
             },
 

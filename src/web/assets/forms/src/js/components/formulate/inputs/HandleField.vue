@@ -117,8 +117,9 @@ export default {
                 handles = this.proxyCollection;
             }
 
+            // Be sure to restrict handles well below their limit
             const value = getNextAvailableHandle(handles, generatedHandle, 0);
-            this.context.model = value.substr(0, 58);
+            this.context.model = value.substr(0, 50);
         },
     },
 };
