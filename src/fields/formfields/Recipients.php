@@ -77,7 +77,8 @@ class Recipients extends FormField
         // Sort out multiple options being set
         if (is_string($value) && Json::isJsonObject($value)) {
             $values = array_map(function($option) {
-                return $option['value'] ?? '';
+                // Handle checkboxes ('value' key) and hidden fields with array
+                return $option['value'] ?? $option ?? '';
             }, Json::decode($value));
 
             $value = implode(',', array_filter($values));
