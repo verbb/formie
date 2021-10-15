@@ -12,6 +12,9 @@ class BaseController extends Controller
     // Public Methods
     // =========================================================================
 
+    /**
+     * @inheritdoc
+     */
     public function actionIndex()
     {
         /* @var Settings $settings */
@@ -34,7 +37,10 @@ class BaseController extends Controller
 
     // Private Methods
     // =========================================================================
-
+    
+    /**
+     * @inheritdoc
+     */
     private function _getFirstAvailablePage()
     {
         $subnav = Formie::$plugin->getCpNavItem()['subnav'] ?? [];

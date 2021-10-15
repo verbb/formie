@@ -14,6 +14,12 @@ use Exception;
 
 class ChartsController extends ElementIndexesController
 {
+    // Public Methods
+    // =========================================================================
+
+    /**
+     * @inheritdoc
+     */
     public function actionGetSubmissionsData(): Response
     {
         $request = Craft::$app->getRequest();
