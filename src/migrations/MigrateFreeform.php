@@ -216,43 +216,43 @@ class MigrateFreeform extends Migration
                     switch (get_class($field)) {
                         case freeformfields\Pro\ConfirmationField::class:
                             // Not implemented
-                            continue;
+                            break;
 
                         case freeformfields\Pro\OpinionScaleField::class:
                             // Not implemented
-                            continue;
+                            break;
 
                         case freeformfields\Pro\RatingField::class:
                             // Not implemented
-                            continue;
+                            break;
 
                         case freeformfields\Pro\RichTextField::class:
                             // Not implemented
-                            continue;
+                            break;
 
                         case freeformfields\Pro\SignatureField::class:
                             // Not implemented
-                            continue;
+                            break;
 
                         case freeformfields\DynamicRecipientField::class:
                             // Not implemented
-                            continue;
+                            break;
 
                         case freeformfields\HtmlField::class:
                             // Not implemented
-                            continue;
+                            break;
 
                         case freeformfields\MailingListField::class:
                             // Not implemented
-                            continue;
+                            break;
 
                         case freeformfields\RecaptchaField::class:
                             // Not implemented
-                            continue;
+                            break;
 
                         case freeformfields\SubmitField::class:
                             // Not implemented
-                            continue;
+                            break;
 
                         case freeformfields\CheckboxField::class:
                             $submission->setFieldValue($handle, $field->isChecked());
