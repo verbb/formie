@@ -18,6 +18,7 @@ use verbb\formie\gql\interfaces\SubmissionInterface;
 use verbb\formie\gql\mutations\SubmissionMutation;
 use verbb\formie\gql\queries\FormQuery;
 use verbb\formie\gql\queries\SubmissionQuery;
+use verbb\formie\helpers\Gql as GqlHelper;
 use verbb\formie\helpers\ProjectConfigHelper;
 use verbb\formie\jobs\BaseJob;
 use verbb\formie\models\FieldLayout;
@@ -378,21 +379,25 @@ class Formie extends Plugin
 
         if (class_exists(SourceNodes::class)) {
             Event::on(SourceNodes::class, SourceNodes::EVENT_REGISTER_SOURCE_NODE_TYPES, function(RegisterSourceNodeTypesEvent $event) {
-                $event->types[] = [
-                    'node' => 'formieForm',
-                    'list' => 'formieForms',
-                    'filterArgument' => '',
-                    'filterTypeExpression' => '(.+)_Form',
-                    'targetInterface' => FormInterface::getName(),
-                ];
+                if (GqlHelper::canQueryForms()) {
+                    $event->types[FormInterface::getName()] = [
+                        'node' => 'formieForm',
+                        'list' => 'formieForms',
+                        'filterArgument' => '',
+                        'filterTypeExpression' => '(.+)_Form',
+                        'targetInterface' => FormInterface::getName(),
+                    ];
+                }
 
-                $event->types[] = [
-                    'node' => 'formieSubmission',
-                    'list' => 'formieSubmissions',
-                    'filterArgument' => '',
-                    'filterTypeExpression' => '(.+)_Submission',
-                    'targetInterface' => SubmissionInterface::getName(),
-                ];
+                if (GqlHelper::canQuerySubmission()) {
+                    $event->types[SubmissionInterface::getName()] = [
+                        'node' => 'formieSubmission',
+                        'list' => 'formieSubmissions',
+                        'filterArgument' => '',
+                        'filterTypeExpression' => '(.+)_Submission',
+                        'targetInterface' => SubmissionInterface::getName(),
+                    ];
+                }
             });
         }
     }
