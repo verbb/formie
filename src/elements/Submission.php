@@ -485,13 +485,22 @@ class Submission extends Element
      */
     public function getCpEditUrl()
     {
-        $url = UrlHelper::cpUrl('formie/submissions/edit/' . $this->id);
+        $form = $this->getForm();
+        $path = "formie/submissions/$form->handle";
 
-        if (Craft::$app->getIsMultiSite()) {
-            $url .= '/' . $this->getSite()->handle;
+        if ($this->id) {
+            $path .= "/$this->id";
+        } else {
+            $path .= '/new';
         }
 
-        return $url;
+        $params = [];
+
+        if (Craft::$app->getIsMultiSite()) {
+            $params['site'] = $this->getSite()->handle;
+        }
+
+        return UrlHelper::cpUrl($path, $params);
     }
 
     /**
