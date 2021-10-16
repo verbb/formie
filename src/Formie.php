@@ -206,6 +206,7 @@ class Formie extends Plugin
             ];
 
             $submissionPermissions = [
+                'formie-createSubmissions' => ['label' => Craft::t('formie', 'Create submissions')],
                 'formie-editSubmissions' => ['label' => Craft::t('formie', 'Edit all submissions')],
             ];
 
