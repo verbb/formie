@@ -30,6 +30,7 @@ return [
 
         // Submissions
         'maxIncompleteSubmissionAge' => 30,
+        'enableCsrfValidationForGuests' => true,
         'useQueueForNotifications' => true,
         'useQueueForIntegrations' => true,
 
@@ -72,6 +73,7 @@ return [
 
 #### Submissions
 - `maxIncompleteSubmissionAge` - The maximum age of an incomplete submission in days before it is deleted in garbage collection. Set to 0 to disable automatic deletion.
+- `enableCsrfValidationForGuests` - Whether to enable Craft‘s CSRF validation checks for anonymous form submissions.
 - `useQueueForNotifications` - Whether to use Craft‘s queue system to trigger emails. This is highly, **highly** recommended to prevent slow submissions for your users. This may be useful to disable for local development.
 - `useQueueForIntegrations` - Whether to use Craft‘s queue system to trigger integrations. This is highly, **highly** recommended to prevent slow submissions for your users. This may be useful to disable for local development.
 

@@ -62,6 +62,20 @@ class SubmissionsController extends Controller
     // =========================================================================
 
     /**
+     * @inheritdoc
+     */
+    public function beforeAction($action)
+    {
+        $settings = Formie::$plugin->getSettings();
+
+        if ($action->id === 'submit' && Craft::$app->user->isGuest && !$settings->enableCsrfValidationForGuests) {
+            $this->enableCsrfValidation = false;
+        }
+
+        return parent::beforeAction($action);
+    }
+
+    /**
      * Shows all the submissions in a list.
      *
      * @return Response|null

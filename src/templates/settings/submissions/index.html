@@ -26,6 +26,15 @@
         }) }}
 
         {{ forms.lightswitchField({
+            label: 'Enable CSRF Validation for Guests' | t('formie'),
+            instructions: 'Whether to enable Craft‘s CSRF validation checks for anonymous form submissions.' | t('formie'),
+            id: 'enableCsrfValidationForGuests',
+            name: 'enableCsrfValidationForGuests',
+            on: settings.enableCsrfValidationForGuests,
+            warning: macros.configWarning('enableCsrfValidationForGuests', 'formie'),
+        }) }}
+
+        {{ forms.lightswitchField({
             label: 'Use Queue for Notifications' | t('formie'),
             instructions: 'Whether to use Craft‘s queue system to trigger emails. This is highly recommended to prevent slow submissions for your users.' | t('formie'),
             id: 'useQueueForNotifications',

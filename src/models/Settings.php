@@ -77,6 +77,7 @@ class Settings extends Model
     public $maxSentNotificationsAge = 30;
 
     // Submissions
+    public $enableCsrfValidationForGuests = true;
     public $useQueueForNotifications = true;
     public $useQueueForIntegrations = true;
 
