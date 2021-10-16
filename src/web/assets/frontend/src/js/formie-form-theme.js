@@ -373,7 +373,7 @@ export class FormieFormTheme {
 
                 if (this.settings.errorMessagePosition == 'bottom-form') {
                     this.$submitBtn.parentNode.parentNode.insertBefore($alert, this.$submitBtn.parentNode);
-                } else {
+                } else if (this.settings.errorMessagePosition == 'top-form') {
                     this.$form.parentNode.insertBefore($alert, this.$form);
                 }
             } else {
@@ -391,7 +391,7 @@ export class FormieFormTheme {
                             this.$form.parentNode.insertBefore($alert, this.$form.nextSibling);
                         }
                     }
-                } else {
+                } else if (this.settings.submitActionMessagePosition == 'top-form') {
                     this.$form.parentNode.insertBefore($alert, this.$form);
                 }
             }
