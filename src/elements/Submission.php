@@ -182,6 +182,8 @@ class Submission extends Element
     protected function defineRules(): array
     {
         $rules = parent::defineRules();
+
+        $fieldsByHandle = [];
         
         if ($fieldLayout = $this->getFieldLayout()) {
             // Check when we're doing a submission from the front-end, and we choose to validate the current page only
@@ -207,6 +209,8 @@ class Submission extends Element
             }
 
             $fields = $this->getFieldLayout()->getFields();
+
+            $fieldsByHandle = ArrayHelper::getColumn($fields, 'handle');
 
             // Evaulate field conditions. What if this is a required field, but conditionally hidden?
             foreach ($rules as $key => $rule) {
@@ -253,7 +257,28 @@ class Submission extends Element
         ]);
         $this->trigger(self::EVENT_DEFINE_RULES, $event);
 
-        return $event->rules;
+        // For some reason, directly editing `$rules` doesn't work. Start from scratch and build rules.
+        $filteredRules = [];
+
+        // Ensure that any rules defined in events actually exists and are valid for this submission/form.
+        // Otherwise fatal errors will occur trying to validate a field that doesn't exist in this context.
+        foreach ($event->rules as $key => $rule) {
+            list($attribute, $validator) = $rule;
+            $attribute = is_array($attribute) ? $attribute[0] : $attribute;
+
+            if (strpos($attribute, 'field:') !== false) {
+                $fieldHandle = str_replace('field:', '', $attribute);
+
+                // Remove any rules for fields not defined in this form for safety.
+                if (!in_array($fieldHandle, $fieldsByHandle)) {
+                    continue;
+                }
+            }
+
+            $filteredRules[] = $rule;
+        }
+
+        return $filteredRules;
     }
 
     /**
