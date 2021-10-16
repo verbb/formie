@@ -588,6 +588,10 @@ class Submission extends Element
             return $this->_status->handle;
         }
 
+        if ($form = $this->getForm()) {
+            return $form->getDefaultStatus();
+        }
+
         return null;
     }
 
