@@ -9,8 +9,7 @@ use craft\fields\BaseRelationField;
 use craft\helpers\ArrayHelper;
 use craft\helpers\StringHelper;
 
-use Hoa\Ruler\Ruler;
-use Hoa\Ruler\Context;
+use Symfony\Component\ExpressionLanguage\ExpressionLanguage;
 
 class ConditionsHelper
 {
@@ -20,31 +19,55 @@ class ConditionsHelper
     /**
      * @inheritDoc
      */
-    public static function getRuler()
+    public static function getEvaluator()
     {
-        $ruler = new Ruler();
+        $expressionLanguage = new ExpressionLanguage();
 
-        $ruler->getDefaultAsserter()->setOperator('contains', function($subject, $pattern) {
+        // Add custom evaluation rules
+        $expressionLanguage->register('contains', function() {}, function($args, $subject, $pattern) {
             return StringHelper::contains((string)$subject, $pattern);
         });
 
-        $ruler->getDefaultAsserter()->setOperator('startswith', function($subject, $pattern) {
+        $expressionLanguage->register('startsWith', function() {}, function($args, $subject, $pattern) {
             return StringHelper::startsWith((string)$subject, $pattern);
         });
 
-        $ruler->getDefaultAsserter()->setOperator('endswith', function($subject, $pattern) {
+        $expressionLanguage->register('endsWith', function() {}, function($args, $subject, $pattern) {
             return StringHelper::endsWith((string)$subject, $pattern);
         });
 
-        return $ruler;
+        return $expressionLanguage;
     }
 
     /**
      * @inheritDoc
      */
-    public static function getContext($conditions = [])
+    public static function getCondition($condition)
+    {   
+        // Handle some settings defined in JS, so they're compatible with the evaluator we're using.
+        // FYI, mostly for backward compatibility with `hoa/ruler` conditions.
+        if ($condition === '=') {
+            return '==';
+        }
+
+        return $condition;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public static function getRule($condition)
     {
-        return new Context($conditions);
+        // Convert condition set via JS into ruler-compatible
+        $operator = ConditionsHelper::getCondition($condition);
+
+        // For custom rules, we need a custom syntax. Symfony doesn't support custom operators, which would be nice
+        // Instead of `field contains value` we need to do `contains(field, value)`.
+        if (in_array($operator, ['contains', 'startsWith', 'endsWith'])) {
+            return "{$operator}(field, value)";
+        }
+
+        return "field {$operator} value";
     }
 
     /**
@@ -55,41 +78,46 @@ class ConditionsHelper
         $conditions = $conditionSettings['conditions'] ?? [];
         
         $results = [];
-        $ruler = ConditionsHelper::getRuler();
+        $evaluator = ConditionsHelper::getEvaluator();
 
         // Fetch the values, serialized for string comparison
         $serializedFieldValues = self::_getSerializedFieldValues($submission);
 
         foreach ($conditions as $condition) {
             try {
-                $rule = "field {$condition['condition']} value";
+                // Variables to pass into the evaluator for rules to use
+                $variables = [
+                    'field' => $condition['field'],
+                    'value' => $condition['value'],
+                ];
 
-                $condition['field'] = str_replace(['{', '}'], ['', ''], $condition['field']);
+                $variables['field'] = str_replace(['{', '}'], ['', ''], $variables['field']);
 
                 // Check to see if this is a custom field, or an attribute on the submission
-                if (StringHelper::startsWith($condition['field'], 'submission:')) {
-                    $condition['field'] = str_replace('submission:', '', $condition['field']);
+                if (StringHelper::startsWith($variables['field'], 'submission:')) {
+                    $variables['field'] = str_replace('submission:', '', $variables['field']);
 
-                    $condition['field'] = ArrayHelper::getValue($submission, $condition['field']);
+                    $variables['field'] = ArrayHelper::getValue($submission, $variables['field']);
                 } else {
                     // Parse the field handle first to get the submission value
-                    $condition['field'] = ArrayHelper::getValue($serializedFieldValues, $condition['field']);
+                    $variables['field'] = ArrayHelper::getValue($serializedFieldValues, $variables['field']);
                 }
 
                 // Check for array values, we should always be comparing strings
-                if (is_array($condition['field'])) {
-                    $condition['field'] = ConditionsHelper::recursiveImplode(' ', $condition['field']);
+                if (is_array($variables['field'])) {
+                    $variables['field'] = ConditionsHelper::recursiveImplode(' ', $variables['field']);
                 }
 
                 // Protect against empty conditions
-                if (!trim(ConditionsHelper::recursiveImplode('', $condition))) {
+                if (!trim(ConditionsHelper::recursiveImplode('', $variables))) {
                     continue;
                 }
 
-                $context = ConditionsHelper::getContext($condition);
+                // Create the rule for the evaluator - some rules need special syntax
+                $rule = ConditionsHelper::getRule($condition['condition']);
 
                 // Test the condition
-                $results[] = $ruler->assert($rule, $context);
+                $results[] = $evaluator->evaluate($rule, $variables);
             } catch (\Throwable $e) {
                 Formie::error(Craft::t('formie', 'Failed to parse conditional “{rule}”: “{message}” {file}:{line}', [
                     'rule' => trim(ConditionsHelper::recursiveImplode('', $condition)),
