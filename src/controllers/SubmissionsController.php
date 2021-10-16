@@ -99,17 +99,35 @@ class SubmissionsController extends Controller
      * @throws NotFoundHttpException
      * @throws HttpException
      */
-    public function actionEditSubmission(int $submissionId = null, string $siteHandle = null, Submission $submission = null): Response
+    public function actionEditSubmission(string $formHandle, int $submissionId = null, ?Submission $submission = null, ?string $site = null): Response
     {
-        $variables = compact('submissionId', 'submission');
+        $sitesService = Craft::$app->getSites();
+        $editableSiteIds = $sitesService->getEditableSiteIds();
 
-        if ($siteHandle !== null) {
-            $variables['site'] = Craft::$app->getSites()->getSiteByHandle($siteHandle);
+        if ($site !== null) {
+            $siteModel = $sitesService->getSiteByHandle($site);
 
-            if (!$variables['site']) {
-                throw new NotFoundHttpException('Invalid site handle: ' . $siteHandle);
+            if (!$siteModel) {
+                throw new BadRequestHttpException("Invalid site handle: $site");
+            }
+
+            if (!in_array($siteModel->id, $editableSiteIds, false)) {
+                throw new ForbiddenHttpException('User not permitted to edit content in this site');
+            }
+        } else {
+            $siteModel = $sitesService->getCurrentSite();
+
+            if (!in_array($siteModel->id, $editableSiteIds, false)) {
+                $siteModel = $sitesService->getSiteById($editableSiteIds[0]);
             }
         }
+
+        $variables = [
+            'formHandle' => $formHandle,
+            'submissionId' => $submissionId,
+            'submission' => $submission,
+            'site' => $siteModel,
+        ];
 
         if (!$variables['submission']) {
             if ($variables['submissionId']) {
@@ -123,7 +141,10 @@ class SubmissionsController extends Controller
                     throw new HttpException(404);
                 }
             } else {
+                $form = Form::find()->handle($formHandle)->one();
+
                 $variables['submission'] = new Submission();
+                $variables['submission']->setForm($form);
             }
         }
 
@@ -135,12 +156,11 @@ class SubmissionsController extends Controller
             $variables['title'] = Craft::t('formie', 'Create a new submission');
         }
 
-        // Can't just use the entry's getCpEditUrl() because that might include the site handle when we don't want it
+        // Can't just use the submissions getCpEditUrl() because that might include the site handle when we don't want it
         $variables['baseCpEditUrl'] = 'formie/submissions/edit/{id}';
 
         // Set the "Continue Editing" URL
-        $variables['continueEditingUrl'] = $variables['baseCpEditUrl'] .
-            (Craft::$app->getIsMultiSite() && Craft::$app->getSites()->currentSite->id !== $variables['site']->id ? '/' . $variables['site']->handle : '');
+        $variables['continueEditingUrl'] = $variables['baseCpEditUrl'] . (Craft::$app->getIsMultiSite() && Craft::$app->getSites()->currentSite->id !== $variables['site']->id ? '/' . $variables['site']->handle : '');
 
         $formConfigJson = $variables['submission']->getForm()->getFrontEndJsVariables();
 
@@ -581,6 +601,9 @@ class SubmissionsController extends Controller
         return $this->redirectToPostedUrl($submission);
     }
 
+    /**
+     * @inheritDoc
+     */
     public function actionSetPage()
     {
         $request = Craft::$app->getRequest();
@@ -616,6 +639,9 @@ class SubmissionsController extends Controller
         return $this->redirect($request->referrer);
     }
 
+    /**
+     * @inheritDoc
+     */
     public function actionClearSubmission()
     {
         $this->requirePostRequest();
@@ -645,6 +671,9 @@ class SubmissionsController extends Controller
         return $this->redirectToPostedUrl();
     }
 
+    /**
+     * @inheritDoc
+     */
     public function actionDeleteSubmission()
     {
         $this->requirePostRequest();
@@ -687,10 +716,37 @@ class SubmissionsController extends Controller
         return $this->redirectToPostedUrl($submission);
     }
 
+    public function actionLegacyEdit(int $submissionId = null, string $siteHandle = null, Submission $submission = null): Response
+    {
+        if (!$submission) {
+            $submission = Submission::find()
+                ->id($submissionId)
+                ->isIncomplete(null)
+                ->isSpam(null)
+                ->one();
+        }
+
+        if (!$submission) {
+            throw new HttpException(404);
+        }
+
+        $formHandle = $submission->getForm()->handle;
+
+        $variables = [
+            'formHandle' => $formHandle,
+            'submissionId' => $submission->id,
+        ];
+
+        return $this->runAction('edit-submission', $variables);
+    }
+
 
     // Private Methods
     // =========================================================================
-
+    
+    /**
+     * @inheritDoc
+     */
     private function _returnJsonResponse($success, $submission, $form, $nextPage, $extras = [])
     {
         // Try and get the redirect from the template, as it might've been altered in templates
@@ -717,6 +773,9 @@ class SubmissionsController extends Controller
         return $this->asJson($params);
     }
 
+    /**
+     * @inheritDoc
+     */
     private function _prepEditSubmissionVariables(array &$variables)
     {
         $request = Craft::$app->getRequest();
@@ -780,6 +839,9 @@ class SubmissionsController extends Controller
         return null;
     }
 
+    /**
+     * @inheritDoc
+     */
     private function _populateSubmission($form)
     {
         $request = Craft::$app->getRequest();

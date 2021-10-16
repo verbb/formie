@@ -4,6 +4,7 @@ namespace verbb\formie\services;
 use verbb\formie\Formie;
 use verbb\formie\base\Element;
 use verbb\formie\controllers\SubmissionsController;
+use verbb\formie\elements\Form;
 use verbb\formie\elements\NestedFieldRow;
 use verbb\formie\elements\Submission;
 use verbb\formie\elements\db\NestedFieldRowQuery;
@@ -22,9 +23,11 @@ use verbb\formie\models\Settings;
 use Craft;
 use craft\db\Query;
 use craft\elements\db\ElementQuery;
+use craft\elements\User;
 use craft\events\DefineUserContentSummaryEvent;
 use craft\events\ModelEvent;
 use craft\fields\data\MultiOptionsFieldData;
+use craft\helpers\ArrayHelper;
 use craft\helpers\Console;
 use craft\helpers\Db;
 use craft\helpers\Json;
@@ -715,5 +718,47 @@ class Submissions extends Component
         }
 
         return $fieldContent;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getEditableSubmissions(User $currentUser): array
+    {
+        $submissions = [];
+
+        // Fetch all form UIDs
+        $formInfo = (new Query())
+            ->from('{{%formie_forms}}')
+            ->select(['id', 'uid'])
+            ->all();
+
+        // Can the user edit _every_ form?
+        if ($currentUser->can('formie-editSubmissions')) {
+            $editableIds = ArrayHelper::getColumn($formInfo, 'id');
+        } else {
+            // Find all UIDs the user has permission to
+            foreach ($formInfo as $form) {
+                if ($currentUser->can('formie-manageSubmission:' . $form['uid'])) {
+                    $editableIds[] = $form['id'];
+                }
+            }
+        }
+
+        if ($editableIds) {
+            $forms = Form::find()->id($editableIds)->all();
+
+            foreach ($forms as $form) {
+                $submissions[] = [
+                    'id' => (int)$form->id,
+                    'handle' => $form->handle,
+                    'name' => Craft::t('site', $form->title),
+                    'sites' => Craft::$app->getSites()->getAllSiteIds(),
+                    'uid' => $form->uid,
+                ];
+            }
+        }
+
+        return $submissions;
     }
 }

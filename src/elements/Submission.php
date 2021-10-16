@@ -1012,27 +1012,10 @@ class Submission extends Element
      */
     private static function _getAvailableFormIds()
     {
-        $userSession = Craft::$app->getUser();
+        $currentUser = Craft::$app->getUser()->getIdentity();
 
-        $editableIds = [];
-
-        // Fetch all form UIDs
-        $formInfo = (new Query())
-            ->from('{{%formie_forms}}')
-            ->select(['id', 'uid'])
-            ->all();
-
-        // Can the user edit _every_ form?
-        if ($userSession->checkPermission('formie-editSubmissions')) {
-            $editableIds = ArrayHelper::getColumn($formInfo, 'id');
-        } else {
-            // Find all UIDs the user has permission to
-            foreach ($formInfo as $form) {
-                if ($userSession->checkPermission('formie-manageSubmission:' . $form['uid'])) {
-                    $editableIds[] = $form['id'];
-                }
-            }
-        }
+        $submissions = Formie::$plugin->getSubmissions()->getEditableSubmissions($currentUser);
+        $editableIds = ArrayHelper::getColumn($submissions, 'id');
 
         // Important to check if empty, there are zero editable forms, but as we use this as a criteria param
         // that would return all forms, not what we want.

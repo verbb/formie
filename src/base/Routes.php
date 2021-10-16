@@ -26,10 +26,14 @@ trait Routes
             $event->rules['formie/forms/edit/<formId:\d+>'] = 'formie/forms/edit';
 
             $event->rules['formie/submissions'] = 'formie/submissions/index';
-            $event->rules['formie/submissions/new'] = 'formie/submissions/edit-submission';
-            $event->rules['formie/submissions/new/<siteHandle:{handle}>'] = 'formie/submissions/edit-submission';
-            $event->rules['formie/submissions/edit/<submissionId:\d+>'] = 'formie/submissions/edit-submission';
-            $event->rules['formie/submissions/edit/<submissionId:\d+>/<siteHandle:{handle}>'] = 'formie/submissions/edit-submission';
+            $event->rules['formie/submissions/<formHandle:{handle}>'] = 'formie/submissions/index';
+            $event->rules['formie/submissions/<formHandle:{handle}>/new'] = 'formie/submissions/edit-submission';
+            $event->rules['formie/submissions/<formHandle:{handle}>/<submissionId:\d+>'] = 'formie/submissions/edit-submission';
+
+            // Legacy submission edit
+            // TODO: remove at next breakpoint
+            $event->rules['formie/submissions/edit/<submissionId:\d+>'] = 'formie/submissions/legacy-edit';
+            $event->rules['formie/submissions/edit/<submissionId:\d+>/<siteHandle:{handle}>'] = 'formie/submissions/legacy-edit';
 
             $event->rules['formie/sent-notifications'] = 'formie/sent-notifications/index';
             $event->rules['formie/sent-notifications/edit/<sentNotificationId:\d+>'] = 'formie/sent-notifications/edit';

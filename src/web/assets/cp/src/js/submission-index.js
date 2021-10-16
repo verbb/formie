@@ -3,8 +3,14 @@ if (typeof Craft.Formie === typeof undefined) {
 }
 
 Craft.Formie.SubmissionIndex = Craft.BaseElementIndex.extend({
+    editableForms: null,
+    $newSubmissionBtnGroup: null,
+    $newSubmissionBtn: null,
+
     init(elementType, $container, settings) {
-        // this.on('selectSource', $.proxy(this, 'updateSelectedSource'));
+        this.on('selectSource', $.proxy(this, 'updateButton'));
+        this.on('selectSite', $.proxy(this, 'updateButton'));
+
         this.base(elementType, $container, settings);
 
         this.settings.criteria = {
@@ -30,6 +36,20 @@ Craft.Formie.SubmissionIndex = Craft.BaseElementIndex.extend({
             // Hijack the event
             $menubtn.menu.on('optionselect', $.proxy(this, '_handleStatusChange'));
         }
+    },
+
+    afterInit() {
+        this.editableForms = [];
+
+        for (var i = 0; i < Craft.Formie.editableSubmissions.length; i++) {
+            var form = Craft.Formie.editableSubmissions[i];
+
+            if (this.getSourceByKey('form:' + form.id)) {
+                this.editableForms.push(form);
+            }
+        }
+
+        this.base();
     },
 
     _handleStatusChange(ev) {
@@ -69,6 +89,167 @@ Craft.Formie.SubmissionIndex = Craft.BaseElementIndex.extend({
 
     getDefaultSort() {
         return ['dateCreated', 'desc'];
+    },
+
+    getDefaultSourceKey() {
+        if (this.settings.context === 'index' && typeof defaultFormieFormHandle !== 'undefined') {
+            for (var i = 0; i < this.$sources.length; i++) {
+                var $source = $(this.$sources[i]);
+
+                if ($source.data('handle') === defaultFormieFormHandle) {
+                    return $source.data('key');
+                }
+            }
+        }
+
+        return this.base();
+    },
+
+    updateButton() {
+        if (!this.$source) {
+            return;
+        }
+
+        var handle = this.$source.data('handle');
+        var i, href, label;
+
+        if (this.editableForms.length) {
+            // Remove the old button, if there is one
+            if (this.$newSubmissionBtnGroup) {
+                this.$newSubmissionBtnGroup.remove();
+            }
+
+            var selectedForm;
+
+            if (handle) {
+                for (i = 0; i < this.editableForms.length; i++) {
+                    if (this.editableForms[i].handle === handle) {
+                        selectedForm = this.editableForms[i];
+                        break;
+                    }
+                }
+            }
+
+            this.$newSubmissionBtnGroup = $('<div class="btngroup submit"/>');
+            var $menuBtn;
+
+            if (selectedForm) {
+                href = this._getFormTriggerHref(selectedForm);
+                label = (this.settings.context === 'index' ? Craft.t('formie', 'New submission') : Craft.t('formie', 'New {form} submission', { form: selectedForm.name }));
+                this.$newSubmissionBtn = $('<a class="btn submit add icon" ' + href + ' role="button" tabindex="0">' + Craft.escapeHtml(label) + '</a>').appendTo(this.$newSubmissionBtnGroup);
+
+                if (this.settings.context !== 'index') {
+                    this.addListener(this.$newSubmissionBtn, 'click', function(ev) {
+                        this._openCreateSubmissionModal(ev.currentTarget.getAttribute('data-id'));
+                    });
+                }
+
+                if (this.editableForms.length > 1) {
+                    $menuBtn = $('<button/>', {
+                        type: 'button',
+                        class: 'btn submit menubtn',
+                    }).appendTo(this.$newSubmissionBtnGroup);
+                }
+            } else {
+                this.$newSubmissionBtn = $menuBtn = $('<button/>', {
+                    type: 'button',
+                    class: 'btn submit add icon menubtn',
+                    text: Craft.t('formie', 'New submission'),
+                }).appendTo(this.$newSubmissionBtnGroup);
+            }
+
+            if ($menuBtn) {
+                var menuHtml = '<div class="menu"><ul>';
+
+                for (i = 0; i < this.editableForms.length; i++) {
+                    var form = this.editableForms[i];
+
+                    if ((this.settings.context === 'index' && $.inArray(this.siteId, form.sites) !== -1) || (this.settings.context !== 'index' && form !== selectedForm)) {
+                        href = this._getFormTriggerHref(form);
+                        label = (this.settings.context === 'index' ? form.name : Craft.t('formie', 'New {form} submission', { form: form.name }));
+                        menuHtml += '<li><a ' + href + '>' + Craft.escapeHtml(label) + '</a></li>';
+                    }
+                }
+
+                menuHtml += '</ul></div>';
+
+                $(menuHtml).appendTo(this.$newSubmissionBtnGroup);
+                var menuBtn = new Garnish.MenuBtn($menuBtn);
+
+                if (this.settings.context !== 'index') {
+                    menuBtn.on('optionSelect', ev => {
+                        this._openCreateSubmissionModal(ev.option.getAttribute('data-id'));
+                    });
+                }
+            }
+
+            this.addButton(this.$newSubmissionBtnGroup);
+        }
+
+        if (this.settings.context === 'index' && typeof history !== 'undefined') {
+            var uri = 'formie/submissions';
+
+            if (handle) {
+                uri += '/' + handle;
+            }
+
+            history.replaceState({}, '', Craft.getUrl(uri));
+        }
+    },
+
+    _getFormTriggerHref(form) {
+        if (this.settings.context === 'index') {
+            const uri = `formie/submissions/${form.handle}/new`;
+            const site = this.getSite();
+            const params = site ? { site: site.handle } : undefined;
+            return `href="${Craft.getUrl(uri, params)}"`;
+        }
+
+        return `data-id="${form.id}"`;
+    },
+
+    _openCreateSubmissionModal(formId) {
+        if (this.$newSubmissionBtn.hasClass('loading')) {
+            return;
+        }
+
+        var form;
+
+        for (var i = 0; i < this.editableForms.length; i++) {
+            if (this.editableForms[i].id == formId) {
+                form = this.editableForms[i];
+                break;
+            }
+        }
+
+        if (!form) {
+            return;
+        }
+
+        this.$newSubmissionBtn.addClass('inactive');
+        var newSubmissionBtnText = this.$newSubmissionBtn.text();
+        this.$newSubmissionBtn.text(Craft.t('formie', 'New {form} submission', { form: form.name }));
+
+        Craft.createElementEditor(this.elementType, {
+            hudTrigger: this.$newSubmissionBtnGroup,
+            siteId: this.siteId,
+            attributes: {
+                formId,
+            },
+            onHideHud: () => {
+                this.$newSubmissionBtn.removeClass('inactive').text(newSubmissionBtnText);
+            },
+            onSaveElement: response => {
+                var formSourceKey = 'form:' + form.id;
+
+                if (this.sourceKey !== formSourceKey) {
+                    this.selectSourceByKey(formSourceKey);
+                }
+
+                this.selectElementAfterUpdate(response.id);
+                this.updateElements();
+            },
+        });
     },
 });
 

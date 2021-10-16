@@ -120,15 +120,17 @@
 {% block details %}
 
 <div id="settings" class="meta">
-    <div class="field">
-        <div class="heading">
-            <label class="">{{ 'Submission ID' | t('formie') }}</label>
-        </div>
+    {% if submission.id %}
+        <div class="field">
+            <div class="heading">
+                <label class="">{{ 'Submission ID' | t('formie') }}</label>
+            </div>
 
-        <div class="input ltr">
-            {{ submission.id }}
+            <div class="input ltr">
+                {{ submission.id }}
+            </div>
         </div>
-    </div>
+    {% endif %}
 
     <div class="field">
         <div class="heading">
@@ -225,31 +227,33 @@
     </div>
 {% endif %}
 
-<div id="meta-details" class="meta read-only">
-    {% block meta %}
-        {% if submission.isIncomplete %}
+{% if submission.id %}
+    <div id="meta-details" class="meta read-only">
+        {% block meta %}
+            {% if submission.isIncomplete %}
+                <div class="data">
+                    <h5 class="heading">{{ 'Status' | t('app') }}</h5>
+                    <div id="status-value" class="value"><span class="status"></span>{{ 'Incomplete' | t('formie') }}</div>
+                </div>
+            {% endif %}
+
             <div class="data">
-                <h5 class="heading">{{ 'Status' | t('app') }}</h5>
-                <div id="status-value" class="value"><span class="status"></span>{{ 'Incomplete' | t('formie') }}</div>
+                <h5 class="heading">{{ 'Created at' | t('app') }}</h5>
+                <div id="date-created-value" class="value">{{ submission.dateCreated | datetime('short') }}</div>
             </div>
-        {% endif %}
 
-        <div class="data">
-            <h5 class="heading">{{ 'Created at' | t('app') }}</h5>
-            <div id="date-created-value" class="value">{{ submission.dateCreated | datetime('short') }}</div>
-        </div>
+            <div class="data">
+                <h5 class="heading">{{ 'Updated at' | t('app') }}</h5>
+                <div id="date-updated-value" class="value">{{ submission.dateUpdated | datetime('short') }}</div>
+            </div>
 
-        <div class="data">
-            <h5 class="heading">{{ 'Updated at' | t('app') }}</h5>
-            <div id="date-updated-value" class="value">{{ submission.dateUpdated | datetime('short') }}</div>
-        </div>
-
-        <div class="data">
-            <h5 class="heading">{{ 'IP Address' | t('app') }}</h5>
-            <div class="value">{{ submission.ipAddress }}</div>
-        </div>
-    {% endblock %}
-</div>
+            <div class="data">
+                <h5 class="heading">{{ 'IP Address' | t('app') }}</h5>
+                <div class="value">{{ submission.ipAddress }}</div>
+            </div>
+        {% endblock %}
+    </div>
+{% endif %}
 
 {% hook 'formie.cp.submissions.edit.details' %}
 

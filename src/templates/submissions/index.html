@@ -10,3 +10,15 @@
 
 {% set docTitle = title ~ ' - Formie' %}
 {% set elementType = 'verbb\\formie\\elements\\Submission' %}
+
+{% js %}
+    if (typeof Craft.Formie === 'undefined') {
+        Craft.Formie = {};
+    }
+
+    Craft.Formie.editableSubmissions = {{ craft.formie.getPlugin().getSubmissions().getEditableSubmissions(currentUser) | json_encode() | raw }};
+
+    {% if formHandle is defined %}
+        window.defaultFormieFormHandle = '{{ formHandle }}';
+    {% endif %}
+{% endjs %}
