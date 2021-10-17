@@ -163,7 +163,7 @@ export default {
                     return { label: lineValues[0], value: lineValues[1] || lineValues[0], isDefault: false };
                 });
 
-                this.tableField.setItems(values);
+                this.tableField.setItems(values, false);
 
                 this.$emit('close');
 

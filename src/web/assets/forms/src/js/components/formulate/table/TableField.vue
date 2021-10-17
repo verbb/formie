@@ -163,9 +163,11 @@ export default {
             return null;
         },
 
-        setItems(items) {
+        setItems(items, replace = true) {
             // Reset the model
-            this.context.model = [];
+            if (replace) {
+                this.context.model = [];
+            }
 
             // Add each item properly
             items.forEach(item => {
