@@ -567,20 +567,31 @@ Event::on(Fields::class, Fields::EVENT_AFTER_SAVE_FIELD_PAGE, function(FieldPage
 ```
 
 
+## Date Field Events
 
-## Phone Field Events
-
-### The `modifyPhoneCountries` event
-The event that is triggered to modify the available countries the phone field has access to.
+### The `modifyDateFormat` event
+The event that is triggered to modify the Date Format for the field.
 
 ```php
-use verbb\formie\events\ModifyPhoneCountriesEvent;
-use verbb\formie\services\Phone;
+use verbb\formie\events\ModifyDateTimeFormatEvent;
+use verbb\formie\fields\formfields\Date;
 use yii\base\Event;
 
-Event::on(Phone::class, Phone::EVENT_MODIFY_PHONE_COUNTRIES, function(ModifyPhoneCountriesEvent $event) {
-    $countries = $event->countries;
-    // ...
+Event::on(Date::class, Date::EVENT_MODIFY_DATE_FORMAT, function(ModifyDateTimeFormatEvent $event) {
+    $event->dateFormat = 'Y-m-d';
+});
+```
+
+### The `modifyTimeFormat` event
+The event that is triggered to modify the Time Format for the field.
+
+```php
+use verbb\formie\events\ModifyDateTimeFormatEvent;
+use verbb\formie\fields\formfields\Date;
+use yii\base\Event;
+
+Event::on(Date::class, Date::EVENT_MODIFY_TIME_FORMAT, function(ModifyDateTimeFormatEvent $event) {
+    $event->timeFormat = 'H:i';
 });
 ```
 
@@ -614,8 +625,8 @@ use verbb\formie\fields\formfields\Html;
 use HTMLPurifier_AttrDef_Text;
 use yii\base\Event;
 
-Event::on(Html::class, Html::EVENT_MODIFY_PURIFIER_CONFIG, function(ModifyPurifierConfigEvent $e) {
-    $e->config->getHTMLDefinition(true)->addAttribute('span', 'data-type', new HTMLPurifier_AttrDef_Text());
+Event::on(Html::class, Html::EVENT_MODIFY_PURIFIER_CONFIG, function(ModifyPurifierConfigEvent $event) {
+    $event->config->getHTMLDefinition(true)->addAttribute('span', 'data-type', new HTMLPurifier_AttrDef_Text());
 });
 ```
 
@@ -630,8 +641,25 @@ use verbb\formie\events\ModifyNamePrefixOptionsEvent;
 use verbb\formie\fields\formfields\Name;
 use yii\base\Event;
 
-Event::on(Name::class, Name::EVENT_MODIFY_PREFIX_OPTIONS, function(ModifyNamePrefixOptionsEvent $e) {
-    $e->options[] = ['label' => Craft::t('formie', 'Mx.'), 'value' => 'mx'];
+Event::on(Name::class, Name::EVENT_MODIFY_PREFIX_OPTIONS, function(ModifyNamePrefixOptionsEvent $event) {
+    $event->options[] = ['label' => Craft::t('formie', 'Mx.'), 'value' => 'mx'];
+});
+```
+
+
+## Phone Field Events
+
+### The `modifyPhoneCountries` event
+The event that is triggered to modify the available countries the phone field has access to.
+
+```php
+use verbb\formie\events\ModifyPhoneCountriesEvent;
+use verbb\formie\services\Phone;
+use yii\base\Event;
+
+Event::on(Phone::class, Phone::EVENT_MODIFY_PHONE_COUNTRIES, function(ModifyPhoneCountriesEvent $event) {
+    $countries = $event->countries;
+    // ...
 });
 ```
 
@@ -646,8 +674,8 @@ use verbb\formie\events\RegisterPredefinedOptionsEvent;
 use verbb\formie\services\PredefinedOptions;
 use yii\base\Event;
 
-Event::on(PredefinedOptions::class, PredefinedOptions::EVENT_REGISTER_PREDEFINED_OPTIONS, function(RegisterPredefinedOptionsEvent $e) {
-    $e->options[] = CustomOptions::class;
+Event::on(PredefinedOptions::class, PredefinedOptions::EVENT_REGISTER_PREDEFINED_OPTIONS, function(RegisterPredefinedOptionsEvent $event) {
+    $event->options[] = CustomOptions::class;
 });
 ```
 

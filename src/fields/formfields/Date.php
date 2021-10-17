@@ -5,6 +5,7 @@ use verbb\formie\Formie;
 use verbb\formie\base\FormField;
 use verbb\formie\base\SubfieldInterface;
 use verbb\formie\base\SubfieldTrait;
+use verbb\formie\events\ModifyDateTimeFormatEvent;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\IntegrationField;
 
@@ -17,11 +18,19 @@ use craft\helpers\StringHelper;
 use craft\i18n\Locale;
 
 use DateTime;
+use yii\base\Event;
 use yii\db\Schema;
 use GraphQL\Type\Definition\Type;
 
 class Date extends FormField implements SubfieldInterface, PreviewableFieldInterface
 {
+    // Constants
+    // =========================================================================
+
+    const EVENT_MODIFY_DATE_FORMAT = 'modifyDateFormat';
+    const EVENT_MODIFY_TIME_FORMAT = 'modifyTimeFormat';
+
+
     // Traits
     // =========================================================================
 
@@ -128,6 +137,38 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
     }
 
     /**
+     * @inheritDoc
+     */
+    public function getDateFormat()
+    {
+        // Allow plugins to modify the date format, commonly for specific sites
+        $event = new ModifyDateTimeFormatEvent([
+            'field' => $this,
+            'dateFormat' => $this->dateFormat,
+        ]);
+
+        Event::trigger(static::class, self::EVENT_MODIFY_DATE_FORMAT, $event);
+
+        return $event->dateFormat;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getTimeFormat()
+    {
+        // Allow plugins to modify the date format, commonly for specific sites
+        $event = new ModifyDateTimeFormatEvent([
+            'field' => $this,
+            'timeFormat' => $this->timeFormat,
+        ]);
+
+        Event::trigger(static::class, self::EVENT_MODIFY_DATE_FORMAT, $event);
+
+        return $event->timeFormat;
+    }
+
+    /**
      * @inheritdoc
      */
     public function getTableAttributeHtml($value, ElementInterface $element): string
@@ -159,7 +200,7 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
         if ($this->displayType !== 'calendar') {
             // Always use the full format to store dates, even if only dates enabled.
             // This helps to set all non-included items (like time for date-only) to zero.
-            $format = $this->dateFormat . ' ' . $this->timeFormat;
+            $format = $this->getDateFormat() . ' ' . $this->getTimeFormat();
 
             if (is_array($value)) {
                 $value = array_filter($value);
@@ -294,7 +335,7 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
             ],
         ];
 
-        $format = $this->dateFormat . ($this->includeTime ? $this->timeFormat : '');
+        $format = $this->getDateFormat() . ($this->includeTime ? $this->getTimeFormat() : '');
         $format = preg_replace('/[.\-:\/ ]/', '', $format);
 
         $row = [];
@@ -456,18 +497,18 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
             $maxDate = null;
 
             if ($minDate = DateTimeHelper::toDateTime($this->minDate)) {
-                $minDate = $minDate->format($this->dateFormat);
+                $minDate = $minDate->format($this->getDateFormat());
             }
 
             if ($maxDate = DateTimeHelper::toDateTime($this->maxDate)) {
-                $maxDate = $maxDate->format($this->dateFormat);
+                $maxDate = $maxDate->format($this->getDateFormat());
             }
 
             return [
                 'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/fields/date-picker.js', true),
                 'module' => 'FormieDatePicker',
                 'settings' => [
-                    'dateFormat' => $this->includeTime ? $this->dateFormat . ' ' . $this->timeFormat : $this->dateFormat,
+                    'dateFormat' => $this->includeTime ? $this->getDateFormat() . ' ' . $this->getTimeFormat() : $this->getDateFormat(),
                     'includeTime' => $this->includeTime,
                     'locale' => $locale,
                     'minDate' => $minDate,
