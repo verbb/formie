@@ -5,6 +5,7 @@ use verbb\formie\Formie;
 use verbb\formie\base\FormField;
 use verbb\formie\elements\Form;
 use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\helpers\Variables;
 use verbb\formie\positions\Hidden as HiddenPosition;
 
 use Craft;
@@ -118,6 +119,19 @@ class Hidden extends FormField implements PreviewableFieldInterface
     /**
      * @inheritDoc
      */
+    public function serializeValue($value, ElementInterface $element = null)
+    {
+        // Handle variables use in custom fields
+        if ($this->defaultOption === 'custom') {
+            $value = Variables::getParsedValue($value, $element);
+        }
+
+        return parent::serializeValue($value, $element);
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function getFieldDefaults(): array
     {
         return [
@@ -222,10 +236,11 @@ class Hidden extends FormField implements PreviewableFieldInterface
                 ],
             ]),
             SchemaHelper::toggleContainer('settings.defaultOption=custom', [
-                SchemaHelper::textField([
-                    'label' => Craft::t('formie', 'Custom Value'),
+                SchemaHelper::variableTextField([
+                    'label' => Craft::t('formie', 'Default Value'),
                     'help' => Craft::t('formie', 'Entering a default value will place the value in the field when it loads.'),
                     'name' => 'defaultValue',
+                    'variables' => 'plainTextVariables',
                 ]),
             ]),
             SchemaHelper::toggleContainer('settings.defaultOption=query', [
