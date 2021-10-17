@@ -1,5 +1,41 @@
 # Changelog
 
+## 1.4.21 - 2021-10-17
+
+### Added
+- Added support for submissions to be created via the control panel.
+- Added a `createSubmissions` permission for submissions.
+- Added support for Hidden fields to have their "Custom Value" set to other fields or special variables.
+- Added "Send Email Notification" function when editing a submission, or from the submission index.
+- Added `spamEmailNotifications` plugin setting to enable email notifications to be sent, even when a submission is marked as spam.
+- Added tags support to ActiveCampaign Email Marketing integration.
+- Added date picker options field settings for Date fields.
+- Added support for UI elements for Form Template fields.
+- Added `EVENT_MODIFY_DATE_FORMAT` and `EVENT_MODIFY_TIME_FORMAT` events to control the date/time formatting for Date fields.
+- Added "None" position for error and success message options.
+- Added `enableCsrfValidationForGuests` setting to disable CSRF validation for submissions, specifically for guests.
+
+### Changed
+- When adding new values to Dropdown, Radio and Checkboxes fields via the "Bulk Options" utility now appends any options defined, instead of removing any existing options in the field settings.
+- Change `getClient()` and `request()` methods from `protected` to `public` to allow third-parties to utilize Guzzle clients and requests for integrations in their own modules and code.
+- Remove abandoned `hoa/ruler` dependancy, used for conditional logic rules parsing.
+- Update the `cpEditUrl` for submissions to include the form handle.
+- Submissions now always return a default status (according to form defaults).
+
+### Fixed
+- Fixed an error with Gatsby Helper plugin.
+- Fixed a PHP deprecation notice with Freeform migration.
+- Fixed recipients fields not working correctly when populating a hidden field with multiple values.
+- Fixed prune functions not taking into account timezone and comparing UTC dates correctly.
+- Fixed an error when trying to create a form with a long title, generating an invalid handle.
+- Fixed content-change warning when using a default value for a Date field, with Flatpickr enabled.
+- Fixed client-side validation triggering for hidden fields in some instances (Flatpickr Date fields).
+- Fixed a JS error when using a Tags field.
+- Fixed an error when sending the payload for a Webhook integration.
+- Fixed when using a Checkboxes field with a single value for the Opt-In Field for an integration not working correctly.
+- Fixed an error with email notifications when emails contain Unicode control characters, unassigned, private use, formatting and surrogate code points.
+- Fixed when calling `EVENT_DEFINE_RULES` of a submission, where a rule contained a field that didn't exist on the owner form.
+
 ## 1.4.20 - 2021-10-12
 
 ### Added
