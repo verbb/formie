@@ -362,13 +362,15 @@ class Mailchimp extends EmailMarketing
     }
 
     /**
-     * Returns a list of existing member tags.
+     * Returns a list of existing contact tags.
      *
      * @param string $emailHash
      * @return string[]
      */
-    private function _getExistingTags(string $emailHash): array {
+    private function _getExistingTags(string $emailHash)
+    {
         $response = $this->request('GET', "lists/{$this->listId}/members/{$emailHash}/tags");
+
         return array_map(function($tag) {
             return $tag['name'];
         }, $response['tags']);
