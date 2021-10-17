@@ -228,7 +228,7 @@ class Submission extends Element
             }
 
             // Add custom error messages to fields with custom message set.
-            foreach ($rules as &$rule) {
+            foreach ($rules as $key => $rule) {
                 /* @var FormField|FormFieldTrait $field */
                 foreach ($fields as $field) {
                     if (!$field->errorMessage) {
@@ -239,12 +239,15 @@ class Submission extends Element
                     $attribute = is_array($attribute) ? $attribute[0] : $attribute;
 
                     if ($attribute === "field:{$field->handle}") {
-                        $rule['message'] = $field->errorMessage;
+                        $rules[$key]['message'] = $field->errorMessage;
                         break;
                     }
                 }
             }
         }
+
+        // Reset keys just in case
+        $rules = array_values($rules);
 
         $rules[] = [['title'], 'required'];
         $rules[] = [['title'], 'string', 'max' => 255];
@@ -257,28 +260,23 @@ class Submission extends Element
         ]);
         $this->trigger(self::EVENT_DEFINE_RULES, $event);
 
-        // For some reason, directly editing `$rules` doesn't work. Start from scratch and build rules.
-        $filteredRules = [];
-
         // Ensure that any rules defined in events actually exists and are valid for this submission/form.
         // Otherwise fatal errors will occur trying to validate a field that doesn't exist in this context.
         foreach ($event->rules as $key => $rule) {
             list($attribute, $validator) = $rule;
-            $attribute = is_array($attribute) ? $attribute[0] : $attribute;
+            $attr = is_array($attribute) ? $attribute[0] : $attribute;
 
-            if (strpos($attribute, 'field:') !== false) {
-                $fieldHandle = str_replace('field:', '', $attribute);
+            if (strpos($attr, 'field:') !== false) {
+                $fieldHandle = str_replace('field:', '', $attr);
 
                 // Remove any rules for fields not defined in this form for safety.
                 if (!in_array($fieldHandle, $fieldsByHandle)) {
-                    continue;
+                    unset($event->rules[$key]);
                 }
             }
-
-            $filteredRules[] = $rule;
         }
 
-        return $filteredRules;
+        return $event->rules;
     }
 
     /**
