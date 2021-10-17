@@ -106,6 +106,8 @@ class Submissions extends Component
      */
     public function onAfterSubmission(bool $success, Submission $submission)
     {
+        $settings = Formie::$plugin->getSettings();
+
         // Check to see if this is an incomplete submission. Return immedately, but fire an event
         if ($submission->isIncomplete) {
             // Fire an 'afterIncompleteSubmission' event
@@ -136,6 +138,9 @@ class Submissions extends Component
 
             // Trigger any integrations
             $this->triggerIntegrations($event->submission);
+        } else if ($submission->isSpam && $settings->spamEmailNotifications) {
+            // Special-case for wanting to send emails for spam
+            $this->sendNotifications($event->submission);
         }
     }
 

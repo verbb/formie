@@ -36,6 +36,14 @@
                 value: settings.spamLimit,
                 warning: macros.configWarning('spamLimit', 'formie'),
             }) }}
+
+            {{ forms.lightswitchField({
+                label: 'Send Email Notifications' | t('formie'),
+                instructions: 'Whether submissions marked as spam should still trigger email notifications.' | t('formie'),
+                name: 'spamEmailNotifications',
+                on: settings.spamEmailNotifications,
+                warning: macros.configWarning('spamEmailNotifications', 'formie'),
+            }) }}
         </div>
 
         <hr>

@@ -38,8 +38,9 @@ return [
         'maxSentNotificationsAge' => 30,
 
         // Spam
-        'saveSpam' => false,
+        'saveSpam' => true,
         'spamLimit' => 500,
+        'spamEmailNotifications' => false,
         'spamBehaviour' => 'showSuccess',
         'spamKeywords' => '',
         'spamBehaviourMessage' => '',
@@ -83,6 +84,7 @@ return [
 #### Spam
 - `saveSpam` - Whether to save spam submissions to the database.
 - `spamLimit` - If saving spam, set a suitable limit for how many to keep. Spam submissions past this limit will be deleted.
+- `spamEmailNotifications` - Whether submissions marked as spam should still trigger email notifications.
 - `spamBehaviour` - Set to either `showSuccess` or `showMessage` to set the submission behaviour when a spam submission is detected.
 - `spamKeywords` - Set keywords that if matched in the submission, will be marked as spam.
 - `spamBehaviourMessage` - This text will be shown as an error after submission. HTML and Markdown is supported.

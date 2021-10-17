@@ -84,6 +84,7 @@ class Settings extends Model
     // Spam
     public $saveSpam = true;
     public $spamLimit = 500;
+    public $spamEmailNotifications = false;
     public $spamBehaviour = self::SPAM_BEHAVIOUR_SUCCESS;
     public $spamKeywords = '';
     public $spamBehaviourMessage = '';
