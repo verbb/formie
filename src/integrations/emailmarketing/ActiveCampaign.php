@@ -96,6 +96,11 @@ class ActiveCampaign extends EmailMarketing
                     ]),
                 ], $this->_getCustomFields($fields));
 
+                $listFields[] = new IntegrationField([
+                    'handle' => 'tags',
+                    'name' => Craft::t('formie', 'Tags'),
+                ]);
+
                 $settings['lists'][] = new IntegrationCollection([
                     'id' => $list['id'],
                     'name' => $list['name'],
@@ -122,6 +127,8 @@ class ActiveCampaign extends EmailMarketing
             $firstName = ArrayHelper::remove($fieldValues, 'firstName');
             $lastName = ArrayHelper::remove($fieldValues, 'lastName');
             $phone = ArrayHelper::remove($fieldValues, 'phone');
+
+            $tags = ArrayHelper::remove($fieldValues, 'tags');
 
             $payload = [
                 'contact' => [
@@ -162,6 +169,58 @@ class ActiveCampaign extends EmailMarketing
 
             if ($response === false) {
                 return true;
+            }
+
+            // Process any tags, we need to find or create each one.
+            if ($tags) {
+                // Cleanup and handle multiple tags
+                $tags = array_filter(array_map('trim', explode(',', $tags)));
+
+                $tags = ['Mailchimp', 'Another'];
+
+                if ($tags) {
+                    // Find all the tags first
+                    $response = $this->request('GET', 'tags');
+                    $existingTags = $response['tags'] ?? [];
+                    $tagIds = [];
+
+                    // Process each tag
+                    foreach ($tags as $tag) {
+                        // Find if it's already been created, don't create again
+                        foreach ($existingTags as $existingTag) {
+                            if ($existingTag['tag'] === $tag) {
+                                $tagIds[] = $existingTag['id'];
+
+                                continue 2;
+                            }
+                        }
+
+                        // Create the tag
+                        $payload = [
+                            'tag' => [
+                                'tag' => $tag,
+                                'tagType' => 'contact',
+                                'description' => '',
+                            ],
+                        ];
+
+                        $response = $this->deliverPayload($submission, 'tags', $payload);
+
+                        $tagIds[] = $response['tag']['id'] ?? null;
+                    }
+
+                    // Assign all tags to the contact
+                    foreach ($tagIds as $tagId) {
+                        $payload = [
+                            'contactTag' => [
+                                'contact' => $contactId,
+                                'tag' => $tagId,
+                            ],
+                        ];
+
+                        $response = $this->deliverPayload($submission, 'contactTags', $payload);
+                    }
+                }
             }
         } catch (\Throwable $e) {
             Integration::apiError($this, $e);
