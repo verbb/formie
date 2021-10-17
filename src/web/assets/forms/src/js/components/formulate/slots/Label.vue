@@ -10,7 +10,7 @@
 
         <!-- Hard-code this so we don't have to specify a position all the time -->
         <div v-if="context.help" :id="context.id + '-help'" class="instructions">
-            <p>{{ context.help }}</p>
+            <vue-simple-markdown :source="context.help" />
         </div>
     </div>
 </template>

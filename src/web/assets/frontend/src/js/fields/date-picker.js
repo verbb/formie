@@ -11,6 +11,7 @@ export class FormieDatePicker {
         this.$field = settings.$field.querySelector('input');
 
         this.locales = [];
+        this.datePickerOptions = settings.datePickerOptions || [];
         this.dateFormat = settings.dateFormat;
         this.includeTime = settings.includeTime;
         this.locale = settings.locale;
@@ -34,21 +35,23 @@ export class FormieDatePicker {
             maxDate: this.maxDate,
         };
 
-        // Emit an "beforeInit" event
+        // We have options defined by default, which are overridden by any defined in the CP for the field
+        // which are then overridden by any defined in the JS event. So combine the default + field options first.
+        let options = {
+            ...defaultOptions,
+            ...this.getDatePickerOptions(),
+        };
+
+        // Emit an "beforeInit" event. This can directly modify the `options` param
         const beforeInitEvent = new CustomEvent('beforeInit', {
             bubbles: true,
             detail: {
                 datepicker: this,
-                options: defaultOptions,
+                options,
             },
         });
 
         this.$field.dispatchEvent(beforeInitEvent);
-
-        const options = {
-            ...defaultOptions,
-            ...beforeInitEvent.detail.options,
-        };
 
         this.datepicker = flatpickr(this.$field, options);
 
@@ -88,6 +91,24 @@ export class FormieDatePicker {
 
             this.locales.push(this.locale);
         }
+    }
+
+    getDatePickerOptions() {
+        const opts = {};
+
+        // Format options stored in Formie, ready for JS
+        this.datePickerOptions.forEach(object => {
+            // Handle parsing boolean, ugh
+            if (object.value === 'true') {
+                object.value = true;
+            } else if (object.value === 'false') {
+                object.value = false;
+            }
+
+            opts[object.label] = object.value;
+        });
+
+        return opts;
     }
 }
 

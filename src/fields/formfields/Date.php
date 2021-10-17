@@ -90,6 +90,7 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
     public $ampmLabel;
     public $ampmPlaceholder;
     public $useDatePicker = true;
+    public $datePickerOptions = [];
     public $minDate;
     public $maxDate;
 
@@ -268,6 +269,7 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
             'ampmLabel' => Craft::t('formie', 'AM/PM'),
             'ampmPlaceholder' => '',
             'useDatePicker' => true,
+            'datePickerOptions' => [],
         ];
     }
 
@@ -508,6 +510,7 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
                 'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/fields/date-picker.js', true),
                 'module' => 'FormieDatePicker',
                 'settings' => [
+                    'datePickerOptions' => $this->datePickerOptions,
                     'dateFormat' => $this->includeTime ? $this->getDateFormat() . ' ' . $this->getTimeFormat() : $this->getDateFormat(),
                     'includeTime' => $this->includeTime,
                     'locale' => $locale,
@@ -673,8 +676,33 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
             SchemaHelper::toggleContainer('settings.displayType=calendar', [
                 SchemaHelper::lightswitchField([
                     'label' => Craft::t('formie', 'Use Date Picker'),
-                    'help' => Craft::t('formie', 'Whether this field should use the bundled cross-browser datepicker (Flatpickr.js) when rendering this field.'),
+                    'help' => Craft::t('formie', 'Whether this field should use the bundled cross-browser date picker ([Flatpickr.js docs](https://flatpickr.js.org)) when rendering this field.'),
                     'name' => 'useDatePicker',
+                ]),
+                SchemaHelper::toggleContainer('settings.useDatePicker', [
+                    SchemaHelper::tableField([
+                        'label' => Craft::t('formie', 'Date Picker Options'),
+                        'help' => Craft::t('formie', 'Add any additional options for the date picker to use. For available options, refer to the [Flatpickr.js docs](https://flatpickr.js.org/options/).'),
+                        'validation' => 'min:0',
+                        'newRowDefaults' => [
+                            'label' => '',
+                            'value' => '',
+                        ],
+                        'generateValue' => false,
+                        'columns' => [
+                            [
+                                'type' => 'label',
+                                'label' => 'Option',
+                                'class' => 'singleline-cell textual',
+                            ],
+                            [
+                                'type' => 'value',
+                                'label' => 'Value',
+                                'class' => 'singleline-cell textual',
+                            ]
+                        ],
+                        'name' => 'datePickerOptions',
+                    ]),
                 ]),
             ]),
         ];
