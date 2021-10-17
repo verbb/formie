@@ -54,3 +54,28 @@ body.rtl .chart-explorer .chart-header .spinner {
 .chart-explorer .total .total-value {
     font-size: 15px;
 }
+
+
+// ==========================================================================
+// Send Notification
+// ==========================================================================
+
+.fui-send-notification-modal .footer {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+}
+
+.fui-send-notification-modal .body {
+    position: relative;
+    height: 100%;
+    overflow: auto;
+    padding-bottom: 80px;
+}
+
+.fui-send-notification-modal .spinner.big {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    margin: -24px 0 0 -24px;
+}

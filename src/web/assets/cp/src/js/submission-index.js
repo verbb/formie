@@ -451,5 +451,67 @@ Craft.Formie.SubmissionTableView = Craft.TableElementIndexView.extend({
     },
 });
 
+(function($) {
+    $(document).on('click', '.js-fui-submission-modal-send-btn', function(e) {
+        e.preventDefault();
+
+        new Craft.Formie.SendNotificationModal($(this).data('id'));
+    });
+})(jQuery);
+
+Craft.Formie.SendNotificationModal = Garnish.Modal.extend({
+    init(id) {
+        this.$form = $('<form class="modal fui-send-notification-modal" method="post" accept-charset="UTF-8"/>').appendTo(Garnish.$bod);
+        this.$body = $('<div class="body"><div class="spinner big"></div></div>').appendTo(this.$form);
+
+        var $footer = $('<div class="footer"/>').appendTo(this.$form);
+        var $mainBtnGroup = $('<div class="buttons right"/>').appendTo($footer);
+        this.$cancelBtn = $('<input type="button" class="btn" value="' + Craft.t('formie', 'Cancel') + '"/>').appendTo($mainBtnGroup);
+        this.$updateBtn = $('<input type="button" class="btn submit" value="' + Craft.t('formie', 'Send Email Notification') + '"/>').appendTo($mainBtnGroup);
+        this.$footerSpinner = $('<div class="spinner right hidden"/>').appendTo($footer);
+
+        Craft.initUiElements(this.$form);
+
+        this.addListener(this.$cancelBtn, 'click', 'onFadeOut');
+        this.addListener(this.$updateBtn, 'click', 'onSend');
+
+        this.base(this.$form);
+
+        Craft.postActionRequest('formie/submissions/get-send-notification-modal-content', { id }, $.proxy(function(response, textStatus) {
+            if (textStatus === 'success') {
+                if (response.success) {
+                    this.$body.html(response.modalHtml);
+                    Craft.appendHeadHtml(response.headHtml);
+                    Craft.appendFootHtml(response.footHtml);
+                }
+            }
+        }, this));
+    },
+
+    onFadeOut() {
+        this.$form.remove();
+        this.$shade.remove();
+    },
+
+    onSend(e) {
+        e.preventDefault();
+
+        this.$footerSpinner.removeClass('hidden');
+
+        var data = this.$form.serialize();
+
+        // Save everything through the normal update-cart action, just like we were doing it on the front-end
+        Craft.postActionRequest('formie/submissions/send-notification', data, $.proxy(function(response) {
+            this.$footerSpinner.addClass('hidden');
+
+            if (response.success) {
+                location.reload();
+            } else {
+                Craft.cp.displayError(response.error);
+            }
+        }, this));
+    },
+});
+
 
 Craft.registerElementIndexClass('verbb\\formie\\elements\\Submission', Craft.Formie.SubmissionIndex);

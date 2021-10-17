@@ -1,0 +1,22 @@
+{% import '_includes/forms' as forms %}
+
+<h2>{{ 'Send Email Notification' | t('formie') }}</h2>
+
+<input type="hidden" name="submissionId" value="{{ submission.id }}">
+
+{% set options = [{ label: 'Select an option' | t('formie'), value: '' }] %}
+
+{% for notification in notifications %}
+    {% set options = options | merge([{
+        label: notification.name,
+        value: notification.id,
+    }]) %}
+{% endfor %}
+
+{{ forms.selectField({
+    label: 'Select Notification' | t('formie'),
+    instructions: 'Select the notification you‘d like to send.' | t('formie'),
+    name: 'notificationId',
+    required: true,
+    options: options,
+}) }}

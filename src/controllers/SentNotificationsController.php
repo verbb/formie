@@ -18,21 +18,30 @@ class SentNotificationsController extends Controller
 {
     // Public Methods
     // =========================================================================
-
+    
+    /**
+     * @inheritDoc
+     */
     public function actionIndex(): Response
     {
         $this->getView()->registerAssetBundle(CpAsset::class);
 
         return $this->renderTemplate('formie/sent-notifications/index', []);
     }
-
+    
+    /**
+     * @inheritDoc
+     */
     public function actionSettings(): Response
     {
         $settings = Formie::$plugin->getSettings();
 
         return $this->renderTemplate('formie/settings/sent-notifications', compact('settings'));
     }
-
+    
+    /**
+     * @inheritDoc
+     */
     public function actionEdit(int $sentNotificationId = null, SentNotification $sentNotification = null): Response
     {
         $variables = compact('sentNotificationId', 'sentNotification');
@@ -55,7 +64,10 @@ class SentNotificationsController extends Controller
 
         return $this->renderTemplate('formie/sent-notifications/_edit', $variables);
     }
-
+    
+    /**
+     * @inheritDoc
+     */
     public function actionGetResendModalContent()
     {
         $this->requireAcceptsJson();
@@ -78,7 +90,10 @@ class SentNotificationsController extends Controller
             'footHtml' => $view->getBodyHtml(),
         ]);
     }
-
+    
+    /**
+     * @inheritDoc
+     */
     public function actionResend()
     {
         $this->requireAcceptsJson();
@@ -145,7 +160,10 @@ class SentNotificationsController extends Controller
             'success' => true,
         ]);
     }
-
+    
+    /**
+     * @inheritDoc
+     */
     public function actionBulkResend()
     {
         $this->requireAcceptsJson();
@@ -229,7 +247,10 @@ class SentNotificationsController extends Controller
             'success' => true,
         ]);
     }
-
+    
+    /**
+     * @inheritDoc
+     */
     public function actionDelete()
     {
         $this->requirePostRequest();
@@ -271,7 +292,10 @@ class SentNotificationsController extends Controller
 
     // Private Methods
     // =========================================================================
-
+    
+    /**
+     * @inheritDoc
+     */
     private function _prepNewEmail($sentNotification)
     {
         $newEmail = new Message();

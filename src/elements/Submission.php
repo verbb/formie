@@ -27,6 +27,7 @@ use craft\elements\db\ElementQueryInterface;
 use craft\elements\User;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Cp;
+use craft\helpers\Html;
 use craft\helpers\Json;
 use craft\helpers\UrlHelper;
 
@@ -928,6 +929,7 @@ class Submission extends Element
             'spamReason' => ['label' => Craft::t('app', 'Spam Reason')],
             'ipAddress' => ['label' => Craft::t('app', 'IP Address')],
             'userId' => ['label' => Craft::t('app', 'User')],
+            'sendNotification' => ['label' => Craft::t('formie', 'Send Notification')],
             'dateCreated' => ['label' => Craft::t('app', 'Date Created')],
             'dateUpdated' => ['label' => Craft::t('app', 'Date Updated')],
         ];
@@ -964,6 +966,18 @@ class Submission extends Element
             case 'userId':
                 $user = $this->getUser();
                 return $user ? Cp::elementHtml($user) : '';
+            case 'sendNotification':
+                $notifications = $this->getForm()->getNotifications();
+
+                if (!$notifications) {
+                    return '';
+                }
+
+                return Html::a(Craft::t('formie', 'Send'), '#', [
+                    'class' => 'btn small formsubmit js-fui-submission-modal-send-btn',
+                    'data-id' => $this->id,
+                    'title' => Craft::t('formie', 'Send'),
+                ]);
             default:
                 return parent::tableAttributeHtml($attribute);
         }

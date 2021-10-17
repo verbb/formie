@@ -715,7 +715,10 @@ class SubmissionsController extends Controller
 
         return $this->redirectToPostedUrl($submission);
     }
-
+    
+    /**
+     * @inheritDoc
+     */
     public function actionLegacyEdit(int $submissionId = null, string $siteHandle = null, Submission $submission = null): Response
     {
         if (!$submission) {
@@ -738,6 +741,78 @@ class SubmissionsController extends Controller
         ];
 
         return $this->runAction('edit-submission', $variables);
+    }
+    
+    /**
+     * @inheritDoc
+     */
+    public function actionGetSendNotificationModalContent()
+    {
+        $this->requireAcceptsJson();
+
+        $request = Craft::$app->getRequest();
+        $view = $this->getView();
+
+        $submission = Submission::find()
+            ->id($request->getParam('id'))
+            ->one();
+
+        $notifications = $submission->getForm()->getNotifications();
+
+        $modalHtml = $view->renderTemplate('formie/submissions/_includes/send-notification-modal', [
+            'submission' => $submission,
+            'notifications' => $notifications,
+        ]);
+
+        return $this->asJson([
+            'success' => true,
+            'modalHtml' => $modalHtml,
+            'headHtml' => $view->getHeadHtml(),
+            'footHtml' => $view->getBodyHtml(),
+        ]);
+    }
+    
+    /**
+     * @inheritDoc
+     */
+    public function actionSendNotification()
+    {
+        $this->requireAcceptsJson();
+
+        $request = Craft::$app->getRequest();
+
+        $notificationId = $request->getRequiredParam('notificationId');
+        $notification = Formie::$plugin->getNotifications()->getNotificationById($notificationId);
+
+        $submission = Submission::find()
+            ->id($request->getParam('submissionId'))
+            ->one();
+
+        if (!$notification) {
+            $error = Craft::t('formie', 'Notification not found.');
+
+            Craft::$app->getSession()->setError($error);
+
+            return $this->asErrorJson($error);
+        }
+
+        if (!$submission) {
+            $error = Craft::t('formie', 'Submission not found.');
+
+            Craft::$app->getSession()->setError($error);
+
+            return $this->asErrorJson($error);
+        }
+
+        Formie::$plugin->getSubmissions()->sendNotificationEmail($notification, $submission);
+
+        $message = Craft::t('formie', 'Email Notification was sent successfully.');
+        
+        Craft::$app->getSession()->setNotice($message);
+
+        return $this->asJson([
+            'success' => true,
+        ]);
     }
 
 

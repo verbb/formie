@@ -227,6 +227,22 @@
     </div>
 {% endif %}
 
+{% set notifications = form.getNotifications() %}
+
+{% if notifications %}
+    <div id="meta-details" class="meta">
+        <div class="field">
+            <div class="heading">
+                <label class="">{{ 'Email' | t('formie') }}</label>
+            </div>
+
+            <div class="input ltr">
+                <a class="js-fui-submission-modal-send-btn btn small" data-id="{{ submission.id }}">{{ 'Send Email Notification' | t('formie') }}</a>
+            </div>
+        </div>
+    </div>
+{% endif %}
+
 {% if submission.id %}
     <div id="meta-details" class="meta read-only">
         {% block meta %}
