@@ -1,4 +1,3 @@
-{% include '_includes/fields' with {
-    fields: tab.tab.fields,
-    element: form,
-} only %}
+{% for formElement in tab.tab.elements %}
+    {{ formElement.formHtml(form) | raw }}
+{% endfor %}

@@ -164,9 +164,13 @@
 </div>
 
 <div id="form-fields" class="hidden">
-    {% include '_includes/fieldlayoutdesigner' with {
+    {{ forms.fieldLayoutDesignerField({
+        instructions: 'Provide additional elements to be shown in tabs when building the form.' | t('formie'),
+        customizableTabs: true,
+        customizableUi: true,
+        pretendTabName: pretendTabName ?? 'Content' | t('app'),
         fieldLayout: template.getFieldLayout(),
-    } only %}
+    }) }}
 </div>
 
 {% endblock %}
