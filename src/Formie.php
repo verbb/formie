@@ -390,7 +390,7 @@ class Formie extends Plugin
                     ];
                 }
 
-                if (GqlHelper::canQuerySubmission()) {
+                if (GqlHelper::canQuerySubmissions()) {
                     $event->types[SubmissionInterface::getName()] = [
                         'node' => 'formieSubmission',
                         'list' => 'formieSubmissions',
