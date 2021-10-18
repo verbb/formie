@@ -1083,28 +1083,32 @@ class Form extends Element
      */
     public function getRedirectUrl($checkLastPage = true)
     {
+        $request = Craft::$app->getRequest();
+        $url = '';
+
         // We don't want to show the redirect URL on unfinished mutli-page forms, so check first
         if ($this->settings->submitMethod == 'page-reload') {
             if ($checkLastPage && !$this->isLastPage()) {
-                return '';
+                return $url;
             }
         }
 
         // Allow settings to statically set the redirect URL (from templates)
         if ($this->settings->redirectUrl) {
-            return $this->settings->redirectUrl;
-        }
-
-        if ($this->settings->submitAction == 'entry' && $this->getRedirectEntry()) {
-            return $this->getRedirectEntry()->url;
-        }
-
-        if ($this->settings->submitAction == 'url') {
+            $url = $this->settings->redirectUrl;
+        } else if ($this->settings->submitAction == 'entry' && $this->getRedirectEntry()) {
+            $url = $this->getRedirectEntry()->url;
+        } else if ($this->settings->submitAction == 'url') {
             // Parse Twig
-            return Craft::$app->getView()->renderString($this->settings->submitActionUrl);
+            $url = Craft::$app->getView()->renderString($this->settings->submitActionUrl);
         }
 
-        return '';
+        // Add any query params to the URL automatically (think utm)
+        if ($request->getIsSiteRequest()) {
+            $url = UrlHelper::url($url, $request->getQueryStringWithoutPath());
+        }
+
+        return $url;
     }
 
     /**
