@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.4.21.1 - 2021-10-18
+
+### Fixed
+- Fixed an error with Gatsby Helper plugin (typo introduced in 1.4.21).
+
 ## 1.4.21 - 2021-10-17
 
 ### Added
