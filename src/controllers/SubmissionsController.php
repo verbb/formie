@@ -456,10 +456,10 @@ class SubmissionsController extends Controller
         if ($submission->hasErrors()) {
             $errors = $submission->getErrors();
 
-            // If this is a multi-page form, and if also the last page, set the current page
-            // to the first page with an error, for good UX.
-
             Formie::error(Craft::t('app', 'Couldn’t save submission due to errors - {e}.', ['e' => Json::encode($errors)]));
+
+            // If there are page field errors, set the current page to the page with the error for good UX.
+            $nextPage = $this->_checkPageFieldErrors($submission, $form, $nextPage);
 
             if ($request->getAcceptsJson()) {
                 return $this->_returnJsonResponse(false, $submission, $form, $nextPage, [
@@ -533,6 +533,9 @@ class SubmissionsController extends Controller
             $errors = $submission->getErrors();
 
             Formie::error(Craft::t('app', 'Couldn’t save submission due to errors - {e}.', ['e' => Json::encode($errors)]));
+
+            // If there are page field errors, set the current page to the page with the error for good UX.
+            $nextPage = $this->_checkPageFieldErrors($submission, $form, $nextPage);
 
             if ($request->getAcceptsJson()) {
                 return $this->_returnJsonResponse(false, $submission, $form, $nextPage, [
@@ -844,7 +847,7 @@ class SubmissionsController extends Controller
             'submissionId' => $submission->id,
             'currentPageId' => $form->getCurrentPage()->id,
             'nextPageId' => $nextPage->id ?? null,
-            'nextPageIndex' => $form->getCurrentPageIndex() ?? 0,
+            'nextPageIndex' => $form->getPageIndex($nextPage) ?? 0,
             'totalPages' => count($form->getPages()),
             'redirectUrl' => $redirectUrl,
             'submitActionMessage' => $form->settings->getSubmitActionMessage($submission),
@@ -972,5 +975,28 @@ class SubmissionsController extends Controller
         }
 
         return $submission;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    private function _checkPageFieldErrors($submission, $form, $nextPage)
+    {
+        // Find the first page with a field error and set that as the current page
+        if ($pageFieldErrors = $form->getPageFieldErrors($submission)) {
+            $firstErrorPageId = array_keys($pageFieldErrors)[0];
+
+            if ($firstErrorPageId) {
+                $errorPage = ArrayHelper::firstWhere($form->getPages(), 'id', $firstErrorPageId);
+
+                $form->setCurrentPage($errorPage);
+
+                // We must return the next page to navigate to. In this case, it'll be the current page
+                // as we've already set that to be the page with the first field error
+                return $form->getCurrentPage();
+            }
+        }
+
+        return $nextPage;
     }
 }

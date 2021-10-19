@@ -533,6 +533,9 @@ export class FormieFormTheme {
                 }
             }
         });
+
+        // Go to the first page with an error, for good UX
+        this.togglePage(data);
     }
 
     onAjaxSuccess(data) {

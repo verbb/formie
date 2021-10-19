@@ -785,6 +785,24 @@ class Form extends Element
     }
 
     /**
+     * Returns the index of a page in the array of all pages.
+     *
+     * @param FieldLayoutPage $page
+     * @return int|null
+     */
+    public function getPageIndex($page = null)
+    {
+        $pages = $this->getPages();
+
+        // Return the index of the page, in all our pages. Just for convenience
+        if ($page) {
+            return array_search($page->id, ArrayHelper::getColumn($pages, 'id'), true);
+        }
+
+        return null;
+    }
+
+    /**
      * Sets the current page.
      *
      * @param $page
