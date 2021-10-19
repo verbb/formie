@@ -537,6 +537,7 @@ class SubmissionsController extends Controller
             if ($request->getAcceptsJson()) {
                 return $this->_returnJsonResponse(false, $submission, $form, $nextPage, [
                     'errors' => $errors,
+                    'pageFieldErrors' => $form->getPageFieldErrors($submission),
                     'errorMessage' => $errorMessage,
                 ]);
             }
