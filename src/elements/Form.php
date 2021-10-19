@@ -1104,7 +1104,7 @@ class Form extends Element
         }
 
         // Add any query params to the URL automatically (think utm)
-        if ($request->getIsSiteRequest()) {
+        if ($url && $request->getIsSiteRequest()) {
             $url = UrlHelper::url($url, $request->getQueryStringWithoutPath());
         }
 
