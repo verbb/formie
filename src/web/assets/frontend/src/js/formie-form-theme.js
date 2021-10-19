@@ -398,6 +398,16 @@ export class FormieFormTheme {
         }
     }
 
+    showTabErrors(errors) {
+        Object.keys(errors).forEach((pageId, index) => {
+            var $tab = this.$form.parentNode.querySelector('[data-fui-page-id="' + pageId + '"]');
+
+            if ($tab) {
+                $tab.parentNode.classList.add('fui-tab-error');
+            }
+        });
+    }
+
     decodeHtml(html) {
         var txt = document.createElement('textarea');
         txt.innerHTML = html;
@@ -410,6 +420,14 @@ export class FormieFormTheme {
         if ($alert) {
             $alert.remove();
         }
+    }
+
+    removeTabErrors() {
+        var $tabs = this.$form.parentNode.querySelectorAll('[data-fui-page-tab]');
+
+        $tabs.forEach($tab => {
+            $tab.classList.remove('fui-tab-error');
+        });
     }
 
     removeBackInput() {
@@ -431,6 +449,7 @@ export class FormieFormTheme {
         }));
 
         this.removeFormAlert();
+        this.removeTabErrors();
         this.addLoading();
     }
 
@@ -462,7 +481,7 @@ export class FormieFormTheme {
                     const response = JSON.parse(xhr.responseText);
 
                     if (response.errors) {
-                        this.onAjaxError(response.errors, response.errorMessage);
+                        this.onAjaxError(response.errorMessage, response);
                     } else {
                         this.onAjaxSuccess(response);
                     }
@@ -477,46 +496,50 @@ export class FormieFormTheme {
         xhr.send(formData);
     }
 
-    afterAjaxSubmit(response) {
+    afterAjaxSubmit(data) {
         // This will be called regardless of success or error
         this.removeBackInput();
 
-        this.updateSubmissionInput(response);
+        this.updateSubmissionInput(data);
     }
 
-    onAjaxError(response, errorMessage = '') {
+    onAjaxError(errorMessage, data = {}) {
+        const errors = data.errors || {};
+        const pageFieldErrors = data.pageFieldErrors || {};
+
+        // Show an error message at the top of the form
         this.onFormError(errorMessage);
+
+        // Update the page tabs (if any) to show error state
+        this.showTabErrors(pageFieldErrors);
 
         // Fire a fail event
         this.submitHandler.formSubmitError();
 
-        this.afterAjaxSubmit(response);
+        // Fire cleanup methods after _any_ ajax call
+        this.afterAjaxSubmit(data);
 
-        if (typeof response === 'string') {
-            this.showFormAlert(response, 'error');
-        }
+        // Show server-side errors for each field
+        Object.keys(errors).forEach((handle, index) => {
+            const [ error ] = errors[handle];
+            const $field = document.querySelector(`[name="fields[${handle}]"]`);
 
-        if (typeof response === 'object') {
-            Object.keys(response).forEach((handle, index) => {
-                const [ error ] = response[handle];
-                const $field = document.querySelector(`[name="fields[${handle}]"]`);
+            if ($field) {
+                this.validator.showError($field, { serverMessage: error });
 
-                if ($field) {
-                    this.validator.showError($field, { serverMessage: error });
-
-                    // Focus on the first error
-                    if (index === 0) {
-                        $field.focus();
-                    }
+                // Focus on the first error
+                if (index === 0) {
+                    $field.focus();
                 }
-            });
-        }
+            }
+        });
     }
 
     onAjaxSuccess(data) {
         // Fire the event, because we've overridden the handler
         this.submitHandler.formAfterSubmit(data);
-
+        
+        // Fire cleanup methods after _any_ ajax call
         this.afterAjaxSubmit(data);
 
         // Reset the form hash, as all has been saved

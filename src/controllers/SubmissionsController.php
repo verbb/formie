@@ -456,11 +456,15 @@ class SubmissionsController extends Controller
         if ($submission->hasErrors()) {
             $errors = $submission->getErrors();
 
+            // If this is a multi-page form, and if also the last page, set the current page
+            // to the first page with an error, for good UX.
+
             Formie::error(Craft::t('app', 'Couldn’t save submission due to errors - {e}.', ['e' => Json::encode($errors)]));
 
             if ($request->getAcceptsJson()) {
                 return $this->_returnJsonResponse(false, $submission, $form, $nextPage, [
                     'errors' => $errors,
+                    'pageFieldErrors' => $form->getPageFieldErrors($submission),
                     'errorMessage' => $errorMessage,
                 ]);
             }

@@ -2,10 +2,17 @@
     <div class="fui-tabs" data-fui-page-tabs>
         {% for p in form.pages %}
             {% set attributes = {
+                id: 'fui-tab-' ~ p.id,
+                class: [
+                    'fui-tab',
+                    (p.id == currentPage.id) ? 'fui-tab-active',
+                    p.getFieldErrors(submission) ? 'fui-tab-error',
+                ] | filter,
+                'data-fui-page-tab': true,
                 'data-field-conditions': p.getConditionsJson(),
             } %}
 
-            <div id="fui-tab-{{ p.id }}" class="fui-tab {{ (p.id == currentPage.id) ? 'fui-tab-active' }}" data-fui-page-tab {{ attr(attributes) }}>
+            <div {{ attr(attributes) }}>
                 {%- set params = { handle: form.handle, pageId: p.id } -%}
 
                 {%- if submission and submission.id and form.isEditingSubmission() -%}

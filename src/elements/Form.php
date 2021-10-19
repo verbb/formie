@@ -1140,6 +1140,20 @@ class Form extends Element
     /**
      * @inheritdoc
      */
+    public function getPageFieldErrors($submission)
+    {
+        $errors = [];
+
+        foreach ($this->getPages() as $page) {
+            $errors[$page->id] = $page->getFieldErrors($submission);
+        }
+
+        return array_filter($errors);
+    }
+
+    /**
+     * @inheritdoc
+     */
     public function getFrontEndJsVariables(): array
     {   
         $pluginSettings = Formie::$plugin->getSettings();
