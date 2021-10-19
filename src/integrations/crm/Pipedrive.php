@@ -251,6 +251,9 @@ class Pipedrive extends Crm
             $leadId = null;
 
             if ($this->mapToLead) {
+                // Extract notes, which need to be separate
+                $note = ArrayHelper::remove($leadValues, 'note');
+
                 $leadPayload = $leadValues;
 
                 if ($organizationId) {
@@ -276,6 +279,17 @@ class Pipedrive extends Crm
                     ]), true);
 
                     return false;
+                }
+
+                // Add the note separately
+                if ($note) {
+                    $payload = [
+                        'content' => $note,
+                        'lead_id' => $leadId,
+                        'pinned_to_lead_flag' => '1',
+                    ];
+
+                    $response = $this->deliverPayload($submission, 'notes', $payload);
                 }
             }
 
