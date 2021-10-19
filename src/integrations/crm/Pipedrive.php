@@ -103,12 +103,22 @@ class Pipedrive extends Crm
             // Get Person fields
             $response = $this->request('GET', 'personFields');
             $fields = $response['data'] ?? [];
-            $personFields = $this->_getCustomFields($fields);
+            $personFields = array_merge($this->_getCustomFields($fields), [
+                new IntegrationField([
+                    'handle' => 'note',
+                    'name' => Craft::t('formie', 'Note'),
+                ]),
+            ]);
 
             // Get Deal fields
             $response = $this->request('GET', 'dealFields');
             $fields = $response['data'] ?? [];
-            $dealFields = $this->_getCustomFields($fields);
+            $dealFields = array_merge($this->_getCustomFields($fields), [
+                new IntegrationField([
+                    'handle' => 'note',
+                    'name' => Craft::t('formie', 'Note'),
+                ]),
+            ]);
 
             // Get Lead fields
             $leadFields = [
@@ -134,7 +144,12 @@ class Pipedrive extends Crm
             // Get Organization fields
             $response = $this->request('GET', 'organizationFields');
             $fields = $response['data'] ?? [];
-            $organizationFields = $this->_getCustomFields($fields);
+            $organizationFields = array_merge($this->_getCustomFields($fields), [
+                new IntegrationField([
+                    'handle' => 'note',
+                    'name' => Craft::t('formie', 'Note'),
+                ]),
+            ]);
             
             // Get Note fields
             $response = $this->request('GET', 'noteFields');
@@ -170,6 +185,9 @@ class Pipedrive extends Crm
             $organizationId = null;
 
             if ($this->mapToOrganization) {
+                // Extract notes, which need to be separate
+                $note = ArrayHelper::remove($organizationValues, 'note');
+
                 $organizationPayload = $organizationValues;
 
                 $response = $this->deliverPayload($submission, 'organizations', $organizationPayload);
@@ -188,11 +206,25 @@ class Pipedrive extends Crm
 
                     return false;
                 }
+
+                // Add the note separately
+                if ($note) {
+                    $payload = [
+                        'content' => $note,
+                        'org_id' => $organizationId,
+                        'pinned_to_organization_flag' => '1',
+                    ];
+
+                    $response = $this->deliverPayload($submission, 'notes', $payload);
+                }
             }
 
             $personId = null;
 
             if ($this->mapToPerson) {
+                // Extract notes, which need to be separate
+                $note = ArrayHelper::remove($personValues, 'note');
+
                 $personPayload = $personValues;
 
                 if ($organizationId) {
@@ -215,11 +247,25 @@ class Pipedrive extends Crm
 
                     return false;
                 }
+
+                // Add the note separately
+                if ($note) {
+                    $payload = [
+                        'content' => $note,
+                        'person_id' => $personId,
+                        'pinned_to_person_flag' => '1',
+                    ];
+
+                    $response = $this->deliverPayload($submission, 'notes', $payload);
+                }
             }
 
             $dealId = null;
 
             if ($this->mapToDeal) {
+                // Extract notes, which need to be separate
+                $note = ArrayHelper::remove($dealValues, 'note');
+
                 $dealPayload = $dealValues;
 
                 if ($organizationId) {
@@ -245,6 +291,17 @@ class Pipedrive extends Crm
                     ]), true);
 
                     return false;
+                }
+
+                // Add the note separately
+                if ($note) {
+                    $payload = [
+                        'content' => $note,
+                        'deal_id' => $dealId,
+                        'pinned_to_deal_flag' => '1',
+                    ];
+
+                    $response = $this->deliverPayload($submission, 'notes', $payload);
                 }
             }
 
