@@ -368,6 +368,11 @@ class Pipedrive extends Crm
                     $notePayload['pinned_to_deal_flag'] = '1';
                 }
 
+                if ($leadId) {
+                    $notePayload['lead_id'] = $leadId;
+                    $notePayload['pinned_to_lead_flag'] = '1';
+                }
+
                 $response = $this->deliverPayload($submission, 'notes', $notePayload);
 
                 if ($response === false) {
