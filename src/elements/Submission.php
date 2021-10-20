@@ -938,6 +938,7 @@ class Submission extends Element
             'ipAddress' => ['label' => Craft::t('app', 'IP Address')],
             'userId' => ['label' => Craft::t('app', 'User')],
             'sendNotification' => ['label' => Craft::t('formie', 'Send Notification')],
+            'status' => ['label' => Craft::t('formie', 'Status')],
             'dateCreated' => ['label' => Craft::t('app', 'Date Created')],
             'dateUpdated' => ['label' => Craft::t('app', 'Date Updated')],
         ];
@@ -974,6 +975,22 @@ class Submission extends Element
             case 'userId':
                 $user = $this->getUser();
                 return $user ? Cp::elementHtml($user) : '';
+            case 'status':
+                $statusHandle = $this->getStatus();
+                $status = self::statuses()[$statusHandle] ?? null;
+                
+                return Html::tag('span', Html::tag('span', '', [
+                    'class' => array_filter([
+                        'status',
+                        $statusHandle,
+                        ($status ? $status['color'] : null)
+                    ]),
+                ]) . ($status ? $status['label'] : null), [
+                    'style' => [
+                        'display' => 'flex',
+                        'align-items' => 'center',
+                    ],
+                ]);
             case 'sendNotification':
                 $notifications = $this->getForm()->getNotifications();
 
