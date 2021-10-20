@@ -18,24 +18,26 @@ Craft.Formie.SubmissionIndex = Craft.BaseElementIndex.extend({
             isSpam: false,
         };
 
-        // Find the settings menubtn, and add a new option to it
-        var $menubtn = this.$statusMenuBtn.menubtn().data('menubtn');
+        // Add our custom state menu
+        this.$stateMenu = $('<div/>', { 'class': 'menu' });
+        var $ul = $('<ul/>', { 'class': 'padded' }).appendTo(this.$stateMenu);
+        var $all = $('<li><a class="sel" data-all><span class="status"></span> ' + Craft.t('formie', 'All') + '</a></li>').appendTo($ul);
+        var $incomplete = $('<li><a data-incomplete><span class="icon" data-icon="draft"></span> ' + Craft.t('formie', 'Incomplete') + '</a></li>').appendTo($ul);
+        var $spam = $('<li><a data-spam><span class="icon" data-icon="error"></span> ' + Craft.t('formie', 'Spam') + '</a></li>').appendTo($ul);
 
-        if ($menubtn) {
-            var $incomplete = $('<li><a data-incomplete><span class="icon" data-icon="draft"></span> ' + Craft.t('formie', 'Incomplete') + '</a></li>');
-            var $spam = $('<li><a data-spam><span class="icon" data-icon="error"></span> ' + Craft.t('formie', 'Spam') + '</a></li>');
-            var $hr = $('<hr class="padded">');
+        this.stateMenu = new Garnish.Menu(this.$stateMenu, {
+            onOptionSelect: $.proxy(this, '_handleStateChange'),
+        });
 
-            $menubtn.menu.addOptions($incomplete.children());
-            $menubtn.menu.addOptions($spam.children());
+        this.$stateBtn = $('<button/>', {
+            type: 'button',
+            class: 'btn menubtn',
+            text: Craft.t('app', 'All'),
+        });
 
-            $hr.appendTo($menubtn.menu.$container.find('ul:first'));
-            $incomplete.appendTo($menubtn.menu.$container.find('ul:first'));
-            $spam.appendTo($menubtn.menu.$container.find('ul:first'));
+        new Garnish.MenuBtn(this.$stateBtn, this.stateMenu);
 
-            // Hijack the event
-            $menubtn.menu.on('optionselect', $.proxy(this, '_handleStatusChange'));
-        }
+        this.$stateBtn.insertBefore(this.$toolbar.find('.search'));
     },
 
     afterInit() {
@@ -52,14 +54,13 @@ Craft.Formie.SubmissionIndex = Craft.BaseElementIndex.extend({
         this.base();
     },
 
-    _handleStatusChange(ev) {
-        this.statusMenu.$options.removeClass('sel');
-        var $option = $(ev.selectedOption).addClass('sel');
-        this.$statusMenuBtn.html($option.html());
+    _handleStateChange(option) {
+        var $option = $(option);
+        this.$stateBtn.text($option.text());
+        this.stateMenu.setPositionRelativeToAnchor();
+        this.$stateMenu.find('.sel').removeClass('sel');
+        $option.addClass('sel');
 
-        this.trashed = false;
-        this.drafts = false;
-        this.status = null;
         this.settings.criteria.isIncomplete = false;
         this.settings.criteria.isSpam = false;
 
@@ -67,12 +68,6 @@ Craft.Formie.SubmissionIndex = Craft.BaseElementIndex.extend({
             this.settings.criteria.isSpam = true;
         } else if (Garnish.hasAttr($option, 'data-incomplete')) {
             this.settings.criteria.isIncomplete = true;
-        } else if (Garnish.hasAttr($option, 'data-trashed')) {
-            this.trashed = true;
-        } else if (Garnish.hasAttr($option, 'data-drafts')) {
-            this.drafts = true;
-        } else {
-            this.status = $option.data('status');
         }
 
         this._updateStructureSortOption();
