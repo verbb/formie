@@ -444,6 +444,14 @@ class Submission extends Element
     }
 
     /**
+     * @inheritdoc
+     */
+    public function getIsDraft(): bool
+    {
+        return $this->isIncomplete;
+    }
+
+    /**
      * @inheritDoc
      */
     public function getFieldLayout()
