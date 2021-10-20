@@ -123,6 +123,16 @@ class Statuses extends Component
     }
 
     /**
+     * Gets a the default status.
+     *
+     * @return Status|null
+     */
+    public function getDefaultStatus()
+    {
+        return ArrayHelper::firstWhere($this->getAllStatuses(), 'isDefault', true);
+    }
+
+    /**
      * Saves statuses in a new order by the list of status IDs.
      *
      * @param int[] $ids

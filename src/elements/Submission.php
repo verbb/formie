@@ -597,10 +597,10 @@ class Submission extends Element
         }
 
         if ($form = $this->getForm()) {
-            return $form->getDefaultStatus();
+            return $this->_status = $form->getDefaultStatus();
         }
 
-        return null;
+        return $this->_status = Formie::$plugin->getStatuses()->getDefaultStatus();
     }
 
     /**
