@@ -992,17 +992,17 @@ class Submission extends Element
                     ],
                 ]);
             case 'sendNotification':
-                $notifications = $this->getForm()->getNotifications();
-
-                if (!$notifications) {
-                    return '';
+                if ($form = $this->getForm()) {
+                    if ($notifications = $form->getNotifications()) {
+                        return Html::a(Craft::t('formie', 'Send'), '#', [
+                            'class' => 'btn small formsubmit js-fui-submission-modal-send-btn',
+                            'data-id' => $this->id,
+                            'title' => Craft::t('formie', 'Send'),
+                        ]);
+                    }
                 }
 
-                return Html::a(Craft::t('formie', 'Send'), '#', [
-                    'class' => 'btn small formsubmit js-fui-submission-modal-send-btn',
-                    'data-id' => $this->id,
-                    'title' => Craft::t('formie', 'Send'),
-                ]);
+                return '';
             default:
                 return parent::tableAttributeHtml($attribute);
         }
