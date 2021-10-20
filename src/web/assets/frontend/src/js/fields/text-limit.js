@@ -6,6 +6,7 @@ export class FormieTextLimit {
         this.form = this.$form.form;
         this.$field = settings.$field;
         this.$text = this.$field.querySelector('[data-max-limit]');
+        this.$input = this.$field.querySelector('input, textarea');
 
         if (this.$text) {
             this.initTextMax();
@@ -19,11 +20,11 @@ export class FormieTextLimit {
         this.maxWords = this.$text.getAttribute('data-max-words');
 
         if (this.maxChars) {
-            this.form.addEventListener(this.$field, eventKey('keydown'), this.characterCheck.bind(this), false);
+            this.form.addEventListener(this.$input, eventKey('keydown'), this.characterCheck.bind(this), false);
         }
 
         if (this.maxWords) {
-            this.form.addEventListener(this.$field, eventKey('keydown'), this.wordCheck.bind(this), false);
+            this.form.addEventListener(this.$input, eventKey('keydown'), this.wordCheck.bind(this), false);
         }
     }
 
@@ -57,7 +58,7 @@ export class FormieTextLimit {
             var regex = new RegExp('^\\s*\\S+(?:\\s+\\S+){0,' + (this.maxWords - 1) + '}');
             
             if (wordCount >= this.maxWords) {
-                this.$field.value = value.match(regex);
+                e.target.value = value.match(regex);
             }
 
             var wordsLeft = this.maxWords - wordCount;

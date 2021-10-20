@@ -14,6 +14,7 @@
     data: {
         'fui-id': options.dataId,
         'fui-message': field.settings.errorMessage | t,
+        wordlimit: wordlimit ?: false,
     },
     aria: {
         required: field.required ? 'true' : 'false',
