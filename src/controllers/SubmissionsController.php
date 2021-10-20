@@ -145,6 +145,18 @@ class SubmissionsController extends Controller
 
                 $variables['submission'] = new Submission();
                 $variables['submission']->setForm($form);
+
+                $variables['submission']->title = Variables::getParsedValue(
+                    $form->settings->submissionTitleFormat,
+                    $submission,
+                    $form
+                );
+
+                // Set the default title for the submission so it can save correctly
+                if (!$variables['submission']->title) {
+                    $now = new DateTime('now', new DateTimeZone(Craft::$app->getTimeZone()));
+                    $variables['submission']->title = $now->format('D, d M Y H:i:s');
+                }
             }
         }
 
@@ -187,6 +199,9 @@ class SubmissionsController extends Controller
         $request = Craft::$app->getRequest();
         $submissionId = $request->getBodyParam('submissionId');
         $siteId = $request->getBodyParam('siteId');
+        $formHandle = $request->getBodyParam('handle');
+
+        $form = Form::find()->handle($formHandle)->one();
 
         if ($submissionId) {
             $submission = Submission::find()
@@ -200,6 +215,7 @@ class SubmissionsController extends Controller
             }
         } else {
             $submission = new Submission();
+            $submission->setForm($form);
         }
 
         $form = $submission->form;

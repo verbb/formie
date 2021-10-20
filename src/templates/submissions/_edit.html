@@ -7,6 +7,7 @@
 {% set jsFile = view.getAssetManager().getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/formie.js', true) %}
 {% do view.registerJsFile(jsFile) %}
 
+{% set isNew = submission.id ? false : true %}
 {% set form = submission.getForm() %}
 
 {% set crumbs = [
@@ -156,7 +157,7 @@
         {{ forms.hidden({
             id: 'statusId',
             name: 'statusId',
-            value: submission.statusId ?? null,
+            value: submission.getStatus(true).id,
         }) }}
 
         {% set statusField %}
@@ -229,7 +230,7 @@
 
 {% set notifications = form.getNotifications() %}
 
-{% if notifications %}
+{% if notifications and not isNew %}
     <div id="meta-details" class="meta">
         <div class="field">
             <div class="heading">
