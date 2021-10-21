@@ -84,9 +84,20 @@ abstract class Captcha extends Integration implements IntegrationInterface
     /**
      * Returns the front-end JS.
      *
-     * @return string
+     * @return array
      */
     public function getFrontEndJsVariables(Form $form, $page = null)
+    {
+        return null;
+    }
+
+    /**
+     * Some captchas require tokens to be refreshed for static caching. You should return any
+     * variables used in `getFrontEndJsVariables()` here for the refresh-token action to return.
+     *
+     * @return array
+     */
+    public function getRefreshJsVariables(Form $form, $page = null)
     {
         return null;
     }
@@ -100,5 +111,27 @@ abstract class Captcha extends Integration implements IntegrationInterface
     public function validateSubmission(Submission $submission): bool
     {
         return true;
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+    
+    /**
+     * @inheritDoc
+     */
+    protected function getOrSet($key, $callable)
+    {
+        if ($value = Craft::$app->getSession()->get($key)) {
+            return $value;
+        }
+
+        $value = call_user_func($callable, $this);
+
+        if (!Craft::$app->getSession()->set($key, $value)) {
+            Craft::warning('Failed to set cache value for key ' . json_encode($key), __METHOD__);
+        }
+
+        return $value;
     }
 }

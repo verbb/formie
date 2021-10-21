@@ -75,18 +75,15 @@ class Javascript extends Captcha
     {
         $sessionKey = $this->getSessionKey($form, $page);
 
-        $value = Craft::$app->getSession()->get($sessionKey);
-
-        if (!$value) {
-            $value = uniqid();
-        }
-
-        // Save the generated input value so we can validate it properly. Also make it per-form
-        Craft::$app->getSession()->set($sessionKey, $value);
+        // Get or create the generated input value so we can validate it properly. Also make it per-form
+        $value = $this->getOrSet($sessionKey, function() {
+            return uniqid();
+        });
 
         $settings = [
             'formId' => $form->getFormId(),
             'sessionKey' => $sessionKey,
+            'value' => $value,
         ];
 
         $src = Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/captchas/dist/js/javascript.js', true);
@@ -105,15 +102,34 @@ class Javascript extends Captcha
     /**
      * @inheritDoc
      */
+    public function getRefreshJsVariables(Form $form, $page = null)
+    {
+        $sessionKey = $this->getSessionKey($form, $page);
+        
+        // Get or create the generated input value so we can validate it properly. Also make it per-form
+        $value = $this->getOrSet($sessionKey, function() {
+            return uniqid();
+        });
+
+        return [
+            'formId' => $form->getFormId(),
+            'sessionKey' => $sessionKey,
+            'value' => $value,
+        ];
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function validateSubmission(Submission $submission): bool
     {
-        $sessionId = $this->getSessionKey($submission->form);
+        $sessionKey = $this->getSessionKey($submission->form);
 
         // Grab the value generated in our session when we generated the captcha
-        $value = Craft::$app->getSession()->get($sessionId);
+        $value = Craft::$app->getSession()->get($sessionKey);
 
         // Check the provided value
-        $jsset = Craft::$app->getRequest()->getParam($sessionId);
+        $jsset = Craft::$app->getRequest()->getParam($sessionKey);
 
         // Compare the two - in case someone is being sneaky and just providing _any_ value for the captcha
         if ($value !== $jsset) {
@@ -124,10 +140,10 @@ class Javascript extends Captcha
 
         // If we're checking against a min time?
         if ($this->minTime) {
-            $initTime = time() - Craft::$app->getSession()->get($sessionId . '_init');
+            $initTime = time() - Craft::$app->getSession()->get($sessionKey . '_init');
 
             // Remove the session
-            Craft::$app->getSession()->remove($sessionId . '_init');
+            Craft::$app->getSession()->remove($sessionKey . '_init');
 
             if ($initTime <= $this->minTime) {
                 $this->spamReason = Craft::t('formie', 'Submitted in {s}s, below the {m}s setting.', ['s' => $initTime, 'm' => $this->minTime]);
@@ -137,7 +153,7 @@ class Javascript extends Captcha
         }
 
         // Remove the session info (keep it around if it fails)
-        Craft::$app->getSession()->remove($sessionId);
+        Craft::$app->getSession()->remove($sessionKey);
 
         return true;
     }

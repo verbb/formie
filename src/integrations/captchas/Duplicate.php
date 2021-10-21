@@ -46,16 +46,15 @@ class Duplicate extends Captcha
      */
     public function getFrontEndHtml(Form $form, $page = null): string
     {
-        $sessionId = $this->getSessionKey($form, $page);
+        $sessionKey = $this->getSessionKey($form, $page);
 
-        // Create the unique token 
-        $value = uniqid();
-
-        // Save the generated input value so we can validate it properly. Also make it per-form
-        Craft::$app->getSession()->set($sessionId, $value);
+        // Get or create the generated input value so we can validate it properly. Also make it per-form
+        $value = $this->getOrSet($sessionKey, function() {
+            return uniqid();
+        });
 
         // Set a hidden field with no value and use javascript to set it.
-        $output = '<input type="hidden" name="' . $sessionId . '" value="' . $value . '" />';
+        $output = '<input type="hidden" name="' . $sessionKey . '" value="' . $value . '" />';
 
         return $output;
     }
@@ -63,23 +62,43 @@ class Duplicate extends Captcha
     /**
      * @inheritDoc
      */
+    public function getRefreshJsVariables(Form $form, $page = null)
+    {
+        $sessionKey = $this->getSessionKey($form, $page);
+        
+        // Get or create the generated input value so we can validate it properly. Also make it per-form
+        $value = $this->getOrSet($sessionKey, function() {
+            return uniqid();
+        });
+
+        return [
+            'sessionKey' => $sessionKey,
+            'value' => $value,
+        ];
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function validateSubmission(Submission $submission): bool
     {
-        $sessionId = $this->getSessionKey($submission->form);
+        $sessionKey = $this->getSessionKey($submission->form);
 
         // Grab the value generated in our session when we generated the captcha
-        $value = Craft::$app->getSession()->get($sessionId);
+        $value = Craft::$app->getSession()->get($sessionKey);
 
         // Check the provided value
-        $jsset = Craft::$app->getRequest()->getParam($sessionId);
+        $jsset = Craft::$app->getRequest()->getParam($sessionKey);
 
         // Compare the two - in case someone is being sneaky and just providing _any_ value for the captcha
-        if ($value !== $jsset) {   
+        if ($value !== $jsset) {
+            $this->spamReason = Craft::t('formie', 'Value mismatch {a}:{b}.', ['a' => $value, 'b' => $jsset]);
+
             return false;            
         }
 
         // Remove the session info (keep it around if it fails)
-        Craft::$app->getSession()->remove($sessionId);
+        Craft::$app->getSession()->remove($sessionKey);
 
         return true;
     }

@@ -37,15 +37,19 @@ To get around this, you'll need to call `craft.formie.registerAssets()` outside 
 </html>
 ```
 
-### Refreshing CSRF Token
-Whilst the form will now be cached, this will cause issues with Formie's CSRF token, which is also cached. This needs to be unique per-request, so we need a method of being able to update this. Continue reading the next section for a more detailed explanation.
+### Refreshing CSRF Token and Captchas
+Whilst the form will now be cached, this will cause issues with Formie's CSRF token, which is also cached. This needs to be unique per-request, so we need a method of being able to update this. Similarly, some captchas that rely on the output for the form will fail. Notably the JavaScript captcha and the Duplicate captcha, as their content will be cached.
+
+Continue reading the next section for a more detailed explanation and how to handle refreshing this information dynamically.
 
 ## Static Caching
 It's quite commonplace to implement full-page static caching on sites. For Craft, we highly recommend the [Blitz](https://plugins.craftcms.com/blitz) plugin, but you can use any number of methods to statically cache your pages. 
 
-However, caching the form for every visitor poses an issue for Formie's CSRF tokens used to verify the integrity of form submissions. Indeed, this problem will be the same for any form on your site. To get around this, you'll need to implement a way to refresh the CSRF input in your forms through JavaScript.
+However, caching the form for every visitor poses an issue for Formie's CSRF tokens and captchas used to verify the integrity of form submissions and spam submissions. Indeed, this problem will be the same for any form on your site. To get around this, you'll need to implement a way to refresh these tokens in your forms through JavaScript.
 
-Let's take a look at an example in action.
+Let's take a look at some examples in action.
+
+### CSRF Token
 
 ```twig
 {% set form = craft.formie.forms.handle('contactForm').one() %}
@@ -65,17 +69,93 @@ Let's take a look at an example in action.
         let $csrfInput = $form.querySelector('input[name="CRAFT_CSRF_TOKEN"]');
 
         // Fetch the new token for the form and replace the CSRF input with our new one
-        fetch('/actions/formie/csrf/input')
-            .then(result => { return result.text(); })
-            .then(result => { $csrfInput.outerHTML = result; });
+        fetch('/actions/formie/forms/refresh-tokens?form={{ form.handle }}')
+            .then(result => { return result.json(); })
+            .then(result => { $csrfInput.outerHTML = result.csrf.input; });
     });
 </script>
 ```
 
-Here, we've combined rendering the form as we normally would, with some extra JavaScript. While this entire code will be cached and served exactly the same to each visitor, the JavaScript will be executed when the page is loaded. The above script makes a `GET` call to our `actions/formie/csrf/input` controller action, which returns a HTML input like below:
-
-```twig
-<input type="hidden" name="CRAFT_CSRF_TOKEN" value="O7fTQEDAHZf9l9luqYuLcM...">
-```
+Here, we've combined rendering the form as we normally would, with some extra JavaScript. While this entire code will be cached and served exactly the same to each visitor, the JavaScript will be executed when the page is loaded. The above script makes a `GET` call to our `actions/formie/forms/refresh-tokens` controller action, which returns a collection of useful token information - part of which is a fresh CSRF token. 
 
 We use this to inject and replace the cached CSRF token (which is completely invalid now), after which the form will submit as expected. It's a little bit of extra work to get things working with a static cached page, but it's worth it for significant performance gains!
+
+The response from the `formie/forms/refresh-tokens` action would look something like:
+
+```json
+{
+    "csrf": {
+        "param": "CRAFT_CSRF_TOKEN",
+        "token": "MVHMpS1zZXotiEYY...",
+        "input": "<input type=\"hidden\" name=\"CRAFT_CSRF_TOKEN\" value=\"MVHMpS1zZXotiEYY...\">"
+    },
+    "captchas": {
+        "duplicate": {
+            "sessionKey": "__DUP_91804410",
+            "value": "617138283f857"
+        },
+        "javascript": {
+            "sessionKey": "__JSCHK_91804410",
+            "value": "617138283f878"
+        }
+    }
+}
+```
+
+We'll cover the `captchas` portion of this shortly, but you'll notice the `csrf.param`, `csrf.token` and `csrf.input` are available, which we're used above in our `fetch()` callback. Our example shows using `csrf.input` for convenience, but use whatever you prefer.
+
+```js
+fetch('/actions/formie/forms/refresh-tokens?form={{ form.handle }}')
+    .then(result => { return result.json(); })
+    .then(result => {
+        // Use `csrf.input` for convenience
+        $csrfInput.outerHTML = result.csrf.input;
+
+        // Use `csrf.param` and `csrf.token`
+        $form.querySelector('input[name="' + result.csrf.param + '"]').value = result.csrf.token;
+    });
+```
+
+### Captchas
+As shown above, the `formie/forms/refresh-tokens` action also contains information about captchas. Because some captchas rely on the page content being unique, we must update them dynamically now that the page is statically cached.
+
+```twig
+{% set form = craft.formie.forms.handle('contactForm').one() %}
+
+{{ craft.formie.renderForm(form) }}
+
+{# Ensure we load polyfills for older browsers that don't support `fetch()` #}
+<script src="https://cdn.polyfill.io/v2/polyfill.js?features=fetch,Promise"></script>
+
+<script>
+    // Wait until the DOM is ready
+    document.addEventListener('DOMContentLoaded', (event) => {
+        // Fetch the form we want to deal with
+        let $form = document.querySelector('#{{ form.formId }}');
+
+        // Fetch the new tokens for the form and replace the captcha inputs
+        fetch('/actions/formie/forms/refresh-tokens?form={{ form.handle }}')
+            .then(result => { return result.json(); })
+            .then(result => {
+                // JavaScript captcha
+                let jsCaptcha = result.captchas.javascript;
+
+                // Find the JavaScript captcha hidden input, so we can update it
+                if (jsCaptcha) {
+                    $form.querySelector('input[name="' + jsCaptcha.sessionKey + '"]').value = jsCaptcha.value;
+                }
+
+                // Duplicate captcha
+                let duplicateCaptcha = result.captchas.duplicate;
+
+                // Find the Duplicate captcha hidden input, so we can update it
+                if (duplicateCaptcha) {
+                    $form.querySelector('input[name="' + duplicateCaptcha.sessionKey + '"]').value = duplicateCaptcha.value;
+                }
+            });
+    });
+</script>
+```
+
+Here we're implementing the same approach as the CSRF token, by getting fresh information for each captcha, querying for the hidden `<input>` elements in the form, and updating those values. The `result.captchas` will only contain token information for the captchas you have enabled, so if you aren't using all of them, you need not include the respective captchas - if if you're not using the JavaScript or Duplicate captcha, this can be omitted altogether.
+

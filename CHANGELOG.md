@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Deprecated
+- Deprecated all `formie/csrf/*` action endpoints. Refer to the [updated docs](https://verbb.io/craft-plugins/formie/docs/template-guides/cached-forms) on handling static cached forms.
+
 ## 1.4.21.1 - 2021-10-18
 
 ### Fixed

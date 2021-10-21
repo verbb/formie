@@ -26,6 +26,12 @@ use Throwable;
 
 class FormsController extends Controller
 {
+    // Properties
+    // =========================================================================
+
+    protected $allowAnonymous = ['refresh-tokens'];
+
+
     // Public Methods
     // =========================================================================
 
@@ -417,6 +423,35 @@ class FormsController extends Controller
         }
 
         return $this->redirectToPostedUrl($form);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function actionRefreshTokens()
+    {
+        $request = Craft::$app->getRequest();
+
+        $params = [
+            'csrf' => [
+                'param' => $request->csrfParam,
+                'token' => $request->getCsrfToken(),
+                'input' => '<input type="hidden" name="' . $request->csrfParam . '" value="' . $request->getCsrfToken() . '">',
+            ],
+        ];
+
+        // Add captchas into the payload
+        $formHandle = $request->getParam('form');
+        $form = Formie::$plugin->getForms()->getFormByHandle($formHandle);
+        $captchas = Formie::$plugin->getIntegrations()->getAllEnabledCaptchasForForm($form);
+
+        foreach ($captchas as $captcha) {
+            if ($jsVariables = $captcha->getRefreshJsVariables($form)) {
+                $params['captchas'][$captcha->handle] = $jsVariables;
+            }
+        }
+        
+        return $this->asJson($params);
     }
 
 
