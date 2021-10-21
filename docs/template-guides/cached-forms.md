@@ -102,7 +102,7 @@ The response from the `formie/forms/refresh-tokens` action would look something 
 }
 ```
 
-We'll cover the `captchas` portion of this shortly, but you'll notice the `csrf.param`, `csrf.token` and `csrf.input` are available, which we're used above in our `fetch()` callback. Our example shows using `csrf.input` for convenience, but use whatever you prefer.
+We'll cover the `captchas` portion of this shortly, but you'll notice the `csrf.param`, `csrf.token` and `csrf.input` are available, which we've used above in our `fetch()` callback. Our example shows using `csrf.input` for convenience, but use whatever you prefer.
 
 ```js
 fetch('/actions/formie/forms/refresh-tokens?form={{ form.handle }}')
@@ -118,6 +118,25 @@ fetch('/actions/formie/forms/refresh-tokens?form={{ form.handle }}')
 
 ### Captchas
 As shown above, the `formie/forms/refresh-tokens` action also contains information about captchas. Because some captchas rely on the page content being unique, we must update them dynamically now that the page is statically cached.
+
+The response from the `formie/forms/refresh-tokens` contains information on captcha tokens:
+
+```json
+{
+    "captchas": {
+        "duplicate": {
+            "sessionKey": "__DUP_91804410",
+            "value": "617138283f857"
+        },
+        "javascript": {
+            "sessionKey": "__JSCHK_91804410",
+            "value": "617138283f878"
+        }
+    }
+}
+```
+
+Which we can use in our callback to find the hidden `<input>` elements, and update their `value` attributes.
 
 ```twig
 {% set form = craft.formie.forms.handle('contactForm').one() %}
