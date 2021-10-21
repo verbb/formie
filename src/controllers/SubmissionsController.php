@@ -838,6 +838,49 @@ class SubmissionsController extends Controller
             'success' => true,
         ]);
     }
+    
+    /**
+     * @inheritDoc
+     */
+    public function actionRunIntegration()
+    {
+        $this->requireAcceptsJson();
+
+        $request = Craft::$app->getRequest();
+
+        $integrationId = $request->getRequiredParam('integrationId');
+        $integration = Formie::$plugin->getIntegrations()->getIntegrationById($integrationId);
+
+        $submission = Submission::find()
+            ->id($request->getParam('submissionId'))
+            ->one();
+
+        if (!$integration) {
+            $error = Craft::t('formie', 'Integration not found.');
+
+            Craft::$app->getSession()->setError($error);
+
+            return $this->asErrorJson($error);
+        }
+
+        if (!$submission) {
+            $error = Craft::t('formie', 'Submission not found.');
+
+            Craft::$app->getSession()->setError($error);
+
+            return $this->asErrorJson($error);
+        }
+
+        Formie::$plugin->getSubmissions()->sendIntegrationPayload($integration, $submission);
+
+        $message = Craft::t('formie', 'Integration was run successfully.');
+        
+        Craft::$app->getSession()->setNotice($message);
+
+        return $this->asJson([
+            'success' => true,
+        ]);
+    }
 
 
     // Private Methods

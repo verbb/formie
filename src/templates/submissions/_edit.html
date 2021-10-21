@@ -49,7 +49,7 @@
                     </li>
                 </ul>
 
-                {% if submission.id %}
+                {% if not isNew %}
                     <hr>
                     <ul>
                         <li><a class="formsubmit error" data-action="formie/submissions/delete-submission" data-confirm="{{ 'Are you sure you want to delete this submission?' | t('formie') }}" data-redirect="{{ 'formie/submissions' | hash }}">{{ 'Delete' | t('app') }}</a></li>
@@ -78,7 +78,7 @@
         {{ redirectInput('formie/submissions') }}
         {{ csrfInput() }}
 
-        {% if submission.id %}
+        {% if not isNew %}
             <input type="hidden" name="submissionId" value="{{ submission.id }}">
         {% endif %}
 
@@ -121,7 +121,7 @@
 {% block details %}
 
 <div id="settings" class="meta">
-    {% if submission.id %}
+    {% if not isNew %}
         <div class="field">
             <div class="heading">
                 <label class="">{{ 'Submission ID' | t('formie') }}</label>
@@ -244,7 +244,45 @@
     </div>
 {% endif %}
 
-{% if submission.id %}
+{% set integrations = [] %}
+
+{% for integration in craft.formie.plugin.integrations.getAllEnabledIntegrationsForForm(form) %}
+    {% if integration.supportsPayloadSending() %}
+        {% set integrations = integrations | merge([integration]) %}
+    {% endif %}
+{% endfor %}
+
+{% if integrations and not isNew %}
+    <div id="meta-details" class="meta">
+        {% set integrationsField %}
+            <div>
+                <a id="integrations-menu-btn" class="btn menubtn" href="javascript:;">
+                    {{ 'Select an option' | t('formie') }}
+                </a>
+
+                <div class="menu" id="integrations-menu-select">
+                    <ul class="padded">
+                        {% for integration in integrations %}
+                            <li>
+                                <a data-integration-id="{{ integration.id }}" data-submission-id="{{ submission.id }}" data-label="{{ integration.name }}" href="javascript:;">
+                                    {{ integration.name }}
+                                </a>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+
+                <span class="spinner hidden integrations-menu-spinner"></span>
+            </div>
+        {% endset %}
+
+        {{ forms.field({
+            label: 'Integrations' | t('formie'),
+        }, integrationsField) }}
+    </div>
+{% endif %}
+
+{% if not isNew %}
     <div id="meta-details" class="meta read-only">
         {% block meta %}
             {% if submission.isIncomplete %}
@@ -266,7 +304,7 @@
 
             <div class="data">
                 <h5 class="heading">{{ 'IP Address' | t('app') }}</h5>
-                <div class="value">{{ submission.ipAddress }}</div>
+                <div class="value">{{ submission.ipAddress ?: 'None provided' | t('formie') }}</div>
             </div>
         {% endblock %}
     </div>
@@ -278,13 +316,10 @@
 
 {% css %}
 
-#status-menu-btn {
-    background: none;
-    padding-left: 0;
-}
-
-#status-menu-btn:focus {
-    outline: none;
+#integrations-menu-btn {
+    overflow: hidden;
+    max-width: 100%;
+    justify-content: flex-start;
 }
 
 {% endcss %}
@@ -292,9 +327,9 @@
 {% js %}
 
 $(function () {
-    $colorSelect = $('#status-menu-btn');
+    $statusSelect = $('#status-menu-btn');
 
-    new Garnish.MenuBtn($colorSelect, {
+    new Garnish.MenuBtn($statusSelect, {
         onOptionSelect: function(data) {
             var val = $(data).data('val');
             var label = $(data).data('label');
@@ -302,7 +337,28 @@ $(function () {
             $('#statusId').val(val);
 
             var html = '<span class="status ' + color + '"></span>' + label;
-            $colorSelect.html(html);
+            $statusSelect.html(html);
+        }
+    });
+
+    $integrationsSelect = $('#integrations-menu-btn');
+
+    new Garnish.MenuBtn($integrationsSelect, {
+        onOptionSelect: function(data) {
+            var integrationId = $(data).data('integration-id');
+            var submissionId = $(data).data('submission-id');
+            var label = $(data).data('label');
+            var $spinner = $('.integrations-menu-spinner');
+
+            if (window.confirm(Craft.t('formie', 'Are you sure you want to trigger the {name} integration?', { name: label }))) {
+                $spinner.removeClass('hidden');
+
+                Craft.postActionRequest('formie/submissions/run-integration', { submissionId: submissionId, integrationId: integrationId }, function(response) {
+                    $spinner.addClass('hidden');
+
+                    window.location.reload();
+                });
+            }
         }
     });
 });
