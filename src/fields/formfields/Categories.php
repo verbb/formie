@@ -72,6 +72,7 @@ class Categories extends CraftCategories implements FormFieldInterface
      * @var bool
      */
     public $searchable = true;
+    public $rootCategory;
 
     /**
      * @var string
@@ -209,6 +210,22 @@ class Categories extends CraftCategories implements FormFieldInterface
             
             if ($ids) {
                 $query->id($ids);
+            }
+        }
+
+        // If the root category is selected
+        if ($this->rootCategory) {
+            $ids = [];
+
+            // Handle the two ways a default value can be set
+            if ($this->rootCategory instanceof ElementQueryInterface) {
+                $ids = $this->rootCategory->id;
+            } else {
+                $ids = ArrayHelper::getColumn($this->rootCategory, 'id');
+            }
+            
+            if ($ids) {
+                $query->descendantOf($ids);
             }
         }
 
@@ -365,6 +382,16 @@ class Categories extends CraftCategories implements FormFieldInterface
                 'size' => '3',
                 'class' => 'text',
                 'validation' => 'optional|number|min:0',
+            ]),
+            SchemaHelper::elementSelectField([
+                'label' => Craft::t('formie', 'Root Category'),
+                'help' => Craft::t('formie', 'Select a root category to only output the direct children of the chosen category. Leave empty to use the top-level category.'),
+                'name' => 'rootCategory',
+                'selectionLabel' => Craft::t('formie', 'Select a category'),
+                'config' => [
+                    'jsClass' => $this->inputJsClass,
+                    'elementType' => static::elementType(),
+                ],
             ]),
             SchemaHelper::textField([
                 'label' => Craft::t('formie', 'Limit Options'),
