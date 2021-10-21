@@ -73,6 +73,7 @@ class Categories extends CraftCategories implements FormFieldInterface
      */
     public $searchable = true;
     public $rootCategory;
+    public $showStructure = false;
 
     /**
      * @var string
@@ -171,6 +172,37 @@ class Categories extends CraftCategories implements FormFieldInterface
         $value = $this->_all($value, $submission);
 
         return $this->traitGetEmailHtml($submission, $notification, $value, $options);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getFieldOptions()
+    {
+        $options = [];
+
+        if ($this->displayType === 'dropdown') {
+            $options[] = ['label' => $this->placeholder, 'value' => ''];
+        }
+
+        foreach ($this->getElementsQuery()->all() as $element) {
+            // Negate the first level to start at 0, so no "-" character is shown at first level
+            $level = $element->level - 1;
+
+            // Reset the level based off the root category. Otherwise the level will start from the root
+            // category's level, not "flush" (ie, "---- Category" instead of "- Category")
+            if ($this->rootCategory) {
+                if ($rootCategoryId = ArrayHelper::getColumn($this->rootCategory, 'id')) {
+                    if ($rootCategory = Category::find()->id($rootCategoryId)->one()) {
+                        $level = $level - $rootCategory->level;
+                    }
+                }
+            }
+
+            $options[] = ['label' => $this->_getElementLabel($element), 'value' => $element->id, 'level' => $level];
+        }
+
+        return $options;
     }
 
     /**
@@ -435,6 +467,13 @@ class Categories extends CraftCategories implements FormFieldInterface
                     [ 'label' => Craft::t('formie', 'Checkboxes'), 'value' => 'checkboxes' ],
                     [ 'label' => Craft::t('formie', 'Radio Buttons'), 'value' => 'radio' ],
                 ],
+            ]),
+            SchemaHelper::toggleContainer('settings.displayType=dropdown', [
+                SchemaHelper::lightswitchField([
+                    'label' => Craft::t('formie', 'Show Structure'),
+                    'help' => Craft::t('formie', 'Whether to show the hierarchical structure of categories in the dropdown.'),
+                    'name' => 'showStructure',
+                ]),
             ]),
             SchemaHelper::labelPosition($this),
             SchemaHelper::instructions(),

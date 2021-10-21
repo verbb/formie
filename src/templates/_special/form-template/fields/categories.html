@@ -18,8 +18,9 @@
     <select {{ attr(attributes) }}>
         {% for option in field.getFieldOptions() %}
             {% set selected = value and value.value ? value.value == option.value : (option.isDefault ?? false) %}
+            {% set level = option.level ?? null %}
 
-            <option value="{{ option.value }}" {{ selected ? ' selected' }}>{{ option.label | t }}</option>
+            <option value="{{ option.value }}" {{ selected ? ' selected' }}>{% if field.settings.showStructure and level %}{% for i in 1..level %}-{% endfor %} {% endif %}{{ option.label | t }}</option>
         {% endfor %}
     </select>
 {% endif %}
