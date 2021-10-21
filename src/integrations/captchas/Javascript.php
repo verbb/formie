@@ -117,7 +117,9 @@ class Javascript extends Captcha
 
         // Compare the two - in case someone is being sneaky and just providing _any_ value for the captcha
         if ($value !== $jsset) {
-            return false;            
+            $this->spamReason = Craft::t('formie', 'Value mismatch {a}:{b}.', ['a' => $value, 'b' => $jsset]);
+
+            return false;
         }
 
         // If we're checking against a min time?
