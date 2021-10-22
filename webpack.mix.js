@@ -9,6 +9,8 @@ const imagemin = require('laravel-mix-imagemin');
 
 const assetsPath = './src/web/assets';
 
+const postcssCustomProperties = require('postcss-custom-properties');
+
 // Set the public path
 mix.setPublicPath(assetsPath);
 
@@ -123,6 +125,7 @@ mix.options({
     postCss: [
         // PostCSS plugins
         autoprefixer(),
+        postcssCustomProperties(),
     ],
 });
 

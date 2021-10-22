@@ -8,8 +8,8 @@
 }
 
 .fui-error-message {
-    color: $error;
-    font-size: 0.875rem;
+    color: var(--fui-error-color);
+    font-size: var(--fui-error-font-size);
     display: block;
-    margin-top: 0.5rem;
+    margin-top: var(--fui-error-margin-top);
 }

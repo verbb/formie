@@ -3,24 +3,24 @@
 // ==========================================================================
 
 .fui-field {
-    padding-left: $field-gutter;
-    padding-right: $field-gutter;
+    padding-left: var(--fui-field-gutter);
+    padding-right: var(--fui-field-gutter);
 
     // No margin for hidden fields
     &:not(.fui-type-hidden-field) {
-        margin-bottom: $row-gutter;
+        margin-bottom: var(--fui-row-gutter);
     }
 }
 
 .fui-label-left-input {
     .fui-input-container {
-        margin-left: $field-gutter;
+        margin-left: var(--fui-field-gutter);
     }
 }
 
 .fui-label-right-input {
     .fui-input-container {
-        margin-right: $field-gutter;
+        margin-right: var(--fui-field-gutter);
     }
 }
 
@@ -31,37 +31,37 @@
 
 .fui-label,
 .fui-legend {
-    font-size: 0.875rem;
-    line-height: 1.25;
-    font-weight: 500;
+    font-size: var(--fui-label-font-size);
+    line-height: var(--fui-label-line-height);
+    font-weight: var(--fui-label-font-weight);
     display: block;
     padding: 0;
-    color: $gray-800;
+    color: var(--fui-label-color);
 
     .fui-label-above-input &,
     .fui-subfield-label-above-input & {
-        margin-bottom: 0.5rem;
+        margin-bottom: var(--fui-label-margin);
     }
 
     .fui-label-below-input &,
     .fui-subfield-label-below-input & {
-        margin-top: 0.5rem;
+        margin-top: var(--fui-label-margin);
     }
 
     .fui-error & {
-        color: #771d1d;
-        border-color: #f8b4b4;
+        color: var(--fui-label-error-color);
+        border-color: var(--fui-label-error-border-color);
     }
 }
 
 .fui-required {
-    color: $error;
+    color: var(--fui-required-color);
 }
 
 .fui-instructions {
-    color: $gray-600;
-    font-size: 0.875rem;
-    line-height: 1.25;
+    color: var(--fui-instructions-color);
+    font-size: var(--fui-instructions-font-size);
+    line-height: var(--fui-instructions-line-height);
     display: block;
 
     p {
@@ -70,19 +70,19 @@
 
     .fui-instructions-above-input &,
     .fui-instructions-fieldset-start & {
-        margin-bottom: 0.5rem;
+        margin-bottom: var(--fui-instructions-margin);
     }
 
     .fui-instructions-below-input &,
     .fui-instructions-fieldset-end & {
-        margin-top: 0.5rem;
+        margin-top: var(--fui-instructions-margin);
     }
 }
 
 .fui-file-summary {
-    color: $gray-600;
-    font-size: 0.875rem;
-    line-height: 1.25;
+    color: var(--fui-instructions-color);
+    font-size: var(--fui-instructions-font-size);
+    line-height: var(--fui-instructions-line-height);
     display: block;
 
     p, ul {
@@ -90,8 +90,8 @@
     }
 
     & > p {
-        margin-top: 0.5rem;
-        margin-bottom: 0.5rem;
+        margin-top: var(--fui-instructions-margin);
+        margin-bottom: var(--fui-instructions-margin);
     }
 
     ul {

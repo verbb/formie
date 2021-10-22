@@ -13,35 +13,35 @@
 // ==========================================================================
 
 .fui-btn-container {
-    padding-top: 1rem;
-    margin-left: -0.5rem;
-    margin-right: -0.5rem;
+    padding: var(--fui-btn-container-padding);
+    margin: var(--fui-btn-container-margin);
 
     .fui-btn {
-        margin-left: 0.5rem;
-        margin-right: 0.5rem;
+        margin: var(--fui-btn-margin);
     }
 }
 
 .fui-submit {
-    color: #fff;
-    background-color: $primary-color;
-    border-color: $primary-color;
+    color: var(--fui-submit-btn-color);
+    background-color: var(--fui-submit-btn-bg-color);
+    border-color: var(--fui-submit-btn-border-color);
 
     &.fui-loading::after {
-        border-bottom-color: #fff;
-        border-left-color: #fff;
+        border-bottom-color: var(--fui-submit-btn-spinner-color);
+        border-left-color: var(--fui-submit-btn-spinner-color);
     }
 
-    &:hover {
-        color: #fff;
-        background-color: $primary-color-hover;
+    &:hover,
+    &:focus,
+    &:active {
+        color: var(--fui-submit-btn-color-hover);
+        background-color: var(--fui-submit-btn-bg-color-hover);
+        border-color: var(--fui-submit-btn-border-color-hover);
     }
 
     &:focus,
     &:active {
-        border-color: $primary-color-hover;
-        box-shadow: 0 0 0 3px rgba(180, 198, 252, 0.45);
+        box-shadow: var(--fui-submit-btn-box-shadow-focus);
     }
 }
 
@@ -52,17 +52,17 @@
 
 .fui-page {
     &:not(.fui-hidden) + & {
-        margin-top: 1.5rem;
+        margin-top: var(--fui-row-gutter-top);
     }
 }
 
 .fui-field-rows {
-    margin-bottom: -$row-gutter;
+    margin-bottom: calc(-1 * var(--fui-row-gutter));
 }
 
 .fui-row {
-    margin-left: -$field-gutter;
-    margin-right: -$field-gutter;
+    margin-left: calc(-1 * var(--fui-field-gutter));
+    margin-right: calc(-1 * var(--fui-field-gutter));
 }
 
 
@@ -72,16 +72,16 @@
 
 .fui-title {
     padding: 0;
-    margin: 0 0 1rem;
-    font-size: 1.4rem;
-    font-weight: 700;
+    margin: var(--fui-title-margin);
+    font-size: var(--fui-title-font-size);
+    font-weight: var(--fui-title-font-weight);
 }
 
 .fui-page-title {
     padding: 0;
-    margin: 0 0 1rem;
-    font-size: 1.125rem;
-    font-weight: 600;
+    margin: var(--fui-page-title-margin);
+    font-size: var(--fui-page-title-font-size);
+    font-weight: var(--fui-page-title-font-weight);
 }
 
 
@@ -92,16 +92,16 @@
 .fui-tabs {
     display: flex;
     flex-wrap: wrap;
-    margin-bottom: 1rem;
-    font-size: 0.875rem;
-    border-bottom: 1px solid $border-color;
+    margin-bottom: var(--fui-tabs-margin-bottom);
+    font-size: var(--fui-tabs-font-size);
+    border-bottom: var(--fui-tabs-border-bottom);
 }
 
 .fui-tab {
-    color: $gray-600;
-    padding: 0.5rem 1rem;
-    margin-bottom: -1px;
-    border: 1px solid transparent;
+    color: var(--fui-tab-color);
+    padding: var(--fui-tab-padding);
+    margin-bottom: var(--fui-tab-margin-bottom);
+    border: var(--fui-tab-border);
 
     a {
         color: inherit;
@@ -116,17 +116,16 @@
 }
 
 .fui-tab-active {
-    font-weight: 500;
-    color: $gray-800;
-    background-color: #fff;
-    border-color: $border-color;
-    border-bottom-color: transparent;
-    border-top-left-radius: $border-radius;
-    border-top-right-radius: $border-radius;
+    font-weight: var(--fui-tab-active-font-weight);
+    color: var(--fui-tab-active-color);
+    background-color: var(--fui-tab-active-bg-color);
+    border-color: var(--fui-tab-active-border-color);
+    border-bottom-color: var(--fui-tab-active-border-bottom-color);
+    border-radius: var(--fui-tab-active-border-radius);
 }
 
 .fui-tab-error {
-    color: $error;
+    color: var(--fui-tab-error-color);
 }
 
 
@@ -136,13 +135,13 @@
 
 .fui-progress {
     display: flex;
-    height: 1.2rem;
+    height: var(--fui-progress-height);
     overflow: hidden;
-    font-size: 0.8rem;
-    font-weight: 500;
-    color: #fff;
-    border-radius: $border-radius;
-    background-color: $gray-300;
+    font-size: var(--fui-progress-font-size);
+    font-weight: var(--fui-progress-font-weight);
+    color: var(--fui-progress-color);
+    border-radius: var(--fui-progress-border-radius);
+    background-color: var(--fui-progress-bg-color);
 
     .fui-progress-start & {
         margin-bottom: 1rem;
@@ -158,7 +157,6 @@
     flex-direction: column;
     justify-content: center;
     text-align: center;
-    background-color: $primary-color;
-    transition: width 0.3s ease;
+    background-color: var(--fui-progress-bar-bg-color);
+    transition: var(--fui-progress-bar-transition);
 }
-

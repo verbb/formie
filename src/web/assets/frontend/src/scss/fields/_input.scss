@@ -6,41 +6,40 @@
 .fui-select {
     // Resets
     font-family: inherit;
-    font-size: 0.875rem;
-    line-height: 1.5;
+    font-size: var(--fui-input-font-size);
+    line-height: var(--fui-input-line-height);
     margin: 0;
     appearance: none;
     color-adjust: exact;
 
-    width: 100%;
+    width: var(--fui-input-width);
     display: block;
-    padding: 0.5rem 0.75rem;
-    border: 1px solid $border-color;
-    border-radius: $border-radius;
-    background-color: #fff;
-    transition-property: background-color, border-color, color, fill, stroke, opacity, box-shadow, transform;
-    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-    transition-duration: 0.15s;
+    padding: var(--fui-input-padding);
+    border: var(--fui-input-border);
+    border-radius: var(--fui-input-border-radius);
+    background-color: var(--fui-input-background-color);
+    transition-property: var(--fui-input-transition-property);
+    transition-timing-function: var(--fui-input-transition-timing-function);
+    transition-duration: var(--fui-input-transition-duration);
 
     &:focus {
         outline: 0;
-        border-color: $focus-border-color;
-        box-shadow: $focus-shadow;
+        border-color: var(--fui-input-border-color-focus);
+        box-shadow: var(--fui-input-box-shadow-focus);
     }
 
     &.fui-error {
-        color: #771d1d;
-        border-color: #f8b4b4;
+        color: var(--fui-input-error-color);
+        border-color: var(--fui-input-error-border-color);
     }
 
     &.fui-error:focus {
-        box-shadow: 0 0 0 3px rgba(248, 180, 180, 0.45);
+        box-shadow: var(--fui-input-error-box-shadow-focus);
     }
 
     &::placeholder {
-        color: $gray-500;
+        color: var(--fui-input-placeholder-color);
     }
-
 
     //
     // Input types

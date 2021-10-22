@@ -3,8 +3,7 @@
 // ==========================================================================
 
 .fui-group {
-    padding: 1rem;
-    // margin-bottom: 1rem;
-    border: 1px solid $border-color;
-    border-radius: $border-radius;
+    padding: var(--fui-group-padding);
+    border: var(--fui-group-border);
+    border-radius: var(--fui-group-border-radius);
 }

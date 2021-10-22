@@ -42,3 +42,37 @@ You could also use a Form object instead of the handle.
 ```
 
 Here, we have split the rendering of the form to firstly the CSS, then the HTML for the form.
+
+## CSS Variables
+Rather than ditching the entire theme CSS, or overriding through your own CSS definitions, you can use [CSS Variables](https://developer.mozilla.org/en-US/docs/Web/CSS/Using_CSS_custom_properties) to override just what you require. For almost every opinionated style, Formie has a CSS Variable for you to use.
+
+:::tip
+For a full list of available variables, refer to the [CSS Variables](https://github.com/verbb/formie/blob/craft-3/src/web/assets/frontend/src/scss/_variables.scss).
+:::
+
+A classic example would be to use the Formie Theme CSS, but change the submit button colour, and some input styles. You could achieve this with the following CSS (either inline or in your own stylesheets).
+
+```css
+.fui-btn {
+    --fui-btn-font-size: 1rem;
+    --fui-btn-padding: 0.375rem 0.75rem;
+    --fui-btn-border-radius: 0.25rem;
+}
+
+.fui-submit {
+    --fui-submit-btn-bg-color: #dc3545;
+    --fui-submit-btn-border-color: #dc3545;
+    --fui-submit-btn-bg-color-hover: #bb2d3b;
+    --fui-submit-btn-border-color-hover: #b02a37;
+    --fui-submit-btn-box-shadow-focus: 0 0 0 0.25rem rgba(225, 83, 97, 0.5);
+}
+
+.fui-input,
+.fui-select {
+    --fui-input-font-size: 16px;
+    --fui-input-padding: 0.75rem 1rem;
+    --fui-input-border-radius: 6px;
+}
+```
+
+This gives the benefit of relying on the Theme CSS, but giving you full control over theme settings and variables, without needing to override everything with `!important` to get around specificity rules.
