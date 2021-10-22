@@ -184,6 +184,21 @@
             label: 'Status' | t('formie'),
         }, statusField) }}
     {% endif %}
+
+    {% if form.settings.collectUser %}
+        {% set user = submission.getUser() %}
+
+        {{ forms.elementSelectField({
+            status: submission.getAttributeStatus('userId'),
+            label: 'User' | t('app'),
+            id: 'user',
+            name: 'user',
+            elementType: 'craft\\elements\\User',
+            selectionLabel: 'Choose' | t('app'),
+            limit: 1,
+            elements: user ? [user] : [],
+        }) }}
+    {% endif %}
 </div>
 
 {% if submission.isSpam %}
@@ -209,20 +224,6 @@
                     name: 'isSpam',
                     on: submission.isSpam,
                 }) }}
-            </div>
-        </div>
-    </div>
-{% endif %}
-
-{% if submission.getUser() %}
-    <div id="meta-details" class="meta">
-        <div class="field">
-            <div class="heading">
-                <label class="">{{ 'User' | t('formie') }}</label>
-            </div>
-
-            <div class="input ltr">
-                <a href="{{ submission.getUser().cpEditUrl }}">{{ submission.getUser() }}</a>
             </div>
         </div>
     </div>

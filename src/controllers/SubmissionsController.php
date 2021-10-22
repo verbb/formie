@@ -146,17 +146,7 @@ class SubmissionsController extends Controller
                 $variables['submission'] = new Submission();
                 $variables['submission']->setForm($form);
 
-                $variables['submission']->title = Variables::getParsedValue(
-                    $form->settings->submissionTitleFormat,
-                    $submission,
-                    $form
-                );
-
-                // Set the default title for the submission so it can save correctly
-                if (!$variables['submission']->title) {
-                    $now = new DateTime('now', new DateTimeZone(Craft::$app->getTimeZone()));
-                    $variables['submission']->title = $now->format('D, d M Y H:i:s');
-                }
+                $this->_setTitle($variables['submission'], $form);
             }
         }
 
@@ -197,27 +187,12 @@ class SubmissionsController extends Controller
 
         // Get the requested submission
         $request = Craft::$app->getRequest();
-        $submissionId = $request->getBodyParam('submissionId');
-        $siteId = $request->getBodyParam('siteId');
         $formHandle = $request->getBodyParam('handle');
 
         $form = Form::find()->handle($formHandle)->one();
 
-        if ($submissionId) {
-            $submission = Submission::find()
-                ->id($submissionId)
-                ->isIncomplete(null)
-                ->isSpam(null)
-                ->one();
-
-            if (!$submission) {
-                throw new NotFoundHttpException(Craft::t('formie', 'No submission with the ID “{id}”', ['id' => $submissionId]));
-            }
-        } else {
-            $submission = new Submission();
-            $submission->setForm($form);
-        }
-
+        // Get the submission, or create a new one
+        $submission = $this->_populateSubmission($form, null);
         $form = $submission->form;
 
         // Check against permissions to save at all, or per-form
@@ -228,13 +203,10 @@ class SubmissionsController extends Controller
         }
 
         // Now populate the rest of it from the post data
-        $submission->siteId = $siteId ?? $submission->siteId;
         $submission->enabled = true;
         $submission->enabledForSite = true;
         $submission->title = $request->getBodyParam('title', $submission->title);
         $submission->statusId = $request->getBodyParam('statusId', $submission->statusId);
-
-        $submission->setFieldValuesFromRequest('fields');
 
         // Save the submission
         if ($submission->enabled && $submission->enabledForSite) {
@@ -984,7 +956,7 @@ class SubmissionsController extends Controller
     /**
      * @inheritDoc
      */
-    private function _populateSubmission($form)
+    private function _populateSubmission($form, $isIncomplete = true)
     {
         $request = Craft::$app->getRequest();
 
@@ -993,7 +965,7 @@ class SubmissionsController extends Controller
             // already, but we want to complete the form submission.
             $submission = Submission::find()
                 ->id($submissionId)
-                ->isIncomplete(true)
+                ->isIncomplete($isIncomplete)
                 ->isSpam(null)
                 ->one();
 
@@ -1005,33 +977,30 @@ class SubmissionsController extends Controller
         }
 
         $submission->setForm($form);
-        $submission->siteId = $request->getParam('siteId') ?: Craft::$app->getSites()->getCurrentSite()->id;
+
+        $siteId = $request->getParam('siteId') ?: null;
+        $submission->siteId = $siteId ?? $submission->siteId ?? Craft::$app->getSites()->getCurrentSite()->id;
 
         Craft::$app->getContent()->populateElementContent($submission);
         $submission->setFieldValuesFromRequest($this->_namespace);
         $submission->setFieldParamNamespace($this->_namespace);
 
         if ($form->settings->collectIp) {
-            $submission->ipAddress = Craft::$app->getRequest()->userIP;
+            $submission->ipAddress = $request->userIP;
         }
 
         if ($form->settings->collectUser) {
             if ($user = Craft::$app->getUser()->getIdentity()) {
                 $submission->setUser($user);
             }
+
+            // Allow a `user` override (when editing a submission through the CP)
+            if ($request->getIsCpRequest() && $user = $request->getBodyParam('user')) {
+                $submission->userId = $user[0] ?? null;
+            }
         }
 
-        $submission->title = Variables::getParsedValue(
-            $form->settings->submissionTitleFormat,
-            $submission,
-            $form
-        );
-
-        // Set the default title for the submission so it can save correctly
-        if (!$submission->title) {
-            $now = new DateTime('now', new DateTimeZone(Craft::$app->getTimeZone()));
-            $submission->title = $now->format('D, d M Y H:i:s');
-        }
+        $this->_setTitle($submission, $form);
 
         return $submission;
     }
@@ -1057,5 +1026,23 @@ class SubmissionsController extends Controller
         }
 
         return $nextPage;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    private function _setTitle($submission, $form)
+    {
+        $submission->title = Variables::getParsedValue(
+            $form->settings->submissionTitleFormat,
+            $submission,
+            $form
+        );
+
+        // Set the default title for the submission so it can save correctly
+        if (!$submission->title) {
+            $now = new DateTime('now', new DateTimeZone(Craft::$app->getTimeZone()));
+            $submission->title = $now->format('D, d M Y H:i:s');
+        }
     }
 }
