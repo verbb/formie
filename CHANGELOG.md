@@ -1,6 +1,33 @@
 # Changelog
 
-## Unreleased
+## 1.4.22 - 2021-10-22
+
+### Added
+- Added CSS variables for better/easier customisation of the Formie Theme CSS
+- Added ability to trigger Integrations when editing a submission.
+- Added new `formie/forms/refresh-tokens` to allow captchas to work properly for statically-cached sites.
+- Added "Show Structure" field setting for Categories fields, to display a "-" character when outputting categories in a - to denote its hierarchy
+- Added "Structure" as a order by option for Categories fields
+- Added "Root Category" field setting for Categories field, to control which descendant category to start from during output
+- Added "Status" column to submissions index
+- Added lead to notes object for Pipedrive CRM integration
+- Added note to person, organization and deal objects for Pipedrive CRM integration
+- Page Tabs now show an error indicator when any of their fields contain errors.
+- Redirect URLs now automatically include any query string params.
+
+### Changed
+- Incomplete submissions now show a "draft" icon in the submissions index.
+- When multi-page forms contain field errors - on the final page submit, we redirect to the first page with an error for ideal UX.
+
+### Fixed
+- Fixed GraphQL generator issues in some cases (Gatsby).
+- Fixed missing spam reason for failed JavaScript captchas.
+- Fixed creating new submissions in the control panel not working correctly.
+- Fixed an error where submissions wouldn't receive the default plugin status.
+- Fixed Single-line and Multi-line Text fields not working correctly, when limiting via words.
+- Fixed Multi-line Text fields not enforcing character limits.
+- Fixed Pipedrive CRM integration with deprecated leads note handling.
+- Fixed forms always redirecting if the current URL contained a query string.
 
 ### Deprecated
 - Deprecated all `formie/csrf/*` action endpoints. Refer to the [updated docs](https://verbb.io/craft-plugins/formie/docs/template-guides/cached-forms) on handling static cached forms.
