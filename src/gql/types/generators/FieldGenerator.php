@@ -9,6 +9,7 @@ use verbb\formie\gql\interfaces\RowInterface;
 use verbb\formie\gql\types\FieldType;
 
 use Craft;
+use craft\errors\GqlException;
 use craft\gql\base\GeneratorInterface;
 use craft\gql\GqlEntityRegistry;
 use craft\gql\TypeLoader;
@@ -27,6 +28,14 @@ class FieldGenerator implements GeneratorInterface
         $fieldClasses = Formie::$plugin->getFields()->getRegisteredFields();
 
         $gqlTypes = [];
+
+        try {
+            $schema = Craft::$app->getGql()->getActiveSchema();
+        } catch (GqlException $e) {
+            Craft::warning("Could not get the active GraphQL schema: {$e->getMessage()}", __METHOD__);
+            Craft::$app->getErrorHandler()->logException($e);
+            return [];
+        }
 
         foreach ($fieldClasses as $fieldClass) {
             $field = new $fieldClass;
@@ -47,6 +56,10 @@ class FieldGenerator implements GeneratorInterface
                         'description' => 'The field’s nested fields.',
                     ],
                 ]);
+            }
+
+            if (!$field->includeInGqlSchema($schema)) {
+                continue;
             }
 
             $fieldFields = TypeManager::prepareFieldDefinitions(array_merge(FieldInterface::getFieldDefinitions(), $contentFieldGqlTypes), $typeName);
