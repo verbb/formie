@@ -302,10 +302,12 @@
                 <div id="date-updated-value" class="value">{{ submission.dateUpdated | datetime('short') }}</div>
             </div>
 
-            <div class="data">
-                <h5 class="heading">{{ 'IP Address' | t('app') }}</h5>
-                <div class="value">{{ submission.ipAddress ?: 'None provided' | t('formie') }}</div>
-            </div>
+            {% if form.settings.collectIp %}
+                <div class="data">
+                    <h5 class="heading">{{ 'IP Address' | t('app') }}</h5>
+                    <div class="value">{{ submission.ipAddress ?: 'None provided' | t('formie') }}</div>
+                </div>
+            {% endif %}
         {% endblock %}
     </div>
 {% endif %}
