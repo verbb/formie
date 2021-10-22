@@ -136,18 +136,26 @@ class SubmissionsController extends Controller
                     ->isIncomplete(null)
                     ->isSpam(null)
                     ->one();
-
-                if (!$variables['submission']) {
-                    throw new HttpException(404);
-                }
             } else {
                 $form = Form::find()->handle($formHandle)->one();
 
-                $variables['submission'] = new Submission();
-                $variables['submission']->setForm($form);
+                if ($form) {
+                    $variables['submission'] = new Submission();
+                    $variables['submission']->setForm($form);
 
-                $this->_setTitle($variables['submission'], $form);
+                    // Set the title to the default
+                    $this->_setTitle($variables['submission'], $form);
+
+                    // Set the user to the default
+                    if ($form->settings->collectUser) {
+                        $variables['submission']->setUser(Craft::$app->getUser()->getIdentity());
+                    }
+                }
             }
+        }
+
+        if (!$variables['submission']) {
+            throw new HttpException(404);
         }
 
         $this->_prepEditSubmissionVariables($variables);
