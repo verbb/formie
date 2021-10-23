@@ -87,6 +87,12 @@ class Integrations extends Component
             captchas\Javascript::class,
         ];
 
+        if (Formie::$plugin->getService()->isPluginInstalledAndEnabled('snaptcha')) {
+            $captchas = array_merge($captchas, [
+                captchas\Snaptcha::class,
+            ]);
+        }
+
         $elements = [
             elements\Entry::class,
             elements\User::class,
