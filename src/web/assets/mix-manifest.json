@@ -2,13 +2,14 @@
     "/addressproviders/dist/js/address-finder.js": "/addressproviders/dist/js/address-finder.js?id=54abdeac87062d43eead",
     "/addressproviders/dist/js/algolia-places.js": "/addressproviders/dist/js/algolia-places.js?id=fb641b206bca3b7a8040",
     "/addressproviders/dist/js/google-address.js": "/addressproviders/dist/js/google-address.js?id=f9bffd887f26baf544e6",
-    "/captchas/dist/js/hcaptcha.js": "/captchas/dist/js/hcaptcha.js?id=544fbca2d31b6f385e51",
-    "/captchas/dist/js/javascript.js": "/captchas/dist/js/javascript.js?id=7f8838ff4c56dc22594e",
-    "/captchas/dist/js/recaptcha-v2-checkbox.js": "/captchas/dist/js/recaptcha-v2-checkbox.js?id=ae384caa5d0cdf26a5e5",
-    "/captchas/dist/js/recaptcha-v2-invisible.js": "/captchas/dist/js/recaptcha-v2-invisible.js?id=833a5668ee42d3ca039f",
-    "/captchas/dist/js/recaptcha-v3.js": "/captchas/dist/js/recaptcha-v3.js?id=e34b0f57d048fb14928b",
-    "/cp/dist/js/formie-cp.js": "/cp/dist/js/formie-cp.js?id=44b4fee1bdfb8eebf19e",
-    "/cp/dist/js/integration-settings.js": "/cp/dist/js/integration-settings.js?id=9e54e902994460df7f54",
+    "/captchas/dist/js/hcaptcha.js": "/captchas/dist/js/hcaptcha.js?id=da54e7a60959f0d9eae1",
+    "/captchas/dist/js/javascript.js": "/captchas/dist/js/javascript.js?id=eb3de7e5c69959579180",
+    "/captchas/dist/js/recaptcha-enterprise.js": "/captchas/dist/js/recaptcha-enterprise.js?id=7d75c34cad98fa5a65f2",
+    "/captchas/dist/js/recaptcha-v2-checkbox.js": "/captchas/dist/js/recaptcha-v2-checkbox.js?id=0f906b1ebfd3e7f73efe",
+    "/captchas/dist/js/recaptcha-v2-invisible.js": "/captchas/dist/js/recaptcha-v2-invisible.js?id=448cea1001c30ff5965e",
+    "/captchas/dist/js/recaptcha-v3.js": "/captchas/dist/js/recaptcha-v3.js?id=2168bb1c3f43e6700c15",
+    "/cp/dist/js/formie-cp.js": "/cp/dist/js/formie-cp.js?id=c944ee2e4d1da7b97e08",
+    "/cp/dist/js/integration-settings.js": "/cp/dist/js/integration-settings.js?id=0413fe0638eb9b9cfba0",
     "/forms/dist/js/main.js": "/forms/dist/js/main.js?id=04da5e0502ac00fad3f8",
     "/forms/dist/css/style.css": "/forms/dist/css/style.css?id=b65aad4740c49ae82a0e",
     "/frontend/dist/css/formie-base.css": "/frontend/dist/css/formie-base.css?id=6f6a61b0c1b81327484e",
@@ -29,5 +30,5 @@
     "/frontend/dist/js/fields/tags.js": "/frontend/dist/js/fields/tags.js?id=f9a7c8f6ac48a8ebaae7",
     "/frontend/dist/js/fields/text-limit.js": "/frontend/dist/js/fields/text-limit.js?id=e4792cd5a7d30f038da1",
     "/frontend/dist/js/formie.js": "/frontend/dist/js/formie.js?id=60656468d54ed4b5ee49",
-    "/widgets/dist/js/formie-widgets.js": "/widgets/dist/js/formie-widgets.js?id=63088769b26ab159f1bc"
+    "/widgets/dist/js/formie-widgets.js": "/widgets/dist/js/formie-widgets.js?id=523d9344fd8a9f516ff0"
 }

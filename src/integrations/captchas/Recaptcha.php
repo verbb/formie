@@ -18,6 +18,7 @@ class Recaptcha extends Captcha
     const RECAPTCHA_TYPE_V2_CHECKBOX  = 'v2_checkbox';
     const RECAPTCHA_TYPE_V2_INVISIBLE = 'v2_invisible';
     const RECAPTCHA_TYPE_V3 = 'v3';
+    const RECAPTCHA_TYPE_ENTERPRISE = 'enterprise';
 
 
     // Properties
@@ -32,6 +33,7 @@ class Recaptcha extends Captcha
     public $badge = 'bottomright';
     public $language = 'en';
     public $minScore = 0.5;
+    public $projectId;
 
 
     // Public Methods
@@ -80,6 +82,10 @@ class Recaptcha extends Captcha
      */
     public function getFrontEndHtml(Form $form, $page = null): string
     {
+        if ($this->type === self::RECAPTCHA_TYPE_ENTERPRISE) {
+            return '<div class="formie-recaptcha-placeholder"></div>';
+        }
+
         if ($this->type === self::RECAPTCHA_TYPE_V3) {
             // We don't technically need this for V3, but we use it to control whether we should validate
             // based on the specific page they're on, and if the user wants a captcha on each page.
@@ -113,6 +119,16 @@ class Recaptcha extends Captcha
             'submitMethod' => $form->settings->submitMethod ?? 'page-reload',
             'hasMultiplePages' => $form->hasMultiplePages() ?? false,
         ];
+
+        if ($this->type === self::RECAPTCHA_TYPE_ENTERPRISE) {
+            $src = Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/captchas/dist/js/recaptcha-enterprise.js', true);
+
+            return [
+                'src' => $src,
+                'module' => 'FormieRecaptchaEnterprise',
+                'settings' => $settings,
+            ];
+        }
 
         if ($this->type === self::RECAPTCHA_TYPE_V3) {
             $src = Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/captchas/dist/js/recaptcha-v3.js', true);
@@ -159,10 +175,38 @@ class Recaptcha extends Captcha
         }
 
         $client = Craft::createGuzzleClient();
+        $siteKey = Craft::parseEnv($this->siteKey);
+        $secretKey = Craft::parseEnv($this->secretKey);
+        $projectId = Craft::parseEnv($this->projectId);
+
+        if ($this->type === self::RECAPTCHA_TYPE_ENTERPRISE) {
+            $response = $client->post('https://recaptchaenterprise.googleapis.com/v1beta1/projects/' . $projectId . '/assessments?key=' . $secretKey, [
+                'json' => [
+                    'event' => [
+                        'siteKey' => $siteKey,
+                        'token' => $response,
+                    ],
+                ],
+            ]);
+
+            $result = Json::decode((string)$response->getBody(), true);
+
+            $reason = $result['tokenProperties']['invalidReason'] ?? false;
+
+            if ($reason) {
+                $this->spamReason = $reason;
+            }
+
+            if (isset($result['score'])) {
+                return ($result['score'] >= $this->minScore);
+            }
+
+            return $result['tokenProperties']['valid'] ?? false;
+        }
 
         $response = $client->post('https://www.google.com/recaptcha/api/siteverify', [
             'form_params' => [
-                'secret' => Craft::parseEnv($this->secretKey),
+                'secret' => $secretKey,
                 'response' => $response,
                 'remoteip' => Craft::$app->request->getRemoteIP(),
             ],

@@ -23,7 +23,11 @@
         {
             value: 'v2_invisible',
             label: 'reCAPTCHA V2 - Invisible' | t('formie'),
-        }
+        },
+        {
+            value: 'enterprise',
+            label: 'reCAPTCHA Enterprise' | t('formie'),
+        },
     ],
     warning: macros.configWarning('type', 'formie'),
 }) }}
@@ -38,13 +42,25 @@
 }) }}
 
 {{ forms.autosuggestField({
-    label: 'reCAPTCHA Secret Key' | t('v'),
+    label: 'reCAPTCHA Secret Key' | t('formie'),
     name: 'secretKey',
     required: true,
     suggestEnvVars: true,
     value: integration.settings.secretKey ?? '',
     warning: macros.configWarning('secretKey', 'formie'),
 }) }}
+
+<div id="settings-enterprise"{% if type != 'enterprise' %} class="hidden"{% endif %}>
+    {{ forms.autosuggestField({
+        label: 'Project ID' | t('formie'),
+        name: 'projectId',
+        suggestEnvVars: true,
+        value: integration.settings.projectId ?? '',
+        warning: macros.configWarning('projectId', 'formie'),
+    }) }}
+
+    <br>
+</div>
 
 <div id="settings-v2_checkbox"{% if type != 'v2_checkbox' %} class="hidden"{% endif %}>
     {{ forms.selectField({
@@ -98,7 +114,7 @@
     }) }}
 </div>
 
-<div id="settings-v3"{% if type != 'v3' %} class="hidden"{% endif %}>
+<div id="settings-v3"{% if type != 'v3' and type != 'enterprise' %} class="hidden"{% endif %}>
     {{ forms.selectField({
         label: 'Minimum Score' | t('formie'),
         instructions: 'Enter the minimum score needed to pass the reCAPTCHA test.' | t('formie'),

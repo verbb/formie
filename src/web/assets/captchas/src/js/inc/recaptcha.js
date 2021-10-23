@@ -2,7 +2,7 @@ import defer from './defer';
 
 const ownProp = Object.prototype.hasOwnProperty;
 
-export function createRecaptcha() {
+export function createRecaptcha(enterprise = false) {
     const deferred = defer();
 
     // In order to handle multiple recaptchas on a page, store all renderers (promises)
@@ -29,7 +29,11 @@ export function createRecaptcha() {
 
         render(ele, options, cb) {
             this.wait().then(() => {
-                cb(window.grecaptcha.render(ele, options));
+                if (enterprise) {
+                    cb(window.grecaptcha.enterprise.render(ele, options));
+                } else {
+                    cb(window.grecaptcha.render(ele, options));
+                }
             });
         },
 
@@ -39,7 +43,12 @@ export function createRecaptcha() {
             }
 
             this.assertLoaded();
-            this.wait().then(() => window.grecaptcha.reset(widgetId));
+
+            if (enterprise) {
+                this.wait().then(() => window.grecaptcha.enterprise.reset(widgetId));
+            } else {
+                this.wait().then(() => window.grecaptcha.reset(widgetId));
+            }
         },
 
         execute(widgetId) {
@@ -48,7 +57,12 @@ export function createRecaptcha() {
             }
 
             this.assertLoaded();
-            this.wait().then(() => window.grecaptcha.execute(widgetId));
+
+            if (enterprise) {
+                this.wait().then(() => window.grecaptcha.enterprise.execute(widgetId));
+            } else {
+                this.wait().then(() => window.grecaptcha.execute(widgetId));
+            }
         },
 
         executeV3(siteKey) {
@@ -74,10 +88,9 @@ export function createRecaptcha() {
     };
 }
 
-const recaptcha = createRecaptcha();
+export const recaptcha = createRecaptcha();
+export const recaptchaEnterprise = createRecaptcha(true);
 
 if (typeof window !== 'undefined') {
     window.formieRecaptchaOnLoadCallback = recaptcha.notify;
 }
-
-export default recaptcha;

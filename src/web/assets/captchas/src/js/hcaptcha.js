@@ -1,4 +1,4 @@
-import hcaptcha from './inc/recaptcha';
+import { recaptcha as hcaptcha } from './inc/recaptcha';
 
 export class FormieHcaptcha {
     constructor(settings = {}) {

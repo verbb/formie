@@ -1,6 +1,6 @@
-import { recaptcha } from './inc/recaptcha';
+import { recaptchaEnterprise as recaptcha } from './inc/recaptcha';
 
-export class FormieRecaptchaV2Invisible {
+export class FormieRecaptchaEnterprise {
     constructor(settings = {}) {
         this.formId = settings.formId;
         this.siteKey = settings.siteKey;
@@ -13,10 +13,10 @@ export class FormieRecaptchaV2Invisible {
         if (!document.getElementById(this.recaptchaScriptId)) {
             var $script = document.createElement('script');
             $script.id = this.recaptchaScriptId;
-            $script.src = 'https://www.recaptcha.net/recaptcha/api.js?onload=formieRecaptchaOnLoadCallback&render=explicit&hl=' + this.language;
+            $script.src = 'https://www.google.com/recaptcha/enterprise.js?onload=formieRecaptchaOnLoadCallback&render=explicit&hl=' + this.language;
             $script.async = true;
             $script.defer = true;
-
+    
             document.body.appendChild($script);
         }
 
@@ -33,8 +33,6 @@ export class FormieRecaptchaV2Invisible {
 
         // We can have multiple captchas per form, so store them and render only when we need
         this.$placeholders = this.$form.querySelectorAll('.formie-recaptcha-placeholder');
-
-        // console.log(this.$placeholders);
 
         if (!this.$placeholders) {
             console.error('Unable to find any ReCAPTCHA placeholders for #' + this.formId);
@@ -63,7 +61,7 @@ export class FormieRecaptchaV2Invisible {
             $currentPage = this.$form.form.formTheme.$currentPage;
         }
 
-        // Get the current page's captcha
+        // Get the current page's captcha - find the first placeholder that's non-invisible
         this.$placeholders.forEach($placeholder => {
             if ($currentPage && $currentPage.contains($placeholder)) {
                 this.$placeholder = $placeholder;
@@ -121,7 +119,6 @@ export class FormieRecaptchaV2Invisible {
 
     onValidate(e) {
         // Don't validate if we're going back in the form
-        // Or, if there's no captcha on this page
         if (this.$form.goBack || this.$placeholder === null) {
             return;
         }
@@ -147,7 +144,7 @@ export class FormieRecaptchaV2Invisible {
             if (!this.submitHandler.validate() || !this.submitHandler.afterValidate()) {
                 return;
             }
-
+            
             this.submitHandler.submitForm();
         }
     }
@@ -172,4 +169,4 @@ export class FormieRecaptchaV2Invisible {
     }
 }
 
-window.FormieRecaptchaV2Invisible = FormieRecaptchaV2Invisible;
+window.FormieRecaptchaEnterprise = FormieRecaptchaEnterprise;
