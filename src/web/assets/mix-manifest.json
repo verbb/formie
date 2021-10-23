@@ -2,12 +2,13 @@
     "/addressproviders/dist/js/address-finder.js": "/addressproviders/dist/js/address-finder.js?id=54abdeac87062d43eead",
     "/addressproviders/dist/js/algolia-places.js": "/addressproviders/dist/js/algolia-places.js?id=fb641b206bca3b7a8040",
     "/addressproviders/dist/js/google-address.js": "/addressproviders/dist/js/google-address.js?id=f9bffd887f26baf544e6",
+    "/captchas/dist/js/hcaptcha.js": "/captchas/dist/js/hcaptcha.js?id=544fbca2d31b6f385e51",
     "/captchas/dist/js/javascript.js": "/captchas/dist/js/javascript.js?id=7f8838ff4c56dc22594e",
     "/captchas/dist/js/recaptcha-v2-checkbox.js": "/captchas/dist/js/recaptcha-v2-checkbox.js?id=ae384caa5d0cdf26a5e5",
     "/captchas/dist/js/recaptcha-v2-invisible.js": "/captchas/dist/js/recaptcha-v2-invisible.js?id=833a5668ee42d3ca039f",
     "/captchas/dist/js/recaptcha-v3.js": "/captchas/dist/js/recaptcha-v3.js?id=e34b0f57d048fb14928b",
-    "/cp/dist/js/formie-cp.js": "/cp/dist/js/formie-cp.js?id=9e80a29c6ce6b5d76135",
-    "/cp/dist/js/integration-settings.js": "/cp/dist/js/integration-settings.js?id=3fafff0e1905575fb8f3",
+    "/cp/dist/js/formie-cp.js": "/cp/dist/js/formie-cp.js?id=44b4fee1bdfb8eebf19e",
+    "/cp/dist/js/integration-settings.js": "/cp/dist/js/integration-settings.js?id=9e54e902994460df7f54",
     "/forms/dist/js/main.js": "/forms/dist/js/main.js?id=04da5e0502ac00fad3f8",
     "/forms/dist/css/style.css": "/forms/dist/css/style.css?id=b65aad4740c49ae82a0e",
     "/frontend/dist/css/formie-base.css": "/frontend/dist/css/formie-base.css?id=6f6a61b0c1b81327484e",
@@ -28,5 +29,5 @@
     "/frontend/dist/js/fields/tags.js": "/frontend/dist/js/fields/tags.js?id=f9a7c8f6ac48a8ebaae7",
     "/frontend/dist/js/fields/text-limit.js": "/frontend/dist/js/fields/text-limit.js?id=e4792cd5a7d30f038da1",
     "/frontend/dist/js/formie.js": "/frontend/dist/js/formie.js?id=60656468d54ed4b5ee49",
-    "/widgets/dist/js/formie-widgets.js": "/widgets/dist/js/formie-widgets.js?id=867f988e324871c52236"
+    "/widgets/dist/js/formie-widgets.js": "/widgets/dist/js/formie-widgets.js?id=63088769b26ab159f1bc"
 }

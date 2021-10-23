@@ -1,0 +1,83 @@
+{% import '_includes/forms' as forms %}
+{% import 'verbb-base/_macros' as macros %}
+
+{{ forms.autosuggestField({
+    label: 'hCaptcha Site Key' | t('formie'),
+    name: 'siteKey',
+    required: true,
+    suggestEnvVars: true,
+    value: integration.settings.siteKey ?? '',
+    warning: macros.configWarning('siteKey', 'formie'),
+}) }}
+
+{{ forms.autosuggestField({
+    label: 'hCaptcha Secret Key' | t('v'),
+    name: 'secretKey',
+    required: true,
+    suggestEnvVars: true,
+    value: integration.settings.secretKey ?? '',
+    warning: macros.configWarning('secretKey', 'formie'),
+}) }}
+
+{{ forms.selectField({
+    label: 'Theme' | t('formie'),
+    instructions: 'Select the theme for hCaptcha to use.' | t('formie'),
+    name: 'theme',
+    value: integration.settings.theme ?? 'light',
+    options: [{
+        value: 'light',
+        label: 'Light' | t('formie'),
+    }, {
+        value: 'dark',
+        label: 'Dark' | t('formie'),
+    }],
+    warning: macros.configWarning('theme', 'formie'),
+}) }}
+
+{{ forms.selectField({
+    label: 'Size' | t('formie'),
+    instructions: 'Select the size of hCaptcha to use.' | t('formie'),
+    name: 'size',
+    value: integration.settings.size ?? 'normal',
+    options: [{
+        value: 'normal',
+        label: 'Normal' | t('formie'),
+    }, {
+        value: 'compact',
+        label: 'Compact' | t('formie'),
+    }, {
+        value: 'invisible',
+        label: 'Invisible' | t('formie'),
+    }],
+    warning: macros.configWarning('size', 'formie'),
+}) }}
+
+{{ forms.selectField({
+    label: 'Minimum Score' | t('formie'),
+    instructions: 'Enter the minimum score needed to pass the hCaptcha test.' | t('formie'),
+    name: 'minScore',
+    value: integration.settings.minScore ?? '0.5',
+    options: {
+        '0.0': '0.0',
+        '0.1': '0.1',
+        '0.2': '0.2',
+        '0.3': '0.3',
+        '0.4': '0.4',
+        '0.5': '0.5',
+        '0.6': '0.6',
+        '0.7': '0.7',
+        '0.8': '0.8',
+        '0.9': '0.9',
+        '1.0': '1.0',
+    },
+    warning: macros.configWarning('minScore', 'formie'),
+}) }}
+
+{{ forms.selectField({
+    label: 'Language' | t('formie'),
+    instructions: 'Force a specific language when displaying hCaptcha. Choose "Auto" for Formie to automatically match your site’s language.' | t('formie'),
+    name: 'language',
+    value: integration.settings.language ?? 'auto',
+    options: languageOptions,
+    warning: macros.configWarning('language', 'formie'),
+}) }}

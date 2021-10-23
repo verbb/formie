@@ -67,6 +67,7 @@ mix.js(assetsPath + '/captchas/src/js/recaptcha-v2-checkbox.js', assetsPath + '/
 mix.js(assetsPath + '/captchas/src/js/recaptcha-v2-invisible.js', assetsPath + '/captchas/dist/js');
 mix.js(assetsPath + '/captchas/src/js/recaptcha-v3.js', assetsPath + '/captchas/dist/js');
 mix.js(assetsPath + '/captchas/src/js/javascript.js', assetsPath + '/captchas/dist/js');
+mix.js(assetsPath + '/captchas/src/js/hcaptcha.js', assetsPath + '/captchas/dist/js');
 
 
 //

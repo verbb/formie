@@ -82,6 +82,7 @@ class Integrations extends Component
 
         $captchas = [
             captchas\Recaptcha::class,
+            captchas\Hcaptcha::class,
             captchas\Duplicate::class,
             captchas\Honeypot::class,
             captchas\Javascript::class,
