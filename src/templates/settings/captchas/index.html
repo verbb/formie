@@ -37,7 +37,7 @@
                                             <img class="formie-integration-icon" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'/%3E">
                                         {% endif %}
 
-                                        <span class="label">{{ integration.displayName() }}</span>
+                                        <span class="label">{{ integration.getName() }}</span>
 
                                         {% set enabled = form.settings.integrations[handle].enabled ?? integration.enabled ?? false %}
 
@@ -64,7 +64,7 @@
 
                         <div id="tab-{{ handle }}" {% if not selectedItem %}class="hidden"{% endif %}>
                             <div class="fui-integrations-header">
-                                <h2>{{ integration.displayName() }} {{ 'Settings' | t('formie') }}</h2>
+                                <h2>{{ integration.getName() }} {{ 'Settings' | t('formie') }}</h2>
                             </div>
 
                             <div class="">
