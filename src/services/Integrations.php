@@ -101,6 +101,7 @@ class Integrations extends Component
 
         $emailMarketing = [
             emailmarketing\ActiveCampaign::class,
+            emailmarketing\Adestra::class,
             emailmarketing\Autopilot::class,
             emailmarketing\AWeber::class,
             emailmarketing\Benchmark::class,

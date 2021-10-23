@@ -1,0 +1,50 @@
+{% import '_includes/forms' as forms %}
+{% import 'verbb-base/_macros' as macros %}
+
+{% set instructions %}
+### Step 1. Connect to the {name} API
+1. Copy the **API Key** from {name} and paste in the **API Key** field below.
+1. Copy the **Workspace ID** from {name} and paste in the **Workspace ID** field below.
+1. Copy the **Core Table ID** from {name} and paste in the **Core Table ID** field below.
+
+### Step 2. Test Connection
+1. Save this integration.
+1. Click on the **Refresh** button in the right-hand sidebar.
+{% endset %}
+
+<div class="fui-settings-block">
+    {{ instructions | t('formie', { name: integration.displayName() }) | md }}
+</div>
+
+{{ forms.autosuggestField({
+    label: 'API Key' | t('formie'),
+    instructions: 'Enter your {name} API key here.' | t('formie', { name: integration.displayName() }),
+    name: 'apiKey',
+    required: true,
+    suggestEnvVars: true,
+    value: integration.settings.apiKey ?? '',
+    warning: macros.configWarning('apiKey', 'formie'),
+    errors: integration.getErrors('apiKey'),
+}) }}
+
+{{ forms.autosuggestField({
+    label: 'Workspace ID' | t('formie'),
+    instructions: 'Enter your {name} Workspace ID here.' | t('formie', { name: integration.displayName() }),
+    name: 'workspaceId',
+    required: true,
+    suggestEnvVars: true,
+    value: integration.settings.workspaceId ?? '',
+    warning: macros.configWarning('workspaceId', 'formie'),
+    errors: integration.getErrors('workspaceId'),
+}) }}
+
+{{ forms.autosuggestField({
+    label: 'Core Table ID' | t('formie'),
+    instructions: 'Enter your {name} Core Table ID here.' | t('formie', { name: integration.displayName() }),
+    name: 'coreTableId',
+    required: true,
+    suggestEnvVars: true,
+    value: integration.settings.coreTableId ?? '',
+    warning: macros.configWarning('coreTableId', 'formie'),
+    errors: integration.getErrors('coreTableId'),
+}) }}
