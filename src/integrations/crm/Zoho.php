@@ -114,7 +114,7 @@ class Zoho extends Crm
         $this->apiLocation = Craft::$app->getRequest()->getParam('location');
         $this->apiServer = Craft::$app->getRequest()->getParam('accounts-server');
 
-        // We have to update the OAuth provider objecy with the new URLs provided by Zoho.
+        // We have to update the OAuth provider object with the new URLs provided by Zoho.
         // Annoyingly, can't just edit the provider, so create it again.
         $provider = $this->getOauthProvider();
     }
