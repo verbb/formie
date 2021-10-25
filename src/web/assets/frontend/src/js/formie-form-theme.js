@@ -207,6 +207,9 @@ export class FormieFormTheme {
             // handler - which technically unloads the page - will trigger the changed alert.
             this.updateFormHash();
 
+            // Triger any JS events for this page, right away before navigating away
+            this.triggerJsEvents();
+
             this.$form.submit();
         }
     }
@@ -548,6 +551,9 @@ export class FormieFormTheme {
         // Reset the form hash, as all has been saved
         this.updateFormHash();
 
+        // Triger any JS events for this page, right away before navigating away
+        this.triggerJsEvents();
+
         // Check if we need to proceed to the next page
         if (data.nextPageId) {
             this.removeLoading();
@@ -688,11 +694,32 @@ export class FormieFormTheme {
     }
 
     setCurrentPage(pageId) {
-        this.currentPageId = `#${this.getPageId(pageId)}`;
-        this.$currentPage = document.querySelector(this.currentPageId);
+        this.currentPageId = pageId;
+        this.currentPageSelector = `#${this.getPageId(pageId)}`;
+        this.$currentPage = document.querySelector(this.currentPageSelector);
     }
 
     getPageId(pageId) {
         return `${this.config.formHashId}-p-${pageId}`;
+    }
+
+    triggerJsEvents() {
+        const currentPage = this.settings.pages.find(page => {
+            return page.id == this.currentPageId;
+        });
+
+        // Find any JS events for the current page and fire
+        if (currentPage && currentPage.settings.enableJsEvents) {
+            var payload = {};
+
+            currentPage.settings.jsGtmEventOptions.forEach(option => {
+                payload[option.label] = option.value;
+            });
+
+            // Push to the datalayer
+            window.dataLayer = window.dataLayer || [];
+            window.dataLayer.push(payload);
+        }
+
     }
 }

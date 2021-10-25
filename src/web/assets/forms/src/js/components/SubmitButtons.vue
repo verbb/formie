@@ -64,6 +64,7 @@ export default {
     computed: {
         ...mapState({
             pages: state => state.form.pages,
+            form: state => state.form,
         }),
 
         settings() {
@@ -96,6 +97,13 @@ export default {
                     fields: [
                         'enableConditions',
                         'conditions',
+                    ],
+                },
+                {
+                    label: this.$options.filters.t('Advanced', 'formie'),
+                    fields: [
+                        'enableJsEvents',
+                        'jsEvents',
                     ],
                 },
             ];
@@ -239,6 +247,62 @@ export default {
                                     type: 'fieldConditions',
                                     name: 'nextButtonConditions',
                                     descriptionText: 'the next button if',
+                                },
+                            ],
+                        },
+                    ],
+                },
+                {
+                    component: 'tab-panel',
+                    'data-tab-panel': 'General',
+                    children: [
+                        {
+                            type: 'lightswitch',
+                            labelPosition: 'before',
+                            label: this.$options.filters.t('Enable JavaScript Events', 'formie'),
+                            help: this.$options.filters.t('Whether to enable management of JavaScript events when this button is pressed.', 'formie'),
+                            name: 'enableJsEvents',
+                        },
+                        {
+                            component: 'toggle-group',
+                            conditional: 'settings.enableJsEvents',
+                            children: [
+                                {
+                                    component: 'table-block',
+                                    label: this.$options.filters.t('Google Tag Manager Event Data', 'formie'),
+                                    help: this.$options.filters.t('Add event data to be sent to Google Tag Manager.', 'formie'),
+                                    validation: 'min:0',
+                                    generateValue: false,
+                                    name: 'jsGtmEventOptions',
+                                    newRowDefaults: {
+                                        label: '',
+                                        value: '',
+                                    },
+                                    value: [{
+                                        label: 'event',
+                                        value: 'formPageSubmission',
+                                    },{
+                                        label: 'formId',
+                                        value: this.form.handle,
+                                    },{
+                                        label: 'pageId',
+                                        value: this.pageId,
+                                    },{
+                                        label: 'pageIndex',
+                                        value: this.pageIndex,
+                                    }],
+                                    columns: [
+                                        {
+                                            type: 'label',
+                                            label: 'Option',
+                                            class: 'singleline-cell textual',
+                                        },
+                                        {
+                                            type: 'value',
+                                            label: 'Value',
+                                            class: 'singleline-cell textual',
+                                        },
+                                    ],
                                 },
                             ],
                         },

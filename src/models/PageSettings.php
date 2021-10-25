@@ -24,6 +24,8 @@ class PageSettings extends Model
     public $nextButtonConditions = [];
     public $enablePageConditions = false;
     public $pageConditions = [];
+    public $enableJsEvents = false;
+    public $jsGtmEventOptions = [];
 
 
     // Public Methods

@@ -11,7 +11,7 @@
     "/captchas/dist/js/recaptcha-v3.js": "/captchas/dist/js/recaptcha-v3.js?id=159f17984eb2083d8f74",
     "/cp/dist/js/formie-cp.js": "/cp/dist/js/formie-cp.js?id=a090ab1bfefc3ee9656a",
     "/cp/dist/js/integration-settings.js": "/cp/dist/js/integration-settings.js?id=24572025032bc2f2dbac",
-    "/forms/dist/js/main.js": "/forms/dist/js/main.js?id=04da5e0502ac00fad3f8",
+    "/forms/dist/js/main.js": "/forms/dist/js/main.js?id=5322c01c512359ac7b85",
     "/forms/dist/css/style.css": "/forms/dist/css/style.css?id=b65aad4740c49ae82a0e",
     "/frontend/dist/css/formie-base.css": "/frontend/dist/css/formie-base.css?id=6f6a61b0c1b81327484e",
     "/frontend/dist/css/formie-theme.css": "/frontend/dist/css/formie-theme.css?id=361dbd6ff899a70722b2",
@@ -30,6 +30,6 @@
     "/frontend/dist/js/fields/table.js": "/frontend/dist/js/fields/table.js?id=a323eed6bdc2a266551f",
     "/frontend/dist/js/fields/tags.js": "/frontend/dist/js/fields/tags.js?id=f9a7c8f6ac48a8ebaae7",
     "/frontend/dist/js/fields/text-limit.js": "/frontend/dist/js/fields/text-limit.js?id=e4792cd5a7d30f038da1",
-    "/frontend/dist/js/formie.js": "/frontend/dist/js/formie.js?id=60656468d54ed4b5ee49",
+    "/frontend/dist/js/formie.js": "/frontend/dist/js/formie.js?id=2026048ebccc60072bc8",
     "/widgets/dist/js/formie-widgets.js": "/widgets/dist/js/formie-widgets.js?id=46698d670890983006e0"
 }
