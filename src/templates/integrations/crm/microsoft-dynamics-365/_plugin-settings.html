@@ -1,0 +1,89 @@
+{% import '_includes/forms' as forms %}
+{% import 'verbb-base/_macros' as macros %}
+
+{% set instructions %}
+### Step 1. Connect to the {name} API
+1. Go to <a href="https://aad.portal.azure.com/" target="_blank">Azure Active Directory Admin Center</a> and login to your account.
+1. Click on the *Azure Active Directory* in the left-hand sidebar, **App Registrations** then **New Registration**.
+    - Under **Supported account types** select **Accounts in any organizational directory (Any Azure AD directory - Multitenant) and personal Microsoft accounts (e.g. Skype, Xbox)**.
+    - In the **Redirect URI** field, enter the value from the **Redirect URI** field below.
+    - Click the **Register** button.
+1. Copy the **Application (client) ID** from {name} and paste in the **Client ID** field below.
+1. Click on the **Certificates & Secrets** in the left-hand sidebar.
+1. Click the **New client secret** button and provide a name and appropriate expiry.
+1. Copy the **Value** from {name} for the resulting secret and paste in the **Client Secret** field below.
+1. Click on the **API Permissions** in the left-hand sidebar.
+1. Click the **Add a Permission** button.
+1. Select **Microsoft Graph**, then the **Delegated permissions** option and select the following permissions:
+    - `email`
+    - `offline_access`
+    - `openid`
+    - `profile`
+1. Click **Add Permissions**.
+1. Navigate back to **All APIs** and select **Dynamics CRM** and select the following permissions:
+    - `user_impersonation`
+1. Click **Add Permissions**.
+1. Navigate back to **API Permissions** and click the **Grant Admin Consent** button, and agree to the prompt.
+
+### Step 2. Create an Application User
+1. Go to <a href="https://admin.powerplatform.microsoft.com/" target="_blank">Power Platform Admin Center</a> and login to your account as a System Administrator.
+1. Click **Environments** in the left-hand sidebar, and then select an environment from the list.
+1. Copy the **Environment URL** from Power Platform and paste in the **Client Secret** field below. Be sure to include the `https://` (e.g. `https://ffcor.crm6.dynamics.com`).
+1. Click the **Settings** button in the top navigation.
+1. Click **Users + Permissions**, and then click **Application Users**.
+1. Click the **+ New app user** button in the top navigation.
+1. Click **+ Add an app** to choose the registered Azure AD application that was created for the selected user, and then click the **Add** button.
+1. Select a business unit from the dropdown list for **Business Unit**.
+1. Click **Security roles** and add the following:
+    - `Basic User`
+1. Click the **Save** button, then the **Create** button.
+
+### Step 3. Test Connection
+1. Save this integration.
+1. Click on the **Connect** button in the right-hand sidebar.
+1. You‘ll be redirected to {name}, where you must approve Formie to access your {name} account.
+{% endset %}
+
+<div class="fui-settings-block">
+    {{ instructions | t('formie', { name: integration.displayName() }) | md }}
+</div>
+
+{{ forms.textField({
+    readonly: true,
+    label: 'Redirect URI' | t('formie'),
+    instructions: 'Use this URI when setting up your {name} app.' | t('formie', { name: integration.displayName() }),
+    value: integration.getRedirectUri(),
+}) }}
+
+{{ forms.autosuggestField({
+    label: 'Client ID' | t('formie'),
+    instructions: 'Enter your {name} Client ID key here.' | t('formie', { name: integration.displayName() }),
+    name: 'clientId',
+    required: true,
+    suggestEnvVars: true,
+    value: integration.settings.clientId ?? '',
+    warning: macros.configWarning('clientId', 'formie'),
+    errors: integration.getErrors('clientId'),
+}) }}
+
+{{ forms.autosuggestField({
+    label: 'Client Secret' | t('formie'),
+    instructions: 'Enter your {name} Client Secret here.' | t('formie', { name: integration.displayName() }),
+    name: 'clientSecret',
+    required: true,
+    suggestEnvVars: true,
+    value: integration.settings.clientSecret ?? '',
+    warning: macros.configWarning('clientSecret', 'formie'),
+    errors: integration.getErrors('clientSecret'),
+}) }}
+
+{{ forms.autosuggestField({
+    label: 'Domain' | t('formie'),
+    instructions: 'Enter your full {name} Domain here. e.g. `https://ffcor.crm6.dynamics.com`' | t('formie', { name: integration.displayName() }) | md,
+    name: 'apiDomain',
+    required: true,
+    suggestEnvVars: true,
+    value: integration.settings.apiDomain ?? '',
+    warning: macros.configWarning('apiDomain', 'formie'),
+    errors: integration.getErrors('apiDomain'),
+}) }}
