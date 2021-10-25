@@ -139,6 +139,7 @@ class Integrations extends Component
             crm\HubSpot::class,
             crm\Infusionsoft::class,
             crm\Insightly::class,
+            crm\Klaviyo::class,
             // crm\MethodCrm::class,
             // crm\NetSuite::class,
             // crm\Pardot::class,
