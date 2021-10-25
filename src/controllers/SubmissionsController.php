@@ -409,7 +409,7 @@ class SubmissionsController extends Controller
         $nextPage = $form->getNextPage(null, $submission);
 
         // Or, if we've passed in a specific page to go to
-        if ($goToPageId = $request->getBodyParam('goToPageId')) {
+        if ($goToPageId = $request->getBodyParam('goToPageId') !== null) {
             $goingBack = true;
             $nextPage = ArrayHelper::firstWhere($form->getPages(), 'id', $goToPageId);
         } else if ($goingBack) {
