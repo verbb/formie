@@ -181,13 +181,11 @@ class Klaviyo extends Crm
             return $this->_client;
         }
 
-        $this->_client = Craft::createGuzzleClient([
+        return $this->_client = Craft::createGuzzleClient([
             'base_uri' => 'https://a.klaviyo.com/api/',
             'query' => [
                 'api_key' => Craft::parseEnv($this->privateApiKey),
             ],
         ]);
-
-        return $this->_client;
     }
 }

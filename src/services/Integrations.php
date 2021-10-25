@@ -112,6 +112,7 @@ class Integrations extends Component
             emailmarketing\Drip::class,
             emailmarketing\GetResponse::class,
             emailmarketing\IContact::class,
+            emailmarketing\Klaviyo::class,
             emailmarketing\Mailchimp::class,
             emailmarketing\MailerLite::class,
             emailmarketing\Moosend::class,
