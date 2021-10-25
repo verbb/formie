@@ -386,7 +386,7 @@ class SubmissionsController extends Controller
             throw new BadRequestHttpException("No form exists with the handle \"$handle\"");
         }
 
-        if ($pageIndex = $request->getParam('pageIndex')) {
+        if ($pageIndex = $request->getParam('pageIndex') !== null) {
             $pages = $form->getPages();
             $currentPage = $pages[$pageIndex];
         }
