@@ -376,6 +376,8 @@ class SubmissionsController extends Controller
 
         $handle = $request->getRequiredBodyParam('handle');
         $goingBack = (bool)$request->getBodyParam('goingBack');
+        $pageIndex = $request->getParam('pageIndex');
+        $goToPageId = $request->getBodyParam('goToPageId');
 
         Formie::log("Submission triggered for ${handle}.");
 
@@ -386,7 +388,7 @@ class SubmissionsController extends Controller
             throw new BadRequestHttpException("No form exists with the handle \"$handle\"");
         }
 
-        if ($pageIndex = $request->getParam('pageIndex') !== null) {
+        if (is_numeric($pageIndex)) {
             $pages = $form->getPages();
             $currentPage = $pages[$pageIndex];
         }
@@ -409,7 +411,7 @@ class SubmissionsController extends Controller
         $nextPage = $form->getNextPage(null, $submission);
 
         // Or, if we've passed in a specific page to go to
-        if ($goToPageId = $request->getBodyParam('goToPageId') !== null) {
+        if (is_numeric($goToPageId)) {
             $goingBack = true;
             $nextPage = ArrayHelper::firstWhere($form->getPages(), 'id', $goToPageId);
         } else if ($goingBack) {
