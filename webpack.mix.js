@@ -63,6 +63,7 @@ mix.js(assetsPath + '/frontend/src/js/fields/hidden.js', assetsPath + '/frontend
 mix.js(assetsPath + '/addressproviders/src/js/algolia-places.js', assetsPath + '/addressproviders/dist/js');
 mix.js(assetsPath + '/addressproviders/src/js/google-address.js', assetsPath + '/addressproviders/dist/js');
 mix.js(assetsPath + '/addressproviders/src/js/address-finder.js', assetsPath + '/addressproviders/dist/js');
+mix.js(assetsPath + '/addressproviders/src/js/loqate.js', assetsPath + '/addressproviders/dist/js');
 mix.js(assetsPath + '/captchas/src/js/recaptcha-v2-checkbox.js', assetsPath + '/captchas/dist/js');
 mix.js(assetsPath + '/captchas/src/js/recaptcha-v2-invisible.js', assetsPath + '/captchas/dist/js');
 mix.js(assetsPath + '/captchas/src/js/recaptcha-v3.js', assetsPath + '/captchas/dist/js');

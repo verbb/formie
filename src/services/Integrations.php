@@ -78,6 +78,7 @@ class Integrations extends Component
             addressproviders\Google::class,
             addressproviders\Algolia::class,
             addressproviders\AddressFinder::class,
+            addressproviders\Loqate::class,
         ];
 
         $captchas = [

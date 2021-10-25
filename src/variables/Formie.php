@@ -328,15 +328,6 @@ class Formie
      */
     public function getFieldNamespaceForScript($field)
     {
-        $scriptNamespace = null;
-        $currentNamespace = Craft::$app->getView()->getNamespace();
-
-        $namespace = $field->namespace == null ? $field->handle : "{$field->namespace}[{$field->handle}]";
-
-        if ($currentNamespace) {
-            $scriptNamespace = Craft::$app->getView()->namespaceInputName($currentNamespace, $field->namespace);
-        }
-
-        return Craft::$app->getView()->namespaceInputName($namespace, $scriptNamespace);
+        return FormiePlugin::$plugin->getService()->getFieldNamespaceForScript($field);
     }
 }
