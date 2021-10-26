@@ -397,13 +397,21 @@ class SubmissionsController extends Controller
         // TODO: make this the default behaviour at the next breakpoint, to not rely
         // on session-based saving for the current page.
         if (is_numeric($pageIndex)) {
-            $form->setCurrentPage($pages[$pageIndex]);
+            $currentPage = $pages[$pageIndex] ?? null;
+
+            if ($currentPage) {
+                $form->setCurrentPage($currentPage);
+            }
         }
 
         // Allow full submission payload to be provided for multi-page forms.
         // Skip straight to the last page.
         if ($completeSubmission) {
-            $form->setCurrentPage($pages[count($pages) - 1]);
+            $currentPage = $pages[count($pages) - 1] ?? null;
+
+            if ($currentPage) {
+                $form->setCurrentPage($currentPage);
+            }
         }
 
         // Get the submission, or create a new one
