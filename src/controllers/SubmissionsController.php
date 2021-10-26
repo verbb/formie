@@ -369,8 +369,6 @@ class SubmissionsController extends Controller
         $request = Craft::$app->getRequest();
         $goingBack = false;
 
-        $currentPage = null;
-
         /* @var Settings $settings */
         $formieSettings = Formie::$plugin->getSettings();
 
@@ -378,6 +376,7 @@ class SubmissionsController extends Controller
         $goingBack = (bool)$request->getBodyParam('goingBack');
         $pageIndex = $request->getParam('pageIndex');
         $goToPageId = $request->getBodyParam('goToPageId');
+        $completeSubmission = (bool)$request->getBodyParam('completeSubmission');
 
         Formie::log("Submission triggered for ${handle}.");
 
@@ -388,21 +387,24 @@ class SubmissionsController extends Controller
             throw new BadRequestHttpException("No form exists with the handle \"$handle\"");
         }
 
+        $pages = $form->getPages();
+        $settings = $form->settings;
+        $defaultStatus = $form->getDefaultStatus();
+        $errorMessage = $form->settings->getErrorMessage();
+
+        // Set a specifc page as the current page. This will override the session-based
+        // current page, but is useful for headless setups, or template overrides.
+        // TODO: make this the default behaviour at the next breakpoint, to not rely
+        // on session-based saving for the current page.
         if (is_numeric($pageIndex)) {
-            $pages = $form->getPages();
-            $currentPage = $pages[$pageIndex];
+            $form->setCurrentPage($pages[$pageIndex]);
         }
 
         // Allow full submission payload to be provided for multi-page forms.
         // Skip straight to the last page.
-        if ($request->getParam('completeSubmission')) {
-            $pages = $form->getPages();
+        if ($completeSubmission) {
             $form->setCurrentPage($pages[count($pages) - 1]);
         }
-
-        $settings = $form->settings;
-        $defaultStatus = $form->getDefaultStatus();
-        $errorMessage = $form->settings->getErrorMessage();
 
         // Get the submission, or create a new one
         $submission = $this->_populateSubmission($form);
