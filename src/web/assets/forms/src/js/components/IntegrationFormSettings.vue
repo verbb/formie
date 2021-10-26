@@ -36,6 +36,7 @@ export default {
             settings: {},
             sourceId: '',
             model: {},
+            globalParams: {},
         };
     },
 
@@ -106,6 +107,7 @@ export default {
             const payload = {
                 formId: this.form.id,
                 integration: this.handle,
+                ...this.globalParams,
                 ...payloadParams,
             };
 

@@ -552,7 +552,7 @@ class Submissions extends Component
         $fields = $submission->getFieldLayout()->getFields();
         $fieldContent = [];
 
-        $fieldContent = $this->_getFakeFieldContent($fields);
+        $fieldContent = $this->getFakeFieldContent($fields);
 
         $submission->setFieldValues($fieldContent);
     }
@@ -626,7 +626,7 @@ class Submissions extends Component
     /**
      * @inheritdoc
      */
-    public function _getFakeFieldContent($fields)
+    public function getFakeFieldContent($fields)
     {
         $fieldContent = [];
 
@@ -667,7 +667,7 @@ class Submissions extends Component
                     $query = new FakeElementQuery(FakeElement::class);
 
                     if ($fieldLayout = $field->getFieldLayout()) {
-                        $content = $this->_getFakeFieldContent($fieldLayout->getFields());
+                        $content = $this->getFakeFieldContent($fieldLayout->getFields());
                         $query->setFieldValues($content, $fieldLayout);
                     }
 

@@ -3,6 +3,8 @@
 {% set handle = integration.handle %}
 {% set formSettings = integration.getFormSettings().getSettings() %}
 {% set mapToContact = form.settings.integrations[handle].mapToContact ?? '' %}
+{% set mapToForm = form.settings.integrations[handle].mapToForm ?? '' %}
+{% set endpoint = form.settings.integrations[handle].endpoint ?? '' %}
 
 <field-select
     label="{{ 'Opt-In Field' | t('formie') }}"
@@ -50,6 +52,60 @@
                     ${ error }
                 </li>
             </ul>
+        </div>
+
+        {{ forms.lightswitchField({
+            label: 'Map to Form' | t('formie'),
+            instructions: 'Whether to map form data to {name} Forms.' | t('formie', { name: integration.displayName() }),
+            id: 'mapToForm',
+            name: 'mapToForm',
+            on: mapToForm,
+            toggle: 'map-to-form',
+        }) }}
+
+        <div id="map-to-form" class="{{ not mapToForm ? 'hidden' }}">
+{% set instructions %}
+### Step 1. Get the Native Form / Third Party Form Endpoint
+1. Go to <a href="https://verbb.marketingautomation.services/forms" target="_blank">SharpSpring</a> and login to your account.
+1. Navigate to **Forms** and either create a new form, or edit an existing one.
+1. Find the `endpoint` value for the form and enter it below. You can find this by viewing the **Embed Code** for a form, and looking for `__ss_noform.push(['endpoint', 'xxxxxxxxxxxxxxxxx'])`. We want just the endpoint ID that looks similar to `xxxxx-xxxx-xxxx-xxxx-xxxxxxxx`.
+{% endset %}
+
+            <div>
+                {{ instructions | t('formie') | md }}
+            </div>
+
+            <div class="field">
+                <div class="heading">
+                    <label id="endpoint-label" for="endpoint" class="required">{{ 'Endpoint' | t('formie') }}</label>
+                </div>
+
+                <div class="input ltr">
+                    <input type="text" id="endpoint" name="endpoint" autocomplete="off" aria-required="true" class="text fullwidth" v-model="globalParams.endpoint" :run="!globalParams.endpoint ? globalParams.endpoint = '{{ endpoint }}' : true">
+                </div>
+            </div>
+
+{% set instructions %}
+### Step 2. Sync with SharpSpring
+1. Click the **Sync with Native Form** button below to send a sample submission to SharpSpring. This is required to let SharpSpring know the contents of your form.
+1. Once successful, continue mapping your fields in SharpSpring.
+{% endset %}
+
+            <div>
+                {{ instructions | t('formie') | md }}
+            </div>
+
+            <div class="field">
+                <button class="btn" :class="{ 'fui-loading fui-loading-sm': loading }" @click.prevent="refresh({ sendFormPayload: true, formId: form.id })">{{ 'Sync with Native Form' | t('formie') }}</button>
+
+                <div v-if="settings.syncFormError" class="error" style="margin-top: 10px;" v-cloak>
+                    ${ settings.syncFormError }
+                </div>
+
+                <div v-if="settings.syncFormSuccess" class="success" style="margin-top: 10px;" v-cloak>
+                    ${ settings.syncFormSuccess }
+                </div>
+            </div>
         </div>
     </div>
 </integration-form-settings>
