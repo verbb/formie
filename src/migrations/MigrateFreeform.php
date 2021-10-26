@@ -113,7 +113,9 @@ class MigrateFreeform extends Migration
             $form->settings->submitAction = 'url';
 
             // Set default template
-            $form->templateId = $settings->getDefaultFormTemplateId();
+            if ($templateId = $settings->getDefaultFormTemplateId()) {
+                $form->templateId = $templateId;
+            }
 
             // "storeData" is private.
             if ($f = $freeformForm->getForm()) {
@@ -335,9 +337,13 @@ class MigrateFreeform extends Migration
                 $newNotification->from = $notification->getFromEmail();
                 $newNotification->fromName = $notification->getFromName();
                 $newNotification->replyTo = $notification->getReplyToEmail();
-                $newNotification->templateId = $settings->getDefaultEmailTemplateId();
                 $newNotification->attachFiles = $notification->isIncludeAttachmentsEnabled();
                 $newNotification->enabled = true;
+
+                // Set default template
+                if ($templateId = $settings->getDefaultEmailTemplateId()) {
+                    $newNotification->templateId = $templateId;
+                }
 
                 $body = $this->_tokenizeNotificationBody($notification->getBodyText());
                 $newNotification->content = Json::encode($body);
