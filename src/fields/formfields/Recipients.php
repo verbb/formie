@@ -374,6 +374,9 @@ class Recipients extends FormField
                 if ((string)$option['value'] === (string)$value) {
                     $value = new SingleOptionFieldData($option['label'], $option['value'], true);
                     break;
+                } else {
+                    // If no value found for a given string value, return null. It's an invalid value.
+                    $value = null;
                 }
             }
         } else if ($this->displayType === 'checkboxes') {
