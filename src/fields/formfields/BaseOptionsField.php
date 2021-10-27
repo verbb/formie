@@ -209,6 +209,29 @@ abstract class BaseOptionsField extends CraftBaseOptionsField
     {
         return $this->getSettings();
     }
+
+
+    // Protected Methods
+    // =========================================================================
+
+    /**
+     * @inheritDoc
+     */
+    protected function defineSummaryContent($value, ElementInterface $element = null)
+    {
+        if ($value instanceof MultiOptionsFieldData) {
+            $values = [];
+
+            foreach ($value as $selectedValue) {
+                /** @var OptionData $selectedValue */
+                $values[] = $selectedValue->value;
+            }
+
+            return implode(', ', $values);
+        }
+
+        return (string)$value;
+    }
     
     /**
      * @inheritDoc

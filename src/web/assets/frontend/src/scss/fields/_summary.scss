@@ -1,0 +1,18 @@
+// ==========================================================================
+// Fields - Summary
+// ==========================================================================
+
+.fui-summary-blocks {
+    position: relative;
+    border: 1px #E5E7EB solid;
+    padding: 1rem;
+    border-radius: 0.5rem;
+}
+
+.fui-summary-block {
+    margin-bottom: 1rem;
+
+    &:last-child {
+        margin-bottom: 0;
+    }
+}

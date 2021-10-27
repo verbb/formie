@@ -5,6 +5,7 @@ use verbb\formie\Formie;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\NestedFieldRow;
 use verbb\formie\elements\Submission;
+use verbb\formie\events\ModifyFieldSummaryContentEvent;
 use verbb\formie\fields\formfields\BaseOptionsField;
 use verbb\formie\helpers\ConditionsHelper;
 use verbb\formie\helpers\SchemaHelper;
@@ -29,9 +30,50 @@ use ReflectionClass;
 use Throwable;
 use Twig\Error\LoaderError as TwigLoaderError;
 use Twig\Markup;
+use yii\base\Event;
 
 trait FormFieldTrait
 {
+    // Static Methods
+    // =========================================================================
+
+    /**
+     * @inheritDoc
+     */
+    public static function getFrontEndInputTemplatePath(): string
+    {
+        return 'fields/' . static::_getKebabName();
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public static function getEmailTemplatePath(): string
+    {
+        return 'fields/' . static::_getKebabName();
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public static function getSvgIcon(): string
+    {
+        if (static::getSvgIconPath()) {
+            return Craft::$app->getView()->renderTemplate(static::getSvgIconPath());
+        }
+
+        return '';
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public static function getSvgIconPath(): string
+    {
+        return '';
+    }
+
+
     // Public Properties
     // =========================================================================
 
@@ -90,46 +132,6 @@ trait FormFieldTrait
     private $_namespace = 'fields';
 
 
-    // Static Methods
-    // =========================================================================
-
-    /**
-     * @inheritDoc
-     */
-    public static function getFrontEndInputTemplatePath(): string
-    {
-        return 'fields/' . static::_getKebabName();
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public static function getEmailTemplatePath(): string
-    {
-        return 'fields/' . static::_getKebabName();
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public static function getSvgIcon(): string
-    {
-        if (static::getSvgIconPath()) {
-            return Craft::$app->getView()->renderTemplate(static::getSvgIconPath());
-        }
-
-        return '';
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public static function getSvgIconPath(): string
-    {
-        return '';
-    }
-
-
     // Public Methods
     // =========================================================================
 
@@ -180,6 +182,23 @@ trait FormFieldTrait
     public function serializeValueForWebhook($value, ElementInterface $element = null)
     {
         return parent::serializeValue($value, $element);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getSummaryContent($value, ElementInterface $element = null)
+    {
+        $value = $this->defineSummaryContent($value, $element);
+
+        $event = new ModifyFieldSummaryContentEvent([
+            'value' => $value,
+            'element' => $element,
+        ]);
+
+        $this->trigger(static::EVENT_MODIFY_SUMMARY_CONTENT, $event);
+
+        return $event->value;
     }
 
     /**
@@ -264,48 +283,6 @@ trait FormFieldTrait
         ArrayHelper::removeValue($names, 'rowIndex');
 
         return $names;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    protected function defineRules(): array
-    {
-        $rules = parent::defineRules();
-
-        $rules[] = [['columnWidth', 'limitAmount'], 'number', 'integerOnly' => true];
-        $rules[] = [['placeholder', 'errorMessage', 'cssClasses'], 'string', 'max' => 255];
-
-        $rules[] = [
-            ['handle'],
-            HandleValidator::class,
-            'reservedWords' => [
-                'form',
-                'field',
-                'submission',
-            ]
-        ];
-
-        $rules[] = [['limitType'], 'in', 'range' => [
-            'characters',
-            'words',
-        ]];
-
-        $rules[] = [
-            ['labelPosition'],
-            'in',
-            'range' => Formie::$plugin->getFields()->getLabelPositions($this),
-            'skipOnEmpty' => true,
-        ];
-
-        $rules[] = [
-            ['instructionsPosition'],
-            'in',
-            'range' => Formie::$plugin->getFields()->getInstructionsPositions($this),
-            'skipOnEmpty' => true,
-        ];
-
-        return $rules;
     }
 
     /**
@@ -1037,6 +1014,60 @@ trait FormFieldTrait
 
     // Protected Methods
     // =========================================================================
+
+    /**
+     * @inheritDoc
+     */
+    protected function defineRules(): array
+    {
+        $rules = parent::defineRules();
+
+        $rules[] = [['columnWidth', 'limitAmount'], 'number', 'integerOnly' => true];
+        $rules[] = [['placeholder', 'errorMessage', 'cssClasses'], 'string', 'max' => 255];
+
+        $rules[] = [
+            ['handle'],
+            HandleValidator::class,
+            'reservedWords' => [
+                'form',
+                'field',
+                'submission',
+            ]
+        ];
+
+        $rules[] = [['limitType'], 'in', 'range' => [
+            'characters',
+            'words',
+        ]];
+
+        $rules[] = [
+            ['labelPosition'],
+            'in',
+            'range' => Formie::$plugin->getFields()->getLabelPositions($this),
+            'skipOnEmpty' => true,
+        ];
+
+        $rules[] = [
+            ['instructionsPosition'],
+            'in',
+            'range' => Formie::$plugin->getFields()->getInstructionsPositions($this),
+            'skipOnEmpty' => true,
+        ];
+
+        return $rules;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    protected function defineSummaryContent($value, ElementInterface $element = null)
+    {
+        if ($this->getIsCosmetic() || $this->getIsHidden()) {
+            return false;
+        }
+
+        return $value;
+    }
 
     /**
      * Returns the GraphQL-equivalent datatype based on a provided field's handle or schema type

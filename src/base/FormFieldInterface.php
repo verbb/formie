@@ -16,6 +16,12 @@ use yii\base\Exception;
 
 interface FormFieldInterface extends ComponentInterface
 {
+    // Constants
+    // =========================================================================
+
+    const EVENT_MODIFY_SUMMARY_CONTENT = 'modifySummaryContent';
+
+    
     // Public Methods
     // =========================================================================
 

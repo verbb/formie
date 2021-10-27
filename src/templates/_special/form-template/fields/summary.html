@@ -1,0 +1,17 @@
+{% set submission = submission ?? form.getCurrentSubmission() %}
+
+<div class="fui-summary-blocks">
+    <h3 class="fui-heading-h3">{{ 'Your submission is being prepared. Please review below before proceeding.' | t('formie') }}</h3><br>
+
+    {% for subField in submission.getFieldLayout().getFields() %}
+        {% set value = submission.getFieldValue(subField.handle) %}
+        {% set html = subField.getSummaryContent(value, submission) %}
+
+        {% if html %}
+            <div class="fui-summary-block">
+                <strong>{{ subField.name }}</strong><br>
+                {{ html }}<br>
+            </div>
+        {% endif %}
+    {% endfor %}
+</div>

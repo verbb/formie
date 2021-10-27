@@ -261,6 +261,14 @@ class Agree extends FormField implements PreviewableFieldInterface
 
     // Protected Methods
     // =========================================================================
+
+    /**
+     * @inheritDoc
+     */
+    protected function defineSummaryContent($value, ElementInterface $element = null)
+    {
+        return ($value) ? $this->checkedValue : $this->uncheckedValue;
+    }
       
     /**
      * @inheritDoc

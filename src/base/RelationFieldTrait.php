@@ -428,6 +428,22 @@ trait RelationFieldTrait
         return $options;
     }
 
+
+    // Protected Methods
+    // =========================================================================
+
+    /**
+     * @inheritDoc
+     */
+    protected function defineSummaryContent($value, ElementInterface $element = null)
+    {
+        $value = $this->_all($value, $element);
+
+        return array_reduce($value->all(), function($acc, $input) {
+            return $acc . $this->_getElementLabel($input);
+        }, '');
+    }
+
     /**
      * @inheritDoc
      */

@@ -2,6 +2,7 @@
 namespace verbb\formie\controllers;
 
 use verbb\formie\Formie;
+use verbb\formie\elements\Submission;
 use verbb\formie\models\Settings;
 
 use Craft;
@@ -11,14 +12,38 @@ use yii\web\Response;
 
 class FieldsController extends Controller
 {
+    // Properties
+    // =========================================================================
+
+    protected $allowAnonymous = ['get-summary-html'];
+
+
     // Public Methods
     // =========================================================================
 
+    /**
+     * @inheritdoc
+     */
+    public function beforeAction($action)
+    {
+        if ($action->id === 'get-summary-html') {
+            $this->enableCsrfValidation = false;
+        }
+
+        return parent::beforeAction($action);
+    }
+
+    /**
+     * @inheritdoc
+     */
     public function actionIndex(): Response
     {
         return $this->renderTemplate('formie/settings/fields', []);
     }
 
+    /**
+     * @inheritdoc
+     */
     public function actionGetElementSelectOptions()
     {
         $elements = [];
@@ -46,6 +71,9 @@ class FieldsController extends Controller
         return $this->asJson($elements);
     }
 
+    /**
+     * @inheritdoc
+     */
     public function actionGetPredefinedOptions()
     {
         $type = Craft::$app->getRequest()->getParam('option');
@@ -53,6 +81,31 @@ class FieldsController extends Controller
         $options = Formie::$plugin->getPredefinedOptions()->getPredefinedOptionsForType($type);
 
         return $this->asJson($options);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function actionGetSummaryHtml()
+    {
+        $fieldId = Craft::$app->getRequest()->getParam('fieldId');
+        $submissionId = Craft::$app->getRequest()->getParam('submissionId');
+        
+        if ($submissionId && $fieldId) {
+            $submission = Submission::find()->id($submissionId)->isIncomplete(null)->one();
+
+            if ($submission) {
+                if ($form = $submission->getForm()) {
+                    if ($field = $form->getFieldById($fieldId)) {
+                        $value = $field->getFieldValue($submission);
+
+                        return $field->getFrontEndInputHtml($form, $value);
+                    }
+                }
+            }
+        }
+
+        return '';
     }
 
 }

@@ -648,6 +648,14 @@ export class FormieFormTheme {
     }
 
     togglePage(data) {
+        // Trigger an event when a page is toggled
+        this.$form.dispatchEvent(new CustomEvent('onFormiePageToggle', {
+            bubbles: true,
+            detail: {
+                data,
+            },
+        }));
+
         // Hide all pages
         var $allPages = this.$form.querySelectorAll('.fui-page');
 

@@ -28,6 +28,7 @@ class FileUpload extends CraftAssets implements FormFieldInterface
         getFrontEndInputOptions as traitGetFrontendInputOptions;
         getSettingGqlType as traitGetSettingGqlType;
         FormFieldTrait::getIsFieldset insteadof RelationFieldTrait;
+        RelationFieldTrait::defineSummaryContent insteadof FormFieldTrait;
         RelationFieldTrait::populateValue insteadof FormFieldTrait;
         RelationFieldTrait::renderLabel insteadof FormFieldTrait;
     }

@@ -1049,15 +1049,25 @@ class Form extends Element
     }
 
     /**
-     * Returns a field by it's handle.
+     * Returns a field by its handle.
      *
      * @param string $handle
      * @return FormFieldInterface|null
      */
     public function getFieldByHandle(string $handle)
     {
-        $fields = $this->getFields();
-        return ArrayHelper::firstWhere($fields, 'handle', $handle);
+        return ArrayHelper::firstWhere($this->getFields(), 'handle', $handle);
+    }
+
+    /**
+     * Returns a field by its id.
+     *
+     * @param string $id
+     * @return FormFieldInterface|null
+     */
+    public function getFieldById($id)
+    {
+        return ArrayHelper::firstWhere($this->getFields(), 'id', $id);
     }
 
     /**
