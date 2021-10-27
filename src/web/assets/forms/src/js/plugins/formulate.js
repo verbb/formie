@@ -219,6 +219,11 @@ export default Vue => {
             elementSelect: {
                 component: 'ElementSelectField',
             },
+
+            fieldSelect: {
+                classification: 'text',
+                component: 'FieldSelectField',
+            },
         },
 
         slotComponents: {

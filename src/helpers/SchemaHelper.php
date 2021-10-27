@@ -352,6 +352,17 @@ class SchemaHelper
         ]), $config);
     }
 
+    public static function matchField($config = [])
+    {
+        return array_merge([
+            'label' => Craft::t('formie', 'Match Field'),
+            'help' => Craft::t('formie', 'Select a field of the same type where its content must match this field.'),
+            'type' => 'fieldSelect',
+            'name' => 'matchField',
+            'excludeSelf' => true,
+        ], $config);
+    } 
+
     public static function extractFieldsFromSchema($fieldSchema, $names = [])
     {
         foreach ($fieldSchema as $field) {

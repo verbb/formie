@@ -278,6 +278,9 @@ class Number extends FormField implements PreviewableFieldInterface
                 'name' => 'decimals',
                 'validation' => 'optional|number|min:0',
             ]),
+            SchemaHelper::matchField([
+                'fieldTypes' => [self::class],
+            ]),
             SchemaHelper::prePopulate(),
         ];
     }

@@ -39,6 +39,7 @@ trait FormFieldTrait
     public $limit;
     public $limitType;
     public $limitAmount;
+    public $matchField;
     public $placeholder;
     public $defaultValue;
     public $prePopulate;
@@ -305,6 +306,37 @@ trait FormFieldTrait
         ];
 
         return $rules;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getElementValidationRules(): array
+    {
+        $rules = parent::getElementValidationRules();
+
+        if ($this->matchField) {
+            $rules[] = ['validateMatchField', 'skipOnEmpty' => false];
+        }
+
+        return $rules;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function validateMatchField(ElementInterface $element)
+    {
+        $fieldHandle = str_replace(['{', '}'], '', $this->matchField);
+        $sourceValue = $element->getFieldValue($fieldHandle);
+        $value = $element->getFieldValue($this->handle);
+
+        if ($sourceValue !== $value) {
+            $element->addError($this->handle, Craft::t('formie', '{name} must be equal to "{value}".', [
+                'name' => $this->name,
+                'value' => $sourceValue,
+            ]));
+        }
     }
 
     /**

@@ -17,6 +17,7 @@ import RichTextField from './richtext/RichTextField.vue';
 import TextWithSuffixField from './inputs/TextWithSuffixField.vue';
 import MultiSelectField from './inputs/MultiSelectField.vue';
 import VariableTextField from './variables/VariableTextField.vue';
+import FieldSelectField from './inputs/FieldSelectField.vue';
 
 import TableField from './table/TableField.vue';
 import TableBlock from './table/TableBlock.vue';
@@ -47,6 +48,7 @@ export default {
     TextWithSuffixField,
     MultiSelectField,
     VariableTextField,
+    FieldSelectField,
 
     TableField,
     TableBlock,

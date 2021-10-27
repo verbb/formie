@@ -244,6 +244,9 @@ class SingleLineText extends FormField implements PreviewableFieldInterface
                     ],
                 ]
             ]),
+            SchemaHelper::matchField([
+                'fieldTypes' => [self::class],
+            ]),
             SchemaHelper::prePopulate(),
         ];
     }

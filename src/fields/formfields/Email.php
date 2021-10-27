@@ -192,6 +192,9 @@ class Email extends FormField implements PreviewableFieldInterface
                     'name' => 'errorMessage',
                 ]),
             ]),
+            SchemaHelper::matchField([
+                'fieldTypes' => [self::class],
+            ]),
             SchemaHelper::prePopulate(),
             SchemaHelper::lightswitchField([
                 'label' => Craft::t('formie', 'Unique Value'),

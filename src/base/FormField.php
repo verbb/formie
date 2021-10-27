@@ -22,6 +22,7 @@ abstract class FormField extends Field implements FormFieldInterface
 
     use FormFieldTrait {
         defineRules as traitDefineRules;
+        getElementValidationRules as traitGetElementValidationRules;
     }
 
 
@@ -63,5 +64,14 @@ abstract class FormField extends Field implements FormFieldInterface
     {
         // These are already populated with base Field rules
         return $this->traitDefineRules();
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getElementValidationRules(): array
+    {
+        // These are already populated with base Field rules
+        return $this->traitGetElementValidationRules();
     }
 }
