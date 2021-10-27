@@ -339,6 +339,29 @@ class Recipients extends FormField
     }
 
 
+    // Protected Methods
+    // =========================================================================
+
+    /**
+     * @inheritDoc
+     */
+    protected function defineSummaryContent($value, ElementInterface $element = null)
+    {
+        if ($value instanceof MultiOptionsFieldData) {
+            $values = [];
+
+            foreach ($value as $selectedValue) {
+                /** @var OptionData $selectedValue */
+                $values[] = $selectedValue->label;
+            }
+
+            return implode(', ', $values);
+        }
+
+        return $value->label ?? '';
+    }
+
+
     // Private Methods
     // =========================================================================
 

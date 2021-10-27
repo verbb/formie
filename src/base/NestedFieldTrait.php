@@ -18,6 +18,7 @@ use craft\elements\db\ElementQueryInterface;
 use craft\helpers\Db;
 use craft\helpers\ElementHelper;
 use craft\helpers\StringHelper;
+use craft\helpers\Template;
 use craft\services\Elements;
 use craft\validators\ArrayValidator;
 
@@ -605,6 +606,29 @@ trait NestedFieldTrait
                 'fieldId' => $this->id,
             ]
         ];
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
+    /**
+     * @inheritDoc
+     */
+    protected function defineSummaryContent($value, ElementInterface $element = null)
+    {
+        $values = [];
+
+        foreach ($value->all() as $rowId => $row) {
+            foreach ($row->getFieldLayout()->getFields() as $field) {
+                $v = $row->getFieldValue($field->handle);
+                $html = $field->getSummaryContent($v, $row);
+
+                $values[] = '<strong>' . $field->handle . '</strong> ' . $html . '<br>';
+            }
+        }
+
+        return Template::raw(implode(', ', $values));
     }
 
 

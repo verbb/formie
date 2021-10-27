@@ -224,13 +224,13 @@ abstract class BaseOptionsField extends CraftBaseOptionsField
 
             foreach ($value as $selectedValue) {
                 /** @var OptionData $selectedValue */
-                $values[] = $selectedValue->value;
+                $values[] = $selectedValue->label;
             }
 
             return implode(', ', $values);
         }
 
-        return (string)$value;
+        return $value->label ?? '';
     }
     
     /**
