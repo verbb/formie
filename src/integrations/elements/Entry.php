@@ -230,7 +230,11 @@ class Entry extends Element
             $entry->sectionId = $entryType->sectionId;
 
             $attributeValues = $this->getFieldMappingValues($submission, $this->attributeMapping, $this->getElementAttributes());
-            $attributeValues = array_filter($attributeValues);
+            
+            // Filter null values
+            $attributeValues = array_filter($attributeValues, function($var) {
+                return $var !== null;
+            });
 
             foreach ($attributeValues as $entryFieldHandle => $fieldValue) {
                 if ($entryFieldHandle === 'author') {
@@ -244,7 +248,11 @@ class Entry extends Element
 
             $fields = $this->_getEntryTypeSettings()->fields ?? [];
             $fieldValues = $this->getFieldMappingValues($submission, $this->fieldMapping, $fields);
-            $fieldValues = array_filter($fieldValues);
+            
+            // Filter null values
+            $fieldValues = array_filter($fieldValues, function($var) {
+                return $var !== null;
+            });
 
             $entry->setFieldValues($fieldValues);
             $entry->updateTitle();

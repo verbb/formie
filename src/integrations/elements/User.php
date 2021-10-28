@@ -205,14 +205,22 @@ class User extends Element
             }
 
             $attributeValues = $this->getFieldMappingValues($submission, $this->attributeMapping, $this->getElementAttributes());
-            $attributeValues = array_filter($attributeValues);
+            
+            // Filter null values
+            $attributeValues = array_filter($attributeValues, function($var) {
+                return $var !== null;
+            });
 
             // Set the attributes on the user element
             $this->_setElementAttributes($user, $attributeValues);
 
             $fields = $this->getFormSettingValue('elements')[0]->fields ?? [];
             $fieldValues = $this->getFieldMappingValues($submission, $this->fieldMapping, $fields);
-            $fieldValues = array_filter($fieldValues);
+            
+            // Filter null values
+            $fieldValues = array_filter($fieldValues, function($var) {
+                return $var !== null;
+            });
 
             $user->setFieldValues($fieldValues);
 
