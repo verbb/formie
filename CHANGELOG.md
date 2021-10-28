@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Added
+- Added the `enableGatsbyCompatibility` config option. Enabling it has a side-effect of changing the `fields` property name on the Form GraphQL type to `formFields`.
+
 ## 1.4.22 - 2021-10-22
 
 ### Added

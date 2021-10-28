@@ -53,7 +53,7 @@ class PageSettingsInterface extends BaseInterfaceType
 
     public static function getFieldDefinitions(): array
     {
-        return TypeManager::prepareFieldDefinitions(array_merge(parent::getFieldDefinitions(), [
+        $fields = array_merge(parent::getFieldDefinitions(), [
             'submitButtonLabel' => [
                 'name' => 'submitButtonLabel',
                 'type' => Type::string(),
@@ -96,7 +96,7 @@ class PageSettingsInterface extends BaseInterfaceType
             ],
             'pageConditions' => [
                 'name' => 'pageConditions',
-                'type' => Type::string(),
+                'type' => Type::listOf(Type::string()),
                 'description' => 'The page’s conditions.',
             ],
             'enableNextButtonConditions' => [
@@ -106,9 +106,11 @@ class PageSettingsInterface extends BaseInterfaceType
             ],
             'nextButtonConditions' => [
                 'name' => 'nextButtonConditions',
-                'type' => Type::string(),
+                'type' => Type::listOf(Type::string()),
                 'description' => 'The page’s conditions.',
             ],
-        ]), self::getName());
+        ]);
+        unset($fields['id'], $fields['uid']);
+        return TypeManager::prepareFieldDefinitions($fields, self::getName());
     }
 }
