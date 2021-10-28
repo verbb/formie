@@ -65,6 +65,11 @@ trait FormFieldTrait
     public $rowId;
 
     /**
+     * @var string
+     */
+    public $rowUid;
+
+    /**
      * @var int
      */
     public $rowIndex;

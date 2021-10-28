@@ -55,7 +55,7 @@ class PageInterface extends BaseInterfaceType
 
     public static function getFieldDefinitions(): array
     {
-        return TypeManager::prepareFieldDefinitions(array_merge(parent::getFieldDefinitions(), [
+        $fields = array_merge(parent::getFieldDefinitions(), [
             'name' => [
                 'name' => 'name',
                 'type' => Type::string(),
@@ -76,6 +76,9 @@ class PageInterface extends BaseInterfaceType
                 'type' => PageSettingsInterface::getType(),
                 'description' => 'The page’s settings.',
             ],
-        ]), self::getName());
+        ]);
+
+        unset ($fields['id']);
+        return TypeManager::prepareFieldDefinitions($fields, self::getName());
     }
 }

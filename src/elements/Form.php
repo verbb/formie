@@ -7,6 +7,7 @@ use verbb\formie\base\IntegrationInterface;
 use verbb\formie\base\NestedFieldInterface;
 use verbb\formie\behaviors\FieldLayoutBehavior;
 use verbb\formie\elements\db\FormQuery;
+use verbb\formie\gql\interfaces\FieldInterface;
 use verbb\formie\models\FieldLayout;
 use verbb\formie\models\FieldLayoutPage;
 use verbb\formie\models\FormSettings;
@@ -72,6 +73,7 @@ class Form extends Element
     private $_fieldLayout;
     private $_formFieldLayout;
     private $_fields;
+    private $_rows;
     private $_pages;
     private $_template;
     private $_defaultStatus;
@@ -575,6 +577,29 @@ class Form extends Element
         }
 
         return $this->_pages = $fieldLayout->getTabs();
+    }
+
+    /**
+     * Returns the form’s rows.
+     *
+     * @return FieldInterface[][] The form’s rows.
+     */
+    public function getRows(): array
+    {
+        if ($this->_rows !== null) {
+            return $this->_rows;
+        }
+
+        $pages = $this->getPages();
+
+        $rows = [];
+
+        foreach ($pages as $page) {
+            $pageRows = $page->getRows();
+            $rows = array_merge($rows, $pageRows);
+        }
+
+        return $this->_rows = $rows;
     }
 
     /**
