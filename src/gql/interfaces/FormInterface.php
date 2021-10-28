@@ -63,6 +63,8 @@ class FormInterface extends Element
 
     public static function getFieldDefinitions(): array
     {
+        $formFieldName = Formie::getInstance()->getSettings()->enableGatsbyCompatibility ? 'formFields' : 'fields';
+
         return TypeManager::prepareFieldDefinitions(array_merge(parent::getFieldDefinitions(), [
             'handle' => [
                 'name' => 'handle',
@@ -79,8 +81,8 @@ class FormInterface extends Element
                 'type' => Type::listOf(RowInterface::getType()),
                 'description' => 'The form’s rows.',
             ],
-            'fields' => [
-                'name' => 'fields',
+            $formFieldName => [
+                'name' => $formFieldName,
                 'type' => Type::listOf(FieldInterface::getType()),
                 'description' => 'The form’s fields.',
             ],
