@@ -1,5 +1,22 @@
 # Changelog
 
+## 1.4.23 - 2021-10-30
+
+### Added
+- Add support for editing the user of a submission, when editing or creating a submission in the control panel.
+
+### Fixed
+- Fix hidden fields not having dynamically-set values persisted.
+- Fix boolean-configured fields for integrations not being parsed correctly.
+- Fix conditions evaluator to better handle equality checks for Checkboxes fields and `is`, `is not` conditions.
+- Fix potential error where Spam and Incomplete options from the Submissions Index dropdown were missing.
+- Remove unneeded `pageIndex` param in default templates.
+- Fix Sprout Forms and Freeform migrations when a default form/email template hasn't been set.
+- Add missing attributes to `PageSettingsInterface` GraphQL interface.
+- When creating a new submission in the control panel, and collecting the user, assign the current user to the submission.
+- Only show the "IP Address" when editing a submission, if the form is set to collect IPs.
+- Fix a PHP 8 issue where `pageIndex` wasn't handled correctly when submitting.
+
 ## 1.4.22 - 2021-10-22
 
 ### Added
