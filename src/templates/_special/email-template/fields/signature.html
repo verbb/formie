@@ -1,0 +1,5 @@
+{% if not (options.hideName ?? false) %}
+    <strong>{{ field.name | t }}</strong>
+{% endif %}
+
+<img src="{{ value }}" />

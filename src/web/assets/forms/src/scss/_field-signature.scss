@@ -1,0 +1,18 @@
+// ==========================================================================
+// Field Signature
+// ==========================================================================
+
+.fui-field-preview.fui-type-signature {
+    position: relative;
+
+    .fui-field-input {
+        height: 6rem;
+    }
+
+    img {
+        position: absolute;
+        height: 4rem;
+        top: 1rem;
+        left: 1rem;
+    }
+}

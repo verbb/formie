@@ -126,6 +126,7 @@ class Fields extends Component
             ArrayHelper::remove($registeredFields, formfields\Html::class),
             ArrayHelper::remove($registeredFields, formfields\Summary::class),
             ArrayHelper::remove($registeredFields, formfields\Password::class),
+            ArrayHelper::remove($registeredFields, formfields\Signature::class),
         ]);
 
         $elementFields = array_filter([
@@ -251,6 +252,7 @@ class Fields extends Component
             formfields\Recipients::class,
             formfields\Repeater::class,
             formfields\Section::class,
+            formfields\Signature::class,
             formfields\SingleLineText::class,
             formfields\Summary::class,
             formfields\Table::class,
