@@ -6,16 +6,18 @@ use verbb\formie\base\Integration;
 use verbb\formie\base\Element;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
+use verbb\formie\fields\formfields\Password;
 use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 use verbb\formie\models\IntegrationResponse;
 
 use Craft;
+use craft\db\Table;
 use craft\elements\User as UserElement;
-// use craft\elements\User;
 use craft\helpers\ArrayHelper;
 use craft\helpers\DateTimeHelper;
+use craft\helpers\Db;
 use craft\helpers\Json;
 use craft\helpers\Template;
 use craft\web\View;
@@ -188,6 +190,10 @@ class User extends Element
             $user = $this->getElementForPayload(UserElement::class, $submission);
             $user->pending = true;
 
+            // Get the source form field if we're mapping the password. A few things to do.
+            $passwordField = $this->_getPasswordField($submission);
+            $hashedPassword = null;
+
             $userGroups = [];
 
             if ($this->mergeUserGroups) {
@@ -206,6 +212,15 @@ class User extends Element
 
             $attributeValues = $this->getFieldMappingValues($submission, $this->attributeMapping, $this->getElementAttributes());
             $attributeValues = array_filter($attributeValues);
+
+            // Check if the password was mapped, as if the source field was a Password field.
+            // The value will already be hashed and we need to do a manual DB-level update
+            if (isset($attributeValues['newPassword']) && $passwordField) {
+                // If this a Password field?
+                if ($passwordField instanceof Password) {
+                    $hashedPassword = ArrayHelper::remove($attributeValues, 'newPassword');
+                }
+            }
 
             // Set the attributes on the user element
             $this->_setElementAttributes($user, $attributeValues);
@@ -257,12 +272,8 @@ class User extends Element
 
             // Important to wipe out the field mapped to their password, and save the submission. We don't want to permanently
             // store the password content against the submission.
-            $passwordFieldHandle = $this->attributeMapping['newPassword'] ?? '';
-
-            if ($passwordFieldHandle) {
-                $passwordFieldHandle = str_replace(['{', '}'], ['', ''], $passwordFieldHandle);
-
-                $submission->setFieldValue($passwordFieldHandle, '');
+            if ($passwordField) {
+                $submission->setFieldValue($passwordField->handle, '');
             
                 if (!Craft::$app->getElements()->saveElement($submission, false)) {
                     Integration::error($this, Craft::t('formie', 'Unable to save “{type}” element integration. Error: {error}.', [
@@ -272,6 +283,11 @@ class User extends Element
                     
                     return false;
                 }
+            }
+
+            // Has a Password field been used to map the value? Do a direct DB update as it's been hashed already
+            if ($hashedPassword) {
+                Db::update(Table::USERS, ['password' => $hashedPassword], ['id' => $user->id], [], false);
             }
 
             // Allow events to say the response is invalid
@@ -311,6 +327,10 @@ class User extends Element
         return $userGroups;
     }
     
+
+    // Private Methods
+    // =========================================================================
+
     /**
      * @inheritDoc
      */
@@ -327,5 +347,23 @@ class User extends Element
 
             $user->{$userFieldHandle} = $fieldValue;
         }
+    }
+
+    private function _getPasswordField($submission)
+    {
+        $passwordFieldHandle = $this->attributeMapping['newPassword'] ?? '';
+
+        if ($passwordFieldHandle) {
+            $passwordFieldHandle = str_replace(['{', '}'], ['', ''], $passwordFieldHandle);
+
+            // Find the form field
+            if ($form = $submission->getForm()) {
+                if ($field = $form->getFieldByHandle($passwordFieldHandle)) {
+                    return $field;
+                }
+            }
+        }
+
+        return null;
     }
 }
