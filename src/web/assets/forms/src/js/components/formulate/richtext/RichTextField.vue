@@ -85,6 +85,10 @@ export default {
             return this.$store.getters['form/allFields'](true);
         },
 
+        calculationsVariables() {
+            return this.$store.getters['form/plainTextFields'](false);
+        },
+
         buttons() {
             return this.context.attributes.buttons || [];
         },

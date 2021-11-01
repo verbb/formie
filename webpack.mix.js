@@ -55,6 +55,7 @@ mix.js(assetsPath + '/frontend/src/js/fields/date-picker.js', assetsPath + '/fro
 mix.js(assetsPath + '/frontend/src/js/fields/hidden.js', assetsPath + '/frontend/dist/js/fields');
 mix.js(assetsPath + '/frontend/src/js/fields/summary.js', assetsPath + '/frontend/dist/js/fields');
 mix.js(assetsPath + '/frontend/src/js/fields/signature.js', assetsPath + '/frontend/dist/js/fields');
+mix.js(assetsPath + '/frontend/src/js/fields/calculations.js', assetsPath + '/frontend/dist/js/fields');
 
 
 //

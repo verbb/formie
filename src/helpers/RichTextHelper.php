@@ -46,6 +46,10 @@ class RichTextHelper
                     'buttons' => ['bold', 'italic', 'link'],
                     'rows' => 3,
                 ],
+                'calculations' => [
+                    'buttons' => ['variableTag'],
+                    'rows' => 3,
+                ],
             ],
             'notifications' => [
                 'content' => [

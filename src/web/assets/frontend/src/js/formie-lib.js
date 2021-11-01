@@ -113,7 +113,7 @@ export class Formie {
         }
     }
 
-    // Note the use of $form and $element to habdle Repeater
+    // Note the use of $form and $element to handle Repeater
     parseFieldConfig($element, $form) {
         var config = {};
 
