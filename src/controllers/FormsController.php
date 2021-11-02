@@ -36,22 +36,14 @@ class FormsController extends Controller
     // =========================================================================
 
     /**
-     * @inheritDoc
-     */
-    public function init()
-    {
-        $this->requirePermission('formie-viewForms');
-
-        parent::init();
-    }
-
-    /**
      * Shows all the forms in a list.
      *
      * @return Response|null
      */
     public function actionIndex()
     {
+        $this->requirePermission('formie-viewForms');
+
         return $this->renderTemplate('formie/forms/index', []);
     }
 
@@ -99,6 +91,8 @@ class FormsController extends Controller
                 throw new NotFoundHttpException('Invalid site handle: ' . $siteHandle);
             }
         }
+
+        $this->requirePermission('formie-viewForms');
 
         $this->_prepareVariableArray($variables);
 
