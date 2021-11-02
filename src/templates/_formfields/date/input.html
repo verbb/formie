@@ -34,7 +34,7 @@
                         name: char,
                         required: field.required ? true : false,
                         options: options,
-                        value: attrs.handle == 'ampm' ? (value | date(char)) : (value ? (value | date(char)) * 1),
+                        value: attrs.handle == 'ampm' ? (value | date(char, false, false)) : (value ? (value | date(char, false, false)) * 1),
                     }) }}
                 </div>
             {% endfor %}
@@ -57,7 +57,7 @@
                                     label: attribute(field, attrs.handle ~ 'Placeholder'),
                                     value: '',
                                 }] | merge(attrs.options),
-                                value: attrs.handle == 'ampm' ? (value | date(char)) : (value ? (value | date(char)) * 1),
+                                value: attrs.handle == 'ampm' ? (value | date(char, false, false)) : (value ? (value | date(char, false, false)) * 1),
                             }) }}
                         </div>
                     {% default %}
@@ -72,7 +72,7 @@
                                 pattern: '[0-9]+',
                                 placeholder: attribute(field, attrs.handle ~ 'Placeholder'),
                                 required: field.required ? true : false,
-                                value: value ? (value | date(char)),
+                                value: value ? (value | date(char, false, false)),
                             }) }}
                         </div>
                 {% endswitch %}
