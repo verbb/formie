@@ -67,6 +67,14 @@ class Settings extends Model
     public $maxIncompleteSubmissionAge = 30;
 
     /**
+     * Whether to enable Gatsby support for the plugin.
+     * Enabling this will rename the `fields` field on the GraphQL Form type to `formFields`.
+     *
+     * @var bool
+     */
+    public $enableGatsbyCompatibility = false;
+
+    /**
      * The maximum age of an incomplete submission in days
      * before it is deleted in garbage collection.
      *
