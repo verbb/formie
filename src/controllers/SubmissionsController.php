@@ -963,7 +963,7 @@ class SubmissionsController extends Controller
                 }
             }
 
-            $variables['tabs'][] = [
+            $variables['tabs'][$tab->getHtmlId()] = [
                 'label' => Craft::t('site', $tab->name),
                 'url' => '#' . $tab->getHtmlId(),
                 'class' => $hasErrors ? 'error' : null
