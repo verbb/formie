@@ -16,6 +16,7 @@ use craft\elements\Asset;
 use craft\fields\Assets as CraftAssets;
 use craft\helpers\Assets;
 use craft\helpers\Json;
+use craft\web\UploadedFile;
 
 use GraphQL\Type\Definition\Type;
 
@@ -191,6 +192,8 @@ class FileUpload extends CraftAssets implements FormFieldInterface
     {
         $rules = parent::getElementValidationRules();
         $rules[] = 'validateFileLimit';
+        $rules[] = 'validateMinFileSize';
+        $rules[] = 'validateMaxFileSize';
 
         return $rules;
     }
@@ -215,6 +218,64 @@ class FileUpload extends CraftAssets implements FormFieldInterface
                     'files' => $fileLimit
                 ])
             );
+        }
+    }
+
+    /**
+     * Validates the files to make sure they are under the allowed max file size.
+     *
+     * @param ElementInterface $element
+     */
+    public function validateMaxFileSize(ElementInterface $element)
+    {
+        $filenames = [];
+
+        // Get any uploaded filenames
+        $uploadedFiles = $this->_getUploadedFiles($element);
+        
+        if ($this->sizeLimit) {
+            $sizeLimit = $this->sizeLimit * 1000000;
+
+            foreach ($uploadedFiles as $file) {
+                if (file_exists($file['location']) && (filesize($file['location']) > $sizeLimit)) {
+                    $filenames[] = $file['filename'];
+                }
+            }
+        }
+
+        foreach ($filenames as $filename) {
+            $element->addError($this->handle, Craft::t('formie', 'File must be smaller than {size} MB.', [
+                'size' => $this->sizeLimit,
+            ]));
+        }
+    }
+
+    /**
+     * Validates the files to make sure they are over the allowed min file size.
+     *
+     * @param ElementInterface $element
+     */
+    public function validateMinFileSize(ElementInterface $element)
+    {
+        $filenames = [];
+
+        // Get any uploaded filenames
+        $uploadedFiles = $this->_getUploadedFiles($element);
+        
+        if ($this->sizeMinLimit) {
+            $sizeMinLimit = $this->sizeMinLimit * 1000000;
+
+            foreach ($uploadedFiles as $file) {
+                if (file_exists($file['location']) && (filesize($file['location']) < $sizeMinLimit)) {
+                    $filenames[] = $file['filename'];
+                }
+            }
+        }
+
+        foreach ($filenames as $filename) {
+            $element->addError($this->handle, Craft::t('formie', 'File must be larger than {size} MB.', [
+                'size' => $this->sizeMinLimit,
+            ]));
         }
     }
 
@@ -432,8 +493,40 @@ class FileUpload extends CraftAssets implements FormFieldInterface
     // Private Methods
     // =========================================================================
 
-    private function humanFilesize($size, $precision = 2) {
+    /**
+     * @inheritDoc
+     */
+    private function humanFilesize($size, $precision = 2)
+    {
         for ($i = 0; ($size / 1024) > 0.9; $i++, $size /= 1024) {}
         return round($size, $precision).['B','kB','MB','GB','TB','PB','EB','ZB','YB'][$i];
+    }
+
+    /**
+     * Returns any files that were uploaded to the field.
+     *
+     * @param ElementInterface $element
+     * @return array
+     */
+    private function _getUploadedFiles(ElementInterface $element): array
+    {
+        $uploadedFiles = [];
+
+        // See if we have uploaded file(s).
+        $paramName = $this->requestParamName($element);
+
+        if ($paramName !== null) {
+            $files = UploadedFile::getInstancesByName($paramName);
+
+            foreach ($files as $file) {
+                $uploadedFiles[] = [
+                    'filename' => $file->name,
+                    'location' => $file->tempName,
+                    'type' => 'upload',
+                ];
+            }
+        }
+
+        return $uploadedFiles;
     }
 }
