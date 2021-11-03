@@ -266,6 +266,7 @@ trait FormFieldTrait
         $names = array_unique($names);
         ArrayHelper::removeValue($names, 'rowId');
         ArrayHelper::removeValue($names, 'rowIndex');
+        ArrayHelper::removeValue($names, 'rowUid');
 
         return $names;
     }
