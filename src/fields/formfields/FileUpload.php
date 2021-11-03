@@ -191,9 +191,18 @@ class FileUpload extends CraftAssets implements FormFieldInterface
     public function getElementValidationRules(): array
     {
         $rules = parent::getElementValidationRules();
-        $rules[] = 'validateFileLimit';
-        $rules[] = 'validateMinFileSize';
-        $rules[] = 'validateMaxFileSize';
+
+        if ($this->limitFiles) {
+            $rules[] = 'validateFileLimit';
+        }
+
+        if ($this->sizeMinLimit) {
+            $rules[] = 'validateMinFileSize';
+        }
+
+        if ($this->sizeLimit) {
+            $rules[] = 'validateMaxFileSize';
+        }
 
         return $rules;
     }
@@ -207,45 +216,14 @@ class FileUpload extends CraftAssets implements FormFieldInterface
     {
         $fileLimit = intval($this->limitFiles ?? 1);
 
-        $value = $element->getFieldValue($this->handle);
-        $count = $value->count();
-
-        // TODO: fix, doesn't work.
-        if ($count > $fileLimit) {
-            $element->addError(
-                $this->handle,
-                Craft::t('formie', 'Choose up to {files} files.', [
-                    'files' => $fileLimit
-                ])
-            );
-        }
-    }
-
-    /**
-     * Validates the files to make sure they are under the allowed max file size.
-     *
-     * @param ElementInterface $element
-     */
-    public function validateMaxFileSize(ElementInterface $element)
-    {
         $filenames = [];
 
         // Get any uploaded filenames
         $uploadedFiles = $this->_getUploadedFiles($element);
-        
-        if ($this->sizeLimit) {
-            $sizeLimit = $this->sizeLimit * 1000000;
 
-            foreach ($uploadedFiles as $file) {
-                if (file_exists($file['location']) && (filesize($file['location']) > $sizeLimit)) {
-                    $filenames[] = $file['filename'];
-                }
-            }
-        }
-
-        foreach ($filenames as $filename) {
-            $element->addError($this->handle, Craft::t('formie', 'File must be smaller than {size} MB.', [
-                'size' => $this->sizeLimit,
+        if (count($uploadedFiles) > $fileLimit) {
+            $element->addError($this->handle, Craft::t('formie', 'Choose up to {files} files.', [
+                'files' => $fileLimit,
             ]));
         }
     }
@@ -262,19 +240,44 @@ class FileUpload extends CraftAssets implements FormFieldInterface
         // Get any uploaded filenames
         $uploadedFiles = $this->_getUploadedFiles($element);
         
-        if ($this->sizeMinLimit) {
-            $sizeMinLimit = $this->sizeMinLimit * 1000000;
+        $sizeMinLimit = $this->sizeMinLimit * 1000000;
 
-            foreach ($uploadedFiles as $file) {
-                if (file_exists($file['location']) && (filesize($file['location']) < $sizeMinLimit)) {
-                    $filenames[] = $file['filename'];
-                }
+        foreach ($uploadedFiles as $file) {
+            if (file_exists($file['location']) && (filesize($file['location']) < $sizeMinLimit)) {
+                $filenames[] = $file['filename'];
             }
         }
 
         foreach ($filenames as $filename) {
             $element->addError($this->handle, Craft::t('formie', 'File must be larger than {size} MB.', [
                 'size' => $this->sizeMinLimit,
+            ]));
+        }
+    }
+
+    /**
+     * Validates the files to make sure they are under the allowed max file size.
+     *
+     * @param ElementInterface $element
+     */
+    public function validateMaxFileSize(ElementInterface $element)
+    {
+        $filenames = [];
+
+        // Get any uploaded filenames
+        $uploadedFiles = $this->_getUploadedFiles($element);
+        
+        $sizeLimit = $this->sizeLimit * 1000000;
+
+        foreach ($uploadedFiles as $file) {
+            if (file_exists($file['location']) && (filesize($file['location']) > $sizeLimit)) {
+                $filenames[] = $file['filename'];
+            }
+        }
+
+        foreach ($filenames as $filename) {
+            $element->addError($this->handle, Craft::t('formie', 'File must be smaller than {size} MB.', [
+                'size' => $this->sizeLimit,
             ]));
         }
     }
