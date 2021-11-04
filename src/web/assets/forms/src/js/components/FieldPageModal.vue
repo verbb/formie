@@ -38,7 +38,7 @@
                     <div class="fui-pages-pane">
                         <div v-for="(page) in pages" v-show="selectedPage === page.id" :key="page.id">
                             <FormulateInput
-                                v-model="page.label"
+                                :value="get(page, 'label')"
                                 type="text"
                                 input-class="text fullwidth"
                                 autocomplete="off"
@@ -48,6 +48,7 @@
                                 :validation-name="$options.filters.t('Page Label', 'formie')"
                                 :required="true"
                                 :error="get(page.errors, 'name.0')"
+                                @input="set(page, 'label', $event)"
                             />
 
                             <FormulateInput
@@ -87,6 +88,7 @@
 <script>
 import { mapState } from 'vuex';
 import get from 'lodash/get';
+import set from 'lodash/set';
 import isEmpty from 'lodash/isEmpty';
 import { newId } from '../utils/string';
 
@@ -136,6 +138,10 @@ export default {
     methods: {
         get(collection, key) {
             return get(collection, key);
+        },
+
+        set(collection, key, value) {
+            set(collection, key, value);
         },
 
         isEmpty(object) {
