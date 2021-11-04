@@ -21,33 +21,11 @@ use craft\helpers\UrlHelper;
 
 class SentNotification extends Element
 {
-    // Public Properties
+    // Constants
     // =========================================================================
 
-    public $id;
-    public $title;
-    public $formId;
-    public $submissionId;
-    public $notificationId;
-    public $subject;
-    public $to;
-    public $cc;
-    public $bcc;
-    public $replyTo;
-    public $replyToName;
-    public $from;
-    public $fromName;
-    public $body;
-    public $htmlBody;
-    public $info;
-
-
-    // Private Properties
-    // =========================================================================
-
-    private $_form;
-    private $_submission;
-    private $_notification;
+    const STATUS_SUCCESS = 'success';
+    const STATUS_FAILED = 'failed';
 
 
     // Static
@@ -75,6 +53,25 @@ class SentNotification extends Element
     public static function find(): ElementQueryInterface
     {
         return new SentNotificationQuery(static::class);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public static function hasStatuses(): bool
+    {
+        return true;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public static function statuses(): array
+    {
+        return [
+            self::STATUS_SUCCESS => Craft::t('formie', 'Success'),
+            self::STATUS_FAILED => Craft::t('formie', 'Failed'),
+        ];
     }
 
     /**
@@ -153,6 +150,37 @@ class SentNotification extends Element
     }
 
 
+    // Public Properties
+    // =========================================================================
+
+    public $id;
+    public $title;
+    public $formId;
+    public $submissionId;
+    public $notificationId;
+    public $subject;
+    public $to;
+    public $cc;
+    public $bcc;
+    public $replyTo;
+    public $replyToName;
+    public $from;
+    public $fromName;
+    public $body;
+    public $htmlBody;
+    public $info;
+    public $success;
+    public $message;
+
+
+    // Private Properties
+    // =========================================================================
+
+    private $_form;
+    private $_submission;
+    private $_notification;
+
+
     // Public Methods
     // =========================================================================
 
@@ -182,6 +210,18 @@ class SentNotification extends Element
     public function getCpEditUrl()
     {
         return UrlHelper::cpUrl('formie/sent-notifications/edit/' . $this->id);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getStatus()
+    {
+        if (!$this->success) {
+            return self::STATUS_FAILED;
+        }
+
+        return self::STATUS_SUCCESS;
     }
 
     /**
@@ -255,6 +295,8 @@ class SentNotification extends Element
         $record->body = $this->body;
         $record->htmlBody = $this->htmlBody;
         $record->info = $this->info;
+        $record->success = $this->success;
+        $record->message = $this->message;
         $record->dateCreated = $this->dateCreated;
         $record->dateUpdated = $this->dateUpdated;
 
@@ -281,6 +323,7 @@ class SentNotification extends Element
             'subject' => ['label' => Craft::t('formie', 'Subject')],
             'resend' => ['label' => Craft::t('formie', 'Resend')],
             'preview' => ['label' => Craft::t('formie', 'Preview'), 'icon' => 'view'],
+            'status' => ['label' => Craft::t('formie', 'Status')],
         ];
     }
 
@@ -323,6 +366,8 @@ class SentNotification extends Element
                 ]);
             case 'preview':
                 return $this->body ? StringHelper::safeTruncate($this->body, 50) : '';
+            case 'status':
+                return '<span class="status ' . $this->status . '"></span>';
             default:
                 return parent::tableAttributeHtml($attribute);
         }

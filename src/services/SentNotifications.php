@@ -28,7 +28,7 @@ class SentNotifications extends Component
     /**
      * @inheritdoc
      */
-    public function saveSentNotification($submission, $notification, $email)
+    public function saveSentNotification($submission, $notification, $email, $success = true, $error = null)
     {
         $settings = Formie::$plugin->getSettings();
 
@@ -72,6 +72,10 @@ class SentNotifications extends Component
         $sentNotification->replyToName = $replyToName;
         $sentNotification->from = $fromEmail;
         $sentNotification->fromName = $fromName;
+
+        // Store state and any errors
+        $sentNotification->success = $success;
+        $sentNotification->message = $error;
 
         if ($cc = $email->getCc()) {
             $sentNotification->cc = $cc;

@@ -260,6 +260,8 @@ class Emails extends Component
         // Render the email
         $emailRender = $this->renderEmail($notification, $submission);
 
+        $newEmail = $emailRender['email'] ?? '';
+        
         // Check if there were any errors. It's split this was so calling `render()` can return errors for previews
         // But in our case, we want to log the errors and bail.
         if (isset($emailRender['error']) && $emailRender['error']) {
@@ -267,10 +269,11 @@ class Emails extends Component
 
             Formie::error($error);
 
+            // Save the sent notification, as failed
+            Formie::$plugin->getSentNotifications()->saveSentNotification($submission, $notification, $newEmail, false, $error);
+
             return ['error' => $error];
         }
-
-        $newEmail = $emailRender['email'];
 
         // When in the context of a queue job, add some extra info
         if ($queueJob) {
@@ -299,6 +302,9 @@ class Emails extends Component
                 Formie::error($error);
                 Formie::error('Email payload: ' . Json::encode($this->_serializeEmail($newEmail)));
 
+                // Save the sent notification, as failed
+                Formie::$plugin->getSentNotifications()->saveSentNotification($submission, $notification, $newEmail, false, $error);
+
                 return ['error' => $error];
             }
 
@@ -312,10 +318,13 @@ class Emails extends Component
                 Formie::error($error);
                 Formie::error('Email payload: ' . Json::encode($this->_serializeEmail($newEmail)));
 
+                // Save the sent notification, as failed
+                Formie::$plugin->getSentNotifications()->saveSentNotification($submission, $notification, $newEmail, false, $error);
+
                 return ['error' => $error];
             }
 
-            // Log the sent notification - if enabled
+            // Save the sent notification, as successful
             Formie::$plugin->getSentNotifications()->saveSentNotification($submission, $notification, $newEmail);
         } catch (Throwable $e) {
             $error = Craft::t('formie', 'Notification email “{notification}” could not be sent for submission “{submission}”. Error: {error} {file}:{line}', [
@@ -328,6 +337,9 @@ class Emails extends Component
 
             Formie::error($error);
             Formie::error('Email payload: ' . Json::encode($this->_serializeEmail($newEmail)));
+
+            // Save the sent notification, as failed
+            Formie::$plugin->getSentNotifications()->saveSentNotification($submission, $notification, $newEmail, false, $error);
 
             return ['error' => $error];
         }

@@ -233,6 +233,8 @@ class Install extends Migration
             'body' => $this->mediumText(),
             'htmlBody' => $this->mediumText(),
             'info' => $this->text(),
+            'success' => $this->boolean(),
+            'message' => $this->text(),
             'dateCreated' => $this->dateTime(),
             'dateUpdated' => $this->dateTime(),
             'uid' => $this->uid(),

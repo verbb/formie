@@ -1,15 +1,16 @@
 <?php
 namespace verbb\formie\elements\db;
 
-use craft\elements\User;
 use verbb\formie\Formie;
 use verbb\formie\elements\Form;
+use verbb\formie\elements\SentNotification;
 use verbb\formie\models\Status;
 
 use Craft;
 use craft\db\Query;
 use craft\db\QueryAbortedException;
 use craft\elements\db\ElementQuery;
+use craft\elements\User;
 use craft\helpers\Db;
 
 class SentNotificationQuery extends ElementQuery
@@ -62,6 +63,14 @@ class SentNotificationQuery extends ElementQuery
         return $this;
     }
 
+    /**
+     * Narrows the query results based on the notification’s statuses.
+     */
+    public function status($value)
+    {
+        return parent::status($value);
+    }
+
 
     // Protected Methods
     // =========================================================================
@@ -90,6 +99,8 @@ class SentNotificationQuery extends ElementQuery
             'formie_sentnotifications.body',
             'formie_sentnotifications.htmlBody',
             'formie_sentnotifications.info',
+            'formie_sentnotifications.success',
+            'formie_sentnotifications.message',
             'formie_sentnotifications.dateCreated',
             'formie_sentnotifications.dateUpdated',
         ]);
@@ -99,5 +110,24 @@ class SentNotificationQuery extends ElementQuery
         }
 
         return parent::beforePrepare();
+    }
+
+    /**
+     * @inheritdoc
+     */
+    protected function statusCondition(string $status)
+    {
+        switch ($status) {
+            case SentNotification::STATUS_SUCCESS:
+                return [
+                    'formie_sentnotifications.success' => true,
+                ];
+            case SentNotification::STATUS_FAILED:
+                return [
+                    'formie_sentnotifications.success' => false,
+                ];
+            default:
+                return parent::statusCondition($status);
+        }
     }
 }

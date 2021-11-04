@@ -37,6 +37,22 @@
 <div id="settings" class="meta">
     <div class="field">
         <div class="heading">
+            <label class="">{{ 'Status' | t('formie') }}</label>
+        </div>
+
+        <div class="input ltr">
+            <div id="status-value" class="value">
+                {% if sentNotification.status == 'success' %}
+                    <span class="status on"></span>{{ 'Success' | t('formie') }}
+                {% else %}
+                    <span class="status off"></span>{{ 'Failed' | t('formie') }} <span class="info">{{ sentNotification.message }}</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="field">
+        <div class="heading">
             <label class="">{{ 'Resend' | t('formie') }}</label>
         </div>
 
