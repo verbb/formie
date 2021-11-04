@@ -72,6 +72,8 @@ class FileUpload extends CraftAssets implements FormFieldInterface
 
     protected $inputTemplate = 'formie/_includes/element-select-input';
 
+    private $_assetsToDelete = [];
+
 
     // Public Methods
     // =========================================================================
@@ -318,6 +320,9 @@ class FileUpload extends CraftAssets implements FormFieldInterface
         return implode(', ', $extensions);
     }
 
+    /**
+     * @inheritdoc
+     */
     public function getVolumeOptions()
     {
         $volumes = [];
@@ -476,6 +481,57 @@ class FileUpload extends CraftAssets implements FormFieldInterface
             SchemaHelper::conditionsField(),
         ];
     }
+
+    /**
+     * @inheritdoc
+     */
+    public function beforeElementSave(ElementInterface $element, bool $isNew): bool
+    {
+        if (!parent::beforeElementSave($element, $isNew)) {
+            return false;
+        }
+
+        // If we're going back to a previous page and replacing any assets already uploaded
+        // we need to delete them. BUT - we need to check for the existing assets here
+        // but wait until `afterElementSave` to delete them, because we must wait for validation
+        // to succeed or fail, which happens after this event.
+
+        // First, check if there are any new uploaded files. We're not going to delete anything
+        // unless we're replacing things.
+        $uploadedFiles = $this->_getUploadedFiles($element);
+
+        if ($uploadedFiles) {
+            // Get any already saved assets to delete later
+            $value = $element->getFieldValue($this->handle);
+
+            $this->_assetsToDelete = $value->ids();
+        }
+
+        return true;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function afterElementSave(ElementInterface $element, bool $isNew)
+    {
+        parent::afterElementSave($element, $isNew);
+
+        // Were any assets marked as to be deleted?
+        if ($this->_assetsToDelete) {
+            $assets = Asset::find()->id($this->_assetsToDelete)->all();
+
+            $elementService = Craft::$app->getElements();
+
+            foreach ($assets as $asset) {
+                $elementService->deleteElement($asset, true);
+            }
+        }
+    }
+
+
+    // Protected Methods
+    // =========================================================================
 
     /**
      * @inheritDoc
