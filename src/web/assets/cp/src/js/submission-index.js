@@ -73,6 +73,8 @@ Craft.Formie.SubmissionIndex = Craft.BaseElementIndex.extend({
             this.settings.criteria.isIncomplete = true;
         } else if (Garnish.hasAttr($option, 'data-trashed')) {
             this.trashed = true;
+            this.settings.criteria.isIncomplete = null;
+            this.settings.criteria.isSpam = null;
         } else if (Garnish.hasAttr($option, 'data-drafts')) {
             this.drafts = true;
         } else {
