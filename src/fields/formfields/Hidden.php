@@ -130,6 +130,11 @@ class Hidden extends FormField implements PreviewableFieldInterface
                 $element = $element->owner;
             }
 
+            // Check if there's no value been added on the front-end, and use the default value
+            if ($value === '') {
+                $value = $this->defaultValue;
+            }
+
             $value = Variables::getParsedValue($value, $element);
         }
 
