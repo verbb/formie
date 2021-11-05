@@ -6,5 +6,5 @@ For those unfamiliar with the term, "headless" website architecture is the separ
 Formie supports the [GraphQL](docs:developers/graphql) query language through Craft. This allows you to fetch form, page, fields and settings from Craft to use in your framework. You can also use mutations to create submissions via GraphQL, rather than the traditional POST request to the server.
 
 :::tip
-Have a look at our [headless Formie demo](https://formie-headless.verbb.io/?form=contactForm) to get a feel for what's possible.
+Have a look at our [headless Formie demo](https://formie-headless.verbb.io/?form=contactForm) to get a feel for what's possible. The demo is fully open sourced, so feel free to look at [how it's built](https://github.com/verbb/formie-headless).
 :::
