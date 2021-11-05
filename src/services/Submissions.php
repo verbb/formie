@@ -751,7 +751,7 @@ class Submissions extends Component
         }
 
         if ($editableIds) {
-            $forms = Form::find()->id($editableIds)->all();
+            $forms = Form::find()->id($editableIds)->trashed(null)->all();
 
             foreach ($forms as $form) {
                 $submissions[] = [
