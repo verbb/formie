@@ -46,6 +46,7 @@ class SubmissionsController extends Controller
     // =========================================================================
 
     protected $allowAnonymous = [
+        'api' => self::ALLOW_ANONYMOUS_LIVE,
         'submit' => self::ALLOW_ANONYMOUS_LIVE,
         'set-page' => self::ALLOW_ANONYMOUS_LIVE,
         'clear-submission' => self::ALLOW_ANONYMOUS_LIVE,
@@ -69,6 +70,10 @@ class SubmissionsController extends Controller
         $settings = Formie::$plugin->getSettings();
 
         if ($action->id === 'submit' && Craft::$app->user->isGuest && !$settings->enableCsrfValidationForGuests) {
+            $this->enableCsrfValidation = false;
+        }
+
+        if ($action->id === 'api') {
             $this->enableCsrfValidation = false;
         }
 
@@ -872,6 +877,49 @@ class SubmissionsController extends Controller
         return $this->asJson([
             'success' => true,
         ]);
+    }
+
+    /**
+     * Provides CORS support for when making a form submission.
+     *
+     * @return Response
+     */
+    public function actionApi(): Response
+    {
+        // Add CORS headers
+        $headers = $this->response->getHeaders();
+        $headers->setDefault('Access-Control-Allow-Credentials', 'true');
+        $headers->setDefault('Access-Control-Allow-Headers', 'Authorization, Content-Type, X-Craft-Token, Cache-Control, X-Requested-With');
+
+        $generalConfig = Craft::$app->getConfig()->getGeneral();
+
+        if (is_array($generalConfig->allowedGraphqlOrigins)) {
+            if (($origins = $this->request->getOrigin()) !== null) {
+                $origins = ArrayHelper::filterEmptyStringsFromArray(array_map('trim', explode(',', $origins)));
+
+                foreach ($origins as $origin) {
+                    if (in_array($origin, $generalConfig->allowedGraphqlOrigins)) {
+                        $headers->setDefault('Access-Control-Allow-Origin', $origin);
+                        break;
+                    }
+                }
+            }
+        } else if ($generalConfig->allowedGraphqlOrigins !== false) {
+            $headers->setDefault('Access-Control-Allow-Origin', '*');
+        }
+
+        if ($this->request->getIsPost()) {
+            return Craft::$app->runAction(Craft::$app->getRequest()->getParam('action'));
+        }
+
+        // This is just a preflight request, no need to run the actual query yet
+        if ($this->request->getIsOptions()) {
+            $this->response->format = Response::FORMAT_RAW;
+            $this->response->data = '';
+            return $this->response;
+        }
+
+        return $this->response;
     }
 
 
