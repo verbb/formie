@@ -1,6 +1,31 @@
 # Changelog
 
-## Unreleased
+## 1.4.24 - 2021-11-06
+
+### Added
+- Added `formie/submissions/api` action endpoint to handle cross-domain submissions using CORS.
+- Added server-side validation for File Upload fields and enforcing min/max file sizes.
+
+### Changed
+- File Upload fields now completely replaces uploaded files when re-uploading new files into the field.
+
+### Fixed
+- Fixed Number fields enforcing min/max values when "Limit Numbers" was disabled and values were entered for min/max limits.
+- Fixed not logging fatal errors when rendering custom email templates for fields.
+- Fixed an error when trying to delete submissions, where the owner form was also deleted and had an invalid field layout.
+- Fixed some trashed submissions not showing in the submissions element index.
+- Fixed trashed submissions not resolving to the correct form, if one still exists.
+- Fixed deleted incomplete and spam submissions not appearing in the submissions element index.
+- Fixed Tag fields incorrectly always saving the first available tag for a submission.
+- Fixed Hidden fields not always having the default value set on submission.
+- Fixed an error when using a Hidden field within a Group field.
+- Fixed a reactive issue when trying to edit a page name in the form builder.
+- Fixed validation error for File Upload fields, when navigating back to a previous page in a multi-form, page reload form.
+- Fixed server-side validation for File Upload fields and enforcing total number of files.
+- Fixed overflow tabs not working, when editing a submission in the control panel.
+- Fixed Date field (dropdown and inputs) incorrectly saving timezone information when editing submission through the control panel.
+- Fixed user permissions to `forms/refresh-tokens` controller action.
+- Fixed an error when failing to save a form occurs.
 
 ### Added
 - Added the `enableGatsbyCompatibility` config option. Enabling it has a side-effect of changing the `fields` property name on the Form GraphQL type to `formFields`.
