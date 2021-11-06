@@ -5,6 +5,7 @@
 ### Added
 - Added `formie/submissions/api` action endpoint to handle cross-domain submissions using CORS.
 - Added server-side validation for File Upload fields and enforcing min/max file sizes.
+- Added the `enableGatsbyCompatibility` config option. Enabling it has a side-effect of changing the `fields` property name on the Form GraphQL type to `formFields`.
 
 ### Changed
 - File Upload fields now completely replaces uploaded files when re-uploading new files into the field.
@@ -26,9 +27,6 @@
 - Fixed Date field (dropdown and inputs) incorrectly saving timezone information when editing submission through the control panel.
 - Fixed user permissions to `forms/refresh-tokens` controller action.
 - Fixed an error when failing to save a form occurs.
-
-### Added
-- Added the `enableGatsbyCompatibility` config option. Enabling it has a side-effect of changing the `fields` property name on the Form GraphQL type to `formFields`.
 
 ## 1.4.23 - 2021-10-30
 
