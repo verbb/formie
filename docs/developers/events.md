@@ -680,6 +680,26 @@ Event::on(PredefinedOptions::class, PredefinedOptions::EVENT_REGISTER_PREDEFINED
 ```
 
 
+## Summary Field Events
+
+### The `modifySummaryContent` event
+The event that is triggered to modify the content that is used when included in a Summary field.
+
+```php
+use verbb\formie\events\ModifyFieldSummaryContentEvent;
+use verbb\formie\fields\formfields\SingleLineText;
+use yii\base\Event;
+
+Event::on(SingleLineText::class, SingleLineText::EVENT_MODIFY_SUMMARY_CONTENT, function(ModifyFieldSummaryContentEvent $event) {
+    $value = $event->value;
+    $element = $event->element;
+
+    // Modify the value
+    $event->value = $value ? 'Yes' : 'No';
+});
+```
+
+
 ## Synced Field Events
 
 ### The `beforeSaveSyncedField` event

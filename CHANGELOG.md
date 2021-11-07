@@ -25,6 +25,8 @@
 - Added PDF Templates, allowing you to attach custom PDFs to Email Notifications.
 - Added the ability to set a Google Tag Manager payload for every submit button for forms.
 - Added statuses to Sent Notifications, along with error messages to identify issues for failed Email Notifications.
+- Added `defineSummaryContent()` method for all fields.
+- Added `Field::EVENT_MODIFY_SUMMARY_CONTENT` event.
 
 ### Changed
 - Sent notifications are now saved earlier regardless of success, added statuses and records a failed message.
