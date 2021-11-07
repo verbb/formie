@@ -1,5 +1,40 @@
 # Changelog
 
+## Unreleased
+
+### Added
+- Added Calculations field.
+- Added Signature field.
+- Added Password field.
+- Added Summary field.
+- Added Time-only option to Date fields.
+- Added `includeDate` property for Date fields.
+- Added `getIsDate()`, `getIsTime()`, `getIsDateTime()` methods for Date fields.
+- Added "Match Field" field setting to Text, Number and Email fields to enforce validation where two fields need to have the same value.
+- Added Microsoft Dynamics 365 CRM integration.
+- Added Klaviyo Email Marketing integration.
+- Added Klaviyo CRM integration.
+- Added Loqate Address Provider integration.
+- Added Adestra Email Marketing integration.
+- Added reCAPTCHA Enterprise captcha support.
+- Added hCaptcha captcha support.
+- Added Snaptcha plugin captcha support.
+- Added Native Forms support for SharpSpring CRM Integration.
+- Added conditional recipients option for Email Notifications.
+- Added `recipients`, `toConditions`, `pdfTemplateId` to Notification model.
+- Added PDF Templates, allowing you to attach custom PDFs to Email Notifications.
+- Added the ability to set a Google Tag Manager payload for every submit button for forms.
+- Added statuses to Sent Notifications, along with error messages to identify issues for failed Email Notifications.
+
+### Changed
+- Sent notifications are now saved earlier regardless of success, added statuses and records a failed message.
+
+### Fixed
+- Fixed captchas not showing the correct name in Formie settings.
+- Fixed Date field (dropdown and inputs) incorrectly saving timezone information when editing submission through the control panel.
+- Fixed some fields and compatibility with Summary field.
+- Fixed an error with Recipients fields, where an option value was changed previously, and no longer valid.
+
 ## 1.4.24 - 2021-11-06
 
 ### Added
