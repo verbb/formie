@@ -2,11 +2,15 @@
 namespace verbb\formie\models;
 
 use verbb\formie\Formie;
+use verbb\formie\helpers\ConditionsHelper;
 use verbb\formie\helpers\VariableNode;
 use verbb\formie\prosemirror\tohtml\Renderer;
 
+use Craft;
 use craft\base\Model;
+use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
+use craft\helpers\StringHelper;
 
 use yii\behaviors\AttributeTypecastBehavior;
 
@@ -22,7 +26,9 @@ class Notification extends Model
     public $name;
     public $enabled;
     public $subject;
+    public $recipients;
     public $to;
+    public $toConditions;
     public $cc;
     public $bcc;
     public $replyTo;
@@ -85,7 +91,9 @@ class Notification extends Model
                 'name' => AttributeTypecastBehavior::TYPE_STRING,
                 'enabled' => AttributeTypecastBehavior::TYPE_BOOLEAN,
                 'subject' => AttributeTypecastBehavior::TYPE_STRING,
+                'recipients' => AttributeTypecastBehavior::TYPE_STRING,
                 'to' => AttributeTypecastBehavior::TYPE_STRING,
+                'toConditions' => AttributeTypecastBehavior::TYPE_STRING,
                 'cc' => AttributeTypecastBehavior::TYPE_STRING,
                 'bcc' => AttributeTypecastBehavior::TYPE_STRING,
                 'replyTo' => AttributeTypecastBehavior::TYPE_STRING,
@@ -118,9 +126,13 @@ class Notification extends Model
     {
         $rules = parent::defineRules();
 
-        $rules[] = [['name', 'subject', 'to'], 'required'];
+        $rules[] = [['name', 'subject'], 'required'];
         $rules[] = [['name', 'subject', 'to', 'cc', 'bcc', 'replyTo', 'replyToName', 'from', 'fromName'], 'string'];
         $rules[] = [['formId', 'templateId', 'pdfTemplateId'], 'number', 'integerOnly' => true];
+
+        $rules[] = [['to'], 'required', 'when' => function($model) {
+            return $model->recipients === 'email';
+        }];
 
         return $rules;
     }
@@ -141,6 +153,36 @@ class Notification extends Model
             'type' => 'doc',
             'content' => $content,
         ]);
+    }
+
+    /**
+     * Returns the notification's recipients.
+     *
+     * @return string
+     */
+    public function getToEmail($submission)
+    {
+        if ($this->recipients === 'email') {
+            return $this->to;
+        }
+
+        if ($this->recipients === 'conditions') {
+            $conditionSettings = Json::decode($this->toConditions) ?? [];
+            
+            if ($conditionSettings) {
+                $toRecipients = $conditionSettings['toRecipients'] ?? [];
+
+                $results = ConditionsHelper::evaluateConditions($toRecipients, $submission, function($result, $condition) {
+                    if ($result) {
+                        return $condition['email'];
+                    }
+                });
+
+                return implode(',', $results);
+            }
+        }
+
+        return '';
     }
 
     /**

@@ -73,15 +73,13 @@ class ConditionsHelper
     /**
      * @inheritDoc
      */
-    public static function getConditionalTestResult($conditionSettings, $submission)
+    public static function evaluateConditions($conditions, $submission, $callback = null)
     {
-        $conditions = $conditionSettings['conditions'] ?? [];
-        
         $results = [];
         $evaluator = ConditionsHelper::getEvaluator();
 
         // Fetch the values, serialized for string comparison
-        $serializedFieldValues = self::_getSerializedFieldValues($submission);
+        $serializedFieldValues = ConditionsHelper::getSerializedFieldValues($submission);
 
         foreach ($conditions as $condition) {
             try {
@@ -116,8 +114,17 @@ class ConditionsHelper
                 // Create the rule for the evaluator - some rules need special syntax
                 $rule = ConditionsHelper::getRule($condition['condition']);
 
-                // Test the condition
-                $results[] = $evaluator->evaluate($rule, $variables);
+                // Check to see how we need to return results. By default, just a true/false on whether passed
+                $result = $evaluator->evaluate($rule, $variables);
+
+                // Allow a callback to define how to return the result
+                if ($callback) {
+                    if ($callbackResult = $callback($result, $condition)) {
+                        $results[] = $callbackResult;
+                    }
+                } else {
+                    $results[] = $result;
+                }
             } catch (\Throwable $e) {
                 Formie::error(Craft::t('formie', 'Failed to parse conditional “{rule}”: “{message}” {file}:{line}', [
                     'rule' => trim(ConditionsHelper::recursiveImplode('', $condition)),
@@ -130,6 +137,17 @@ class ConditionsHelper
             }
         }
 
+        return $results;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public static function getConditionalTestResult($conditionSettings, $submission)
+    {
+        $conditions = $conditionSettings['conditions'] ?? [];
+
+        $results = ConditionsHelper::evaluateConditions($conditions, $submission);
         $result = false;
 
         // Check to see how to compare the result (any or all).
@@ -177,7 +195,7 @@ class ConditionsHelper
     /**
      * @inheritdoc
      */
-    private static function _getSerializedFieldValues($submission): array
+    public static function getSerializedFieldValues($submission): array
     {
         $serializedValues = [];
 

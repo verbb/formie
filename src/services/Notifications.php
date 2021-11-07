@@ -133,7 +133,9 @@ class Notifications extends Component
             $notificationRecord->name = $notification->name;
             $notificationRecord->enabled = $notification->enabled;
             $notificationRecord->subject = $notification->subject;
+            $notificationRecord->recipients = $notification->recipients;
             $notificationRecord->to = $notification->to;
+            $notificationRecord->toConditions = $notification->toConditions;
             $notificationRecord->cc = $notification->cc;
             $notificationRecord->bcc = $notification->bcc;
             $notificationRecord->replyTo = $notification->replyTo;
@@ -491,13 +493,34 @@ class Notifications extends Component
                 'required' => true,
                 'variables' => 'plainTextVariables',
             ]),
-            SchemaHelper::variableTextField([
+            SchemaHelper::selectField([
                 'label' => Craft::t('formie', 'Recipients'),
-                'help' => Craft::t('formie', 'Email addresses who receive this email notification. Separate multiple emails with a comma.'),
-                'name' => 'to',
+                'help' => Craft::t('formie', 'Define who should receive this email notification.'),
+                'name' => 'recipients',
                 'validation' => 'required',
                 'required' => true,
-                'variables' => 'emailVariables',
+                'options' => [
+                    ['label' => Craft::t('formie', 'Email Addresses'), 'value' => 'email'],
+                    ['label' => Craft::t('formie', 'Conditions'), 'value' => 'conditions'],
+                ],
+            ]),
+            SchemaHelper::toggleContainer('recipients=email', [
+                SchemaHelper::variableTextField([
+                    'label' => Craft::t('formie', 'Recipient Emails'),
+                    'help' => Craft::t('formie', 'Email addresses who receive this email notification. Separate multiple emails with a comma.'),
+                    'name' => 'to',
+                    'validation' => 'requiredIfEqual:recipients=email',
+                    'required' => true,
+                    'variables' => 'emailVariables',
+                ]),
+            ]),
+            SchemaHelper::toggleContainer('recipients=conditions', [
+                [
+                    'label' => Craft::t('formie', 'Recipient Conditions'),
+                    'help' => Craft::t('formie', 'Add conditional logic to determine which email addresses receive this email notification.'),
+                    'type' => 'notificationRecipientConditions',
+                    'name' => 'toConditions',
+                ],
             ]),
             SchemaHelper::variableTextField([
                 'label' => Craft::t('formie', 'Subject'),
@@ -671,7 +694,9 @@ class Notifications extends Component
                 'name',
                 'enabled',
                 'subject',
+                'recipients',
                 'to',
+                'toConditions',
                 'cc',
                 'bcc',
                 'replyTo',

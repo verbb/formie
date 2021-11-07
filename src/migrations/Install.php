@@ -170,7 +170,11 @@ class Install extends Migration
             'name' => $this->text()->notNull(),
             'enabled' => $this->boolean()->defaultValue(true),
             'subject' => $this->text(),
+            'recipients' => $this->enum('recipients', ['email', 'conditions'])
+                ->defaultValue('email')
+                ->notNull(),
             'to' => $this->text(),
+            'toConditions' => $this->text(),
             'cc' => $this->text(),
             'bcc' => $this->text(),
             'replyTo' => $this->text(),

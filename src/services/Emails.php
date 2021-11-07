@@ -89,7 +89,7 @@ class Emails extends Component
 
         // To:
         try {
-            $to = Variables::getParsedValue((string)$notification->to, $submission, $form, $notification);
+            $to = Variables::getParsedValue((string)$notification->getToEmail($submission), $submission, $form, $notification);
             $to = $this->_getParsedEmails($to);
 
             if ($to) {
@@ -97,7 +97,7 @@ class Emails extends Component
             }
         } catch (Throwable $e) {
             $error = Craft::t('formie', 'Notification email parse error for “To: {value}”. Template error: “{message}” {file}:{line}', [
-                'value' => $notification->to,
+                'value' => $notification->getToEmail($submission),
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),

@@ -164,6 +164,11 @@ export default Vue => {
                 component: 'NotificationConditions',
             },
 
+            notificationRecipientConditions: {
+                classification: 'text',
+                component: 'NotificationRecipientConditions',
+            },
+
             fieldConditions: {
                 classification: 'text',
                 component: 'FieldConditions',
