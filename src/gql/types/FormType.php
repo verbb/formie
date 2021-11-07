@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\gql\types;
 
+use craft\helpers\Gql;
 use verbb\formie\gql\interfaces\FormInterface;
 
 use craft\gql\base\ObjectType;
@@ -25,6 +26,13 @@ class FormType extends Element
 
     protected function resolve($source, $arguments, $context, ResolveInfo $resolveInfo)
     {
+        $fieldName = Gql::getFieldNameWithAlias($resolveInfo, $source, $context);
+
+        switch ($fieldName) {
+            case 'formFields':
+                return $source->getFields();
+        }
+
         return $source[$resolveInfo->fieldName];
     }
 }

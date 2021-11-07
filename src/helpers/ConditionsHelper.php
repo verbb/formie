@@ -25,7 +25,19 @@ class ConditionsHelper
 
         // Add custom evaluation rules
         $expressionLanguage->register('contains', function() {}, function($args, $subject, $pattern) {
-            return StringHelper::contains((string)$subject, $pattern);
+            if (is_array($subject)) {
+                return in_array($pattern, $subject);
+            } else {
+                return StringHelper::contains((string)$subject, $pattern);
+            }
+        });
+
+        $expressionLanguage->register('notContains', function() {}, function($args, $subject, $pattern) {
+            if (is_array($subject)) {
+                return !in_array($pattern, $subject);
+            } else {
+                return !StringHelper::contains((string)$subject, $pattern);
+            }
         });
 
         $expressionLanguage->register('startsWith', function() {}, function($args, $subject, $pattern) {
@@ -63,7 +75,7 @@ class ConditionsHelper
 
         // For custom rules, we need a custom syntax. Symfony doesn't support custom operators, which would be nice
         // Instead of `field contains value` we need to do `contains(field, value)`.
-        if (in_array($operator, ['contains', 'startsWith', 'endsWith'])) {
+        if (in_array($operator, ['contains', 'notContains', 'startsWith', 'endsWith'])) {
             return "{$operator}(field, value)";
         }
 
@@ -101,9 +113,22 @@ class ConditionsHelper
                     $variables['field'] = ArrayHelper::getValue($serializedFieldValues, $variables['field']);
                 }
 
-                // Check for array values, we should always be comparing strings
+                // Special-case for some fields, that support multiple values (mutli-select, checkboxes)
+                // where we actually want to do a 'contains' lookup for arrays if we're doing equality operators.
                 if (is_array($variables['field'])) {
-                    $variables['field'] = ConditionsHelper::recursiveImplode(' ', $variables['field']);
+                    // Check to see if we're using equality operators. Technically, we want to do a contains
+                    // not-contains lookup because we're dealing with arrays. For all other cases (startswith,
+                    // contains) we still want to do string-based checks, so ensure the value is a string.
+                    //
+                    // For instance, to check if `[1,2] = 1` we switch that to `[1,2] contains 1`.
+                    // For `[1,2] contains 1`, we switch to `1 2 contains 1`
+                    if ($condition['condition'] === '=') {
+                        $condition['condition'] = 'contains';
+                    } else if ($condition['condition'] === '!=') {
+                        $condition['condition'] = 'notContains';
+                    } else {
+                        $variables['field'] = ConditionsHelper::recursiveImplode(' ', $variables['field']);
+                    }
                 }
 
                 // Protect against empty conditions

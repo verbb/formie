@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\gql\interfaces;
 
+use verbb\formie\gql\types\generators\FieldAttributeGenerator;
 use verbb\formie\gql\types\generators\PageSettingsGenerator;
 use verbb\formie\models\PageSettings;
 
@@ -52,7 +53,7 @@ class PageSettingsInterface extends BaseInterfaceType
 
     public static function getFieldDefinitions(): array
     {
-        return TypeManager::prepareFieldDefinitions(array_merge(parent::getFieldDefinitions(), [
+        $fields = array_merge(parent::getFieldDefinitions(), [
             'submitButtonLabel' => [
                 'name' => 'submitButtonLabel',
                 'type' => Type::string(),
@@ -73,6 +74,43 @@ class PageSettingsInterface extends BaseInterfaceType
                 'type' => Type::string(),
                 'description' => 'The page’s button positions.',
             ],
-        ]), self::getName());
+            'cssClasses' => [
+                'name' => 'cssClasses',
+                'type' => Type::string(),
+                'description' => 'The field’s CSS classes.',
+            ],
+            'containerAttributes' => [
+                'name' => 'containerAttributes',
+                'type' => Type::listOf(FieldAttributeGenerator::generateType()),
+                'description' => 'The field’s container attributes.',
+            ],
+            'inputAttributes' => [
+                'name' => 'inputAttributes',
+                'type' => Type::listOf(FieldAttributeGenerator::generateType()),
+                'description' => 'The field’s input attributes.',
+            ],
+            'enablePageConditions' => [
+                'name' => 'enablePageConditions',
+                'type' => Type::boolean(),
+                'description' => 'Whether the page has conditions enabled.',
+            ],
+            'pageConditions' => [
+                'name' => 'pageConditions',
+                'type' => Type::listOf(Type::string()),
+                'description' => 'The page’s conditions.',
+            ],
+            'enableNextButtonConditions' => [
+                'name' => 'enableNextButtonConditions',
+                'type' => Type::boolean(),
+                'description' => 'Whether the page has conditions enabled.',
+            ],
+            'nextButtonConditions' => [
+                'name' => 'nextButtonConditions',
+                'type' => Type::listOf(Type::string()),
+                'description' => 'The page’s conditions.',
+            ],
+        ]);
+        unset($fields['id'], $fields['uid']);
+        return TypeManager::prepareFieldDefinitions($fields, self::getName());
     }
 }

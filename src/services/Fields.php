@@ -766,6 +766,7 @@ class Fields extends Component
                 'flf.sortOrder',
                 'forms.id as formId',
                 'rows.id as rowId',
+                'rows.uid as rowUid',
                 'rows.row as rowIndex',
             ])
             ->innerJoin('{{%fieldlayoutfields}} flf', '[[flf.fieldId]] = [[fields.id]]')
@@ -851,6 +852,7 @@ class Fields extends Component
         foreach ($fields as $field) {
             /* @var FormField $field */
             $rows[$field->rowIndex]['id'] = $field->rowId;
+            $rows[$field->rowIndex]['uid'] = $field->rowUid;
 
             if (!isset($rows[$field->rowIndex]['fields'])) {
                 $rows[$field->rowIndex]['fields'] = [];

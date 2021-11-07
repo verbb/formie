@@ -456,8 +456,8 @@ class Submission extends Element
      */
     public function getFieldLayout()
     {
-        if (!$this->_fieldLayout && $this->getForm()) {
-            $this->_fieldLayout = $this->getForm()->getFormFieldLayout();
+        if (!$this->_fieldLayout && $form = $this->getForm()) {
+            $this->_fieldLayout = $form->getFormFieldLayout();
         }
 
         return $this->_fieldLayout;
@@ -534,12 +534,14 @@ class Submission extends Element
         if (!$this->_form && $this->formId) {
             $query = Form::find()->id($this->formId);
 
-            // If this submission has been trashed, ensure to find the trashed form
-            if ($this->trashed) {
-                $query->trashed(true);
-            }
-
             $this->_form = $query->one();
+
+            // If no form found yet, and the submission has been trashed, maybe the form has been trashed?
+            if (!$this->_form && $this->trashed) {
+                $query->trashed(true);
+
+                $this->_form = $query->one();
+            }
         }
 
         return $this->_form;

@@ -41,11 +41,15 @@ Craft.Formie.SubmissionIndex = Craft.BaseElementIndex.extend({
     afterInit() {
         this.editableForms = [];
 
-        for (var i = 0; i < Craft.Formie.editableSubmissions.length; i++) {
-            var form = Craft.Formie.editableSubmissions[i];
+        var { editableSubmissions } = Craft.Formie;
 
-            if (this.getSourceByKey('form:' + form.id)) {
-                this.editableForms.push(form);
+        if (editableSubmissions) {
+            for (var i = 0; i < editableSubmissions.length; i++) {
+                var form = editableSubmissions[i];
+
+                if (this.getSourceByKey('form:' + form.id)) {
+                    this.editableForms.push(form);
+                }
             }
         }
 
@@ -69,6 +73,8 @@ Craft.Formie.SubmissionIndex = Craft.BaseElementIndex.extend({
             this.settings.criteria.isIncomplete = true;
         } else if (Garnish.hasAttr($option, 'data-trashed')) {
             this.trashed = true;
+            this.settings.criteria.isIncomplete = null;
+            this.settings.criteria.isSpam = null;
         } else if (Garnish.hasAttr($option, 'data-drafts')) {
             this.drafts = true;
         } else {

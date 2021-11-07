@@ -37,6 +37,13 @@ class FieldLayoutBehavior extends CraftFieldLayoutBehavior
         }
 
         if (($fieldLayout = Formie::$plugin->getFields()->getLayoutById($id)) === null) {
+            // Ignore if this is a trashed form
+            if ($this->owner->trashed) {
+                return $this->_fieldLayout = new FieldLayout([
+                    'type' => $this->elementType,
+                ]);
+            }
+            
             throw new InvalidConfigException('Invalid field layout ID: ' . $id);
         }
 

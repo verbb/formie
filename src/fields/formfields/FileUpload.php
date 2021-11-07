@@ -16,6 +16,7 @@ use craft\elements\Asset;
 use craft\fields\Assets as CraftAssets;
 use craft\helpers\Assets;
 use craft\helpers\Json;
+use craft\web\UploadedFile;
 
 use GraphQL\Type\Definition\Type;
 
@@ -71,6 +72,8 @@ class FileUpload extends CraftAssets implements FormFieldInterface
     public $useSingleFolder = true;
 
     protected $inputTemplate = 'formie/_includes/element-select-input';
+
+    private $_assetsToDelete = [];
 
 
     // Public Methods
@@ -191,7 +194,18 @@ class FileUpload extends CraftAssets implements FormFieldInterface
     public function getElementValidationRules(): array
     {
         $rules = parent::getElementValidationRules();
-        $rules[] = 'validateFileLimit';
+
+        if ($this->limitFiles) {
+            $rules[] = 'validateFileLimit';
+        }
+
+        if ($this->sizeMinLimit) {
+            $rules[] = 'validateMinFileSize';
+        }
+
+        if ($this->sizeLimit) {
+            $rules[] = 'validateMaxFileSize';
+        }
 
         return $rules;
     }
@@ -205,17 +219,69 @@ class FileUpload extends CraftAssets implements FormFieldInterface
     {
         $fileLimit = intval($this->limitFiles ?? 1);
 
-        $value = $element->getFieldValue($this->handle);
-        $count = $value->count();
+        $filenames = [];
 
-        // TODO: fix, doesn't work.
-        if ($count > $fileLimit) {
-            $element->addError(
-                $this->handle,
-                Craft::t('formie', 'Choose up to {files} files.', [
-                    'files' => $fileLimit
-                ])
-            );
+        // Get any uploaded filenames
+        $uploadedFiles = $this->_getUploadedFiles($element);
+
+        if (count($uploadedFiles) > $fileLimit) {
+            $element->addError($this->handle, Craft::t('formie', 'Choose up to {files} files.', [
+                'files' => $fileLimit,
+            ]));
+        }
+    }
+
+    /**
+     * Validates the files to make sure they are over the allowed min file size.
+     *
+     * @param ElementInterface $element
+     */
+    public function validateMinFileSize(ElementInterface $element)
+    {
+        $filenames = [];
+
+        // Get any uploaded filenames
+        $uploadedFiles = $this->_getUploadedFiles($element);
+        
+        $sizeMinLimit = $this->sizeMinLimit * 1000000;
+
+        foreach ($uploadedFiles as $file) {
+            if (file_exists($file['location']) && (filesize($file['location']) < $sizeMinLimit)) {
+                $filenames[] = $file['filename'];
+            }
+        }
+
+        foreach ($filenames as $filename) {
+            $element->addError($this->handle, Craft::t('formie', 'File must be larger than {size} MB.', [
+                'size' => $this->sizeMinLimit,
+            ]));
+        }
+    }
+
+    /**
+     * Validates the files to make sure they are under the allowed max file size.
+     *
+     * @param ElementInterface $element
+     */
+    public function validateMaxFileSize(ElementInterface $element)
+    {
+        $filenames = [];
+
+        // Get any uploaded filenames
+        $uploadedFiles = $this->_getUploadedFiles($element);
+        
+        $sizeLimit = $this->sizeLimit * 1000000;
+
+        foreach ($uploadedFiles as $file) {
+            if (file_exists($file['location']) && (filesize($file['location']) > $sizeLimit)) {
+                $filenames[] = $file['filename'];
+            }
+        }
+
+        foreach ($filenames as $filename) {
+            $element->addError($this->handle, Craft::t('formie', 'File must be smaller than {size} MB.', [
+                'size' => $this->sizeLimit,
+            ]));
         }
     }
 
@@ -255,6 +321,9 @@ class FileUpload extends CraftAssets implements FormFieldInterface
         return implode(', ', $extensions);
     }
 
+    /**
+     * @inheritdoc
+     */
     public function getVolumeOptions()
     {
         $volumes = [];
@@ -415,6 +484,57 @@ class FileUpload extends CraftAssets implements FormFieldInterface
     }
 
     /**
+     * @inheritdoc
+     */
+    public function beforeElementSave(ElementInterface $element, bool $isNew): bool
+    {
+        if (!parent::beforeElementSave($element, $isNew)) {
+            return false;
+        }
+
+        // If we're going back to a previous page and replacing any assets already uploaded
+        // we need to delete them. BUT - we need to check for the existing assets here
+        // but wait until `afterElementSave` to delete them, because we must wait for validation
+        // to succeed or fail, which happens after this event.
+
+        // First, check if there are any new uploaded files. We're not going to delete anything
+        // unless we're replacing things.
+        $uploadedFiles = $this->_getUploadedFiles($element);
+
+        if ($uploadedFiles) {
+            // Get any already saved assets to delete later
+            $value = $element->getFieldValue($this->handle);
+
+            $this->_assetsToDelete = $value->ids();
+        }
+
+        return true;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function afterElementSave(ElementInterface $element, bool $isNew)
+    {
+        parent::afterElementSave($element, $isNew);
+
+        // Were any assets marked as to be deleted?
+        if ($this->_assetsToDelete) {
+            $assets = Asset::find()->id($this->_assetsToDelete)->all();
+
+            $elementService = Craft::$app->getElements();
+
+            foreach ($assets as $asset) {
+                $elementService->deleteElement($asset, true);
+            }
+        }
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
+    /**
      * @inheritDoc
      */
     protected function getSettingGqlType($attribute, $type, $fieldInfo)
@@ -433,8 +553,40 @@ class FileUpload extends CraftAssets implements FormFieldInterface
     // Private Methods
     // =========================================================================
 
-    private function humanFilesize($size, $precision = 2) {
+    /**
+     * @inheritDoc
+     */
+    private function humanFilesize($size, $precision = 2)
+    {
         for ($i = 0; ($size / 1024) > 0.9; $i++, $size /= 1024) {}
         return round($size, $precision).['B','kB','MB','GB','TB','PB','EB','ZB','YB'][$i];
+    }
+
+    /**
+     * Returns any files that were uploaded to the field.
+     *
+     * @param ElementInterface $element
+     * @return array
+     */
+    private function _getUploadedFiles(ElementInterface $element): array
+    {
+        $uploadedFiles = [];
+
+        // See if we have uploaded file(s).
+        $paramName = $this->requestParamName($element);
+
+        if ($paramName !== null) {
+            $files = UploadedFile::getInstancesByName($paramName);
+
+            foreach ($files as $file) {
+                $uploadedFiles[] = [
+                    'filename' => $file->name,
+                    'location' => $file->tempName,
+                    'type' => 'upload',
+                ];
+            }
+        }
+
+        return $uploadedFiles;
     }
 }

@@ -4,6 +4,7 @@ namespace verbb\formie\fields\formfields;
 use verbb\formie\Formie;
 use verbb\formie\base\FormField;
 use verbb\formie\elements\Form;
+use verbb\formie\elements\NestedFieldRow;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\Variables;
 use verbb\formie\positions\Hidden as HiddenPosition;
@@ -123,6 +124,17 @@ class Hidden extends FormField implements PreviewableFieldInterface
     {
         // Handle variables use in custom fields
         if ($this->defaultOption === 'custom') {
+            // We have to check if this is a NestedFieldRow, we always need the top-level submission
+            // Potentially move this to `Variables::getParsedValue()`.
+            if ($element instanceof NestedFieldRow) {
+                $element = $element->owner;
+            }
+
+            // Check if there's no value been added on the front-end, and use the default value
+            if ($value === '') {
+                $value = $this->defaultValue;
+            }
+
             $value = Variables::getParsedValue($value, $element);
         }
 

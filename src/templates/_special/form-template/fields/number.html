@@ -5,8 +5,8 @@
     name: field.handle,
     placeholder: field.placeholder | t,
     required: field.required ? true : false,
-    min: field.min ?? false,
-    max: field.max ?? false,
+    min: field.limit ? field.min ?? false,
+    max: field.limit ? field.max ?? false,
     value: value,
     data: {
         'fui-id': options.dataId,

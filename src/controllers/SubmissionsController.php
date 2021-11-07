@@ -46,6 +46,7 @@ class SubmissionsController extends Controller
     // =========================================================================
 
     protected $allowAnonymous = [
+        'api' => self::ALLOW_ANONYMOUS_LIVE,
         'submit' => self::ALLOW_ANONYMOUS_LIVE,
         'set-page' => self::ALLOW_ANONYMOUS_LIVE,
         'clear-submission' => self::ALLOW_ANONYMOUS_LIVE,
@@ -69,6 +70,10 @@ class SubmissionsController extends Controller
         $settings = Formie::$plugin->getSettings();
 
         if ($action->id === 'submit' && Craft::$app->user->isGuest && !$settings->enableCsrfValidationForGuests) {
+            $this->enableCsrfValidation = false;
+        }
+
+        if ($action->id === 'api') {
             $this->enableCsrfValidation = false;
         }
 
@@ -369,13 +374,14 @@ class SubmissionsController extends Controller
         $request = Craft::$app->getRequest();
         $goingBack = false;
 
-        $currentPage = null;
-
         /* @var Settings $settings */
         $formieSettings = Formie::$plugin->getSettings();
 
         $handle = $request->getRequiredBodyParam('handle');
         $goingBack = (bool)$request->getBodyParam('goingBack');
+        $pageIndex = $request->getParam('pageIndex');
+        $goToPageId = $request->getBodyParam('goToPageId');
+        $completeSubmission = (bool)$request->getBodyParam('completeSubmission');
 
         Formie::log("Submission triggered for ${handle}.");
 
@@ -386,21 +392,32 @@ class SubmissionsController extends Controller
             throw new BadRequestHttpException("No form exists with the handle \"$handle\"");
         }
 
-        if ($pageIndex = $request->getParam('pageIndex')) {
-            $pages = $form->getPages();
-            $currentPage = $pages[$pageIndex];
+        $pages = $form->getPages();
+        $settings = $form->settings;
+        $defaultStatus = $form->getDefaultStatus();
+        $errorMessage = $form->settings->getErrorMessage();
+
+        // Set a specifc page as the current page. This will override the session-based
+        // current page, but is useful for headless setups, or template overrides.
+        // TODO: make this the default behaviour at the next breakpoint, to not rely
+        // on session-based saving for the current page.
+        if (is_numeric($pageIndex)) {
+            $currentPage = $pages[$pageIndex] ?? null;
+
+            if ($currentPage) {
+                $form->setCurrentPage($currentPage);
+            }
         }
 
         // Allow full submission payload to be provided for multi-page forms.
         // Skip straight to the last page.
-        if ($request->getParam('completeSubmission')) {
-            $pages = $form->getPages();
-            $form->setCurrentPage($pages[count($pages) - 1]);
-        }
+        if ($completeSubmission) {
+            $currentPage = $pages[count($pages) - 1] ?? null;
 
-        $settings = $form->settings;
-        $defaultStatus = $form->getDefaultStatus();
-        $errorMessage = $form->settings->getErrorMessage();
+            if ($currentPage) {
+                $form->setCurrentPage($currentPage);
+            }
+        }
 
         // Get the submission, or create a new one
         $submission = $this->_populateSubmission($form);
@@ -409,7 +426,7 @@ class SubmissionsController extends Controller
         $nextPage = $form->getNextPage(null, $submission);
 
         // Or, if we've passed in a specific page to go to
-        if ($goToPageId = $request->getBodyParam('goToPageId')) {
+        if (is_numeric($goToPageId)) {
             $goingBack = true;
             $nextPage = ArrayHelper::firstWhere($form->getPages(), 'id', $goToPageId);
         } else if ($goingBack) {
@@ -862,6 +879,49 @@ class SubmissionsController extends Controller
         ]);
     }
 
+    /**
+     * Provides CORS support for when making a form submission.
+     *
+     * @return Response
+     */
+    public function actionApi(): Response
+    {
+        // Add CORS headers
+        $headers = $this->response->getHeaders();
+        $headers->setDefault('Access-Control-Allow-Credentials', 'true');
+        $headers->setDefault('Access-Control-Allow-Headers', 'Authorization, Content-Type, X-Craft-Token, Cache-Control, X-Requested-With');
+
+        $generalConfig = Craft::$app->getConfig()->getGeneral();
+
+        if (is_array($generalConfig->allowedGraphqlOrigins)) {
+            if (($origins = $this->request->getOrigin()) !== null) {
+                $origins = ArrayHelper::filterEmptyStringsFromArray(array_map('trim', explode(',', $origins)));
+
+                foreach ($origins as $origin) {
+                    if (in_array($origin, $generalConfig->allowedGraphqlOrigins)) {
+                        $headers->setDefault('Access-Control-Allow-Origin', $origin);
+                        break;
+                    }
+                }
+            }
+        } else if ($generalConfig->allowedGraphqlOrigins !== false) {
+            $headers->setDefault('Access-Control-Allow-Origin', '*');
+        }
+
+        if ($this->request->getIsPost()) {
+            return Craft::$app->runAction(Craft::$app->getRequest()->getParam('action'));
+        }
+
+        // This is just a preflight request, no need to run the actual query yet
+        if ($this->request->getIsOptions()) {
+            $this->response->format = Response::FORMAT_RAW;
+            $this->response->data = '';
+            return $this->response;
+        }
+
+        return $this->response;
+    }
+
 
     // Private Methods
     // =========================================================================
@@ -951,7 +1011,7 @@ class SubmissionsController extends Controller
                 }
             }
 
-            $variables['tabs'][] = [
+            $variables['tabs'][$tab->getHtmlId()] = [
                 'label' => Craft::t('site', $tab->name),
                 'url' => '#' . $tab->getHtmlId(),
                 'class' => $hasErrors ? 'error' : null

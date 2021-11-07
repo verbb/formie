@@ -69,7 +69,6 @@
                 {{ actionInput(form.getActionUrl()) }}
                 {{ hiddenInput('handle', form.handle) }}
                 {{ hiddenInput('siteId', craft.app.sites.currentSite.id) }}
-                {{ hiddenInput('pageIndex', form.getCurrentPageIndex()) }}
 
                 {% if form.getRelations() %}
                     {{ hiddenInput('relations', form.getRelations()) }}

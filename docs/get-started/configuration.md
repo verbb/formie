@@ -11,6 +11,7 @@ return [
     '*' => [
         'pluginName' => 'Formie',
         'defaultPage' => 'forms',
+        'enableGatsbyCompatibility' => false,
 
         // Forms
         'defaultFormTemplate' => '',
@@ -55,6 +56,7 @@ return [
 ### Configuration options
 - `pluginName` - Set a custom name for the plugin.
 - `defaultPage` - Set the default sub-page navigated to when clicking "Formie" in the main menu.
+- `enableGatsbyCompatibility` - Opt-in to Gatsby support, which structures the GraphQL interfaces differently so they are compatible with Gatsby.
 
 #### Forms
 - `defaultFormTemplate` - The handle for the default form template used for new forms. Formie‘s defaults will be used if not specified.

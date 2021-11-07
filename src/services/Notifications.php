@@ -148,7 +148,7 @@ class Notifications extends Component
             $notificationRecord->enableConditions = $notification->enableConditions;
             $notificationRecord->conditions = $notification->conditions;
 
-            $success = $notificationRecord->save(false);
+            $notificationRecord->save(false);
 
             $notification->id = $notificationRecord->id;
 
@@ -166,7 +166,7 @@ class Notifications extends Component
             ]));
         }
 
-        return $success;
+        return true;
     }
 
     /**

@@ -832,7 +832,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
                 return false;
             }
 
-            return (bool)$value;
+            return StringHelper::toBoolean((string)$value);
         }
 
         if ($integrationField->getType() === IntegrationField::TYPE_ARRAY) {

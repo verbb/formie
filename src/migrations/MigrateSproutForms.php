@@ -123,7 +123,9 @@ class MigrateSproutForms extends Migration
             $form->settings->storeData = $sproutFormsForm->saveData ?? true;
 
             // Set default template
-            $form->templateId = $settings->getDefaultFormTemplateId();
+            if ($templateId = $settings->getDefaultFormTemplateId()) {
+                $form->templateId = $templateId;
+            }
 
             // Fire a 'modifyForm' event
             $event = new ModifyMigrationFormEvent([
@@ -345,9 +347,13 @@ class MigrateSproutForms extends Migration
                     $newNotification->from = $notification->fromEmail;
                     $newNotification->fromName = $notification->fromName;
                     $newNotification->replyTo = $notification->replyToEmail;
-                    $newNotification->templateId = $settings->getDefaultEmailTemplateId();
                     $newNotification->attachFiles = !!$notification->enableFileAttachments;
                     $newNotification->enabled = !!$notification->enabled;
+
+                    // Set default template
+                    if ($templateId = $settings->getDefaultEmailTemplateId()) {
+                        $newNotification->templateId = $templateId;
+                    }
 
                     $body = $this->_tokenizeNotificationBody($notification->defaultBody);
                     $newNotification->content = Json::encode($body);
@@ -365,12 +371,14 @@ class MigrateSproutForms extends Migration
                         continue;
                     }
 
-                    if (Formie::$plugin->getNotifications()->saveNotification($event->newNotification)) {
+                    $newNotification = $event->newNotification;
+
+                    if (Formie::$plugin->getNotifications()->saveNotification($newNotification)) {
                         $this->stdout("    > Migrated notification “{$notification->title}”.", Console::FG_GREEN);
                     } else {
                         $this->stdout("    > Failed to save notification “{$notification->title}”.", Console::FG_RED);
 
-                        foreach ($notification->getErrors() as $attr => $errors) {
+                        foreach ($newNotification->getErrors() as $attr => $errors) {
                             foreach ($errors as $error) {
                                 $this->stdout("    > $attr: $error", Console::FG_RED);
                             }

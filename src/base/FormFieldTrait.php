@@ -23,6 +23,7 @@ use craft\helpers\Json;
 use craft\helpers\Template;
 use craft\helpers\StringHelper;
 use craft\validators\HandleValidator;
+use craft\web\twig\TemplateLoaderException;
 
 use Exception;
 use GraphQL\Type\Definition\Type;
@@ -106,6 +107,11 @@ trait FormFieldTrait
      * @var int
      */
     public $rowId;
+
+    /**
+     * @var string
+     */
+    public $rowUid;
 
     /**
      * @var int
@@ -281,6 +287,7 @@ trait FormFieldTrait
         $names = array_unique($names);
         ArrayHelper::removeValue($names, 'rowId');
         ArrayHelper::removeValue($names, 'rowIndex');
+        ArrayHelper::removeValue($names, 'rowUid');
 
         return $names;
     }
@@ -898,6 +905,11 @@ trait FormFieldTrait
             $html = Craft::$app->getView()->renderTemplate(static::getEmailTemplatePath(), $inputOptions);
             $html = Template::raw($html);
         } catch (Exception $e) {
+            // Log anything that isn't a "Unable to find the template" which we take care of shortly
+            if (!($e instanceof TemplateLoaderException)) {
+                Formie::error('Failed to render email field content for ' . $this->handle . ': ' . $e->getMessage());
+            }
+
             // Nice an simple for most cases - no need for a template file
             try {
                 $content = (string)($value ? $value : Craft::t('formie', 'No response.'));

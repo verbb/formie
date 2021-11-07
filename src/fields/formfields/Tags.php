@@ -121,12 +121,17 @@ class Tags extends CraftTags implements FormFieldInterface
 
         if (!is_array($value)) {
             $value = StringHelper::explode($value, ' ');
-            $value = array_map(function ($t) {
-                return [
-                    'value' => $t,
-                ];
+
+            $value = array_map(function($t) {
+                if ($t) {
+                    return [
+                        'value' => $t,
+                    ];
+                }
             }, $value);
         }
+
+        $value = array_filter($value);
 
         $tagsIds = [];
         foreach ($value as $tagJson) {
