@@ -1052,6 +1052,130 @@ Event::on(FormTemplates::class, FormTemplates::EVENT_AFTER_DELETE_FORM_TEMPLATE,
 
 
 
+## PDF Template Events
+
+### The `beforeSavePdfTemplate` event
+The event that is triggered before an pdf template is saved.
+
+```php
+use verbb\formie\events\PdfTemplateEvent;
+use verbb\formie\services\PdfTemplates;
+use yii\base\Event;
+
+Event::on(PdfTemplates::class, PdfTemplates::EVENT_BEFORE_SAVE_PDF_TEMPLATE, function(PdfTemplateEvent $event) {
+    $template = $event->template;
+    $isNew = $event->isNew;
+    // ...
+});
+```
+
+### The `afterSavePdfTemplate` event
+The event that is triggered after an pdf template is saved.
+
+```php
+use verbb\formie\events\PdfTemplateEvent;
+use verbb\formie\services\PdfTemplates;
+use yii\base\Event;
+
+Event::on(PdfTemplates::class, PdfTemplates::EVENT_AFTER_SAVE_PDF_TEMPLATE, function(PdfTemplateEvent $event) {
+    $template = $event->template;
+    $isNew = $event->isNew;
+    // ...
+});
+```
+
+### The `beforeDeletePdfTemplate` event
+The event that is triggered before an pdf template is deleted.
+
+```php
+use verbb\formie\events\PdfTemplateEvent;
+use verbb\formie\services\PdfTemplates;
+use yii\base\Event;
+
+Event::on(PdfTemplates::class, PdfTemplates::EVENT_BEFORE_DELETE_PDF_TEMPLATE, function(PdfTemplateEvent $event) {
+    $template = $event->template;
+    // ...
+});
+```
+
+### The `beforeApplyPdfTemplateDelete` event
+The event that is triggered before an pdf template is deleted.
+
+```php
+use verbb\formie\events\PdfTemplateEvent;
+use verbb\formie\services\PdfTemplates;
+use yii\base\Event;
+
+Event::on(PdfTemplates::class, PdfTemplates::EVENT_BEFORE_APPLY_PDF_TEMPLATE_DELETE, function(PdfTemplateEvent $event) {
+    $template = $event->template;
+    // ...
+});
+```
+
+### The `afterDeletePdfTemplate` event
+The event that is triggered after an pdf template is deleted.
+
+```php
+use verbb\formie\events\PdfTemplateEvent;
+use verbb\formie\services\PdfTemplates;
+use yii\base\Event;
+
+Event::on(PdfTemplates::class, PdfTemplates::EVENT_AFTER_DELETE_PDF_TEMPLATE, function(PdfTemplateEvent $event) {
+    $template = $event->template;
+    // ...
+});
+```
+
+### The `beforeRenderPdf` event
+The event that is triggered before a PDF is rendered. You can provide a `pdf` property to return a custom-rendered PDF.
+
+```php
+use verbb\formie\events\PdfEvent;
+use verbb\formie\services\PdfTemplates;
+use yii\base\Event;
+
+Event::on(PdfTemplates::class, PdfTemplates::EVENT_BEFORE_RENDER_PDF, function(PdfEvent $event) {
+    $template = $event->template;
+    $variables = $event->variables;
+
+    // Override the template to your own
+    $event->template = 'my-template-path';
+
+    // Add your own variables for use in your PDF template
+    $event->variables['myVariable'] = 'test';
+});
+```
+
+### The `afterRenderPdf` event
+The event that is triggered after a PDF is rendered.
+
+```php
+use verbb\formie\events\PdfEvent;
+use verbb\formie\services\PdfTemplates;
+use yii\base\Event;
+
+Event::on(PdfTemplates::class, PdfTemplates::EVENT_AFTER_RENDER_PDF, function(PdfEvent $event) {
+    $template = $event->template;
+    $variables = $event->variables;
+    $pdf = $event->pdf;
+});
+```
+
+### The `modifyRenderOptions` event
+The event that is triggered to modify DOMPDF options before a PDF is rendered.
+
+```php
+use verbb\formie\events\PdfRenderOptionsEvent;
+use verbb\formie\services\PdfTemplates;
+use yii\base\Event;
+
+Event::on(PdfTemplates::class, PdfTemplates::EVENT_MODIFY_RENDER_OPTIONS, function(PdfRenderOptionsEvent $event) {
+    $options = $event->options;
+});
+```
+
+
+
 ## Integration Events
 
 ### The `registerFormieIntegrations` event

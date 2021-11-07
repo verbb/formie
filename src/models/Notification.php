@@ -18,6 +18,7 @@ class Notification extends Model
     public $id;
     public $formId;
     public $templateId;
+    public $pdfTemplateId;
     public $name;
     public $enabled;
     public $subject;
@@ -30,6 +31,7 @@ class Notification extends Model
     public $fromName;
     public $content;
     public $attachFiles;
+    public $attachPdf;
     public $enableConditions;
     public $conditions;
     public $uid;
@@ -39,6 +41,7 @@ class Notification extends Model
     // =========================================================================
 
     private $_template;
+    private $_pdfTemplate;
 
 
     // Public Methods
@@ -55,9 +58,14 @@ class Notification extends Model
             $this->templateId = null;
         }
 
+        if (!$this->pdfTemplateId) {
+            $this->pdfTemplateId = null;
+        }
+
         // Cast some properties. Doesn't play with with JS otherwise.
         $this->attachFiles = (bool)$this->attachFiles;
         $this->enableConditions = (bool)$this->enableConditions;
+        $this->attachPdf = (bool)$this->attachPdf;
     }
 
     /**
@@ -73,6 +81,7 @@ class Notification extends Model
                 'id' => AttributeTypecastBehavior::TYPE_INTEGER,
                 'formId' => AttributeTypecastBehavior::TYPE_INTEGER,
                 'templateId' => AttributeTypecastBehavior::TYPE_INTEGER,
+                'pdfTemplateId' => AttributeTypecastBehavior::TYPE_INTEGER,
                 'name' => AttributeTypecastBehavior::TYPE_STRING,
                 'enabled' => AttributeTypecastBehavior::TYPE_BOOLEAN,
                 'subject' => AttributeTypecastBehavior::TYPE_STRING,
@@ -84,6 +93,7 @@ class Notification extends Model
                 'from' => AttributeTypecastBehavior::TYPE_STRING,
                 'fromName' => AttributeTypecastBehavior::TYPE_STRING,
                 'attachFiles' => AttributeTypecastBehavior::TYPE_BOOLEAN,
+                'attachPdf' => AttributeTypecastBehavior::TYPE_BOOLEAN,
                 'enableConditions' => AttributeTypecastBehavior::TYPE_BOOLEAN,
                 'conditions' => AttributeTypecastBehavior::TYPE_STRING,
                 'uid' => AttributeTypecastBehavior::TYPE_STRING,
@@ -110,7 +120,7 @@ class Notification extends Model
 
         $rules[] = [['name', 'subject', 'to'], 'required'];
         $rules[] = [['name', 'subject', 'to', 'cc', 'bcc', 'replyTo', 'replyToName', 'from', 'fromName'], 'string'];
-        $rules[] = [['formId', 'templateId'], 'number', 'integerOnly' => true];
+        $rules[] = [['formId', 'templateId', 'pdfTemplateId'], 'number', 'integerOnly' => true];
 
         return $rules;
     }
@@ -152,7 +162,7 @@ class Notification extends Model
     }
 
     /**
-     * Sets the form template.
+     * Sets the email template.
      *
      * @param EmailTemplate|null $template
      */
@@ -163,6 +173,39 @@ class Notification extends Model
             $this->templateId = $template->id;
         } else {
             $this->_template = $this->templateId = null;
+        }
+    }
+
+    /**
+     * Returns the notification's PDF template, or null if not set.
+     *
+     * @return PdfTemplate|null
+     */
+    public function getPdfTemplate()
+    {
+        if (!$this->_pdfTemplate) {
+            if ($this->pdfTemplateId) {
+                $this->_pdfTemplate = Formie::$plugin->getPdfTemplates()->getTemplateById($this->pdfTemplateId);
+            } else {
+                return null;
+            }
+        }
+
+        return $this->_pdfTemplate;
+    }
+
+    /**
+     * Sets the PDF template.
+     *
+     * @param PdfTemplate|null $template
+     */
+    public function setPdfTemplate($template)
+    {
+        if ($template) {
+            $this->_pdfTemplate = $template;
+            $this->pdfTemplateId = $template->id;
+        } else {
+            $this->_pdfTemplate = $this->pdfTemplateId = null;
         }
     }
 }

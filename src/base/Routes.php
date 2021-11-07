@@ -58,6 +58,9 @@ trait Routes
             $event->rules['formie/settings/email-templates'] = 'formie/email-templates/index';
             $event->rules['formie/settings/email-templates/new'] = 'formie/email-templates/edit';
             $event->rules['formie/settings/email-templates/edit/<id:\d+>'] = 'formie/email-templates/edit';
+            $event->rules['formie/settings/pdf-templates'] = 'formie/pdf-templates/index';
+            $event->rules['formie/settings/pdf-templates/new'] = 'formie/pdf-templates/edit';
+            $event->rules['formie/settings/pdf-templates/edit/<id:\d+>'] = 'formie/pdf-templates/edit';
             $event->rules['formie/settings/security'] = 'formie/security/index';
             $event->rules['formie/settings/privacy'] = 'formie/privacy/index';
             $event->rules['formie/settings/captchas'] = 'formie/integration-settings/captcha-index';

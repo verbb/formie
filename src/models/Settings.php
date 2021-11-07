@@ -94,6 +94,10 @@ class Settings extends Model
     public $sentNotifications = true;
     public $alertEmails;
 
+    // PDFs
+    public $pdfPaperSize = 'letter';
+    public $pdfPaperOrientation = 'portrait';
+
     public $captchas = [];
 
 

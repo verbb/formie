@@ -1,0 +1,75 @@
+{% extends 'formie/_layouts' %}
+
+{% set crumbs = [
+    { label: craft.formie.getPluginName() | t('formie'), url: url('formie') },
+    { label: 'Settings' | t('app'), url: url('formie/settings') },
+    { label: 'Pdf Templates' | t('formie'), url: url('formie/settings/pdf-templates') },
+] %}
+
+{% set selectedSubnavItem = 'settings' %}
+
+{% set fullPageForm = true %}
+
+{% import '_includes/forms' as forms %}
+
+{% block content %}
+
+<input type="hidden" name="action" value="formie/pdf-templates/save">
+{{ redirectInput('formie/settings/pdf-templates') }}
+
+{% if template.id %}
+    <input type="hidden" name="sortOrder" value="{{ template.sortOrder }}">
+    <input type="hidden" name="id" value="{{ template.id }}">
+{% endif %}
+
+{{ forms.textField({
+    label: 'Name' | t('formie'),
+    first: true,
+    instructions: 'What this template will be called in the control panel.' | t('formie'),
+    id: 'name',
+    name: 'name',
+    value: template.name,
+    errors: template.getErrors('name'),
+    required: true
+}) }}
+
+{{ forms.textField({
+    label: 'Handle' | t('formie'),
+    instructions: 'How you’ll refer to this template in the templates.' | t('formie'),
+    id: 'handle',
+    name: 'handle',
+    class: 'code',
+    value: template.handle,
+    errors: template.getErrors('handle'),
+    required: true
+}) }}
+
+{{ forms.autosuggestField({
+    label: 'HTML Template' | t('formie'),
+    instructions: 'The template that will be used to render the form.' | t('formie'),
+    id: 'template',
+    name: 'template',
+    class: 'code',
+    suggestions: craft.cp.getTemplateSuggestions(),
+    suggestEnvVars: false,
+    value: template.template,
+    errors: template.getErrors('template'),
+    required: true,
+}) }}
+
+{{ forms.textField({
+    label: 'Filename Format' | t('formie'),
+    instructions: 'The filename for the PDF (excluding `.pdf`). You can include variables for submissions and notifications, such as `{submission.myField}` or `{notification.subject}`.' | t('formie'),
+    id: 'filenameFormat',
+    name: 'filenameFormat',
+    class: 'code',
+    value: template.filenameFormat,
+    errors: template.getErrors('filenameFormat'),
+    required: true,
+}) }}
+
+{% endblock %}
+
+{% js %}
+    {% if not template.handle %}new Craft.HandleGenerator('#name', '#handle');{% endif %}
+{% endjs %}

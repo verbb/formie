@@ -10,6 +10,7 @@ use verbb\formie\services\FormTemplates;
 use verbb\formie\services\Integrations;
 use verbb\formie\services\NestedFields;
 use verbb\formie\services\Notifications;
+use verbb\formie\services\PdfTemplates;
 use verbb\formie\services\Phone;
 use verbb\formie\services\PredefinedOptions;
 use verbb\formie\services\Relations;
@@ -81,6 +82,11 @@ trait PluginTrait
     public function getNotifications(): Notifications
     {
         return $this->get('notifications');
+    }
+
+    public function getPdfTemplates(): PdfTemplates
+    {
+        return $this->get('pdfTemplates');
     }
 
     public function getPhone(): Phone
@@ -168,6 +174,7 @@ trait PluginTrait
             'integrations' => Integrations::class,
             'nestedFields' => NestedFields::class,
             'notifications' => Notifications::class,
+            'pdfTemplates' => PdfTemplates::class,
             'phone' => Phone::class,
             'predefinedOptions' => PredefinedOptions::class,
             'relations' => Relations::class,

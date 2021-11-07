@@ -166,6 +166,7 @@ class Install extends Migration
             'id' => $this->primaryKey(),
             'formId' => $this->integer()->notNull(),
             'templateId' => $this->integer(),
+            'pdfTemplateId' => $this->integer(),
             'name' => $this->text()->notNull(),
             'enabled' => $this->boolean()->defaultValue(true),
             'subject' => $this->text(),
@@ -178,8 +179,22 @@ class Install extends Migration
             'fromName' => $this->text(),
             'content' => $this->text(),
             'attachFiles' => $this->boolean()->defaultValue(true),
+            'attachPdf' => $this->boolean()->defaultValue(false),
             'enableConditions' => $this->boolean()->defaultValue(false),
             'conditions' => $this->text(),
+            'dateCreated' => $this->dateTime()->notNull(),
+            'dateUpdated' => $this->dateTime()->notNull(),
+            'uid' => $this->uid(),
+        ]);
+
+        $this->createTable('{{%formie_pdftemplates}}', [
+            'id' => $this->primaryKey(),
+            'name' => $this->string()->notNull(),
+            'handle' => $this->string(64)->notNull(),
+            'template' => $this->string()->notNull(),
+            'filenameFormat' => $this->string()->notNull(),
+            'sortOrder' => $this->smallInteger()->unsigned(),
+            'dateDeleted' => $this->dateTime(),
             'dateCreated' => $this->dateTime()->notNull(),
             'dateUpdated' => $this->dateTime()->notNull(),
             'uid' => $this->uid(),
@@ -358,6 +373,7 @@ class Install extends Migration
         $this->addForeignKey(null, '{{%formie_nestedfieldrows}}', ['fieldId'], '{{%fields}}', ['id'], 'CASCADE', null);
         $this->addForeignKey(null, '{{%formie_notifications}}', ['formId'], '{{%formie_forms}}', ['id'], 'CASCADE', null);
         $this->addForeignKey(null, '{{%formie_notifications}}', ['templateId'], '{{%formie_emailtemplates}}', ['id'], 'SET NULL', null);
+        $this->addForeignKey(null, '{{%formie_notifications}}', ['pdfTemplateId'], '{{%formie_pdftemplates}}', ['id'], 'SET NULL', null);
         $this->addForeignKey(null, '{{%formie_pagesettings}}', ['fieldLayoutId'], '{{%fieldlayouts}}', ['id'], 'CASCADE', null);
         $this->addForeignKey(null, '{{%formie_pagesettings}}', ['fieldLayoutTabId'], '{{%fieldlayouttabs}}', ['id'], 'CASCADE', null);
         $this->addForeignKey(null, '{{%formie_relations}}', ['sourceId'], '{{%elements}}', ['id'], 'CASCADE', null);
@@ -389,6 +405,7 @@ class Install extends Migration
             'formie_nested',
             'formie_nestedfieldrows',
             'formie_notifications',
+            'formie_pdftemplates',
             'formie_pagesettings',
             'formie_relations',
             'formie_rows',
@@ -418,6 +435,7 @@ class Install extends Migration
             'formie_nested',
             'formie_nestedfieldrows',
             'formie_notifications',
+            'formie_pdftemplates',
             'formie_pagesettings',
             'formie_relations',
             'formie_rows',

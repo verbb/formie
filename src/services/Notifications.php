@@ -129,6 +129,7 @@ class Notifications extends Component
             $notificationRecord = $this->_getNotificationRecord($notification->id);
             $notificationRecord->formId = $notification->formId;
             $notificationRecord->templateId = $notification->templateId;
+            $notificationRecord->pdfTemplateId = $notification->pdfTemplateId;
             $notificationRecord->name = $notification->name;
             $notificationRecord->enabled = $notification->enabled;
             $notificationRecord->subject = $notification->subject;
@@ -141,6 +142,7 @@ class Notifications extends Component
             $notificationRecord->fromName = $notification->fromName;
             $notificationRecord->content = $notification->content;
             $notificationRecord->attachFiles = $notification->attachFiles;
+            $notificationRecord->attachPdf = $notification->attachPdf;
             $notificationRecord->enableConditions = $notification->enableConditions;
             $notificationRecord->conditions = $notification->conditions;
 
@@ -571,10 +573,16 @@ class Notifications extends Component
      */
     public function defineTemplatesSchema(): array
     {
-        $options = [[ 'label' => Craft::t('formie', 'Select an option'), 'value' => '' ],];
+        $emailTemplates = [[ 'label' => Craft::t('formie', 'Select an option'), 'value' => '' ]];
 
         foreach (Formie::$plugin->getEmailTemplates()->getAllTemplates() as $template) {
-            $options[] = [ 'label' => $template->name, 'value' => $template->id ];
+            $emailTemplates[] = [ 'label' => $template->name, 'value' => $template->id ];
+        }
+
+        $pdfTemplates = [[ 'label' => Craft::t('formie', 'Select an option'), 'value' => '' ]];
+
+        foreach (Formie::$plugin->getPdfTemplates()->getAllTemplates() as $template) {
+            $pdfTemplates[] = [ 'label' => $template->name, 'value' => $template->id ];
         }
 
         return [
@@ -582,7 +590,20 @@ class Notifications extends Component
                 'label' => Craft::t('formie', 'Email Template'),
                 'help' => Craft::t('formie', 'Select a template to use for the Email, or leave empty to use Formie‘s default.'),
                 'name' => 'templateId',
-                'options' => $options,
+                'options' => $emailTemplates,
+            ]),
+            SchemaHelper::lightswitchField([
+                'label' => Craft::t('formie', 'Attach PDF Template'),
+                'help' => Craft::t('formie', 'Whether to attach a PDF template to this email notification.'),
+                'name' => 'attachPdf',
+            ]),
+            SchemaHelper::toggleContainer('attachPdf', [
+                SchemaHelper::selectField([
+                    'label' => Craft::t('formie', 'PDF Template'),
+                    'help' => Craft::t('formie', 'Select a template to use for the PDF, or leave empty to use Formie‘s default.'),
+                    'name' => 'pdfTemplateId',
+                    'options' => $pdfTemplates,
+                ]),
             ]),
         ];
     }
@@ -646,6 +667,7 @@ class Notifications extends Component
                 'id',
                 'formId',
                 'templateId',
+                'pdfTemplateId',
                 'name',
                 'enabled',
                 'subject',
@@ -658,6 +680,7 @@ class Notifications extends Component
                 'fromName',
                 'content',
                 'attachFiles',
+                'attachPdf',
                 'enableConditions',
                 'conditions',
                 'uid'

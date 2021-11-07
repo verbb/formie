@@ -20,6 +20,7 @@ class ProjectConfigHelper
         $output['stencils'] = self::_getStencilsData();
         $output['formTemplates'] = self::_getFormTemplatesData();
         $output['emailTemplates'] = self::_getEmailTemplatesData();
+        $output['pdfTemplates'] = self::_getPdfTemplatesData();
         $output['integrations'] = self::_getIntegrationsData();
 
         return array_filter($output);
@@ -166,6 +167,38 @@ class ProjectConfigHelper
             ->indexBy('id')
             ->orderBy('sortOrder')
             ->from(['{{%formie_emailtemplates}}'])
+            ->all();
+
+        foreach ($templateRows as &$templateRow) {
+            $templateUid = $templateRow['uid'];
+            unset($templateRow['id']);
+            unset($templateRow['uid']);
+
+            $templateRow['sortOrder'] = (int)$templateRow['sortOrder'];
+
+            $templatesData[$templateUid] = $templateRow;
+        }
+
+        return $templatesData;
+    }
+
+    private static function _getPdfTemplatesData(): array
+    {
+        $templatesData = [];
+
+        $templateRows = (new Query())
+            ->select([
+                'id',
+                'uid',
+                'name',
+                'handle',
+                'template',
+                'filenameFormat',
+                'sortOrder',
+            ])
+            ->indexBy('id')
+            ->orderBy('sortOrder')
+            ->from(['{{%formie_pdftemplates}}'])
             ->all();
 
         foreach ($templateRows as &$templateRow) {

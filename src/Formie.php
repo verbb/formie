@@ -26,6 +26,7 @@ use verbb\formie\models\Settings;
 use verbb\formie\services\EmailTemplates as EmailTemplatesService;
 use verbb\formie\services\FormTemplates as FormTemplatesService;
 use verbb\formie\services\Integrations as IntegrationsService;
+use verbb\formie\services\PdfTemplates as PdfTemplatesService;
 use verbb\formie\services\Statuses as StatusesService;
 use verbb\formie\services\Stencils as StencilsService;
 use verbb\formie\variables\Formie as FormieVariable;
@@ -75,7 +76,7 @@ class Formie extends Plugin
     // Public Properties
     // =========================================================================
 
-    public $schemaVersion = '1.2.1';
+    public $schemaVersion = '1.2.2';
     public $hasCpSettings = true;
     public $hasCpSection = true;
 
@@ -444,6 +445,12 @@ class Formie extends Plugin
             ->onAdd(EmailTemplatesService::CONFIG_TEMPLATES_KEY . '.{uid}', [$emailTemplatesService, 'handleChangedTemplate'])
             ->onUpdate(EmailTemplatesService::CONFIG_TEMPLATES_KEY . '.{uid}', [$emailTemplatesService, 'handleChangedTemplate'])
             ->onRemove(EmailTemplatesService::CONFIG_TEMPLATES_KEY . '.{uid}', [$emailTemplatesService, 'handleDeletedTemplate']);
+
+        $pdfTemplatesService = $this->getPdfTemplates();
+        $projectConfigService
+            ->onAdd(PdfTemplatesService::CONFIG_TEMPLATES_KEY . '.{uid}', [$pdfTemplatesService, 'handleChangedTemplate'])
+            ->onUpdate(PdfTemplatesService::CONFIG_TEMPLATES_KEY . '.{uid}', [$pdfTemplatesService, 'handleChangedTemplate'])
+            ->onRemove(PdfTemplatesService::CONFIG_TEMPLATES_KEY . '.{uid}', [$pdfTemplatesService, 'handleDeletedTemplate']);
 
         $integrationsService = $this->getIntegrations();
         $projectConfigService

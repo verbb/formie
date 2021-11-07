@@ -53,6 +53,9 @@ class Emails extends Component
     // Public Methods
     // =========================================================================
 
+    /**
+     * @inheritDoc
+     */
     public function renderEmail(Notification $notification, Submission $submission)
     {
         // Set Craft to the site template mode
@@ -255,6 +258,9 @@ class Emails extends Component
         return ['success' => true, 'email' => $newEmail];
     }
 
+    /**
+     * @inheritDoc
+     */
     public function sendEmail(Notification $notification, Submission $submission, $queueJob = null)
     {
         // Render the email
@@ -283,6 +289,11 @@ class Emails extends Component
         // Attach any file uploads
         if ($notification->attachFiles) {
             $this->_attachFilesToEmail($newEmail, $submission);
+        }
+
+        // Attach any PDF templates
+        if ($notification->attachPdf) {
+            $this->_attachPdfToEmail($notification, $newEmail, $submission);
         }
 
         try {
@@ -365,6 +376,9 @@ class Emails extends Component
         return ['success' => true];
     }
 
+    /**
+     * @inheritDoc
+     */
     public function sendFailAlertEmail(Notification $notification, Submission $submission, $emailResponse)
     {
         $settings = Formie::$plugin->getSettings();
@@ -418,6 +432,9 @@ class Emails extends Component
     // Private Methods
     // =========================================================================
 
+    /**
+     * @inheritDoc
+     */
     private function _htmlToPlainText($html)
     {
         $html = new Html2Text($html);
@@ -425,6 +442,9 @@ class Emails extends Component
         return $html->getText();
     }
 
+    /**
+     * @inheritDoc
+     */
     private function _getFilteredString($string)
     {
         $string = trim(Craft::parseEnv(trim($string)));
@@ -435,6 +455,9 @@ class Emails extends Component
         return $string;
     }
 
+    /**
+     * @inheritDoc
+     */
     private function _getParsedEmails($emails)
     {
         $emails = str_replace(';', ',', $emails);
@@ -456,6 +479,9 @@ class Emails extends Component
         return $emailsEnv;
     }
 
+    /**
+     * @inheritDoc
+     */
     private function _getAssetsForSubmission($element)
     {
         $assets = [];
@@ -482,6 +508,9 @@ class Emails extends Component
         return $assets;
     }
 
+    /**
+     * @inheritDoc
+     */
     private function _attachFilesToEmail(Message $message, Submission $submission)
     {
         // Grab all the file upload fields, including in nested fields
@@ -511,6 +540,15 @@ class Emails extends Component
         }
 
         // Fix a bug with SwiftMailer where setting an attachment clears out the body of the email!
+        $this->_fixSwiftMailerBody($message);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    private function _fixSwiftMailerBody($message)
+    {
+        // Fix a bug with SwiftMailer where setting an attachment clears out the body of the email!
         $textBody = $message->getSwiftMessage()->getBody();
         $htmlBody = $message->getSwiftMessage()->getBody();
         $children = $message->getSwiftMessage()->getChildren();
@@ -530,6 +568,9 @@ class Emails extends Component
         $message->setTextBody($textBody);
     }
 
+    /**
+     * @inheritDoc
+     */
     private function _getFullAssetFilePath(Asset $asset): string
     {
         $path = $asset->getVolume()->getRootPath() . DIRECTORY_SEPARATOR . $asset->getPath();
@@ -537,6 +578,9 @@ class Emails extends Component
         return FileHelper::normalizePath($path);
     }
 
+    /**
+     * @inheritDoc
+     */
     private function _serializeEmail($email)
     {
         $htmlBody = $email->getSwiftMessage()->getBody();
@@ -561,5 +605,45 @@ class Emails extends Component
             'subject' => $email->getSubject(),
             'body' => $htmlBody,
         ];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    private function _attachPdfToEmail(Notification $notification, Message $message, Submission $submission)
+    {
+        // Render the PDF template
+        $template = $notification->getPdfTemplate();
+
+        $pdf = Formie::$plugin->getPdfTemplates()->renderPdf($template, $submission, $notification);
+
+        if (!$pdf) {
+            return;
+        }
+
+        // Save it in a temp location so we can attach it
+        $pdfPath = Assets::tempFilePath('pdf');
+        file_put_contents($pdfPath, $pdf);
+
+        if (!$pdfPath) {
+            return;
+        }
+
+        $variables = [
+            'submission' => $submission,
+            'notification' => $notification,
+        ];
+
+        // Generate the filename correctly.
+        $filenameFormat = $template->filenameFormat ?? 'Submission-{submission.id}';
+        $fileName = Craft::$app->getView()->renderObjectTemplate($filenameFormat, $variables);
+
+        $message->attach($pdfPath, ['fileName' => $fileName . '.pdf', 'contentType' => 'application/pdf']);
+
+        // Fix a bug with SwiftMailer where setting an attachment clears out the body of the email!
+        $this->_fixSwiftMailerBody($message);
+
+        // Store for later
+        $this->_tempAttachments[] = $pdfPath;
     }
 }
