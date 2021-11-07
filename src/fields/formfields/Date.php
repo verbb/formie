@@ -72,6 +72,7 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
     public $dateFormat = 'Y-m-d';
     public $timeFormat = 'H:i';
     public $displayType = 'calendar';
+    public $includeDate = true;
     public $includeTime = false;
     public $timeLabel = '';
     public $defaultOption;
@@ -122,6 +123,10 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
      */
     public function getContentColumnType(): string
     {
+        if ($this->getIsTime()) {
+            return Schema::TYPE_TIME;
+        }
+
         return Schema::TYPE_DATETIME;
     }
 
@@ -174,15 +179,19 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
      */
     public function getTableAttributeHtml($value, ElementInterface $element): string
     {
-        if (!$value) {
-            return '';
-        }
-
-        if ($this->includeTime) {
+        if ($value && $this->getIsDateTime()) {
             return Craft::$app->getFormatter()->asDatetime($value, Locale::LENGTH_SHORT);
         }
 
-        return Craft::$app->getFormatter()->asDate($value, Locale::LENGTH_SHORT);
+        if ($value && $this->getIsTime()) {
+            return Craft::$app->getFormatter()->asTime($value, Locale::LENGTH_SHORT);
+        }
+
+        if ($value && $this->getIsDate()) {
+            return Craft::$app->getFormatter()->asDate($value, Locale::LENGTH_SHORT);
+        }
+
+        return '';
     }
 
     /**
@@ -194,32 +203,39 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
             return $value;
         }
 
-        if (is_string($value) && ($date = self::toDateTime($value)) !== false) {
-            return $date;
+        // For dropdowns and inputs, we need to convert our array syntax to string
+        if ($this->displayType === 'dropdowns' || $this->displayType === 'inputs') {
+            if ($value && is_array($value)) {
+                $value = array_filter($value);
+
+                // Convert array-syntax value into a date string. Ensure we pad it out to fill in gaps.
+                $dateTime['date'] = implode('-', [
+                    StringHelper::padLeft(($value['Y'] ?? '0000'), 4, '0'),
+                    StringHelper::padLeft(($value['m'] ?? '00'), 2, '0'),
+                    StringHelper::padLeft(($value['d'] ?? '00'), 2, '0'),
+                ]);
+
+                $dateTime['time'] = implode(':', [
+                    StringHelper::padLeft(($value['H'] ?? $value['h'] ?? '00'), 2, '0'),
+                    StringHelper::padLeft(($value['i'] ?? '00'), 2, '0'),
+                    StringHelper::padLeft(($value['s'] ?? '00'), 2, '0'),
+                ]);
+
+                // Strip out any invalid dates (time-only field) which will fail to save
+                if ($dateTime['date'] === '0000-00-00') {
+                    unset($dateTime['date']);
+                }
+
+                $value = $dateTime;
+            }
         }
 
-        if ($this->displayType !== 'calendar') {
-            // Always use the full format to store dates, even if only dates enabled.
-            // This helps to set all non-included items (like time for date-only) to zero.
-            $format = $this->getDateFormat() . ' ' . $this->getTimeFormat();
-
+        if ($this->getIsTime()) {
             if (is_array($value)) {
-                $value = array_filter($value);
+                return self::toDateTime($value) ?: null;
             }
 
-            if ($value) {
-                $formatted = preg_replace_callback('/[A-Za-z]/', function($matches) use ($value) {
-                    // Handle time or other omitted parts of date/time string. Set to zero.
-                    $part = $value[$matches[0]] ?? '0';
-
-                    return StringHelper::padLeft($part, 2, '0');
-                }, $format);
-
-                if (($date = DateTime::createFromFormat($format, $formatted)) !== false) {
-                    // Always ensure we strip out the timezone
-                    return self::toDateTime($date->format('Y-m-d H:i:s'));
-                }
-            }
+            return self::toDateTime(['time' => $value]) ?: null;
         }
 
         if (($date = self::toDateTime($value)) !== false) {
@@ -253,6 +269,7 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
             'displayType' => $displayType,
             'defaultValue' => $defaultValue,
             'defaultOption' => $defaultOption,
+            'includeDate' => true,
             'includeTime' => true,
             'dayLabel' => Craft::t('formie', 'Day'),
             'dayPlaceholder' => '',
@@ -337,7 +354,7 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
             ],
         ];
 
-        $format = $this->getDateFormat() . ($this->includeTime ? $this->getTimeFormat() : '');
+        $format = ($this->includeDate ? $this->getDateFormat() : '') . ($this->includeTime ? $this->getTimeFormat() : '');
         $format = preg_replace('/[.\-:\/ ]/', '', $format);
 
         $row = [];
@@ -409,11 +426,35 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
      */
     public function getIsFieldset(): bool
     {
-        if ($this->displayType === 'calendar' && !$this->includeTime) {
+        if ($this->displayType === 'calendar') {
             return false;
         }
 
         return true;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getIsDate(): bool
+    {
+        return (!$this->includeTime && $this->includeDate) ? true : false;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getIsTime(): bool
+    {
+        return ($this->includeTime && !$this->includeDate) ? true : false;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getIsDateTime(): bool
+    {
+        return ($this->includeTime && $this->includeDate) ? true : false;
     }
 
     /**
@@ -511,8 +552,13 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
                 'module' => 'FormieDatePicker',
                 'settings' => [
                     'datePickerOptions' => $this->datePickerOptions,
-                    'dateFormat' => $this->includeTime ? $this->getDateFormat() . ' ' . $this->getTimeFormat() : $this->getDateFormat(),
+                    'dateFormat' => $this->getDateFormat(),
+                    'timeFormat' => $this->getTimeFormat(),
                     'includeTime' => $this->includeTime,
+                    'includeDate' => $this->includeDate,
+                    'getIsDate' => $this->getIsDate(),
+                    'getIsTime' => $this->getIsTime(),
+                    'getIsDateTime' => $this->getIsDateTime(),
                     'locale' => $locale,
                     'minDate' => $minDate,
                     'maxDate' => $maxDate,
@@ -544,15 +590,24 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
                 ]),
             ];
 
-            $toggleBlocks[] = SchemaHelper::toggleBlock([
-                'blockLabel' => $nestedField['label'],
-                'blockHandle' => $nestedField['handle'],
-                'showEnabled' => false,
-            ], $subfields);
+            $condition = in_array($nestedField['handle'], ['year', 'month', 'day']) ? 'settings.includeDate' : 'settings.includeTime';
+
+            $toggleBlocks[] = SchemaHelper::toggleContainer($condition, [
+                SchemaHelper::toggleBlock([
+                    'blockLabel' => $nestedField['label'],
+                    'blockHandle' => $nestedField['handle'],
+                    'showEnabled' => false,
+                ], $subfields)
+            ]);
         }
 
         return [
             SchemaHelper::labelField(),
+            SchemaHelper::lightswitchField([
+                'label' => Craft::t('formie', 'Include Date'),
+                'help' => Craft::t('formie', 'Whether this field should include the date.'),
+                'name' => 'includeDate',
+            ]),
             SchemaHelper::lightswitchField([
                 'label' => Craft::t('formie', 'Include Time'),
                 'help' => Craft::t('formie', 'Whether this field should include the time.'),
@@ -641,21 +696,23 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
             SchemaHelper::toggleContainer('!settings.displayType=calendar', [
                 SchemaHelper::subfieldLabelPosition(),
             ]),
-            SchemaHelper::selectField([
-                'label' => Craft::t('formie', 'Date Format'),
-                'help' => Craft::t('formie', 'Select what format to present dates as.'),
-                'name' => 'dateFormat',
-                'options' => [
-                    [ 'label' => 'YYYY-MM-DD', 'value' => 'Y-m-d' ],
-                    [ 'label' => 'MM-DD-YYYY', 'value' => 'm-d-Y' ],
-                    [ 'label' => 'DD-MM-YYYY', 'value' => 'd-m-Y' ],
-                    [ 'label' => 'YYYY/MM/DD', 'value' => 'Y/m/d' ],
-                    [ 'label' => 'MM/DD/YYYY', 'value' => 'm/d/Y' ],
-                    [ 'label' => 'DD/MM/YYYY', 'value' => 'd/m/Y' ],
-                    [ 'label' => 'YYYY.MM.DD', 'value' => 'Y.m.d' ],
-                    [ 'label' => 'MM.DD.YYYY', 'value' => 'm.d.Y' ],
-                    [ 'label' => 'DD.MM.YYYY', 'value' => 'd.m.Y' ],
-                ],
+            SchemaHelper::toggleContainer('settings.includeDate', [
+                SchemaHelper::selectField([
+                    'label' => Craft::t('formie', 'Date Format'),
+                    'help' => Craft::t('formie', 'Select what format to present dates as.'),
+                    'name' => 'dateFormat',
+                    'options' => [
+                        [ 'label' => 'YYYY-MM-DD', 'value' => 'Y-m-d' ],
+                        [ 'label' => 'MM-DD-YYYY', 'value' => 'm-d-Y' ],
+                        [ 'label' => 'DD-MM-YYYY', 'value' => 'd-m-Y' ],
+                        [ 'label' => 'YYYY/MM/DD', 'value' => 'Y/m/d' ],
+                        [ 'label' => 'MM/DD/YYYY', 'value' => 'm/d/Y' ],
+                        [ 'label' => 'DD/MM/YYYY', 'value' => 'd/m/Y' ],
+                        [ 'label' => 'YYYY.MM.DD', 'value' => 'Y.m.d' ],
+                        [ 'label' => 'MM.DD.YYYY', 'value' => 'm.d.Y' ],
+                        [ 'label' => 'DD.MM.YYYY', 'value' => 'd.m.Y' ],
+                    ],
+                ]),
             ]),
             SchemaHelper::toggleContainer('settings.includeTime', [
                 SchemaHelper::selectField([

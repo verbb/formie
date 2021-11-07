@@ -1,7 +1,7 @@
 <template>
     <div>
         <div v-if="field.settings.displayType === 'calendar'" class="fui-row">
-            <div class="fui-col-auto">
+            <div v-if="field.settings.includeDate" class="fui-col-auto">
                 <label v-if="field.settings.includeTime && field.settings.timeLabel" class="fui-field-label">{{ field.name }}</label>
 
                 <div class="fui-field-preview">
@@ -17,8 +17,8 @@
                 </div>
             </div>
 
-            <div v-if="field.settings.includeTime && !field.settings.useDatePicker" class="fui-col-auto">
-                <label v-if="field.settings.timeLabel" class="fui-field-label">{{ field.settings.timeLabel }}</label>
+            <div v-if="field.settings.includeTime" class="fui-col-auto">
+                <label v-if="field.settings.timeLabel && field.settings.includeDate" class="fui-field-label">{{ field.settings.timeLabel }}</label>
                     
                 <div class="fui-field-preview">
                     <input
@@ -129,7 +129,8 @@ export default {
                 A: 'ampm',
             };
 
-            const format = this.field.settings.dateFormat + (this.field.settings.includeTime ? this.field.settings.timeFormat : '');
+            const format = (this.field.settings.includeDate ? this.field.settings.dateFormat : '') + (this.field.settings.includeTime ? this.field.settings.timeFormat : '');
+
             const dateFields = [];
 
             let defaultValue = new Date();
@@ -139,6 +140,7 @@ export default {
 
             for (const char of format.replace(/[.\-:/ ]/g, '').split('')) {
                 let value = null;
+
                 if (defaultValue) {
                     switch (char) {
                     case 'Y':

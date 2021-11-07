@@ -13,10 +13,24 @@ export class FormieDatePicker {
         this.locales = [];
         this.datePickerOptions = settings.datePickerOptions || [];
         this.dateFormat = settings.dateFormat;
+        this.timeFormat = settings.timeFormat;
         this.includeTime = settings.includeTime;
+        this.includeDate = settings.includeDate;
+        this.getIsDate = settings.getIsDate;
+        this.getIsTime = settings.getIsTime;
+        this.getIsDateTime = settings.getIsDateTime;
         this.locale = settings.locale;
         this.minDate = settings.minDate;
         this.maxDate = settings.maxDate;
+
+        // Resolve the correct, full date-time format
+        if (this.getIsDate) {
+            this.dateTimeFormat = this.dateFormat;
+        } else if (this.getIsTime) {
+            this.dateTimeFormat = this.timeFormat;
+        } else if (this.getIsDateTime) {
+            this.dateTimeFormat = this.dateFormat + ' ' + this.timeFormat;
+        }
 
         this.initDatePicker();
     }
@@ -26,14 +40,23 @@ export class FormieDatePicker {
             disableMobile: true,
             allowInput: true,
             altInput: true,
-            altFormat: this.dateFormat,
+            altFormat: this.dateTimeFormat,
             dateFormat: 'Y-m-d H:i:S',
-            enableTime: this.includeTime,
             hourIncrement: 1,
             minuteIncrement: 1,
             minDate: this.minDate,
             maxDate: this.maxDate,
         };
+
+        // Include time for time-only and datetime
+        if (this.getIsTime || this.getIsDateTime) {
+            defaultOptions.enableTime = true;
+        }
+
+        // Exclude date for time-only
+        if (this.getIsTime) {
+            defaultOptions.noCalendar = true;
+        }
 
         // We have options defined by default, which are overridden by any defined in the CP for the field
         // which are then overridden by any defined in the JS event. So combine the default + field options first.

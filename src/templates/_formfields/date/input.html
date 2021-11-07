@@ -1,9 +1,11 @@
 {% import '_includes/forms' as forms %}
 
 {% if field.displayType == 'calendar' %}
-    {% include 'formie/_formfields/date/_date' %}
+    {% if field.getIsDate() or field.getIsDateTime() %}
+        {% include 'formie/_formfields/date/_date' %}
+    {% endif %}
 
-    {% if field.includeTime %}
+    {% if field.getIsTime() or field.getIsDateTime() %}
         {% include 'formie/_formfields/date/_time' %}
     {% endif %}
 {% endif %}

@@ -1,0 +1,36 @@
+<div class="fui-field-rows">
+    <div class="fui-row">
+        <div class="fui-field">
+            {% hook 'formie.subfield.field-start' %}
+
+            {% hook 'formie.subfield.input-before' %}
+
+            <div class="fui-input-container">
+                {% hook 'formie.subfield.input-start' %}
+
+                <input {{ attr({
+                    type: 'date',
+                    id: options.id,
+                    class: [ 'fui-input' ],
+                    name: 'datetime' | namespaceInputName(field.handle),
+                    required: field.required ? true : false,
+                    value: value ? (value | date('Y-m-d H:i:s', false)) : null,
+                    autocomplete: 'off',
+                    data: {
+                        'fui-id': options.dataId,
+                        'fui-message': field.settings.errorMessage | t,
+                    },
+                    aria: {
+                        required: field.required ? 'true' : 'false',
+                    },
+                } | merge(field.getInputAttributes())) }} />
+
+                {% hook 'formie.subfield.input-end' %}
+            </div>
+
+            {% hook 'formie.subfield.input-after' %}
+
+            {% hook 'formie.subfield.field-end' %}
+        </div>
+    </div>
+</div>

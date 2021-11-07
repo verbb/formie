@@ -1,5 +1,5 @@
 <template>
-    <div :class="{ 'hidden': !conditional }">
+    <div class="fui-field-toggle-group" :class="{ 'hidden': !conditional }">
         <slot></slot>
     </div>
 </template>
@@ -29,3 +29,19 @@ export default {
 };
 
 </script>
+
+<style lang="scss">
+
+.fui-field-toggle-group {
+    margin: 24px 0;
+
+    &:last-child {
+        margin-bottom: 0 !important;
+    }
+
+    &:first-child {
+        margin-top: 0 !important;
+    }
+}
+
+</style>
