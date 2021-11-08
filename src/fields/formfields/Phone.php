@@ -134,14 +134,6 @@ class Phone extends FormField implements SubfieldInterface, PreviewableFieldInte
     /**
      * @inheritDoc
      */
-    public function serializeValueForExport($value, ElementInterface $element = null)
-    {
-        return (string)$value;
-    }
-
-    /**
-     * @inheritDoc
-     */
     public function serializeValueForIntegration($value, ElementInterface $element = null)
     {
         if ($this->countryEnabled) {
@@ -407,17 +399,5 @@ class Phone extends FormField implements SubfieldInterface, PreviewableFieldInte
             SchemaHelper::enableConditionsField(),
             SchemaHelper::conditionsField(),
         ];
-    }
-
-
-    // Protected Methods
-    // =========================================================================
-
-    /**
-     * @inheritDoc
-     */
-    protected function defineSummaryContent($value, ElementInterface $element = null)
-    {
-        return (string)$value;
     }
 }

@@ -39,7 +39,7 @@ class Categories extends CraftCategories implements FormFieldInterface
         getEmailHtml as traitGetEmailHtml;
         getSavedFieldConfig as traitGetSavedFieldConfig;
         getSettingGqlTypes as traitGetSettingGqlTypes;
-        RelationFieldTrait::defineSummaryContent insteadof FormFieldTrait;
+        RelationFieldTrait::defineValueAsString insteadof FormFieldTrait;
         RelationFieldTrait::getIsFieldset insteadof FormFieldTrait;
         RelationFieldTrait::populateValue insteadof FormFieldTrait;
         RelationFieldTrait::renderLabel insteadof FormFieldTrait;

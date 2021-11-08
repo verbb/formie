@@ -31,7 +31,7 @@ class FileUpload extends CraftAssets implements FormFieldInterface
         getFrontEndInputOptions as traitGetFrontendInputOptions;
         getSettingGqlType as traitGetSettingGqlType;
         FormFieldTrait::getIsFieldset insteadof RelationFieldTrait;
-        RelationFieldTrait::defineSummaryContent insteadof FormFieldTrait;
+        RelationFieldTrait::defineValueAsString insteadof FormFieldTrait;
         RelationFieldTrait::populateValue insteadof FormFieldTrait;
         RelationFieldTrait::renderLabel insteadof FormFieldTrait;
     }
@@ -114,19 +114,6 @@ class FileUpload extends CraftAssets implements FormFieldInterface
         }
 
         return $values;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function serializeValueForExport($value, ElementInterface $element = null)
-    {
-        $value = $this->_all($value, $element);
-
-        return array_reduce($value->all(), function($acc, $input) {
-            // Handle when volumes don't have a public URL
-            return $acc . ($input->url ?? $input->filename);
-        }, '');
     }
 
     /**
@@ -541,7 +528,20 @@ class FileUpload extends CraftAssets implements FormFieldInterface
     /**
      * @inheritDoc
      */
-    protected function defineSummaryContent($value, ElementInterface $element = null)
+    protected function defineValueAsString($value, ElementInterface $element = null)
+    {
+        $value = $this->_all($value, $element)->all();
+
+        return implode(', ', array_map(function($item) {
+            // Handle when volumes don't have a public URL
+            return $item->url ?? $item->filename;
+        }, $value));
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected function defineValueForSummary($value, ElementInterface $element = null)
     {
         $html = '';
         $value = $this->_all($value, $element)->all();

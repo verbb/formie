@@ -115,14 +115,6 @@ class Repeater extends FormField implements NestedFieldInterface, EagerLoadingFi
     /**
      * @inheritDoc
      */
-    public function getValueAsString(ElementInterface $element)
-    {
-        return $this->getValue($element)[0] ?? [];
-    }
-
-    /**
-     * @inheritDoc
-     */
     public function serializeValueForIntegration($value, ElementInterface $element = null)
     {
         $fields = $this->getFields();

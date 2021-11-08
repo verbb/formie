@@ -197,7 +197,7 @@ class Signature extends FormField implements PreviewableFieldInterface
     /**
      * @inheritDoc
      */
-    protected function defineSummaryContent($value, ElementInterface $element = null)
+    protected function defineValueForSummary($value, ElementInterface $element = null)
     {
         return Template::raw(Html::tag('img', null, ['src' => $value]));
     }

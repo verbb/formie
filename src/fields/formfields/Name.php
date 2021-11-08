@@ -201,26 +201,6 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
     /**
      * @inheritDoc
      */
-    public function serializeValueForExport($value, ElementInterface $element = null)
-    {
-        if ($this->useMultipleFields) {
-            $values = [];
-
-            foreach ($this->getSubfieldOptions() as $subField) {
-                if ($this->{$subField['handle'] . 'Enabled'}) {
-                    $values[$this->handle . '_' . $subField['handle']] = $value[$subField['handle']] ?? '';
-                }
-            }
-
-            return $values;
-        }
-
-        return $value;
-    }
-
-    /**
-     * @inheritDoc
-     */
     public function serializeValueForIntegration($value, ElementInterface $element = null)
     {
         if ($this->useMultipleFields && $value) {
@@ -585,9 +565,21 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
     /**
      * @inheritDoc
      */
-    protected function defineSummaryContent($value, ElementInterface $element = null)
+    protected function defineValueForExport($value, ElementInterface $element = null)
     {
-        return (string)$value;
+        if ($this->useMultipleFields) {
+            $values = [];
+
+            foreach ($this->getSubfieldOptions() as $subField) {
+                if ($this->{$subField['handle'] . 'Enabled'}) {
+                    $values[$this->handle . '_' . $subField['handle']] = $value[$subField['handle']] ?? '';
+                }
+            }
+
+            return $values;
+        }
+
+        return $value;
     }
     
 }

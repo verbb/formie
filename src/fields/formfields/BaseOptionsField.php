@@ -55,25 +55,6 @@ abstract class BaseOptionsField extends CraftBaseOptionsField
     /**
      * @inheritDoc
      */
-    public function serializeValueForExport($value, ElementInterface $element = null)
-    {
-        if ($value instanceof MultiOptionsFieldData) {
-            $values = [];
-
-            foreach ($value as $selectedValue) {
-                /** @var OptionData $selectedValue */
-                $values[] = $selectedValue->value;
-            }
-
-            return implode(', ', $values);
-        }
-
-        return (string)$value;
-    }
-
-    /**
-     * @inheritDoc
-     */
     public function getFieldMappedValueForIntegration(IntegrationField $integrationField, $formField, $value, $submission)
     {
         // If mapping to a string-based integration field, return multi-values as CSV
@@ -217,17 +198,12 @@ abstract class BaseOptionsField extends CraftBaseOptionsField
     /**
      * @inheritDoc
      */
-    protected function defineSummaryContent($value, ElementInterface $element = null)
+    protected function defineValueAsString($value, ElementInterface $element = null)
     {
         if ($value instanceof MultiOptionsFieldData) {
-            $values = [];
-
-            foreach ($value as $selectedValue) {
-                /** @var OptionData $selectedValue */
-                $values[] = $selectedValue->label;
-            }
-
-            return implode(', ', $values);
+            return implode(', ', array_map(function($item) {
+                return $item->label;
+            }, (array)$value));
         }
 
         return $value->label ?? '';

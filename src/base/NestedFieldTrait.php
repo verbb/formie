@@ -461,22 +461,6 @@ trait NestedFieldTrait
     }
 
     /**
-     * @inheritDoc
-     */
-    public function serializeValueForExport($value, ElementInterface $element = null)
-    {
-        $values = [];
-
-        foreach ($value->all() as $rowId => $row) {
-            foreach ($row->getSerializedFieldValuesForExport() as $fieldHandle => $field) {
-                $values[$this->handle . '_row' . ($rowId + 1) . '_' . $fieldHandle] = $field;
-            }
-        }
-
-        return $values;
-    }
-
-    /**
      * @inheritdoc
      */
     public function modifyElementsQuery(ElementQueryInterface $query, $value)
@@ -615,14 +599,54 @@ trait NestedFieldTrait
     /**
      * @inheritDoc
      */
-    protected function defineSummaryContent($value, ElementInterface $element = null)
+    protected function defineValueAsString($value, ElementInterface $element = null)
+    {
+        $values = [];
+
+        foreach ($value->all() as $rowId => $row) {
+            foreach ($row->getFieldLayout()->getFields() as $field) {
+                $subValue = $row->getFieldValue($field->handle);
+                $valueAsString = $field->getValueAsString($subValue, $row);
+
+                if ($valueAsString) {
+                    $values[] = $valueAsString;
+                }
+            }
+        }
+
+        return implode(', ', $values);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected function defineValueForExport($value, ElementInterface $element = null)
+    {
+        $values = [];
+
+        foreach ($value->all() as $rowId => $row) {
+            foreach ($row->getFieldLayout()->getFields() as $field) {
+                $subValue = $row->getFieldValue($field->handle);
+                $valueForExport = $field->getValueForExport($subValue, $row);
+
+                $values[$this->handle . '_row' . ($rowId + 1) . '_' . $field->handle] = $valueForExport;
+            }
+        }
+
+        return $values;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected function defineValueForSummary($value, ElementInterface $element = null)
     {
         $values = '';
 
         foreach ($value->all() as $rowId => $row) {
             foreach ($row->getFieldLayout()->getFields() as $field) {
                 $v = $row->getFieldValue($field->handle);
-                $html = $field->getSummaryContent($v, $row);
+                $html = $field->getValueForSummary($v, $row);
 
                 $values .= '<strong>' . $field->handle . '</strong> ' . $html . '<br>';
             }

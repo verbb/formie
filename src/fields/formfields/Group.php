@@ -68,14 +68,6 @@ class Group extends FormField implements NestedFieldInterface, EagerLoadingField
     /**
      * @inheritDoc
      */
-    public function getValueAsString(ElementInterface $element)
-    {
-        return $this->getValue($element)[0] ?? [];
-    }
-
-    /**
-     * @inheritDoc
-     */
     public function serializeValueForIntegration($value, ElementInterface $element = null)
     {
         if ($value instanceof NestedFieldRowQuery) {

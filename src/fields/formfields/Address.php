@@ -218,22 +218,6 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
     /**
      * @inheritDoc
      */
-    public function serializeValueForExport($value, ElementInterface $element = null)
-    {
-        $values = [];
-
-        foreach ($this->getSubfieldOptions() as $subField) {
-            if ($this->{$subField['handle'] . 'Enabled'}) {
-                $values[$this->handle . '_' . $subField['handle']] = $value[$subField['handle']] ?? '';
-            }
-        }
-
-        return $values;
-    }
-
-    /**
-     * @inheritDoc
-     */
     public function serializeValueForIntegration($value, ElementInterface $element = null)
     {
         return $value->toArray();
@@ -722,9 +706,17 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
     /**
      * @inheritDoc
      */
-    protected function defineSummaryContent($value, ElementInterface $element = null)
+    protected function defineValueForExport($value, ElementInterface $element = null)
     {
-        return (string)$value;
+        $values = [];
+
+        foreach ($this->getSubfieldOptions() as $subField) {
+            if ($this->{$subField['handle'] . 'Enabled'}) {
+                $values[$this->handle . '_' . $subField['handle']] = $value[$subField['handle']] ?? '';
+            }
+        }
+
+        return $values;
     }
 
 

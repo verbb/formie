@@ -60,18 +60,6 @@ trait RelationFieldTrait
     /**
      * @inheritDoc
      */
-    public function serializeValueForExport($value, ElementInterface $element = null)
-    {
-        $value = $this->_all($value, $element);
-
-        return array_reduce($value->all(), function($acc, $input) {
-            return $acc . $this->_getElementLabel($input);
-        }, '');
-    }
-
-    /**
-     * @inheritDoc
-     */
     public function serializeValueForIntegration($value, ElementInterface $element = null)
     {
         return array_map(function($input) {
@@ -435,13 +423,13 @@ trait RelationFieldTrait
     /**
      * @inheritDoc
      */
-    protected function defineSummaryContent($value, ElementInterface $element = null)
+    protected function defineValueAsString($value, ElementInterface $element = null)
     {
-        $value = $this->_all($value, $element);
+        $value = $this->_all($value, $element)->all();
 
         return implode(', ', array_map(function($item) {
             return $this->_getElementLabel($item);
-        }, $value->all()));
+        }, $value));
     }
 
     /**

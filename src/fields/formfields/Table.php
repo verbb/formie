@@ -145,22 +145,6 @@ class Table extends CraftTable implements FormFieldInterface
     /**
      * @inheritDoc
      */
-    public function serializeValueForExport($value, ElementInterface $element = null)
-    {
-        $values = [];
-
-        foreach ($value as $rowId => $row) {
-            foreach ($this->columns as $colId => $col) {
-                $values[$this->handle . '_row' . ($rowId + 1) . '_' . $col['handle']] = $row[$col['handle']] ?? null;
-            }
-        }
-
-        return $values;
-    }
-
-    /**
-     * @inheritDoc
-     */
     public function getInputHtml($value, ElementInterface $element = null): string
     {
         /** @var Element $element */
@@ -479,7 +463,39 @@ class Table extends CraftTable implements FormFieldInterface
     /**
      * @inheritDoc
      */
-    protected function defineSummaryContent($value, ElementInterface $element = null)
+    protected function defineValueAsString($value, ElementInterface $element = null)
+    {
+        $values = [];
+
+        foreach ($value as $rowId => $row) {
+            foreach ($this->columns as $colId => $col) {
+                $values[] = $row[$col['handle']] ?? null;
+            }
+        }
+
+        return implode(', ', $values);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected function defineValueForExport($value, ElementInterface $element = null)
+    {
+        $values = [];
+
+        foreach ($value as $rowId => $row) {
+            foreach ($this->columns as $colId => $col) {
+                $values[$this->handle . '_row' . ($rowId + 1) . '_' . $col['handle']] = $row[$col['handle']] ?? null;
+            }
+        }
+
+        return $values;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected function defineValueForSummary($value, ElementInterface $element = null)
     {
         $headValues = '';
         $bodyValues = '';

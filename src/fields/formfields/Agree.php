@@ -78,19 +78,11 @@ class Agree extends FormField implements PreviewableFieldInterface
     /**
      * @inheritDoc
      */
-    public function serializeValueForExport($value, ElementInterface $element = null)
-    {
-        return ($value) ? $this->checkedValue : $this->uncheckedValue;
-    }
-
-    /**
-     * @inheritDoc
-     */
     public function getFieldMappedValueForIntegration(IntegrationField $integrationField, $formField, $value, $submission)
     {
         // If we're expecting a string, not a boolean, return the checked/unchecked values
         if ($integrationField->getType() === IntegrationField::TYPE_STRING) {
-            return $this->serializeValueForExport($value, $submission);
+            return $this->getValueAsString($value, $submission);
         }
 
         return $value;
@@ -265,7 +257,7 @@ class Agree extends FormField implements PreviewableFieldInterface
     /**
      * @inheritDoc
      */
-    protected function defineSummaryContent($value, ElementInterface $element = null)
+    protected function defineValueAsString($value, ElementInterface $element = null)
     {
         return ($value) ? $this->checkedValue : $this->uncheckedValue;
     }

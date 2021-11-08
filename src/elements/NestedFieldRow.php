@@ -266,36 +266,6 @@ class NestedFieldRow extends Element implements BlockElementInterface
         return $this->_getField()->getFormFieldContext();
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function getSerializedFieldValuesForExport(array $fieldHandles = null): array
-    {
-        // Taken from craft\base\Element, just to deal with export-specific handling for fields
-        $serializedValues = [];
-
-        foreach ($this->fieldLayoutFields() as $field) {
-            if ($fieldHandles === null || in_array($field->handle, $fieldHandles, true)) {
-                $value = $this->getFieldValue($field->handle);
-
-                // Handle dealing with inner fields having their own export handling
-                if (method_exists($field, 'serializeValueForExport')) {
-                    $fieldValue = $field->serializeValueForExport($value, $this);
-
-                    if (is_array($fieldValue)) {
-                        $serializedValues = array_merge($serializedValues, $fieldValue);
-                    } else {
-                        $serializedValues[$field->handle] = $fieldValue;
-                    }
-                } else {
-                    $serializedValues[$field->handle] = $field->serializeValue($value, $this);
-                }
-            }
-        }
-
-        return $serializedValues;
-    }
-
 
     // Events
     // -------------------------------------------------------------------------

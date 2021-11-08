@@ -19,7 +19,9 @@ interface FormFieldInterface extends ComponentInterface
     // Constants
     // =========================================================================
 
-    const EVENT_MODIFY_SUMMARY_CONTENT = 'modifySummaryContent';
+    const EVENT_MODIFY_VALUE_AS_STRING = 'modifyValueAsString';
+    const EVENT_MODIFY_VALUE_FOR_EXPORT = 'modifyValueForExport';
+    const EVENT_MODIFY_VALUE_FOR_SUMMARY = 'modifyValueForSummary';
 
     
     // Public Methods

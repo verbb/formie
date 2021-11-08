@@ -5,7 +5,7 @@ use verbb\formie\Formie;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\NestedFieldRow;
 use verbb\formie\elements\Submission;
-use verbb\formie\events\ModifyFieldSummaryContentEvent;
+use verbb\formie\events\ModifyFieldValueEvent;
 use verbb\formie\fields\formfields\BaseOptionsField;
 use verbb\formie\helpers\ConditionsHelper;
 use verbb\formie\helpers\SchemaHelper;
@@ -183,31 +183,6 @@ trait FormFieldTrait
     }
 
     /**
-     * @inheritDoc
-     */
-    public function serializeValueForWebhook($value, ElementInterface $element = null)
-    {
-        return parent::serializeValue($value, $element);
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function getSummaryContent($value, ElementInterface $element = null)
-    {
-        $value = $this->defineSummaryContent($value, $element);
-
-        $event = new ModifyFieldSummaryContentEvent([
-            'value' => $value,
-            'element' => $element,
-        ]);
-
-        $this->trigger(static::EVENT_MODIFY_SUMMARY_CONTENT, $event);
-
-        return $event->value;
-    }
-
-    /**
      * @inheritdoc
      */
     public function normalizeValue($value, ElementInterface $element = null)
@@ -224,6 +199,68 @@ trait FormFieldTrait
         }
 
         return $value;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function serializeValueForWebhook($value, ElementInterface $element = null)
+    {
+        return parent::serializeValue($value, $element);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getValueAsString($value, ElementInterface $element = null)
+    {
+        $value = $this->defineValueAsString($value, $element);
+
+        $event = new ModifyFieldValueEvent([
+            'value' => $value,
+            'field' => $this,
+            'element' => $element,
+        ]);
+
+        $this->trigger(static::EVENT_MODIFY_VALUE_AS_STRING, $event);
+
+        return $event->value;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getValueForExport($value, ElementInterface $element = null)
+    {
+        $value = $this->defineValueForExport($value, $element);
+
+        $event = new ModifyFieldValueEvent([
+            'value' => $value,
+            'field' => $this,
+            'element' => $element,
+        ]);
+
+        $this->trigger(static::EVENT_MODIFY_VALUE_FOR_EXPORT, $event);
+
+        return $event->value;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getValueForSummary($value, ElementInterface $element = null)
+    {
+        $value = $this->defineValueForSummary($value, $element);
+
+        $event = new ModifyFieldValueEvent([
+            'value' => $value,
+            'field' => $this,
+            'element' => $element,
+        ]);
+
+        $this->trigger(static::EVENT_MODIFY_VALUE_FOR_SUMMARY, $event);
+
+        return $event->value;
     }
 
     /**
@@ -1072,13 +1109,31 @@ trait FormFieldTrait
     /**
      * @inheritdoc
      */
-    protected function defineSummaryContent($value, ElementInterface $element = null)
+    protected function defineValueAsString($value, ElementInterface $element = null)
     {
         if ($this->getIsCosmetic() || $this->getIsHidden()) {
             return false;
         }
 
-        return $value;
+        return (string)$value;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    protected function defineValueForExport($value, ElementInterface $element = null)
+    {
+        // A string-representaion will largely suit our needs
+        return $this->defineValueAsString($value, $element);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    protected function defineValueForSummary($value, ElementInterface $element = null)
+    {
+        // A string-representaion will largely suit our needs
+        return $this->defineValueAsString($value, $element);
     }
 
     /**

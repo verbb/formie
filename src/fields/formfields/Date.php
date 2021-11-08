@@ -818,10 +818,20 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
     /**
      * @inheritDoc
      */
-    protected function defineSummaryContent($value, ElementInterface $element = null)
+    protected function defineValueAsString($value, ElementInterface $element = null)
     {
         if ($value instanceof DateTime) {
-            $format = $this->getDateFormat() . ' ' . $this->getTimeFormat();
+            if ($this->getIsDateTime()) {
+                $format = $this->getDateFormat() . ' ' . $this->getTimeFormat();
+            }
+
+            if ($this->getIsTime()) {
+                $format = $this->getTimeFormat();
+            }
+
+            if ($this->getIsDate()) {
+                $format = $this->getDateFormat();
+            }
             
             return $value->format($format);
         }

@@ -121,14 +121,6 @@ class Section extends FormField
     /**
      * @inheritDoc
      */
-    public function serializeValueForExport($value, ElementInterface $element = null)
-    {
-        return [];
-    }
-
-    /**
-     * @inheritDoc
-     */
     public function afterCreateField(array $data)
     {
         $this->name = StringHelper::appendUniqueIdentifier(Craft::t('formie', 'Section Label '));

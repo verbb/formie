@@ -25,17 +25,26 @@
 - Added PDF Templates, allowing you to attach custom PDFs to Email Notifications.
 - Added the ability to set a Google Tag Manager payload for every submit button for forms.
 - Added statuses to Sent Notifications, along with error messages to identify issues for failed Email Notifications.
-- Added `defineSummaryContent()` method for all fields.
-- Added `Field::EVENT_MODIFY_SUMMARY_CONTENT` event.
+- Added `Field::defineValueAsString()` and `Field::getValueAsString()` to consolidate how to represent field values as a string value.
+- Added `Field::defineValueForExport()` and `Field::getValueForExport()` to consolidate how to represent field values when exporting through Craft's export.
+- Added `Submission::getValuesAsString()`, `Submission::getValuesForExport()` to better consolidate field values for various operations.
+- Added `Field::EVENT_MODIFY_VALUE_AS_STRING` event for all fields.
+- Added `Field::EVENT_MODIFY_VALUE_FOR_EXPORT` event for all fields.
+- Added `Field::EVENT_MODIFY_VALUE_FOR_SUMMARY` event for all fields.
 
 ### Changed
 - Sent notifications are now saved earlier regardless of success, added statuses and records a failed message.
+- Refactored all fields to better handle and consolidate for their content values are represented for various operations (exports, integrations, dev API).
 
 ### Fixed
 - Fixed captchas not showing the correct name in Formie settings.
 - Fixed Date field (dropdown and inputs) incorrectly saving timezone information when editing submission through the control panel.
 - Fixed some fields and compatibility with Summary field.
 - Fixed an error with Recipients fields, where an option value was changed previously, and no longer valid.
+
+### Removed
+- Removed `Field::serializeValueForExport()` method. Use `Field::defineValueForExport()` or `Field::getValueForExport()` instead.
+- Removed `SubmissionExport::EVENT_MODIFY_FIELD_EXPORT` event. Use `Field::EVENT_MODIFY_VALUE_FOR_EXPORT` instead.
 
 ## 1.4.24 - 2021-11-06
 

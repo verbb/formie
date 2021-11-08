@@ -130,14 +130,6 @@ class Html extends FormField
     /**
      * @inheritDoc
      */
-    public function serializeValueForExport($value, ElementInterface $element = null)
-    {
-        return [];
-    }
-
-    /**
-     * @inheritDoc
-     */
     public function defineGeneralSchema(): array
     {
         return [

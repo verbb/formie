@@ -719,13 +719,55 @@ class Submission extends Element
     /**
      * @inheritdoc
      */
-    public function getSummaryFieldContent(): array
+    public function getValuesAsString(): array
+    {
+        $values = [];
+
+        foreach ($this->fieldLayoutFields() as $field) {
+            $value = $this->getFieldValue($field->handle);
+            $valueAsString = $field->getValueAsString($value, $this);
+
+            if ($valueAsString) {
+                $values[$field->handle] = $valueAsString;
+            }
+        }
+
+        return $values;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getValuesForExport(): array
+    {
+        $values = [];
+
+        foreach ($this->fieldLayoutFields() as $field) {
+            $value = $this->getFieldValue($field->handle);
+            $valueForExport = $field->getValueForExport($value, $this);
+
+            // If an array, we merge it in. This is because some fields provide content
+            // for multiple "columns" in the export, expressed through `field_subhandle`.
+            if (is_array($valueForExport)) {
+                $values = array_merge($values, $valueForExport);
+            } else if ($valueForExport) {
+                $values[$field->handle] = $valueForExport;
+            }
+        }
+
+        return $values;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getValuesForSummary(): array
     {
         $items = [];
 
         foreach ($this->fieldLayoutFields() as $field) {
             $value = $this->getFieldValue($field->handle);
-            $html = $field->getSummaryContent($value, $this);
+            $html = $field->getValueForSummary($value, $this);
 
             if ($html) {
                 $items[] = [

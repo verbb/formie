@@ -3,14 +3,13 @@ namespace verbb\formie\events;
 
 use yii\base\Event;
 
-class ModifyFieldExportEvent extends Event
+class ModifyFieldValueEvent extends Event
 {
     // Properties
     // =========================================================================
 
-    public $field;
     public $value;
+    public $field;
     public $element;
-    public $fieldValue;
     
 }
