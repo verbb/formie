@@ -32,6 +32,7 @@ class FileUpload extends CraftAssets implements FormFieldInterface
         getSettingGqlType as traitGetSettingGqlType;
         FormFieldTrait::getIsFieldset insteadof RelationFieldTrait;
         RelationFieldTrait::defineValueAsString insteadof FormFieldTrait;
+        RelationFieldTrait::defineValueAsJson insteadof FormFieldTrait;
         RelationFieldTrait::populateValue insteadof FormFieldTrait;
         RelationFieldTrait::renderLabel insteadof FormFieldTrait;
     }
@@ -127,20 +128,6 @@ class FileUpload extends CraftAssets implements FormFieldInterface
             // Handle when volumes don't have a public URL
             return $input->url ?? $input->filename;
         }, $value);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function serializeValueForWebhook($value, ElementInterface $element = null)
-    {
-        $values = [];
-        foreach ($element->getFieldValue($this->handle)->all() as $asset) {
-            /* @var Asset $asset */
-            $values[] = $asset->toArray();
-        }
-
-        return $values;
     }
 
     /**

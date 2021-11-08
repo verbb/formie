@@ -620,6 +620,27 @@ trait NestedFieldTrait
     /**
      * @inheritDoc
      */
+    protected function defineValueAsJson($value, ElementInterface $element = null)
+    {
+        $values = [];
+
+        foreach ($value->all() as $rowId => $row) {
+            foreach ($row->getFieldLayout()->getFields() as $field) {
+                $subValue = $row->getFieldValue($field->handle);
+                $valueAsJson = $field->getValueAsJson($subValue, $row);
+
+                if ($valueAsJson) {
+                    $values[$rowId][$field->handle] = $valueAsJson;
+                }
+            }
+        }
+
+        return $values;
+    }
+
+    /**
+     * @inheritDoc
+     */
     protected function defineValueForExport($value, ElementInterface $element = null)
     {
         $values = [];

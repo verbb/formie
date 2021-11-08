@@ -738,6 +738,25 @@ class Submission extends Element
     /**
      * @inheritdoc
      */
+    public function getValuesAsJson(): array
+    {
+        $values = [];
+
+        foreach ($this->fieldLayoutFields() as $field) {
+            $value = $this->getFieldValue($field->handle);
+            $valueForJson = $field->getValueAsJson($value, $this);
+
+            if ($valueForJson) {
+                $values[$field->handle] = $valueForJson;
+            }
+        }
+
+        return $values;
+    }
+
+    /**
+     * @inheritdoc
+     */
     public function getValuesForExport(): array
     {
         $values = [];

@@ -26,9 +26,11 @@
 - Added the ability to set a Google Tag Manager payload for every submit button for forms.
 - Added statuses to Sent Notifications, along with error messages to identify issues for failed Email Notifications.
 - Added `Field::defineValueAsString()` and `Field::getValueAsString()` to consolidate how to represent field values as a string value.
+- Added `Field::defineValueAsJson()` and `Field::getValueAsJson()` to consolidate how to represent field values as JSON object.
 - Added `Field::defineValueForExport()` and `Field::getValueForExport()` to consolidate how to represent field values when exporting through Craft's export.
-- Added `Submission::getValuesAsString()`, `Submission::getValuesForExport()` to better consolidate field values for various operations.
+- Added `Submission::getValuesAsString()`, `Submission::getValuesAsJson()`, `Submission::getValuesForExport()` to better consolidate field values for various operations.
 - Added `Field::EVENT_MODIFY_VALUE_AS_STRING` event for all fields.
+- Added `Field::EVENT_MODIFY_VALUE_AS_JSON` event for all fields.
 - Added `Field::EVENT_MODIFY_VALUE_FOR_EXPORT` event for all fields.
 - Added `Field::EVENT_MODIFY_VALUE_FOR_SUMMARY` event for all fields.
 

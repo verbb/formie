@@ -838,7 +838,15 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
 
         return '';
     }
-   
+
+    /**
+     * @inheritDoc
+     */
+    protected function defineValueAsJson($value, ElementInterface $element = null)
+    {
+        return $this->defineValueAsString($value, $element);
+    }
+
     /**
      * @inheritDoc
      */

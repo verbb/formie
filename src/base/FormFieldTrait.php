@@ -202,14 +202,6 @@ trait FormFieldTrait
     }
 
     /**
-     * @inheritDoc
-     */
-    public function serializeValueForWebhook($value, ElementInterface $element = null)
-    {
-        return parent::serializeValue($value, $element);
-    }
-
-    /**
      * @inheritdoc
      */
     public function getValueAsString($value, ElementInterface $element = null)
@@ -223,6 +215,24 @@ trait FormFieldTrait
         ]);
 
         $this->trigger(static::EVENT_MODIFY_VALUE_AS_STRING, $event);
+
+        return $event->value;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getValueAsJson($value, ElementInterface $element = null)
+    {
+        $value = $this->defineValueAsJson($value, $element);
+
+        $event = new ModifyFieldValueEvent([
+            'value' => $value,
+            'field' => $this,
+            'element' => $element,
+        ]);
+
+        $this->trigger(static::EVENT_MODIFY_VALUE_AS_JSON, $event);
 
         return $event->value;
     }
@@ -1116,6 +1126,18 @@ trait FormFieldTrait
         }
 
         return (string)$value;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    protected function defineValueAsJson($value, ElementInterface $element = null)
+    {
+        if ($this->getIsCosmetic() || $this->getIsHidden()) {
+            return false;
+        }
+        
+        return Json::decode(Json::encode($value));
     }
 
     /**

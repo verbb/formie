@@ -35,6 +35,7 @@ class Products extends CommerceProducts implements FormFieldInterface
         getEmailHtml as traitGetEmailHtml;
         getSavedFieldConfig as traitGetSavedFieldConfig;
         RelationFieldTrait::defineValueAsString insteadof FormFieldTrait;
+        RelationFieldTrait::defineValueAsJson insteadof FormFieldTrait;
         RelationFieldTrait::getIsFieldset insteadof FormFieldTrait;
         RelationFieldTrait::populateValue insteadof FormFieldTrait;
         RelationFieldTrait::renderLabel insteadof FormFieldTrait;

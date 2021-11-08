@@ -571,6 +571,26 @@ Event::on(SingleLineText::class, SingleLineText::EVENT_MODIFY_VALUE_AS_STRING, f
 });
 ```
 
+### The `modifyValueAsJson` event
+The event that is triggered when preparing a field's value to be represented as a JSON object. You can use this on any class that includes the `FormFieldTrait` trait.
+
+Modify the `value` event property to set the value used.
+
+```php
+use verbb\formie\fields\formfields\SingleLineText;
+use verbb\formie\events\ModifyFieldValueEvent;
+use yii\base\Event;
+
+Event::on(SingleLineText::class, SingleLineText::EVENT_MODIFY_VALUE_AS_JSON, function(ModifyFieldValueEvent $event) {
+    $field = $event->field;
+    $value = $event->value;
+    $element = $event->element;
+    
+    // Overwrite the value
+    $event->value = 'My Custom Value';
+});
+```
+
 ### The `modifyValueForExport` event
 The event that is triggered when preparing a field's value to be exported. You can use this on any class that includes the `FormFieldTrait` trait.
 

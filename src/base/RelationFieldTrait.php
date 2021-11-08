@@ -13,8 +13,9 @@ use craft\fields\data\OptionData;
 use craft\fields\data\SingleOptionFieldData;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Db;
-use craft\helpers\Html;
 use craft\helpers\ElementHelper;
+use craft\helpers\Html;
+use craft\helpers\Json;
 use craft\helpers\Template as TemplateHelper;
 
 trait RelationFieldTrait
@@ -435,6 +436,18 @@ trait RelationFieldTrait
     /**
      * @inheritDoc
      */
+    protected function defineValueAsJson($value, ElementInterface $element = null)
+    {
+        $value = $this->_all($value, $element)->all();
+
+        return array_map(function($item) {
+            return $this->_elementToArray($item);
+        }, $value);
+    }
+
+    /**
+     * @inheritDoc
+     */
     protected function getStringCustomFieldOptions($fields)
     {
         $options = [];
@@ -500,6 +513,21 @@ trait RelationFieldTrait
         }
 
         return $element->title;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    private function _elementToArray($element)
+    {
+        // Watch out for nested element queries
+        foreach ($element as $key => $value) {
+            if ($value instanceof ElementQuery) {
+                $element[$key] = $value->all();
+            }
+        }
+
+        return Json::decode(Json::encode($element));
     }
 
 }

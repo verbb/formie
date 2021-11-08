@@ -7,6 +7,7 @@ use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyWebhookPayloadEvent;
 
 use Craft;
+use craft\helpers\Json;
 use craft\helpers\StringHelper;
 use craft\helpers\UrlHelper;
 
@@ -81,19 +82,27 @@ abstract class Webhook extends Integration implements IntegrationInterface
      */
     protected function generatePayloadValues(Submission $submission): array
     {
-        $submissionContent = [];
-        $submissionAttributes = $submission->getAttributes();
+        $submissionContent = $submission->getValuesAsJson();
+        $formAttributes = Json::decode(Json::encode($submission->getForm()->getAttributes()));
 
-        $formAttributes = $submission->getForm()->getAttributes();
+        $submissionAttributes = $submission->toArray([
+            'id',
+            'formId',
+            'status',
+            'userId',
+            'ipAddress',
+            'isIncomplete',
+            'isSpam',
+            'spamReason',
+            'title',
+            'dateCreated',
+            'dateUpdated',
+            'dateDeleted',
+            'trashed',
+        ]);
 
         // Trim the form settings a little
-        $formAttributes['settings'] = $formAttributes['settings']->toArray();
         unset($formAttributes['settings']['integrations']);
-
-        foreach ($submission->getForm()->getFields() as $field) {
-            $value = $submission->getFieldValue($field->handle);
-            $submissionContent[$field->handle] = $field->serializeValueForWebhook($value, $submission);
-        }
 
         $payload = [
             'json' => [
@@ -104,6 +113,7 @@ abstract class Webhook extends Integration implements IntegrationInterface
 
         // Fire a 'modifyWebhookPayload' event
         $event = new ModifyWebhookPayloadEvent([
+            'submission' => $submission,
             'payload' => $payload,
         ]);
         $this->trigger(self::EVENT_MODIFY_WEBHOOK_PAYLOAD, $event);

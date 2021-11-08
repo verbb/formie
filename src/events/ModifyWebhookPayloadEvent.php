@@ -8,6 +8,7 @@ class ModifyWebhookPayloadEvent extends Event
     // Properties
     // =========================================================================
 
+    public $submission;
     public $payload;
     
 }
