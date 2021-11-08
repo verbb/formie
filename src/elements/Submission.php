@@ -719,6 +719,29 @@ class Submission extends Element
     /**
      * @inheritdoc
      */
+    public function getSummaryFieldContent(): array
+    {
+        $items = [];
+
+        foreach ($this->fieldLayoutFields() as $field) {
+            $value = $this->getFieldValue($field->handle);
+            $html = $field->getSummaryContent($value, $this);
+
+            if ($html) {
+                $items[] = [
+                    'field' => $field,
+                    'value' => $value,
+                    'html' => $html,
+                ];
+            }
+        }
+
+        return $items;
+    }
+
+    /**
+     * @inheritdoc
+     */
     public function getSerializedFieldValuesForIntegration(array $fieldHandles = null): array
     {
         $serializedValues = [];
