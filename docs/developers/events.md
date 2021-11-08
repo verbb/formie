@@ -293,24 +293,6 @@ Event::on(Submissions::class, Submissions::EVENT_BEFORE_TRIGGER_INTEGRATION, fun
 });
 ```
 
-### The `modifyFieldValueForIntegration` event
-The event that is triggered after a field's value has been prepped for all integrations.
-
-Modify the `value` event property to set the value used by integrations.
-
-```php
-use verbb\formie\elements\Submission;
-use verbb\formie\events\ModifyFieldValueForIntegrationEvent;
-use yii\base\Event;
-
-Event::on(Submission::class, Submission::EVENT_MODIFY_FIELD_VALUE_FOR_INTEGRATION, function(ModifyFieldValueForIntegrationEvent $event) {
-    $field = $event->field;
-    $value = $event->value;
-    $submission = $event->submission;
-    // ...
-});
-```
-
 ### The `beforeSubmissionRequest` event
 The event that is triggered before a submission is validated. This is triggered on the controller action endpoint, so should primarily be used for modification of the submission before validation, or any other use-case that needs to occur in the controller.
 
@@ -603,6 +585,28 @@ use yii\base\Event;
 
 Event::on(MultiLineText::class, MultiLineText::EVENT_MODIFY_VALUE_FOR_EXPORT, function(ModifyFieldValueEvent $event) {
     $field = $event->field;
+    $value = $event->value;
+    $element = $event->element;
+    
+    // Overwrite the value
+    $event->value = 'My Custom Value';
+});
+```
+
+### The `modifyValueForIntegration` event
+The event that is triggered when preparing a field's value to be used in integrations. You can use this on any class that includes the `FormFieldTrait` trait.
+
+Modify the `value` event property to set the value used.
+
+```php
+use verbb\formie\fields\formfields\MultiLineText;
+use verbb\formie\events\ModifyFieldIntegrationValueEvent;
+use yii\base\Event;
+
+Event::on(MultiLineText::class, MultiLineText::EVENT_MODIFY_VALUE_FOR_INTEGRATION, function(ModifyFieldIntegrationValueEvent $event) {
+    $field = $event->field;
+    $integrationField = $event->integrationField;
+    $integration = $event->integration;
     $value = $event->value;
     $element = $event->element;
     
@@ -1450,17 +1454,15 @@ Event::on(Mailchimp::class, Mailchimp::EVENT_AFTER_FETCH_FORM_SETTINGS, function
 });
 ```
 
-### The `parseMappedFieldValue` event
+### The `modifyMappedFieldValue` event
 The event that is triggered when parsing the field value made during submission to the field mapped in the provider. Using this event allows you to modify how Formie translates content from Craft into the third-party provider.
 
-You **must** use `handled = true` to flag you are overriding field content behaviour. If not, it'll fall back to Formie's default handling.
-
 ```php
-use verbb\formie\events\ParseMappedFieldValueEvent;
+use verbb\formie\events\ModifyFieldIntegrationValueEvent;
 use verbb\formie\integrations\emailmarketing\Mailchimp;
 use yii\base\Event;
 
-Event::on(Mailchimp::class, Mailchimp::EVENT_PARSE_MAPPED_FIELD_VALUE, function(ParseMappedFieldValueEvent $event) {
+Event::on(Mailchimp::class, Mailchimp::EVENT_MODIFY_FIELD_MAPPING_VALUE, function(ModifyFieldIntegrationValueEvent $event) {
     $integrationField = $event->integrationField;
     $formField = $event->formField;
     $value = $event->value;
@@ -1469,10 +1471,24 @@ Event::on(Mailchimp::class, Mailchimp::EVENT_PARSE_MAPPED_FIELD_VALUE, function(
 
     if ($formField->handle === 'myFieldHandle') {
         $event->value = 'An overridden value';
-
-        // This tells Formie you've overridden the parsed value, and to use that.
-        $event->handled = true;
     }
+});
+```
+
+### The `modifyMappedFieldValues` event
+The event that is triggered when parsing all the mapped values made during submission to the provider. Using this event allows you to modify how Formie translates content from Craft into the third-party provider.
+
+```php
+use verbb\formie\events\ModifyFieldIntegrationValuesEvent;
+use verbb\formie\integrations\emailmarketing\Mailchimp;
+use yii\base\Event;
+
+Event::on(Mailchimp::class, Mailchimp::EVENT_MODIFY_FIELD_MAPPING_VALUES, function(ModifyFieldIntegrationValuesEvent $event) {
+    $fieldValues = $event->fieldValues;
+    $submission = $event->submission;
+    $fieldMapping = $event->fieldMapping;
+    $fieldSettings = $event->fieldSettings;
+    $integration = $event->integration;
 });
 ```
 

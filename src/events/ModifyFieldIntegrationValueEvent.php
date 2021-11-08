@@ -3,15 +3,15 @@ namespace verbb\formie\events;
 
 use yii\base\Event;
 
-class ParseMappedFieldValueEvent extends Event
+class ModifyFieldIntegrationValueEvent extends Event
 {
     // Properties
     // =========================================================================
 
-    public $integrationField;
-    public $formField;
     public $value;
+    public $field;
     public $submission;
+    public $integrationField;
     public $integration;
-
+    
 }

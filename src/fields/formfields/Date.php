@@ -480,19 +480,6 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
     }
 
     /**
-     * @inheritDoc
-     */
-    public function getFieldMappedValueForIntegration(IntegrationField $integrationField, $formField, $value, $submission)
-    {
-        // If a string value is requested for a date, return the ISO 8601 date string
-        if ($integrationField->getType() === IntegrationField::TYPE_STRING) {
-            return $value->format('c');
-        }
-
-        return $value;
-    }
-
-    /**
      * Returns an array of month names.
      *
      * @return array
@@ -844,7 +831,23 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
      */
     protected function defineValueAsJson($value, ElementInterface $element = null)
     {
-        return $this->defineValueAsString($value, $element);
+        return $this->getValueAsString($value, $element);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected function defineValueForIntegration($value, $integrationField, ElementInterface $element = null)
+    {
+        // If a string value is requested for a date, return the ISO 8601 date string
+        if ($integrationField->getType() === IntegrationField::TYPE_STRING) {
+            if (!$this->getIsTime()) {
+                return $value->format('c');
+            }
+        }
+
+        // Fetch the default handling
+        return parent::defineValueForIntegration($value, $integrationField, $element);
     }
 
     /**

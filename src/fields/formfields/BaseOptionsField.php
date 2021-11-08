@@ -21,6 +21,7 @@ abstract class BaseOptionsField extends CraftBaseOptionsField
     use FormFieldTrait {
         getFrontEndInputOptions as traitGetFrontendInputOptions;
         getDefaultValue as traitGetDefaultValue;
+        defineValueForIntegration as traitDefineValueForIntegration;
     }
 
 
@@ -51,21 +52,6 @@ abstract class BaseOptionsField extends CraftBaseOptionsField
         foreach ($this->options as &$option) {
             unset($option['isNew']);
         }
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getFieldMappedValueForIntegration(IntegrationField $integrationField, $formField, $value, $submission)
-    {
-        // If mapping to a string-based integration field, return multi-values as CSV
-        if ($integrationField->getType() === IntegrationField::TYPE_STRING) {
-            if (is_array($value)) {
-                return implode(', ', $value);
-            }
-        }
-
-        return $value;
     }
 
     /**
@@ -208,6 +194,26 @@ abstract class BaseOptionsField extends CraftBaseOptionsField
         }
 
         return $value->label ?? '';
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected function defineValueForIntegration($value, $integrationField, ElementInterface $element = null)
+    {
+        // If mapping to an array, extract just the values
+        if ($integrationField->getType() === IntegrationField::TYPE_ARRAY) {
+            if ($value instanceof MultiOptionsFieldData) {
+                return array_map(function($item) {
+                    return $item->value;
+                }, (array)$value);
+            }
+
+            return [$value->value];
+        }
+
+        // Fetch the default handling
+        return $this->traitDefineValueForIntegration($value, $integrationField, $element);
     }
     
     /**

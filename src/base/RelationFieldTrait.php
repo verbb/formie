@@ -61,16 +61,6 @@ trait RelationFieldTrait
     /**
      * @inheritDoc
      */
-    public function serializeValueForIntegration($value, ElementInterface $element = null)
-    {
-        return array_map(function($input) {
-            return $this->_getElementLabel($input);
-        }, $this->_all($value, $element)->all());
-    }
-
-    /**
-     * @inheritDoc
-     */
     public function getPreviewElements(): array
     {
         $options = array_map(function($input) {
@@ -257,37 +247,6 @@ trait RelationFieldTrait
     /**
      * @inheritDoc
      */
-    public function getFieldMappedValueForIntegration(IntegrationField $integrationField, $formField, $value, $submission)
-    {
-        // Override the value to get full elements
-        $value = $submission->getFieldValue($formField->handle);
-
-        // Set the status to null to include disabled elements
-        $value->status(null);
-
-        // Send through a CSV of element titles, when mapping to a string
-        if ($integrationField->getType() === IntegrationField::TYPE_STRING) {
-            $titles = ArrayHelper::getColumn($value->all(), 'title');
-
-            return implode(', ', $titles);
-        }
-
-        // When an array, assume a collection of IDs
-        if ($integrationField->getType() === IntegrationField::TYPE_ARRAY) {
-            return $value->ids();
-        }
-
-        // When a number, assume a single ID
-        if ($integrationField->getType() === IntegrationField::TYPE_NUMBER) {
-            return $value->ids()[0] ?? null;
-        }
-
-        return null;
-    }
-
-    /**
-     * @inheritDoc
-     */
     public function getDefaultValueQuery()
     {
         $defaultValue = $this->defaultValue ?? [];
@@ -443,6 +402,37 @@ trait RelationFieldTrait
         return array_map(function($item) {
             return $this->_elementToArray($item);
         }, $value);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected function defineValueForIntegration($value, $integrationField, ElementInterface $element = null)
+    {
+        // Set the status to null to include disabled elements
+        $value->status(null);
+
+        // Send through a CSV of element titles, when mapping to a string
+        if ($integrationField->getType() === IntegrationField::TYPE_STRING) {
+            return $this->defineValueAsString($value, $element);
+        }
+
+        // When an array, assume a collection of IDs
+        if ($integrationField->getType() === IntegrationField::TYPE_ARRAY) {
+            return $value->ids();
+        }
+
+        // When a number, assume a single ID
+        if ($integrationField->getType() === IntegrationField::TYPE_NUMBER) {
+            return $value->ids()[0] ?? null;
+        }
+
+        // When a number, assume a single ID
+        if ($integrationField->getType() === IntegrationField::TYPE_FLOAT) {
+            return $value->ids()[0] ?? null;
+        }
+
+        return null;
     }
 
     /**

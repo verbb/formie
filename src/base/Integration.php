@@ -8,7 +8,7 @@ use verbb\formie\errors\IntegrationException;
 use verbb\formie\records\Integration as IntegrationRecord;
 use verbb\formie\events\IntegrationConnectionEvent;
 use verbb\formie\events\IntegrationFormSettingsEvent;
-use verbb\formie\events\ParseMappedFieldValueEvent;
+use verbb\formie\events\ModifyFieldIntegrationValuesEvent;
 use verbb\formie\events\SendIntegrationPayloadEvent;
 use verbb\formie\helpers\UrlHelper as FormieUrlHelper;
 use verbb\formie\models\IntegrationCollection;
@@ -39,7 +39,8 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     const EVENT_AFTER_CHECK_CONNECTION = 'afterCheckConnection';
     const EVENT_BEFORE_FETCH_FORM_SETTINGS = 'beforeFetchFormSettings';
     const EVENT_AFTER_FETCH_FORM_SETTINGS = 'afterFetchFormSettings';
-    const EVENT_PARSE_MAPPED_FIELD_VALUE = 'parseMappedFieldValue';
+    const EVENT_MODIFY_FIELD_MAPPING_VALUES = 'modifyFieldMappingValues';
+    const EVENT_MODIFY_FIELD_MAPPING_VALUE = 'modifyFieldMappingValue';
     
     const TYPE_ADDRESS_PROVIDER = 'addressProvider';
     const TYPE_CAPTCHA = 'captcha';
@@ -703,42 +704,41 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
             $fieldMapping = [];
         }
 
-        // Fetch all data for the submission, serialized for integrations
-        $serializedFieldValues = $submission->getSerializedFieldValuesForIntegration();
-
-        // Keep track of all custom fields
+        // Fetch all custom fields here for efficiency
         $formFields = ArrayHelper::index($submission->getFieldLayout()->getFields(), 'handle');
 
-        foreach ($fieldMapping as $tag => $formFieldHandle) {
+        foreach ($fieldMapping as $tag => $fieldHandle) {
             // Don't let in un-mapped fields
-            if ($formFieldHandle === '') {
+            if ($fieldHandle === '') {
                 continue;
             }
 
-            if (strstr($formFieldHandle, '{')) {
+            if (strstr($fieldHandle, '{')) {
                 try {
-                    $formFieldHandle = str_replace(['{', '}'], ['', ''], $formFieldHandle);
+                    $fieldHandle = str_replace(['{', '}'], ['', ''], $fieldHandle);
 
                     // Check to see if this is a custom field, or an attribute on the submission
-                    if (StringHelper::startsWith($formFieldHandle, 'submission:')) {
-                        $formFieldHandle = str_replace('submission:', '', $formFieldHandle);
+                    if (StringHelper::startsWith($fieldHandle, 'submission:')) {
+                        $fieldHandle = str_replace('submission:', '', $fieldHandle);
 
-                        $value = $submission->$formFieldHandle;
+                        $fieldValues[$tag] = $submission->$fieldHandle;
                     } else {
                         // Check for nested fields - convert to dot-notation
-                        if (strstr($formFieldHandle, '[')) {
-                            $formFieldHandle = str_replace(['[', ']'], ['.', ''], $formFieldHandle);
+                        if (strstr($fieldHandle, '[')) {
+                            $fieldHandle = str_replace(['[', ']'], ['.', ''], $fieldHandle);
                         }
 
-                        $value = ArrayHelper::getValue($serializedFieldValues, $formFieldHandle);
+                        $value = $submission->getFieldValue($fieldHandle);
+
+                        // Try and get the form field we're pulling data from
+                        $field = $formFields[$fieldHandle] ?? null;
+
+                        // Then, allow the integration to control how to parse the field, from its type
+                        if ($field) {
+                            $integrationField = ArrayHelper::firstWhere($fieldSettings, 'handle', $tag) ?? new IntegrationField();
+                            $fieldValues[$tag] = $field->getValueForIntegration($value, $integrationField, $this, $submission);
+                        }
                     }
-
-                    // Try and get the form field we're pulling data from
-                    $formField = $formFields[$formFieldHandle] ?? null;
-
-                    // Then, allow the integration to control how to parse the field, from its type
-                    $integrationField = ArrayHelper::firstWhere($fieldSettings, 'handle', $tag) ?? new IntegrationField();
-                    $fieldValues[$tag] = $this->parseFieldMappedValue($integrationField, $formField, $value, $submission);
                 } catch (\Throwable $e) {
                     Formie::error(Craft::t('formie', 'Error when fetching mapping values.', [
                         'message' => $e->getMessage(),
@@ -752,94 +752,17 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
             }
         }
 
-        return $fieldValues;
-    }
+        $event = new ModifyFieldIntegrationValuesEvent([
+            'fieldValues' => $fieldValues,
+            'submission' => $submission,
+            'fieldMapping' => $fieldMapping,
+            'fieldSettings' => $fieldSettings,
+            'integration' => $this,
+        ]);
 
-    /**
-     * @inheritDoc
-     */
-    public function parseFieldMappedValue(IntegrationField $integrationField, $formField, $value, $submission)
-    {
-        // Allow events to modify the parsed value
-        if ($this->hasEventHandlers(self::EVENT_PARSE_MAPPED_FIELD_VALUE)) {
-            $event = new ParseMappedFieldValueEvent([
-                'integrationField' => $integrationField,
-                'formField' => $formField,
-                'value' => $value,
-                'submission' => $submission,
-                'integration' => $this,
-            ]);
+        $this->trigger(static::EVENT_MODIFY_FIELD_MAPPING_VALUES, $event);
 
-            $this->trigger(self::EVENT_PARSE_MAPPED_FIELD_VALUE, $event);
-
-            if ($event->handled) {
-                return $event->value ?? '';
-            }
-        }
-
-        // Check to see if this form field has specific support for how to translate content
-        if ($formField && method_exists($formField, 'getFieldMappedValueForIntegration')) {
-            return $formField->getFieldMappedValueForIntegration($integrationField, $formField, $value, $submission);
-        }
-
-        // Check to see if we're data-encrypting the field and get the correct content
-        if ($formField && $formField->enableContentEncryption) {
-            $value = $formField->normalizeValue($value);
-        }
-
-        if ($integrationField->getType() === IntegrationField::TYPE_DATE) {
-            if ($date = DateTimeHelper::toDateTime($value)) {
-                return $date->format('Y-m-d');
-            }
-        }
-
-        if ($integrationField->getType() === IntegrationField::TYPE_DATETIME) {
-            if ($date = DateTimeHelper::toDateTime($value)) {
-                return $date->format('Y-m-d H:i:s');
-            }
-        }
-
-        if ($integrationField->getType() === IntegrationField::TYPE_NUMBER) {
-            // If a non-plain value, and the field doesn't implement a __toString, can't reliably serialize it...
-            if (is_array($value) || (is_object($value) && !method_exists($value, '__toString'))) {
-                return 0;
-            }
-
-            return intval($value);
-        }
-
-        if ($integrationField->getType() === IntegrationField::TYPE_FLOAT) {
-            // If a non-plain value, and the field doesn't implement a __toString, can't reliably serialize it...
-            if (is_array($value) || (is_object($value) && !method_exists($value, '__toString'))) {
-                return 0.0;
-            }
-
-            return floatval($value);
-        }
-
-        if ($integrationField->getType() === IntegrationField::TYPE_STRING) {
-            // If a non-plain value, and the field doesn't implement a __toString, can't reliably serialize it...
-            if (is_array($value) || (is_object($value) && !method_exists($value, '__toString'))) {
-                return '';
-            }
-
-            return (string)$value;
-        }
-
-        if ($integrationField->getType() === IntegrationField::TYPE_BOOLEAN) {
-            // If a non-plain value, and the field doesn't implement a __toString, can't reliably serialize it...
-            if (is_array($value) || (is_object($value) && !method_exists($value, '__toString'))) {
-                return false;
-            }
-
-            return StringHelper::toBoolean((string)$value);
-        }
-
-        if ($integrationField->getType() === IntegrationField::TYPE_ARRAY) {
-            return (is_array($value)) ? $value : [$value];
-        }
-
-        return (string)$value;
+        return $event->fieldValues;
     }
 
     /**

@@ -22,6 +22,7 @@ interface FormFieldInterface extends ComponentInterface
     const EVENT_MODIFY_VALUE_AS_STRING = 'modifyValueAsString';
     const EVENT_MODIFY_VALUE_AS_JSON = 'modifyValueAsJson';
     const EVENT_MODIFY_VALUE_FOR_EXPORT = 'modifyValueForExport';
+    const EVENT_MODIFY_VALUE_FOR_INTEGRATION = 'modifyValueForIntegration';
     const EVENT_MODIFY_VALUE_FOR_SUMMARY = 'modifyValueForSummary';
 
     

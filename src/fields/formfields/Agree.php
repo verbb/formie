@@ -78,19 +78,6 @@ class Agree extends FormField implements PreviewableFieldInterface
     /**
      * @inheritDoc
      */
-    public function getFieldMappedValueForIntegration(IntegrationField $integrationField, $formField, $value, $submission)
-    {
-        // If we're expecting a string, not a boolean, return the checked/unchecked values
-        if ($integrationField->getType() === IntegrationField::TYPE_STRING) {
-            return $this->getValueAsString($value, $submission);
-        }
-
-        return $value;
-    }
-
-    /**
-     * @inheritDoc
-     */
     public function getDescriptionHtml()
     {
         $html = $this->_getHtmlContent($this->description);

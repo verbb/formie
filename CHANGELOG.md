@@ -28,24 +28,34 @@
 - Added `Field::defineValueAsString()` and `Field::getValueAsString()` to consolidate how to represent field values as a string value.
 - Added `Field::defineValueAsJson()` and `Field::getValueAsJson()` to consolidate how to represent field values as JSON object.
 - Added `Field::defineValueForExport()` and `Field::getValueForExport()` to consolidate how to represent field values when exporting through Craft's export.
+- Added `Field::defineValueForIntegration()` and `Field::getValueForIntegration()` to consolidate how to represent field values when sending to an integration.
 - Added `Submission::getValuesAsString()`, `Submission::getValuesAsJson()`, `Submission::getValuesForExport()` to better consolidate field values for various operations.
 - Added `Field::EVENT_MODIFY_VALUE_AS_STRING` event for all fields.
 - Added `Field::EVENT_MODIFY_VALUE_AS_JSON` event for all fields.
 - Added `Field::EVENT_MODIFY_VALUE_FOR_EXPORT` event for all fields.
+- Added `Field::EVENT_MODIFY_VALUE_FOR_INTEGRATION` event for all fields.
 - Added `Field::EVENT_MODIFY_VALUE_FOR_SUMMARY` event for all fields.
+- Added `Integration::EVENT_MODIFY_FIELD_MAPPING_VALUES` event for all integrations.
 
 ### Changed
 - Sent notifications are now saved earlier regardless of success, added statuses and records a failed message.
 - Refactored all fields to better handle and consolidate for their content values are represented for various operations (exports, integrations, dev API).
+- Renamed `Integration::EVENT_PARSE_MAPPED_FIELD_VALUE` event to `Integration::EVENT_MODIFY_FIELD_MAPPING_VALUE`.
 
 ### Fixed
 - Fixed captchas not showing the correct name in Formie settings.
 - Fixed an error with Recipients fields, where an option value was changed previously, and no longer valid.
+- Fixed hidden Recipients fields not being classified as a hidden field.
+- Fixed Heading fields not being classified as a cosmetic field.
 
 ### Removed
-- Removed `Field::serializeValueForExport()` method. Use `Field::defineValueForExport()` or `Field::getValueForExport()` instead.
-- Remove `Field::serializeValueForWebhook()` method. Use `Field::defineValueAsJson()` or `Field::getValueAsJson()` instead.
+- Removed `Field::serializeValueForExport()` method. Use `Field::defineValueForExport()` for setting or `Field::getValueForExport()` for getting instead.
+- Removed `Field::serializeValueForWebhook()` method. Use `Field::defineValueAsJson()` for setting or `Field::getValueAsJson()` for getting instead.
+- Removed `Field::serializeValueForIntegration()` method. Use `Field::defineValueForIntegration()` for setting or `Field::getValueForIntegration()` for getting instead.
+- Removed `Field::getFieldMappedValueForIntegration()` method. Use `Field::defineValueForIntegration()` instead.
 - Removed `SubmissionExport::EVENT_MODIFY_FIELD_EXPORT` event. Use `Field::EVENT_MODIFY_VALUE_FOR_EXPORT` instead.
+- Removed `Submission::getSerializedFieldValuesForIntegration()` method. Use `Submission::getValuesForIntegration()` instead.
+- Removed `Submission::EVENT_MODIFY_FIELD_VALUE_FOR_INTEGRATION` event. Use `Field::EVENT_MODIFY_VALUE_FOR_INTEGRATION` instead.
 
 ## 1.4.24 - 2021-11-06
 

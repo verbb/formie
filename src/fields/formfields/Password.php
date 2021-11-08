@@ -177,7 +177,7 @@ class Password extends FormField implements PreviewableFieldInterface
     /**
      * @inheritDoc
      */
-    protected function defineValueAsString($value, ElementInterface $element = null)
+    protected function defineValueForSummary($value, ElementInterface $element = null)
     {
         // Mask the value for submissions (but no indication of length)
         if ($value) {
@@ -188,10 +188,11 @@ class Password extends FormField implements PreviewableFieldInterface
     }
 
     /**
-     * @inheritDoc
+     * @inheritdoc
      */
-    protected function defineValueAsJson($value, ElementInterface $element = null)
+    protected function defineValueForExport($value, ElementInterface $element = null)
     {
-        return $this->defineValueAsString($value, $element);
+        // Hide the hashed password from exports as well
+        return $this->getValueForSummary($value, $element);
     }
 }

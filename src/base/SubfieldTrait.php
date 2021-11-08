@@ -64,19 +64,4 @@ trait SubfieldTrait
             }
         }
     }
-
-    /**
-     * @inheritDoc
-     */
-    public function getFieldMappedValueForIntegration(IntegrationField $integrationField, $formField, $value, $submission)
-    {
-        // If the expected value is a string, and if this is a multiple-allowed field, it'll map an array
-        // of data. Instead, return a string-like value
-        if ($integrationField->getType() === IntegrationField::TYPE_STRING) {
-            // Override the already-parsed value (an array) to provide toString() support.
-            return (string)$submission->getFieldValue($formField->handle);
-        }
-
-        return $value;
-    }
 }

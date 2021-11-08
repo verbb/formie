@@ -10,6 +10,6 @@ class ModifyFieldValueEvent extends Event
 
     public $value;
     public $field;
-    public $element;
+    public $submission;
     
 }

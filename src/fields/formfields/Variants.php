@@ -37,6 +37,7 @@ class Variants extends CommerceVariants implements FormFieldInterface
         getSavedFieldConfig as traitGetSavedFieldConfig;
         RelationFieldTrait::defineValueAsString insteadof FormFieldTrait;
         RelationFieldTrait::defineValueAsJson insteadof FormFieldTrait;
+        RelationFieldTrait::defineValueForIntegration insteadof FormFieldTrait;
         RelationFieldTrait::getIsFieldset insteadof FormFieldTrait;
         RelationFieldTrait::populateValue insteadof FormFieldTrait;
         RelationFieldTrait::renderLabel insteadof FormFieldTrait;

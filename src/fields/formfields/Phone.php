@@ -132,18 +132,6 @@ class Phone extends FormField implements SubfieldInterface, PreviewableFieldInte
     }
 
     /**
-     * @inheritDoc
-     */
-    public function serializeValueForIntegration($value, ElementInterface $element = null)
-    {
-        if ($this->countryEnabled) {
-            return $value->toArray();
-        }
-
-        return $value->number;
-    }
-
-    /**
      * @inheritdoc
      */
     public function getFrontEndJsModules()

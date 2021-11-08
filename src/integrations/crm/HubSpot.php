@@ -6,8 +6,9 @@ use verbb\formie\base\Integration;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\errors\IntegrationException;
+use verbb\formie\events\ModifyFieldIntegrationValueEvent;
 use verbb\formie\events\SendIntegrationPayloadEvent;
-use verbb\formie\events\ParseMappedFieldValueEvent;
+use verbb\formie\helpers\ConditionsHelper;
 use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
@@ -48,26 +49,17 @@ class HubSpot extends Crm
     {
         parent::init();
 
-        Event::on(self::class, self::EVENT_PARSE_MAPPED_FIELD_VALUE, function(ParseMappedFieldValueEvent $event) {
+        Event::on(self::class, self::EVENT_MODIFY_FIELD_MAPPING_VALUE, function(ModifyFieldIntegrationValueEvent $event) {
             // Special handling for single checkbox boolean fields for HubSpot
             if ($event->integrationField->getType() === IntegrationField::TYPE_BOOLEAN) {
-                // If a non-plain value, and the field doesn't implement a __toString, can't reliably serialize it...
-                if (is_array($event->value) || (is_object($event->value) && !method_exists($event->value, '__toString'))) {
-                    $event->value = false;
-                } else {
-                    $event->value = (bool)$event->value;
-                }
-
                 // HubSpot needs this as a string value.
                 $event->value = ($event->value === true) ? 'true' : 'false';
-                $event->handled = true;
             }
 
             // Special handling for arrays for checkboxes
             if ($event->integrationField->getType() === IntegrationField::TYPE_ARRAY) {
-                $event->value = (is_array($event->value)) ? $event->value : [$event->value];
-                $event->value = implode(';', $event->value);
-                $event->handled = true;
+                $event->value = array_filter($event->value);
+                $event->value = ConditionsHelper::recursiveImplode(';', $event->value);
             }
         });
     }

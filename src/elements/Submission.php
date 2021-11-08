@@ -8,7 +8,6 @@ use verbb\formie\base\NestedFieldInterface;
 use verbb\formie\elements\actions\SetSubmissionSpam;
 use verbb\formie\elements\actions\SetSubmissionStatus;
 use verbb\formie\elements\db\SubmissionQuery;
-use verbb\formie\events\ModifyFieldValueForIntegrationEvent;
 use verbb\formie\events\SubmissionMarkedAsSpamEvent;
 use verbb\formie\events\SubmissionRulesEvent;
 use verbb\formie\fields\formfields\FileUpload;
@@ -41,7 +40,6 @@ class Submission extends Element
 
     const EVENT_DEFINE_RULES = 'defineSubmissionRules';
     const EVENT_BEFORE_MARKED_AS_SPAM = 'beforeMarkedAsSpam';
-    const EVENT_MODIFY_FIELD_VALUE_FOR_INTEGRATION = 'modifyFieldValueForIntegration';
 
 
     // Public Properties
@@ -724,12 +722,12 @@ class Submission extends Element
         $values = [];
 
         foreach ($this->fieldLayoutFields() as $field) {
-            $value = $this->getFieldValue($field->handle);
-            $valueAsString = $field->getValueAsString($value, $this);
-
-            if ($valueAsString) {
-                $values[$field->handle] = $valueAsString;
+            if ($field->getIsCosmetic()) {
+                continue;
             }
+
+            $value = $this->getFieldValue($field->handle);
+            $values[$field->handle] = $field->getValueAsString($value, $this);
         }
 
         return $values;
@@ -743,12 +741,12 @@ class Submission extends Element
         $values = [];
 
         foreach ($this->fieldLayoutFields() as $field) {
-            $value = $this->getFieldValue($field->handle);
-            $valueForJson = $field->getValueAsJson($value, $this);
-
-            if ($valueForJson) {
-                $values[$field->handle] = $valueForJson;
+            if ($field->getIsCosmetic()) {
+                continue;
             }
+
+            $value = $this->getFieldValue($field->handle);
+            $values[$field->handle] = $field->getValueAsJson($value, $this);
         }
 
         return $values;
@@ -762,6 +760,10 @@ class Submission extends Element
         $values = [];
 
         foreach ($this->fieldLayoutFields() as $field) {
+            if ($field->getIsCosmetic()) {
+                continue;
+            }
+
             $value = $this->getFieldValue($field->handle);
             $valueForExport = $field->getValueForExport($value, $this);
 
@@ -769,7 +771,7 @@ class Submission extends Element
             // for multiple "columns" in the export, expressed through `field_subhandle`.
             if (is_array($valueForExport)) {
                 $values = array_merge($values, $valueForExport);
-            } else if ($valueForExport) {
+            } else {
                 $values[$field->handle] = $valueForExport;
             }
         }
@@ -785,52 +787,21 @@ class Submission extends Element
         $items = [];
 
         foreach ($this->fieldLayoutFields() as $field) {
+            if ($field->getIsCosmetic() || $field->getIsHidden()) {
+                continue;
+            }
+
             $value = $this->getFieldValue($field->handle);
             $html = $field->getValueForSummary($value, $this);
 
-            if ($html) {
-                $items[] = [
-                    'field' => $field,
-                    'value' => $value,
-                    'html' => $html,
-                ];
-            }
+            $items[] = [
+                'field' => $field,
+                'value' => $value,
+                'html' => $html,
+            ];
         }
 
         return $items;
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function getSerializedFieldValuesForIntegration(array $fieldHandles = null): array
-    {
-        $serializedValues = [];
-
-        foreach ($this->fieldLayoutFields() as $field) {
-            if ($fieldHandles === null || in_array($field->handle, $fieldHandles, true)) {
-                $value = $this->getFieldValue($field->handle);
-
-                // Allow fields to override their field values, just for integrations
-                if (method_exists($field, 'serializeValueForIntegration')) {
-                    $value = $field->serializeValueForIntegration($value, $this);
-                } else {
-                    $value = $field->serializeValue($value, $this);
-                }
-
-                // Fire a 'modifyFieldValueForIntegration' event
-                $event = new ModifyFieldValueForIntegrationEvent([
-                    'field' => $field,
-                    'value' => $value,
-                    'submission' => $this,
-                ]);
-                $this->trigger(self::EVENT_MODIFY_FIELD_VALUE_FOR_INTEGRATION, $event);
-
-                $serializedValues[$field->handle] = $event->value;
-            }
-        }
-
-        return $serializedValues;
     }
 
     /**

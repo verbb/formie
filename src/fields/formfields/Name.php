@@ -201,18 +201,6 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
     /**
      * @inheritDoc
      */
-    public function serializeValueForIntegration($value, ElementInterface $element = null)
-    {
-        if ($this->useMultipleFields && $value) {
-            return $value->toArray();
-        }
-
-        return $value;
-    }
-
-    /**
-     * @inheritDoc
-     */
     public function getExtraBaseFieldConfig(): array
     {
         return [

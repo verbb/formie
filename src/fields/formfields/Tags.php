@@ -47,6 +47,7 @@ class Tags extends CraftTags implements FormFieldInterface
         getDisplayTypeValue as traitGetDisplayTypeValue;
         RelationFieldTrait::defineValueAsString insteadof FormFieldTrait;
         RelationFieldTrait::defineValueAsJson insteadof FormFieldTrait;
+        RelationFieldTrait::defineValueForIntegration insteadof FormFieldTrait;
         RelationFieldTrait::getIsFieldset insteadof FormFieldTrait;
         RelationFieldTrait::populateValue insteadof FormFieldTrait;
         RelationFieldTrait::renderLabel insteadof FormFieldTrait;

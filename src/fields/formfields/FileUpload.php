@@ -8,6 +8,7 @@ use verbb\formie\base\RelationFieldTrait;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\models\IntegrationField;
 
 use Craft;
 use craft\base\ElementInterface;
@@ -33,6 +34,8 @@ class FileUpload extends CraftAssets implements FormFieldInterface
         FormFieldTrait::getIsFieldset insteadof RelationFieldTrait;
         RelationFieldTrait::defineValueAsString insteadof FormFieldTrait;
         RelationFieldTrait::defineValueAsJson insteadof FormFieldTrait;
+        RelationFieldTrait::defineValueForIntegration insteadof FormFieldTrait;
+        RelationFieldTrait::defineValueForIntegration as traitDefineValueForIntegration;
         RelationFieldTrait::populateValue insteadof FormFieldTrait;
         RelationFieldTrait::renderLabel insteadof FormFieldTrait;
     }
@@ -115,19 +118,6 @@ class FileUpload extends CraftAssets implements FormFieldInterface
         }
 
         return $values;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function serializeValueForIntegration($value, ElementInterface $element = null)
-    {
-        $value = $this->_all($value, $element)->all();
-
-        return array_map(function($input) {
-            // Handle when volumes don't have a public URL
-            return $input->url ?? $input->filename;
-        }, $value);
     }
 
     /**
@@ -523,6 +513,24 @@ class FileUpload extends CraftAssets implements FormFieldInterface
             // Handle when volumes don't have a public URL
             return $item->url ?? $item->filename;
         }, $value));
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected function defineValueForIntegration($value, $integrationField, ElementInterface $element = null)
+    {
+        if ($integrationField->getType() === IntegrationField::TYPE_ARRAY) {
+            $value = $this->getValueAsJson($value, $element);
+
+            return array_map(function($item) {
+                // Handle when volumes don't have a public URL
+                return $item['url'] ?? $item['filename'];
+            }, $value);
+        }
+
+        // Fetch the default handling
+        return $this->traitDefineValueForIntegration($value, $integrationField, $element);
     }
 
     /**

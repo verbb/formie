@@ -5,6 +5,7 @@ use verbb\formie\base\FormField;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\models\IntegrationField;
 use verbb\formie\models\Notification;
 use verbb\formie\positions\Hidden;
 
@@ -65,6 +66,14 @@ class Recipients extends FormField
         }
 
         return false;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getIsHidden(): bool
+    {
+        return ($this->displayType === 'hidden') ? true : false;
     }
 
     /**
@@ -346,6 +355,48 @@ class Recipients extends FormField
      * @inheritDoc
      */
     protected function defineValueAsString($value, ElementInterface $element = null)
+    {
+        if ($value instanceof MultiOptionsFieldData) {
+            return implode(', ', array_map(function($item) {
+                return $item->value;
+            }, (array)$value));
+        }
+
+        if (is_string($value)) {
+            return $value;
+        }
+
+        return $value->value ?? '';
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected function defineValueForIntegration($value, $integrationField, ElementInterface $element = null)
+    {
+        // If mapping to an array, extract just the values
+        if ($integrationField->getType() === IntegrationField::TYPE_ARRAY) {
+            if ($value instanceof MultiOptionsFieldData) {
+                return array_map(function($item) {
+                    return $item->value;
+                }, (array)$value);
+            }
+
+            if (is_string($value)) {
+                return [$value];
+            }
+
+            return [$value->value];
+        }
+
+        // Fetch the default handling
+        return parent::defineValueForIntegration($value, $integrationField, $element);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected function defineValueForSummary($value, ElementInterface $element = null)
     {
         if ($value instanceof MultiOptionsFieldData) {
             return implode(', ', array_map(function($item) {

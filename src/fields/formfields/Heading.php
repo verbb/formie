@@ -73,6 +73,14 @@ class Heading extends FormField
     /**
      * @inheritDoc
      */
+    public function getIsCosmetic(): bool
+    {
+        return true;
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function hasLabel(): bool
     {
         return false;

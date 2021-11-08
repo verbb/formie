@@ -6,18 +6,22 @@ use verbb\formie\elements\Form;
 use verbb\formie\elements\NestedFieldRow;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyFieldValueEvent;
+use verbb\formie\events\ModifyFieldIntegrationValueEvent;
+use verbb\formie\events\ParseMappedFieldValueEvent;
 use verbb\formie\fields\formfields\BaseOptionsField;
 use verbb\formie\helpers\ConditionsHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\Variables;
 use verbb\formie\gql\types\generators\FieldAttributeGenerator;
 use verbb\formie\gql\types\generators\KeyValueGenerator;
+use verbb\formie\models\IntegrationField;
 use verbb\formie\models\Notification;
 
 use Craft;
 use craft\base\ElementInterface;
 use craft\gql\types\DateTime as DateTimeType;
 use craft\helpers\ArrayHelper;
+use craft\helpers\DateTimeHelper;
 use craft\helpers\Html;
 use craft\helpers\Json;
 use craft\helpers\Template;
@@ -211,7 +215,7 @@ trait FormFieldTrait
         $event = new ModifyFieldValueEvent([
             'value' => $value,
             'field' => $this,
-            'element' => $element,
+            'submission' => $element,
         ]);
 
         $this->trigger(static::EVENT_MODIFY_VALUE_AS_STRING, $event);
@@ -229,7 +233,7 @@ trait FormFieldTrait
         $event = new ModifyFieldValueEvent([
             'value' => $value,
             'field' => $this,
-            'element' => $element,
+            'submission' => $element,
         ]);
 
         $this->trigger(static::EVENT_MODIFY_VALUE_AS_JSON, $event);
@@ -247,10 +251,33 @@ trait FormFieldTrait
         $event = new ModifyFieldValueEvent([
             'value' => $value,
             'field' => $this,
-            'element' => $element,
+            'submission' => $element,
         ]);
 
         $this->trigger(static::EVENT_MODIFY_VALUE_FOR_EXPORT, $event);
+
+        return $event->value;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getValueForIntegration($value, $integrationField, $integration, ElementInterface $element = null)
+    {
+        $value = $this->defineValueForIntegration($value, $integrationField, $element);
+
+        $event = new ModifyFieldIntegrationValueEvent([
+            'value' => $value,
+            'field' => $this,
+            'submission' => $element,
+            'integrationField' => $integrationField,
+            'integration' => $integration,
+        ]);
+
+        $this->trigger(static::EVENT_MODIFY_VALUE_FOR_INTEGRATION, $event);
+
+        // Raise the same event on the integration class for convenience
+        $integration->trigger($integration::EVENT_MODIFY_FIELD_MAPPING_VALUE, $event);
 
         return $event->value;
     }
@@ -265,7 +292,7 @@ trait FormFieldTrait
         $event = new ModifyFieldValueEvent([
             'value' => $value,
             'field' => $this,
-            'element' => $element,
+            'submission' => $element,
         ]);
 
         $this->trigger(static::EVENT_MODIFY_VALUE_FOR_SUMMARY, $event);
@@ -1121,10 +1148,6 @@ trait FormFieldTrait
      */
     protected function defineValueAsString($value, ElementInterface $element = null)
     {
-        if ($this->getIsCosmetic() || $this->getIsHidden()) {
-            return false;
-        }
-
         return (string)$value;
     }
 
@@ -1133,10 +1156,6 @@ trait FormFieldTrait
      */
     protected function defineValueAsJson($value, ElementInterface $element = null)
     {
-        if ($this->getIsCosmetic() || $this->getIsHidden()) {
-            return false;
-        }
-        
         return Json::decode(Json::encode($value));
     }
 
@@ -1147,6 +1166,47 @@ trait FormFieldTrait
     {
         // A string-representaion will largely suit our needs
         return $this->defineValueAsString($value, $element);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    protected function defineValueForIntegration($value, $integrationField, ElementInterface $element = null)
+    {
+        $stringValue = $this->defineValueAsString($value, $element);
+        $jsonValue = $this->defineValueAsJson($value, $element);
+
+        if ($integrationField->getType() === IntegrationField::TYPE_ARRAY) {
+            return (is_array($jsonValue)) ? $jsonValue : [$jsonValue];
+        }
+
+        if ($integrationField->getType() === IntegrationField::TYPE_DATE) {
+            if ($date = DateTimeHelper::toDateTime($stringValue)) {
+                return $date->format('Y-m-d');
+            }
+        }
+
+        if ($integrationField->getType() === IntegrationField::TYPE_DATETIME) {
+            if ($date = DateTimeHelper::toDateTime($stringValue)) {
+                return $date->format('Y-m-d H:i:s');
+            }
+        }
+
+        if ($integrationField->getType() === IntegrationField::TYPE_NUMBER) {
+            return intval($stringValue);
+        }
+
+        if ($integrationField->getType() === IntegrationField::TYPE_FLOAT) {
+            return floatval($stringValue);
+        }
+
+        if ($integrationField->getType() === IntegrationField::TYPE_BOOLEAN) {
+            return StringHelper::toBoolean($stringValue);
+        }
+
+        // Return the string representation of it by default (also default for integration fields)
+        // You could argue we should return `null`, but let's not be too strict on types.
+        return $stringValue;
     }
 
     /**
