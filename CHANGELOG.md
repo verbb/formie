@@ -3,26 +3,26 @@
 ## Unreleased
 
 ### Added
-- Added Calculations field.
-- Added Signature field.
-- Added Password field.
-- Added Summary field.
+- Added Calculations field for creating read-only content based on other fields' content. Supports arithmetic, bitwise, comparison, logic, string, array, numeric and ternary operators, and of course being able to reference other fields.
+- Added Signature field to allow users to sign with their mouse or finger, saving as an image.
+- Added Password field for a specialised, encrypted field just for password-saving. Of course, no plain-text saving.
+- Added Summary field, to show a summary of all fields. Commonly used on the last page of a multi-page form.
 - Added Time-only option to Date fields.
 - Added `includeDate` property for Date fields.
 - Added `getIsDate()`, `getIsTime()`, `getIsDateTime()` methods for Date fields.
-- Added "Match Field" field setting to Text, Number and Email fields to enforce validation where two fields need to have the same value.
+- Added "Match Field" field setting to Text, Number, Password and Email fields to enforce validation where two fields need to have the same value.
 - Added Microsoft Dynamics 365 CRM integration.
-- Added Klaviyo Email Marketing integration.
 - Added Klaviyo CRM integration.
-- Added Loqate Address Provider integration.
+- Added Native Forms support for SharpSpring CRM Integration.
+- Added Klaviyo Email Marketing integration.
 - Added Adestra Email Marketing integration.
+- Added Loqate Address Provider integration.
 - Added reCAPTCHA Enterprise captcha support.
 - Added hCaptcha captcha support.
 - Added Snaptcha plugin captcha support.
-- Added Native Forms support for SharpSpring CRM Integration.
-- Added conditional recipients option for Email Notifications.
+- Added conditional recipients option for Email Notifications, allowing you to define what recipients receive an email under what circumstances.
 - Added `recipients`, `toConditions`, `pdfTemplateId` to Notification model.
-- Added PDF Templates, allowing you to attach custom PDFs to Email Notifications.
+- Added PDF Templates, allowing you to attach a custom PDF to Email Notifications.
 - Added the ability to set a Google Tag Manager payload for every submit button for forms.
 - Added statuses to Sent Notifications, along with error messages to identify issues for failed Email Notifications.
 - Added `Field::defineValueAsString()` and `Field::getValueAsString()` to consolidate how to represent field values as a string value.
@@ -38,8 +38,6 @@
 
 ### Fixed
 - Fixed captchas not showing the correct name in Formie settings.
-- Fixed Date field (dropdown and inputs) incorrectly saving timezone information when editing submission through the control panel.
-- Fixed some fields and compatibility with Summary field.
 - Fixed an error with Recipients fields, where an option value was changed previously, and no longer valid.
 
 ### Removed
