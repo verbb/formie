@@ -4,7 +4,7 @@
     <div class="fui-summary-blocks">
         <h3 class="fui-heading-h3">{{ 'Your submission is being prepared. Please review below before proceeding.' | t('formie') }}</h3><br>
 
-        {% for info in submission.getSummaryFieldContent() %}
+        {% for info in submission.getValuesForSummary() %}
             <div class="fui-summary-block">
                 <strong>{{ info.field.name }}</strong><br>
                 {{ info.html }}<br>
