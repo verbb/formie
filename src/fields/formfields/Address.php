@@ -716,6 +716,18 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
     }
 
 
+    // Protected Methods
+    // =========================================================================
+
+    /**
+     * @inheritDoc
+     */
+    protected function defineSummaryContent($value, ElementInterface $element = null)
+    {
+        return (string)$value;
+    }
+
+
     // Private Methods
     // =========================================================================
 

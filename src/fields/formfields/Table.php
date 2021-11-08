@@ -11,8 +11,10 @@ use craft\base\Element;
 use craft\base\ElementInterface;
 use craft\fields\data\ColorData;
 use craft\fields\Table as CraftTable;
-use craft\helpers\Json;
 use craft\helpers\ArrayHelper;
+use craft\helpers\Html;
+use craft\helpers\Json;
+use craft\helpers\Template;
 use craft\validators\ArrayValidator;
 use craft\validators\ColorValidator;
 use craft\validators\UrlValidator;
@@ -468,6 +470,39 @@ class Table extends CraftTable implements FormFieldInterface
             SchemaHelper::enableConditionsField(),
             SchemaHelper::conditionsField(),
         ];
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
+    /**
+     * @inheritDoc
+     */
+    protected function defineSummaryContent($value, ElementInterface $element = null)
+    {
+        $headValues = '';
+        $bodyValues = '';
+
+        foreach ($value as $rowId => $row) {
+            $rowValues = '';
+
+            foreach ($this->columns as $colId => $col) {
+                $rowValues .= Html::tag('td', ($row[$col['handle']] ?? null));
+            }
+
+            $bodyValues .= Html::tag('tr', $rowValues);
+        }
+
+        $tbody = Html::tag('tbody', $bodyValues);
+
+        foreach ($this->columns as $colId => $col) {
+            $headValues .= Html::tag('th', $col['heading']);
+        }
+
+        $thead = Html::tag('thead', Html::tag('tr', $headValues));
+
+        return Template::raw(Html::tag('table', $thead . $tbody));
     }
 
 

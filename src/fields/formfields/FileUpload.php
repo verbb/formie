@@ -15,7 +15,9 @@ use craft\base\Volume;
 use craft\elements\Asset;
 use craft\fields\Assets as CraftAssets;
 use craft\helpers\Assets;
+use craft\helpers\Html;
 use craft\helpers\Json;
+use craft\helpers\Template;
 use craft\web\UploadedFile;
 
 use GraphQL\Type\Definition\Type;
@@ -132,10 +134,12 @@ class FileUpload extends CraftAssets implements FormFieldInterface
      */
     public function serializeValueForIntegration($value, ElementInterface $element = null)
     {
+        $value = $this->_all($value, $element)->all();
+
         return array_map(function($input) {
             // Handle when volumes don't have a public URL
             return $input->url ?? $input->filename;
-        }, $this->_all($value, $element)->all());
+        }, $value);
     }
 
     /**
@@ -533,6 +537,23 @@ class FileUpload extends CraftAssets implements FormFieldInterface
 
     // Protected Methods
     // =========================================================================
+
+    /**
+     * @inheritDoc
+     */
+    protected function defineSummaryContent($value, ElementInterface $element = null)
+    {
+        $html = '';
+        $value = $this->_all($value, $element)->all();
+
+        foreach ($value as $asset) {
+            if ($asset->url) {
+                $html .= Html::tag('a', $asset->filename, ['href' => $asset->url]);
+            }
+        }
+
+        return Template::raw($html);
+    }
 
     /**
      * @inheritDoc

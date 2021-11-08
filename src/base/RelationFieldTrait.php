@@ -439,9 +439,9 @@ trait RelationFieldTrait
     {
         $value = $this->_all($value, $element);
 
-        return array_reduce($value->all(), function($acc, $input) {
-            return $acc . $this->_getElementLabel($input);
-        }, '');
+        return implode(', ', array_map(function($item) {
+            return $this->_getElementLabel($item);
+        }, $value->all()));
     }
 
     /**

@@ -169,4 +169,21 @@ class Password extends FormField implements PreviewableFieldInterface
             SchemaHelper::conditionsField(),
         ];
     }
+
+
+    // Protected Methods
+    // =========================================================================
+
+    /**
+     * @inheritDoc
+     */
+    protected function defineSummaryContent($value, ElementInterface $element = null)
+    {
+        // Mask the value for submissions (but no indication of length)
+        if ($value) {
+            return '•••••••••••••••••••••';
+        }
+
+        return '';
+    }
 }

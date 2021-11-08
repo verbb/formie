@@ -13,6 +13,7 @@ use craft\base\ElementInterface;
 use craft\base\PreviewableFieldInterface;
 use craft\db\mysql\Schema;
 use craft\helpers\Html;
+use craft\helpers\Template;
 
 class Signature extends FormField implements PreviewableFieldInterface
 {
@@ -187,5 +188,17 @@ class Signature extends FormField implements PreviewableFieldInterface
             SchemaHelper::enableConditionsField(),
             SchemaHelper::conditionsField(),
         ];
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
+    /**
+     * @inheritDoc
+     */
+    protected function defineSummaryContent($value, ElementInterface $element = null)
+    {
+        return Template::raw(Html::tag('img', null, ['src' => $value]));
     }
 }

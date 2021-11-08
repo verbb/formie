@@ -408,4 +408,16 @@ class Phone extends FormField implements SubfieldInterface, PreviewableFieldInte
             SchemaHelper::conditionsField(),
         ];
     }
+
+
+    // Protected Methods
+    // =========================================================================
+
+    /**
+     * @inheritDoc
+     */
+    protected function defineSummaryContent($value, ElementInterface $element = null)
+    {
+        return (string)$value;
+    }
 }

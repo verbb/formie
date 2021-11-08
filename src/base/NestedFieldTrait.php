@@ -617,18 +617,18 @@ trait NestedFieldTrait
      */
     protected function defineSummaryContent($value, ElementInterface $element = null)
     {
-        $values = [];
+        $values = '';
 
         foreach ($value->all() as $rowId => $row) {
             foreach ($row->getFieldLayout()->getFields() as $field) {
                 $v = $row->getFieldValue($field->handle);
                 $html = $field->getSummaryContent($v, $row);
 
-                $values[] = '<strong>' . $field->handle . '</strong> ' . $html . '<br>';
+                $values .= '<strong>' . $field->handle . '</strong> ' . $html . '<br>';
             }
         }
 
-        return Template::raw(implode(', ', $values));
+        return Template::raw($values);
     }
 
 

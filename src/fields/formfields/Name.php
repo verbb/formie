@@ -577,5 +577,17 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
             return Type::string();
         }
     }
+
+
+    // Protected Methods
+    // =========================================================================
+
+    /**
+     * @inheritDoc
+     */
+    protected function defineSummaryContent($value, ElementInterface $element = null)
+    {
+        return (string)$value;
+    }
     
 }
