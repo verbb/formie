@@ -1,0 +1,70 @@
+{% import '_includes/forms' as forms %}
+{% import 'verbb-base/_macros' as macros %}
+
+{% set instructions %}
+### Step 1. Connect to the {name} API
+1. Go to <a href="https://www.maximizer.com/support/crm-api/" target="_blank">Maximizer CRM API</a> and request access to their API.
+1. When approved, you'll receive your details via email.
+1. Copy the **Application Id** from {name} and paste in the **Client ID** field below.
+1. Copy the **AppKey** from {name} and paste in the **Client Secret** field below.
+
+### Step 2. Test Connection
+1. Save this integration.
+1. Click on the **Connect** button in the right-hand sidebar.
+1. You‘ll be redirected to {name}, where you must approve Formie to access your {name} account.
+{% endset %}
+
+<div class="fui-settings-block">
+    {{ instructions | t('formie', { name: integration.displayName() }) | md }}
+</div>
+
+{{ forms.textField({
+    readonly: true,
+    label: 'Redirect URI' | t('formie'),
+    instructions: 'Use this URI when setting up your {name} app.' | t('formie', { name: integration.displayName() }),
+    value: integration.getRedirectUri(),
+}) }}
+
+{{ forms.autosuggestField({
+    label: 'Client ID' | t('formie'),
+    instructions: 'Enter your {name} Client ID key here.' | t('formie', { name: integration.displayName() }),
+    name: 'clientId',
+    required: true,
+    suggestEnvVars: true,
+    value: integration.settings.clientId ?? '',
+    warning: macros.configWarning('clientId', 'formie'),
+    errors: integration.getErrors('clientId'),
+}) }}
+
+{{ forms.autosuggestField({
+    label: 'Client Secret' | t('formie'),
+    instructions: 'Enter your {name} Client Secret here.' | t('formie', { name: integration.displayName() }),
+    name: 'clientSecret',
+    required: true,
+    suggestEnvVars: true,
+    value: integration.settings.clientSecret ?? '',
+    warning: macros.configWarning('clientSecret', 'formie'),
+    errors: integration.getErrors('clientSecret'),
+}) }}
+
+{{ forms.autosuggestField({
+    label: 'Web Access URL' | t('formie'),
+    instructions: 'Enter your {name} Web Access URL here.' | t('formie', { name: integration.displayName() }),
+    name: 'webAccessUrl',
+    required: true,
+    suggestEnvVars: true,
+    value: integration.settings.webAccessUrl ?? '',
+    warning: macros.configWarning('webAccessUrl', 'formie'),
+    errors: integration.getErrors('webAccessUrl'),
+}) }}
+
+{{ forms.autosuggestField({
+    label: 'Customer Alias' | t('formie'),
+    instructions: 'Enter your {name} Customer Alias here.' | t('formie', { name: integration.displayName() }),
+    name: 'customerAlias',
+    required: true,
+    suggestEnvVars: true,
+    value: integration.settings.customerAlias ?? '',
+    warning: macros.configWarning('customerAlias', 'formie'),
+    errors: integration.getErrors('customerAlias'),
+}) }}
