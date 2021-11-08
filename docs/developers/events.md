@@ -399,7 +399,7 @@ Event::on(Submissions::class, Submissions::EVENT_AFTER_SPAM_CHECK, function(Subm
 ```
 
 
-## Field Events
+## Fields Events
 
 ### The `registerFields` event
 The event that is triggered for registration of additional fields.
@@ -548,6 +548,71 @@ Event::on(Fields::class, Fields::EVENT_AFTER_SAVE_FIELD_PAGE, function(FieldPage
 ```
 
 
+
+## Field Events
+
+### The `modifyValueAsString` event
+The event that is triggered when preparing a field's value to be represented as a string. You can use this on any class that includes the `FormFieldTrait` trait.
+
+Modify the `value` event property to set the value used.
+
+```php
+use verbb\formie\fields\formfields\SingleLineText;
+use verbb\formie\events\ModifyFieldValueEvent;
+use yii\base\Event;
+
+Event::on(SingleLineText::class, SingleLineText::EVENT_MODIFY_VALUE_AS_STRING, function(ModifyFieldValueEvent $event) {
+    $field = $event->field;
+    $value = $event->value;
+    $element = $event->element;
+    
+    // Overwrite the value
+    $event->value = 'My Custom Value';
+});
+```
+
+### The `modifyValueForExport` event
+The event that is triggered when preparing a field's value to be exported. You can use this on any class that includes the `FormFieldTrait` trait.
+
+Modify the `value` event property to set the value used.
+
+```php
+use verbb\formie\fields\formfields\MultiLineText;
+use verbb\formie\events\ModifyFieldValueEvent;
+use yii\base\Event;
+
+Event::on(MultiLineText::class, MultiLineText::EVENT_MODIFY_VALUE_FOR_EXPORT, function(ModifyFieldValueEvent $event) {
+    $field = $event->field;
+    $value = $event->value;
+    $element = $event->element;
+    
+    // Overwrite the value
+    $event->value = 'My Custom Value';
+});
+```
+
+### The `modifyValueForSummary` event
+The event that is triggered when preparing a field's value to be represented in the Summary field. You can use this on any class that includes the `FormFieldTrait` trait.
+
+Modify the `value` event property to set the value used.
+
+```php
+use verbb\formie\fields\formfields\Dropdown;
+use verbb\formie\events\ModifyFieldValueEvent;
+use yii\base\Event;
+
+Event::on(Dropdown::class, Dropdown::EVENT_MODIFY_VALUE_FOR_SUMMARY, function(ModifyFieldValueEvent $event) {
+    $field = $event->field;
+    $value = $event->value;
+    $element = $event->element;
+    
+    // Overwrite the value
+    $event->value = 'My Custom Value';
+});
+```
+
+
+
 ## Date Field Events
 
 ### The `modifyDateFormat` event
@@ -660,25 +725,6 @@ Event::on(PredefinedOptions::class, PredefinedOptions::EVENT_REGISTER_PREDEFINED
 });
 ```
 
-
-## Summary Field Events
-
-### The `modifySummaryContent` event
-The event that is triggered to modify the content that is used when included in a Summary field.
-
-```php
-use verbb\formie\events\ModifyFieldSummaryContentEvent;
-use verbb\formie\fields\formfields\SingleLineText;
-use yii\base\Event;
-
-Event::on(SingleLineText::class, SingleLineText::EVENT_MODIFY_SUMMARY_CONTENT, function(ModifyFieldSummaryContentEvent $event) {
-    $value = $event->value;
-    $element = $event->element;
-
-    // Modify the value
-    $event->value = $value ? 'Yes' : 'No';
-});
-```
 
 
 ## Synced Field Events
