@@ -1570,7 +1570,6 @@ Event::on(AddressFinder::class, AddressFinder::EVENT_MODIFY_ADDRESS_PROVIDER_HTM
 ```
 
 
-
 ## Webhook Integration Events
 
 ### The `modifyWebhookPayload` event
@@ -1583,10 +1582,28 @@ use yii\base\Event;
 
 Event::on(Zapier::class, Zapier::EVENT_MODIFY_WEBHOOK_PAYLOAD, function(ModifyWebhookPayloadEvent $event) {
     $payload = $event->payload;
+    $submission = $event->submission;
     // ...
 });
 ```
 
+
+## Miscellaneous Integration Events
+
+### The `modifyMiscellaneousPayload` event
+The event that is triggered to allow modification of the payload sent to the integration provider.
+
+```php
+use verbb\formie\events\ModifyMiscellaneousPayloadEvent;
+use verbb\formie\integrations\miscellaneous\GoogleSheets;
+use yii\base\Event;
+
+Event::on(GoogleSheets::class, GoogleSheets::EVENT_MODIFY_MISCELLANEOUS_PAYLOAD, function(ModifyMiscellaneousPayloadEvent $event) {
+    $payload = $event->payload;
+    $submission = $event->submission;
+    // ...
+});
+```
 
 
 ## Stencil Events

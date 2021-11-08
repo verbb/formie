@@ -4,13 +4,21 @@ namespace verbb\formie\base;
 use verbb\formie\Formie;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
+use verbb\formie\events\ModifyMiscellaneousPayloadEvent;
 
 use Craft;
+use craft\helpers\Json;
 use craft\helpers\StringHelper;
 use craft\helpers\UrlHelper;
 
 abstract class Miscellaneous extends Integration implements IntegrationInterface
 {
+    // Constants
+    // =========================================================================
+
+    const EVENT_MODIFY_MISCELLANEOUS_PAYLOAD = 'modifyMiscellaneousPayload';
+
+
     // Static Methods
     // =========================================================================
     
@@ -74,25 +82,42 @@ abstract class Miscellaneous extends Integration implements IntegrationInterface
      */
     protected function generatePayloadValues(Submission $submission): array
     {
-        $submissionContent = [];
-        $submissionAttributes = $submission->getAttributes();
+        $submissionContent = $submission->getValuesAsJson();
+        $formAttributes = Json::decode(Json::encode($submission->getForm()->getAttributes()));
 
-        $formAttributes = $submission->getForm()->getAttributes();
+        $submissionAttributes = $submission->toArray([
+            'id',
+            'formId',
+            'status',
+            'userId',
+            'ipAddress',
+            'isIncomplete',
+            'isSpam',
+            'spamReason',
+            'title',
+            'dateCreated',
+            'dateUpdated',
+            'dateDeleted',
+            'trashed',
+        ]);
 
         // Trim the form settings a little
-        $formAttributes['settings'] = $formAttributes['settings']->toArray();
         unset($formAttributes['settings']['integrations']);
 
-        foreach ($submission->getForm()->getFields() as $field) {
-            $value = $submission->getFieldValue($field->handle);
-            $submissionContent[$field->handle] = $field->serializeValue($value, $submission);
-        }
-
-        return [
+        $payload = [
             'json' => [
                 'submission' => array_merge($submissionAttributes, $submissionContent),
                 'form' => $formAttributes,
             ],
         ];
+
+        // Fire a 'modifyMiscellaneousPayload' event
+        $event = new ModifyMiscellaneousPayloadEvent([
+            'submission' => $submission,
+            'payload' => $payload,
+        ]);
+        $this->trigger(self::EVENT_MODIFY_MISCELLANEOUS_PAYLOAD, $event);
+
+        return $event->payload;
     }
 }

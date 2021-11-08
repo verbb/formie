@@ -44,6 +44,7 @@
 
 ### Removed
 - Removed `Field::serializeValueForExport()` method. Use `Field::defineValueForExport()` or `Field::getValueForExport()` instead.
+- Remove `Field::serializeValueForWebhook()` method. Use `Field::defineValueAsJson()` or `Field::getValueAsJson()` instead.
 - Removed `SubmissionExport::EVENT_MODIFY_FIELD_EXPORT` event. Use `Field::EVENT_MODIFY_VALUE_FOR_EXPORT` instead.
 
 ## 1.4.24 - 2021-11-06
