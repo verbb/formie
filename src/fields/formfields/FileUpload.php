@@ -8,6 +8,7 @@ use verbb\formie\base\RelationFieldTrait;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\models\IntegrationField;
 
 use Craft;
 use craft\base\ElementInterface;
@@ -149,6 +150,38 @@ class FileUpload extends CraftAssets implements FormFieldInterface
         }
 
         return $values;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getFieldMappedValueForIntegration(IntegrationField $integrationField, $formField, $value, $submission)
+    {
+        // Override the value to get full elements
+        $value = $submission->getFieldValue($formField->handle);
+
+        // Set the status to null to include disabled elements
+        $value->status(null);
+
+        // Send through a CSV of element titles, when mapping to a string
+        if ($integrationField->getType() === IntegrationField::TYPE_STRING) {
+            return implode(', ', array_map(function($input) {
+                // Handle when volumes don't have a public URL
+                return $input->url ?? $input->filename;
+            }, $value->all()));
+        }
+
+        // When an array, assume a collection of IDs
+        if ($integrationField->getType() === IntegrationField::TYPE_ARRAY) {
+            return $value->ids();
+        }
+
+        // When a number, assume a single ID
+        if ($integrationField->getType() === IntegrationField::TYPE_NUMBER) {
+            return $value->ids()[0] ?? null;
+        }
+
+        return null;
     }
 
     /**
