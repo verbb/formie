@@ -16,6 +16,7 @@ use craft\errors\ElementNotFoundException;
 use craft\errors\MissingComponentException;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
+use craft\helpers\StringHelper;
 use craft\helpers\Template;
 use craft\models\Site;
 use craft\web\Controller;
@@ -195,12 +196,12 @@ class SubmissionsController extends Controller
     public function actionSaveSubmission()
     {
         $this->requirePostRequest();
-
         $this->requirePermission('formie-editSubmissions');
 
-        // Get the requested submission
         $request = Craft::$app->getRequest();
-        $formHandle = $request->getBodyParam('handle');
+
+        // Ensure we validate some params here to prevent potential malicious-ness
+        $formHandle = $this->_getTypedParam('handle', 'string');
 
         $form = Form::find()->handle($formHandle)->one();
 
@@ -218,8 +219,8 @@ class SubmissionsController extends Controller
         // Now populate the rest of it from the post data
         $submission->enabled = true;
         $submission->enabledForSite = true;
-        $submission->title = $request->getBodyParam('title', $submission->title);
-        $submission->statusId = $request->getBodyParam('statusId', $submission->statusId);
+        $submission->title = $request->getParam('title', $submission->title);
+        $submission->statusId = $request->getParam('statusId', $submission->statusId);
 
         // Save the submission
         if ($submission->enabled && $submission->enabledForSite) {
@@ -232,7 +233,7 @@ class SubmissionsController extends Controller
 
         // Check if this is a front-end edit
         if ($request->getIsSiteRequest()) {
-            $goingBack = (bool)$request->getBodyParam('goingBack');
+            $goingBack = (bool)$request->getParam('goingBack');
 
             // Ensure we set the current submission on the form. This keeps track of session info for
             // multi-page forms, separate to "new" submissions
@@ -242,7 +243,7 @@ class SubmissionsController extends Controller
             $nextPage = $form->getNextPage(null, $submission);
 
             // Or, if we've passed in a specific page to go to
-            if ($goToPageId = $request->getBodyParam('goToPageId')) {
+            if ($goToPageId = $request->getParam('goToPageId')) {
                 $goingBack = true;
                 $nextPage = ArrayHelper::firstWhere($form->getPages(), 'id', $goToPageId);
             } else if ($goingBack) {
@@ -377,11 +378,12 @@ class SubmissionsController extends Controller
         /* @var Settings $settings */
         $formieSettings = Formie::$plugin->getSettings();
 
-        $handle = $request->getRequiredBodyParam('handle');
-        $goingBack = (bool)$request->getBodyParam('goingBack');
-        $pageIndex = $request->getParam('pageIndex');
-        $goToPageId = $request->getBodyParam('goToPageId');
-        $completeSubmission = (bool)$request->getBodyParam('completeSubmission');
+        // Ensure we validate some params here to prevent potential malicious-ness
+        $handle = $this->_getTypedParam('handle', 'string');
+        $goingBack = $this->_getTypedParam('goingBack', 'boolean');
+        $pageIndex = $this->_getTypedParam('pageIndex', 'int');
+        $goToPageId = $this->_getTypedParam('goToPageId', 'id');
+        $completeSubmission = $this->_getTypedParam('completeSubmission', 'boolean');
 
         Formie::log("Submission triggered for ${handle}.");
 
@@ -612,7 +614,7 @@ class SubmissionsController extends Controller
 
         // If this is being forced-completed, handle the redirect URL now. This isn't included
         // in the request, to ensure users don't inspect the form for non last-page multi-page forms.
-        if ($request->getParam('completeSubmission')) {
+        if ($completeSubmission) {
             // Bypass the last-page check
             $url = $form->getRedirectUrl(false);
 
@@ -629,8 +631,10 @@ class SubmissionsController extends Controller
     {
         $request = Craft::$app->getRequest();
 
-        $pageId = $request->getParam('pageId');
-        $handle = $request->getParam('handle');
+        // Ensure we validate some params here to prevent potential malicious-ness
+        $handle = $this->_getTypedParam('handle', 'string');
+        $pageId = $this->_getTypedParam('pageId', 'id');
+        $submissionId = $this->_getTypedParam('submissionId', 'id');
 
         /* @var Form $form */
         $form = Form::find()->handle($handle)->one();
@@ -640,8 +644,7 @@ class SubmissionsController extends Controller
         }
 
         // Check if we're editing a submission
-        if ($submissionId = $request->getParam('submissionId')) {
-
+        if ($submissionId) {
             $submission = Submission::find()
                 ->id($submissionId)
                 ->isIncomplete(null)
@@ -1028,7 +1031,12 @@ class SubmissionsController extends Controller
     {
         $request = Craft::$app->getRequest();
 
-        if ($submissionId = $request->getBodyParam('submissionId')) {
+        // Ensure we validate some params here to prevent potential malicious-ness
+        $submissionId = $this->_getTypedParam('submissionId', 'id');
+        $siteId = $this->_getTypedParam('siteId', 'id');
+        $userParam = $this->_getTypedParam('user', 'string');
+
+        if ($submissionId) {
             // Allow fetching spammed submissions for multi-step forms, where its been flagged as spam
             // already, but we want to complete the form submission.
             $submission = Submission::find()
@@ -1046,7 +1054,7 @@ class SubmissionsController extends Controller
 
         $submission->setForm($form);
 
-        $siteId = $request->getParam('siteId') ?: null;
+        $siteId = $siteId ?: null;
         $submission->siteId = $siteId ?? $submission->siteId ?? Craft::$app->getSites()->getCurrentSite()->id;
 
         Craft::$app->getContent()->populateElementContent($submission);
@@ -1063,7 +1071,7 @@ class SubmissionsController extends Controller
             }
 
             // Allow a `user` override (when editing a submission through the CP)
-            if ($request->getIsCpRequest() && $user = $request->getBodyParam('user')) {
+            if ($request->getIsCpRequest() && $user = $userParam) {
                 $submission->userId = $user[0] ?? null;
             }
         }
@@ -1111,6 +1119,42 @@ class SubmissionsController extends Controller
         if (!$submission->title) {
             $now = new DateTime('now', new DateTimeZone(Craft::$app->getTimeZone()));
             $submission->title = $now->format('D, d M Y H:i:s');
+        }
+    }
+
+    /**
+     * Returns the named parameter value from either GET or the request body, or bails on the request with a 400 error
+     * if that parameter doesn’t exist anywhere, or if it isn't of the specified type.
+     *
+     * @param string $name The parameter name.
+     * @param string $type The parameter type to be enforced.
+     * @return mixed The parameter value.
+     * @throws BadRequestHttpException if the request is not the valid type
+     */
+    private function _getTypedParam(string $name, string $type)
+    {
+        $request = Craft::$app->getRequest();
+        $value = $request->getParam($name);
+
+        if ($value !== null) {
+            // Go case-by-case, so it's easier to handle, and more predictable
+            if ($type === 'string' && is_string($value)) {
+                return (string)$value;
+            }
+
+            if ($type === 'boolean' && is_string($value)) {
+                return StringHelper::toBoolean($value);
+            }
+
+            if ($type === 'int' && is_numeric($value)) {
+                return intval($value);
+            }
+
+            if ($type === 'id' && is_numeric($value) && intval($value) > 0) {
+                return intval($value);
+            }
+
+            throw new BadRequestHttpException('Request has invalid param ' . $name);
         }
     }
 }
