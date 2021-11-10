@@ -25,7 +25,10 @@ class UrlHelper
 
         // We don't want the CP trigger showing in the action URL.
         $redirectUri = str_replace(Craft::$app->getConfig()->getGeneral()->cpTrigger . '/', '', $redirectUri);
-        $redirectUri = str_replace('/index.php', '', $redirectUri);
+
+        if (Craft::$app->getConfig()->getGeneral()->usePathInfo) {
+            $redirectUri = str_replace('/index.php', '', $redirectUri);
+        }
 
         return $redirectUri;
     }
