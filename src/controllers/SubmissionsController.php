@@ -463,7 +463,8 @@ class SubmissionsController extends Controller
         // Allow the event to modify the submission
         $submission = $event->submission;
 
-        // Don't validate when going back, and if the event has marked it as invalid.
+        // Don't validate when going back, and if the event has marked it as invalid. If the event adds errors to the submission
+        // model, and `validate()` is run again, it'll clear any errors. Instead, skip straight to regular error handling.
         if (!$goingBack && $event->isValid) {
             $submission->validate();
         }
