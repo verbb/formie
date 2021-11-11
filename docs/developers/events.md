@@ -333,6 +333,8 @@ Event::on(Submission::class, Submission::EVENT_MODIFY_FIELD_VALUE_FOR_INTEGRATIO
 ### The `beforeSubmissionRequest` event
 The event that is triggered before a submission is validated. This is triggered on the controller action endpoint, so should primarily be used for modification of the submission before validation, or any other use-case that needs to occur in the controller.
 
+The `isValid` event property can be set to `false` to prevent the submission from being validated, and instead stop on your own validation notices.
+
 ```php
 use verbb\formie\controllers\SubmissionsController;
 use verbb\formie\events\SubmissionEvent;
@@ -342,6 +344,12 @@ Event::on(SubmissionsController::class, SubmissionsController::EVENT_BEFORE_SUBM
     $submission = $event->submission;
     $success = $event->success;
     // ...
+
+    // Add an error for a field
+    $event->submission->addError('emailAddress', 'This did not validate');
+
+    // Tell Formie that the submission is now invalid, and to raise errors
+    $event->isValid = false;
 });
 ```
 
