@@ -342,19 +342,27 @@ class Formie extends Plugin
 
             $forms = Form::find()->all();
 
-            $event->queries[$label]['formieForms.all:read'] = ['label' => Craft::t('formie', 'View all forms')];
-
+            $nestedForms = [];
             foreach ($forms as $form) {
                 $suffix = 'formieForms.' . $form->uid;
-                $event->queries[$label][$suffix . ':read'] = ['label' => Craft::t('formie', 'View “{form}” form', ['form' => Craft::t('site', $form->title)])];
+                $nestedForms[$suffix . ':read'] = ['label' => Craft::t('formie', 'View “{form}” form', ['form' => Craft::t('site', $form->title)])];
             }
 
-            $event->queries[$label]['formieSubmissions.all:read'] = ['label' => Craft::t('formie', 'View all submissions')];
+            $event->queries[$label]['formieForms.all:read'] = [
+                'label' => Craft::t('formie', 'View all forms'),
+                'nested' => $nestedForms,
+            ];
 
+            $nestedSubmissions = [];
             foreach ($forms as $form) {
                 $suffix = 'formieSubmissions.' . $form->uid;
-                $event->queries[$label][$suffix . ':read'] = ['label' => Craft::t('formie', 'View submissions for form “{form}”', ['form' => Craft::t('site', $form->title)])];
+                $nestedSubmissions[$suffix . ':read'] = ['label' => Craft::t('formie', 'View submissions for form “{form}”', ['form' => Craft::t('site', $form->title)])];
             }
+
+            $event->queries[$label]['formieSubmissions.all:read'] = [
+                'label' => Craft::t('formie', 'View all submissions'),
+                'nested' => $nestedSubmissions,
+            ];
 
             $event->mutations[$label]['formieSubmissions.all:edit'] = [
                 'label' => Craft::t('formie', 'Edit all submissions'),
