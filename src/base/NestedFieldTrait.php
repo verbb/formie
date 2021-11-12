@@ -15,6 +15,7 @@ use craft\base\FieldInterface;
 use craft\db\Query;
 use craft\elements\db\ElementQuery;
 use craft\elements\db\ElementQueryInterface;
+use craft\helpers\ArrayHelper;
 use craft\helpers\Db;
 use craft\helpers\ElementHelper;
 use craft\helpers\StringHelper;
@@ -63,6 +64,25 @@ trait NestedFieldTrait
 
     // Public Methods
     // =========================================================================
+
+    /**
+     * @inheritDoc
+     */
+    public function setAttributes($values, $safeOnly = true)
+    {
+        parent::setAttributes($values, $safeOnly);
+
+        // Special handling when setting inner fields.
+        $fields = $values['fields'] ?? [];
+
+        foreach ($fields as $handle => $settings) {
+            $field = $this->getFieldByHandle($handle);
+
+            if ($field) {
+                $field->setAttributes($settings, false);
+            }
+        }
+    }
 
     /**
      * @inheritDoc
@@ -221,6 +241,28 @@ trait NestedFieldTrait
         }
 
         return null;
+    }
+
+    /**
+     * Returns a field by its handle.
+     *
+     * @param string $handle
+     * @return FormFieldInterface|null
+     */
+    public function getFieldByHandle(string $handle)
+    {
+        return ArrayHelper::firstWhere($this->getFields(), 'handle', $handle);
+    }
+
+    /**
+     * Returns a field by its id.
+     *
+     * @param string $id
+     * @return FormFieldInterface|null
+     */
+    public function getFieldById($id)
+    {
+        return ArrayHelper::firstWhere($this->getFields(), 'id', $id);
     }
 
     /**
