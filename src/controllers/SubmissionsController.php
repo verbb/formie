@@ -176,7 +176,7 @@ class SubmissionsController extends Controller
         }
 
         // Can't just use the submissions getCpEditUrl() because that might include the site handle when we don't want it
-        $variables['baseCpEditUrl'] = 'formie/submissions/edit/{id}';
+        $variables['baseCpEditUrl'] = "formie/submissions/$formHandle/{id}";
 
         // Set the "Continue Editing" URL
         $variables['continueEditingUrl'] = $variables['baseCpEditUrl'] . (Craft::$app->getIsMultiSite() && Craft::$app->getSites()->currentSite->id !== $variables['site']->id ? '/' . $variables['site']->handle : '');
