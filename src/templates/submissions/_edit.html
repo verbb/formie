@@ -151,7 +151,7 @@
         placeholder: 'Enter title' | t('formie'),
     }) }}
 
-    {% if submission.hasStatuses() and not submission.isIncomplete %}
+    {% if submission.hasStatuses() %}
         {% set statuses = craft.formie.plugin.statuses.getAllStatuses() %}
 
         {{ forms.hidden({
