@@ -17,6 +17,19 @@ When rendering a form, you might like to populate the values of a field with som
 Looking to update or override settings for the field before they're rendered? Look at [Override Field Settings](docs:template-guides/rendering-fields#override-field-settings). This includes setting available options for Dropdown, Checkbox, Radio and similar fields.
 :::
 
+### Standard Fields
+Most fields will accept a single value as a string. Fields like Single-Line Text, Multi-Line text, Dropdown and more.
+
+```twig
+{% do craft.formie.populateFormValues(form, {
+    textField: 'Some Value',
+    dropdownField: 'Another Value',
+    multiLineTextField: 'Another long bit of content',
+}) %}
+```
+
+Ensure you replace the key for the Twig object above with the Formie field handle you want to set values on.
+
 ### Element Fields
 For element fields (Entries, Categories, Tags, Users, Products, Variants), you'll need to supply an array of element IDs for the elements you want to populate. For example, for an Entries field:
 
