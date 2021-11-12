@@ -100,6 +100,7 @@ class FileUpload extends CraftAssets implements FormFieldInterface
      */
     public function beforeSave(bool $isNew): bool
     {
+        // For Assets field compatibility - we always use a single upload location
         $this->singleUploadLocationSource = $this->uploadLocationSource;
         $this->singleUploadLocationSubpath = $this->uploadLocationSubpath ?? '';
 
@@ -456,6 +457,10 @@ class FileUpload extends CraftAssets implements FormFieldInterface
      */
     public function beforeElementSave(ElementInterface $element, bool $isNew): bool
     {
+        // For Assets field compatibility - we always use a single upload location
+        $this->singleUploadLocationSource = $this->uploadLocationSource;
+        $this->singleUploadLocationSubpath = $this->uploadLocationSubpath ?? '';
+
         if (!parent::beforeElementSave($element, $isNew)) {
             return false;
         }
