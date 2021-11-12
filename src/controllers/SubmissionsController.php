@@ -127,6 +127,12 @@ class SubmissionsController extends Controller
             }
         }
 
+        $form = Form::find()->handle($formHandle)->one();
+
+        if (!$form) {
+            throw new HttpException(404);
+        }
+
         $variables = [
             'formHandle' => $formHandle,
             'submissionId' => $submissionId,
@@ -142,19 +148,15 @@ class SubmissionsController extends Controller
                     ->isSpam(null)
                     ->one();
             } else {
-                $form = Form::find()->handle($formHandle)->one();
+                $variables['submission'] = new Submission();
+                $variables['submission']->setForm($form);
 
-                if ($form) {
-                    $variables['submission'] = new Submission();
-                    $variables['submission']->setForm($form);
+                // Set the title to the default
+                $this->_setTitle($variables['submission'], $form);
 
-                    // Set the title to the default
-                    $this->_setTitle($variables['submission'], $form);
-
-                    // Set the user to the default
-                    if ($form->settings->collectUser) {
-                        $variables['submission']->setUser(Craft::$app->getUser()->getIdentity());
-                    }
+                // Set the user to the default
+                if ($form->settings->collectUser) {
+                    $variables['submission']->setUser(Craft::$app->getUser()->getIdentity());
                 }
             }
         }
@@ -162,6 +164,8 @@ class SubmissionsController extends Controller
         if (!$variables['submission']) {
             throw new HttpException(404);
         }
+
+        $variables['submission']->setForm($form);
 
         $this->_prepEditSubmissionVariables($variables);
 

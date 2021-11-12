@@ -53,6 +53,7 @@ class Submission extends Element
     public $isIncomplete = false;
     public $isSpam = false;
     public $spamReason;
+    public $snapshot = [];
 
     public $validateCurrentPageOnly;
 
@@ -388,6 +389,18 @@ class Submission extends Element
     /**
      * @inheritDoc
      */
+    public function init()
+    {
+        parent::init();
+
+        if (is_string($this->snapshot)) {
+            $this->snapshot = Json::decodeIfJson($this->snapshot);
+        }
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function __toString()
     {
         return (string)$this->title;
@@ -554,6 +567,17 @@ class Submission extends Element
     {
         $this->_form = $form;
         $this->formId = $form->id;
+
+        // When setting the form, see if there's a in-session snapshot, or if there's a saved 
+        // snapshot from the database. This will be field settings set via templates which we want
+        // to apply to fields in our form, for the this submission.
+        $this->snapshot = $form->getSnapshotData() ?: $this->snapshot;
+
+        $fields = $this->snapshot['fields'] ?? [];
+
+        foreach ($fields as $handle => $settings) {
+            $form->setFieldSettings($handle, $settings, false);
+        }
     }
 
     /**
@@ -906,6 +930,7 @@ class Submission extends Element
         $record->isSpam = $this->isSpam;
         $record->ipAddress = $this->ipAddress;
         $record->spamReason = $this->spamReason;
+        $record->snapshot = $this->snapshot;
         $record->dateCreated = $this->dateCreated;
         $record->dateUpdated = $this->dateUpdated;
 

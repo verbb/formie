@@ -81,6 +81,7 @@ class Form extends Element
     private $_notifications;
     private $_editingSubmission;
     private $_formId;
+    private $_appliedFieldSettings = false;
     private static $_layoutsByType;
 
 
@@ -890,6 +891,17 @@ class Form extends Element
      */
     public function getCurrentSubmission()
     {
+        // Check to see if we have any field settings applied. Because field settings are applied before
+        // render, we don't have an easy way to check when we _don't_ set field settings. This function is
+        // called most commonly for rendering a form without relying on `formie.renderForm()`.
+        //
+        // `setFieldSettings()` sets session variables for fields before render. So these variables don't
+        // "bleed" between rendering the same form we need to remove them when necessary. This will check
+        // when we _haven't_ set settings via `setFieldSettings()` and reset the session.
+        if (!$this->_appliedFieldSettings) {
+            $this->resetSnapshotData();
+        }
+
         // See if there's a submission on routeParams - an error has occurred.
         $params = Craft::$app->getUrlManager()->getRouteParams();
 
@@ -946,6 +958,9 @@ class Form extends Element
 
         $this->resetCurrentPage();
         Craft::$app->getSession()->remove($this->_getSessionKey('submissionId'));
+
+        // Also remove any snapshots set for the form
+        $this->resetSnapshotData();
     }
 
     /**
@@ -1324,13 +1339,66 @@ class Form extends Element
     /**
      * @inheritDoc
      */
-    public function setFieldSettings($handle, $settings)
+    public function setFieldSettings($handle, $settings, $updateSnapshot = true)
     {
         $field = $this->getFieldByHandle($handle);
 
         if ($field) {
             $field->setAttributes($settings, false);
+
+            // Update our snapshot data with these settings
+            if ($updateSnapshot) {
+                $this->setSnapshotData('fields', [$handle => $settings]);
+            }
         }
+
+        // Save this so we know when we're applying field settings later
+        $this->_appliedFieldSettings = true;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getSnapshotData($key = null)
+    {
+        if (Craft::$app->getRequest()->getIsConsoleRequest()) {
+            return [];
+        }
+
+        $snapshotData = Craft::$app->getSession()->get($this->_getSessionKey('snapshot'));
+
+        if ($key) {
+            return $snapshotData[$key] ?? [];
+        }
+
+        return $snapshotData ?? [];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setSnapshotData($key, $data)
+    {
+        if (Craft::$app->getRequest()->getIsConsoleRequest()) {
+            return;
+        }
+
+        $snapshotData = $this->getSnapshotData();
+        $snapshotData[$key] = $data;
+
+        Craft::$app->getSession()->set($this->_getSessionKey('snapshot'), $snapshotData);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function resetSnapshotData()
+    {
+        if (Craft::$app->getRequest()->getIsConsoleRequest()) {
+            return;
+        }
+
+        Craft::$app->getSession()->remove($this->_getSessionKey('snapshot'));
     }
 
 
