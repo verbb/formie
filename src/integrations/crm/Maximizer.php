@@ -8,12 +8,12 @@ use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\errors\IntegrationException;
 use verbb\formie\events\SendIntegrationPayloadEvent;
+use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
-use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 use craft\helpers\StringHelper;
 use craft\web\View;
@@ -23,62 +23,18 @@ class Maximizer extends Crm
     // Properties
     // =========================================================================
 
-    public $clientId;
-    public $clientSecret;
+    public $username;
+    public $password;
     public $webAccessUrl;
-    public $customerAlias;
+    public $databaseId;
+    public $vendorId;
+    public $appKey;
     public $mapToContact = false;
+    public $mapToOpportunity = false;
     public $contactFieldMapping;
+    public $opportunityFieldMapping;
 
-
-    // OAuth Methods
-    // =========================================================================
-
-    /**
-     * @inheritDoc
-     */
-    public static function supportsOauthConnection(): bool
-    {
-        return true;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getAuthorizeUrl(): string
-    {
-        $webAccessUrl = rtrim(Craft::parseEnv($this->webAccessUrl), '/');
-        $url = str_replace('maximizercrmlive.com/', 'maximizercrmlive.com/OAuth2/', $webAccessUrl);
-
-        return "$url/Authorize";
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getAccessTokenUrl(): string
-    {
-        $webAccessUrl = rtrim(Craft::parseEnv($this->webAccessUrl), '/');
-        $url = str_replace('maximizercrmlive.com/', 'maximizercrmlive.com/OAuth2/', $webAccessUrl);
-
-        return "$url/Token";
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getClientId(): string
-    {
-        return Craft::parseEnv($this->clientId);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getClientSecret(): string
-    {
-        return Craft::parseEnv($this->clientSecret);
-    }
+    private $_token;
 
 
     // Public Methods
@@ -107,13 +63,18 @@ class Maximizer extends Crm
     {
         $rules = parent::defineRules();
 
-        $rules[] = [['clientId', 'clientSecret'], 'required'];
+        $rules[] = [['username', 'password', 'webAccessUrl', 'databaseId', 'vendorId', 'appKey'], 'required'];
 
         $contact = $this->getFormSettingValue('contact');
+        $opportunity = $this->getFormSettingValue('opportunity');
 
         // Validate the following when saving form settings
         $rules[] = [['contactFieldMapping'], 'validateFieldMapping', 'params' => $contact, 'when' => function($model) {
             return $model->enabled && $model->mapToContact;
+        }, 'on' => [Integration::SCENARIO_FORM]];
+
+        $rules[] = [['contactFieldMapping'], 'validateFieldMapping', 'params' => $opportunity, 'when' => function($model) {
+            return $model->enabled && $model->mapToOpportunity;
         }, 'on' => [Integration::SCENARIO_FORM]];
 
         return $rules;
@@ -127,112 +88,35 @@ class Maximizer extends Crm
         $settings = [];
 
         try {
-            $response = $this->request('GET', 'contacts/model');
-            $fields = $response['custom_fields'] ?? [];
+            $response = $this->request('POST', 'AbEntryGetFieldInfo', [
+                'json' => [
+                    'AbEntry' => [
+                        'Options' => [
+                            'Complex' => true,
+                        ],
+                    ],
+                ],
+            ]);
 
-            $contactFields = array_merge([
-                new IntegrationField([
-                    'handle' => 'given_name',
-                    'name' => Craft::t('formie', 'First Name'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'middle_name',
-                    'name' => Craft::t('formie', 'Middle Name'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'family_name',
-                    'name' => Craft::t('formie', 'Last Name'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'suffix',
-                    'name' => Craft::t('formie', 'Suffix'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'preferred_name',
-                    'name' => Craft::t('formie', 'Preferred Name'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'website',
-                    'name' => Craft::t('formie', 'Website'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'time_zone',
-                    'name' => Craft::t('formie', 'Timezone'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'spouse_name',
-                    'name' => Craft::t('formie', 'Spouse Name'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'opt_in_reason',
-                    'name' => Craft::t('formie', 'Opt-in Reason'),
-                    'required' => true,
-                ]),
-                new IntegrationField([
-                    'handle' => 'lead_source_id',
-                    'name' => Craft::t('formie', 'Lead Source ID'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'job_title',
-                    'name' => Craft::t('formie', 'Job Title'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'owner_id',
-                    'name' => Craft::t('formie', 'Owner ID'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'email',
-                    'name' => Craft::t('formie', 'Email'),
-                    'required' => true,
-                ]),
-                new IntegrationField([
-                    'handle' => 'line1',
-                    'name' => Craft::t('formie', 'Address Street'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'line2',
-                    'name' => Craft::t('formie', 'Address Street 2'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'locality',
-                    'name' => Craft::t('formie', 'Address City'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'postal_code',
-                    'name' => Craft::t('formie', 'Address Postal Code'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'region',
-                    'name' => Craft::t('formie', 'Address Region'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'zip_code',
-                    'name' => Craft::t('formie', 'Address Zip Code'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'country_code',
-                    'name' => Craft::t('formie', 'Address Country Code'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'number',
-                    'name' => Craft::t('formie', 'Phone Number'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'anniversary',
-                    'name' => Craft::t('formie', 'Anniversary'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'birthday',
-                    'name' => Craft::t('formie', 'Birthday'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'source_type',
-                    'name' => Craft::t('formie', 'Source Type'),
-                ]),
-            ], $this->_getCustomFields($fields));
+            $fields = $response['AbEntry']['Data']['properties'] ?? [];
+            $contactFields = $this->_getCustomFields($fields);
+
+            $response = $this->request('POST', 'OpportunityGetFieldInfo', [
+                'json' => [
+                    'Opportunity' => [
+                        'Options' => [
+                            'Complex' => true,
+                        ],
+                    ],
+                ],
+            ]);
+
+            $fields = $response['Opportunity']['Data']['properties'] ?? [];
+            $opportunityFields = $this->_getCustomFields($fields);
 
             $settings = [
                 'contact' => $contactFields,
+                'opportunity' => $opportunityFields,
             ];
         } catch (\Throwable $e) {
             Integration::apiError($this, $e);
@@ -248,25 +132,110 @@ class Maximizer extends Crm
     {
         try {
             $contactValues = $this->getFieldMappingValues($submission, $this->contactFieldMapping, 'contact');
+            $opportunityValues = $this->getFieldMappingValues($submission, $this->opportunityFieldMapping, 'opportunity');
 
-            // Special processing on this due to nested content in payload
-            $contactPayload = $this->_prepContactPayload($contactValues);
+            $contactId = null;
 
-            $response = $this->deliverPayload($submission, 'contacts', $contactPayload);
+            if ($this->mapToContact) {
+                $contactPayload = [
+                    'AbEntry' => [
+                        'Data' => array_merge([
+                            'Key' => null,
+                            'Type' => 'Individual',
+                            'Lead' => true,
+                        ], $this->_prepPayload($contactValues)),
+                    ],
+                ];
 
-            if ($response === false) {
-                return true;
+                $response = $this->deliverPayload($submission, 'AbEntryCreate', $contactPayload);
+
+                if ($response === false) {
+                    return true;
+                }
+
+                $contactId = $response['AbEntry']['Data']['Key'] ?? null;
+                $code = $response['Code'] ?? -1;
+
+                if ($code !== 0) {
+                    throw new \Exception(Json::encode($response));
+                }
             }
 
-            $contactId = $response['id'] ?? '';
+            if ($this->mapToOpportunity) {
+                $opportunityPayload = [
+                    'Opportunity' => [
+                        'Data' => array_merge([
+                            'Key' => null,
+                            'AbEntryKey' => $contactId,
+                        ], $this->_prepPayload($opportunityValues)),
+                    ],
+                ];
 
-            if (!$contactId) {
-                Integration::error($this, Craft::t('formie', 'Missing return “contactId” {response}. Sent payload {payload}', [
-                    'response' => Json::encode($response),
-                    'payload' => Json::encode($contactPayload),
-                ]), true);
+                $response = $this->deliverPayload($submission, 'OpportunityCreate', $opportunityPayload);
 
-                return false;
+                if ($response === false) {
+                    return true;
+                }
+
+                $opportunityId = $response['Opportunity']['Data']['Key'] ?? null;
+                $code = $response['Code'] ?? -1;
+
+                if ($code !== 0) {
+                    throw new \Exception(Json::encode($response));
+                }
+            }
+        } catch (\Throwable $e) {
+            Integration::apiError($this, $e);
+
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function request(string $method, string $uri, array $options = [])
+    {
+        // Fetch and merge the token in for each request, which isn't a header, but part of every request
+        if ($method === 'POST') {
+            $options['json']['Token'] = $this->getClient()->getConfig()['headers']['X-Token'] ?? null;
+        }
+
+        return parent::request($method, $uri, $options);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function fetchConnection(): bool
+    {
+        try {
+            $response = $this->request('POST', 'AbEntryRead', [
+               'json' => [
+                    'AbEntry' => [
+                        'Criteria' => [
+                            'SearchQuery' => [
+                                'CompanyName' => [
+                                    '$LIKE' => '%',
+                                ],
+                            ],
+                        ],
+                        'Scope' => [
+                            'Fields' => [
+                                'Key' => 1,
+                                'CompanyName' => 1,
+                            ],
+                        ],
+                    ],
+                ],
+            ]);
+
+            $errorMessage = $response['Msg'][0]['Message'] ?? '';
+
+            if ($errorMessage) {
+                throw new \Exception(Json::encode($response));
             }
         } catch (\Throwable $e) {
             Integration::apiError($this, $e);
@@ -286,37 +255,33 @@ class Maximizer extends Crm
             return $this->_client;
         }
 
-        $token = $this->getToken();
+        // From the Web Access URL, get the API Base URL
+        $webAccessUrl = Craft::parseEnv($this->webAccessUrl);
+        $baseApiUrl = file_get_contents($webAccessUrl . '?request=api');
 
-        $this->_client = Craft::createGuzzleClient([
-            'base_uri' => 'https://api.infusionsoft.com/crm/rest/v1/',
-            'headers' => [
-                'Authorization' => 'Bearer ' . $token->accessToken ?? '',
-                'Content-Type' => 'application/json',
+        // Then, fetch the token we need to use on every request for this session (10min)
+        $request = Craft::createGuzzleClient()->request('POST', "$baseApiUrl/Data.svc/json/Authenticate", [
+            'json' => [
+                'Database' => Craft::parseEnv($this->databaseId),
+                'UID' => Craft::parseEnv($this->username),
+                'Password' => Craft::parseEnv($this->password),
+                'VendorId' => Craft::parseEnv($this->vendorId),
+                'AppKey' => Craft::parseEnv($this->appKey),
             ],
         ]);
 
-        // Always provide an authenticated client - so check first.
-        // We can't always rely on the EOL of the token.
-        try {
-            $response = $this->request('GET', 'account/profile');
-        } catch (\Throwable $e) {
-            if ($e->getCode() === 401) {
-                // Force-refresh the token
-                Formie::$plugin->getTokens()->refreshToken($token, true);
+        $response = Json::decode((string)$request->getBody());
+        $token = $response['Data']['Token'] ?? '';
 
-                // Then try again, with the new access token
-                $this->_client = Craft::createGuzzleClient([
-                    'base_uri' => 'https://api.infusionsoft.com/crm/rest/v1/',
-                    'headers' => [
-                        'Authorization' => 'Bearer ' . $token->accessToken ?? '',
-                        'Content-Type' => 'application/json',
-                    ],
-                ]);
-            }
-        }
+        return $this->_client = Craft::createGuzzleClient([
+            'base_uri' => "$baseApiUrl/Data.svc/json/",
+            'headers' => [
+                'Content-Type' => 'application/json',
 
-        return $this->_client;
+                // Save it in the header so we can attach it on every request later
+                'X-Token' => $token,
+            ],
+        ]);
     }
 
 
@@ -329,54 +294,71 @@ class Maximizer extends Crm
     private function _convertFieldType($fieldType)
     {
         $fieldTypes = [
-            'ListBox' => IntegrationField::TYPE_ARRAY,
-            'Number' => IntegrationField::TYPE_FLOAT,
-            'WholeNumber' => IntegrationField::TYPE_NUMBER,
-            'Currency' => IntegrationField::TYPE_FLOAT,
-            'Date' => IntegrationField::TYPE_DATE,
-            'DateTime' => IntegrationField::TYPE_DATETIME,
+            'BooleanField' => IntegrationField::TYPE_BOOLEAN,
+            'IntegerField' => IntegrationField::TYPE_NUMBER,
+            'NumericField' => IntegrationField::TYPE_NUMBER,
+            'CurrencyField' => IntegrationField::TYPE_FLOAT,
+            'DateTimeField' => IntegrationField::TYPE_DATETIME,
         ];
 
         return $fieldTypes[$fieldType] ?? IntegrationField::TYPE_STRING;
     }
 
-    /**
-     * @inheritDoc
-     */
-    private function _getCustomFields($fields, $excludeNames = [])
+    // /**
+    //  * @inheritDoc
+    //  */
+    private function _getCustomFields($fields, $parentFieldKey = '', $parentField = [])
     {
         $customFields = [];
 
-        $supportedFields = [
-            'Text',
-            'TextArea',
-            'Radio',
-            'Dropdown',
-            'YesNo',
-            'ListBox',
-            'Number',
-            'WholeNumber',
-            'Currency',
-            'Date',
-            'DateTime',
+        $excludedIds = [
+            'Key',
+            'Type',
+            'ParentKey',
+            'AbEntry',
+            'ReadOnly',
+            'ContactKey',
+        ];
+
+        $excludedTypes = [
+            'Key',
+            'UidKey',
+            'UidObject',
+            'TxDictionary<>',
+            'SecAccess2LvlField',
+            'SecStatusField',
+            'SalesTeamObject',
+            'SalesProcessObject',
+            'SalesStageObject',
+            'RefLongField',
         ];
 
         foreach ($fields as $key => $field) {
-            // Only allow supported types
-            if (!in_array($field['field_type'], $supportedFields)) {
-                 continue;
+            $readOnly = $field['readonly'] ?? false;
+            $type = $field['mxtype'] ?? '';
+
+            // Filter out some fields
+            if ($readOnly || in_array($key, $excludedIds) || in_array($type, $excludedTypes)) {
+                continue;
             }
 
-            // Exclude any names
-            if (in_array($field['field_type'], $excludeNames)) {
-                 continue;
-            }
+            // Check for nested fields - each field has properties, so check for nested fields
+            $nested = array_filter(($field['properties'] ?? []), function($item) {
+                return $item['name'] ?? false;
+            });
 
-            $customFields[] = new IntegrationField([
-                'handle' => 'custom:' . $field['id'],
-                'name' => $field['label'],
-                'type' => $this->_convertFieldType($field['field_type']),
-            ]);
+            if ($nested) {
+                $customFields = array_merge($customFields, $this->_getCustomFields($nested, $key, $field));
+            } else {
+                $handle = $parentFieldKey ? $parentFieldKey . ':' . $key : $key;
+                $name = $parentField ? $parentField['name'] . ': ' . $field['name'] : $field['name'];
+
+                $customFields[] = new IntegrationField([
+                    'handle' => $handle,
+                    'name' => $name,
+                    'type' => $this->_convertFieldType($type),
+                ]);
+            }
         }
 
         return $customFields;
@@ -385,57 +367,8 @@ class Maximizer extends Crm
     /**
      * @inheritDoc
      */
-    private function _prepContactPayload($fields)
+    private function _prepPayload($fields)
     {
-        $payload = $fields;
-        $customFields = [];
-
-        foreach ($payload as $key => $value) {
-            if (StringHelper::startsWith($key, 'custom:')) {
-                $field = ArrayHelper::remove($payload, $key);
-
-                $payload['custom_fields'][] = [
-                    'id' => str_replace('custom:', '', $key),
-                    'content' => $value,
-                ];
-            }
-        }
-
-        // Rip out some fields that need to be structured correctly
-        $payload['email_addresses'] = [
-            [
-                'email' => ArrayHelper::remove($payload, 'email'),
-                'field' => 'EMAIL1',
-            ],
-        ];
-
-        $phone = ArrayHelper::remove($payload, 'number');
-
-        if ($phone) {
-            $payload['phone_numbers'] = [
-                [
-                    'number' => $phone,
-                    'field' => 'PHONE1',
-                ],
-            ];
-        }
-
-        $address = array_filter([
-            'country_code' => ArrayHelper::remove($payload, 'country_code'),
-            'line1' => ArrayHelper::remove($payload, 'line1'),
-            'line2' => ArrayHelper::remove($payload, 'line2'),
-            'locality' => ArrayHelper::remove($payload, 'locality'),
-            'postal_code' => ArrayHelper::remove($payload, 'postal_code'),
-            'region' => ArrayHelper::remove($payload, 'region'),
-            'zip_code' => ArrayHelper::remove($payload, 'zip_code'),
-        ]);
-
-        if ($address) {
-            $payload['addresses'] = [
-                array_merge(['field' => 'BILLING'], $address),
-            ];
-        }
-
-        return $payload;
+        return ArrayHelper::expand($fields, ':');
     }
 }

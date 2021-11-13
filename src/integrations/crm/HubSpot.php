@@ -8,13 +8,12 @@ use verbb\formie\elements\Submission;
 use verbb\formie\errors\IntegrationException;
 use verbb\formie\events\ModifyFieldIntegrationValueEvent;
 use verbb\formie\events\SendIntegrationPayloadEvent;
-use verbb\formie\helpers\ConditionsHelper;
+use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
-use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 use craft\web\View;
 
@@ -59,7 +58,7 @@ class HubSpot extends Crm
             // Special handling for arrays for checkboxes
             if ($event->integrationField->getType() === IntegrationField::TYPE_ARRAY) {
                 $event->value = array_filter($event->value);
-                $event->value = ConditionsHelper::recursiveImplode(';', $event->value);
+                $event->value = ArrayHelper::recursiveImplode(';', $event->value);
             }
         });
     }

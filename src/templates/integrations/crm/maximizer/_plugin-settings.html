@@ -5,46 +5,42 @@
 ### Step 1. Connect to the {name} API
 1. Go to <a href="https://www.maximizer.com/support/crm-api/" target="_blank">Maximizer CRM API</a> and request access to their API.
 1. When approved, you'll receive your details via email.
-1. Copy the **Application Id** from {name} and paste in the **Client ID** field below.
-1. Copy the **AppKey** from {name} and paste in the **Client Secret** field below.
+1. Enter your **Username** from {name} and paste in the **Username** field below.
+1. Enter your **Password** from {name} and paste in the **Password** field below.
+1. Copy the **Web Access URL** from {name} and paste in the **Web Access URL** field below.
+1. Copy the **Database ID** from {name} and paste in the **Database ID** field below.
+1. Copy the **Vendor ID** from {name} and paste in the **Vendor ID** field below.
+1. Copy the **App Key** from {name} and paste in the **App Key** field below.
 
 ### Step 2. Test Connection
 1. Save this integration.
-1. Click on the **Connect** button in the right-hand sidebar.
-1. You‘ll be redirected to {name}, where you must approve Formie to access your {name} account.
+1. Click on the **Refresh** button in the right-hand sidebar.
 {% endset %}
 
 <div class="fui-settings-block">
     {{ instructions | t('formie', { name: integration.displayName() }) | md }}
 </div>
 
-{{ forms.textField({
-    readonly: true,
-    label: 'Redirect URI' | t('formie'),
-    instructions: 'Use this URI when setting up your {name} app.' | t('formie', { name: integration.displayName() }),
-    value: integration.getRedirectUri(),
+{{ forms.autosuggestField({
+    label: 'Username' | t('formie'),
+    instructions: 'Enter your {name} Username key here.' | t('formie', { name: integration.displayName() }),
+    name: 'username',
+    required: true,
+    suggestEnvVars: true,
+    value: integration.settings.username ?? '',
+    warning: macros.configWarning('username', 'formie'),
+    errors: integration.getErrors('username'),
 }) }}
 
 {{ forms.autosuggestField({
-    label: 'Client ID' | t('formie'),
-    instructions: 'Enter your {name} Client ID key here.' | t('formie', { name: integration.displayName() }),
-    name: 'clientId',
+    label: 'Password' | t('formie'),
+    instructions: 'Enter your {name} Password here.' | t('formie', { name: integration.displayName() }),
+    name: 'password',
     required: true,
     suggestEnvVars: true,
-    value: integration.settings.clientId ?? '',
-    warning: macros.configWarning('clientId', 'formie'),
-    errors: integration.getErrors('clientId'),
-}) }}
-
-{{ forms.autosuggestField({
-    label: 'Client Secret' | t('formie'),
-    instructions: 'Enter your {name} Client Secret here.' | t('formie', { name: integration.displayName() }),
-    name: 'clientSecret',
-    required: true,
-    suggestEnvVars: true,
-    value: integration.settings.clientSecret ?? '',
-    warning: macros.configWarning('clientSecret', 'formie'),
-    errors: integration.getErrors('clientSecret'),
+    value: integration.settings.password ?? '',
+    warning: macros.configWarning('password', 'formie'),
+    errors: integration.getErrors('password'),
 }) }}
 
 {{ forms.autosuggestField({
@@ -59,12 +55,34 @@
 }) }}
 
 {{ forms.autosuggestField({
-    label: 'Customer Alias' | t('formie'),
-    instructions: 'Enter your {name} Customer Alias here.' | t('formie', { name: integration.displayName() }),
-    name: 'customerAlias',
+    label: 'Database ID' | t('formie'),
+    instructions: 'Enter your {name} Database ID here.' | t('formie', { name: integration.displayName() }),
+    name: 'databaseId',
     required: true,
     suggestEnvVars: true,
-    value: integration.settings.customerAlias ?? '',
-    warning: macros.configWarning('customerAlias', 'formie'),
-    errors: integration.getErrors('customerAlias'),
+    value: integration.settings.databaseId ?? '',
+    warning: macros.configWarning('databaseId', 'formie'),
+    errors: integration.getErrors('databaseId'),
+}) }}
+
+{{ forms.autosuggestField({
+    label: 'Vendor ID' | t('formie'),
+    instructions: 'Enter your {name} Vendor ID here.' | t('formie', { name: integration.displayName() }),
+    name: 'vendorId',
+    required: true,
+    suggestEnvVars: true,
+    value: integration.settings.vendorId ?? '',
+    warning: macros.configWarning('vendorId', 'formie'),
+    errors: integration.getErrors('vendorId'),
+}) }}
+
+{{ forms.autosuggestField({
+    label: 'App Key' | t('formie'),
+    instructions: 'Enter your {name} App Key here.' | t('formie', { name: integration.displayName() }),
+    name: 'appKey',
+    required: true,
+    suggestEnvVars: true,
+    value: integration.settings.appKey ?? '',
+    warning: macros.configWarning('appKey', 'formie'),
+    errors: integration.getErrors('appKey'),
 }) }}
