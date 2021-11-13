@@ -708,14 +708,55 @@ trait NestedFieldTrait
 
         foreach ($value->all() as $rowId => $row) {
             foreach ($row->getFieldLayout()->getFields() as $field) {
-                $v = $row->getFieldValue($field->handle);
-                $html = $field->getValueForSummary($v, $row);
+                $subValue = $row->getFieldValue($field->handle);
+                $html = $field->getValueForSummary($subValue, $row);
 
                 $values .= '<strong>' . $field->handle . '</strong> ' . $html . '<br>';
             }
         }
 
         return Template::raw($values);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function prepValueForIntegration($submissionValues, $fieldKey)
+    {
+        // If this contians a dot-notation subfield lookup, we need to change how we get the value
+        // Instead of using `field.subField` which will be null, we want to return an element query
+        // to first fetch values for, then pluck specific values later.
+        if (strstr($fieldKey, '.')) {
+            $fieldKey = explode('.', $fieldKey)[0];
+        }
+
+        return parent::prepValueForIntegration($submissionValues, $fieldKey);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected function defineValueForIntegration($value, $integrationField, ElementInterface $element = null, $fieldKey = '')
+    {
+        // For dot-notation field lookups, we want to process each subfield correctly (according to the destination integration field)
+        // and pluck the value we want specifically.
+        if (strstr($fieldKey, '.')) {
+            $values = [];
+
+            foreach ($value->all() as $rowId => $row) {
+                foreach ($row->getFieldLayout()->getFields() as $field) {
+                    $subValue = $row->getFieldValue($field->handle);
+                    $valueForIntegration = $field->defineValueForIntegration($subValue, $integrationField, $row);
+
+                    $values[$this->handle . '.' . $field->handle] = $valueForIntegration;
+                }
+            }
+
+            return ArrayHelper::getValue($values, $fieldKey);
+        }
+
+        // Fetch the default handling
+        return parent::defineValueForIntegration($value, $integrationField, $element);
     }
 
 

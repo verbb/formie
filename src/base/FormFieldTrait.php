@@ -262,9 +262,9 @@ trait FormFieldTrait
     /**
      * @inheritdoc
      */
-    public function getValueForIntegration($value, $integrationField, $integration, ElementInterface $element = null)
+    public function getValueForIntegration($value, $integrationField, $integration, ElementInterface $element = null, $fieldKey = '')
     {
-        $value = $this->defineValueForIntegration($value, $integrationField, $element);
+        $value = $this->defineValueForIntegration($value, $integrationField, $element, $fieldKey);
 
         $event = new ModifyFieldIntegrationValueEvent([
             'value' => $value,
@@ -280,6 +280,17 @@ trait FormFieldTrait
         $integration->trigger($integration::EVENT_MODIFY_FIELD_MAPPING_VALUE, $event);
 
         return $event->value;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function prepValueForIntegration($submissionValues, $fieldKey)
+    {
+        // We pass in `fieldKey` as a dot-notation lookup for the submission value. 99% of the time its just the field handle
+        // for a simple field, but for more complex fields we can use `name.firstName` or `group.textField`.
+        // As such, we need to allow fields to define how their value is fetched. For almost all cases, the default should suffice.
+        return ArrayHelper::getValue($submissionValues, $fieldKey);
     }
 
     /**
@@ -1171,7 +1182,7 @@ trait FormFieldTrait
     /**
      * @inheritdoc
      */
-    protected function defineValueForIntegration($value, $integrationField, ElementInterface $element = null)
+    protected function defineValueForIntegration($value, $integrationField, ElementInterface $element = null, $fieldKey = '')
     {
         $stringValue = $this->defineValueAsString($value, $element);
         $jsonValue = $this->defineValueAsJson($value, $element);

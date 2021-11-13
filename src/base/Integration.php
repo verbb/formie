@@ -4,8 +4,8 @@ namespace verbb\formie\base;
 use verbb\formie\Formie;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
+use verbb\formie\elements\db\NestedFieldRowQuery;
 use verbb\formie\errors\IntegrationException;
-use verbb\formie\records\Integration as IntegrationRecord;
 use verbb\formie\events\IntegrationConnectionEvent;
 use verbb\formie\events\IntegrationFormSettingsEvent;
 use verbb\formie\events\ModifyFieldIntegrationValuesEvent;
@@ -14,9 +14,11 @@ use verbb\formie\helpers\UrlHelper as FormieUrlHelper;
 use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
+use verbb\formie\records\Integration as IntegrationRecord;
 
 use Craft;
 use craft\base\SavableComponent;
+use craft\elements\db\ElementQuery;
 use craft\helpers\ArrayHelper;
 use craft\helpers\DateTimeHelper;
 use craft\helpers\Json;
@@ -707,28 +709,34 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         // Fetch all custom fields here for efficiency
         $formFields = ArrayHelper::index($submission->getFieldLayout()->getFields(), 'handle');
 
-        foreach ($fieldMapping as $tag => $fieldHandle) {
+        // Get all the field values here, so we can support dot-notation lookups
+        $submissionValues = $submission->getFieldValues();
+
+        foreach ($fieldMapping as $tag => $fieldKey) {
             // Don't let in un-mapped fields
-            if ($fieldHandle === '') {
+            if ($fieldKey === '') {
                 continue;
             }
 
-            if (strstr($fieldHandle, '{')) {
+            if (strstr($fieldKey, '{')) {
                 try {
-                    $fieldHandle = str_replace(['{', '}'], ['', ''], $fieldHandle);
+                    $fieldKey = str_replace(['{', '}'], ['', ''], $fieldKey);
 
                     // Check to see if this is a custom field, or an attribute on the submission
-                    if (StringHelper::startsWith($fieldHandle, 'submission:')) {
-                        $fieldHandle = str_replace('submission:', '', $fieldHandle);
+                    if (StringHelper::startsWith($fieldKey, 'submission:')) {
+                        $fieldKey = str_replace('submission:', '', $fieldKey);
 
-                        $fieldValues[$tag] = $submission->$fieldHandle;
+                        $fieldValues[$tag] = $submission->$fieldKey;
                     } else {
-                        // Check for nested fields - convert to dot-notation
-                        if (strstr($fieldHandle, '[')) {
-                            $fieldHandle = str_replace(['[', ']'], ['.', ''], $fieldHandle);
-                        }
+                        $fieldHandle = $fieldKey;
 
-                        $value = $submission->getFieldValue($fieldHandle);
+                        // Check for nested fields - convert to dot-notation
+                        if (strstr($fieldKey, '[')) {
+                            $fieldKey = str_replace(['[', ']'], ['.', ''], $fieldKey);
+
+                            // Change the field handle to reflect the top-level field, not the full path to the value
+                            $fieldHandle = explode('.', $fieldKey)[0];
+                        }
 
                         // Try and get the form field we're pulling data from
                         $field = $formFields[$fieldHandle] ?? null;
@@ -736,7 +744,11 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
                         // Then, allow the integration to control how to parse the field, from its type
                         if ($field) {
                             $integrationField = ArrayHelper::firstWhere($fieldSettings, 'handle', $tag) ?? new IntegrationField();
-                            $fieldValues[$tag] = $field->getValueForIntegration($value, $integrationField, $this, $submission);
+
+                            // Get the field value (note supports dot-notation and complex fields)
+                            $value = $field->prepValueForIntegration($submissionValues, $fieldKey);
+
+                            $fieldValues[$tag] = $field->getValueForIntegration($value, $integrationField, $this, $submission, $fieldKey);
                         }
                     }
                 } catch (\Throwable $e) {
@@ -748,7 +760,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
                 }
             } else {
                 // Otherwise, might have passed in a direct, static value
-                $fieldValues[$tag] = $formFieldHandle;
+                $fieldValues[$tag] = $fieldKey;
             }
         }
 

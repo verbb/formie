@@ -523,7 +523,7 @@ class FileUpload extends CraftAssets implements FormFieldInterface
     /**
      * @inheritDoc
      */
-    protected function defineValueForIntegration($value, $integrationField, ElementInterface $element = null)
+    protected function defineValueForIntegration($value, $integrationField, ElementInterface $element = null, $fieldKey = '')
     {
         if ($integrationField->getType() === IntegrationField::TYPE_ARRAY) {
             $value = $this->getValueAsJson($value, $element);

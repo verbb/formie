@@ -837,7 +837,7 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
     /**
      * @inheritDoc
      */
-    protected function defineValueForIntegration($value, $integrationField, ElementInterface $element = null)
+    protected function defineValueForIntegration($value, $integrationField, ElementInterface $element = null, $fieldKey = '')
     {
         // If a string value is requested for a date, return the ISO 8601 date string
         if ($integrationField->getType() === IntegrationField::TYPE_STRING) {

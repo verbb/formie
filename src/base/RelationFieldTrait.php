@@ -407,7 +407,7 @@ trait RelationFieldTrait
     /**
      * @inheritDoc
      */
-    protected function defineValueForIntegration($value, $integrationField, ElementInterface $element = null)
+    protected function defineValueForIntegration($value, $integrationField, ElementInterface $element = null, $fieldKey = '')
     {
         // Set the status to null to include disabled elements
         $value->status(null);
