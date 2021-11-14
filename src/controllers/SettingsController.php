@@ -16,6 +16,9 @@ class SettingsController extends Controller
     // Public Methods
     // =========================================================================
 
+    /**
+     * @inheritdoc
+     */
     public function actionIndex(): Response
     {
         $settings = Formie::$plugin->getSettings();
@@ -28,6 +31,9 @@ class SettingsController extends Controller
         }
     }
 
+    /**
+     * @inheritdoc
+     */
     public function actionForms(): Response
     {
         $settings = Formie::$plugin->getSettings();
@@ -37,6 +43,9 @@ class SettingsController extends Controller
         return $this->renderTemplate('formie/settings/forms', compact('settings', 'formTemplates', 'emailTemplates'));
     }
 
+    /**
+     * @inheritdoc
+     */
     public function actionFields(): Response
     {
         $settings = Formie::$plugin->getSettings();
@@ -57,6 +66,9 @@ class SettingsController extends Controller
         return $this->renderTemplate('formie/settings/fields', compact('settings', 'disabledFields'));
     }
 
+    /**
+     * @inheritdoc
+     */
     public function actionSubmissions(): Response
     {
         $settings = Formie::$plugin->getSettings();
@@ -64,6 +76,9 @@ class SettingsController extends Controller
         return $this->renderTemplate('formie/settings/submissions', compact('settings'));
     }
 
+    /**
+     * @inheritdoc
+     */
     public function actionSpam(): Response
     {
         $settings = Formie::$plugin->getSettings();

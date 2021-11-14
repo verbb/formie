@@ -13,6 +13,9 @@ class SecurityController extends Controller
     // Public Methods
     // =========================================================================
 
+    /**
+     * @inheritdoc
+     */
     public function actionIndex(): Response
     {
         return $this->renderTemplate('formie/settings/security', []);

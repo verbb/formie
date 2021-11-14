@@ -13,6 +13,9 @@ class NotificationsController extends Controller
     // Public Methods
     // =========================================================================
 
+    /**
+     * @inheritdoc
+     */
     public function actionIndex(): Response
     {
         $settings = Formie::$plugin->getSettings();

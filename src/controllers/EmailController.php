@@ -14,6 +14,9 @@ class EmailController extends Controller
     // Public Methods
     // =========================================================================
 
+    /**
+     * @inheritdoc
+     */
     public function actionPreview()
     {
         $this->requirePostRequest();
@@ -59,6 +62,9 @@ class EmailController extends Controller
         ]);
     }
 
+    /**
+     * @inheritdoc
+     */
     public function actionSendTestEmail()
     {
         $this->requirePostRequest();
@@ -88,6 +94,9 @@ class EmailController extends Controller
     // Private Methods
     // =========================================================================
 
+    /**
+     * @inheritdoc
+     */
     private function _populateFromPost($notification, $submission)
     {
         $request = Craft::$app->getRequest();

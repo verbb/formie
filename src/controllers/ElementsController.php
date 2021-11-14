@@ -12,6 +12,9 @@ class ElementsController extends Controller
     // Public Methods
     // =========================================================================
 
+    /**
+     * @inheritdoc
+     */
     public function actionSections()
     {
         $this->requireAcceptsJson();
@@ -21,6 +24,9 @@ class ElementsController extends Controller
         return $this->asJson(['success' => true, 'sections' => $sections]);
     }
 
+    /**
+     * @inheritdoc
+     */
     public function actionEntryTypes()
     {
         $this->requireAcceptsJson();
@@ -36,6 +42,9 @@ class ElementsController extends Controller
         return $this->asJson(['success' => true, 'entryTypes' => $entryTypes]);
     }
 
+    /**
+     * @inheritdoc
+     */
     public function actionCategoryGroups()
     {
         $this->requireAcceptsJson();
@@ -45,6 +54,9 @@ class ElementsController extends Controller
         return $this->asJson(['success' => true, 'categoryGroups' => $categoryGroups]);
     }
 
+    /**
+     * @inheritdoc
+     */
     public function actionTagGroups()
     {
         $this->requireAcceptsJson();
@@ -54,6 +66,9 @@ class ElementsController extends Controller
         return $this->asJson(['success' => true, 'tagGroups' => $tagGroups]);
     }
 
+    /**
+     * @inheritdoc
+     */
     public function actionProductTypes()
     {
         $this->requireAcceptsJson();
