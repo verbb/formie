@@ -82,6 +82,7 @@ trait Routes
             $event->rules['formie/settings/miscellaneous'] = 'formie/integration-settings/miscellaneous-index';
             $event->rules['formie/settings/miscellaneous/new'] = 'formie/integration-settings/edit-miscellaneous';
             $event->rules['formie/settings/miscellaneous/edit/<integrationId:\d+>'] = 'formie/integration-settings/edit-miscellaneous';
+            $event->rules['formie/settings/support'] = 'formie/support/index';
         });
     }
 }

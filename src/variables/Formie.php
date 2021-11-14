@@ -296,6 +296,9 @@ class Formie
             $navItems = array_merge($navItems, $plugins);
         }
 
+        $navItems['support-heading'] = ['heading' => Craft::t('formie', 'Support')];
+        $navItems['support'] = ['title' => Craft::t('formie', 'Get Support')];
+
         return $navItems;
     }
 

@@ -1,0 +1,106 @@
+{% extends 'formie/_layouts/settings' %}
+
+{% import '_includes/forms' as forms %}
+{% import 'verbb-base/_macros' as macros %}
+
+{% block content %}
+
+<div class="formie-help">
+    <h2>{{ 'Send a message to {name} support' | t('formie', { name: craft.formie.getPluginName() }) }}</h2>
+
+    <p>{{ 'Having issues using {name}? Enter your details below, so we can assist.' | t('formie', { name: craft.formie.getPluginName() }) }}</p>
+
+    <p><em>{{ 'We only collect data specifically for your form, nothing else related to your install. We collect:' | t('formie') }}</em></p>
+
+    <ul class="formie-info">
+        <li>{{ 'Your Craft version' | t('formie') }}</li>
+        <li>{{ 'Your {name} version and license' | t('formie', { name: craft.formie.getPluginName() }) }}</li>
+        <li>{{ 'Your {name} log file(s)' | t('formie', { name: craft.formie.getPluginName() }) }}</li>
+        <li>{{ 'Your `composer.json` and `composer.lock` files' | t('formie') }}</li>
+        <li>{{ 'Your form settings (selected below), including fields' | t('formie') }}</li>
+        <li>{{ 'Your custom templates (if using any)' | t('formie') }}</li>
+    </ul>
+
+    <div class="formie-help-form">
+        <form method="post" accept-charset="UTF-8" enctype="multipart/form-data">
+            {{ actionInput('formie/support/send-support-request') }}
+            {{ csrfInput() }}
+
+            {% if error is defined %}
+                <p class="error">
+                    {{ error }}
+                </p>
+            {% endif %}
+
+            {{ forms.textField({
+                label: 'Your Email' | t('formie'),
+                instructions: 'Enter your email so we can get in touch.' | t('formie'),
+                name: 'fromEmail',
+                required: true,
+                value: support.fromEmail ?? currentUser.email,
+                errors: support.getErrors('fromEmail') ?? '',
+            }) }}
+
+            {% set formOptions = [{ label: 'Select an option' | t('formie'), value: '' }] %}
+
+            {% for form in craft.formie.forms.orderBy('title').all() %}
+                {% set formOptions = formOptions | merge([{ label: form.title ~ ' (' ~ form.handle ~ ')', value: form.id }]) %}
+            {% endfor %}
+
+            {{ forms.selectField({
+                label: 'Your Form' | t('formie'),
+                instructions: 'Choose the form you‘re having issues with.' | t('formie'),
+                id: 'formId',
+                name: 'formId',
+                required: true,
+                options: formOptions,
+                value: support.formId ?? '',
+                errors: support.getErrors('formId') ?? '',
+            }) }}
+
+            {{ forms.textareaField({
+                label: 'Message' | t('formie'),
+                instructions: 'Please describe the issue you‘re having in as much detail as possible.' | t('formie'),
+                placeholder: 'Describe the issue you‘re having.' | t('formie'),
+                name: 'message',
+                rows: 6,
+                required: true,
+                value: support.message ?? '',
+                errors: support.getErrors('message') ?? '',
+            }) }}
+
+            {{ forms.fileField({
+                label: 'Attachments' | t('formie'),
+                instructions: 'Add any attachments such as screenshots that would be helpful for support.' | t('formie'),
+                name: 'attachments',
+                value: support.attachments ?? '',
+                errors: support.getErrors('attachments') ?? '',
+                inputAttributes: {
+                    multiple: true,
+                },
+            }) }}
+
+            <div class="buttons last">
+                <input type="submit" class="btn submit" value="{{ 'Send Support Request' | t('formie') }}">
+                <div class="spinner hidden"></div>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}
+
+{% css %}
+
+ul.formie-info {
+    list-style: initial;
+    margin-left: 20px;
+    margin-top: -6px;
+    margin-bottom: 30px;
+}
+
+ul.formie-info li {
+    color: #8693a1;
+}
+
+{% endcss %}
