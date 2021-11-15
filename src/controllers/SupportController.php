@@ -2,6 +2,7 @@
 namespace verbb\formie\controllers;
 
 use verbb\formie\Formie;
+use verbb\formie\helpers\ImportExportHelper;
 use verbb\formie\models\Settings;
 use verbb\formie\models\Support;
 use verbb\formie\records\Form as FormRecord;
@@ -16,6 +17,7 @@ use craft\helpers\StringHelper;
 use craft\i18n\Locale;
 use craft\web\Controller;
 use craft\web\UploadedFile;
+use craft\web\View;
 
 use yii\base\ErrorException;
 use yii\base\Exception;
@@ -141,14 +143,67 @@ class SupportController extends Controller
             // Add the form
             //
             try {
-                $formInfo = $this->_prepareSqlFormSettings($support->formId);
-                $tempFileForm = $backupPath . '/' . StringHelper::toLowerCase('formie_' . gmdate('ymd_His') . '.sql');
+                $formExport = ImportExportHelper::generateFormExport($form);
+                $json = Json::encode($formExport, JSON_PRETTY_PRINT | JSON_NUMERIC_CHECK);
 
-                FileHelper::writeToFile($tempFileForm, $formInfo . PHP_EOL);
+                $tempFileForm = $backupPath . '/' . StringHelper::toLowerCase('formie_' . gmdate('ymd_His') . '.json');
+                FileHelper::writeToFile($tempFileForm, $json);
 
-                $zip->addFile($tempFileForm, 'backups/' . pathinfo($tempFileForm, PATHINFO_BASENAME));
+                $zip->addFile($tempFileForm, pathinfo($tempFileForm, PATHINFO_BASENAME));
             } catch (\Throwable $e) {
-                $noteError = "\n\nError adding database to help request: `" . $e->getMessage() . ":" . $e->getLine() . "`.";
+                $noteError = "\n\nError adding export to help request: `" . $e->getMessage() . ":" . $e->getLine() . "`.";
+                $requestParams['note'] .= $noteError;
+
+                Formie::error($noteError);
+            }
+
+            //
+            // Form/Email/PDF Templates
+            //
+            try {
+                // Form template
+                if (($template = $form->getTemplate()) && $template->useCustomTemplates && $template->template) {
+                    $templatePath = Craft::$app->getPath()->getSiteTemplatesPath() . DIRECTORY_SEPARATOR . $template->template;
+                    $destPath = 'form-template';
+
+                    if (is_dir($templatePath)) {
+                        FileHelper::addFilesToZip($zip, $templatePath, $destPath);
+                    } else {
+                        $templateFile = Craft::$app->getView()->resolveTemplate($template->template, View::TEMPLATE_MODE_SITE);
+                        $zip->addFile($templateFile, $destPath . DIRECTORY_SEPARATOR . pathinfo($templateFile, PATHINFO_BASENAME));
+                    }
+                }
+
+                // Email/PDF templates
+                foreach ($form->getNotifications() as $notification) {
+                    $notificationHandle = StringHelper::toKebabCase($notification->name);
+
+                    if (($template = $notification->getTemplate()) && $template->template) {
+                        $templatePath = Craft::$app->getPath()->getSiteTemplatesPath() . DIRECTORY_SEPARATOR . $template->template;
+                        $destPath = 'notifications' . DIRECTORY_SEPARATOR . $notificationHandle . DIRECTORY_SEPARATOR . 'email-template';
+
+                        if (is_dir($templatePath)) {
+                            FileHelper::addFilesToZip($zip, $templatePath, $destPath);
+                        } else {
+                            $templateFile = Craft::$app->getView()->resolveTemplate($template->template, View::TEMPLATE_MODE_SITE);
+                            $zip->addFile($templateFile, $destPath . DIRECTORY_SEPARATOR . pathinfo($templateFile, PATHINFO_BASENAME));
+                        }
+                    }
+
+                    if (($template = $notification->getPdfTemplate()) && $template->template) {
+                        $templatePath = Craft::$app->getPath()->getSiteTemplatesPath() . DIRECTORY_SEPARATOR . $template->template;
+                        $destPath = 'notifications' . DIRECTORY_SEPARATOR . $notificationHandle . DIRECTORY_SEPARATOR . 'pdf-template';
+
+                        if (is_dir($templatePath)) {
+                            FileHelper::addFilesToZip($zip, $templatePath, $destPath);
+                        } else {
+                            $templateFile = Craft::$app->getView()->resolveTemplate($template->template, View::TEMPLATE_MODE_SITE);
+                            $zip->addFile($templateFile, $destPath . DIRECTORY_SEPARATOR . pathinfo($templateFile, PATHINFO_BASENAME));
+                        }
+                    }
+                }
+            } catch (\Throwable $e) {
+                $noteError = "\n\nError adding template to help request: `" . $e->getMessage() . ":" . $e->getLine() . "`.";
                 $requestParams['note'] .= $noteError;
 
                 Formie::error($noteError);
@@ -223,67 +278,5 @@ class SupportController extends Controller
         Craft::$app->getSession()->setNotice(Craft::t('formie', 'Support request sent successfully.'));
 
         return $this->redirectToPostedUrl();
-    }
-
-
-    // Private Methods
-    // =========================================================================
-    
-    /**
-     * @inheritdoc
-     */
-    private function _prepareSqlFormSettings($id)
-    {
-        $sql = '';
-
-        //
-        // Form
-        //
-
-        $tableName = Craft::$app->db->getSchema()->getRawTableName(FormRecord::tableName());
-
-        $row = FormRecord::find()
-            ->select(['*'])
-            ->where(['id' => $id])
-            ->asArray()
-            ->one();
-
-        // Remove the id col
-        $formId = ArrayHelper::remove($row, 'id');
-
-        foreach ($row as $columnName => $value) {
-            if ($value === null) {
-                $row[$columnName] = 'NULL';
-            } else {
-                $row[$columnName] = Craft::$app->db->quoteValue($value);
-            }
-        }
-
-        $attrs = array_map([Craft::$app->db, 'quoteColumnName'], array_keys($row));
-        $sql .= 'INSERT INTO ' . $tableName . ' (' . implode(', ', $attrs) . ') VALUES ' . PHP_EOL;
-        $sql .= '(' . implode(', ', $row) . ');' . PHP_EOL;
-
-        //
-        // Notifications
-        //
-
-        $tableName = Craft::$app->db->getSchema()->getRawTableName(NotificationRecord::tableName());
-        
-        $notifications = NotificationRecord::find()
-            ->select(['*'])
-            ->where(['formId' => $formId])
-            ->asArray()
-            ->all();
-
-        foreach ($notifications as $columnName => $row) {
-            // Remove some attributes
-            ArrayHelper::remove($row, 'id');
-
-            $attrs = array_map([Craft::$app->db, 'quoteColumnName'], array_keys($row));
-            $sql .= 'INSERT INTO ' . $tableName . ' (' . implode(', ', $attrs) . ') VALUES ' . PHP_EOL;
-            $sql .= '(' . implode(', ', $row) . ');' . PHP_EOL . PHP_EOL;
-        }
-
-        return $sql;
     }
 }
