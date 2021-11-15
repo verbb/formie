@@ -20,6 +20,8 @@ use verbb\formie\gql\queries\FormQuery;
 use verbb\formie\gql\queries\SubmissionQuery;
 use verbb\formie\helpers\Gql as GqlHelper;
 use verbb\formie\helpers\ProjectConfigHelper;
+use verbb\formie\integrations\feedme\elements\Submission as FeedMeSubmission;
+use verbb\formie\integrations\feedme\fields as FeedMeField;
 use verbb\formie\jobs\BaseJob;
 use verbb\formie\models\FieldLayout;
 use verbb\formie\models\Settings;
@@ -68,6 +70,11 @@ use craft\web\View;
 use craft\gatsbyhelper\events\RegisterSourceNodeTypesEvent;
 use craft\gatsbyhelper\services\SourceNodes;
 
+use craft\feedme\events\RegisterFeedMeElementsEvent;
+use craft\feedme\events\RegisterFeedMeFieldsEvent;
+use craft\feedme\services\Elements as FeedMeElements;
+use craft\feedme\services\Fields as FeedMeFields;
+
 use yii\base\Event;
 use yii\queue\ExecEvent;
 
@@ -115,6 +122,7 @@ class Formie extends Plugin
         $this->_registerTemplateRoots();
         $this->_registerWidgets();
         $this->_registerResaveCommand();
+        $this->_registerThirdPartyEventListeners();
 
         // Add default captcha integrations
         Craft::$app->view->hook('formie.buttons.before', static function(array &$context) {
@@ -378,7 +386,24 @@ class Formie extends Plugin
                 ];
             }
         });
+    }
 
+    private function _registerCraftEventListeners()
+    {
+        Event::on(UsersController::class, UsersController::EVENT_DEFINE_CONTENT_SUMMARY, [$this->getSubmissions(), 'defineUserSubmssions']);
+        Event::on(UserElement::class, UserElement::EVENT_AFTER_DELETE, [$this->getSubmissions(), 'deleteUserSubmssions']);
+        Event::on(UserElement::class, UserElement::EVENT_AFTER_RESTORE, [$this->getSubmissions(), 'restoreUserSubmssions']);
+    
+        // Add additional error information to queue jobs when there's an error
+        Event::on(Queue::class, Queue::EVENT_AFTER_ERROR, function(ExecEvent $event) {
+            if ($event->error && $event->job instanceof BaseJob) {
+                $event->job->updatePayload($event);
+            }
+        });
+    }
+
+    private function _registerThirdPartyEventListeners()
+    {
         if (class_exists(SourceNodes::class)) {
             Event::on(SourceNodes::class, SourceNodes::EVENT_REGISTER_SOURCE_NODE_TYPES, function(RegisterSourceNodeTypesEvent $event) {
                 if (GqlHelper::canQueryForms()) {
@@ -402,20 +427,41 @@ class Formie extends Plugin
                 }
             });
         }
-    }
 
-    private function _registerCraftEventListeners()
-    {
-        Event::on(UsersController::class, UsersController::EVENT_DEFINE_CONTENT_SUMMARY, [$this->getSubmissions(), 'defineUserSubmssions']);
-        Event::on(UserElement::class, UserElement::EVENT_AFTER_DELETE, [$this->getSubmissions(), 'deleteUserSubmssions']);
-        Event::on(UserElement::class, UserElement::EVENT_AFTER_RESTORE, [$this->getSubmissions(), 'restoreUserSubmssions']);
-    
-        // Add additional error information to queue jobs when there's an error
-        Event::on(Queue::class, Queue::EVENT_AFTER_ERROR, function(ExecEvent $event) {
-            if ($event->error && $event->job instanceof BaseJob) {
-                $event->job->updatePayload($event);
-            }
-        });
+        if (class_exists(FeedMeElements::class)) {
+            Event::on(FeedMeElements::class, FeedMeElements::EVENT_REGISTER_FEED_ME_ELEMENTS, function(RegisterFeedMeElementsEvent $e) {
+                $e->elements[] = FeedMeSubmission::class;
+            });
+        }
+
+        if (class_exists(FeedMeFields::class)) {
+            Event::on(FeedMeFields::class, FeedMeFields::EVENT_REGISTER_FEED_ME_FIELDS, function(RegisterFeedMeFieldsEvent $e) {
+                $e->fields[] = FeedMeField\Address::class;
+                $e->fields[] = FeedMeField\Agree::class;
+                $e->fields[] = FeedMeField\Categories::class;
+                $e->fields[] = FeedMeField\Checkboxes::class;
+                $e->fields[] = FeedMeField\Date::class;
+                $e->fields[] = FeedMeField\Dropdown::class;
+                $e->fields[] = FeedMeField\Email::class;
+                $e->fields[] = FeedMeField\Entries::class;
+                $e->fields[] = FeedMeField\FileUpload::class;
+                $e->fields[] = FeedMeField\Group::class;
+                $e->fields[] = FeedMeField\Hidden::class;
+                $e->fields[] = FeedMeField\MultiLineText::class;
+                $e->fields[] = FeedMeField\Name::class;
+                $e->fields[] = FeedMeField\Number::class;
+                $e->fields[] = FeedMeField\Password::class;
+                $e->fields[] = FeedMeField\Phone::class;
+                $e->fields[] = FeedMeField\Products::class;
+                $e->fields[] = FeedMeField\Radio::class;
+                $e->fields[] = FeedMeField\Repeater::class;
+                $e->fields[] = FeedMeField\SingleLineText::class;
+                $e->fields[] = FeedMeField\Table::class;
+                $e->fields[] = FeedMeField\Tags::class;
+                $e->fields[] = FeedMeField\Users::class;
+                $e->fields[] = FeedMeField\Variants::class;
+            });
+        }
     }
 
     private function _registerProjectConfigEventListeners()
