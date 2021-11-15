@@ -96,7 +96,7 @@ class PageSettingsInterface extends BaseInterfaceType
             ],
             'pageConditions' => [
                 'name' => 'pageConditions',
-                'type' => Type::listOf(Type::string()),
+                'type' => Type::string(),
                 'description' => 'The page’s conditions.',
             ],
             'enableNextButtonConditions' => [
@@ -106,11 +106,11 @@ class PageSettingsInterface extends BaseInterfaceType
             ],
             'nextButtonConditions' => [
                 'name' => 'nextButtonConditions',
-                'type' => Type::listOf(Type::string()),
+                'type' => Type::string(),
                 'description' => 'The page’s conditions.',
             ],
         ]);
-        unset($fields['id'], $fields['uid']);
+        
         return TypeManager::prepareFieldDefinitions($fields, self::getName());
     }
 }

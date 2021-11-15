@@ -78,7 +78,8 @@ class PageInterface extends BaseInterfaceType
             ],
         ]);
 
-        unset ($fields['id']);
+        unset($fields['uid']);
+        
         return TypeManager::prepareFieldDefinitions($fields, self::getName());
     }
 }
