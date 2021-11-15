@@ -1,0 +1,60 @@
+{% extends 'formie/_layouts/settings' %}
+
+{% import '_includes/forms' as forms %}
+{% import 'verbb-base/_macros' as macros %}
+
+{% block content %}
+
+<h2>{{ 'Configure Import' | t('formie') }}</h2>
+
+{% if errors is defined %}
+    <p class="error">
+        Error: {{ dump(errors) }}
+    </p>
+{% endif %}
+
+<form method="post" accept-charset="UTF-8" enctype="multipart/form-data">
+    <input type="hidden" name="action" value="formie/import-export/import-complete">
+    {{ redirectInput('formie/settings/import-export/import-completed/{id}') }}
+    {{ hiddenInput('filename', filename) }}
+    {{ csrfInput() }}
+
+    {{ summary | raw }}
+
+    {% if existingForm %}
+        <hr>
+
+        <p>{{ 'An existing form was found with the “{handle}” handle. Choose how you‘d like to handle importing.' | t('formie', { handle: existingForm.handle }) }}</p>
+
+        {{ forms.selectField({
+            label: 'Action' | t('formie'),
+            instructions: 'Choose how to handle the duplicate form.' | t('formie'),
+            id: 'formAction',
+            name: 'formAction',
+            required: true,
+            toggle: true,
+            targetPrefix: 'action-',
+            options: [
+                { label: 'Select an option', value: '' },
+                { label: 'Create a new form', value: 'create' },
+                { label: 'Update existing form', value: 'update' },
+            ],
+        }) }}
+
+        <div id="action-create" class="hidden">
+            <p>{{ 'A new handle will be generated for you.' | t('formie') }}</p>
+        </div>
+
+        <div id="action-update" class="hidden">
+            <p>{{ 'This will update the existing “{handle}” form and completely replace its settings, fields, layout, notifications and more with the data you‘re importing.' | t('formie', { handle: existingForm.handle }) }} <strong>{{ 'This action will be permanent.' | t('formie') }}</strong></p>
+        </div>
+    {% else %}
+        <p class="log-label color-32">{{ 'Ready to import.' | t('formie') }}</p>
+    {% endif %}
+    
+    <hr>
+
+    <input type="submit" class="btn submit" value="{{ 'Import' | t('formie') }}">
+</form>
+
+{% endblock %}

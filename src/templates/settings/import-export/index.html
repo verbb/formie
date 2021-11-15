@@ -1,0 +1,68 @@
+{% extends 'formie/_layouts/settings' %}
+
+{% import '_includes/forms' as forms %}
+{% import 'verbb-base/_macros' as macros %}
+
+{% block content %}
+
+<h2>{{ 'Import' | t('formie') }}</h2>
+<p>{{ 'Select a JSON file you‘ve exported from Formie to import. You‘ll be able to configure your import at the next step.' | t('formie') }}</p>
+
+{% if importError %}
+    <p class="error">
+        Error: {{ importError }}
+    </p>
+{% endif %}
+
+<form method="post" accept-charset="UTF-8" enctype="multipart/form-data">
+    <input type="hidden" name="action" value="formie/import-export/import">
+    {{ redirectInput('formie/settings/import-export/import-configure/{filename}') }}
+    {{ csrfInput() }}
+
+    {{ forms.fileField({
+        label: 'Import File' | t('formie'),
+        instructions: 'Upload the JSON file that‘s been exported from Formie.' | t('formie'),
+        name: 'file',
+    }) }}
+
+    <hr>
+
+    <input type="submit" class="btn submit" value="{{ 'Configure Import' | t('formie') }}">
+</form>
+
+<hr>
+
+<h2>{{ 'Export' | t('formie') }}</h2>
+<p>{{ 'Select a form to export as a JSON file. This will include all pages, settings, notifications and fields. You‘ll be able to import this file later on the same, or a different environment.' | t('formie') }}</p>
+
+{% if exportError %}
+    <p class="error">
+        Error: {{ exportError }}
+    </p>
+{% endif %}
+
+<form method="post" accept-charset="UTF-8" enctype="multipart/form-data">
+    <input type="hidden" name="action" value="formie/import-export/export">
+    {{ csrfInput() }}
+
+    {% set formOptions = [{ label: 'Select an option' | t('formie'), value: '' }] %}
+
+    {% for form in craft.formie.forms.orderBy('title').all() %}
+        {% set formOptions = formOptions | merge([{ label: form.title ~ ' (' ~ form.handle ~ ')', value: form.id }]) %}
+    {% endfor %}
+
+    {{ forms.selectField({
+        label: 'Form' | t('formie'),
+        instructions: 'Select a form to export.' | t('formie'),
+        id: 'formId',
+        name: 'formId',
+        required: true,
+        options: formOptions,
+    }) }}
+
+    <hr>
+
+    <input type="submit" class="btn submit" value="{{ 'Export' | t('formie') }}">
+</form>
+
+{% endblock %}

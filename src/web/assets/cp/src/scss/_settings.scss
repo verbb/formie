@@ -1,0 +1,37 @@
+.fui-settings-block {
+    padding: 16px;
+    background: #f3f7fc;
+    border-radius: 3px;
+    border: 1px solid #cbd6e2;
+    margin-bottom: 24px;
+
+    ul {
+        list-style-type: disc;
+    }
+
+    ol, ul {
+        padding-left: 20px !important;
+    }
+}
+
+.log-label {
+    white-space: pre-wrap;
+}
+
+.log-label code {
+    white-space: normal;
+    font-size: 11px !important;
+    line-height: 18px;
+}
+
+.log-label.color-32 {
+    color: #27AE60;
+}
+
+.log-label.color-31 {
+    color: #D0021B;
+}
+
+.log-label.color-33 {
+    color: #F2842D;
+}

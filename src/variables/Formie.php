@@ -242,6 +242,7 @@ class Formie
         if (Craft::$app->getConfig()->getGeneral()->allowAdminChanges) {
             $navItems = [
                 'general' => ['title' => Craft::t('formie', 'General Settings')],
+                'import-export' => ['title' => Craft::t('formie', 'Import/Export')],
                 'forms' => ['title' => Craft::t('formie', 'Forms')],
                 'fields' => ['title' => Craft::t('formie', 'Fields')],
                 
@@ -271,6 +272,8 @@ class Formie
             ];
         } else {
             $navItems = [
+                'import-export' => ['title' => Craft::t('formie', 'Import/Export')],
+            
                 'integrations-heading' => ['heading' => Craft::t('formie', 'Integrations')],
                 'address-providers' => ['title' => Craft::t('formie', 'Address Providers')],
                 'elements' => ['title' => Craft::t('formie', 'Elements')],

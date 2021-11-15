@@ -1,0 +1,15 @@
+{% extends 'formie/_layouts/settings' %}
+
+{% import '_includes/forms' as forms %}
+{% import 'verbb-base/_macros' as macros %}
+
+{% block content %}
+
+<h2>{{ 'Import Completed' | t('formie') }}</h2>
+
+<p>{{ 'Your form “{title}” has been imported. <a href="{cpEditUrl}">Edit Form</a>' | t('formie', {
+    title: form.title,
+    cpEditUrl: form.cpEditUrl,
+}) | raw }}</p>
+
+{% endblock %}
