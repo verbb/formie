@@ -291,6 +291,10 @@ class Variables
                 continue;
             }
 
+            if ($field->isConditionallyHidden($submission)) {
+                continue;
+            }
+
             if ($excludeHidden && $field->getIsHidden()) { 
                 continue;
             }
