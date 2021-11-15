@@ -1416,12 +1416,21 @@ class Form extends Element
         // Run form field validation as well.
         if (!Formie::$plugin->getForms()->validateFormFields($this)) {
             $validates = false;
+
+            // Compile the errors
+            foreach ($this->getFields() as $field) {
+                if ($field->hasErrors()) {
+                    $this->addError('fields.' . $field->handle, $field->getErrors());
+                }
+            }
         }
 
         // Lastly, run notification validation.
         foreach ($this->getNotifications() as $notification) {
             if (!$notification->validate()) {
                 $validates = false;
+
+                $this->addError('notifications.' . $notification->handle, $notification->getErrors());
                 break;
             }
         }
