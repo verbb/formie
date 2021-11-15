@@ -30,9 +30,24 @@ $focus-shadow: 0 0 0 3px rgba(164, 202, 254, 0.45) !default;
     // General
     --fui-font: -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen,Ubuntu,Cantarell,Fira Sans,Droid Sans,Helvetica Neue,sans-serif;
     --fui-font-size: 16px;
-    --fui-color: #{$gray-800};
-    --fui-border: 0 solid #{$border-color};
+    --fui-color: var(--fui-gray-800, #{$gray-800});
+    --fui-border: 0 solid var(--fui-border-color, #{$border-color});
     --fui-border-radius: #{$border-radius};
+    --fui-primary-color: #{$primary-color};
+    --fui-primary-color-hover: #{$primary-color-hover};
+    --fui-error: #{$error};
+    --fui-gray-100: #{$gray-100};
+    --fui-gray-200: #{$gray-200};
+    --fui-gray-300: #{$gray-300};
+    --fui-gray-400: #{$gray-400};
+    --fui-gray-500: #{$gray-500};
+    --fui-gray-600: #{$gray-600};
+    --fui-gray-700: #{$gray-700};
+    --fui-gray-800: #{$gray-800};
+    --fui-gray-900: #{$gray-900};
+    --fui-border-color: #{$border-color};
+    --fui-focus-border-color: #{$focus-border-color};
+    --fui-focus-shadow: #{$focus-shadow};
 
     // Layout/Grid
     --fui-row-gutter: #{$row-gutter};
@@ -46,7 +61,7 @@ $focus-shadow: 0 0 0 3px rgba(164, 202, 254, 0.45) !default;
     --fui-loading-margin-top: -0.5rem;
     --fui-loading-margin-left: -0.5rem;
     --fui-loading-border-width: 2px;
-    --fui-loading-border-color: #{$primary-color};
+    --fui-loading-border-color: var(--fui-primary-color, #{$primary-color});
     --fui-loading-animation: loading 0.5s infinite linear;
     --fui-loading-left: 50%;
     --fui-loading-top: calc(50% - 1px);
@@ -54,7 +69,7 @@ $focus-shadow: 0 0 0 3px rgba(164, 202, 254, 0.45) !default;
 
     // Alerts
     --fui-alert-padding: 1rem;
-    --fui-alert-border-radius: #{$border-radius};
+    --fui-alert-border-radius: var(--fui-border-radius, #{$border-radius});
     --fui-alert-line-height: 1.25rem;
     --fui-alert-font-size: 0.875rem;
     --fui-alert-font-weight: 500;
@@ -77,7 +92,7 @@ $focus-shadow: 0 0 0 3px rgba(164, 202, 254, 0.45) !default;
     --fui-btn-text-decoration: none;
     --fui-btn-padding: 0.5rem 1rem;
     --fui-btn-border: 1px solid transparent;
-    --fui-btn-border-radius: #{$border-radius};
+    --fui-btn-border-radius: var(--fui-border-radius, #{$border-radius});
     --fui-btn-font-weight: 500;
     --fui-btn-transition-property: background-color, border-color, color, fill, stroke, opacity, box-shadow, transform;
     --fui-btn-transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
@@ -92,10 +107,10 @@ $focus-shadow: 0 0 0 3px rgba(164, 202, 254, 0.45) !default;
     // Submit Button
     --fui-submit-btn-color: #fff;
     --fui-submit-btn-color-hover: #fff;
-    --fui-submit-btn-bg-color: #{$primary-color};
-    --fui-submit-btn-bg-color-hover: #{$primary-color-hover};
-    --fui-submit-btn-border-color: #{$primary-color};
-    --fui-submit-btn-border-color-hover: #{$primary-color-hover};
+    --fui-submit-btn-bg-color: var(--fui-primary-color, #{$primary-color});
+    --fui-submit-btn-bg-color-hover: var(--fui-primary-color-hover, #{$primary-color-hover});
+    --fui-submit-btn-border-color: var(--fui-primary-color, #{$primary-color});
+    --fui-submit-btn-border-color-hover: var(--fui-primary-color-hover, #{$primary-color-hover});
     --fui-submit-btn-box-shadow-focus: 0 0 0 3px rgba(180, 198, 252, 0.45);
     --fui-submit-btn-spinner-color: #fff;
 
@@ -112,46 +127,46 @@ $focus-shadow: 0 0 0 3px rgba(164, 202, 254, 0.45) !default;
     // Page Tabs
     --fui-tabs-margin-bottom: 1rem;
     --fui-tabs-font-size: 0.875rem;
-    --fui-tabs-border-bottom: 1px solid #{$border-color};
-    --fui-tab-color: #{$gray-600};
+    --fui-tabs-border-bottom: 1px solid var(--fui-border-color, #{$border-color});
+    --fui-tab-color: var(--fui-gray-600, #{$gray-600});
     --fui-tab-padding: 0.5rem 1rem;
     --fui-tab-margin-bottom: -1px;
     --fui-tab-border: 1px solid transparent;
     --fui-tab-active-font-weight: 500;
-    --fui-tab-active-color: #{$gray-800};
+    --fui-tab-active-color: var(--fui-gray-800, #{$gray-800});
     --fui-tab-active-bg-color: #fff;
-    --fui-tab-active-border-color: #{$border-color};
+    --fui-tab-active-border-color: var(--fui-border-color, #{$border-color});
     --fui-tab-active-border-bottom-color: transparent;
-    --fui-tab-active-border-radius: #{$border-radius $border-radius} 0 0;
-    --fui-tab-error-color: #{$error};
+    --fui-tab-active-border-radius: var(--fui-border-radius, #{$border-radius}) var(--fui-border-radius, #{$border-radius}) 0 0;
+    --fui-tab-error-color: var(--fui-error, #{$error});
 
     // Page Progress
     --fui-progress-height: 1.2rem;
     --fui-progress-font-size: 0.8rem;
     --fui-progress-font-weight: 500;
     --fui-progress-color: #fff;
-    --fui-progress-border-radius: #{$border-radius};
-    --fui-progress-bg-color: #{$gray-300};
-    --fui-progress-bar-bg-color: #{$primary-color};
+    --fui-progress-border-radius: var(--fui-border-radius, #{$border-radius});
+    --fui-progress-bg-color: var(--fui-gray-300, #{$gray-300});
+    --fui-progress-bar-bg-color: var(--fui-primary-color, #{$primary-color});
     --fui-progress-bar-transition: width 0.3s ease;
 
     // Validation
-    --fui-error-color: #{$error};
+    --fui-error-color: var(--fui-error, #{$error});
     --fui-error-font-size: 0.875rem;
     --fui-error-margin-top: 0.5rem;
-    --fui-required-color: #{$error};
+    --fui-required-color: var(--fui-error, #{$error});
 
     // Field Labels
     --fui-label-font-size: 0.875rem;
     --fui-label-line-height: 1.25;
     --fui-label-font-weight: 500;
-    --fui-label-color: #{$gray-800};
+    --fui-label-color: var(--fui-gray-800, #{$gray-800});
     --fui-label-margin: 0.5rem;
     --fui-label-error-color: #771d1d;
     --fui-label-error-border-color: #f8b4b4;
 
     // Field Instructions
-    --fui-instructions-color: #{$gray-600};
+    --fui-instructions-color: var(--fui-gray-600, #{$gray-600});
     --fui-instructions-font-size: 0.875rem;
     --fui-instructions-line-height: 1.25;
     --fui-instructions-margin: 0.5rem;
@@ -162,10 +177,10 @@ $focus-shadow: 0 0 0 3px rgba(164, 202, 254, 0.45) !default;
     --fui-check-margin-bottom: 0.25rem;
     --fui-check-margin-right: 1rem;
     --fui-check-bg-color: #f0f1f4;
-    --fui-check-bg-color-checked: #{$primary-color};
-    --fui-check-border-color-checked: #{$primary-color};
-    --fui-check-border-color-focus: #{$focus-border-color};
-    --fui-check-box-shadow-focus: #{$focus-shadow};
+    --fui-check-bg-color-checked: var(--fui-primary-color, #{$primary-color});
+    --fui-check-border-color-checked: var(--fui-primary-color, #{$primary-color});
+    --fui-check-border-color-focus: var(--fui-focus-border-color, #{$focus-border-color});
+    --fui-check-box-shadow-focus: var(--fui-focus-shadow, #{$focus-shadow});
 
     --fui-check-label-padding-left: 1.8rem;
     --fui-check-label-line-height: 1.5rem; // rem is deliberate
@@ -173,7 +188,7 @@ $focus-shadow: 0 0 0 3px rgba(164, 202, 254, 0.45) !default;
     --fui-check-label-top: 5px;
     --fui-check-label-width: 1rem;
     --fui-check-label-height: 1rem;
-    --fui-check-label-border: 1px solid #{$border-color};
+    --fui-check-label-border: 1px solid var(--fui-border-color, #{$border-color});
     --fui-check-label-bg-color: #fff;
     --fui-check-label-transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
 
@@ -187,32 +202,32 @@ $focus-shadow: 0 0 0 3px rgba(164, 202, 254, 0.45) !default;
 
     // Field - Group
     --fui-group-padding: 1rem;
-    --fui-group-border: 1px solid #{$border-color};
-    --fui-group-border-radius: #{$border-radius};
+    --fui-group-border: 1px solid var(--fui-border-color, #{$border-color});
+    --fui-group-border-radius: var(--fui-border-radius, #{$border-radius});
 
     // Field - Input
     --fui-input-font-size: 0.875rem;
     --fui-input-line-height: 1.5;
     --fui-input-width: 100%;
     --fui-input-padding: 0.5rem 0.75rem;
-    --fui-input-border: 1px solid #{$border-color};
-    --fui-input-border-radius: #{$border-radius};
+    --fui-input-border: 1px solid var(--fui-border-color, #{$border-color});
+    --fui-input-border-radius: var(--fui-border-radius, #{$border-radius});
     --fui-input-background-color: #fff;
     --fui-input-transition-property: background-color, border-color, color, fill, stroke, opacity, box-shadow, transform;
     --fui-input-transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
     --fui-input-transition-duration: 0.15s;
-    --fui-input-border-color-focus: #{$focus-border-color};
-    --fui-input-box-shadow-focus: #{$focus-shadow};
+    --fui-input-border-color-focus: var(--fui-focus-border-color, #{$focus-border-color});
+    --fui-input-box-shadow-focus: var(--fui-focus-shadow, #{$focus-shadow});
     --fui-input-error-color: #771d1d;
     --fui-input-error-border-color: #f8b4b4;
     --fui-input-error-box-shadow-focus: 0 0 0 3px rgba(248, 180, 180, 0.45);
-    --fui-input-placeholder-color: #{$gray-500};
+    --fui-input-placeholder-color: var(--fui-gray-500, #{$gray-500});
 
     // Field - Repeater
     --fui-repeater-row-padding: 1rem;
     --fui-repeater-row-margin-bottom: 1rem;
-    --fui-repeater-row-border: 1px solid #{$border-color};
-    --fui-repeater-row-border-radius: #{$border-radius};
+    --fui-repeater-row-border: 1px solid var(--fui-border-color, #{$border-color});
+    --fui-repeater-row-border-radius: var(--fui-border-radius, #{$border-radius});
     
     --fui-repeater-add-btn-padding-left: 2rem;
     --fui-repeater-add-btn-top: 0.75rem;
@@ -229,7 +244,7 @@ $focus-shadow: 0 0 0 3px rgba(164, 202, 254, 0.45) !default;
     --fui-repeater-remove-btn-width: 0;
     --fui-repeater-remove-btn-padding: 13px;
     --fui-repeater-remove-btn-text-indent: -9999px;
-    --fui-repeater-remove-btn-border: 1px solid #{$border-color};
+    --fui-repeater-remove-btn-border: 1px solid var(--fui-border-color, #{$border-color});
     --fui-repeater-remove-btn-icon-top: 50%;
     --fui-repeater-remove-btn-icon-left: 50%;
     --fui-repeater-remove-btn-icon-width: 9px;
@@ -253,7 +268,7 @@ $focus-shadow: 0 0 0 3px rgba(164, 202, 254, 0.45) !default;
     --fui-table-th-text-align: inherit;
     --fui-table-th-font-size: 0.75rem;
     --fui-table-th-font-weight: 600;
-    --fui-table-th-color: #{$gray-600};
+    --fui-table-th-color: var(--fui-gray-600, #{$gray-600});
 
     --fui-table-add-btn-padding-left: 2rem;
 
@@ -266,7 +281,7 @@ $focus-shadow: 0 0 0 3px rgba(164, 202, 254, 0.45) !default;
     --fui-table-remove-btn-border-radius: 50%;
     --fui-table-remove-btn-padding: 13px;
     --fui-table-remove-btn-text-indent: -9999px;
-    --fui-table-remove-btn-border: 1px solid #{$border-color};
+    --fui-table-remove-btn-border: 1px solid var(--fui-border-color, #{$border-color});
     --fui-table-remove-btn-top: 50%;
     --fui-table-remove-btn-left: 50%;
     --fui-table-remove-btn-width: 9px;

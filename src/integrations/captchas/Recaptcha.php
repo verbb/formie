@@ -170,7 +170,8 @@ class Recaptcha extends Captcha
     {
         $response = Craft::$app->request->post('g-recaptcha-response');
 
-        if (!$response) {
+        // Protect against invalid data being sent. No need to log, likely malicious
+        if (!$response || !is_string($response)) {
             return false;
         }
 

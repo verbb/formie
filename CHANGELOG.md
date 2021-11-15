@@ -57,6 +57,25 @@
 - Removed `Submission::getSerializedFieldValuesForIntegration()` method. Use `Submission::getValuesForIntegration()` instead.
 - Removed `Submission::EVENT_MODIFY_FIELD_VALUE_FOR_INTEGRATION` event. Use `Field::EVENT_MODIFY_VALUE_FOR_INTEGRATION` instead.
 
+## 1.4.25 - 2021-11-14
+
+### Added
+- Added Pardot CRM Integration.
+- Added more CSS variables for global `fui-` variables, instead of relying on SCSS variables.
+- Added type checks to `submit` endpoint to protect against invalid submission requests, preventing bad payload data.
+- Added additional validation to captchas when comparing request payloads for valid submissions, preventing bad payload data.
+
+### Changed
+- Update `guzzlehttp/oauth-subscriber:^0.6.0` dependancy to work with `guzzlehttp/psr7:^2.0`.
+- The `EVENT_BEFORE_SUBMISSION_REQUEST` is now cancelable, to allow submissions to be marked as invalid.
+
+### Fixed
+- Fixed querying forms and submissions via GraphQL when only the "View All" permission is set.
+- Fixed `EVENT_BEFORE_SUBMISSION_REQUEST` event not persisting submission errors correctly.
+- Fixed Google Sheets integration not requesting a refresh token for OAuth handshake.
+- Fixed the "Redirect URI" for integrations not taking into account the `usePathInfo` config setting.
+- Fixed File Upload fields not always returning the URL for assets for Integrations.
+
 ## 1.4.24 - 2021-11-06
 
 ### Added

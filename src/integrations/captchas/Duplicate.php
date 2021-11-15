@@ -90,6 +90,11 @@ class Duplicate extends Captcha
         // Check the provided value
         $jsset = Craft::$app->getRequest()->getParam($sessionKey);
 
+        // Protect against invalid data being sent. No need to log, likely malicious
+        if (!is_string($jsset)) {
+            return false;            
+        }
+
         // Compare the two - in case someone is being sneaky and just providing _any_ value for the captcha
         if ($value !== $jsset) {
             $this->spamReason = Craft::t('formie', 'Value mismatch {a}:{b}.', ['a' => $value, 'b' => $jsset]);

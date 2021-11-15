@@ -34,7 +34,7 @@ class FormGenerator extends Generator implements GeneratorInterface, SingleGener
         foreach ($forms as $form) {
             $requiredContexts = Form::gqlScopesByContext($form);
 
-            if (!GqlHelper::isSchemaAwareOf($requiredContexts)) {
+            if (!GqlHelper::isSchemaAwareOf($requiredContexts) && !GqlHelper::isSchemaAwareOf('formieForms.all')) {
                 continue;
             }
 

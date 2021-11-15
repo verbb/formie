@@ -34,7 +34,7 @@ class SubmissionGenerator extends Generator implements GeneratorInterface, Singl
         foreach ($forms as $form) {
             $requiredContexts = Submission::gqlScopesByContext($form);
 
-            if (!GqlHelper::isSchemaAwareOf($requiredContexts)) {
+            if (!GqlHelper::isSchemaAwareOf($requiredContexts) && !GqlHelper::isSchemaAwareOf('formieSubmissions.all')) {
                 continue;
             }
             

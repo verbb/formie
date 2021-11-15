@@ -1,9 +1,9 @@
 <?php
 namespace verbb\formie\events;
 
-use yii\base\Event;
+use craft\events\CancelableEvent;
 
-class SubmissionEvent extends Event
+class SubmissionEvent extends CancelableEvent
 {
     // Properties
     // =========================================================================

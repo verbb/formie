@@ -2,7 +2,7 @@
     "name": "verbb/formie",
     "description": "The most user-friendly forms plugin for Craft.",
     "type": "craft-plugin",
-    "version": "1.4.24",
+    "version": "1.4.25",
     "keywords": [
         "craft",
         "cms",
@@ -31,7 +31,7 @@
         "ezyang/htmlpurifier": "^4.13",
         "fakerphp/faker": "^1.9.1",
         "giggsey/libphonenumber-for-php": "^8.12",
-        "guzzlehttp/oauth-subscriber": "^0.3.0 || ^0.4.0",
+        "guzzlehttp/oauth-subscriber": "^0.6.0",
         "symfony/expression-language": "^5.3.0",
         "html2text/html2text": "^4.3",
         "league/html-to-markdown": "^4.10",

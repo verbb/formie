@@ -752,7 +752,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
                         }
                     }
                 } catch (\Throwable $e) {
-                    Formie::error(Craft::t('formie', 'Error when fetching mapping values.', [
+                    Formie::error(Craft::t('formie', 'Error when fetching mapping values: “{message}” {file}:{line}', [
                         'message' => $e->getMessage(),
                         'file' => $e->getFile(),
                         'line' => $e->getLine(),
@@ -844,7 +844,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         try {
             $fieldValue = $submission->getFieldValue($fieldHandle);
         } catch (\Throwable $e) {
-            Formie::error(Craft::t('formie', 'Error when fetching opt-in-field.', [
+            Formie::error(Craft::t('formie', 'Error when fetching opt-in-field: “{message}” {file}:{line}', [
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),

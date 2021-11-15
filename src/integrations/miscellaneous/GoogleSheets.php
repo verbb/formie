@@ -114,6 +114,7 @@ class GoogleSheets extends Miscellaneous
     {
         return array_merge(parent::getOauthProviderConfig(), [
             'accessType' => 'offline',
+            'prompt' => 'consent',
         ]);
     }
 
