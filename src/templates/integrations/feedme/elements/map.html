@@ -1,0 +1,109 @@
+{% import '_includes/forms' as forms %}
+{% import 'feed-me/_macros' as feedMeMacro %}
+
+{% if feed.elementGroup %}
+    {% set formId = feed.elementGroup[feed.elementType] %}
+
+    {% set form = craft.formie.getPlugin().getForms().getFormById(formId) %}
+{% endif %}
+
+{% set statusOptions = [{ label: 'Don’t import'|t('feed-me'), value: '' }] %}
+
+{% for status in craft.formie.getPlugin().getStatuses().getAllStatuses() %}
+    {% set statusOptions = statusOptions | merge([{ label: status.name, value: status.handle }]) %}
+{% endfor %}
+
+{% set fields = [{
+    name: 'Title',
+    handle: 'title',
+    default: {
+        type: 'text',
+    },
+}, {
+    name: 'Status',
+    handle: 'statusId',
+    instructions: 'Choose the status for this submission.' | t('feed-me'),
+    default: {
+        type: 'select',
+        options: statusOptions,
+    },
+}, {
+    name: 'Submission ID',
+    handle: 'id',
+    instructions: '<strong class="error">Warning: </strong>This should only be used for an existing Submission ID.' | t('feed-me'),
+    default: {
+        type: 'text',
+    },
+}] %}
+
+<h2>{{ 'Form Fields' | t('feed-me') }}</h2>
+
+<table class="feedme-mapping data fullwidth collapsible">
+    <thead>
+        <th>{{ 'Field' | t('feed-me') }}</th>
+        <th>{{ 'Feed Element' | t('feed-me') }}</th>
+        <th>{{ 'Default Value' | t('feed-me') }}</th>
+    </thead>
+    <tbody>
+        {% for field in fields %}
+            {% set template = field.type ?? 'default' %}
+            {% set variables = field | merge({ feed: feed, feedData: feedData, attribute: true }) %}
+
+            {% include 'feed-me/_includes/fields/' ~ template ignore missing with variables only %}
+        {% endfor %}
+    </tbody>
+</table>
+
+{% set formTabs = [] %}
+
+{% if form.fieldLayoutId %}
+    {% set formTabs = craft.app.fields.getLayoutById(form.fieldLayoutId).getTabs() %}
+
+    {% for tab in formTabs %}
+        <hr>
+
+        <h2>{{ tab.name }} Fields</h2>
+
+        <table class="feedme-mapping data fullwidth collapsible">
+            <thead>
+                <th>{{ 'Field' | t('feed-me') }}</th>
+                <th>{{ 'Feed Element' | t('feed-me') }}</th>
+                <th>{{ 'Default Value' | t('feed-me') }}</th>
+            </thead>
+            <tbody>
+                {% for field in tab.getFields() %}
+                    {% set fieldClass = craft.feedme.fields.getRegisteredField(className(field)) %}
+                    {% set template = fieldClass.getMappingTemplate() %}
+
+                    {% set variables = { name: field.name, handle: field.handle, feed: feed, feedData: feedData, field: field, fieldClass: fieldClass } %}
+                    
+                    {% include template ignore missing with variables only %}
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endfor %}
+{% endif %}
+
+<hr>
+
+<h2>{{ "Set a unique identifier to match against existing elements" | t('feed-me') }}</h2>
+
+<p>{{ "Select the fields you want to use to check for existing elements. When selected, Feed Me will look for existing elements that match the fields provided below and either update, or skip depending on your choice of Import Strategy." | t('feed-me') }}</p>
+
+{% set uniqueFields = fields %}
+
+{% for tab in formTabs %}
+    {% for field in tab.getFields() %}
+        {% set uniqueFields = uniqueFields | merge([{ name: field.name, handle: field.handle, type: className(field) }]) %}
+    {% endfor %}
+{% endfor %}
+
+<div class="feedme-uniques">
+    {% for field in uniqueFields if field and craft.feedme.fieldCanBeUniqueId(field) %}
+        {{ forms.checkboxField({
+            name: 'fieldUnique[' ~ field.handle ~ ']',
+            label: field.name,
+            checked: feed.fieldUnique[field.handle] ?? '',
+        }) }}
+    {% endfor %}
+</div>

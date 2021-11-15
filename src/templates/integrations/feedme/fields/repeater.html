@@ -1,0 +1,59 @@
+{# ------------------------ #}
+{# Available Variables #}
+{# ------------------------ #}
+{# Attributes: #}
+{# type, name, handle, instructions, attribute, default, feed, feedData #}
+{# ------------------------ #}
+{# Fields: #}
+{# name, handle, instructions, feed, feedData, field, fieldClass #}
+{# ------------------------ #}
+
+{% import 'feed-me/_macros' as feedMeMacro %}
+{% import '_includes/forms' as forms %}
+
+{# Special case when inside another complex field (Matrix) #}
+{% if parentPath is defined %}
+    {% set prefixPath = parentPath %}
+{% else %}
+    {% set prefixPath = [handle] %}
+{% endif %}
+
+{% set classes = ['complex-field'] %}
+
+<div class="additional-mapping-fields">
+    {% namespace 'fieldMapping[' ~ prefixPath | join('][') ~ ']' %}
+        <input type="text" name="field" value="{{ className(field) }}">
+    {% endnamespace %}
+</div>
+
+<tr class="complex-field complex-field-header">
+    <td class="col-field">
+        <div class="field">
+            <div class="heading">
+                <label class="">{{ name }}</label>
+            </div>
+        </div>
+    </td>
+
+    <td class="col-map" colspan="2">
+        <div class="field-extra-settings">
+
+        </div>
+    </td>
+</tr>
+
+{% for subfield in field.fieldLayout.fields %}
+    {% set nameLabel = subfield.name %}
+    {% set instructionsHandle = handle ~ '[' ~ subfield.handle ~ ']' %}
+
+    {% set parentPath = prefixPath | merge ([ 'fields', subfield.handle ]) %}
+
+    {% set fieldClass = craft.feedme.fields.getRegisteredField(className(subfield)) %}
+    {% set template = fieldClass.getMappingTemplate() %}
+
+    {% include template ignore missing with {
+        field: subfield,
+        handle: subfield.handle,
+        path: parentPath,
+    } %}
+{% endfor %}
