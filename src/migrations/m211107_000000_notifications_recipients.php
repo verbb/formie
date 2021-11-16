@@ -20,7 +20,7 @@ class m211107_000000_notifications_recipients extends Migration
      */
     public function safeUp()
     {
-        if (!$this->db->columnExists('{{%formie_notifications}}', 'fileUploadsAction')) {
+        if (!$this->db->columnExists('{{%formie_notifications}}', 'recipients')) {
             $this->addColumn('{{%formie_notifications}}', 'recipients', $this->enum('recipients', ['email', 'conditions'])
                 ->defaultValue('email')
                 ->notNull()
