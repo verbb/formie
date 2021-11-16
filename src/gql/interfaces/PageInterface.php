@@ -77,8 +77,6 @@ class PageInterface extends BaseInterfaceType
                 'description' => 'The page’s settings.',
             ],
         ]);
-
-        unset($fields['uid']);
         
         return TypeManager::prepareFieldDefinitions($fields, self::getName());
     }
