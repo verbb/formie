@@ -100,7 +100,9 @@ class PageSettingsInterface extends BaseInterfaceType
                 'type' => Type::string(),
                 'description' => 'The page’s conditions.',
                 'resolve' => function($source) {
-                    return is_array($source) ? Json::encode($source) : $source;
+                    $value = $source->pageConditions;
+
+                    return is_array($value) ? Json::encode($value) : $value;
                 },
             ],
             'enableNextButtonConditions' => [
@@ -113,7 +115,9 @@ class PageSettingsInterface extends BaseInterfaceType
                 'type' => Type::string(),
                 'description' => 'The page’s conditions.',
                 'resolve' => function($source) {
-                    return is_array($source) ? Json::encode($source) : $source;
+                    $value = $source->nextButtonConditions;
+
+                    return is_array($value) ? Json::encode($value) : $value;
                 },
             ],
         ]);
