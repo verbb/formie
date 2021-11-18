@@ -203,6 +203,13 @@ Craft.Formie.SubmissionIndex = Craft.BaseElementIndex.extend({
         }
     },
 
+    getSite() {
+        if (!this.siteId) {
+            return undefined;
+        }
+        return Craft.sites.find(s => s.id == this.siteId);
+    },
+
     _getFormTriggerHref(form) {
         if (this.settings.context === 'index') {
             const uri = `formie/submissions/${form.handle}/new`;
