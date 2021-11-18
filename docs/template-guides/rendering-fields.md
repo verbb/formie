@@ -99,7 +99,21 @@ You can also dynamically override any settings for the field.
 {{ craft.formie.renderForm(form) }}
 ```
 
-The above would override the name (label) setting for the field with a handle of `plainText`, regardless of what is defined in the field's settings. 
+The above would override the name (label) setting for the field with a handle of `plainText`, regardless of what is defined in the field's settings.
+
+You can also override a number of other settings, each different depending on the field.
+
+```twig
+{% do form.setFieldSettings('plainText', {
+    {# Set the placeholder #}
+    placeholder: 'Overridden placeholder',
+
+    {# Change the visibility #}
+    visibility: 'hidden',
+}) %}
+
+{{ craft.formie.renderForm(form) }}
+```
 
 Or, you could override the options available for a Dropdown field.
 
@@ -114,9 +128,7 @@ Or, you could override the options available for a Dropdown field.
 ```
 
 :::warning
-Note that you cannot add new options dynamically to fields with options, such as Dropdown, Radio Buttons and Checkboxes. This is because validation for the field needs to check that the value provided is in the collection of allowed options you've defined for the field. Setting it to a value that is not in the options for the field will result in a validation error.
-
-If you want a dynamically-generated Dropdown field, we would suggest using a Hidden field, and override the template for how it looks, to change it to a `<select>` instead of a hidden input. [Read more](https://github.com/verbb/formie/issues/415)
+**Be warned** of the implications of this. When adding new options dynamically to fields with options, such as Dropdown, Radio Buttons and Checkboxes, you'll allow values to be changed on an inconsistent basis. Because you're changing the options for users to be able to pick from on a per-submission basis, not every submission will have the same values, as defined by the options when you create the field. This data inconsistency across submissions is something to be aware of.
 :::
 
 See the [Field Settings](docs:developers/field#field-settings) docs for a full list of available settings to override.

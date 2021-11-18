@@ -70,6 +70,8 @@ Submission queries support the following parameters:
 | [status](#status)                             | Narrows the query results based on the submissions’ statuses.
 | [statusId](#statusId)                         | Narrows the query results based on the submissions’ statuses, per their IDs.
 | [title](#title)                               | Narrows the query results based on the submissions’ titles.
+| [user](#user)                                 | Narrows the query results based on the submissions’ user.
+| [userId](#userId)                             | Narrows the query results based on the submissions’ userId.
 | [uid](#uid)                                   | Narrows the query results based on the submissions’ UIDs.
 
 
@@ -538,6 +540,28 @@ Narrows the query results based on the submissions’ UIDs.
 $submission = \verbb\formie\elements\Submission::find()
     ->uid('xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx')
     ->one();
+```
+:::
+
+
+
+### `user`
+
+Narrows the query results based on the submission owner user.
+
+::: code
+```twig
+{# Fetch submissions for the current user #}
+{% set submissions = craft.formie.submissions()
+    .user(currentUser)
+    .all() %}
+```
+
+```php
+// Fetch submissions for the current user
+$submissions = \verbb\formie\elements\Submission::find()
+    ->user($currentUser)
+    ->all();
 ```
 :::
 

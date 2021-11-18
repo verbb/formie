@@ -90,6 +90,7 @@ Class Name | Template
 --- | ---
 `Address` | `address.html`
 `Agree` | `agree.html`
+`Calculations` | `calculations.html`
 `Categories` | `categories.html`
 `Checkboxes` | `checkboxes.html`
 `Date` | `date.html`
@@ -104,12 +105,16 @@ Class Name | Template
 `MultiLineText` | `multi-line-text.html`
 `Name` | `name.html`
 `Number` | `number.html`
+`Password` | `password.html`
 `Phone` | `phone.html`
 `Products` | `products.html`
 `Radio` | `radio.html`
+`Recipients` | `recipients.html`
 `Repeater` | `repeater.html`
 `Section` | `section.html`
+`Signature` | `signature.html`
 `SingleLineText` | `single-line-text.html`
+`Summary` | `summary.html`
 `Table` | `table.html`
 `Tags` | `tags.html`
 `Users` | `users.html`

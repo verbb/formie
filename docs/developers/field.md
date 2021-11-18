@@ -114,12 +114,24 @@ Setting | Description
 `defaultValue` | The default value for the field when it loads.
 
 
+### Calculations
+Setting | Description
+--- | ---
+`formula` | The raw formula used in the field, before it's been parsed.
+
+Method | Description
+--- | ---
+`getFormula()` | Returns the parsed formula, given the current submission's context.
+
+
 ### Categories
 Setting | Description
 --- | ---
 `placeholder` | The option shown initially, when no option is selected.
 `source` | Which source do you want to select categories from?
 `branchLimit` | Limit the number of selectable category branches.
+`rootCategory` | The category to act as the root, if set.
+`showStructure` | Whether the structure of categories should be shown.
 
 
 ### Checkboxes
@@ -132,9 +144,31 @@ Setting | Description
 ### Date/Time
 Setting | Description
 --- | ---
-`includeTime` | Whether this field should include the time.
+`minDate` | The minimum allowed date.
+`maxDate` | The maximum allowed date.
 `defaultValue` | Entering a default value will place the value in the field when it loads.
 `displayType` | Set different display layouts for this field.
+`dateFormat` | The chosen format for the date.
+`timeFormat` | The chosen format for the time.
+`includeDate` | Whether this field should include the date.
+`includeTime` | Whether this field should include the time.
+`timeLabel` | The label for the time sub-field.
+`dayLabel` | The label for the day sub-field.
+`dayPlaceholder` | The placeholder for the day sub-field.
+`monthLabel` | The label for the month sub-field.
+`monthPlaceholder` | The placeholder for the month sub-field.
+`yearLabel` | The label for the year sub-field.
+`yearPlaceholder` | The placeholder for the year sub-field.
+`hourLabel` | The label for the hour sub-field.
+`hourPlaceholder` | The placeholder for the hour sub-field.
+`minuteLabel` | The label for the minute sub-field.
+`minutePlaceholder` | The placeholder for the minute sub-field.
+`secondLabel` | The label for the second sub-field.
+`secondPlaceholder` | The placeholder for the second sub-field.
+`ampmLabel` | The label for the AM/PM sub-field.
+`ampmPlaceholder` | The placeholder for the AM/PM sub-field.
+`useDatePicker` | Whether this field should use the Flatpickr datepicker.
+`datePickerOptions` | A collection of options for the Flatpickr datepicker.
 
 
 ### Dropdown
@@ -149,6 +183,9 @@ Setting | Description
 --- | ---
 `placeholder` | The text that will be shown if the field doesn’t have a value.
 `defaultValue` | Entering a default value will place the value in the field when it loads.
+`validateDomain` | Whether to validate the domain when the value is saved.
+`blockedDomains` | A list of domains to block values from.
+`uniqueValue` | Whether to the value of this field should be unique across all submissions for the form.
 
 
 ### Entries
@@ -168,13 +205,12 @@ Setting | Description
 `sizeLimit` | Limit the size of the files a user can upload.
 `allowedKinds` | A collection of allowed mime-types the user can upload.
 
-### Group
-
 
 ### Heading
 Setting | Description
 --- | ---
 `headingSize` | Choose the size for the heading.
+
 
 ### Hidden
 Setting | Description
@@ -252,6 +288,8 @@ Setting | Description
 Setting | Description
 --- | ---
 `showCountryCode` | Whether to show an additional dropdown for selecting the country code.
+`countryShowDialCode` | Whether to show an the dial code.
+`countryAllowed` | A collection of allowed countries.
 `countryLabel` | The label for the Country sub-field.
 `countryPlaceholder` | The placeholder for the Country sub-field.
 `countryDefaultValue` | The default value for the Country sub-field.
@@ -279,6 +317,13 @@ Setting | Description
 `layout` | Select which layout to use for these fields.
 
 
+### Recipients
+Setting | Description
+--- | ---
+`displayType` | What sort of field to show on the front-end for users.
+`options` | Define the available options for users to select from.
+
+
 ### Repeater
 Setting | Description
 --- | ---
@@ -287,19 +332,20 @@ Setting | Description
 `maxRows` | The maximum required number of instances of this repeater's fields that must be completed.
 
 
-### Recipients
-Setting | Description
---- | ---
-`displayType` | What sort of field to show on the front-end for users.
-`options` | Define the available options for users to select from.
-
-
 ### Section
 Setting | Description
 --- | ---
 `border` | Add a border to this section.
 `borderWidth` | Set the border width (in pixels).
 `borderColor` | Set the border color.
+
+
+### Signature
+Setting | Description
+--- | ---
+`backgroundColor` | Set the background color.
+`penColor` | Set the pen color.
+`penWeight` | Set the line thickness (weight) for the pen.
 
 
 ### Single-Line Text

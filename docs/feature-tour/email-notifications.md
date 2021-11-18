@@ -7,7 +7,9 @@ Each notification is form-specific, and you can create as many notifications as 
 
 - Enabled - Whether the notification should be sent.
 - Name - An internal name to call this notification in the control panel.
-- Recipients - A list of email addresses that this notification should go to.
+- Recipients - Define who should receive the email notification - set emails or conditions.
+- Recipient Emails - A list of email addresses that this notification should go to.
+- Recipient Conditions - Conditional logic to determine which email addresses receive the notification.
 - Subject - The subject line for the email.
 - Email Content - The full body of the email. See [Email Content](#email-content).
 - From Name - Set the name attribute that the email is shown to have come from.
@@ -17,9 +19,12 @@ Each notification is form-specific, and you can create as many notifications as 
 - BCC - The bcc email address for the email.
 - Attach File Uploads - Whether to attach any user-uploaded files to the email.
 - Email Template - To select a custom [Email Template](docs:feature-tour/email-templates).
+- Attach PDF Template - Whether to attach a PDF template to this email notification.
+- PDF Template - To select a custom [PDF Template](docs:feature-tour/pdf-templates).
+
 
 :::warning
-Clicking "Save" in the notification modal won't immediately save the notification. You'll need to save the form. A small "Unsaved" badge will display next to a brand-new notification to warn you. However, you'll also be prompted to save the form if you try and navigate away without saving the form.
+Clicking **Apply** in the notification modal won't immediately save the notification. You'll need to save the form. A small "Unsaved" badge will display next to a brand-new notification to warn you. However, you'll also be prompted to save the form if you try and navigate away without saving the form.
 :::
 
 ## Email Content

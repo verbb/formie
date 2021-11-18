@@ -104,30 +104,36 @@ To populate a Repeater field, you'll also be creating the "blocks", as well as d
 {% do craft.formie.populateFormValues(form, {
     repeaterFieldHandle: [
         {
-            text: 'Some Value',
+            textField: 'Some Value',
+            dropdownField: 'Option 1',
         },
         {
-            text: 'Another Value',
+            textField: 'Another Value',
+            dropdownField: 'Option 2',
         },
     ],
 }) %}
 ```
 
+The above will create two "blocks" for the repeater field.
+
 ## Populating from URL
-You can also make use of populating fields from a URL, using parameters in a query string. For each field, you'll have the option to specify the parameter in the URL query string you want to populate the field with. This provides the flexibility of your URL not having to match the field handles of each field.
+You can also make use of populating fields from a URL, using parameters in a query string. For each field, you can use the **Pre-Populate Value** setting to specify the parameter in the URL query string you want to populate the field with. This provides the flexibility of your URL not having to match the field handles of each field.
 
 To provide a practical example, let's say we have an email newsletter that goes out to users. In this email, we contain a link to a contact form you want to pre-populate with information. The URL might look something like:
 
+```
 http://mysite.com/contact-us?first_name=Peter&last_name=Sherman&email=psherman@wallaby.com.au&content=I want to know more!&utm=xxxxxxxxxxx
+```
 
-Clicking this link would navigate to your site, and a template that shows the form "Contact Form". This form would contain a Name (First Name and Last Name), Email and Multi-line Text fields. For each field, you would set the "Pre-Populate Value" like so:
+Clicking this link would navigate to your site, and a template that shows the form "Contact Form". This form would contain a Name (First Name and Last Name), Email and Multi-line Text fields. For each field, you would set the **Pre-Populate Value** field setting like so:
 
 - Name: First Name = `first_name`
 - Name: Last Name = `last_name`
 - Email = `email`
 - Multi-line Text = `content`
 
-The handles for each of these fields doesn't matter, as we use this "Pre-Populate Value" to connect the query string with fields. You'll also notice the URL contains other query parameters, which is totally fine, as they are ignored.
+The handles for each of these fields doesn't matter, as we use this **Pre-Populate Value** to connect the query string with fields. You'll also notice the URL contains other query parameters, which is totally fine, as they are ignored.
 
 Now, when the page loads, you'll have the form populated with content!
 

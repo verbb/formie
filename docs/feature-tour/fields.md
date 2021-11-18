@@ -33,8 +33,14 @@ See the full [Field](docs:developers/field) documentation for more.
 
 In addition some fields have some additional specific settings, described below.
 
+### Match Field
+For some fields (Text, Number, Password and Email) you can select whether to enforce validation where two fields need to have the same value. This is most commonly used for "confirm" fields, such as Email, or Password.
+
+
+
+
 ## Field Types
-Formie provides 26 different fields for use in your forms.
+Formie provides 31 different fields for use in your forms.
 
 
 
@@ -49,10 +55,13 @@ A field for addresses. There are a number of sub-fields that can be enabled as r
 - ZIP / Postcode
 - Country
 
+If you have any [Address Providers](docs:feature-tour/integrations#address-providers) configured, you can also enable an *Auto-Complete* setting. This allows the use of a single text input to type an address, and be have it auto-completed.
 
 
 ### Agree
 A field for a single checkbox. Its ideal purpose is to be an agreement checkbox for terms & conditions, or similar. It can be marked as required or not as well as have its checked and unchecked values set.
+
+The description for the Agree field can also contain HTML via a WYSIWYG editor. You can control the available buttons and formatting via [docs:get-started/configuration#available-buttons](available buttons).
 
 #### Settings
 Setting | Description
@@ -64,15 +73,87 @@ Default Value | The default value for the field when it loads.
 
 
 
-### Categories
-A field for users to select categories from a dropdown field.
+### Calculations
+A field for creating read-only content based on other fields' content. Supports arithmetic, bitwise, comparison, logic, string, array, numeric and ternary operators, and of course being able to reference other fields.
+
+The underlying parsing logic is based off the [Symfony Expression Syntax](https://symfony.com/doc/current/components/expression_language/syntax.html).
+
+#### Arithmetic Operators
+- `+` (addition)
+- `-` (subtraction)
+- `*` (multiplication)
+- `/` (division)
+- `%` (modulus)
+- `**` (pow)
+
+```
+10 + 10 + 22
+```
+
+#### Bitwise Operators
+- `&` (and)
+- `|` (or)
+- `^` (xor)
+
+#### Comparison Operators
+- `==` (equal)
+- `===` (identical)
+- `!=` (not equal)
+- `!==` (not identical)
+- `<` (less than)
+- `>` (greater than)
+- `<=` (less than or equal to)
+- `>=` (greater than or equal to)
+- `matches` (regex match)
+
+```
+{field1} == {field2}
+{field1} > {field2}
+```
+
+#### Logical Operators
+- `not` or `!`
+- `and` or `&&`
+- `or` or `||`
+
+```
+{field1} < 10 or {field2} > 10
+```
+
+#### String Operators
+- `~` (concatenation)
+
+```
+{field1} ~ " " ~ {field2}
+```
+
+#### Array Operators
+- `in` (contain)
+- `not in` (does not contain)
+
+#### Numeric Operators
+- `..` (range)
+
 
 #### Settings
 Setting | Description
 --- | ---
+Calculations Formula | Provide the formula used to calculate the result for this field. Use arithmetic operators (+, -, *, /, etc) and reference other fields.
+
+
+
+### Categories
+A field for users to select categories from.
+
+#### Settings
+Setting | Description
+--- | ---
+Display Type | What sort of field to show on the front-end for users.
 Placeholder | The option shown initially, when no option is selected.
 Source | Which source do you want to select categories from?
 Branch Limit | Limit the number of selectable category branches.
+Root Category | Only output the direct children of the chosen category. 
+Show Structure | Whether to show the hierarchical structure of categories in the dropdown.
 
 
 
@@ -97,9 +178,16 @@ A field to select the date or time, or both. There are some different display ty
 #### Settings
 Setting | Description
 --- | ---
+Include Date | Whether this field should include the date.
 Include Time | Whether this field should include the time.
 Default Value | Entering a default value will place the value in the field when it loads.
 Display Type | Set different display layouts for this field.
+Min Date | Set a minimum date for dates to be picked from.
+Max Date | Set a maximum date for dates to be picked up to.
+Date Format | Set the format for dates, shown on the front-end.
+Time Format | Set the format for time, shown on the front-end.
+Use Date Picker | Whether this field should use the bundled cross-browser date picker ([Flatpickr.js](https://flatpickr.js.org/) docs) when rendering this field.
+Date Picker Options | Add any additional options for the date picker to use. For available options, refer to the [Flatpickr.js](https://flatpickr.js.org/) docs.
 
 
 
@@ -123,15 +211,19 @@ Setting | Description
 --- | ---
 Placeholder | The text that will be shown if the field doesn’t have a value.
 Default Value | Entering a default value will place the value in the field when it loads.
+Unique Value | Whether to limit user input to unique values only. This will require that a value entered in this field does not already exist in a submission for this field and form.
+Validate Domain (DNS) | Whether to validate the domain name provided for the email via DNS record lookup. This can help ensure users enter valid email addresses.
+Blocked Domains | Define a list of domain names to block. Users entering email addresses containing these domains will be blocked from using them.
 
 
 
 ### Entries
-A field for users to select entries from a dropdown field.
+A field for users to select entries from.
 
 #### Settings
 Setting | Description
 --- | ---
+Display Type | What sort of field to show on the front-end for users.
 Placeholder | The option shown initially, when no option is selected.
 Sources | Which sources do you want to select entries from?
 Limit | Limit the number of selectable entries.
@@ -227,6 +319,11 @@ Decimal Points | Set the number of decimal points to format the field value.
 
 
 
+### Password
+A field to enter a password. This is a `<input type="password">` field. This stores its content as a hashed password, most commonly used for a user registration form.
+
+
+
 ### Phone
 A field to enter a phone number. This is a `<input type="tel">` field.
 
@@ -238,11 +335,12 @@ Show Country Code Dropdown | Whether to show an additional dropdown for selectin
 
 
 ### Products
-A field for users to select products from a dropdown field.
+A field for users to select products from.
 
 #### Settings
 Setting | Description
 --- | ---
+Display Type | What sort of field to show on the front-end for users.
 Placeholder | The option shown initially, when no option is selected.
 Sources | Which sources do you want to select products from?
 Limit | Limit the number of selectable products.
@@ -293,6 +391,18 @@ Border Color | Set the border color.
 
 
 
+### Signature
+A field for the user to sign with their mouse or finger, saving as an image.
+
+#### Settings
+Setting | Description
+--- | ---
+Background Color | Set the background color.
+Pen Color | Set the pen color.
+Pen Weight | Set the line thickness (weight) for the pen.
+
+
+
 ### Single-Line Text
 A field for the user to enter text. This is a `<input type="text">` field.
 
@@ -303,6 +413,11 @@ Placeholder | The text that will be shown if the field doesn’t have a value.
 Default Value | Entering a default value will place the value in the field when it loads.
 Limit Field Content | Whether to limit the content of this field.
 Limit | Enter the number of characters or words to limit this field by.
+
+
+
+### Summary
+A field that shows a summary of all submission values to the user. Commonly used on the last page of a multi-page form.
 
 
 
@@ -327,17 +442,19 @@ A field for users to select or create tag elements.
 #### Settings
 Setting | Description
 --- | ---
+Display Type | What sort of field to show on the front-end for users.
 Placeholder | The option shown initially, when no option is selected.
 Source | Which source do you want to select tags from?
 
 
 
 ### Users
-A field for users to select users from a dropdown field.
+A field for users to select users from.
 
 #### Settings
 Setting | Description
 --- | ---
+Display Type | What sort of field to show on the front-end for users.
 Placeholder | The option shown initially, when no option is selected.
 Sources | Which sources do you want to select users from?
 Limit | Limit the number of selectable users.
@@ -345,11 +462,12 @@ Limit | Limit the number of selectable users.
 
 
 ### Variants
-A field for users to select variants from a dropdown field.
+A field for users to select variants from.
 
 #### Settings
 Setting | Description
 --- | ---
+Display Type | What sort of field to show on the front-end for users.
 Placeholder | The option shown initially, when no option is selected.
 Source | Which source do you want to select variants from?
 Limit | Limit the number of selectable variants.

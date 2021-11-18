@@ -35,7 +35,10 @@ Email notifications can also have set conditions on whether they send or not. Th
 
 You can choose whether you want these sets of rules to "Send" or "Not Send" the email notification. For example, you might like to only send an email notification if the users' email isn't for a number of domain names.
 
+### Conditional Recipients
+You can also set different recipients based on submission values. For instance, you might like your accounts team to be included in the user includes the term "account issue" in a field, or selects a similar value from another field. This gives you the benefit of not needing to create an entirely new email notification just for this condition.
+
 ## How it works
-When toggling fields, pages and buttons, Formie will add (or remove) a `data-conditionally-hidden` data attribute on respective elements. Through this, you're free to alter the specifics of the hiding behaviour if required.
+When toggling fields, pages and buttons, Formie will add (or remove) a `data-conditionally-hidden` data attribute on respective elements. Through this, you're free to alter the specifics of the hiding behaviour if required. This does not apply to Email Notifications.
 
 In addition, any field that is required, but hidden through your conditions will be marked as un-required, as a hidden field cannot be required, as it's impossible for a user to fill it out. This prevents validation issues for invisible fields.

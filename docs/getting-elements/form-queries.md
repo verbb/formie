@@ -326,39 +326,6 @@ $forms = \verbb\formie\elements\Form::find()
 :::
 
 
-### `title`
-
-Narrows the query results based on the forms’ titles.
-
-Possible values include:
-
-| Value | Fetches forms…
-| - | -
-| `'Foo'` | with a title of `Foo`.
-| `'Foo*'` | with a title that begins with `Foo`.
-| `'*Foo'` | with a title that ends with `Foo`.
-| `'*Foo*'` | with a title that contains `Foo`.
-| `'not *Foo*'` | with a title that doesn’t contain `Foo`.
-| `['*Foo*', '*Bar*'` | with a title that contains `Foo` or `Bar`.
-| `['not', '*Foo*', '*Bar*']` | with a title that doesn’t contain `Foo` or `Bar`.
-
-::: code
-```twig
-{# Fetch forms with a title that contains "Foo" #}
-{% set forms = craft.formie.forms()
-    .title('*Foo*')
-    .all() %}
-```
-
-```php
-// Fetch forms with a title that contains "Foo"
-$forms = \verbb\formie\elements\Form::find()
-    ->title('*Foo*')
-    ->all();
-```
-:::
-
-
 
 ### `template`
 
@@ -417,6 +384,39 @@ Possible values include:
 // Fetch forms of the form template with an ID of 1
 $forms = \verbb\formie\elements\Form::find()
     ->templateId(1)
+    ->all();
+```
+:::
+
+
+### `title`
+
+Narrows the query results based on the forms’ titles.
+
+Possible values include:
+
+| Value | Fetches forms…
+| - | -
+| `'Foo'` | with a title of `Foo`.
+| `'Foo*'` | with a title that begins with `Foo`.
+| `'*Foo'` | with a title that ends with `Foo`.
+| `'*Foo*'` | with a title that contains `Foo`.
+| `'not *Foo*'` | with a title that doesn’t contain `Foo`.
+| `['*Foo*', '*Bar*'` | with a title that contains `Foo` or `Bar`.
+| `['not', '*Foo*', '*Bar*']` | with a title that doesn’t contain `Foo` or `Bar`.
+
+::: code
+```twig
+{# Fetch forms with a title that contains "Foo" #}
+{% set forms = craft.formie.forms()
+    .title('*Foo*')
+    .all() %}
+```
+
+```php
+// Fetch forms with a title that contains "Foo"
+$forms = \verbb\formie\elements\Form::find()
+    ->title('*Foo*')
     ->all();
 ```
 :::

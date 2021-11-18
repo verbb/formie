@@ -9,10 +9,13 @@ Attribute | Description
 `id` | ID of the notification.
 `formId` | The [Form](docs:developers/form) ID this notification belongs to.
 `templateId` | The [Email Template](docs:feature-tour/email-templates) used by this notification.
+`pdfTemplateId` | The [PDF Template](docs:feature-tour/pdf-templates) used by this notification.
 `name` | The control panel name for this notification.
 `enabled` | Whether the notification is enabled.
 `subject` | The subject for the email.
+`recipients` | Determines what type of recipient will be. Either `email` or `conditions`.
 `to` | The email address(es) the notification will be sent to.
+`toConditions` | Conditional logic rules for who to sent the notification to.
 `cc` | The email address(es) the notification will be cc-ed to.
 `bcc` | The email address(es) the notification will be bcc-ed to.
 `replyTo` | The reply-to email for the notification.
@@ -21,6 +24,9 @@ Attribute | Description
 `fromName` | The name of the sender for the email notification.
 `content` | The raw JSON-based block content for the email. See also [Content](#content).
 `attachFiles` | Whether to attach user-uploaded files to the notification.
+`attachPdf` | Whether to attach a PDF template to the notification.
+`enableCondition` | Whether to allow conditional logic for sending the notification.
+`conditions` | Conditional logic rules for sending the notification.
 
 ## Methods
 

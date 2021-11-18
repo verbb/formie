@@ -3,28 +3,31 @@
 ## Unreleased
 
 ### Added
-- Added Calculations field for creating read-only content based on other fields' content. Supports arithmetic, bitwise, comparison, logic, string, array, numeric and ternary operators, and of course being able to reference other fields.
-- Added Signature field to allow users to sign with their mouse or finger, saving as an image.
-- Added Password field for a specialised, encrypted field just for password-saving. Of course, no plain-text saving.
-- Added Summary field, to show a summary of all fields. Commonly used on the last page of a multi-page form.
+- Added **Calculations** field for creating read-only content based on other fields' content. Supports arithmetic, bitwise, comparison, logic, string, array, numeric and ternary operators, and of course being able to reference other fields.
+- Added **Signature** field to allow users to sign with their mouse or finger, saving as an image.
+- Added **Password** field for a specialised, encrypted field just for password-saving. Of course, no plain-text saving.
+- Added **Summary** field, to show a summary of all fields. Commonly used on the last page of a multi-page form.
 - Added Time-only option to Date fields.
-- Added `includeDate` property for Date fields.
-- Added `getIsDate()`, `getIsTime()`, `getIsDateTime()` methods for Date fields.
 - Added "Match Field" field setting to Text, Number, Password and Email fields to enforce validation where two fields need to have the same value.
-- Added Microsoft Dynamics 365 CRM integration.
+- Added Feed Me support for Submissions.
+- Added import/export functionality for forms.
+- Added dedicated support area, so you can submit bug reports and support requests directly to Verbb. Bundles all we need to know about your form.
 - Added Klaviyo CRM integration.
+- Added Maximizer CRM integration.
+- Added Microsoft Dynamics 365 CRM integration.
 - Added Native Forms support for SharpSpring CRM Integration.
-- Added Klaviyo Email Marketing integration.
 - Added Adestra Email Marketing integration.
+- Added Klaviyo Email Marketing integration.
 - Added Loqate Address Provider integration.
 - Added reCAPTCHA Enterprise captcha support.
 - Added hCaptcha captcha support.
 - Added Snaptcha plugin captcha support.
 - Added conditional recipients option for Email Notifications, allowing you to define what recipients receive an email under what circumstances.
-- Added `recipients`, `toConditions`, `pdfTemplateId` to Notification model.
 - Added PDF Templates, allowing you to attach a custom PDF to Email Notifications.
-- Added the ability to set a Google Tag Manager payload for every submit button for forms.
+- Added the ability to set a Google Tag Manager payload for every submit button for forms, within the form builder.
 - Added statuses to Sent Notifications, along with error messages to identify issues for failed Email Notifications.
+- Added support for Group and Repeater fields when using `setFieldSettings()`.
+- Added Submission snapshots to record and persist template-level field settings changes.
 - Added `Field::defineValueAsString()` and `Field::getValueAsString()` to consolidate how to represent field values as a string value.
 - Added `Field::defineValueAsJson()` and `Field::getValueAsJson()` to consolidate how to represent field values as JSON object.
 - Added `Field::defineValueForExport()` and `Field::getValueForExport()` to consolidate how to represent field values when exporting through Craft's export.
@@ -36,10 +39,14 @@
 - Added `Field::EVENT_MODIFY_VALUE_FOR_INTEGRATION` event for all fields.
 - Added `Field::EVENT_MODIFY_VALUE_FOR_SUMMARY` event for all fields.
 - Added `Integration::EVENT_MODIFY_FIELD_MAPPING_VALUES` event for all integrations.
+- Added `Miscellaneous::EVENT_MODIFY_MISCELLANEOUS_PAYLOAD` event for all integrations.
+- Added `includeDate` property for Date fields.
+- Added `getIsDate()`, `getIsTime()`, `getIsDateTime()` methods for Date fields.
+- Added `recipients`, `toConditions`, `pdfTemplateId` to Notification model.
 
 ### Changed
 - Sent notifications are now saved earlier regardless of success, added statuses and records a failed message.
-- Refactored all fields to better handle and consolidate for their content values are represented for various operations (exports, integrations, dev API).
+- Refactored all fields to better handle and consolidate how their content values are represented for various operations (exports, integrations, dev API).
 - Renamed `Integration::EVENT_PARSE_MAPPED_FIELD_VALUE` event to `Integration::EVENT_MODIFY_FIELD_MAPPING_VALUE`.
 
 ### Fixed
@@ -47,6 +54,9 @@
 - Fixed an error with Recipients fields, where an option value was changed previously, and no longer valid.
 - Fixed hidden Recipients fields not being classified as a hidden field.
 - Fixed Heading fields not being classified as a cosmetic field.
+- Fixed the save shortcut when saving a submission in the control panel.
+- Fixed incomplete submissions not being able to have their status updated.
+- Fixed File upload fields not always having their upload location source/path set.
 
 ### Removed
 - Removed `Field::serializeValueForExport()` method. Use `Field::defineValueForExport()` for setting or `Field::getValueForExport()` for getting instead.

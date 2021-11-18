@@ -27,6 +27,8 @@
             "feature-tour/form-templates",
             "feature-tour/email-templates",
             "feature-tour/data-retention",
+            "feature-tour/import-export",
+            "feature-tour/support",
             "feature-tour/headless"
         ]
     },
@@ -42,12 +44,14 @@
             "template-guides/custom-rendering",
             "template-guides/form-templates",
             "template-guides/email-templates",
+            "template-guides/pdf-templates",
             "template-guides/cached-forms",
             "template-guides/editing-submissions",
             "template-guides/populating-forms",
             "template-guides/selecting-forms",
             "template-guides/relations",
-            "template-guides/google-tag-manager"
+            "template-guides/google-tag-manager",
+            "template-guides/craft-forms"
         ]
     },
     {

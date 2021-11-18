@@ -1,6 +1,4 @@
 # Selecting Forms
-
-## Selecting Forms
 Formie provides a [Form Element](docs:developers/form) field for you to use in other elements in the control panel. For example, you might like to add a Formie form field to an entry, allowing content authors to select a form to be shown on the page.
 
 When using this field's value, you're dealing with a [Form Query](docs:getting-elements/form-queries).

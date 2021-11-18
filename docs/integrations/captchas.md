@@ -15,6 +15,13 @@ You can also configure which type of reCAPTCHA captcha to use. We highly recomme
 - reCAPTCHA v2 (Checkbox)
 - reCAPTCHA v2 (Invisible)
 - reCAPTCHA v3
+- reCAPTCHA v3 (Enterprise)
+
+## hCaptcha
+[hCaptcha](https://www.hcaptcha.com/) is an anti-bot solution that protects user privacy and rewards websites. It is the most popular reCAPTCHA alternative.
+
+## Snaptcha Plugin
+The [Snaptcha Plugin](https://plugins.craftcms.com/snaptcha) is an invisible CAPTCHA that automatically validates forms and prevents spam bots from submitting to your Craft CMS site.
 
 ## Duplicate
 This captcha checks for duplicate submissions, where bots might be submitting multiple times. This mechanism assigns a unique value to a submission, so if the same content is submitted again without refreshing or changing the form content, it will be marked as a duplicate. 
