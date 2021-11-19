@@ -103,6 +103,11 @@ class ConditionsHelper
                     'value' => $condition['value'],
                 ];
 
+                // Protect against empty conditions
+                if (!trim(ConditionsHelper::recursiveImplode('', $variables))) {
+                    continue;
+                }
+
                 $variables['field'] = str_replace(['{', '}'], ['', ''], $variables['field']);
 
                 // Check to see if this is a custom field, or an attribute on the submission
@@ -131,11 +136,6 @@ class ConditionsHelper
                     } else {
                         $variables['field'] = ConditionsHelper::recursiveImplode(' ', $variables['field']);
                     }
-                }
-
-                // Protect against empty conditions
-                if (!trim(ConditionsHelper::recursiveImplode('', $variables))) {
-                    continue;
                 }
 
                 // Create the rule for the evaluator - some rules need special syntax
