@@ -94,7 +94,7 @@ abstract class Crm extends Integration implements IntegrationInterface
     /**
      * @inheritDoc
      */
-    public function beforeSendPayload(Submission $submission, $endpoint, &$payload, $method)
+    public function beforeSendPayload(Submission $submission, &$endpoint, &$payload, &$method)
     {
         // If in the context of a queue. save the payload for debugging
         if ($this->getQueueJob()) {
@@ -121,8 +121,10 @@ abstract class Crm extends Integration implements IntegrationInterface
             return false;
         }
 
-        // Allow events to alter the payload
+        // Allow events to alter some props
         $payload = $event->payload;
+        $endpoint = $event->endpoint;
+        $method = $event->method;
 
         return $event->isValid;
     }
