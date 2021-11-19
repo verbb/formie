@@ -9,6 +9,7 @@ You can create Miscellaneous integrations by going to **Formie** → **Settings*
 Formie integrates with the following providers:
 - Google Sheets
 - Monday
+- Recruitee
 - Slack
 - Trello
 

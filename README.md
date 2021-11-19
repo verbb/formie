@@ -202,6 +202,7 @@ For any other categories that just don't fit into the above!
 
 - Google Sheets
 - Monday
+- Recruitee
 - Slack
 - Trello
  

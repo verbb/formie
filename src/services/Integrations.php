@@ -168,6 +168,7 @@ class Integrations extends Component
         $miscellaneous = [
             miscellaneous\GoogleSheets::class,
             miscellaneous\Monday::class,
+            miscellaneous\Recruitee::class,
             miscellaneous\Slack::class,
             miscellaneous\Trello::class,
         ];

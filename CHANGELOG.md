@@ -20,6 +20,7 @@
 - Added EmailOctopus Email Marketing integration.
 - Added Klaviyo Email Marketing integration.
 - Added Loqate Address Provider integration.
+- Added Recruitee Miscellaneous integration.
 - Added reCAPTCHA Enterprise captcha support.
 - Added hCaptcha captcha support.
 - Added Snaptcha plugin captcha support.
