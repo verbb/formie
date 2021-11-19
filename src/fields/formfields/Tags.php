@@ -377,7 +377,7 @@ class Tags extends CraftTags implements FormFieldInterface
                 'resolve' => TagResolver::class.'::resolve',
                 'args' => TagArguments::getArguments(),
                 'resolve' => function($class) {
-                    return $this->getElementsQuery()->all();
+                    return $class->getElementsQuery()->all();
                 },
             ],
         ]);

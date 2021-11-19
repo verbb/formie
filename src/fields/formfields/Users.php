@@ -263,7 +263,7 @@ class Users extends CraftUsers implements FormFieldInterface
                 'resolve' => UserResolver::class.'::resolve',
                 'args' => UserArguments::getArguments(),
                 'resolve' => function($class) {
-                    return $this->getElementsQuery()->all();
+                    return $class->getElementsQuery()->all();
                 },
             ],
         ]);

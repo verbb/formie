@@ -17,8 +17,13 @@ use craft\helpers\UrlHelper;
 
 use craft\commerce\Plugin as Commerce;
 use craft\commerce\elements\Variant;
-use craft\commerce\models\ProductType;
 use craft\commerce\fields\Variants as CommerceVariants;
+use craft\commerce\gql\arguments\elements\Variant as VariantArguments;
+use craft\commerce\gql\interfaces\elements\Variant as VariantInterface;
+use craft\commerce\gql\resolvers\elements\Variant as VariantResolver;
+use craft\commerce\models\ProductType;
+
+use GraphQL\Type\Definition\Type;
 
 class Variants extends CommerceVariants implements FormFieldInterface
 {
@@ -35,6 +40,7 @@ class Variants extends CommerceVariants implements FormFieldInterface
         getFrontEndInputOptions as traitGetFrontendInputOptions;
         getEmailHtml as traitGetEmailHtml;
         getSavedFieldConfig as traitGetSavedFieldConfig;
+        getSettingGqlTypes as traitGetSettingGqlTypes;
         RelationFieldTrait::getIsFieldset insteadof FormFieldTrait;
         RelationFieldTrait::populateValue insteadof FormFieldTrait;
         RelationFieldTrait::renderLabel insteadof FormFieldTrait;
@@ -252,6 +258,24 @@ class Variants extends CommerceVariants implements FormFieldInterface
         }
 
         return $options;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getSettingGqlTypes()
+    {
+        return array_merge($this->traitGetSettingGqlTypes(), [
+            'entries' => [
+                'name' => 'variants',
+                'type' => Type::listOf(VariantInterface::getType()),
+                'resolve' => VariantResolver::class.'::resolve',
+                'args' => VariantArguments::getArguments(),
+                'resolve' => function($class) {
+                    return $class->getElementsQuery()->all();
+                },
+            ],
+        ]);
     }
 
     /**

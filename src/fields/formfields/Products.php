@@ -18,6 +18,11 @@ use craft\helpers\UrlHelper;
 use craft\commerce\Plugin as Commerce;
 use craft\commerce\elements\Product;
 use craft\commerce\fields\Products as CommerceProducts;
+use craft\commerce\gql\arguments\elements\Product as ProductArguments;
+use craft\commerce\gql\interfaces\elements\Product as ProductInterface;
+use craft\commerce\gql\resolvers\elements\Product as ProductResolver;
+
+use GraphQL\Type\Definition\Type;
 
 class Products extends CommerceProducts implements FormFieldInterface
 {
@@ -34,6 +39,7 @@ class Products extends CommerceProducts implements FormFieldInterface
         getFrontEndInputOptions as traitGetFrontendInputOptions;
         getEmailHtml as traitGetEmailHtml;
         getSavedFieldConfig as traitGetSavedFieldConfig;
+        getSettingGqlTypes as traitGetSettingGqlTypes;
         RelationFieldTrait::getIsFieldset insteadof FormFieldTrait;
         RelationFieldTrait::populateValue insteadof FormFieldTrait;
         RelationFieldTrait::renderLabel insteadof FormFieldTrait;
@@ -244,6 +250,24 @@ class Products extends CommerceProducts implements FormFieldInterface
         }
 
         return $options;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getSettingGqlTypes()
+    {
+        return array_merge($this->traitGetSettingGqlTypes(), [
+            'entries' => [
+                'name' => 'products',
+                'type' => Type::listOf(ProductInterface::getType()),
+                'resolve' => ProductResolver::class.'::resolve',
+                'args' => ProductArguments::getArguments(),
+                'resolve' => function($class) {
+                    return $class->getElementsQuery()->all();
+                },
+            ],
+        ]);
     }
 
     /**

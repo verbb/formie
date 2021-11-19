@@ -487,6 +487,7 @@ Once using the necessary [Inline Fragments](https://graphql.org/learn/queries/#i
 |`placeholder` | `String` | The option shown initially, when no option is selected.
 |`sources` | `String` | Which sources do you want to select products from?
 |`limit` | `String` | Limit the number of selectable products.
+|`products` | `ProductQuery` | The product query for available products.
 
 
 ####  Radio
@@ -563,6 +564,8 @@ Once using the necessary [Inline Fragments](https://graphql.org/learn/queries/#i
 |`placeholder` | `String` | The option shown initially, when no option is selected.
 |`source ` | `String` | Which source do you want to select variants from?
 |`limit` | `String` | Limit the number of selectable variants.
+|`variants` | `VariantQuery` | The variant query for available variants.
+
 
 #### Nested Fields
 For nested fields like Group and Repeater, you have access to `nestedRows` and `fields`.
