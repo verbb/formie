@@ -17,6 +17,7 @@
 - Added Microsoft Dynamics 365 CRM integration.
 - Added Native Forms support for SharpSpring CRM Integration.
 - Added Adestra Email Marketing integration.
+- Added EmailOctopus Email Marketing integration.
 - Added Klaviyo Email Marketing integration.
 - Added Loqate Address Provider integration.
 - Added reCAPTCHA Enterprise captcha support.

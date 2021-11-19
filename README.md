@@ -152,6 +152,7 @@ Add users who fill out your forms directly to your mailing lists.
 - Constant Contact
 - ConvertKit
 - Drip
+- EmailOctopus
 - GetResponse
 - iContact
 - Klaviyo

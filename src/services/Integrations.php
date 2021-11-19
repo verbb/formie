@@ -110,6 +110,7 @@ class Integrations extends Component
             emailmarketing\ConstantContact::class,
             emailmarketing\ConvertKit::class,
             emailmarketing\Drip::class,
+            emailmarketing\EmailOctopus::class,
             emailmarketing\GetResponse::class,
             emailmarketing\IContact::class,
             emailmarketing\Klaviyo::class,
