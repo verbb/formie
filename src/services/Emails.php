@@ -312,6 +312,9 @@ class Emails extends Component
             ]);
             $this->trigger(self::EVENT_BEFORE_SEND_MAIL, $event);
 
+            // Update the email from the event
+            $newEmail = $event->email;
+
             if (!$event->isValid) {
                 $error = Craft::t('formie', 'Notification email “{notification}” for submission “{submission}” was cancelled by Formie.', [
                     'notification' => $notification->name,
