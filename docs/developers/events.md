@@ -883,6 +883,9 @@ use verbb\formie\services\Emails;
 use yii\base\Event;
 
 Event::on(Emails::class, Emails::EVENT_MODIFY_RENDER_VARIABLES, function(MailRenderEvent $event) {
+    $email = $event->email;
+    $submission = $event->submission;
+    $notification = $event->notification;
     $renderVariables = $event->renderVariables;
 
     // Modify the "Content HTML" as defined in the email notification settings

@@ -229,6 +229,9 @@ class Emails extends Component
             $renderVariables['contentHtml'] = Template::raw($parsedContent);
 
             $event = new MailRenderEvent([
+                'email' => $newEmail,
+                'notification' => $notification,
+                'submission' => $submission,
                 'renderVariables' => $renderVariables,
             ]);
             $this->trigger(self::EVENT_MODIFY_RENDER_VARIABLES, $event);

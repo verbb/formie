@@ -8,6 +8,9 @@ class MailRenderEvent extends Event
     // Properties
     // =========================================================================
 
+    public $email;
+    public $notification;
+    public $submission;
     public $renderVariables;
 
 }
