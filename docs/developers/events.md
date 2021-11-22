@@ -874,6 +874,54 @@ Event::on(Notifications::class, Notifications::EVENT_MODIFY_EXISTING_NOTIFICATIO
 
 ## Email Events
 
+### The `modifyRenderVariables` event
+The event that is triggered to allow modification of the render variables used in templates.
+
+```php
+use verbb\formie\events\MailRenderEvent;
+use verbb\formie\services\Emails;
+use yii\base\Event;
+
+Event::on(Emails::class, Emails::EVENT_MODIFY_RENDER_VARIABLES, function(MailRenderEvent $event) {
+    $renderVariables = $event->renderVariables;
+
+    // Modify the "Content HTML" as defined in the email notification settings
+    $event->renderVariables['contentHtml'] = 'Override Text';
+});
+```
+
+### The `beforeRenderEmail` event
+The event that is triggered before an email is rendered.
+
+```php
+use verbb\formie\events\MailEvent;
+use verbb\formie\services\Emails;
+use yii\base\Event;
+
+Event::on(Emails::class, Emails::EVENT_BEFORE_RENDER_MAIL, function(MailEvent $event) {
+    $email = $event->email;
+    $submission = $event->submission;
+    $notification = $event->notification;
+    // ...
+});
+```
+
+### The `afterRenderEmail` event
+The event that is triggered after an email is rendered.
+
+```php
+use verbb\formie\events\MailEvent;
+use verbb\formie\services\Emails;
+use yii\base\Event;
+
+Event::on(Emails::class, Emails::EVENT_AFTER_RENDER_MAIL, function(MailEvent $event) {
+    $email = $event->email;
+    $submission = $event->submission;
+    $notification = $event->notification;
+    // ...
+});
+```
+
 ### The `beforeSendEmail` event
 The event that is triggered before an email is sent.
 

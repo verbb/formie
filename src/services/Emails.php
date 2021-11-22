@@ -6,6 +6,7 @@ use verbb\formie\base\NestedFieldInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\MailEvent;
+use verbb\formie\events\MailRenderEvent;
 use verbb\formie\fields\formfields\FileUpload;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\Notification;
@@ -40,6 +41,7 @@ class Emails extends Component
     // Constants
     // =========================================================================
 
+    const EVENT_MODIFY_RENDER_VARIABLES = 'modifyRenderVariables';
     const EVENT_BEFORE_RENDER_EMAIL = 'beforeRenderEmail';
     const EVENT_AFTER_RENDER_EMAIL = 'afterRenderEmail';
     const EVENT_BEFORE_SEND_MAIL = 'beforeSendEmail';
@@ -225,6 +227,14 @@ class Emails extends Component
 
             // Add it to our render variables
             $renderVariables['contentHtml'] = Template::raw($parsedContent);
+
+            $event = new MailRenderEvent([
+                'renderVariables' => $renderVariables,
+            ]);
+            $this->trigger(self::EVENT_MODIFY_RENDER_VARIABLES, $event);
+
+            // Update the render variables
+            $renderVariables = $event->renderVariables;
 
             if ($templatePath) {
                 // We need to do a little more work here to deal with a template, if picked
