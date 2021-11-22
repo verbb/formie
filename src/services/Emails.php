@@ -40,6 +40,8 @@ class Emails extends Component
     // Constants
     // =========================================================================
 
+    const EVENT_BEFORE_RENDER_EMAIL = 'beforeRenderEmail';
+    const EVENT_AFTER_RENDER_EMAIL = 'afterRenderEmail';
     const EVENT_BEFORE_SEND_MAIL = 'beforeSendEmail';
     const EVENT_AFTER_SEND_MAIL = 'afterSendEmail';
 
@@ -67,6 +69,16 @@ class Emails extends Component
 
         /** @var Message $newEmail */
         $newEmail = Craft::createObject(['class' => $mailer->messageClass, 'mailer' => $mailer]);
+
+        $event = new MailEvent([
+            'email' => $newEmail,
+            'notification' => $notification,
+            'submission' => $submission,
+        ]);
+        $this->trigger(self::EVENT_BEFORE_RENDER_EMAIL, $event);
+
+        // Update the email from the event
+        $newEmail = $event->email;
 
         $craftMailSettings = App::mailSettings();
 
@@ -251,6 +263,16 @@ class Emails extends Component
 
             return ['error' => $error, 'email' => $newEmail];
         }
+
+        $event = new MailEvent([
+            'email' => $newEmail,
+            'notification' => $notification,
+            'submission' => $submission,
+        ]);
+        $this->trigger(self::EVENT_AFTER_RENDER_EMAIL, $event);
+
+        // Update the email from the event
+        $newEmail = $event->email;
 
         return ['success' => true, 'email' => $newEmail];
     }
