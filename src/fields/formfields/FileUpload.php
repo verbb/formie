@@ -30,7 +30,7 @@ class FileUpload extends CraftAssets implements FormFieldInterface
 
     use FormFieldTrait, RelationFieldTrait {
         getFrontEndInputOptions as traitGetFrontendInputOptions;
-        getSettingGqlType as traitGetSettingGqlType;
+        getSettingGqlTypes as traitGetSettingGqlTypes;
         FormFieldTrait::getIsFieldset insteadof RelationFieldTrait;
         RelationFieldTrait::defineValueAsString insteadof FormFieldTrait;
         RelationFieldTrait::defineValueAsJson insteadof FormFieldTrait;
@@ -558,21 +558,42 @@ class FileUpload extends CraftAssets implements FormFieldInterface
     /**
      * @inheritDoc
      */
-    protected function getSettingGqlType($attribute, $type, $fieldInfo)
+    public function getSettingGqlTypes()
     {
-        if ($attribute === 'allowedKinds') {
-            return [
-                'name' => $attribute,
+        return array_merge($this->traitGetSettingGqlTypes(), [
+            'allowedKinds' => [
+                'name' => 'allowedKinds',
                 'type' => Type::listOf(Type::string()),
-            ];
-        }
-
-        return $this->traitGetSettingGqlType($attribute, $type, $fieldInfo);
+            ],
+            'volumeHandle' => [
+                'name' => 'volumeHandle',
+                'type' => Type::string(),
+                'resolve' => function($class) {
+                    return $class->getVolume()->handle ?? '';
+                },
+            ],
+        ]);
     }
 
 
     // Private Methods
     // =========================================================================
+
+    /**
+     * @inheritdoc
+     */
+    private function getVolume()
+    {
+        $sourceKey = $this->uploadLocationSource;
+
+        if ($sourceKey && is_string($sourceKey) && strpos($sourceKey, 'folder:') === 0) {
+            $parts = explode(':', $sourceKey);
+            
+            return Craft::$app->getVolumes()->getVolumeByUid($parts[1]);
+        }
+
+        return null;
+    }
 
     /**
      * @inheritDoc

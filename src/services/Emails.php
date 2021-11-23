@@ -6,6 +6,7 @@ use verbb\formie\base\NestedFieldInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\MailEvent;
+use verbb\formie\events\MailRenderEvent;
 use verbb\formie\fields\formfields\FileUpload;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\Notification;
@@ -40,6 +41,9 @@ class Emails extends Component
     // Constants
     // =========================================================================
 
+    const EVENT_MODIFY_RENDER_VARIABLES = 'modifyRenderVariables';
+    const EVENT_BEFORE_RENDER_EMAIL = 'beforeRenderEmail';
+    const EVENT_AFTER_RENDER_EMAIL = 'afterRenderEmail';
     const EVENT_BEFORE_SEND_MAIL = 'beforeSendEmail';
     const EVENT_AFTER_SEND_MAIL = 'afterSendEmail';
 
@@ -70,6 +74,16 @@ class Emails extends Component
 
         /** @var Message $newEmail */
         $newEmail = Craft::createObject(['class' => $mailer->messageClass, 'mailer' => $mailer]);
+
+        $event = new MailEvent([
+            'email' => $newEmail,
+            'notification' => $notification,
+            'submission' => $submission,
+        ]);
+        $this->trigger(self::EVENT_BEFORE_RENDER_EMAIL, $event);
+
+        // Update the email from the event
+        $newEmail = $event->email;
 
         $craftMailSettings = App::mailSettings();
 
@@ -217,6 +231,17 @@ class Emails extends Component
             // Add it to our render variables
             $renderVariables['contentHtml'] = Template::raw($parsedContent);
 
+            $event = new MailRenderEvent([
+                'email' => $newEmail,
+                'notification' => $notification,
+                'submission' => $submission,
+                'renderVariables' => $renderVariables,
+            ]);
+            $this->trigger(self::EVENT_MODIFY_RENDER_VARIABLES, $event);
+
+            // Update the render variables
+            $renderVariables = $event->renderVariables;
+
             if ($templatePath) {
                 // We need to do a little more work here to deal with a template, if picked
                 $oldTemplatesPath = $view->getTemplatesPath();
@@ -254,6 +279,16 @@ class Emails extends Component
 
             return ['error' => $error, 'email' => $newEmail];
         }
+
+        $event = new MailEvent([
+            'email' => $newEmail,
+            'notification' => $notification,
+            'submission' => $submission,
+        ]);
+        $this->trigger(self::EVENT_AFTER_RENDER_EMAIL, $event);
+
+        // Update the email from the event
+        $newEmail = $event->email;
 
         return ['success' => true, 'email' => $newEmail];
     }
@@ -303,6 +338,9 @@ class Emails extends Component
                 'submission' => $submission,
             ]);
             $this->trigger(self::EVENT_BEFORE_SEND_MAIL, $event);
+
+            // Update the email from the event
+            $newEmail = $event->email;
 
             if (!$event->isValid) {
                 $error = Craft::t('formie', 'Notification email “{notification}” for submission “{submission}” was cancelled by Formie.', [

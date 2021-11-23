@@ -12,6 +12,7 @@ use craft\gql\TypeLoader;
 use craft\gql\TypeManager;
 use craft\gql\GqlEntityRegistry;
 use craft\helpers\Gql;
+use craft\helpers\Json;
 
 use GraphQL\Type\Definition\InterfaceType;
 use GraphQL\Type\Definition\Type;
@@ -96,8 +97,13 @@ class PageSettingsInterface extends BaseInterfaceType
             ],
             'pageConditions' => [
                 'name' => 'pageConditions',
-                'type' => Type::listOf(Type::string()),
+                'type' => Type::string(),
                 'description' => 'The page’s conditions.',
+                'resolve' => function($source) {
+                    $value = $source->pageConditions;
+
+                    return is_array($value) ? Json::encode($value) : $value;
+                },
             ],
             'enableNextButtonConditions' => [
                 'name' => 'enableNextButtonConditions',
@@ -106,11 +112,16 @@ class PageSettingsInterface extends BaseInterfaceType
             ],
             'nextButtonConditions' => [
                 'name' => 'nextButtonConditions',
-                'type' => Type::listOf(Type::string()),
+                'type' => Type::string(),
                 'description' => 'The page’s conditions.',
+                'resolve' => function($source) {
+                    $value = $source->nextButtonConditions;
+
+                    return is_array($value) ? Json::encode($value) : $value;
+                },
             ],
         ]);
-        unset($fields['id'], $fields['uid']);
+        
         return TypeManager::prepareFieldDefinitions($fields, self::getName());
     }
 }

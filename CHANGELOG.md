@@ -69,6 +69,25 @@
 - Removed `Submission::getSerializedFieldValuesForIntegration()` method. Use `Submission::getValuesForIntegration()` instead.
 - Removed `Submission::EVENT_MODIFY_FIELD_VALUE_FOR_INTEGRATION` event. Use `Field::EVENT_MODIFY_VALUE_FOR_INTEGRATION` instead.
 
+## 1.4.26 - 2021-11-23
+
+### Added
+- Added `volumeHandle` for GraphQL queries for FIle Upload fields.
+- Added more variables to `MailRenderEvent`.
+- Added `Emails::EVENT_MODIFY_RENDER_VARIABLES` event.
+- Added `Emails::EVENT_BEFORE_RENDER_EMAIL` and `Emails::EVENT_AFTER_RENDER_EMAIL` events.
+
+### Fixed
+- Fixed Group and Repeater fields not serializing correctly for Webhook integrations.
+- Fixed `Emails::EVENT_BEFORE_SEND_MAIL` event not allowing modification of the email property.
+- Fixed element fields not having a properly configure element query when querying via GraphQL.
+- Fixed conditions using an empty string not evaluating correctly.
+- Fixed a JS error when viewing the submissions index in Craft 3.6.x.
+- Fixed page condition typings for GraphQL.
+- Revert GraphQL changes made in 1.4.24 causing errors when querying page conditions.
+- Fixed "All Fields" in email notification content showing conditionally hidden fields.
+
+
 ## 1.4.25 - 2021-11-14
 
 ### Added

@@ -331,7 +331,7 @@ class Entries extends CraftEntries implements FormFieldInterface
                 'resolve' => EntryResolver::class.'::resolve',
                 'args' => EntryArguments::getArguments(),
                 'resolve' => function($class) {
-                    return $this->getElementsQuery()->all();
+                    return $class->getElementsQuery()->all();
                 },
             ],
         ]);

@@ -343,7 +343,7 @@ class Categories extends CraftCategories implements FormFieldInterface
                 'resolve' => CategoryResolver::class.'::resolve',
                 'args' => CategoryArguments::getArguments(),
                 'resolve' => function($class) {
-                    return $this->getElementsQuery()->all();
+                    return $class->getElementsQuery()->all();
                 },
             ],
         ]);
