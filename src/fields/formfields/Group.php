@@ -90,6 +90,25 @@ class Group extends FormField implements NestedFieldInterface, EagerLoadingField
     /**
      * @inheritDoc
      */
+    public function serializeValueForWebhook($value, ElementInterface $element = null)
+    {
+        $values = [];
+
+        foreach ($value->all() as $rowId => $row) {
+            foreach ($row->getFieldLayout()->getFields() as $field) {
+                $subValue = $row->getFieldValue($field->handle);
+                $valueForWebhook = $field->serializeValueForWebhook($subValue, $row);
+
+                $values[$field->handle] = $valueForWebhook;
+            }
+        }
+
+        return $values;
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function getInputHtml($value, ElementInterface $element = null): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/group/input', [

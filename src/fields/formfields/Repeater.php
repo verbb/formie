@@ -145,6 +145,25 @@ class Repeater extends FormField implements NestedFieldInterface, EagerLoadingFi
     /**
      * @inheritDoc
      */
+    public function serializeValueForWebhook($value, ElementInterface $element = null)
+    {
+        $values = [];
+
+        foreach ($value->all() as $rowId => $row) {
+            foreach ($row->getFieldLayout()->getFields() as $field) {
+                $subValue = $row->getFieldValue($field->handle);
+                $valueForWebhook = $field->serializeValueForWebhook($subValue, $row);
+
+                $values[$rowId][$field->handle] = $valueForWebhook;
+            }
+        }
+
+        return $values;
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function getIsFieldset(): bool
     {
         return true;
