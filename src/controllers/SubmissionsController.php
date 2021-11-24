@@ -1147,7 +1147,7 @@ class SubmissionsController extends Controller
                 return StringHelper::toBoolean($value);
             }
 
-            if ($type === 'int' && is_numeric($value)) {
+            if ($type === 'int' && (is_numeric($value) || $value === '')) {
                 return intval($value);
             }
 
