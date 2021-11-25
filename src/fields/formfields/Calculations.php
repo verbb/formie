@@ -7,8 +7,6 @@ use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\RichTextHelper;
 use verbb\formie\helpers\SchemaHelper;
-use verbb\formie\helpers\VariableNode;
-use verbb\formie\prosemirror\tohtml\Renderer;
 
 use Craft;
 use craft\base\ElementInterface;
@@ -96,15 +94,7 @@ class Calculations extends FormField implements PreviewableFieldInterface
         }
 
         // Take the tiptap-stored formula and turn it into something JS will understand.
-        $content = Json::decode($this->formula);
-
-        $renderer = new Renderer();
-        $renderer->addNode(VariableNode::class);
-
-        $formula = $renderer->render([
-            'type' => 'doc',
-            'content' => $content,
-        ]);
+        $formula = RichTextHelper::getHtmlContent($this->formula);
 
         // Dissallow tags
         $formula = strip_tags($formula);

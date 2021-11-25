@@ -100,6 +100,10 @@ export default {
         rows() {
             return this.context.attributes.rows || 10;
         },
+
+        linkOptions() {
+            return this.context.attributes.linkOptions || [];
+        },
     },
 
     watch: {
@@ -358,6 +362,11 @@ export default {
     .ProseMirror-focused {
         @include input-focused-styles;
     }
+}
+
+.fui-rich-text .ProseMirror > p > a {
+    color: #3397ff;
+    text-decoration: underline;
 }
 
 @for $i from 1 to 10 {

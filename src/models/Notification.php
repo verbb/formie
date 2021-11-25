@@ -3,8 +3,7 @@ namespace verbb\formie\models;
 
 use verbb\formie\Formie;
 use verbb\formie\helpers\ConditionsHelper;
-use verbb\formie\helpers\VariableNode;
-use verbb\formie\prosemirror\tohtml\Renderer;
+use verbb\formie\helpers\RichTextHelper;
 
 use Craft;
 use craft\base\Model;
@@ -146,15 +145,7 @@ class Notification extends Model
      */
     public function getParsedContent()
     {
-        $content = Json::decode($this->content);
-
-        $renderer = new Renderer();
-        $renderer->addNode(VariableNode::class);
-
-        return $renderer->render([
-            'type' => 'doc',
-            'content' => $content,
-        ]);
+        return RichTextHelper::getHtmlContent($this->content);
     }
 
     /**

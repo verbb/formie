@@ -1,6 +1,7 @@
 import { Mark, Plugin, TextSelection } from 'tiptap';
-import { updateMark, removeMark, pasteRule } from 'tiptap-commands';
+import { updateMark, removeMark, pasteRule, replaceText } from 'tiptap-commands';
 import { getMarkRange } from 'tiptap-utils';
+import { Fragment } from 'prosemirror-model';
 
 export default class Link extends Mark {
 
@@ -30,7 +31,7 @@ export default class Link extends Mark {
         };
     }
 
-    commands({ type }) {
+    commands({ range, schema, type }) {
         return attrs => {
             if (attrs.href) {
                 return updateMark(type, attrs);
@@ -66,9 +67,14 @@ export default class Link extends Mark {
                             const transaction = tr.setSelection(selection);
 
                             view.dispatch(transaction);
-                            vm.$emit('link-selected', selection);
+
+                            // Give it a second to resolve the cursor before raising the event.
+                            // Otherwise tippy can freak out with positioning.
+                            setTimeout(() => {
+                                vm.$emit('fui:link-selected', selection);
+                            }, 50);
                         } else {
-                            vm.$emit('link-deselected');
+                            vm.$emit('fui:link-deselected');
                         }
                     },
                 },

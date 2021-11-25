@@ -6,7 +6,6 @@ use verbb\formie\helpers\RichTextHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\positions\Hidden as HiddenPosition;
-use verbb\formie\prosemirror\tohtml\Renderer as HtmlRenderer;
 
 use Craft;
 use craft\base\ElementInterface;
@@ -275,25 +274,6 @@ class Agree extends FormField implements PreviewableFieldInterface
      */
     private function _getHtmlContent($content)
     {
-        if (is_string($content)) {
-            $content = Json::decodeIfJson($content);
-        }
-
-        $renderer = new HtmlRenderer();
-
-        $html = $renderer->render([
-            'type' => 'doc',
-            'content' => $content,
-        ]);
-
-        // Strip out paragraphs, replace with `<br>`
-        $html = str_replace(['<p>', '</p>'], ['', '<br>'], $html);
-        $html = preg_replace('/(<br>)+$/', '', $html);
-
-        // Prosemirror will use `htmlentities` for special characters, but doesn't play nice
-        // with static translations. Convert them back.
-        $html = html_entity_decode($html);
-
-        return $html;
+        return RichTextHelper::getHtmlContent($content);
     }
 }

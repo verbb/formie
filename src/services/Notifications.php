@@ -284,7 +284,7 @@ class Notifications extends Component
             $config['errors'] = $notification->getErrors();
             $config['hasError'] = (bool)$notification->getErrors();
 
-            $attachAssets = Json::decode($notification->attachAssets) ?? [];
+            $attachAssets = Json::decodeIfJson($notification->attachAssets) ?? [];
 
             // For assets to attach, supply extra content that can't be called directly in Vue, like it can in Twig.
             if ($ids = ArrayHelper::getColumn($attachAssets, 'id')) {

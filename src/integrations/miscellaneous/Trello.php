@@ -5,13 +5,10 @@ use verbb\formie\base\Integration;
 use verbb\formie\base\Miscellaneous;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
-use verbb\formie\helpers\VariableNode;
-use verbb\formie\helpers\Variables;
+use verbb\formie\helpers\RichTextHelper;
 use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
-use verbb\formie\prosemirror\toprosemirror\Renderer as ProseMirrorRenderer;
-use verbb\formie\prosemirror\tohtml\Renderer as HtmlRenderer;
 
 use Craft;
 use craft\helpers\ArrayHelper;
@@ -239,17 +236,7 @@ class Trello extends Miscellaneous
 
     private function _renderMessage($submission)
     {
-        $content = Json::decode($this->cardDescription);
-
-        $renderer = new HtmlRenderer();
-        $renderer->addNode(VariableNode::class);
-
-        $html = $renderer->render([
-            'type' => 'doc',
-            'content' => $content,
-        ]);
-
-        $html = Variables::getParsedValue($html, $submission);
+        $html = RichTextHelper::getHtmlContent($this->cardDescription, $submission);
 
         $converter = new HtmlConverter(['strip_tags' => true]);
         $markdown = $converter->convert($html);

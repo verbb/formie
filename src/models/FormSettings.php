@@ -2,12 +2,10 @@
 namespace verbb\formie\models;
 
 use verbb\formie\Formie;
-use verbb\formie\helpers\VariableNode;
-use verbb\formie\helpers\Variables;
+use verbb\formie\helpers\RichTextHelper;
 use verbb\formie\positions\AboveInput;
 use verbb\formie\positions\BelowInput;
 use verbb\formie\prosemirror\toprosemirror\Renderer as ProseMirrorRenderer;
-use verbb\formie\prosemirror\tohtml\Renderer as HtmlRenderer;
 
 use Craft;
 use craft\base\Model;
@@ -259,30 +257,6 @@ class FormSettings extends Model
      */
     private function _getHtmlContent($content, $submission = null)
     {
-        if (is_string($content)) {
-            $content = Json::decodeIfJson($content);
-        }
-
-        $renderer = new HtmlRenderer();
-        $renderer->addNode(VariableNode::class);
-
-        $html = $renderer->render([
-            'type' => 'doc',
-            'content' => $content,
-        ]);
-
-        if ($submission) {
-            $html = Variables::getParsedValue($html, $submission);
-        }
-
-        // Strip out paragraphs, replace with `<br>`
-        $html = str_replace(['<p>', '</p>'], ['', '<br>'], $html);
-        $html = preg_replace('/(<br>)+$/', '', $html);
-
-        // Prosemirror will use `htmlentities` for special characters, but doesn't play nice
-        // with static translations. Convert them back.
-        $html = html_entity_decode($html);
-        
-        return $html;
+        return RichTextHelper::getHtmlContent($content, $submission);
     }
 }
