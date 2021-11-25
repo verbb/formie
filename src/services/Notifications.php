@@ -254,6 +254,15 @@ class Notifications extends Component
                 unset($notificationData['uid']);
             }
 
+            // Discard some Vue-specific things
+            if (isset($notificationData['attachAssetsOptions'])) {
+                unset($notificationData['attachAssetsOptions']);
+            }
+
+            if (isset($notificationData['attachAssetsHtml'])) {
+                unset($notificationData['attachAssetsHtml']);
+            }
+
             $notifications[] = new Notification($notificationData);
         }
 
