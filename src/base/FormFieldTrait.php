@@ -896,6 +896,16 @@ trait FormFieldTrait
     /**
      * @inheritDoc
      */
+    public function hasConditions()
+    {
+        $conditionSettings = Json::decode($this->conditions) ?? [];
+
+        return ($this->enableConditions && $conditionSettings);
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function getConditionsJson($element = null)
     {
         if ($this->enableConditions) {

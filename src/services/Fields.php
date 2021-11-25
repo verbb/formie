@@ -505,6 +505,9 @@ class Fields extends Component
         // Indicates whether the field is currently synced to another field.
         $config['isSynced'] = Formie::$plugin->getSyncs()->isSynced($field);
 
+        // Indicates whether the field contains conditions.
+        $config['hasConditions'] = $field->hasConditions();
+
         // Copy some attributes into `settings` - required for Formulate for the moment
         // as it doesn't support nested data, and it really has trouble dealing with top-level
         // attributes like `label` and `settings[attribute]` together in one go.

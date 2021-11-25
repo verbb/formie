@@ -145,6 +145,8 @@
 }
 
 .fui-field-synced {
+    display: flex;
+    align-items: center;
     font-size: 10px !important;
     margin-left: 8px;
     font-weight: 500;
@@ -157,6 +159,26 @@
     svg {
         width: 9px;
         height: 9px;
+        margin-right: 5px;
+    }
+}
+
+.fui-field-conditions {
+    display: flex;
+    align-items: center;
+    font-size: 10px !important;
+    margin-left: 8px;
+    font-weight: 500;
+    padding: 0 6px;
+    border-radius: 10px;
+    color: #1992D4;
+    background: #f0faff;
+    border: 1px solid #81c3e7;
+
+    svg {
+        width: 13px;
+        height: 13px;
+        margin-right: 5px;
     }
 }
 
