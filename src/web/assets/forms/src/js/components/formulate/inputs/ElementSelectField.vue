@@ -53,6 +53,10 @@ export default {
                 return this.$editingField.field.defaultValueHtml;
             }
 
+            if (this.$editingNotification) {
+                return this.$editingNotification.notification.attachAssetsHtml;
+            }
+
             return '';
         },
     },
@@ -100,8 +104,8 @@ export default {
                     config.sources = [this.source];
                 }
 
-                // Limit depending on display type
-                if (this.displayType !== 'checkboxes') {
+                // Limit depending on display type - if not already set
+                if (config.limit === undefined && this.displayType !== 'checkboxes') {
                     config.limit = 1;
                 }
 

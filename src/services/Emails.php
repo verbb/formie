@@ -323,7 +323,15 @@ class Emails extends Component
 
         // Attach any file uploads
         if ($notification->attachFiles) {
-            $this->_attachFilesToEmail($newEmail, $submission);
+            // Grab all the file upload fields, including in nested fields
+            if ($assets = $this->_getAssetsForSubmission($submission)) {
+                $this->_attachAssetsToEmail($assets, $newEmail);
+            }
+        }
+
+        // Attach any static assets
+        if ($assets = $notification->getAssetAttachments()) {
+            $this->_attachAssetsToEmail($assets, $newEmail);
         }
 
         // Attach any PDF templates
@@ -549,11 +557,8 @@ class Emails extends Component
     /**
      * @inheritDoc
      */
-    private function _attachFilesToEmail(Message $message, Submission $submission)
+    private function _attachAssetsToEmail($assets, Message $message)
     {
-        // Grab all the file upload fields, including in nested fields
-        $assets = $this->_getAssetsForSubmission($submission);
-
         foreach ($assets as $asset) {
             $path = '';
 
@@ -575,10 +580,10 @@ class Emails extends Component
             if ($path) {
                 $message->attach($path, ['fileName' => $asset->filename]);
             }
-        }
 
-        // Fix a bug with SwiftMailer where setting an attachment clears out the body of the email!
-        $this->_fixSwiftMailerBody($message);
+            // Fix a bug with SwiftMailer where setting an attachment clears out the body of the email!
+            $this->_fixSwiftMailerBody($message);
+        }
     }
 
     /**

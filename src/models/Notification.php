@@ -8,6 +8,7 @@ use verbb\formie\prosemirror\tohtml\Renderer;
 
 use Craft;
 use craft\base\Model;
+use craft\elements\Asset;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 use craft\helpers\StringHelper;
@@ -38,6 +39,7 @@ class Notification extends Model
     public $content;
     public $attachFiles;
     public $attachPdf;
+    public $attachAssets;
     public $enableConditions;
     public $conditions;
     public $uid;
@@ -249,5 +251,19 @@ class Notification extends Model
         } else {
             $this->_pdfTemplate = $this->pdfTemplateId = null;
         }
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getAssetAttachments()
+    {
+        $attachAssets = Json::decode($this->attachAssets) ?? [];
+
+        if ($ids = ArrayHelper::getColumn($attachAssets, 'id')) {
+            return Asset::find()->id($ids)->all();
+        }
+
+        return [];
     }
 }

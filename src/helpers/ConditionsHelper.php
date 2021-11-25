@@ -102,7 +102,7 @@ class ConditionsHelper
                 ];
 
                 // Protect against empty conditions
-                if (!trim(ConditionsHelper::recursiveImplode('', $variables))) {
+                if (!trim(ArrayHelper::recursiveImplode('', $variables))) {
                     continue;
                 }
 

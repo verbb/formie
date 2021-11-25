@@ -15,6 +15,7 @@ use verbb\formie\records\Notification as NotificationRecord;
 
 use Craft;
 use craft\db\Query;
+use craft\elements\Asset;
 use craft\helpers\ArrayHelper;
 use craft\helpers\StringHelper;
 use craft\helpers\Json;
@@ -145,6 +146,7 @@ class Notifications extends Component
             $notificationRecord->content = $notification->content;
             $notificationRecord->attachFiles = $notification->attachFiles;
             $notificationRecord->attachPdf = $notification->attachPdf;
+            $notificationRecord->attachAssets = $notification->attachAssets;
             $notificationRecord->enableConditions = $notification->enableConditions;
             $notificationRecord->conditions = $notification->conditions;
 
@@ -272,6 +274,22 @@ class Notifications extends Component
             $config = $notification->getAttributes();
             $config['errors'] = $notification->getErrors();
             $config['hasError'] = (bool)$notification->getErrors();
+
+            $attachAssets = Json::decode($notification->attachAssets) ?? [];
+
+            // For assets to attach, supply extra content that can't be called directly in Vue, like it can in Twig.
+            if ($ids = ArrayHelper::getColumn($attachAssets, 'id')) {
+                $elements = Asset::find()->id($ids)->all();
+
+                // Maintain an options array so we can keep track of the label in Vue, not just the saved value
+                $config['attachAssetsOptions'] = array_map(function($input) {
+                    return ['label' => $input->title, 'value' => $input->id];
+                }, $elements);
+
+                // Render the HTML needed for the element select field (for default value). jQuery needs DOM manipulation
+                // so while gross, we have to supply the raw HTML, as opposed to models in the Vue-way.
+                $config['attachAssetsHtml'] = Craft::$app->getView()->renderTemplate('formie/_includes/element-select-inuput-elements', ['elements' => $elements]);
+            }
 
             $notificationsConfig[] = $config;
         }
@@ -586,6 +604,17 @@ class Notifications extends Component
                 'help' => Craft::t('formie', 'Whether to attach file uploads to this email notification.'),
                 'name' => 'attachFiles',
             ]),
+            SchemaHelper::elementSelectField([
+                'label' => Craft::t('formie', 'Attach Assets'),
+                'help' => Craft::t('formie', 'Select assets to be attached to this email notification.'),
+                'name' => 'attachAssets',
+                'selectionLabel' => Craft::t('site', 'Add an asset'),
+                'config' => [
+                    'jsClass' => 'Craft.AssetSelectInput',
+                    'elementType' => Asset::class,
+                    'limit' => false,
+                ],
+            ]),
         ];
     }
 
@@ -706,6 +735,7 @@ class Notifications extends Component
                 'content',
                 'attachFiles',
                 'attachPdf',
+                'attachAssets',
                 'enableConditions',
                 'conditions',
                 'uid'

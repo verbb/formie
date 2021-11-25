@@ -184,6 +184,7 @@ class Install extends Migration
             'content' => $this->text(),
             'attachFiles' => $this->boolean()->defaultValue(true),
             'attachPdf' => $this->boolean()->defaultValue(false),
+            'attachAssets' => $this->text(),
             'enableConditions' => $this->boolean()->defaultValue(false),
             'conditions' => $this->text(),
             'dateCreated' => $this->dateTime()->notNull(),
