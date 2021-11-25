@@ -477,6 +477,11 @@ class Categories extends CraftCategories implements FormFieldInterface
                     'help' => Craft::t('formie', 'Whether to show the hierarchical structure of categories in the dropdown.'),
                     'name' => 'showStructure',
                 ]),
+                SchemaHelper::lightswitchField([
+                    'label' => Craft::t('formie', 'Allow Multiple'),
+                    'help' => Craft::t('formie', 'Whether this field should allow multiple options to be selected.'),
+                    'name' => 'multiple',
+                ]),
             ]),
             SchemaHelper::labelPosition($this),
             SchemaHelper::instructions(),

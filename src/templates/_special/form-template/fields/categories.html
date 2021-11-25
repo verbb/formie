@@ -5,6 +5,7 @@
         id: options.id,
         class: [ 'fui-select' ],
         name: field.handle ~ '[]',
+        multiple: field.multiple ? true : false,
         required: field.required ? true : false,
         data: {
             'fui-id': options.dataId,
@@ -17,7 +18,12 @@
 
     <select {{ attr(attributes) }}>
         {% for option in field.getFieldOptions() %}
-            {% set selected = value and value.value ? value.value == option.value : (option.isDefault ?? false) %}
+            {% if field.multiple %}
+                {% set selected = value ? value.contains(option.value) : (option.isDefault ?? false) %}
+            {% else %}
+                {% set selected = value and value.value ? value.value == option.value : (option.isDefault ?? false) %}
+            {% endif %}
+
             {% set level = option.level ?? null %}
 
             <option value="{{ option.value }}" {{ selected ? ' selected' }}>{% if field.settings.showStructure and level %}{% for i in 1..level %}-{% endfor %} {% endif %}{{ option.label | t }}</option>

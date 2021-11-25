@@ -1,8 +1,12 @@
 <template>
     <div>
         <div v-if="field.settings.displayType == 'dropdown'">
-            <select class="fui-field-select">
+            <select class="fui-field-select" :multiple="field.settings.multiple">
                 <option value="">{{ defaultValue.label || field.settings.placeholder }}</option>
+
+                <option v-for="(option, index) in options" :key="index" :selected="defaultValue.value === option.value ? true : false">
+                    {{ option.label }}
+                </option>
             </select>
         </div>
 

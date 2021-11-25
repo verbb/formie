@@ -383,6 +383,13 @@ class Products extends CommerceProducts implements FormFieldInterface
                     [ 'label' => Craft::t('formie', 'Radio Buttons'), 'value' => 'radio' ],
                 ],
             ]),
+            SchemaHelper::toggleContainer('settings.displayType=dropdown', [
+                SchemaHelper::lightswitchField([
+                    'label' => Craft::t('formie', 'Allow Multiple'),
+                    'help' => Craft::t('formie', 'Whether this field should allow multiple options to be selected.'),
+                    'name' => 'multiple',
+                ]),
+            ]),
             SchemaHelper::labelPosition($this),
             SchemaHelper::instructions(),
             SchemaHelper::instructionsPosition($this),

@@ -27,7 +27,8 @@ trait RelationFieldTrait
     public $displayType = 'dropdown';
     public $labelSource = 'title';
     public $orderBy = 'title ASC';
-    
+    public $multiple = false;
+
     protected $elementsQuery = null;
 
 
@@ -48,6 +49,14 @@ trait RelationFieldTrait
         }
 
         return false;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getIsMultiDropdown()
+    {
+        return ($this->displayType === 'dropdown' && $this->multiple);
     }
 
     /**
@@ -95,7 +104,7 @@ trait RelationFieldTrait
         }
 
         // For certain display types, pre-fetch elements for use in the preview in the CP for the field. Saves an initial Ajax request
-        if ($this->displayType === 'checkboxes' || $this->displayType === 'radio') {
+        if ($this->displayType === 'checkboxes' || $this->displayType === 'radio' || $this->getIsMultiDropdown()) {
             $settings['elements'] = $this->getPreviewElements();
         }
 
@@ -295,7 +304,7 @@ trait RelationFieldTrait
      */
     public function getDisplayTypeValue($value)
     {
-        if ($this->displayType === 'checkboxes') {
+        if ($this->displayType === 'checkboxes' || $this->getIsMultiDropdown()) {
             $options = [];
 
             if ($value) {

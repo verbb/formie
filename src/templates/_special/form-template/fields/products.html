@@ -5,19 +5,24 @@
         id: options.id,
         class: [ 'fui-select' ],
         name: field.handle ~ '[]',
+        multiple: field.multiple ? true : false,
         required: field.required ? true : false,
         data: {
+            'fui-id': options.dataId,
             'fui-message': field.settings.errorMessage | t,
         },
-        data: {
-            'fui-id': options.dataId,
+        aria: {
             required: field.required ? 'true' : 'false',
         },
     } | merge(field.getInputAttributes()) %}
 
     <select {{ attr(attributes) }}>
         {% for option in field.getFieldOptions() %}
-            {% set selected = value and value.value ? value.value == option.value : (option.isDefault ?? false) %}
+            {% if field.multiple %}
+                {% set selected = value ? value.contains(option.value) : (option.isDefault ?? false) %}
+            {% else %}
+                {% set selected = value and value.value ? value.value == option.value : (option.isDefault ?? false) %}
+            {% endif %}
 
             <option value="{{ option.value }}" {{ selected ? ' selected' }}>{{ option.label | t }}</option>
         {% endfor %}
