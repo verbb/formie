@@ -157,8 +157,9 @@ class FieldLayoutPage extends CraftFieldLayoutTab
     {
         if ($this->settings->enablePageConditions) {
             $conditionSettings = Json::decode($this->settings->pageConditions) ?? [];
+            $conditions = $conditionSettings['conditions'] ?? [];
 
-            if ($conditionSettings) {
+            if ($conditionSettings && $conditions) {
                 // A `true` result means the field passed the evaluation and that it has a value, whilst a `false` result means
                 // it didn't (for instance the field doesn't have a value)
                 $result = ConditionsHelper::getConditionalTestResult($conditionSettings, $submission);

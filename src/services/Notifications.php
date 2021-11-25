@@ -387,8 +387,9 @@ class Notifications extends Component
     {
         if ($notification->enableConditions) {
             $conditionSettings = Json::decode($notification->conditions) ?? [];
+            $conditions = $conditionSettings['conditions'] ?? [];
 
-            if ($conditionSettings) {
+            if ($conditionSettings && $conditions) {
                 $result = ConditionsHelper::getConditionalTestResult($conditionSettings, $submission);
 
                 // Lastly, check to see if we should return true or false depending on if we want to send or not
