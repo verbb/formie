@@ -954,8 +954,9 @@ trait FormFieldTrait
         // Check if the field itself is hidden
         if ($this->enableConditions) {
             $conditionSettings = Json::decode($this->conditions) ?? [];
+            $conditions = $conditionSettings['conditions'] ?? [];
 
-            if ($conditionSettings) {
+            if ($conditionSettings && $conditions) {
                 // A `true` result means the field passed the evaluation and that it has a value, whilst a `false` result means
                 // it didn't (for instance the field doesn't have a value)
                 $result = ConditionsHelper::getConditionalTestResult($conditionSettings, $submission);

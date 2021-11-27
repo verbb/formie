@@ -19,11 +19,13 @@ class FakeElementQuery extends ElementQuery
      */
     public function setFieldValues($values, $fieldLayout = null)
     {
-        $element = new FakeElement($values);
+        $element = new FakeElement();
 
         if ($fieldLayout) {
             $element->fieldLayoutId = $fieldLayout->id;
         }
+
+        $element->setFieldValues($values);
 
         $this->_fieldValues[] = $element;
     }

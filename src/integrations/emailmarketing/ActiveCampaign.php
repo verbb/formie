@@ -176,8 +176,6 @@ class ActiveCampaign extends EmailMarketing
                 // Cleanup and handle multiple tags
                 $tags = array_filter(array_map('trim', explode(',', $tags)));
 
-                $tags = ['Mailchimp', 'Another'];
-
                 if ($tags) {
                     // Find all the tags first
                     $response = $this->request('GET', 'tags');

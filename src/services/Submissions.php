@@ -634,6 +634,15 @@ class Submissions extends Component
 
         foreach ($fields as $key => $field) {
             switch (get_class($field)) {
+                case formfields\Categories::class:
+                case formfields\Entries::class:
+                case formfields\Products::class:
+                case formfields\Tags::class:
+                case formfields\Users::class:
+                case formfields\Variants::class:
+                    $fieldContent[$field->handle] = $field->getElementsQuery();
+
+                    break;                    
                 case formfields\Address::class:
                     $fieldContent[$field->handle]['address1'] = $faker->address;
                     $fieldContent[$field->handle]['address2'] = $faker->buildingNumber;
@@ -714,7 +723,7 @@ class Submissions extends Component
                 case formfields\Recipients::class:
                     $fieldContent[$field->handle] = $faker->email;
 
-                    break;                    
+                    break;
                 default:
                     $fieldContent[$field->handle] = $faker->text;
 

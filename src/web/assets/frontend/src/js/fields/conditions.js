@@ -16,7 +16,7 @@ export class FormieConditions {
         this.$form.querySelectorAll('[data-field-conditions]').forEach(($field) => {
             const conditionSettings = this.parseJsonConditions($field);
 
-            if (!conditionSettings) {
+            if (!conditionSettings || !conditionSettings.conditions.length) {
                 return;
             }
 

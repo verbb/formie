@@ -1039,8 +1039,8 @@ class SubmissionsController extends Controller
         // Ensure we validate some params here to prevent potential malicious-ness
         $submissionId = $this->_getTypedParam('submissionId', 'id');
         $siteId = $this->_getTypedParam('siteId', 'id');
-        $userParam = $this->_getTypedParam('user', 'string');
-
+        $userParam = $request->getParam('user');
+        
         if ($submissionId) {
             // Allow fetching spammed submissions for multi-step forms, where its been flagged as spam
             // already, but we want to complete the form submission.
@@ -1151,7 +1151,7 @@ class SubmissionsController extends Controller
                 return StringHelper::toBoolean($value);
             }
 
-            if ($type === 'int' && is_numeric($value)) {
+            if ($type === 'int' && (is_numeric($value) || $value === '')) {
                 return intval($value);
             }
 
