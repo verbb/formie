@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.4.27 - 2021-11-27
+
+### Added
+- Added `formCount` and `submissionCount` to GraphQL queries for forms and submissions.
+
+### Fixed
+- Fixed invalid conditional logic results when "Enable Conditions" was enabled, but no conditional logic provided.
+- Fixed a validation error when passing in `pageIndex` with an empty value for submissions.
+- Fixed debug tags for ActiveCampaign being incorrectly sent.
+- Fixed an error when trying to save a submission in the control panel when "Collect User" was enabled.
+- Fixed element fields not showing correctly when previewing email notifications.
+- Fixed an error when previewing Group or Repeater fields in email notifications.
+
 ## 1.4.26 - 2021-11-23
 
 ### Added
