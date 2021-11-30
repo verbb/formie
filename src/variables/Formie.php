@@ -213,9 +213,9 @@ class Formie
         return Variables::getParsedValue($value, $submission, $form, $notification);
     }
 
-    public function populateFormValues($form, $values)
+    public function populateFormValues($form, $values, $force = false)
     {
-        return FormiePlugin::$plugin->getRendering()->populateFormValues($form, $values);
+        return FormiePlugin::$plugin->getRendering()->populateFormValues($form, $values, $force);
     }
 
     /**
