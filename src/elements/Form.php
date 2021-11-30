@@ -79,6 +79,7 @@ class Form extends Element
     private $_defaultStatus;
     private $_submitActionEntry;
     private $_notifications;
+    private $_currentSubmission;
     private $_editingSubmission;
     private $_formId;
     private static $_layoutsByType;
@@ -890,6 +891,10 @@ class Form extends Element
      */
     public function getCurrentSubmission()
     {
+        if ($this->_currentSubmission) {
+            return $this->_currentSubmission;
+        }
+
         // See if there's a submission on routeParams - an error has occurred.
         $params = Craft::$app->getUrlManager()->getRouteParams();
 
@@ -902,12 +907,12 @@ class Form extends Element
         $submissionId = Craft::$app->getSession()->get($this->_getSessionKey('submissionId'));
 
         if ($submissionId && $submission = Submission::find()->id($submissionId)->isIncomplete(true)->one()) {
-            return $submission;
+            return $this->_currentSubmission = $submission;
         }
 
         // Or, if we're editing a submission
         if ($submission = $this->_editingSubmission) {
-            return $submission;
+            return $this->_currentSubmission = $submission;
         }
 
         return null;
@@ -931,6 +936,8 @@ class Form extends Element
             Craft::$app->getContent()->populateElementContent($submission);
             Craft::$app->getSession()->set($this->_getSessionKey('submissionId'), $submission->id);
         }
+
+        $this->_currentSubmission = $submission;
     }
 
     /**
@@ -946,6 +953,8 @@ class Form extends Element
 
         $this->resetCurrentPage();
         Craft::$app->getSession()->remove($this->_getSessionKey('submissionId'));
+
+        $this->_currentSubmission = null;
     }
 
     /**
