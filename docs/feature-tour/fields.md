@@ -109,7 +109,6 @@ A field for users select from a dropdown field. The field can also get to to all
 #### Settings
 Setting | Description
 --- | ---
-Placeholder | The option shown initially, when no option is selected.
 Allow Multiple | Whether this field should allow multiple options to be selected.
 Options | Define the available options for users to select from.
 
