@@ -483,10 +483,6 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
      */
     public function getAutocompleteHtml($options): string
     {
-        if (!$this->autocompleteEnabled || !$this->autocompleteIntegration) {
-            return '';
-        }
-
         $integration = $this->getAddressProviderIntegration();
 
         if (!$integration) {
@@ -501,10 +497,6 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
      */
     public function getFrontEndJsModules()
     {
-        if (!$this->autocompleteEnabled || !$this->autocompleteIntegration) {
-            return null;
-        }
-
         $integration = $this->getAddressProviderIntegration();
 
         if (!$integration) {
@@ -519,6 +511,10 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
      */
     public function getAddressProviderIntegration()
     {
+        if (!$this->autocompleteEnabled || !$this->autocompleteIntegration) {
+            return null;
+        }
+
         return Formie::$plugin->getIntegrations()->getIntegrationByHandle($this->autocompleteIntegration) ?? null;
     }
 
