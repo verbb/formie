@@ -18,6 +18,17 @@
         labelPosition: labelPosition,
     } %}
 
+    {% if field.hasCurrentLocation() and handle == 'autocomplete' %}
+        {% set labelOptions = labelOptions | merge({
+            extraContent: tag('a', {
+                href: 'javascript:;',
+                class: 'fui-link fui-address-location-link',
+                text: 'Use my location' | t('site'),
+                'data-fui-address-location-btn': true,
+            }),
+        }) %}
+    {% endif %}
+
     <div class="fui-input-container">
         {% hook 'formie.subfield.field-start' %}
 

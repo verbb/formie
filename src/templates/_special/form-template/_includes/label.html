@@ -15,6 +15,10 @@
             {%- if field.required ?? required ?? false -%}
                 &nbsp;<span class="fui-required">*</span>
             {% endif %}
+
+            {% if extraContent is defined %}
+                {{ extraContent | raw }}
+            {% endif %}
         </label>
     {% endif %}
 {% endif %}

@@ -1,5 +1,9 @@
-export class FormieAddressFinder {
+import { FormieAddressProvider } from './address-provider';
+
+export class FormieAddressFinder extends FormieAddressProvider {
     constructor(settings = {}) {
+        super(settings);
+
         this.$form = settings.$form;
         this.form = this.$form.form;
         this.$field = settings.$field;

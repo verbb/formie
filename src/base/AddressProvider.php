@@ -45,6 +45,14 @@ abstract class AddressProvider extends Integration implements IntegrationInterfa
     /**
      * @inheritDoc
      */
+    public static function supportsCurrentLocation(): bool
+    {
+        return false;
+    }
+
+    /**
+     * @inheritDoc
+     */
     public static function hasFormSettings(): bool
     {
         return false;

@@ -41,6 +41,14 @@ class Google extends AddressProvider
     /**
      * @inheritDoc
      */
+    public static function supportsCurrentLocation(): bool
+    {
+        return true;
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function getDescription(): string
     {
         return Craft::t('formie', 'Use [Google Places Autocomplete](https://developers.google.com/maps/documentation/javascript/places-autocomplete) to suggest addresses, for address fields.');

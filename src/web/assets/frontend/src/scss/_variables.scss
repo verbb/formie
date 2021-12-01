@@ -104,6 +104,14 @@ $focus-shadow: 0 0 0 3px rgba(164, 202, 254, 0.45) !default;
     --fui-btn-container-margin: 0 -0.5rem 0 -0.5rem;
     --fui-btn-margin: 0 0.5rem 0 0.5rem;
 
+    // Link
+    --fui-link-transition-property: background-color, border-color, color, fill, stroke, opacity, box-shadow, transform;
+    --fui-link-transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    --fui-link-transition-duration: 0.15s;
+    --fui-link-color: var(--fui-primary-color, #{$primary-color});
+    --fui-link-color-hover: var(--fui-primary-color-hover, #{$primary-color-hover});
+    --fui-link-text-decoration: underline;
+
     // Submit Button
     --fui-submit-btn-color: #fff;
     --fui-submit-btn-color-hover: #fff;

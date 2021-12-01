@@ -66,6 +66,24 @@
     }
 }
 
+// ==========================================================================
+// Framework - Links
+// ==========================================================================
+
+.fui-link {
+    color: var(--fui-link-color);
+    transition-property: var(--fui-link-transition-property);
+    transition-timing-function: var(--fui-link-transition-timing-function);
+    transition-duration: var(--fui-link-transition-duration);
+    text-decoration: var(--fui-link-text-decoration);
+
+    &:hover,
+    &:focus,
+    &:active {
+        color: var(--fui-link-color-hover);
+    }
+}
+
 
 // ==========================================================================
 // Framework - Loading

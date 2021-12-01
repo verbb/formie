@@ -86,6 +86,7 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
     public $autocompletePrePopulate;
     public $autocompleteRequired;
     public $autocompleteErrorMessage;
+    public $autocompleteCurrentLocation;
 
     public $address1Enabled;
     public $address1Collapsed;
@@ -236,6 +237,7 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
             'autocompleteLabel' => Craft::t('formie', 'Auto-Complete'),
             'autocompleteDefaultValue' => '',
             'autocompletePrePopulate' => '',
+            'autocompleteCurrentLocation' => false,
 
             'address1Enabled' => true,
             'address1Collapsed' => true,
@@ -485,7 +487,7 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
             return '';
         }
 
-        $integration = Formie::$plugin->getIntegrations()->getIntegrationByHandle($this->autocompleteIntegration);
+        $integration = $this->getAddressProviderIntegration();
 
         if (!$integration) {
             return '';
@@ -503,13 +505,43 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
             return null;
         }
 
-        $integration = Formie::$plugin->getIntegrations()->getIntegrationByHandle($this->autocompleteIntegration);
+        $integration = $this->getAddressProviderIntegration();
 
         if (!$integration) {
             return null;
         }
 
         return $integration->getFrontEndJsVariables($this);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getAddressProviderIntegration()
+    {
+        return Formie::$plugin->getIntegrations()->getIntegrationByHandle($this->autocompleteIntegration) ?? null;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function supportsCurrentLocation(): bool
+    {
+        $integration = $this->getAddressProviderIntegration();
+
+        if ($integration && $integration->supportsCurrentLocation() ) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function hasCurrentLocation(): bool
+    {
+        return $this->supportsCurrentLocation() && $this->autocompleteCurrentLocation;
     }
 
     /**
@@ -626,6 +658,14 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
                     'label' => Craft::t('formie', 'Hidden Field'),
                     'help' => Craft::t('formie', 'Whether this field should be hidden when filling out the form.'),
                     'name' => $nestedField['handle'] . 'Hidden',
+                ]);
+            } else {
+                $subfields[] = SchemaHelper::toggleContainer('settings.autocompleteIntegration=googlePlaces', [
+                    SchemaHelper::lightswitchField([
+                        'label' => Craft::t('formie', 'Show Current Location Button'),
+                        'help' => Craft::t('formie', 'Whether this field should show a "Use my location" button.'),
+                        'name' => $nestedField['handle'] . 'CurrentLocation',
+                    ]),
                 ]);
             }
 

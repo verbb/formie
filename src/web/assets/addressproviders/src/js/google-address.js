@@ -1,5 +1,9 @@
-export class FormieGoogleAddress {
+import { FormieAddressProvider } from './address-provider';
+
+export class FormieGoogleAddress extends FormieAddressProvider {
     constructor(settings = {}) {
+        super(settings);
+
         this.$form = settings.$form;
         this.form = this.$form.form;
         this.$field = settings.$field;
@@ -62,39 +66,68 @@ export class FormieGoogleAddress {
 
         autocomplete.addListener('place_changed', () => {
             var place = autocomplete.getPlace();
-            var componentMap = this.componentMap();
-
-            let formData = {};
 
             if (!place.address_components) {
                 // Seem to be having some issues with `address_components` being empty for units...
                 return;
             }
 
-            // Sort out the data from Google so its easier to manage
-            for (var i = 0; i < place.address_components.length; i++) {
-                var [addressType] = place.address_components[i].types;
-
-                if (componentMap[addressType]) {
-                    formData[addressType] = place.address_components[i][componentMap[addressType]];
-                }
-            }
-
-            if (formData.street_number && formData.route) {
-                let street = formData.street_number + ' ' + formData.route;
-
-                if (formData.subpremise) {
-                    street = formData.subpremise + '/' + street;
-                }
-
-                this.setFieldValue('[data-address1]', street);
-            }
-
-            this.setFieldValue('[data-city]', formData.locality);
-            this.setFieldValue('[data-zip]', formData.postal_code);
-            this.setFieldValue('[data-state]', formData.administrative_area_level_1);
-            this.setFieldValue('[data-country]', formData.country);
+            this.setAddressValues(place.address_components);
         });
+    }
+
+    setAddressValues(address) {
+        const formData = {};
+        const componentMap = this.componentMap();
+
+        // Sort out the data from Google so its easier to manage
+        for (var i = 0; i < address.length; i++) {
+            var [addressType] = address[i].types;
+
+            if (componentMap[addressType]) {
+                formData[addressType] = address[i][componentMap[addressType]];
+            }
+        }
+
+        if (formData.street_number && formData.route) {
+            let street = formData.street_number + ' ' + formData.route;
+
+            if (formData.subpremise) {
+                street = formData.subpremise + '/' + street;
+            }
+
+            this.setFieldValue('[data-address1]', street);
+        }
+
+        this.setFieldValue('[data-city]', formData.locality);
+        this.setFieldValue('[data-zip]', formData.postal_code);
+        this.setFieldValue('[data-state]', formData.administrative_area_level_1);
+        this.setFieldValue('[data-country]', formData.country);
+    }
+
+    onCurrentLocation(position) {
+        const { latitude, longitude } = position.coords;
+
+        const xhr = new XMLHttpRequest();
+        xhr.open('GET', 'https://maps.googleapis.com/maps/api/geocode/json?latlng=' + latitude + ',' + longitude + '&key=' + this.apiKey, true);
+        
+        xhr.onload = () => {
+            if (xhr.status >= 200 && xhr.status < 300) {
+                try {
+                    const response = JSON.parse(xhr.responseText);
+
+                    if (response && response.results && response.results[0] && response.results[0].address_components) {
+                        this.setAddressValues(response.results[0].address_components);
+                    }
+                } catch(e) {
+                    console.log(e);
+                }
+            } else {
+                console.log(xhr.status + ': ' + xhr.statusText);
+            }
+        };
+
+        xhr.send();
     }
 
     componentMap() {

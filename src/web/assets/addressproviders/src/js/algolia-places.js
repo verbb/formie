@@ -1,7 +1,10 @@
 const places = require('places.js');
+import { FormieAddressProvider } from './address-provider';
 
-export class FormieAlgoliaPlaces {
+export class FormieAlgoliaPlaces extends FormieAddressProvider {
     constructor(settings = {}) {
+        super(settings);
+
         this.$form = settings.$form;
         this.form = this.$form.form;
         this.$field = settings.$field;
