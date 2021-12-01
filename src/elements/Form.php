@@ -1175,7 +1175,7 @@ class Form extends Element
         }
 
         if (!$this->_submitActionEntry) {
-            $this->_submitActionEntry = Craft::$app->getEntries()->getEntryById($this->submitActionEntryId);
+            $this->_submitActionEntry = Craft::$app->getEntries()->getEntryById($this->submitActionEntryId, '*');
         }
 
         return $this->_submitActionEntry;
