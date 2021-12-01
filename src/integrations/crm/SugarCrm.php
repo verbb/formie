@@ -11,6 +11,7 @@ use verbb\formie\events\SendIntegrationPayloadEvent;
 use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
+use verbb\formie\models\Token;
 
 use Craft;
 use craft\helpers\ArrayHelper;
@@ -18,15 +19,24 @@ use craft\helpers\Json;
 use craft\helpers\StringHelper;
 use craft\web\View;
 
+use League\OAuth2\Client\Grant\RefreshToken;
+
 class SugarCrm extends Crm
 {
     // Properties
     // =========================================================================
 
-    public $clientId;
-    public $clientSecret;
+    public $username;
+    public $password;
+    public $apiDomain;
     public $mapToContact = false;
+    public $mapToLead = false;
+    public $mapToOpportunity = false;
+    public $mapToAccount = false;
     public $contactFieldMapping;
+    public $leadFieldMapping;
+    public $opportunityFieldMapping;
+    public $accountFieldMapping;
 
 
     // OAuth Methods
@@ -45,7 +55,7 @@ class SugarCrm extends Crm
      */
     public function getAuthorizeUrl(): string
     {
-        return 'https://accounts.infusionsoft.com/app/oauth/authorize';
+        return '';
     }
 
     /**
@@ -53,7 +63,9 @@ class SugarCrm extends Crm
      */
     public function getAccessTokenUrl(): string
     {
-        return 'https://api.infusionsoft.com/token';
+        $apiDomain = rtrim(Craft::parseEnv($this->apiDomain), '/');
+
+        return "{$apiDomain}/rest/v11/oauth2/token";;
     }
 
     /**
@@ -61,7 +73,7 @@ class SugarCrm extends Crm
      */
     public function getClientId(): string
     {
-        return Craft::parseEnv($this->clientId);
+        return 'sugar';
     }
 
     /**
@@ -69,7 +81,31 @@ class SugarCrm extends Crm
      */
     public function getClientSecret(): string
     {
-        return Craft::parseEnv($this->clientSecret);
+        return '';
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function oauthCallback()
+    {
+        $provider = $this->getOauthProvider();
+
+        $this->beforeFetchAccessToken($provider);
+
+        // Get a password grant, which is different from normal
+        $token = $provider->getAccessToken('password', [
+            'username' => Craft::parseEnv($this->username),
+            'password' => Craft::parseEnv($this->password),
+            'platform' => 'formie',
+        ]);
+
+        $this->afterFetchAccessToken($token);
+
+        return [
+            'success' => true,
+            'token' => $token,
+        ];
     }
 
 
@@ -99,13 +135,28 @@ class SugarCrm extends Crm
     {
         $rules = parent::defineRules();
 
-        $rules[] = [['clientId', 'clientSecret'], 'required'];
+        $rules[] = [['username', 'password', 'apiDomain'], 'required'];
 
         $contact = $this->getFormSettingValue('contact');
+        $lead = $this->getFormSettingValue('lead');
+        $opportunity = $this->getFormSettingValue('opportunity');
+        $account = $this->getFormSettingValue('account');
 
         // Validate the following when saving form settings
         $rules[] = [['contactFieldMapping'], 'validateFieldMapping', 'params' => $contact, 'when' => function($model) {
             return $model->enabled && $model->mapToContact;
+        }, 'on' => [Integration::SCENARIO_FORM]];
+
+        $rules[] = [['leadFieldMapping'], 'validateFieldMapping', 'params' => $lead, 'when' => function($model) {
+            return $model->enabled && $model->mapToLead;
+        }, 'on' => [Integration::SCENARIO_FORM]];
+
+        $rules[] = [['opportunityFieldMapping'], 'validateFieldMapping', 'params' => $opportunity, 'when' => function($model) {
+            return $model->enabled && $model->mapToOpportunity;
+        }, 'on' => [Integration::SCENARIO_FORM]];
+
+        $rules[] = [['accountFieldMapping'], 'validateFieldMapping', 'params' => $account, 'when' => function($model) {
+            return $model->enabled && $model->mapToAccount;
         }, 'on' => [Integration::SCENARIO_FORM]];
 
         return $rules;
@@ -119,112 +170,51 @@ class SugarCrm extends Crm
         $settings = [];
 
         try {
-            $response = $this->request('GET', 'contacts/model');
-            $fields = $response['custom_fields'] ?? [];
+            $response = $this->request('GET', 'metadata', [
+                'query' => [
+                    'type_filter' => 'modules',
+                    'module_filter' => 'Contacts',
+                ],
+            ]);
 
-            $contactFields = array_merge([
-                new IntegrationField([
-                    'handle' => 'given_name',
-                    'name' => Craft::t('formie', 'First Name'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'middle_name',
-                    'name' => Craft::t('formie', 'Middle Name'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'family_name',
-                    'name' => Craft::t('formie', 'Last Name'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'suffix',
-                    'name' => Craft::t('formie', 'Suffix'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'preferred_name',
-                    'name' => Craft::t('formie', 'Preferred Name'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'website',
-                    'name' => Craft::t('formie', 'Website'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'time_zone',
-                    'name' => Craft::t('formie', 'Timezone'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'spouse_name',
-                    'name' => Craft::t('formie', 'Spouse Name'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'opt_in_reason',
-                    'name' => Craft::t('formie', 'Opt-in Reason'),
-                    'required' => true,
-                ]),
-                new IntegrationField([
-                    'handle' => 'lead_source_id',
-                    'name' => Craft::t('formie', 'Lead Source ID'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'job_title',
-                    'name' => Craft::t('formie', 'Job Title'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'owner_id',
-                    'name' => Craft::t('formie', 'Owner ID'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'email',
-                    'name' => Craft::t('formie', 'Email'),
-                    'required' => true,
-                ]),
-                new IntegrationField([
-                    'handle' => 'line1',
-                    'name' => Craft::t('formie', 'Address Street'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'line2',
-                    'name' => Craft::t('formie', 'Address Street 2'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'locality',
-                    'name' => Craft::t('formie', 'Address City'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'postal_code',
-                    'name' => Craft::t('formie', 'Address Postal Code'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'region',
-                    'name' => Craft::t('formie', 'Address Region'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'zip_code',
-                    'name' => Craft::t('formie', 'Address Zip Code'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'country_code',
-                    'name' => Craft::t('formie', 'Address Country Code'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'number',
-                    'name' => Craft::t('formie', 'Phone Number'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'anniversary',
-                    'name' => Craft::t('formie', 'Anniversary'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'birthday',
-                    'name' => Craft::t('formie', 'Birthday'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'source_type',
-                    'name' => Craft::t('formie', 'Source Type'),
-                ]),
-            ], $this->_getCustomFields($fields));
+            $fields = $response['modules']['Contacts']['fields'] ?? [];
+            $contactFields = $this->_getCustomFields($fields);
+
+            $response = $this->request('GET', 'metadata', [
+                'query' => [
+                    'type_filter' => 'modules',
+                    'module_filter' => 'Leads',
+                ],
+            ]);
+
+            $fields = $response['modules']['Leads']['fields'] ?? [];
+            $leadFields = $this->_getCustomFields($fields);
+
+            $response = $this->request('GET', 'metadata', [
+                'query' => [
+                    'type_filter' => 'modules',
+                    'module_filter' => 'Opportunities',
+                ],
+            ]);
+
+            $fields = $response['modules']['Opportunities']['fields'] ?? [];
+            $opportunityFields = $this->_getCustomFields($fields);
+
+            $response = $this->request('GET', 'metadata', [
+                'query' => [
+                    'type_filter' => 'modules',
+                    'module_filter' => 'Accounts',
+                ],
+            ]);
+
+            $fields = $response['modules']['Accounts']['fields'] ?? [];
+            $accountFields = $this->_getCustomFields($fields);
 
             $settings = [
                 'contact' => $contactFields,
+                'lead' => $leadFields,
+                'opportunity' => $opportunityFields,
+                'account' => $accountFields,
             ];
         } catch (\Throwable $e) {
             Integration::apiError($this, $e);
@@ -240,25 +230,89 @@ class SugarCrm extends Crm
     {
         try {
             $contactValues = $this->getFieldMappingValues($submission, $this->contactFieldMapping, 'contact');
+            $leadValues = $this->getFieldMappingValues($submission, $this->leadFieldMapping, 'lead');
+            $opportunityValues = $this->getFieldMappingValues($submission, $this->opportunityFieldMapping, 'opportunity');
+            $accountValues = $this->getFieldMappingValues($submission, $this->accountFieldMapping, 'account');
 
-            // Special processing on this due to nested content in payload
-            $contactPayload = $this->_prepContactPayload($contactValues);
+            $contactPayload = $contactValues;
+            $leadPayload = $leadValues;
+            $opportunityPayload = $opportunityValues;
+            $accountPayload = $accountValues;
 
-            $response = $this->deliverPayload($submission, 'contacts', $contactPayload);
+            if ($this->mapToContact) {
+                $response = $this->deliverPayload($submission, 'Contacts', $contactPayload);
 
-            if ($response === false) {
-                return true;
+                if ($response === false) {
+                    return true;
+                }
+
+                $contactId = $response['id'] ?? '';
+
+                if (!$contactId) {
+                    Integration::error($this, Craft::t('formie', 'Missing return “contactId” {response}. Sent payload {payload}', [
+                        'response' => Json::encode($response),
+                        'payload' => Json::encode($contactPayload),
+                    ]), true);
+
+                    return false;
+                }
             }
 
-            $contactId = $response['id'] ?? '';
+            if ($this->mapToLead) {
+                $response = $this->deliverPayload($submission, 'Leads', $leadPayload);
 
-            if (!$contactId) {
-                Integration::error($this, Craft::t('formie', 'Missing return “contactId” {response}. Sent payload {payload}', [
-                    'response' => Json::encode($response),
-                    'payload' => Json::encode($contactPayload),
-                ]), true);
+                if ($response === false) {
+                    return true;
+                }
 
-                return false;
+                $leadId = $response['id'] ?? '';
+
+                if (!$leadId) {
+                    Integration::error($this, Craft::t('formie', 'Missing return “leadId” {response}. Sent payload {payload}', [
+                        'response' => Json::encode($response),
+                        'payload' => Json::encode($leadPayload),
+                    ]), true);
+
+                    return false;
+                }
+            }
+
+            if ($this->mapToOpportunity) {
+                $response = $this->deliverPayload($submission, 'Opportunities', $opportunityPayload);
+
+                if ($response === false) {
+                    return true;
+                }
+
+                $opportunityId = $response['id'] ?? '';
+
+                if (!$opportunityId) {
+                    Integration::error($this, Craft::t('formie', 'Missing return “opportunityId” {response}. Sent payload {payload}', [
+                        'response' => Json::encode($response),
+                        'payload' => Json::encode($opportunityPayload),
+                    ]), true);
+
+                    return false;
+                }
+            }
+
+            if ($this->mapToAccount) {
+                $response = $this->deliverPayload($submission, 'Accounts', $accountPayload);
+
+                if ($response === false) {
+                    return true;
+                }
+
+                $accountId = $response['id'] ?? '';
+
+                if (!$accountId) {
+                    Integration::error($this, Craft::t('formie', 'Missing return “accountId” {response}. Sent payload {payload}', [
+                        'response' => Json::encode($response),
+                        'payload' => Json::encode($accountPayload),
+                    ]), true);
+
+                    return false;
+                }
             }
         } catch (\Throwable $e) {
             Integration::apiError($this, $e);
@@ -278,10 +332,11 @@ class SugarCrm extends Crm
             return $this->_client;
         }
 
+        $apiDomain = rtrim(Craft::parseEnv($this->apiDomain), '/');
         $token = $this->getToken();
 
         $this->_client = Craft::createGuzzleClient([
-            'base_uri' => 'https://api.infusionsoft.com/crm/rest/v1/',
+            'base_uri' => "{$apiDomain}/rest/v11/",
             'headers' => [
                 'Authorization' => 'Bearer ' . $token->accessToken ?? '',
                 'Content-Type' => 'application/json',
@@ -291,15 +346,15 @@ class SugarCrm extends Crm
         // Always provide an authenticated client - so check first.
         // We can't always rely on the EOL of the token.
         try {
-            $response = $this->request('GET', 'account/profile');
+            $response = $this->request('GET', 'ping');
         } catch (\Throwable $e) {
             if ($e->getCode() === 401) {
                 // Force-refresh the token
-                Formie::$plugin->getTokens()->refreshToken($token, true);
+                $this->_refreshToken($token, true);
 
                 // Then try again, with the new access token
                 $this->_client = Craft::createGuzzleClient([
-                    'base_uri' => 'https://api.infusionsoft.com/crm/rest/v1/',
+                    'base_uri' => "{$apiDomain}/rest/v11/",
                     'headers' => [
                         'Authorization' => 'Bearer ' . $token->accessToken ?? '',
                         'Content-Type' => 'application/json',
@@ -318,15 +373,47 @@ class SugarCrm extends Crm
     /**
      * @inheritDoc
      */
+    private function _refreshToken(Token $token, $force = false)
+    {
+        $time = time();
+
+        // Must use a custom function here because of the specific grant required.
+        if ($token->endOfLife && $token->refreshToken || $force) {
+            // Has token expired ?
+            if ($time > $token->endOfLife || $force) {
+                $newToken = $this->getOauthProvider()->getAccessToken('refresh_token', [
+                    'refresh_token' => $token->refreshToken,
+                    'platform' => 'formie',
+                ]);
+
+                if ($newToken) {
+                    $token->accessToken = $newToken->getToken();
+                    $token->endOfLife = $newToken->getExpires();
+
+                    $newRefreshToken = $newToken->getRefreshToken();
+
+                    if (!empty($newRefreshToken)) {
+                        $token->refreshToken = $newToken->getRefreshToken();
+                    }
+
+                    Formie::$plugin->getTokens()->saveToken($token);
+
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @inheritDoc
+     */
     private function _convertFieldType($fieldType)
     {
         $fieldTypes = [
-            'ListBox' => IntegrationField::TYPE_ARRAY,
-            'Number' => IntegrationField::TYPE_FLOAT,
-            'WholeNumber' => IntegrationField::TYPE_NUMBER,
-            'Currency' => IntegrationField::TYPE_FLOAT,
-            'Date' => IntegrationField::TYPE_DATE,
-            'DateTime' => IntegrationField::TYPE_DATETIME,
+            'date' => IntegrationField::TYPE_DATE,
+            'datetime' => IntegrationField::TYPE_DATETIME,
         ];
 
         return $fieldTypes[$fieldType] ?? IntegrationField::TYPE_STRING;
@@ -335,99 +422,43 @@ class SugarCrm extends Crm
     /**
      * @inheritDoc
      */
-    private function _getCustomFields($fields, $excludeNames = [])
+    private function _getCustomFields($fields)
     {
         $customFields = [];
 
         $supportedFields = [
-            'Text',
-            'TextArea',
-            'Radio',
-            'Dropdown',
-            'YesNo',
-            'ListBox',
-            'Number',
-            'WholeNumber',
-            'Currency',
-            'Date',
-            'DateTime',
+            'text',
+            'varchar',
+            'phone',
+            'exact',
+            'email',
+            'name',
+            'date',
+            'datetime',
         ];
 
         foreach ($fields as $key => $field) {
-            // Only allow supported types
-            if (!in_array($field['field_type'], $supportedFields)) {
-                 continue;
+            $name = $field['name'] ?? '';
+            $type = $field['type'] ?? '';
+
+            if (!$type || !$name) {
+                continue;
             }
 
-            // Exclude any names
-            if (in_array($field['field_type'], $excludeNames)) {
+            $name = StringHelper::titleize(str_replace('_', ' ', $name));
+
+            // Only allow supported types
+            if (!in_array($type, $supportedFields)) {
                  continue;
             }
 
             $customFields[] = new IntegrationField([
-                'handle' => 'custom:' . $field['id'],
-                'name' => $field['label'],
-                'type' => $this->_convertFieldType($field['field_type']),
+                'handle' => $key,
+                'name' => $name,
+                'type' => $this->_convertFieldType($type),
             ]);
         }
 
         return $customFields;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    private function _prepContactPayload($fields)
-    {
-        $payload = $fields;
-        $customFields = [];
-
-        foreach ($payload as $key => $value) {
-            if (StringHelper::startsWith($key, 'custom:')) {
-                $field = ArrayHelper::remove($payload, $key);
-
-                $payload['custom_fields'][] = [
-                    'id' => str_replace('custom:', '', $key),
-                    'content' => $value,
-                ];
-            }
-        }
-
-        // Rip out some fields that need to be structured correctly
-        $payload['email_addresses'] = [
-            [
-                'email' => ArrayHelper::remove($payload, 'email'),
-                'field' => 'EMAIL1',
-            ],
-        ];
-
-        $phone = ArrayHelper::remove($payload, 'number');
-
-        if ($phone) {
-            $payload['phone_numbers'] = [
-                [
-                    'number' => $phone,
-                    'field' => 'PHONE1',
-                ],
-            ];
-        }
-
-        $address = array_filter([
-            'country_code' => ArrayHelper::remove($payload, 'country_code'),
-            'line1' => ArrayHelper::remove($payload, 'line1'),
-            'line2' => ArrayHelper::remove($payload, 'line2'),
-            'locality' => ArrayHelper::remove($payload, 'locality'),
-            'postal_code' => ArrayHelper::remove($payload, 'postal_code'),
-            'region' => ArrayHelper::remove($payload, 'region'),
-            'zip_code' => ArrayHelper::remove($payload, 'zip_code'),
-        ]);
-
-        if ($address) {
-            $payload['addresses'] = [
-                array_merge(['field' => 'BILLING'], $address),
-            ];
-        }
-
-        return $payload;
     }
 }

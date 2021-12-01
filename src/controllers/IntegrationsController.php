@@ -31,7 +31,7 @@ class IntegrationsController extends Controller
     // =========================================================================
 
     protected $allowAnonymous = ['callback'];
-    private $redirect;
+    
     private $originUrl;
 
 
@@ -223,14 +223,15 @@ class IntegrationsController extends Controller
             $session->set('formie.originUrl', $this->originUrl);
         }
 
-        $this->redirect = (string)$request->getParam('redirect');
-
         try {
             // Redirect to provider’s authorization page
             $session->set('formie.provider', $integration->handle);
 
             if (!$session->get('formie.callback')) {
-                return $integration->oauthConnect();
+                // Some providers (2-legged) might not return a connect response
+                if ($integration->getAuthorizeUrl()) {
+                    return $integration->oauthConnect();
+                }
             }
 
             // Callback
@@ -395,15 +396,11 @@ class IntegrationsController extends Controller
 
         $this->_cleanSession();
 
-        if (!$this->redirect) {
-            $this->redirect = $this->originUrl;
-        }
-
         $session->setNotice(Craft::t('formie', '“{name}” connected.', [
             'name' => $integration->name,
         ]));
 
-        return $this->redirect($this->redirect);
+        return $this->redirect($this->originUrl);
     }
 
     /**

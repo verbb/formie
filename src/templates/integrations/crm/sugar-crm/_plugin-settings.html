@@ -3,49 +3,52 @@
 
 {% set instructions %}
 ### Step 1. Connect to the {name} API
-1. Go to <a href="https://keys.developer.keap.com/accounts/login" target="_blank">Keap Developer Account</a> and login to your account.
-1. Click on your profile dropdown on the top-right of the screen, and select **Apps**.
-1. Click the **+ New App** button.
-1. Fill out the required details, and be sure to enable APIs (small green icon button).
-1. Click the **Create** button.
-1. Copy the **Key** from {name} and paste in the **Client ID** field below.
-1. Copy the **Secret** from {name} and paste in the **Client Secret** field below.
+1. Go to <a href="https://sugarcrm.com/" target="_blank">{name}</a> and login to your account.
+1. Click on your profile dropdown on the top-right of the screen, and select **Admin**.
+1. Find and click the **Configure API Platforms** link.
+1. Below the table of API Platforms, enter `formie` in the add field, and click the **Add** button. This will add `formie` to the table of platforms.
+1. Enter the username for your {name} account in the **Username** field below.
+1. Enter the password for your {name} account in the **Password** field below.
+1. Enter the full domain (including `https://`) for your {name} account in the **Domain** field below.
 
 ### Step 2. Test Connection
 1. Save this integration.
 1. Click on the **Connect** button in the right-hand sidebar.
-1. You‘ll be redirected to {name}, where you must approve Formie to access your {name} account.
 {% endset %}
 
 <div class="fui-settings-block">
     {{ instructions | t('formie', { name: integration.displayName() }) | md }}
 </div>
 
-{{ forms.textField({
-    readonly: true,
-    label: 'Redirect URI' | t('formie'),
-    instructions: 'Use this URI when setting up your {name} app.' | t('formie', { name: integration.displayName() }),
-    value: integration.getRedirectUri(),
+{{ forms.autosuggestField({
+    label: 'Username' | t('formie'),
+    instructions: 'Enter your {name} Username here.' | t('formie', { name: integration.displayName() }),
+    name: 'username',
+    required: true,
+    suggestEnvVars: true,
+    value: integration.settings.username ?? '',
+    warning: macros.configWarning('username', 'formie'),
+    errors: integration.getErrors('username'),
 }) }}
 
 {{ forms.autosuggestField({
-    label: 'Client ID' | t('formie'),
-    instructions: 'Enter your {name} Client ID key here.' | t('formie', { name: integration.displayName() }),
-    name: 'clientId',
+    label: 'Password' | t('formie'),
+    instructions: 'Enter your {name} Password here.' | t('formie', { name: integration.displayName() }),
+    name: 'password',
     required: true,
     suggestEnvVars: true,
-    value: integration.settings.clientId ?? '',
-    warning: macros.configWarning('clientId', 'formie'),
-    errors: integration.getErrors('clientId'),
+    value: integration.settings.password ?? '',
+    warning: macros.configWarning('password', 'formie'),
+    errors: integration.getErrors('password'),
 }) }}
 
 {{ forms.autosuggestField({
-    label: 'Client Secret' | t('formie'),
-    instructions: 'Enter your {name} Client Secret here.' | t('formie', { name: integration.displayName() }),
-    name: 'clientSecret',
+    label: 'Domain' | t('formie'),
+    instructions: 'Enter your full {name} Domain here. e.g. `https://example.sugarcrm.com`' | t('formie', { name: integration.displayName() }) | md,
+    name: 'apiDomain',
     required: true,
     suggestEnvVars: true,
-    value: integration.settings.clientSecret ?? '',
-    warning: macros.configWarning('clientSecret', 'formie'),
-    errors: integration.getErrors('clientSecret'),
+    value: integration.settings.apiDomain ?? '',
+    warning: macros.configWarning('apiDomain', 'formie'),
+    errors: integration.getErrors('apiDomain'),
 }) }}

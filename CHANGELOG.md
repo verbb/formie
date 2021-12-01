@@ -15,6 +15,7 @@
 - Added Klaviyo CRM integration.
 - Added Maximizer CRM integration.
 - Added Microsoft Dynamics 365 CRM integration.
+- Added SugarCRM CRM integration.
 - Added Native Forms support for SharpSpring CRM Integration.
 - Added Adestra Email Marketing integration.
 - Added EmailOctopus Email Marketing integration.
