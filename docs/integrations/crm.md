@@ -163,7 +163,7 @@ Follow the below steps to connect to the Copper API.
 1. Select Copper as the **Integration Provider**.
 
 ### Step 2. Connect to the Copper API
-1. Go to <a href="https://app.prosperworks.com/" target="_blank">Copper</a> and login to your account.
+1. Go to <a href="https://app.copper.com/" target="_blank">Copper</a> and login to your account.
 1. Click on the **Settings** menu in the left-hand sidebar.
 1. Click on the **Integration** menu in the left-hand sidebar and select **API Keys**.
 1. Click the **Generate API Key** button.
