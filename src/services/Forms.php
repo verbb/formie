@@ -436,8 +436,6 @@ class Forms extends Component
                 ->from('{{%formie_forms}}')
                 ->column();
 
-            // There's a specific case where 
-
             $form->handle = HandleHelper::getUniqueHandle($formHandles, $currentForm->handle);
 
             // Have to save to get an ID.
