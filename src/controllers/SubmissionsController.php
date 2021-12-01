@@ -848,21 +848,11 @@ class SubmissionsController extends Controller
         $this->requireAcceptsJson();
 
         $request = Craft::$app->getRequest();
-
         $integrationId = $request->getRequiredParam('integrationId');
-        $integration = Formie::$plugin->getIntegrations()->getIntegrationById($integrationId);
 
         $submission = Submission::find()
             ->id($request->getParam('submissionId'))
             ->one();
-
-        if (!$integration) {
-            $error = Craft::t('formie', 'Integration not found.');
-
-            Craft::$app->getSession()->setError($error);
-
-            return $this->asErrorJson($error);
-        }
 
         if (!$submission) {
             $error = Craft::t('formie', 'Submission not found.');
@@ -872,7 +862,32 @@ class SubmissionsController extends Controller
             return $this->asErrorJson($error);
         }
 
-        Formie::$plugin->getSubmissions()->sendIntegrationPayload($integration, $submission);
+        $form = $submission->getForm();
+
+        // We need to fetch all submissions for the form, which are prepped correctly
+        $integrations = Formie::$plugin->getIntegrations()->getAllEnabledIntegrationsForForm($form);
+        $resolvedIntegration = null;
+
+        foreach ($integrations as $integration) {
+            if ($integration->id != $integrationId) {
+                continue;
+            }
+
+            $resolvedIntegration = $integration;
+
+            // Add additional useful info for the integration
+            $resolvedIntegration->referrer = Craft::$app->getRequest()->getReferrer();
+        }
+
+        if (!$resolvedIntegration) {
+            $error = Craft::t('formie', 'Integration not found.');
+
+            Craft::$app->getSession()->setError($error);
+
+            return $this->asErrorJson($error);
+        }
+
+        Formie::$plugin->getSubmissions()->sendIntegrationPayload($resolvedIntegration, $submission);
 
         $message = Craft::t('formie', 'Integration was run successfully.');
         
