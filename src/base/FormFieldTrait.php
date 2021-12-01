@@ -641,6 +641,7 @@ trait FormFieldTrait
      */
     public function getDefaultValue($attributePrefix = '')
     {
+        $defaultValue = null;
         $defaultValueAttribute = 'defaultValue';
         $prePopulateAttribute = 'prePopulate';
 
@@ -650,23 +651,32 @@ trait FormFieldTrait
             $prePopulateAttribute = "{$attributePrefix}PrePopulate";
         }
 
-        $value = $this->$defaultValueAttribute;
-
         // Check for a query string is configured
         if ($this->$prePopulateAttribute) {
             $queryParam = Craft::$app->getRequest()->getParam($this->$prePopulateAttribute);
 
             if ($queryParam !== null) {
-                return $queryParam;
+                $defaultValue = $queryParam;
             }
         }
 
-        // Parse the default value for variables
-        if (!is_array($value) && !is_object($value)) {
-            $value = Variables::getParsedValue($value);
+        if (!$defaultValue) {
+            $value = $this->$defaultValueAttribute;
+
+            // Parse the default value for variables
+            if (!is_array($value) && !is_object($value)) {
+                $defaultValue = Variables::getParsedValue($value);
+            }
         }
 
-        return $value;
+        $event = new ModifyFieldValueEvent([
+            'value' => $defaultValue,
+            'field' => $this,
+        ]);
+
+        $this->trigger(static::EVENT_MODIFY_DEFAULT_VALUE, $event);
+
+        return $event->value;
     }
 
     /**

@@ -541,6 +541,25 @@ Event::on(Fields::class, Fields::EVENT_AFTER_SAVE_FIELD_PAGE, function(FieldPage
 
 ## Field Events
 
+### The `modifyDefaultValue` event
+The event that is triggered when preparing a field's default value. You can use this on any class that includes the `FormFieldTrait` trait.
+
+Modify the `value` event property to set the value used.
+
+```php
+use verbb\formie\fields\formfields\SingleLineText;
+use verbb\formie\events\ModifyFieldValueEvent;
+use yii\base\Event;
+
+Event::on(SingleLineText::class, SingleLineText::EVENT_MODIFY_DEFAULT_VALUE, function(ModifyFieldValueEvent $event) {
+    $field = $event->field;
+    $value = $event->value;
+    
+    // Overwrite the value
+    $event->value = 'My Custom Value';
+});
+```
+
 ### The `modifyValueAsString` event
 The event that is triggered when preparing a field's value to be represented as a string. You can use this on any class that includes the `FormFieldTrait` trait.
 
@@ -554,7 +573,7 @@ use yii\base\Event;
 Event::on(SingleLineText::class, SingleLineText::EVENT_MODIFY_VALUE_AS_STRING, function(ModifyFieldValueEvent $event) {
     $field = $event->field;
     $value = $event->value;
-    $element = $event->element;
+    $submission = $event->submission;
     
     // Overwrite the value
     $event->value = 'My Custom Value';
@@ -574,7 +593,7 @@ use yii\base\Event;
 Event::on(SingleLineText::class, SingleLineText::EVENT_MODIFY_VALUE_AS_JSON, function(ModifyFieldValueEvent $event) {
     $field = $event->field;
     $value = $event->value;
-    $element = $event->element;
+    $submission = $event->submission;
     
     // Overwrite the value
     $event->value = 'My Custom Value';
@@ -594,7 +613,7 @@ use yii\base\Event;
 Event::on(MultiLineText::class, MultiLineText::EVENT_MODIFY_VALUE_FOR_EXPORT, function(ModifyFieldValueEvent $event) {
     $field = $event->field;
     $value = $event->value;
-    $element = $event->element;
+    $submission = $event->submission;
     
     // Overwrite the value
     $event->value = 'My Custom Value';
@@ -616,7 +635,7 @@ Event::on(MultiLineText::class, MultiLineText::EVENT_MODIFY_VALUE_FOR_INTEGRATIO
     $integrationField = $event->integrationField;
     $integration = $event->integration;
     $value = $event->value;
-    $element = $event->element;
+    $submission = $event->submission;
     
     // Overwrite the value
     $event->value = 'My Custom Value';
@@ -636,7 +655,7 @@ use yii\base\Event;
 Event::on(Dropdown::class, Dropdown::EVENT_MODIFY_VALUE_FOR_SUMMARY, function(ModifyFieldValueEvent $event) {
     $field = $event->field;
     $value = $event->value;
-    $element = $event->element;
+    $submission = $event->submission;
     
     // Overwrite the value
     $event->value = 'My Custom Value';

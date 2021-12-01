@@ -19,6 +19,7 @@ interface FormFieldInterface extends ComponentInterface
     // Constants
     // =========================================================================
 
+    const EVENT_MODIFY_DEFAULT_VALUE = 'modifyDefaultValue';
     const EVENT_MODIFY_VALUE_AS_STRING = 'modifyValueAsString';
     const EVENT_MODIFY_VALUE_AS_JSON = 'modifyValueAsJson';
     const EVENT_MODIFY_VALUE_FOR_EXPORT = 'modifyValueForExport';

@@ -152,3 +152,32 @@ I want to know more!
 ```
 
 Of course, you can achieve the above functionality in your templates with `populateFormValues()`, but this method allows content editors to control the query string parameters freely in case the URL needs changing. Otherwise, they would rely on a developer to make template changes when adding new fields, or changing the URL parameters.
+
+### Checkboxes Field
+For a checkboxes field, you can either supply a single value, or an array of values.
+
+```twig
+{# URL when using a single value #}
+?checks_field=SomeValue
+
+{# URL when using multiple value #}
+?checks_field[]=FirstValue&checks_field[]=SecondValue
+```
+
+### Element Fields
+For element fields (Entries, Categories, Tags, Users, Products, Variants), you can either supply a single value, or an array of values - but all must be the ID of the elements you want to populate.
+
+```twig
+{# URL when using a single ID #}
+?entries_field=1234
+
+{# URL when using multiple IDs #}
+?entries_field[]=1234&entries_field[]=5678
+```
+
+### Element Fields
+For element fields (Entries, Categories, Tags, Users, Products, Variants), you can either supply a single value, or an array of values - but all must be the ID of the elements you want to populate.
+
+:::tip
+You can also alter this behaviour using [events](docs:developers/events) if your URL params have specific needs. For example, if you wanted to use a URL param like `entries=2242,1101` to handle multiple items.
+:::
