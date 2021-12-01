@@ -264,8 +264,26 @@ trait RelationFieldTrait
             $defaultValue = $defaultValue->all();
         }
 
-        if ($ids = ArrayHelper::getColumn($defaultValue, 'id')) {
-            return static::elementType()::find()->id($ids);
+        // If passing in a single ID, normalise it
+        if (!is_array($defaultValue)) {
+            $defaultValue = $defaultValue ? [['id' => $defaultValue]] : [];
+        }
+
+        // Just in case there are empty items
+        $defaultValue = array_filter($defaultValue);
+
+        if ($defaultValue) {
+            // Handle when setting via an multi-dimensional array with `id`
+            $ids = array_filter(ArrayHelper::getColumn($defaultValue, 'id'));
+
+            // If nothing found, we might be setting an array of IDs
+            if (!$ids) {
+                $ids = $defaultValue;
+            }
+
+            if ($ids) {
+                return static::elementType()::find()->id($ids);
+            }
         }
 
         return null;

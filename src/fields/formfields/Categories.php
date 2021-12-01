@@ -35,6 +35,7 @@ class Categories extends CraftCategories implements FormFieldInterface
     // =========================================================================
 
     use FormFieldTrait, RelationFieldTrait {
+        getDefaultValue as traitGetDefaultValue;
         getFrontEndInputOptions as traitGetFrontendInputOptions;
         getEmailHtml as traitGetEmailHtml;
         getSavedFieldConfig as traitGetSavedFieldConfig;
@@ -140,6 +141,8 @@ class Categories extends CraftCategories implements FormFieldInterface
      */
     public function getDefaultValue($attributePrefix = '')
     {
+        $this->defaultValue = $this->traitGetDefaultValue($attributePrefix);
+
         return $this->getDefaultValueQuery();
     }
 
@@ -410,6 +413,7 @@ class Categories extends CraftCategories implements FormFieldInterface
                     'name' => 'errorMessage',
                 ]),
             ]),
+            SchemaHelper::prePopulate(),
             SchemaHelper::textField([
                 'label' => Craft::t('formie', 'Branch Limit'),
                 'help' => Craft::t('formie', 'Limit the number of selectable category branches.'),

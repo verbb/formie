@@ -36,6 +36,7 @@ class Products extends CommerceProducts implements FormFieldInterface
     // =========================================================================
 
     use FormFieldTrait, RelationFieldTrait {
+        getDefaultValue as traitGetDefaultValue;
         getFrontEndInputOptions as traitGetFrontendInputOptions;
         getEmailHtml as traitGetEmailHtml;
         getSavedFieldConfig as traitGetSavedFieldConfig;
@@ -127,6 +128,8 @@ class Products extends CommerceProducts implements FormFieldInterface
      */
     public function getDefaultValue($attributePrefix = '')
     {
+        $this->defaultValue = $this->traitGetDefaultValue($attributePrefix);
+
         return $this->getDefaultValueQuery();
     }
 
@@ -335,6 +338,7 @@ class Products extends CommerceProducts implements FormFieldInterface
                     'name' => 'errorMessage',
                 ]),
             ]),
+            SchemaHelper::prePopulate(),
             SchemaHelper::textField([
                 'label' => Craft::t('formie', 'Limit'),
                 'help' => Craft::t('formie', 'Limit the number of selectable products.'),

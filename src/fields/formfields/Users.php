@@ -39,6 +39,7 @@ class Users extends CraftUsers implements FormFieldInterface
     // =========================================================================
 
     use FormFieldTrait, RelationFieldTrait {
+        getDefaultValue as traitGetDefaultValue;
         getFrontEndInputOptions as traitGetFrontendInputOptions;
         getEmailHtml as traitGetEmailHtml;
         getSavedFieldConfig as traitGetSavedFieldConfig;
@@ -143,6 +144,8 @@ class Users extends CraftUsers implements FormFieldInterface
      */
     public function getDefaultValue($attributePrefix = '')
     {
+        $this->defaultValue = $this->traitGetDefaultValue($attributePrefix);
+
         return $this->getDefaultValueQuery();
     }
 
@@ -334,6 +337,7 @@ class Users extends CraftUsers implements FormFieldInterface
                     'name' => 'errorMessage',
                 ]),
             ]),
+            SchemaHelper::prePopulate(),
             SchemaHelper::textField([
                 'label' => Craft::t('formie', 'Limit'),
                 'help' => Craft::t('formie', 'Limit the number of selectable users.'),
