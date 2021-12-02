@@ -12,6 +12,8 @@ $border-radius: 0.25rem !default;
 $primary-color: #516fea !default;
 $primary-color-hover: #2349e5 !default;
 $error: #f56565 !default;
+$error-light: #f8b4b4 !default;
+$error-dark: #771d1d !default;
 $gray-100: #F7FAFC !default;
 $gray-200: #EDF2F7 !default;
 $gray-300: #E2E8F0 !default;
@@ -75,15 +77,15 @@ $focus-shadow: 0 0 0 3px rgba(164, 202, 254, 0.45) !default;
     --fui-alert-font-weight: 500;
     --fui-alert-margin-bottom: 1rem;
     --fui-alert-error-bg-color: #fdf2f2;
-    --fui-alert-error-color: #9b1c1c;
+    --fui-alert-error-color: #{$error-dark};
     --fui-alert-success-bg-color: #f3faf7;
     --fui-alert-success-color: #03543f;
 
     // Button
     --fui-btn-font-size: 0.875rem;
     --fui-btn-line-height: 1.5;
-    --fui-btn-bg-color: #efefef;
-    --fui-btn-bg-color-hover: #e2e2e2;
+    --fui-btn-bg-color: #{$gray-200};
+    --fui-btn-bg-color-hover: #{$gray-300};
     --fui-btn-display: inline-block;
     --fui-btn-text-align: center;
     --fui-btn-white-space: nowrap;
@@ -162,8 +164,8 @@ $focus-shadow: 0 0 0 3px rgba(164, 202, 254, 0.45) !default;
     --fui-label-font-weight: 500;
     --fui-label-color: var(--fui-gray-800, #{$gray-800});
     --fui-label-margin: 0.5rem;
-    --fui-label-error-color: #771d1d;
-    --fui-label-error-border-color: #f8b4b4;
+    --fui-label-error-color: #{$error-dark};
+    --fui-label-error-border-color: #{$error-light};
 
     // Field Instructions
     --fui-instructions-color: var(--fui-gray-600, #{$gray-600});
@@ -218,8 +220,8 @@ $focus-shadow: 0 0 0 3px rgba(164, 202, 254, 0.45) !default;
     --fui-input-transition-duration: 0.15s;
     --fui-input-border-color-focus: var(--fui-focus-border-color, #{$focus-border-color});
     --fui-input-box-shadow-focus: var(--fui-focus-shadow, #{$focus-shadow});
-    --fui-input-error-color: #771d1d;
-    --fui-input-error-border-color: #f8b4b4;
+    --fui-input-error-color: #{$error-dark};
+    --fui-input-error-border-color: #{$error-light};
     --fui-input-error-box-shadow-focus: 0 0 0 3px rgba(248, 180, 180, 0.45);
     --fui-input-placeholder-color: var(--fui-gray-500, #{$gray-500});
 
@@ -234,7 +236,7 @@ $focus-shadow: 0 0 0 3px rgba(164, 202, 254, 0.45) !default;
     --fui-repeater-add-btn-left: 0.75rem;
     --fui-repeater-add-btn-width: 14px;
     --fui-repeater-add-btn-height: 14px;
-    --fui-repeater-add-btn-bg-image: url("data:image/svg+xml,%3Csvg aria-hidden='true' focusable='false' data-prefix='far' data-icon='plus' class='svg-inline--fa fa-plus fa-w-12' role='img' xmlns='http://www.w3.org/2000/svg' viewBox='0 0 384 512'%3E%3Cpath fill='currentColor' d='M368 224H224V80c0-8.84-7.16-16-16-16h-32c-8.84 0-16 7.16-16 16v144H16c-8.84 0-16 7.16-16 16v32c0 8.84 7.16 16 16 16h144v144c0 8.84 7.16 16 16 16h32c8.84 0 16-7.16 16-16V288h144c8.84 0 16-7.16 16-16v-32c0-8.84-7.16-16-16-16z'%3E%3C/path%3E%3C/svg%3E");
+    --fui-repeater-add-btn-bg-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 384 512'%3E%3Cpath fill='currentColor' d='M368 224H224V80c0-8.84-7.16-16-16-16h-32c-8.84 0-16 7.16-16 16v144H16c-8.84 0-16 7.16-16 16v32c0 8.84 7.16 16 16 16h144v144c0 8.84 7.16 16 16 16h32c8.84 0 16-7.16 16-16V288h144c8.84 0 16-7.16 16-16v-32c0-8.84-7.16-16-16-16z'%3E%3C/path%3E%3C/svg%3E");
 
     --fui-repeater-remove-btn-top: 0;
     --fui-repeater-remove-btn-right: -14px;
@@ -250,7 +252,7 @@ $focus-shadow: 0 0 0 3px rgba(164, 202, 254, 0.45) !default;
     --fui-repeater-remove-btn-icon-width: 9px;
     --fui-repeater-remove-btn-icon-height: 14px;
     --fui-repeater-remove-btn-icon-transform: translate(-50%, -50%);
-    --fui-repeater-remove-btn-icon-bg-image: url("data:image/svg+xml,%3Csvg aria-hidden='true' focusable='false' data-prefix='far' data-icon='times' class='svg-inline--fa fa-times fa-w-10' role='img' xmlns='http://www.w3.org/2000/svg' viewBox='0 0 320 512'%3E%3Cpath fill='currentColor' d='M207.6 256l107.72-107.72c6.23-6.23 6.23-16.34 0-22.58l-25.03-25.03c-6.23-6.23-16.34-6.23-22.58 0L160 208.4 52.28 100.68c-6.23-6.23-16.34-6.23-22.58 0L4.68 125.7c-6.23 6.23-6.23 16.34 0 22.58L112.4 256 4.68 363.72c-6.23 6.23-6.23 16.34 0 22.58l25.03 25.03c6.23 6.23 16.34 6.23 22.58 0L160 303.6l107.72 107.72c6.23 6.23 16.34 6.23 22.58 0l25.03-25.03c6.23-6.23 6.23-16.34 0-22.58L207.6 256z'%3E%3C/path%3E%3C/svg%3E");
+    --fui-repeater-remove-btn-icon-bg-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 320 512'%3E%3Cpath fill='currentColor' d='M207.6 256l107.72-107.72c6.23-6.23 6.23-16.34 0-22.58l-25.03-25.03c-6.23-6.23-16.34-6.23-22.58 0L160 208.4 52.28 100.68c-6.23-6.23-16.34-6.23-22.58 0L4.68 125.7c-6.23 6.23-6.23 16.34 0 22.58L112.4 256 4.68 363.72c-6.23 6.23-6.23 16.34 0 22.58l25.03 25.03c6.23 6.23 16.34 6.23 22.58 0L160 303.6l107.72 107.72c6.23 6.23 16.34 6.23 22.58 0l25.03-25.03c6.23-6.23 6.23-16.34 0-22.58L207.6 256z'%3E%3C/path%3E%3C/svg%3E");
 
     // Field - Select
     --fui-select-option-padding: 0.1rem 0.4rem;
@@ -276,7 +278,7 @@ $focus-shadow: 0 0 0 3px rgba(164, 202, 254, 0.45) !default;
     --fui-table-add-btn-left: 0.75rem;
     --fui-table-add-btn-width: 14px;
     --fui-table-add-btn-height: 14px;
-    --fui-table-add-btn-bg-image: url("data:image/svg+xml,%3Csvg aria-hidden='true' focusable='false' data-prefix='far' data-icon='plus' class='svg-inline--fa fa-plus fa-w-12' role='img' xmlns='http://www.w3.org/2000/svg' viewBox='0 0 384 512'%3E%3Cpath fill='currentColor' d='M368 224H224V80c0-8.84-7.16-16-16-16h-32c-8.84 0-16 7.16-16 16v144H16c-8.84 0-16 7.16-16 16v32c0 8.84 7.16 16 16 16h144v144c0 8.84 7.16 16 16 16h32c8.84 0 16-7.16 16-16V288h144c8.84 0 16-7.16 16-16v-32c0-8.84-7.16-16-16-16z'%3E%3C/path%3E%3C/svg%3E");
+    --fui-table-add-btn-bg-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 384 512'%3E%3Cpath fill='currentColor' d='M368 224H224V80c0-8.84-7.16-16-16-16h-32c-8.84 0-16 7.16-16 16v144H16c-8.84 0-16 7.16-16 16v32c0 8.84 7.16 16 16 16h144v144c0 8.84 7.16 16 16 16h32c8.84 0 16-7.16 16-16V288h144c8.84 0 16-7.16 16-16v-32c0-8.84-7.16-16-16-16z'%3E%3C/path%3E%3C/svg%3E");
 
     --fui-table-remove-btn-border-radius: 50%;
     --fui-table-remove-btn-padding: 13px;
@@ -287,6 +289,6 @@ $focus-shadow: 0 0 0 3px rgba(164, 202, 254, 0.45) !default;
     --fui-table-remove-btn-width: 9px;
     --fui-table-remove-btn-height: 14px;
     --fui-table-remove-btn-transform: translate(-50%, -50%);
-    --fui-table-remove-btn-bg-image: url("data:image/svg+xml,%3Csvg aria-hidden='true' focusable='false' data-prefix='far' data-icon='times' class='svg-inline--fa fa-times fa-w-10' role='img' xmlns='http://www.w3.org/2000/svg' viewBox='0 0 320 512'%3E%3Cpath fill='currentColor' d='M207.6 256l107.72-107.72c6.23-6.23 6.23-16.34 0-22.58l-25.03-25.03c-6.23-6.23-16.34-6.23-22.58 0L160 208.4 52.28 100.68c-6.23-6.23-16.34-6.23-22.58 0L4.68 125.7c-6.23 6.23-6.23 16.34 0 22.58L112.4 256 4.68 363.72c-6.23 6.23-6.23 16.34 0 22.58l25.03 25.03c6.23 6.23 16.34 6.23 22.58 0L160 303.6l107.72 107.72c6.23 6.23 16.34 6.23 22.58 0l25.03-25.03c6.23-6.23 6.23-16.34 0-22.58L207.6 256z'%3E%3C/path%3E%3C/svg%3E");
+    --fui-table-remove-btn-bg-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 320 512'%3E%3Cpath fill='currentColor' d='M207.6 256l107.72-107.72c6.23-6.23 6.23-16.34 0-22.58l-25.03-25.03c-6.23-6.23-16.34-6.23-22.58 0L160 208.4 52.28 100.68c-6.23-6.23-16.34-6.23-22.58 0L4.68 125.7c-6.23 6.23-6.23 16.34 0 22.58L112.4 256 4.68 363.72c-6.23 6.23-6.23 16.34 0 22.58l25.03 25.03c6.23 6.23 16.34 6.23 22.58 0L160 303.6l107.72 107.72c6.23 6.23 16.34 6.23 22.58 0l25.03-25.03c6.23-6.23 6.23-16.34 0-22.58L207.6 256z'%3E%3C/path%3E%3C/svg%3E");
 
 }
