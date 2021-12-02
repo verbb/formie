@@ -34,9 +34,7 @@ export class FormieRecaptchaV2Invisible {
         // We can have multiple captchas per form, so store them and render only when we need
         this.$placeholders = this.$form.querySelectorAll('.formie-recaptcha-placeholder');
 
-        // console.log(this.$placeholders);
-
-        if (!this.$placeholders) {
+        if (!this.$placeholders.length) {
             console.error('Unable to find any ReCAPTCHA placeholders for #' + this.formId);
 
             return;

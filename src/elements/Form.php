@@ -1248,12 +1248,15 @@ class Form extends Element
         // Normally, this function returns only if the `showAllPages` property is set.
         $captchas = Formie::$plugin->getIntegrations()->getAllEnabledCaptchasForForm($this, null, true);
 
-        foreach ($captchas as $captcha) {
-            if ($js = $captcha->getFrontEndJsVariables($this)) {
-                if (isset($js[0])) {
-                    $registeredJs = array_merge($registeredJs, $js);
-                } else {
-                    $registeredJs[] = $js;
+        // Don't show captchas for the CP
+        if (!Craft::$app->getRequest()->getIsCpRequest()) {
+            foreach ($captchas as $captcha) {
+                if ($js = $captcha->getFrontEndJsVariables($this)) {
+                    if (isset($js[0])) {
+                        $registeredJs = array_merge($registeredJs, $js);
+                    } else {
+                        $registeredJs[] = $js;
+                    }
                 }
             }
         }
