@@ -26,16 +26,23 @@
 - Added hCaptcha captcha support.
 - Added Snaptcha plugin captcha support.
 - Added conditional recipients option for Email Notifications, allowing you to define what recipients receive an email under what circumstances.
+- Added support for Element fields to have their values pre-populated via query string.
 - Added PDF Templates, allowing you to attach a custom PDF to Email Notifications.
 - Added the ability to set a Google Tag Manager payload for every submit button for forms, within the form builder.
 - Added statuses to Sent Notifications, along with error messages to identify issues for failed Email Notifications.
 - Added support for Group and Repeater fields when using `setFieldSettings()`.
 - Added Submission snapshots to record and persist template-level field settings changes.
+- Added "Use my location" setting for Address fields with the Google Places address provider integration.
+- Added support to add any arbitrary assets to an email notification as an attachment.
+- Added better link support for rich text fields.
+- Added indicator in the form builder to show fields configured with conditions.
+- Added "Allow Multiple" support for element fields when displaying as a dropdown.
 - Added `Field::defineValueAsString()` and `Field::getValueAsString()` to consolidate how to represent field values as a string value.
 - Added `Field::defineValueAsJson()` and `Field::getValueAsJson()` to consolidate how to represent field values as JSON object.
 - Added `Field::defineValueForExport()` and `Field::getValueForExport()` to consolidate how to represent field values when exporting through Craft's export.
 - Added `Field::defineValueForIntegration()` and `Field::getValueForIntegration()` to consolidate how to represent field values when sending to an integration.
 - Added `Submission::getValuesAsString()`, `Submission::getValuesAsJson()`, `Submission::getValuesForExport()` to better consolidate field values for various operations.
+- Added `Field::EVENT_MODIFY_DEFAULT_VALUE` event to allow modification of the default value for fields.
 - Added `Field::EVENT_MODIFY_VALUE_AS_STRING` event for all fields.
 - Added `Field::EVENT_MODIFY_VALUE_AS_JSON` event for all fields.
 - Added `Field::EVENT_MODIFY_VALUE_FOR_EXPORT` event for all fields.
@@ -51,6 +58,7 @@
 - Sent notifications are now saved earlier regardless of success, added statuses and records a failed message.
 - Refactored all fields to better handle and consolidate how their content values are represented for various operations (exports, integrations, dev API).
 - Renamed `Integration::EVENT_PARSE_MAPPED_FIELD_VALUE` event to `Integration::EVENT_MODIFY_FIELD_MAPPING_VALUE`.
+- Allow `Integration::EVENT_BEFORE_SEND_PAYLOAD` to modify the endpoint and method for integrations.
 
 ### Fixed
 - Fixed captchas not showing the correct name in Formie settings.
@@ -60,6 +68,7 @@
 - Fixed the save shortcut when saving a submission in the control panel.
 - Fixed incomplete submissions not being able to have their status updated.
 - Fixed File upload fields not always having their upload location source/path set.
+- Fixed checkboxes fields not populating values correctly.
 
 ### Removed
 - Removed `Field::serializeValueForExport()` method. Use `Field::defineValueForExport()` for setting or `Field::getValueForExport()` for getting instead.
