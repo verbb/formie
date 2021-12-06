@@ -44,6 +44,11 @@ class FormSettingsType extends ObjectType
                     'type' => Type::boolean(),
                     'description' => 'Whether to show the form’s page progress.',
                 ],
+                'scrollToTop' => [
+                    'name' => 'scrollToTop',
+                    'type' => Type::boolean(),
+                    'description' => 'Whether to the form should scroll to the top of the page when submitted.',
+                ],
                 'submitMethod' => [
                     'name' => 'submitMethod',
                     'type' => Type::string(),

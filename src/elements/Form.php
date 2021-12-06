@@ -1225,6 +1225,7 @@ class Form extends Element
             'loadingIndicatorText' => $this->settings->loadingIndicatorText,
             'validationOnSubmit' => $this->settings->validationOnSubmit,
             'validationOnFocus' => $this->settings->validationOnFocus,
+            'scrollToTop' => $this->settings->scrollToTop,
             'hasMultiplePages' => $this->hasMultiplePages(),
             'pages' => $this->getPages(),
 

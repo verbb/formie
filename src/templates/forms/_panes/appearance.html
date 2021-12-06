@@ -55,6 +55,15 @@
     }) }}
 </div>
 
+{{ forms.lightswitchField({
+    label: 'Scroll To Top' | t('formie'),
+    instructions: 'Whether for multi-page forms, the page should automatically scroll to the top of the next page after submission.' | t('formie'),
+    id: 'scrollToTop',
+    name: 'settings[scrollToTop]',
+    on: form.settings.scrollToTop ?? false,
+    toggle: 'progress-position',
+}) }}
+
 {{ forms.selectField({
     label: 'Form Templates' | t('formie'),
     instructions: 'Select the templates this form should use.' | t('formie'),
