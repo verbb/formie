@@ -374,13 +374,20 @@ class Forms extends Component
         $siteId = $request->getParam('siteId');
         $duplicate = $request->getParam('duplicate');
 
-        if ($formId && !$duplicate) {
+        if ($formId) {
             $form = Craft::$app->getElements()->getElementById($formId, Form::class, $siteId);
 
             if (!$form) {
                 throw new Exception('No form found with that id.');
             }
         } else {
+            $form = new Form();
+        }
+
+        // When duplicating, save the current form for later, but the duplicate form will be new
+        if ($duplicate) {
+            $currentForm = $form;
+
             $form = new Form();
         }
 
@@ -429,7 +436,7 @@ class Forms extends Component
                 ->from('{{%formie_forms}}')
                 ->column();
 
-            $form->handle = HandleHelper::getUniqueHandle($formHandles, $form->handle);
+            $form->handle = HandleHelper::getUniqueHandle($formHandles, $currentForm->handle);
 
             // Have to save to get an ID.
             // Formie::$plugin->getForms()->saveForm($form);

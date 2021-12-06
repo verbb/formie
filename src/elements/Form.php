@@ -79,6 +79,7 @@ class Form extends Element
     private $_defaultStatus;
     private $_submitActionEntry;
     private $_notifications;
+    private $_currentSubmission;
     private $_editingSubmission;
     private $_formId;
     private $_appliedFieldSettings = false;
@@ -891,6 +892,10 @@ class Form extends Element
      */
     public function getCurrentSubmission()
     {
+        if ($this->_currentSubmission) {
+            return $this->_currentSubmission;
+        }
+
         // Check to see if we have any field settings applied. Because field settings are applied before
         // render, we don't have an easy way to check when we _don't_ set field settings. This function is
         // called most commonly for rendering a form without relying on `formie.renderForm()`.
@@ -914,12 +919,12 @@ class Form extends Element
         $submissionId = Craft::$app->getSession()->get($this->_getSessionKey('submissionId'));
 
         if ($submissionId && $submission = Submission::find()->id($submissionId)->isIncomplete(true)->one()) {
-            return $submission;
+            return $this->_currentSubmission = $submission;
         }
 
         // Or, if we're editing a submission
         if ($submission = $this->_editingSubmission) {
-            return $submission;
+            return $this->_currentSubmission = $submission;
         }
 
         return null;
@@ -943,6 +948,8 @@ class Form extends Element
             Craft::$app->getContent()->populateElementContent($submission);
             Craft::$app->getSession()->set($this->_getSessionKey('submissionId'), $submission->id);
         }
+
+        $this->_currentSubmission = $submission;
     }
 
     /**
@@ -961,6 +968,8 @@ class Form extends Element
 
         // Also remove any snapshots set for the form
         $this->resetSnapshotData();
+
+        $this->_currentSubmission = null;
     }
 
     /**
@@ -1191,7 +1200,7 @@ class Form extends Element
         }
 
         if (!$this->_submitActionEntry) {
-            $this->_submitActionEntry = Craft::$app->getEntries()->getEntryById($this->submitActionEntryId);
+            $this->_submitActionEntry = Craft::$app->getEntries()->getEntryById($this->submitActionEntryId, '*');
         }
 
         return $this->_submitActionEntry;
@@ -1241,6 +1250,7 @@ class Form extends Element
             'loadingIndicatorText' => $this->settings->loadingIndicatorText,
             'validationOnSubmit' => $this->settings->validationOnSubmit,
             'validationOnFocus' => $this->settings->validationOnFocus,
+            'scrollToTop' => $this->settings->scrollToTop,
             'hasMultiplePages' => $this->hasMultiplePages(),
             'pages' => $this->getPages(),
 
@@ -1264,12 +1274,15 @@ class Form extends Element
         // Normally, this function returns only if the `showAllPages` property is set.
         $captchas = Formie::$plugin->getIntegrations()->getAllEnabledCaptchasForForm($this, null, true);
 
-        foreach ($captchas as $captcha) {
-            if ($js = $captcha->getFrontEndJsVariables($this)) {
-                if (isset($js[0])) {
-                    $registeredJs = array_merge($registeredJs, $js);
-                } else {
-                    $registeredJs[] = $js;
+        // Don't show captchas for the CP
+        if (!Craft::$app->getRequest()->getIsCpRequest()) {
+            foreach ($captchas as $captcha) {
+                if ($js = $captcha->getFrontEndJsVariables($this)) {
+                    if (isset($js[0])) {
+                        $registeredJs = array_merge($registeredJs, $js);
+                    } else {
+                        $registeredJs[] = $js;
+                    }
                 }
             }
         }

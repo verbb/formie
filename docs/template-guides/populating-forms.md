@@ -117,6 +117,24 @@ To populate a Repeater field, you'll also be creating the "blocks", as well as d
 
 The above will create two "blocks" for the repeater field.
 
+### Forcing Values
+The way populating values work in Formie is by setting the default value for a field. This means that when you start a new submission, the values you set in `populateFormValues()` will be applied to the field, the same way a default value would.
+
+However, there's one caveat with this approach, to do with incomplete submissions. If you were to try to populate an incomplete submission with field values, you'll find it won't work. This is because the submission technically already has a value - even if it's a blank value.
+
+You can even test this in effect for a multi-page form by submitting the first page of a form, **then** adding your `populateFormValues()` call to your templates, so see that it'll have no effect on any of the fields on any page. This is because Formie can't determine if the empty value a field might have is "correct" (the user intentially left it blank), or whether to populate (override) the value.
+
+But there are scenarios where you want certain field to **always** have a set value, even for incomplete submissions, or if for example a user is coming back to a submission at a later stage. You can use the `force` option for `populateFormValues()` to acheive this.
+
+```twig
+{% do craft.formie.populateFormValues(form, {
+    myHiddenField: 'This value can never be changed',
+    entriesField: [123, 456],
+}, true) %}
+```
+
+As you can see, by passing in `true` as the third parameter, you can force the field to always use the values you define in your templates. This might be useful for hidden fields, or even element fields, where you really do want the value to always be the same.
+
 ## Populating from URL
 You can also make use of populating fields from a URL, using parameters in a query string. For each field, you can use the **Pre-Populate Value** setting to specify the parameter in the URL query string you want to populate the field with. This provides the flexibility of your URL not having to match the field handles of each field.
 

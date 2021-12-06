@@ -4,6 +4,7 @@ namespace verbb\formie\gql\types;
 use craft\gql\base\ObjectType;
 use craft\gql\GqlEntityRegistry;
 use craft\gql\interfaces\elements\Entry as EntryInterface;
+use craft\gql\arguments\elements\Entry as EntryArguments;
 use craft\helpers\Json;
 
 use GraphQL\Type\Definition\Type;
@@ -42,6 +43,11 @@ class FormSettingsType extends ObjectType
                     'name' => 'displayPageProgress',
                     'type' => Type::boolean(),
                     'description' => 'Whether to show the form’s page progress.',
+                ],
+                'scrollToTop' => [
+                    'name' => 'scrollToTop',
+                    'type' => Type::boolean(),
+                    'description' => 'Whether to the form should scroll to the top of the page when submitted.',
                 ],
                 'submitMethod' => [
                     'name' => 'submitMethod',
@@ -92,6 +98,7 @@ class FormSettingsType extends ObjectType
                 'redirectEntry' => [
                     'name' => 'redirectEntry',
                     'type' => EntryInterface::getType(),
+                    'args' => EntryArguments::getArguments(),
                     'description' => 'The form’s submit action entry (for redirection).',
                 ],
                 'errorMessageHtml' => [

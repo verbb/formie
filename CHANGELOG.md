@@ -70,6 +70,30 @@
 - Removed `Submission::getSerializedFieldValuesForIntegration()` method. Use `Submission::getValuesForIntegration()` instead.
 - Removed `Submission::EVENT_MODIFY_FIELD_VALUE_FOR_INTEGRATION` event. Use `Field::EVENT_MODIFY_VALUE_FOR_INTEGRATION` instead.
 
+## 1.4.28 - 2021-12-06
+
+### Added
+- Added "Scroll To Top" appearance setting for forms.
+- Added `fui-subfield-fieldset` class to subfield-supporting field templates.
+- Added `force` option for `populateFormValues()`.
+- Allow `populateFormValues()` to accept a submission or form object.
+
+### Changed
+- Update Copper CRM API endpoint.
+- Update an error with Copper CRM.
+- Update gray colour palette for front-end theme to "cool gray" for more neutral grays.
+- Memoize current submission for performance.
+- Cleanup and normalise `error` and `btn` CSS variables.
+
+### Fixed
+- Fixed loading captchas when editing a submission in the control panel.
+- Fixed an error when duplicating a form without user permissions to manage form settings.
+- Fixed GraphQL queries for form integration settings not parsing .env variables, and containing unnecessary data.
+- Fixed GraphQL queries for `redirectEntry` not resolving the correct site for an entry.
+- Fixed when triggering integrations manually for a submission, integration settings weren't properly prepped.
+- Fixed when re-triggering a submission, reloading the page when an error occurred.
+- Fixed redirect error when saving Settings > Sent Notifications.
+
 ## 1.4.27 - 2021-11-27
 
 ### Added

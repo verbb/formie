@@ -12,16 +12,18 @@ $border-radius: 0.25rem !default;
 $primary-color: #516fea !default;
 $primary-color-hover: #2349e5 !default;
 $error: #f56565 !default;
-$gray-100: #F7FAFC !default;
-$gray-200: #EDF2F7 !default;
-$gray-300: #E2E8F0 !default;
-$gray-400: #CBD5E0 !default;
-$gray-500: #A0AEC0 !default;
-$gray-600: #718096 !default;
-$gray-700: #4A5568 !default;
-$gray-800: #2D3748 !default;
-$gray-900: #1A202C !default;
-$border-color: $gray-400 !default;
+$error-light: #f8b4b4 !default;
+$error-dark: #771d1d !default;
+$gray-100: #F3F4F6 !default;
+$gray-200: #E5E7EB !default;
+$gray-300: #D1D5DB !default;
+$gray-400: #9CA3AF !default;
+$gray-500: #6B7280 !default;
+$gray-600: #4B5563 !default;
+$gray-700: #374151 !default;
+$gray-800: #1F2937 !default;
+$gray-900: #111827 !default;
+$border-color: $gray-300 !default;
 
 $focus-border-color: #a4cafe !default;
 $focus-shadow: 0 0 0 3px rgba(164, 202, 254, 0.45) !default;
@@ -30,7 +32,7 @@ $focus-shadow: 0 0 0 3px rgba(164, 202, 254, 0.45) !default;
     // General
     --fui-font: -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen,Ubuntu,Cantarell,Fira Sans,Droid Sans,Helvetica Neue,sans-serif;
     --fui-font-size: 16px;
-    --fui-color: var(--fui-gray-800, #{$gray-800});
+    --fui-color: var(--fui-gray-700, #{$gray-700});
     --fui-border: 0 solid var(--fui-border-color, #{$border-color});
     --fui-border-radius: #{$border-radius};
     --fui-primary-color: #{$primary-color};
@@ -75,15 +77,15 @@ $focus-shadow: 0 0 0 3px rgba(164, 202, 254, 0.45) !default;
     --fui-alert-font-weight: 500;
     --fui-alert-margin-bottom: 1rem;
     --fui-alert-error-bg-color: #fdf2f2;
-    --fui-alert-error-color: #9b1c1c;
+    --fui-alert-error-color: #{$error-dark};
     --fui-alert-success-bg-color: #f3faf7;
     --fui-alert-success-color: #03543f;
 
     // Button
     --fui-btn-font-size: 0.875rem;
     --fui-btn-line-height: 1.5;
-    --fui-btn-bg-color: #efefef;
-    --fui-btn-bg-color-hover: #e2e2e2;
+    --fui-btn-bg-color: #{$gray-100};
+    --fui-btn-bg-color-hover: #{$gray-200};
     --fui-btn-display: inline-block;
     --fui-btn-text-align: center;
     --fui-btn-white-space: nowrap;
@@ -136,12 +138,12 @@ $focus-shadow: 0 0 0 3px rgba(164, 202, 254, 0.45) !default;
     --fui-tabs-margin-bottom: 1rem;
     --fui-tabs-font-size: 0.875rem;
     --fui-tabs-border-bottom: 1px solid var(--fui-border-color, #{$border-color});
-    --fui-tab-color: var(--fui-gray-600, #{$gray-600});
+    --fui-tab-color: var(--fui-gray-500, #{$gray-500});
     --fui-tab-padding: 0.5rem 1rem;
     --fui-tab-margin-bottom: -1px;
     --fui-tab-border: 1px solid transparent;
     --fui-tab-active-font-weight: 500;
-    --fui-tab-active-color: var(--fui-gray-800, #{$gray-800});
+    --fui-tab-active-color: var(--fui-gray-700, #{$gray-700});
     --fui-tab-active-bg-color: #fff;
     --fui-tab-active-border-color: var(--fui-border-color, #{$border-color});
     --fui-tab-active-border-bottom-color: transparent;
@@ -154,7 +156,7 @@ $focus-shadow: 0 0 0 3px rgba(164, 202, 254, 0.45) !default;
     --fui-progress-font-weight: 500;
     --fui-progress-color: #fff;
     --fui-progress-border-radius: var(--fui-border-radius, #{$border-radius});
-    --fui-progress-bg-color: var(--fui-gray-300, #{$gray-300});
+    --fui-progress-bg-color: var(--fui-gray-200, #{$gray-200});
     --fui-progress-bar-bg-color: var(--fui-primary-color, #{$primary-color});
     --fui-progress-bar-transition: width 0.3s ease;
 
@@ -168,13 +170,13 @@ $focus-shadow: 0 0 0 3px rgba(164, 202, 254, 0.45) !default;
     --fui-label-font-size: 0.875rem;
     --fui-label-line-height: 1.25;
     --fui-label-font-weight: 500;
-    --fui-label-color: var(--fui-gray-800, #{$gray-800});
+    --fui-label-color: var(--fui-gray-700, #{$gray-700});
     --fui-label-margin: 0.5rem;
-    --fui-label-error-color: #771d1d;
-    --fui-label-error-border-color: #f8b4b4;
+    --fui-label-error-color: #{$error-dark};
+    --fui-label-error-border-color: #{$error-light};
 
     // Field Instructions
-    --fui-instructions-color: var(--fui-gray-600, #{$gray-600});
+    --fui-instructions-color: var(--fui-gray-400, #{$gray-400});
     --fui-instructions-font-size: 0.875rem;
     --fui-instructions-line-height: 1.25;
     --fui-instructions-margin: 0.5rem;
@@ -226,10 +228,10 @@ $focus-shadow: 0 0 0 3px rgba(164, 202, 254, 0.45) !default;
     --fui-input-transition-duration: 0.15s;
     --fui-input-border-color-focus: var(--fui-focus-border-color, #{$focus-border-color});
     --fui-input-box-shadow-focus: var(--fui-focus-shadow, #{$focus-shadow});
-    --fui-input-error-color: #771d1d;
-    --fui-input-error-border-color: #f8b4b4;
+    --fui-input-error-color: #{$error-dark};
+    --fui-input-error-border-color: #{$error-light};
     --fui-input-error-box-shadow-focus: 0 0 0 3px rgba(248, 180, 180, 0.45);
-    --fui-input-placeholder-color: var(--fui-gray-500, #{$gray-500});
+    --fui-input-placeholder-color: var(--fui-gray-400, #{$gray-400});
 
     // Field - Repeater
     --fui-repeater-row-padding: 1rem;
@@ -242,7 +244,7 @@ $focus-shadow: 0 0 0 3px rgba(164, 202, 254, 0.45) !default;
     --fui-repeater-add-btn-left: 0.75rem;
     --fui-repeater-add-btn-width: 14px;
     --fui-repeater-add-btn-height: 14px;
-    --fui-repeater-add-btn-bg-image: url("data:image/svg+xml,%3Csvg aria-hidden='true' focusable='false' data-prefix='far' data-icon='plus' class='svg-inline--fa fa-plus fa-w-12' role='img' xmlns='http://www.w3.org/2000/svg' viewBox='0 0 384 512'%3E%3Cpath fill='currentColor' d='M368 224H224V80c0-8.84-7.16-16-16-16h-32c-8.84 0-16 7.16-16 16v144H16c-8.84 0-16 7.16-16 16v32c0 8.84 7.16 16 16 16h144v144c0 8.84 7.16 16 16 16h32c8.84 0 16-7.16 16-16V288h144c8.84 0 16-7.16 16-16v-32c0-8.84-7.16-16-16-16z'%3E%3C/path%3E%3C/svg%3E");
+    --fui-repeater-add-btn-bg-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 384 512'%3E%3Cpath fill='currentColor' d='M368 224H224V80c0-8.84-7.16-16-16-16h-32c-8.84 0-16 7.16-16 16v144H16c-8.84 0-16 7.16-16 16v32c0 8.84 7.16 16 16 16h144v144c0 8.84 7.16 16 16 16h32c8.84 0 16-7.16 16-16V288h144c8.84 0 16-7.16 16-16v-32c0-8.84-7.16-16-16-16z'%3E%3C/path%3E%3C/svg%3E");
 
     --fui-repeater-remove-btn-top: 0;
     --fui-repeater-remove-btn-right: -14px;
@@ -258,7 +260,7 @@ $focus-shadow: 0 0 0 3px rgba(164, 202, 254, 0.45) !default;
     --fui-repeater-remove-btn-icon-width: 9px;
     --fui-repeater-remove-btn-icon-height: 14px;
     --fui-repeater-remove-btn-icon-transform: translate(-50%, -50%);
-    --fui-repeater-remove-btn-icon-bg-image: url("data:image/svg+xml,%3Csvg aria-hidden='true' focusable='false' data-prefix='far' data-icon='times' class='svg-inline--fa fa-times fa-w-10' role='img' xmlns='http://www.w3.org/2000/svg' viewBox='0 0 320 512'%3E%3Cpath fill='currentColor' d='M207.6 256l107.72-107.72c6.23-6.23 6.23-16.34 0-22.58l-25.03-25.03c-6.23-6.23-16.34-6.23-22.58 0L160 208.4 52.28 100.68c-6.23-6.23-16.34-6.23-22.58 0L4.68 125.7c-6.23 6.23-6.23 16.34 0 22.58L112.4 256 4.68 363.72c-6.23 6.23-6.23 16.34 0 22.58l25.03 25.03c6.23 6.23 16.34 6.23 22.58 0L160 303.6l107.72 107.72c6.23 6.23 16.34 6.23 22.58 0l25.03-25.03c6.23-6.23 6.23-16.34 0-22.58L207.6 256z'%3E%3C/path%3E%3C/svg%3E");
+    --fui-repeater-remove-btn-icon-bg-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 320 512'%3E%3Cpath fill='currentColor' d='M207.6 256l107.72-107.72c6.23-6.23 6.23-16.34 0-22.58l-25.03-25.03c-6.23-6.23-16.34-6.23-22.58 0L160 208.4 52.28 100.68c-6.23-6.23-16.34-6.23-22.58 0L4.68 125.7c-6.23 6.23-6.23 16.34 0 22.58L112.4 256 4.68 363.72c-6.23 6.23-6.23 16.34 0 22.58l25.03 25.03c6.23 6.23 16.34 6.23 22.58 0L160 303.6l107.72 107.72c6.23 6.23 16.34 6.23 22.58 0l25.03-25.03c6.23-6.23 6.23-16.34 0-22.58L207.6 256z'%3E%3C/path%3E%3C/svg%3E");
 
     // Field - Select
     --fui-select-option-padding: 0.1rem 0.4rem;
@@ -276,7 +278,7 @@ $focus-shadow: 0 0 0 3px rgba(164, 202, 254, 0.45) !default;
     --fui-table-th-text-align: inherit;
     --fui-table-th-font-size: 0.75rem;
     --fui-table-th-font-weight: 600;
-    --fui-table-th-color: var(--fui-gray-600, #{$gray-600});
+    --fui-table-th-color: var(--fui-gray-500, #{$gray-500});
 
     --fui-table-add-btn-padding-left: 2rem;
 
@@ -284,7 +286,7 @@ $focus-shadow: 0 0 0 3px rgba(164, 202, 254, 0.45) !default;
     --fui-table-add-btn-left: 0.75rem;
     --fui-table-add-btn-width: 14px;
     --fui-table-add-btn-height: 14px;
-    --fui-table-add-btn-bg-image: url("data:image/svg+xml,%3Csvg aria-hidden='true' focusable='false' data-prefix='far' data-icon='plus' class='svg-inline--fa fa-plus fa-w-12' role='img' xmlns='http://www.w3.org/2000/svg' viewBox='0 0 384 512'%3E%3Cpath fill='currentColor' d='M368 224H224V80c0-8.84-7.16-16-16-16h-32c-8.84 0-16 7.16-16 16v144H16c-8.84 0-16 7.16-16 16v32c0 8.84 7.16 16 16 16h144v144c0 8.84 7.16 16 16 16h32c8.84 0 16-7.16 16-16V288h144c8.84 0 16-7.16 16-16v-32c0-8.84-7.16-16-16-16z'%3E%3C/path%3E%3C/svg%3E");
+    --fui-table-add-btn-bg-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 384 512'%3E%3Cpath fill='currentColor' d='M368 224H224V80c0-8.84-7.16-16-16-16h-32c-8.84 0-16 7.16-16 16v144H16c-8.84 0-16 7.16-16 16v32c0 8.84 7.16 16 16 16h144v144c0 8.84 7.16 16 16 16h32c8.84 0 16-7.16 16-16V288h144c8.84 0 16-7.16 16-16v-32c0-8.84-7.16-16-16-16z'%3E%3C/path%3E%3C/svg%3E");
 
     --fui-table-remove-btn-border-radius: 50%;
     --fui-table-remove-btn-padding: 13px;
@@ -295,7 +297,7 @@ $focus-shadow: 0 0 0 3px rgba(164, 202, 254, 0.45) !default;
     --fui-table-remove-btn-width: 9px;
     --fui-table-remove-btn-height: 14px;
     --fui-table-remove-btn-transform: translate(-50%, -50%);
-    --fui-table-remove-btn-bg-image: url("data:image/svg+xml,%3Csvg aria-hidden='true' focusable='false' data-prefix='far' data-icon='times' class='svg-inline--fa fa-times fa-w-10' role='img' xmlns='http://www.w3.org/2000/svg' viewBox='0 0 320 512'%3E%3Cpath fill='currentColor' d='M207.6 256l107.72-107.72c6.23-6.23 6.23-16.34 0-22.58l-25.03-25.03c-6.23-6.23-16.34-6.23-22.58 0L160 208.4 52.28 100.68c-6.23-6.23-16.34-6.23-22.58 0L4.68 125.7c-6.23 6.23-6.23 16.34 0 22.58L112.4 256 4.68 363.72c-6.23 6.23-6.23 16.34 0 22.58l25.03 25.03c6.23 6.23 16.34 6.23 22.58 0L160 303.6l107.72 107.72c6.23 6.23 16.34 6.23 22.58 0l25.03-25.03c6.23-6.23 6.23-16.34 0-22.58L207.6 256z'%3E%3C/path%3E%3C/svg%3E");
+    --fui-table-remove-btn-bg-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 320 512'%3E%3Cpath fill='currentColor' d='M207.6 256l107.72-107.72c6.23-6.23 6.23-16.34 0-22.58l-25.03-25.03c-6.23-6.23-16.34-6.23-22.58 0L160 208.4 52.28 100.68c-6.23-6.23-16.34-6.23-22.58 0L4.68 125.7c-6.23 6.23-6.23 16.34 0 22.58L112.4 256 4.68 363.72c-6.23 6.23-6.23 16.34 0 22.58l25.03 25.03c6.23 6.23 16.34 6.23 22.58 0L160 303.6l107.72 107.72c6.23 6.23 16.34 6.23 22.58 0l25.03-25.03c6.23-6.23 6.23-16.34 0-22.58L207.6 256z'%3E%3C/path%3E%3C/svg%3E");
 
     // Field - Signature
     --fui-signature-width: 100%;

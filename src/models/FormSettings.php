@@ -24,6 +24,7 @@ class FormSettings extends Model
     public $displayCurrentPageTitle = false;
     public $displayPageTabs = false;
     public $displayPageProgress = false;
+    public $scrollToTop = true;
     public $progressPosition = 'end';
     public $defaultLabelPosition;
     public $defaultInstructionsPosition;
@@ -127,6 +128,7 @@ class FormSettings extends Model
                     'displayPageTabs' => AttributeTypecastBehavior::TYPE_BOOLEAN,
                     'displayCurrentPageTitle' => AttributeTypecastBehavior::TYPE_BOOLEAN,
                     'displayPageProgress' => AttributeTypecastBehavior::TYPE_BOOLEAN,
+                    'scrollToTop' => AttributeTypecastBehavior::TYPE_BOOLEAN,
                     'submitMethod' => AttributeTypecastBehavior::TYPE_STRING,
                     'submitAction' => AttributeTypecastBehavior::TYPE_STRING,
                     'submitActionTab' => AttributeTypecastBehavior::TYPE_STRING,

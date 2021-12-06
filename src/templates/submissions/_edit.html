@@ -359,7 +359,9 @@ $(function () {
                 Craft.postActionRequest('formie/submissions/run-integration', { submissionId: submissionId, integrationId: integrationId }, function(response) {
                     $spinner.addClass('hidden');
 
-                    window.location.reload();
+                    if (response && response.success) {
+                        window.location.reload();
+                    }
                 });
             }
         }

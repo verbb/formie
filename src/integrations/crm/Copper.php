@@ -505,13 +505,14 @@ class Copper extends Crm
                 ]);
 
                 // Try and find the person first, doesn't handle adding existing ones well
-                $response = $this->request('POST', 'people/fetch_by_email', [
+                // `people/fetch_by_email` no longer seems to work...
+                $response = $this->request('POST', 'people/search', [
                     'json' => [
-                        'email' => $peoplePayload['emails'][0]['email'] ?? '',
+                        'emails' => [$peoplePayload['emails'][0]['email'] ?? ''],
                     ],
                 ]);
 
-                $existingPersonId = $response['id'] ?? null;
+                $existingPersonId = $response[0]['id'] ?? null;
 
                 // Update or create
                 if ($existingPersonId) {
@@ -643,7 +644,7 @@ class Copper extends Crm
         }
 
         return $this->_client = Craft::createGuzzleClient([
-            'base_uri' => 'https://api.prosperworks.com/developer_api/v1/',
+            'base_uri' => 'https://api.copper.com/developer_api/v1/',
             'headers' => [
                 'X-PW-AccessToken' => Craft::parseEnv($this->apiKey),
                 'X-PW-Application' => 'developer_api',

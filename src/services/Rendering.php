@@ -435,16 +435,33 @@ class Rendering extends Component
         return $templatePath;
     }
 
-    public function populateFormValues($form, $values = [])
+    public function populateFormValues($element, $values = [], $force = false)
     {
-        if (is_string($form)) {
-            $form = Form::find()->handle($form)->one();
-        }
+        // We allow a submission or a form to be passed in here. Handle and get both.
+        if ($element instanceof Form) {
+            $form = $element;
+            
+            if (is_string($form)) {
+                $form = Form::find()->handle($form)->one();
+            }
 
-        if (!$form) {
-            return null;
-        }
+            if (!$form) {
+                return null;
+            }
+            
+            // Fetch the existing submission, if there is one, in case we're force-applying
+            $submission = $form->getCurrentSubmission();
+        } 
 
+        if ($element instanceof Submission) {
+            $submission = $element;
+            $form = $submission->getForm();
+
+            if (!$form) {
+                return null;
+            }
+        }
+        
         $disabledValues = [];
 
         // Try to populate fields with their default value
@@ -458,6 +475,12 @@ class Rendering extends Component
                 }
 
                 $field->populateValue($value);
+
+                // If forcing, set the value every time this is called
+                if ($force && $submission) {
+                    // The value will be normalised already as the `defaulValue`
+                    $submission->setFieldValue($field->handle, $field->defaultValue);
+                }
             } catch (\Throwable $e) {
                 continue;
             }
