@@ -166,7 +166,7 @@ class RichTextHelper
         return $linkOptions;
     }
 
-    private function _getSectionSources(): array
+    private static function _getSectionSources(): array
     {
         $sources = [];
         $sections = Craft::$app->getSections()->getAllSections();
@@ -199,7 +199,7 @@ class RichTextHelper
         return $sources;
     }
 
-    private function _getCategorySources(): array
+    private static function _getCategorySources(): array
     {
         $sources = [];
         $categoryGroups = Craft::$app->getCategories()->getAllGroups();
@@ -219,7 +219,7 @@ class RichTextHelper
         return $sources;
     }
 
-    private function _getVolumeKeys(): array
+    private static function _getVolumeKeys(): array
     {
         $criteria = ['parentId' => ':empty:'];
 
