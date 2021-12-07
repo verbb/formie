@@ -37,24 +37,22 @@
 </tr>
 
 {% for option in field.getSubfieldOptions() %}
-    {% if field[option.handle ~ 'Enabled'] %}
-        {% set nameLabel = option.label %}
-        {% set instructionsHandle = handle ~ '[' ~ option.handle ~ ']' %}
+    {% set nameLabel = option.label %}
+    {% set instructionsHandle = handle ~ '[' ~ option.handle ~ ']' %}
 
-        {% set path = prefixPath | merge ([ 'fields', option.handle ]) %}
+    {% set path = prefixPath | merge ([ 'fields', option.handle ]) %}
 
-        {% set default = default ?? {
-            type: 'text',
-        } %}
+    {% set default = default ?? {
+        type: 'text',
+    } %}
 
-        {% embed 'feed-me/_includes/fields/_base' %}
-            {% block additionalFieldSettings %}
+    {% embed 'feed-me/_includes/fields/_base' %}
+        {% block additionalFieldSettings %}
 
-            {% endblock %}
+        {% endblock %}
 
-            {% block fieldSettings %}
+        {% block fieldSettings %}
 
-            {% endblock %}
-        {% endembed %}
-    {% endif %}
+        {% endblock %}
+    {% endembed %}
 {% endfor %}
