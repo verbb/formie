@@ -215,7 +215,9 @@ class SupportController extends Controller
 
             if ($support->attachments) {
                 foreach ($support->attachments as $attachment) {
-                    $zip->addFile($attachment->tempName, $attachment->name);
+                    if ($attachment instanceof UploadedFile) {
+                        $zip->addFile($attachment->tempName, $attachment->name);
+                    }
                 }
             }
 
