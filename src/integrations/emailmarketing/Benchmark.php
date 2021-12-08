@@ -124,8 +124,12 @@ class Benchmark extends EmailMarketing
                 ]),
             ];
 
+            // Because we pass via reference, we need variables
+            $endpoint = 'Contact/ContactDetails';
+            $method = 'GET';
+
             // Allow events to cancel sending
-            if (!$this->beforeSendPayload($submission, 'Contact/ContactDetails', $payload, 'GET')) {
+            if (!$this->beforeSendPayload($submission, $endpoint, $payload, $method)) {
                 return true;
             }
 

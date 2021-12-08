@@ -257,8 +257,12 @@ class Entry extends Element
             $entry->setFieldValues($fieldValues);
             $entry->updateTitle();
 
-            // Allow events to cancel sending - return as success
-            if (!$this->beforeSendPayload($submission, '', $entry, '')) {
+            // Although empty, because we pass via reference, we need variables
+            $endpoint = '';
+            $method = '';
+
+            // Allow events to cancel sending - return as success            
+            if (!$this->beforeSendPayload($submission, $endpoint, $entry, $method)) {
                 return true;
             }
 

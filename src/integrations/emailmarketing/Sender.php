@@ -117,8 +117,12 @@ class Sender extends EmailMarketing
                 ],
             ];
 
+            // Because we pass via reference, we need variables
+            $endpoint = 'listSubscribe';
+            $method = 'POST';
+
             // Allow events to cancel sending
-            if (!$this->beforeSendPayload($submission, 'listSubscribe', $payload, 'POST')) {
+            if (!$this->beforeSendPayload($submission, $endpoint, $payload, $method)) {
                 return true;
             }
 

@@ -239,8 +239,12 @@ class User extends Element
 
             $user->setFieldValues($fieldValues);
 
+            // Although empty, because we pass via reference, we need variables
+            $endpoint = '';
+            $method = '';
+
             // Allow events to cancel sending - return as success
-            if (!$this->beforeSendPayload($submission, '', $user, '')) {
+            if (!$this->beforeSendPayload($submission, $endpoint, $user, $method)) {
                 return true;
             }
 

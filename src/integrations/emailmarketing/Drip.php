@@ -218,8 +218,12 @@ class Drip extends EmailMarketing
                 ],
             ];
 
+            // Because we pass via reference, we need variables
+            $endpoint = 'accounts';
+            $method = 'GET';
+
             // Allow events to cancel sending
-            if (!$this->beforeSendPayload($submission, 'accounts', $payload, 'GET')) {
+            if (!$this->beforeSendPayload($submission, $endpoint, $payload, $method)) {
                 return true;
             }
 
