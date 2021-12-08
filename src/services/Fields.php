@@ -16,6 +16,7 @@ use verbb\formie\events\ModifyFieldRowConfigEvent;
 use verbb\formie\events\RegisterFieldsEvent;
 use verbb\formie\events\RegisterFieldOptionsEvent;
 use verbb\formie\fields\formfields;
+use verbb\formie\integrations\feedme\fields as FeedMeField;
 use verbb\formie\models\FieldLayout;
 use verbb\formie\models\FieldLayoutPage;
 use verbb\formie\positions\AboveInput;
@@ -294,6 +295,49 @@ class Fields extends Component
         }
 
         return $this->_fields;
+    }
+
+    /**
+     * Returns the registered fields for Feed Me.
+     *
+     * @return array[]
+     */
+    public function getRegisteredFormieFields()
+    {
+        $fields = [];
+
+        $fields[] = FeedMeField\Address::class;
+        $fields[] = FeedMeField\Agree::class;
+        $fields[] = FeedMeField\Categories::class;
+        $fields[] = FeedMeField\Checkboxes::class;
+        $fields[] = FeedMeField\Date::class;
+        $fields[] = FeedMeField\Dropdown::class;
+        $fields[] = FeedMeField\Email::class;
+        $fields[] = FeedMeField\Entries::class;
+        $fields[] = FeedMeField\FileUpload::class;
+        $fields[] = FeedMeField\Group::class;
+        $fields[] = FeedMeField\Hidden::class;
+        $fields[] = FeedMeField\MultiLineText::class;
+        $fields[] = FeedMeField\Name::class;
+        $fields[] = FeedMeField\Number::class;
+        $fields[] = FeedMeField\Password::class;
+        $fields[] = FeedMeField\Phone::class;
+        $fields[] = FeedMeField\Radio::class;
+        $fields[] = FeedMeField\Repeater::class;
+        $fields[] = FeedMeField\SingleLineText::class;
+        $fields[] = FeedMeField\Table::class;
+        $fields[] = FeedMeField\Tags::class;
+
+        if (Craft::$app->getEdition() === Craft::Pro) {
+            $fields[] = FeedMeField\Users::class;
+        }
+
+        if (Formie::$plugin->getService()->isPluginInstalledAndEnabled('commerce')) {
+            $fields[] = FeedMeField\Products::class;
+            $fields[] = FeedMeField\Variants::class;
+        }
+
+        return $fields;
     }
 
     /**

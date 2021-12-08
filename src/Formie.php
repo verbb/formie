@@ -436,30 +436,9 @@ class Formie extends Plugin
 
         if (class_exists(FeedMeFields::class)) {
             Event::on(FeedMeFields::class, FeedMeFields::EVENT_REGISTER_FEED_ME_FIELDS, function(RegisterFeedMeFieldsEvent $e) {
-                $e->fields[] = FeedMeField\Address::class;
-                $e->fields[] = FeedMeField\Agree::class;
-                $e->fields[] = FeedMeField\Categories::class;
-                $e->fields[] = FeedMeField\Checkboxes::class;
-                $e->fields[] = FeedMeField\Date::class;
-                $e->fields[] = FeedMeField\Dropdown::class;
-                $e->fields[] = FeedMeField\Email::class;
-                $e->fields[] = FeedMeField\Entries::class;
-                $e->fields[] = FeedMeField\FileUpload::class;
-                $e->fields[] = FeedMeField\Group::class;
-                $e->fields[] = FeedMeField\Hidden::class;
-                $e->fields[] = FeedMeField\MultiLineText::class;
-                $e->fields[] = FeedMeField\Name::class;
-                $e->fields[] = FeedMeField\Number::class;
-                $e->fields[] = FeedMeField\Password::class;
-                $e->fields[] = FeedMeField\Phone::class;
-                $e->fields[] = FeedMeField\Products::class;
-                $e->fields[] = FeedMeField\Radio::class;
-                $e->fields[] = FeedMeField\Repeater::class;
-                $e->fields[] = FeedMeField\SingleLineText::class;
-                $e->fields[] = FeedMeField\Table::class;
-                $e->fields[] = FeedMeField\Tags::class;
-                $e->fields[] = FeedMeField\Users::class;
-                $e->fields[] = FeedMeField\Variants::class;
+                $fields = Formie::$plugin->getFields()->getRegisteredFormieFields();
+
+                $e->fields = array_merge($e->fields, $fields);
             });
         }
     }
