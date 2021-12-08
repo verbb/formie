@@ -5,6 +5,7 @@ use verbb\formie\Formie;
 use verbb\formie\events\PdfEvent;
 use verbb\formie\events\PdfRenderOptionsEvent;
 use verbb\formie\events\PdfTemplateEvent;
+use verbb\formie\helpers\Variables;
 use verbb\formie\models\PdfTemplate;
 use verbb\formie\records\PdfTemplate as TemplateRecord;
 
@@ -15,6 +16,7 @@ use craft\helpers\ArrayHelper;
 use craft\helpers\Db;
 use craft\helpers\FileHelper;
 use craft\helpers\StringHelper;
+use craft\helpers\Template;
 use craft\helpers\UrlHelper;
 use craft\web\View;
 
@@ -336,9 +338,15 @@ class PdfTemplates extends Component
         $settings = Formie::getInstance()->getSettings();
         $view = Craft::$app->getView();
 
+        $form = $submission->getForm();
+
+        // Render the body content for the notification
+        $parsedContent = Variables::getParsedValue($notification->getParsedContent(), $submission, $form, $notification);
+
         $variables = [
             'submission' => $submission,
             'notification' => $notification,
+            'contentHtml' => Template::raw($parsedContent),
         ];
 
         // Trigger a 'beforeRenderPdf' event
