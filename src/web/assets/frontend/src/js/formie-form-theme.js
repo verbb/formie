@@ -618,8 +618,8 @@ export class FormieFormTheme {
         // Reset values regardless, for the moment
         this.$form.reset();
 
-        // Reset the submission ID in case we want to go again
-        this.updateOrCreateHiddenInput('submissionId', '');
+        // Remove the submission ID input in case we want to go again
+        this.removeHiddenInput('submissionId');
 
         // Reset the form hash, as all has been saved
         this.updateFormHash();
@@ -645,6 +645,14 @@ export class FormieFormTheme {
         }
 
         $input.setAttribute('value', value);
+    }
+
+    removeHiddenInput(name) {
+        var $input = this.$form.querySelector('[name="' + name + '"][type="hidden"]');
+
+        if ($input) {
+            $input.parentNode.removeChild($input);
+        }
     }
 
     togglePage(data) {
