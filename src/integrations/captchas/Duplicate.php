@@ -114,16 +114,16 @@ class Duplicate extends Captcha
 
     private function getSessionKey($form, $page = null)
     {
-        $currentPage = $form->getCurrentPage();
-
-        if ($page) {
-            $currentPage = $page;
+        // Default the page to the last page, if not set.
+        if (!$page) {
+            $pages = $form->getPages();
+            $page = $pages[count($pages) - 1] ?? $page;
         }
 
         $array = array_filter([
             self::DUPLICATE_INPUT_NAME . '_',
             $form->id,
-            $currentPage->id ?? null,
+            $page->id ?? null,
         ]);
 
         return implode('', $array);
