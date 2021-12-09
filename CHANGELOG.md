@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.5.1 - 2021-12-09
+
+### Added
+- Added `contentHtml` to render variables for PDF Templates.
+
+### Fixed
+- Fixed some integrations (Elements, AWeber, Benchmark, Drop, Sender) not firing correctly.
+- Fixed a potential error when attaching files to support requests.
+- Fixed Feed Me error when Commerce wasn't installed.
+- Fixed an error with Feed Me, when importing into a Phone field.
+- Fixed a PHP 8 error when editing a form.
+
 ## 1.5.0 - 2021-12-08
 
 ### Added
