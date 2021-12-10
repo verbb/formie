@@ -266,6 +266,15 @@ class User extends Element
                 return false;
             }
 
+            // Has a Password field been used to map the value? Do a direct DB update as it's been hashed already.
+            // This also needs to be done before sending activation emails
+            if ($hashedPassword) {
+                Db::update(Table::USERS, ['password' => $hashedPassword], ['id' => $user->id], [], false);
+
+                // Update the user model with the password, as activation emails require this
+                $user->password = $hashedPassword;
+            }
+
             if ($user->getStatus() == UserElement::STATUS_PENDING) {
                 if ($this->activateUser) {
                     Craft::$app->getUsers()->activateUser($user);
@@ -295,11 +304,6 @@ class User extends Element
                     
                     return false;
                 }
-            }
-
-            // Has a Password field been used to map the value? Do a direct DB update as it's been hashed already
-            if ($hashedPassword) {
-                Db::update(Table::USERS, ['password' => $hashedPassword], ['id' => $user->id], [], false);
             }
 
             // Allow events to say the response is invalid
