@@ -152,6 +152,10 @@ class Table extends CraftTable implements FormFieldInterface
             return '';
         }
 
+        if (!is_array($this->columns)) {
+            $this->columns = [];
+        }
+
         // Translate the column headings
         foreach ($this->columns as &$column) {
             if (!empty($column['heading'])) {
