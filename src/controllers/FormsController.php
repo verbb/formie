@@ -272,7 +272,7 @@ class FormsController extends Controller
 
         // Save it
         if ($formHasErrors || !Formie::$plugin->getStencils()->saveStencil($stencil)) {
-            $config = $stencil->getConfig();
+            $config = $stencil->getFormConfig();
             $notifications = ArrayHelper::remove($config, 'notifications', []);
 
             if ($request->getAcceptsJson()) {
@@ -296,7 +296,7 @@ class FormsController extends Controller
             return null;
         }
 
-        $config = $stencil->getConfig();
+        $config = $stencil->getFormConfig();
         $notifications = ArrayHelper::remove($config, 'notifications', []);
 
         if ($request->getAcceptsJson()) {

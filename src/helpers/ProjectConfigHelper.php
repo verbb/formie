@@ -66,36 +66,13 @@ class ProjectConfigHelper
 
     private static function _getStencilsData(): array
     {
-        $stencilsData = [];
+        $data = [];
 
-        $stencilsRows = (new Query())
-            ->select([
-                'id',
-                'uid',
-                'name',
-                'handle',
-                'data',
-                'templateId',
-                'defaultStatusId',
-            ])
-            ->indexBy('id')
-            ->orderBy('name ASC')
-            ->from(['{{%formie_stencils}}'])
-            ->all();
-
-        foreach ($stencilsRows as &$stencilRow) {
-            $statusUid = $stencilRow['uid'];
-            unset($stencilRow['id']);
-            unset($stencilRow['uid']);
-
-            $data = Json::decodeIfJson($stencilRow['data']);
-            $stencilRow['data'] = $data;
-            $stencilRow['defaultStatusId'] = (int)$stencilRow['defaultStatusId'];
-
-            $stencilsData[$statusUid] = $stencilRow;
+        foreach (Formie::$plugin->getStencils()->getAllStencils() as $stencil) {
+            $data[$stencil->uid] = $stencil->getConfig();
         }
 
-        return $stencilsData;
+        return $data;
     }
 
     private static function _getFormTemplatesData(): array

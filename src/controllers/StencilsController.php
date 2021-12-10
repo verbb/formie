@@ -91,7 +91,7 @@ class StencilsController extends Controller
         $variables['tabs'] = $variables['formTabs'] = Formie::$plugin->getForms()->buildTabs();
         $variables['notificationsTabs'] = Formie::$plugin->getForms()->buildNotificationTabs();
 
-        $config = $stencil->getConfig();
+        $config = $stencil->getFormConfig();
         $notifications = ArrayHelper::remove($config, 'notifications', []);
 
         $variables['formConfig'] = $config;
@@ -230,7 +230,7 @@ class StencilsController extends Controller
             return $this->asJson([
                 'success' => true,
                 'id' => $stencil->id,
-                'config' => $stencil->getConfig(),
+                'config' => $stencil->getFormConfig(),
                 'notifications' => $notificationsConfig,
                 'errors' => ArrayHelper::merge($formErrors, $stencil->getErrors()),
                 'fieldLayoutId' => $form->fieldLayoutId,

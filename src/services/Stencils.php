@@ -166,20 +166,8 @@ class Stencils extends Component
         if ($stencil->dateDeleted) {
             $configData = null;
         } else {
-            $data = $stencil->data->getAttributes();
-            $data['settings'] = $data['settings']->getAttributes();
-
-            $configData = [
-                'name' => $stencil->name,
-                'handle' => $stencil->handle,
-                'templateId' => $stencil->templateId,
-                'defaultStatusId' => $stencil->defaultStatusId,
-                'data' => $data,
-            ];
+            $configData = $stencil->getConfig();
         }
-
-        // Prepare the stencil data for saving.
-        $configData = $this->_prepDataForSave($configData);
 
         // For new stencils, check for any globally enabled captchas and set as enabled
         if ($isNewStencil) {
@@ -236,15 +224,30 @@ class Stencils extends Component
             $stencilRecord = $this->_getStencilsRecord($stencilUid);
             $isNewStencil = $stencilRecord->getIsNewRecord();
 
-            // Check against legacy error
-            $defaultStatusId = $data['defaultStatusId'] ?: null;
-
             $stencilRecord->name = $data['name'];
             $stencilRecord->handle = $data['handle'];
             $stencilRecord->data = $data['data'];
-            $stencilRecord->templateId = $data['templateId'];
-            $stencilRecord->defaultStatusId = $defaultStatusId;
             $stencilRecord->uid = $stencilUid;
+
+            // Handle UIDs for templates/statuses
+            $defaultStatusUid = $data['defaultStatus'] ?: null;
+            $templateUid = $data['template'] ?: null;
+
+            if ($defaultStatusUid) {
+                $defaultStatus = Formie::$plugin->getStatuses()->getStatusByUid($defaultStatusUid);
+
+                if ($defaultStatus) {
+                    $stencilRecord->defaultStatusId = $defaultStatus->id;
+                }
+            }
+
+            if ($templateUid) {
+                $template = Formie::$plugin->getFormTemplates()->getTemplateByUid($templateUid);
+
+                if ($template) {
+                    $stencilRecord->templateId = $template->id;
+                }
+            }
 
             // Save the status
             $stencilRecord->save(false);
@@ -438,47 +441,5 @@ class Stencils extends Component
         }
 
         return new StencilRecord();
-    }
-
-    /**
-     * @inheritDoc
-     */
-    private function _prepDataForSave($configData)
-    {
-        // It's important to not store actual IDs in stencil data. Ensure they're marked as 'new'
-        // for pages, rows and fields.
-        $pages = $configData['data']['pages'] ?? [];
-
-        foreach ($pages as $pageKey => $page) {
-            $pageId = $page['id'] ?? '';
-
-            if (strpos($pageId, 'new') !== 0) {
-                $pages[$pageKey]['id'] = 'new' . rand();
-            }
-
-            $rows = $page['rows'] ?? [];
-
-            foreach ($rows as $rowKey => $row) {
-                $rowId = $row['id'] ?? '';
-
-                if (strpos($rowId, 'new') !== 0) {
-                    $pages[$pageKey]['rows'][$rowKey]['id'] = 'new' . rand();
-                }
-
-                $fields = $row['fields'] ?? [];
-
-                foreach ($fields as $fieldKey => $field) {
-                    $fieldId = $field['id'] ?? '';
-
-                    if (strpos($fieldId, 'new') !== 0) {
-                        $pages[$pageKey]['rows'][$rowKey]['fields'][$fieldKey]['id'] = 'new' . rand();
-                    }
-                }
-            }
-        }
-
-        $configData['data']['pages'] = $pages;
-
-        return $configData;
     }
 }

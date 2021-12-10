@@ -222,11 +222,11 @@ class Stencil extends Model
     }
 
     /**
-     * Returns the stencils config for the form builder.
+     * Returns the stencils config for form builder.
      *
      * @return array
      */
-    public function getConfig(): array
+    public function getFormConfig(): array
     {
         return ArrayHelper::merge($this->data->getAttributes(), [
             'title' => $this->getTitle(),
@@ -234,6 +234,59 @@ class Stencil extends Model
             'templateId' => $this->templateId,
             'defaultStatusId' => $this->defaultStatusId,
         ]);
+    }
+
+    /**
+     * Returns the stencils config for project config.
+     *
+     * @return array
+     */
+    public function getConfig(): array
+    {
+        $data = $this->data->getAttributes();
+        $data['settings'] = $data['settings']->getAttributes();
+
+        // It's important to not store actual IDs in stencil data. Ensure they're marked as 'new'
+        // for pages, rows and fields.
+        $pages = $data['pages'] ?? [];
+
+        foreach ($pages as $pageKey => $page) {
+            $pageId = $page['id'] ?? '';
+
+            if (strpos($pageId, 'new') !== 0) {
+                $pages[$pageKey]['id'] = 'new' . rand();
+            }
+
+            $rows = $page['rows'] ?? [];
+
+            foreach ($rows as $rowKey => $row) {
+                $rowId = $row['id'] ?? '';
+
+                if (strpos($rowId, 'new') !== 0) {
+                    $pages[$pageKey]['rows'][$rowKey]['id'] = 'new' . rand();
+                }
+
+                $fields = $row['fields'] ?? [];
+
+                foreach ($fields as $fieldKey => $field) {
+                    $fieldId = $field['id'] ?? '';
+
+                    if (strpos($fieldId, 'new') !== 0) {
+                        $pages[$pageKey]['rows'][$rowKey]['fields'][$fieldKey]['id'] = 'new' . rand();
+                    }
+                }
+            }
+        }
+
+        $data['pages'] = $pages;
+
+        return [
+            'name' => $this->name,
+            'handle' => $this->handle,
+            'template' => $this->getTemplate()->uid ?? null,
+            'defaultStatus' => $this->getDefaultStatus()->uid ?? null,
+            'data' => $data,
+        ];
     }
 
     /**
