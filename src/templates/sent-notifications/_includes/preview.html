@@ -46,14 +46,11 @@
     <div class="fui-email-body">
         <iframe
             class="email-iframe"
-            src="about:blank"
+            srcdoc="{{ sentNotification.htmlBody }}"
             frameborder="0"
             style="width: 100%;"
+            onload="this.style.height=(this.contentWindow.document.body.scrollHeight+20)+'px';"
         ></iframe>
-
-        <script id="template" type="text/template">
-            {{ sentNotification.htmlBody | raw }}
-        </script>
     </div>
 
     <div class="fui-email-footer"></div>
@@ -61,25 +58,7 @@
 
 {% js %}
 
-var $iframes = document.querySelectorAll('.email-iframe');
-
-if ($iframes) {
-    // Using a for loop here to handle multiple instances on a page (modal window when editing)
-    for (var i = 0; i < $iframes.length; i++) {
-        var doc = $iframes[i].contentWindow.document;
-
-        var html = $iframes[i].parentNode.parentNode.querySelector('#template').innerHTML;
-
-        if (doc) {
-            doc.open();
-            doc.write('<html><head><title></title></head><body>' + html + '</body></html>');
-            doc.close();
-        }
-
-        // Adjust the height to match the content
-        $iframes[i].style.height = $iframes[i].contentWindow.document.body.scrollHeight + 'px';
-    }
-}
+iFrameResize({ log: true }, '.email-iframe')
 
 {% endjs %}
 
