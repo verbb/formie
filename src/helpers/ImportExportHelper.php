@@ -16,6 +16,7 @@ use verbb\formie\records\PdfTemplate as PdfTemplateRecord;
 
 use Craft;
 use craft\helpers\ArrayHelper;
+use craft\helpers\Json;
 
 class ImportExportHelper
 {
@@ -157,7 +158,7 @@ class ImportExportHelper
         }
 
         // Grab all the extra bits from the export that need to be handles separately
-        $settings = ArrayHelper::remove($data, 'settings');
+        $settings = Json::decodeIfJson(ArrayHelper::remove($data, 'settings'));
         $pages = ArrayHelper::remove($data, 'pages');
         $formTemplate = ArrayHelper::remove($data, 'formTemplate');
         $notifications = ArrayHelper::remove($data, 'notifications');
