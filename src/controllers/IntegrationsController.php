@@ -229,7 +229,7 @@ class IntegrationsController extends Controller
 
             if (!$session->get('formie.callback')) {
                 // Some providers (2-legged) might not return a connect response
-                if ($integration->getAuthorizeUrl()) {
+                if (!$integration->oauth2Legged()) {
                     return $integration->oauthConnect();
                 }
             }

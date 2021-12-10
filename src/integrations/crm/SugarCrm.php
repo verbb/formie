@@ -53,6 +53,14 @@ class SugarCrm extends Crm
     /**
      * @inheritDoc
      */
+    public function oauth2Legged(): bool
+    {
+        return true;
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function getAuthorizeUrl(): string
     {
         return '';

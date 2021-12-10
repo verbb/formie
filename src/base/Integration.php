@@ -494,6 +494,14 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     /**
      * @inheritDoc
      */
+    public function oauth2Legged(): bool
+    {
+        return false;
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function oauthConnect()
     {
         switch ($this->oauthVersion()) {
