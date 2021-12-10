@@ -125,6 +125,7 @@ class ImportExportHelper
                 foreach ($row['fields'] as $fieldId => $field) {
                     $settings = array_merge([
                         'instructions' => $field->instructions,
+                        'required' => $field->required,
                     ], $field->settings);
 
                     ArrayHelper::remove($settings, 'formId');
