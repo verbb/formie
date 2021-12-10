@@ -112,10 +112,13 @@ class ImportExportController extends Controller
         }
 
         $notificationCount = Craft::t('app', '{num, number} {num, plural, =1{notification} other{notifications}}', ['num' => count($json['notifications'])]);
-        $this->stdout("Notifications: Preparing to import {$notificationCount}.");
+        
+        if (count($json['notifications'])) {
+            $this->stdout("Notifications: Preparing to import {$notificationCount}.");
 
-        foreach ($json['notifications'] as $notification) {
-            $this->stdout("    > “{$notification['name']}”.", Console::FG_GREEN);
+            foreach ($json['notifications'] as $notification) {
+                $this->stdout("    > “{$notification['name']}”.", Console::FG_GREEN);
+            }
         }
 
         $summary = ob_get_clean();
