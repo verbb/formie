@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.5.2 - 2021-12-12
+
+### Fixed
+- Fixed User integrations not sending the correct activation email when using the Password field.
+- Fixed an error when exporting Table fields with no columns.
+- Fixed stencils not saving their `template` and `defaultStatus` correctly in project config.
+- Fixed sent notification preview not showing when Craft's debug bar was enabled.
+- Fixed form settings (Appearance/Behaviour) not setting correctly when importing forms.
+- Fixed required fields not working correctly when exporting forms.
+- Fixed OAuth-based integrations not authenticating correctly.
+- Fixed Dynamics CRM instructions.
+- Fixed Javascript and Duplicate captchas incorrectly flagging as spam for multi-page Ajax forms.
+- Fixed an error when submitting a form via Ajax, straight after another submission.
+
 ## 1.5.1 - 2021-12-09
 
 ### Added
