@@ -160,6 +160,18 @@ class SubmissionQuery extends ElementQuery
         return $this;
     }
 
+    /**
+     * @inheritdoc
+     */
+    public function anyStatus()
+    {
+        parent::anyStatus();
+
+        $this->isIncomplete = null;
+        $this->isSpam = null;
+        return $this;
+    }
+
 
     // Protected Methods
     // =========================================================================
