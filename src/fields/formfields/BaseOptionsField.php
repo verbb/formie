@@ -199,7 +199,7 @@ abstract class BaseOptionsField extends CraftBaseOptionsField
     /**
      * @inheritDoc
      */
-    protected function defineValueForIntegration($value, $integrationField, ElementInterface $element = null, $fieldKey = '')
+    protected function defineValueForIntegration($value, $integrationField, $integration, ElementInterface $element = null, $fieldKey = '')
     {
         // If mapping to an array, extract just the values
         if ($integrationField->getType() === IntegrationField::TYPE_ARRAY) {
@@ -213,7 +213,7 @@ abstract class BaseOptionsField extends CraftBaseOptionsField
         }
 
         // Fetch the default handling
-        return $this->traitDefineValueForIntegration($value, $integrationField, $element);
+        return $this->traitDefineValueForIntegration($value, $integrationField, $integration, $element);
     }
     
     /**

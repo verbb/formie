@@ -736,7 +736,7 @@ trait NestedFieldTrait
     /**
      * @inheritDoc
      */
-    protected function defineValueForIntegration($value, $integrationField, ElementInterface $element = null, $fieldKey = '')
+    protected function defineValueForIntegration($value, $integrationField, $integration, ElementInterface $element = null, $fieldKey = '')
     {
         // For dot-notation field lookups, we want to process each subfield correctly (according to the destination integration field)
         // and pluck the value we want specifically.
@@ -746,7 +746,7 @@ trait NestedFieldTrait
             foreach ($value->all() as $rowId => $row) {
                 foreach ($row->getFieldLayout()->getFields() as $field) {
                     $subValue = $row->getFieldValue($field->handle);
-                    $valueForIntegration = $field->defineValueForIntegration($subValue, $integrationField, $row);
+                    $valueForIntegration = $field->defineValueForIntegration($subValue, $integrationField, $integration, $row);
 
                     $values[$this->handle . '.' . $field->handle] = $valueForIntegration;
                 }
@@ -756,7 +756,7 @@ trait NestedFieldTrait
         }
 
         // Fetch the default handling
-        return parent::defineValueForIntegration($value, $integrationField, $element);
+        return parent::defineValueForIntegration($value, $integrationField, $integration, $element);
     }
 
 

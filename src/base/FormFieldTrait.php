@@ -264,7 +264,7 @@ trait FormFieldTrait
      */
     public function getValueForIntegration($value, $integrationField, $integration, ElementInterface $element = null, $fieldKey = '')
     {
-        $value = $this->defineValueForIntegration($value, $integrationField, $element, $fieldKey);
+        $value = $this->defineValueForIntegration($value, $integrationField, $integration, $element, $fieldKey);
 
         $event = new ModifyFieldIntegrationValueEvent([
             'value' => $value,
@@ -1203,7 +1203,7 @@ trait FormFieldTrait
     /**
      * @inheritdoc
      */
-    protected function defineValueForIntegration($value, $integrationField, ElementInterface $element = null, $fieldKey = '')
+    protected function defineValueForIntegration($value, $integrationField, $integration, ElementInterface $element = null, $fieldKey = '')
     {
         $stringValue = $this->defineValueAsString($value, $element);
         $jsonValue = $this->defineValueAsJson($value, $element);

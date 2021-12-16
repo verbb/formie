@@ -372,7 +372,7 @@ class Recipients extends FormField
     /**
      * @inheritDoc
      */
-    protected function defineValueForIntegration($value, $integrationField, ElementInterface $element = null, $fieldKey = '')
+    protected function defineValueForIntegration($value, $integrationField, $integration, ElementInterface $element = null, $fieldKey = '')
     {
         // If mapping to an array, extract just the values
         if ($integrationField->getType() === IntegrationField::TYPE_ARRAY) {
@@ -390,7 +390,7 @@ class Recipients extends FormField
         }
 
         // Fetch the default handling
-        return parent::defineValueForIntegration($value, $integrationField, $element);
+        return parent::defineValueForIntegration($value, $integrationField, $integration, $element);
     }
 
     /**

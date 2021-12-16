@@ -2,6 +2,7 @@
 namespace verbb\formie\fields\formfields;
 
 use verbb\formie\Formie;
+use verbb\formie\base\Element;
 use verbb\formie\base\FormFieldInterface;
 use verbb\formie\base\FormFieldTrait;
 use verbb\formie\base\RelationFieldTrait;
@@ -523,9 +524,14 @@ class FileUpload extends CraftAssets implements FormFieldInterface
     /**
      * @inheritDoc
      */
-    protected function defineValueForIntegration($value, $integrationField, ElementInterface $element = null, $fieldKey = '')
+    protected function defineValueForIntegration($value, $integrationField, $integration, ElementInterface $element = null, $fieldKey = '')
     {
         if ($integrationField->getType() === IntegrationField::TYPE_ARRAY) {
+            // For any element integrations, always return IDs (default behaviour)
+            if ($integration instanceof Element) {
+                return $value->ids();
+            }
+
             $value = $this->getValueAsJson($value, $element);
 
             return array_map(function($item) {
@@ -535,7 +541,7 @@ class FileUpload extends CraftAssets implements FormFieldInterface
         }
 
         // Fetch the default handling
-        return $this->traitDefineValueForIntegration($value, $integrationField, $element);
+        return $this->traitDefineValueForIntegration($value, $integrationField, $integration, $element);
     }
 
     /**
