@@ -9,7 +9,7 @@
 
 {% if errors is defined %}
     <p class="error">
-        Error: {{ dump(errors) }}
+        Error: {{ errors | json_encode }}
     </p>
 {% endif %}
 
