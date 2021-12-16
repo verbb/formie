@@ -8,6 +8,7 @@ use verbb\formie\records\Token as TokenRecord;
 
 use Craft;
 use craft\db\Query;
+use craft\helpers\Json;
 
 use yii\base\Component;
 
@@ -206,7 +207,18 @@ class Tokens extends Component
                     $refreshToken = $token->refreshToken;
 
                     $grant = new RefreshToken();
-                    $newToken = $integration->getOauthProvider()->getAccessToken($grant, ['refresh_token' => $refreshToken]);
+                    $provider = $integration->getOauthProvider();
+
+                    // Add some logging for refresh tokens for easier debugging
+                    $params = $grant->prepareRequestParameters([
+                        'client_id' => $provider->clientId,
+                        'client_secret' => $provider->clientSecret,
+                        'redirect_uri' => $provider->redirectUri,
+                    ], ['refresh_token' => $refreshToken]);
+
+                    Formie::log($integration->name . ': Refresh token with params ' . Json::encode($params));
+
+                    $newToken = $provider->getAccessToken($grant, ['refresh_token' => $refreshToken]);
 
                     if ($newToken) {
                         $token->accessToken = $newToken->getToken();
