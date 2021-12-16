@@ -471,6 +471,10 @@ class Table extends CraftTable implements FormFieldInterface
     {
         $values = [];
 
+        if (!is_array($value)) {
+            $value = [];
+        }
+
         foreach ($value as $rowId => $row) {
             foreach ($this->columns as $colId => $col) {
                 $values[] = $row[$col['handle']] ?? null;
@@ -486,6 +490,10 @@ class Table extends CraftTable implements FormFieldInterface
     protected function defineValueForExport($value, ElementInterface $element = null)
     {
         $values = [];
+
+        if (!is_array($value)) {
+            $value = [];
+        }
 
         foreach ($value as $rowId => $row) {
             foreach ($this->columns as $colId => $col) {
@@ -503,6 +511,10 @@ class Table extends CraftTable implements FormFieldInterface
     {
         $headValues = '';
         $bodyValues = '';
+
+        if (!is_array($value)) {
+            $value = [];
+        }
 
         foreach ($value as $rowId => $row) {
             $rowValues = '';
