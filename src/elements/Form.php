@@ -232,7 +232,12 @@ class Form extends Element
         $rules[] = [['title', 'handle'], 'required'];
         $rules[] = [['title'], 'string', 'max' => 255];
         $rules[] = [['templateId', 'submitActionEntryId', 'defaultStatusId', 'fieldLayoutId'], 'number', 'integerOnly' => true];
-        $rules[] = [['handle'], 'string', 'max' => 60];
+        
+        // Make sure the column name is under the database’s maximum allowed column length
+        $maxHandleLength = Craft::$app->getDb()->getSchema()->maxObjectNameLength;
+
+        $rules[] = [['handle'], 'string', 'max' => $maxHandleLength];
+        
         $rules[] = [
             ['handle'],
             HandleValidator::class,

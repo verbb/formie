@@ -5,6 +5,7 @@ import findIndex from 'lodash/findIndex';
 // The state must return a function to make the module reusable.
 // See: https://vuex.vuejs.org/en/modules.html#module-reuse
 const state = {
+    maxHandleLength: 64,
     reservedHandles: [],
     emailTemplates: [],
     existingFields: [],
@@ -16,6 +17,10 @@ const state = {
 // In Vuex, mutations always have access to state as the first argument.
 // In addition, Actions may or may not pass in a payload as the second argument:
 const mutations = {
+    SET_MAX_HANDLE_LENGTH(state, config) {
+        state.maxHandleLength = config;
+    },
+
     SET_RESERVED_HANDLES(state, config) {
         for (const prop in config) {
             if (Object.hasOwnProperty.call(config, prop)) {
@@ -62,6 +67,10 @@ const mutations = {
 // Actions have access to a context object that provides access to state (with context.state),
 // to getters (with context.getters), and to the commit function (with context.commit).
 const actions = {
+    setMaxHandleLength(context, config) {
+        context.commit('SET_MAX_HANDLE_LENGTH', config);
+    },
+
     setReservedHandles(context, config) {
         context.commit('SET_RESERVED_HANDLES', config);
     },
@@ -87,6 +96,10 @@ const actions = {
 // Getters are primarily used to perform some calculation/manipulation to store state
 // before having that information accessible to components.
 const getters = {
+    maxHandleLength: (state) => () => {
+        return state.maxHandleLength;
+    },
+
     reservedHandles: (state) => () => {
         return state.reservedHandles;
     },

@@ -539,6 +539,13 @@ class FormsController extends Controller
         $variables['reservedHandles'] = Formie::$plugin->getFields()->getReservedHandles();
         $variables['groupedIntegrations'] = Formie::$plugin->getIntegrations()->getAllIntegrationsForForm();
         $variables['formHandles'] = ArrayHelper::getColumn(Form::find()->id('not ' . $form->id)->all(), 'handle');
+
+        // Send through the maxiumum handle length, including `field_` and the suffix for fields (10 chars to be safe)
+        $maxHandleLength = Craft::$app->getDb()->getSchema()->maxObjectNameLength;
+        $maxHandleLength -= strlen(Craft::$app->getContent()->fieldColumnPrefix);
+        $maxHandleLength -= 10;
+
+        $variables['maxHandleLength'] = $maxHandleLength;
     }
 
     /**

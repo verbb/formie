@@ -358,9 +358,12 @@ export default {
                 handles = this.$store.getters['form/fieldHandlesForField'](this.parentFieldId);
             }
 
-            // Generate a unique handle, and ensure its under the 64 char db limit (factoring in `field_`)
+            // Generate a unique handle, and ensure it's under the 64 char db limit (factoring in `field_`
+            // and the field suffix)
             const value = getNextAvailableHandle(handles, generatedHandle, 0);
-            let newHandle = value.substr(0, 58);
+            
+            const maxHandleLength = this.$store.getters['formie/maxHandleLength']();
+            let newHandle = value.substr(0, maxHandleLength);
 
             const newField = this.$store.getters['fieldtypes/newField'](this.field.type, {
                 label: this.field.label,

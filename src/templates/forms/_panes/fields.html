@@ -68,5 +68,6 @@
         existingFields: {{ (existingFields is defined ? existingFields : []) | json_encode | raw }},
         existingNotifications: {{ (existingNotifications is defined ? existingNotifications : []) | json_encode | raw }},
         statuses: {{ craft.formie.statuses | json_encode | raw }},
+        maxHandleLength: {{ maxHandleLength | json_encode | raw }},
     });
 {% endjs %}

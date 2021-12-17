@@ -119,7 +119,9 @@ export default {
 
             // Be sure to restrict handles well below their limit
             const value = getNextAvailableHandle(handles, generatedHandle, 0);
-            this.context.model = value.substr(0, 50);
+
+            const maxHandleLength = this.$store.getters['formie/maxHandleLength']();
+            this.context.model = value.substr(0, maxHandleLength);
         },
     },
 };
