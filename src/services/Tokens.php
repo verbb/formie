@@ -210,11 +210,7 @@ class Tokens extends Component
                     $provider = $integration->getOauthProvider();
 
                     // Add some logging for refresh tokens for easier debugging
-                    $params = $grant->prepareRequestParameters([
-                        'client_id' => $provider->clientId,
-                        'client_secret' => $provider->clientSecret,
-                        'redirect_uri' => $provider->redirectUri,
-                    ], ['refresh_token' => $refreshToken]);
+                    $params = $grant->prepareRequestParameters($integration->getOauthProviderConfig(), ['refresh_token' => $refreshToken]);
 
                     Formie::log($integration->name . ': Refresh token with params ' . Json::encode($params));
 
