@@ -1,5 +1,22 @@
 # Changelog
 
+## 1.5.3 - 2021-12-18
+
+### Added
+- Added logging for OAuth-based providers when requesting a refresh token.
+
+### Fixed
+- Fixed field conditions not working for brand-new forms without saving the form first.
+- Fixed new forms created via stencil.
+- Fixed summary field not working with Ajax-based forms.
+- Fixed an error when importing forms with group/repeater fields.
+- Fixed importing forms, and updating an existing one, submission details would be wiped (due to new fields being created).
+- Fixed field handles not being truncated to maximum length for database engine.
+- Fixed an error when exporting submissions containing an empty Table field.
+- Fixed element integrations when mapping an File Upload field to an Asset field.
+- Fixed an error during import, due to `dump()` being included incorrectly.
+- Fixed `anyStatus()` submission query param not including spam or incomplete submissions.
+
 ## 1.5.2 - 2021-12-12
 
 ### Fixed
