@@ -1,7 +1,7 @@
 {% set submission = submission ?? form.getCurrentSubmission() %}
 
-{% if submission %}
-    <div class="fui-summary-blocks">
+<div class="fui-summary-blocks">
+    {% if submission %}
         <h3 class="fui-heading-h3">{{ 'Your submission is being prepared. Please review below before proceeding.' | t('formie') }}</h3><br>
 
         {% for info in submission.getValuesForSummary() %}
@@ -10,5 +10,5 @@
                 {{ info.html }}<br>
             </div>
         {% endfor %}
-    </div>
-{% endif %}
+    {% endif %}
+</div>

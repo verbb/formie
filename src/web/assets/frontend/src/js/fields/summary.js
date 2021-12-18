@@ -5,18 +5,10 @@ export class FormieSummary {
         this.$form = settings.$form;
         this.form = this.$form.form;
         this.$field = settings.$field;
-        this.$container = this.$field.querySelector('.fui-summary-blocks');
         this.fieldId = settings.fieldId;
-        this.submissionId = null;
-
-        var $submission = this.$form.querySelector('[name="submissionId"]');
-
-        if ($submission) {
-            this.submissionId = $submission.value;
-        }
 
         // For ajax forms, we want to refresh the field when the page is toggled
-        if (this.$container && this.submissionId && this.form.settings.submitMethod === 'ajax') {
+        if (this.form.settings.submitMethod === 'ajax') {
             this.form.addEventListener(this.$form, 'onFormiePageToggle', this.onPageToggle.bind(this));
         }
     }
@@ -24,18 +16,40 @@ export class FormieSummary {
     onPageToggle(e) {
         // Wait a little for the page to update in the DOM
         setTimeout(() => {
-            // Does this page contain a summary field? No need to fetch if we aren't seeing the field
-            var summaryField = null;
+            this.submissionId = null;
 
-            if (this.form.formTheme && this.form.formTheme.$currentPage) {
-                summaryField = this.form.formTheme.$currentPage.querySelector('.fui-type-summary');
+            var $submission = this.$form.querySelector('[name="submissionId"]');
+
+            if ($submission) {
+                this.submissionId = $submission.value;
             }
 
-            if (!summaryField) {
+            if (!this.submissionId) {
+                console.error('Summary field: Unable to find `submissionId`');
+
                 return;
             }
 
-            var $container = summaryField.querySelector('.fui-summary-blocks');
+            // Does this page contain a summary field? No need to fetch if we aren't seeing the field
+            var $summaryField = null;
+
+            if (this.form.formTheme && this.form.formTheme.$currentPage) {
+                $summaryField = this.form.formTheme.$currentPage.querySelector('.fui-type-summary');
+            }
+
+            if (!$summaryField) {
+                console.log('Summary field: Unable to find `summaryField`');
+
+                return;
+            }
+
+            var $container = $summaryField.querySelector('.fui-summary-blocks');
+
+            if (!$container) {
+                console.error('Summary field: Unable to find `container`');
+
+                return;
+            }
 
             $container.classList.add('fui-loading');
 
