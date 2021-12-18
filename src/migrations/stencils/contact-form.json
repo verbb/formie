@@ -4,34 +4,64 @@
     "availabilitySubmissions":null,
     "availabilityTo":null,
     "dataRetention":"forever",
-    "dataRetentionValue":null,
+    "dataRetentionValue":"",
+    "fileUploadsAction":"retain",
     "notifications":[
         {
             "attachFiles":true,
+            "attachPdf":false,
+            "bcc":null,
+            "cc":null,
+            "conditions":"{\"sendRule\":\"send\",\"conditionRule\":\"all\",\"conditions\":[]}",
             "content":"[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"A user submission has been made on the \\\"\"},{\"type\":\"variableTag\",\"attrs\":{\"label\":\"Form Name\",\"value\":\"{formName}\"}},{\"type\":\"text\",\"text\":\"\\\" form on \"},{\"type\":\"variableTag\",\"attrs\":{\"label\":\"Site Name\",\"value\":\"{siteName}\"}},{\"type\":\"text\",\"text\":\" at \"},{\"type\":\"variableTag\",\"attrs\":{\"label\":\"Timestamp (yyyy-mm-dd hh:mm:ss)\",\"value\":\"{timestamp}\"}}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"Their submission details are:\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"variableTag\",\"attrs\":{\"label\":\"All Form Fields\",\"value\":\"{allFields}\"}}]}]",
+            "enableConditions":false,
             "enabled":true,
+            "formId":null,
+            "from":"{field.emailAddress}",
+            "fromName":null,
             "id":"new981-8077",
             "name":"Admin Notification",
+            "pdfTemplateId":null,
+            "recipients":"email",
             "replyTo":"{field.emailAddress}",
+            "replyToName":null,
             "subject":"A new submission was made on \"{formName}\"",
-            "templateId":"",
-            "to":"{systemEmail}"
+            "templateId":null,
+            "to":"{systemEmail}",
+            "toConditions":"{\"toRecipients\":[]}",
+            "uid":null
         },
         {
+            "attachAssets":null,
             "attachFiles":true,
+            "attachPdf":false,
+            "bcc":null,
+            "cc":null,
+            "conditions":null,
             "content":"[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"Thanks again for contacting us. Our team will get back to you as soon as we can.\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"As a reminder, you submitted the following details at \"},{\"type\":\"variableTag\",\"attrs\":{\"label\":\"Timestamp (yyyy-mm-dd hh:mm:ss)\",\"value\":\"{timestamp}\"}}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"variableTag\",\"attrs\":{\"label\":\"All Form Fields\",\"value\":\"{allFields}\"}}]}]",
+            "enableConditions":false,
             "enabled":true,
+            "formId":null,
+            "from":null,
+            "fromName":null,
             "id":"new7052-5168",
             "name":"User Notification",
+            "pdfTemplateId":null,
+            "recipients":null,
+            "replyTo":null,
+            "replyToName":null,
             "subject":"Thanks for contacting us!",
-            "templateId":"",
-            "to":"{field.emailAddress}"
+            "templateId":null,
+            "to":"{emailAddress}",
+            "toConditions":null,
+            "uid":null
         }
     ],
     "pages":[
         {
             "id":"new1272610411",
             "label":"Page 1",
+            "notificationFlag":true,
             "rows":[
                 {
                     "fields":[
@@ -43,6 +73,7 @@
                             "id":"new7715-7348",
                             "label":"Your Name",
                             "settings":{
+                                "conditions":"{\"showRule\":\"show\",\"conditionRule\":\"all\",\"conditions\":[]}",
                                 "firstNameCollapsed":false,
                                 "firstNameDefaultValue":"",
                                 "firstNameEnabled":true,
@@ -58,8 +89,7 @@
                                 "lastNameDefaultValue":"",
                                 "lastNameEnabled":true,
                                 "lastNameLabel":"Last Name",
-                                "lastNamePlaceholder":"e.g. Sherman",
-                                "lastNameRequired":true,
+                                "lastNamePlaceholder":"e.g. Sherman",                                "lastNameRequired":true,
                                 "limitType":"characters",
                                 "middleNameCollapsed":true,
                                 "middleNameDefaultValue":"",
@@ -71,7 +101,8 @@
                                 "prefixEnabled":false,
                                 "prefixLabel":"Prefix",
                                 "subfieldLabelPosition":"",
-                                "useMultipleFields":true
+                                "useMultipleFields":true,
+                                "visibility":""
                             },
                             "type":"verbb\\formie\\fields\\formfields\\Name"
                         }
@@ -112,6 +143,7 @@
                             "id":"new982-7322",
                             "label":"Message",
                             "settings":{
+                                "conditions":"{\"showRule\":\"show\",\"conditionRule\":\"all\",\"conditions\":[]}",
                                 "handle":"message",
                                 "instructions":"Please enter your comments.",
                                 "instructionsPosition":"",
@@ -119,7 +151,8 @@
                                 "labelPosition":"",
                                 "limitType":"characters",
                                 "placeholder":"e.g. The reason for my enquiry is...",
-                                "required":true
+                                "required":true,
+                                "visibility":""
                             },
                             "type":"verbb\\formie\\fields\\formfields\\MultiLineText"
                         }
@@ -144,24 +177,34 @@
         "availabilityMessageSubmissions":null,
         "collectIp":"",
         "defaultInstructionsPosition":"verbb\\formie\\positions\\AboveInput",
+        "collectUser":"",
+        "dataRetention":null,
+        "dataRetentionValue":null,
+        "defaultEmailTemplateId":"",
         "defaultLabelPosition":"verbb\\formie\\positions\\AboveInput",
         "displayCurrentPageTitle":"",
         "displayFormTitle":"",
         "displayPageProgress":"",
         "displayPageTabs":"",
         "errorMessage":[{"type":"paragraph","content":[{"type":"text","text":"Couldn’t save submission due to errors."}]}],
+        "errorMessagePosition":"top-form",
+        "fileUploadsAction":null,
         "loadingIndicator":"spinner",
         "loadingIndicatorText":"",
         "progressPosition":"end",
+        "redirectUrl":null,
+        "scrollToTop":"1",
         "storeData":null,
         "submissionTitleFormat":"{timestamp}",
         "submitAction":"message",
         "submitActionFormHide":"",
         "submitActionMessage":[{"type":"paragraph","content":[{"type":"text","text":"Thank you for contacting us! Our team will get in touch shortly to follow up on your message."}]}],
+        "submitActionMessagePosition":"top-form",
         "submitActionMessageTimeout":"",
         "submitActionTab":null,
         "submitActionUrl":"",
         "submitMethod":"ajax",
+        "userDeletedAction":null,
         "validationOnFocus":"1",
         "validationOnSubmit":"1"
     },

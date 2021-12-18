@@ -106,6 +106,13 @@ class StencilsController extends Controller
 
         $variables['notificationsSchema'] = Formie::$plugin->getNotifications()->getNotificationsSchema();
 
+        // Send through the maxiumum handle length, including `field_` and the suffix for fields (10 chars to be safe)
+        $maxHandleLength = Craft::$app->getDb()->getSchema()->maxObjectNameLength;
+        $maxHandleLength -= strlen(Craft::$app->getContent()->fieldColumnPrefix);
+        $maxHandleLength -= 10;
+
+        $variables['maxHandleLength'] = $maxHandleLength;
+
         return $this->renderTemplate('formie/settings/stencils/_edit', $variables);
     }
 
