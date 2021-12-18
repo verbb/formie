@@ -153,6 +153,14 @@ class ImportExportHelper
      */
     public static function createFormFromImport($data, $form = null)
     {
+        $existingForm = $form;
+        $existingFormFields = [];
+
+        // Store the fields on an existing form so we can retain their IDs later
+        if ($existingForm) {
+            $existingFormFields = ArrayHelper::index($existingForm->getFields(), 'handle');
+        }
+
         if (!$form) {
             $form = new Form();
         }
@@ -170,9 +178,30 @@ class ImportExportHelper
         $form->settings = new FormSettings();
         $form->settings->setAttributes($settings, false);
 
+        // Check if this is updating an existing form. We want to try and find existing fields
+        // and attach the IDs of them to page data, so new fields aren't created (and their submission data lost)
+        foreach ($existingFormFields as $field) {
+            // Try to find the field data in the import, and attach the ID
+            foreach ($pages as $pageKey => $page) {
+                $rows = $page['rows'] ?? [];
+
+                foreach ($rows as $rowKey => $row) {
+                    $fields = $row['fields'] ?? [];
+
+                    foreach ($fields as $fieldKey => $field) {
+                        $existingField = $existingFormFields[$field['handle']] ?? null;
+
+                        if ($existingField) {
+                            $pages[$pageKey]['rows'][$rowKey]['fields'][$fieldKey]['id'] = $existingField->id;
+                        }
+                    }
+                }
+            }
+        }
+
         // Handle field layout and pages
         $fieldLayout = Formie::$plugin->getForms()->buildFieldLayout($pages, Form::class);
-        $form->setFieldLayout($fieldLayout);
+        $form->setFormFieldLayout($fieldLayout);
 
         // Handle for template
         if ($formTemplate) {

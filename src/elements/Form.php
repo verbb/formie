@@ -330,7 +330,8 @@ class Form extends Element
     {
         /* @var FieldLayoutBehavior $behavior */
         $behavior = $this->getBehavior('fieldLayout');
-        return $behavior->setFieldLayout($fieldLayout);
+        
+        return $this->_formFieldLayout = $behavior->setFieldLayout($fieldLayout);
     }
 
     /**
