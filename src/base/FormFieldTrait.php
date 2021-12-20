@@ -1021,6 +1021,9 @@ trait FormFieldTrait
                 $content = (string)($value ? $value : Craft::t('formie', 'No response.'));
                 $hideName = $options['hideName'] ?? false;
 
+                // Ensure we sanitize any HTML in text values
+                $content = StringHelper::escape($content);
+
                 if (!$hideName) {
                     $content = Html::tag('strong', Craft::t('site', $this->name)) . '<br>' . $content;
                 }
