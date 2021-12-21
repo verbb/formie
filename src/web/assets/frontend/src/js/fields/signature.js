@@ -62,6 +62,18 @@ export class FormieSignature {
         // Handle retina devices to properly scale things
         window.addEventListener('resize', this.resizeCanvas);
         this.resizeCanvas();
+
+        // For ajax forms, we want to refresh the field when the page is toggled
+        // for clicking on tabs, or for going to the next page. Canvas size will be tiny
+        // if hidden (the case for multi-page forms with this field on a later page).
+        if (this.form.settings.submitMethod === 'ajax') {
+            this.form.addEventListener(this.$form, 'onFormiePageToggle', () => {
+                // Supply a little delay so the DOM is ready
+                setTimeout(() => {
+                    this.resizeCanvas();
+                }, 100);
+            });
+        }
     }
 
     resizeCanvas() {
