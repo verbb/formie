@@ -178,3 +178,32 @@ Which we can use in our callback to find the hidden `<input>` elements, and upda
 
 Here we're implementing the same approach as the CSRF token, by getting fresh information for each captcha, querying for the hidden `<input>` elements in the form, and updating those values. The `result.captchas` will only contain token information for the captchas you have enabled, so if you aren't using all of them, you need not include the respective captchas - if if you're not using the JavaScript or Duplicate captcha, this can be omitted altogether.
 
+### Unload Event
+As a nice UX, Formie provides a prompt for when a form's content has changed when users try to navigate away from a form. This prevents users from filling out a form, but not submitting, when accidentally (or on purpose) navigating away.
+
+However, this detection will cause some issues when dynamically modifying the DOM of the form. Formie will think the content of a form has changed, therefore will prompt when navigating away, when the user hasn't touched the form.
+
+To get around this, you can refresh the state of the form after you've updated the DOM. Formie maintains a hash of content, which you can refresh.
+
+```js
+<script>
+    // Wait until the DOM is ready
+    document.addEventListener('DOMContentLoaded', (event) => {
+        // Fetch the form we want to deal with
+        let $form = document.querySelector('#{{ form.formId }}');
+
+        // Fetch the new tokens for the form and replace the captcha inputs
+        fetch('/actions/formie/forms/refresh-tokens?form={{ form.handle }}')
+            .then(result => { return result.json(); })
+            .then(result => {
+                // Update the CSRF token or captchas.
+                // ...
+
+                // Update the form's hash (if using Formie's themed JS)
+                if ($form.form && $form.form.formTheme) {
+                    $form.form.formTheme.updateFormHash();
+                }
+            });
+    });
+</script>
+```
