@@ -440,6 +440,13 @@ trait FormFieldTrait
     public function getForm()
     {
         if (!$this->formId) {
+            // Try and fetch the form via the UID from the context
+            if ($form = Form::find()->uid($this->getContextUid())->one()) {
+                $this->formId = $form->id;
+                
+                return $this->_form = $form;
+            }
+
             return null;
         }
 
@@ -488,6 +495,14 @@ trait FormFieldTrait
     public function getHtmlWrapperId(Form $form)
     {
         return StringHelper::toKebabCase($this->namespace . ' ' . $this->getHtmlId($form) . ' wrap');
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getContextUid()
+    {
+        return str_replace('formie:', '', $this->context);
     }
     
     /**
