@@ -22,22 +22,25 @@ export class FormieCalculations {
         Object.keys(this.variables).forEach((variableKey) => {
             const variable = this.variables[variableKey];
 
-            const $target = this.$form.querySelector('[name="' + variable.name + '"]');
+            const $targets = this.$form.querySelectorAll('[name="' + variable.name + '"]');
 
-            if (!$target) {
+            if (!$targets) {
                 return;
             }
-
-            const eventType = this.getEventType($target);
-
-            // Watch for changes on the target field. When one occurs, fire off a custom event on the source field
-            this.form.addEventListener($target, eventKey(eventType), () => this.$field.dispatchEvent(new Event('FormieEvaluateCalculations', { bubbles: true })));
-                    
+     
             // Save the resolved target for later
             this.fieldsStore[variableKey] = {
-                $target,
+                $targets,
                 ...variable,
             };
+
+            $targets.forEach(($target) => {
+                // Get the right event for the field
+                const eventType = this.getEventType($target);
+
+                // Watch for changes on the target field. When one occurs, fire off a custom event on the source field
+                this.form.addEventListener($target, eventKey(eventType), () => this.$field.dispatchEvent(new Event('FormieEvaluateCalculations', { bubbles: true })));
+            });
         });
 
         // Add a custom event listener to fire when the field event listener fires
@@ -58,16 +61,26 @@ export class FormieCalculations {
 
         // For each variable, grab the value
         Object.keys(this.fieldsStore).forEach((variableKey) => {
-            const { $target, type } = this.fieldsStore[variableKey];
-
-            let { value } = $target;
-
-            // Handle some fields differently and check for type-casting
-            if (type === 'verbb\\formie\\fields\\formfields\\Number') {
-                value = Number($target.value);
-            }
-
-            variables[variableKey] = value;
+            const { $targets, type } = this.fieldsStore[variableKey];
+            
+            // Set a sane default
+            variables[variableKey] = '';
+            
+            // We pass target DOM elements as a NodeList, but in almost all cases, 
+            // they're a list of a single element. Radio fields are special though.
+            $targets.forEach(($target) => {
+                // Handle some fields differently and check for type-casting
+                if (type === 'verbb\\formie\\fields\\formfields\\Number') {
+                    variables[variableKey] = Number($target.value);
+                } else if (type === 'verbb\\formie\\fields\\formfields\\Radio') {
+                    // Radio is the only (at the moment) multiple-enabled field
+                    if ($target.checked) {
+                        variables[variableKey] = $target.value;
+                    }
+                } else {
+                    variables[variableKey] = $target.value;
+                }
+            });
         });
 
         try {
