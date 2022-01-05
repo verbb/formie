@@ -46,6 +46,11 @@ export class FormieCalculations {
         // Also - trigger the event right now to evaluate immediately. Namely if we need to hide
         // field that are set to show if conditions are met.
         this.$field.dispatchEvent(new Event('FormieEvaluateCalculations', { bubbles: true }));
+
+        // Update the form hash, so we don't get change warnings
+        if (this.form.formTheme) {
+            this.form.formTheme.updateFormHash();
+        }
     }
 
     evaluateCalculations(e) {
