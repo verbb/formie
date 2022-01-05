@@ -372,6 +372,12 @@ class Rendering extends Component
             'Are you sure you want to leave?',
             'The request timed out.',
             'The request encountered a network error. Please try again.',
+
+            // Phone field
+            'Invalid number',
+            'Invalid country code',
+            'Too short',
+            'Too long',
         ]);
     }
 
