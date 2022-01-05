@@ -23,6 +23,9 @@
 </template>
 
 <script>
+import truncate from 'lodash/truncate';
+
+import { toBoolean } from '../utils/bool';
 
 export default {
     name: 'FieldSelect',
@@ -71,9 +74,43 @@ export default {
         getFieldOptions() {
             var fields = this.$store.getters['form/fields'];
 
-            return fields.map(field => {
-                return { label: field.label, value: '{' + field.handle + '}' };
+            var customFields = [];
+
+            fields.forEach(field => {
+                // Exclude cosmetic fields (with no value)
+                if (field.isCosmetic) {
+                    return;
+                }
+
+                // If this field is nested itself, don't show. The outer field takes care of that below
+                if (!toBoolean(field.isNested)) {
+                    // Don't show a nested field on its own
+                    customFields.push({ label: truncate(field.label, { length: 42 }), value: '{' + field.handle + '}' });
+
+                    if (field.subfieldOptions && field.hasSubfields) {
+                        field.subfieldOptions.forEach(subfield => {
+                            customFields.push({
+                                label: truncate(field.label, { length: 42 }) + ': ' + truncate(subfield.label, { length: 42 }),
+                                value: '{' + field.handle + '[' + subfield.handle + ']}',
+                            });
+                        });
+                    }
+
+                    // Is this a repeater or field that supports nesting?
+                    if (toBoolean(field.supportsNested) && field.rows) {
+                        field.rows.forEach(row => {
+                            row.fields.forEach(subfield => {
+                                customFields.push({
+                                    label: truncate(field.label, { length: 42 }) + ': ' + truncate(subfield.label, { length: 42 }),
+                                    value: '{' + field.handle + '[' + subfield.handle + ']}',
+                                });
+                            });
+                        });
+                    }
+                }
             });
+
+            return customFields;
         },
     },
 };

@@ -849,10 +849,34 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         }
 
         $fieldValue = null;
-        $fieldHandle = str_replace(['{', '}'], ['', ''], $this->optInField);
+
+        // Fetch all custom fields here for efficiency
+        $formFields = ArrayHelper::index($submission->getFieldLayout()->getFields(), 'handle');
+
+        // Get all the field values here, so we can support dot-notation lookups
+        $submissionValues = $submission->getFieldValues();
 
         try {
-            $fieldValue = $submission->getFieldValue($fieldHandle);
+            $fieldKey = str_replace(['{', '}'], ['', ''], $this->optInField);
+            $fieldHandle = $fieldKey;
+
+            // Check for nested fields - convert to dot-notation
+            if (strstr($fieldKey, '[')) {
+                $fieldKey = str_replace(['[', ']'], ['.', ''], $fieldKey);
+
+                // Change the field handle to reflect the top-level field, not the full path to the value
+                $fieldHandle = explode('.', $fieldKey)[0];
+            }
+
+            // Try and get the form field we're pulling data from
+            $field = $formFields[$fieldHandle] ?? null;
+
+            // Then, allow the integration to control how to parse the field, from its type
+            if ($field) {
+                // Get the field value (note supports dot-notation and complex fields)
+                $fieldValue = $field->prepValueForIntegration($submissionValues, $fieldKey);
+                $fieldValue = $field->getValueAsString($fieldValue, $submission);
+            }
         } catch (\Throwable $e) {
             Formie::error(Craft::t('formie', 'Error when fetching opt-in-field: “{message}” {file}:{line}', [
                 'message' => $e->getMessage(),
