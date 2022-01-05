@@ -1,4 +1,4 @@
-{% if field.useDatePicker %}
+{% if field.useDatePicker and field.displayType == 'calendar' %}
     {% include ['fields/date/_input'] %}
 {% else %}
     {% include ['fields/date/_' ~ field.displayType, 'fields/date/_calendar'] %}
