@@ -110,11 +110,6 @@ export class FormieConditions {
                 const tagName = $target.tagName.toLowerCase();
                 const inputType = $target.getAttribute('type') ? $target.getAttribute('type').toLowerCase() : '';
 
-                // We don't care about hidden inputs. Mostly messes up checkboxes!
-                if (inputType === 'hidden') {
-                    return;
-                }
-
                 // Handle some special options like dates - tell our condition tester about them
                 if (inputType === 'date') {
                     testOptions.isDate = true;
