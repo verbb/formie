@@ -1,5 +1,21 @@
 # Changelog
 
+## 1.5.4 - 2022-01-06
+
+### Fixed
+- Fixed an incompatibility with Craft 3.7.28 (`FieldLayout::getTabs()`).
+- Fixed time-only Date/Time fields not displaying correctly for Dropdown or Inputs display types.
+- Fixed opt-in field for integrations not resolving to the correct field for fields in a Group/Repeater.
+- Fixed field conditions not working for pre-populated hidden fields.
+- Fixed Calculations field not working correctly with Radio Button field values.
+- Fixed Calculations fields triggering unload warnings when no value had been changed (on init).
+- Fixed an error for fields not containing their `formId` when importing a form.
+- Fixed missing error translation string for Phone field, for front-end validation.
+- Fixed an error with the recipients field, for dropdown values not working correctly.
+- Fixed signature field not working on multi-page, Ajax-based forms or when navigating using page tabs.
+- Fixed invalid HTML for signature field.
+- Fixed plain-text fields (Single-Line, Multi-Line, Number, Phone, etc) not having their content escaped properly when used in email notifications.
+
 ## 1.5.3 - 2021-12-18
 
 ### Added
