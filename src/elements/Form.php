@@ -584,7 +584,7 @@ class Form extends Element
             return [];
         }
 
-        return $this->_pages = $fieldLayout->getTabs();
+        return $this->_pages = $fieldLayout->getPages();
     }
 
     /**

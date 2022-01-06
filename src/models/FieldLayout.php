@@ -83,10 +83,7 @@ class FieldLayout extends CraftFieldLayout
      */
     public function getTabs(): array
     {
-        // Ensure we prep tabs normally, like Craft would.
-        parent::getTabs();
-
-        // But return our Pages models instead as "tabs".
+        // Override `getTabs()` to refer to pages for convenience.
         return $this->getPages();
     }
 
@@ -95,9 +92,7 @@ class FieldLayout extends CraftFieldLayout
      */
     public function setTabs($tabs)
     {
-        // Ensure we prep tabs normally, like Craft would.
-        parent::setTabs($tabs);
-
+        // Override `setPages()` to refer to pages for convenience.
         $this->setPages($tabs);
     }
 }
