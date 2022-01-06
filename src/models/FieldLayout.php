@@ -95,6 +95,9 @@ class FieldLayout extends CraftFieldLayout
      */
     public function setTabs($tabs)
     {
+        // Ensure we prep tabs normally, like Craft would.
+        parent::setTabs($tabs);
+
         $this->setPages($tabs);
     }
 }
