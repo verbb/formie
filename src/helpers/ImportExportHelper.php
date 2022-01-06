@@ -2,6 +2,7 @@
 namespace verbb\formie\helpers;
 
 use verbb\formie\Formie;
+use verbb\formie\base\NestedFieldInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\models\EmailTemplate;
 use verbb\formie\models\FormSettings;
@@ -121,24 +122,8 @@ class ImportExportHelper
                 ArrayHelper::remove($pageData, $key);
             }
 
-            // Get all rows
-            foreach ($page->rows as $rowId => $row) {
-                foreach ($row['fields'] as $fieldId => $field) {
-                    $settings = array_merge([
-                        'instructions' => $field->instructions,
-                        'required' => $field->required,
-                    ], $field->settings);
-
-                    ArrayHelper::remove($settings, 'formId');
-
-                    $pageData['rows'][$rowId]['fields'][$fieldId] = [
-                        'label' => $field->name,
-                        'handle' => $field->handle,
-                        'type' => $field->type,
-                        'settings' => $settings,
-                    ];
-                }
-            }
+            // Get all field settings for all pages/rows (supports nested fields)
+            self::getFieldInfoForExport($page->rows, $pageData);
 
             $pages[] = $pageData;
         }
@@ -254,5 +239,38 @@ class ImportExportHelper
         }
 
         return $form;
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    /**
+     * @inheritdoc
+     */
+    private static function getFieldInfoForExport($rows, &$pageData)
+    {
+        foreach ($rows as $rowId => $row) {
+            foreach ($row['fields'] as $fieldId => $field) {
+                $settings = array_merge([
+                    'instructions' => $field->instructions,
+                    'required' => $field->required,
+                ], $field->settings);
+
+                ArrayHelper::remove($settings, 'formId');
+
+                $pageData['rows'][$rowId]['fields'][$fieldId] = [
+                    'label' => $field->name,
+                    'handle' => $field->handle,
+                    'type' => $field->type,
+                    'settings' => $settings,
+                ];
+
+                // Handle nested fields
+                if ($field instanceof NestedFieldInterface) {
+                    self::getFieldInfoForExport($field->getNestedRows(), $pageData['rows'][$rowId]['fields'][$fieldId]);
+                }
+            }
+        }
     }
 }
