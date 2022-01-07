@@ -548,6 +548,14 @@ trait FormFieldTrait
     /**
      * @inheritDoc
      */
+    public function hasNestedFields(): bool
+    {
+        return false;
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function getIsCosmetic(): bool
     {
         return false;

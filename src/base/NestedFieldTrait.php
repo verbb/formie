@@ -68,6 +68,14 @@ trait NestedFieldTrait
     /**
      * @inheritDoc
      */
+    public function hasNestedFields(): bool
+    {
+        return true;
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function setAttributes($values, $safeOnly = true)
     {
         parent::setAttributes($values, $safeOnly);
