@@ -64,4 +64,23 @@ trait SubfieldTrait
             }
         }
     }
+
+
+    // Protected Methods
+    // =========================================================================
+
+    /**
+     * @inheritDoc
+     */
+    protected function defineValueForIntegration($value, $integrationField, $integration, ElementInterface $element = null, $fieldKey = '')
+    {
+        // Check if we're trying to get a sub-field value
+        if ($fieldKey) {
+            // Override the value by fetching the value from the sub-field. Override to ensure the default
+            // handling typecasts the value correctly.
+            $value = ArrayHelper::getValue($value, $fieldKey);
+        }
+
+        return parent::defineValueForIntegration($value, $integrationField, $integration, $element, $fieldKey);
+    }
 }
