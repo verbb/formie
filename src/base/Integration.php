@@ -714,12 +714,6 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
             $fieldMapping = [];
         }
 
-        // Fetch all custom fields here for efficiency
-        $formFields = ArrayHelper::index($submission->getFieldLayout()->getFields(), 'handle');
-
-        // Get all the field values here, so we can support dot-notation lookups
-        $submissionValues = $submission->getFieldValues();
-
         foreach ($fieldMapping as $tag => $fieldKey) {
             // Don't let in un-mapped fields
             if ($fieldKey === '') {
@@ -727,45 +721,11 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
             }
 
             if (strstr($fieldKey, '{')) {
-                try {
-                    $fieldKey = str_replace(['{', '}'], ['', ''], $fieldKey);
+                // Get the type of field we are mapping to (for the integration)
+                $integrationField = ArrayHelper::firstWhere($fieldSettings, 'handle', $tag) ?? new IntegrationField();
 
-                    // Check to see if this is a custom field, or an attribute on the submission
-                    if (StringHelper::startsWith($fieldKey, 'submission:')) {
-                        $fieldKey = str_replace('submission:', '', $fieldKey);
-
-                        $fieldValues[$tag] = $submission->$fieldKey;
-                    } else {
-                        $fieldHandle = $fieldKey;
-
-                        // Check for nested fields - convert to dot-notation
-                        if (strstr($fieldKey, '[')) {
-                            $fieldKey = str_replace(['[', ']'], ['.', ''], $fieldKey);
-
-                            // Change the field handle to reflect the top-level field, not the full path to the value
-                            $fieldHandle = explode('.', $fieldKey)[0];
-                        }
-
-                        // Try and get the form field we're pulling data from
-                        $field = $formFields[$fieldHandle] ?? null;
-
-                        // Then, allow the integration to control how to parse the field, from its type
-                        if ($field) {
-                            $integrationField = ArrayHelper::firstWhere($fieldSettings, 'handle', $tag) ?? new IntegrationField();
-
-                            // Get the field value (note supports dot-notation and complex fields)
-                            $value = $field->prepValueForIntegration($submissionValues, $fieldKey);
-
-                            $fieldValues[$tag] = $field->getValueForIntegration($value, $integrationField, $this, $submission, $fieldKey);
-                        }
-                    }
-                } catch (\Throwable $e) {
-                    Formie::error(Craft::t('formie', 'Error when fetching mapping values: “{message}” {file}:{line}', [
-                        'message' => $e->getMessage(),
-                        'file' => $e->getFile(),
-                        'line' => $e->getLine(),
-                    ]));
-                }
+                // Get the value of the mapped field, from the submission
+                $fieldValues[$tag] = $this->getMappedFieldValue($fieldKey, $submission, $integrationField);
             } else {
                 // Otherwise, might have passed in a direct, static value
                 $fieldValues[$tag] = $fieldKey;
@@ -848,42 +808,8 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
             return true;
         }
 
-        $fieldValue = null;
-
-        // Fetch all custom fields here for efficiency
-        $formFields = ArrayHelper::index($submission->getFieldLayout()->getFields(), 'handle');
-
-        // Get all the field values here, so we can support dot-notation lookups
-        $submissionValues = $submission->getFieldValues();
-
-        try {
-            $fieldKey = str_replace(['{', '}'], ['', ''], $this->optInField);
-            $fieldHandle = $fieldKey;
-
-            // Check for nested fields - convert to dot-notation
-            if (strstr($fieldKey, '[')) {
-                $fieldKey = str_replace(['[', ']'], ['.', ''], $fieldKey);
-
-                // Change the field handle to reflect the top-level field, not the full path to the value
-                $fieldHandle = explode('.', $fieldKey)[0];
-            }
-
-            // Try and get the form field we're pulling data from
-            $field = $formFields[$fieldHandle] ?? null;
-
-            // Then, allow the integration to control how to parse the field, from its type
-            if ($field) {
-                // Get the field value (note supports dot-notation and complex fields)
-                $fieldValue = $field->prepValueForIntegration($submissionValues, $fieldKey);
-                $fieldValue = $field->getValueAsString($fieldValue, $submission);
-            }
-        } catch (\Throwable $e) {
-            Formie::error(Craft::t('formie', 'Error when fetching opt-in-field: “{message}” {file}:{line}', [
-                'message' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-            ]));
-        }
+        // Get the value of the mapped field, from the submission
+        $fieldValue = $this->getMappedFieldValue($this->optInField, $submission, new IntegrationField());
 
         if ($fieldValue === null) {
             Integration::log($this, Craft::t('formie', 'Unable to find field “{field}” for opt-in in submission.', [
@@ -919,6 +845,58 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
 
     // Private Methods
     // =========================================================================
+
+    /**
+     * @inheritDoc
+     */
+    private function getMappedFieldValue($mappedFieldValue, $submission, $integrationField)
+    {
+        try {
+            // Replace how we store the value (as `{field_handle}` or `{submission:id}`)
+            $fieldKey = str_replace(['{', '}'], ['', ''], $mappedFieldValue);
+
+            // If this is a submission attribute, fetch it - easy!
+            if (StringHelper::startsWith($fieldKey, 'submission:')) {
+                $fieldKey = str_replace('submission:', '', $fieldKey);
+
+                return $submission->$fieldKey;
+            }
+
+            // Check for nested fields (as `group[name[prefix]]`) - convert to dot-notation
+            if (strstr($fieldKey, '[')) {
+                $fieldKey = str_replace(['[', ']'], ['.', ''], $fieldKey);
+
+                // Change the field handle to reflect the top-level field, not the full path to the value
+                // but still keep the sub-field path (if any) for some fields to use
+                $fieldKey = explode('.', $fieldKey);
+                $fieldHandle = array_shift($fieldKey);
+                $fieldKey = implode('.', $fieldKey);
+            } else {
+                $fieldHandle = $fieldKey;
+            }
+
+            // Fetch all custom fields here for efficiency
+            $formFields = ArrayHelper::index($submission->getFieldLayout()->getFields(), 'handle');
+
+            // Try and get the form field we're pulling data from
+            $field = $formFields[$fieldHandle] ?? null;
+
+            // Then, allow the integration to control how to parse the field, from its type
+            if ($field) {
+                $value = $submission->getFieldValue($fieldHandle);
+
+                return $field->getValueForIntegration($value, $integrationField, $this, $submission, $fieldKey);
+            }
+        } catch (\Throwable $e) {
+            Formie::error(Craft::t('formie', 'Error trying to fetch mapped field value: “{message}” {file}:{line}', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]));
+        }
+
+        return null;
+    }
 
     /**
      * @inheritDoc
