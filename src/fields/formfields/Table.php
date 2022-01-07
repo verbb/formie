@@ -271,8 +271,8 @@ class Table extends CraftTable implements FormFieldInterface
         $columns = [];
 
         // We've got a regular array from Vue, but we need to translate that back to an object.
-        foreach ($settings['columns'] as $column) {
-            $id = ArrayHelper::remove($column, 'id');
+        foreach ($settings['columns'] as $colId => $column) {
+            $id = ArrayHelper::remove($column, 'id', $colId);
 
             $columns[$id] = $column;
         }
