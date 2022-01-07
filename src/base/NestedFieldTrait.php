@@ -731,25 +731,21 @@ trait NestedFieldTrait
      */
     protected function defineValueForIntegration($value, $integrationField, $integration, ElementInterface $element = null, $fieldKey = '')
     {
-        // For dot-notation field lookups, we want to process each subfield correctly (according to the destination integration field)
-        // and pluck the value we want specifically.
-        if (strstr($fieldKey, '.')) {
-            $values = [];
+        // Check if we're trying to get a sub-field value
+        if ($fieldKey) {
+            $subFieldKey = explode('.', $fieldKey);
+            $subFieldHandle = array_shift($subFieldKey);
+            $subFieldKey = implode('.', $subFieldKey);
 
-            foreach ($value->all() as $rowId => $row) {
-                foreach ($row->getFieldLayout()->getFields() as $field) {
-                    $subValue = $row->getFieldValue($field->handle);
-                    $valueForIntegration = $field->defineValueForIntegration($subValue, $integrationField, $integration, $row);
+            $row = $value->one();
+            $subField = $row->getFieldByHandle($subFieldHandle);
+            $subValue = $row->getFieldValue($subFieldHandle);
 
-                    $values[$this->handle . '.' . $field->handle] = $valueForIntegration;
-                }
-            }
-
-            return ArrayHelper::getValue($values, $fieldKey);
+            return $subField->getValueForIntegration($subValue, $integrationField, $integration, $row, $subFieldKey);
         }
 
         // Fetch the default handling
-        return parent::defineValueForIntegration($value, $integrationField, $integration, $element);
+        return parent::defineValueForIntegration($value, $integrationField, $integration, $element, $fieldKey);
     }
 
 

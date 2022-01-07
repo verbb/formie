@@ -200,6 +200,15 @@ export default {
                                     label: truncate(field.label, { length: 42 }) + ': ' + truncate(subfield.label, { length: 42 }),
                                     value: '{' + field.handle + '[' + subfield.handle + ']}',
                                 });
+
+                                if (subfield.subfieldOptions && subfield.hasSubfields) {
+                                    subfield.subfieldOptions.forEach(subsubfield => {
+                                        customFields.push({
+                                            label: truncate(field.label, { length: 42 }) + ': ' + truncate(subfield.label, { length: 42 }) + ': ' + truncate(subsubfield.label, { length: 42 }),
+                                            value: '{' + field.handle + '[' + subfield.handle + '[' + subsubfield.handle + ']]}',
+                                        });
+                                    });
+                                }
                             });
                         });
                     }

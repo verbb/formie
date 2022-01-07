@@ -267,6 +267,10 @@ export default {
         // Open the modal immediately for brand new fields
         if (this.brandNewField) {
             this.editField();
+
+            // Testing
+            // this.field.label = this.fieldtype.label;
+            // this.field.handle = generateHandle(this.fieldtype.label);
         }
     },
 
