@@ -64,6 +64,8 @@ class NestedFieldRow extends Element implements BlockElementInterface
      */
     private $_eagerLoadedBlockTypeElements;
 
+    private $_fields;
+
 
     // Static Methods
     // =========================================================================
@@ -264,6 +266,48 @@ class NestedFieldRow extends Element implements BlockElementInterface
     public function getFieldContext(): string
     {
         return $this->_getField()->getFormFieldContext();
+    }
+
+    /**
+     * Returns the row’s fields.
+     *
+     * @return FormFieldInterface[] The row’s fields.
+     */
+    public function getFields(): array
+    {
+        if ($this->_fields !== null) {
+            return $this->_fields;
+        }
+
+        $fieldLayout = $this->getFieldLayout();
+
+        if (!$fieldLayout) {
+            return [];
+        }
+
+        return $this->_fields = $fieldLayout->getFields();
+    }
+
+    /**
+     * Returns a field by its handle.
+     *
+     * @param string $handle
+     * @return FormFieldInterface|null
+     */
+    public function getFieldByHandle(string $handle)
+    {
+        return ArrayHelper::firstWhere($this->getFields(), 'handle', $handle);
+    }
+
+    /**
+     * Returns a field by its id.
+     *
+     * @param string $id
+     * @return FormFieldInterface|null
+     */
+    public function getFieldById($id)
+    {
+        return ArrayHelper::firstWhere($this->getFields(), 'id', $id);
     }
 
 
