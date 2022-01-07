@@ -1,5 +1,25 @@
 # Changelog
 
+## 1.5.5 - 2022-01-08
+
+### Added
+- Added `Field::hasNestedFields`.
+- Added `getFields()`, `getFieldByHandle()` and `getFieldById()` methods for nested field rows.
+
+### Changed
+- Reduce the maximum width of signature images in email notifications.
+- Tidy up `getFieldMappingValues()` method for integrations, to ensure "opt-in" field works consistently.
+
+### Fixed
+- Fixed being unable to map to sub-fields (Address, Phone, Name) in nesting fields (Repeater, Group) for integrations.
+- Fixed handling of sub-field fields (Address, Phone, Name) for integrations.
+- Fixed Table field columns not being set to their correct ID when importing a form.
+- Fixed form exports not working correctly with Repeater and Group fields.
+- Fixed (properly) an incompatibility with Craft 3.7.28 (`FieldLayout::getTabs()`).
+
+### Removed
+- Removed `Field::prepValueForIntegration`.
+
 ## 1.5.4 - 2022-01-06
 
 ### Fixed
