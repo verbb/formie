@@ -285,17 +285,6 @@ trait FormFieldTrait
     /**
      * @inheritdoc
      */
-    public function prepValueForIntegration($submissionValues, $fieldKey)
-    {
-        // We pass in `fieldKey` as a dot-notation lookup for the submission value. 99% of the time its just the field handle
-        // for a simple field, but for more complex fields we can use `name.firstName` or `group.textField`.
-        // As such, we need to allow fields to define how their value is fetched. For almost all cases, the default should suffice.
-        return ArrayHelper::getValue($submissionValues, $fieldKey);
-    }
-
-    /**
-     * @inheritdoc
-     */
     public function getValueForSummary($value, ElementInterface $element = null)
     {
         $value = $this->defineValueForSummary($value, $element);

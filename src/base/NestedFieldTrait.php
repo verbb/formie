@@ -727,21 +727,6 @@ trait NestedFieldTrait
     }
 
     /**
-     * @inheritdoc
-     */
-    public function prepValueForIntegration($submissionValues, $fieldKey)
-    {
-        // If this contians a dot-notation subfield lookup, we need to change how we get the value
-        // Instead of using `field.subField` which will be null, we want to return an element query
-        // to first fetch values for, then pluck specific values later.
-        if (strstr($fieldKey, '.')) {
-            $fieldKey = explode('.', $fieldKey)[0];
-        }
-
-        return parent::prepValueForIntegration($submissionValues, $fieldKey);
-    }
-
-    /**
      * @inheritDoc
      */
     protected function defineValueForIntegration($value, $integrationField, $integration, ElementInterface $element = null, $fieldKey = '')
