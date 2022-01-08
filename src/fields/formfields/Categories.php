@@ -13,6 +13,7 @@ use verbb\formie\models\Notification;
 use Craft;
 use craft\base\ElementInterface;
 use craft\elements\Category;
+use craft\fields\BaseRelationField;
 use craft\fields\Categories as CraftCategories;
 use craft\gql\arguments\elements\Category as CategoryArguments;
 use craft\gql\interfaces\elements\Category as CategoryInterface;
@@ -92,6 +93,17 @@ class Categories extends CraftCategories implements FormFieldInterface
 
     // Public Methods
     // =========================================================================
+
+    /**
+     * @inheritdoc
+     */
+    public function normalizeValue($value, ElementInterface $element = null)
+    {
+        // The default Craft Categories field behaviour is pretty odd. It'll select all child categories in the same branch
+        // which is completely not what we want. We just want to save the categories we pick - is that too much to ask?!
+        // Bubble up this method to the base `normalizeValue()` to skip the `CraftCategories::normalizeValue()`.
+        return BaseRelationField::normalizeValue($value, $element);
+    }
 
     /**
      * @inheritDoc

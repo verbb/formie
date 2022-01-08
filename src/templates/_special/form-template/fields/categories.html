@@ -26,7 +26,7 @@
 
             {% set level = option.level ?? null %}
 
-            <option value="{{ option.value }}" {{ selected ? ' selected' }}>{% if field.settings.showStructure and level %}{% for i in 1..level %}-{% endfor %} {% endif %}{{ option.label | t }}</option>
+            <option value="{{ option.value }}" {{ selected ? 'selected' }}>{% if field.settings.showStructure and level %}{% for i in 1..level %}-{% endfor %} {% endif %}{{ option.label | t }}</option>
         {% endfor %}
     </select>
 {% endif %}
