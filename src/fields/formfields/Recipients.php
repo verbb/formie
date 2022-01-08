@@ -77,30 +77,30 @@ class Recipients extends FormField
     }
 
     /**
-     * @inheritDoc
+     * @inheritdoc
      */
     public function normalizeValue($value, ElementInterface $element = null)
     {
-        $value = parent::normalizeValue($value, $element);
-
-        // Sort out multiple options being set
-        if (is_string($value) && Json::isJsonObject($value)) {
-            $values = array_map(function($option) {
-                // Handle checkboxes ('value' key) and hidden fields with array
-                return $option['value'] ?? $option ?? '';
-            }, Json::decode($value));
-
-            $value = implode(',', array_filter($values));
+        if ($value instanceof MultiOptionsFieldData || $value instanceof SingleOptionFieldData) {
+            return $value;
         }
 
-        if (is_array($value)) {
-            $value = implode(',', array_filter($value));
+        // For fields that store their content as JSON for arrays (checkboxes), convert it
+        if (is_string($value) && ($value === '' || strpos($value, '[') === 0 || strpos($value, '{') === 0)) {
+            $value = Json::decodeIfJson($value);
         }
 
-        // Convert the placeholder values to their real values
-        return $this->_getRealValue($value);
+        return $value;
     }
 
+    /**
+     * @inheritdoc
+     */
+    public function serializeValue($value, ElementInterface $element = null)
+    {
+        // Before we save the value, convert it to the real value.
+        return $this->_getRealValue($value);
+    }
 
     /**
      * @inheritDoc
@@ -144,16 +144,6 @@ class Recipients extends FormField
     /**
      * @inheritDoc
      */
-    public function populateValue($value)
-    {
-        // Populate the default value correctly, when populating from Twig. We want to use placeholder values
-        // instead of real values, so they aren't expose in the source
-        $this->defaultValue = $this->_getFakeValue($value);
-    }
-
-    /**
-     * @inheritDoc
-     */
     public function getFieldDefaults(): array
     {
         return [
@@ -188,41 +178,40 @@ class Recipients extends FormField
     {
         $inputOptions = parent::getFrontEndInputOptions($form, $value, $options);
 
-        // Decode to get the selected value (if any)
-        $selectedValue = $inputOptions['value'] ?? '';
+        // When validation fails, this will be the fake values, so actually want to ensure we start here
+        // with real values, then convert them to fake. This will also handle is the value is already "real".
+        $value = $this->_getRealValue($value);
 
-        // Make sure the front-end uses fake placeholder values
-        if (in_array($this->displayType, ['dropdown', 'radio'])) {
-            $realValue = $this->_getRealValue($selectedValue);
+        // When rendering the value **always** swap out the real values with obscured ones
+        $inputOptions['value'] = $this->_getFakeValue($value);
 
-            if ($realValue) {
-                $inputOptions['value'] = $this->_getFakeValue($realValue->value);
-            }
-        } else if ($this->displayType === 'checkboxes') {
-            if (is_array($selectedValue)) {
-                $realOptions = $this->_getRealValue(implode(',', $selectedValue));
-                $realValues = [];
+        return $inputOptions;
+    }
 
-                foreach ($realOptions as $realOption) {
-                    $realValues[] = $realOption->value;
+    /**
+     * @inheritDoc
+     */
+    public function getDefaultValue($attributePrefix = '')
+    {
+        $value = parent::getDefaultValue($attributePrefix) ?? $this->defaultValue;
+
+        // If the default value from the parent field (query params, etc) is empty, use the default values
+        // set in the field option settings.
+        if (!$this->getIsHidden() && $value === '') {
+            $value = [];
+
+            foreach ($this->options as $option) {
+                if (!empty($option['isDefault'])) {
+                    $value[] = $option['value'];
                 }
-
-                $inputOptions['value'] = $this->_getFakeValue($realValues);
             }
 
-            // Convert the MultiOptionsFieldData to an array
-            if ($selectedValue instanceof MultiOptionsFieldData) {
-                $options = [];
-
-                foreach ($selectedValue as $option) {
-                    $options[] = $option->value;
-                }
-
-                $inputOptions['value'] = $this->_getFakeValue($options);
+            if ($this->displayType !== 'checkboxes') {
+                $value = $value[0] ?? '';
             }
         }
 
-        return $inputOptions;
+        return $value;
     }
 
     /**
@@ -416,6 +405,16 @@ class Recipients extends FormField
      */
     private function _getRealValue($value)
     {
+        // This will convert fake values (`id:1`, `['id:2', 'id:3']`) into their real values (`email@`, `[`email@`, `email@`]`)
+        // But will also just return the real value if it's already provided in that format.
+
+        // For any array-compatible field types (and data), recursively iterate each item
+        if (is_array($value)) {
+            return array_map(function($item) {
+                return $this->_getRealValue($item);
+            }, $value);
+        }
+
         // Check if we need to replace the value - for fields that define options in CP
         if (strpos($value, 'id:') !== false) {
             // Replace each occurance of the `id:X` placeholder value with their real value
@@ -434,35 +433,6 @@ class Recipients extends FormField
             if (is_string($value) && Json::isJsonObject($value)) {
                 $value = implode(',', array_filter(Json::decode($value)));
             }
-        }
-
-        // Ensure we return values properly, if we're using dropdown/checkboxes/radio layout
-        if (in_array($this->displayType, ['dropdown', 'radio'])) {
-            // Fetch the option for the value
-            foreach ($this->options as $key => $option) {
-                if ((string)$option['value'] === (string)$value) {
-                    $value = new SingleOptionFieldData($option['label'], $option['value'], true);
-                    break;
-                }
-            }
-
-            // If no value was found for a given string value, return null. It's an invalid value.
-            // We don't want the value to stay as the (invalid) string value.
-            if (!$value instanceof SingleOptionFieldData) {
-                $value = null;
-            }
-        } else if ($this->displayType === 'checkboxes') {
-            $options = [];
-            $value = explode(',', $value);
-
-            // Fetch the option for the value
-            foreach ($this->options as $key => $option) {
-                if (in_array((string)$option['value'], $value, true)) {
-                    $options[] = new OptionData($option['label'], $option['value'], true);
-                }
-            }
-
-            $value = new MultiOptionsFieldData($options);
         }
 
         return $value;
@@ -510,7 +480,7 @@ class Recipients extends FormField
                 $value = Json::encode($value);
             }
 
-            $value = StringHelper::encenc($value);
+            $value = StringHelper::encenc((string)$value);
         }
 
         return $value;
