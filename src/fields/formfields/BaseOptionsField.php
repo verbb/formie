@@ -81,7 +81,7 @@ abstract class BaseOptionsField extends CraftBaseOptionsField
      */
     public function getDefaultValue()
     {
-        $value = $this->traitGetDefaultValue();
+        $value = $this->traitGetDefaultValue() ?? $this->defaultValue;
 
         // If the default value from the parent field (query params, etc) is empty, use the default values
         // set in the field option settings.
