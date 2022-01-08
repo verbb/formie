@@ -1,7 +1,7 @@
 {% set attributes = {
     id: options.id,
     class: [ 'fui-select' ],
-    name: field.handle ~ (field.multiple ? '[]'),
+    name: fieldName ?? field.handle ~ (field.multiple ? '[]'),
     multiple: field.multiple ? true : false,
     required: field.required ? true : false,
     data: {

@@ -135,7 +135,9 @@ class Entries extends CraftEntries implements FormFieldInterface
      */
     public function getDefaultValue($attributePrefix = '')
     {
-        $this->defaultValue = $this->traitGetDefaultValue($attributePrefix);
+        // If the default value from the parent field (query params, etc) is empty, use the default values
+        // set in the field settings.
+        $this->defaultValue = $this->traitGetDefaultValue($attributePrefix) ?? $this->defaultValue;
 
         return $this->getDefaultValueQuery();
     }

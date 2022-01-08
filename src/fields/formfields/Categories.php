@@ -141,7 +141,9 @@ class Categories extends CraftCategories implements FormFieldInterface
      */
     public function getDefaultValue($attributePrefix = '')
     {
-        $this->defaultValue = $this->traitGetDefaultValue($attributePrefix);
+        // If the default value from the parent field (query params, etc) is empty, use the default values
+        // set in the field settings.
+        $this->defaultValue = $this->traitGetDefaultValue($attributePrefix) ?? $this->defaultValue;
 
         return $this->getDefaultValueQuery();
     }
@@ -205,7 +207,8 @@ class Categories extends CraftCategories implements FormFieldInterface
                 }
             }
 
-            $options[] = ['label' => $this->_getElementLabel($element), 'value' => $element->id, 'level' => $level];
+            // Important to cast as a string, otherwise Twig will struggle to compare
+            $options[] = ['label' => $this->_getElementLabel($element), 'value' => (string)$element->id, 'level' => $level];
         }
 
         return $options;

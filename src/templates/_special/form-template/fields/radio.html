@@ -9,11 +9,7 @@
         {% for option in fieldOptions ?? field.getFieldOptions() %}
             {% set optionId = options.id ~ '-' ~ option.value | kebab %}
             {% set optionDataId = options.dataId ~ '-' ~ option.value | kebab %}
-            {% set selected = option.isDefault ?? false %}
-
-            {% if value and value.value %}
-                {% set selected = option.value == value.value ?: selected %}
-            {% endif %}
+            {% set selected = option.value is defined and option.value == value %}
 
             <div class="fui-radio">
                 {% set attributes = {

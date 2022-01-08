@@ -19,9 +19,9 @@
     <select {{ attr(attributes) }}>
         {% for option in field.getFieldOptions() %}
             {% if field.multiple %}
-                {% set selected = value ? value.contains(option.value) : (option.isDefault ?? false) %}
+                {% set selected = option.value is defined and option.value in value %}
             {% else %}
-                {% set selected = value and value.value ? value.value == option.value : (option.isDefault ?? false) %}
+                {% set selected = option.value is defined and option.value == value %}
             {% endif %}
 
             {% set level = option.level ?? null %}
