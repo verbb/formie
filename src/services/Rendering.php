@@ -444,7 +444,7 @@ class Rendering extends Component
     public function populateFormValues($element, $values = [], $force = false)
     {
         // We allow a submission or a form to be passed in here. Handle and get both.
-        if ($element instanceof Form) {
+        if ($element instanceof Form || is_string($element)) {
             $form = $element;
             
             if (is_string($form)) {
