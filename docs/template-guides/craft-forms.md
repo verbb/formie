@@ -25,7 +25,7 @@ Next, we'll begin templating. Fetch the form first:
 And then instead of using `craft.formie.renderForm()`, we'll want to modify this to render just the first page of forms, containing our fields, but set the action input to the Craft `users/login` action endpoint
 
 ```twig
-<form method="post" accept-charset="UTF-8">
+<form method="post" accept-charset="UTF-8" id="{{ form.formId }}" data-config="{{ form.configJson }}">
     {{ actionInput('users/login') }}
     {{ csrfInput() }}
 
@@ -58,7 +58,7 @@ The finalised form, with some error-handling and redirects would look something 
 
 {% do craft.formie.registerAssets(form) %}
 
-<form method="post" accept-charset="UTF-8">
+<form method="post" accept-charset="UTF-8" id="{{ form.formId }}" data-config="{{ form.configJson }}">
     {{ actionInput('users/login') }}
     {{ csrfInput() }}
 
@@ -100,7 +100,7 @@ The form should be pretty simple to put together, which renders the page of fiel
 
 {% do craft.formie.registerAssets(form) %}
 
-<form method="post" accept-charset="UTF-8">
+<form method="post" accept-charset="UTF-8" id="{{ form.formId }}" data-config="{{ form.configJson }}">
     {{ actionInput('users/save-user') }}
     {{ csrfInput() }}
 
@@ -151,7 +151,7 @@ The form should be pretty simple to put together, which renders the page of fiel
     lastName: user.lastName,
 }) %}
 
-<form method="post" accept-charset="UTF-8" enctype="multipart/form-data">
+<form method="post" accept-charset="UTF-8" enctype="multipart/form-data" id="{{ form.formId }}" data-config="{{ form.configJson }}">
     {{ actionInput('users/save-user') }}
     {{ hiddenInput('userId', user.id) }}
     {{ csrfInput() }}
