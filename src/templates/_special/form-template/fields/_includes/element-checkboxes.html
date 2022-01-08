@@ -11,7 +11,7 @@
         {% for option in fieldOptions ?? field.getFieldOptions() %}
             {% set optionId = options.id ~ '-' ~ option.value | kebab %}
             {% set optionDataId = options.dataId ~ '-' ~ option.value | kebab %}
-            {% set selected = value ? value.contains(option.value) : (option.isDefault ?? false) %}
+            {% set selected = option.value is defined and option.value in value %}
 
             <div class="fui-checkbox">
                 {% set attributes = {

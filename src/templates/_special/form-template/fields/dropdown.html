@@ -1,7 +1,7 @@
 {% set attributes = {
     id: options.id,
     class: [ 'fui-select' ],
-    name: fieldName ?? field.handle ~ (field.multiple ? '[]'),
+    name: fieldName ?? (field.handle ~ (field.multiple ? '[]')),
     multiple: field.multiple ? true : false,
     required: field.required ? true : false,
     data: {
@@ -27,9 +27,9 @@
             <optgroup label="{{ option.optgroup | t }}">
         {% else %}
             {% if field.multiple %}
-                {% set selected = value ? value.contains(option.value) : (option.isDefault ?? false) %}
+                {% set selected = option.value is defined and option.value in value %}
             {% else %}
-                {% set selected = value and value.value ? value.value == option.value : (option.isDefault ?? false) %}
+                {% set selected = option.value is defined and option.value == value %}
             {% endif %}
 
             <option value="{{ option.value }}" {{ selected ? ' selected' }}>{{ option.label | t }}</option>

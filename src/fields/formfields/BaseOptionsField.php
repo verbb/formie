@@ -83,6 +83,22 @@ abstract class BaseOptionsField extends CraftBaseOptionsField
     {
         $value = $this->traitGetDefaultValue();
 
+        // If the default value from the parent field (query params, etc) is empty, use the default values
+        // set in the field option settings.
+        if ($value === '') {
+            $value = [];
+
+            foreach ($this->options() as $option) {
+                if (!empty($option['isDefault'])) {
+                    $value[] = $option['value'];
+                }
+            }
+
+            if (!$this->multi) {
+                $value = $value[0] ?? '';
+            }
+        }
+
         try {
             $options = [];
             $optionValues = [];
@@ -110,7 +126,6 @@ abstract class BaseOptionsField extends CraftBaseOptionsField
 
                 return new MultiOptionsFieldData($selectedOptions);
             } else {
-                // $selectedValue = reset($selectedValues);
                 $index = array_search($value, $optionValues, true);
                 $valid = $index !== false;
                 $label = $valid ? $optionLabels[$index] : null;
