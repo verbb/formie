@@ -23,6 +23,7 @@ use verbb\formie\models\Settings;
 use Craft;
 use craft\db\Query;
 use craft\elements\db\ElementQuery;
+use craft\elements\Asset;
 use craft\elements\User;
 use craft\events\DefineUserContentSummaryEvent;
 use craft\events\ModelEvent;
@@ -668,6 +669,10 @@ class Submissions extends Component
                     break;
                 case formfields\Email::class:
                     $fieldContent[$field->handle] = $faker->email;
+
+                    break;
+                case formfields\FileUpload::class:
+                    $fieldContent[$field->handle] = Asset::find()->limit(1);
 
                     break;
                 case formfields\Group::class:
