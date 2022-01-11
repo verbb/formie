@@ -16,6 +16,7 @@ use verbb\formie\records\Notification as NotificationRecord;
 use verbb\formie\records\PdfTemplate as PdfTemplateRecord;
 
 use Craft;
+use craft\elements\Entry;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 
@@ -162,6 +163,15 @@ class ImportExportHelper
         // Handle form settings
         $form->settings = new FormSettings();
         $form->settings->setAttributes($settings, false);
+
+        // Check if there is a entry selected as the redirect action. If not found, will cause a fatal error
+        if ($form->submitActionEntryId) {
+            $entry = Entry::find()->id($form->submitActionEntryId)->one();
+
+            if (!$entry) {
+                $form->submitActionEntryId = null;
+            }
+        }
 
         // Check if this is updating an existing form. We want to try and find existing fields
         // and attach the IDs of them to page data, so new fields aren't created (and their submission data lost)

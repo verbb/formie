@@ -436,14 +436,16 @@ class Variables
             }
         } else if ($field instanceof Group) {
             if ($submissionValue && $row = $submissionValue->one()) {
-                foreach ($row->getFieldLayout()->getFields() as $nestedField) {
-                    $submissionValue = $row->getFieldValue($nestedField->handle);
-                    $fieldValues = self::_getParsedFieldValue($nestedField, $submissionValue, $submission, $notification);
+                if ($fieldLayout = $row->getFieldLayout()) {
+                    foreach ($row->getFieldLayout()->getFields() as $nestedField) {
+                        $submissionValue = $row->getFieldValue($nestedField->handle);
+                        $fieldValues = self::_getParsedFieldValue($nestedField, $submissionValue, $submission, $notification);
 
-                    foreach ($fieldValues as $key => $fieldValue) {
-                        $handle = "{$prefix}{$field->handle}." . str_replace($prefix, '', $key);
+                        foreach ($fieldValues as $key => $fieldValue) {
+                            $handle = "{$prefix}{$field->handle}." . str_replace($prefix, '', $key);
 
-                        $values[$handle] = $fieldValue;
+                            $values[$handle] = $fieldValue;
+                        }
                     }
                 }
             }
