@@ -7,6 +7,7 @@ use verbb\formie\elements\Submission;
 use verbb\formie\models\Notification;
 
 use Craft;
+use craft\helpers\StringHelper;
 use craft\web\Controller;
 
 class EmailController extends Controller
@@ -105,6 +106,12 @@ class EmailController extends Controller
 
         // Create a new Notification model from this - it'll be a serialized array from Vue
         $notification->setAttributes($request->getParam('notification'), false);
+
+        // Ensure some settings are type-cast
+        $notification->enabled = StringHelper::toBoolean($notification->enabled);
+        $notification->attachFiles = StringHelper::toBoolean($notification->attachFiles);
+        $notification->attachPdf = StringHelper::toBoolean($notification->attachPdf);
+        $notification->enableConditions = StringHelper::toBoolean($notification->enableConditions);
 
         // If a stencil, creata a fake form
         if (!$formId) {
