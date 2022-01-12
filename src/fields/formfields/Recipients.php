@@ -283,6 +283,7 @@ class Recipients extends FormField
                     'name' => 'errorMessage',
                 ]),
             ]),
+            SchemaHelper::prePopulate(),
         ];
     }
 
