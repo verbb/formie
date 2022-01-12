@@ -873,6 +873,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
                 $fieldKey = implode('.', $fieldKey);
             } else {
                 $fieldHandle = $fieldKey;
+                $fieldKey = '';
             }
 
             // Fetch all custom fields here for efficiency
