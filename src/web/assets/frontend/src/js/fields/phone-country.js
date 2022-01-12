@@ -94,6 +94,9 @@ export class FormiePhoneCountry {
 
         // Attach custom validation
         this.form.addEventListener(this.$form, eventKey('registerFormieValidation'), this.registerValidation.bind(this));
+
+        // Trigger the country changing now, in case it's been populated
+        this.$field.dispatchEvent(new Event('countrychange', { bubbles: true }));
     }
 
     countryChange(e) {
