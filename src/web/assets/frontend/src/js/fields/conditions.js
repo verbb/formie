@@ -117,6 +117,11 @@ export class FormieConditions {
 
                 // Handle agree fields, which are a single checkbox, checked/unchecked
                 if ($target.getAttribute('data-fui-input-type') === 'agree') {
+                    // Ignore the empty, hidden checkbox
+                    if (inputType === 'hidden') {
+                        return;
+                    }
+
                     // Convert the value to boolean to compare
                     result = this.testCondition(logic, (value == '0') ? false : true, $target.checked);
 
