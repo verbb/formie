@@ -345,17 +345,16 @@ class HubSpot extends Crm
                 $endpoint = "submissions/v3/integration/submit/${portalId}/${formGuid}";
                 $payload = $formPayload;
                 $method = 'POST';
-                $uri = $endpoint;
-                $options = [
-                    'json' => $payload,
-                ];
 
                 // Allow events to cancel sending
                 if (!$this->beforeSendPayload($submission, $endpoint, $payload, $method)) {
                     return true;
                 }
 
-                $response = $this->getFormsClient()->request($method, ltrim($uri, '/'), $options);
+                $response = $this->getFormsClient()->request($method, ltrim($endpoint, '/'), [
+                    'json' => $payload,
+                ]);
+
                 $response = Json::decode((string)$response->getBody());
 
                 // Allow events to say the response is invalid
