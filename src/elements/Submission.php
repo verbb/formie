@@ -504,6 +504,11 @@ class Submission extends Element
     public function getCpEditUrl()
     {
         $form = $this->getForm();
+
+        if (!$form) {
+            return '';
+        }
+
         $path = "formie/submissions/$form->handle";
 
         if ($this->id) {

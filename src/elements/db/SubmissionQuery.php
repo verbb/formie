@@ -43,9 +43,11 @@ class SubmissionQuery extends ElementQuery
             $this->formId = $value->id;
         } else if ($value !== null) {
             $this->formId = (new Query())
-                ->select(['id'])
-                ->from(['{{%formie_forms}}'])
+                ->select(['forms.id'])
+                ->from(['{{%formie_forms}} forms'])
                 ->where(Db::parseParam('handle', $value))
+                ->leftJoin(['{{%elements}} elements'], '[[forms.id]] = [[elements.id]]')
+                ->andWhere(['dateDeleted' => null])
                 ->scalar();
         } else {
             $this->formId = null;
@@ -192,21 +194,34 @@ class SubmissionQuery extends ElementQuery
 
         if (!$this->formId) {
             $formIds = [];
+            $subQuery = null;
 
+            // Get the formIds for all submissions in thie query
             if ($this->id) {
-                $formIds = (new Query())
+                $subQuery = (new Query())
                     ->select(['formId'])
                     ->distinct()
-                    ->from(['{{%formie_submissions}}'])
-                    ->where(Db::parseParam('id', $this->id))
-                    ->column();
+                    ->from(['{{%formie_submissions}} submissions'])
+                    ->where(Db::parseParam('id', $this->id));
             } else if ($this->uid) {
-                $formIds = (new Query())
+                // Note we're using the element table's UID
+                $subQuery = (new Query())
                     ->select(['formId'])
                     ->distinct()
                     ->from(['{{%formie_submissions}} submissions'])
                     ->leftJoin(['{{%elements}} elements'], '[[submissions.id]] = [[elements.id]]')
-                    ->where(Db::parseParam('elements.uid', $this->uid))
+                    ->where(Db::parseParam('elements.uid', $this->uid));
+            }
+
+            // We also need to do another query to ensure the forms haven't been deleted
+            if ($subQuery) {
+                $formIds = (new Query())
+                    ->select(['formId'])
+                    ->from(['{{%elements}} elements'])
+                    ->where(['dateDeleted' => null])
+                    ->andWhere(['not', ['formId' => null]])
+                    ->leftJoin(['forms' => $subQuery], '[[forms.formId]] = [[elements.id]]')
+                    ->andWhere(['dateDeleted' => null])
                     ->column();
             }
 
