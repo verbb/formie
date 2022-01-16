@@ -1,5 +1,24 @@
 # Changelog
 
+## 1.5.6 - 2022-01-17
+
+### Fixed
+- Fixed when querying submissions on deleted forms.
+- Fixed Agree fields when used as conditions, not evaluating correctly.
+- Fixed HubSpot form integration not allowing the `EVENT_BEFORE_SEND_PAYLOAD` event to update payload values.
+- Fixed Recipients field not being able to use the "Pre-Populate Value" setting.
+- Fixed Phone & Date fields not being prepared for integrations correctly.
+- Fixed country code dropdown not saving correctly for a Phone field, when using `setFieldSettings()` or `populateFormValues()`.
+- Fixed email notifications sending PDF attachments when not enabled, when sending test emails.
+- Fixed an error when previewing email notifications containing a File Upload field.
+- Fixed an error when importing a form with an invalid `submitActionEntryId` value.
+- Fixed Checkboxes field when using `populateFormValues()`.
+- Refactor Recipients field handling, simplifying functionality and fully testing.
+- Fixed `populateFormValues()` not working correctly when passing in the handle of a form.
+- Fixed Categories field not saving its value correctly (due to how Craft's own Categories field works) when categories has a level greater than 1.
+- Fixed option fields (Radio, Checkboxes, Dropdown) not having their default values set properly.
+- Fixed element fields not having their default value set properly.
+
 ## 1.5.5 - 2022-01-08
 
 ### Added
