@@ -597,7 +597,7 @@ $fields.forEach($field => {
 });
 ```
 
-### The `init` event
+### The `append` event
 The event that is triggered after a new row has been appended to the repeater.
 
 ```js
@@ -631,7 +631,7 @@ $fields.forEach($field => {
 });
 ```
 
-### The `init` event
+### The `append` event
 The event that is triggered after a new row has been appended to the table.
 
 ```js
