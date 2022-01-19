@@ -216,10 +216,6 @@ class MigrateFreeform extends Migration
 
                 try {
                     switch (get_class($field)) {
-                        case freeformfields\Pro\ConfirmationField::class:
-                            // Not implemented
-                            break;
-
                         case freeformfields\Pro\OpinionScaleField::class:
                             // Not implemented
                             break;
@@ -556,14 +552,16 @@ class MigrateFreeform extends Migration
                 break;
 
             case freeformfields\Pro\ConfirmationField::class:
-                /* @var freeformfields\CheckboxField $field */
-                $newField = new formfields\Agree();
+                // We want to ensure *this* field is the same as the target field, so grab that type    
+                $targetField = $this->_freeformForm->getLayout()->getFieldByHash($field->getTargetFieldHash());
+                $targetFormieField = $this->_mapField($targetField);
+                $fieldClass = get_class($targetFormieField);
+
+                $newField = new $fieldClass();
+                $newField->matchField = '{' . $targetFormieField->handle . '}';
+
                 $this->_applyFieldDefaults($newField);
 
-                $newField->defaultValue = $field->isChecked();
-                $newField->description = $field->getLabel();
-                $newField->checkedValue = $field->getValue();
-                $newField->uncheckedValue = Craft::t('app', 'No');
                 break;
 
             case freeformfields\CheckboxGroupField::class:
