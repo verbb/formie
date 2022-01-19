@@ -97,6 +97,11 @@ export class FormiePhoneCountry {
 
         // Trigger the country changing now, in case it's been populated
         this.$field.dispatchEvent(new Event('countrychange', { bubbles: true }));
+
+        // Update the form hash, so we don't get change warnings
+        if (this.form.formTheme) {
+            this.form.formTheme.updateFormHash();
+        }
     }
 
     countryChange(e) {
