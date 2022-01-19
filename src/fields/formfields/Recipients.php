@@ -90,7 +90,8 @@ class Recipients extends FormField
             $value = Json::decodeIfJson($value);
         }
 
-        return $value;
+        // Ensure we're always dealing with real values. Fake values are used on front-end render.
+        return $this->_getRealValue($value);
     }
 
     /**
@@ -177,10 +178,6 @@ class Recipients extends FormField
     public function getFrontEndInputOptions(Form $form, $value, array $options = null): array
     {
         $inputOptions = parent::getFrontEndInputOptions($form, $value, $options);
-
-        // When validation fails, this will be the fake values, so actually want to ensure we start here
-        // with real values, then convert them to fake. This will also handle is the value is already "real".
-        $value = $this->_getRealValue($value);
 
         // When rendering the value **always** swap out the real values with obscured ones
         $inputOptions['value'] = $this->_getFakeValue($value);
