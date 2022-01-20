@@ -259,6 +259,13 @@ export default {
                         { label: 'Unchecked', value: '0' },
                     ];
                 }
+
+                // Special handling for recipients, should use placeholders
+                if (testField.type === 'verbb\\formie\\fields\\formfields\\Recipients') {
+                    for (var i = 0; i < options.length; i++) {
+                        options[i].value = 'id:' + i;
+                    }
+                }
             
                 return options;
             }
