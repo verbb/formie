@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.5.7 - 2022-01-20
+
+### Fixed
+- Fixed Freeform migration and Confirmation fields not migrating correctly
+- Fixed Recipients field not using the correct "real" values for email notifications and integrations
+- Fixed Phone field with country dropdown enabled triggering unload warnings
+
 ## 1.5.6 - 2022-01-17
 
 ### Fixed
