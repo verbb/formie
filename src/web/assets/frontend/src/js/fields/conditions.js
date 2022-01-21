@@ -68,6 +68,7 @@ export class FormieConditions {
             this.conditionsStore.set($field, {
                 showRule: conditionSettings.showRule,
                 conditionRule: conditionSettings.conditionRule,
+                isNested: conditionSettings.isNested || false,
                 conditions,
             });
 
@@ -95,7 +96,7 @@ export class FormieConditions {
             return;
         }
 
-        const { showRule, conditionRule, conditions } = conditionSettings;
+        const { showRule, conditionRule, conditions, isNested } = conditionSettings;
         const results = [];
 
         conditions.forEach((condition) => {
@@ -169,14 +170,33 @@ export class FormieConditions {
             }
         }
 
+        // Check if this condition is nested in a Group/Repeater field. Only proceed if the parent field
+        // conditional evaluation has passed.
+        let overrideResult = false;
+
+        if (isNested) {
+            var $parentField = $field.closest('.fui-type-group, .fui-type-repeater');
+
+            if ($parentField) {
+                // Is the parent field conditionally hidden? Force the evaluation to be true (this field is
+                // is conditionallu hidden), to prevent inner field conditions having a higher priority than the
+                // parent Group/Repeater fields.
+                if ($parentField.conditionallyHidden) {
+                    overrideResult = true;
+                }
+            }
+        }
+
         // Show or hide? Also toggle the disabled state to sort out any hidden required fields
-        if ((finalResult && showRule !== 'show') || (!finalResult && showRule === 'show')) {
+        if (overrideResult || (finalResult && showRule !== 'show') || (!finalResult && showRule === 'show')) {
+            $field.conditionallyHidden = true;
             $field.setAttribute('data-conditionally-hidden', true);
 
             $field.querySelectorAll('input, textarea, select').forEach(($input) => {
                 $input.setAttribute('disabled', true);
             });
         } else {
+            $field.conditionallyHidden = false;
             $field.removeAttribute('data-conditionally-hidden');
 
             $field.querySelectorAll('input, textarea, select').forEach(($input) => {

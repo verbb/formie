@@ -952,6 +952,9 @@ trait FormFieldTrait
 
             $conditionSettings['conditions'] = $conditions;
 
+            // Check if this is a nested field within a Group/Repeater.
+            $conditionSettings['isNested'] = (bool)strstr($this->context, 'formieField:');
+
             return Json::encode($conditionSettings);
         }
 
