@@ -145,7 +145,7 @@ class Notification extends Model
      */
     public function getParsedContent()
     {
-        return RichTextHelper::getHtmlContent($this->content);
+        return RichTextHelper::getHtmlContent($this->content, null, false);
     }
 
     /**

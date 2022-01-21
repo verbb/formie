@@ -74,7 +74,7 @@ class RichTextHelper
         ];
     }
 
-    public static function getHtmlContent($content, $submission = null)
+    public static function getHtmlContent($content, $submission = null, $nl2br = true)
     {
         if (is_string($content)) {
             $content = Json::decodeIfJson($content);
@@ -93,8 +93,10 @@ class RichTextHelper
         }
 
         // Strip out paragraphs, replace with `<br>`
-        $html = str_replace(['<p>', '</p>'], ['', '<br>'], $html);
-        $html = preg_replace('/(<br>)+$/', '', $html);
+        if ($nl2br) {
+            $html = str_replace(['<p>', '</p>'], ['', '<br>'], $html);
+            $html = preg_replace('/(<br>)+$/', '', $html);
+        }
 
         // Prosemirror will use `htmlentities` for special characters, but doesn't play nice
         // with static translations. Convert them back.
