@@ -314,64 +314,68 @@ class Freshdesk extends Crm
             $ticketFields = $this->_prepCustomFields($ticketValues);
 
             // Send Contact payload
-            $contactPayload = array_merge($contactValues, [
-                'custom_fields' => $contactFields,
-            ]);
+            if ($this->mapToContact) {
+                $contactPayload = array_merge($contactValues, [
+                    'custom_fields' => $contactFields,
+                ]);
 
-            try {
-                $response = $this->deliverPayload($submission, 'contacts', $contactPayload);
+                try {
+                    $response = $this->deliverPayload($submission, 'contacts', $contactPayload);
+
+                    if ($response === false) {
+                        return true;
+                    }
+
+                    $contactId = $response['id'] ?? '';
+
+                    if (!$contactId) {
+                        Integration::error($this, Craft::t('formie', 'Missing return “contactId” {response}. Sent payload {payload}', [
+                            'response' => Json::encode($response),
+                            'payload' => Json::encode($contactPayload),
+                        ]), true);
+
+                        return false;
+                    }
+                } catch (\Throwable $e) {
+                    // For now, we don't care about an existing contact
+                }
+            }
+
+            // Send Ticket payload
+            if ($this->mapToTicket) {
+                $ticketPayload = array_merge($ticketValues, [
+                    'custom_fields' => $ticketFields,
+                ]);
+
+                // Extra payload prep - some fields are finnicky
+                if (isset($ticketPayload['status'])) {
+                    $ticketPayload['status'] = (int)$ticketPayload['status'];
+                }
+
+                if (isset($ticketPayload['priority'])) {
+                    $ticketPayload['priority'] = (int)$ticketPayload['priority'];
+                }
+
+                if (isset($ticketPayload['source'])) {
+                    $ticketPayload['source'] = (int)$ticketPayload['source'];
+                }
+
+                $response = $this->deliverPayload($submission, 'tickets', $ticketPayload);
 
                 if ($response === false) {
                     return true;
                 }
 
-                $contactId = $response['id'] ?? '';
+                $ticketId = $response['id'] ?? '';
 
-                if (!$contactId) {
-                    Integration::error($this, Craft::t('formie', 'Missing return “contactId” {response}. Sent payload {payload}', [
+                if (!$ticketId) {
+                    Integration::error($this, Craft::t('formie', 'Missing return “ticketId” {response}. Sent payload {payload}', [
                         'response' => Json::encode($response),
-                        'payload' => Json::encode($contactPayload),
+                        'payload' => Json::encode($ticketPayload),
                     ]), true);
 
                     return false;
                 }
-            } catch (\Throwable $e) {
-                // For now, we don't care about an existing contact
-            }
-
-            // Send Ticket payload
-            $ticketPayload = array_merge($ticketValues, [
-                'custom_fields' => $ticketFields,
-            ]);
-
-            // Extra payload prep - some fields are finnicky
-            if (isset($ticketPayload['status'])) {
-                $ticketPayload['status'] = (int)$ticketPayload['status'];
-            }
-
-            if (isset($ticketPayload['priority'])) {
-                $ticketPayload['priority'] = (int)$ticketPayload['priority'];
-            }
-
-            if (isset($ticketPayload['source'])) {
-                $ticketPayload['source'] = (int)$ticketPayload['source'];
-            }
-
-            $response = $this->deliverPayload($submission, 'tickets', $ticketPayload);
-
-            if ($response === false) {
-                return true;
-            }
-
-            $ticketId = $response['id'] ?? '';
-
-            if (!$ticketId) {
-                Integration::error($this, Craft::t('formie', 'Missing return “ticketId” {response}. Sent payload {payload}', [
-                    'response' => Json::encode($response),
-                    'payload' => Json::encode($ticketPayload),
-                ]), true);
-
-                return false;
             }
         } catch (\Throwable $e) {
             Integration::apiError($this, $e);
