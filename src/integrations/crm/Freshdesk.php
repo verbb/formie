@@ -220,14 +220,14 @@ class Freshdesk extends Crm
                 new IntegrationField([
                     'handle' => 'attachments',
                     'name' => Craft::t('formie', 'Attachments'),
+                    'type' => IntegrationField::TYPE_ARRAY,
                 ]),
                 new IntegrationField([
                     'handle' => 'cc_emails',
                     'name' => Craft::t('formie', 'CC Emails'),
                 ]),
                 new IntegrationField([
-                    'handle' => 'due_by',
-                    'name' => Craft::t('formie', 'Due By'),
+                    'handle' => 'due_by',                    'name' => Craft::t('formie', 'Due By'),
                 ]),
                 new IntegrationField([
                     'handle' => 'email_config_id',
