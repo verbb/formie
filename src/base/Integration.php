@@ -724,8 +724,14 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
                 // Get the type of field we are mapping to (for the integration)
                 $integrationField = ArrayHelper::firstWhere($fieldSettings, 'handle', $tag) ?? new IntegrationField();
 
-                // Get the value of the mapped field, from the submission
-                $fieldValues[$tag] = $this->getMappedFieldValue($fieldKey, $submission, $integrationField);
+                // Get the value of the mapped field, from the submission.
+                $fieldValue = $this->getMappedFieldValue($fieldKey, $submission, $integrationField);
+
+                // Be sure the check against empty values and not map them. '', null and [] are all empty
+                // but 0 is a totally valid value.
+                if (!self::isEmpty($fieldValue)) {
+                    $fieldValues[$tag] = $fieldValue;
+                }
             } else {
                 // Otherwise, might have passed in a direct, static value
                 $fieldValues[$tag] = $fieldKey;
@@ -811,7 +817,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         // Get the value of the mapped field, from the submission
         $fieldValue = $this->getMappedFieldValue($this->optInField, $submission, new IntegrationField());
 
-        if ($fieldValue === null) {
+        if (self::isEmpty($fieldValue)) {
             Integration::log($this, Craft::t('formie', 'Unable to find field “{field}” for opt-in in submission.', [
                 'field' => $this->optInField,
             ]));
@@ -926,5 +932,17 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         }
 
         return $this->cache[$key] ?? null;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    private static function isEmpty($value)
+    {
+        if ($value === '' || $value === [] || $value === null) {
+            return true;
+        }
+
+        return false;
     }
 }
