@@ -127,25 +127,18 @@ export class FormieConditions {
                     result = this.testCondition(logic, (value == '0') ? false : true, $target.checked);
 
                     results.push(result);
-
                 // Handle (multi) checkboxes and radio, which are a bit of a pain
                 } else if (inputType === 'checkbox' || inputType === 'radio') {
-                    // Exclude any checkboxes that don't have conditions setup. We don't need to test against them
-                    if ($target.value === value) {
-                        // If the checkbox isn't checked, it's automatically false, but important to record
-                        // when we have multiple conditions setup for a single checkbox group
-                        result = ($target.checked) ? this.testCondition(logic, value, $target.value) : false;
+                    if ($target.checked) {
+                        result = this.testCondition(logic, value, $target.value);
 
                         results.push(result);
                     }
                 // Handle multi-selects
                 } else if (tagName === 'select' && $target.hasAttribute('multiple')) {
                     Array.from($target.options).forEach(($option) => {
-                        // Exclude any options that don't have conditions setup. We don't need to test against them
-                        if ($option.value === value) {
-                            // If the option isn't selected, it's automatically false, but important to record
-                            // when we have multiple conditions setup for a single select
-                            result = ($option.selected) ? this.testCondition(logic, value, $option.value) : false;
+                        if ($option.selected) {
+                            result = this.testCondition(logic, value, $option.value);
 
                             results.push(result);
                         }
