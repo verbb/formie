@@ -227,8 +227,7 @@ class Freshdesk extends Crm
                     'name' => Craft::t('formie', 'CC Emails'),
                 ]),
                 new IntegrationField([
-                    'handle' => 'due_by',
-                    'name' => Craft::t('formie', 'Due By'),
+                    'handle' => 'due_by',                    'name' => Craft::t('formie', 'Due By'),
                 ]),
                 new IntegrationField([
                     'handle' => 'email_config_id',
@@ -496,8 +495,6 @@ class Freshdesk extends Crm
                 $customFields[str_replace('custom:', '', $key)] = $value;
             }
         }
-
-        $customFields = array_filter($customFields);
 
         return $customFields;
     }

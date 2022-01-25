@@ -748,8 +748,6 @@ class Copper extends Crm
             }
         }
 
-        $customFields = array_filter($customFields);
-
         return $customFields;
     }
 }
