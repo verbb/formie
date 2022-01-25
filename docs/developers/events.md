@@ -991,7 +991,7 @@ use verbb\formie\events\MailEvent;
 use verbb\formie\services\Emails;
 use yii\base\Event;
 
-Event::on(Emails::class, Emails::EVENT_BEFORE_RENDER_MAIL, function(MailEvent $event) {
+Event::on(Emails::class, Emails::EVENT_BEFORE_RENDER_EMAIL, function(MailEvent $event) {
     $email = $event->email;
     $submission = $event->submission;
     $notification = $event->notification;
@@ -1007,7 +1007,7 @@ use verbb\formie\events\MailEvent;
 use verbb\formie\services\Emails;
 use yii\base\Event;
 
-Event::on(Emails::class, Emails::EVENT_AFTER_RENDER_MAIL, function(MailEvent $event) {
+Event::on(Emails::class, Emails::EVENT_AFTER_RENDER_EMAIL, function(MailEvent $event) {
     $email = $event->email;
     $submission = $event->submission;
     $notification = $event->notification;
