@@ -77,6 +77,14 @@ class Recipients extends FormField
     }
 
     /**
+     * @inheritDoc
+     */
+    protected function options(): array
+    {
+        return $this->options ?? [];
+    }
+
+    /**
      * @inheritdoc
      */
     public function normalizeValue($value, ElementInterface $element = null)
@@ -91,7 +99,54 @@ class Recipients extends FormField
         }
 
         // Ensure we're always dealing with real values. Fake values are used on front-end render.
-        return $this->_getRealValue($value);
+        // Fake values will exists here if validation for the element fails.
+        $value = $this->_getRealValue($value);
+
+        // For non-hidden fields, ensure we cast to option field data
+        if ($this->displayType !== 'hidden') {
+            // Normalize to an array of strings
+            $selectedValues = [];
+
+            foreach ((array)$value as $val) {
+                $selectedValues[] = (string)$val;
+            }
+
+            $options = [];
+            $optionValues = [];
+            $optionLabels = [];
+
+            foreach ($this->options() as $option) {
+                $selected = in_array($option['value'], $selectedValues, true);
+                $options[] = new OptionData($option['label'], $option['value'], $selected, true);
+                $optionValues[] = (string)$option['value'];
+                $optionLabels[] = (string)$option['label'];
+            }
+
+            if (in_array($this->displayType, ['dropdown', 'radio'])) {
+                // Convert the value to a SingleOptionFieldData object
+                $selectedValue = reset($selectedValues);
+                $index = array_search($selectedValue, $optionValues, true);
+                $valid = $index !== false;
+                $label = $valid ? $optionLabels[$index] : null;
+                $value = new SingleOptionFieldData($label, $selectedValue, true, $valid);
+            } else if ($this->displayType === 'checkboxes') {
+                // Convert the value to a MultiOptionsFieldData object
+                $selectedOptions = [];
+
+                foreach ($selectedValues as $selectedValue) {
+                    $index = array_search($selectedValue, $optionValues, true);
+                    $valid = $index !== false;
+                    $label = $valid ? $optionLabels[$index] : null;
+                    $selectedOptions[] = new OptionData($label, $selectedValue, true, $valid);
+                }
+
+                $value = new MultiOptionsFieldData($selectedOptions);
+            }
+
+            $value->setOptions($options);
+        }
+
+        return $value;
     }
 
     /**
@@ -99,8 +154,19 @@ class Recipients extends FormField
      */
     public function serializeValue($value, ElementInterface $element = null)
     {
-        // Before we save the value, convert it to the real value.
-        return $this->_getRealValue($value);
+        // If the values are being saved as option field data, save them instead as "plain" values.
+        // These will also be normalised already, so dealing with real values.
+        if ($value instanceof SingleOptionFieldData) {
+            return (string)$value;
+        }
+
+        if ($value instanceof MultiOptionsFieldData) {
+            return array_map(function($item) {
+                return (string)$item;
+            }, (array)$value);
+        }
+
+        return $value;
     }
 
     /**
@@ -120,7 +186,7 @@ class Recipients extends FormField
             'name' => $this->handle,
             'value' => $value,
             'field' => $this,
-            'options' => $this->options,
+            'options' => $this->options(),
         ]);
     }
 
@@ -160,7 +226,7 @@ class Recipients extends FormField
         // Don't expose the value (email address) in the front end to prevent scraping
         $options = [];
 
-        foreach ($this->options as $key => $value) {
+        foreach ($this->options() as $key => $value) {
             $options[$key] = $value;
 
             // Swap the value with the index - if there is a value, otherwise leave blank
@@ -197,7 +263,7 @@ class Recipients extends FormField
         if (!$this->getIsHidden() && $value === '') {
             $value = [];
 
-            foreach ($this->options as $option) {
+            foreach ($this->options() as $option) {
                 if (!empty($option['isDefault'])) {
                     $value[] = $option['value'];
                 }
@@ -419,7 +485,7 @@ class Recipients extends FormField
             $value = preg_replace_callback('/id:(\d+)/m', function(array $match) use ($value): string {
                 $index = $match[1] ?? 0;
 
-                return $this->options[$index]['value'] ?? $value;
+                return $this->options()[$index]['value'] ?? $value;
             }, $value);
         }
 
@@ -442,35 +508,34 @@ class Recipients extends FormField
     private function _getFakeValue($value)
     {
         if (in_array($this->displayType, ['dropdown', 'radio'])) {
-            if (!($value instanceof SingleOptionFieldData)) {
-                foreach ($this->options as $key => $option) {
-                    $id =  'id:' . $key;
+            foreach ($this->options() as $key => $option) {
+                $id =  'id:' . $key;
 
-                    if ((string)$option['value'] === (string)$value) {
-                        $value = new SingleOptionFieldData($option['label'], $id, true);
+                if ((string)$option['value'] === (string)$value) {
+                    $value = new SingleOptionFieldData($option['label'], $id, true);
 
-                        break;
-                    }
+                    break;
                 }
             }
         } else if ($this->displayType === 'checkboxes') {
-            if (!($value instanceof MultiOptionsFieldData)) {
-                $options = [];
+            // Swap out the values with fake values
+            $selectedValues = [];
 
-                if (!is_array($value)) {
-                    $value = [$value];
-                }
-
-                foreach ($this->options as $key => $option) {
-                    $id =  'id:' . $key;
-
-                    if (in_array((string)$option['value'], $value, true)) {
-                        $options[] = new OptionData($option['label'], $id, true);
-                    }
-                }
-
-                $value = new MultiOptionsFieldData($options);
+            foreach ((array)$value as $val) {
+                $selectedValues[] = (string)$val;
             }
+
+            $options = [];
+
+            foreach ($this->options() as $key => $option) {
+                $id =  'id:' . $key;
+
+                if (in_array((string)$option['value'], $selectedValues, true)) {
+                    $options[] = new OptionData($option['label'], $id, true);
+                }
+            }
+
+            $value = new MultiOptionsFieldData($options);
         } else if ($this->displayType === 'hidden') {
             // For a hidden field, there's no CP defined options, so encode the provided value
             // Also - support arrays of recipients in a hidden field
