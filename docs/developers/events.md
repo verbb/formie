@@ -968,6 +968,7 @@ Event::on(Notifications::class, Notifications::EVENT_MODIFY_EXISTING_NOTIFICATIO
 The event that is triggered to allow modification of the render variables used in templates.
 
 ```php
+use craft\helpers\Template;
 use verbb\formie\events\MailRenderEvent;
 use verbb\formie\services\Emails;
 use yii\base\Event;
@@ -979,7 +980,8 @@ Event::on(Emails::class, Emails::EVENT_MODIFY_RENDER_VARIABLES, function(MailRen
     $renderVariables = $event->renderVariables;
 
     // Modify the "Content HTML" as defined in the email notification settings
-    $event->renderVariables['contentHtml'] = 'Override Text';
+    // Ensure that you provide "raw" HTML for `contentHtml`.
+    $event->renderVariables['contentHtml'] = Template::raw('<p>Override Text</p>');
 });
 ```
 
