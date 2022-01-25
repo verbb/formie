@@ -726,7 +726,14 @@ class Submissions extends Component
 
                     break;
                 case formfields\Recipients::class:
-                    $fieldContent[$field->handle] = $faker->email;
+                    if ($field->displayType === 'checkboxes') {
+                        $values = $faker->randomElement($field->options)['value'] ?? '';
+                        $fieldContent[$field->handle] = [$values];
+                    } else if ($field->displayType === 'dropdown' || $field->displayType === 'radio') {
+                        $fieldContent[$field->handle] = $faker->randomElement($field->options)['value'] ?? '';
+                    } else if ($field->displayType === 'hidden') {
+                        $fieldContent[$field->handle] = $faker->email;
+                    }
 
                     break;
                 default:
