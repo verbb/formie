@@ -10,7 +10,7 @@
             {% if value and value.exists() %}
                 {% for block in value.all() %}
                     {% include 'fields/repeater/_row' with {
-                        id: block.id,
+                        id: block.id ?? 'new' ~ loop.index,
                     } %}
                 {% endfor %}
             {% elseif field.minRows > 0 %}
