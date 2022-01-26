@@ -719,7 +719,7 @@ trait NestedFieldTrait
                 $subValue = $row->getFieldValue($field->handle);
                 $html = $field->getValueForSummary($subValue, $row);
 
-                $values .= '<strong>' . $field->handle . '</strong> ' . $html . '<br>';
+                $values .= '<strong>' . $field->name . '</strong> ' . $html . '<br>';
             }
         }
 
