@@ -684,7 +684,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     /**
      * @inheritDoc
      */
-    public function deliverPayload($submission, $endpoint, $payload, $method = 'POST')
+    public function deliverPayload($submission, $endpoint, $payload, $method = 'POST', $contentType = 'json')
     {
         // Allow events to cancel sending
         if (!$this->beforeSendPayload($submission, $endpoint, $payload, $method)) {
@@ -692,7 +692,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         }
 
         $response = $this->request($method, $endpoint, [
-            'json' => $payload,
+            $contentType => $payload,
         ]);
 
         // Allow events to say the response is invalid
@@ -849,13 +849,13 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     }
 
 
-    // Private Methods
+    // Protected Methods
     // =========================================================================
 
     /**
      * @inheritDoc
      */
-    private function getMappedFieldValue($mappedFieldValue, $submission, $integrationField)
+    protected function getMappedFieldValue($mappedFieldValue, $submission, $integrationField)
     {
         try {
             // Replace how we store the value (as `{field_handle}` or `{submission:id}`)
@@ -904,6 +904,9 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
 
         return null;
     }
+
+    // Private Methods
+    // =========================================================================
 
     /**
      * @inheritDoc

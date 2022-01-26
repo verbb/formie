@@ -6,6 +6,7 @@ use verbb\formie\base\Integration;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\errors\IntegrationException;
+use verbb\formie\events\ModifyFieldIntegrationValuesEvent;
 use verbb\formie\events\SendIntegrationPayloadEvent;
 use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
@@ -16,6 +17,8 @@ use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 use craft\helpers\StringHelper;
 use craft\web\View;
+
+use GuzzleHttp\Psr7\Utils;
 
 class Freshdesk extends Crm
 {
@@ -28,6 +31,7 @@ class Freshdesk extends Crm
     public $mapToTicket = false;
     public $contactFieldMapping;
     public $ticketFieldMapping;
+    private $_attachments;
 
 
     // Public Methods
@@ -89,39 +93,48 @@ class Freshdesk extends Crm
                     'handle' => 'name',
                     'name' => Craft::t('formie', 'Name'),
                     'required' => true,
+                    'type' => IntegrationField::TYPE_STRING,
                 ]),
                 new IntegrationField([
                     'handle' => 'email',
                     'name' => Craft::t('formie', 'Email'),
                     'required' => true,
+                    'type' => IntegrationField::TYPE_STRING,
                 ]),
                 new IntegrationField([
                     'handle' => 'phone',
                     'name' => Craft::t('formie', 'Phone'),
+                    'type' => IntegrationField::TYPE_STRING,
                 ]),
                 new IntegrationField([
                     'handle' => 'mobile',
                     'name' => Craft::t('formie', 'Mobile'),
+                    'type' => IntegrationField::TYPE_STRING,
                 ]),
                 new IntegrationField([
                     'handle' => 'twitter_id',
                     'name' => Craft::t('formie', 'Twitter ID'),
+                    'type' => IntegrationField::TYPE_STRING,
                 ]),
                 new IntegrationField([
                     'handle' => 'company_id',
                     'name' => Craft::t('formie', 'Company ID'),
+                    'type' => IntegrationField::TYPE_NUMBER,
                 ]),
                 new IntegrationField([
                     'handle' => 'description',
                     'name' => Craft::t('formie', 'Description'),
+                    'type' => IntegrationField::TYPE_STRING,
                 ]),
                 new IntegrationField([
                     'handle' => 'job_title',
                     'name' => Craft::t('formie', 'Job Title'),
+                    'type' => IntegrationField::TYPE_STRING,
                 ]),
                 new IntegrationField([
                     'handle' => 'time_zone',
                     'name' => Craft::t('formie', 'Timezone'),
+                    'type' => IntegrationField::TYPE_STRING,
                 ]),
             ], $this->_getCustomFields($fields));
 
@@ -133,28 +146,34 @@ class Freshdesk extends Crm
                     'handle' => 'name',
                     'name' => Craft::t('formie', 'Name'),
                     'required' => true,
+                    'type' => IntegrationField::TYPE_STRING,
                 ]),
                 new IntegrationField([
                     'handle' => 'email',
                     'name' => Craft::t('formie', 'Email'),
                     'required' => true,
+                    'type' => IntegrationField::TYPE_STRING,
                 ]),
                 new IntegrationField([
                     'handle' => 'phone',
                     'name' => Craft::t('formie', 'Phone'),
+                    'type' => IntegrationField::TYPE_STRING,
                 ]),
                 new IntegrationField([
                     'handle' => 'unique_external_id',
                     'name' => Craft::t('formie', 'Unique External ID'),
+                    'type' => IntegrationField::TYPE_STRING,
                 ]),
                 new IntegrationField([
                     'handle' => 'subject',
                     'name' => Craft::t('formie', 'Subject'),
                     'required' => true,
+                    'type' => IntegrationField::TYPE_STRING,
                 ]),
                 new IntegrationField([
                     'handle' => 'type',
                     'name' => Craft::t('formie', 'Type'),
+                    'type' => IntegrationField::TYPE_STRING,
                 ]),
                 new IntegrationField([
                     'handle' => 'status',
@@ -181,6 +200,7 @@ class Freshdesk extends Crm
                             ],
                         ],
                     ],
+                    'type' => IntegrationField::TYPE_NUMBER,
                 ]),
                 new IntegrationField([
                     'handle' => 'priority',
@@ -207,15 +227,18 @@ class Freshdesk extends Crm
                             ],
                         ],
                     ],
+                    'type' => IntegrationField::TYPE_NUMBER,
                 ]),
                 new IntegrationField([
                     'handle' => 'description',
                     'name' => Craft::t('formie', 'Description'),
                     'required' => true,
+                    'type' => IntegrationField::TYPE_STRING,
                 ]),
                 new IntegrationField([
                     'handle' => 'responder_id',
                     'name' => Craft::t('formie', 'Responder ID'),
+                    'type' => IntegrationField::TYPE_NUMBER,
                 ]),
                 new IntegrationField([
                     'handle' => 'attachments',
@@ -225,25 +248,32 @@ class Freshdesk extends Crm
                 new IntegrationField([
                     'handle' => 'cc_emails',
                     'name' => Craft::t('formie', 'CC Emails'),
+                    'type' => IntegrationField::TYPE_ARRAY,
                 ]),
                 new IntegrationField([
-                    'handle' => 'due_by',                    'name' => Craft::t('formie', 'Due By'),
+                    'handle' => 'due_by',
+                    'name' => Craft::t('formie', 'Due By'),
+                    'type' => IntegrationField::TYPE_DATETIME,
                 ]),
                 new IntegrationField([
                     'handle' => 'email_config_id',
                     'name' => Craft::t('formie', 'Email Config ID'),
+                    'type' => IntegrationField::TYPE_NUMBER,
                 ]),
                 new IntegrationField([
                     'handle' => 'fr_due_by',
                     'name' => Craft::t('formie', 'First Response Due By'),
+                    'type' => IntegrationField::TYPE_DATETIME,
                 ]),
                 new IntegrationField([
                     'handle' => 'group_id',
                     'name' => Craft::t('formie', 'Group ID'),
+                    'type' => IntegrationField::TYPE_NUMBER,
                 ]),
                 new IntegrationField([
                     'handle' => 'product_id',
                     'name' => Craft::t('formie', 'Product ID'),
+                    'type' => IntegrationField::TYPE_NUMBER,
                 ]),
                 new IntegrationField([
                     'handle' => 'source',
@@ -278,14 +308,17 @@ class Freshdesk extends Crm
                             ],
                         ],
                     ],
+                    'type' => IntegrationField::TYPE_NUMBER,
                 ]),
                 new IntegrationField([
                     'handle' => 'tags',
                     'name' => Craft::t('formie', 'Tags'),
+                    'type' => IntegrationField::TYPE_ARRAY,
                 ]),
                 new IntegrationField([
                     'handle' => 'company_id',
                     'name' => Craft::t('formie', 'Company ID'),
+                    'type' => IntegrationField::TYPE_NUMBER,
                 ]),
             ], $this->_getCustomFields($fields));
 
@@ -306,15 +339,13 @@ class Freshdesk extends Crm
     public function sendPayload(Submission $submission): bool
     {
         try {
-            $contactValues = $this->getFieldMappingValues($submission, $this->contactFieldMapping, 'contact');
-            $ticketValues = $this->getFieldMappingValues($submission, $this->ticketFieldMapping, 'ticket');
-
-            // Directly modify the field values first
-            $contactFields = $this->_prepCustomFields($contactValues);
-            $ticketFields = $this->_prepCustomFields($ticketValues);
-
             // Send Contact payload
             if ($this->mapToContact) {
+                $contactValues = $this->getFieldMappingValues($submission, $this->contactFieldMapping, 'contact');
+
+                // Directly modify the field values first
+                $contactFields = $this->_prepCustomFields($contactValues);
+
                 $contactPayload = array_merge($contactValues, [
                     'custom_fields' => $contactFields,
                 ]);
@@ -343,24 +374,42 @@ class Freshdesk extends Crm
 
             // Send Ticket payload
             if ($this->mapToTicket) {
-                $ticketPayload = array_merge($ticketValues, [
-                    'custom_fields' => $ticketFields,
-                ]);
+                $requiresMultipart = $this->_requiresMultipart($this->ticketFieldMapping, $submission);
+                
+                $ticketValues = $this->getFieldMappingValues($submission, $this->ticketFieldMapping, 'ticket', $requiresMultipart);
 
-                // Extra payload prep - some fields are finnicky
-                if (isset($ticketPayload['status'])) {
-                    $ticketPayload['status'] = (int)$ticketPayload['status'];
+                if ($requiresMultipart) {
+                    $ticketPayload = $ticketValues;
+                    $contentType = 'multipart';
+                } else {
+                    // Directly modify the field values first
+                    $ticketFields = $this->_prepCustomFields($ticketValues);
+
+                    $ticketPayload = array_merge($ticketValues, [
+                        'custom_fields' => $ticketFields,
+                    ]);
+
+                    // Extra payload prep - some fields are finnicky
+                    if (isset($ticketPayload['status'])) {
+                        $ticketPayload['status'] = (int)$ticketPayload['status'];
+                    }
+
+                    if (isset($ticketPayload['priority'])) {
+                        $ticketPayload['priority'] = (int)$ticketPayload['priority'];
+                    }
+
+                    if (isset($ticketPayload['source'])) {
+                        $ticketPayload['source'] = (int)$ticketPayload['source'];
+                    }
+
+                    // Unset any attachments field, empty or otherwise, since
+                    // _requiresMultipart() has already determined we don't need it
+                    unset($ticketPayload['attachments']);
+
+                    $contentType = 'json';
                 }
 
-                if (isset($ticketPayload['priority'])) {
-                    $ticketPayload['priority'] = (int)$ticketPayload['priority'];
-                }
-
-                if (isset($ticketPayload['source'])) {
-                    $ticketPayload['source'] = (int)$ticketPayload['source'];
-                }
-
-                $response = $this->deliverPayload($submission, 'tickets', $ticketPayload);
+                $response = $this->deliverPayload($submission, 'tickets', $ticketPayload, 'POST', $contentType);
 
                 if ($response === false) {
                     return true;
@@ -419,6 +468,90 @@ class Freshdesk extends Crm
         ]);
     }
 
+    /**
+     * @inheritDoc
+     */
+    public function getFieldMappingValues(Submission $submission, $fieldMapping, $fieldSettings = [], bool $multipart = false)
+    {
+        // If multipart isn't required, just use verbb\formie\base\Crm::getFieldMappingValues
+        if (!$multipart) {
+            return parent::getFieldMappingValues($submission, $fieldMapping, $fieldSettings);
+        }
+
+        // Manually get field settings since we're not using parent method
+        $fieldSettings = $this->getFormSettingValue($fieldSettings);
+        $fieldValues = [];
+
+        if (!is_array($fieldMapping)) {
+            $fieldMapping = [];
+        }
+
+        foreach ($fieldMapping as $tag => $fieldKey) {
+            // Don't let in un-mapped fields
+            if ($fieldKey === '') {
+                continue;
+            }
+
+            // Prep custom field names for multipart
+            if (StringHelper::startsWith($tag, 'custom:')) {
+                $name = 'custom_fields[' . str_replace('custom:', '', $tag) . ']';
+            } else {
+                $name = $tag;
+            }
+
+            if (strstr($fieldKey, '{')) {
+                // Handle attachments differently to get file contents
+                if ($tag === 'attachments') {
+                    $name .= '[]';
+                    
+                    foreach ($this->_attachments as $attachment) {
+                        $fieldValues[] = [
+                            'name' => $name,
+                            'contents' => Utils::tryFopen($attachment->getImageTransformSourcePath(), 'r'),
+                            'filename' => $attachment->filename
+                        ];
+                    }
+                } else {
+                    // Get the type of field we are mapping to (for the integration)
+                    $integrationField = ArrayHelper::firstWhere($fieldSettings, 'handle', $tag) ?? new IntegrationField();
+                    $value = $this->getMappedFieldValue($fieldKey, $submission, $integrationField);
+
+                    // Loop through the value if it's an array
+                    if (is_array($value)) {
+                        foreach ($value as $key => $contents) {
+                            $fieldValues[] = [
+                                'name' => is_string($key) ? "{$name}[{$key}]" : "{$name}[]",
+                                'contents' => $contents
+                            ];
+                        }
+                    } elseif ($value !== '' && $value !== null) {
+                        $fieldValues[] = [
+                            'name' => $name,
+                            'contents' => $value
+                        ];
+                    }
+                }
+            } else {
+                // Otherwise, might have passed in a direct, static value
+                $fieldValues[] = [
+                    'name' => $name,
+                    'contents' => $fieldKey
+                ];
+            }
+        }
+
+        $event = new ModifyFieldIntegrationValuesEvent([
+            'fieldValues' => $fieldValues,
+            'submission' => $submission,
+            'fieldMapping' => $fieldMapping,
+            'fieldSettings' => $fieldSettings,
+            'integration' => $this,
+        ]);
+
+        $this->trigger(Integration::EVENT_MODIFY_FIELD_MAPPING_VALUES, $event);
+
+        return $event->fieldValues;
+    }
 
     // Private Methods
     // =========================================================================
@@ -497,5 +630,57 @@ class Freshdesk extends Crm
         }
 
         return $customFields;
+    }
+
+    private function _requiresMultipart(array $mapping, Submission $submission): bool
+    {
+        // If assets integration field isn't mapped, multipart is not needed
+        if (!isset($mapping['attachments'])) {
+            return false;
+        }
+
+        // Replace how we store the value (as `{field_handle}` or `{submission:id}`)
+        $fieldKey = str_replace(['{', '}'], ['', ''], $mapping['attachments']);
+
+        // If this is a submission attribute, it's not anything that can be attached
+        if (StringHelper::startsWith($fieldKey, 'submission:')) {
+            return false;
+        }
+
+        // Check for nested fields (as `group[name[prefix]]`) - convert to dot-notation
+        if (strstr($fieldKey, '[')) {
+            $fieldKey = str_replace(['[', ']'], ['.', ''], $fieldKey);
+
+            // Change the field handle to reflect the top-level field, not the full path to the value
+            // but still keep the sub-field path (if any) for some fields to use
+            $fieldKey = explode('.', $fieldKey);
+            $fieldHandle = array_shift($fieldKey);
+            $fieldKey = implode('.', $fieldKey);
+        } else {
+            $fieldHandle = $fieldKey;
+            $fieldKey = '';
+        }
+
+        // Fetch all custom fields here for efficiency
+        $formFields = ArrayHelper::index($submission->getFieldLayout()->getFields(), 'handle');
+
+        // Try and get the form field we're pulling data from
+        $field = $formFields[$fieldHandle] ?? null;
+
+        // If the field exists, check if any value exists
+        if ($field && $value = $submission->getFieldValue($fieldHandle)) {
+            // If the value is an AssetQuery, get the results
+            if (gettype($value) === 'object' && get_class($value) === 'craft\elements\db\AssetQuery') {
+                $assets = $value->all();
+
+                if (!empty($assets)){
+                    // Cache attachments for future use
+                    $this->_attachments = $assets;
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 }
