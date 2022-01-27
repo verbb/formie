@@ -108,7 +108,11 @@ class Recipients extends FormField
             $selectedValues = [];
 
             foreach ((array)$value as $val) {
-                $selectedValues[] = (string)$val;
+                if (is_array($val) && isset($val['value'])) {
+                    $selectedValues[] = $val['value'];
+                } else {
+                    $selectedValues[] = (string)$val;
+                }
             }
 
             $options = [];
