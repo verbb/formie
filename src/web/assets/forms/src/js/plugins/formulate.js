@@ -1,5 +1,5 @@
-// import VueFormulate from '@braid/vue-formulate';
-import VueFormulate from '@braid/vue-formulate/src/Formulate.js';
+import VueFormulate from '@braid/vue-formulate';
+// import VueFormulate from '@braid/vue-formulate/src/Formulate.js';
 
 import FormFields from '../components/formulate';
 
