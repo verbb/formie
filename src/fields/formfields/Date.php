@@ -14,6 +14,7 @@ use craft\base\ElementInterface;
 use craft\base\PreviewableFieldInterface;
 use craft\gql\types\DateTime as DateTimeType;
 use craft\helpers\DateTimeHelper;
+use craft\helpers\Json;
 use craft\helpers\StringHelper;
 use craft\i18n\Locale;
 
@@ -534,11 +535,18 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
                 $maxDate = $maxDate->format($this->getDateFormat());
             }
 
+            // Ensure date picker option values are parsed for JSON
+            $datePickerOptions = $this->datePickerOptions ?? [];
+
+            foreach ($datePickerOptions as $key => $option) {
+                $datePickerOptions[$key]['value'] = Json::decodeIfJson($option['value']);
+            }
+
             return [
                 'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/fields/date-picker.js', true),
                 'module' => 'FormieDatePicker',
                 'settings' => [
-                    'datePickerOptions' => $this->datePickerOptions,
+                    'datePickerOptions' => $datePickerOptions,
                     'dateFormat' => $this->getDateFormat(),
                     'timeFormat' => $this->getTimeFormat(),
                     'includeTime' => $this->includeTime,
