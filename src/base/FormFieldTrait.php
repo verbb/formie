@@ -673,11 +673,11 @@ trait FormFieldTrait
         }
 
         if (!$defaultValue) {
-            $value = $this->$defaultValueAttribute;
+            $defaultValue = $this->$defaultValueAttribute;
 
             // Parse the default value for variables
-            if (!is_array($value) && !is_object($value)) {
-                $defaultValue = Variables::getParsedValue($value);
+            if (!is_array($defaultValue) && !is_object($defaultValue)) {
+                $defaultValue = Variables::getParsedValue($defaultValue);
             }
         }
 
