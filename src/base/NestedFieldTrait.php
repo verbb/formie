@@ -716,6 +716,10 @@ trait NestedFieldTrait
 
         foreach ($value->all() as $rowId => $row) {
             foreach ($row->getFieldLayout()->getFields() as $field) {
+                if ($field->getIsCosmetic() || $field->getIsHidden() || $field->isConditionallyHidden($element)) {
+                    continue;
+                }
+
                 $subValue = $row->getFieldValue($field->handle);
                 $html = $field->getValueForSummary($subValue, $row);
 

@@ -816,7 +816,7 @@ class Submission extends Element
         $items = [];
 
         foreach ($this->fieldLayoutFields() as $field) {
-            if ($field->getIsCosmetic() || $field->getIsHidden()) {
+            if ($field->getIsCosmetic() || $field->getIsHidden() || $field->isConditionallyHidden($this)) {
                 continue;
             }
 
