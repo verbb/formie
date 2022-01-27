@@ -204,11 +204,11 @@ abstract class BaseOptionsField extends CraftBaseOptionsField
     {
         if ($value instanceof MultiOptionsFieldData) {
             return implode(', ', array_map(function($item) {
-                return $item->label;
+                return $item->value;
             }, (array)$value));
         }
 
-        return $value->label ?? '';
+        return $value->value ?? '';
     }
 
     /**
