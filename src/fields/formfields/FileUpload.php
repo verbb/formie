@@ -555,6 +555,8 @@ class FileUpload extends CraftAssets implements FormFieldInterface
         foreach ($value as $asset) {
             if ($asset->url) {
                 $html .= Html::tag('a', $asset->filename, ['href' => $asset->url]);
+            } else {
+                $html .= Html::tag('p', $asset->filename);
             }
         }
 
