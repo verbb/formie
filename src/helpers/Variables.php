@@ -301,7 +301,7 @@ class Variables
 
             $value = $submission->getFieldValue($field->handle);
 
-            if (empty($value) && $excludeEmpty) {
+            if (empty($field->getValueAsString($value, $submission)) && $excludeEmpty) {
                 continue;
             }
 
