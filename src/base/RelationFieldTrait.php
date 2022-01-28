@@ -541,7 +541,13 @@ trait RelationFieldTrait
         // Watch out for nested element queries
         foreach ($element as $key => $value) {
             if ($value instanceof ElementQuery) {
-                $element[$key] = $value->all();
+                $elements = [];
+                
+                foreach ($value->all() as $nestedElement) {
+                    $elements = $this->_elementToArray($nestedElement);
+                }
+
+                $element[$key] = $elements;
             }
         }
 
