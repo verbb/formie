@@ -9,6 +9,7 @@ use verbb\formie\fields\formfields\Date;
 use verbb\formie\fields\formfields\Group;
 use verbb\formie\fields\formfields\MultiLineText;
 use verbb\formie\fields\formfields\Repeater;
+use verbb\formie\fields\formfields\Recipients;
 use verbb\formie\models\Notification;
 
 use Craft;
@@ -455,6 +456,10 @@ class Variables
             $values["{$prefix}{$field->handle}"] = $parsedContent;
         } else if ($field instanceof Repeater) {
             $values["{$prefix}{$field->handle}"] = $parsedContent;
+        } else if ($field instanceof Recipients && $field->displayType === 'hidden') {
+            // Chcek for hidden recipients fields, which might have array content
+            // It's arguable that `getValueAsString()` should be the default behaviour but requires more testing
+            $values["{$prefix}{$field->handle}"] = $field->getValueAsString($submissionValue, $submission);
         } else if ($submissionValue instanceof MultiOptionsFieldData) {
             $values["{$prefix}{$field->handle}"] = implode(', ', array_map(function($item) {
                 return $item->value;

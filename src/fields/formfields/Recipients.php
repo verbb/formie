@@ -419,6 +419,11 @@ class Recipients extends FormField
             }, (array)$value));
         }
 
+        // For hidden fields can have a plain array
+        if (is_array($value)) {
+            return implode(', ', $value);
+        }
+
         if (is_string($value)) {
             return $value;
         }
@@ -437,6 +442,11 @@ class Recipients extends FormField
                 return array_map(function($item) {
                     return $item->value;
                 }, (array)$value);
+            }
+
+            // For hidden fields can have a plain array
+            if (is_array($value)) {
+                return $value;
             }
 
             if (is_string($value)) {
@@ -459,6 +469,11 @@ class Recipients extends FormField
             return implode(', ', array_map(function($item) {
                 return $item->label;
             }, (array)$value));
+        }
+
+        // For hidden fields can have a plain array
+        if (is_array($value)) {
+            return implode(', ', $value);
         }
 
         return $value->label ?? '';
