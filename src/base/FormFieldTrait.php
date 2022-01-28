@@ -1033,7 +1033,7 @@ trait FormFieldTrait
 
             // Nice an simple for most cases - no need for a template file
             try {
-                $content = (string)($value ? $value : Craft::t('formie', 'No response.'));
+                $content = ((string)$value ? $value : Craft::t('formie', 'No response.'));
                 $hideName = $options['hideName'] ?? false;
 
                 // Ensure we sanitize any HTML in text values

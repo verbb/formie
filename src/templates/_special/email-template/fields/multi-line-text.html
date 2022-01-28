@@ -2,8 +2,12 @@
     <strong>{{ field.name | t }}</strong><br>
 {% endif %}
 
-{% if field.useRichText %}
-    {{ value | raw }}
+{% if value %}
+    {% if field.useRichText %}
+        {{ value | raw }}
+    {% else %}
+        {{ value | nl2br }}
+    {% endif %}
 {% else %}
-    {{ value | nl2br }}
+    {{ 'No response.' | t('formie') }}
 {% endif %}

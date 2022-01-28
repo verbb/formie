@@ -1,7 +1,13 @@
-{% if not (options.hideName ?? false) %}
-    <strong>{{ field.name | t }}</strong>
-{% endif %}
+<div>
+    {% if not (options.hideName ?? false) %}
+        <strong>{{ field.name | t }}</strong><br>
+    {% endif %}
 
-<div style="width: 400px;">
-    <img style="max-width: 100% !important; height: auto !important;" src="{{ value }}" />
+    {% if value | length %}
+        <div style="width: 400px;">
+            <img style="max-width: 100% !important; height: auto !important;" src="{{ value }}" />
+        </div>
+    {% else %}
+        {{ 'No response.' | t('formie') }}
+    {% endif %}
 </div>

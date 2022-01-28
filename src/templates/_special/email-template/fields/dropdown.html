@@ -4,6 +4,9 @@
     {% endif %}
 
     {% if field.multi %}
+        {# Remove empty elements #}
+        {% set value = value | filter(v => (v ~ '')) %}
+
         {% if value | length %}
             <ul>
                 {% for item in value %}
@@ -14,6 +17,7 @@
             {{ 'No response.' | t('formie') }}
         {% endif %}
     {% else %}
-        {{ value ? value : ('No response.' | t('formie')) }}
+        {# Cast `SingleOptionFieldData` as a string #}
+        {{ (value ~ '') ?: ('No response.' | t('formie')) }}
     {% endif %}
 </p>
