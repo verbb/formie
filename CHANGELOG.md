@@ -1,5 +1,35 @@
 # Changelog
 
+## 1.5.8 - 2022-01-31
+
+### Added
+- Added support for sending attachments via multipart request (thanks @jmauzyk).
+- Added looser support for `guzzlehttp/oauth-subscriber` to prevent issues with some other plugins (`dukt/twitter`).
+
+### Fixed
+- Fixed "All Non Empty Fields" variable in email notifications not working correctly.
+- Fixed File Upload fields not showing the filename of an uploaded file in a Summary field, when uploaded no a non-public-url asset volume.
+- Fixed some fields not having `No response` set when no value has been entered for email notifications.
+- Fixed an error with `getValuesAsJson()` for element fields which contained complex relations.
+- Fixed an error when normalising Recipient field values.
+- Fixed options fields (Dropdown, Radio, Checkboxes) using option labels as value for `defineValueAsString()` rather than values.
+- Fixed an error with Vue Formulate for users using Craft 3.6.x.
+- Fixed Summary field showing conditionally hidden fields.
+- Fixed Summary field outputting nested field handles for Group and Repeater fields instead of their field name/label.
+- Fixed complex "Date Picker Options" not working correctly for Date fields.
+- Fixed the default value of some fields not being applied correctly (Date/Time fields).
+- Fixed Group and Repeater fields not retaining values when server-side validation fails on subsequent submissions.
+- Fixed integrations with custom fields and empty values incorrectly included in payloads to integrations.
+- Fixed checkboxes and radio fields not working correctly for conditionals that were non-equal.
+- Fixed Freshdesk CRM integration not checking whether contact/ticket objects were enabled or not.
+- Fixed Freshdesk CRM integration not sending attachment values correctly.
+- Fixed field conditions logic when both Group and nested fields contained conflicting conditions.
+- Fixed email notifications having paragraph tags stripped out of their content.
+- Fixed Recipients fields not working correctly for conditions, when being used as target values for other field conditions.
+- Fixed Recipients field values when previewing an email notification.
+- Fixed Recipients field values not being able to access option labels in email notifications.
+- Fixed hidden Recipients field values not working correctly when set as an array.
+
 ## 1.5.7 - 2022-01-20
 
 ### Fixed
