@@ -89,6 +89,8 @@ class Recipients extends FormField
      */
     public function normalizeValue($value, ElementInterface $element = null)
     {
+        $value = parent::normalizeValue($value, $element);
+
         if ($value instanceof MultiOptionsFieldData || $value instanceof SingleOptionFieldData) {
             return $value;
         }
@@ -161,16 +163,17 @@ class Recipients extends FormField
         // If the values are being saved as option field data, save them instead as "plain" values.
         // These will also be normalised already, so dealing with real values.
         if ($value instanceof SingleOptionFieldData) {
-            return (string)$value;
+            $value = (string)$value;
         }
 
         if ($value instanceof MultiOptionsFieldData) {
-            return array_map(function($item) {
+            $value = array_map(function($item) {
                 return (string)$item;
             }, (array)$value);
         }
 
-        return $value;
+
+        return parent::serializeValue($value, $element);
     }
 
     /**
