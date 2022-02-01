@@ -1012,11 +1012,6 @@ trait FormFieldTrait
         $view = Craft::$app->getView();
         $oldTemplatesPath = $view->getTemplatesPath();
 
-        // Override the value for emails if encrypting
-        if ($this->enableContentEncryption) {
-            $value = '••••••••••••••••••••••••••••••••';
-        }
-
         try {
             $templatesPath = Formie::$plugin->getRendering()->getEmailComponentTemplatePath($notification, static::getEmailTemplatePath());
 
