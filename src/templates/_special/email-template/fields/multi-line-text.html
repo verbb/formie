@@ -1,13 +1,15 @@
-{% if not (options.hideName ?? false) %}
-    <strong>{{ field.name | t }}</strong><br>
-{% endif %}
-
-{% if value %}
-    {% if field.useRichText %}
-        {{ value | raw }}
-    {% else %}
-        {{ value | nl2br }}
+<p>
+    {% if not (options.hideName ?? false) %}
+        <strong>{{ field.name | t }}</strong><br>
     {% endif %}
-{% else %}
-    {{ 'No response.' | t('formie') }}
-{% endif %}
+
+    {% if value %}
+        {% if field.useRichText %}
+            {{ value | raw }}
+        {% else %}
+            {{ value | nl2br }}
+        {% endif %}
+    {% else %}
+        {{ 'No response.' | t('formie') }}
+    {% endif %}
+</p>
