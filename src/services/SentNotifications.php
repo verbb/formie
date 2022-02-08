@@ -48,7 +48,7 @@ class SentNotifications extends Component
         }
 
         if ($to = $email->getTo()) {
-            $toEmail = ($result = array_keys($to)) ? $result[0] : '';
+            $toEmail = implode(',', array_keys($to));
         }
 
         if ($replyTo = $email->getReplyTo()) {
