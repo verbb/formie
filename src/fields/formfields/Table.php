@@ -12,6 +12,7 @@ use craft\base\ElementInterface;
 use craft\fields\data\ColorData;
 use craft\fields\Table as CraftTable;
 use craft\helpers\ArrayHelper;
+use craft\helpers\DateTimeHelper;
 use craft\helpers\Html;
 use craft\helpers\Json;
 use craft\helpers\Template;
@@ -477,7 +478,11 @@ class Table extends CraftTable implements FormFieldInterface
 
         foreach ($value as $rowId => $row) {
             foreach ($this->columns as $colId => $col) {
-                $values[] = $row[$col['handle']] ?? null;
+                // Ensure column values are prepped correctly
+                $cellValue = $row[$col['handle']] ?? null;
+                $cellValue = $this->_normalizeCellValue($col['type'], $cellValue);
+
+                $values[] = $cellValue;
             }
         }
 
@@ -497,7 +502,11 @@ class Table extends CraftTable implements FormFieldInterface
 
         foreach ($value as $rowId => $row) {
             foreach ($this->columns as $colId => $col) {
-                $values[$this->handle . '_row' . ($rowId + 1) . '_' . $col['handle']] = $row[$col['handle']] ?? null;
+                // Ensure column values are prepped correctly
+                $cellValue = $row[$col['handle']] ?? null;
+                $cellValue = $this->_normalizeCellValue($col['type'], $cellValue);
+
+                $values[$this->handle . '_row' . ($rowId + 1) . '_' . $col['handle']] = $cellValue;
             }
         }
 
@@ -520,7 +529,11 @@ class Table extends CraftTable implements FormFieldInterface
             $rowValues = '';
 
             foreach ($this->columns as $colId => $col) {
-                $rowValues .= Html::tag('td', ($row[$col['handle']] ?? null));
+                // Ensure column values are prepped correctly
+                $cellValue = $row[$col['handle']] ?? null;
+                $cellValue = $this->_normalizeCellValue($col['type'], $cellValue);
+
+                $rowValues .= Html::tag('td', $cellValue);
             }
 
             $bodyValues .= Html::tag('tr', $rowValues);
@@ -548,7 +561,6 @@ class Table extends CraftTable implements FormFieldInterface
      * @param mixed $value The cell value
      * @param string|null &$error The error text to set on the element
      * @return bool Whether the value is valid
-     * @see normalizeValue()
      */
     private function _validateCellValue(string $type, $value, string &$error = null): bool
     {
@@ -574,5 +586,25 @@ class Table extends CraftTable implements FormFieldInterface
 
         $validator->message = str_replace('{attribute}', '{value}', $validator->message);
         return $validator->validate($value, $error);
+    }
+
+    /**
+     * Normalizes a cell’s value.
+     *
+     * @param string $type The cell type
+     * @param mixed $value The cell value
+     * @return mixed
+     */
+    private function _normalizeCellValue(string $type, $value)
+    {
+        switch ($type) {
+            case 'color':
+                return $value->getHex();
+            case 'date':
+            case 'time':
+                return DateTimeHelper::toIso8601($value) ?: null;
+        }
+
+        return $value;
     }
 }
