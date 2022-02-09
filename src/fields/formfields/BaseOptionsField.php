@@ -230,6 +230,20 @@ abstract class BaseOptionsField extends CraftBaseOptionsField
         // Fetch the default handling
         return $this->traitDefineValueForIntegration($value, $integrationField, $integration, $element);
     }
+
+    /**
+     * @inheritDoc
+     */
+    protected function defineValueForSummary($value, ElementInterface $element = null)
+    {
+        if ($value instanceof MultiOptionsFieldData) {
+            return implode(', ', array_map(function($item) {
+                return $item->label;
+            }, (array)$value));
+        }
+
+        return $value->label ?? '';
+    }
     
     /**
      * @inheritDoc
