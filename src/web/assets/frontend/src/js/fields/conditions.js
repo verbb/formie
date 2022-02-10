@@ -60,7 +60,7 @@ export class FormieConditions {
                     // Watch for changes on the target field. When one occurs, fire off a custom event on the source field
                     // We need to do this because target fields can be targetted by multiple conditions, and source
                     // fields can have multiple conditions - we need to check them all for all/any logic.
-                    this.form.addEventListener($target, eventKey(eventType), () => $field.dispatchEvent(new Event('FormieEvaluateConditions', { bubbles: true })));
+                    this.form.addEventListener($target, eventKey(eventType), () => $field.dispatchEvent(new CustomEvent('FormieEvaluateConditions', { bubbles: true })));
                 });
             });
         
@@ -76,8 +76,8 @@ export class FormieConditions {
             this.form.addEventListener($field, eventKey('FormieEvaluateConditions'), this.evaluateConditions.bind(this));
 
             // Also - trigger the event right now to evaluate immediately. Namely if we need to hide
-            // field that are set to show if conditions are met.
-            $field.dispatchEvent(new Event('FormieEvaluateConditions', { bubbles: true }));
+            // field that are set to show if conditions are met. Pass in a param to let fields know if this is "init".
+            $field.dispatchEvent(new CustomEvent('FormieEvaluateConditions', { bubbles: true, detail: { init: true } }));
         });
 
         // Update the form hash, so we don't get change warnings
@@ -88,6 +88,7 @@ export class FormieConditions {
 
     evaluateConditions(e) {
         const $field = e.target;
+        const isInit = e.detail ? e.detail.init : false;
 
         // Get the prepped conditions for this field
         const conditionSettings = this.conditionsStore.get($field);
@@ -167,7 +168,8 @@ export class FormieConditions {
         // conditional evaluation has passed.
         let overrideResult = false;
 
-        if (isNested) {
+        // But *do* setup conditions on the first run, when initialising all the fields
+        if (isNested && !isInit) {
             var $parentField = $field.closest('.fui-type-group, .fui-type-repeater');
 
             if ($parentField) {
