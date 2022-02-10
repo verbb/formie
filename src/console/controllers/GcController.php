@@ -11,41 +11,66 @@ class GcController extends Controller
     // Public Methods
     // =========================================================================
 
+    /**
+     * Delete fields with no form.
+     *
+     * @return int
+     * @throws Throwable
+     */
     public function actionDeleteOrphanedFields()
     {
-        // Delete fields with no form.
         Formie::$plugin->getFields()->deleteOrphanedFields($this);
 
         return ExitCode::OK;
     }
 
+    /**
+     * Delete syncs that are empty.
+     *
+     * @return int
+     * @throws Throwable
+     */
     public function actionPruneSyncs()
     {
-        // Delete syncs that are empty.
         Formie::$plugin->getSyncs()->pruneSyncs($this);
 
         return ExitCode::OK;
     }
 
+    /**
+     * Delete incomplete submissions older than the configured interval.
+     *
+     * @return int
+     * @throws Throwable
+     */
     public function actionPruneIncompleteSubmissions()
     {
-        // Delete incomplete submissions older than the configured interval.
         Formie::$plugin->getSubmissions()->pruneIncompleteSubmissions($this);
 
         return ExitCode::OK;
     }
 
+    /**
+     * Deletes submissions if they are past the form data retention settings.
+     *
+     * @return int
+     * @throws Throwable
+     */
     public function actionPruneDataRetentionSubmissions()
     {
-        // Deletes submissions if they are past the form data retention settings.
         Formie::$plugin->getSubmissions()->pruneDataRetentionSubmissions($this);
 
         return ExitCode::OK;
     }
 
+    /**
+     * Delete leftover content tables, for deleted forms.
+     *
+     * @return int
+     * @throws Throwable
+     */
     public function actionPruneContentTables()
     {
-        // Delete leftover content tables, for deleted forms
         Formie::$plugin->getForms()->pruneContentTables($this);
 
         return ExitCode::OK;

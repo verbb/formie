@@ -37,3 +37,17 @@ A cleanup task to ensure deleted forms have their content tables also deleted. N
 ```
 
 Each of the above commands are also run automatically through [Craft's Garbage Collection](https://craftcms.com/docs/3.x/gc.html), so there's no need to add these commands unless you want fine-grained control over when they run.
+
+## Delete Submissions
+You can bulk delete submissions with this command.
+
+Option | Description
+--- | ---
+`--form-handle` | The form handle(s) to delete submissions from. Can be set to multiple comma-separated handles.
+`--form-id` | The form ID(s) to delete submissions from. Can be set to multiple comma-separated IDs.
+`--incomplete-only` | Whether to delete only incomplete submissions.
+`--spam-only` | Whether to delete only spam submissions.
+
+```
+./craft formie/submissions/delete --form-handle=form1,anotherForm
+```
