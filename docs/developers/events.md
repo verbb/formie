@@ -1544,12 +1544,12 @@ use yii\base\Event;
 
 Event::on(Mailchimp::class, Mailchimp::EVENT_MODIFY_FIELD_MAPPING_VALUE, function(ModifyFieldIntegrationValueEvent $event) {
     $integrationField = $event->integrationField;
-    $formField = $event->formField;
+    $field = $event->field;
     $value = $event->value;
     $submission = $event->submission;
     $integration = $event->integration;
 
-    if ($formField->handle === 'myFieldHandle') {
+    if ($field->handle === 'myFieldHandle') {
         $event->value = 'An overridden value';
     }
 });
