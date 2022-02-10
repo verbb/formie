@@ -3,7 +3,6 @@ There are a number of options you can pass into the [`craft.formie.renderForm()`
 
 
 ## Base Options
-
 These options are used by the default Formie template. If you use your own template, these options will not necessarily have an effect.
 
 Option | Description
@@ -16,9 +15,19 @@ Option | Description
 `formDataAttributes` | Provide an object of data attributes to be merged on the `<form>` element.
 `formAttributes` | Provide an object of attributes to be merged on the `<form>` element.
 
+An example modifying the attributes for the `<form>` element.
+
+```twig
+{{ craft.formie.renderForm('contactForm', {
+    formAttributes: {
+        class: ['custom-form', 'another-class'],
+        'data-site-form': true,
+    },
+}) }}
+```
+
 
 ## Buttons Options
-
 You can affect the attributes of the page buttons. These attributes are merged into the default buttons attributes and rendered using the [`attr()`](https://docs.craftcms.com/v3/dev/functions.html#attr) function.
 
 Option | Description
@@ -26,6 +35,21 @@ Option | Description
 `submit` | Set the attributes of the submit/next page button.
 `prev` | Set the attributes of the previous page button.
 
+For instance, maybe we want to add some classes or attributes to the submit button on a form. For multi-page forms, this would be for every page's submit button.
+
+```twig
+{{ craft.formie.renderForm('contactForm', {
+    buttons: {
+        submit: {
+            class: ['custom-submit-btn', 'another-class'],
+            'data-form-submit-btn': true,
+        },
+        prev: {
+            class: 'custom-back-btn',
+        },
+    },
+}) }}
+```
 
 ## Fields Options
 
