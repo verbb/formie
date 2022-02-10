@@ -8,12 +8,13 @@
                 :row-index="index"
                 :field-id="id"
                 :parent-field-id="field.vid"
+                :is-nested="true"
                 v-bind="row"
             />
 
             <div class="fui-row no-padding">
                 <div class="fui-col-12">
-                    <dropzone-new-field v-if="!field.rows.length" :field-id="id" />
+                    <dropzone-new-field v-if="!field.rows.length" :field-id="id" :is-nested="true" />
                 </div>
             </div>
         </div>

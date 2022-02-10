@@ -26,6 +26,11 @@ export default {
             type: [String, Number],
             default: '',
         },
+
+        isNested: {
+            type: Boolean,
+            default: false,
+        },
     },
 
     data() {

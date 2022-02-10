@@ -92,6 +92,11 @@ export default {
             type: String,
             default: '',
         },
+
+        isNested: {
+            type: Boolean,
+            default: false,
+        },
     },
 
     data() {
@@ -190,6 +195,7 @@ export default {
         addRow(rowIndex, type) {
             const newField = this.$store.getters['fieldtypes/newField'](type, {
                 brandNewField: true,
+                isNested: this.isNested,
             });
 
             const payload = {

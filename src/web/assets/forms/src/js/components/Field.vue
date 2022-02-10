@@ -486,6 +486,7 @@ export default {
             const newField = this.$store.getters['fieldtypes/newField'](type, {
                 columnWidth: newColumns,
                 brandNewField: true,
+                isNested: this.field.isNested,
             });
 
             const payload = {
