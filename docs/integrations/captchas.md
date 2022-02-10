@@ -37,3 +37,20 @@ For multi-page forms, you have the open to enable captchas to be shown and valid
 
 ## Custom Captchas
 If you are a developer and looking to create your own captchas, head to the [Custom Integration](docs:developers/custom-integration) docs.
+
+## Disabling Captchas
+You might also like to force captcha verification to be disabled for testing purposes, or other means. To prevent security issues, you could also combine this disabling with a query parameter in the URL, that will only disable captchas when present.
+
+```twig
+{% set form = craft.formie.forms({ handle: 'contactForm' }).one() %}
+
+{% do form.setSettings({
+    {# Disable captchas immediately, for everyone #}
+    disableCaptchas: true,
+
+    {# Or, disable captchas for a URL that looks like `my-form?disable-captchas=true` #}
+    disableCaptchas: craft.app.request.getParam('disable-captchas') == 'true',
+}) %}
+
+{{ craft.formie.renderForm(form) }}
+```

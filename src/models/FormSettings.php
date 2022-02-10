@@ -69,6 +69,9 @@ class FormSettings extends Model
     public $redirectUrl;
     public $defaultEmailTemplateId = '';
 
+    // Private (template-only)
+    public $disableCaptchas = false;
+
     // TODO: to remove
     public $storeData;
     public $userDeletedAction;

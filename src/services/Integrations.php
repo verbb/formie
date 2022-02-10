@@ -712,6 +712,11 @@ class Integrations extends Component
             return $captchas;
         }
 
+        // Check if we've disable captchas in the form settings
+        if ($form->settings->disableCaptchas) {
+            return $captchas;
+        }
+
         foreach ($integrations as $integration) {
             if ($integration instanceof Captcha) {
                 // Check if this is a multi-page form, because by default, we want to only show it
