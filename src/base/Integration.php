@@ -848,14 +848,10 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         return true;
     }
 
-
-    // Protected Methods
-    // =========================================================================
-
     /**
      * @inheritDoc
      */
-    protected function getMappedFieldValue($mappedFieldValue, $submission, $integrationField)
+    public function getMappedFieldValue($mappedFieldValue, $submission, $integrationField)
     {
         try {
             // Replace how we store the value (as `{field_handle}` or `{submission:id}`)
