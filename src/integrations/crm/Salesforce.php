@@ -38,6 +38,8 @@ class Salesforce extends Crm
     public $leadFieldMapping;
     public $opportunityFieldMapping;
     public $accountFieldMapping;
+    public $duplicateLeadTask = false;
+    public $duplicateLeadTaskSubject = 'Task';
 
     private $users = [];
 
@@ -334,6 +336,32 @@ class Salesforce extends Crm
                 } catch (\Throwable $e) {
                     // Ignore duplicate warnings and continue, but still log
                     Integration::apiError($this, $e, false);
+
+                    // Check if we should enable tasks to be created for duplicates
+                    $response = Json::decode((string)$e->getResponse()->getBody());
+                    $responseCode = $response[0]['errorCode'] ?? '';
+
+                    if ($responseCode === 'DUPLICATES_DETECTED' && $this->duplicateLeadTask) {
+                        $taskPayload = [
+                            'Subject' => $this->duplicateLeadTaskSubject,
+                            'WhoId' => $contactId,
+                            'Description' => '',
+                        ];
+
+                        foreach ($leadPayload as $key => $item) {
+                            $taskPayload['Description'] .= $key . ': ' . $item . "\n";
+                        }
+
+                        try {
+                            $response = $this->deliverPayload($submission, 'sobjects/Task', $taskPayload);
+
+                            if ($response === false) {
+                                return true;
+                            }
+                        } catch (\Throwable $e) {
+                            Integration::apiError($this, $e, false);
+                        }
+                    }
                 }
             }
 

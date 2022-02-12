@@ -9,6 +9,9 @@
 {% set mapToOpportunity = form.settings.integrations[handle].mapToOpportunity ?? '' %}
 {% set mapToAccount = form.settings.integrations[handle].mapToAccount ?? '' %}
 
+{% set duplicateLeadTask = form.settings.integrations[handle].duplicateLeadTask ?? '' %}
+{% set duplicateLeadTaskSubject = form.settings.integrations[handle].duplicateLeadTaskSubject ?? '' %}
+
 <field-select
     label="{{ 'Opt-In Field' | t('formie') }}"
     instructions="{{ 'Choose a field to opt-in to {name}. For example, you might only wish to record user data if they provide a value for a field of your choice - commonly, an Agree field.' | t('formie', { name: integration.displayName() }) }}"
@@ -67,22 +70,23 @@
         }) }}
 
         <div id="map-to-lead" class="{{ not mapToLead ? 'hidden' }}">
-            {#{% set leadFields = [{ label: 'No match-checking' | t('formie'), value: '' }] %}
+            {{ forms.lightswitchField({
+                label: 'Create Task for Duplicates' | t('formie'),
+                instructions: 'If a Lead is detected as duplicate, a new {name} Task object will be created.' | t('formie', { name: integration.displayName() }),
+                id: 'duplicateLeadTask',
+                name: 'duplicateLeadTask',
+                on: duplicateLeadTask,
+                toggle: 'duplicate-lead-task',
+            }) }}
 
-            {% for setting in settings.lead %}
-                {% set leadFields = leadFields | merge([{
-                    label: setting.name,
-                    value: setting.handle,
-                }]) %}
-            {% endfor %}
-
-            {{ forms.selectField({
-                label: 'Match Lead By' | t('formie'),
-                instructions: 'Select a field to match existing {name} Leads by. This will help to prevent errors with duplicate leads.' | t('formie', { name: integration.displayName() }),
-                name: 'matchLead',
-                value: matchLead,
-                options: leadFields,
-            }) }}#}
+            <div id="duplicate-lead-task" class="{{ not duplicateLeadTask ? 'hidden' }}">
+                {{ forms.textField({
+                    label: 'Task Subject' | t('formie'),
+                    instructions: 'Enter a subject to use for the created task.' | t('formie'),
+                    name: 'duplicateLeadTaskSubject',
+                    value: duplicateLeadTaskSubject,
+                }) }}
+            </div>
 
             <integration-field-mapping
                 label="{{ 'Lead Field Mapping' | t('formie') }}"
