@@ -98,10 +98,10 @@ export class FormieConditions {
         }
 
         const { showRule, conditionRule, conditions, isNested } = conditionSettings;
-        const results = [];
+        const results = {};
 
-        conditions.forEach((condition) => {
-            const { condition: logic, value, $targets } = condition;
+        conditions.forEach((condition, i) => {
+            const { condition: logic, value, $targets, field } = condition;
 
             // We're always dealing with a collection of targets, even if the target is a text field
             // The reason being is this normalises behaviour for some fields (checkbox/radio) that
@@ -111,6 +111,16 @@ export class FormieConditions {
                 const testOptions = {};
                 const tagName = $target.tagName.toLowerCase();
                 const inputType = $target.getAttribute('type') ? $target.getAttribute('type').toLowerCase() : '';
+
+                // Create a key for this condition rule that we'll use to store (potentially multiple) results against.
+                // It's not visibly needed for anything, but using the target's field name helps with debugging.
+                const resultKey = field + '_' + i;
+
+                // Store all results as an array, and we'll normalise afterwards. Group results by their condition rule.
+                // For example: { dropdown_0: [false], radio_1: [true, false] }
+                if (!results[resultKey]) {
+                    results[resultKey] = [];
+                }
 
                 // Handle some special options like dates - tell our condition tester about them
                 if (inputType === 'date') {
@@ -127,40 +137,45 @@ export class FormieConditions {
                     // Convert the value to boolean to compare
                     result = this.testCondition(logic, (value == '0') ? false : true, $target.checked);
 
-                    results.push(result);
-                // Handle (multi) checkboxes and radio, which are a bit of a pain
+                    results[resultKey].push(result);
                 } else if (inputType === 'checkbox' || inputType === 'radio') {
-                    if ($target.checked) {
-                        result = this.testCondition(logic, value, $target.value);
+                    // Handle (multi) checkboxes and radio, which are a bit of a pain
+                    result = this.testCondition(logic, value, $target.value) && $target.checked;
 
-                        results.push(result);
-                    }
-                // Handle multi-selects
+                    results[resultKey].push(result);
                 } else if (tagName === 'select' && $target.hasAttribute('multiple')) {
+                    // Handle multi-selects
                     Array.from($target.options).forEach(($option) => {
-                        if ($option.selected) {
-                            result = this.testCondition(logic, value, $option.value);
+                        result = this.testCondition(logic, value, $option.value) && $option.selected;
 
-                            results.push(result);
-                        }
+                        results[resultKey].push(result);
                     });
                 } else {
                     result = this.testCondition(logic, value, $target.value, testOptions);
 
-                    results.push(result);
+                    results[resultKey].push(result);
                 }
             });
+        });
+
+        // Normalise the results before going further, as this'll be keyed as an object, so convert to an array
+        // and because we can have multiple inputs, each with their own value, reduce them to a single boolean.
+        // For example: { dropdown_0: [false], radio_1: [true, false] } changes to [false, true].
+        const normalisedResults = [];
+
+        Object.values(results).forEach((result) => {
+            normalisedResults.push(result.includes(true));
         });
 
         let finalResult = false;
 
         // Check to see how to compare the result (any or all).
-        if (results.length) {
+        if (normalisedResults.length) {
             if (conditionRule === 'all') {
                 // Are _all_ the conditions the same?
-                finalResult = results.every((val) => val === true);
+                finalResult = normalisedResults.every((val) => val === true);
             } else {
-                finalResult = results.includes(true);
+                finalResult = normalisedResults.includes(true);
             }
         }
 
