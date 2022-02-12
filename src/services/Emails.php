@@ -545,8 +545,10 @@ class Emails extends Component
             if ($field instanceof NestedFieldInterface) {
                 $query = $element->getFieldValue($field->handle);
 
-                if ($query && $nestedElement = $query->one()) {
-                    $assets = array_merge($assets, $this->_getAssetsForSubmission($nestedElement));
+                if ($query) {
+                    foreach ($query->all() as $nestedElement) {
+                        $assets = array_merge($assets, $this->_getAssetsForSubmission($nestedElement));
+                    }
                 }
             }
         }
