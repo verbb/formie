@@ -1,5 +1,29 @@
 # Changelog
 
+## 1.5.9 - 2022-02-14
+
+### Added
+- Added option to Salesforce CRM Integration on creating a task when a duplicate lead is encountered.
+- Added bulk delete submissions console command.
+- Added `disableCaptchas` form setting to disable captchas on-demand in templates.
+
+### Changed
+- Removed masking for encrypted content fields for email notifications.
+- `Integration::getMappedFieldValue()` is now publicly accessible.
+
+### Fixed
+- Fixed Repeater fields with File Upload nested fields, not attaching correctly to email notifications.
+- Fixed conditional logic not working correctly for checkboxes/radio fields in some combinations.
+- Fixed conditions set in nested fields within Group/Repeater fields not being initialized correctly.
+- Fixed when adding fields to a Group or Repeater field in the form builder, not having their `isNested` attribute properly set.
+- Fixed Recipients field set to hidden display, showing the un-encoded value in page source.
+- Fixed option fields (Checkboxes, Radio, Dropdown) showing option values for Summary fields, instead of their labels.
+- Fixed Table fields with date, time and color columns not displaying their content correctly in email notifications, or throwing errors with `valueAsString()` functions.
+- Fixed "Unique Value" setting for Email fields, taking into account deleted submissions.
+- Fixed a bug when creating Sent Notifications for multiple recipients, only saving the first recipient.
+- Fixed Multi-Line Text field email notification templates not including a wrapping `<p>` tag.
+- Fixed Recipients field not working correctly with content encryption enabled.
+
 ## 1.5.8 - 2022-01-31
 
 ### Added
