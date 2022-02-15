@@ -22,7 +22,7 @@ class m210607_000000_permissions extends Migration
     {
         $permissionIds = [];
 
-        $this->insert('{{%userpermissions}}', ['name' => 'formie-viewforms']);
+        $this->upsert('{{%userpermissions}}', ['name' => 'formie-viewforms']);
         $permissionIds[] = $this->db->getLastInsertID('{{%userpermissions}}');
 
         // See which users & groups already have the "formie-manageforms" permission
