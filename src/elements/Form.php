@@ -83,6 +83,7 @@ class Form extends Element
     private $_editingSubmission;
     private $_formId;
     private $_appliedFieldSettings = false;
+    private $_appliedFormSettings = false;
     private static $_layoutsByType;
 
 
@@ -909,7 +910,7 @@ class Form extends Element
         // `setFieldSettings()` sets session variables for fields before render. So these variables don't
         // "bleed" between rendering the same form we need to remove them when necessary. This will check
         // when we _haven't_ set settings via `setFieldSettings()` and reset the session.
-        if (!$this->_appliedFieldSettings) {
+        if (!$this->_appliedFieldSettings && !$this->_appliedFormSettings) {
             $this->resetSnapshotData();
         }
 
@@ -1350,9 +1351,17 @@ class Form extends Element
     /**
      * @inheritDoc
      */
-    public function setSettings($settings)
+    public function setSettings($settings, $updateSnapshot = true)
     {
         $this->settings->setAttributes($settings, false);
+
+        // Set snapshot data to ensure it's persisted
+        if ($updateSnapshot) {
+            $this->setSnapshotData('form', $settings);
+
+            // Save this so we know when we're applying form settings later
+            $this->_appliedFormSettings = true;
+        }
     }
 
     /**

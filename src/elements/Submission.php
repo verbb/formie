@@ -583,6 +583,13 @@ class Submission extends Element
         foreach ($fields as $handle => $settings) {
             $form->setFieldSettings($handle, $settings, false);
         }
+
+        // Do the same for form settings
+        $formSettings = $this->snapshot['form'] ?? null;
+
+        if ($formSettings) {
+            $form->settings->setAttributes($formSettings, false);
+        }
     }
 
     /**
