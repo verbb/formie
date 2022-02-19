@@ -78,7 +78,8 @@ class Install extends Migration
         $this->createTable('{{%formie_forms}}', [
             'id' => $this->primaryKey(),
             'handle' => $this->string(64)->notNull(),
-            'fieldContentTable' => $this->string(64)->notNull(),
+            // Factor in `{{$fmc_*}}`
+            'fieldContentTable' => $this->string(74)->notNull(),
             'settings' => $this->mediumText(),
             'templateId' => $this->integer(),
             'submitActionEntryId' => $this->integer(),
