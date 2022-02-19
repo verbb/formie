@@ -205,7 +205,6 @@ class SubmissionsController extends Controller
     public function actionSaveSubmission()
     {
         $this->requirePostRequest();
-        $this->requirePermission('formie-editSubmissions');
 
         $request = Craft::$app->getRequest();
 
