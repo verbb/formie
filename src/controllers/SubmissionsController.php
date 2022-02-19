@@ -229,6 +229,7 @@ class SubmissionsController extends Controller
         $submission->enabledForSite = true;
         $submission->title = $request->getParam('title', $submission->title);
         $submission->statusId = $request->getParam('statusId', $submission->statusId);
+        $submission->isSpam = $request->getParam('isSpam', $submission->isSpam);
 
         // Save the submission
         if ($submission->enabled && $submission->enabledForSite) {
