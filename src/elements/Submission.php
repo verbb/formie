@@ -713,7 +713,8 @@ class Submission extends Element
         parent::setFieldValuesFromRequest($paramNamespace);
 
         // Any conditionally hidden fields should have their content excluded when saving.
-        if ($this->getFieldLayout()) {
+        // But - only for incomplete forms. Not a great idea to remove content for completed forms.
+        if ($this->getFieldLayout() && $this->isIncomplete) {
             foreach ($this->getFieldLayout()->getFields() as $field) {
                 if ($field->isConditionallyHidden($this)) {
                     // Reset the field value - watch out for some fields
