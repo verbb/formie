@@ -78,6 +78,11 @@ class SubmissionsController extends Controller
             $this->enableCsrfValidation = false;
         }
 
+        // Check for live preview requests, or unpublished pages
+        if ($this->request->getIsLivePreview() || $this->request->getIsPreview()) {
+            $this->enableCsrfValidation = false;
+        }
+
         return parent::beforeAction($action);
     }
 
