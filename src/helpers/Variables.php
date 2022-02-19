@@ -453,7 +453,11 @@ class Variables
         } else if ($field instanceof BaseRelationField) {
             $values["{$prefix}{$field->handle}"] = $parsedContent;
         } else if ($field instanceof MultiLineText) {
-            $values["{$prefix}{$field->handle}"] = $parsedContent;
+            if ($field->useRichText) {
+                $values["{$prefix}{$field->handle}"] = $parsedContent;
+            } else {
+                $values["{$prefix}{$field->handle}"] = nl2br($submissionValue);
+            }
         } else if ($field instanceof Repeater) {
             $values["{$prefix}{$field->handle}"] = $parsedContent;
         } else if ($field instanceof Recipients && $field->displayType === 'hidden') {
