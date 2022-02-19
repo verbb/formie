@@ -6,6 +6,7 @@ use verbb\formie\elements\Form;
 use verbb\formie\elements\NestedFieldRow;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyFieldValueEvent;
+use verbb\formie\events\ModifyFieldEmailValueEvent;
 use verbb\formie\events\ModifyFieldIntegrationValueEvent;
 use verbb\formie\events\ParseMappedFieldValueEvent;
 use verbb\formie\fields\formfields\BaseOptionsField;
@@ -296,6 +297,25 @@ trait FormFieldTrait
         ]);
 
         $this->trigger(static::EVENT_MODIFY_VALUE_FOR_SUMMARY, $event);
+
+        return $event->value;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getValueForEmail($value, $notification, ElementInterface $element = null)
+    {
+        $value = $this->defineValueForEmail($value, $notification, $element);
+
+        $event = new ModifyFieldEmailValueEvent([
+            'value' => $value,
+            'field' => $this,
+            'submission' => $element,
+            'notification' => $notification,
+        ]);
+
+        $this->trigger(static::EVENT_MODIFY_VALUE_FOR_EMAIL, $event);
 
         return $event->value;
     }
@@ -1258,6 +1278,15 @@ trait FormFieldTrait
      * @inheritdoc
      */
     protected function defineValueForSummary($value, ElementInterface $element = null)
+    {
+        // A string-representaion will largely suit our needs
+        return $this->defineValueAsString($value, $element);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    protected function defineValueForEmail($value, $notification, ElementInterface $element = null)
     {
         // A string-representaion will largely suit our needs
         return $this->defineValueAsString($value, $element);

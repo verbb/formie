@@ -465,9 +465,8 @@ class Variables
             // It's arguable that `getValueAsString()` should be the default behaviour but requires more testing
             $values["{$prefix}{$field->handle}"] = $field->getValueAsString($submissionValue, $submission);
         } else if ($submissionValue instanceof MultiOptionsFieldData) {
-            $values["{$prefix}{$field->handle}"] = implode(', ', array_map(function($item) {
-                return $item->value;
-            }, (array)$submissionValue));
+            // TODO: this should become the single thing we need to use here at the next breakpoint. Requires full testing.
+            $values["{$prefix}{$field->handle}"] = $field->getValueForEmail($submissionValue, $notification, $submission);
         } else {
             // Try to convert as a simple string value, if not, fall back on email template
             try {

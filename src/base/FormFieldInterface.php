@@ -25,6 +25,7 @@ interface FormFieldInterface extends ComponentInterface
     const EVENT_MODIFY_VALUE_FOR_EXPORT = 'modifyValueForExport';
     const EVENT_MODIFY_VALUE_FOR_INTEGRATION = 'modifyValueForIntegration';
     const EVENT_MODIFY_VALUE_FOR_SUMMARY = 'modifyValueForSummary';
+    const EVENT_MODIFY_VALUE_FOR_EMAIL = 'modifyValueForEmail';
 
     
     // Public Methods
