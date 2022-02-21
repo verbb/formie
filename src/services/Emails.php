@@ -117,13 +117,13 @@ class Emails extends Component
                 'line' => $e->getLine(),
             ]);
 
-            return ['error' => $error, 'email' => $newEmail];
+            return ['error' => $error, 'email' => $newEmail, 'exception' => $e];
         }
 
         if (!$newEmail->getTo()) {
             $error = Craft::t('formie', 'Notification email error. No recipient email address found.');
 
-            return ['error' => $error, 'email' => $newEmail];
+            return ['error' => $error, 'email' => $newEmail, 'exception' => $e];
         }
 
         // BCC:
@@ -143,7 +143,7 @@ class Emails extends Component
                     'line' => $e->getLine(),
                 ]);
 
-                return ['error' => $error, 'email' => $newEmail];
+                return ['error' => $error, 'email' => $newEmail, 'exception' => $e];
             }
         }
 
@@ -164,7 +164,7 @@ class Emails extends Component
                     'line' => $e->getLine()
                 ]);
 
-                return ['error' => $error, 'email' => $newEmail];
+                return ['error' => $error, 'email' => $newEmail, 'exception' => $e];
             }
         }
 
@@ -185,7 +185,7 @@ class Emails extends Component
                     'line' => $e->getLine()
                 ]);
 
-                return ['error' => $error, 'email' => $newEmail];
+                return ['error' => $error, 'email' => $newEmail, 'exception' => $e];
             }
         }
 
@@ -201,7 +201,7 @@ class Emails extends Component
                 'line' => $e->getLine()
             ]);
 
-            return ['error' => $error, 'email' => $newEmail];
+            return ['error' => $error, 'email' => $newEmail, 'exception' => $e];
         }
 
         // Fetch the email template for the notification - if we're using one
@@ -277,7 +277,7 @@ class Emails extends Component
                 'line' => $e->getLine()
             ]);
 
-            return ['error' => $error, 'email' => $newEmail];
+            return ['error' => $error, 'email' => $newEmail, 'exception' => $e];
         }
 
         $event = new MailEvent([
@@ -309,6 +309,11 @@ class Emails extends Component
             $error = $emailRender['error'];
 
             Formie::error($error);
+
+            // Output the full exception if available
+            if (isset($emailRender['exception']) && $emailRender['exception']) {
+                Formie::error($emailRender['exception']);
+            }
 
             // Save the sent notification, as failed
             Formie::$plugin->getSentNotifications()->saveSentNotification($submission, $notification, $newEmail, false, $error);
