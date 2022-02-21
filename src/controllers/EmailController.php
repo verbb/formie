@@ -33,6 +33,13 @@ class EmailController extends Controller
         $emailRender = Formie::$plugin->getEmails()->renderEmail($notification, $submission);
 
         if (isset($emailRender['error']) && $emailRender['error']) {
+            Formie::error($emailRender['error']);
+
+            // Output the full exception if available
+            if (isset($emailRender['exception']) && $emailRender['exception']) {
+                Formie::error($emailRender['exception']);
+            }
+
             return $this->asJson([
                 'error' => $emailRender['error'],
             ]);
