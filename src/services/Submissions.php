@@ -645,13 +645,15 @@ class Submissions extends Component
 
                     break;                    
                 case formfields\Address::class:
-                    $fieldContent[$field->handle]['address1'] = $faker->address;
-                    $fieldContent[$field->handle]['address2'] = $faker->buildingNumber;
-                    $fieldContent[$field->handle]['address3'] = $faker->streetSuffix;
-                    $fieldContent[$field->handle]['city'] = $faker->city;
-                    $fieldContent[$field->handle]['zip'] = $faker->postcode;
-                    $fieldContent[$field->handle]['state'] = $faker->state;
-                    $fieldContent[$field->handle]['country'] = $faker->country;
+                    $fieldContent[$field->handle] = new \verbb\formie\models\Address([
+                        'address1' => $faker->address,
+                        'address2' => $faker->buildingNumber,
+                        'address3' => $faker->streetSuffix,
+                        'city' => $faker->city,
+                        'zip' => $faker->postcode,
+                        'state' => $faker->state,
+                        'country' => $faker->country,
+                    ]);
 
                     break;
                 case formfields\Checkboxes::class:
@@ -694,10 +696,12 @@ class Submissions extends Component
                     break;
                 case formfields\Name::class:
                     if ($field->useMultipleFields) {
-                        $fieldContent[$field->handle]['prefix'] = $faker->title;
-                        $fieldContent[$field->handle]['firstName'] = $faker->firstName;
-                        $fieldContent[$field->handle]['middleName'] = $faker->firstName;
-                        $fieldContent[$field->handle]['lastName'] = $faker->lastName;
+                        $fieldContent[$field->handle] = new \verbb\formie\models\Name([
+                            'prefix' => $faker->title,
+                            'firstName' => $faker->firstName,
+                            'middleName' => $faker->firstName,
+                            'lastName' => $faker->lastName,
+                        ]);
                     } else {
                         $fieldContent[$field->handle] = $faker->name;
                     }
@@ -714,8 +718,10 @@ class Submissions extends Component
                         $phoneUtil = \libphonenumber\PhoneNumberUtil::getInstance();
                         $numberProto = $phoneUtil->parse($number);
 
-                        $fieldContent[$field->handle]['number'] = $number;
-                        $fieldContent[$field->handle]['country'] = $phoneUtil->getRegionCodeForNumber($numberProto);
+                        $fieldContent[$field->handle] = new \verbb\formie\models\Phone([
+                            'number' => $number,
+                            'country' => $phoneUtil->getRegionCodeForNumber($numberProto),
+                        ]);
                     } else {
                         $fieldContent[$field->handle] = $faker->phoneNumber;
                     }
