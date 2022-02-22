@@ -123,7 +123,7 @@ class Emails extends Component
         if (!$newEmail->getTo()) {
             $error = Craft::t('formie', 'Notification email error. No recipient email address found.');
 
-            return ['error' => $error, 'email' => $newEmail, 'exception' => $e];
+            return ['error' => $error, 'email' => $newEmail];
         }
 
         // BCC:
