@@ -31,6 +31,7 @@ Use [Google Places Autocomplete](https://developers.google.com/maps/documentatio
 1. Select **Credentials** from the left side menu, and click **+ Create Credentials**, selecting **API Key**.
 1. From the left side menu, select **Library**.
 1. From the list of APIs enable both **Places API** and **Maps JavaScript API**.
+    - If using the **Show Current Location Button** setting for your field, also add **Geocoding API**.
 
 ### Step 3. Field Setting
 1. Go to the form you want to enable this integration on.
