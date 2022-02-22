@@ -39,7 +39,7 @@ Use [Google Places Autocomplete](https://developers.google.com/maps/documentatio
 1. Enable the **Auto-Complete** sub-field option.
 1. Select Google Places for the **Auto-Complete Integration**.
 
-You can also provide [Options](https://developers.google.com/maps/documentation/javascript/places-autocomplete#add-autocomplete) in the table field. The `value` content must be JSON-compatible, so ensure you encase strings in `"` characters. For example, the below might restrict suggested addresses to Australia.
+You can also provide [Options](https://developers.google.com/maps/documentation/javascript/places-autocomplete#add-autocomplete) in the table field. The `value` content must be valid JSON, so ensure you encase strings in `"` characters. For example, the below might restrict suggested addresses to Australia.
 
 Option | Value
 --- | ---
@@ -66,7 +66,7 @@ Use [Algolia Places](https://community.algolia.com/places/) to use their service
 1. Enable the **Auto-Complete** sub-field option.
 1. Select Algolia Places for the **Auto-Complete Integration**.
 
-You can also provide [Reconfigurable Options](https://community.algolia.com/places/documentation.html#api-options-type) in the table field. The `value` content must be JSON-compatible, so ensure you encase strings in `"` characters. For example, the below might restrict suggested addresses to Australia.
+You can also provide [Reconfigurable Options](https://community.algolia.com/places/documentation.html#api-options-type) in the table field. The `value` content must be valid JSON, so ensure you encase strings in `"` characters. For example, the below might restrict suggested addresses to Australia.
 
 Option | Value
 --- | ---
@@ -92,7 +92,7 @@ Use [Address Finder](https://addressfinder.com.au/) to use their service to sugg
 1. Enable the **Auto-Complete** sub-field option.
 1. Select Address Finder for the **Auto-Complete Integration**.
 
-You can also provide [Widget Options](https://addressfinder.com.au/docs/widget_docs) in the table field. The `value` content must be JSON-compatible, so ensure you encase strings in `"` characters. For example, the below might return the location (street, suburb and city) results.
+You can also provide [Widget Options](https://addressfinder.com.au/docs/widget_docs) in the table field. The `value` content must be valid JSON, so ensure you encase strings in `"` characters. For example, the below might return the location (street, suburb and city) results.
 
 Option | Value
 --- | ---
@@ -119,7 +119,7 @@ Use [Loqate](https://account.loqate.com/) to use their service to suggest addres
 1. Enable the **Auto-Complete** sub-field option.
 1. Select Loqate for the **Auto-Complete Integration**.
 
-You can also provide [Widget Options](https://www.loqate.com/resources/support/setup-guides/advanced-setup-guide/#setting_options) in the table field. The `value` content must be JSON-compatible, so ensure you encase strings in `"` characters. For example, the below might return the location (street, suburb and city) results.
+You can also provide [Widget Options](https://www.loqate.com/resources/support/setup-guides/advanced-setup-guide/#setting_options) in the table field. The `value` content must be valid JSON, so ensure you encase strings in `"` characters. For example, the below might return the location (street, suburb and city) results.
 
 Option | Value
 --- | ---
