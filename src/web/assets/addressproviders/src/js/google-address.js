@@ -119,6 +119,10 @@ export class FormieGoogleAddress extends FormieAddressProvider {
                     if (response && response.results && response.results[0] && response.results[0].address_components) {
                         this.setAddressValues(response.results[0].address_components);
                     }
+
+                    if (response.error_message) {
+                        console.log(response);
+                    }
                 } catch(e) {
                     console.log(e);
                 }
