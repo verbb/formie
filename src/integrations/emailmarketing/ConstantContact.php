@@ -42,7 +42,7 @@ class ConstantContact extends EmailMarketing
      */
     public function getAuthorizeUrl(): string
     {
-        return 'https://api.cc.email/v3/idfed';
+        return 'https://authz.constantcontact.com/oauth2/default/v1/authorize';
     }
 
     /**
@@ -50,7 +50,7 @@ class ConstantContact extends EmailMarketing
      */
     public function getAccessTokenUrl(): string
     {
-        return 'https://idfed.constantcontact.com/as/token.oauth2';
+        return 'https://authz.constantcontact.com/oauth2/default/v1/token';
     }
 
     /**
