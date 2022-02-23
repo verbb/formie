@@ -712,9 +712,8 @@ export class FormieFormTheme {
     }
 
     setCurrentPage(pageId) {
-        this.currentPageId = pageId;
-        this.currentPageSelector = `#${this.getPageId(pageId)}`;
-        this.$currentPage = document.querySelector(this.currentPageSelector);
+        this.settings.currentPageId = pageId;
+        this.$currentPage = document.querySelector(`#${this.getPageId(pageId)}`);
     }
 
     getPageId(pageId) {
@@ -723,7 +722,7 @@ export class FormieFormTheme {
 
     triggerJsEvents() {
         const currentPage = this.settings.pages.find(page => {
-            return page.id == this.currentPageId;
+            return page.id == this.settings.currentPageId;
         });
 
         // Find any JS events for the current page and fire
