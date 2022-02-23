@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Deprecated
+- The Constant Contact Email Marketing integration has a change that will require you to migrate your Constant Contact apps. This is due to a change at Constant Contact. [Continue reading](https://developer.constantcontact.com/api_guide/auth_update_apps.html).
+
 ## 1.5.9 - 2022-02-14
 
 ### Added

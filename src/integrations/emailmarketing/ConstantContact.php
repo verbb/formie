@@ -42,6 +42,11 @@ class ConstantContact extends EmailMarketing
      */
     public function getAuthorizeUrl(): string
     {
+        // Check for deprecated endpoint
+        if (!DateTimeHelper::isInThePast('2022-04-01 00:00:00')) {
+            return 'https://api.cc.email/v3/idfed';
+        }
+
         return 'https://authz.constantcontact.com/oauth2/default/v1/authorize';
     }
 
@@ -50,6 +55,11 @@ class ConstantContact extends EmailMarketing
      */
     public function getAccessTokenUrl(): string
     {
+        // Check for deprecated endpoint
+        if (!DateTimeHelper::isInThePast('2022-04-01 00:00:00')) {
+            return 'https://idfed.constantcontact.com/as/token.oauth2';
+        }
+
         return 'https://authz.constantcontact.com/oauth2/default/v1/token';
     }
 
