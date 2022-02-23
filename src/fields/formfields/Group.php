@@ -58,6 +58,17 @@ class Group extends FormField implements NestedFieldInterface, EagerLoadingField
     // =========================================================================
 
     /**
+     * @inheritdoc
+     */
+    public function getElementValidationRules(): array
+    {
+        $rules = parent::getElementValidationRules();
+        $rules[] = ['validateRows'];
+
+        return $rules;
+    }
+
+    /**
      * @inheritDoc
      */
     public function getIsFieldset(): bool
