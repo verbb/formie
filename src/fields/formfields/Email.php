@@ -8,6 +8,7 @@ use Craft;
 use craft\base\ElementInterface;
 use craft\base\PreviewableFieldInterface;
 use craft\db\Query;
+use craft\helpers\App;
 use craft\helpers\ArrayHelper;
 
 use yii\validators\EmailValidator;
@@ -59,6 +60,10 @@ class Email extends FormField implements PreviewableFieldInterface
     public function getElementValidationRules(): array
     {
         $rules = parent::getElementValidationRules();
+
+        // Enable base validations
+        $rules[] = ['trim'];
+        $rules[] = ['email', 'enableIDN' => App::supportsIdn(), 'enableLocalIDN' => false];
 
         if ($this->validateDomain) {
             $rules[] = [$this->handle, EmailValidator::class, 'skipOnEmpty' => true, 'checkDNS' => true];
