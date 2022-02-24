@@ -31,13 +31,13 @@
         width: 1px;
 
         &:focus + label::before {
-            border-color: var(--fui-check-border-color-focus);
-            box-shadow: var(--fui-check-box-shadow-focus);
+            border-color: var(--fui-check-border-color-focus, var(--fui-focus-border-color));
+            box-shadow: var(--fui-check-box-shadow-focus, var(--fui-focus-shadow));
         }
 
         &:checked + label::before {
-            background-color: var(--fui-check-bg-color-checked);
-            border-color: var(--fui-check-border-color-checked);
+            background-color: var(--fui-check-bg-color-checked, var(--fui-primary-color));
+            border-color: var(--fui-check-border-color-checked, var(--fui-primary-color));
         }
 
         &:active + label::before {
@@ -61,7 +61,7 @@
             height: var(--fui-check-label-height);
             content: '';
             cursor: pointer;
-            border: var(--fui-check-label-border);
+            border: var(--fui-check-label-border, 1px solid var(--fui-border-color));
             background-color: var(--fui-check-label-bg-color);
             background-repeat: no-repeat;
             background-position: center center;

@@ -23,8 +23,8 @@
 
 .fui-submit {
     color: var(--fui-submit-btn-color);
-    background-color: var(--fui-submit-btn-bg-color);
-    border-color: var(--fui-submit-btn-border-color);
+    background-color: var(--fui-submit-btn-bg-color, var(--fui-primary-color));
+    border-color: var(--fui-submit-btn-border-color, var(--fui-primary-color));
 
     &.fui-loading::after {
         border-bottom-color: var(--fui-submit-btn-spinner-color);
@@ -35,13 +35,13 @@
     &:focus,
     &:active {
         color: var(--fui-submit-btn-color-hover);
-        background-color: var(--fui-submit-btn-bg-color-hover);
-        border-color: var(--fui-submit-btn-border-color-hover);
+        background-color: var(--fui-submit-btn-bg-color-hover, var(--fui-primary-color-hover));
+        border-color: var(--fui-submit-btn-border-color-hover, var(--fui-primary-color-hover));
     }
 
     &:focus,
     &:active {
-        box-shadow: var(--fui-submit-btn-box-shadow-focus);
+        box-shadow: var(--fui-submit-btn-box-shadow-focus, var(--fui-focus-shadow));
     }
 }
 
@@ -94,11 +94,11 @@
     flex-wrap: wrap;
     margin-bottom: var(--fui-tabs-margin-bottom);
     font-size: var(--fui-tabs-font-size);
-    border-bottom: var(--fui-tabs-border-bottom);
+    border-bottom: var(--fui-tabs-border-bottom, 1px solid var(--fui-border-color));
 }
 
 .fui-tab {
-    color: var(--fui-tab-color);
+    color: var(--fui-tab-color, var(--fui-gray-500));
     padding: var(--fui-tab-padding);
     margin-bottom: var(--fui-tab-margin-bottom);
     border: var(--fui-tab-border);
@@ -117,15 +117,15 @@
 
 .fui-tab-active {
     font-weight: var(--fui-tab-active-font-weight);
-    color: var(--fui-tab-active-color);
+    color: var(--fui-tab-active-color, var(--fui-gray-700));
     background-color: var(--fui-tab-active-bg-color);
-    border-color: var(--fui-tab-active-border-color);
+    border-color: var(--fui-tab-active-border-color, var(--fui-border-color));
     border-bottom-color: var(--fui-tab-active-border-bottom-color);
-    border-radius: var(--fui-tab-active-border-radius);
+    border-radius: var(--fui-tab-active-border-radius, var(--fui-border-radius) var(--fui-border-radius) 0 0);
 }
 
 .fui-tab-error {
-    color: var(--fui-tab-error-color);
+    color: var(--fui-tab-error-color, var(--fui-error));
 }
 
 
@@ -140,8 +140,8 @@
     font-size: var(--fui-progress-font-size);
     font-weight: var(--fui-progress-font-weight);
     color: var(--fui-progress-color);
-    border-radius: var(--fui-progress-border-radius);
-    background-color: var(--fui-progress-bg-color);
+    border-radius: var(--fui-progress-border-radius, var(--fui-border-radius));
+    background-color: var(--fui-progress-bg-color, var(--fui-gray-200));
 
     .fui-progress-start & {
         margin-bottom: 1rem;
@@ -157,6 +157,6 @@
     flex-direction: column;
     justify-content: center;
     text-align: center;
-    background-color: var(--fui-progress-bar-bg-color);
+    background-color: var(--fui-progress-bar-bg-color, var(--fui-primary-color));
     transition: var(--fui-progress-bar-transition);
 }

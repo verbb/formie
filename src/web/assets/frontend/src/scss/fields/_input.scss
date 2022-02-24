@@ -15,8 +15,8 @@
     width: var(--fui-input-width);
     display: block;
     padding: var(--fui-input-padding);
-    border: var(--fui-input-border);
-    border-radius: var(--fui-input-border-radius);
+    border: var(--fui-input-border, 1px solid var(--fui-border-color));
+    border-radius: var(--fui-input-border-radius, var(--fui-border-radius));
     background-color: var(--fui-input-background-color);
     transition-property: var(--fui-input-transition-property);
     transition-timing-function: var(--fui-input-transition-timing-function);
@@ -24,8 +24,8 @@
 
     &:focus {
         outline: 0;
-        border-color: var(--fui-input-border-color-focus);
-        box-shadow: var(--fui-input-box-shadow-focus);
+        border-color: var(--fui-input-border-color-focus, var(--fui-focus-border-color));
+        box-shadow: var(--fui-input-box-shadow-focus, var(--fui-focus-shadow));
     }
 
     &.fui-error {
@@ -38,7 +38,7 @@
     }
 
     &::placeholder {
-        color: var(--fui-input-placeholder-color);
+        color: var(--fui-input-placeholder-color, var(--fui-gray-400));
     }
 
     //

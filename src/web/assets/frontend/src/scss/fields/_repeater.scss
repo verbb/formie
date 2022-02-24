@@ -6,8 +6,8 @@
     position: relative;
     padding: var(--fui-repeater-row-padding);
     margin-bottom: var(--fui-repeater-row-margin-bottom);
-    border: var(--fui-repeater-row-border);
-    border-radius: var(--fui-repeater-row-border-radius);
+    border: var(--fui-repeater-row-border, 1px solid var(--fui-border-color));
+    border-radius: var(--fui-repeater-row-border-radius, var(--fui-border-radius));
 }
 
 .fui-repeater-add-btn {
@@ -37,7 +37,7 @@
     width: var(--fui-repeater-remove-btn-width);
     padding: var(--fui-repeater-remove-btn-padding);
     text-indent: var(--fui-repeater-remove-btn-text-indent);
-    border: var(--fui-repeater-remove-btn-border);
+    border: var(--fui-repeater-remove-btn-border, 1px solid var(--fui-border-color));
 
     &::after {
         content: '';

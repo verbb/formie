@@ -36,7 +36,7 @@
     font-weight: var(--fui-label-font-weight);
     display: block;
     padding: 0;
-    color: var(--fui-label-color);
+    color: var(--fui-label-color, var(--fui-gray-700));
 
     .fui-label-above-input &,
     .fui-subfield-label-above-input & {
@@ -55,11 +55,11 @@
 }
 
 .fui-required {
-    color: var(--fui-required-color);
+    color: var(--fui-required-color, var(--fui-error));
 }
 
 .fui-instructions {
-    color: var(--fui-instructions-color);
+    color: var(--fui-instructions-color, var(--fui-gray-400));
     font-size: var(--fui-instructions-font-size);
     line-height: var(--fui-instructions-line-height);
     display: block;
@@ -80,7 +80,7 @@
 }
 
 .fui-file-summary {
-    color: var(--fui-instructions-color);
+    color: var(--fui-instructions-color, var(--fui-gray-400));
     font-size: var(--fui-instructions-font-size);
     line-height: var(--fui-instructions-line-height);
     display: block;

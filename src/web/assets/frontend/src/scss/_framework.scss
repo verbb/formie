@@ -5,7 +5,7 @@
 .fui-i {
     font-family: var(--fui-font);
     font-size: var(--fui-font-size);
-    color: var(--fui-color);
+    color: var(--fui-color, var(--fui-gray-700));
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     margin: 0;
@@ -29,7 +29,7 @@
     margin: 0;
     appearance: none;
     color-adjust: exact;
-    background-color: var(--fui-btn-bg-color);
+    background-color: var(--fui-btn-bg-color, var(--fui-gray-100));
 
     display: var(--fui-btn-display);
     text-align: var(--fui-btn-text-align);
@@ -40,7 +40,7 @@
     text-decoration: var(--fui-btn-text-decoration);
     padding: var(--fui-btn-padding);
     border: var(--fui-btn-border);
-    border-radius: var(--fui-btn-border-radius);
+    border-radius: var(--fui-btn-border-radius, var(--fui-border-radius));
     font-weight: var(--fui-btn-font-weight);
     transition-property: var(--fui-btn-transition-property);
     transition-timing-function: var(--fui-btn-transition-timing-function);
@@ -51,7 +51,7 @@
     &:active {
         outline: 0;
         text-decoration: none;
-        background-color: var(--fui-btn-bg-color-hover);
+        background-color: var(--fui-btn-bg-color-hover, var(--fui-gray-200));
     }
 
     &.disabled,
@@ -71,7 +71,7 @@
 // ==========================================================================
 
 .fui-link {
-    color: var(--fui-link-color);
+    color: var(--fui-link-color, var(--fui-primary-color));
     transition-property: var(--fui-link-transition-property);
     transition-timing-function: var(--fui-link-transition-timing-function);
     transition-duration: var(--fui-link-transition-duration);
@@ -80,7 +80,7 @@
     &:hover,
     &:focus,
     &:active {
-        color: var(--fui-link-color-hover);
+        color: var(--fui-link-color-hover, var(--fui-primary-color-hover));
     }
 }
 
@@ -105,7 +105,7 @@
         border-width: var(--fui-loading-border-width);
         border-style: solid;
         border-radius: 9999px;
-        border-color: var(--fui-loading-border-color);
+        border-color: var(--fui-loading-border-color, var(--fui-primary-color));
         animation: var(--fui-loading-animation);
         border-right-color: transparent;
         border-top-color: transparent;
@@ -131,7 +131,7 @@
 
 .fui-alert {
     padding: var(--fui-alert-padding);
-    border-radius: var(--fui-alert-border-radius);
+    border-radius: var(--fui-alert-border-radius, var(--fui-border-radius));
     line-height: var(--fui-alert-line-height);
     font-size: var(--fui-alert-font-size);
     font-weight: var(--fui-alert-font-weight);

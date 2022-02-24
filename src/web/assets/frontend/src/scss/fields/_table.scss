@@ -11,7 +11,7 @@
         text-align: var(--fui-table-th-text-align);
         font-size: var(--fui-table-th-font-size);
         font-weight: var(--fui-table-th-font-weight);
-        color: var(--fui-table-th-color);
+        color: var(--fui-table-th-color, var(--fui-gray-500));
     }
 
     th,
@@ -56,7 +56,7 @@
     width: 0;
     padding: var(--fui-table-remove-btn-padding);
     text-indent: var(--fui-table-remove-btn-text-indent);
-    border: var(--fui-table-remove-btn-border);
+    border: var(--fui-table-remove-btn-border, 1px solid var(--fui-border-color));
 
     &::after {
         content: '';
