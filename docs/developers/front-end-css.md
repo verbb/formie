@@ -76,3 +76,38 @@ A classic example would be to use the Formie Theme CSS, but change the submit bu
 ```
 
 This gives the benefit of relying on the Theme CSS, but giving you full control over theme settings and variables, without needing to override everything with `!important` to get around specificity rules.
+
+It's also a good idea to use Formie's "global" CSS variables, which can take care of a lot of work for you. As the example above mentions to change te colour of the submit button - however Formie uses this same colour for other things like focus-borders on inputs, the checked state of checkbox/radio inputs, and more.
+
+Instead of overriding each one of these elements, you can set the `--fui-primary-color`.
+
+```css
+.fui-i {
+    // Inherit from the site body, like the rest of the site
+    --fui-font: 'Helvetica';
+
+    // Setup colours
+    --fui-color: #334155;
+    --fui-primary-color: #dc3545;
+    --fui-primary-color-hover: #bb2d3b;
+    --fui-gray-100: #F1F5F9;
+    --fui-gray-200: #E2E8F0;
+    --fui-gray-300: #CBD5E1;
+    --fui-gray-400: #94A3B8;
+    --fui-gray-500: #64748B;
+    --fui-gray-600: #475569;
+    --fui-gray-700: #334155;
+    --fui-gray-800: #1E293B;
+    --fui-gray-900: #0F172A;
+
+    // Borders
+    --fui-border-color: #CBD5E1;
+    --fui-border-radius: 4;
+
+    // Focus states
+    --fui-focus-border-color: #94A3B8;
+    --fui-focus-shadow: 0 0 0 3px #dc3545;
+}
+```
+
+You can also see we're setting a few more global variables, used throughout Formie's CSS, such as gray colours, border radius and border colour. This makes overriding the bulk of styles far easier than setting for each field or component.
