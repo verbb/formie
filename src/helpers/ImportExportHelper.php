@@ -4,6 +4,7 @@ namespace verbb\formie\helpers;
 use verbb\formie\Formie;
 use verbb\formie\base\NestedFieldInterface;
 use verbb\formie\elements\Form;
+use verbb\formie\fields\formfields;
 use verbb\formie\models\EmailTemplate;
 use verbb\formie\models\FormSettings;
 use verbb\formie\models\FormTemplate;
@@ -194,6 +195,9 @@ class ImportExportHelper
             }
         }
 
+        // Ensure we're not adding a field type that doesn't exist or isn't supported here
+        self::filterUnsupportedFields($pages);
+
         // Handle field layout and pages
         $fieldLayout = Formie::$plugin->getForms()->buildFieldLayout($pages, Form::class);
         $form->setFormFieldLayout($fieldLayout);
@@ -280,6 +284,50 @@ class ImportExportHelper
                 if ($field instanceof NestedFieldInterface) {
                     self::getFieldInfoForExport($field->getNestedRows(), $pageData['rows'][$rowId]['fields'][$fieldId]);
                 }
+            }
+        }
+    }
+
+    /**
+     * @inheritdoc
+     */
+    private static function filterUnsupportedFields(&$pages)
+    {
+        foreach ($pages as $pageKey => $page) {
+            $rows = $page['rows'] ?? [];
+
+            foreach ($rows as $rowKey => $row) {
+                $fields = $row['fields'] ?? [];
+
+                foreach ($fields as $fieldKey => $field) {
+                    $type = $field['type'] ?? '';
+
+                    // This will throw an error for Commerce, where the extended class doesn't exist.
+                    // Which unfortunately means we can't use `class_exists()` because its the extended
+                    // class that doesn't exist, and that can't be caught for some reason.
+                    if (in_array($type, [formfields\Products::class, formfields\Variants::class]) && !Formie::$plugin->getService()->isPluginInstalledAndEnabled('commerce')) {
+                        unset($pages[$pageKey]['rows'][$rowKey]['fields'][$fieldKey]);
+                    } else if (!class_exists($type)) {
+                        // Check if the class doesn't exist
+                        unset($pages[$pageKey]['rows'][$rowKey]['fields'][$fieldKey]);
+                    }
+
+                    // Check for nested fields
+                    $nestedRows = $field['rows'] ?? [];
+
+                    if ($nestedRows) {
+                        // Create a new variable so we can use our recursive function
+                        $nestedPages = [$nestedRows];
+
+                        self::filterUnsupportedFields($nestedPages);
+
+                        $pages[$pageKey]['rows'][$rowKey]['fields'][$fieldKey]['rows'] = $nestedPages[0];
+                    }
+                }
+
+                // Cleanup any isolated fields
+                $pages[$pageKey]['rows'][$rowKey] = array_filter($pages[$pageKey]['rows'][$rowKey]);
+                $pages[$pageKey]['rows'] = array_filter($pages[$pageKey]['rows']);
             }
         }
     }
