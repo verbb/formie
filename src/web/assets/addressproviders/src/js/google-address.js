@@ -109,8 +109,20 @@ export class FormieGoogleAddress extends FormieAddressProvider {
         const { latitude, longitude } = position.coords;
 
         const xhr = new XMLHttpRequest();
-        xhr.open('GET', 'https://maps.googleapis.com/maps/api/geocode/json?latlng=' + latitude + ',' + longitude + '&key=' + this.apiKey, true);
-        
+        xhr.open('POST', window.location.href, true);
+        xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+        xhr.setRequestHeader('Accept', 'application/json');
+        xhr.setRequestHeader('Cache-Control', 'no-cache');
+        xhr.timeout = 10 * 1000;
+
+        xhr.ontimeout = () => {
+            console.log('The request timed out.');
+        };
+
+        xhr.onerror = (e) => {
+            console.log('The request encountered a network error. Please try again.');
+        };
+
         xhr.onload = () => {
             if (xhr.status >= 200 && xhr.status < 300) {
                 try {
@@ -120,7 +132,7 @@ export class FormieGoogleAddress extends FormieAddressProvider {
                         this.setAddressValues(response.results[0].address_components);
                     }
 
-                    if (response.error_message) {
+                    if (response.error_message || response.error) {
                         console.log(response);
                     }
                 } catch(e) {
@@ -131,7 +143,13 @@ export class FormieGoogleAddress extends FormieAddressProvider {
             }
         };
 
-        xhr.send();
+        // Use our own proxy to get around lack of support from Google Places and restricted API keys
+        const formData = new FormData();
+        formData.append('action', 'formie/address/google-places-geocode');
+        formData.append('latlng', latitude + ',' + longitude);
+        formData.append('key', this.apiKey);
+
+        xhr.send(formData);
     }
 
     componentMap() {
