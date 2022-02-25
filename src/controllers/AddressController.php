@@ -12,6 +12,12 @@ use GuzzleHttp\Exception\RequestException;
 
 class AddressController extends Controller
 {
+    // Properties
+    // =========================================================================
+
+    protected $allowAnonymous = ['google-places-geocode'];
+
+    
     // Public Methods
     // =========================================================================
 
