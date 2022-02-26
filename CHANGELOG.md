@@ -1,6 +1,32 @@
 # Changelog
 
-## Unreleased
+## 1.5.10 - 2022-02-27
+
+### Added
+- Added Google Places Geocode API proxy to allow API keys with restricted IPs to query the API (from the server, not client).
+- Added full exception information to failed email notification error logs.
+- Added `Field::EVENT_MODIFY_VALUE_FOR_EMAIL` event (just for Checkboxes at the moment).
+
+### Changed
+- Refactor CSS variables for better global overriding, for themed CSS.
+
+### Fixed
+- Fixed importing a form, when a field type isn’t supported on the destination install.
+- Fixed `currentPageId` not resolving correctly for JavaScript when changing pages.
+- Fixed Group fields not performing server-side validation for nested fields.
+- Fixed lack of server-side validation for Email fields.
+- Fixed Google Places autocomplete not showing error logging for geocoding.
+- Fixed some fields when nested in Group fields throwing an error during previewing an email notification.
+- Fixed full error logs not being created when previewing an email notification.
+- Fixed un-marking a submission as spam in the control panel not working.
+- Fixed incorrect permission checking when editing a submission from the control panel.
+- Fixed when toggling “Scroll to top” toggling the “Page Progress Position” setting in the form builder.
+- Fixed Multi-Line fields allowing an extra `<p>` wrapping tag in email notifications.
+- Fixed an error when creating forms with long names (over 64 characters).
+- Fixed page conditions wiping content when saving a completed submission.
+- Fixed form submissions not being able to be made for Live Preview and Preview requests.
+- Fixed form settings set via `setSettings()` not persisting correctly.
+- Fixed a potential error with a migration and user permissions.
 
 ### Deprecated
 - The Constant Contact Email Marketing integration has a change that will require you to migrate your Constant Contact apps. This is due to a change at Constant Contact. [Continue reading](https://developer.constantcontact.com/api_guide/auth_update_apps.html).
