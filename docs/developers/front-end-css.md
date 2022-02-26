@@ -77,7 +77,7 @@ A classic example would be to use the Formie Theme CSS, but change the submit bu
 
 This gives the benefit of relying on the Theme CSS, but giving you full control over theme settings and variables, without needing to override everything with `!important` to get around specificity rules.
 
-It's also a good idea to use Formie's "global" CSS variables, which can take care of a lot of work for you. As the example above mentions to change te colour of the submit button - however Formie uses this same colour for other things like focus-borders on inputs, the checked state of checkbox/radio inputs, and more.
+It's also a good idea to use Formie's "global" CSS variables, which can take care of a lot of work for you. As the example above mentions to change the colour of the submit button - however Formie uses this same colour for other things like focus-borders on inputs, the checked state of checkbox/radio inputs, and more.
 
 Instead of overriding each one of these elements, you can set the `--fui-primary-color`.
 
