@@ -290,18 +290,21 @@ class Forms extends Component
         } else {
             $transaction = $db->beginTransaction();
             try {
-                // Rename the content table. This is so we can easily determine soft-deleted
-                // form content tables to cleanup later, or restore
-                $newContentTableName = $this->defineContentTableName($form, false, true);
+                // Check if the current content table exists. If not, proceed anyway
+                if ($db->tableExists($form->fieldContentTable)) {
+                    // Rename the content table. This is so we can easily determine soft-deleted
+                    // form content tables to cleanup later, or restore
+                    $newContentTableName = $this->defineContentTableName($form, false, true);
 
-                MigrationHelper::renameTable($form->fieldContentTable, $newContentTableName);
+                    MigrationHelper::renameTable($form->fieldContentTable, $newContentTableName);
 
-                $db->createCommand()
-                    ->update('{{%formie_forms}}', ['fieldContentTable' => $newContentTableName], [
-                        'id' => $form->id,
-                    ])->execute();
+                    $db->createCommand()
+                        ->update('{{%formie_forms}}', ['fieldContentTable' => $newContentTableName], [
+                            'id' => $form->id,
+                        ])->execute();
 
-                $form->fieldContentTable = $newContentTableName;
+                    $form->fieldContentTable = $newContentTableName;
+                }
 
                 if ($fieldLayout = $form->getFormFieldLayout()) {
                     Craft::$app->getFields()->deleteLayout($fieldLayout);
