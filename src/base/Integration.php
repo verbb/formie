@@ -10,6 +10,7 @@ use verbb\formie\events\IntegrationConnectionEvent;
 use verbb\formie\events\IntegrationFormSettingsEvent;
 use verbb\formie\events\ModifyFieldIntegrationValuesEvent;
 use verbb\formie\events\SendIntegrationPayloadEvent;
+use verbb\formie\fields\formfields\Agree;
 use verbb\formie\helpers\UrlHelper as FormieUrlHelper;
 use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
@@ -828,14 +829,24 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         // Do some checks depending on the field value type
         $hasOptedIn = true;
 
+        // Fetch information about the field we've picked to opt-in with
+        $fieldInfo = $this->getMappedFieldInfo($this->optInField, $submission);
+        $field = $fieldInfo['field'];
+
         // For Checkboxes fields, we'll have an object, but let's check for anything iterable just to be safe
         if (is_iterable($fieldValue)) {
             $hasOptedIn = (bool)count($fieldValue);
+        } else if ($field && $field instanceof Agree) {
+            // If this is an agree field, check this is the "Checked Value". This needs to handle strings
+            // which won't work as falsey values.
+            if ($field->checkedValue !== $fieldValue) {
+                $hasOptedIn = false;
+            }
         } else if (!$fieldValue) {
+            // For everything else, just a simple 'falsey' check is good enough
             $hasOptedIn = false;
         }
 
-        // For everything else, just a simple 'falsey' check is good enough
         if (!$hasOptedIn) {
             Integration::log($this, Craft::t('formie', 'Opting-out. Field “{field}” has value “{value}”.', [
                 'field' => $this->optInField,
@@ -851,38 +862,53 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     /**
      * @inheritDoc
      */
+    public function getMappedFieldInfo($mappedFieldValue, $submission)
+    {
+        // Replace how we store the value (as `{field_handle}` or `{submission:id}`)
+        $fieldKey = str_replace(['{', '}'], ['', ''], $mappedFieldValue);
+
+        // Check for nested fields (as `group[name[prefix]]`) - convert to dot-notation
+        if (strstr($fieldKey, '[')) {
+            $fieldKey = str_replace(['[', ']'], ['.', ''], $fieldKey);
+
+            // Change the field handle to reflect the top-level field, not the full path to the value
+            // but still keep the sub-field path (if any) for some fields to use
+            $fieldKey = explode('.', $fieldKey);
+            $fieldHandle = array_shift($fieldKey);
+            $fieldKey = implode('.', $fieldKey);
+        } else {
+            $fieldHandle = $fieldKey;
+            $fieldKey = '';
+        }
+
+        // Fetch all custom fields here for efficiency
+        $formFields = ArrayHelper::index($submission->getFieldLayout()->getFields(), 'handle');
+
+        // Try and get the form field we're pulling data from
+        $field = $formFields[$fieldHandle] ?? null;
+
+        return ['field' => $field, 'handle' => $fieldHandle, 'key' => $fieldKey];
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function getMappedFieldValue($mappedFieldValue, $submission, $integrationField)
     {
         try {
-            // Replace how we store the value (as `{field_handle}` or `{submission:id}`)
-            $fieldKey = str_replace(['{', '}'], ['', ''], $mappedFieldValue);
-
             // If this is a submission attribute, fetch it - easy!
-            if (StringHelper::startsWith($fieldKey, 'submission:')) {
-                $fieldKey = str_replace('submission:', '', $fieldKey);
+            if (StringHelper::startsWith($mappedFieldValue, '{submission:')) {
+                $mappedFieldValue = str_replace(['{submission:', '}'], ['', ''], $mappedFieldValue);
 
-                return $submission->$fieldKey;
+                return $submission->$mappedFieldValue;
             }
 
-            // Check for nested fields (as `group[name[prefix]]`) - convert to dot-notation
-            if (strstr($fieldKey, '[')) {
-                $fieldKey = str_replace(['[', ']'], ['.', ''], $fieldKey);
-
-                // Change the field handle to reflect the top-level field, not the full path to the value
-                // but still keep the sub-field path (if any) for some fields to use
-                $fieldKey = explode('.', $fieldKey);
-                $fieldHandle = array_shift($fieldKey);
-                $fieldKey = implode('.', $fieldKey);
-            } else {
-                $fieldHandle = $fieldKey;
-                $fieldKey = '';
-            }
-
-            // Fetch all custom fields here for efficiency
-            $formFields = ArrayHelper::index($submission->getFieldLayout()->getFields(), 'handle');
-
-            // Try and get the form field we're pulling data from
-            $field = $formFields[$fieldHandle] ?? null;
+            // Get information about the fields we're mapping to. The field key/handle will be different
+            // if this is a complex field, but the handle will always be the top-level field.
+            $fieldInfo = $this->getMappedFieldInfo($mappedFieldValue, $submission);
+            $field = $fieldInfo['field'];
+            $fieldKey = $fieldInfo['key'];
+            $fieldHandle = $fieldInfo['handle'];
 
             // Then, allow the integration to control how to parse the field, from its type
             if ($field) {
