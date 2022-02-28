@@ -37,6 +37,8 @@ class CreateFormContentTable extends Migration
 
         $this->createIndex(null, $this->tableName, ['elementId', 'siteId'], true);
         $this->addForeignKeys();
+
+        return true;
     }
 
     /**

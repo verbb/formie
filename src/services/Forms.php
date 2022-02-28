@@ -154,7 +154,9 @@ class Forms extends Component
                 if ($oldContentTable && $db->tableExists($oldContentTable)) {
                     MigrationHelper::renameTable($oldContentTable, $contentTable);
                 } else {
-                    $this->_createContentTable($contentTable);
+                    if (!$this->_createContentTable($contentTable)) {
+                        return false;
+                    }
                 }
             }
 
@@ -913,11 +915,13 @@ class Forms extends Component
     private function _createContentTable(string $tableName)
     {
         $migration = new CreateFormContentTable([
-            'tableName' => $tableName
+            'tableName' => $tableName,
         ]);
 
         ob_start();
-        $migration->up();
+        $result = $migration->up();
         ob_end_clean();
+
+        return $result;
     }
 }
