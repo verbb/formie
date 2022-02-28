@@ -2,6 +2,7 @@
 namespace verbb\formie\fields\formfields;
 
 use verbb\formie\base\FormField;
+use verbb\formie\events\ModifyEmailFieldUniqueQueryEvent;
 use verbb\formie\helpers\SchemaHelper;
 
 use Craft;
@@ -15,6 +16,12 @@ use yii\validators\EmailValidator;
 
 class Email extends FormField implements PreviewableFieldInterface
 {
+    // Constants
+    // =========================================================================
+
+    const EVENT_MODIFY_UNIQUE_QUERY = 'modifyUniqueQuery';
+
+
     // Static Methods
     // =========================================================================
 
@@ -121,14 +128,22 @@ class Email extends FormField implements PreviewableFieldInterface
             }
         }
 
-        // Be sure to check only against completed submission content
-        $emailExists = (new Query())
+        $query = (new Query())
             ->select($fieldHandle)
             ->from(['c' => $contentTable])
             ->where([$fieldHandle => $value, 'isIncomplete' => false, 'e.dateDeleted' => null])
             ->leftJoin(['s' => '{{%formie_submissions}}'], "[[s.id]] = [[c.elementId]]")
-            ->leftJoin('{{%elements}} e', '[[e.id]] = [[s.id]]')
-            ->exists();
+            ->leftJoin('{{%elements}} e', '[[e.id]] = [[s.id]]');
+
+        // Fire a 'modifyEmailFieldUniqueQuery' event
+        $event = new ModifyEmailFieldUniqueQueryEvent([
+            'query' => $query,
+            'field' => $this,
+        ]);
+        $this->trigger(self::EVENT_MODIFY_UNIQUE_QUERY, $event);
+
+        // Be sure to check only against completed submission content
+        $emailExists = $event->query->exists();
 
         if ($emailExists) {
             $element->addError($this->handle, Craft::t('formie', '“{name}” must be unique.', [

@@ -693,6 +693,28 @@ Event::on(Date::class, Date::EVENT_MODIFY_TIME_FORMAT, function(ModifyDateTimeFo
 ```
 
 
+
+## Email Field Events
+
+### The `modifyEmailFieldUniqueQuery` event
+The event that is triggered to modify the Submission query that determines whether this email is unique. You can modify the query to add your own logic.
+
+```php
+use verbb\formie\events\ModifyEmailFieldUniqueQueryEvent;
+use verbb\formie\fields\formfields\Email;
+use yii\base\Event;
+
+Event::on(Email::class, Email::EVENT_MODIFY_UNIQUE_QUERY, function(ModifyEmailFieldUniqueQueryEvent $event) {
+    $query = $event->query;
+    $field = $event->field;
+    // ...
+
+    // e.g. change the query to only look at today's submissions, to allow only one per day.
+    $event->query->andWhere('DATE(e.dateCreated) = UTC_DATE()');
+});
+```
+
+
 ## Element Field Events
 
 ### The `modifyElementFieldQuery` event
