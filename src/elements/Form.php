@@ -8,6 +8,7 @@ use verbb\formie\base\NestedFieldInterface;
 use verbb\formie\behaviors\FieldLayoutBehavior;
 use verbb\formie\elements\db\FormQuery;
 use verbb\formie\gql\interfaces\FieldInterface;
+use verbb\formie\helpers\HandleHelper;
 use verbb\formie\models\FieldLayout;
 use verbb\formie\models\FieldLayoutPage;
 use verbb\formie\models\FormSettings;
@@ -235,9 +236,7 @@ class Form extends Element
         $rules[] = [['templateId', 'submitActionEntryId', 'defaultStatusId', 'fieldLayoutId'], 'number', 'integerOnly' => true];
         
         // Make sure the column name is under the database’s maximum allowed column length
-        $maxHandleLength = Craft::$app->getDb()->getSchema()->maxObjectNameLength;
-
-        $rules[] = [['handle'], 'string', 'max' => $maxHandleLength];
+        $rules[] = [['handle'], 'string', 'max' => HandleHelper::getMaxFormHandle()];
         
         $rules[] = [
             ['handle'],

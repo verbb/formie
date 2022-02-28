@@ -76,5 +76,6 @@
 {% js %}
     new Craft.Formie.NewForm({
         formHandles: {{ stencilHandles | json_encode | raw }},
+        maxFormHandleLength: {{ maxFormHandleLength | json_encode | raw }},
     });
 {% endjs %}

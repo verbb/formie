@@ -68,7 +68,8 @@ Craft.Formie = Garnish.Base.extend({
         store.dispatch('formie/setExistingFields', settings.existingFields);
         store.dispatch('formie/setExistingNotifications', settings.existingNotifications);
         store.dispatch('formie/setEmailTemplates', settings.emailTemplates);
-        store.dispatch('formie/setMaxHandleLength', settings.maxHandleLength);
+        store.dispatch('formie/setMaxFieldHandleLength', settings.maxFieldHandleLength);
+        store.dispatch('formie/setMaxFormHandleLength', settings.maxFormHandleLength);
         store.dispatch('formie/setReservedHandles', settings.reservedHandles);
         store.dispatch('formie/setStatuses', settings.statuses);
 
@@ -507,6 +508,7 @@ Craft.Formie.NewForm = Garnish.Base.extend({
     init(settings) {
         // Initialise our Vuex stores with data
         store.dispatch('formie/setReservedHandles', settings.reservedHandles);
+        store.dispatch('formie/setMaxFormHandleLength', settings.maxFormHandleLength);
 
         new Vue({
             el: '#fui-new-form',
@@ -523,7 +525,7 @@ Craft.Formie.NewForm = Garnish.Base.extend({
 
             watch: {
                 name(val) {
-                    const maxHandleLength = this.$store.getters['formie/maxHandleLength']();
+                    const maxHandleLength = this.$store.getters['formie/maxFormHandleLength']();
 
                     // Let's get smart about generating a handle. Check if its unique - if it isn't, make it unique
                     // Be sure to restrict handles well below their limit

@@ -366,7 +366,7 @@ export default {
             // and the field suffix)
             const value = getNextAvailableHandle(handles, generatedHandle, 0);
             
-            const maxHandleLength = this.$store.getters['formie/maxHandleLength']();
+            const maxHandleLength = this.$store.getters['formie/maxFieldHandleLength']();
             let newHandle = value.substr(0, maxHandleLength);
 
             const newField = this.$store.getters['fieldtypes/newField'](this.field.type, {

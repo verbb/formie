@@ -93,5 +93,6 @@
     new Craft.Formie.NewForm({
         formHandles: {{ formHandles | json_encode | raw }},
         reservedHandles: {{ reservedHandles | json_encode | raw }},
+        maxFormHandleLength: {{ maxFormHandleLength | json_encode | raw }},
     });
 {% endjs %}
