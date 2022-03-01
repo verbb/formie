@@ -6,6 +6,7 @@ use verbb\formie\base\NestedFieldInterface;
 use verbb\formie\base\NestedFieldTrait;
 use verbb\formie\elements\db\NestedFieldRowQuery;
 use verbb\formie\elements\NestedFieldRow;
+use verbb\formie\gql\interfaces\RowInterface;
 use verbb\formie\gql\types\input\RepeaterInputType;
 use verbb\formie\gql\types\RowType;
 use verbb\formie\helpers\SchemaHelper;
@@ -324,7 +325,7 @@ class Repeater extends FormField implements NestedFieldInterface, EagerLoadingFi
         }
 
         $rowTypeName = $typeName . 'Row';
-        $repeaterFields = [];
+        $repeaterFields = RowInterface::getFieldDefinitions();
 
         foreach ($this->getFields() as $field) {
             $repeaterFields[$field->handle] = $field->getContentGqlType();
