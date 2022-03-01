@@ -287,7 +287,7 @@ class GoogleSheets extends Miscellaneous
         $this->_client = Craft::createGuzzleClient([
             'base_uri' => "https://sheets.googleapis.com/v4/spreadsheets/{$spreadsheetId}/",
             'headers' => [
-                'Authorization' => 'Bearer ' . $token->accessToken ?? '',
+                'Authorization' => 'Bearer ' . ($token->accessToken ?? 'empty'),
                 'Content-Type' => 'application/json',
             ],
         ]);
@@ -305,7 +305,7 @@ class GoogleSheets extends Miscellaneous
                 $this->_client = Craft::createGuzzleClient([
                     'base_uri' => "https://sheets.googleapis.com/v4/spreadsheets/{$spreadsheetId}/",
                     'headers' => [
-                        'Authorization' => 'Bearer ' . $token->accessToken ?? '',
+                        'Authorization' => 'Bearer ' . ($token->accessToken ?? 'empty'),
                         'Content-Type' => 'application/json',
                     ],
                 ]);

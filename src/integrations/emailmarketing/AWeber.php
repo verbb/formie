@@ -268,7 +268,7 @@ class AWeber extends EmailMarketing
         $this->_client = Craft::createGuzzleClient([
             'base_uri' => 'https://api.aweber.com/1.0/',
             'headers' => [
-                'Authorization' => 'Bearer ' . $token->accessToken ?? '',
+                'Authorization' => 'Bearer ' . ($token->accessToken ?? 'empty'),
                 'Content-Type' => 'application/json',
             ],
         ]);
@@ -286,7 +286,7 @@ class AWeber extends EmailMarketing
                 $this->_client = Craft::createGuzzleClient([
                     'base_uri' => 'https://api.aweber.com/1.0/',
                     'headers' => [
-                        'Authorization' => 'Bearer ' . $token->accessToken ?? '',
+                        'Authorization' => 'Bearer ' . ($token->accessToken ?? 'empty'),
                         'Content-Type' => 'application/json',
                     ],
                 ]);

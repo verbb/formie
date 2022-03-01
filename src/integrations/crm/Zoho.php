@@ -371,7 +371,7 @@ class Zoho extends Crm
         $this->_client = Craft::createGuzzleClient([
             'base_uri' => "$url/crm/v2/",
             'headers' => [
-                'Authorization' => 'Bearer ' . $token->accessToken ?? '',
+                'Authorization' => 'Bearer ' . ($token->accessToken ?? 'empty'),
                 'Content-Type' => 'application/json',
             ],
         ]);
@@ -389,7 +389,7 @@ class Zoho extends Crm
                 $this->_client = Craft::createGuzzleClient([
                     'base_uri' => "$url/crm/v2/",
                     'headers' => [
-                        'Authorization' => 'Bearer ' . $token->accessToken ?? '',
+                        'Authorization' => 'Bearer ' . ($token->accessToken ?? 'empty'),
                         'Content-Type' => 'application/json',
                     ],
                 ]);

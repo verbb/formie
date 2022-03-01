@@ -334,7 +334,7 @@ class MicrosoftDynamics365 extends Crm
         $this->_client = Craft::createGuzzleClient([
             'base_uri' => "$url/api/data/v9.0/",
             'headers' => [
-                'Authorization' => 'Bearer ' . $token->accessToken ?? '',
+                'Authorization' => 'Bearer ' . ($token->accessToken ?? 'empty'),
                 'Content-Type' => 'application/json',
             ],
         ]);
@@ -352,7 +352,7 @@ class MicrosoftDynamics365 extends Crm
                 $this->_client = Craft::createGuzzleClient([
                     'base_uri' => "$url/api/data/v9.0/",
                     'headers' => [
-                        'Authorization' => 'Bearer ' . $token->accessToken ?? '',
+                        'Authorization' => 'Bearer ' . ($token->accessToken ?? 'empty'),
                         'Content-Type' => 'application/json',
                     ],
                 ]);

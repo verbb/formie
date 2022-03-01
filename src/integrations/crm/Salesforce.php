@@ -429,7 +429,7 @@ class Salesforce extends Crm
         $this->_client = Craft::createGuzzleClient([
             'base_uri' => "{$this->apiDomain}/services/data/v49.0/",
             'headers' => [
-                'Authorization' => 'Bearer ' . $token->accessToken ?? '',
+                'Authorization' => 'Bearer ' . ($token->accessToken ?? 'empty'),
                 'Content-Type' => 'application/json',
             ],
         ]);
@@ -447,7 +447,7 @@ class Salesforce extends Crm
                 $this->_client = Craft::createGuzzleClient([
                     'base_uri' => "{$this->apiDomain}/services/data/v49.0/",
                     'headers' => [
-                        'Authorization' => 'Bearer ' . $token->accessToken ?? '',
+                        'Authorization' => 'Bearer ' . ($token->accessToken ?? 'empty'),
                         'Content-Type' => 'application/json',
                     ],
                 ]);

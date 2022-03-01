@@ -275,7 +275,7 @@ class Drip extends EmailMarketing
         $this->_client = Craft::createGuzzleClient([
             'base_uri' => 'https://api.getdrip.com/v2/',
             'headers' => [
-                'Authorization' => 'Bearer ' . $token->accessToken ?? '',
+                'Authorization' => 'Bearer ' . ($token->accessToken ?? 'empty'),
                 'Content-Type' => 'application/json',
             ],
         ]);
@@ -293,7 +293,7 @@ class Drip extends EmailMarketing
                 $this->_client = Craft::createGuzzleClient([
                     'base_uri' => 'https://api.getdrip.com/v2/',
                     'headers' => [
-                        'Authorization' => 'Bearer ' . $token->accessToken ?? '',
+                        'Authorization' => 'Bearer ' . ($token->accessToken ?? 'empty'),
                         'Content-Type' => 'application/json',
                     ],
                 ]);

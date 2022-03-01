@@ -393,7 +393,7 @@ class Pardot extends Crm
         $this->_client = Craft::createGuzzleClient([
             'base_uri' => $baseUrl,
             'headers' => [
-                'Authorization' => 'Bearer ' . $token->accessToken ?? '',
+                'Authorization' => 'Bearer ' . ($token->accessToken ?? 'empty'),
                 'Pardot-Business-Unit-Id' => $businessUnitId,
                 'Content-Type' => 'application/json',
             ],
@@ -412,7 +412,7 @@ class Pardot extends Crm
                 $this->_client = Craft::createGuzzleClient([
                     'base_uri' => $baseUrl,
                     'headers' => [
-                        'Authorization' => 'Bearer ' . $token->accessToken ?? '',
+                        'Authorization' => 'Bearer ' . ($token->accessToken ?? 'empty'),
                         'Pardot-Business-Unit-Id' => $businessUnitId,
                         'Content-Type' => 'application/json',
                     ],

@@ -249,7 +249,7 @@ class ConstantContact extends EmailMarketing
         $this->_client = Craft::createGuzzleClient([
             'base_uri' => 'https://api.cc.email/v3/',
             'headers' => [
-                'Authorization' => 'Bearer ' . $token->accessToken ?? '',
+                'Authorization' => 'Bearer ' . ($token->accessToken ?? 'empty'),
                 'Content-Type' => 'application/json',
             ],
         ]);
@@ -267,7 +267,7 @@ class ConstantContact extends EmailMarketing
                 $this->_client = Craft::createGuzzleClient([
                     'base_uri' => 'https://api.cc.email/v3/',
                     'headers' => [
-                        'Authorization' => 'Bearer ' . $token->accessToken ?? '',
+                        'Authorization' => 'Bearer ' . ($token->accessToken ?? 'empty'),
                         'Content-Type' => 'application/json',
                     ],
                 ]);

@@ -267,7 +267,7 @@ class Slack extends Miscellaneous
         $this->_client = Craft::createGuzzleClient([
             'base_uri' => 'https://slack.com/api/',
             'headers' => [
-                'Authorization' => 'Bearer ' . $token->accessToken ?? '',
+                'Authorization' => 'Bearer ' . ($token->accessToken ?? 'empty'),
                 'Content-Type' => 'application/json',
             ],
         ]);
@@ -285,7 +285,7 @@ class Slack extends Miscellaneous
                 $this->_client = Craft::createGuzzleClient([
                     'base_uri' => 'https://slack.com/api/',
                     'headers' => [
-                        'Authorization' => 'Bearer ' . $token->accessToken ?? '',
+                        'Authorization' => 'Bearer ' . ($token->accessToken ?? 'empty'),
                         'Content-Type' => 'application/json',
                     ],
                 ]);

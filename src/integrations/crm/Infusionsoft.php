@@ -283,7 +283,7 @@ class Infusionsoft extends Crm
         $this->_client = Craft::createGuzzleClient([
             'base_uri' => 'https://api.infusionsoft.com/crm/rest/v1/',
             'headers' => [
-                'Authorization' => 'Bearer ' . $token->accessToken ?? '',
+                'Authorization' => 'Bearer ' . ($token->accessToken ?? 'empty'),
                 'Content-Type' => 'application/json',
             ],
         ]);
@@ -301,7 +301,7 @@ class Infusionsoft extends Crm
                 $this->_client = Craft::createGuzzleClient([
                     'base_uri' => 'https://api.infusionsoft.com/crm/rest/v1/',
                     'headers' => [
-                        'Authorization' => 'Bearer ' . $token->accessToken ?? '',
+                        'Authorization' => 'Bearer ' . ($token->accessToken ?? 'empty'),
                         'Content-Type' => 'application/json',
                     ],
                 ]);
