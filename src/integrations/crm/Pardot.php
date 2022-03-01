@@ -430,6 +430,28 @@ class Pardot extends Crm
     /**
      * @inheritDoc
      */
+    private function _prepPayload($fields)
+    {
+        $payload = $fields;
+
+        // Check to see if the ownerId is an email, special handling for that
+        $ownerId = $payload['OwnerId'] ?? '';
+
+        if ($ownerId && strstr($ownerId, '@')) {
+            $ownerId = ArrayHelper::remove($payload, 'OwnerId');
+
+            $payload['Owner'] = [
+                'attributes' => ['type' => 'User'],
+                'Email' => $ownerId,
+            ];
+        }
+
+        return $payload;
+    }
+
+    /**
+     * @inheritDoc
+     */
     private function _convertFieldType($fieldType)
     {
         $fieldTypes = [
