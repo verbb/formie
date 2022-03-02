@@ -195,7 +195,31 @@ class NestedFieldRow extends Element implements BlockElementInterface
     protected function defineRules(): array
     {
         $rules = parent::defineRules();
+
         $rules[] = [['fieldId', 'ownerId', 'sortOrder'], 'number', 'integerOnly' => true];
+
+        if ($fieldLayout = $this->getFieldLayout()) {
+            $fields = $this->getFieldLayout()->getFields();
+
+            $fieldsByHandle = ArrayHelper::getColumn($fields, 'handle');
+
+            // Evaulate field conditions. What if this is a required field, but conditionally hidden?
+            foreach ($rules as $key => $rule) {
+                foreach ($fields as $field) {
+                    list($attribute, $validator) = $rule;
+                    $attribute = is_array($attribute) ? $attribute[0] : $attribute;
+
+                    if ($attribute === "field:{$field->handle}") {
+                        // If this field is conditionally hidden, remove it from validation
+                        if ($field->isConditionallyHidden($this->owner)) {
+                            unset($rules[$key]);
+                        }
+                    }
+                }
+            }
+        }
+
+
         return $rules;
     }
 
