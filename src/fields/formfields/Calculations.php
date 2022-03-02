@@ -3,6 +3,7 @@ namespace verbb\formie\fields\formfields;
 
 use verbb\formie\Formie;
 use verbb\formie\base\FormField;
+use verbb\formie\base\SubfieldInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\RichTextHelper;
@@ -112,18 +113,14 @@ class Calculations extends FormField implements PreviewableFieldInterface
 
         // Go through each field and make sure we namespace it for DOM lookup
         foreach ($handles as $key => $handle) {
-            if ($field = $this->getForm()->getFieldByHandle($handle)) {
-                $name = Html::namespaceInputName($handle, $field->namespace);
-                
-                $variables['field_' . $handle] = [
-                    'name' => $name,
-                    'type' => get_class($field),
-                ];
-            }
+            $newHandle = 'field_' . str_replace('.', '_', $handle);
+
+            $variables[$newHandle] = $this->_getFieldVariable($handle);
         }
 
-        // Replace `{field.handle}` with `field_handle`
-        $formula = preg_replace('/{field\.(.*?[^}])}/m', 'field_$1', $formula);
+        // Replace `{field.handle.sub}` with `field_handle_sub` to save any potential collisions with keywords
+        // and because some characters won't work well with the expressionLanguage parser
+        $formula = str_replace(['.', '{', '}'], ['_', '', ''], $formula);
 
         return $this->_renderedFormula = [
             'formula' => $formula,
@@ -207,5 +204,67 @@ class Calculations extends FormField implements PreviewableFieldInterface
             SchemaHelper::enableConditionsField(),
             SchemaHelper::conditionsField(),
         ];
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    /**
+     * @inheritDoc
+     */
+    private function _getFieldVariable($fieldKey, $element = null, $inputNames = [])
+    {
+        // Check for nested field handles
+        if (strstr($fieldKey, '.')) {
+            $fieldKey = explode('.', $fieldKey);
+            $fieldHandle = array_shift($fieldKey);
+            $fieldKey = implode('.', $fieldKey);
+        } else {
+            $fieldHandle = $fieldKey;
+            $fieldKey = '';
+        }
+
+        if (!$element) {
+            $element = $this->getForm();
+        }
+
+        if ($field = $element->getFieldByHandle($fieldHandle)) {
+            if ($field instanceof Group) {
+                $inputNames = array_merge($inputNames, [$fieldHandle, 'rows', 'new1', 'fields']);
+
+                return $this->_getFieldVariable($fieldKey, $field, $inputNames);
+            }
+
+            if ($field instanceof SubfieldInterface) {
+                $inputNames = array_merge($inputNames, [$fieldHandle, $fieldKey]);
+
+                return [
+                    'name' => Html::namespaceInputName($this->_getInputName($inputNames), $field->namespace),
+                    'type' => get_class($field),
+                ];
+            }
+
+            $inputNames[] = $fieldHandle;
+
+            return [
+                'name' => Html::namespaceInputName($this->_getInputName($inputNames), $field->namespace),
+                'type' => get_class($field),
+            ];
+        }
+    }
+
+    /**
+     * @inheritDoc
+     */
+    private function _getInputName($names)
+    {
+        $first = array_shift($names);
+
+        if ($names) {
+            return $first . '[' . implode('][', $names) . ']';
+        }
+
+        return $first ?? '';
     }
 }
