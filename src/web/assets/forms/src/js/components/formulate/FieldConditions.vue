@@ -280,6 +280,11 @@ export default {
                         options[i].value = 'id:' + i;
                     }
                 }
+
+                // Filter out any optgroups
+                options = options.filter(option => {
+                    return !option.isOptgroup;
+                });
             
                 return options;
             }
