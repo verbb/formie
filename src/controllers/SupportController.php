@@ -3,41 +3,31 @@ namespace verbb\formie\controllers;
 
 use verbb\formie\Formie;
 use verbb\formie\helpers\ImportExportHelper;
-use verbb\formie\models\Settings;
 use verbb\formie\models\Support;
-use verbb\formie\records\Form as FormRecord;
-use verbb\formie\records\Notification as NotificationRecord;
 
 use Craft;
 use craft\helpers\App;
-use craft\helpers\ArrayHelper;
 use craft\helpers\FileHelper;
 use craft\helpers\Json;
 use craft\helpers\StringHelper;
-use craft\i18n\Locale;
 use craft\web\Controller;
 use craft\web\UploadedFile;
 use craft\web\View;
 
 use yii\base\ErrorException;
 use yii\base\Exception;
-use yii\base\InvalidArgumentException;
-use yii\web\BadRequestHttpException;
 use yii\web\Response;
 
-use DateTime;
 use ZipArchive;
 
 use GuzzleHttp\Exception\RequestException;
+use Throwable;
 
 class SupportController extends Controller
 {
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritdoc
-     */
     public function actionIndex(Support $support = null, $error = null): Response
     {
         $settings = Formie::$plugin->getSettings();
@@ -46,10 +36,7 @@ class SupportController extends Controller
         return $this->renderTemplate('formie/settings/support', $variables);
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function actionSendSupportRequest()
+    public function actionSendSupportRequest(): ?Response
     {
         $this->requirePostRequest();
 
@@ -150,7 +137,7 @@ class SupportController extends Controller
                 FileHelper::writeToFile($tempFileForm, $json);
 
                 $zip->addFile($tempFileForm, pathinfo($tempFileForm, PATHINFO_BASENAME));
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 $noteError = "\n\nError adding export to help request: `" . $e->getMessage() . ":" . $e->getLine() . "`.";
                 $requestParams['note'] .= $noteError;
 
@@ -202,7 +189,7 @@ class SupportController extends Controller
                         }
                     }
                 }
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 $noteError = "\n\nError adding template to help request: `" . $e->getMessage() . ":" . $e->getLine() . "`.";
                 $requestParams['note'] .= $noteError;
 
@@ -231,7 +218,7 @@ class SupportController extends Controller
             if (is_file($tempFileForm)) {
                 FileHelper::unlink($tempFileForm);
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Formie::log('Tried to attach debug logs to a support request and something went horribly wrong: `' . $e->getMessage() . ':' . $e->getLine() . '`.');
 
             // There was a problem zipping, so reset the params and just send the email without the attachment.
@@ -246,7 +233,7 @@ class SupportController extends Controller
 
         try {
             $guzzleClient->post('https://support.verbb.io/api/get-help', [ 'json' => $requestParams ]);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $messageText = $e->getMessage();
 
             // Check for Guzzle errors, which are truncated in the exception `getMessage()`.

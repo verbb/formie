@@ -21,6 +21,8 @@ use craft\i18n\Locale;
 use DateTime;
 use yii\base\Event;
 use yii\db\Schema;
+use GraphQL\Type\Definition\ScalarType;
+use GraphQL\Type\Definition\ListOfType;
 use GraphQL\Type\Definition\Type;
 
 class Date extends FormField implements SubfieldInterface, PreviewableFieldInterface
@@ -28,8 +30,8 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
     // Constants
     // =========================================================================
 
-    const EVENT_MODIFY_DATE_FORMAT = 'modifyDateFormat';
-    const EVENT_MODIFY_TIME_FORMAT = 'modifyTimeFormat';
+    public const EVENT_MODIFY_DATE_FORMAT = 'modifyDateFormat';
+    public const EVENT_MODIFY_TIME_FORMAT = 'modifyTimeFormat';
 
 
     // Traits
@@ -57,10 +59,7 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
         return 'formie/_formfields/date/icon.svg';
     }
 
-    /**
-     * @inheritDoc
-     */
-    public static function toDateTime($value)
+    public static function toDateTime($value): DateTime|bool
     {
         // We should never deal with timezones
         return DateTimeHelper::toDateTime($value, false, false);
@@ -70,37 +69,37 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
     // Properties
     // =========================================================================
 
-    public $dateFormat = 'Y-m-d';
-    public $timeFormat = 'H:i';
-    public $displayType = 'calendar';
-    public $includeDate = true;
-    public $includeTime = false;
-    public $timeLabel = '';
-    public $defaultOption;
-    public $dayLabel;
-    public $dayPlaceholder;
-    public $monthLabel;
-    public $monthPlaceholder;
-    public $yearLabel;
-    public $yearPlaceholder;
-    public $hourLabel;
-    public $hourPlaceholder;
-    public $minuteLabel;
-    public $minutePlaceholder;
-    public $secondLabel;
-    public $secondPlaceholder;
-    public $ampmLabel;
-    public $ampmPlaceholder;
-    public $useDatePicker = true;
-    public $datePickerOptions = [];
-    public $minDate;
-    public $maxDate;
+    public string $dateFormat = 'Y-m-d';
+    public string $timeFormat = 'H:i';
+    public string $displayType = 'calendar';
+    public bool $includeDate = true;
+    public bool $includeTime = false;
+    public ?string $timeLabel = null;
+    public ?string $defaultOption = null;
+    public ?string $dayLabel = null;
+    public ?string $dayPlaceholder = null;
+    public ?string $monthLabel = null;
+    public ?string $monthPlaceholder = null;
+    public ?string $yearLabel = null;
+    public ?string $yearPlaceholder = null;
+    public ?string $hourLabel = null;
+    public ?string $hourPlaceholder = null;
+    public ?string $minuteLabel = null;
+    public ?string $minutePlaceholder = null;
+    public ?string $secondLabel = null;
+    public ?string $secondPlaceholder = null;
+    public ?string $ampmLabel = null;
+    public ?string $ampmPlaceholder = null;
+    public bool $useDatePicker = true;
+    public array $datePickerOptions = [];
+    public mixed $minDate = null;
+    public mixed $maxDate = null;
 
 
     // Public Methods
     // =========================================================================
 
-    public function init()
+    public function init(): void
     {
         parent::init();
 
@@ -122,7 +121,7 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
     /**
      * @inheritDoc
      */
-    public function getContentColumnType(): string
+    public function getContentColumnType(): array|string
     {
         if ($this->getIsTime()) {
             return Schema::TYPE_TIME;
@@ -136,17 +135,10 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
      */
     public function hasSubfields(): bool
     {
-        if ($this->displayType !== 'calendar') {
-            return true;
-        }
-        
-        return false;
+        return $this->displayType !== 'calendar';
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getDateFormat()
+    public function getDateFormat(): ?string
     {
         // Allow plugins to modify the date format, commonly for specific sites
         $event = new ModifyDateTimeFormatEvent([
@@ -159,10 +151,7 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
         return $event->dateFormat;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getTimeFormat()
+    public function getTimeFormat(): ?string
     {
         // Allow plugins to modify the date format, commonly for specific sites
         $event = new ModifyDateTimeFormatEvent([
@@ -178,7 +167,7 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
     /**
      * @inheritdoc
      */
-    public function getTableAttributeHtml($value, ElementInterface $element): string
+    public function getTableAttributeHtml(mixed $value, ElementInterface $element): string
     {
         if ($value && $this->getIsDateTime()) {
             return Craft::$app->getFormatter()->asDatetime($value, Locale::LENGTH_SHORT);
@@ -198,7 +187,7 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
     /**
      * @inheritDoc
      */
-    public function normalizeValue($value, ElementInterface $element = null)
+    public function normalizeValue(mixed $value, ?ElementInterface $element = null): mixed
     {
         if (!$value || $value instanceof DateTime) {
             return $value;
@@ -249,7 +238,7 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
     /**
      * @inheritDoc
      */
-    public function getSearchKeywords($value, ElementInterface $element): string
+    public function getSearchKeywords(mixed $value, ElementInterface $element): string
     {
         return '';
     }
@@ -296,8 +285,8 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
      */
     public function getFrontEndSubfields(): array
     {
-        $defaultValue = $this->defaultValue ? $this->defaultValue : new DateTime();
-        $year = intval($defaultValue->format('Y'));
+        $defaultValue = $this->defaultValue ?: new DateTime();
+        $year = (int)$defaultValue->format('Y');
         $minYear = $year - 100;
         $maxYear = $year + 100;
 
@@ -427,41 +416,28 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
      */
     public function getIsFieldset(): bool
     {
-        if ($this->displayType === 'calendar') {
-            return false;
-        }
-
-        return true;
+        return $this->displayType !== 'calendar';
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getIsDate(): bool
     {
-        return (!$this->includeTime && $this->includeDate) ? true : false;
+        return !$this->includeTime && $this->includeDate;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getIsTime(): bool
     {
-        return ($this->includeTime && !$this->includeDate) ? true : false;
+        return $this->includeTime && !$this->includeDate;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getIsDateTime(): bool
     {
-        return ($this->includeTime && $this->includeDate) ? true : false;
+        return $this->includeTime && $this->includeDate;
     }
 
     /**
      * @inheritDoc
      */
-    public function getInputHtml($value, ElementInterface $element = null): string
+    public function getInputHtml(mixed $value, ?ElementInterface $element = null): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/date/input', [
             'name' => $this->handle,
@@ -485,7 +461,7 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
      *
      * @return array
      */
-    public function getMonths()
+    public function getMonths(): array
     {
         $months = [];
 
@@ -496,10 +472,7 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
         return $months;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getDefaultDate()
+    public function getDefaultDate(): ?string
     {
         // An alias for `defaultValue` for GQL, as `defaultValue` returns a date, not string
         return $this->defaultValue;
@@ -508,7 +481,7 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
     /**
      * @inheritdoc
      */
-    public function getFrontEndJsModules()
+    public function getFrontEndJsModules(): ?array
     {
         if ($this->displayType === 'calendar' && $this->useDatePicker) {
             $locale = Craft::$app->locale->id;
@@ -560,6 +533,8 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
                 ],
             ];
         }
+
+        return null;
     }
 
     /**
@@ -775,9 +750,6 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineConditionsSchema(): array
     {
         return [
@@ -789,7 +761,7 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
     /**
      * @inheritdoc
      */
-    public function getContentGqlType()
+    public function getContentGqlType(): array|Type
     {
         return DateTimeType::getType();
     }
@@ -797,7 +769,7 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
     /**
      * @inheritdoc
      */
-    public function getContentGqlMutationArgumentType()
+    public function getContentGqlMutationArgumentType(): array|Type
     {
         return [
             'name' => $this->handle,
@@ -813,9 +785,11 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
     /**
      * @inheritDoc
      */
-    protected function defineValueAsString($value, ElementInterface $element = null)
+    protected function defineValueAsString($value, ElementInterface $element = null): string
     {
         if ($value instanceof DateTime) {
+            $format = null;
+
             if ($this->getIsDateTime()) {
                 $format = $this->getDateFormat() . ' ' . $this->getTimeFormat();
             }
@@ -837,7 +811,7 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
     /**
      * @inheritDoc
      */
-    protected function defineValueAsJson($value, ElementInterface $element = null)
+    protected function defineValueAsJson($value, ElementInterface $element = null): array
     {
         return $this->getValueAsString($value, $element);
     }
@@ -845,7 +819,7 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
     /**
      * @inheritDoc
      */
-    protected function defineValueForIntegration($value, $integrationField, $integration, ElementInterface $element = null, $fieldKey = '')
+    protected function defineValueForIntegration($value, $integrationField, $integration, ElementInterface $element = null, $fieldKey = ''): mixed
     {
         // If a string value is requested for a date, return the ISO 8601 date string
         if ($integrationField->getType() === IntegrationField::TYPE_STRING) {
@@ -861,7 +835,7 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
     /**
      * @inheritDoc
      */
-    protected function getSettingGqlType($attribute, $type, $fieldInfo)
+    protected function getSettingGqlType($attribute, $type, $fieldInfo): ListOfType|ScalarType|array
     {
         // Disable normal `defaultValue` as it is a DateTime, not string. We can't have the same attributes 
         // return multiple types. Instead, return `defaultDate` as the attribute name and correct type.

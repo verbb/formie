@@ -1,6 +1,8 @@
 <?php
 namespace verbb\formie\integrations\feedme\fields;
 
+use verbb\formie\fields\formfields\Email as EmailField;
+
 class Email extends DefaultField
 {
     // Traits
@@ -13,6 +15,6 @@ class Email extends DefaultField
     // =========================================================================
 
     public static $name = 'Email';
-    public static $class = 'verbb\formie\fields\formfields\Email';
+    public static $class = EmailField::class;
 
 }

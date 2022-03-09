@@ -1,6 +1,10 @@
 <?php
 namespace verbb\formie\events;
 
+use verbb\formie\base\FormField;
+
+use craft\elements\db\ElementQueryInterface;
+
 use yii\base\Event;
 
 class ModifyEmailFieldUniqueQueryEvent extends Event
@@ -8,7 +12,7 @@ class ModifyEmailFieldUniqueQueryEvent extends Event
     // Properties
     // =========================================================================
 
-    public $query;
-    public $field;
+    public ?ElementQueryInterface $query = null;
+    public ?FormField $field = null;
     
 }

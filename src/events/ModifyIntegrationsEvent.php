@@ -8,6 +8,6 @@ class ModifyIntegrationsEvent extends Event
     // Properties
     // =========================================================================
 
-    public $integrations;
+    public ?array $integrations = null;
     
 }

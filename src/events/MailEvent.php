@@ -1,6 +1,9 @@
 <?php
 namespace verbb\formie\events;
 
+use verbb\formie\elements\Submission;
+use verbb\formie\models\Notification;
+
 use craft\events\CancelableEvent;
 
 class MailEvent extends CancelableEvent
@@ -8,8 +11,8 @@ class MailEvent extends CancelableEvent
     // Properties
     // =========================================================================
 
-    public $email;
-    public $notification;
-    public $submission;
+    public mixed $email = null;
+    public ?Notification $notification = null;
+    public ?Submission $submission = null;
 
 }

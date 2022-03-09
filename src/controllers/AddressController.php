@@ -2,20 +2,21 @@
 namespace verbb\formie\controllers;
 
 use verbb\formie\Formie;
-use verbb\formie\models\Settings;
 
 use Craft;
 use craft\helpers\Json;
 use craft\web\Controller;
 
 use GuzzleHttp\Exception\RequestException;
+use Throwable;
+use yii\web\Response;
 
 class AddressController extends Controller
 {
     // Properties
     // =========================================================================
 
-    protected $allowAnonymous = ['google-places-geocode'];
+    protected array|bool|int $allowAnonymous = ['google-places-geocode'];
 
     
     // Public Methods
@@ -24,7 +25,7 @@ class AddressController extends Controller
     /**
      * @inheritdoc
      */
-    public function beforeAction($action)
+    public function beforeAction($action): bool
     {
         if ($action->id === 'google-places-geocode') {
             $this->enableCsrfValidation = false;
@@ -33,13 +34,10 @@ class AddressController extends Controller
         return parent::beforeAction($action);
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function actionGooglePlacesGeocode()
+    public function actionGooglePlacesGeocode(): Response
     {
         // Provide a proxy for Google Placed Geocoding lookup, which can't be done in client-side code without
-        // using an un-restricted API key, which is bad seeing as though it's publicly scrapable.
+        // using an un-restricted API key, which is bad seeing as though it's publicly scrape-able.
         $this->requireAcceptsJson();
 
         $request = Craft::$app->getRequest();
@@ -56,7 +54,7 @@ class AddressController extends Controller
             $result = Json::decode((string)$response->getBody(), true);
 
             return $this->asJson($result);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $messageText = $e->getMessage();
 
             // Check for Guzzle errors, which are truncated in the exception `getMessage()`.

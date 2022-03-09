@@ -42,25 +42,17 @@ class FormIntegrationsType extends ObjectType
                         $json = Json::decode(Json::encode($source));
 
                         // Cleanup some settings that don't need to be included
-                        unset($json['cache']);
-                        unset($json['formId']);
-                        unset($json['optInField']);
-                        unset($json['type']);
-                        unset($json['sortOrder']);
-                        unset($json['uid']);
-                        unset($json['referrer']);
-                        unset($json['dateCreated']);
-                        unset($json['dateUpdated']);
+                        unset($json['cache'], $json['formId'], $json['optInField'], $json['type'], $json['sortOrder'], $json['uid'], $json['referrer'], $json['dateCreated'], $json['dateUpdated']);
 
                         // Remove all field mapping (different for each provider)
                         foreach ($json as $key => $value) {
-                            if (strstr($key, 'mapTo') || strstr($key, 'FieldMapping')) {
+                            if (strpos($key, 'mapTo') !== false || strpos($key, 'FieldMapping') !== false) {
                                 unset($json[$key]);
                                 continue;
                             }
 
                             // Parse any .env variables
-                            if (is_string($value) && strstr($value, '$')) {
+                            if (is_string($value) && strpos($value, '$') !== false) {
                                 $json[$key] = Craft::parseEnv($value);
                             }
                         }

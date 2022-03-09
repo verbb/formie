@@ -1,6 +1,8 @@
 <?php
 namespace verbb\formie\integrations\feedme\fields;
 
+use verbb\formie\fields\formfields\Hidden as HiddenField;
+
 class Hidden extends DefaultField
 {
     // Traits
@@ -13,6 +15,6 @@ class Hidden extends DefaultField
     // =========================================================================
 
     public static $name = 'Hidden';
-    public static $class = 'verbb\formie\fields\formfields\Hidden';
+    public static $class = HiddenField::class;
 
 }

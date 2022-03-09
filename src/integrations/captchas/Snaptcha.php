@@ -2,11 +2,9 @@
 namespace verbb\formie\integrations\captchas;
 
 use verbb\formie\elements\Form;
-use verbb\formie\elements\Submission;
 use verbb\formie\base\Captcha;
 
 use Craft;
-use craft\web\View;
 
 use putyourlightson\snaptcha\models\SnaptchaModel;
 use putyourlightson\snaptcha\Snaptcha as SnaptchaPlugin;
@@ -16,7 +14,7 @@ class Snaptcha extends Captcha
     // Properties
     // =========================================================================
 
-    public $handle = 'snaptcha';
+    public ?string $handle = 'snaptcha';
 
 
     // Public Methods
@@ -30,9 +28,6 @@ class Snaptcha extends Captcha
         return Craft::t('formie', 'Snaptcha');
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getDescription(): string
     {
         return Craft::t('formie', 'Snaptcha is an invisible CAPTCHA that automatically validates forms and prevents spam bots from submitting to your Craft CMS site. Find out more via [Snaptcha Plugin](https://plugins.craftcms.com/snaptcha).');

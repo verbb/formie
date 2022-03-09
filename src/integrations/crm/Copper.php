@@ -3,11 +3,7 @@ namespace verbb\formie\integrations\crm;
 
 use verbb\formie\base\Crm;
 use verbb\formie\base\Integration;
-use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
-use verbb\formie\errors\IntegrationException;
-use verbb\formie\events\SendIntegrationPayloadEvent;
-use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
@@ -15,23 +11,24 @@ use Craft;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 use craft\helpers\StringHelper;
-use craft\web\View;
+use GuzzleHttp\Client;
+use Throwable;
 
 class Copper extends Crm
 {
     // Properties
     // =========================================================================
 
-    public $apiKey;
-    public $apiEmail;
-    public $mapToPeople = false;
-    public $mapToLead = false;
-    public $mapToOpportunity = false;
-    public $mapToTask = false;
-    public $peopleFieldMapping;
-    public $leadFieldMapping;
-    public $opportunityFieldMapping;
-    public $taskFieldMapping;
+    public ?string $apiKey = null;
+    public ?string $apiEmail = null;
+    public bool $mapToPeople = false;
+    public bool $mapToLead = false;
+    public bool $mapToOpportunity = false;
+    public bool $mapToTask = false;
+    public ?array $peopleFieldMapping = null;
+    public ?array $leadFieldMapping = null;
+    public ?array $opportunityFieldMapping = null;
+    public ?array $taskFieldMapping = null;
 
 
     // Public Methods
@@ -45,9 +42,6 @@ class Copper extends Crm
         return Craft::t('formie', 'Copper');
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getDescription(): string
     {
         return Craft::t('formie', 'Manage your Copper customers by providing important information on their conversion on your site.');
@@ -87,10 +81,7 @@ class Copper extends Crm
         return $rules;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function fetchFormSettings()
+    public function fetchFormSettings(): IntegrationFormSettings
     {
         $settings = [];
 
@@ -470,16 +461,13 @@ class Copper extends Crm
                 'opportunity' => $opportunityFields,
                 'task' => $taskFields,
             ];
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Integration::apiError($this, $e);
         }
 
         return new IntegrationFormSettings($settings);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function sendPayload(Submission $submission): bool
     {
         try {
@@ -609,7 +597,7 @@ class Copper extends Crm
                     return false;
                 }
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
             return false;
@@ -618,14 +606,11 @@ class Copper extends Crm
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function fetchConnection(): bool
     {
         try {
             $response = $this->request('GET', 'account');
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
             return false;
@@ -634,10 +619,7 @@ class Copper extends Crm
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getClient()
+    public function getClient(): Client
     {
         if ($this->_client) {
             return $this->_client;
@@ -658,9 +640,6 @@ class Copper extends Crm
     // Private Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     private function _convertFieldType($fieldType)
     {
         $fieldTypes = [
@@ -673,10 +652,7 @@ class Copper extends Crm
         return $fieldTypes[$fieldType] ?? IntegrationField::TYPE_STRING;
     }
 
-    /**
-     * @inheritDoc
-     */
-    private function _getCustomFields($fields, $namespace)
+    private function _getCustomFields($fields, $namespace): array
     {
         $customFields = [];
 
@@ -695,10 +671,7 @@ class Copper extends Crm
         return $customFields;
     }
 
-    /**
-     * @inheritDoc
-     */
-    private function _prepCustomFields(&$fields)
+    private function _prepCustomFields(&$fields): array
     {
         $customFields = [];
 

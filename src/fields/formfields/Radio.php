@@ -2,13 +2,11 @@
 namespace verbb\formie\fields\formfields;
 
 use verbb\formie\base\FormFieldInterface;
-use verbb\formie\elements\Form;
 use verbb\formie\helpers\SchemaHelper;
 
 use Craft;
 use craft\base\ElementInterface;
 use craft\fields\data\SingleOptionFieldData;
-use craft\helpers\Json;
 
 class Radio extends BaseOptionsField implements FormFieldInterface
 {
@@ -43,7 +41,7 @@ class Radio extends BaseOptionsField implements FormFieldInterface
     // Properties
     // =========================================================================
 
-    public $layout;
+    public ?string $layout = null;
 
 
     // Public Methods
@@ -77,10 +75,7 @@ class Radio extends BaseOptionsField implements FormFieldInterface
         return false;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getFieldOptions()
+    public function getFieldOptions(): array
     {
         return $this->options;
     }
@@ -88,7 +83,7 @@ class Radio extends BaseOptionsField implements FormFieldInterface
     /**
      * @inheritDoc
      */
-    public function getInputHtml($value, ElementInterface $element = null): string
+    public function getInputHtml(mixed $value, ?ElementInterface $element = null): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/radio/input', [
             'name' => $this->handle,
@@ -110,7 +105,7 @@ class Radio extends BaseOptionsField implements FormFieldInterface
     /**
      * @inheritdoc
      */
-    public function getFrontEndJsModules()
+    public function getFrontEndJsModules(): ?array
     {
         return [
             'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/fields/checkbox-radio.js', true),
@@ -225,9 +220,6 @@ class Radio extends BaseOptionsField implements FormFieldInterface
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineConditionsSchema(): array
     {
         return [

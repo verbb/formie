@@ -29,7 +29,7 @@ class FormsController extends Controller
     // Properties
     // =========================================================================
 
-    protected $allowAnonymous = ['refresh-tokens'];
+    protected array|bool|int $allowAnonymous = ['refresh-tokens'];
 
 
     // Public Methods
@@ -38,9 +38,10 @@ class FormsController extends Controller
     /**
      * Shows all the forms in a list.
      *
-     * @return Response|null
+     * @return Response
+     * @throws ForbiddenHttpException
      */
-    public function actionIndex()
+    public function actionIndex(): Response
     {
         $this->requirePermission('formie-viewForms');
 
@@ -51,9 +52,10 @@ class FormsController extends Controller
      * Creates a new form with a pretty interface.
      *
      * @param Form|null $form
-     * @return Response|null
+     * @return Response
+     * @throws ForbiddenHttpException
      */
-    public function actionNew(Form $form = null)
+    public function actionNew(Form $form = null): Response
     {
         $this->requirePermission('formie-createForms');
 
@@ -78,7 +80,9 @@ class FormsController extends Controller
      * @param int|null $formId
      * @param string|null $siteHandle
      * @param Form|null $form
-     * @return Response|null
+     * @return Response
+     * @throws ForbiddenHttpException
+     * @throws NotFoundHttpException
      * @throws Throwable
      */
     public function actionEdit(int $formId = null, string $siteHandle = null, Form $form = null): Response
@@ -124,17 +128,16 @@ class FormsController extends Controller
     /**
      * Saves a form.
      *
-     * @return Response|null
      * @throws Throwable
      */
-    public function actionSave()
+    public function actionSave(): ?Response
     {
         $this->requirePostRequest();
         $request = Craft::$app->getRequest();
         $settings = Formie::$plugin->getSettings();
 
         $form = Formie::$plugin->getForms()->buildFormFromPost();
-        $duplicate = $request->getParam('duplicate');
+        $duplicate = (bool)$request->getParam('duplicate');
 
         // If the user has create permissions, but not edit permissions, we can run into issues...
         if (!$form->uid) {
@@ -212,10 +215,9 @@ class FormsController extends Controller
     /**
      * Creates a new Stencil from a form.
      *
-     * @return Response|null
      * @throws Throwable
      */
-    public function actionSaveAsStencil()
+    public function actionSaveAsStencil(): ?Response
     {
         $this->requirePostRequest();
         $request = Craft::$app->getRequest();
@@ -260,7 +262,7 @@ class FormsController extends Controller
             $form = Formie::$plugin->getForms()->buildFormFromPost();
 
             // Don't validate the handle.
-            $form->handle .= rand();
+            $form->handle .= random_int(0, mt_getrandmax());
 
             $form->validate();
 
@@ -320,10 +322,9 @@ class FormsController extends Controller
     /**
      * Returns tabs and fields HTML when the form template is switched.
      *
-     * @return Response
      * @throws Throwable
      */
-    public function actionSwitchTemplate()
+    public function actionSwitchTemplate(): Response
     {
         $this->requirePostRequest();
         $this->requireAcceptsJson();
@@ -348,7 +349,7 @@ class FormsController extends Controller
                     'id' => "tab-form-fields-$tabSlug",
                     'html' => $view->renderTemplate('_includes/fields', [
                         'element' => $form,
-                        'fields' => $tab->getFields(),
+                        'fields' => $tab->getCustomFields(),
                     ]),
                 ];
             }
@@ -373,10 +374,9 @@ class FormsController extends Controller
     }
 
     /**
-     * @return Response|null
      * @throws Throwable
      */
-    public function actionDeleteForm()
+    public function actionDeleteForm(): ?Response
     {
         $this->requirePostRequest();
 
@@ -420,10 +420,7 @@ class FormsController extends Controller
         return $this->redirectToPostedUrl($form);
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function actionRefreshTokens()
+    public function actionRefreshTokens(): Response
     {
         $request = Craft::$app->getRequest();
 
@@ -459,7 +456,7 @@ class FormsController extends Controller
      * @param array $variables
      * @throws Throwable
      */
-    private function _prepareVariableArray(&$variables)
+    private function _prepareVariableArray(array &$variables): void
     {
         // Locale related checks
         if (Craft::$app->getIsMultiSite()) {
@@ -545,10 +542,7 @@ class FormsController extends Controller
         $variables['maxFieldHandleLength'] = HandleHelper::getMaxFieldHandle();
     }
 
-    /**
-     * @inheritDoc
-     */
-    private function _updateFormPermission($form)
+    private function _updateFormPermission($form): void
     {
         if (Craft::$app->getEdition() !== Craft::Pro) {
             return;

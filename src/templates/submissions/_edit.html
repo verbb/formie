@@ -91,7 +91,7 @@
 
             {% for tab in fieldLayout.getTabs() %}
                 <div id="{{ tab.getHtmlId() }}"{% if not loop.first %} class="hidden"{% endif %}>
-                    {% set rows = craft.formie.plugin.fields.groupIntoRows(tab.getFields()) %}
+                    {% set rows = craft.formie.plugin.fields.groupIntoRows(tab.getCustomFields()) %}
 
                     {% namespace 'fields' %}
                         {% for row in rows %}

@@ -1,6 +1,8 @@
 <?php
 namespace verbb\formie\events;
 
+use verbb\formie\elements\Form;
+
 use craft\events\CancelableEvent;
 
 class ModifyMigrationFormEvent extends CancelableEvent
@@ -8,7 +10,7 @@ class ModifyMigrationFormEvent extends CancelableEvent
     // Properties
     // =========================================================================
 
-    public $form;
-    public $newForm;
+    public mixed $form = null;
+    public ?Form $newForm = null;
     
 }

@@ -24,7 +24,7 @@ interface SubfieldInterface extends ComponentInterface
     public function getSubfieldOptions(): array;
 
     /**
-     * Validates the required name sub-fields.
+     * Validates the required name subfields.
      *
      * @param ElementInterface $element
      */

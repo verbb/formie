@@ -3,19 +3,19 @@ namespace verbb\formie\controllers;
 
 use verbb\formie\Formie;
 use verbb\formie\elements\Submission;
-use verbb\formie\models\Settings;
 
 use Craft;
 use craft\web\Controller;
 
 use yii\web\Response;
+use Throwable;
 
 class FieldsController extends Controller
 {
     // Properties
     // =========================================================================
 
-    protected $allowAnonymous = ['get-summary-html'];
+    protected array|bool|int $allowAnonymous = ['get-summary-html'];
 
 
     // Public Methods
@@ -24,7 +24,7 @@ class FieldsController extends Controller
     /**
      * @inheritdoc
      */
-    public function beforeAction($action)
+    public function beforeAction($action): bool
     {
         if ($action->id === 'get-summary-html') {
             $this->enableCsrfValidation = false;
@@ -33,18 +33,12 @@ class FieldsController extends Controller
         return parent::beforeAction($action);
     }
 
-    /**
-     * @inheritdoc
-     */
     public function actionIndex(): Response
     {
         return $this->renderTemplate('formie/settings/fields', []);
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function actionGetElementSelectOptions()
+    public function actionGetElementSelectOptions(): Response
     {
         $elements = [];
 
@@ -58,9 +52,9 @@ class FieldsController extends Controller
             $field->sources = $fieldSettings['sources'] ?? [];
             $field->source = $fieldSettings['source'] ?? null;
 
-            // Fetch the element query for the field so we can fetch the content (limited)
+            // Fetch the element query for the field, so we can fetch the content (limited)
             $elements = $field->getPreviewElements();
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Formie::error(Craft::t('formie', 'Unable to fetch element select options: “{message}” {file}:{line}', [
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
@@ -71,10 +65,7 @@ class FieldsController extends Controller
         return $this->asJson($elements);
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function actionGetPredefinedOptions()
+    public function actionGetPredefinedOptions(): Response
     {
         $type = Craft::$app->getRequest()->getParam('option');
 
@@ -83,10 +74,7 @@ class FieldsController extends Controller
         return $this->asJson($options);
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function actionGetSummaryHtml()
+    public function actionGetSummaryHtml(): string
     {
         $fieldId = Craft::$app->getRequest()->getParam('fieldId');
         $submissionId = Craft::$app->getRequest()->getParam('submissionId');
@@ -94,13 +82,11 @@ class FieldsController extends Controller
         if ($submissionId && $fieldId) {
             $submission = Submission::find()->id($submissionId)->isIncomplete(null)->one();
 
-            if ($submission) {
-                if ($form = $submission->getForm()) {
-                    if ($field = $form->getFieldById($fieldId)) {
-                        $value = $field->getFieldValue($submission);
+            if ($submission && $form = $submission->getForm()) {
+                if ($field = $form->getFieldById($fieldId)) {
+                    $value = $field->getFieldValue($submission);
 
-                        return $field->getFrontEndInputHtml($form, $value);
-                    }
+                    return $field->getFrontEndInputHtml($form, $value);
                 }
             }
         }

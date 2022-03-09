@@ -3,11 +3,7 @@ namespace verbb\formie\integrations\miscellaneous;
 
 use verbb\formie\base\Integration;
 use verbb\formie\base\Miscellaneous;
-use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
-use verbb\formie\errors\IntegrationException;
-use verbb\formie\events\SendIntegrationPayloadEvent;
-use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
@@ -15,17 +11,18 @@ use Craft;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 use craft\helpers\StringHelper;
-use craft\web\View;
+use GuzzleHttp\Client;
+use Throwable;
 
 class Recruitee extends Miscellaneous
 {
     // Properties
     // =========================================================================
 
-    public $apiKey;
-    public $subdomain;
-    public $mapToCandidate = false;
-    public $candidateFieldMapping;
+    public ?string $apiKey = null;
+    public ?string $subdomain = null;
+    public bool $mapToCandidate = false;
+    public ?array $candidateFieldMapping = null;
 
 
     // Public Methods
@@ -39,9 +36,6 @@ class Recruitee extends Miscellaneous
         return Craft::t('formie', 'Recruitee');
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getDescription(): string
     {
         return Craft::t('formie', 'Apply for Recruitee job offers.');
@@ -66,10 +60,7 @@ class Recruitee extends Miscellaneous
         return $rules;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function fetchFormSettings()
+    public function fetchFormSettings(): IntegrationFormSettings
     {
         $settings = [];
 
@@ -118,7 +109,7 @@ class Recruitee extends Miscellaneous
             $settings = [
                 'candidate' => $candidateFields,
             ];
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Integration::apiError($this, $e);
         }
 
@@ -136,9 +127,6 @@ class Recruitee extends Miscellaneous
         return parent::getFieldMappingValues($submission, $fieldMapping, $fields);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function sendPayload(Submission $submission): bool
     {
         try {
@@ -172,7 +160,7 @@ class Recruitee extends Miscellaneous
                     return false;
                 }
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
             return false;
@@ -181,14 +169,11 @@ class Recruitee extends Miscellaneous
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function fetchConnection(): bool
     {
         try {
             $response = $this->request('GET', 'offers');
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
             return false;
@@ -197,10 +182,7 @@ class Recruitee extends Miscellaneous
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getClient()
+    public function getClient(): Client
     {
         if ($this->_client) {
             return $this->_client;
@@ -217,9 +199,6 @@ class Recruitee extends Miscellaneous
     // Private Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     private function _convertFieldType($fieldType)
     {
         $fieldTypes = [
@@ -231,10 +210,7 @@ class Recruitee extends Miscellaneous
         return $fieldTypes[$fieldType] ?? IntegrationField::TYPE_STRING;
     }
 
-    /**
-     * @inheritDoc
-     */
-    private function _getCustomFields($offers)
+    private function _getCustomFields($offers): array
     {
         $customFields = [];
 
@@ -282,10 +258,7 @@ class Recruitee extends Miscellaneous
         return $customFields;
     }
 
-    /**
-     * @inheritDoc
-     */
-    private function _prepCustomFields(&$fields, $extras = [])
+    private function _prepCustomFields(&$fields, $extras = []): array
     {
         $customFields = [];
 

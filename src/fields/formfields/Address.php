@@ -6,7 +6,6 @@ use verbb\formie\base\FormField;
 use verbb\formie\base\Integration;
 use verbb\formie\base\SubfieldInterface;
 use verbb\formie\base\SubfieldTrait;
-use verbb\formie\elements\Form;
 use verbb\formie\gql\types\generators\FieldAttributeGenerator;
 use verbb\formie\gql\types\input\AddressInputType;
 use verbb\formie\helpers\SchemaHelper;
@@ -16,7 +15,6 @@ use verbb\formie\positions\FieldsetStart;
 use Craft;
 use craft\base\ElementInterface;
 use craft\base\PreviewableFieldInterface;
-use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 use craft\helpers\StringHelper;
 
@@ -25,6 +23,7 @@ use CommerceGuys\Addressing\Country\CountryRepository;
 use GraphQL\Type\Definition\Type;
 
 use yii\db\Schema;
+use verbb\formie\base\IntegrationInterface;
 
 class Address extends FormField implements SubfieldInterface, PreviewableFieldInterface
 {
@@ -58,7 +57,7 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
      *
      * @return array
      */
-    public static function getCountryOptions()
+    public static function getCountryOptions(): array
     {
         $locale = Craft::$app->getLocale()->getLanguageID();
 
@@ -76,90 +75,90 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
     // Properties
     // =========================================================================
 
-    public $autocompleteIntegration;
+    public ?string $autocompleteIntegration = null;
 
-    public $autocompleteEnabled;
-    public $autocompleteCollapsed;
-    public $autocompleteLabel;
-    public $autocompletePlaceholder;
-    public $autocompleteDefaultValue;
-    public $autocompletePrePopulate;
-    public $autocompleteRequired;
-    public $autocompleteErrorMessage;
-    public $autocompleteCurrentLocation;
+    public ?bool $autocompleteEnabled = null;
+    public ?bool $autocompleteCollapsed = null;
+    public ?string $autocompleteLabel = null;
+    public ?string $autocompletePlaceholder = null;
+    public ?string $autocompleteDefaultValue = null;
+    public ?string $autocompletePrePopulate = null;
+    public ?bool $autocompleteRequired = null;
+    public ?string $autocompleteErrorMessage = null;
+    public ?bool $autocompleteCurrentLocation = null;
 
-    public $address1Enabled;
-    public $address1Collapsed;
-    public $address1Label;
-    public $address1Placeholder;
-    public $address1DefaultValue;
-    public $address1PrePopulate;
-    public $address1Required;
-    public $address1ErrorMessage;
-    public $address1Hidden;
+    public ?bool $address1Enabled = null;
+    public ?bool $address1Collapsed = null;
+    public ?string $address1Label = null;
+    public ?string $address1Placeholder = null;
+    public ?string $address1DefaultValue = null;
+    public ?string $address1PrePopulate = null;
+    public ?bool $address1Required = null;
+    public ?string $address1ErrorMessage = null;
+    public ?bool $address1Hidden = null;
 
-    public $address2Enabled;
-    public $address2Collapsed;
-    public $address2Label;
-    public $address2Placeholder;
-    public $address2DefaultValue;
-    public $address2PrePopulate;
-    public $address2Required;
-    public $address2ErrorMessage;
-    public $address2Hidden;
+    public ?bool $address2Enabled = null;
+    public ?bool $address2Collapsed = null;
+    public ?string $address2Label = null;
+    public ?string $address2Placeholder = null;
+    public ?string $address2DefaultValue = null;
+    public ?string $address2PrePopulate = null;
+    public ?bool $address2Required = null;
+    public ?string $address2ErrorMessage = null;
+    public ?bool $address2Hidden = null;
 
-    public $address3Enabled;
-    public $address3Collapsed;
-    public $address3Label;
-    public $address3Placeholder;
-    public $address3DefaultValue;
-    public $address3PrePopulate;
-    public $address3Required;
-    public $address3ErrorMessage;
-    public $address3Hidden;
+    public ?bool $address3Enabled = null;
+    public ?bool $address3Collapsed = null;
+    public ?string $address3Label = null;
+    public ?string $address3Placeholder = null;
+    public ?string $address3DefaultValue = null;
+    public ?string $address3PrePopulate = null;
+    public ?bool $address3Required = null;
+    public ?string $address3ErrorMessage = null;
+    public ?bool $address3Hidden = null;
 
-    public $cityEnabled;
-    public $cityCollapsed;
-    public $cityLabel;
-    public $cityPlaceholder;
-    public $cityDefaultValue;
-    public $cityPrePopulate;
-    public $cityRequired;
-    public $cityErrorMessage;
-    public $cityHidden;
+    public ?bool $cityEnabled = null;
+    public ?bool $cityCollapsed = null;
+    public ?string $cityLabel = null;
+    public ?string $cityPlaceholder = null;
+    public ?string $cityDefaultValue = null;
+    public ?string $cityPrePopulate = null;
+    public ?bool $cityRequired = null;
+    public ?string $cityErrorMessage = null;
+    public ?bool $cityHidden = null;
 
-    public $stateEnabled;
-    public $stateCollapsed;
-    public $stateLabel;
-    public $statePlaceholder;
-    public $stateDefaultValue;
-    public $statePrePopulate;
-    public $stateRequired;
-    public $stateErrorMessage;
-    public $stateHidden;
+    public ?bool $stateEnabled = null;
+    public ?bool $stateCollapsed = null;
+    public ?string $stateLabel = null;
+    public ?string $statePlaceholder = null;
+    public ?string $stateDefaultValue = null;
+    public ?string $statePrePopulate = null;
+    public ?bool $stateRequired = null;
+    public ?string $stateErrorMessage = null;
+    public ?bool $stateHidden = null;
 
-    public $zipEnabled;
-    public $zipCollapsed;
-    public $zipLabel;
-    public $zipPlaceholder;
-    public $zipDefaultValue;
-    public $zipPrePopulate;
-    public $zipRequired;
-    public $zipErrorMessage;
-    public $zipHidden;
+    public ?bool $zipEnabled = null;
+    public ?bool $zipCollapsed = null;
+    public ?string $zipLabel = null;
+    public ?string $zipPlaceholder = null;
+    public ?string $zipDefaultValue = null;
+    public ?string $zipPrePopulate = null;
+    public ?bool $zipRequired = null;
+    public ?string $zipErrorMessage = null;
+    public ?bool $zipHidden = null;
 
-    public $countryEnabled;
-    public $countryCollapsed;
-    public $countryLabel;
-    public $countryPlaceholder;
-    public $countryDefaultValue;
-    public $countryPrePopulate;
-    public $countryRequired;
-    public $countryErrorMessage;
-    public $countryHidden;
+    public ?bool $countryEnabled = null;
+    public ?bool $countryCollapsed = null;
+    public ?string $countryLabel = null;
+    public ?string $countryPlaceholder = null;
+    public ?string $countryDefaultValue = null;
+    public ?string $countryPrePopulate = null;
+    public ?bool $countryRequired = null;
+    public ?string $countryErrorMessage = null;
+    public ?bool $countryHidden = null;
 
     // TODO: Remove at next breakpoint. Will blow up CP unless the migration is done first.
-    public $enableAutocomplete;
+    public ?bool $enableAutocomplete = null;
 
 
     // Public Methods
@@ -184,7 +183,7 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
     /**
      * @inheritDoc
      */
-    public function getContentColumnType(): string
+    public function getContentColumnType(): array|string
     {
         return Schema::TYPE_TEXT;
     }
@@ -192,7 +191,7 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
     /**
      * @inheritDoc
      */
-    public function normalizeValue($value, ElementInterface $element = null)
+    public function normalizeValue(mixed $value, ?ElementInterface $element = null): mixed
     {
         $value = parent::normalizeValue($value, $element);
         $value = Json::decodeIfJson($value);
@@ -207,7 +206,7 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
     /**
      * @inheritDoc
      */
-    public function serializeValue($value, ElementInterface $element = null)
+    public function serializeValue(mixed $value, ?ElementInterface $element = null): mixed
     {
         if ($value instanceof AddressModel) {
             $value = Json::encode($value);
@@ -297,11 +296,12 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
     }
 
     /**
-     * Validates the required address sub-fields.
+     * Validates the required address subfields.
      *
      * @param ElementInterface $element
+     * @throws \craft\errors\InvalidFieldException
      */
-    public function validateRequiredFields(ElementInterface $element)
+    public function validateRequiredFields(ElementInterface $element): void
     {
         $subFields = [
             'address1',
@@ -377,9 +377,6 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
         return array_filter($subFields);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getVisibleFrontEndSubfields($row): array
     {
         $subFields = [];
@@ -458,7 +455,7 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
     /**
      * @inheritDoc
      */
-    public function getInputHtml($value, ElementInterface $element = null): string
+    public function getInputHtml(mixed $value, ?ElementInterface $element = null): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/address/input', [
             'name' => $this->handle,
@@ -478,9 +475,6 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
         ]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getAutocompleteHtml($options): string
     {
         $integration = $this->getAddressProviderIntegration();
@@ -495,7 +489,7 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
     /**
      * @inheritDoc
      */
-    public function getFrontEndJsModules()
+    public function getFrontEndJsModules(): ?array
     {
         $integration = $this->getAddressProviderIntegration();
 
@@ -506,10 +500,7 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
         return $integration->getFrontEndJsVariables($this);
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getAddressProviderIntegration()
+    public function getAddressProviderIntegration(): ?IntegrationInterface
     {
         if (!$this->autocompleteEnabled || !$this->autocompleteIntegration) {
             return null;
@@ -518,23 +509,13 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
         return Formie::$plugin->getIntegrations()->getIntegrationByHandle($this->autocompleteIntegration) ?? null;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function supportsCurrentLocation(): bool
     {
         $integration = $this->getAddressProviderIntegration();
 
-        if ($integration && $integration->supportsCurrentLocation() ) {
-            return true;
-        }
-
-        return false;
+        return $integration && $integration::supportsCurrentLocation();
     }
 
-    /**
-     * @inheritDoc
-     */
     public function hasCurrentLocation(): bool
     {
         return $this->supportsCurrentLocation() && $this->autocompleteCurrentLocation;
@@ -543,7 +524,7 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
     /**
      * @inheritDoc
      */
-    public function getSettingGqlTypes()
+    public function getSettingGqlTypes(): array
     {
         return array_merge(parent::getSettingGqlTypes(), [
             'countryOptions' => [
@@ -558,6 +539,7 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
      */
     public function defineGeneralSchema(): array
     {
+        $toggleBlocks = [];
         $addressProviderOptions = $this->_getAddressProviderOptions();
 
         $fields = [
@@ -708,9 +690,6 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineConditionsSchema(): array
     {
         return [
@@ -722,7 +701,7 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
     /**
      * @inheritDoc
      */
-    public function getContentGqlMutationArgumentType()
+    public function getContentGqlMutationArgumentType(): array|Type
     {
         return AddressInputType::getType($this);
     }
@@ -734,7 +713,7 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
     /**
      * @inheritDoc
      */
-    protected function defineValueForExport($value, ElementInterface $element = null)
+    protected function defineValueForExport($value, ElementInterface $element = null): mixed
     {
         $values = [];
 
@@ -751,10 +730,7 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
     // Private Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
-    private function _getAddressProviderOptions()
+    private function _getAddressProviderOptions(): array
     {
         $addressProviderOptions = [];
         $addressProviders = Formie::$plugin->getIntegrations()->getAllIntegrationsForType(Integration::TYPE_ADDRESS_PROVIDER);

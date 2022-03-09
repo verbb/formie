@@ -17,9 +17,6 @@ class Continents extends PredefinedOption
         return Craft::t('formie', 'Continents');
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function getDataOptions(): array
     {
         return [

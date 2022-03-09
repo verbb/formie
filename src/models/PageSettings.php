@@ -6,26 +6,24 @@ use craft\base\Model;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 
-use yii\behaviors\AttributeTypecastBehavior;
-
 class PageSettings extends Model
 {
-    // Public Properties
+    // Properties
     // =========================================================================
 
-    public $submitButtonLabel;
-    public $backButtonLabel;
-    public $showBackButton = false;
-    public $buttonsPosition = 'left';
-    public $cssClasses;
-    public $containerAttributes;
-    public $inputAttributes;
-    public $enableNextButtonConditions = false;
-    public $nextButtonConditions = [];
-    public $enablePageConditions = false;
-    public $pageConditions = [];
-    public $enableJsEvents = false;
-    public $jsGtmEventOptions = [];
+    public ?string $submitButtonLabel = null;
+    public ?string $backButtonLabel = null;
+    public bool $showBackButton = false;
+    public string $buttonsPosition = 'left';
+    public ?string $cssClasses = null;
+    public ?array $containerAttributes = null;
+    public ?array $inputAttributes = null;
+    public bool $enableNextButtonConditions = false;
+    public array $nextButtonConditions = [];
+    public bool $enablePageConditions = false;
+    public array $pageConditions = [];
+    public bool $enableJsEvents = false;
+    public array $jsGtmEventOptions = [];
 
 
     // Public Methods
@@ -34,7 +32,7 @@ class PageSettings extends Model
     /**
      * @inheritDoc
      */
-    public function init()
+    public function init(): void
     {
         if (!$this->submitButtonLabel) {
             $this->submitButtonLabel = Craft::t('formie', 'Submit');
@@ -45,28 +43,6 @@ class PageSettings extends Model
         }
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function behaviors(): array
-    {
-        return [
-            'typecast' => [
-                'class' => AttributeTypecastBehavior::class,
-                'attributeTypes' => [
-                    'submitButtonLabel' => AttributeTypecastBehavior::TYPE_STRING,
-                    'backButtonLabel' => AttributeTypecastBehavior::TYPE_STRING,
-                    'showBackButton' => AttributeTypecastBehavior::TYPE_BOOLEAN,
-                    'buttonsPosition' => AttributeTypecastBehavior::TYPE_STRING,
-                    'cssClasses' => AttributeTypecastBehavior::TYPE_STRING,
-                ]
-            ]
-        ];
-    }
-
-    /**
-     * @inheritDoc
-     */
     public function getContainerAttributes(): array
     {
         if (!$this->containerAttributes) {
@@ -76,9 +52,6 @@ class PageSettings extends Model
         return ArrayHelper::map($this->containerAttributes, 'label', 'value');
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getInputAttributes(): array
     {
         if (!$this->inputAttributes) {
@@ -88,13 +61,10 @@ class PageSettings extends Model
         return ArrayHelper::map($this->inputAttributes, 'label', 'value');
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getConditionsJson()
+    public function getConditionsJson(): ?string
     {
         if ($this->enableNextButtonConditions) {
-            $conditionSettings = Json::decode($this->nextButtonConditions) ?? [];
+            $conditionSettings = $this->nextButtonConditions ?? [];
             $conditions = $conditionSettings['conditions'] ?? [];
 
             // Prep the conditions for JS
@@ -104,6 +74,8 @@ class PageSettings extends Model
                 // Dot-notation to name input syntax
                 $condition['field'] = 'fields[' . str_replace(['{', '}', '.'], ['', '', ']['], $condition['field']) . ']';
             }
+
+            unset($condition);
 
             $conditionSettings['conditions'] = $conditions;
 

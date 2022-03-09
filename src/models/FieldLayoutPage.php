@@ -3,7 +3,6 @@ namespace verbb\formie\models;
 
 use verbb\formie\Formie;
 use verbb\formie\base\FormFieldInterface;
-use verbb\formie\elements\Submission;
 use verbb\formie\helpers\ConditionsHelper;
 
 use Craft;
@@ -19,127 +18,60 @@ use yii\base\InvalidConfigException;
 
 class FieldLayoutPage extends CraftFieldLayoutTab
 {
-    // Public Properties
+    // Properties
     // =========================================================================
 
-    /**
-     * @var PageSettings
-     */
-    public $settings;
+    public ?PageSettings $settings = null;
 
-
-    // Private Properties
-    // =========================================================================
-
-    private $_layout;
-    private $_fields;
+    private ?array $_fields = null;
 
 
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
-    public function init()
+    public function __construct($config = [])
     {
-        parent::init();
+        // Config normalization
+        if (array_key_exists('settings', $config)) {
+            if (is_string($config['settings'])) {
+                $config['settings'] = new PageSettings(Json::decodeIfJson($config['settings']));
+            }
 
-        if (empty($this->settings)) {
-            $this->settings = new PageSettings();
+            if (!($config['settings'] instanceof PageSettings)) {
+                $config['settings'] = new PageSettings();
+            }
         } else {
-            $settings = Json::decodeIfJson($this->settings);
-            $this->settings = new PageSettings($settings);
+            $config['settings'] = new PageSettings();
         }
+
+        parent::__construct($config);
     }
 
-    /**
-     * Returns the tab’s layout.
-     *
-     * @return FieldLayout|null The tab’s layout.
-     * @throws InvalidConfigException if [[groupId]] is set but invalid
-     */
-    public function getLayout()
-    {
-        if ($this->_layout !== null) {
-            return $this->_layout;
-        }
-
-        if (!$this->layoutId) {
-            return null;
-        }
-
-        if (($this->_layout = Formie::$plugin->getFields()->getLayoutById($this->layoutId)) === null) {
-            throw new InvalidConfigException('Invalid layout ID: ' . $this->layoutId);
-        }
-
-        return $this->_layout;
-    }
-
-    /**
-     * Sets the page’s layout.
-     *
-     * @param FieldLayout $layout The page’s layout.
-     */
-    public function setLayout(CraftFieldLayout $layout)
-    {
-        $this->_layout = $layout;
-    }
-
-    /**
-     * Returns the tab’s fields.
-     *
-     * @return FieldInterface[] The tab’s fields.
-     * @throws InvalidConfigException
-     */
-    public function getFields(): array
+    public function getCustomFields(): array
     {
         if ($this->_fields !== null) {
             return $this->_fields;
         }
 
-        $this->_fields = [];
+        $fields = [];
 
-        if ($layout = $this->getLayout()) {
-            foreach ($layout->getFields() as $field) {
-                /** @var Field $field */
-                if ($field->tabId == $this->id) {
-                    $this->_fields[] = $field;
-                }
+        foreach ($this->getElements() as $layoutElement) {
+            if ($layoutElement instanceof CustomField) {
+                $fields[] = $layoutElement->getField();
             }
         }
 
-        return $this->_fields;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function setFields(array $fields)
-    {
-        ArrayHelper::multisort($fields, 'sortOrder');
-        $this->_fields = $fields;
-
-        $this->elements = [];
-        
-        foreach ($this->_fields as $field) {
-            $this->elements[] = Craft::createObject([
-                'class' => CustomField::class,
-                'required' => $field->required,
-            ], [
-                $field,
-            ]);
-        }
+        return $this->_fields = $fields;
     }
 
     /**
      * @return FieldInterface[]
      * @throws InvalidConfigException
      */
-    public function getRows($includeDisabled = true)
+    public function getRows(bool $includeDisabled = true): array
     {
         /* @var FormFieldInterface[] $pageFields */
-        $pageFields = $this->getFields($includeDisabled);
+        $pageFields = $this->getCustomFields();
 
         foreach ($pageFields as $key => $field) {
             if ($includeDisabled === false && $field->visibility === 'disabled') {
@@ -150,13 +82,10 @@ class FieldLayoutPage extends CraftFieldLayoutTab
         return Formie::$plugin->getFields()->groupIntoRows($pageFields);
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function isConditionallyHidden($submission)
+    public function isConditionallyHidden(Submission $submission): bool
     {
         if ($this->settings->enablePageConditions) {
-            $conditionSettings = Json::decode($this->settings->pageConditions) ?? [];
+            $conditionSettings = $this->settings->pageConditions ?? [];
             $conditions = $conditionSettings['conditions'] ?? [];
 
             if ($conditionSettings && $conditions) {
@@ -165,7 +94,7 @@ class FieldLayoutPage extends CraftFieldLayoutTab
                 $result = ConditionsHelper::getConditionalTestResult($conditionSettings, $submission);
 
                 // Depending on if we show or hide the field when evaluating. If `false` and set to show, it means
-                // the field is hidden and the conditions to show it aren't met. Therefore, report back that this field is hidden.
+                // the field is hidden and the conditions to show it isn't met. Therefore, report back that this field is hidden.
                 if (($result && $conditionSettings['showRule'] !== 'show') || (!$result && $conditionSettings['showRule'] === 'show')) {
                     return true;
                 }
@@ -175,13 +104,10 @@ class FieldLayoutPage extends CraftFieldLayoutTab
         return false;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getConditionsJson()
+    public function getConditionsJson(): ?string
     {
         if ($this->settings->enablePageConditions) {
-            $conditionSettings = Json::decode($this->settings->pageConditions) ?? [];
+            $conditionSettings = $this->settings->pageConditions ?? [];
             $conditions = $conditionSettings['conditions'] ?? [];
 
             // Prep the conditions for JS
@@ -192,6 +118,8 @@ class FieldLayoutPage extends CraftFieldLayoutTab
                 $condition['field'] = 'fields[' . str_replace(['{', '}', '.'], ['', '', ']['], $condition['field']) . ']';
             }
 
+            unset($condition);
+
             $conditionSettings['conditions'] = $conditions;
 
             return Json::encode($conditionSettings);
@@ -200,16 +128,13 @@ class FieldLayoutPage extends CraftFieldLayoutTab
         return null;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getFieldErrors($submission)
+    public function getFieldErrors(Submission $submission): array
     {
         $errors = [];
 
         if ($submission) {
             // Find all errors that match field handles in this page
-            $fieldHandles = ArrayHelper::getColumn($this->getFields(), 'handle');
+            $fieldHandles = ArrayHelper::getColumn($this->getCustomFields(), 'handle');
 
             foreach ($submission->getErrors() as $fieldHandle => $submissionError) {
                 if (in_array($fieldHandle, $fieldHandles)) {

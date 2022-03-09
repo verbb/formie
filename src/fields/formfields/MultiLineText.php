@@ -2,20 +2,14 @@
 namespace verbb\formie\fields\formfields;
 
 use verbb\formie\base\FormField;
-use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\SchemaHelper;
 
 use Craft;
 use craft\base\ElementInterface;
 use craft\base\PreviewableFieldInterface;
-use craft\helpers\Json;
-use craft\helpers\StringHelper;
-use craft\helpers\Template;
 
 use yii\db\Schema;
-use LitEmoji\LitEmoji;
-use Twig\Markup;
 
 class MultiLineText extends FormField implements PreviewableFieldInterface
 {
@@ -42,8 +36,8 @@ class MultiLineText extends FormField implements PreviewableFieldInterface
     // Properties
     // =========================================================================
 
-    public $useRichText;
-    public $richTextButtons;
+    public ?bool $useRichText = null;
+    public ?array $richTextButtons = null;
 
 
     // Public Methods
@@ -52,7 +46,7 @@ class MultiLineText extends FormField implements PreviewableFieldInterface
     /**
      * @inheritDoc
      */
-    public function getContentColumnType(): string
+    public function getContentColumnType(): array|string
     {
         return Schema::TYPE_TEXT;
     }
@@ -60,7 +54,7 @@ class MultiLineText extends FormField implements PreviewableFieldInterface
     /**
      * @inheritDoc
      */
-    public function getInputHtml($value, ElementInterface $element = null): string
+    public function getInputHtml(mixed $value, ?ElementInterface $element = null): string
     {
         $form = null;
 
@@ -89,7 +83,7 @@ class MultiLineText extends FormField implements PreviewableFieldInterface
     /**
      * @inheritdoc
      */
-    public function getFrontEndJsModules()
+    public function getFrontEndJsModules(): ?array
     {
         $modules = [];
         
@@ -262,9 +256,6 @@ class MultiLineText extends FormField implements PreviewableFieldInterface
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineConditionsSchema(): array
     {
         return [

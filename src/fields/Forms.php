@@ -28,7 +28,7 @@ class Forms extends BaseRelationField
     /**
      * @inheritdoc
      */
-    protected static function elementType(): string
+    public static function elementType(): string
     {
         return Form::class;
     }
@@ -52,7 +52,7 @@ class Forms extends BaseRelationField
     /**
      * @inheritdoc
      */
-    public function getContentGqlType()
+    public function getContentGqlType(): array|Type
     {
         return [
             'name' => $this->handle,

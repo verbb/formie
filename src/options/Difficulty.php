@@ -17,9 +17,6 @@ class Difficulty extends PredefinedOption
         return Craft::t('formie', 'Difficulty');
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function getDataOptions(): array
     {
         return [

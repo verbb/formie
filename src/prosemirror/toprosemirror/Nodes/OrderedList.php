@@ -4,12 +4,12 @@ namespace verbb\formie\prosemirror\toprosemirror\Nodes;
 
 class OrderedList extends Node
 {
-    public function matching()
+    public function matching(): bool
     {
         return $this->DOMNode->nodeName === 'ol';
     }
 
-    public function data()
+    public function data(): ?array
     {
         return [
             'type' => 'ordered_list',

@@ -3,21 +3,20 @@ namespace verbb\formie\models;
 
 use craft\elements\db\ElementQuery;
 
+use yii\base\Model;
+
 class FakeElementQuery extends ElementQuery
 {
     // Properties
     // =========================================================================
 
-    private $_fieldValues = [];
+    private array $_fieldValues = [];
 
 
     // Public Methods
     // =========================================================================
 
-    /**
-     * @return string
-     */
-    public function setFieldValues($values, $fieldLayout = null)
+    public function setFieldValues($values, $fieldLayout = null): void
     {
         $element = new FakeElement();
 
@@ -30,18 +29,12 @@ class FakeElementQuery extends ElementQuery
         $this->_fieldValues[] = $element;
     }
 
-    /**
-     * @return string
-     */
-    public function one($db = null)
+    public function one($db = null): Model|array|null
     {
         return $this->_fieldValues[0] ?? null;
     }
 
-    /**
-     * @return string
-     */
-    public function all($db = null)
+    public function all($db = null): array
     {
         return $this->_fieldValues;
     }

@@ -8,5 +8,5 @@ class RegisterFieldsEvent extends Event
     // Properties
     // =========================================================================
 
-    public $fields = [];
+    public ?array $fields = [];
 }

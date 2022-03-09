@@ -17,9 +17,6 @@ class Employment extends PredefinedOption
         return Craft::t('formie', 'Employment');
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function getDataOptions(): array
     {
         return [

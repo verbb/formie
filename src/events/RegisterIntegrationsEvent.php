@@ -8,12 +8,12 @@ class RegisterIntegrationsEvent extends Event
     // Properties
     // =========================================================================
 
-    public $addressProviders = [];
-    public $captchas = [];
-    public $elements = [];
-    public $emailMarketing = [];
-    public $crm = [];
-    public $webhooks = [];
-    public $miscellaneous = [];
+    public ?array $addressProviders = [];
+    public ?array $captchas = [];
+    public ?array $elements = [];
+    public ?array $emailMarketing = [];
+    public ?array $crm = [];
+    public ?array $webhooks = [];
+    public ?array $miscellaneous = [];
     
 }

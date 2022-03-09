@@ -3,10 +3,7 @@ namespace verbb\formie\integrations\emailmarketing;
 
 use verbb\formie\base\Integration;
 use verbb\formie\base\EmailMarketing;
-use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
-use verbb\formie\errors\IntegrationException;
-use verbb\formie\events\SendIntegrationPayloadEvent;
 use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
@@ -15,13 +12,13 @@ use Craft;
 use craft\fields;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
-use craft\web\View;
 
 use putyourlightson\campaign\Campaign as CampaignPlugin;
 use putyourlightson\campaign\elements\ContactElement;
 use putyourlightson\campaign\elements\MailingListElement;
 use putyourlightson\campaign\records\MailingListRecord;
 use putyourlightson\campaign\records\MailingListTypeRecord;
+use Throwable;
 
 class Campaign extends EmailMarketing
 {
@@ -44,18 +41,12 @@ class Campaign extends EmailMarketing
         return Craft::t('formie', 'Campaign');
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getDescription(): string
     {
         return Craft::t('formie', 'Integrate with the [Craft Campaign](https://plugins.craftcms.com/campaign) plugin.');
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function fetchFormSettings()
+    public function fetchFormSettings(): IntegrationFormSettings
     {
         $settings = [];
 
@@ -87,9 +78,6 @@ class Campaign extends EmailMarketing
         return new IntegrationFormSettings($settings);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function sendPayload(Submission $submission): bool
     {
         try {
@@ -129,7 +117,7 @@ class Campaign extends EmailMarketing
 
             // Subscribe them to the mailing list
             CampaignPlugin::$plugin->forms->subscribeContact($contact, $list, 'formie', $this->referrer, true);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
             return false;
@@ -142,9 +130,6 @@ class Campaign extends EmailMarketing
     // Private Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     private function _convertFieldType($fieldType)
     {
         $fieldTypes = [
@@ -160,16 +145,13 @@ class Campaign extends EmailMarketing
         return $fieldTypes[$fieldType] ?? IntegrationField::TYPE_STRING;
     }
 
-    /**
-     * @inheritDoc
-     */
-    private function _getCustomFields($list)
+    private function _getCustomFields($list): array
     {
         $customFields = [];
 
         $fieldLayout = Craft::$app->fields->getLayoutByType(ContactElement::class);
 
-        foreach ($fieldLayout->getFields() as $field) {
+        foreach ($fieldLayout->getCustomFields() as $field) {
             $customFields[] = new IntegrationField([
                 'handle' => $field->handle,
                 'name' => $field->name,

@@ -11,24 +11,26 @@ use craft\base\Element;
 use craft\db\Query;
 use craft\elements\actions\Delete;
 use craft\elements\actions\Restore;
-use craft\elements\db\ElementQueryInterface;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Html;
 use craft\helpers\Json;
 use craft\helpers\StringHelper;
-use craft\helpers\Template;
 use craft\helpers\UrlHelper;
+use Exception;
+use verbb\formie\models\Notification;
+use yii\base\Model;
+use craft\base\ElementInterface;
 
 class SentNotification extends Element
 {
     // Constants
     // =========================================================================
 
-    const STATUS_SUCCESS = 'success';
-    const STATUS_FAILED = 'failed';
+    public const STATUS_SUCCESS = 'success';
+    public const STATUS_FAILED = 'failed';
 
 
-    // Static
+    // Static Methods
     // =========================================================================
 
     /**
@@ -50,7 +52,7 @@ class SentNotification extends Element
     /**
      * @inheritDoc
      */
-    public static function find(): ElementQueryInterface
+    public static function find(): SentNotificationQuery
     {
         return new SentNotificationQuery(static::class);
     }
@@ -150,35 +152,35 @@ class SentNotification extends Element
     }
 
 
-    // Public Properties
+    // Properties
     // =========================================================================
 
-    public $id;
-    public $title;
-    public $formId;
-    public $submissionId;
-    public $notificationId;
-    public $subject;
-    public $to;
-    public $cc;
-    public $bcc;
-    public $replyTo;
-    public $replyToName;
-    public $from;
-    public $fromName;
-    public $body;
-    public $htmlBody;
-    public $info;
-    public $success;
-    public $message;
+    public ?int $id = null;
+    public ?string $title = null;
+    public ?string $formId = null;
+    public ?string $submissionId = null;
+    public ?string $notificationId = null;
+    public ?string $subject = null;
+    public ?string $to = null;
+    public ?string $cc = null;
+    public ?string $bcc = null;
+    public ?string $replyTo = null;
+    public ?string $replyToName = null;
+    public ?string $from = null;
+    public ?string $fromName = null;
+    public ?string $body = null;
+    public ?string $htmlBody = null;
+    public ?string $info = null;
+    public ?string $success = null;
+    public ?string $message = null;
 
 
     // Private Properties
     // =========================================================================
 
-    private $_form;
-    private $_submission;
-    private $_notification;
+    private array|Model|null|ElementInterface $_form;
+    private array|Model|null|ElementInterface $_submission;
+    private ?Notification $_notification;
 
 
     // Public Methods
@@ -187,7 +189,7 @@ class SentNotification extends Element
     /**
      * @inheritDoc
      */
-    public function init()
+    public function init(): void
     {
         parent::init();
 
@@ -199,7 +201,7 @@ class SentNotification extends Element
     /**
      * @inheritDoc
      */
-    public function __toString()
+    public function __toString(): string
     {
         return $this->dateCreated->format('M j, Y H:i:s A');
     }
@@ -207,7 +209,7 @@ class SentNotification extends Element
     /**
      * @inheritDoc
      */
-    public function getCpEditUrl()
+    public function getCpEditUrl(): ?string
     {
         return UrlHelper::cpUrl('formie/sent-notifications/edit/' . $this->id);
     }
@@ -215,7 +217,7 @@ class SentNotification extends Element
     /**
      * @inheritdoc
      */
-    public function getStatus()
+    public function getStatus(): ?string
     {
         if (!$this->success) {
             return self::STATUS_FAILED;
@@ -224,10 +226,7 @@ class SentNotification extends Element
         return self::STATUS_SUCCESS;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getForm()
+    public function getForm(): ElementInterface|Model|array|null
     {
         if (!$this->_form) {
             $this->_form = Form::find()->id($this->formId)->one();
@@ -236,10 +235,7 @@ class SentNotification extends Element
         return $this->_form;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getSubmission()
+    public function getSubmission(): ElementInterface|Model|array|null
     {
         if (!$this->_submission) {
             $this->_submission = Submission::find()->id($this->submissionId)->one();
@@ -248,10 +244,7 @@ class SentNotification extends Element
         return $this->_submission;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getNotification()
+    public function getNotification(): ?Notification
     {
         if (!$this->_notification) {
             $this->_notification = Formie::$plugin->getNotifications()->getNotificationById($this->notificationId);
@@ -267,7 +260,7 @@ class SentNotification extends Element
     /**
      * @inheritDoc
      */
-    public function afterSave(bool $isNew)
+    public function afterSave(bool $isNew): void
     {
         if (!$isNew) {
             $record = SentNotificationRecord::findOne($this->id);
@@ -351,26 +344,19 @@ class SentNotification extends Element
      */
     protected function tableAttributeHtml(string $attribute): string
     {
-        switch ($attribute) {
-            case 'form':
-                return $this->getForm()->title ?? '';
-            case 'submission':
-                return $this->getSubmission()->title ?? '';
-            case 'notification':
-                return $this->getNotification()->title ?? '';
-            case 'resend':
-                return Html::a(Craft::t('formie', 'Resend'), '#', [
-                    'class' => 'btn small formsubmit js-fui-notification-modal-resend-btn',
-                    'data-id' => $this->id,
-                    'title' => Craft::t('formie', 'Resend'),
-                ]);
-            case 'preview':
-                return $this->body ? StringHelper::safeTruncate($this->body, 50) : '';
-            case 'status':
-                return '<span class="status ' . $this->status . '"></span>';
-            default:
-                return parent::tableAttributeHtml($attribute);
-        }
+        return match ($attribute) {
+            'form' => $this->getForm()->title ?? '',
+            'submission' => $this->getSubmission()->title ?? '',
+            'notification' => $this->getNotification()->title ?? '',
+            'resend' => Html::a(Craft::t('formie', 'Resend'), '#', [
+                'class' => 'btn small formsubmit js-fui-notification-modal-resend-btn',
+                'data-id' => $this->id,
+                'title' => Craft::t('formie', 'Resend'),
+            ]),
+            'preview' => $this->body ? StringHelper::safeTruncate($this->body, 50) : '',
+            'status' => '<span class="status ' . $this->status . '"></span>',
+            default => parent::tableAttributeHtml($attribute),
+        };
     }
 
     /**
@@ -399,10 +385,7 @@ class SentNotification extends Element
     // Private methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
-    private static function _getAvailableFormIds()
+    private static function _getAvailableFormIds(): int|array
     {
         $userSession = Craft::$app->getUser();
 

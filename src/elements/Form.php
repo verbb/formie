@@ -3,7 +3,6 @@ namespace verbb\formie\elements;
 
 use verbb\formie\Formie;
 use verbb\formie\base\FormFieldInterface;
-use verbb\formie\base\IntegrationInterface;
 use verbb\formie\base\NestedFieldInterface;
 use verbb\formie\behaviors\FieldLayoutBehavior;
 use verbb\formie\elements\db\FormQuery;
@@ -25,7 +24,6 @@ use craft\db\Table;
 use craft\elements\Entry;
 use craft\elements\actions\Delete;
 use craft\elements\actions\Restore;
-use craft\elements\db\ElementQueryInterface;
 use craft\errors\MissingComponentException;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
@@ -39,56 +37,55 @@ use yii\base\Exception;
 use yii\base\InvalidConfigException;
 use yii\validators\Validator;
 use Throwable;
+use craft\base\ElementInterface;
+use yii\base\Model;
 
 class Form extends Element
 {
-    // Public Properties
+    // Properties
     // =========================================================================
 
-    /**
-     * @var FormSettings
-     */
-    public $settings;
+    public ?FormSettings $settings = null;
 
-    public $handle;
-    public $oldHandle;
-    public $fieldContentTable;
-    public $templateId;
-    public $submitActionEntryId;
-    public $requireUser = false;
-    public $availability = 'always';
-    public $availabilityFrom;
-    public $availabilityTo;
-    public $availabilitySubmissions;
-    public $defaultStatusId;
-    public $dataRetention = 'forever';
-    public $dataRetentionValue;
-    public $userDeletedAction = 'retain';
-    public $fileUploadsAction = 'retain';
-    public $fieldLayoutId;
+    public ?string $handle = null;
+    public ?string $oldHandle = null;
+    public ?string $fieldContentTable = null;
+    public ?int $templateId = null;
+    public ?int $submitActionEntryId = null;
+    public bool $requireUser = false;
+    public string $availability = 'always';
+    public ?string $availabilityFrom = null;
+    public ?string $availabilityTo = null;
+    public ?string $availabilitySubmissions = null;
+    public ?int $defaultStatusId = null;
+    public string $dataRetention = 'forever';
+    public ?string $dataRetentionValue = null;
+    public string $userDeletedAction = 'retain';
+    public string $fileUploadsAction = 'retain';
+    public ?int $fieldLayoutId = null;
 
 
     // Private Properties
     // =========================================================================
 
-    private $_fieldLayout;
-    private $_formFieldLayout;
-    private $_fields;
-    private $_rows;
-    private $_pages;
-    private $_template;
-    private $_defaultStatus;
-    private $_submitActionEntry;
-    private $_notifications;
-    private $_currentSubmission;
-    private $_editingSubmission;
-    private $_formId;
-    private $_appliedFieldSettings = false;
-    private $_appliedFormSettings = false;
-    private static $_layoutsByType;
+    private ?CraftFieldLayout $_fieldLayout = null;
+    private ?FieldLayout $_formFieldLayout = null;
+    private ?array $_fields = null;
+    private ?array $_rows = null;
+    private ?array $_pages = null;
+    private ?FormTemplate $_template = null;
+    private ?Status $_defaultStatus = null;
+    private ?string $_submitActionEntry = null;
+    private ?array $_notifications = null;
+    private ?Submission $_currentSubmission = null;
+    private ?bool $_editingSubmission = null;
+    private ?string $_formId = null;
+    private bool $_appliedFieldSettings = false;
+    private bool $_appliedFormSettings = false;
+    private static ?array $_layoutsByType = null;
 
 
-    // Static
+    // Static Methods
     // =========================================================================
 
     /**
@@ -102,7 +99,7 @@ class Form extends Element
     /**
      * @inheritDoc
      */
-    public static function refHandle()
+    public static function refHandle(): ?string
     {
         return 'form';
     }
@@ -134,7 +131,7 @@ class Form extends Element
     /**
      * @inheritDoc
      */
-    public static function find(): ElementQueryInterface
+    public static function find(): FormQuery
     {
         return new FormQuery(static::class);
     }
@@ -142,7 +139,7 @@ class Form extends Element
     /**
      * @inheritDoc
      */
-    public static function gqlTypeNameByContext($context): string
+    public static function gqlTypeNameByContext(mixed $context): string
     {
         return 'Form';
     }
@@ -191,7 +188,7 @@ class Form extends Element
         if (self::$_layoutsByType !== null) {
             return self::$_layoutsByType;
         }
-        
+
         return self::$_layoutsByType = Craft::$app->getFields()->getLayoutsByType(static::class);
     }
 
@@ -244,7 +241,7 @@ class Form extends Element
             'reservedWords' => ['id', 'dateCreated', 'dateUpdated', 'uid', 'title']
         ];
 
-        $rules[] = ['handle', function($attribute, $params, Validator $validator) {
+        $rules[] = ['handle', function($attribute, $params, Validator $validator): void {
             $query = static::find()->handle($this->$attribute);
             if ($this->id) {
                 $query = $query->id("not {$this->id}");
@@ -267,10 +264,28 @@ class Form extends Element
     // Public Methods
     // =========================================================================
 
+    public function __construct($config = [])
+    {
+        // Config normalization
+        if (array_key_exists('settings', $config)) {
+            if (is_string($config['settings'])) {
+                $config['settings'] = new FormSettings(Json::decodeIfJson($config['settings']));
+            }
+
+            if (!($config['settings'] instanceof FormSettings)) {
+                $config['settings'] = new FormSettings();
+            }
+        } else {
+            $config['settings'] = new FormSettings();
+        }
+
+        parent::__construct($config);
+    }
+
     /**
      * @inheritDoc
      */
-    public function __toString()
+    public function __toString(): string
     {
         return (string)$this->title;
     }
@@ -278,16 +293,11 @@ class Form extends Element
     /**
      * @inheritDoc
      */
-    public function init()
+    public function init(): void
     {
         parent::init();
 
-        if (empty($this->settings)) {
-            $this->settings = new FormSettings();
-            $this->settings->setForm($this);
-        } else {
-            $settings = Json::decodeIfJson($this->settings);
-            $this->settings = new FormSettings($settings);
+        if ($this->settings instanceof FormSettings) {
             $this->settings->setForm($this);
         }
     }
@@ -295,7 +305,7 @@ class Form extends Element
     /**
      * @inheritDoc
      */
-    public function behaviors()
+    public function behaviors(): array
     {
         $behaviors = parent::behaviors();
 
@@ -311,7 +321,7 @@ class Form extends Element
      * @return FieldLayout
      * @throws InvalidConfigException
      */
-    public function getFormFieldLayout()
+    public function getFormFieldLayout(): FieldLayout
     {
         if ($this->_formFieldLayout !== null) {
             return $this->_formFieldLayout;
@@ -323,21 +333,16 @@ class Form extends Element
         return $this->_formFieldLayout = $behavior->getFieldLayout();
     }
 
-    /**
-     * @param FieldLayout $fieldLayout
-     */
-    public function setFormFieldLayout(FieldLayout $fieldLayout)
+    public function setFormFieldLayout(FieldLayout $fieldLayout): void
     {
         /* @var FieldLayoutBehavior $behavior */
         $behavior = $this->getBehavior('fieldLayout');
+        $behavior->setFieldLayout($fieldLayout);
         
-        return $this->_formFieldLayout = $behavior->setFieldLayout($fieldLayout);
+        $this->_formFieldLayout = $fieldLayout;
     }
 
-    /**
-     * @return CraftFieldLayout|null
-     */
-    public function getFieldLayout()
+    public function getFieldLayout(): ?CraftFieldLayout
     {
         if ($this->_fieldLayout !== null) {
             return $this->_fieldLayout;
@@ -345,7 +350,7 @@ class Form extends Element
 
         try {
             $template = $this->getTemplate();
-        } catch (InvalidConfigException $e) {
+        } catch (InvalidConfigException) {
             // The entry type was probably deleted
             return null;
         }
@@ -359,8 +364,6 @@ class Form extends Element
 
     /**
      * Returns the form's field context.
-     *
-     * @return string
      */
     public function getFormFieldContext(): string
     {
@@ -370,7 +373,7 @@ class Form extends Element
     /**
      * @inheritDoc
      */
-    public function getCpEditUrl()
+    public function getCpEditUrl(): ?string
     {
         return UrlHelper::cpUrl("formie/forms/edit/{$this->id}");
     }
@@ -380,7 +383,7 @@ class Form extends Element
      *
      * @return FormTemplate|null
      */
-    public function getTemplate()
+    public function getTemplate(): ?FormTemplate
     {
         if (!$this->_template) {
             if ($this->templateId) {
@@ -398,7 +401,7 @@ class Form extends Element
      *
      * @param FormTemplate|null $template
      */
-    public function setTemplate($template)
+    public function setTemplate(?FormTemplate $template): void
     {
         if ($template) {
             $this->_template = $template;
@@ -410,10 +413,8 @@ class Form extends Element
 
     /**
      * Returns the default status for a form.
-     *
-     * @return Status
      */
-    public function getDefaultStatus(): Status
+    public function getDefaultStatus(): ?Status
     {
         if (!$this->_defaultStatus) {
             if ($this->defaultStatusId) {
@@ -462,7 +463,7 @@ class Form extends Element
      *
      * @param Status|null $status
      */
-    public function setDefaultStatus($status)
+    public function setDefaultStatus(?Status $status): void
     {
         if ($status) {
             $this->_defaultStatus = $status;
@@ -475,7 +476,6 @@ class Form extends Element
     /**
      * Gets a form's JSON encodable config for rendering the form builder.
      *
-     * @return array
      * @throws InvalidConfigException
      */
     public function getFormConfig(): array
@@ -521,10 +521,7 @@ class Form extends Element
         ]);
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getFormId()
+    public function getFormId(): string
     {
         if ($this->_formId) {
             return $this->_formId;
@@ -533,10 +530,7 @@ class Form extends Element
         return $this->_formId = uniqid("formie-form-{$this->id}");
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function setFormId($value)
+    public function setFormId($value): void
     {
         $this->_formId = $value;
     }
@@ -554,10 +548,7 @@ class Form extends Element
         return parent::getDirtyAttributes();
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getConfigJson()
+    public function getConfigJson(): ?string
     {
         return Json::encode($this->getFrontEndJsVariables());
     }
@@ -576,7 +567,7 @@ class Form extends Element
         // Check for a deleted form
         try {
             $fieldLayout = $this->getFormFieldLayout();
-        } catch (InvalidConfigException $e) {
+        } catch (InvalidConfigException) {
             return [];
         }
 
@@ -591,6 +582,7 @@ class Form extends Element
      * Returns the form’s rows.
      *
      * @return FieldInterface[][] The form’s rows.
+     * @throws InvalidConfigException
      */
     public function getRows(): array
     {
@@ -612,18 +604,16 @@ class Form extends Element
 
     /**
      * Returns true if any form field has conditions configured.
-     *
-     * @return bool
      */
     public function hasFieldConditions(): bool
     {
-        foreach ($this->getFields() as $field) {
+        foreach ($this->getCustomFields() as $field) {
             if ($field->enableConditions) {
                 return true;
             }
 
             if ($field instanceof NestedFieldInterface) {
-                foreach ($field->getFields() as $nestedField) {
+                foreach ($field->getCustomFields() as $nestedField) {
                     if ($nestedField->enableConditions) {
                         return true;
                     }
@@ -636,8 +626,6 @@ class Form extends Element
 
     /**
      * Returns true if any page buttons has conditions configured.
-     *
-     * @return bool
      */
     public function hasButtonConditions(): bool
     {
@@ -652,8 +640,6 @@ class Form extends Element
 
     /**
      * Returns true if any page has conditions configured.
-     *
-     * @return bool
      */
     public function hasPageConditions(): bool
     {
@@ -668,8 +654,6 @@ class Form extends Element
 
     /**
      * Returns true if any field, page buttons or page has conditions configured.
-     *
-     * @return bool
      */
     public function hasConditions(): bool
     {
@@ -678,8 +662,6 @@ class Form extends Element
 
     /**
      * Returns true if the form has more than 1 page.
-     *
-     * @return bool
      */
     public function hasMultiplePages(): bool
     {
@@ -689,10 +671,8 @@ class Form extends Element
     /**
      * Returns the current page.
      *
-     * @return FieldLayoutPage|null
-     * @noinspection PhpDocMissingThrowsInspection
      */
-    public function getCurrentPage()
+    public function getCurrentPage(): ?FieldLayoutPage
     {
         $currentPage = null;
         $pages = $this->getPages();
@@ -723,9 +703,8 @@ class Form extends Element
      * Returns the previous page.
      *
      * @param FieldLayoutPage|null $currentPage
-     * @return FieldLayoutPage|null
      */
-    public function getPreviousPage($currentPage = null, $submission = null)
+    public function getPreviousPage(FieldLayoutPage $currentPage = null, $submission = null): ?FieldLayoutPage
     {
         $pages = $this->getPages();
 
@@ -745,11 +724,9 @@ class Form extends Element
         $prev = prev($pages);
 
         // Handle if the next page should be conditionally skipped
-        if ($prev && $submission) {
-            if ($prev->isConditionallyHidden($submission)) {
-                // Call again to get the next non-hidden page.
-                $prev = $this->getPreviousPage($prev, $submission);
-            }
+        if ($prev && $submission && $prev->isConditionallyHidden($submission)) {
+            // Call again to get the next non-hidden page.
+            $prev = $this->getPreviousPage($prev, $submission);
         }
 
         return $prev ?: null;
@@ -759,9 +736,8 @@ class Form extends Element
      * Returns the next page.
      *
      * @param FieldLayoutPage|null $currentPage
-     * @return FieldLayoutPage|null
      */
-    public function getNextPage($currentPage = null, $submission = null)
+    public function getNextPage(FieldLayoutPage $currentPage = null, $submission = null): ?FieldLayoutPage
     {
         $pages = $this->getPages();
 
@@ -781,11 +757,9 @@ class Form extends Element
         $next = next($pages);
 
         // Handle if the next page should be conditionally skipped
-        if ($next && $submission) {
-            if ($next->isConditionallyHidden($submission)) {
-                // Call again to get the next non-hidden page.
-                $next = $this->getNextPage($next, $submission);
-            }
+        if ($next && $submission && $next->isConditionallyHidden($submission)) {
+            // Call again to get the next non-hidden page.
+            $next = $this->getNextPage($next, $submission);
         }
 
         return $next ?: null;
@@ -797,7 +771,7 @@ class Form extends Element
      * @param FieldLayoutPage|null $currentPage
      * @return int|null
      */
-    public function getCurrentPageIndex($currentPage = null)
+    public function getCurrentPageIndex(FieldLayoutPage $currentPage = null): ?int
     {
         $pages = $this->getPages();
 
@@ -820,10 +794,10 @@ class Form extends Element
     /**
      * Returns the index of a page in the array of all pages.
      *
-     * @param FieldLayoutPage $page
+     * @param FieldLayoutPage|null $page
      * @return int|null
      */
-    public function getPageIndex($page = null)
+    public function getPageIndex(FieldLayoutPage $page = null): ?int
     {
         $pages = $this->getPages();
 
@@ -841,7 +815,7 @@ class Form extends Element
      * @param $page
      * @throws MissingComponentException
      */
-    public function setCurrentPage($page)
+    public function setCurrentPage($page): void
     {
         if (Craft::$app->getRequest()->getIsConsoleRequest()) {
             return;
@@ -859,7 +833,7 @@ class Form extends Element
      *
      * @throws MissingComponentException
      */
-    public function resetCurrentPage()
+    public function resetCurrentPage(): void
     {
         if (Craft::$app->getRequest()->getIsConsoleRequest()) {
             return;
@@ -872,9 +846,8 @@ class Form extends Element
      * Returns true if the current page is the last page.
      *
      * @param null $currentPage
-     * @return bool
      */
-    public function isLastPage($currentPage = null)
+    public function isLastPage($currentPage = null): bool
     {
         return !((bool)$this->getNextPage($currentPage));
     }
@@ -883,9 +856,8 @@ class Form extends Element
      * Returns true if the current page is the first page.
      *
      * @param null $currentPage
-     * @return bool
      */
-    public function isFirstPage($currentPage = null)
+    public function isFirstPage($currentPage = null): bool
     {
         return !((bool)$this->getPreviousPage($currentPage));
     }
@@ -893,10 +865,10 @@ class Form extends Element
     /**
      * Returns the current submission.
      *
-     * @return Submission|null
+     * @return array|Model|ElementInterface
      * @throws MissingComponentException
      */
-    public function getCurrentSubmission()
+    public function getCurrentSubmission(): ?Submission
     {
         if ($this->_currentSubmission) {
             return $this->_currentSubmission;
@@ -942,7 +914,7 @@ class Form extends Element
      * @param Submission|null $submission
      * @throws MissingComponentException
      */
-    public function setCurrentSubmission($submission)
+    public function setCurrentSubmission(?Submission $submission): void
     {
         if (Craft::$app->getRequest()->getIsConsoleRequest()) {
             return;
@@ -963,7 +935,7 @@ class Form extends Element
      *
      * @throws MissingComponentException
      */
-    public function resetCurrentSubmission()
+    public function resetCurrentSubmission(): void
     {
         if (Craft::$app->getRequest()->getIsConsoleRequest()) {
             return;
@@ -982,9 +954,8 @@ class Form extends Element
      * Sets the current submission, when editing.
      *
      * @param Submission|null $submission
-     * @throws MissingComponentException
      */
-    public function setSubmission($submission)
+    public function setSubmission(?Submission $submission): void
     {
         $this->_editingSubmission = $submission;
     }
@@ -992,7 +963,7 @@ class Form extends Element
     /**
      * Whether we're editing a submission or not. Useful to turn off captchas.
      */
-    public function isEditingSubmission()
+    public function isEditingSubmission(): bool
     {
         return (bool)$this->_editingSubmission;
     }
@@ -1001,7 +972,7 @@ class Form extends Element
      * Returns the action URL for form submissions. Changes depending on whether we're editing
      * a form on the front-end, or submitting as normal.
      */
-    public function getActionUrl()
+    public function getActionUrl(): string
     {
         if ($this->isEditingSubmission()) {
             return 'formie/submissions/save-submission';
@@ -1010,13 +981,10 @@ class Form extends Element
         return 'formie/submissions/submit';
     }
 
-    private $_relations = [];
-    private $_populatedFieldValues = [];
+    private array $_relations = [];
+    private array $_populatedFieldValues = [];
 
-    /**
-     * @inheritDoc
-     */
-    public function getRelations()
+    public function getRelations(): string
     {
         if ($values = $this->_relations) {
             return StringHelper::encenc(Json::encode($values));
@@ -1025,9 +993,6 @@ class Form extends Element
         return '';
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getRelationsFromRequest()
     {
         if (Craft::$app->getRequest()->getIsConsoleRequest()) {
@@ -1039,24 +1004,18 @@ class Form extends Element
         return Json::decode(StringHelper::decdec($value));
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function setRelations($elements = [])
+    public function setRelations($elements = []): void
     {
         foreach ($elements as $element) {
             $this->_relations[] = [
                 'id' => $element['id'],
                 'siteId' => $element['siteId'],
-                'type' => get_class($element),
+                'type' => $element::class,
             ];
         }
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getPopulatedFieldValues()
+    public function getPopulatedFieldValues(): string
     {
         if ($values = $this->_populatedFieldValues) {
             return StringHelper::encenc(Json::encode($values));
@@ -1065,9 +1024,6 @@ class Form extends Element
         return '';
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getPopulatedFieldValuesFromRequest()
     {
         $value = (string)Craft::$app->getRequest()->getBodyParam('extraFields', '');
@@ -1075,10 +1031,7 @@ class Form extends Element
         return Json::decode(StringHelper::decdec($value));
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function setPopulatedFieldValues($values)
+    public function setPopulatedFieldValues($values): void
     {
         $this->_populatedFieldValues = $values;
     }
@@ -1087,8 +1040,9 @@ class Form extends Element
      * Returns the form’s fields.
      *
      * @return FormFieldInterface[] The form’s fields.
+     * @throws InvalidConfigException
      */
-    public function getFields(): array
+    public function getCustomFields(): array
     {
         if ($this->_fields !== null) {
             return $this->_fields;
@@ -1100,37 +1054,35 @@ class Form extends Element
             return [];
         }
 
-        return $this->_fields = $fieldLayout->getFields();
+        return $this->_fields = $fieldLayout->getCustomFields();
     }
 
     /**
      * Returns a field by its handle.
-     *
-     * @param string $handle
-     * @return FormFieldInterface|null
      */
-    public function getFieldByHandle(string $handle)
+    public function getFieldByHandle(string $handle): ?FormFieldInterface
     {
-        return ArrayHelper::firstWhere($this->getFields(), 'handle', $handle);
+        return ArrayHelper::firstWhere($this->getCustomFields(), 'handle', $handle);
     }
 
     /**
      * Returns a field by its id.
      *
-     * @param string $id
+     * @param int $id
      * @return FormFieldInterface|null
+     * @throws InvalidConfigException
      */
-    public function getFieldById($id)
+    public function getFieldById(int $id): ?FormFieldInterface
     {
-        return ArrayHelper::firstWhere($this->getFields(), 'id', $id);
+        return ArrayHelper::firstWhere($this->getCustomFields(), 'id', $id);
     }
 
     /**
      * Returns the form's notifications.
      *
-     * @return Notification[]
+     * @return array|null
      */
-    public function getNotifications(): array
+    public function getNotifications(): ?array
     {
         if ($this->_notifications === null) {
             $this->_notifications = Formie::$plugin->getNotifications()->getFormNotifications($this);
@@ -1144,7 +1096,7 @@ class Form extends Element
      *
      * @param Notification[] $notifications
      */
-    public function setNotifications(array $notifications)
+    public function setNotifications(array $notifications): void
     {
         $this->_notifications = $notifications;
     }
@@ -1162,9 +1114,12 @@ class Form extends Element
     /**
      * Gets the form's redirect URL.
      *
+     * @param bool $checkLastPage
      * @return String
+     * @throws \Twig\Error\LoaderError
+     * @throws \Twig\Error\SyntaxError
      */
-    public function getRedirectUrl($checkLastPage = true)
+    public function getRedirectUrl($checkLastPage = true): string
     {
         $request = Craft::$app->getRequest();
         $url = '';
@@ -1199,7 +1154,7 @@ class Form extends Element
      *
      * @return Entry|null
      */
-    public function getRedirectEntry()
+    public function getRedirectEntry(): ?Entry
     {
         if (!$this->submitActionEntryId) {
             return null;
@@ -1220,10 +1175,7 @@ class Form extends Element
         return static::gqlTypeNameByContext($this);
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function getPageFieldErrors($submission)
+    public function getPageFieldErrors($submission): array
     {
         $errors = [];
 
@@ -1234,9 +1186,6 @@ class Form extends Element
         return array_filter($errors);
     }
 
-    /**
-     * @inheritdoc
-     */
     public function getFrontEndJsVariables(): array
     {   
         $pluginSettings = Formie::$plugin->getSettings();
@@ -1270,7 +1219,7 @@ class Form extends Element
         $registeredJs = [];
 
         // Add any JS per-field
-        foreach ($this->getFields() as $field) {
+        foreach ($this->getCustomFields() as $field) {
             if ($fieldJs = $this->_getFrontEndJsModules($field)) {
                 $registeredJs = array_merge($registeredJs, $fieldJs);
             }
@@ -1293,7 +1242,7 @@ class Form extends Element
             }
         }
 
-        // See if we have any conditions setup for the form. No need to include otherwise
+        // See if we have any condition's setup for the form. No need to include otherwise
         if ($this->hasConditions()) {
             $registeredJs[] = [
                 'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/fields/conditions.js', true),
@@ -1313,9 +1262,6 @@ class Form extends Element
         ];
     }
 
-    /**
-     * @inheritdoc
-     */
     public function getFrontEndTemplateOption($option): bool
     {
         $output = true;
@@ -1327,11 +1273,9 @@ class Form extends Element
         return $output;
     }
 
-    /**
-     * @inheritdoc
-     */
     public function getFrontEndTemplateLocation($location)
     {
+        $output = null;
         if ($location === 'outputCssLocation') {
             $output = FormTemplate::PAGE_HEADER;
         }
@@ -1347,10 +1291,7 @@ class Form extends Element
         return $output;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function setSettings($settings, $updateSnapshot = true)
+    public function setSettings($settings, $updateSnapshot = true): void
     {
         $this->settings->setAttributes($settings, false);
 
@@ -1358,15 +1299,12 @@ class Form extends Element
         if ($updateSnapshot) {
             $this->setSnapshotData('form', $settings);
 
-            // Save this so we know when we're applying form settings later
+            // Save this, so we know when we're applying form settings later
             $this->_appliedFormSettings = true;
         }
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function setFieldSettings($handle, $settings, $updateSnapshot = true)
+    public function setFieldSettings($handle, $settings, $updateSnapshot = true): void
     {
         $field = $this->getFieldByHandle($handle);
 
@@ -1379,13 +1317,10 @@ class Form extends Element
             }
         }
 
-        // Save this so we know when we're applying field settings later
+        // Save this, so we know when we're applying field settings later
         $this->_appliedFieldSettings = true;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getSnapshotData($key = null)
     {
         if (Craft::$app->getRequest()->getIsConsoleRequest()) {
@@ -1401,10 +1336,7 @@ class Form extends Element
         return $snapshotData ?? [];
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function setSnapshotData($key, $data)
+    public function setSnapshotData($key, $data): void
     {
         if (Craft::$app->getRequest()->getIsConsoleRequest()) {
             return;
@@ -1416,10 +1348,7 @@ class Form extends Element
         Craft::$app->getSession()->set($this->_getSessionKey('snapshot'), $snapshotData);
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function resetSnapshotData()
+    public function resetSnapshotData(): void
     {
         if (Craft::$app->getRequest()->getIsConsoleRequest()) {
             return;
@@ -1435,7 +1364,7 @@ class Form extends Element
     /**
      * @inheritDoc
      */
-    public function validate($attributeNames = null, $clearErrors = true)
+    public function validate($attributeNames = null, $clearErrors = true): bool
     {
         // Run basic model validation first.
         $validates = parent::validate($attributeNames, $clearErrors);
@@ -1445,7 +1374,7 @@ class Form extends Element
             $validates = false;
 
             // Compile the errors
-            foreach ($this->getFields() as $field) {
+            foreach ($this->getCustomFields() as $field) {
                 if ($field->hasErrors()) {
                     $this->addError('fields.' . $field->handle, $field->getErrors());
                 }
@@ -1468,7 +1397,7 @@ class Form extends Element
     /**
      * @inheritDoc
      */
-    public function hasErrors($attribute = null)
+    public function hasErrors($attribute = null): bool
     {
         $hasErrors = parent::hasErrors($attribute);
 
@@ -1487,7 +1416,7 @@ class Form extends Element
                     }
                 }
             }
-        } catch (Throwable $e) {}
+        } catch (Throwable) {}
 
         return $hasErrors;
     }
@@ -1495,7 +1424,7 @@ class Form extends Element
     /**
      * @inheritDoc
      */
-    public function afterSave(bool $isNew)
+    public function afterSave(bool $isNew): void
     {
         // Get the node record
         if (!$isNew) {
@@ -1529,7 +1458,7 @@ class Form extends Element
 
         $record->save(false);
 
-        return parent::afterSave($isNew);
+        parent::afterSave($isNew);
     }
 
     /**
@@ -1547,7 +1476,7 @@ class Form extends Element
     /**
      * @inheritDoc
      */
-    public function afterDelete()
+    public function afterDelete(): void
     {
         // Delete any submissions made on this form.
         $submissions = Submission::find()->formId($this->id)->all();
@@ -1589,7 +1518,7 @@ class Form extends Element
     /**
      * @inheritDoc
      */
-    public function afterRestore()
+    public function afterRestore(): void
     {
         // Restore the field layout too
         if ($this->fieldLayoutId && !Craft::$app->getFields()->restoreLayoutById($this->fieldLayoutId)) {
@@ -1598,7 +1527,7 @@ class Form extends Element
 
         $db = Craft::$app->getDb();
 
-        // Rename the content table - if its still around
+        // Rename the content table - if it's still around
         if ($db->tableExists($this->fieldContentTable)) {
             $newContentTableName = Formie::$plugin->getForms()->defineContentTableName($this);
 
@@ -1698,25 +1627,20 @@ class Form extends Element
 
     protected function tableAttributeHtml(string $attribute): string
     {
-        switch ($attribute) {
-            case 'usageCount':
-                return (new Query())
-                    ->from([Table::RELATIONS])
-                    ->where(['targetId' => $this->id])
-                    ->count();
-        }
-
-        return parent::tableAttributeHtml($attribute);
+        return match ($attribute) {
+            'usageCount' => (new Query())
+                ->from([Table::RELATIONS])
+                ->where(['targetId' => $this->id])
+                ->count(),
+            default => parent::tableAttributeHtml($attribute),
+        };
     }
 
 
     // Private methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
-    private function _getSessionKey($key, $useSubmissionId = true)
+    private function _getSessionKey($key, $useSubmissionId = true): string
     {
         // Return a different session namespace when editing a submission
         if ($useSubmissionId && $this->_editingSubmission && $this->_editingSubmission->id) {
@@ -1726,10 +1650,7 @@ class Form extends Element
         return 'formie:' . $this->id . ':' . $key;
     }
 
-    /**
-     * @inheritDoc
-     */
-    private static function _getAvailableFormIds()
+    private static function _getAvailableFormIds(): int|array
     {
         $userSession = Craft::$app->getUser();
 
@@ -1762,7 +1683,7 @@ class Form extends Element
         return $editableIds;
     }
 
-    private function _getFrontEndJsModules($field)
+    private function _getFrontEndJsModules($field): array
     {
         // Rip out any settings for clarity. These are output directly by the individual fields
         // all we want here is the module src and name to supply the form rendering with what additional

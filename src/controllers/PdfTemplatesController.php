@@ -17,7 +17,6 @@ use yii\web\Response;
 use Throwable;
 
 use verbb\formie\Formie;
-use verbb\formie\helpers\FileHelper;
 use verbb\formie\models\PdfTemplate;
 
 class PdfTemplatesController extends Controller
@@ -74,19 +73,14 @@ class PdfTemplatesController extends Controller
      * @throws BadRequestHttpException
      * @throws ServerErrorHttpException
      */
-    public function actionSave()
+    public function actionSave(): void
     {
         $this->requirePostRequest();
 
         $request = Craft::$app->getRequest();
 
-        $id = $request->getBodyParam('id');
-        $template = Formie::$plugin->getPdfTemplates()->getTemplateById($id);
-
-        if (!$template) {
-            $template = new PdfTemplate();
-        }
-
+        $template = new PdfTemplate();
+        $template->id = $request->getBodyParam('id');
         $template->name = $request->getBodyParam('name');
         $template->handle = $request->getBodyParam('handle');
         $template->template = preg_replace('/\/index(?:\.html|\.twig)?$/', '', $request->getBodyParam('template'));
@@ -129,13 +123,13 @@ class PdfTemplatesController extends Controller
      * @throws BadRequestHttpException
      * @throws Throwable
      */
-    public function actionDelete()
+    public function actionDelete(): Response
     {
         $this->requireAcceptsJson();
 
-        $templateId = Craft::$app->getRequest()->getRequiredParam('id');
+        $templateId = (int)Craft::$app->getRequest()->getRequiredParam('id');
 
-        if (Formie::$plugin->getPdfTemplates()->deleteTemplateById((int)$templateId)) {
+        if (Formie::$plugin->getPdfTemplates()->deleteTemplateById($templateId)) {
             return $this->asJson(['success' => true]);
         }
 

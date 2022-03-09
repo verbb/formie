@@ -4,15 +4,15 @@ namespace verbb\formie\prosemirror\tohtml\Nodes;
 
 class Image extends Node
 {
-    protected $nodeType = 'image';
-    protected $tagName = 'img';
+    protected ?string $nodeType = 'image';
+    protected string|null|array $tagName = 'img';
 
-    public function selfClosing()
+    public function selfClosing(): bool
     {
         return true;
     }
     
-    public function tag()
+    public function tag(): array
     {
         return [
             [

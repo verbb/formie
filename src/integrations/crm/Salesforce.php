@@ -4,11 +4,7 @@ namespace verbb\formie\integrations\crm;
 use verbb\formie\Formie;
 use verbb\formie\base\Crm;
 use verbb\formie\base\Integration;
-use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
-use verbb\formie\errors\IntegrationException;
-use verbb\formie\events\SendIntegrationPayloadEvent;
-use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
@@ -16,32 +12,34 @@ use Craft;
 use craft\helpers\ArrayHelper;
 use craft\helpers\DateTimeHelper;
 use craft\helpers\Json;
-use craft\web\View;
 
 use DateTime;
+use Throwable;
+use GuzzleHttp\Client;
+use Exception;
 
 class Salesforce extends Crm
 {
     // Properties
     // =========================================================================
 
-    public $clientId;
-    public $clientSecret;
-    public $apiDomain;
-    public $matchLead;
-    public $useSandbox = false;
-    public $mapToContact = false;
-    public $mapToLead = false;
-    public $mapToOpportunity = false;
-    public $mapToAccount = false;
-    public $contactFieldMapping;
-    public $leadFieldMapping;
-    public $opportunityFieldMapping;
-    public $accountFieldMapping;
-    public $duplicateLeadTask = false;
-    public $duplicateLeadTaskSubject = 'Task';
+    public ?string $clientId = null;
+    public ?string $clientSecret = null;
+    public ?string $apiDomain = null;
+    public ?string $matchLead = null;
+    public bool $useSandbox = false;
+    public bool $mapToContact = false;
+    public bool $mapToLead = false;
+    public bool $mapToOpportunity = false;
+    public bool $mapToAccount = false;
+    public ?array $contactFieldMapping = null;
+    public ?array $leadFieldMapping = null;
+    public ?array $opportunityFieldMapping = null;
+    public ?array $accountFieldMapping = null;
+    public bool $duplicateLeadTask = false;
+    public string $duplicateLeadTaskSubject = 'Task';
 
-    private $users = [];
+    private array $users = [];
 
 
     // OAuth Methods
@@ -94,13 +92,13 @@ class Salesforce extends Crm
     /**
      * @inheritDoc
      */
-    public function afterFetchAccessToken($token)
+    public function afterFetchAccessToken($token): void
     {
         // Save these properties for later...
         $this->apiDomain = $token->getValues()['instance_url'] ?? '';
 
         if (!$this->apiDomain) {
-            throw new \Exception('Salesforce response missing `instance_url`.');
+            throw new Exception('Salesforce response missing `instance_url`.');
         }
     }
 
@@ -116,9 +114,6 @@ class Salesforce extends Crm
         return Craft::t('formie', 'Salesforce');
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getDescription(): string
     {
         return Craft::t('formie', 'Manage your Salesforce customers by providing important information on their conversion on your site.');
@@ -158,10 +153,7 @@ class Salesforce extends Crm
         return $rules;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function fetchFormSettings()
+    public function fetchFormSettings(): IntegrationFormSettings
     {
         $settings = [];
 
@@ -206,16 +198,13 @@ class Salesforce extends Crm
                 'opportunity' => $opportunityFields,
                 'account' => $accountFields,
             ];
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Integration::apiError($this, $e);
         }
 
         return new IntegrationFormSettings($settings);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function sendPayload(Submission $submission): bool
     {
         try {
@@ -241,7 +230,7 @@ class Salesforce extends Crm
                 if (!$accountId) {
                     Integration::error($this, Craft::t('formie', 'Missing return “accountId” {response}. Sent payload {payload}', [
                         'response' => Json::encode($response),
-                        'payload' => Json::encode($contactPayload),
+                        'payload' => Json::encode($accountPayload),
                     ]), true);
 
                     return false;
@@ -333,7 +322,7 @@ class Salesforce extends Crm
 
                         return false;
                     }
-                } catch (\Throwable $e) {
+                } catch (Throwable $e) {
                     // Ignore duplicate warnings and continue, but still log
                     Integration::apiError($this, $e, false);
 
@@ -358,7 +347,7 @@ class Salesforce extends Crm
                             if ($response === false) {
                                 return true;
                             }
-                        } catch (\Throwable $e) {
+                        } catch (Throwable $e) {
                             Integration::apiError($this, $e, false);
                         }
                     }
@@ -406,7 +395,7 @@ class Salesforce extends Crm
                     return false;
                 }
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
             return false;
@@ -415,10 +404,7 @@ class Salesforce extends Crm
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getClient()
+    public function getClient(): Client
     {
         if ($this->_client) {
             return $this->_client;
@@ -438,7 +424,7 @@ class Salesforce extends Crm
         // We can't always rely on the EOL of the token.
         try {
             $response = $this->request('GET', '/');
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             if ($e->getCode() === 401) {
                 // Force-refresh the token
                 Formie::$plugin->getTokens()->refreshToken($token, true);
@@ -461,9 +447,6 @@ class Salesforce extends Crm
     // Private Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     private function _convertFieldType($fieldType)
     {
         $fieldTypes = [
@@ -480,10 +463,7 @@ class Salesforce extends Crm
         return $fieldTypes[$fieldType] ?? IntegrationField::TYPE_STRING;
     }
 
-    /**
-     * @inheritDoc
-     */
-    private function _getCustomFields($fields, $excludeNames = [])
+    private function _getCustomFields($fields, $excludeNames = []): array
     {
         $customFields = [];
 
@@ -524,16 +504,14 @@ class Salesforce extends Crm
             $options = [];
 
             // Populate some fields
-            if ($field['name'] === 'OwnerId') {
-                if ($this->users) {
-                    $options = array_merge($options, $this->users);
-                }
+            if (($field['name'] === 'OwnerId') && $this->users) {
+                $options = array_merge($options, $this->users);
             }
 
             // Any picklist values should be kept
             $pickListValues = $field['picklistValues'] ?? [];
 
-            foreach ($pickListValues as $key => $pickListValue) {
+            foreach ($pickListValues as $pickListValue) {
                 $options[] = [
                     'label' => $pickListValue['label'],
                     'value' => $pickListValue['value'],
@@ -559,9 +537,6 @@ class Salesforce extends Crm
         return $customFields;
     }
 
-    /**
-     * @inheritDoc
-     */
     private function _prepPayload($fields)
     {
         $payload = $fields;
@@ -569,7 +544,7 @@ class Salesforce extends Crm
         // Check to see if the ownerId is an email, special handling for that
         $ownerId = $payload['OwnerId'] ?? '';
 
-        if ($ownerId && strstr($ownerId, '@')) {
+        if ($ownerId && strpos($ownerId, '@') !== false) {
             $ownerId = ArrayHelper::remove($payload, 'OwnerId');
 
             $payload['Owner'] = [

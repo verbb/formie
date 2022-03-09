@@ -17,9 +17,6 @@ class HowOften extends PredefinedOption
         return Craft::t('formie', 'How Often');
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function getDataOptions(): array
     {
         return [

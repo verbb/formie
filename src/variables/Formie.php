@@ -85,7 +85,7 @@ class Formie
      * @param Submission|null $submission
      * @throws MissingComponentException
      */
-    public function setCurrentSubmission(Form $form, $submission)
+    public function setCurrentSubmission(Form $form, ?Submission $submission): void
     {
         $form->setCurrentSubmission($submission);
     }
@@ -93,12 +93,12 @@ class Formie
     /**
      * Renders a form.
      *
-     * @param Form|string $form
+     * @param string|Form $form
      * @param array|null $options
      * @return Markup|null
      * @noinspection PhpDocMissingThrowsInspection
      */
-    public function renderForm($form, array $options = null)
+    public function renderForm(Form|string $form, array $options = null): ?string
     {
         return FormiePlugin::$plugin->getRendering()->renderForm($form, $options);
     }
@@ -107,12 +107,16 @@ class Formie
      * Renders a form page.
      *
      * @param Form $form
-     * @param FieldLayoutPage $page
+     * @param FieldLayoutPage|null $page
      * @param array|null $options
      * @return Markup|null
+     * @throws \Twig\Error\LoaderError
+     * @throws \Twig\Error\RuntimeError
+     * @throws \Twig\Error\SyntaxError
+     * @throws \yii\base\Exception
      * @noinspection PhpDocMissingThrowsInspection
      */
-    public function renderPage(Form $form, FieldLayoutPage $page = null, array $options = null)
+    public function renderPage(Form $form, FieldLayoutPage $page = null, array $options = null): ?string
     {
         return FormiePlugin::$plugin->getRendering()->renderPage($form, $page, $options);
     }
@@ -121,12 +125,12 @@ class Formie
      * Renders a form field.
      *
      * @param Form $form
-     * @param FormFieldInterface|FormFieldTrait $field
+     * @param FormFieldInterface $field
      * @param array|null $options
      * @return Markup|null
      * @noinspection PhpDocMissingThrowsInspection
      */
-    public function renderField(Form $form, $field, array $options = null)
+    public function renderField(Form $form, FormFieldInterface $field, array $options = null): ?string
     {
         return FormiePlugin::$plugin->getRendering()->renderField($form, $field, $options);
     }
@@ -134,22 +138,22 @@ class Formie
     /**
      * Registers assets for a form. This will not output anything.
      *
-     * @param Form|string $form
+     * @param string|Form $form
      * @param array|null $options
      * @return null
      * @noinspection PhpDocMissingThrowsInspection
      */
-    public function registerAssets($form, array $options = null)
+    public function registerAssets(Form|string $form, array $options = null): void
     {
-        return FormiePlugin::$plugin->getRendering()->registerAssets($form, $options);
+        FormiePlugin::$plugin->getRendering()->registerAssets($form, $options);
     }
 
-    public function renderFormCss($form, $attributes = [])
+    public function renderFormCss($form, $attributes = []): ?string
     {
         return FormiePlugin::$plugin->getRendering()->renderFormAssets($form, Rendering::RENDER_TYPE_CSS, $attributes);
     }
 
-    public function renderFormJs($form, $attributes = [])
+    public function renderFormJs($form, $attributes = []): ?string
     {
         return FormiePlugin::$plugin->getRendering()->renderFormAssets($form, Rendering::RENDER_TYPE_JS, $attributes);
     }
@@ -157,11 +161,11 @@ class Formie
     /**
      * Gets a field's options from the main options array.
      *
-     * @param FormFieldInterface|FormFieldTrait $field
+     * @param FormFieldInterface $field
      * @param array|null $options
      * @return array
      */
-    public function getFieldOptions($field, array $options = null): array
+    public function getFieldOptions(FormFieldInterface $field, array $options = null): array
     {
         return FormiePlugin::$plugin->getFields()->getFieldOptions($field, $options);
     }
@@ -169,12 +173,12 @@ class Formie
     /**
      * Returns a fields label position.
      *
-     * @param FormFieldInterface|FormFieldTrait|SubfieldTrait $field
+     * @param FormFieldInterface $field
      * @param Form $form
      * @param bool $subfield
      * @return PositionInterface
      */
-    public function getLabelPosition($field, Form $form, bool $subfield = false): PositionInterface
+    public function getLabelPosition(FormFieldInterface $field, Form $form, bool $subfield = false): PositionInterface
     {
         /* @var PositionInterface $position */
         $position = $subfield && $field->hasSubfields() ? $field->subfieldLabelPosition : $field->labelPosition;
@@ -190,11 +194,11 @@ class Formie
     /**
      * Returns a fields instructions position.
      *
-     * @param FormFieldInterface|FormFieldTrait $field
+     * @param FormFieldInterface $field
      * @param Form $form
      * @return PositionInterface
      */
-    public function getInstructionsPosition($field, Form $form): PositionInterface
+    public function getInstructionsPosition(FormFieldInterface $field, Form $form): PositionInterface
     {
         $position = $field->instructionsPosition ?: $form->settings->defaultInstructionsPosition;
         return new $position();
@@ -205,17 +209,19 @@ class Formie
      *
      * @param string $value
      * @param Submission $submission
-     * @param Form $form
+     * @param Form|null $form
+     * @param Notification|null $notification
      * @return string|null
+     * @throws \Exception
      */
-    public function getParsedValue($value, Submission $submission, Form $form = null, Notification $notification = null)
+    public function getParsedValue(string $value, Submission $submission, Form $form = null, Notification $notification = null): ?string
     {
         return Variables::getParsedValue($value, $submission, $form, $notification);
     }
 
-    public function populateFormValues($element, $values, $force = false)
+    public function populateFormValues($element, $values, $force = false): void
     {
-        return FormiePlugin::$plugin->getRendering()->populateFormValues($element, $values, $force);
+        FormiePlugin::$plugin->getRendering()->populateFormValues($element, $values, $force);
     }
 
     /**
@@ -306,6 +312,7 @@ class Formie
     }
 
     /**
+     * @param $row
      * @return array
      */
     public function getVisibleFields($row): array
@@ -322,18 +329,12 @@ class Formie
         return $fields;
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function getSubmissionRelations($element)
+    public function getSubmissionRelations($element): array
     {
         return FormiePlugin::$plugin->getRelations()->getSubmissionRelations($element);
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function getFieldNamespaceForScript($field)
+    public function getFieldNamespaceForScript($field): string
     {
         return FormiePlugin::$plugin->getService()->getFieldNamespaceForScript($field);
     }

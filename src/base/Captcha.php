@@ -1,29 +1,25 @@
 <?php
 namespace verbb\formie\base;
 
-use verbb\formie\Formie;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 
 use Craft;
+use craft\helpers\Json;
 use craft\helpers\StringHelper;
-use craft\helpers\UrlHelper;
 
-abstract class Captcha extends Integration implements IntegrationInterface
+abstract class Captcha extends Integration
 {
     // Properties
     // =========================================================================
 
-    public $showAllPages = false;
-    public $spamReason;
+    public bool $showAllPages = false;
+    public ?string $spamReason = null;
 
 
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function typeName(): string
     {
         return Craft::t('formie', 'Captchas');
@@ -74,6 +70,7 @@ abstract class Captcha extends Integration implements IntegrationInterface
      * Returns the frontend HTML.
      *
      * @param Form $form
+     * @param null $page
      * @return string
      */
     public function getFrontEndHtml(Form $form, $page = null): string
@@ -84,9 +81,11 @@ abstract class Captcha extends Integration implements IntegrationInterface
     /**
      * Returns the front-end JS.
      *
-     * @return array
+     * @param Form $form
+     * @param null $page
+     * @return array|null
      */
-    public function getFrontEndJsVariables(Form $form, $page = null)
+    public function getFrontEndJsVariables(Form $form, $page = null): ?array
     {
         return null;
     }
@@ -95,9 +94,11 @@ abstract class Captcha extends Integration implements IntegrationInterface
      * Some captchas require tokens to be refreshed for static caching. You should return any
      * variables used in `getFrontEndJsVariables()` here for the refresh-token action to return.
      *
-     * @return array
+     * @param Form $form
+     * @param null $page
+     * @return array|null
      */
-    public function getRefreshJsVariables(Form $form, $page = null)
+    public function getRefreshJsVariables(Form $form, $page = null): ?array
     {
         return null;
     }
@@ -116,21 +117,16 @@ abstract class Captcha extends Integration implements IntegrationInterface
 
     // Protected Methods
     // =========================================================================
-    
-    /**
-     * @inheritDoc
-     */
+
     protected function getOrSet($key, $callable)
     {
         if ($value = Craft::$app->getSession()->get($key)) {
             return $value;
         }
 
-        $value = call_user_func($callable, $this);
+        $value = $callable($this);
 
-        if (!Craft::$app->getSession()->set($key, $value)) {
-            Craft::warning('Failed to set cache value for key ' . json_encode($key), __METHOD__);
-        }
+        Craft::$app->getSession()->set($key, $value);
 
         return $value;
     }

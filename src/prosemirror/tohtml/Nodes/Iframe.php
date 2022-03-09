@@ -4,10 +4,10 @@ namespace verbb\formie\prosemirror\tohtml\Nodes;
 
 class Iframe extends Node
 {
-    protected $nodeType = 'iframe';
-    protected $tagName = 'iframe';
+    protected ?string $nodeType = 'iframe';
+    protected string|null|array $tagName = 'iframe';
 
-    public function tag()
+    public function tag(): array
     {
         $attrs = [];
         if (isset($this->node->attrs)) {

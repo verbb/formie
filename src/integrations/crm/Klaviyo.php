@@ -1,32 +1,25 @@
 <?php
 namespace verbb\formie\integrations\crm;
 
-use verbb\formie\Formie;
 use verbb\formie\base\Crm;
 use verbb\formie\base\Integration;
-use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
-use verbb\formie\errors\IntegrationException;
-use verbb\formie\events\SendIntegrationPayloadEvent;
-use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
-use craft\helpers\ArrayHelper;
-use craft\helpers\Json;
-use craft\helpers\StringHelper;
-use craft\web\View;
+use GuzzleHttp\Client;
+use Throwable;
 
 class Klaviyo extends Crm
 {
     // Properties
     // =========================================================================
 
-    public $publicApiKey;
-    public $privateApiKey;
-    public $mapToProfile = false;
-    public $profileFieldMapping;
+    public ?string $publicApiKey = null;
+    public ?string $privateApiKey = null;
+    public bool $mapToProfile = false;
+    public ?array $profileFieldMapping = null;
 
 
     // Public Methods
@@ -40,9 +33,6 @@ class Klaviyo extends Crm
         return Craft::t('formie', 'Klaviyo');
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getDescription(): string
     {
         return Craft::t('formie', 'Manage your Klaviyo customers by providing important information on their conversion on your site.');
@@ -67,10 +57,7 @@ class Klaviyo extends Crm
         return $rules;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function fetchFormSettings()
+    public function fetchFormSettings(): IntegrationFormSettings
     {
         $settings = [];
 
@@ -122,16 +109,13 @@ class Klaviyo extends Crm
             $settings = [
                 'profile' => $profileFields,
             ];
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Integration::apiError($this, $e);
         }
 
         return new IntegrationFormSettings($settings);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function sendPayload(Submission $submission): bool
     {
         try {
@@ -147,7 +131,7 @@ class Klaviyo extends Crm
             if ($response === false) {
                 return true;
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
             return false;
@@ -156,14 +140,11 @@ class Klaviyo extends Crm
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function fetchConnection(): bool
     {
         try {
             $response = $this->request('GET', 'v2/lists');
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
             return false;
@@ -172,10 +153,7 @@ class Klaviyo extends Crm
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getClient()
+    public function getClient(): Client
     {
         if ($this->_client) {
             return $this->_client;

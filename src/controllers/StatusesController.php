@@ -61,27 +61,18 @@ class StatusesController extends Controller
     /**
      * @throws Throwable
      */
-    public function actionSave()
+    public function actionSave(): void
     {
         $this->requirePostRequest();
         $request = Craft::$app->getRequest();
 
-        $id = $request->getBodyParam('id');
-        $status = Formie::$plugin->getStatuses()->getStatusById($id);
-
-        if (!$status) {
-            $status = new Status();
-        }
-
+        $status = new Status();
+        $status->id = $request->getBodyParam('id');
         $status->name = $request->getBodyParam('name');
         $status->handle = $request->getBodyParam('handle');
         $status->color = $request->getBodyParam('color');
         $status->description = $request->getBodyParam('description');
-        $status->isDefault = $request->getBodyParam('isDefault');
-
-        if (empty($status->isDefault)) {
-            $status->isDefault = 0;
-        }
+        $status->isDefault = (bool)$request->getBodyParam('isDefault');
 
         // Save it
         if (Formie::$plugin->getStatuses()->saveStatus($status)) {
@@ -115,13 +106,13 @@ class StatusesController extends Controller
      * @return Response
      * @throws Throwable
      */
-    public function actionDelete()
+    public function actionDelete(): Response
     {
         $this->requireAcceptsJson();
 
-        $statusId = Craft::$app->getRequest()->getRequiredParam('id');
+        $statusId = (int)Craft::$app->getRequest()->getRequiredParam('id');
 
-        if (Formie::$plugin->getStatuses()->deleteStatusById((int)$statusId)) {
+        if (Formie::$plugin->getStatuses()->deleteStatusById($statusId)) {
             return $this->asJson(['success' => true]);
         }
 

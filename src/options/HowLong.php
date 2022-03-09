@@ -17,9 +17,6 @@ class HowLong extends PredefinedOption
         return Craft::t('formie', 'How Long');
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function getDataOptions(): array
     {
         return [

@@ -4,37 +4,34 @@ namespace verbb\formie\integrations\crm;
 use verbb\formie\Formie;
 use verbb\formie\base\Crm;
 use verbb\formie\base\Integration;
-use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
-use verbb\formie\errors\IntegrationException;
-use verbb\formie\events\SendIntegrationPayloadEvent;
-use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
-use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
-use craft\web\View;
+use Throwable;
+use GuzzleHttp\Client;
+use Exception;
 
 class Zoho extends Crm
 {
     // Properties
     // =========================================================================
 
-    public $clientId;
-    public $clientSecret;
-    public $apiServer;
-    public $apiLocation;
-    public $apiDomain;
-    public $mapToContact = false;
-    public $mapToDeal = false;
-    public $mapToLead = false;
-    public $mapToAccount = false;
-    public $contactFieldMapping;
-    public $dealFieldMapping;
-    public $leadFieldMapping;
-    public $accountFieldMapping;
+    public ?string $clientId = null;
+    public ?string $clientSecret = null;
+    public ?string $apiServer = null;
+    public ?string $apiLocation = null;
+    public ?string $apiDomain = null;
+    public bool $mapToContact = false;
+    public bool $mapToDeal = false;
+    public bool $mapToLead = false;
+    public bool $mapToAccount = false;
+    public ?array $contactFieldMapping = null;
+    public ?array $dealFieldMapping = null;
+    public ?array $leadFieldMapping = null;
+    public ?array $accountFieldMapping = null;
 
 
     // OAuth Methods
@@ -108,7 +105,7 @@ class Zoho extends Crm
     /**
      * @inheritDoc
      */
-    public function beforeFetchAccessToken(&$provider)
+    public function beforeFetchAccessToken(&$provider): void
     {
         // Save these properties for later...
         $this->apiLocation = Craft::$app->getRequest()->getParam('location');
@@ -122,13 +119,13 @@ class Zoho extends Crm
     /**
      * @inheritDoc
      */
-    public function afterFetchAccessToken($token)
+    public function afterFetchAccessToken($token): void
     {
         // Save these properties for later...
         $this->apiDomain = $token->getValues()['api_domain'] ?? '';
 
         if (!$this->apiDomain) {
-            throw new \Exception('Zoho response missing `api_domain`.');
+            throw new Exception('Zoho response missing `api_domain`.');
         }
     }
 
@@ -144,9 +141,6 @@ class Zoho extends Crm
         return Craft::t('formie', 'Zoho');
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getDescription(): string
     {
         return Craft::t('formie', 'Manage your Zoho customers by providing important information on their conversion on your site.');
@@ -186,10 +180,7 @@ class Zoho extends Crm
         return $rules;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function fetchFormSettings()
+    public function fetchFormSettings(): IntegrationFormSettings
     {
         $settings = [];
 
@@ -216,16 +207,13 @@ class Zoho extends Crm
                 'lead' => $leadsFields,
                 'account' => $accountFields,
             ];
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Integration::apiError($this, $e);
         }
 
         return new IntegrationFormSettings($settings);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function sendPayload(Submission $submission): bool
     {
         try {
@@ -344,7 +332,7 @@ class Zoho extends Crm
                     return false;
                 }
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
             return false;
@@ -353,10 +341,7 @@ class Zoho extends Crm
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getClient()
+    public function getClient(): Client
     {
         if ($this->_client) {
             return $this->_client;
@@ -380,7 +365,7 @@ class Zoho extends Crm
         // We can't always rely on the EOL of the token.
         try {
             $response = $this->request('GET', 'Deals');
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             if ($e->getCode() === 401) {
                 // Force-refresh the token
                 Formie::$plugin->getTokens()->refreshToken($token, true);
@@ -403,9 +388,6 @@ class Zoho extends Crm
     // Private Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     private function _convertFieldType($fieldType)
     {
         $fieldTypes = [
@@ -426,10 +408,7 @@ class Zoho extends Crm
         return $fieldTypes[$fieldType] ?? IntegrationField::TYPE_STRING;
     }
 
-    /**
-     * @inheritDoc
-     */
-    private function _getCustomFields($fields, $excludeNames = [])
+    private function _getCustomFields($fields, $excludeNames = []): array
     {
         $customFields = [];
 
@@ -448,7 +427,7 @@ class Zoho extends Crm
             $options = [];
             $pickListValues = $field['pick_list_values'] ?? [];
 
-            foreach ($pickListValues as $key => $pickListValue) {
+            foreach ($pickListValues as $pickListValue) {
                 $options[] = [
                     'label' => $pickListValue['display_value'],
                     'value' => $pickListValue['id'] ?? $pickListValue['actual_value'],

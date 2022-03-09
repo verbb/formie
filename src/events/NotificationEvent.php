@@ -1,6 +1,8 @@
 <?php
 namespace verbb\formie\events;
 
+use verbb\formie\models\Notification;
+
 use yii\base\Event;
 
 class NotificationEvent extends Event
@@ -8,7 +10,7 @@ class NotificationEvent extends Event
     // Properties
     // =========================================================================
 
-    public $notification;
-    public $isNew = false;
+    public ?Notification $notification = null;
+    public bool $isNew = false;
     
 }

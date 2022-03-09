@@ -8,7 +8,7 @@ class ModifyFormIntegrationsEvent extends Event
     // Properties
     // =========================================================================
 
-    public $integrations;
-    public $type;
+    public ?array $integrations = null;
+    public ?string $type = null;
     
 }

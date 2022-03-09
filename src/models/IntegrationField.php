@@ -1,7 +1,6 @@
 <?php
 namespace verbb\formie\models;
 
-use Craft;
 use craft\base\Model;
 
 class IntegrationField extends Model
@@ -9,29 +8,29 @@ class IntegrationField extends Model
     // Constants
     // =========================================================================
 
-    const TYPE_STRING = 'string';
-    const TYPE_NUMBER = 'number';
-    const TYPE_FLOAT = 'float';
-    const TYPE_BOOLEAN = 'boolean';
-    const TYPE_DATE = 'date';
-    const TYPE_DATETIME = 'datetime';
-    const TYPE_ARRAY = 'array';
+    public const TYPE_STRING = 'string';
+    public const TYPE_NUMBER = 'number';
+    public const TYPE_FLOAT = 'float';
+    public const TYPE_BOOLEAN = 'boolean';
+    public const TYPE_DATE = 'date';
+    public const TYPE_DATETIME = 'datetime';
+    public const TYPE_ARRAY = 'array';
 
 
     // Properties
     // =========================================================================
 
-    public $handle;
-    public $name;
-    public $type;
-    public $required;
-    public $options = [];
+    public ?string $handle = null;
+    public ?string $name = null;
+    public ?string $type = null;
+    public ?string $required = null;
+    public array $options = [];
 
 
     // Public Methods
     // =========================================================================
 
-    public function getType()
+    public function getType(): string
     {
         if ($this->type) {
             return $this->type;

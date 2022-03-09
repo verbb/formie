@@ -11,7 +11,6 @@ use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\Notification;
 
 use Craft;
-use craft\base\ElementInterface;
 use craft\elements\Entry;
 use craft\elements\db\ElementQueryInterface;
 use craft\fields\Entries as CraftEntries;
@@ -22,11 +21,6 @@ use craft\helpers\ArrayHelper;
 use craft\helpers\UrlHelper;
 use craft\records\EntryType as EntryTypeRecord;
 
-use Twig\Error\LoaderError;
-use Twig\Error\RuntimeError;
-use Twig\Error\SyntaxError;
-use yii\base\Exception;
-
 use GraphQL\Type\Definition\Type;
 
 class Entries extends CraftEntries implements FormFieldInterface
@@ -34,7 +28,7 @@ class Entries extends CraftEntries implements FormFieldInterface
     // Constants
     // =========================================================================
 
-    const EVENT_MODIFY_ELEMENT_QUERY = 'modifyElementQuery';
+    public const EVENT_MODIFY_ELEMENT_QUERY = 'modifyElementQuery';
 
 
     // Traits
@@ -81,14 +75,11 @@ class Entries extends CraftEntries implements FormFieldInterface
     /**
      * @var bool
      */
-    public $searchable = true;
+    public bool $searchable = true;
 
-    /**
-     * @var string
-     */
-    protected $inputTemplate = 'formie/_includes/element-select-input';
+    protected string $inputTemplate = 'formie/_includes/element-select-input';
 
-    private $_sourceOptions;
+    private ?array $_sourceOptions = null;
 
 
     // Public Methods
@@ -135,7 +126,7 @@ class Entries extends CraftEntries implements FormFieldInterface
      */
     public function getDefaultValue($attributePrefix = '')
     {
-        // If the default value from the parent field (query params, etc) is empty, use the default values
+        // If the default value from the parent field (query params, etc.) is empty, use the default values
         // set in the field settings.
         $this->defaultValue = $this->traitGetDefaultValue($attributePrefix) ?? $this->defaultValue;
 
@@ -155,7 +146,7 @@ class Entries extends CraftEntries implements FormFieldInterface
     /**
      * @inheritDoc
      */
-    public function getFrontEndInputOptions(Form $form, $value, array $options = null): array
+    public function getFrontEndInputOptions(Form $form, mixed $value, array $options = null): array
     {
         $inputOptions = $this->traitGetFrontendInputOptions($form, $value, $options);
         $inputOptions['entriesQuery'] = $this->getElementsQuery();
@@ -166,9 +157,9 @@ class Entries extends CraftEntries implements FormFieldInterface
     /**
      * @inheritDoc
      */
-    public function getEmailHtml(Submission $submission, Notification $notification, $value, array $options = null)
+    public function getEmailHtml(Submission $submission, Notification $notification, mixed $value, array $options = null): string|null|bool
     {
-        // Ensure we return back the correct, prepped query for emails. Just as we would be submissions.
+        // Ensure we return the correct, prepped query for emails. Just as we would be submissions.
         $value = $this->_all($value, $submission);
 
         return $this->traitGetEmailHtml($submission, $notification, $value, $options);
@@ -177,9 +168,10 @@ class Entries extends CraftEntries implements FormFieldInterface
     /**
      * Returns the list of selectable entries.
      *
-     * @return Entry[]
+     * @return ElementQueryInterface
+     * @throws \craft\errors\SiteNotFoundException
      */
-    public function getElementsQuery()
+    public function getElementsQuery(): ElementQueryInterface
     {
         // Use the currently-set element query, or create a new one.
         $query = $this->elementsQuery ?? Entry::find();
@@ -190,7 +182,7 @@ class Entries extends CraftEntries implements FormFieldInterface
             // Try to find the criteria we're restricting by - if any
             foreach ($this->sources as $source) {
                 // Check if we're looking for a type
-                if (strstr($source, 'type:')) {
+                if (strpos($source, 'type:') !== false) {
                     $entryTypeUid = str_replace('type:', '', $source);
                     $entryType = EntryTypeRecord::find()->where(['uid' => $entryTypeUid])->one();
 
@@ -295,7 +287,7 @@ class Entries extends CraftEntries implements FormFieldInterface
     /**
      * @inheritDoc
      */
-    public function defineLabelSourceOptions()
+    public function defineLabelSourceOptions(): array
     {
         $options = [
             ['value' => 'title', 'label' => Craft::t('app', 'Title')],
@@ -313,7 +305,7 @@ class Entries extends CraftEntries implements FormFieldInterface
                     $entryTypes = Craft::$app->sections->getEntryTypesBySectionId($sectionId);
 
                     foreach ($entryTypes as $entryType) {
-                        $fields = $this->getStringCustomFieldOptions($entryType->getFields());
+                        $fields = $this->getStringCustomFieldOptions($entryType->getCustomFields());
 
                         $options = array_merge($options, $fields);
                     }
@@ -327,13 +319,12 @@ class Entries extends CraftEntries implements FormFieldInterface
     /**
      * @inheritDoc
      */
-    public function getSettingGqlTypes()
+    public function getSettingGqlTypes(): array
     {
         return array_merge($this->traitGetSettingGqlTypes(), [
             'entries' => [
                 'name' => 'entries',
                 'type' => Type::listOf(EntryInterface::getType()),
-                'resolve' => EntryResolver::class.'::resolve',
                 'args' => EntryArguments::getArguments(),
                 'resolve' => function($class) {
                     return $class->getElementsQuery()->all();
@@ -375,7 +366,7 @@ class Entries extends CraftEntries implements FormFieldInterface
                 'label' => Craft::t('formie', 'Default Value'),
                 'help' => Craft::t('formie', 'Select a default entry to be selected.'),
                 'name' => 'defaultValue',
-                'selectionLabel' => $this->defaultSelectionLabel(),
+                'selectionLabel' => self::defaultSelectionLabel(),
                 'config' => [
                     'jsClass' => $this->inputJsClass,
                     'elementType' => static::elementType(),
@@ -479,9 +470,6 @@ class Entries extends CraftEntries implements FormFieldInterface
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineConditionsSchema(): array
     {
         return [

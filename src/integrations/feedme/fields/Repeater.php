@@ -6,6 +6,7 @@ use craft\feedme\base\FieldInterface;
 use craft\feedme\helpers\DataHelper;
 
 use Cake\Utility\Hash;
+use verbb\formie\fields\formfields\Repeater as RepeaterField;
 
 class Repeater extends Field implements FieldInterface
 {
@@ -19,7 +20,7 @@ class Repeater extends Field implements FieldInterface
     // =========================================================================
 
     public static $name = 'Repeater';
-    public static $class = 'verbb\formie\fields\formfields\Repeater';
+    public static $class = RepeaterField::class;
 
 
     // Templates

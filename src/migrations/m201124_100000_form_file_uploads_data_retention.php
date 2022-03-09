@@ -1,24 +1,14 @@
 <?php
 namespace verbb\formie\migrations;
 
-use verbb\formie\elements\Form;
-use verbb\formie\fields\formfields\Phone;
-use verbb\formie\prosemirror\toprosemirror\Renderer;
-
-use Craft;
 use craft\db\Migration;
-use craft\db\Query;
-use craft\helpers\ArrayHelper;
-use craft\helpers\Db;
-use craft\helpers\Json;
-use craft\helpers\StringHelper;
 
 class m201124_100000_form_file_uploads_data_retention extends Migration
 {
     /**
      * @inheritdoc
      */
-    public function safeUp()
+    public function safeUp(): bool
     {
         if (!$this->db->columnExists('{{%formie_forms}}', 'fileUploadsAction')) {
             $this->addColumn('{{%formie_forms}}', 'fileUploadsAction', $this->enum('fileUploadsAction', ['retain', 'delete'])
@@ -26,12 +16,14 @@ class m201124_100000_form_file_uploads_data_retention extends Migration
                 ->notNull()
                 ->after('userDeletedAction'));
         }
+
+        return true;
     }
 
     /**
      * @inheritdoc
      */
-    public function safeDown()
+    public function safeDown(): bool
     {
         echo "m201124_100000_form_file_uploads_data_retention cannot be reverted.\n";
         return false;

@@ -1,7 +1,6 @@
 <?php
 namespace verbb\formie\services;
 
-use verbb\formie\Formie;
 use verbb\formie\elements\Submission;
 
 use Craft;
@@ -13,11 +12,8 @@ class Relations extends Component
 {
     // Public Methods
     // =========================================================================
-    
-    /**
-     * @inheritdoc
-     */
-    public function getRelations(Submission $submission)
+
+    public function getRelations(Submission $submission): array
     {
         $elements = [];
 
@@ -37,10 +33,7 @@ class Relations extends Component
         return $elements;
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function getSubmissionRelations($element)
+    public function getSubmissionRelations($element): array
     {
         $elements = [];
 
@@ -60,10 +53,7 @@ class Relations extends Component
         return $elements;
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function saveRelations(Submission $submission)
+    public function saveRelations(Submission $submission): void
     {
         $form = $submission->getForm();
 
@@ -95,6 +85,6 @@ class Relations extends Component
             ];
         }
 
-        Db::batchInsert('{{%formie_relations}}', ['type', 'sourceId', 'sourceSiteId', 'targetId'], $values, true, $db);
+        Db::batchInsert('{{%formie_relations}}', ['type', 'sourceId', 'sourceSiteId', 'targetId'], $values, true);
     }
 }

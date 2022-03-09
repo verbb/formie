@@ -17,9 +17,6 @@ class Agreement extends PredefinedOption
         return Craft::t('formie', 'Agreement');
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function getDataOptions(): array
     {
         return [

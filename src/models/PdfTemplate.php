@@ -12,8 +12,8 @@ class PdfTemplate extends BaseTemplate
     // Properties
     // =========================================================================
 
-    public $filenameFormat = 'Submission-{submission.id}';
-    public $hasSingleTemplate = true;
+    public string $filenameFormat = 'Submission-{submission.id}';
+    public bool $hasSingleTemplate = true;
 
 
     // Public Methods

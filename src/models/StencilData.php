@@ -4,37 +4,25 @@ namespace verbb\formie\models;
 use Craft;
 use craft\base\Model;
 use craft\helpers\Json;
-use yii\behaviors\AttributeTypecastBehavior;
+use DateTime;
 
 class StencilData extends Model
 {
-    // Public Properties
+    // Properties
     // =========================================================================
 
-    public $requireUser = false;
-    public $availability = 'always';
-    public $availabilityFrom;
-    public $availabilityTo;
-    public $availabilitySubmissions;
-    public $dataRetention = 'forever';
-    public $dataRetentionValue;
-    public $userDeletedAction = 'retain';
-    public $fileUploadsAction = 'retain';
-
-    /**
-     * @var FormSettings
-     */
-    public $settings;
-
-    /**
-     * @var array
-     */
-    public $pages;
-
-    /**
-     * @var array
-     */
-    public $notifications = [];
+    public bool $requireUser = false;
+    public string $availability = 'always';
+    public ?DateTime $availabilityFrom = null;
+    public ?DateTime $availabilityTo = null;
+    public ?string $availabilitySubmissions = null;
+    public string $dataRetention = 'forever';
+    public ?string $dataRetentionValue = null;
+    public string $userDeletedAction = 'retain';
+    public string $fileUploadsAction = 'retain';
+    public FormSettings|array|null $settings = null;
+    public array $pages = [];
+    public array $notifications = [];
 
 
     // Public Methods
@@ -43,7 +31,7 @@ class StencilData extends Model
     /**
      * @inheritDoc
      */
-    public function init()
+    public function init(): void
     {
         parent::init();
 
@@ -57,7 +45,7 @@ class StencilData extends Model
         if (empty($this->pages)) {
             $this->pages = [
                 [
-                    'id' => 'new' . rand(),
+                    'id' => 'new' . mt_rand(),
                     'label' => Craft::t('site', 'Page 1'),
                     'sortOrder' => 0,
                     'rows' => [],

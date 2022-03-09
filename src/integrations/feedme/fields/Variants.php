@@ -2,6 +2,7 @@
 namespace verbb\formie\integrations\feedme\fields;
 
 use craft\feedme\fields\CommerceVariants as FeedMeVariants;
+use verbb\formie\fields\formfields\Variants as VariantsField;
 
 class Variants extends FeedMeVariants
 {
@@ -15,6 +16,6 @@ class Variants extends FeedMeVariants
     // =========================================================================
 
     public static $name = 'Variants';
-    public static $class = 'verbb\formie\fields\formfields\Variants';
+    public static $class = VariantsField::class;
 
 }

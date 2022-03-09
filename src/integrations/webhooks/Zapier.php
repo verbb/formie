@@ -4,23 +4,20 @@ namespace verbb\formie\integrations\webhooks;
 use verbb\formie\Formie;
 use verbb\formie\base\Integration;
 use verbb\formie\base\Webhook;
-use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
-use verbb\formie\models\IntegrationCollection;
-use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
-use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
-use craft\web\View;
+use GuzzleHttp\Client;
+use Throwable;
 
 class Zapier extends Webhook
 {
     // Properties
     // =========================================================================
 
-    public $webhook;
+    public ?string $webhook = null;
 
 
     // Public Methods
@@ -42,9 +39,6 @@ class Zapier extends Webhook
         return Craft::t('formie', 'Zapier');
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getDescription(): string
     {
         return Craft::t('formie', 'Send your form content to Zapier.');
@@ -62,10 +56,7 @@ class Zapier extends Webhook
         return $rules;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function fetchFormSettings()
+    public function fetchFormSettings(): IntegrationFormSettings
     {
         $settings = [];
 
@@ -91,23 +82,20 @@ class Zapier extends Webhook
                 'response' => $response,
                 'json' => $json,
             ];
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Integration::apiError($this, $e);
         }
 
         return new IntegrationFormSettings($settings);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function sendPayload(Submission $submission): bool
     {
         try {
             $payload = $this->generatePayloadValues($submission);
 
             $response = $this->getClient()->request('POST', $this->getWebhookUrl($this->webhook, $submission), $payload);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
             return false;
@@ -116,10 +104,7 @@ class Zapier extends Webhook
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getClient()
+    public function getClient(): Client
     {
         if ($this->_client) {
             return $this->_client;

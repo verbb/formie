@@ -12,10 +12,10 @@ class GroupInputType extends InputObjectType
     /**
      * Create the type for a Group form field
      *
-     * @param $context
+     * @param GroupField $context
      * @return bool|mixed
      */
-    public static function getType(GroupField $context)
+    public static function getType(GroupField $context): mixed
     {
         /** @var GroupField $context */
         $typeName = $context->getForm()->handle . '_' . $context->handle . '_FormieGroupInput';
@@ -25,7 +25,7 @@ class GroupInputType extends InputObjectType
         }
 
         // Array of block types.
-        $fields = $context->getFields();
+        $fields = $context->getCustomFields();
 
         $groupFields = [];
         foreach ($fields as $field) {
@@ -36,15 +36,13 @@ class GroupInputType extends InputObjectType
             $groupFields[$field->handle] = $fieldInput;
         }
 
-        $inputType = GqlEntityRegistry::createEntity($typeName, new InputObjectType([
+        return GqlEntityRegistry::createEntity($typeName, new InputObjectType([
             'name' => $typeName,
             'fields' => function() use ($groupFields) {
                 return $groupFields;
             },
             'normalizeValue' => [self::class, 'normalizeValue'],
         ]));
-
-        return $inputType;
     }
 
     /**
@@ -53,7 +51,7 @@ class GroupInputType extends InputObjectType
      * @param $value
      * @return mixed
      */
-    public static function normalizeValue($value)
+    public static function normalizeValue($value): mixed
     {
         return [
             'rows' => [

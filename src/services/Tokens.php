@@ -13,23 +13,24 @@ use craft\helpers\Json;
 use yii\base\Component;
 
 use League\OAuth2\Client\Grant\RefreshToken;
+use Exception;
 
 class Tokens extends Component
 {
     // Constants
     // =========================================================================
 
-    const EVENT_BEFORE_SAVE_TOKEN = 'beforeSaveToken';
-    const EVENT_AFTER_SAVE_TOKEN = 'afterSaveToken';
-    const EVENT_BEFORE_DELETE_TOKEN = 'beforeDeleteToken';
-    const EVENT_AFTER_DELETE_TOKEN = 'afterDeleteToken';
+    public const EVENT_BEFORE_SAVE_TOKEN = 'beforeSaveToken';
+    public const EVENT_AFTER_SAVE_TOKEN = 'afterSaveToken';
+    public const EVENT_BEFORE_DELETE_TOKEN = 'beforeDeleteToken';
+    public const EVENT_AFTER_DELETE_TOKEN = 'afterDeleteToken';
 
 
     // Properties
     // =========================================================================
 
-    private $_tokensById;
-    private $_fetchedAllTokens = false;
+    private ?array $_tokensById = null;
+    private bool $_fetchedAllTokens = false;
 
 
     // Public Methods
@@ -53,7 +54,7 @@ class Tokens extends Component
         return array_values($this->_tokensById);
     }
 
-    public function getTokenById(int $id, $refresh = true)
+    public function getTokenById(int $id, $refresh = true): ?Token
     {
         $result = $this->_createTokenQuery()
             ->where(['id' => $id])
@@ -137,7 +138,7 @@ class Tokens extends Component
         return true;
     }
 
-    public function refreshToken(Token $token, $force = false)
+    public function refreshToken(Token $token, $force = false): Token
     {
         if ($this->_refreshToken($token, $force)) {
             $this->saveToken($token);
@@ -166,7 +167,7 @@ class Tokens extends Component
             ->from(['{{%formie_tokens}}']);
     }
 
-    private function _getTokenRecordById(int $tokenId = null): TokenRecord
+    private function _getTokenRecordById(?int $tokenId = null): ?TokenRecord
     {
         if ($tokenId !== null) {
             $tokenRecord = TokenRecord::findOne(['id' => $tokenId]);
@@ -181,7 +182,7 @@ class Tokens extends Component
         return $tokenRecord;
     }
 
-    private function _createToken($config, $refresh = true)
+    private function _createToken($config, $refresh = true): Token
     {
         $token = new Token($config);
 
@@ -193,7 +194,7 @@ class Tokens extends Component
         return $token;
     }
 
-    private function _refreshToken(Token $token, $force = false)
+    private function _refreshToken(Token $token, $force = false): bool
     {
         $time = time();
 
@@ -201,7 +202,7 @@ class Tokens extends Component
 
         // Refreshing the token only applies to OAuth 2.0 providers
         if ($integration && $integration->oauthVersion() == 2) {
-            if ($token->endOfLife && $token->refreshToken || $force) {
+            if (($token->endOfLife && $token->refreshToken) || $force) {
                 // Has token expired ?
                 if ($time > $token->endOfLife || $force) {
                     $refreshToken = $token->refreshToken;

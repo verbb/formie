@@ -9,8 +9,8 @@ class StatesUsa extends PredefinedOption
     // Protected Properties
     // =========================================================================
 
-    public static $defaultLabelOption = 'name';
-    public static $defaultValueOption = 'name';
+    public static ?string $defaultLabelOption = 'name';
+    public static ?string $defaultValueOption = 'name';
 
 
     // Static Methods
@@ -46,9 +46,6 @@ class StatesUsa extends PredefinedOption
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function getDataOptions(): array
     {
         return [

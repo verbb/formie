@@ -12,17 +12,12 @@ use verbb\formie\web\assets\cp\CpAsset;
 
 use Craft;
 use craft\base\Element;
-use craft\errors\ElementNotFoundException;
-use craft\errors\MissingComponentException;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 use craft\helpers\StringHelper;
-use craft\helpers\Template;
 use craft\models\Site;
 use craft\web\Controller;
 
-use yii\base\Exception;
-use yii\base\ExitException;
 use yii\base\InvalidConfigException;
 use yii\web\BadRequestHttpException;
 use yii\web\ForbiddenHttpException;
@@ -39,14 +34,14 @@ class SubmissionsController extends Controller
     // Constants
     // =========================================================================
 
-    const EVENT_BEFORE_SUBMISSION_REQUEST = 'beforeSubmissionRequest';
-    const EVENT_AFTER_SUBMISSION_REQUEST = 'afterSubmissionRequest';
+    public const EVENT_BEFORE_SUBMISSION_REQUEST = 'beforeSubmissionRequest';
+    public const EVENT_AFTER_SUBMISSION_REQUEST = 'afterSubmissionRequest';
 
 
     // Protected Properties
     // =========================================================================
 
-    protected $allowAnonymous = [
+    protected array|bool|int $allowAnonymous = [
         'api' => self::ALLOW_ANONYMOUS_LIVE,
         'submit' => self::ALLOW_ANONYMOUS_LIVE,
         'set-page' => self::ALLOW_ANONYMOUS_LIVE,
@@ -57,7 +52,7 @@ class SubmissionsController extends Controller
     // Private Properties
     // =========================================================================
 
-    private $_namespace = 'fields';
+    private string $_namespace = 'fields';
 
 
     // Public Methods
@@ -66,7 +61,7 @@ class SubmissionsController extends Controller
     /**
      * @inheritdoc
      */
-    public function beforeAction($action)
+    public function beforeAction($action): bool
     {
         $settings = Formie::$plugin->getSettings();
 
@@ -89,10 +84,10 @@ class SubmissionsController extends Controller
     /**
      * Shows all the submissions in a list.
      *
-     * @return Response|null
+     * @return Response
      * @throws InvalidConfigException
      */
-    public function actionIndex()
+    public function actionIndex(): Response
     {
         $this->getView()->registerAssetBundle(CpAsset::class);
 
@@ -102,13 +97,15 @@ class SubmissionsController extends Controller
     /**
      * Edits a submission.
      *
+     * @param string $formHandle
      * @param int|null $submissionId
-     * @param string|null $siteHandle
      * @param Submission|null $submission
-     * @return Response|null
+     * @param string|null $site
+     * @return Response
+     * @throws BadRequestHttpException
      * @throws ForbiddenHttpException
-     * @throws NotFoundHttpException
      * @throws HttpException
+     * @throws \craft\errors\SiteNotFoundException
      */
     public function actionEditSubmission(string $formHandle, int $submissionId = null, ?Submission $submission = null, ?string $site = null): Response
     {
@@ -199,10 +196,9 @@ class SubmissionsController extends Controller
     /**
      * Saves a submission.
      *
-     * @return Response|null
      * @throws Throwable
      */
-    public function actionSaveSubmission()
+    public function actionSaveSubmission(): ?Response
     {
         $this->requirePostRequest();
 
@@ -216,6 +212,7 @@ class SubmissionsController extends Controller
         // Get the submission, or create a new one
         $submission = $this->_populateSubmission($form, null);
         $form = $submission->form;
+        $nextPage = null;
 
         // Check against permissions to save at all, or per-form
         if (!Craft::$app->getUser()->checkPermission('formie-editSubmissions')) {
@@ -245,7 +242,7 @@ class SubmissionsController extends Controller
             $goingBack = (bool)$request->getParam('goingBack');
 
             // Ensure we set the current submission on the form. This keeps track of session info for
-            // multi-page forms, separate to "new" submissions
+            // multipage forms, separate to "new" submissions
             $form->setSubmission($submission);
 
             // Check for the next page - if there is one
@@ -375,10 +372,9 @@ class SubmissionsController extends Controller
     /**
      * Submits and saves a form submission.
      *
-     * @return Response|null
      * @throws Throwable
      */
-    public function actionSubmit()
+    public function actionSubmit(): ?Response
     {
         $this->requirePostRequest();
         $request = Craft::$app->getRequest();
@@ -408,7 +404,7 @@ class SubmissionsController extends Controller
         $defaultStatus = $form->getDefaultStatus();
         $errorMessage = $form->settings->getErrorMessage();
 
-        // Set a specifc page as the current page. This will override the session-based
+        // Set a specific page as the current page. This will override the session-based
         // current page, but is useful for headless setups, or template overrides.
         // TODO: make this the default behaviour at the next breakpoint, to not rely
         // on session-based saving for the current page.
@@ -420,10 +416,10 @@ class SubmissionsController extends Controller
             }
         }
 
-        // Allow full submission payload to be provided for multi-page forms.
+        // Allow full submission payload to be provided for multipage forms.
         // Skip straight to the last page.
         if ($completeSubmission) {
-            $currentPage = $pages[count($pages) - 1] ?? null;
+            $currentPage = $pages[(is_countable($pages) ? count($pages) : 0) - 1] ?? null;
 
             if ($currentPage) {
                 $form->setCurrentPage($currentPage);
@@ -531,7 +527,7 @@ class SubmissionsController extends Controller
         // Save the submission
         $success = Craft::$app->getElements()->saveElement($submission, false);
 
-        // Set the custom title - only if set to save parsing, and after the submission is saved
+        // Set the custom title - only if set to save parsing, and after the submission is saved,
         // so we have access to not only field variables, but submission attributes
         if (trim($form->settings->submissionTitleFormat)) {
             $submission->updateTitle($form);
@@ -623,7 +619,7 @@ class SubmissionsController extends Controller
         }
 
         // If this is being forced-completed, handle the redirect URL now. This isn't included
-        // in the request, to ensure users don't inspect the form for non last-page multi-page forms.
+        // in the request, to ensure users don't inspect the form for non last-page multipage forms.
         if ($completeSubmission) {
             // Bypass the last-page check
             $url = $form->getRedirectUrl(false);
@@ -634,10 +630,7 @@ class SubmissionsController extends Controller
         return $this->redirectToPostedUrl($submission);
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function actionSetPage()
+    public function actionSetPage(): Response
     {
         $request = Craft::$app->getRequest();
 
@@ -673,10 +666,7 @@ class SubmissionsController extends Controller
         return $this->redirect($request->referrer);
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function actionClearSubmission()
+    public function actionClearSubmission(): Response
     {
         $this->requirePostRequest();
         $request = Craft::$app->getRequest();
@@ -705,10 +695,7 @@ class SubmissionsController extends Controller
         return $this->redirectToPostedUrl();
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function actionDeleteSubmission()
+    public function actionDeleteSubmission(): ?Response
     {
         $this->requirePostRequest();
 
@@ -749,10 +736,7 @@ class SubmissionsController extends Controller
 
         return $this->redirectToPostedUrl($submission);
     }
-    
-    /**
-     * @inheritDoc
-     */
+
     public function actionLegacyEdit(int $submissionId = null, string $siteHandle = null, Submission $submission = null): Response
     {
         if (!$submission) {
@@ -776,11 +760,8 @@ class SubmissionsController extends Controller
 
         return $this->runAction('edit-submission', $variables);
     }
-    
-    /**
-     * @inheritDoc
-     */
-    public function actionGetSendNotificationModalContent()
+
+    public function actionGetSendNotificationModalContent(): Response
     {
         $this->requireAcceptsJson();
 
@@ -805,11 +786,8 @@ class SubmissionsController extends Controller
             'footHtml' => $view->getBodyHtml(),
         ]);
     }
-    
-    /**
-     * @inheritDoc
-     */
-    public function actionSendNotification()
+
+    public function actionSendNotification(): Response
     {
         $this->requireAcceptsJson();
 
@@ -848,11 +826,8 @@ class SubmissionsController extends Controller
             'success' => true,
         ]);
     }
-    
-    /**
-     * @inheritDoc
-     */
-    public function actionRunIntegration()
+
+    public function actionRunIntegration(): Response
     {
         $this->requireAcceptsJson();
 
@@ -909,8 +884,6 @@ class SubmissionsController extends Controller
 
     /**
      * Provides CORS support for when making a form submission.
-     *
-     * @return Response
      */
     public function actionApi(): Response
     {
@@ -953,11 +926,8 @@ class SubmissionsController extends Controller
 
     // Private Methods
     // =========================================================================
-    
-    /**
-     * @inheritDoc
-     */
-    private function _returnJsonResponse($success, $submission, $form, $nextPage, $extras = [])
+
+    private function _returnJsonResponse($success, $submission, $form, $nextPage, $extras = []): Response
     {
         // Try and get the redirect from the template, as it might've been altered in templates
         $redirect = Craft::$app->getRequest()->getValidatedBodyParam('redirect');
@@ -975,7 +945,7 @@ class SubmissionsController extends Controller
             'currentPageId' => $form->getCurrentPage()->id,
             'nextPageId' => $nextPage->id ?? null,
             'nextPageIndex' => $form->getPageIndex($nextPage) ?? 0,
-            'totalPages' => count($form->getPages()),
+            'totalPages' => is_countable($form->getPages()) ? count($form->getPages()) : 0,
             'redirectUrl' => $redirectUrl,
             'submitActionMessage' => $form->settings->getSubmitActionMessage($submission),
         ], $extras);
@@ -983,10 +953,7 @@ class SubmissionsController extends Controller
         return $this->asJson($params);
     }
 
-    /**
-     * @inheritDoc
-     */
-    private function _prepEditSubmissionVariables(array &$variables)
+    private function _prepEditSubmissionVariables(array &$variables): void
     {
         $request = Craft::$app->getRequest();
 
@@ -1031,7 +998,7 @@ class SubmissionsController extends Controller
             $hasErrors = false;
 
             if ($variables['submission']->hasErrors()) {
-                foreach ($tab->getFields() as $field) {
+                foreach ($tab->getCustomFields() as $field) {
                     /** @var FormField $field */
                     if ($hasErrors = $variables['submission']->hasErrors($field->handle . '.*')) {
                         break;
@@ -1039,20 +1006,17 @@ class SubmissionsController extends Controller
                 }
             }
 
-            $variables['tabs'][$tab->getHtmlId()] = [
+            $tabId = $tab->getHtmlId();
+
+            $variables['tabs'][$tabId] = [
                 'label' => Craft::t('site', $tab->name),
-                'url' => '#' . $tab->getHtmlId(),
+                'url' => '#' . $tabId,
                 'class' => $hasErrors ? 'error' : null
             ];
         }
-
-        return null;
     }
 
-    /**
-     * @inheritDoc
-     */
-    private function _populateSubmission($form, $isIncomplete = true)
+    private function _populateSubmission($form, $isIncomplete = true): Submission
     {
         $request = Craft::$app->getRequest();
 
@@ -1062,7 +1026,7 @@ class SubmissionsController extends Controller
         $userParam = $request->getParam('user');
         
         if ($submissionId) {
-            // Allow fetching spammed submissions for multi-step forms, where its been flagged as spam
+            // Allow fetching spammed submissions for multistep forms, where it has been flagged as spam
             // already, but we want to complete the form submission.
             $submission = Submission::find()
                 ->id($submissionId)
@@ -1106,9 +1070,6 @@ class SubmissionsController extends Controller
         return $submission;
     }
 
-    /**
-     * @inheritDoc
-     */
     private function _checkPageFieldErrors($submission, $form, $nextPage)
     {
         // Find the first page with a field error and set that as the current page
@@ -1129,10 +1090,7 @@ class SubmissionsController extends Controller
         return $nextPage;
     }
 
-    /**
-     * @inheritDoc
-     */
-    private function _setTitle($submission, $form)
+    private function _setTitle($submission, $form): void
     {
         $submission->title = Variables::getParsedValue(
             $form->settings->submissionTitleFormat,
@@ -1140,7 +1098,7 @@ class SubmissionsController extends Controller
             $form
         );
 
-        // Set the default title for the submission so it can save correctly
+        // Set the default title for the submission, so it can save correctly
         if (!$submission->title) {
             $now = new DateTime('now', new DateTimeZone(Craft::$app->getTimeZone()));
             $submission->title = $now->format('D, d M Y H:i:s');
@@ -1156,7 +1114,7 @@ class SubmissionsController extends Controller
      * @return mixed The parameter value.
      * @throws BadRequestHttpException if the request is not the valid type
      */
-    private function _getTypedParam(string $name, string $type)
+    private function _getTypedParam(string $name, string $type): mixed
     {
         $request = Craft::$app->getRequest();
         $value = $request->getParam($name);
@@ -1164,7 +1122,7 @@ class SubmissionsController extends Controller
         if ($value !== null) {
             // Go case-by-case, so it's easier to handle, and more predictable
             if ($type === 'string' && is_string($value)) {
-                return (string)$value;
+                return $value;
             }
 
             if ($type === 'boolean' && is_string($value)) {
@@ -1172,14 +1130,16 @@ class SubmissionsController extends Controller
             }
 
             if ($type === 'int' && (is_numeric($value) || $value === '')) {
-                return intval($value);
+                return (int)$value;
             }
 
-            if ($type === 'id' && is_numeric($value) && intval($value) > 0) {
-                return intval($value);
+            if ($type === 'id' && is_numeric($value) && (int)$value > 0) {
+                return (int)$value;
             }
 
             throw new BadRequestHttpException('Request has invalid param ' . $name);
         }
+
+        return null;
     }
 }

@@ -44,9 +44,9 @@ class Recipients extends FormField
     // Properties
     // =========================================================================
 
-    public $displayType = 'hidden';
-    public $options = [];
-    public $multiple;
+    public string $displayType = 'hidden';
+    public array $options = [];
+    public ?bool $multiple = null;
 
 
     // Public Methods
@@ -73,12 +73,9 @@ class Recipients extends FormField
      */
     public function getIsHidden(): bool
     {
-        return ($this->displayType === 'hidden') ? true : false;
+        return $this->displayType === 'hidden';
     }
 
-    /**
-     * @inheritDoc
-     */
     protected function options(): array
     {
         return $this->options ?? [];
@@ -87,7 +84,7 @@ class Recipients extends FormField
     /**
      * @inheritdoc
      */
-    public function normalizeValue($value, ElementInterface $element = null)
+    public function normalizeValue(mixed $value, ?ElementInterface $element = null): mixed
     {
         $value = parent::normalizeValue($value, $element);
 
@@ -96,12 +93,12 @@ class Recipients extends FormField
         }
 
         // For fields that store their content as JSON for arrays (checkboxes), convert it
-        if (is_string($value) && ($value === '' || strpos($value, '[') === 0 || strpos($value, '{') === 0)) {
+        if (is_string($value) && ($value === '' || str_starts_with($value, '[') || str_starts_with($value, '{'))) {
             $value = Json::decodeIfJson($value);
         }
 
         // Ensure we're always dealing with real values. Fake values are used on front-end render.
-        // Fake values will exists here if validation for the element fails.
+        // Fake values will exist here if validation for the element fails.
         $value = $this->_getRealValue($value);
 
         // For non-hidden fields, ensure we cast to option field data
@@ -158,7 +155,7 @@ class Recipients extends FormField
     /**
      * @inheritdoc
      */
-    public function serializeValue($value, ElementInterface $element = null)
+    public function serializeValue(mixed $value, ?ElementInterface $element = null): mixed
     {
         // If the values are being saved as option field data, save them instead as "plain" values.
         // These will also be normalised already, so dealing with real values.
@@ -187,7 +184,7 @@ class Recipients extends FormField
     /**
      * @inheritDoc
      */
-    public function getInputHtml($value, ElementInterface $element = null): string
+    public function getInputHtml(mixed $value, ?ElementInterface $element = null): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/recipients/input', [
             'name' => $this->handle,
@@ -210,7 +207,7 @@ class Recipients extends FormField
     /**
      * @inheritDoc
      */
-    public function getEmailHtml(Submission $submission, Notification $notification, $value, array $options = null)
+    public function getEmailHtml(Submission $submission, Notification $notification, mixed $value, array $options = null): string|null|bool
     {
         return false;
     }
@@ -225,10 +222,7 @@ class Recipients extends FormField
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getFieldOptions()
+    public function getFieldOptions(): array
     {
         // Don't expose the value (email address) in the front end to prevent scraping
         $options = [];
@@ -248,7 +242,7 @@ class Recipients extends FormField
     /**
      * @inheritDoc
      */
-    public function getFrontEndInputOptions(Form $form, $value, array $options = null): array
+    public function getFrontEndInputOptions(Form $form, mixed $value, array $options = null): array
     {
         $inputOptions = parent::getFrontEndInputOptions($form, $value, $options);
 
@@ -265,7 +259,7 @@ class Recipients extends FormField
     {
         $value = parent::getDefaultValue($attributePrefix) ?? $this->defaultValue;
 
-        // If the default value from the parent field (query params, etc) is empty, use the default values
+        // If the default value from the parent field (query params, etc.) is empty, use the default values
         // set in the field option settings.
         if (!$this->getIsHidden() && $value === '') {
             $value = [];
@@ -384,9 +378,6 @@ class Recipients extends FormField
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineConditionsSchema(): array
     {
         return [
@@ -398,13 +389,13 @@ class Recipients extends FormField
     /**
      * @inheritDoc
      */
-    public function getContentGqlMutationArgumentType()
+    public function getContentGqlMutationArgumentType(): array|Type
     {
         if ($this->displayType === 'checkboxes') {
             return Type::listOf(Type::string());
-        } else {
-            return Type::string();
         }
+
+        return Type::string();
     }
 
 
@@ -414,7 +405,7 @@ class Recipients extends FormField
     /**
      * @inheritDoc
      */
-    protected function defineValueAsString($value, ElementInterface $element = null)
+    protected function defineValueAsString($value, ElementInterface $element = null): string
     {
         if ($value instanceof MultiOptionsFieldData) {
             return implode(', ', array_map(function($item) {
@@ -437,7 +428,7 @@ class Recipients extends FormField
     /**
      * @inheritDoc
      */
-    protected function defineValueForIntegration($value, $integrationField, $integration, ElementInterface $element = null, $fieldKey = '')
+    protected function defineValueForIntegration($value, $integrationField, $integration, ElementInterface $element = null, $fieldKey = ''): mixed
     {
         // If mapping to an array, extract just the values
         if ($integrationField->getType() === IntegrationField::TYPE_ARRAY) {
@@ -466,7 +457,7 @@ class Recipients extends FormField
     /**
      * @inheritDoc
      */
-    protected function defineValueForSummary($value, ElementInterface $element = null)
+    protected function defineValueForSummary($value, ElementInterface $element = null): string
     {
         if ($value instanceof MultiOptionsFieldData) {
             return implode(', ', array_map(function($item) {
@@ -486,9 +477,6 @@ class Recipients extends FormField
     // Private Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     private function _getRealValue($value)
     {
         // This will convert fake values (`id:1`, `['id:2', 'id:3']`) into their real values (`email@`, `[`email@`, `email@`]`)
@@ -502,7 +490,7 @@ class Recipients extends FormField
         }
 
         // Check if we need to replace the value - for fields that define options in CP
-        if (strpos($value, 'id:') !== false) {
+        if (str_contains($value, 'id:')) {
             // Replace each occurance of the `id:X` placeholder value with their real value
             $value = preg_replace_callback('/id:(\d+)/m', function(array $match) use ($value): string {
                 $index = $match[1] ?? 0;
@@ -512,7 +500,7 @@ class Recipients extends FormField
         }
 
         // For hidden fields, there's no CP defined options, so decode its encoded value
-        if (strpos($value, 'base64:') !== false) {
+        if (str_contains($value, 'base64:')) {
             $value = StringHelper::decdec($value);
 
             // Check if this was an array of data
@@ -524,9 +512,6 @@ class Recipients extends FormField
         return $value;
     }
 
-    /**
-     * @inheritDoc
-     */
     private function _getFakeValue($value)
     {
         if (in_array($this->displayType, ['dropdown', 'radio'])) {

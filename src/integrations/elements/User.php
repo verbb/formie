@@ -4,7 +4,6 @@ namespace verbb\formie\integrations\elements;
 use verbb\formie\Formie;
 use verbb\formie\base\Integration;
 use verbb\formie\base\Element;
-use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\fields\formfields\Password;
 use verbb\formie\models\IntegrationCollection;
@@ -16,21 +15,19 @@ use Craft;
 use craft\db\Table;
 use craft\elements\User as UserElement;
 use craft\helpers\ArrayHelper;
-use craft\helpers\DateTimeHelper;
 use craft\helpers\Db;
 use craft\helpers\Json;
-use craft\helpers\Template;
-use craft\web\View;
+use Throwable;
 
 class User extends Element
 {
     // Properties
     // =========================================================================
 
-    public $groupIds = [];
-    public $activateUser = false;
-    public $mergeUserGroups = false;
-    public $sendActivationEmail = true;
+    public array $groupIds = [];
+    public bool $activateUser = false;
+    public bool $mergeUserGroups = false;
+    public bool $sendActivationEmail = true;
 
 
     // Public Methods
@@ -44,9 +41,6 @@ class User extends Element
         return Craft::t('formie', 'User');
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getDescription(): string
     {
         return Craft::t('formie', 'Map content provided by form submissions to create User elements.');
@@ -68,17 +62,14 @@ class User extends Element
         return $rules;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function fetchFormSettings()
+    public function fetchFormSettings(): IntegrationFormSettings
     {
         $customFields = [];
         $fields = [];
 
         $userFieldLayout = Craft::$app->getFields()->getLayoutByType(UserElement::class);
 
-        foreach ($userFieldLayout->getFields() as $field) {
+        foreach ($userFieldLayout->getCustomFields() as $field) {
             $fields[] = new IntegrationField([
                 'handle' => $field->handle,
                 'name' => $field->name,
@@ -99,10 +90,7 @@ class User extends Element
         ]);
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getElementAttributes()
+    public function getElementAttributes(): array
     {
         return [
             new IntegrationField([
@@ -135,10 +123,7 @@ class User extends Element
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getUpdateAttributes()
+    public function getUpdateAttributes(): array
     {
         $attributes = [
             new IntegrationField([
@@ -165,7 +150,7 @@ class User extends Element
 
         $userFieldLayout = Craft::$app->getFields()->getLayoutByType(UserElement::class);
 
-        foreach ($userFieldLayout->getFields() as $field) {
+        foreach ($userFieldLayout->getCustomFields() as $field) {
             if (!$this->fieldCanBeUniqueId($field)) {
                 continue;
             }
@@ -181,10 +166,7 @@ class User extends Element
         return $attributes;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function sendPayload(Submission $submission)
+    public function sendPayload(Submission $submission): IntegrationResponse|bool
     {
         try {
             $user = $this->getElementForPayload(UserElement::class, $submission);
@@ -218,7 +200,7 @@ class User extends Element
             });
 
             // Check if the password was mapped, as if the source field was a Password field.
-            // The value will already be hashed and we need to do a manual DB-level update
+            // The value will already be hashed, and we need to do a manual DB-level update
             if (isset($attributeValues['newPassword']) && $passwordField) {
                 // If this a Password field?
                 if ($passwordField instanceof Password) {
@@ -310,7 +292,7 @@ class User extends Element
             if (!$this->afterSendPayload($submission, '', $user, '', [])) {
                 return true;
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $error = Craft::t('formie', 'Element integration failed for submission “{submission}”. Error: {error} {file}:{line}', [
                 'error' => $e->getMessage(),
                 'file' => $e->getFile(),
@@ -326,10 +308,7 @@ class User extends Element
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getGroupOptions()
+    public function getGroupOptions(): array
     {
         $userGroups = [];
 
@@ -347,10 +326,7 @@ class User extends Element
     // Private Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
-    private function _setElementAttributes($user, $attributes)
+    private function _setElementAttributes($user, $attributes): void
     {
         foreach ($attributes as $userFieldHandle => $fieldValue) {
             // Special handling for photo - must be an asset. Actually provided as an Asset ID.

@@ -1,12 +1,8 @@
 <?php
 namespace verbb\formie\fields\formfields;
 
-use verbb\formie\Formie;
 use verbb\formie\base\FormField;
-use verbb\formie\elements\Form;
-use verbb\formie\elements\Submission;
 use verbb\formie\helpers\SchemaHelper;
-use verbb\formie\models\Notification;
 
 use Craft;
 use craft\base\ElementInterface;
@@ -14,6 +10,7 @@ use craft\base\PreviewableFieldInterface;
 use craft\db\mysql\Schema;
 use craft\helpers\Html;
 use craft\helpers\Template;
+use Twig\Markup;
 
 class Signature extends FormField implements PreviewableFieldInterface
 {
@@ -40,9 +37,9 @@ class Signature extends FormField implements PreviewableFieldInterface
     // Properties
     // =========================================================================
 
-    public $backgroundColor = 'transparent';
-    public $penColor = '#000000';
-    public $penWeight = '2';
+    public string $backgroundColor = 'transparent';
+    public string $penColor = '#000000';
+    public string $penWeight = '2';
 
 
     // Public Methods
@@ -51,7 +48,7 @@ class Signature extends FormField implements PreviewableFieldInterface
     /**
      * @inheritDoc
      */
-    public function getContentColumnType(): string
+    public function getContentColumnType(): array|string
     {
         return Schema::TYPE_MEDIUMTEXT;
     }
@@ -59,7 +56,7 @@ class Signature extends FormField implements PreviewableFieldInterface
     /**
      * @inheritDoc
      */
-    public function getInputHtml($value, ElementInterface $element = null): string
+    public function getInputHtml(mixed $value, ?ElementInterface $element = null): string
     {
         return Html::tag('img', null, ['src' => $value]);
     }
@@ -77,7 +74,7 @@ class Signature extends FormField implements PreviewableFieldInterface
     /**
      * @inheritdoc
      */
-    public function getFrontEndJsModules()
+    public function getFrontEndJsModules(): ?array
     {
         return [
             'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/fields/signature.js', true),
@@ -179,9 +176,6 @@ class Signature extends FormField implements PreviewableFieldInterface
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineConditionsSchema(): array
     {
         return [
@@ -197,7 +191,7 @@ class Signature extends FormField implements PreviewableFieldInterface
     /**
      * @inheritDoc
      */
-    protected function defineValueForSummary($value, ElementInterface $element = null)
+    protected function defineValueForSummary($value, ElementInterface $element = null): string
     {
         return Template::raw(Html::tag('img', null, ['src' => $value]));
     }

@@ -1,23 +1,19 @@
 <?php
 namespace verbb\formie\migrations;
 
-use verbb\formie\elements\Form;
 use verbb\formie\fields\formfields\Agree;
 use verbb\formie\prosemirror\toprosemirror\Renderer;
 
-use Craft;
 use craft\db\Migration;
 use craft\db\Query;
-use craft\helpers\Db;
 use craft\helpers\Json;
-use craft\helpers\StringHelper;
 
 class m201011_000000_convert_agree_description extends Migration
 {
     /**
      * @inheritdoc
      */
-    public function safeUp()
+    public function safeUp(): bool
     {
         $fields = (new Query())
             ->select(['*'])
@@ -39,12 +35,14 @@ class m201011_000000_convert_agree_description extends Migration
                     ->execute();
             }
         }
+
+        return true;
     }
 
     /**
      * @inheritdoc
      */
-    public function safeDown()
+    public function safeDown(): bool
     {
         echo "m201011_000000_convert_agree_description cannot be reverted.\n";
         return false;

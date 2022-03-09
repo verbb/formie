@@ -2,10 +2,8 @@
 namespace verbb\formie\services;
 
 use verbb\formie\Formie;
-use verbb\formie\base\Element;
 use verbb\formie\controllers\SubmissionsController;
 use verbb\formie\elements\Form;
-use verbb\formie\elements\NestedFieldRow;
 use verbb\formie\elements\Submission;
 use verbb\formie\elements\db\NestedFieldRowQuery;
 use verbb\formie\events\SendNotificationEvent;
@@ -26,7 +24,6 @@ use craft\elements\db\ElementQuery;
 use craft\elements\Asset;
 use craft\elements\User;
 use craft\events\DefineUserContentSummaryEvent;
-use craft\events\ModelEvent;
 use craft\fields\data\MultiOptionsFieldData;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Console;
@@ -40,37 +37,42 @@ use DateInterval;
 use DateTime;
 use Throwable;
 use Faker;
+use verbb\formie\models\IntegrationResponse;
+use verbb\formie\models\Notification;
+use verbb\formie\base\Integration;
+use libphonenumber\PhoneNumberUtil;
+use verbb\formie\models\Name;
+use verbb\formie\models\Address;
 
 class Submissions extends Component
 {
     // Constants
     // =========================================================================
 
-    const EVENT_BEFORE_SUBMISSION = 'beforeSubmission';
-    const EVENT_BEFORE_INCOMPLETE_SUBMISSION = 'beforeIncompleteSubmission';
-    const EVENT_AFTER_SUBMISSION = 'afterSubmission';
-    const EVENT_AFTER_INCOMPLETE_SUBMISSION = 'afterIncompleteSubmission';
-    const EVENT_BEFORE_SPAM_CHECK = 'beforeSpamCheck';
-    const EVENT_AFTER_SPAM_CHECK = 'afterSpamCheck';
-    const EVENT_BEFORE_SEND_NOTIFICATION = 'beforeSendNotification';
-    const EVENT_BEFORE_TRIGGER_INTEGRATION = 'beforeTriggerIntegration';
+    public const EVENT_BEFORE_SUBMISSION = 'beforeSubmission';
+    public const EVENT_BEFORE_INCOMPLETE_SUBMISSION = 'beforeIncompleteSubmission';
+    public const EVENT_AFTER_SUBMISSION = 'afterSubmission';
+    public const EVENT_AFTER_INCOMPLETE_SUBMISSION = 'afterIncompleteSubmission';
+    public const EVENT_BEFORE_SPAM_CHECK = 'beforeSpamCheck';
+    public const EVENT_AFTER_SPAM_CHECK = 'afterSpamCheck';
+    public const EVENT_BEFORE_SEND_NOTIFICATION = 'beforeSendNotification';
+    public const EVENT_BEFORE_TRIGGER_INTEGRATION = 'beforeTriggerIntegration';
 
 
     // Public Methods
     // =========================================================================
 
     /**
-     * Returns a submission by it's ID.
+     * Returns a submission by its ID.
      *
-     * @param $submissionId
-     * @param null $siteId
+     * @param $id
+     * @param string|null $siteId
      * @return Submission|null
      */
-    public function getSubmissionById($submissionId, $siteId = '*')
+    public function getSubmissionById(int $id, ?string $siteId = '*'): ?Submission
     {
-        /* @var Submission $submission */
-        $submission = Craft::$app->getElements()->getElementById($submissionId, Submission::class, $siteId);
-        return $submission;
+        /* @noinspection PhpIncompatibleReturnTypeInspection */
+        return Craft::$app->getElements()->getElementById($id, Submission::class, $siteId);
     }
 
     /**
@@ -79,22 +81,20 @@ class Submissions extends Component
      * @param Submission $submission
      * @see SubmissionsController::actionSubmit()
      */
-    public function onBeforeSubmission(Submission $submission)
+    public function onBeforeSubmission(Submission $submission): void
     {
+        $event = new SubmissionEvent([
+            'submission' => $submission,
+        ]);
+
         if ($submission->isIncomplete) {
             // Fire an 'beforeIncompleteSubmission' event
-            $event = new SubmissionEvent([
-                'submission' => $submission,
-            ]);
             $this->trigger(self::EVENT_BEFORE_INCOMPLETE_SUBMISSION, $event);
 
             return;
         }
 
         // Fire an 'beforeSubmission' event
-        $event = new SubmissionEvent([
-            'submission' => $submission,
-        ]);
         $this->trigger(self::EVENT_BEFORE_SUBMISSION, $event);
     }
 
@@ -105,11 +105,11 @@ class Submissions extends Component
      * @param Submission $submission
      * @see SubmissionsController::actionSubmit()
      */
-    public function onAfterSubmission(bool $success, Submission $submission)
+    public function onAfterSubmission(bool $success, Submission $submission): void
     {
         $settings = Formie::$plugin->getSettings();
 
-        // Check to see if this is an incomplete submission. Return immedately, but fire an event
+        // Check to see if this is an incomplete submission. Return immediately, but fire an event
         if ($submission->isIncomplete) {
             // Fire an 'afterIncompleteSubmission' event
             $event = new SubmissionEvent([
@@ -150,7 +150,7 @@ class Submissions extends Component
      *
      * @param Submission $submission
      */
-    public function sendNotifications(Submission $submission)
+    public function sendNotifications(Submission $submission): void
     {
         $settings = Formie::$plugin->getSettings();
 
@@ -180,8 +180,10 @@ class Submissions extends Component
      *
      * @param Notification $notification
      * @param Submission $submission
+     * @param null $queueJob
+     * @return array|bool
      */
-    public function sendNotificationEmail($notification, $submission, $queueJob = null)
+    public function sendNotificationEmail(Notification $notification, Submission $submission, $queueJob = null): array|bool
     {
         // Fire a 'beforeSendNotification' event
         $event = new SendNotificationEvent([
@@ -202,7 +204,7 @@ class Submissions extends Component
      *
      * @param Submission $submission
      */
-    public function triggerIntegrations(Submission $submission)
+    public function triggerIntegrations(Submission $submission): void
     {
         $settings = Formie::$plugin->getSettings();
 
@@ -234,8 +236,9 @@ class Submissions extends Component
      *
      * @param Integration $integration
      * @param Submission $submission
+     * @return bool|IntegrationResponse
      */
-    public function sendIntegrationPayload($integration, Submission $submission)
+    public function sendIntegrationPayload(Integration $integration, Submission $submission): bool|IntegrationResponse
     {
         // Fire a 'beforeTriggerIntegration' event
         $event = new TriggerIntegrationEvent([
@@ -255,7 +258,7 @@ class Submissions extends Component
     /**
      * Deletes incomplete submissions older than the configured interval.
      */
-    public function pruneIncompleteSubmissions($consoleInstance = null)
+    public function pruneIncompleteSubmissions($consoleInstance = null): void
     {
         /* @var Settings $settings */
         $settings = Formie::$plugin->getSettings();
@@ -319,7 +322,7 @@ class Submissions extends Component
     /**
      * Deletes submissions older than the form data retention settings.
      */
-    public function pruneDataRetentionSubmissions($consoleInstance = null)
+    public function pruneDataRetentionSubmissions($consoleInstance = null): void
     {
         // Find all the forms with data retention settings
         $forms = (new Query())
@@ -343,7 +346,7 @@ class Submissions extends Component
             // Handle weeks - not available built-in interval
             if ($intervalValue === 'W') {
                 $intervalValue = 'D';
-                $dataRetentionValue = $dataRetentionValue * 7;
+                $dataRetentionValue *= 7;
             }
 
             $period = ($intervalValue === 'H' || $intervalValue === 'MIN') ? 'PT' : 'P';
@@ -386,7 +389,7 @@ class Submissions extends Component
     /**
      * Defining a summary of content owned by a user(s), before they are deleted.
      */
-    public function defineUserSubmssions(DefineUserContentSummaryEvent $event)
+    public function defineUserSubmissions(DefineUserContentSummaryEvent $event): void
     {
         $userIds = Craft::$app->getRequest()->getRequiredBodyParam('userId');
 
@@ -405,7 +408,7 @@ class Submissions extends Component
     /**
      * Deletes any submissions related to a user.
      */
-    public function deleteUserSubmssions(Event $event)
+    public function deleteUserSubmissions(Event $event): void
     {
         /** @var User $user */
         $user = $event->sender;
@@ -445,7 +448,7 @@ class Submissions extends Component
     /**
      * Restores any submissions related to a user.
      */
-    public function restoreUserSubmssions(Event $event)
+    public function restoreUserSubmissions(Event $event): void
     {
         /** @var User $user */
         $user = $event->sender;
@@ -472,7 +475,7 @@ class Submissions extends Component
      *
      * @param Submission $submission
      */
-    public function spamChecks(Submission $submission)
+    public function spamChecks(Submission $submission): void
     {
         /* @var Settings $settings */
         $settings = Formie::$plugin->getSettings();
@@ -489,7 +492,7 @@ class Submissions extends Component
 
             // Handle any Twig used in the field
             foreach ($excludes as $key => $exclude) {
-                if (strstr($exclude, '{')) {
+                if (strpos($exclude, '{') !== false) {
                     unset($excludes[$key]);
 
                     $parsedString = $this->_getArrayFromMultiline(Variables::getParsedValue($exclude));
@@ -503,7 +506,7 @@ class Submissions extends Component
 
             foreach ($excludes as $exclude) {
                 // Check if string contains
-                if (strtolower($exclude) && strstr(strtolower($fieldValues), strtolower($exclude))) {
+                if (strtolower($exclude) && strpos(strtolower($fieldValues), strtolower($exclude)) !== false) {
                     $submission->isSpam = true;
                     $submission->spamReason = Craft::t('formie', 'Contains banned keyword: “{c}”', ['c' => $exclude]);
 
@@ -532,7 +535,7 @@ class Submissions extends Component
      *
      * @param Submission $submission
      */
-    public function logSpam(Submission $submission)
+    public function logSpam(Submission $submission): void
     {
         $fieldValues = $submission->getSerializedFieldValues();
         $fieldValues = array_filter($fieldValues);
@@ -545,14 +548,9 @@ class Submissions extends Component
         Formie::log($error);
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function populateFakeSubmission(Submission $submission)
+    public function populateFakeSubmission(Submission $submission): void
     {
-        $fields = $submission->getFieldLayout()->getFields();
-        $fieldContent = [];
-
+        $fields = $submission->getFieldLayout()->getCustomFields();
         $fieldContent = $this->getFakeFieldContent($fields);
 
         $submission->setFieldValues($fieldContent);
@@ -568,7 +566,7 @@ class Submissions extends Component
      * @param $string
      * @return array
      */
-    private function _getArrayFromMultiline($string)
+    private function _getArrayFromMultiline($string): array
     {
         $array = [];
 
@@ -585,12 +583,12 @@ class Submissions extends Component
      * @param $submission
      * @return string
      */
-    private function _getContentAsString($submission)
+    private function _getContentAsString($submission): string
     {
         $fieldValues = [];
 
         if (($fieldLayout = $submission->getFieldLayout()) !== null) {
-            foreach ($fieldLayout->getFields() as $field) {
+            foreach ($fieldLayout->getCustomFields() as $field) {
                 try {
                     $value = $submission->getFieldValue($field->handle);
 
@@ -615,7 +613,7 @@ class Submissions extends Component
                     }
 
                     $fieldValues[] = (string)$value;
-                } catch (\Throwable $e) {
+                } catch (Throwable $e) {
                     continue;
                 }
             }
@@ -624,10 +622,7 @@ class Submissions extends Component
         return implode(' ', $fieldValues);
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function getFakeFieldContent($fields)
+    public function getFakeFieldContent($fields): array
     {
         $fieldContent = [];
 
@@ -645,7 +640,7 @@ class Submissions extends Component
 
                     break;                    
                 case formfields\Address::class:
-                    $fieldContent[$field->handle] = new \verbb\formie\models\Address([
+                    $fieldContent[$field->handle] = new Address([
                         'address1' => $faker->address,
                         'address2' => $faker->buildingNumber,
                         'address3' => $faker->streetSuffix,
@@ -665,6 +660,7 @@ class Submissions extends Component
                     $fieldContent[$field->handle] = $faker->dateTime();
 
                     break;
+                case formfields\Radio::class:
                 case formfields\Dropdown::class:
                     $fieldContent[$field->handle] = $faker->randomElement($field->options)['value'] ?? '';
 
@@ -683,7 +679,7 @@ class Submissions extends Component
                     $query = new FakeElementQuery(FakeElement::class);
 
                     if ($fieldLayout = $field->getFieldLayout()) {
-                        $content = $this->getFakeFieldContent($fieldLayout->getFields());
+                        $content = $this->getFakeFieldContent($fieldLayout->getCustomFields());
                         $query->setFieldValues($content, $fieldLayout);
                     }
 
@@ -696,7 +692,7 @@ class Submissions extends Component
                     break;
                 case formfields\Name::class:
                     if ($field->useMultipleFields) {
-                        $fieldContent[$field->handle] = new \verbb\formie\models\Name([
+                        $fieldContent[$field->handle] = new Name([
                             'prefix' => $faker->title,
                             'firstName' => $faker->firstName,
                             'middleName' => $faker->firstName,
@@ -715,7 +711,7 @@ class Submissions extends Component
                     if ($field->countryEnabled) {
                         $number = $faker->e164PhoneNumber;
 
-                        $phoneUtil = \libphonenumber\PhoneNumberUtil::getInstance();
+                        $phoneUtil = PhoneNumberUtil::getInstance();
                         $numberProto = $phoneUtil->parse($number);
 
                         $fieldContent[$field->handle] = new \verbb\formie\models\Phone([
@@ -725,10 +721,6 @@ class Submissions extends Component
                     } else {
                         $fieldContent[$field->handle] = $faker->phoneNumber;
                     }
-
-                    break;
-                case formfields\Radio::class:
-                    $fieldContent[$field->handle] = $faker->randomElement($field->options)['value'] ?? '';
 
                     break;
                 case formfields\Recipients::class:
@@ -752,11 +744,9 @@ class Submissions extends Component
         return $fieldContent;
     }
 
-    /**
-     * @inheritdoc
-     */
     public function getEditableSubmissions(User $currentUser): array
     {
+        $editableIds = [];
         $submissions = [];
 
         // Fetch all form UIDs

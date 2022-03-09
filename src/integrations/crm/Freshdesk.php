@@ -3,12 +3,8 @@ namespace verbb\formie\integrations\crm;
 
 use verbb\formie\base\Crm;
 use verbb\formie\base\Integration;
-use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
-use verbb\formie\errors\IntegrationException;
 use verbb\formie\events\ModifyFieldIntegrationValuesEvent;
-use verbb\formie\events\SendIntegrationPayloadEvent;
-use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
@@ -16,22 +12,23 @@ use Craft;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 use craft\helpers\StringHelper;
-use craft\web\View;
 
 use GuzzleHttp\Psr7\Utils;
+use GuzzleHttp\Client;
+use Throwable;
 
 class Freshdesk extends Crm
 {
     // Properties
     // =========================================================================
 
-    public $apiKey;
-    public $apiDomain;
-    public $mapToContact = false;
-    public $mapToTicket = false;
-    public $contactFieldMapping;
-    public $ticketFieldMapping;
-    private $_attachments;
+    public ?string $apiKey = null;
+    public ?string $apiDomain = null;
+    public bool $mapToContact = false;
+    public bool $mapToTicket = false;
+    public ?array $contactFieldMapping = null;
+    public ?array $ticketFieldMapping = null;
+    private ?array $_attachments = null;
 
 
     // Public Methods
@@ -45,9 +42,6 @@ class Freshdesk extends Crm
         return Craft::t('formie', 'Freshdesk');
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getDescription(): string
     {
         return Craft::t('formie', 'Manage your Freshdesk customers by providing important information on their conversion on your site.');
@@ -77,10 +71,7 @@ class Freshdesk extends Crm
         return $rules;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function fetchFormSettings()
+    public function fetchFormSettings(): IntegrationFormSettings
     {
         $settings = [];
 
@@ -326,16 +317,13 @@ class Freshdesk extends Crm
                 'contact' => $contactFields,
                 'ticket' => $ticketFields,
             ];
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Integration::apiError($this, $e);
         }
 
         return new IntegrationFormSettings($settings);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function sendPayload(Submission $submission): bool
     {
         try {
@@ -367,7 +355,7 @@ class Freshdesk extends Crm
 
                         return false;
                     }
-                } catch (\Throwable $e) {
+                } catch (Throwable $e) {
                     // For now, we don't care about an existing contact
                 }
             }
@@ -389,7 +377,7 @@ class Freshdesk extends Crm
                         'custom_fields' => $ticketFields,
                     ]);
 
-                    // Extra payload prep - some fields are finnicky
+                    // Extra payload prep - some fields are finicky
                     if (isset($ticketPayload['status'])) {
                         $ticketPayload['status'] = (int)$ticketPayload['status'];
                     }
@@ -426,7 +414,7 @@ class Freshdesk extends Crm
                     return false;
                 }
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
             return false;
@@ -435,14 +423,11 @@ class Freshdesk extends Crm
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function fetchConnection(): bool
     {
         try {
             $response = $this->request('GET', 'tickets');
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
             return false;
@@ -451,10 +436,7 @@ class Freshdesk extends Crm
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getClient()
+    public function getClient(): Client
     {
         if ($this->_client) {
             return $this->_client;
@@ -499,7 +481,7 @@ class Freshdesk extends Crm
                 $name = $tag;
             }
 
-            if (strstr($fieldKey, '{')) {
+            if (strpos($fieldKey, '{') !== false) {
                 // Handle attachments differently to get file contents
                 if ($tag === 'attachments') {
                     $name .= '[]';
@@ -556,9 +538,6 @@ class Freshdesk extends Crm
     // Private Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     private function _convertFieldType($fieldType)
     {
         $fieldTypes = [
@@ -571,10 +550,7 @@ class Freshdesk extends Crm
         return $fieldTypes[$fieldType] ?? IntegrationField::TYPE_STRING;
     }
 
-    /**
-     * @inheritDoc
-     */
-    private function _getCustomFields($fields, $excludeNames = [])
+    private function _getCustomFields($fields, $excludeNames = []): array
     {
         $customFields = [];
 
@@ -614,10 +590,7 @@ class Freshdesk extends Crm
         return $customFields;
     }
 
-    /**
-     * @inheritDoc
-     */
-    private function _prepCustomFields(&$fields)
+    private function _prepCustomFields(&$fields): array
     {
         $customFields = [];
 
@@ -648,11 +621,11 @@ class Freshdesk extends Crm
         }
 
         // Check for nested fields (as `group[name[prefix]]`) - convert to dot-notation
-        if (strstr($fieldKey, '[')) {
+        if (strpos($fieldKey, '[') !== false) {
             $fieldKey = str_replace(['[', ']'], ['.', ''], $fieldKey);
 
             // Change the field handle to reflect the top-level field, not the full path to the value
-            // but still keep the sub-field path (if any) for some fields to use
+            // but still keep the subfield path (if any) for some fields to use
             $fieldKey = explode('.', $fieldKey);
             $fieldHandle = array_shift($fieldKey);
             $fieldKey = implode('.', $fieldKey);
@@ -662,7 +635,7 @@ class Freshdesk extends Crm
         }
 
         // Fetch all custom fields here for efficiency
-        $formFields = ArrayHelper::index($submission->getFieldLayout()->getFields(), 'handle');
+        $formFields = ArrayHelper::index($submission->getFieldLayout()->getCustomFields(), 'handle');
 
         // Try and get the form field we're pulling data from
         $field = $formFields[$fieldHandle] ?? null;
@@ -670,7 +643,7 @@ class Freshdesk extends Crm
         // If the field exists, check if any value exists
         if ($field && $value = $submission->getFieldValue($fieldHandle)) {
             // If the value is an AssetQuery, get the results
-            if (gettype($value) === 'object' && get_class($value) === 'craft\elements\db\AssetQuery') {
+            if (is_object($value) && $value instanceof \craft\elements\db\AssetQuery) {
                 $assets = $value->all();
 
                 if (!empty($assets)){

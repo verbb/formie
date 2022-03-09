@@ -14,7 +14,7 @@ class FieldLayoutBehavior extends CraftFieldLayoutBehavior
     /**
      * @var FieldLayout|null The field layout associated with the owner
      */
-    private $_fieldLayout;
+    private ?FieldLayout $_fieldLayout = null;
 
     /**
      * Returns the owner's field layout.
@@ -30,7 +30,7 @@ class FieldLayoutBehavior extends CraftFieldLayoutBehavior
 
         try {
             $id = $this->getFieldLayoutId();
-        } catch (InvalidConfigException $e) {
+        } catch (InvalidConfigException) {
             return $this->_fieldLayout = new FieldLayout([
                 'type' => $this->elementType,
             ]);
@@ -55,7 +55,7 @@ class FieldLayoutBehavior extends CraftFieldLayoutBehavior
      *
      * @param FieldLayout $fieldLayout
      */
-    public function setFieldLayout(CraftFieldLayout $fieldLayout)
+    public function setFieldLayout(CraftFieldLayout $fieldLayout): void
     {
         $this->_fieldLayout = $fieldLayout;
     }

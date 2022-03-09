@@ -3,11 +3,9 @@ namespace verbb\formie\migrations;
 
 use verbb\formie\fields\formfields\Address;
 
-use Craft;
 use craft\db\Migration;
 use craft\db\Query;
 use craft\helpers\ArrayHelper;
-use craft\helpers\Db;
 use craft\helpers\Json;
 
 class m201012_000000_address_autocomplete extends Migration
@@ -15,7 +13,7 @@ class m201012_000000_address_autocomplete extends Migration
     /**
      * @inheritdoc
      */
-    public function safeUp()
+    public function safeUp(): bool
     {
         $fields = (new Query())
             ->select(['*'])
@@ -36,12 +34,14 @@ class m201012_000000_address_autocomplete extends Migration
                     ->execute();
             }
         }
+
+        return true;
     }
 
     /**
      * @inheritdoc
      */
-    public function safeDown()
+    public function safeDown(): bool
     {
         echo "m201012_000000_address_autocomplete cannot be reverted.\n";
         return false;

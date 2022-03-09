@@ -3,35 +3,32 @@ namespace verbb\formie\integrations\crm;
 
 use verbb\formie\base\Crm;
 use verbb\formie\base\Integration;
-use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
-use verbb\formie\errors\IntegrationException;
-use verbb\formie\events\SendIntegrationPayloadEvent;
-use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
-use craft\web\View;
+use GuzzleHttp\Client;
+use Throwable;
 
 class Pipedrive extends Crm
 {
     // Properties
     // =========================================================================
 
-    public $apiKey;
-    public $mapToPerson = false;
-    public $mapToDeal = false;
-    public $mapToLead = false;
-    public $mapToOrganization = false;
-    public $mapToNote = false;
-    public $personFieldMapping;
-    public $dealFieldMapping;
-    public $leadFieldMapping;
-    public $organizationFieldMapping;
-    public $noteFieldMapping;
+    public ?string $apiKey = null;
+    public bool $mapToPerson = false;
+    public bool $mapToDeal = false;
+    public bool $mapToLead = false;
+    public bool $mapToOrganization = false;
+    public bool $mapToNote = false;
+    public ?array $personFieldMapping = null;
+    public ?array $dealFieldMapping = null;
+    public ?array $leadFieldMapping = null;
+    public ?array $organizationFieldMapping = null;
+    public ?array $noteFieldMapping = null;
 
 
     // Public Methods
@@ -45,9 +42,6 @@ class Pipedrive extends Crm
         return Craft::t('formie', 'Pipedrive');
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getDescription(): string
     {
         return Craft::t('formie', 'Manage your Pipedrive customers by providing important information on their conversion on your site.');
@@ -92,10 +86,7 @@ class Pipedrive extends Crm
         return $rules;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function fetchFormSettings()
+    public function fetchFormSettings(): IntegrationFormSettings
     {
         $settings = [];
 
@@ -163,16 +154,13 @@ class Pipedrive extends Crm
                 'organization' => $organizationFields,
                 'note' => $noteFields,
             ];
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Integration::apiError($this, $e);
         }
 
         return new IntegrationFormSettings($settings);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function sendPayload(Submission $submission): bool
     {
         try {
@@ -201,7 +189,7 @@ class Pipedrive extends Crm
                 if (!$organizationId) {
                     Integration::error($this, Craft::t('formie', 'Missing return “organizationId” {response}. Sent payload {payload}', [
                         'response' => Json::encode($response),
-                        'payload' => Json::encode($contactPayload),
+                        'payload' => Json::encode($organizationPayload),
                     ]), true);
 
                     return false;
@@ -390,7 +378,7 @@ class Pipedrive extends Crm
                     return false;
                 }
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
             return false;
@@ -399,9 +387,6 @@ class Pipedrive extends Crm
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function fetchConnection(): bool
     {
         try {
@@ -415,7 +400,7 @@ class Pipedrive extends Crm
 
                 return false;
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
             return false;
@@ -424,10 +409,7 @@ class Pipedrive extends Crm
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getClient()
+    public function getClient(): Client
     {
         if ($this->_client) {
             return $this->_client;
@@ -443,9 +425,6 @@ class Pipedrive extends Crm
     // Private Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     private function _convertFieldType($fieldType)
     {
         $fieldTypes = [
@@ -462,10 +441,7 @@ class Pipedrive extends Crm
         return $fieldTypes[$fieldType] ?? IntegrationField::TYPE_STRING;
     }
 
-    /**
-     * @inheritDoc
-     */
-    private function _getCustomFields($fields, $excludeNames = [])
+    private function _getCustomFields($fields, $excludeNames = []): array
     {
         $customFields = [];
 
@@ -511,7 +487,7 @@ class Pipedrive extends Crm
             $options = [];
             $fieldOptions = $field['options'] ?? [];
 
-            foreach ($fieldOptions as $key => $fieldOption) {
+            foreach ($fieldOptions as $fieldOption) {
                 $options[] = [
                     'label' => $fieldOption['label'],
                     'value' => $fieldOption['id'],
@@ -524,7 +500,7 @@ class Pipedrive extends Crm
                 $stages = $response['data'] ?? [];
 
                 if ($stages) {
-                    foreach ($stages as $key => $stage) {
+                    foreach ($stages as $stage) {
                         $options[] = [
                             'label' => $stage['name'],
                             'value' => $stage['id'],
@@ -538,7 +514,7 @@ class Pipedrive extends Crm
                 $currencies = $response['data'] ?? [];
 
                 if ($currencies) {
-                    foreach ($currencies as $key => $currency) {
+                    foreach ($currencies as $currency) {
                         $options[] = [
                             'label' => $currency['name'],
                             'value' => $currency['code'],

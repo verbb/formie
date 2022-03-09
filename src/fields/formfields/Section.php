@@ -44,9 +44,9 @@ class Section extends FormField
     // Properties
     // =========================================================================
 
-    public $borderStyle;
-    public $borderWidth;
-    public $borderColor;
+    public ?string $borderStyle = null;
+    public ?int $borderWidth = null;
+    public ?string $borderColor = null;
 
 
     // Public Methods
@@ -91,7 +91,7 @@ class Section extends FormField
     /**
      * @inheritDoc
      */
-    public function getInputHtml($value, ElementInterface $element = null): string
+    public function getInputHtml(mixed $value, ?ElementInterface $element = null): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/section/input', [
             'name' => $this->handle,
@@ -113,7 +113,7 @@ class Section extends FormField
     /**
      * @inheritDoc
      */
-    public function getEmailHtml(Submission $submission, Notification $notification, $value, array $options = null)
+    public function getEmailHtml(Submission $submission, Notification $notification, mixed $value, array $options = null): string|null|bool
     {
         return Html::tag('hr');
     }
@@ -121,7 +121,7 @@ class Section extends FormField
     /**
      * @inheritDoc
      */
-    public function afterCreateField(array $data)
+    public function afterCreateField(array $data): void
     {
         $this->name = StringHelper::appendUniqueIdentifier(Craft::t('formie', 'Section Label '));
         $this->handle = StringHelper::appendUniqueIdentifier(Craft::t('formie', 'sectionHandle'));
@@ -177,9 +177,6 @@ class Section extends FormField
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineConditionsSchema(): array
     {
         return [

@@ -15,7 +15,7 @@ class CreateFormContentTable extends Migration
     /**
      * @var string|null The table name
      */
-    public $tableName;
+    public ?string $tableName = null;
 
 
     // Public Methods
@@ -24,7 +24,7 @@ class CreateFormContentTable extends Migration
     /**
      * @inheritdoc
      */
-    public function safeUp()
+    public function safeUp(): bool
     {
         $this->createTable($this->tableName, [
             'id' => $this->primaryKey(),
@@ -44,7 +44,7 @@ class CreateFormContentTable extends Migration
     /**
      * Adds the foreign keys.
      */
-    public function addForeignKeys()
+    public function addForeignKeys(): void
     {
         $this->addForeignKey(null, $this->tableName, ['elementId'], '{{%elements}}', ['id'], 'CASCADE', null);
         $this->addForeignKey(null, $this->tableName, ['siteId'], '{{%sites}}', ['id'], 'CASCADE', 'CASCADE');
@@ -53,7 +53,7 @@ class CreateFormContentTable extends Migration
     /**
      * @inheritdoc
      */
-    public function safeDown()
+    public function safeDown(): bool
     {
         return false;
     }

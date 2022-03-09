@@ -10,11 +10,10 @@ use craft\base\PreviewableFieldInterface;
 use craft\gql\types\Number as NumberType;
 use craft\helpers\Db;
 use craft\helpers\Localization;
-use craft\helpers\Template;
 use craft\i18n\Locale;
 
-use LitEmoji\LitEmoji;
-use Twig\Markup;
+use GraphQL\Type\Definition\Type;
+use Throwable;
 
 class Number extends FormField implements PreviewableFieldInterface
 {
@@ -41,9 +40,9 @@ class Number extends FormField implements PreviewableFieldInterface
     // Properties
     // =========================================================================
 
-    public $min;
-    public $max;
-    public $decimals;
+    public ?int $min = null;
+    public ?int $max = null;
+    public ?int $decimals = null;
 
 
     // Public Methods
@@ -67,7 +66,7 @@ class Number extends FormField implements PreviewableFieldInterface
     /**
      * @inheritDoc
      */
-    public function init()
+    public function init(): void
     {
         parent::init();
 
@@ -118,7 +117,7 @@ class Number extends FormField implements PreviewableFieldInterface
     /**
      * @inheritDoc
      */
-    public function getContentColumnType(): string
+    public function getContentColumnType(): array|string
     {
         return Db::getNumericalColumnType($this->min, $this->max, $this->decimals);
     }
@@ -126,7 +125,7 @@ class Number extends FormField implements PreviewableFieldInterface
     /**
      * @inheritDoc
      */
-    public function normalizeValue($value, ElementInterface $element = null)
+    public function normalizeValue(mixed $value, ?ElementInterface $element = null): mixed
     {
         if ($value === null) {
             if ($this->defaultValue !== null && $this->isFresh($element)) {
@@ -167,14 +166,14 @@ class Number extends FormField implements PreviewableFieldInterface
     /**
      * @inheritDoc
      */
-    public function getInputHtml($value, ElementInterface $element = null): string
+    public function getInputHtml(mixed $value, ?ElementInterface $element = null): string
     {
         // If decimals is 0 (or null, empty for whatever reason), don't run this
         if ($value !== null && $this->decimals) {
             $decimalSeparator = Craft::$app->getLocale()->getNumberSymbol(Locale::SYMBOL_DECIMAL_SEPARATOR);
             try {
                 $value = number_format($value, $this->decimals, $decimalSeparator, '');
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 // NaN
             }
         }
@@ -311,9 +310,6 @@ class Number extends FormField implements PreviewableFieldInterface
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineConditionsSchema(): array
     {
         return [
@@ -325,7 +321,7 @@ class Number extends FormField implements PreviewableFieldInterface
     /**
      * @inheritdoc
      */
-    public function getContentGqlType()
+    public function getContentGqlType(): array|Type
     {
         return NumberType::getType();
     }
@@ -333,7 +329,7 @@ class Number extends FormField implements PreviewableFieldInterface
     /**
      * @inheritdoc
      */
-    public function getContentGqlMutationArgumentType()
+    public function getContentGqlMutationArgumentType(): array|Type
     {
         return [
             'name' => $this->handle,

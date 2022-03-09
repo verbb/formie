@@ -5,15 +5,13 @@ use verbb\formie\Formie;
 
 use Craft;
 use craft\db\Migration;
-use craft\db\Query;
-use craft\helpers\Db;
 
 class m211211_000000_stencil_uids extends Migration
 {
     /**
      * @inheritdoc
      */
-    public function safeUp()
+    public function safeUp(): void
     {
         // Don't make the same config changes twice
         $projectConfig = Craft::$app->getProjectConfig();
@@ -36,7 +34,7 @@ class m211211_000000_stencil_uids extends Migration
     /**
      * @inheritdoc
      */
-    public function safeDown()
+    public function safeDown(): bool
     {
         echo "m211211_000000_stencil_uids cannot be reverted.\n";
         return false;

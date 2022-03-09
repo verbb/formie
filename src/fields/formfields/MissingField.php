@@ -40,14 +40,6 @@ class MissingField extends FormField implements MissingComponentInterface
     /**
      * @inheritDoc
      */
-    public static function getSvgIconPath(): string
-    {
-        return '';
-    }
-
-    /**
-     * @inheritDoc
-     */
     public static function hasContentColumn(): bool
     {
         return false;
@@ -60,7 +52,7 @@ class MissingField extends FormField implements MissingComponentInterface
     /**
      * @inheritDoc
      */
-    public function getInputHtml($value, ElementInterface $element = null): string
+    public function getInputHtml(mixed $value, ?ElementInterface $element = null): string
     {
         $error = $this->errorMessage ?? "Unable to find component class '{$this->expectedType}'.";
 
@@ -82,7 +74,7 @@ class MissingField extends FormField implements MissingComponentInterface
     /**
      * @inheritDoc
      */
-    public function getEmailHtml(Submission $submission, Notification $notification, $value, array $options = null)
+    public function getEmailHtml(Submission $submission, Notification $notification, mixed $value, array $options = null): string|null|bool
     {
         return false;
     }

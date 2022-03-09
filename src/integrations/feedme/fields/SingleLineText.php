@@ -1,6 +1,8 @@
 <?php
 namespace verbb\formie\integrations\feedme\fields;
 
+use verbb\formie\fields\formfields\SingleLineText as SingleLineTextField;
+
 class SingleLineText extends DefaultField
 {
     // Traits
@@ -13,6 +15,6 @@ class SingleLineText extends DefaultField
     // =========================================================================
 
     public static $name = 'SingleLineText';
-    public static $class = 'verbb\formie\fields\formfields\SingleLineText';
+    public static $class = SingleLineTextField::class;
 
 }

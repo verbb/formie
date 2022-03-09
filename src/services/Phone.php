@@ -14,7 +14,7 @@ class Phone extends Component
     // Constants
     // =========================================================================
 
-    const EVENT_MODIFY_PHONE_COUNTRIES = 'modifyPhoneCountries';
+    public const EVENT_MODIFY_PHONE_COUNTRIES = 'modifyPhoneCountries';
 
 
     // Public Methods
@@ -25,7 +25,7 @@ class Phone extends Component
      *
      * @return mixed
      */
-    public function getCountries()
+    public function getCountries(): mixed
     {
         $locale = Craft::$app->getLocale()->getLanguageID();
 

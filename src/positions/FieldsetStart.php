@@ -6,7 +6,6 @@ use verbb\formie\base\FormFieldInterface;
 use verbb\formie\base\NestedFieldInterface;
 use verbb\formie\base\Position;
 use verbb\formie\base\SubfieldInterface;
-use verbb\formie\fields\formfields;
 
 class FieldsetStart extends Position
 {
@@ -16,7 +15,7 @@ class FieldsetStart extends Position
     /**
      * @inheritDoc
      */
-    protected static $position = 'fieldset-start';
+    protected static ?string $position = 'fieldset-start';
 
 
     // Static Methods
@@ -42,7 +41,7 @@ class FieldsetStart extends Position
     /**
      * @inheritDoc
      */
-    public static function fallback(FormFieldInterface $field = null)
+    public static function fallback(FormFieldInterface $field = null): ?string
     {
         return BelowInput::class;
     }

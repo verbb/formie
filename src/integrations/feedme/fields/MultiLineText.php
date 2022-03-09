@@ -1,6 +1,8 @@
 <?php
 namespace verbb\formie\integrations\feedme\fields;
 
+use verbb\formie\fields\formfields\MultiLineText as MultiLineTextField;
+
 class MultiLineText extends DefaultField
 {
     // Traits
@@ -13,6 +15,6 @@ class MultiLineText extends DefaultField
     // =========================================================================
 
     public static $name = 'MultiLineText';
-    public static $class = 'verbb\formie\fields\formfields\MultiLineText';
+    public static $class = MultiLineTextField::class;
 
 }

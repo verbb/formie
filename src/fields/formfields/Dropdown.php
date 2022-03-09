@@ -33,9 +33,9 @@ class Dropdown extends BaseOptionsField implements FormFieldInterface
     // Properties
     // =========================================================================
 
-    public $multiple;
-    public $multi = false;
-    public $optgroups = true;
+    public bool $multiple = false;
+    public bool $multi = false;
+    public bool $optgroups = true;
 
 
     // Public Methods
@@ -44,7 +44,7 @@ class Dropdown extends BaseOptionsField implements FormFieldInterface
     /**
      * @inheritDoc
      */
-    public function init()
+    public function init(): void
     {
         // Mirror to native `multi` attribute
         $this->setMultiple($this->multiple);
@@ -67,10 +67,7 @@ class Dropdown extends BaseOptionsField implements FormFieldInterface
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getFieldOptions()
+    public function getFieldOptions(): array
     {
         return $this->options;
     }
@@ -78,7 +75,7 @@ class Dropdown extends BaseOptionsField implements FormFieldInterface
     /**
      * @inheritDoc
      */
-    public function getInputHtml($value, ElementInterface $element = null): string
+    public function getInputHtml(mixed $value, ?ElementInterface $element = null): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/dropdown/input', [
             'name' => $this->handle,
@@ -130,7 +127,7 @@ class Dropdown extends BaseOptionsField implements FormFieldInterface
      *
      * @param $value
      */
-    public function setMultiple($value)
+    public function setMultiple($value): void
     {
         $this->multi = $value;
     }
@@ -140,7 +137,7 @@ class Dropdown extends BaseOptionsField implements FormFieldInterface
      *
      * @return bool
      */
-    public function getMultiple()
+    public function getMultiple(): bool
     {
         return $this->multi;
     }
@@ -252,9 +249,6 @@ class Dropdown extends BaseOptionsField implements FormFieldInterface
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineConditionsSchema(): array
     {
         return [

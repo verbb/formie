@@ -1,33 +1,24 @@
 <?php
 namespace verbb\formie\base;
 
-use verbb\formie\Formie;
-use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\SendIntegrationPayloadEvent;
-use verbb\formie\models\IntegrationCollection;
-use verbb\formie\models\IntegrationField;
-use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
-use craft\helpers\ArrayHelper;
 use craft\helpers\StringHelper;
 use craft\helpers\UrlHelper;
 
-abstract class Crm extends Integration implements IntegrationInterface
+abstract class Crm extends Integration
 {
     // Properties
     // =========================================================================
 
-    public $optInField;
+    public ?string $optInField = null;
 
 
     // Static Methods
     // =========================================================================
-    
-    /**
-     * @inheritDoc
-     */
+
     public static function typeName(): string
     {
         return Craft::t('formie', 'CRM');
@@ -42,7 +33,7 @@ abstract class Crm extends Integration implements IntegrationInterface
      */
     public function getIconUrl(): string
     {
-        $handle = StringHelper::toKebabCase($this->displayName());
+        $handle = StringHelper::toKebabCase(static::displayName());
 
         return Craft::$app->getAssetManager()->getPublishedUrl("@verbb/formie/web/assets/crm/dist/img/{$handle}.svg", true);
     }
@@ -50,9 +41,9 @@ abstract class Crm extends Integration implements IntegrationInterface
     /**
      * @inheritDoc
      */
-    public function getSettingsHtml(): string
+    public function getSettingsHtml(): ?string
     {
-        $handle = StringHelper::toKebabCase($this->displayName());
+        $handle = StringHelper::toKebabCase(static::displayName());
 
         return Craft::$app->getView()->renderTemplate("formie/integrations/crm/{$handle}/_plugin-settings", [
             'integration' => $this,
@@ -64,7 +55,7 @@ abstract class Crm extends Integration implements IntegrationInterface
      */
     public function getFormSettingsHtml($form): string
     {
-        $handle = StringHelper::toKebabCase($this->displayName());
+        $handle = StringHelper::toKebabCase(static::displayName());
 
         return Craft::$app->getView()->renderTemplate("formie/integrations/crm/{$handle}/_form-settings", [
             'integration' => $this,
@@ -72,9 +63,6 @@ abstract class Crm extends Integration implements IntegrationInterface
         ]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getCpEditUrl(): string
     {
         return UrlHelper::cpUrl('formie/settings/crm/edit/' . $this->id);
@@ -94,7 +82,7 @@ abstract class Crm extends Integration implements IntegrationInterface
     /**
      * @inheritDoc
      */
-    public function beforeSendPayload(Submission $submission, &$endpoint, &$payload, &$method)
+    public function beforeSendPayload(Submission $submission, &$endpoint, &$payload, &$method): bool
     {
         // If in the context of a queue. save the payload for debugging
         if ($this->getQueueJob()) {

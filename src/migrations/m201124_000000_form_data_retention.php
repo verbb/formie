@@ -1,34 +1,26 @@
 <?php
 namespace verbb\formie\migrations;
 
-use verbb\formie\elements\Form;
-use verbb\formie\fields\formfields\Phone;
-use verbb\formie\prosemirror\toprosemirror\Renderer;
-
-use Craft;
 use craft\db\Migration;
-use craft\db\Query;
-use craft\helpers\ArrayHelper;
-use craft\helpers\Db;
-use craft\helpers\Json;
-use craft\helpers\StringHelper;
 
 class m201124_000000_form_data_retention extends Migration
 {
     /**
      * @inheritdoc
      */
-    public function safeUp()
+    public function safeUp(): bool
     {
         $this->alterColumn('{{%formie_forms}}', 'dataRetention', $this->enum('dataRetention', ['forever', 'hours', 'days', 'weeks', 'months', 'years'])
             ->defaultValue('forever')
             ->notNull());
+
+        return true;
     }
 
     /**
      * @inheritdoc
      */
-    public function safeDown()
+    public function safeDown(): bool
     {
         echo "m201124_000000_form_data_retention cannot be reverted.\n";
         return false;

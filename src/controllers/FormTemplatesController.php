@@ -75,28 +75,23 @@ class FormTemplatesController extends Controller
      * @throws BadRequestHttpException
      * @throws ServerErrorHttpException
      */
-    public function actionSave()
+    public function actionSave(): void
     {
         $this->requirePostRequest();
 
         $request = Craft::$app->getRequest();
 
-        $id = $request->getBodyParam('id');
-        $template = Formie::$plugin->getFormTemplates()->getTemplateById($id);
-
-        if (!$template) {
-            $template = new FormTemplate();
-        }
-
+        $template = new FormTemplate();
+        $template->id = $request->getBodyParam('id');
         $template->name = $request->getBodyParam('name');
         $template->handle = $request->getBodyParam('handle');
         $template->template = preg_replace('/\/index(?:\.html|\.twig)?$/', '', $request->getBodyParam('template'));
-        $template->useCustomTemplates = $request->getBodyParam('useCustomTemplates');
-        $template->copyTemplates = $request->getBodyParam('copyTemplates', false);
-        $template->outputCssLayout = $request->getBodyParam('outputCssLayout');
-        $template->outputCssTheme = $request->getBodyParam('outputCssTheme');
-        $template->outputJsBase = $request->getBodyParam('outputJsBase');
-        $template->outputJsTheme = $request->getBodyParam('outputJsTheme');
+        $template->useCustomTemplates = (bool)$request->getBodyParam('useCustomTemplates');
+        $template->copyTemplates = (bool)$request->getBodyParam('copyTemplates', false);
+        $template->outputCssLayout = (bool)$request->getBodyParam('outputCssLayout');
+        $template->outputCssTheme = (bool)$request->getBodyParam('outputCssTheme');
+        $template->outputJsBase = (bool)$request->getBodyParam('outputJsBase');
+        $template->outputJsTheme = (bool)$request->getBodyParam('outputJsTheme');
         $template->outputCssLocation = $request->getBodyParam('outputCssLocation');
         $template->outputJsLocation = $request->getBodyParam('outputJsLocation');
         
@@ -146,7 +141,7 @@ class FormTemplatesController extends Controller
      * @throws BadRequestHttpException
      * @throws Throwable
      */
-    public function actionDelete()
+    public function actionDelete(): Response
     {
         $this->requireAcceptsJson();
 

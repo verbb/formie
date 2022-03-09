@@ -3,7 +3,6 @@ namespace verbb\formie\controllers;
 
 use verbb\formie\Formie;
 use verbb\formie\elements\SentNotification;
-use verbb\formie\models\Settings;
 use verbb\formie\web\assets\cp\CpAsset;
 
 use Craft;
@@ -13,35 +12,27 @@ use craft\web\Controller;
 use yii\validators\EmailValidator;
 use yii\web\HttpException;
 use yii\web\Response;
+use yii\web\NotFoundHttpException;
 
 class SentNotificationsController extends Controller
 {
     // Public Methods
     // =========================================================================
-    
-    /**
-     * @inheritDoc
-     */
+
     public function actionIndex(): Response
     {
         $this->getView()->registerAssetBundle(CpAsset::class);
 
         return $this->renderTemplate('formie/sent-notifications/index', []);
     }
-    
-    /**
-     * @inheritDoc
-     */
+
     public function actionSettings(): Response
     {
         $settings = Formie::$plugin->getSettings();
 
         return $this->renderTemplate('formie/settings/sent-notifications', compact('settings'));
     }
-    
-    /**
-     * @inheritDoc
-     */
+
     public function actionEdit(int $sentNotificationId = null, SentNotification $sentNotification = null): Response
     {
         $variables = compact('sentNotificationId', 'sentNotification');
@@ -64,11 +55,8 @@ class SentNotificationsController extends Controller
 
         return $this->renderTemplate('formie/sent-notifications/_edit', $variables);
     }
-    
-    /**
-     * @inheritDoc
-     */
-    public function actionGetResendModalContent()
+
+    public function actionGetResendModalContent(): Response
     {
         $this->requireAcceptsJson();
 
@@ -90,11 +78,8 @@ class SentNotificationsController extends Controller
             'footHtml' => $view->getBodyHtml(),
         ]);
     }
-    
-    /**
-     * @inheritDoc
-     */
-    public function actionResend()
+
+    public function actionResend(): Response
     {
         $this->requireAcceptsJson();
 
@@ -160,11 +145,8 @@ class SentNotificationsController extends Controller
             'success' => true,
         ]);
     }
-    
-    /**
-     * @inheritDoc
-     */
-    public function actionBulkResend()
+
+    public function actionBulkResend(): Response
     {
         $this->requireAcceptsJson();
 
@@ -247,11 +229,8 @@ class SentNotificationsController extends Controller
             'success' => true,
         ]);
     }
-    
-    /**
-     * @inheritDoc
-     */
-    public function actionDelete()
+
+    public function actionDelete(): ?Response
     {
         $this->requirePostRequest();
 
@@ -292,11 +271,8 @@ class SentNotificationsController extends Controller
 
     // Private Methods
     // =========================================================================
-    
-    /**
-     * @inheritDoc
-     */
-    private function _prepNewEmail($sentNotification)
+
+    private function _prepNewEmail($sentNotification): Message
     {
         $newEmail = new Message();
         $newEmail->setSubject($sentNotification->subject);

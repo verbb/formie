@@ -12,19 +12,19 @@ class PredefinedOptions extends Component
     // Constants
     // =========================================================================
 
-    const EVENT_REGISTER_PREDEFINED_OPTIONS = 'registerPredefinedOptions';
+    public const EVENT_REGISTER_PREDEFINED_OPTIONS = 'registerPredefinedOptions';
 
 
     // Properties
     // =========================================================================
 
-    private $_options = [];
+    private array $_options = [];
 
 
     // Public Methods
     // =========================================================================
 
-    public function getRegisteredPredefinedOptions()
+    public function getRegisteredPredefinedOptions(): array
     {
         if (count($this->_options)) {
             return $this->_options;
@@ -75,7 +75,7 @@ class PredefinedOptions extends Component
         return $this->_options;
     }
 
-    public function getPredefinedOptions()
+    public function getPredefinedOptions(): array
     {
         $options = [
             ['label' => Craft::t('formie', 'Select an option'), 'value' => ''],
@@ -90,7 +90,7 @@ class PredefinedOptions extends Component
         return $options;
     }
 
-    public function getPredefinedOptionsForType($type)
+    public function getPredefinedOptionsForType($type): array
     {
         $option = [];
 

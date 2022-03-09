@@ -17,9 +17,6 @@ class Industry extends PredefinedOption
         return Craft::t('formie', 'Industry');
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function getDataOptions(): array
     {
         return [

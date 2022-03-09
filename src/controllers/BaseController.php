@@ -6,16 +6,14 @@ use verbb\formie\models\Settings;
 
 use Craft;
 use craft\web\Controller;
+use yii\web\Response;
 
 class BaseController extends Controller
 {
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritdoc
-     */
-    public function actionIndex()
+    public function actionIndex(): Response
     {
         /* @var Settings $settings */
         $settings = Formie::$plugin->getSettings();
@@ -37,10 +35,7 @@ class BaseController extends Controller
 
     // Private Methods
     // =========================================================================
-    
-    /**
-     * @inheritdoc
-     */
+
     private function _getFirstAvailablePage()
     {
         $subnav = Formie::$plugin->getCpNavItem()['subnav'] ?? [];

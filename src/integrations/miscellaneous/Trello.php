@@ -3,36 +3,33 @@ namespace verbb\formie\integrations\miscellaneous;
 
 use verbb\formie\base\Integration;
 use verbb\formie\base\Miscellaneous;
-use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\RichTextHelper;
-use verbb\formie\models\IntegrationCollection;
-use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
-use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
-use craft\helpers\UrlHelper;
-use craft\web\View;
 
 use League\HTMLToMarkdown\HtmlConverter;
+use League\OAuth2\Client\Provider\AbstractProvider;
 use League\OAuth1\Client\Server\Trello as TrelloProvider;
 
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Subscriber\Oauth\Oauth1;
+use GuzzleHttp\Client;
+use Throwable;
 
 class Trello extends Miscellaneous
 {
     // Properties
     // =========================================================================
 
-    public $clientId;
-    public $clientSecret;
-    public $boardId;
-    public $listId;
-    public $cardName;
-    public $cardDescription;
+    public ?string $clientId = null;
+    public ?string $clientSecret = null;
+    public ?string $boardId = null;
+    public ?string $listId = null;
+    public ?string $cardName = null;
+    public ?string $cardDescription = null;
 
 
     // OAuth Methods
@@ -57,7 +54,7 @@ class Trello extends Miscellaneous
     /**
      * @inheritDoc
      */
-    public function getOauthProviderConfig()
+    public function getOauthProviderConfig(): array
     {
         return [
             'identifier' => Craft::parseEnv($this->clientId),
@@ -72,8 +69,9 @@ class Trello extends Miscellaneous
     /**
      * @inheritDoc
      */
-    public function getOauthProvider()
+    public function getOauthProvider(): AbstractProvider
     {
+        /** @noinspection PhpIncompatibleReturnTypeInspection */
         return new TrelloProvider($this->getOauthProviderConfig());
     }
 
@@ -101,9 +99,6 @@ class Trello extends Miscellaneous
         return Craft::t('formie', 'Trello');
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getDescription(): string
     {
         return Craft::t('formie', 'Send your form content to Trello.');
@@ -124,10 +119,7 @@ class Trello extends Miscellaneous
         return $rules;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function fetchFormSettings()
+    public function fetchFormSettings(): IntegrationFormSettings
     {
         $settings = [];
 
@@ -140,7 +132,7 @@ class Trello extends Miscellaneous
 
                 $allLists = $this->request('GET', "boards/${board['id']}/lists");
 
-                foreach ($allLists as $key => $list) {
+                foreach ($allLists as $list) {
                     $lists[] = [
                         'id' => $list['id'],
                         'name' => $list['name'],
@@ -157,16 +149,13 @@ class Trello extends Miscellaneous
             $settings = [
                 'boards' => $boards,
             ];
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Integration::apiError($this, $e);
         }
 
         return new IntegrationFormSettings($settings);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function sendPayload(Submission $submission): bool
     {
         try {
@@ -192,7 +181,7 @@ class Trello extends Miscellaneous
 
                 return false;
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
             return false;
@@ -201,10 +190,7 @@ class Trello extends Miscellaneous
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getClient()
+    public function getClient(): Client
     {
         if ($this->_client) {
             return $this->_client;
@@ -234,7 +220,7 @@ class Trello extends Miscellaneous
     // Private Methods
     // =========================================================================
 
-    private function _renderMessage($submission)
+    private function _renderMessage($submission): array|string
     {
         $html = RichTextHelper::getHtmlContent($this->cardDescription, $submission);
 
@@ -242,8 +228,6 @@ class Trello extends Miscellaneous
         $markdown = $converter->convert($html);
 
         // Some extra work to get it to play with Slack's mrkdwn
-        $markdown = str_replace(['*', '__'], ['_', '*'], $markdown);
-
-        return $markdown;
+        return str_replace(['*', '__'], ['_', '*'], $markdown);
     }
 }

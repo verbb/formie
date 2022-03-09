@@ -3,30 +3,26 @@ namespace verbb\formie\integrations\crm;
 
 use verbb\formie\base\Crm;
 use verbb\formie\base\Integration;
-use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
-use verbb\formie\errors\IntegrationException;
-use verbb\formie\events\SendIntegrationPayloadEvent;
-use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
-use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
-use craft\web\View;
+use GuzzleHttp\Client;
+use Throwable;
 
 class Pipeliner extends Crm
 {
     // Properties
     // =========================================================================
 
-    public $apiToken;
-    public $apiPassword;
-    public $apiSpaceId;
-    public $apiServiceUrl;
-    public $mapToContact = false;
-    public $contactFieldMapping;
+    public ?string $apiToken = null;
+    public ?string $apiPassword = null;
+    public ?string $apiSpaceId = null;
+    public ?string $apiServiceUrl = null;
+    public bool $mapToContact = false;
+    public ?array $contactFieldMapping = null;
 
 
     // Public Methods
@@ -40,9 +36,6 @@ class Pipeliner extends Crm
         return Craft::t('formie', 'Pipeliner');
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getDescription(): string
     {
         return Craft::t('formie', 'Manage your Pipeliner customers by providing important information on their conversion on your site.');
@@ -67,10 +60,7 @@ class Pipeliner extends Crm
         return $rules;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function fetchFormSettings()
+    public function fetchFormSettings(): IntegrationFormSettings
     {
         $settings = [];
 
@@ -176,16 +166,13 @@ class Pipeliner extends Crm
             $settings = [
                 'contact' => $contactFields,
             ];
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Integration::apiError($this, $e);
         }
 
         return new IntegrationFormSettings($settings);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function sendPayload(Submission $submission): bool
     {
         try {
@@ -209,7 +196,7 @@ class Pipeliner extends Crm
 
                 return false;
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
             return false;
@@ -218,14 +205,11 @@ class Pipeliner extends Crm
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function fetchConnection(): bool
     {
         try {
             $response = $this->request('GET', 'entities/Contacts');
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
             return false;
@@ -234,10 +218,7 @@ class Pipeliner extends Crm
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getClient()
+    public function getClient(): Client
     {
         if ($this->_client) {
             return $this->_client;
@@ -256,10 +237,7 @@ class Pipeliner extends Crm
     // Private Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
-    private function _getCustomFields($fields, $excludeNames = [])
+    private function _getCustomFields($fields, $excludeNames = []): array
     {
         $customFields = [];
 

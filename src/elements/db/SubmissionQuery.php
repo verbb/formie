@@ -11,21 +11,22 @@ use craft\db\Query;
 use craft\db\QueryAbortedException;
 use craft\elements\db\ElementQuery;
 use craft\helpers\Db;
+use Throwable;
 
 class SubmissionQuery extends ElementQuery
 {
     // Properties
     // =========================================================================
 
-    public $id;
-    public $siteId = '*';
-    public $formId;
-    public $statusId;
-    public $userId;
-    public $isIncomplete = false;
-    public $isSpam = false;
+    public mixed $id = null;
+    public mixed $siteId = '*';
+    public mixed $formId = null;
+    public mixed $statusId = null;
+    public mixed $userId = null;
+    public ?bool $isIncomplete = false;
+    public ?bool $isSpam = false;
 
-    protected $defaultOrderBy = ['elements.dateCreated' => SORT_DESC];
+    protected array $defaultOrderBy = ['elements.dateCreated' => SORT_DESC];
 
 
     // Public Methods
@@ -34,10 +35,10 @@ class SubmissionQuery extends ElementQuery
     /**
      * Sets the [[formId]] property.
      *
-     * @param Form|string|null $value The property value
+     * @param string|Form|null $value The property value
      * @return static self reference
      */
-    public function form($value)
+    public function form(Form|string|null $value): static
     {
         if ($value instanceof Form) {
             $this->formId = $value->id;
@@ -62,7 +63,7 @@ class SubmissionQuery extends ElementQuery
      * @param int
      * @return static self reference
      */
-    public function formId($value)
+    public function formId($value): static
     {
         $this->formId = $value;
 
@@ -75,7 +76,7 @@ class SubmissionQuery extends ElementQuery
      * @param Status|string|null $value
      * @return static self reference
      */
-    public function status($value)
+    public function status($value): ElementQuery
     {
         if ($value instanceof Status) {
             $this->statusId = $value->id;
@@ -98,7 +99,7 @@ class SubmissionQuery extends ElementQuery
      * @param int
      * @return static self reference
      */
-    public function statusId($value)
+    public function statusId($value): static
     {
         $this->statusId = $value;
 
@@ -108,10 +109,10 @@ class SubmissionQuery extends ElementQuery
     /**
      * Sets the [[userId]] property.
      *
-     * @param User|string|null $value
+     * @param string|User|null $value
      * @return static self reference
      */
-    public function user($value)
+    public function user(string|User|null $value): static
     {
         if ($value instanceof User) {
             $this->userId = $value->id;
@@ -131,7 +132,7 @@ class SubmissionQuery extends ElementQuery
      * @param int
      * @return static self reference
      */
-    public function userId($value)
+    public function userId($value): static
     {
         $this->userId = $value;
 
@@ -144,7 +145,7 @@ class SubmissionQuery extends ElementQuery
      * @param bool|null $value
      * @return static self reference
      */
-    public function isIncomplete($value)
+    public function isIncomplete(?bool $value): static
     {
         $this->isIncomplete = $value;
         return $this;
@@ -156,7 +157,7 @@ class SubmissionQuery extends ElementQuery
      * @param bool|null $value
      * @return static self reference
      */
-    public function isSpam($value)
+    public function isSpam(?bool $value): static
     {
         $this->isSpam = $value;
         return $this;
@@ -165,7 +166,7 @@ class SubmissionQuery extends ElementQuery
     /**
      * @inheritdoc
      */
-    public function anyStatus()
+    public function anyStatus(): ElementQuery
     {
         parent::anyStatus();
 
@@ -285,9 +286,9 @@ class SubmissionQuery extends ElementQuery
             $form = Form::find()->id($this->formId)->one();
 
             if ($form) {
-                return $form->getFields();
+                return $form->getCustomFields();
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable) {
             // This will throw an error when restoring a form - but that's okay
         }
 
@@ -297,9 +298,9 @@ class SubmissionQuery extends ElementQuery
     /**
      * @inheritDoc
      */
-    protected function statusCondition(string $status)
+    protected function statusCondition(string $status): mixed
     {
-        // Could potentially use a join in the main subquery to not have another query
+        // Could potentially use a join in the main sub-query to not have another query,
         // but I figure this is only called when using `status(handle)`, and we shouldn't
         // let the 'regular' query suffer for this possible querying
         $statusId = (new Query())

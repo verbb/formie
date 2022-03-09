@@ -3,29 +3,25 @@ namespace verbb\formie\base;
 
 use craft\base\ComponentInterface;
 use craft\base\ElementInterface;
-use Twig\Error\LoaderError;
-use Twig\Error\RuntimeError;
-use Twig\Error\SyntaxError;
 use Twig\Markup;
 
 use verbb\formie\elements\Form;
 
 use verbb\formie\elements\Submission;
 use verbb\formie\models\Notification;
-use yii\base\Exception;
 
 interface FormFieldInterface extends ComponentInterface
 {
     // Constants
     // =========================================================================
 
-    const EVENT_MODIFY_DEFAULT_VALUE = 'modifyDefaultValue';
-    const EVENT_MODIFY_VALUE_AS_STRING = 'modifyValueAsString';
-    const EVENT_MODIFY_VALUE_AS_JSON = 'modifyValueAsJson';
-    const EVENT_MODIFY_VALUE_FOR_EXPORT = 'modifyValueForExport';
-    const EVENT_MODIFY_VALUE_FOR_INTEGRATION = 'modifyValueForIntegration';
-    const EVENT_MODIFY_VALUE_FOR_SUMMARY = 'modifyValueForSummary';
-    const EVENT_MODIFY_VALUE_FOR_EMAIL = 'modifyValueForEmail';
+    public const EVENT_MODIFY_DEFAULT_VALUE = 'modifyDefaultValue';
+    public const EVENT_MODIFY_VALUE_AS_STRING = 'modifyValueAsString';
+    public const EVENT_MODIFY_VALUE_AS_JSON = 'modifyValueAsJson';
+    public const EVENT_MODIFY_VALUE_FOR_EXPORT = 'modifyValueForExport';
+    public const EVENT_MODIFY_VALUE_FOR_INTEGRATION = 'modifyValueForIntegration';
+    public const EVENT_MODIFY_VALUE_FOR_SUMMARY = 'modifyValueForSummary';
+    public const EVENT_MODIFY_VALUE_FOR_EMAIL = 'modifyValueForEmail';
 
     
     // Public Methods
@@ -73,7 +69,7 @@ interface FormFieldInterface extends ComponentInterface
      * @param ElementInterface $element
      * @return mixed
      */
-    public function getValue(ElementInterface $element);
+    public function getValue(ElementInterface $element): mixed;
 
     /**
      * Returns the default settings for new fields of this type.
@@ -128,14 +124,14 @@ interface FormFieldInterface extends ComponentInterface
     public function getIsSelect(): bool;
 
     /**
-     * Returns true if the field comprises of multiple inputs.
+     * Returns true if the field consists of multiple inputs.
      *
      * @return bool
      */
     public function getIsFieldset(): bool;
 
     /**
-     * Returns any extra config items to be added the the
+     * Returns any extra config items to be added to the
      * base field config.
      *
      * @return array
@@ -186,7 +182,7 @@ interface FormFieldInterface extends ComponentInterface
      * @param array|null $options
      * @return array
      */
-    public function getFrontEndInputOptions(Form $form, $value, array $options = null): array;
+    public function getFrontEndInputOptions(Form $form, mixed $value, array $options = null): array;
 
     /**
      * Returns the frontend input HTML.
@@ -196,7 +192,7 @@ interface FormFieldInterface extends ComponentInterface
      * @param array|null $options
      * @return Markup
      */
-    public function getFrontEndInputHtml(Form $form, $value, array $options = null): Markup;
+    public function getFrontEndInputHtml(Form $form, mixed $value, array $options = null): Markup;
 
     /**
      * Returns an array of options that will be passed into the render function.
@@ -207,7 +203,7 @@ interface FormFieldInterface extends ComponentInterface
      * @param array|null $options
      * @return array
      */
-    public function getEmailOptions(Submission $submission, Notification $notification, $value, array $options = null): array;
+    public function getEmailOptions(Submission $submission, Notification $notification, mixed $value, array $options = null): array;
 
     /**
      * Gets the email HTML for this field.
@@ -216,9 +212,9 @@ interface FormFieldInterface extends ComponentInterface
      * @param Notification $notification
      * @param mixed $value
      * @param array|null $options
-     * @return Markup
+     * @return string|bool|null
      */
-    public function getEmailHtml(Submission $submission, Notification $notification, $value, array $options = null);
+    public function getEmailHtml(Submission $submission, Notification $notification, mixed $value, array $options = null): string|null|bool;
 
     /**
      * Returns the namespace for this field.

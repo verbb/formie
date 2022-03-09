@@ -3,10 +3,7 @@ namespace verbb\formie\integrations\emailmarketing;
 
 use verbb\formie\base\Integration;
 use verbb\formie\base\EmailMarketing;
-use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
-use verbb\formie\errors\IntegrationException;
-use verbb\formie\events\SendIntegrationPayloadEvent;
 use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
@@ -14,14 +11,15 @@ use verbb\formie\models\IntegrationFormSettings;
 use Craft;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
-use craft\web\View;
+use GuzzleHttp\Client;
+use Throwable;
 
 class Autopilot extends EmailMarketing
 {
     // Properties
     // =========================================================================
 
-    public $apiKey;
+    public ?string $apiKey = null;
 
 
     // Public Methods
@@ -35,9 +33,6 @@ class Autopilot extends EmailMarketing
         return Craft::t('formie', 'Autopilot');
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getDescription(): string
     {
         return Craft::t('formie', 'Sign up users to your Autopilot lists to grow your audience for campaigns.');
@@ -55,10 +50,7 @@ class Autopilot extends EmailMarketing
         return $rules;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function fetchFormSettings()
+    public function fetchFormSettings(): IntegrationFormSettings
     {
         $settings = [];
 
@@ -172,16 +164,13 @@ class Autopilot extends EmailMarketing
                     'fields' => $listFields,
                 ]);
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Integration::apiError($this, $e);
         }
 
         return new IntegrationFormSettings($settings);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function sendPayload(Submission $submission): bool
     {
         try {
@@ -230,7 +219,6 @@ class Autopilot extends EmailMarketing
                     'Industry' => $industry,
                     'Fax' => $fax,
                     'MailingStreet' => $mailingStreet,
-                    'MailingCity' => $mailingCity,
                     'MailingState' => $mailingState,
                     'MailingPostalCode' => $mailingPostalCode,
                     'MailingCountry' => $mailingCountry,
@@ -259,7 +247,7 @@ class Autopilot extends EmailMarketing
 
                 return false;
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
             return false;
@@ -268,9 +256,6 @@ class Autopilot extends EmailMarketing
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function fetchConnection(): bool
     {
         try {
@@ -281,7 +266,7 @@ class Autopilot extends EmailMarketing
                 Integration::error($this, 'Unable to find “{instanceId}” in response.', true);
                 return false;
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
             return false;
@@ -290,10 +275,7 @@ class Autopilot extends EmailMarketing
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getClient()
+    public function getClient(): Client
     {
         if ($this->_client) {
             return $this->_client;
@@ -309,9 +291,6 @@ class Autopilot extends EmailMarketing
     // Private Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     private function _convertFieldType($fieldType)
     {
         $fieldTypes = [
@@ -322,10 +301,7 @@ class Autopilot extends EmailMarketing
         return $fieldTypes[$fieldType] ?? IntegrationField::TYPE_STRING;
     }
 
-    /**
-     * @inheritDoc
-     */
-    private function _getCustomFields($fields, $excludeNames = [])
+    private function _getCustomFields($fields, $excludeNames = []): array
     {
         $customFields = [];
 

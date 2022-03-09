@@ -3,11 +3,7 @@ namespace verbb\formie\integrations\crm;
 
 use verbb\formie\base\Crm;
 use verbb\formie\base\Integration;
-use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
-use verbb\formie\errors\IntegrationException;
-use verbb\formie\events\SendIntegrationPayloadEvent;
-use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
@@ -15,22 +11,23 @@ use Craft;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 use craft\helpers\StringHelper;
-use craft\web\View;
+use GuzzleHttp\Client;
+use Throwable;
 
 class Agile extends Crm
 {
     // Properties
     // =========================================================================
 
-    public $apiKey;
-    public $apiEmail;
-    public $apiDomain;
-    public $mapToContact = false;
-    public $mapToDeal = false;
-    public $mapToTask = false;
-    public $contactFieldMapping;
-    public $dealFieldMapping;
-    public $taskFieldMapping;
+    public ?string $apiKey = null;
+    public ?string $apiEmail = null;
+    public ?string $apiDomain = null;
+    public bool $mapToContact = false;
+    public bool $mapToDeal = false;
+    public bool $mapToTask = false;
+    public ?array $contactFieldMapping = null;
+    public ?array $dealFieldMapping = null;
+    public ?array $taskFieldMapping = null;
 
 
     // Public Methods
@@ -44,9 +41,6 @@ class Agile extends Crm
         return Craft::t('formie', 'Agile CRM');
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getDescription(): string
     {
         return Craft::t('formie', 'Manage your Agile customers by providing important information on their conversion on your site.');
@@ -81,10 +75,7 @@ class Agile extends Crm
         return $rules;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function fetchFormSettings()
+    public function fetchFormSettings(): IntegrationFormSettings
     {
         $settings = [];
 
@@ -341,16 +332,13 @@ class Agile extends Crm
                 'deal' => $dealFields,
                 'task' => $taskFields,
             ];
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Integration::apiError($this, $e);
         }
 
         return new IntegrationFormSettings($settings);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function sendPayload(Submission $submission): bool
     {
         try {
@@ -469,7 +457,7 @@ class Agile extends Crm
                     return false;
                 }
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
             return false;
@@ -478,14 +466,11 @@ class Agile extends Crm
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function fetchConnection(): bool
     {
         try {
             $response = $this->request('GET', 'contacts');
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
             return false;
@@ -494,10 +479,7 @@ class Agile extends Crm
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getClient()
+    public function getClient(): Client
     {
         if ($this->_client) {
             return $this->_client;
@@ -518,20 +500,12 @@ class Agile extends Crm
     // Private Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     private function _convertFieldType($fieldType)
     {
-        $fieldTypes = [];
-
-        return $fieldTypes[$fieldType] ?? IntegrationField::TYPE_STRING;
+        return IntegrationField::TYPE_STRING;
     }
 
-    /**
-     * @inheritDoc
-     */
-    private function _getCustomFields($fields, $excludeNames = [])
+    private function _getCustomFields($fields, $excludeNames = []): array
     {
         $customFields = [];
 
@@ -550,10 +524,7 @@ class Agile extends Crm
         return $customFields;
     }
 
-    /**
-     * @inheritDoc
-     */
-    private function _prepCustomFields(&$fields, $extras = [])
+    private function _prepCustomFields(&$fields, $extras = []): array
     {
         $customFields = [];
 

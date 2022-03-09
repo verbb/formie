@@ -8,7 +8,7 @@ class PdfTemplateEvent extends Event
     // Properties
     // =========================================================================
 
-    public $template;
-    public $isNew = false;
+    public ?string $template = null;
+    public bool $isNew = false;
     
 }

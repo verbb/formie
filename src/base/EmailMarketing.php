@@ -1,35 +1,27 @@
 <?php
 namespace verbb\formie\base;
 
-use verbb\formie\Formie;
-use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\SendIntegrationPayloadEvent;
-use verbb\formie\models\IntegrationCollection;
-use verbb\formie\models\IntegrationField;
-use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
 use craft\helpers\ArrayHelper;
 use craft\helpers\StringHelper;
 use craft\helpers\UrlHelper;
 
-abstract class EmailMarketing extends Integration implements IntegrationInterface
+abstract class EmailMarketing extends Integration
 {
     // Properties
     // =========================================================================
 
-    public $listId;
-    public $optInField;
-    public $fieldMapping;
+    public ?string $listId = null;
+    public ?string $optInField = null;
+    public ?array $fieldMapping = null;
 
     
     // Static Methods
     // =========================================================================
-    
-    /**
-     * @inheritDoc
-     */
+
     public static function typeName(): string
     {
         return Craft::t('formie', 'Email Marketing');
@@ -44,7 +36,7 @@ abstract class EmailMarketing extends Integration implements IntegrationInterfac
      */
     public function getIconUrl(): string
     {
-        $handle = StringHelper::toKebabCase($this->displayName());
+        $handle = StringHelper::toKebabCase(static::displayName());
 
         return Craft::$app->getAssetManager()->getPublishedUrl("@verbb/formie/web/assets/emailmarketing/dist/img/{$handle}.svg", true);
     }
@@ -52,9 +44,9 @@ abstract class EmailMarketing extends Integration implements IntegrationInterfac
     /**
      * @inheritDoc
      */
-    public function getSettingsHtml(): string
+    public function getSettingsHtml(): ?string
     {
-        $handle = StringHelper::toKebabCase($this->displayName());
+        $handle = StringHelper::toKebabCase(static::displayName());
 
         return Craft::$app->getView()->renderTemplate("formie/integrations/email-marketing/{$handle}/_plugin-settings", [
             'integration' => $this,
@@ -66,7 +58,7 @@ abstract class EmailMarketing extends Integration implements IntegrationInterfac
      */
     public function getFormSettingsHtml($form): string
     {
-        $handle = StringHelper::toKebabCase($this->displayName());
+        $handle = StringHelper::toKebabCase(static::displayName());
 
         return Craft::$app->getView()->renderTemplate("formie/integrations/email-marketing/{$handle}/_form-settings", [
             'integration' => $this,
@@ -74,9 +66,6 @@ abstract class EmailMarketing extends Integration implements IntegrationInterfac
         ]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getCpEditUrl(): string
     {
         return UrlHelper::cpUrl('formie/settings/email-marketing/edit/' . $this->id);
@@ -115,7 +104,7 @@ abstract class EmailMarketing extends Integration implements IntegrationInterfac
     /**
      * @inheritDoc
      */
-    public function beforeSendPayload(Submission $submission, &$endpoint, &$payload, &$method)
+    public function beforeSendPayload(Submission $submission, &$endpoint, &$payload, &$method): bool
     {
         // If in the context of a queue. save the payload for debugging
         if ($this->getQueueJob()) {
@@ -154,9 +143,6 @@ abstract class EmailMarketing extends Integration implements IntegrationInterfac
     // Private Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     private function _getListSettings()
     {
         $lists = $this->getFormSettingValue('lists');

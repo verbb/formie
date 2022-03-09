@@ -2,10 +2,6 @@
 namespace verbb\formie\helpers;
 
 use Craft;
-use craft\helpers\FileHelper as CraftFileHelper;
-use craft\helpers\StringHelper;
-
-use Throwable;
 
 class HandleHelper
 {
@@ -27,7 +23,7 @@ class HandleHelper
         return $newHandle;
     }
 
-    public static function getMaxFormHandle()
+    public static function getMaxFormHandle(): int
     {
         // The max length for the database engine, `fmc(d)_`, but also factor in duplicate suffixes (_XX)
         $maxHandleLength = Craft::$app->getDb()->getSchema()->maxObjectNameLength;
@@ -37,7 +33,7 @@ class HandleHelper
         return $maxHandleLength;
     }
 
-    public static function getMaxFieldHandle()
+    public static function getMaxFieldHandle(): int
     {
         // The max length for the database engine, `field_`, and the suffix for fields (10 chars extra to be safe)
         $maxHandleLength = Craft::$app->getDb()->getSchema()->maxObjectNameLength;

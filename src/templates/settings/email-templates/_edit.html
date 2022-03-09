@@ -30,7 +30,7 @@
     name: 'name',
     value: template.name,
     errors: template.getErrors('name'),
-    required: true
+    required: true,
 }) }}
 
 {{ forms.textField({
@@ -41,7 +41,7 @@
     name: 'handle',
     value: template.handle,
     errors: template.getErrors('handle'),
-    required: true
+    required: true,
 }) }}
 
 {{ forms.autosuggestField({
@@ -53,6 +53,7 @@
     suggestEnvVars: false,
     value: template.template,
     errors: template.getErrors('template'),
+    required: true,
 }) }}
 
 {% if not template.id %}

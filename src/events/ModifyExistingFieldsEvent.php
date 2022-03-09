@@ -8,6 +8,6 @@ class ModifyExistingFieldsEvent extends Event
     // Properties
     // =========================================================================
 
-    public $fields;
+    public ?array $fields = null;
     
 }

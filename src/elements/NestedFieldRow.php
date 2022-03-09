@@ -4,7 +4,6 @@ namespace verbb\formie\elements;
 
 use Exception;
 use verbb\formie\base\NestedFieldInterface;
-use verbb\formie\base\NestedFieldTrait;
 use verbb\formie\elements\db\NestedFieldRowQuery;
 use verbb\formie\records\NestedFieldRow as NestedFieldRowRecord;
 
@@ -12,59 +11,26 @@ use Craft;
 use craft\base\Element;
 use craft\base\BlockElementInterface;
 use craft\base\ElementInterface;
-use craft\elements\db\ElementQueryInterface;
 use craft\helpers\ArrayHelper;
 
 use yii\base\InvalidConfigException;
+use verbb\formie\base\FormFieldInterface;
+use craft\models\FieldLayout;
 
 class NestedFieldRow extends Element implements BlockElementInterface
 {
     // Properties
     // =========================================================================
 
-    /**
-     * @var int|null Field ID
-     */
-    public $fieldId;
+    public ?int $fieldId = null;
+    public ?int $ownerId = null;
+    public ?int $sortOrder = null;
+    public bool $dirty = false;
+    public bool $collapsed = false;
+    public bool $deletedWithOwner = false;
 
-    /**
-     * @var int|null Owner ID
-     */
-    public $ownerId;
-
-    /**
-     * @var int|null Sort order
-     */
-    public $sortOrder;
-
-    /**
-     * @var bool Whether the block has changed.
-     * @internal
-     */
-    public $dirty = false;
-
-    /**
-     * @var bool Collapsed
-     */
-    public $collapsed = false;
-
-    /**
-     * @var bool Whether the block was deleted along with its owner
-     * @see beforeDelete()
-     */
-    public $deletedWithOwner = false;
-
-    /**
-     * @var ElementInterface|false|null The owner element, or false if [[ownerId]] is invalid
-     */
-    private $_owner;
-
-    /**
-     * @var ElementInterface[]|null
-     */
-    private $_eagerLoadedBlockTypeElements;
-
-    private $_fields;
+    private ElementInterface|false|null $_owner = null;
+    private ?array $_fields = null;
 
 
     // Static Methods
@@ -105,7 +71,7 @@ class NestedFieldRow extends Element implements BlockElementInterface
     /**
      * @inheritdoc
      */
-    public static function refHandle()
+    public static function refHandle(): ?string
     {
         return 'nestedfieldrow';
     }
@@ -139,7 +105,7 @@ class NestedFieldRow extends Element implements BlockElementInterface
      *
      * @return NestedFieldRowQuery
      */
-    public static function find(): ElementQueryInterface
+    public static function find(): NestedFieldRowQuery
     {
         return new NestedFieldRowQuery(static::class);
     }
@@ -147,7 +113,7 @@ class NestedFieldRow extends Element implements BlockElementInterface
     /**
      * @inheritdoc
      */
-    public static function eagerLoadingMap(array $sourceElements, string $handle)
+    public static function eagerLoadingMap(array $sourceElements, string $handle): array|null|false
     {
         /* @var NestedFieldInterface $nestedField */
         $nestedField = ArrayHelper::firstValue($sourceElements)->fieldId;
@@ -171,7 +137,7 @@ class NestedFieldRow extends Element implements BlockElementInterface
     /**
      * @inheritdoc
      */
-    public function attributes()
+    public function attributes(): array
     {
         $names = parent::attributes();
         $names[] = 'owner';
@@ -181,7 +147,7 @@ class NestedFieldRow extends Element implements BlockElementInterface
     /**
      * @inheritdoc
      */
-    public function extraFields()
+    public function extraFields(): array
     {
         $names = parent::extraFields();
         $names[] = 'owner';
@@ -199,14 +165,14 @@ class NestedFieldRow extends Element implements BlockElementInterface
         $rules[] = [['fieldId', 'ownerId', 'sortOrder'], 'number', 'integerOnly' => true];
 
         if ($fieldLayout = $this->getFieldLayout()) {
-            $fields = $this->getFieldLayout()->getFields();
+            $fields = $this->getFieldLayout()->getCustomFields();
 
             $fieldsByHandle = ArrayHelper::getColumn($fields, 'handle');
 
             // Evaulate field conditions. What if this is a required field, but conditionally hidden?
             foreach ($rules as $key => $rule) {
                 foreach ($fields as $field) {
-                    list($attribute, $validator) = $rule;
+                    [$attribute, $validator] = $rule;
                     $attribute = is_array($attribute) ? $attribute[0] : $attribute;
 
                     if ($attribute === "field:{$field->handle}") {
@@ -237,7 +203,7 @@ class NestedFieldRow extends Element implements BlockElementInterface
     /**
      * @inheritdoc
      */
-    public function getFieldLayout()
+    public function getFieldLayout(): ?FieldLayout
     {
         return $this->_getField()->getFieldLayout();
     }
@@ -245,7 +211,7 @@ class NestedFieldRow extends Element implements BlockElementInterface
     /**
      * @inheritdoc
      */
-    public function getOwner(): ElementInterface
+    public function getOwner(): ?ElementInterface
     {
         if ($this->_owner === null) {
             if ($this->ownerId === null) {
@@ -260,10 +226,7 @@ class NestedFieldRow extends Element implements BlockElementInterface
         return $this->_owner;
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function setOwner(ElementInterface $owner = null)
+    public function setOwner(ElementInterface $owner = null): void
     {
         $this->_owner = $owner;
     }
@@ -297,7 +260,7 @@ class NestedFieldRow extends Element implements BlockElementInterface
      *
      * @return FormFieldInterface[] The row’s fields.
      */
-    public function getFields(): array
+    public function getCustomFields(): array
     {
         if ($this->_fields !== null) {
             return $this->_fields;
@@ -309,29 +272,26 @@ class NestedFieldRow extends Element implements BlockElementInterface
             return [];
         }
 
-        return $this->_fields = $fieldLayout->getFields();
+        return $this->_fields = $fieldLayout->getCustomFields();
     }
 
     /**
      * Returns a field by its handle.
-     *
-     * @param string $handle
-     * @return FormFieldInterface|null
      */
-    public function getFieldByHandle(string $handle)
+    public function getFieldByHandle(string $handle): ?FormFieldInterface
     {
-        return ArrayHelper::firstWhere($this->getFields(), 'handle', $handle);
+        return ArrayHelper::firstWhere($this->getCustomFields(), 'handle', $handle);
     }
 
     /**
      * Returns a field by its id.
      *
-     * @param string $id
+     * @param int $id
      * @return FormFieldInterface|null
      */
-    public function getFieldById($id)
+    public function getFieldById(int $id): ?FormFieldInterface
     {
-        return ArrayHelper::firstWhere($this->getFields(), 'id', $id);
+        return ArrayHelper::firstWhere($this->getCustomFields(), 'id', $id);
     }
 
 
@@ -341,7 +301,7 @@ class NestedFieldRow extends Element implements BlockElementInterface
     /**
      * @inheritdoc
      */
-    public function afterSave(bool $isNew)
+    public function afterSave(bool $isNew): void
     {
         if (!$this->propagating) {
             // Get the block record
@@ -387,11 +347,8 @@ class NestedFieldRow extends Element implements BlockElementInterface
 
     // Private Methods
     // =========================================================================
-
     /**
      * Returns the nested field.
-     *
-     * @return NestedFieldInterface|NestedFieldTrait
      */
     private function _getField(): NestedFieldInterface
     {

@@ -27,7 +27,7 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
     // Constants
     // =========================================================================
 
-    const EVENT_MODIFY_PREFIX_OPTIONS = 'modifyPrefixOptions';
+    public const EVENT_MODIFY_PREFIX_OPTIONS = 'modifyPrefixOptions';
 
 
     // Traits
@@ -62,7 +62,7 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
      *
      * @return array[]
      */
-    public static function getPrefixOptions()
+    public static function getPrefixOptions(): array
     {
         $options = [
             ['label' => Craft::t('formie', 'Mr.'), 'value' => 'mr'],
@@ -87,46 +87,43 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
     // Properties
     // =========================================================================
 
-    /**
-     * @var boolean
-     */
-    public $useMultipleFields;
+    public bool $useMultipleFields = false;
 
-    public $prefixEnabled;
-    public $prefixCollapsed;
-    public $prefixLabel;
-    public $prefixPlaceholder;
-    public $prefixDefaultValue;
-    public $prefixPrePopulate;
-    public $prefixRequired;
-    public $prefixErrorMessage;
+    public ?bool $prefixEnabled = null;
+    public ?bool $prefixCollapsed = null;
+    public ?string $prefixLabel = null;
+    public ?string $prefixPlaceholder = null;
+    public ?string $prefixDefaultValue = null;
+    public ?string $prefixPrePopulate = null;
+    public ?bool $prefixRequired = null;
+    public ?string $prefixErrorMessage = null;
 
-    public $firstNameEnabled;
-    public $firstNameCollapsed;
-    public $firstNameLabel;
-    public $firstNamePlaceholder;
-    public $firstNameDefaultValue;
-    public $firstNamePrePopulate;
-    public $firstNameRequired;
-    public $firstNameErrorMessage;
+    public ?bool $firstNameEnabled = null;
+    public ?bool $firstNameCollapsed = null;
+    public ?string $firstNameLabel = null;
+    public ?string $firstNamePlaceholder = null;
+    public ?string $firstNameDefaultValue = null;
+    public ?string $firstNamePrePopulate = null;
+    public ?bool $firstNameRequired = null;
+    public ?string $firstNameErrorMessage = null;
 
-    public $middleNameEnabled;
-    public $middleNameCollapsed;
-    public $middleNameLabel;
-    public $middleNamePlaceholder;
-    public $middleNameDefaultValue;
-    public $middleNamePrePopulate;
-    public $middleNameRequired;
-    public $middleNameErrorMessage;
+    public ?bool $middleNameEnabled = null;
+    public ?bool $middleNameCollapsed = null;
+    public ?string $middleNameLabel = null;
+    public ?string $middleNamePlaceholder = null;
+    public ?string $middleNameDefaultValue = null;
+    public ?string $middleNamePrePopulate = null;
+    public ?bool $middleNameRequired = null;
+    public ?string $middleNameErrorMessage = null;
 
-    public $lastNameEnabled;
-    public $lastNameCollapsed;
-    public $lastNameLabel;
-    public $lastNamePlaceholder;
-    public $lastNameDefaultValue;
-    public $lastNamePrePopulate;
-    public $lastNameRequired;
-    public $lastNameErrorMessage;
+    public ?bool $lastNameEnabled = null;
+    public ?bool $lastNameCollapsed = null;
+    public ?string $lastNameLabel = null;
+    public ?string $lastNamePlaceholder = null;
+    public ?string $lastNameDefaultValue = null;
+    public ?string $lastNamePrePopulate = null;
+    public ?bool $lastNameRequired = null;
+    public ?string $lastNameErrorMessage = null;
 
 
     // Public Methods
@@ -151,7 +148,7 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
     /**
      * @inheritDoc
      */
-    public function getContentColumnType(): string
+    public function getContentColumnType(): array|string
     {
         return Schema::TYPE_TEXT;
     }
@@ -171,7 +168,7 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
     /**
      * @inheritDoc
      */
-    public function normalizeValue($value, ElementInterface $element = null)
+    public function normalizeValue(mixed $value, ?ElementInterface $element = null): mixed
     {
         $value = parent::normalizeValue($value, $element);
         $value = Json::decodeIfJson($value);
@@ -189,7 +186,7 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
     /**
      * @inheritDoc
      */
-    public function serializeValue($value, ElementInterface $element = null)
+    public function serializeValue(mixed $value, ?ElementInterface $element = null): mixed
     {
         if ($value instanceof NameModel) {
             $value = Json::encode($value);
@@ -299,7 +296,7 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
     /**
      * @inheritDoc
      */
-    public function validateRequiredFields(ElementInterface $element)
+    public function validateRequiredFields(ElementInterface $element): void
     {
         if (!$this->useMultipleFields) {
             return;
@@ -321,13 +318,13 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
      */
     public function getIsFieldset(): bool
     {
-        return !!$this->useMultipleFields;
+        return (bool)$this->useMultipleFields;
     }
 
     /**
      * @inheritDoc
      */
-    public function getInputHtml($value, ElementInterface $element = null): string
+    public function getInputHtml(mixed $value, ?ElementInterface $element = null): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/name/input', [
             'name' => $this->handle,
@@ -350,7 +347,7 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
     /**
      * @inheritDoc
      */
-    public function getSettingGqlTypes()
+    public function getSettingGqlTypes(): array
     {
         return array_merge(parent::getSettingGqlTypes(), [
             'prefixOptions' => [
@@ -523,9 +520,6 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineConditionsSchema(): array
     {
         return [
@@ -537,13 +531,13 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
     /**
      * @inheritDoc
      */
-    public function getContentGqlMutationArgumentType()
+    public function getContentGqlMutationArgumentType(): array|Type
     {
         if ($this->useMultipleFields) {
             return NameInputType::getType($this);
-        } else {
-            return Type::string();
         }
+
+        return Type::string();
     }
 
 
@@ -553,7 +547,7 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
     /**
      * @inheritDoc
      */
-    protected function defineValueForExport($value, ElementInterface $element = null)
+    protected function defineValueForExport($value, ElementInterface $element = null): mixed
     {
         if ($this->useMultipleFields) {
             $values = [];

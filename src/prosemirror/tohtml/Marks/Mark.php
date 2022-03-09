@@ -4,16 +4,16 @@ namespace verbb\formie\prosemirror\tohtml\Marks;
 
 class Mark
 {
-    protected $mark;
-    protected $markType;
-    protected $tagName = null;
+    protected self $mark;
+    protected ?string $markType = null;
+    protected string|null|array $tagName = null;
 
     public function __construct($mark)
     {
         $this->mark = $mark;
     }
 
-    public function matching()
+    public function matching(): bool
     {
         if (isset($this->mark->type)) {
             return $this->mark->type === $this->markType;
@@ -21,7 +21,7 @@ class Mark
         return false;
     }
 
-    public function tag()
+    public function tag(): array|string|null
     {
         return $this->tagName;
     }

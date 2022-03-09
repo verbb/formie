@@ -1,17 +1,15 @@
 <?php
 namespace verbb\formie\migrations;
 
-use Craft;
 use craft\db\Migration;
 use craft\db\Query;
-use craft\helpers\MigrationHelper;
 
 class m200810_000000_form_template_defaults extends Migration
 {
     /**
      * @inheritdoc
      */
-    public function safeUp()
+    public function safeUp(): bool
     {
         $formTemplates = (new Query())
             ->select(['*'])
@@ -39,7 +37,7 @@ class m200810_000000_form_template_defaults extends Migration
     /**
      * @inheritdoc
      */
-    public function safeDown()
+    public function safeDown(): bool
     {
         echo "m200810_000000_form_template_defaults cannot be reverted.\n";
         return false;

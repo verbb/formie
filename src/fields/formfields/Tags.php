@@ -28,13 +28,16 @@ use craft\models\TagGroup;
 use Throwable;
 
 use GraphQL\Type\Definition\Type;
+use craft\elements\db\ElementQueryInterface;
+use craft\fields\data\SingleOptionFieldData;
+use craft\fields\data\MultiOptionsFieldData;
 
 class Tags extends CraftTags implements FormFieldInterface
 {
     // Constants
     // =========================================================================
 
-    const EVENT_MODIFY_ELEMENT_QUERY = 'modifyElementQuery';
+    public const EVENT_MODIFY_ELEMENT_QUERY = 'modifyElementQuery';
 
     // Traits
     // =========================================================================
@@ -78,20 +81,11 @@ class Tags extends CraftTags implements FormFieldInterface
     // Properties
     // =========================================================================
 
-    /**
-     * @var bool
-     */
-    public $searchable = true;
+    public bool $searchable = true;
 
-    /**
-     * @var string
-     */
-    protected $inputTemplate = 'formie/_includes/element-select-input';
+    protected string $inputTemplate = 'formie/_includes/element-select-input';
 
-    /**
-     * @var TagGroup
-     */
-    private $_tagGroupId;
+    private ?TagGroup $_tagGroupId = null;
 
 
     // Public Methods
@@ -110,7 +104,7 @@ class Tags extends CraftTags implements FormFieldInterface
     /**
      * @inheritDoc
      */
-    public function normalizeValue($value, ElementInterface $element = null)
+    public function normalizeValue(mixed $value, ?ElementInterface $element = null): mixed
     {
         $tagGroup = $this->_getTagGroup();
 
@@ -206,7 +200,7 @@ class Tags extends CraftTags implements FormFieldInterface
      */
     public function getDefaultValue($attributePrefix = '')
     {
-        // If the default value from the parent field (query params, etc) is empty, use the default values
+        // If the default value from the parent field (query params, etc.) is empty, use the default values
         // set in the field settings.
         $this->defaultValue = $this->traitGetDefaultValue($attributePrefix) ?? $this->defaultValue;
 
@@ -226,7 +220,7 @@ class Tags extends CraftTags implements FormFieldInterface
     /**
      * @inheritDoc
      */
-    public function getFrontEndInputOptions(Form $form, $value, array $options = null): array
+    public function getFrontEndInputOptions(Form $form, mixed $value, array $options = null): array
     {
         $inputOptions = $this->traitGetFrontendInputOptions($form, $value, $options);
         $inputOptions['tags'] = $this->getTags();
@@ -237,9 +231,9 @@ class Tags extends CraftTags implements FormFieldInterface
     /**
      * @inheritDoc
      */
-    public function getEmailHtml(Submission $submission, Notification $notification, $value, array $options = null)
+    public function getEmailHtml(Submission $submission, Notification $notification, mixed $value, array $options = null): string|null|bool
     {
-        // Ensure we return back the correct, prepped query for emails. Just as we would be submissions.
+        // Ensure we return the correct, prepped query for emails. Just as we would be submissions.
         $value = $this->_all($value, $submission);
 
         return $this->traitGetEmailHtml($submission, $notification, $value, $options);
@@ -248,7 +242,7 @@ class Tags extends CraftTags implements FormFieldInterface
     /**
      * @inheritdoc
      */
-    public function getFrontEndJsModules()
+    public function getFrontEndJsModules(): ?array
     {
         return [
             'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/fields/tags.js', true),
@@ -259,7 +253,7 @@ class Tags extends CraftTags implements FormFieldInterface
     /**
      * @return Tag[]
      */
-    public function getTags()
+    public function getTags(): array
     {
         if ($group = $this->_getTagGroup()) {
             $tags = [];
@@ -290,9 +284,9 @@ class Tags extends CraftTags implements FormFieldInterface
     /**
      * Returns the list of selectable tags.
      *
-     * @return Tag[]
+     * @return \craft\elements\db\ElementQueryInterface
      */
-    public function getElementsQuery()
+    public function getElementsQuery(): \craft\elements\db\ElementQueryInterface
     {
         // Use the currently-set element query, or create a new one.
         $query = $this->elementsQuery ?? Tag::find();
@@ -333,13 +327,11 @@ class Tags extends CraftTags implements FormFieldInterface
     /**
      * @inheritDoc
      */
-    public function defineLabelSourceOptions()
+    public function defineLabelSourceOptions(): array
     {
         $options = [
             ['value' => 'title', 'label' => Craft::t('app', 'Title')],
         ];
-
-        // Craft::dd($this->availableSources());
 
         foreach ($this->availableSources() as $source) {
             if (!isset($source['heading'])) {
@@ -349,7 +341,7 @@ class Tags extends CraftTags implements FormFieldInterface
                     $group = Craft::$app->getTags()->getTagGroupById($groupId);
 
                     if ($group) {
-                        $fields = $this->getStringCustomFieldOptions($group->getFields());
+                        $fields = $this->getStringCustomFieldOptions($group->getCustomFields());
 
                         $options = array_merge($options, $fields);
                     }
@@ -363,9 +355,9 @@ class Tags extends CraftTags implements FormFieldInterface
     /**
      * @inheritDoc
      */
-    public function getDisplayTypeValue($value)
+    public function getDisplayTypeValue($value): MultiOptionsFieldData|SingleOptionFieldData|null
     {
-        // Special case for 'dropdown' in that its a tag-select/create field
+        // Special case for 'dropdown' in that it's a tag-select/create field
         if ($this->displayType === 'dropdown') {
             return $value;
         }
@@ -376,13 +368,12 @@ class Tags extends CraftTags implements FormFieldInterface
     /**
      * @inheritDoc
      */
-    public function getSettingGqlTypes()
+    public function getSettingGqlTypes(): array
     {
         return array_merge($this->traitGetSettingGqlTypes(), [
             'tags' => [
                 'name' => 'tags',
                 'type' => Type::listOf(TagInterface::getType()),
-                'resolve' => TagResolver::class.'::resolve',
                 'args' => TagArguments::getArguments(),
                 'resolve' => function($class) {
                     return $class->getElementsQuery()->all();
@@ -423,7 +414,7 @@ class Tags extends CraftTags implements FormFieldInterface
                 'label' => Craft::t('formie', 'Default Value'),
                 'help' => Craft::t('formie', 'Select default tags to be selected.'),
                 'name' => 'defaultValue',
-                'selectionLabel' => $this->defaultSelectionLabel(),
+                'selectionLabel' => self::defaultSelectionLabel(),
                 'config' => [
                     'jsClass' => $this->inputJsClass,
                     'elementType' => FormieTag::class,
@@ -514,9 +505,6 @@ class Tags extends CraftTags implements FormFieldInterface
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineConditionsSchema(): array
     {
         return [
@@ -534,7 +522,7 @@ class Tags extends CraftTags implements FormFieldInterface
      *
      * @return TagGroup|null
      */
-    private function _getTagGroup()
+    private function _getTagGroup(): ?TagGroup
     {
         $tagGroupId = $this->_getTagGroupId();
 
@@ -548,16 +536,16 @@ class Tags extends CraftTags implements FormFieldInterface
     /**
      * Returns the tag group ID this field is associated with.
      *
-     * @return int|false
+     * @return bool|int|TagGroup
      */
-    private function _getTagGroupId()
+    private function _getTagGroupId(): bool|int|TagGroup
     {
         if ($this->_tagGroupId !== null) {
             return $this->_tagGroupId;
         }
 
         if (!preg_match('/^taggroup:(([0-9a-f\-]+))$/', $this->source, $matches)) {
-            return $this->_tagGroupId = false;
+            return $this->_tagGroupId = null;
         }
 
         return $this->_tagGroupId = $matches[1];

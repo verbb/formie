@@ -1,21 +1,17 @@
 <?php
 namespace verbb\formie\base;
 
-use verbb\formie\Formie;
-use verbb\formie\models\IntegrationField;
-
 use Craft;
 use craft\base\ElementInterface;
 use craft\helpers\ArrayHelper;
 use craft\helpers\StringHelper;
-use craft\validators\HandleValidator;
 
 trait SubfieldTrait
 {
-    // Public Properties
+    // Properties
     // =========================================================================
 
-    public $subfieldLabelPosition;
+    public ?string $subfieldLabelPosition = null;
 
 
     // Public Methods
@@ -43,7 +39,7 @@ trait SubfieldTrait
     /**
      * @inheritDoc
      */
-    public function validateRequiredFields(ElementInterface $element)
+    public function validateRequiredFields(ElementInterface $element): void
     {
         $value = $element->getFieldValue($this->handle);
         $subFields = ArrayHelper::getColumn($this->getSubfieldOptions(), 'handle');
@@ -72,11 +68,11 @@ trait SubfieldTrait
     /**
      * @inheritDoc
      */
-    protected function defineValueForIntegration($value, $integrationField, $integration, ElementInterface $element = null, $fieldKey = '')
+    protected function defineValueForIntegration($value, $integrationField, $integration, ElementInterface $element = null, $fieldKey = ''): mixed
     {
-        // Check if we're trying to get a sub-field value
+        // Check if we're trying to get a subfield value
         if ($fieldKey) {
-            // Override the value by fetching the value from the sub-field. Override to ensure the default
+            // Override the value by fetching the value from the subfield. Override to ensure the default
             // handling typecasts the value correctly.
             $value = ArrayHelper::getValue($value, $fieldKey);
         }

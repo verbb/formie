@@ -21,7 +21,7 @@ class RowType extends ObjectType
         parent::__construct($config);
     }
 
-    protected function resolve($source, $arguments, $context, ResolveInfo $resolveInfo)
+    protected function resolve(mixed $source, array $arguments, mixed $context, ResolveInfo $resolveInfo): mixed
     {
         return $source[$resolveInfo->fieldName];
     }

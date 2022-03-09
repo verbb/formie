@@ -29,42 +29,44 @@ use yii\base\Exception;
 use yii\base\InvalidConfigException;
 use yii\base\NotSupportedException;
 use Throwable;
+use craft\base\ElementInterface;
+use yii\base\Model;
 
 class Forms extends Component
 {
     // Private Properties
     // =========================================================================
 
-    private $_uniqueFormAndFieldHandles = [];
+    private array $_uniqueFormAndFieldHandles = [];
 
 
     // Public Methods
     // =========================================================================
 
     /**
-     * Returns a form by it's ID.
+     * Returns a form by its ID.
      *
-     * @param int $formId
+     * @param int $id
      * @param int|null $siteId
      * @return Form|null
      */
-    public function getFormById(int $formId, int $siteId = null)
+    public function getFormById(int $id, int $siteId = null): ?Form
     {
-        $query = Form::find()->id($formId)->siteId($siteId);
-        return $query->one();
+        /* @noinspection PhpIncompatibleReturnTypeInspection */
+        return Form::find()->id($id)->siteId($siteId)->one();
     }
 
     /**
-     * Returns a form by it's handle.
+     * Returns a form by its handle.
      *
      * @param string $handle
      * @param int|null $siteId
      * @return Form|null
      */
-    public function getFormByHandle(string $handle, int $siteId = null)
+    public function getFormByHandle(string $handle, int $siteId = null): ?Form
     {
-        $query = Form::find()->handle($handle)->siteId($siteId);
-        return $query->one();
+        /* @noinspection PhpIncompatibleReturnTypeInspection */
+        return Form::find()->handle($handle)->siteId($siteId)->one();
     }
 
     /**
@@ -72,15 +74,12 @@ class Forms extends Component
      *
      * @return Form[]
      */
-    public function getAllForms()
+    public function getAllForms(): array
     {
         return Form::find()->all();
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getFormRecord($formId)
+    public function getFormRecord($formId): ?Form
     {
         $result = $this->_createFormsQuery($formId)->one();
 
@@ -127,13 +126,13 @@ class Forms extends Component
             // Prep the fields for save
             $fieldLayout = $form->getFormFieldLayout();
             
-            foreach ($fieldLayout->getFields() as $field) {
+            foreach ($fieldLayout->getCustomFields() as $field) {
                 $field->context = $form->getFormFieldContext();
                 $fieldsService->prepFieldForSave($field);
             }
 
             $allFields = Formie::$plugin->getFields()->getAllFields();
-            $allFieldIds = ArrayHelper::getColumn($fieldLayout->getFields(), 'id');
+            $allFieldIds = ArrayHelper::getColumn($fieldLayout->getCustomFields(), 'id');
             $syncsService = Formie::$plugin->getSyncs();
 
             // Get the original field context for later.
@@ -153,10 +152,8 @@ class Forms extends Component
             if (!$db->tableExists($contentTable)) {
                 if ($oldContentTable && $db->tableExists($oldContentTable)) {
                     MigrationHelper::renameTable($oldContentTable, $contentTable);
-                } else {
-                    if ($this->_createContentTable($contentTable) === false) {
-                        return false;
-                    }
+                } else if ($this->_createContentTable($contentTable) === false) {
+                    return false;
                 }
             }
 
@@ -169,7 +166,7 @@ class Forms extends Component
             }
 
             // Save fields and syncs.
-            foreach ($fieldLayout->getFields() as $field) {
+            foreach ($fieldLayout->getCustomFields() as $field) {
                 $refId = null;
 
                 if ($field->getIsRef()) {
@@ -179,7 +176,6 @@ class Forms extends Component
                 // Ensure fields retain a formId
                 $field->formId = $form->id;
 
-                /* @var FormField $field */
                 $fieldsService->saveField($field);
 
                 if ($refId) {
@@ -273,7 +269,7 @@ class Forms extends Component
      * @throws Throwable
      * @throws NotSupportedException
      */
-    public function deleteForm(Form $form)
+    public function deleteForm(Form $form): bool
     {
         // Clear the schema cache
         $db = Craft::$app->getDb();
@@ -287,39 +283,37 @@ class Forms extends Component
                 ->execute();
 
             return true;
-        } else {
-            $transaction = $db->beginTransaction();
-            try {
-                // Check if the current content table exists. If not, proceed anyway
-                if ($db->tableExists($form->fieldContentTable)) {
-                    // Rename the content table. This is so we can easily determine soft-deleted
-                    // form content tables to cleanup later, or restore
-                    $newContentTableName = $this->defineContentTableName($form, false, true);
-
-                    MigrationHelper::renameTable($form->fieldContentTable, $newContentTableName);
-
-                    $db->createCommand()
-                        ->update('{{%formie_forms}}', ['fieldContentTable' => $newContentTableName], [
-                            'id' => $form->id,
-                        ])->execute();
-
-                    $form->fieldContentTable = $newContentTableName;
-                }
-
-                if ($fieldLayout = $form->getFormFieldLayout()) {
-                    Craft::$app->getFields()->deleteLayout($fieldLayout);
-                }
-
-                $transaction->commit();
-
-                return true;
-            } catch (Throwable $e) {
-                $transaction->rollBack();
-                throw $e;
-            }
         }
 
-        return false;
+        $transaction = $db->beginTransaction();
+        try {
+            // Check if the current content table exists. If not, proceed anyway
+            if ($db->tableExists($form->fieldContentTable)) {
+                // Rename the content table. This is so we can easily determine soft-deleted
+                // form content tables to cleanup later, or restore
+                $newContentTableName = $this->defineContentTableName($form, false, true);
+
+                MigrationHelper::renameTable($form->fieldContentTable, $newContentTableName);
+
+                $db->createCommand()
+                    ->update('{{%formie_forms}}', ['fieldContentTable' => $newContentTableName], [
+                        'id' => $form->id,
+                    ])->execute();
+
+                $form->fieldContentTable = $newContentTableName;
+            }
+
+            if ($fieldLayout = $form->getFormFieldLayout()) {
+                Craft::$app->getFields()->deleteLayout($fieldLayout);
+            }
+
+            $transaction->commit();
+
+            return true;
+        } catch (Throwable $e) {
+            $transaction->rollBack();
+            throw $e;
+        }
     }
 
     /**
@@ -328,10 +322,9 @@ class Forms extends Component
      * @param Form $form
      * @return string|null
      */
-    public function getOldHandle(Form $form)
+    public function getOldHandle(Form $form): ?string
     {
-        $formRecord = FormRecord::findOne($form->id);
-        return $formRecord->getOldHandle();
+        return FormRecord::findOne($form->id)->getOldHandle();
     }
 
     /**
@@ -340,7 +333,7 @@ class Forms extends Component
      * @param bool $duplicate
      * @return FieldLayout
      */
-    public function assembleLayout($duplicate = false)
+    public function assembleLayout(bool $duplicate = false): FieldLayout
     {
         $request = Craft::$app->getRequest();
         $pagesData = $request->getBodyParam('pages');
@@ -366,6 +359,21 @@ class Forms extends Component
         return $fieldLayout;
     }
 
+    // private const TYPE_BOOL = 'bool';
+    // private const TYPE_FLOAT = 'float';
+    // private const TYPE_INT = 'int';
+    // private const TYPE_INT_FLOAT = 'int|float';
+    // private const TYPE_STRING = 'string';
+    // private const TYPE_ARRAY = 'array';
+    // private const TYPE_NULL = 'null';
+    // private const TYPE_DATETIME = DateTime::class;
+    // private const TYPE_NULL_INT = 'int|null';
+
+    // public static function cast(mixed $value, string $type = self::TYPE_STRING)
+    // {
+
+    // }
+
     /**
      * Builds a form element from POST data.
      *
@@ -377,7 +385,7 @@ class Forms extends Component
         $request = Craft::$app->getRequest();
         $formId = $request->getParam('formId');
         $siteId = $request->getParam('siteId');
-        $duplicate = $request->getParam('duplicate');
+        $duplicate = (bool)$request->getParam('duplicate');
 
         if ($formId) {
             $form = Craft::$app->getElements()->getElementById($formId, Form::class, $siteId);
@@ -404,8 +412,8 @@ class Forms extends Component
 
         $form->siteId = $siteId ?? $form->siteId;
         $form->handle = $request->getParam('handle', $form->handle);
-        $form->templateId = $request->getParam('templateId', $form->templateId);
-        $form->requireUser = $request->getParam('requireUser', $form->requireUser);
+        $form->templateId = \verbb\formie\helpers\StringHelper::toid($request->getParam('templateId', $form->templateId));
+        $form->requireUser = (bool)$request->getParam('requireUser', $form->requireUser);
         $form->availability = $request->getParam('availability', $form->availability);
         $form->defaultStatusId = $request->getParam('defaultStatusId', $form->defaultStatusId);
         $form->userDeletedAction = $request->getParam('userDeletedAction', $form->userDeletedAction);
@@ -475,16 +483,20 @@ class Forms extends Component
      * @param string $type
      * @param bool $duplicate
      * @return FieldLayout
+     * @throws \Exception
      */
-    public function buildFieldLayout(array $data, string $type, $duplicate = false)
+    public function buildFieldLayout(array $data, string $type, bool $duplicate = false): FieldLayout
     {
         $pages = [];
         $fields = [];
+
+        $fieldLayout = new FieldLayout([ 'type' => $type ]);
 
         foreach ($data as $pageIndex => $pageData) {
             $pageFields = [];
 
             $rows = ArrayHelper::getValue($pageData, 'rows', []);
+
             foreach ($rows as $rowIndex => $rowData) {
                 foreach ($rowData['fields'] as $fieldIndex => $fieldData) {
                     $settings = $fieldData['settings'];
@@ -497,7 +509,7 @@ class Forms extends Component
                     $fieldId = $fieldData['id'] ?? null;
 
                     // Take care of new fields, particularly an issue in Postgres, setting the id to `new-4332`.
-                    if ($duplicate || strpos($fieldId, 'new') === 0) {
+                    if ($duplicate || str_starts_with($fieldId, 'new')) {
                         $fieldId = null;
                     }
 
@@ -534,19 +546,23 @@ class Forms extends Component
                     $field->sortOrder = $fieldIndex;
 
                     $fields[] = $field;
-                    $pageFields[] = $field;
+
+                    $pageFields[] = new \craft\fieldlayoutelements\CustomField($field, [
+                        'required' => (bool)$required,
+                    ]);
                 }
             }
 
             $page = new FieldLayoutPage();
             $page->name = urldecode($pageData['label']);
             $page->sortOrder = '' . $pageIndex;
-            $page->setFields($pageFields);
+            $page->setLayout($fieldLayout);
+            $page->setElements($pageFields);
 
             // Handle page ID - new or existing
             $page->id = $pageData['id'] ?? null;
 
-            if (strpos($page->id, 'new') === 0) {
+            if (str_starts_with($page->id, 'new')) {
                 $page->id = null;
             }
 
@@ -558,9 +574,7 @@ class Forms extends Component
             $pages[] = $page;
         }
 
-        $fieldLayout = new FieldLayout([ 'type' => $type ]);
         $fieldLayout->setPages($pages);
-        $fieldLayout->setFields($fields);
 
         return $fieldLayout;
     }
@@ -571,9 +585,9 @@ class Forms extends Component
      * @param $form
      * @param bool $useOld
      * @param bool $deleted
-     * @return string
+     * @return string|null
      */
-    public function defineContentTableName($form, bool $useOld = false, bool $deleted = false)
+    public function defineContentTableName($form, bool $useOld = false, bool $deleted = false): ?string
     {
         if ($form instanceof Form) {
             if ($useOld && (!$form->oldHandle || $form->oldHandle === $form->handle)) {
@@ -658,7 +672,7 @@ class Forms extends Component
     {
         $validates = true;
 
-        // Can't validate multiple new rows at once so we'll need to give these temporary context to avoid false unique
+        // Can't validate multiple new rows at once, so we'll need to give these temporary context to avoid false unique
         // handle validation errors, and just validate those manually. Also apply the future fieldColumnPrefix so that
         // field handle validation takes its length into account.
         $contentService = Craft::$app->getContent();
@@ -667,8 +681,8 @@ class Forms extends Component
 
         $contentService->fieldContext = StringHelper::randomString(10);
         $contentService->fieldColumnPrefix = 'field_';
-
-        foreach ($page->getFields() as $field) {
+        
+        foreach ($page->getCustomFields() as $field) {
             $field->validate();
 
             // Make sure the block type handle + field handle combo is unique for the whole field. This prevents us from
@@ -723,7 +737,7 @@ class Forms extends Component
                     return true;
                 }
 
-                foreach ($page->getFields() as $field) {
+                foreach ($page->getCustomFields() as $field) {
                     /* @var FormField $field */
                     if ($field->hasErrors()) {
                         return true;
@@ -741,7 +755,7 @@ class Forms extends Component
      * @param $context
      * @return string
      */
-    public function handleBeforeSubmitHook($context)
+    public function handleBeforeSubmitHook($context): string
     {
         $form = $context['form'] ?? null;
         $page = $context['page'] ?? null;
@@ -754,13 +768,13 @@ class Forms extends Component
      *
      * @throws \yii\db\Exception
      */
-    public function pruneContentTables($consoleInstance = null)
+    public function pruneContentTables($consoleInstance = null): void
     {
         $db = Craft::$app->getDb();
 
         // Find any `fmcd_*` tables - these are content tables for soft-deleted forms
         foreach ($db->schema->getTableNames() as $tableName) {
-            if (strstr($tableName, 'fmcd_')) {
+            if (strpos($tableName, 'fmcd_') !== false) {
                 $db->createCommand()
                     ->dropTableIfExists($tableName)
                     ->execute();
@@ -778,7 +792,7 @@ class Forms extends Component
      * @param Form|null $form
      * @return array
      */
-    public function buildTabs($form = null)
+    public function buildTabs(Form $form = null): array
     {
         $user = Craft::$app->getUser();
 
@@ -853,7 +867,7 @@ class Forms extends Component
      *
      * @return array
      */
-    public function buildNotificationTabs()
+    public function buildNotificationTabs(): array
     {
         $user = Craft::$app->getUser();
 
@@ -892,6 +906,7 @@ class Forms extends Component
     /**
      * Returns a Query object prepped for retrieving forms.
      *
+     * @param $formId
      * @return Query
      */
     private function _createFormsQuery($formId): Query
@@ -923,8 +938,7 @@ class Forms extends Component
 
         ob_start();
         $result = $migration->up();
-        $output = ob_get_contents();
-        ob_end_clean();
+        $output = ob_get_clean();
 
         if ($result === false) {
             Formie::error($output);

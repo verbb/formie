@@ -2,7 +2,6 @@
 namespace verbb\formie\gql\arguments\mutations;
 
 use craft\gql\base\ElementMutationArguments;
-use craft\gql\types\QueryArgument;
 
 use GraphQL\Type\Definition\Type;
 

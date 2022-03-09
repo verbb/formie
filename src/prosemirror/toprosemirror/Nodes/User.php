@@ -4,12 +4,12 @@ namespace verbb\formie\prosemirror\toprosemirror\Nodes;
 
 class User extends Node
 {
-    public function matching()
+    public function matching(): bool
     {
         return $this->DOMNode->nodeName === 'user-mention';
     }
 
-    public function data()
+    public function data(): ?array
     {
         return [
             'type' => 'user',

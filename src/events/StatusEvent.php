@@ -8,7 +8,7 @@ class StatusEvent extends Event
     // Properties
     // =========================================================================
 
-    public $status;
-    public $isNew = false;
+    public ?string $status = null;
+    public bool $isNew = false;
     
 }

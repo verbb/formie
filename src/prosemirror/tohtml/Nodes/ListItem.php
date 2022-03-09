@@ -4,6 +4,6 @@ namespace verbb\formie\prosemirror\tohtml\Nodes;
 
 class ListItem extends Node
 {
-    protected $nodeType = 'list_item';
-    protected $tagName = 'li';
+    protected ?string $nodeType = 'list_item';
+    protected string|null|array $tagName = 'li';
 }

@@ -24,12 +24,12 @@ class EmailTemplates extends Component
     // Constants
     // =========================================================================
 
-    const EVENT_BEFORE_SAVE_EMAIL_TEMPLATE = 'beforeSaveEmailTemplate';
-    const EVENT_AFTER_SAVE_EMAIL_TEMPLATE = 'afterSaveEmailTemplate';
-    const EVENT_BEFORE_DELETE_EMAIL_TEMPLATE = 'beforeDeleteEmailTemplate';
-    const EVENT_BEFORE_APPLY_EMAIL_TEMPLATE_DELETE = 'beforeApplyEmailTemplateDelete';
-    const EVENT_AFTER_DELETE_EMAIL_TEMPLATE = 'afterDeleteEmailTemplate';
-    const CONFIG_TEMPLATES_KEY = 'formie.emailTemplates';
+    public const EVENT_BEFORE_SAVE_EMAIL_TEMPLATE = 'beforeSaveEmailTemplate';
+    public const EVENT_AFTER_SAVE_EMAIL_TEMPLATE = 'afterSaveEmailTemplate';
+    public const EVENT_BEFORE_DELETE_EMAIL_TEMPLATE = 'beforeDeleteEmailTemplate';
+    public const EVENT_BEFORE_APPLY_EMAIL_TEMPLATE_DELETE = 'beforeApplyEmailTemplateDelete';
+    public const EVENT_AFTER_DELETE_EMAIL_TEMPLATE = 'afterDeleteEmailTemplate';
+    public const CONFIG_TEMPLATES_KEY = 'formie.emailTemplates';
 
 
     // Private Properties
@@ -38,7 +38,7 @@ class EmailTemplates extends Component
     /**
      * @var EmailTemplate[]
      */
-    private $_templates;
+    private ?array $_templates = null;
 
 
     // Public Methods
@@ -50,7 +50,7 @@ class EmailTemplates extends Component
      * @param bool $withTrashed
      * @return EmailTemplate[]
      */
-    public function getAllTemplates($withTrashed = false): array
+    public function getAllTemplates(bool $withTrashed = false): array
     {
         // Get the caches items if we have them cached, and the request is for non-trashed items
         if ($this->_templates !== null) {
@@ -68,34 +68,34 @@ class EmailTemplates extends Component
     }
 
     /**
-     * Returns a template identified by it's ID.
+     * Returns a template identified by its ID.
      *
      * @param int $id
      * @return EmailTemplate|null
      */
-    public function getTemplateById($id)
+    public function getTemplateById(int $id): ?EmailTemplate
     {
         return ArrayHelper::firstWhere($this->getAllTemplates(), 'id', $id);
     }
 
     /**
-     * Returns a template identified by it's handle.
+     * Returns a template identified by its handle.
      *
      * @param string $handle
      * @return EmailTemplate|null
      */
-    public function getTemplateByHandle($handle)
+    public function getTemplateByHandle(string $handle): ?EmailTemplate
     {
         return ArrayHelper::firstWhere($this->getAllTemplates(), 'handle', $handle, false);
     }
 
     /**
-     * Returns a template identified by it's UID.
+     * Returns a template identified by its UID.
      *
      * @param string $uid
      * @return EmailTemplate|null
      */
-    public function getTemplateByUid(string $uid)
+    public function getTemplateByUid(string $uid): ?EmailTemplate
     {
         return ArrayHelper::firstWhere($this->getAllTemplates(), 'uid', $uid, false);
     }
@@ -178,7 +178,7 @@ class EmailTemplates extends Component
                 'name' => $template->name,
                 'handle' => $template->handle,
                 'template' => $template->template,
-                'sortOrder' => (int)($template->sortOrder ?? 99),
+                'sortOrder' => $template->sortOrder ?? 99,
             ];
         }
 
@@ -198,7 +198,7 @@ class EmailTemplates extends Component
      * @param ConfigEvent $event
      * @throws Throwable
      */
-    public function handleChangedTemplate(ConfigEvent $event)
+    public function handleChangedTemplate(ConfigEvent $event): void
     {
         $templateUid = $event->tokenMatches[0];
         $data = $event->newValue;
@@ -232,7 +232,7 @@ class EmailTemplates extends Component
     }
 
     /**
-     * Delete a template by it's id.
+     * Delete a template by its id.
      *
      * @param int $id
      * @return bool
@@ -278,7 +278,7 @@ class EmailTemplates extends Component
      * @param ConfigEvent $event
      * @throws Throwable
      */
-    public function handleDeletedTemplate(ConfigEvent $event)
+    public function handleDeletedTemplate(ConfigEvent $event): void
     {
         $uid = $event->tokenMatches[0];
 
@@ -322,7 +322,7 @@ class EmailTemplates extends Component
      * @param bool $withTrashed
      * @return Query
      */
-    private function _createTemplatesQuery($withTrashed = false): Query
+    private function _createTemplatesQuery(bool $withTrashed = false): Query
     {
         $query = (new Query())
             ->select([

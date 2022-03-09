@@ -5,16 +5,15 @@ use verbb\formie\Formie;
 use verbb\formie\helpers\RichTextHelper;
 
 use Craft;
-use craft\web\View;
 
-use Twig_Extension;
-use Twig_SimpleFunction;
-use Twig_SimpleFilter;
-use Twig_Environment;
+use Twig\Extension\AbstractExtension;
+use Twig\TwigFunction;
+use Twig\TwigFilter;
+use Twig\Environment;
 
 use yii\helpers\Inflector;
 
-class Extension extends Twig_Extension
+class Extension extends AbstractExtension
 {
     // Public Methods
     // =========================================================================
@@ -27,17 +26,17 @@ class Extension extends Twig_Extension
     public function getFunctions(): array
     {
         return [
-            new Twig_SimpleFunction('getRichTextConfig', [new RichTextHelper(), 'getRichTextConfig']),
-            new Twig_SimpleFunction('formieInclude', [$this, 'formieInclude'], ['needs_environment' => true, 'needs_context' => true, 'is_safe' => ['all']]),
-            new Twig_SimpleFunction('formieSiteInclude', [$this, 'formieSiteInclude'], ['needs_environment' => true, 'needs_context' => true, 'is_safe' => ['all']]),
-            new Twig_SimpleFunction('formiePluginInclude', [$this, 'formiePluginInclude'], ['needs_environment' => true, 'needs_context' => true, 'is_safe' => ['all']]),
+            new TwigFunction('getRichTextConfig', [new RichTextHelper(), 'getRichTextConfig']),
+            new TwigFunction('formieInclude', [$this, 'formieInclude'], ['needs_environment' => true, 'needs_context' => true, 'is_safe' => ['all']]),
+            new TwigFunction('formieSiteInclude', [$this, 'formieSiteInclude'], ['needs_environment' => true, 'needs_context' => true, 'is_safe' => ['all']]),
+            new TwigFunction('formiePluginInclude', [$this, 'formiePluginInclude'], ['needs_environment' => true, 'needs_context' => true, 'is_safe' => ['all']]),
         ];
     }
 
     public function getFilters(): array
     {
         return [
-            new Twig_SimpleFilter('camel2words', [$this, 'camel2words'], ['is_safe' => ['html']]),
+            new TwigFilter('camel2words', [$this, 'camel2words'], ['is_safe' => ['html']]),
         ];
     }
 
@@ -46,7 +45,8 @@ class Extension extends Twig_Extension
         return Inflector::camel2words($string);
     }
 
-    public function formieInclude(Twig_Environment $env, $context, $template, $variables = [], $withContext = true, $ignoreMissing = false, $sandboxed = false) {
+    public function formieInclude(Environment $env, $context, $template, $variables = [], $withContext = true, $ignoreMissing = false, $sandboxed = false): string
+    {
         // Get the form from the context
         $form = $context['form'] ?? null;
 
@@ -70,7 +70,7 @@ class Extension extends Twig_Extension
         return twig_include($env, $context, $template, $variables, $withContext, $ignoreMissing, $sandboxed);
     }
 
-    public function formieSiteInclude(Twig_Environment $env, $context, $template, $variables = [], $withContext = true, $ignoreMissing = false, $sandboxed = false)
+    public function formieSiteInclude(Environment $env, $context, $template, $variables = [], $withContext = true, $ignoreMissing = false, $sandboxed = false): string
     {
         $view = $context['view'];
 
@@ -84,7 +84,7 @@ class Extension extends Twig_Extension
         return $result;
     }
 
-    public function formiePluginInclude(Twig_Environment $env, $context, $template, $variables = [], $withContext = true, $ignoreMissing = false, $sandboxed = false)
+    public function formiePluginInclude(Environment $env, $context, $template, $variables = [], $withContext = true, $ignoreMissing = false, $sandboxed = false): string
     {
         $view = $context['view'];
 

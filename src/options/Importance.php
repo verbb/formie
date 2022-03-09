@@ -17,9 +17,6 @@ class Importance extends PredefinedOption
         return Craft::t('formie', 'Importance');
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function getDataOptions(): array
     {
         return [

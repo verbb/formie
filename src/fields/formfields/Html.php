@@ -12,7 +12,6 @@ use Craft;
 use craft\base\ElementInterface;
 use craft\helpers\HTMLPurifier;
 use craft\helpers\Json;
-use craft\helpers\StringHelper;
 
 use HTMLPurifier_Config;
 
@@ -21,7 +20,7 @@ class Html extends FormField
     // Constants
     // =========================================================================
 
-    const EVENT_MODIFY_PURIFIER_CONFIG = 'modifyPurifierConfig';
+    public const EVENT_MODIFY_PURIFIER_CONFIG = 'modifyPurifierConfig';
 
 
     // Static Methods
@@ -55,7 +54,7 @@ class Html extends FormField
     // Properties
     // =========================================================================
 
-    public $htmlContent;
+    public ?string $htmlContent = null;
 
 
     // Public Methods
@@ -68,11 +67,8 @@ class Html extends FormField
     {
         return true;
     }
-    
-    /**
-     * @inheritDoc
-     */
-    public function getRenderedHtmlContent()
+
+    public function getRenderedHtmlContent(): string
     {
         $htmlContent = trim($this->htmlContent);
 
@@ -82,9 +78,7 @@ class Html extends FormField
         }
 
         // Ensure we run it all through purifier
-        $htmlContent = HTMLPurifier::process($htmlContent, $this->_getPurifierConfig());
-
-        return $htmlContent;
+        return HTMLPurifier::process($htmlContent, $this->_getPurifierConfig());
     }
 
     /**
@@ -100,7 +94,7 @@ class Html extends FormField
     /**
      * @inheritDoc
      */
-    public function getInputHtml($value, ElementInterface $element = null): string
+    public function getInputHtml(mixed $value, ?ElementInterface $element = null): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/html/input', [
             'name' => $this->handle,
@@ -122,7 +116,7 @@ class Html extends FormField
     /**
      * @inheritDoc
      */
-    public function getEmailHtml(Submission $submission, Notification $notification, $value, array $options = null)
+    public function getEmailHtml(Submission $submission, Notification $notification, mixed $value, array $options = null): string|null|bool
     {
         return false;
     }
@@ -168,9 +162,6 @@ class Html extends FormField
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineConditionsSchema(): array
     {
         return [
@@ -183,10 +174,7 @@ class Html extends FormField
     // Private Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
-    private function _getPurifierConfig(): HTMLPurifier_Config
+    private function _getPurifierConfig(): array
     {
         $purifierConfig = HTMLPurifier_Config::createDefault();
         $purifierConfig->autoFinalize = false;
@@ -219,8 +207,9 @@ class Html extends FormField
      * @param string $dir The directory name within the config/ folder to look for the config file
      * @param string|null $file The filename to load.
      * @return array|false The config, or false if the file doesn't exist
+     * @throws \yii\base\Exception
      */
-    private function _getConfig(string $dir, string $file = null)
+    private function _getConfig(string $dir, string $file = null): bool|array
     {
         if (!$file) {
             $file = 'Default.json';

@@ -6,7 +6,7 @@
 
 <div class="fui-group-field pane">
     {% namespace "#{field.handle}[rows][#{id}][fields]" %}
-        {% for field in field.getFieldLayout().getFields() %}
+        {% for field in field.getFieldLayout().getCustomFields() %}
             {% include 'formie/_formfields/group/field' with {
                 field: field,
                 required: field.required,

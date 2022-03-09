@@ -11,7 +11,7 @@ use craft\fields\BaseOptionsField as CraftBaseOptionsField;
 use craft\fields\data\MultiOptionsFieldData;
 use craft\fields\data\OptionData;
 use craft\fields\data\SingleOptionFieldData;
-use craft\helpers\Json;
+use Throwable;
 
 abstract class BaseOptionsField extends CraftBaseOptionsField
 {
@@ -31,12 +31,12 @@ abstract class BaseOptionsField extends CraftBaseOptionsField
     /**
      * @var bool
      */
-    public $searchable = true;
+    public bool $searchable = true;
 
     /**
-     * @var string vertical or horizontal layout
+     * @var string|null vertical or horizontal layout
      */
-    public $layout;
+    public ?string $layout = null;
 
 
     // Public Methods
@@ -45,7 +45,7 @@ abstract class BaseOptionsField extends CraftBaseOptionsField
     /**
      * @inheritDoc
      */
-    public function init()
+    public function init(): void
     {
         parent::init();
 
@@ -57,13 +57,15 @@ abstract class BaseOptionsField extends CraftBaseOptionsField
     /**
      * @inheritDoc
      */
-    public function getValue(ElementInterface $element)
+    public function getValue(ElementInterface $element): mixed
     {
         $value = $element->getFieldValue($this->handle);
 
         if ($value instanceof SingleOptionFieldData) {
             return $value->value;
-        } elseif ($value instanceof MultiOptionsFieldData) {
+        }
+
+        if ($value instanceof MultiOptionsFieldData) {
             $values = [];
             foreach ($value as $selectedValue) {
                 /** @var OptionData $selectedValue */
@@ -83,7 +85,7 @@ abstract class BaseOptionsField extends CraftBaseOptionsField
     {
         $value = $this->traitGetDefaultValue() ?? $this->defaultValue;
 
-        // If the default value from the parent field (query params, etc) is empty, use the default values
+        // If the default value from the parent field (query params, etc.) is empty, use the default values
         // set in the field option settings.
         if ($value === '') {
             $value = [];
@@ -125,14 +127,14 @@ abstract class BaseOptionsField extends CraftBaseOptionsField
                 }
 
                 return new MultiOptionsFieldData($selectedOptions);
-            } else {
-                $index = array_search($value, $optionValues, true);
-                $valid = $index !== false;
-                $label = $valid ? $optionLabels[$index] : null;
-
-                return new SingleOptionFieldData($label, $value, true, $valid);
             }
-        } catch (\Throwable $e) {
+
+            $index = array_search($value, $optionValues, true);
+            $valid = $index !== false;
+            $label = $valid ? $optionLabels[$index] : null;
+
+            return new SingleOptionFieldData($label, $value, true, $valid);
+        } catch (Throwable $e) {
             Formie::error(Craft::t('formie', '{handle}: “{message}” {file}:{line}', [
                 'handle' => $this->handle,
                 'message' => $e->getMessage(),
@@ -147,7 +149,7 @@ abstract class BaseOptionsField extends CraftBaseOptionsField
     /**
      * Validates the options.
      */
-    public function validateOptions()
+    public function validateOptions(): void
     {
         $labels = [];
         $values = [];
@@ -177,6 +179,8 @@ abstract class BaseOptionsField extends CraftBaseOptionsField
             $labels[$optgroup][$label] = $values[$value] = true;
         }
 
+        unset($option);
+
         if ($hasDuplicateLabels) {
             $this->addError('options', Craft::t('app', 'All option labels must be unique.'));
         }
@@ -200,7 +204,7 @@ abstract class BaseOptionsField extends CraftBaseOptionsField
     /**
      * @inheritDoc
      */
-    protected function defineValueAsString($value, ElementInterface $element = null)
+    protected function defineValueAsString($value, ElementInterface $element = null): string
     {
         if ($value instanceof MultiOptionsFieldData) {
             return implode(', ', array_map(function($item) {
@@ -214,7 +218,7 @@ abstract class BaseOptionsField extends CraftBaseOptionsField
     /**
      * @inheritDoc
      */
-    protected function defineValueForIntegration($value, $integrationField, $integration, ElementInterface $element = null, $fieldKey = '')
+    protected function defineValueForIntegration($value, $integrationField, $integration, ElementInterface $element = null, $fieldKey = ''): mixed
     {
         // If mapping to an array, extract just the values
         if ($integrationField->getType() === IntegrationField::TYPE_ARRAY) {
@@ -234,7 +238,7 @@ abstract class BaseOptionsField extends CraftBaseOptionsField
     /**
      * @inheritDoc
      */
-    protected function defineValueForSummary($value, ElementInterface $element = null)
+    protected function defineValueForSummary($value, ElementInterface $element = null): string
     {
         if ($value instanceof MultiOptionsFieldData) {
             return implode(', ', array_map(function($item) {
@@ -244,11 +248,8 @@ abstract class BaseOptionsField extends CraftBaseOptionsField
 
         return $value->label ?? '';
     }
-    
-    /**
-     * @inheritDoc
-     */
-    protected function getPredefinedOptions()
+
+    protected function getPredefinedOptions(): array
     {
         return Formie::$plugin->getPredefinedOptions()->getPredefinedOptions();
     }

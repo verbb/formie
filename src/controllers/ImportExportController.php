@@ -4,11 +4,9 @@ namespace verbb\formie\controllers;
 use verbb\formie\Formie;
 use verbb\formie\helpers\HandleHelper;
 use verbb\formie\helpers\ImportExportHelper;
-use verbb\formie\models\Settings;
 
 use Craft;
 use craft\db\Query;
-use craft\db\Table;
 use craft\helpers\Console;
 use craft\helpers\Json;
 use craft\helpers\StringHelper;
@@ -18,26 +16,21 @@ use craft\web\UploadedFile;
 use yii\helpers\Markdown;
 use yii\web\HttpException;
 use yii\web\Response;
+use craft\web\TemplateResponseBehavior;
 
 class ImportExportController extends Controller
 {
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritdoc
-     */
-    public function actionIndex($importError = null, $exportError = null)
+    public function actionIndex($importError = null, $exportError = null): Response|TemplateResponseBehavior
     {
         $settings = Formie::$plugin->getSettings();
 
         return $this->renderTemplate('formie/settings/import-export', compact('settings', 'importError', 'exportError'));
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function actionImport()
+    public function actionImport(): ?Response
     {
         $request = Craft::$app->getRequest();
         $uploadedFile = UploadedFile::getInstanceByName('file');
@@ -60,10 +53,7 @@ class ImportExportController extends Controller
         return $this->redirectToPostedUrl(['filename' => $filename]);
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function actionImportConfigure($filename)
+    public function actionImportConfigure($filename): Response|TemplateResponseBehavior
     {
         $request = Craft::$app->getRequest();
 
@@ -129,10 +119,7 @@ class ImportExportController extends Controller
         return $this->renderTemplate('formie/settings/import-export/import-configure', $variables);
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function actionImportComplete()
+    public function actionImportComplete(): ?Response
     {
         $request = Craft::$app->getRequest();
         $filename = $request->getParam('filename');
@@ -188,20 +175,14 @@ class ImportExportController extends Controller
         return $this->redirectToPostedUrl($form);
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function actionImportCompleted($formId)
+    public function actionImportCompleted($formId): Response|TemplateResponseBehavior
     {
         $form = Formie::$plugin->getForms()->getFormById($formId);
 
         return $this->renderTemplate('formie/settings/import-export/import-completed', compact('form'));
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function actionExport()
+    public function actionExport(): void
     {
         $request = Craft::$app->getRequest();
         $formId = $request->getRequiredParam('formId');
@@ -213,7 +194,7 @@ class ImportExportController extends Controller
                 'exportError' => Craft::t('formie', 'You must select a form.'),
             ]);
 
-            return null;
+            return;
         }        
 
         $formElement = Formie::$plugin->getForms()->getFormById($formId);
@@ -223,17 +204,14 @@ class ImportExportController extends Controller
 
         Craft::$app->getResponse()->sendContentAsFile($json, 'formie-' . $formElement->handle . '-' . StringHelper::UUID() . '.json');
         
-        return Craft::$app->end();
+        Craft::$app->end();
     }
 
 
     // Private Methods
     // =========================================================================
 
-    /**
-     * @inheritdoc
-     */
-    private function stdout($string, $color = '')
+    private function stdout($string, $color = ''): void
     {
         $class = '';
 

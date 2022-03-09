@@ -38,7 +38,7 @@ class StencilsController extends Controller
      * @param Stencil|null $stencil
      * @return Response|null
      */
-    public function actionNew(Stencil $stencil = null)
+    public function actionNew(Stencil $stencil = null): ?Response
     {
         $stencils = Formie::$plugin->getStencils()->getAllStencils();
         $stencilHandles = ArrayHelper::getColumn($stencils, 'handle');
@@ -57,8 +57,9 @@ class StencilsController extends Controller
     /**
      * @param int|null $id
      * @param Stencil|null $stencil
-     * @return Response|null
+     * @return Response
      * @throws HttpException
+     * @throws \yii\base\InvalidConfigException
      */
     public function actionEdit(int $id = null, Stencil $stencil = null): Response
     {
@@ -118,7 +119,7 @@ class StencilsController extends Controller
      * @return Response|null
      * @throws Throwable
      */
-    public function actionSave()
+    public function actionSave(): ?Response
     {
         $this->requirePostRequest();
         $request = Craft::$app->getRequest();
@@ -126,7 +127,7 @@ class StencilsController extends Controller
         $form = null;
 
         $stencilId = $request->getParam('stencilId');
-        $duplicate = $request->getParam('duplicateStencil');
+        $duplicate = (bool)$request->getParam('duplicateStencil');
 
         $stencil = Formie::$plugin->getStencils()->getStencilById($stencilId);
 
@@ -180,7 +181,7 @@ class StencilsController extends Controller
             $form = Formie::$plugin->getForms()->buildFormFromPost();
 
             // Don't validate the handle.
-            $form->handle .= rand();
+            $form->handle .= mt_rand();
 
             $form->validate();
 
@@ -253,7 +254,7 @@ class StencilsController extends Controller
      * @return Response
      * @throws Throwable
      */
-    public function actionDelete()
+    public function actionDelete(): Response
     {
         $this->requireAcceptsJson();
 

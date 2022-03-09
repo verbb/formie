@@ -4,6 +4,6 @@ namespace verbb\formie\prosemirror\tohtml\Nodes;
 
 class BulletList extends Node
 {
-    protected $nodeType = 'bullet_list';
-    protected $tagName = 'ul';
+    protected ?string $nodeType = 'bullet_list';
+    protected string|null|array $tagName = 'ul';
 }

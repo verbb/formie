@@ -3,11 +3,7 @@ namespace verbb\formie\integrations\miscellaneous;
 
 use verbb\formie\base\Integration;
 use verbb\formie\base\Miscellaneous;
-use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
-use verbb\formie\errors\IntegrationException;
-use verbb\formie\events\SendIntegrationPayloadEvent;
-use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
@@ -15,17 +11,17 @@ use Craft;
 use craft\helpers\ArrayHelper;
 use craft\helpers\DateTimeHelper;
 use craft\helpers\Json;
-use craft\helpers\StringHelper;
-use craft\web\View;
+use GuzzleHttp\Client;
+use Throwable;
 
 class Monday extends Miscellaneous
 {
     // Properties
     // =========================================================================
 
-    public $apiKey;
-    public $boardId;
-    public $fieldMapping;
+    public ?string $apiKey = null;
+    public ?string $boardId = null;
+    public ?array $fieldMapping = null;
 
 
     // Public Methods
@@ -39,9 +35,6 @@ class Monday extends Miscellaneous
         return Craft::t('formie', 'Monday');
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getDescription(): string
     {
         return Craft::t('formie', 'Send your form content to Monday.');
@@ -66,10 +59,7 @@ class Monday extends Miscellaneous
         return $rules;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function fetchFormSettings()
+    public function fetchFormSettings(): IntegrationFormSettings
     {
         $settings = [];
 
@@ -102,11 +92,11 @@ class Monday extends Miscellaneous
             $boards = $response['data']['boards'] ?? [];
             $boardOptions = [];
 
-            foreach ($boards as $key => $board) {
+            foreach ($boards as $board) {
                 $groups = $board['groups'] ?? [];
                 $columns = $board['columns'] ?? [];
 
-                foreach ($groups as $key => $group) {
+                foreach ($groups as $group) {
                     $boardOptions[] = [
                         'name' => $board['name'] . ': ' . $group['title'],
                         'id' => $board['id'] . ':' . $group['id'],
@@ -118,16 +108,13 @@ class Monday extends Miscellaneous
             $settings = [
                 'boards' => $boardOptions,
             ];
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Integration::apiError($this, $e);
         }
 
         return new IntegrationFormSettings($settings);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function sendPayload(Submission $submission): bool
     {
         try {
@@ -186,7 +173,7 @@ class Monday extends Miscellaneous
 
                 return false;
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
             return false;
@@ -195,9 +182,6 @@ class Monday extends Miscellaneous
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function fetchConnection(): bool
     {
         try {
@@ -213,7 +197,7 @@ class Monday extends Miscellaneous
                     ',
                 ],
             ]);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
             return false;
@@ -222,10 +206,7 @@ class Monday extends Miscellaneous
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getClient()
+    public function getClient(): Client
     {
         if ($this->_client) {
             return $this->_client;
@@ -244,10 +225,7 @@ class Monday extends Miscellaneous
     // Private Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
-    private function _getCustomFields($columns, $excludeNames = [])
+    private function _getCustomFields($columns, $excludeNames = []): array
     {
         $columnOptions = [];
 
@@ -291,10 +269,7 @@ class Monday extends Miscellaneous
         return $columnOptions;
     }
 
-    /**
-     * @inheritDoc
-     */
-    private function _prepColumns($columns)
+    private function _prepColumns($columns): string
     {
         $newColumns = [];
 
@@ -346,9 +321,6 @@ class Monday extends Miscellaneous
         return Json::encode($newColumns);
     }
 
-    /**
-     * @inheritDoc
-     */
     private function _getBoardSettings()
     {
         $boards = $this->getFormSettingValue('boards');

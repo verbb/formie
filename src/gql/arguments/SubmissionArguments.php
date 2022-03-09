@@ -2,7 +2,6 @@
 namespace verbb\formie\gql\arguments;
 
 use craft\gql\base\ElementArguments;
-use craft\gql\types\QueryArgument;
 
 use GraphQL\Type\Definition\Type;
 

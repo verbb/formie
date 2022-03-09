@@ -4,16 +4,16 @@ namespace verbb\formie\prosemirror\toprosemirror\Nodes;
 
 class ListItem extends Node
 {
-    public $wrapper = [
+    public ?array $wrapper = [
         'type' => 'paragraph',
     ];
 
-    public function matching()
+    public function matching(): bool
     {
         return $this->DOMNode->nodeName === 'li';
     }
 
-    public function data()
+    public function data(): ?array
     {
         if ($this->DOMNode->childNodes->length === 1
                 && $this->DOMNode->childNodes[0]->nodeName == "p") {

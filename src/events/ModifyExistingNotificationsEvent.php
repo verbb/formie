@@ -8,6 +8,6 @@ class ModifyExistingNotificationsEvent extends Event
     // Properties
     // =========================================================================
 
-    public $notifications;
+    public ?array $notifications = null;
     
 }

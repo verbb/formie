@@ -19,10 +19,8 @@ use verbb\formie\records\Submission as SubmissionRecord;
 
 use Craft;
 use craft\base\Element;
-use craft\db\Query;
 use craft\elements\actions\Delete;
 use craft\elements\actions\Restore;
-use craft\elements\db\ElementQueryInterface;
 use craft\elements\User;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Cp;
@@ -31,58 +29,42 @@ use craft\helpers\Json;
 use craft\helpers\UrlHelper;
 
 use yii\base\Exception;
-use yii\behaviors\AttributeTypecastBehavior;
+use Throwable;
+use craft\models\FieldLayout;
 
 class Submission extends Element
 {
     // Constants
     // =========================================================================
 
-    const EVENT_DEFINE_RULES = 'defineSubmissionRules';
-    const EVENT_BEFORE_MARKED_AS_SPAM = 'beforeMarkedAsSpam';
+    public const EVENT_DEFINE_RULES = 'defineSubmissionRules';
+    public const EVENT_BEFORE_MARKED_AS_SPAM = 'beforeMarkedAsSpam';
 
 
-    // Public Properties
+    // Properties
     // =========================================================================
 
-    public $id;
-    public $formId;
-    public $statusId;
-    public $userId;
-    public $ipAddress;
-    public $isIncomplete = false;
-    public $isSpam = false;
-    public $spamReason;
-    public $snapshot = [];
+    public ?int $id = null;
+    public ?int $formId = null;
+    public ?int $statusId = null;
+    public ?int $userId = null;
+    public ?string $ipAddress = null;
+    public bool $isIncomplete = false;
+    public bool $isSpam = false;
+    public ?string $spamReason = null;
+    public array $snapshot = [];
+    public ?bool $validateCurrentPageOnly = null;
 
-    public $validateCurrentPageOnly;
-
-
-    // Private Properties
-    // =========================================================================
-
-    /**
-     * @var Form
-     */
-    private $_form;
-
-    /**
-     * @var Status
-     */
-    private $_status;
-
-    /**
-     * @var User|null
-     */
-    private $_user;
-
-    private $_fieldLayout;
-    private $_fieldContext;
-    private $_contentTable;
-    private $_pagesForField;
+    private ?Form $_form = null;
+    private ?Status $_status = null;
+    private ?User $_user = null;
+    private ?FieldLayout $_fieldLayout = null;
+    private ?string $_fieldContext = null;
+    private ?string $_contentTable = null;
+    private ?array $_pagesForField = null;
 
 
-    // Static
+    // Static Methods
     // =========================================================================
 
     /**
@@ -96,7 +78,7 @@ class Submission extends Element
     /**
      * @inheritDoc
      */
-    public static function refHandle()
+    public static function refHandle(): ?string
     {
         return 'submission';
     }
@@ -139,7 +121,7 @@ class Submission extends Element
     /**
      * @inheritDoc
      */
-    public static function find(): ElementQueryInterface
+    public static function find(): SubmissionQuery
     {
         return new SubmissionQuery(static::class);
     }
@@ -147,7 +129,7 @@ class Submission extends Element
     /**
      * @inheritDoc
      */
-    public static function gqlTypeNameByContext($context): string
+    public static function gqlTypeNameByContext(mixed $context): string
     {
         return $context->handle . '_Submission';
     }
@@ -155,7 +137,7 @@ class Submission extends Element
     /**
      * @inheritdoc
      */
-    public static function gqlScopesByContext($context): array
+    public static function gqlScopesByContext(mixed $context): array
     {
         return ['formieSubmissions.' . $context->uid];
     }
@@ -163,7 +145,7 @@ class Submission extends Element
     /**
      * @inheritdoc
      */
-    public static function gqlMutationNameByContext($context): string
+    public static function gqlMutationNameByContext(mixed $context): string
     {
         return 'save_' . $context->handle . '_Submission';
     }
@@ -189,16 +171,16 @@ class Submission extends Element
             // Check when we're doing a submission from the front-end, and we choose to validate the current page only
             // Remove any custom fields that aren't in the current page. These are added by default
             if ($this->validateCurrentPageOnly) {
-                $currentPageFields = $this->form->getCurrentPage()->getFields();
+                $currentPageFields = $this->form->getCurrentPage()->getCustomFields();
 
                 // Organise fields, so they're easier to check against
                 $currentPageFieldHandles = ArrayHelper::getColumn($currentPageFields, 'handle');
 
                 foreach ($rules as $key => $rule) {
-                    list($attribute, $validator) = $rule;
+                    [$attribute, $validator] = $rule;
                     $attribute = is_array($attribute) ? $attribute[0] : $attribute;
 
-                    if (strpos($attribute, 'field:') !== false) {
+                    if (str_contains($attribute, 'field:')) {
                         $handle = str_replace('field:', '', $attribute);
 
                         if (!in_array($handle, $currentPageFieldHandles)) {
@@ -208,14 +190,14 @@ class Submission extends Element
                 }
             }
 
-            $fields = $this->getFieldLayout()->getFields();
+            $fields = $this->getFieldLayout()->getCustomFields();
 
             $fieldsByHandle = ArrayHelper::getColumn($fields, 'handle');
 
-            // Evaulate field conditions. What if this is a required field, but conditionally hidden?
+            // Evaluate field conditions. What if this is a required field, but conditionally hidden?
             foreach ($rules as $key => $rule) {
                 foreach ($fields as $field) {
-                    list($attribute, $validator) = $rule;
+                    [$attribute, $validator] = $rule;
                     $attribute = is_array($attribute) ? $attribute[0] : $attribute;
 
                     if ($attribute === "field:{$field->handle}") {
@@ -235,7 +217,7 @@ class Submission extends Element
                         continue;
                     }
 
-                    list($attribute, $validator) = $rule;
+                    [$attribute, $validator] = $rule;
                     $attribute = is_array($attribute) ? $attribute[0] : $attribute;
 
                     if ($attribute === "field:{$field->handle}") {
@@ -261,12 +243,12 @@ class Submission extends Element
         $this->trigger(self::EVENT_DEFINE_RULES, $event);
 
         // Ensure that any rules defined in events actually exists and are valid for this submission/form.
-        // Otherwise fatal errors will occur trying to validate a field that doesn't exist in this context.
+        // Otherwise, fatal errors will occur trying to validate a field that doesn't exist in this context.
         foreach ($event->rules as $key => $rule) {
-            list($attribute, $validator) = $rule;
+            [$attribute, $validator] = $rule;
             $attr = is_array($attribute) ? $attribute[0] : $attribute;
 
-            if (strpos($attr, 'field:') !== false) {
+            if (str_contains($attr, 'field:')) {
                 $fieldHandle = str_replace('field:', '', $attr);
 
                 // Remove any rules for fields not defined in this form for safety.
@@ -362,14 +344,14 @@ class Submission extends Element
     /**
      * @inheritdoc
      */
-    public static function eagerLoadingMap(array $sourceElements, string $handle)
+    public static function eagerLoadingMap(array $sourceElements, string $handle): array|null|false
     {
         $contentService = Craft::$app->getContent();
         $originalFieldContext = $contentService->fieldContext;
 
         $submission = $sourceElements[0] ?? null;
 
-        // Ensure we setup the correct content table before fetching the eager-loading map.
+        // Ensure we set up the correct content table before fetching the eager-loading map.
         // This is particular helps resolve element fields' content.
         if ($submission && $submission instanceof self) {
             $contentService->fieldContext = $submission->getFieldContext();
@@ -389,7 +371,7 @@ class Submission extends Element
     /**
      * @inheritDoc
      */
-    public function init()
+    public function init(): void
     {
         parent::init();
 
@@ -401,7 +383,7 @@ class Submission extends Element
     /**
      * @inheritDoc
      */
-    public function __toString()
+    public function __toString(): string
     {
         return (string)$this->title;
     }
@@ -409,26 +391,7 @@ class Submission extends Element
     /**
      * @inheritDoc
      */
-    public function behaviors(): array
-    {
-        $behaviors = parent::behaviors();
-
-        $behaviors['typecast'] = [
-            'class' => AttributeTypecastBehavior::className(),
-            'attributeTypes' => [
-                'id' => AttributeTypecastBehavior::TYPE_INTEGER,
-                'formId' => AttributeTypecastBehavior::TYPE_STRING,
-                'statusId' => AttributeTypecastBehavior::TYPE_INTEGER,
-            ]
-        ];
-
-        return $behaviors;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function validate($attributeNames = null, $clearErrors = true)
+    public function validate($attributeNames = null, $clearErrors = true): bool
     {
         $validates = parent::validate($attributeNames, $clearErrors);
 
@@ -465,7 +428,7 @@ class Submission extends Element
     /**
      * @inheritDoc
      */
-    public function getFieldLayout()
+    public function getFieldLayout(): ?FieldLayout
     {
         if (!$this->_fieldLayout && $form = $this->getForm()) {
             $this->_fieldLayout = $form->getFormFieldLayout();
@@ -501,7 +464,7 @@ class Submission extends Element
     /**
      * @inheritDoc
      */
-    public function getCpEditUrl()
+    public function getCpEditUrl(): ?string
     {
         $form = $this->getForm();
 
@@ -526,10 +489,7 @@ class Submission extends Element
         return UrlHelper::cpUrl($path, $params);
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function updateTitle($form)
+    public function updateTitle($form): void
     {
         if ($customTitle = Variables::getParsedValue($form->settings->submissionTitleFormat, $this, $form)) {
             $this->title = $customTitle;
@@ -542,10 +502,8 @@ class Submission extends Element
 
     /**
      * Gets the submission's form.
-     *
-     * @return Form
      */
-    public function getForm()
+    public function getForm(): ?Form
     {
         if (!$this->_form && $this->formId) {
             $query = Form::find()->id($this->formId);
@@ -565,17 +523,15 @@ class Submission extends Element
 
     /**
      * Sets teh submission's form.
-     *
-     * @param Form $form
      */
-    public function setForm(Form $form)
+    public function setForm(Form $form): void
     {
         $this->_form = $form;
         $this->formId = $form->id;
 
-        // When setting the form, see if there's a in-session snapshot, or if there's a saved 
+        // When setting the form, see if there's an in-session snapshot, or if there's a saved
         // snapshot from the database. This will be field settings set via templates which we want
-        // to apply to fields in our form, for the this submission.
+        // to apply to fields in our form, for this submission.
         $this->snapshot = $form->getSnapshotData() ?: $this->snapshot;
 
         $fields = $this->snapshot['fields'] ?? [];
@@ -592,10 +548,7 @@ class Submission extends Element
         }
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getFormRecord()
+    public function getFormRecord(): ?Form
     {
         if ($this->formId) {
             if ($form = Formie::$plugin->getForms()->getFormRecord($this->formId)) {
@@ -610,23 +563,21 @@ class Submission extends Element
         return null;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getFormName()
     {
         if ($form = $this->getForm()) {
             return $form->title;
         }
+
+        return null;
     }
 
     /**
      * Gets the submission's status handle.
      *
      * @param bool $returnStatus return the status model
-     * @return string|null
      */
-    public function getStatus($returnStatus = false)
+    public function getStatus(bool $returnStatus = false): ?string
     {
         if (!$this->_status && $this->statusId) {
             $this->_status = Formie::$plugin->getStatuses()->getStatusById($this->statusId);
@@ -649,10 +600,8 @@ class Submission extends Element
 
     /**
      * Sets the submission's status.
-     *
-     * @param Status $status
      */
-    public function setStatus(Status $status)
+    public function setStatus(Status $status): void
     {
         $this->_status = $status;
         $this->statusId = $status->id;
@@ -663,7 +612,7 @@ class Submission extends Element
      *
      * @return User|null
      */
-    public function getUser()
+    public function getUser(): ?User
     {
         if (!$this->userId) {
             return null;
@@ -678,10 +627,8 @@ class Submission extends Element
 
     /**
      * Sets the submission's user.
-     *
-     * @param User $user
      */
-    public function setUser(User $user)
+    public function setUser(User $user): void
     {
         $this->_user = $user;
         $this->userId = $user->id;
@@ -690,7 +637,7 @@ class Submission extends Element
     /**
      * @inheritdoc
      */
-    public function setFieldValuesFromRequest(string $paramNamespace = '')
+    public function setFieldValuesFromRequest(string $paramNamespace = ''): void
     {
         // A little extra work here to handle visibly disabled fields
         if ($form = $this->getForm()) {
@@ -703,7 +650,7 @@ class Submission extends Element
                         $value = $form->getFieldByHandle($key)->parsePopulatedFieldValues($value, $this);
 
                         $this->setFieldValue($key, $value);
-                    } catch (\Throwable $e) {
+                    } catch (Throwable) {
                         continue;
                     }
                 }
@@ -715,7 +662,7 @@ class Submission extends Element
         // Any conditionally hidden fields should have their content excluded when saving.
         // But - only for incomplete forms. Not a great idea to remove content for completed forms.
         if ($this->getFieldLayout() && $this->isIncomplete) {
-            foreach ($this->getFieldLayout()->getFields() as $field) {
+            foreach ($this->getFieldLayout()->getCustomFields() as $field) {
                 if ($field->isConditionallyHidden($this)) {
                     // Reset the field value - watch out for some fields
                     if ($field instanceof NestedFieldInterface) {
@@ -733,15 +680,16 @@ class Submission extends Element
      *
      * @param FieldLayoutPage|null
      * @return array
+     * @throws \yii\base\InvalidConfigException
      */
-    public function getValues($page)
+    public function getValues($page): array
     {
         $values = [];
 
         $form = $this->getForm();
 
         if ($form) {
-            $fields = $page ? $page->getFields() : $form->getFields();
+            $fields = $page ? $page->getCustomFields() : $form->getCustomFields();
 
             foreach ($fields as $field) {
                 $values[$field->handle] = $field->getValue($this);
@@ -751,9 +699,6 @@ class Submission extends Element
         return $values;
     }
 
-    /**
-     * @inheritdoc
-     */
     public function getValuesAsString(): array
     {
         $values = [];
@@ -770,9 +715,6 @@ class Submission extends Element
         return $values;
     }
 
-    /**
-     * @inheritdoc
-     */
     public function getValuesAsJson(): array
     {
         $values = [];
@@ -789,9 +731,6 @@ class Submission extends Element
         return $values;
     }
 
-    /**
-     * @inheritdoc
-     */
     public function getValuesForExport(): array
     {
         $values = [];
@@ -816,9 +755,6 @@ class Submission extends Element
         return $values;
     }
 
-    /**
-     * @inheritdoc
-     */
     public function getValuesForSummary(): array
     {
         $items = [];
@@ -841,10 +777,7 @@ class Submission extends Element
         return $items;
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function getFieldPages()
+    public function getFieldPages(): array
     {
         if ($this->_pagesForField) {
             return $this->_pagesForField;
@@ -854,7 +787,7 @@ class Submission extends Element
 
         if ($fieldLayout = $this->getForm()->getFormFieldLayout()) {
             foreach ($fieldLayout->getPages() as $page) {
-                foreach ($page->getFields() as $field) {
+                foreach ($page->getCustomFields() as $field) {
                     $this->_pagesForField[$field->handle] = $page;
                 }
             }
@@ -863,10 +796,7 @@ class Submission extends Element
         return $this->_pagesForField;
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function getRelations()
+    public function getRelations(): array
     {
         return Formie::$plugin->getRelations()->getRelations($this);
     }
@@ -921,7 +851,7 @@ class Submission extends Element
     /**
      * @inheritDoc
      */
-    public function afterSave(bool $isNew)
+    public function afterSave(bool $isNew): void
     {
         // Get the node record
         if (!$isNew) {
@@ -974,7 +904,7 @@ class Submission extends Element
     /**
      * @inheritDoc
      */
-    public function afterDelete()
+    public function afterDelete(): void
     {
         $form = $this->getForm();
         $elementsService = Craft::$app->getElements();
@@ -984,7 +914,7 @@ class Submission extends Element
         // no way to remove that file on hard-delete, so that won't work.
         // See https://github.com/craftcms/cms/issues/5074
         if ($form && $form->fileUploadsAction === 'delete') {
-            foreach ($form->getFields() as $field) {
+            foreach ($form->getCustomFields() as $field) {
                 if ($field instanceof FileUpload) {
                     $assets = $this->getFieldValue($field->handle)->all();
 
@@ -1087,14 +1017,12 @@ class Submission extends Element
                     ],
                 ]);
             case 'sendNotification':
-                if ($form = $this->getForm()) {
-                    if ($notifications = $form->getNotifications()) {
-                        return Html::a(Craft::t('formie', 'Send'), '#', [
-                            'class' => 'btn small formsubmit js-fui-submission-modal-send-btn',
-                            'data-id' => $this->id,
-                            'title' => Craft::t('formie', 'Send'),
-                        ]);
-                    }
+                if (($form = $this->getForm()) && $form->getNotifications()) {
+                    return Html::a(Craft::t('formie', 'Send'), '#', [
+                        'class' => 'btn small formsubmit js-fui-submission-modal-send-btn',
+                        'data-id' => $this->id,
+                        'title' => Craft::t('formie', 'Send'),
+                    ]);
                 }
 
                 return '';
@@ -1139,10 +1067,7 @@ class Submission extends Element
     // Private methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
-    private static function _getAvailableFormIds()
+    private static function _getAvailableFormIds(): int|array
     {
         $currentUser = Craft::$app->getUser()->getIdentity();
 

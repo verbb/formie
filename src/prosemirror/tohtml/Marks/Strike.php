@@ -4,6 +4,6 @@ namespace verbb\formie\prosemirror\tohtml\Marks;
 
 class Strike extends Mark
 {
-    protected $markType = 'strike';
-    protected $tagName = 'strike';
+    protected ?string $markType = 'strike';
+    protected string|null|array $tagName = 'strike';
 }

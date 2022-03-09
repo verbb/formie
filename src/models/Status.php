@@ -9,10 +9,9 @@ use craft\helpers\UrlHelper;
 use craft\validators\HandleValidator;
 use craft\validators\UniqueValidator;
 
-use yii\behaviors\AttributeTypecastBehavior;
-
 use verbb\formie\elements\Submission;
 use verbb\formie\records\Status as SubmissionStatusRecord;
+use DateTime;
 
 class Status extends Model
 {
@@ -24,52 +23,29 @@ class Status extends Model
     }
 
 
-    // Public Properties
+    // Properties
     // =========================================================================
 
-    public $id;
-    public $name;
-    public $handle;
-    public $description;
-    public $color = 'green';
-    public $sortOrder;
-    public $isDefault;
-    public $dateDeleted;
-    public $uid;
+    public ?int $id = null;
+    public ?string $name = null;
+    public ?string $handle = null;
+    public ?string $description = null;
+    public string $color = 'green';
+    public ?int $sortOrder = null;
+    public ?bool $isDefault = null;
+    public ?DateTime $dateDeleted = null;
+    public ?string $uid = null;
 
 
     // Public Methods
     // =========================================================================
 
     /**
-     * @inheritDoc
-     */
-    public function behaviors(): array
-    {
-        $behaviors = $this->softDeleteBehaviors();
-
-        $behaviors['typecast'] = [
-            'class' => AttributeTypecastBehavior::class,
-            'attributeTypes' => [
-                'id' => AttributeTypecastBehavior::TYPE_INTEGER,
-                'name' => AttributeTypecastBehavior::TYPE_STRING,
-                'handle' => AttributeTypecastBehavior::TYPE_STRING,
-                'color' => AttributeTypecastBehavior::TYPE_STRING,
-                'sortOrder' => AttributeTypecastBehavior::TYPE_INTEGER,
-                'isDefault' => AttributeTypecastBehavior::TYPE_BOOLEAN,
-                'uid' => AttributeTypecastBehavior::TYPE_STRING,
-            ]
-        ];
-
-        return $behaviors;
-    }
-
-    /**
      * @return string
      */
     public function __toString()
     {
-        return (string)$this->getDisplayName();
+        return $this->getDisplayName();
     }
 
     /**

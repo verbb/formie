@@ -3,7 +3,6 @@ namespace verbb\formie\elements\db;
 
 use verbb\formie\base\NestedFieldInterface;
 use verbb\formie\base\NestedFieldTrait;
-use verbb\formie\elements\NestedFieldRow;
 
 use Craft;
 use craft\base\Element;
@@ -13,13 +12,8 @@ use craft\db\QueryAbortedException;
 use craft\elements\db\ElementQuery;
 use craft\helpers\Db;
 
-use yii\db\Connection;
+use yii\base\Model;
 
-/**
- * @method NestedFieldRow[]|array all($db = null)
- * @method NestedFieldRow|array|null nth(int $n, Connection $db = null)
- * @method NestedFieldRow|array|null one($db = null)
- */
 class NestedFieldRowQuery extends ElementQuery
 {
     // Properties
@@ -28,23 +22,16 @@ class NestedFieldRowQuery extends ElementQuery
     /**
      * @inheritdoc
      */
-    protected $defaultOrderBy = ['formie_nestedfieldrows.sortOrder' => SORT_ASC];
+    protected array $defaultOrderBy = ['formie_nestedfieldrows.sortOrder' => SORT_ASC];
 
 
     // General parameters
     // -------------------------------------------------------------------------
 
-    /**
-     * @var int|int[]|string|false|null The field ID(s) that the resulting nested field rows must belong to.
-     */
-    public $fieldId;
+    public mixed $fieldId = null;
+    public mixed $ownerId = null;
 
-    /**
-     * @var int|int[]|null The owner element ID(s) that the resulting nested field rows must belong to.
-     */
-    public $ownerId;
-
-    private $_blocks = [];
+    private array $_blocks = [];
 
 
     // Public Methods
@@ -53,11 +40,11 @@ class NestedFieldRowQuery extends ElementQuery
     /**
      * Narrows the query results based on the field the nested field rows belong to.
      *
-     * @param NestedFieldInterface|null $value The property value
+     * @param NestedFieldInterface $value The property value
      * @return static self reference
      * @uses $fieldId
      */
-    public function field(NestedFieldInterface $value)
+    public function field(NestedFieldInterface $value): static
     {
         $this->fieldId = $value->id;
         return $this;
@@ -69,7 +56,7 @@ class NestedFieldRowQuery extends ElementQuery
      * @param int|int[]|null $value The property value
      * @return static self reference
      */
-    public function fieldId($value)
+    public function fieldId(array|int|null $value): static
     {
         $this->fieldId = $value;
         return $this;
@@ -81,7 +68,7 @@ class NestedFieldRowQuery extends ElementQuery
      * @param int|int[]|null $value The property value
      * @return static self reference
      */
-    public function ownerId($value)
+    public function ownerId(array|int|null $value): static
     {
         $this->ownerId = $value;
         return $this;
@@ -93,7 +80,7 @@ class NestedFieldRowQuery extends ElementQuery
      * @param ElementInterface $owner The owner element
      * @return static self reference
      */
-    public function owner(ElementInterface $owner)
+    public function owner(ElementInterface $owner): static
     {
         /** @var Element $owner */
         $this->ownerId = $owner->id;
@@ -102,10 +89,7 @@ class NestedFieldRowQuery extends ElementQuery
         return $this;
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function setBlocks($blocks)
+    public function setBlocks($blocks): void
     {
         $this->_blocks = $blocks;
     }
@@ -113,7 +97,7 @@ class NestedFieldRowQuery extends ElementQuery
     /**
      * @inheritdoc
      */
-    public function all($db = null)
+    public function all($db = null): array
     {
         if ($this->_blocks) {
             // Override the default `.all()` behaviour to return any pre-defined blocks instead of querying the db.
@@ -126,7 +110,7 @@ class NestedFieldRowQuery extends ElementQuery
     /**
      * @inheritdoc
      */
-    public function one($db = null)
+    public function one($db = null): Model|array|null
     {
         if ($this->_blocks) {
             return reset($this->_blocks) ?: null;
@@ -198,6 +182,6 @@ class NestedFieldRowQuery extends ElementQuery
         // This method won't get called if $this->fieldId isn't set to a single int
         /** @var NestedFieldInterface|NestedFieldTrait $nestedField */
         $nestedField = Craft::$app->getFields()->getFieldById($this->fieldId);
-        return $nestedField->getFields();
+        return $nestedField->getCustomFields();
     }
 }

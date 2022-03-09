@@ -2,7 +2,7 @@
     "name": "verbb/formie",
     "description": "The most user-friendly forms plugin for Craft.",
     "type": "craft-plugin",
-    "version": "1.5.10",
+    "version": "2.0.0-beta.1",
     "keywords": [
         "craft",
         "cms",
@@ -25,7 +25,8 @@
         }
     ],
     "require": {
-        "craftcms/cms": "^3.6.0",
+        "php": "^8.0.2",
+        "craftcms/cms": "^4.0.0-alpha",
         "commerceguys/addressing": "^1.0",
         "ext-json": "*",
         "ezyang/htmlpurifier": "^4.13",
@@ -40,7 +41,7 @@
         "league/oauth2-google": "^3.0",
         "thenetworg/oauth2-azure": "^2.0",
         "dompdf/dompdf": "^1.0.2",
-        "verbb/base": "^1.0.0"
+        "verbb/base": "^2.0.0-beta"
     },
     "autoload": {
         "psr-4": {
@@ -50,7 +51,7 @@
     "extra": {
         "name": "Formie",
         "handle": "formie",
-        "changelogUrl": "https://raw.githubusercontent.com/verbb/formie/craft-3/CHANGELOG.md",
+        "changelogUrl": "https://raw.githubusercontent.com/verbb/formie/craft-4/CHANGELOG.md",
         "class": "verbb\\formie\\Formie"
     }
 }

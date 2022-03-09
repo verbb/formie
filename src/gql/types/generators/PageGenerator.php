@@ -4,19 +4,15 @@ namespace verbb\formie\gql\types\generators;
 use verbb\formie\gql\interfaces\PageInterface;
 use verbb\formie\gql\types\PageType;
 
-use Craft;
 use craft\gql\base\GeneratorInterface;
 use craft\gql\GqlEntityRegistry;
-use craft\gql\TypeLoader;
-use craft\gql\TypeManager;
-use craft\helpers\Gql as GqlHelper;
 
 class PageGenerator implements GeneratorInterface
 {
     // Public Methods
     // =========================================================================
 
-    public static function generateTypes($context = null): array
+    public static function generateTypes(mixed $context = null): array
     {
         $gqlTypes = [];
 

@@ -13,7 +13,6 @@ use verbb\formie\fields\formfields\Recipients;
 use verbb\formie\models\Notification;
 
 use Craft;
-use craft\errors\SiteNotFoundException;
 use craft\fields\BaseRelationField;
 use craft\fields\data\MultiOptionsFieldData;
 use craft\helpers\App;
@@ -21,6 +20,9 @@ use craft\helpers\App;
 use DateTime;
 use DateTimeZone;
 use Throwable;
+use craft\models\Site;
+use yii\web\IdentityInterface;
+use craft\elements\User;
 
 class Variables
 {
@@ -131,11 +133,13 @@ class Variables
      * Renders and returns an object template, or null if it fails.
      *
      * @param string $value
-     * @param Submission $submission
-     * @param Form $form
+     * @param Submission|null $submission
+     * @param Form|null $form
+     * @param Notification|null $notification
      * @return string|null
+     * @throws \Exception
      */
-    public static function getParsedValue($value, Submission $submission = null, Form $form = null, Notification $notification = null)
+    public static function getParsedValue(string $value, Submission $submission = null, Form $form = null, Notification $notification = null): ?string
     {
         $originalValue = $value;
 
@@ -157,7 +161,7 @@ class Variables
 
         // Use a cache key based on the submission, or few unsaved submissions, the formId
         // This helps to only cache it per-submission, when being run in queues.
-        $cacheKey = $submission->id ?? $form->id ?? rand();
+        $cacheKey = $submission->id ?? $form->id ?? mt_rand();
 
         // Check to see if we have these already calculated for the request and submission
         // Just saves a good bunch of calculating values like looping through fields
@@ -271,10 +275,7 @@ class Variables
         }
     }
 
-    /**
-     * @inheritdoc
-     */
-    public static function getFormFieldsHtml($form, $notification, $submission, $excludeEmpty = false, $excludeHidden = false, $asArray = false)
+    public static function getFormFieldsHtml($form, $notification, $submission, $excludeEmpty = false, $excludeHidden = false, $asArray = false): array|string
     {
         $fieldItems = $asArray ? [] : '';
 
@@ -287,7 +288,7 @@ class Variables
         $oldTemplateMode = $view->getTemplateMode();
         $view->setTemplateMode($view::TEMPLATE_MODE_CP);
 
-        foreach ($form->getFields() as $field) {
+        foreach ($form->getCustomFields() as $field) {
             if (!$field->includeInEmail) {
                 continue;
             }
@@ -315,7 +316,7 @@ class Variables
             if ($asArray) {
                 $fieldItems[$field->handle] = (string)$html;
             } else {
-                $fieldItems .= (string)$html;
+                $fieldItems .= $html;
             }
         }
 
@@ -327,11 +328,8 @@ class Variables
 
     // Public Static Methods
     // =========================================================================
-   
-    /**
-     * @inheritdoc
-     */
-    private static function _getParsedFieldValuesLegacy($form, $notification, $submission)
+
+    private static function _getParsedFieldValuesLegacy($form, $notification, $submission): array
     {
         $values = [];
 
@@ -343,7 +341,7 @@ class Variables
 
         // For now, only handle element fields, which need HTML generated
         if ($submission && $submission->getFieldLayout()) {
-            foreach ($submission->getFieldLayout()->getFields() as $field) {
+            foreach ($submission->getFieldLayout()->getCustomFields() as $field) {
                 // Element fields
                 if ($field instanceof BaseRelationField) {
                     $parsedContent = $parsedFieldContent[$field->handle] ?? '';
@@ -367,10 +365,7 @@ class Variables
         return $values;
     }
 
-    /**
-     * @inheritdoc
-     */
-    private static function _getParsedFieldValues($form, $submission, $notification)
+    private static function _getParsedFieldValues($form, $submission, $notification): array
     {
         $values = [];
 
@@ -379,7 +374,7 @@ class Variables
         }
 
         if ($submission && $submission->getFieldLayout()) {
-            foreach ($submission->getFieldLayout()->getFields() as $field) {
+            foreach ($submission->getFieldLayout()->getCustomFields() as $field) {
                 $submissionValue = $submission->getFieldValue($field->handle);
 
                 $values = array_merge($values, self::_getParsedFieldValue($field, $submissionValue, $submission, $notification));
@@ -389,10 +384,7 @@ class Variables
         return self::_expandArray($values);
     }
 
-    /**
-     * @inheritdoc
-     */
-    private static function _getParsedFieldValue($field, $submissionValue, $submission, $notification)
+    private static function _getParsedFieldValue($field, $submissionValue, $submission, $notification): array
     {
         $values = [];
 
@@ -438,7 +430,7 @@ class Variables
         } else if ($field instanceof Group) {
             if ($submissionValue && $row = $submissionValue->one()) {
                 if ($fieldLayout = $row->getFieldLayout()) {
-                    foreach ($row->getFieldLayout()->getFields() as $nestedField) {
+                    foreach ($row->getFieldLayout()->getCustomFields() as $nestedField) {
                         $submissionValue = $row->getFieldValue($nestedField->handle);
                         $fieldValues = self::_getParsedFieldValue($nestedField, $submissionValue, $submission, $notification);
 
@@ -461,7 +453,7 @@ class Variables
         } else if ($field instanceof Repeater) {
             $values["{$prefix}{$field->handle}"] = $parsedContent;
         } else if ($field instanceof Recipients && $field->displayType === 'hidden') {
-            // Chcek for hidden recipients fields, which might have array content
+            // Check for hidden recipients fields, which might have array content
             // It's arguable that `getValueAsString()` should be the default behaviour but requires more testing
             $values["{$prefix}{$field->handle}"] = $field->getValueAsString($submissionValue, $submission);
         } else if ($submissionValue instanceof MultiOptionsFieldData) {
@@ -471,7 +463,7 @@ class Variables
             // Try to convert as a simple string value, if not, fall back on email template
             try {
                 $values["{$prefix}{$field->handle}"] = (string)$submissionValue;
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 if ($parsedContent) {
                     $values["{$prefix}{$field->handle}"] = $parsedContent;
                 }
@@ -481,10 +473,7 @@ class Variables
         return $values;
     }
 
-    /**
-     * @inheritdoc
-     */
-    private static function _expandArray($array)
+    private static function _expandArray($array): array
     {
         $result = [];
 
@@ -493,8 +482,8 @@ class Variables
                 $value = self::_expandArray($value);
             }
 
-            foreach (array_reverse(explode(".", $key)) as $key) {
-                $value = [$key => $value];
+            foreach (array_reverse(explode(".", $key)) as $k) {
+                $value = [$k => $value];
             }
 
             $result = array_merge_recursive($result, $value);
@@ -503,10 +492,7 @@ class Variables
         return $result;
     }
 
-    /**
-     * @inheritdoc
-     */
-    private static function _getCurrentUser($submission = null)
+    private static function _getCurrentUser($submission = null): bool|User|IdentityInterface|null
     {
         $currentUser = Craft::$app->getUser()->getIdentity();
 
@@ -524,10 +510,7 @@ class Variables
         return null;
     }
 
-    /**
-     * @inheritdoc
-     */
-    public static function _getSite($submission)
+    public static function _getSite($submission): Site|int|null
     {
         // Get the current site, based on front-end requests first. This will fail for a queue job.
         // For front-end requests where we want to parse content, we must respect the current site.

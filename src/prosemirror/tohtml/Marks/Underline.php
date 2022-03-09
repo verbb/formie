@@ -4,6 +4,6 @@ namespace verbb\formie\prosemirror\tohtml\Marks;
 
 class Underline extends Mark
 {
-    protected $markType = 'underline';
-    protected $tagName = 'u';
+    protected ?string $markType = 'underline';
+    protected string|null|array $tagName = 'u';
 }

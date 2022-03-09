@@ -11,7 +11,6 @@ use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\Notification;
 
 use Craft;
-use craft\base\ElementInterface;
 use craft\helpers\ArrayHelper;
 use craft\helpers\UrlHelper;
 
@@ -24,13 +23,14 @@ use craft\commerce\gql\resolvers\elements\Variant as VariantResolver;
 use craft\commerce\models\ProductType;
 
 use GraphQL\Type\Definition\Type;
+use craft\elements\db\ElementQueryInterface;
 
 class Variants extends CommerceVariants implements FormFieldInterface
 {
     // Constants
     // =========================================================================
 
-    const EVENT_MODIFY_ELEMENT_QUERY = 'modifyElementQuery';
+    public const EVENT_MODIFY_ELEMENT_QUERY = 'modifyElementQuery';
 
 
     // Traits
@@ -74,20 +74,11 @@ class Variants extends CommerceVariants implements FormFieldInterface
     // Properties
     // =========================================================================
 
-    /**
-     * @var bool
-     */
-    public $searchable = true;
+    public bool $searchable = true;
 
-    /**
-     * @var string
-     */
-    protected $inputTemplate = 'formie/_includes/element-select-input';
+    protected string $inputTemplate = 'formie/_includes/element-select-input';
 
-    /**
-     * @var ProductType
-     */
-    private $_productType;
+    private ?ProductType $_productType = null;
 
 
     // Public Methods
@@ -134,7 +125,7 @@ class Variants extends CommerceVariants implements FormFieldInterface
      */
     public function getDefaultValue($attributePrefix = '')
     {
-        // If the default value from the parent field (query params, etc) is empty, use the default values
+        // If the default value from the parent field (query params, etc.) is empty, use the default values
         // set in the field settings.
         $this->defaultValue = $this->traitGetDefaultValue($attributePrefix) ?? $this->defaultValue;
 
@@ -154,7 +145,7 @@ class Variants extends CommerceVariants implements FormFieldInterface
     /**
      * @inheritDoc
      */
-    public function getFrontEndInputOptions(Form $form, $value, array $options = null): array
+    public function getFrontEndInputOptions(Form $form, mixed $value, array $options = null): array
     {
         $inputOptions = $this->traitGetFrontendInputOptions($form, $value, $options);
         $inputOptions['variantsQuery'] = $this->getElementsQuery();
@@ -165,9 +156,9 @@ class Variants extends CommerceVariants implements FormFieldInterface
     /**
      * @inheritDoc
      */
-    public function getEmailHtml(Submission $submission, Notification $notification, $value, array $options = null)
+    public function getEmailHtml(Submission $submission, Notification $notification, mixed $value, array $options = null): string|null|bool
     {
-        // Ensure we return back the correct, prepped query for emails. Just as we would be submissions.
+        // Ensure we return the correct, prepped query for emails. Just as we would be submissions.
         $value = $this->_all($value, $submission);
 
         return $this->traitGetEmailHtml($submission, $notification, $value, $options);
@@ -176,9 +167,10 @@ class Variants extends CommerceVariants implements FormFieldInterface
     /**
      * Returns the list of selectable variants.
      *
-     * @return Variant[]
+     * @return \craft\elements\db\ElementQueryInterface
+     * @throws \craft\errors\SiteNotFoundException
      */
-    public function getElementsQuery()
+    public function getElementsQuery(): \craft\elements\db\ElementQueryInterface
     {
         // Use the currently-set element query, or create a new one.
         $query = $this->elementsQuery ?? Variant::find();
@@ -239,7 +231,7 @@ class Variants extends CommerceVariants implements FormFieldInterface
     /**
      * @inheritDoc
      */
-    public function defineLabelSourceOptions()
+    public function defineLabelSourceOptions(): array
     {
         $options = [
             ['value' => 'title', 'label' => Craft::t('app', 'Title')],
@@ -258,7 +250,7 @@ class Variants extends CommerceVariants implements FormFieldInterface
                 if ($typeId && !is_array($typeId)) {
                     $productType = Commerce::getInstance()->getProductTypes()->getProductTypeById($typeId);
 
-                    $fields = $this->getStringCustomFieldOptions($productType->getFields());
+                    $fields = $this->getStringCustomFieldOptions($productType->getCustomFields());
 
                     $options = array_merge($options, $fields);
                 }
@@ -271,13 +263,12 @@ class Variants extends CommerceVariants implements FormFieldInterface
     /**
      * @inheritDoc
      */
-    public function getSettingGqlTypes()
+    public function getSettingGqlTypes(): array
     {
         return array_merge($this->traitGetSettingGqlTypes(), [
             'entries' => [
                 'name' => 'variants',
                 'type' => Type::listOf(VariantInterface::getType()),
-                'resolve' => VariantResolver::class.'::resolve',
                 'args' => VariantArguments::getArguments(),
                 'resolve' => function($class) {
                     return $class->getElementsQuery()->all();
@@ -318,7 +309,7 @@ class Variants extends CommerceVariants implements FormFieldInterface
                 'label' => Craft::t('formie', 'Default Value'),
                 'help' => Craft::t('formie', 'Select a default variant to be selected.'),
                 'name' => 'defaultValue',
-                'selectionLabel' => $this->defaultSelectionLabel(),
+                'selectionLabel' => self::defaultSelectionLabel(),
                 'config' => [
                     'jsClass' => $this->inputJsClass,
                     'elementType' => static::elementType(),
@@ -422,9 +413,6 @@ class Variants extends CommerceVariants implements FormFieldInterface
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineConditionsSchema(): array
     {
         return [
@@ -442,15 +430,15 @@ class Variants extends CommerceVariants implements FormFieldInterface
      *
      * @return ProductType|null
      */
-    private function _getProductType()
+    private function _getProductType(): ?ProductType
     {
         if ($this->source === '*') {
             return null;
         }
 
         if (!$this->_productType && is_array($this->source)) {
-            list(, $uid) = explode(':', $this->source);
-            return Plugin::getInstance()->getProductTypes()->getProductTypeByUid($uid);
+            [, $uid] = explode(':', $this->source);
+            return Commerce::getInstance()->getProductTypes()->getProductTypeByUid($uid);
         }
 
         return $this->_productType;

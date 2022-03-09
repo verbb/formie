@@ -15,7 +15,7 @@ class KeyValueGenerator implements GeneratorInterface
     /**
      * @inheritdoc
      */
-    public static function generateTypes($context = null, $contentFields = []): array
+    public static function generateTypes(mixed $context = null, $contentFields = []): array
     {
         $typeName = self::getName();
 
@@ -31,9 +31,6 @@ class KeyValueGenerator implements GeneratorInterface
         return [$type];
     }
 
-    /**
-     * @inheritdoc
-     */
     public static function getName($context = null): string
     {
         return 'KeyValueType';

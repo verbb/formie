@@ -10,35 +10,12 @@ class Name extends Model
     // Properties
     // =========================================================================
 
-    /**
-     * @var string
-     */
-    public $prefix;
-
-    /**
-     * @var string
-     */
-    public $firstName;
-
-    /**
-     * @var string
-     */
-    public $middleName;
-
-    /**
-     * @var string
-     */
-    public $lastName;
-
-    /**
-     * @var string
-     */
-    public $name;
-
-    /**
-     * @var bool
-     */
-    public $isMultiple;
+    public ?string $prefix = null;
+    public ?string $firstName = null;
+    public ?string $middleName = null;
+    public ?string $lastName = null;
+    public ?string $name = null;
+    public ?bool $isMultiple = null;
 
 
     // Public Methods
@@ -51,9 +28,9 @@ class Name extends Model
     {
         if ($this->isMultiple) {
             return $this->getName();
-        } else {
-            return (string)$this->name;
         }
+
+        return (string)$this->name;
     }
 
     /**

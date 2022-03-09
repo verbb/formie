@@ -4,11 +4,11 @@ namespace verbb\formie\prosemirror\toprosemirror;
 
 class Minify
 {
-    protected $_replacementHash;
-    protected $_placeholders = [];
-    protected $_html;
+    protected ?string $_replacementHash = null;
+    protected array $_placeholders = [];
+    protected ?string $_html = null;
 
-    public function process($html)
+    public function process($html): array|string
     {
         $this->_html = str_replace("\r\n", "\n", trim($html));
 
@@ -37,12 +37,12 @@ class Minify
         return $this->_html;
     }
 
-    protected function _removePreCB($m)
+    protected function _removePreCB($m): string
     {
         return $this->_reservePlace("<pre{$m[1]}");
     }
 
-    protected function _reservePlace($content)
+    protected function _reservePlace($content): string
     {
         $placeholder = '%' . $this->_replacementHash . count($this->_placeholders) . '%';
         $this->_placeholders[$placeholder] = $content;

@@ -4,10 +4,7 @@ namespace verbb\formie\gql\types\input;
 use verbb\formie\fields\formfields\Address as AddressField;
 use verbb\formie\models\Address as AddressModel;
 
-use Craft;
-use craft\base\Field;
 use craft\gql\GqlEntityRegistry;
-use craft\gql\types\QueryArgument;
 
 use GraphQL\Type\Definition\InputObjectType;
 use GraphQL\Type\Definition\Type;
@@ -15,12 +12,12 @@ use GraphQL\Type\Definition\Type;
 class AddressInputType extends InputObjectType
 {
     /**
-     * Create the type for a address field.
+     * Create the type for an address field.
      *
-     * @param $context
+     * @param AddressField $context
      * @return bool|mixed
      */
-    public static function getType(AddressField $context)
+    public static function getType(AddressField $context): mixed
     {
         /** @var AddressField $context */
         $typeName = $context->getGqlFieldContext()->handle . '_' . $context->handle . '_FormieAddressInput';
@@ -45,15 +42,13 @@ class AddressInputType extends InputObjectType
             }
         }
 
-        $inputType = GqlEntityRegistry::createEntity($typeName, new InputObjectType([
+        return GqlEntityRegistry::createEntity($typeName, new InputObjectType([
             'name' => $typeName,
             'fields' => function() use ($fields) {
                 return $fields;
             },
             'normalizeValue' => [self::class, 'normalizeValue'],
         ]));
-
-        return $inputType;
     }
 
     /**
@@ -62,7 +57,7 @@ class AddressInputType extends InputObjectType
      * @param $value
      * @return mixed
      */
-    public static function normalizeValue($value)
+    public static function normalizeValue($value): mixed
     {
         if (!empty($value['name'])) {
             return $value['name'];

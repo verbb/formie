@@ -3,22 +3,23 @@ namespace verbb\formie\models;
 
 use Craft;
 use craft\base\Model;
+use craft\web\UploadedFile;
 
 class Support extends Model
 {
     // Properties
     // =========================================================================
 
-    public $fromEmail;
-    public $formId;
-    public $message;
-    public $attachments = [];
+    public ?string $fromEmail = null;
+    public ?int $formId = null;
+    public ?string $message = null;
+    public ?UploadedFile $attachments = null;
 
 
     // Public Methods
     // =========================================================================
 
-    public function attributeLabels()
+    public function attributeLabels(): array
     {
         return [
             'fromEmail' => Craft::t('formie', 'Your Email'),
@@ -26,7 +27,7 @@ class Support extends Model
         ];
     }
 
-    public function rules()
+    public function rules(): array
     {
         return [
             [['fromEmail', 'formId', 'message'], 'required'],

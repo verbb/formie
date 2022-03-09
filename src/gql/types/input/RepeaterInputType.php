@@ -14,10 +14,10 @@ class RepeaterInputType extends InputObjectType
     /**
      * Create the type for a Repeater form field
      *
-     * @param $context
+     * @param RepeaterField $context
      * @return bool|mixed
      */
-    public static function getType(RepeaterField $context)
+    public static function getType(RepeaterField $context): mixed
     {
         /** @var RepeaterField $context */
         $typeName = $context->getForm()->handle . '_' . $context->handle . '_FormieRepeaterInput';
@@ -28,7 +28,7 @@ class RepeaterInputType extends InputObjectType
 
         // Array of block types.
         /** @var FormField[] $fields */
-        $fields = $context->getFields();
+        $fields = $context->getCustomFields();
 
         $repeaterFields = [];
 
@@ -52,7 +52,7 @@ class RepeaterInputType extends InputObjectType
         ]));
 
 
-        $inputType = GqlEntityRegistry::createEntity($typeName, new InputObjectType([
+        return GqlEntityRegistry::createEntity($typeName, new InputObjectType([
             'name' => $typeName,
             'fields' => function() use ($rowContainerType) {
                 return [
@@ -61,8 +61,6 @@ class RepeaterInputType extends InputObjectType
             },
             'normalizeValue' => [self::class, 'normalizeValue'],
         ]));
-
-        return $inputType;
     }
 
     /**
@@ -71,7 +69,7 @@ class RepeaterInputType extends InputObjectType
      * @param $value
      * @return mixed
      */
-    public static function normalizeValue($value)
+    public static function normalizeValue($value): mixed
     {
         $preparedRows = [];
         $rowCounter = 1;
@@ -90,7 +88,7 @@ class RepeaterInputType extends InputObjectType
 
         return [
             'rows' => $preparedRows,
-            'sortOrder' => $sortOrder
+            'sortOrder' => $sortOrder ?? [],
         ];
     }
 }

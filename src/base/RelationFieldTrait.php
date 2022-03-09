@@ -12,24 +12,34 @@ use craft\fields\data\MultiOptionsFieldData;
 use craft\fields\data\OptionData;
 use craft\fields\data\SingleOptionFieldData;
 use craft\helpers\ArrayHelper;
-use craft\helpers\Db;
 use craft\helpers\ElementHelper;
 use craft\helpers\Html;
 use craft\helpers\Json;
 use craft\helpers\Template as TemplateHelper;
+use Throwable;
+use craft\fields\Users;
+use craft\fields\Tags;
+use craft\fields\Table;
+use craft\fields\MultiSelect;
+use craft\fields\Matrix;
+use craft\fields\Entries;
+use craft\fields\Checkboxes;
+use craft\fields\Categories;
+use craft\fields\Assets;
+use Twig\Markup;
 
 trait RelationFieldTrait
 {
     // Properties
     // =========================================================================
 
-    public $limitOptions;
-    public $displayType = 'dropdown';
-    public $labelSource = 'title';
-    public $orderBy = 'title ASC';
-    public $multiple = false;
+    public ?string $limitOptions = null;
+    public string $displayType = 'dropdown';
+    public string $labelSource = 'title';
+    public string $orderBy = 'title ASC';
+    public bool $multiple = false;
 
-    protected $elementsQuery = null;
+    protected ?ElementQuery $elementsQuery = null;
 
 
     // Public Methods
@@ -51,10 +61,7 @@ trait RelationFieldTrait
         return false;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getIsMultiDropdown()
+    public function getIsMultiDropdown(): bool
     {
         return ($this->displayType === 'dropdown' && $this->multiple);
     }
@@ -67,9 +74,6 @@ trait RelationFieldTrait
         return !$this->getIsFieldset();
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getPreviewElements(): array
     {
         $options = array_map(function($input) {
@@ -82,10 +86,7 @@ trait RelationFieldTrait
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function modifyFieldSettings($settings)
+    public function modifyFieldSettings($settings): array
     {
         $defaultValue = $this->defaultValue ?? [];
 
@@ -93,14 +94,14 @@ trait RelationFieldTrait
         if ($ids = ArrayHelper::getColumn($defaultValue, 'id')) {
             $elements = static::elementType()::find()->id($ids)->all();
 
-            // Maintain an options array so we can keep track of the label in Vue, not just the saved value
+            // Maintain an options array, so we can keep track of the label in Vue, not just the saved value
             $settings['defaultValueOptions'] = array_map(function($input) {
                 return ['label' => $this->_getElementLabel($input), 'value' => $input->id];
             }, $elements);
 
             // Render the HTML needed for the element select field (for default value). jQuery needs DOM manipulation
             // so while gross, we have to supply the raw HTML, as opposed to models in the Vue-way.
-            $settings['defaultValueHtml'] = Craft::$app->getView()->renderTemplate('formie/_includes/element-select-inuput-elements', ['elements' => $elements]);
+            $settings['defaultValueHtml'] = Craft::$app->getView()->renderTemplate('formie/_includes/element-select-input-elements', ['elements' => $elements]);
         }
 
         // For certain display types, pre-fetch elements for use in the preview in the CP for the field. Saves an initial Ajax request
@@ -111,10 +112,7 @@ trait RelationFieldTrait
         return $settings;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getCpElementHtml(array &$context)
+    public function getCpElementHtml(array &$context): ?Markup
     {
         if (!isset($context['element'])) {
             return null;
@@ -235,7 +233,7 @@ trait RelationFieldTrait
     /**
      * @inheritdoc
      */
-    public function getInputHtml($value, ElementInterface $element = null): string
+    public function getInputHtml(mixed $value, ?ElementInterface $element = null): string
     {
         /** @var Element|null $element */
         if ($element !== null && $element->hasEagerLoadedElements($this->handle)) {
@@ -253,12 +251,9 @@ trait RelationFieldTrait
         return Craft::$app->getView()->renderTemplate($this->inputTemplate, $variables);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getDefaultValueQuery()
     {
-        $defaultValue = $this->defaultValue ?? [];
+        $defaultValue = $this->defaultValue ?? '';
 
         if ($defaultValue instanceof ElementQuery) {
             $defaultValue = $defaultValue->all();
@@ -273,7 +268,7 @@ trait RelationFieldTrait
         $defaultValue = array_filter($defaultValue);
 
         if ($defaultValue) {
-            // Handle when setting via an multi-dimensional array with `id`
+            // Handle when setting via a multidimensional array with `id`
             $ids = array_filter(ArrayHelper::getColumn($defaultValue, 'id'));
 
             // If nothing found, we might be setting an array of IDs
@@ -289,20 +284,14 @@ trait RelationFieldTrait
         return null;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function populateValue($value)
+    public function populateValue($value): void
     {
         $query = static::elementType()::find()->id($value);
 
         $this->defaultValue = $query;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getFieldOptions()
+    public function getFieldOptions(): array
     {
         $options = [];
 
@@ -318,10 +307,7 @@ trait RelationFieldTrait
         return $options;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getDisplayTypeValue($value)
+    public function getDisplayTypeValue($value): MultiOptionsFieldData|SingleOptionFieldData|null
     {
         if ($this->displayType === 'checkboxes' || $this->getIsMultiDropdown()) {
             $options = [];
@@ -336,20 +322,16 @@ trait RelationFieldTrait
         }
 
         if ($this->displayType === 'radio') {
-            if ($value) {
-                if ($element = $value->one()) {
-                    return new SingleOptionFieldData($this->_getElementLabel($element), $element->id, true);
-                }
+            if ($value && $element = $value->one()) {
+                return new SingleOptionFieldData($this->_getElementLabel($element), $element->id, true);
             }
 
             return null;
         }
 
         if ($this->displayType === 'dropdown') {
-            if ($value) {
-                if ($element = $value->one()) {
-                    return new SingleOptionFieldData($this->_getElementLabel($element), $element->id, true);
-                }
+            if ($value && $element = $value->one()) {
+                return new SingleOptionFieldData($this->_getElementLabel($element), $element->id, true);
             }
 
             return null;
@@ -358,41 +340,27 @@ trait RelationFieldTrait
         return $value;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function setElementsQuery($query)
+    public function setElementsQuery($query): void
     {
         $this->elementsQuery = $query;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function defineLabelSourceOptions()
+    public function defineLabelSourceOptions(): array
     {
         return [];
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getLabelSourceOptions()
+    public function getLabelSourceOptions(): array
     {
-        $options = array_merge([
+        return array_merge([
             ['value' => 'id', 'label' => Craft::t('app', 'ID')],
         ], $this->defineLabelSourceOptions(), [
             ['value' => 'dateCreated', 'label' => Craft::t('app', 'Date Created')],
             ['value' => 'dateUpdated', 'label' => Craft::t('app', 'Date Updated')],
         ]);
-
-        return $options;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getOrderByOptions()
+    public function getOrderByOptions(): array
     {
         $options = [];
 
@@ -408,10 +376,7 @@ trait RelationFieldTrait
     // Protected Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
-    protected function defineValueAsString($value, ElementInterface $element = null)
+    protected function defineValueAsString($value, ElementInterface $element = null): string
     {
         $value = $this->_all($value, $element)->all();
 
@@ -420,10 +385,7 @@ trait RelationFieldTrait
         }, $value));
     }
 
-    /**
-     * @inheritDoc
-     */
-    protected function defineValueAsJson($value, ElementInterface $element = null)
+    protected function defineValueAsJson($value, ElementInterface $element = null): array
     {
         $value = $this->_all($value, $element)->all();
 
@@ -432,10 +394,7 @@ trait RelationFieldTrait
         }, $value);
     }
 
-    /**
-     * @inheritDoc
-     */
-    protected function defineValueForIntegration($value, $integrationField, $integration, ElementInterface $element = null, $fieldKey = '')
+    protected function defineValueForIntegration($value, $integrationField, $integration, ElementInterface $element = null, $fieldKey = ''): mixed
     {
         // Set the status to null to include disabled elements
         $value->status(null);
@@ -463,24 +422,21 @@ trait RelationFieldTrait
         return null;
     }
 
-    /**
-     * @inheritDoc
-     */
-    protected function getStringCustomFieldOptions($fields)
+    protected function getStringCustomFieldOptions($fields): array
     {
         $options = [];
 
-        // Better to opt-out fields so we can always allow third-party ones which are impossible to check
+        // Better to opt-out fields, so we can always allow third-party ones which are impossible to check
         $excludedFields = [
-            \craft\fields\Assets::class,
-            \craft\fields\Categories::class,
-            \craft\fields\Checkboxes::class,
-            \craft\fields\Entries::class,
-            \craft\fields\Matrix::class,
-            \craft\fields\MultiSelect::class,
-            \craft\fields\Table::class,
-            \craft\fields\Tags::class,
-            \craft\fields\Users::class,
+            Assets::class,
+            Categories::class,
+            Checkboxes::class,
+            Entries::class,
+            Matrix::class,
+            MultiSelect::class,
+            Table::class,
+            Tags::class,
+            Users::class,
         ];
 
         foreach ($fields as $field) {
@@ -519,23 +475,17 @@ trait RelationFieldTrait
         return $clone;
     }
 
-    /**
-     * @inheritDoc
-     */
-    private function _getElementLabel($element)
+    private function _getElementLabel($element): string
     {
         try {
             return (string)$element->{$this->labelSource};
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
 
         }
 
         return $element->title;
     }
 
-    /**
-     * @inheritDoc
-     */
     private function _elementToArray($element)
     {
         // Watch out for nested element queries

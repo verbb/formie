@@ -1,17 +1,14 @@
 <?php
 namespace verbb\formie\migrations;
 
-use Craft;
 use craft\db\Migration;
-use craft\db\Query;
-use craft\helpers\MigrationHelper;
 
 class m200822_000000_integrations extends Migration
 {
     /**
      * @inheritdoc
      */
-    public function safeUp()
+    public function safeUp(): bool
     {
         if (!$this->db->tableExists('{{%formie_integrations}}')) {
             $this->createTable('{{%formie_integrations}}', [
@@ -37,7 +34,7 @@ class m200822_000000_integrations extends Migration
     /**
      * @inheritdoc
      */
-    public function safeDown()
+    public function safeDown(): bool
     {
         echo "m200822_000000_integrations cannot be reverted.\n";
         return false;

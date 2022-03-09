@@ -9,9 +9,9 @@ trait BaseFieldTrait
     /**
      * @inheritDoc
      */
-    public function beforeParseField()
+    public function beforeParseField(): void
     {
-        // Feed Me assumes all fields are available in the global scope so we fix that here.
+        // Feed Me assumes all fields are available in the global scope, so we fix that here.
         // We could also submit a PR to fix this at some point...
         $this->field = $this->element->getFieldLayout()->getFieldByHandle($this->fieldHandle);
     }
@@ -19,7 +19,7 @@ trait BaseFieldTrait
     /**
      * @inheritDoc
      */
-    public function parseField()
+    public function parseField(): void
     {
         $this->beforeParseField();
     }

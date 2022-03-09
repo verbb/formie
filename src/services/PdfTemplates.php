@@ -17,8 +17,6 @@ use craft\helpers\Db;
 use craft\helpers\FileHelper;
 use craft\helpers\StringHelper;
 use craft\helpers\Template;
-use craft\helpers\UrlHelper;
-use craft\web\View;
 
 use Dompdf\Dompdf;
 use Dompdf\Options;
@@ -35,17 +33,17 @@ class PdfTemplates extends Component
     // Constants
     // =========================================================================
 
-    const EVENT_BEFORE_SAVE_PDF_TEMPLATE = 'beforeSavePdfTemplate';
-    const EVENT_AFTER_SAVE_PDF_TEMPLATE = 'afterSavePdfTemplate';
-    const EVENT_BEFORE_DELETE_PDF_TEMPLATE = 'beforeDeletePdfTemplate';
-    const EVENT_BEFORE_APPLY_PDF_TEMPLATE_DELETE = 'beforeApplyPdfTemplateDelete';
-    const EVENT_AFTER_DELETE_PDF_TEMPLATE = 'afterDeletePdfTemplate';
+    public const EVENT_BEFORE_SAVE_PDF_TEMPLATE = 'beforeSavePdfTemplate';
+    public const EVENT_AFTER_SAVE_PDF_TEMPLATE = 'afterSavePdfTemplate';
+    public const EVENT_BEFORE_DELETE_PDF_TEMPLATE = 'beforeDeletePdfTemplate';
+    public const EVENT_BEFORE_APPLY_PDF_TEMPLATE_DELETE = 'beforeApplyPdfTemplateDelete';
+    public const EVENT_AFTER_DELETE_PDF_TEMPLATE = 'afterDeletePdfTemplate';
 
-    const EVENT_BEFORE_RENDER_PDF = 'beforeRenderPdf';
-    const EVENT_AFTER_RENDER_PDF = 'afterRenderPdf';
-    const EVENT_MODIFY_RENDER_OPTIONS = 'modifyRenderOptions';
+    public const EVENT_BEFORE_RENDER_PDF = 'beforeRenderPdf';
+    public const EVENT_AFTER_RENDER_PDF = 'afterRenderPdf';
+    public const EVENT_MODIFY_RENDER_OPTIONS = 'modifyRenderOptions';
 
-    const CONFIG_TEMPLATES_KEY = 'formie.pdfTemplates';
+    public const CONFIG_TEMPLATES_KEY = 'formie.pdfTemplates';
 
 
     // Private Properties
@@ -54,7 +52,7 @@ class PdfTemplates extends Component
     /**
      * @var PdfTemplate[]
      */
-    private $_templates;
+    private ?array $_templates = null;
 
 
     // Public Methods
@@ -66,7 +64,7 @@ class PdfTemplates extends Component
      * @param bool $withTrashed
      * @return PdfTemplate[]
      */
-    public function getAllTemplates($withTrashed = false): array
+    public function getAllTemplates(bool $withTrashed = false): array
     {
         // Get the caches items if we have them cached, and the request is for non-trashed items
         if ($this->_templates !== null) {
@@ -84,34 +82,34 @@ class PdfTemplates extends Component
     }
 
     /**
-     * Returns a template identified by it's ID.
+     * Returns a template identified by its ID.
      *
      * @param int $id
      * @return PdfTemplate|null
      */
-    public function getTemplateById($id)
+    public function getTemplateById(int $id): ?PdfTemplate
     {
         return ArrayHelper::firstWhere($this->getAllTemplates(), 'id', $id);
     }
 
     /**
-     * Returns a template identified by it's handle.
+     * Returns a template identified by its handle.
      *
      * @param string $handle
      * @return PdfTemplate|null
      */
-    public function getTemplateByHandle($handle)
+    public function getTemplateByHandle(string $handle): ?PdfTemplate
     {
         return ArrayHelper::firstWhere($this->getAllTemplates(), 'handle', $handle, false);
     }
 
     /**
-     * Returns a template identified by it's UID.
+     * Returns a template identified by its UID.
      *
      * @param string $uid
      * @return PdfTemplate|null
      */
-    public function getTemplateByUid(string $uid)
+    public function getTemplateByUid(string $uid): ?PdfTemplate
     {
         return ArrayHelper::firstWhere($this->getAllTemplates(), 'uid', $uid, false);
     }
@@ -195,7 +193,7 @@ class PdfTemplates extends Component
                 'handle' => $template->handle,
                 'template' => $template->template,
                 'filenameFormat' => $template->filenameFormat,
-                'sortOrder' => (int)($template->sortOrder ?? 99),
+                'sortOrder' => $template->sortOrder ?? 99,
             ];
         }
 
@@ -215,7 +213,7 @@ class PdfTemplates extends Component
      * @param ConfigEvent $event
      * @throws Throwable
      */
-    public function handleChangedTemplate(ConfigEvent $event)
+    public function handleChangedTemplate(ConfigEvent $event): void
     {
         $templateUid = $event->tokenMatches[0];
         $data = $event->newValue;
@@ -250,7 +248,7 @@ class PdfTemplates extends Component
     }
 
     /**
-     * Delete a template by it's id.
+     * Delete a template by its id.
      *
      * @param int $id
      * @return bool
@@ -296,7 +294,7 @@ class PdfTemplates extends Component
      * @param ConfigEvent $event
      * @throws Throwable
      */
-    public function handleDeletedTemplate(ConfigEvent $event)
+    public function handleDeletedTemplate(ConfigEvent $event): void
     {
         $uid = $event->tokenMatches[0];
 
@@ -330,9 +328,6 @@ class PdfTemplates extends Component
         }
     }
 
-    /**
-     * @inheritDoc
-     */
     public function renderPdf($pdfTemplate, $submission, $notification): string
     {
         $settings = Formie::getInstance()->getSettings();
@@ -473,7 +468,7 @@ class PdfTemplates extends Component
      * @param bool $withTrashed
      * @return Query
      */
-    private function _createTemplatesQuery($withTrashed = false): Query
+    private function _createTemplatesQuery(bool $withTrashed = false): Query
     {
         $query = (new Query())
             ->select([

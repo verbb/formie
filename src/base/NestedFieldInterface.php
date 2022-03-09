@@ -22,21 +22,21 @@ interface NestedFieldInterface extends ComponentInterface
      * @param array $rows
      * @param bool $duplicate
      */
-    public function setRows(array $rows, $duplicate = false);
+    public function setRows(array $rows, bool $duplicate = false);
 
     /**
      * Returns the field's field layout.
      *
      * @return FieldLayout|null
      */
-    public function getFieldLayout();
+    public function getFieldLayout(): ?FieldLayout;
 
     /**
      * Sets the field's field layout.
      *
      * @param FieldLayout $fieldLayout
      */
-    public function setFieldLayout(FieldLayout $fieldLayout);
+    public function setFieldLayout(FieldLayout $fieldLayout): void;
 
     /**
      * Returns the field context.

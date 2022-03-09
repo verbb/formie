@@ -3,29 +3,26 @@ namespace verbb\formie\integrations\addressproviders;
 
 use verbb\formie\Formie;
 use verbb\formie\base\AddressProvider;
-use verbb\formie\elements\Form;
-use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyAddressProviderHtmlEvent;
 
 use Craft;
 use craft\helpers\Json;
 use craft\helpers\Template;
-use craft\web\View;
 
 class Loqate extends AddressProvider
 {
     // Constants
     // =========================================================================
 
-    const LOQATE_INPUT_NAME = 'formie-loqate-autocomplete';
-    const EVENT_MODIFY_ADDRESS_PROVIDER_HTML = 'modifyAddressProviderHtml';
+    public const LOQATE_INPUT_NAME = 'formie-loqate-autocomplete';
+    public const EVENT_MODIFY_ADDRESS_PROVIDER_HTML = 'modifyAddressProviderHtml';
 
 
     // Properties
     // =========================================================================
 
-    public $apiKey;
-    public $reconfigurableOptions = [];
+    public ?string $apiKey = null;
+    public array $reconfigurableOptions = [];
 
 
     // Public Methods
@@ -39,9 +36,6 @@ class Loqate extends AddressProvider
         return Craft::t('formie', 'Loqate');
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getDescription(): string
     {
         return Craft::t('formie', 'Use [Loqate](https://www.loqate.com/) to suggest addresses, for address fields.');
@@ -92,7 +86,7 @@ class Loqate extends AddressProvider
     /**
      * @inheritDoc
      */
-    public function getFrontEndJsVariables($field = null)
+    public function getFrontEndJsVariables($field = null): ?array
     {
         if (!$this->hasValidSettings()) {
             return null;
@@ -127,10 +121,7 @@ class Loqate extends AddressProvider
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
-    private function _getOptions()
+    private function _getOptions(): array
     {
         $options = [];
         $optionsRaw = $this->reconfigurableOptions;

@@ -17,9 +17,6 @@ class WouldYou extends PredefinedOption
         return Craft::t('formie', 'Would You');
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function getDataOptions(): array
     {
         return [

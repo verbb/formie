@@ -19,9 +19,9 @@ use craft\gql\GqlEntityRegistry;
 use craft\helpers\Json;
 use craft\validators\ArrayValidator;
 
-use GraphQL\Type\Definition\InputObjectType;
 use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Type\Definition\Type;
+use Throwable;
 
 class Repeater extends FormField implements NestedFieldInterface, EagerLoadingFieldInterface
 {
@@ -64,20 +64,9 @@ class Repeater extends FormField implements NestedFieldInterface, EagerLoadingFi
     // Properties
     // =========================================================================
 
-    /**
-     * @var int
-     */
-    public $minRows;
-
-    /**
-     * @var int
-     */
-    public $maxRows;
-
-    /**
-     * @var string
-     */
-    public $addLabel;
+    public ?int $minRows = null;
+    public ?int $maxRows = null;
+    public ?string $addLabel = null;
 
 
     // Public Methods
@@ -134,7 +123,7 @@ class Repeater extends FormField implements NestedFieldInterface, EagerLoadingFi
     /**
      * @inheritDoc
      */
-    public function getInputHtml($value, ElementInterface $element = null): string
+    public function getInputHtml(mixed $value, ?ElementInterface $element = null): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/repeater/input', [
             'name' => $this->handle,
@@ -156,7 +145,7 @@ class Repeater extends FormField implements NestedFieldInterface, EagerLoadingFi
     /**
      * @inheritDoc
      */
-    public function populateValue($value)
+    public function populateValue($value): void
     {
         if (!is_array($value) || !isset($value[0])) {
             return;
@@ -172,7 +161,7 @@ class Repeater extends FormField implements NestedFieldInterface, EagerLoadingFi
                 $row->setFieldValues($fieldContent);
 
                 $blocks[] = $row;
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 continue;
             }
         }
@@ -186,7 +175,7 @@ class Repeater extends FormField implements NestedFieldInterface, EagerLoadingFi
     /**
      * @inheritDoc
      */
-    public function parsePopulatedFieldValues($value, $element)
+    public function parsePopulatedFieldValues($value, $element): array
     {
         // For when parsing populated content from the cache, when the field is visibly disabled
         // It's supplied in a format that makes sense for `populateValue()` but not for `$element->setFieldValue()`.
@@ -202,7 +191,7 @@ class Repeater extends FormField implements NestedFieldInterface, EagerLoadingFi
     /**
      * @inheritdoc
      */
-    public function getFrontEndJsModules()
+    public function getFrontEndJsModules(): ?array
     {
         $modules = [];
         
@@ -212,18 +201,16 @@ class Repeater extends FormField implements NestedFieldInterface, EagerLoadingFi
         ];
 
         // Ensure we also load any JS in nested fields
-        $modules = array_merge($modules, $this->traitGetFrontEndJsModules());
-
-        return $modules;
+        return array_merge($modules, $this->traitGetFrontEndJsModules());
     }
 
     /**
      * @inheritDoc
      */
-    public function getConfigJson()
+    public function getConfigJson(): ?string
     {
         // Override `getConfigJson` as we don't want to initialise any inner fields immediately.
-        // Even if there are min-rows, JS is the one to create the blocks, and initialize inner field JS.
+        // Even if there are min-rows, JS is the one to create the blocks, and initialise inner field JS.
         return Json::encode([
             'module' => 'FormieRepeater',
         ]);
@@ -294,9 +281,6 @@ class Repeater extends FormField implements NestedFieldInterface, EagerLoadingFi
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineConditionsSchema(): array
     {
         return [
@@ -308,7 +292,7 @@ class Repeater extends FormField implements NestedFieldInterface, EagerLoadingFi
     /**
      * @inheritDoc
      */
-    public function getContentGqlMutationArgumentType()
+    public function getContentGqlMutationArgumentType(): array|Type
     {
         return RepeaterInputType::getType($this);
     }
@@ -316,7 +300,7 @@ class Repeater extends FormField implements NestedFieldInterface, EagerLoadingFi
     /**
      * @inheritDoc
      */
-    public function getContentGqlType()
+    public function getContentGqlType(): array|Type
     {
         $typeName = ($this->getForm()->handle ?? '') . '_' . $this->handle . '_FormieRepeaterField';
 
@@ -327,7 +311,7 @@ class Repeater extends FormField implements NestedFieldInterface, EagerLoadingFi
         $rowTypeName = $typeName . 'Row';
         $repeaterFields = RowInterface::getFieldDefinitions();
 
-        foreach ($this->getFields() as $field) {
+        foreach ($this->getCustomFields() as $field) {
             $repeaterFields[$field->handle] = $field->getContentGqlType();
         }
 

@@ -17,9 +17,6 @@ class Acceptability extends PredefinedOption
         return Craft::t('formie', 'Acceptability');
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function getDataOptions(): array
     {
         return [

@@ -1,16 +1,14 @@
 <?php
 namespace verbb\formie\migrations;
 
-use Craft;
 use craft\db\Migration;
-use craft\db\Query;
 
 class m201108_000000_sent_notifications extends Migration
 {
     /**
      * @inheritdoc
      */
-    public function safeUp()
+    public function safeUp(): bool
     {
         if (!$this->getDb()->tableExists('{{%formie_sentnotifications}}')) {
             $this->createTable('{{%formie_sentnotifications}}', [
@@ -38,12 +36,14 @@ class m201108_000000_sent_notifications extends Migration
             $this->addForeignKey(null, '{{%formie_sentnotifications}}', ['formId'], '{{%formie_forms}}', ['id'], 'CASCADE', null);
             $this->addForeignKey(null, '{{%formie_sentnotifications}}', ['submissionId'], '{{%formie_submissions}}', ['id'], 'CASCADE', null);
         }
+
+        return true;
     }
 
     /**
      * @inheritdoc
      */
-    public function safeDown()
+    public function safeDown(): bool
     {
         echo "m201108_000000_sent_notifications cannot be reverted.\n";
         return false;

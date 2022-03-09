@@ -1,9 +1,7 @@
 <?php
 namespace verbb\formie\fields\formfields;
 
-use verbb\formie\Formie;
 use verbb\formie\base\FormField;
-use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\Notification;
@@ -48,7 +46,7 @@ class Password extends FormField implements PreviewableFieldInterface
     /**
      * @inheritDoc
      */
-    public function serializeValue($value, ElementInterface $element = null)
+    public function serializeValue(mixed $value, ?ElementInterface $element = null): mixed
     {
         // Only save the password as a hash
         if ($value) {
@@ -64,7 +62,7 @@ class Password extends FormField implements PreviewableFieldInterface
     /**
      * @inheritDoc
      */
-    public function getInputHtml($value, ElementInterface $element = null): string
+    public function getInputHtml(mixed $value, ?ElementInterface $element = null): string
     {
         // Mask the value for submissions (but no indication of length)
         if ($value) {
@@ -87,7 +85,7 @@ class Password extends FormField implements PreviewableFieldInterface
     /**
      * @inheritDoc
      */
-    public function getEmailHtml(Submission $submission, Notification $notification, $value, array $options = null)
+    public function getEmailHtml(Submission $submission, Notification $notification, mixed $value, array $options = null): string|null|bool
     {
         return false;
     }
@@ -159,9 +157,6 @@ class Password extends FormField implements PreviewableFieldInterface
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineConditionsSchema(): array
     {
         return [
@@ -177,7 +172,7 @@ class Password extends FormField implements PreviewableFieldInterface
     /**
      * @inheritDoc
      */
-    protected function defineValueForSummary($value, ElementInterface $element = null)
+    protected function defineValueForSummary($value, ElementInterface $element = null): string
     {
         // Mask the value for submissions (but no indication of length)
         if ($value) {
@@ -190,7 +185,7 @@ class Password extends FormField implements PreviewableFieldInterface
     /**
      * @inheritdoc
      */
-    protected function defineValueForExport($value, ElementInterface $element = null)
+    protected function defineValueForExport($value, ElementInterface $element = null): mixed
     {
         // Hide the hashed password from exports as well
         return $this->getValueForSummary($value, $element);

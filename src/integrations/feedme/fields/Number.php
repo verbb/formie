@@ -2,6 +2,7 @@
 namespace verbb\formie\integrations\feedme\fields;
 
 use craft\feedme\fields\Number as FeedMeNumber;
+use verbb\formie\fields\formfields\Number as NumberField;
 
 class Number extends FeedMeNumber
 {
@@ -15,6 +16,6 @@ class Number extends FeedMeNumber
     // =========================================================================
 
     public static $name = 'Number';
-    public static $class = 'verbb\formie\fields\formfields\Number';
+    public static $class = NumberField::class;
 
 }

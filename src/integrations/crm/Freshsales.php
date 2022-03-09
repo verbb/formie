@@ -3,35 +3,31 @@ namespace verbb\formie\integrations\crm;
 
 use verbb\formie\base\Crm;
 use verbb\formie\base\Integration;
-use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
-use verbb\formie\errors\IntegrationException;
-use verbb\formie\events\SendIntegrationPayloadEvent;
-use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
 use craft\helpers\ArrayHelper;
-use craft\helpers\Json;
 use craft\helpers\StringHelper;
-use craft\web\View;
+use GuzzleHttp\Client;
+use Throwable;
 
 class Freshsales extends Crm
 {
     // Properties
     // =========================================================================
 
-    public $apiKey;
-    public $apiDomain;
-    public $mapToContact = false;
-    public $mapToLead = false;
-    public $mapToDeal = false;
-    public $mapToAccount = false;
-    public $contactFieldMapping;
-    public $leadFieldMapping;
-    public $dealFieldMapping;
-    public $accountFieldMapping;
+    public ?string $apiKey = null;
+    public ?string $apiDomain = null;
+    public bool $mapToContact = false;
+    public bool $mapToLead = false;
+    public bool $mapToDeal = false;
+    public bool $mapToAccount = false;
+    public ?array $contactFieldMapping = null;
+    public ?array $leadFieldMapping = null;
+    public ?array $dealFieldMapping = null;
+    public ?array $accountFieldMapping = null;
 
 
     // Public Methods
@@ -45,9 +41,6 @@ class Freshsales extends Crm
         return Craft::t('formie', 'Freshsales');
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getDescription(): string
     {
         return Craft::t('formie', 'Manage your Freshsales customers by providing important information on their conversion on your site.');
@@ -87,10 +80,7 @@ class Freshsales extends Crm
         return $rules;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function fetchFormSettings()
+    public function fetchFormSettings(): IntegrationFormSettings
     {
         $settings = [];
 
@@ -497,16 +487,13 @@ class Freshsales extends Crm
                 'deal' => $dealFields,
                 'account' => $accountFields,
             ];
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Integration::apiError($this, $e);
         }
 
         return new IntegrationFormSettings($settings);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function sendPayload(Submission $submission): bool
     {
         try {
@@ -616,7 +603,7 @@ class Freshsales extends Crm
 
                 $dealId = $response['deal']['id'] ?? '';
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
             return false;
@@ -625,14 +612,11 @@ class Freshsales extends Crm
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function fetchConnection(): bool
     {
         try {
             $response = $this->request('GET', 'leads/filters');
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
             return false;
@@ -641,10 +625,7 @@ class Freshsales extends Crm
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getClient()
+    public function getClient(): Client
     {
         if ($this->_client) {
             return $this->_client;
@@ -666,9 +647,6 @@ class Freshsales extends Crm
     // Private Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     private function _convertFieldType($fieldType)
     {
         $fieldTypes = [
@@ -681,10 +659,7 @@ class Freshsales extends Crm
         return $fieldTypes[$fieldType] ?? IntegrationField::TYPE_STRING;
     }
 
-    /**
-     * @inheritDoc
-     */
-    private function _getCustomFields($fields, $excludeNames = [])
+    private function _getCustomFields($fields, $excludeNames = []): array
     {
         $customFields = [];
 
@@ -728,10 +703,7 @@ class Freshsales extends Crm
         return $customFields;
     }
 
-    /**
-     * @inheritDoc
-     */
-    private function _prepCustomFields(&$fields)
+    private function _prepCustomFields(&$fields): array
     {
         $customFields = [];
 

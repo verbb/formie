@@ -8,30 +8,32 @@ use verbb\formie\web\assets\widgets\WidgetsAsset;
 use Craft;
 use craft\base\Widget;
 use craft\db\Query;
-use craft\helpers\ArrayHelper;
 use craft\helpers\DateTimeHelper;
 use craft\helpers\Db;
 use craft\helpers\StringHelper;
 
 use yii\db\Expression;
 
+use DateTime;
+use DateInterval;
+
 class RecentSubmissions extends Widget
 {
     // Constants
     // =========================================================================
 
-    const DATE_RANGE_ALL = 'all';
-    const DATE_RANGE_TODAY = 'today';
-    const DATE_RANGE_THISWEEK = 'thisWeek';
-    const DATE_RANGE_THISMONTH = 'thisMonth';
-    const DATE_RANGE_THISYEAR = 'thisYear';
-    const DATE_RANGE_PAST7DAYS = 'past7Days';
-    const DATE_RANGE_PAST30DAYS = 'past30Days';
-    const DATE_RANGE_PAST90DAYS = 'past90Days';
-    const DATE_RANGE_PASTYEAR = 'pastYear';
-    const DATE_RANGE_CUSTOM = 'custom';
+    public const DATE_RANGE_ALL = 'all';
+    public const DATE_RANGE_TODAY = 'today';
+    public const DATE_RANGE_THISWEEK = 'thisWeek';
+    public const DATE_RANGE_THISMONTH = 'thisMonth';
+    public const DATE_RANGE_THISYEAR = 'thisYear';
+    public const DATE_RANGE_PAST7DAYS = 'past7Days';
+    public const DATE_RANGE_PAST30DAYS = 'past30Days';
+    public const DATE_RANGE_PAST90DAYS = 'past90Days';
+    public const DATE_RANGE_PASTYEAR = 'pastYear';
+    public const DATE_RANGE_CUSTOM = 'custom';
 
-    const START_DAY_INT_TO_DAY = [
+    public const START_DAY_INT_TO_DAY = [
         0 => 'Sunday',
         1 => 'Monday',
         2 => 'Tuesday',
@@ -41,7 +43,7 @@ class RecentSubmissions extends Widget
         6 => 'Saturday',
     ];
 
-    const START_DAY_INT_TO_END_DAY = [
+    public const START_DAY_INT_TO_END_DAY = [
         0 => 'Saturday',
         1 => 'Sunday',
         2 => 'Monday',
@@ -51,7 +53,7 @@ class RecentSubmissions extends Widget
         6 => 'Friday',
     ];
 
-    const DATE_RANGE_INTERVAL = [
+    public const DATE_RANGE_INTERVAL = [
         self::DATE_RANGE_TODAY => 'day',
         self::DATE_RANGE_THISWEEK => 'day',
         self::DATE_RANGE_THISMONTH => 'day',
@@ -67,14 +69,14 @@ class RecentSubmissions extends Widget
     // Properties
     // =========================================================================
 
-    public $title;
-    public $formIds = [];
-    public $limit = 5;
-    public $displayType = 'list';
-    public $startDate;
-    public $endDate;
-    public $dateRange;
-    public $weekStartDay = 1;
+    public ?string $title = null;
+    public ?array $formIds = [];
+    public ?int $limit = 5;
+    public ?string $displayType = 'list';
+    public ?DateTime $startDate = null;
+    public ?DateTime $endDate = null;
+    public mixed $dateRange = null;
+    public ?int $weekStartDay = 1;
 
 
     // Public Methods
@@ -83,7 +85,7 @@ class RecentSubmissions extends Widget
     /**
      * @inheritDoc
      */
-    public function init()
+    public function init(): void
     {
         parent::init();
 
@@ -117,7 +119,7 @@ class RecentSubmissions extends Widget
     /**
      * @inheritdoc
      */
-    public function rules()
+    public function rules(): array
     {
         return [
             [['formIds'], 'required'],
@@ -135,7 +137,7 @@ class RecentSubmissions extends Widget
     /**
      * @inheritdoc
      */
-    public function getBodyHtml()
+    public function getBodyHtml(): ?string
     {
         $view = Craft::$app->getView();
         $view->registerAssetBundle(WidgetsAsset::class);
@@ -167,7 +169,7 @@ class RecentSubmissions extends Widget
             $combinedChartData = [];
             $formTitles = [];
 
-            foreach ($forms as $key => $form) {
+            foreach ($forms as $form) {
                 $formTitles[] = $form->title;
 
                 $chartData = $this->_createChartQuery($this->getQuery($form), [
@@ -225,10 +227,7 @@ class RecentSubmissions extends Widget
     // Private Methods
     // =========================================================================
 
-    /**
-     * @inheritdoc
-     */
-    private function getQuery($form)
+    private function getQuery($form): Query
     {
         $startDate = null;
         $endDate = null;
@@ -258,12 +257,9 @@ class RecentSubmissions extends Widget
         return $query;
     }
 
-    /**
-     * @inheritdoc
-     */
-    private function _getStartDate(string $dateRange)
+    private function _getStartDate(string $dateRange): DateTime|bool|null
     {
-        $date = new \DateTime();
+        $date = new DateTime();
 
         if ($dateRange === self::DATE_RANGE_ALL) {
             return null;
@@ -288,15 +284,15 @@ class RecentSubmissions extends Widget
             // Minus one so we include today as a "past day"
             $number--;
             $date = $this->_getEndDate($dateRange);
-            $interval = new \DateInterval('P' . $number . 'D');
+            $interval = new DateInterval('P' . $number . 'D');
             $date->sub($interval);
         }
 
         if ($dateRange === self::DATE_RANGE_PASTYEAR) {
             $date = $this->_getEndDate($dateRange);
-            $interval = new \DateInterval('P1Y');
+            $interval = new DateInterval('P1Y');
             $date->sub($interval);
-            $date->add(new \DateInterval('P1M'));
+            $date->add(new DateInterval('P1M'));
         }
 
         $date->setTime(0, 0, 0);
@@ -304,12 +300,9 @@ class RecentSubmissions extends Widget
         return $date;
     }
 
-    /**
-     * @inheritdoc
-     */
-    private function _getEndDate(string $dateRange)
+    private function _getEndDate(string $dateRange): DateTime|bool
     {
-        $date = new \DateTime();
+        $date = new DateTime();
 
         if ($dateRange === self::DATE_RANGE_THISMONTH) {
             $date = DateTimeHelper::toDateTime(strtotime('last day of this month'));
@@ -328,7 +321,7 @@ class RecentSubmissions extends Widget
         return $date;
     }
 
-    private function _createChartQuery($query, array $select = [], array $resultsDefaults = [])
+    private function _createChartQuery($query, array $select = [], array $resultsDefaults = []): ?array
     {
         // Allow the passing in of a custom query in case we need to add extra logic
         $defaults = [];
@@ -349,7 +342,7 @@ class RecentSubmissions extends Widget
             $tmp['datekey'] = $key;
 
             $defaults[$key] = $tmp;
-            $dateKeyDate->add(new \DateInterval($options['interval']));
+            $dateKeyDate->add(new DateInterval($options['interval']));
         }
 
         // Add defaults to select
@@ -367,7 +360,7 @@ class RecentSubmissions extends Widget
         return $return;
     }
 
-    private function getDateRangeInterval()
+    private function getDateRangeInterval(): string
     {
         if ($this->dateRange == self::DATE_RANGE_CUSTOM) {
             $interval = date_diff(DateTimeHelper::toDateTime($this->startDate), DateTimeHelper::toDateTime($this->endDate));
@@ -377,7 +370,7 @@ class RecentSubmissions extends Widget
         return self::DATE_RANGE_INTERVAL[$this->dateRange] ?? 'day';
     }
 
-    private function getChartQueryOptionsByInterval(string $interval)
+    private function getChartQueryOptionsByInterval(string $interval): ?array
     {
         switch ($interval) {
             case 'month':
@@ -389,7 +382,6 @@ class RecentSubmissions extends Widget
                     'groupBy' => 'CONCAT(EXTRACT(YEAR FROM [[elements.dateCreated]]), \'-\', EXTRACT(MONTH FROM [[elements.dateCreated]]))',
                     'orderBy' => 'CONCAT(EXTRACT(YEAR FROM [[elements.dateCreated]]), \'-\', EXTRACT(MONTH FROM [[elements.dateCreated]])) ASC',
                 ];
-                break;
             }
             case 'day':
             {
@@ -400,7 +392,6 @@ class RecentSubmissions extends Widget
                     'groupBy' => 'DATE([[elements.dateCreated]])',
                     'orderBy' => 'DATE([[elements.dateCreated]])',
                 ];
-                break;
             }
         }
 

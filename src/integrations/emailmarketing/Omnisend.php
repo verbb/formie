@@ -3,10 +3,7 @@ namespace verbb\formie\integrations\emailmarketing;
 
 use verbb\formie\base\Integration;
 use verbb\formie\base\EmailMarketing;
-use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
-use verbb\formie\errors\IntegrationException;
-use verbb\formie\events\SendIntegrationPayloadEvent;
 use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
@@ -14,14 +11,16 @@ use verbb\formie\models\IntegrationFormSettings;
 use Craft;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
-use craft\web\View;
+use GuzzleHttp\Client;
+use Throwable;
+use DateTime;
 
 class Omnisend extends EmailMarketing
 {
     // Properties
     // =========================================================================
 
-    public $apiKey;
+    public ?string $apiKey = null;
 
 
     // Public Methods
@@ -35,9 +34,6 @@ class Omnisend extends EmailMarketing
         return Craft::t('formie', 'Omnisend');
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getDescription(): string
     {
         return Craft::t('formie', 'Sign up users to your Omnisend lists to grow your audience for campaigns.');
@@ -55,10 +51,7 @@ class Omnisend extends EmailMarketing
         return $rules;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function fetchFormSettings()
+    public function fetchFormSettings(): IntegrationFormSettings
     {
         $settings = [];
 
@@ -84,16 +77,13 @@ class Omnisend extends EmailMarketing
                 'name' => 'All Contacts',
                 'fields' => $listFields,
             ]);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Integration::apiError($this, $e);
         }
 
         return new IntegrationFormSettings($settings);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function sendPayload(Submission $submission): bool
     {
         try {
@@ -110,7 +100,7 @@ class Omnisend extends EmailMarketing
                         'channels' => [
                             'email' => [
                                 'status' => 'subscribed',
-                                'statusDate' => (new \DateTime())->format('c'),
+                                'statusDate' => (new DateTime())->format('c'),
                             ],
                         ],
                     ],
@@ -133,7 +123,7 @@ class Omnisend extends EmailMarketing
 
                 return false;
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
             return false;
@@ -142,14 +132,11 @@ class Omnisend extends EmailMarketing
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function fetchConnection(): bool
     {
         try {
             $response = $this->request('GET', 'contacts');
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
             return false;
@@ -158,10 +145,7 @@ class Omnisend extends EmailMarketing
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getClient()
+    public function getClient(): Client
     {
         if ($this->_client) {
             return $this->_client;

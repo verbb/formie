@@ -9,7 +9,6 @@ use verbb\formie\elements\SentNotification;
 use verbb\formie\models\Status;
 use verbb\formie\models\Stencil;
 use verbb\formie\models\StencilData;
-use verbb\formie\services\Forms;
 use verbb\formie\services\Statuses;
 use verbb\formie\services\Stencils;
 
@@ -26,7 +25,7 @@ class Install extends Migration
     /**
      * @inheritdoc
      */
-    public function safeUp()
+    public function safeUp(): bool
     {
         $this->createTables();
         $this->createIndexes();
@@ -39,7 +38,7 @@ class Install extends Migration
     /**
      * @inheritdoc
      */
-    public function safeDown()
+    public function safeDown(): bool
     {
         // Drop all form content tables
         if ($this->db->tableExists('{{%formie_forms}}')) {
@@ -61,7 +60,7 @@ class Install extends Migration
         return true;
     }
 
-    public function createTables()
+    public function createTables(): void
     {
         $this->createTable('{{%formie_emailtemplates}}', [
             'id' => $this->primaryKey(),
@@ -335,7 +334,7 @@ class Install extends Migration
         ]);
     }
 
-    public function createIndexes()
+    public function createIndexes(): void
     {
         $this->createIndex(null, '{{%formie_forms}}', 'templateId', false);
         $this->createIndex(null, '{{%formie_forms}}', 'defaultStatusId', false);
@@ -365,7 +364,7 @@ class Install extends Migration
         $this->createIndex(null, '{{%formie_syncfields}}', ['syncId', 'fieldId'], true);
     }
 
-    public function addForeignKeys()
+    public function addForeignKeys(): void
     {
         $this->addForeignKey(null, '{{%formie_forms}}', ['id'], '{{%elements}}', ['id'], 'CASCADE', null);
         $this->addForeignKey(null, '{{%formie_forms}}', ['templateId'], '{{%formie_formtemplates}}', ['id'], 'SET NULL', null);
@@ -402,7 +401,7 @@ class Install extends Migration
         $this->addForeignKey(null, '{{%formie_syncfields}}', ['fieldId'], '{{%fields}}', ['id'], 'CASCADE', null);
     }
 
-    protected function dropForeignKeys()
+    protected function dropForeignKeys(): void
     {
         $tables = [
             'formie_emailtemplates',
@@ -432,7 +431,7 @@ class Install extends Migration
         }
     }
 
-    public function removeTables()
+    public function removeTables(): void
     {
         $tables = [
             'formie_emailtemplates',
@@ -460,7 +459,7 @@ class Install extends Migration
         }
     }
 
-    public function removeContent()
+    public function removeContent(): void
     {
         // Delete Sent Notification Elements
         $this->delete('{{%elements}}', ['type' => SentNotification::class]);
@@ -475,12 +474,12 @@ class Install extends Migration
         $this->delete('{{%elements}}', ['type' => NestedFieldRow::class]);
     }
 
-    public function dropProjectConfig()
+    public function dropProjectConfig(): void
     {
         Craft::$app->projectConfig->remove('formie');
     }
 
-    public function insertDefaultData()
+    public function insertDefaultData(): void
     {
         $projectConfig = Craft::$app->projectConfig;
 
@@ -515,7 +514,7 @@ class Install extends Migration
         }
     }
 
-    private function _defaultStatuses()
+    private function _defaultStatuses(): void
     {
         $statuses = [
             [
@@ -533,7 +532,7 @@ class Install extends Migration
         }
     }
 
-    private function _defaultStencils()
+    private function _defaultStencils(): void
     {
         $stencils = [
             [

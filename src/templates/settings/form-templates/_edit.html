@@ -7,8 +7,8 @@
 ] %}
 
 {% set tabs = {
-    0: { label: 'Settings' | t('app'), url: '#settings' },
-    1: { label: 'Form Fields' | t('formie'), url: '#form-fields' },
+    settings: { label: 'Settings' | t('app'), url: '#settings' },
+    fields: { label: 'Form Fields' | t('formie'), url: '#form-fields' },
 } %}
 
 {% set selectedSubnavItem = 'settings' %}
@@ -52,7 +52,7 @@
     }) }}
 
     {% set templateTip -%}
-        <a href="https://github.com/verbb/formie/tree/craft-3/src/templates/_special/form-template">{{ 'Directory structure example.' | t('formie') }}</a>
+        <a href="https://github.com/verbb/formie/tree/craft-4/src/templates/_special/form-template">{{ 'Directory structure example.' | t('formie') }}</a>
     {%- endset %}
 
     {{ forms.lightswitchField({

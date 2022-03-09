@@ -1,22 +1,19 @@
 <?php
 namespace verbb\formie\migrations;
 
-use verbb\formie\elements\Form;
 use verbb\formie\prosemirror\toprosemirror\Renderer;
 
 use Craft;
 use craft\db\Migration;
 use craft\db\Query;
-use craft\helpers\Db;
 use craft\helpers\Json;
-use craft\helpers\StringHelper;
 
 class m200725_100000_convert_error_message extends Migration
 {
     /**
      * @inheritdoc
      */
-    public function safeUp()
+    public function safeUp(): void
     {
         $forms = (new Query())
             ->select(['id', 'handle', 'settings'])
@@ -62,7 +59,7 @@ class m200725_100000_convert_error_message extends Migration
     /**
      * @inheritdoc
      */
-    public function safeDown()
+    public function safeDown(): bool
     {
         echo "m200725_100000_convert_error_message cannot be reverted.\n";
         return false;

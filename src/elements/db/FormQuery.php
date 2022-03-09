@@ -1,12 +1,9 @@
 <?php
 namespace verbb\formie\elements\db;
 
-use Craft;
 use craft\db\Query;
-use craft\db\QueryAbortedException;
 use craft\elements\db\ElementQuery;
 use craft\helpers\Db;
-use verbb\formie\elements\Form;
 use verbb\formie\models\FormTemplate;
 
 class FormQuery extends ElementQuery
@@ -14,22 +11,22 @@ class FormQuery extends ElementQuery
     // Properties
     // =========================================================================
 
-    public $handle;
-    public $templateId;
+    public mixed $handle = null;
+    public mixed $templateId = null;
 
-    protected $defaultOrderBy = ['elements.dateCreated' => SORT_DESC];
+    protected array $defaultOrderBy = ['elements.dateCreated' => SORT_DESC];
 
 
     // Public Methods
     // =========================================================================
 
-    public function handle($value): FormQuery
+    public function handle($value): static
     {
         $this->handle = $value;
         return $this;
     }
 
-    public function template($value): FormQuery
+    public function template($value): static
     {
         if ($value instanceof FormTemplate) {
             $this->templateId = $value->id;
@@ -46,7 +43,7 @@ class FormQuery extends ElementQuery
         return $this;
     }
 
-    public function templateId($value): FormQuery
+    public function templateId($value): static
     {
         $this->templateId = $value;
         return $this;

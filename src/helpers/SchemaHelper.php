@@ -6,14 +6,12 @@ use verbb\formie\Formie;
 
 use Craft;
 
-use Throwable;
-
 class SchemaHelper
 {
     // Public Methods
     // =========================================================================
 
-    public static function textField($config = [])
+    public static function textField($config = []): array
     {
         return array_merge([
             'type' => 'text',
@@ -22,7 +20,7 @@ class SchemaHelper
         ], $config);
     }
 
-    public static function textareaField($config = [])
+    public static function textareaField($config = []): array
     {
         return array_merge([
             'type' => 'textarea',
@@ -30,21 +28,21 @@ class SchemaHelper
         ], $config);
     }
 
-    public static function selectField($config = [])
+    public static function selectField($config = []): array
     {
         return array_merge([
             'type' => 'select',
         ], $config);
     }
 
-    public static function multiSelectField($config = [])
+    public static function multiSelectField($config = []): array
     {
         return array_merge([
             'type' => 'multiSelect',
         ], $config);
     }
 
-    public static function dateField($config = [])
+    public static function dateField($config = []): array
     {
         return array_merge([
             'type' => 'date',
@@ -52,7 +50,7 @@ class SchemaHelper
         ], $config);
     }
 
-    public static function checkboxSelectField($config = [])
+    public static function checkboxSelectField($config = []): array
     {
         // Might be a bug in Formulate, getting `Duplicate keys detected: 'formulate-global-2'.`
         if (isset($config['options'])) {
@@ -66,7 +64,7 @@ class SchemaHelper
         ], $config);
     }
 
-    public static function checkboxField($config = [])
+    public static function checkboxField($config = []): array
     {
         // Might be a bug in Formulate, getting `Duplicate keys detected: 'formulate-global-2'.`
         if (isset($config['options'])) {
@@ -80,7 +78,7 @@ class SchemaHelper
         ], $config);
     }
 
-    public static function lightswitchField($config = [])
+    public static function lightswitchField($config = []): array
     {
         return array_merge([
             'type' => 'lightswitch',
@@ -88,7 +86,7 @@ class SchemaHelper
         ], $config);
     }
 
-    public static function toggleContainer($toggleAttribute, $config = [])
+    public static function toggleContainer($toggleAttribute, $config = []): array
     {
         return [
             'component' => 'toggle-group',
@@ -97,7 +95,7 @@ class SchemaHelper
         ];
     }
 
-    public static function toggleBlocks($config, $children = [])
+    public static function toggleBlocks($config, $children = []): array
     {
         return array_merge([
             'type' => 'toggleBlocks',
@@ -106,7 +104,7 @@ class SchemaHelper
         ], $config);
     }
 
-    public static function toggleBlock($config, $children = [])
+    public static function toggleBlock($config, $children = []): array
     {
         return array_merge([
             'type' => 'toggleBlock',
@@ -114,7 +112,7 @@ class SchemaHelper
         ], $config);
     }
 
-    public static function tableField($config = [])
+    public static function tableField($config = []): array
     {
         return array_merge([
             'component' => 'table-block',
@@ -122,21 +120,21 @@ class SchemaHelper
         ], $config);
     }
 
-    public static function variableTextField($config = [])
+    public static function variableTextField($config = []): array
     {
         return array_merge([
             'type' => 'variableText',
         ], $config);
     }
 
-    public static function richTextField($config = [])
+    public static function richTextField($config = []): array
     {
         return array_merge([
             'type' => 'richText',
         ], $config);
     }
 
-    public static function elementSelectField($config = [])
+    public static function elementSelectField($config = []): array
     {
         return array_merge([
             'type' => 'elementSelect',
@@ -147,7 +145,7 @@ class SchemaHelper
     // Reusable
     // =========================================================================
 
-    public static function labelField($config = [])
+    public static function labelField($config = []): array
     {
         return array_merge(self::textField([
             'label' => Craft::t('formie', 'Label'),
@@ -158,7 +156,7 @@ class SchemaHelper
         ]), $config);
     }
 
-    public static function handleField($config = [])
+    public static function handleField($config = []): array
     {
         return array_merge([
             'label' => Craft::t('formie', 'Handle'),
@@ -172,7 +170,7 @@ class SchemaHelper
         ], $config);
     }
 
-    public static function labelPosition(FormFieldInterface $field, $config = [])
+    public static function labelPosition(FormFieldInterface $field, $config = []): array
     {
         return array_merge(self::selectField([
             'label' => Craft::t('formie', 'Label Position'),
@@ -185,7 +183,7 @@ class SchemaHelper
         ]), $config);
     }
 
-    public static function subfieldLabelPosition($config = [])
+    public static function subfieldLabelPosition($config = []): array
     {
         return array_merge(self::selectField([
             'label' => Craft::t('formie', 'Subfield Label Position'),
@@ -198,7 +196,7 @@ class SchemaHelper
         ]), $config);
     }
 
-    public static function instructions($config = [])
+    public static function instructions($config = []): array
     {
         return array_merge(self::textareaField([
             'label' => Craft::t('formie', 'Instructions'),
@@ -208,7 +206,7 @@ class SchemaHelper
         ]), $config);
     }
 
-    public static function instructionsPosition(FormFieldInterface $field, $config = [])
+    public static function instructionsPosition(FormFieldInterface $field, $config = []): array
     {
         return array_merge(self::selectField([
             'label' => Craft::t('formie', 'Instructions Position'),
@@ -221,7 +219,7 @@ class SchemaHelper
         ]), $config);
     }
 
-    public static function cssClasses($config = [])
+    public static function cssClasses($config = []): array
     {
         return array_merge(self::textField([
             'label' => Craft::t('formie', 'CSS Classes'),
@@ -230,7 +228,7 @@ class SchemaHelper
         ]), $config);
     }
 
-    public static function containerAttributesField($config = [])
+    public static function containerAttributesField($config = []): array
     {
         return array_merge(self::tableField([
             'label' => Craft::t('formie', 'Container Attributes'),
@@ -257,7 +255,7 @@ class SchemaHelper
         ]), $config);
     }
 
-    public static function inputAttributesField($config = [])
+    public static function inputAttributesField($config = []): array
     {
         return array_merge(self::tableField([
             'label' => Craft::t('formie', 'Input Attributes'),
@@ -284,7 +282,7 @@ class SchemaHelper
         ]), $config);
     }
 
-    public static function prePopulate($config = [])
+    public static function prePopulate($config = []): array
     {
         return array_merge(self::textField([
             'label' => Craft::t('formie', 'Pre-Populate Value'),
@@ -293,7 +291,7 @@ class SchemaHelper
         ]), $config);
     }
 
-    public static function enableConditionsField($config = [])
+    public static function enableConditionsField($config = []): array
     {
         return self::lightswitchField(array_merge([
             'label' => Craft::t('formie', 'Enable Conditions'),
@@ -302,7 +300,7 @@ class SchemaHelper
         ], $config));
     }
 
-    public static function conditionsField($config = [])
+    public static function conditionsField($config = []): array
     {
         return self::toggleContainer('settings.enableConditions', array_merge([
             [
@@ -312,7 +310,7 @@ class SchemaHelper
         ], $config));
     }
 
-    public static function enableContentEncryptionField($config = [])
+    public static function enableContentEncryptionField($config = []): array
     {
         return self::lightswitchField(array_merge([
             'label' => Craft::t('formie', 'Enable Content Encryption'),
@@ -321,10 +319,10 @@ class SchemaHelper
         ], $config));
     }
 
-    public static function visibility($config = [])
+    public static function visibility($config = []): array
     {
         return array_merge(self::selectField([
-            'label' => Craft::t('formie', 'Visiblity'),
+            'label' => Craft::t('formie', 'Visibility'),
             'help' => Craft::t('formie', 'The visibility of the field on the front-end.'),
             'info' => Craft::t('formie', 'A “Hidden” field will be hidden from view, but still rendered. A “Disabled” field will not be rendered on the page at all.'),
             'name' => 'visibility',
@@ -336,7 +334,7 @@ class SchemaHelper
         ]), $config);
     }
 
-    public static function columnTypeField($config = [])
+    public static function columnTypeField($config = []): array
     {
         return array_merge(self::selectField([
             'label' => Craft::t('formie', 'Column Type'),
@@ -352,7 +350,7 @@ class SchemaHelper
         ]), $config);
     }
 
-    public static function matchField($config = [])
+    public static function matchField($config = []): array
     {
         return array_merge([
             'label' => Craft::t('formie', 'Match Field'),
@@ -363,7 +361,7 @@ class SchemaHelper
         ], $config);
     } 
 
-    public static function extractFieldsFromSchema($fieldSchema, $names = [])
+    public static function extractFieldsFromSchema($fieldSchema, $names = []): array
     {
         foreach ($fieldSchema as $field) {
             if (isset($field['name'])) {
@@ -378,7 +376,7 @@ class SchemaHelper
         return $names;
     }
 
-    public static function extractFieldInfoFromSchema($fieldSchema, &$names = [])
+    public static function extractFieldInfoFromSchema($fieldSchema, &$names = []): array
     {
         foreach ($fieldSchema as $field) {
             if (isset($field['name'])) {
@@ -393,7 +391,7 @@ class SchemaHelper
         return $names;
     }
 
-    public static function setFieldValidationName(&$fieldSchema)
+    public static function setFieldValidationName(&$fieldSchema): void
     {
         foreach ($fieldSchema as &$field) {
             if (isset($field['name']) && isset($field['label'])) {

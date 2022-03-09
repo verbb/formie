@@ -1,6 +1,8 @@
 <?php
 namespace verbb\formie\events;
 
+use verbb\formie\models\Stencil;
+
 use yii\base\Event;
 
 class StencilEvent extends Event
@@ -8,7 +10,7 @@ class StencilEvent extends Event
     // Properties
     // =========================================================================
 
-    public $stencil;
-    public $isNew = false;
+    public ?Stencil $stencil = null;
+    public bool $isNew = false;
 
 }

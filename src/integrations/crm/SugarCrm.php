@@ -4,39 +4,34 @@ namespace verbb\formie\integrations\crm;
 use verbb\formie\Formie;
 use verbb\formie\base\Crm;
 use verbb\formie\base\Integration;
-use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
-use verbb\formie\errors\IntegrationException;
-use verbb\formie\events\SendIntegrationPayloadEvent;
-use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 use verbb\formie\models\Token;
 
 use Craft;
-use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 use craft\helpers\StringHelper;
-use craft\web\View;
 
-use League\OAuth2\Client\Grant\RefreshToken;
+use Throwable;
+use GuzzleHttp\Client;
 
 class SugarCrm extends Crm
 {
     // Properties
     // =========================================================================
 
-    public $username;
-    public $password;
-    public $apiDomain;
-    public $mapToContact = false;
-    public $mapToLead = false;
-    public $mapToOpportunity = false;
-    public $mapToAccount = false;
-    public $contactFieldMapping;
-    public $leadFieldMapping;
-    public $opportunityFieldMapping;
-    public $accountFieldMapping;
+    public ?string $username = null;
+    public ?string $password = null;
+    public ?string $apiDomain = null;
+    public bool $mapToContact = false;
+    public bool $mapToLead = false;
+    public bool $mapToOpportunity = false;
+    public bool $mapToAccount = false;
+    public ?array $contactFieldMapping = null;
+    public ?array $leadFieldMapping = null;
+    public ?array $opportunityFieldMapping = null;
+    public ?array $accountFieldMapping = null;
 
 
     // OAuth Methods
@@ -61,19 +56,11 @@ class SugarCrm extends Crm
     /**
      * @inheritDoc
      */
-    public function getAuthorizeUrl(): string
-    {
-        return '';
-    }
-
-    /**
-     * @inheritDoc
-     */
     public function getAccessTokenUrl(): string
     {
         $apiDomain = rtrim(Craft::parseEnv($this->apiDomain), '/');
 
-        return "{$apiDomain}/rest/v11/oauth2/token";;
+        return "{$apiDomain}/rest/v11/oauth2/token";
     }
 
     /**
@@ -87,15 +74,7 @@ class SugarCrm extends Crm
     /**
      * @inheritDoc
      */
-    public function getClientSecret(): string
-    {
-        return '';
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function oauthCallback()
+    public function oauthCallback(): array
     {
         $provider = $this->getOauthProvider();
 
@@ -128,9 +107,6 @@ class SugarCrm extends Crm
         return Craft::t('formie', 'SugarCRM');
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getDescription(): string
     {
         return Craft::t('formie', 'Manage your SugarCRM customers by providing important information on their conversion on your site.');
@@ -170,10 +146,7 @@ class SugarCrm extends Crm
         return $rules;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function fetchFormSettings()
+    public function fetchFormSettings(): IntegrationFormSettings
     {
         $settings = [];
 
@@ -224,16 +197,13 @@ class SugarCrm extends Crm
                 'opportunity' => $opportunityFields,
                 'account' => $accountFields,
             ];
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Integration::apiError($this, $e);
         }
 
         return new IntegrationFormSettings($settings);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function sendPayload(Submission $submission): bool
     {
         try {
@@ -322,7 +292,7 @@ class SugarCrm extends Crm
                     return false;
                 }
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
             return false;
@@ -331,10 +301,7 @@ class SugarCrm extends Crm
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getClient()
+    public function getClient(): Client
     {
         if ($this->_client) {
             return $this->_client;
@@ -355,7 +322,7 @@ class SugarCrm extends Crm
         // We can't always rely on the EOL of the token.
         try {
             $response = $this->request('GET', 'ping');
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             if ($e->getCode() === 401) {
                 // Force-refresh the token
                 $this->_refreshToken($token, true);
@@ -378,15 +345,12 @@ class SugarCrm extends Crm
     // Private Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
-    private function _refreshToken(Token $token, $force = false)
+    private function _refreshToken(Token $token, $force = false): void
     {
         $time = time();
 
         // Must use a custom function here because of the specific grant required.
-        if ($token->endOfLife && $token->refreshToken || $force) {
+        if (($token->endOfLife && $token->refreshToken) || $force) {
             // Has token expired ?
             if ($time > $token->endOfLife || $force) {
                 $newToken = $this->getOauthProvider()->getAccessToken('refresh_token', [
@@ -406,17 +370,12 @@ class SugarCrm extends Crm
 
                     Formie::$plugin->getTokens()->saveToken($token);
 
-                    return true;
+                    return;
                 }
             }
         }
-
-        return false;
     }
 
-    /**
-     * @inheritDoc
-     */
     private function _convertFieldType($fieldType)
     {
         $fieldTypes = [
@@ -427,10 +386,7 @@ class SugarCrm extends Crm
         return $fieldTypes[$fieldType] ?? IntegrationField::TYPE_STRING;
     }
 
-    /**
-     * @inheritDoc
-     */
-    private function _getCustomFields($fields)
+    private function _getCustomFields($fields): array
     {
         $customFields = [];
 

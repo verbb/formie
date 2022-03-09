@@ -22,7 +22,7 @@ class Service extends Component
      * @param bool $removeAfterAccess
      * @noinspection PhpDocMissingThrowsInspection
      */
-    public function setFlash(string $namespace, string $key, $value, $removeAfterAccess = true)
+    public function setFlash(string $namespace, string $key, mixed $value, bool $removeAfterAccess = true): void
     {
         $key = "formie.$namespace:$key";
         Craft::$app->getSession()->setFlash($key, $value, $removeAfterAccess);
@@ -33,12 +33,12 @@ class Service extends Component
      *
      * @param string $namespace
      * @param string $key
-     * @param mixed $defaultValue
+     * @param mixed|null $defaultValue
      * @param bool $delete
      * @return mixed|null
      * @noinspection PhpDocMissingThrowsInspection
      */
-    public function getFlash(string $namespace, string $key, $defaultValue = null, $delete = false)
+    public function getFlash(string $namespace, string $key, mixed $defaultValue = null, bool $delete = false): mixed
     {
         $key = "formie.$namespace:$key";
         return Craft::$app->getSession()->getFlash($key, $defaultValue, $delete);
@@ -50,7 +50,7 @@ class Service extends Component
      * @param string $namespace
      * @param string $message
      */
-    public function setError(string $namespace, string $message)
+    public function setError(string $namespace, string $message): void
     {
         $this->setFlash($namespace, 'error', $message);
     }
@@ -61,7 +61,7 @@ class Service extends Component
      * @param string $namespace
      * @param string $message
      */
-    public function setNotice(string $namespace, string $message)
+    public function setNotice(string $namespace, string $message): void
     {
         $this->setFlash($namespace, 'notice', $message);
     }
@@ -72,15 +72,12 @@ class Service extends Component
      * @param string $plugin The plugin handle
      * @return bool Whether the plugin is both installed and enabled
      */
-    public function isPluginInstalledAndEnabled($plugin)
+    public function isPluginInstalledAndEnabled(string $plugin): bool
     {
         return Craft::$app->getPlugins()->isPluginInstalled($plugin) && Craft::$app->getPlugins()->isPluginEnabled($plugin);
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function getFieldNamespaceForScript($field)
+    public function getFieldNamespaceForScript($field): string
     {
         $scriptNamespace = null;
         $currentNamespace = Craft::$app->getView()->getNamespace();

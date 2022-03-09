@@ -18,12 +18,14 @@ class ResendNotifications extends ElementAction
     /**
      * @inheritdoc
      */
-    public function getTriggerHtml()
+    public function getTriggerHtml(): ?string
     {
         $type = Json::encode(static::className());
 
         Craft::$app->view->registerJs('new Craft.Formie.BulkResendElementAction(' .
             $type .
         ');');
+
+        return null;
     }
 }

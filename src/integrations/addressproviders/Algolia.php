@@ -2,30 +2,27 @@
 namespace verbb\formie\integrations\addressproviders;
 
 use verbb\formie\base\AddressProvider;
-use verbb\formie\elements\Form;
-use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyAddressProviderHtmlEvent;
 
 use Craft;
 use craft\helpers\Json;
 use craft\helpers\Template;
-use craft\web\View;
 
 class Algolia extends AddressProvider
 {
     // Constants
     // =========================================================================
 
-    const ALGOLIA_INPUT_NAME = 'formie-algolia-autocomplete';
-    const EVENT_MODIFY_ADDRESS_PROVIDER_HTML = 'modifyAddressProviderHtml';
+    public const ALGOLIA_INPUT_NAME = 'formie-algolia-autocomplete';
+    public const EVENT_MODIFY_ADDRESS_PROVIDER_HTML = 'modifyAddressProviderHtml';
 
 
     // Properties
     // =========================================================================
 
-    public $apiKey;
-    public $appId;
-    public $reconfigurableOptions = [];
+    public ?string $apiKey = null;
+    public ?string $appId = null;
+    public array $reconfigurableOptions = [];
 
 
     // Public Methods
@@ -39,9 +36,6 @@ class Algolia extends AddressProvider
         return Craft::t('formie', 'Algolia Places');
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getDescription(): string
     {
         return Craft::t('formie', 'Use [Algolia Places](https://community.algolia.com/places/) to suggest addresses, for address fields.');
@@ -92,7 +86,7 @@ class Algolia extends AddressProvider
     /**
      * @inheritDoc
      */
-    public function getFrontEndJsVariables($field = null)
+    public function getFrontEndJsVariables($field = null): ?array
     {
         if (!$this->hasValidSettings()) {
             return null;
@@ -117,21 +111,14 @@ class Algolia extends AddressProvider
      */
     public function hasValidSettings(): bool
     {
-        if ($this->appId && $this->apiKey) {
-            return true;
-        }
-
-        return false;
+        return $this->appId && $this->apiKey;
     }
 
 
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
-    private function _getOptions()
+    private function _getOptions(): array
     {
         $options = [];
         $optionsRaw = $this->reconfigurableOptions;

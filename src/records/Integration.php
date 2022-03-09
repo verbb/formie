@@ -3,10 +3,6 @@ namespace verbb\formie\records;
 
 use craft\db\ActiveRecord;
 use craft\db\SoftDeleteTrait;
-use craft\records\Element;
-
-use DateTime;
-use yii\db\ActiveQueryInterface;
 
 /**
  * Class Integration

@@ -8,7 +8,7 @@ class ModifyAddressProviderHtmlEvent extends Event
     // Properties
     // =========================================================================
 
-    public $html;
-    public $js;
+    public ?string $html = null;
+    public ?string $js = null;
     
 }

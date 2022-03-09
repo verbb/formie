@@ -12,13 +12,13 @@ class Honeypot extends Captcha
     // Constants
     // =========================================================================
 
-    const HONEYPOT_INPUT_NAME = 'beesknees';
+    public const HONEYPOT_INPUT_NAME = 'beesknees';
 
 
     // Properties
     // =========================================================================
 
-    public $handle = 'honeypot';
+    public ?string $handle = 'honeypot';
 
 
     // Public Methods
@@ -32,9 +32,6 @@ class Honeypot extends Captcha
         return Craft::t('formie', 'Honeypot');
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getDescription(): string
     {
         return Craft::t('formie', 'Check for bots that auto-fill forms, by providing an additional hidden field that should be left blank.');

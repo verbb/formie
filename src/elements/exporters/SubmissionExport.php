@@ -83,10 +83,6 @@ class SubmissionExport extends ElementExporter
         $keys = array_keys($largestRow);
         $template = array_fill_keys($keys, '');
 
-        $preppedData = array_map(function($item) use ($template) {
-            return array_merge($template, $item);
-        }, $data);
-
         // We might have to do some post-processing for CSV's and nested fields like Table/Repeater
         // We want to split the rows of these fields into new lines, which is a bit tedious..
         // Comment out for the moment...
@@ -135,6 +131,8 @@ class SubmissionExport extends ElementExporter
         //     return $csvData;
         // }
 
-        return $preppedData;
+        return array_map(function($item) use ($template) {
+            return array_merge($template, $item);
+        }, $data);
     }
 }

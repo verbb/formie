@@ -8,10 +8,10 @@ use craft\validators\HandleValidator;
 
 class Link extends Mark
 {
-    protected $markType = 'link';
-    protected $tagName = 'a';
+    protected ?string $markType = 'link';
+    protected string|null|array $tagName = 'a';
 
-    public function tag()
+    public function tag(): array
     {
         $attrs = [];
 
@@ -38,10 +38,10 @@ class Link extends Mark
         ];
     }
 
-    private static function parseRefTags($value)
+    private static function parseRefTags($value): array|string|null
     {
         $value = preg_replace_callback('/([^\'"\?#]*)(\?[^\'"\?#]+)?(#[^\'"\?#]+)?(?:#|%23)([\w]+)\:(\d+)(?:@(\d+))?(\:(?:transform\:)?' . HandleValidator::$handlePattern . ')?/', function($matches) {
-            list(, $url, $query, $hash, $elementType, $ref, $siteId, $transform) = array_pad($matches, 10, null);
+            [, $url, $query, $hash, $elementType, $ref, $siteId, $transform] = array_pad($matches, 10, null);
 
             // Create the ref tag, and make sure :url is in there
             $ref = $elementType . ':' . $ref . ($siteId ? "@$siteId" : '') . ($transform ?: ':url');
@@ -56,12 +56,12 @@ class Link extends Mark
                     // Decode any HTML entities, e.g. &amp;
                     $query = Html::decode($query);
 
-                    if (mb_strpos($parsed, $query) !== false) {
+                    if (str_contains($parsed, $query)) {
                         $url .= $query;
                         $query = '';
                     }
                 }
-                if ($hash && mb_strpos($parsed, $hash) !== false) {
+                if ($hash && str_contains($parsed, $hash)) {
                     $url .= $hash;
                     $hash = '';
                 }

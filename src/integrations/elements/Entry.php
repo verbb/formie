@@ -4,7 +4,6 @@ namespace verbb\formie\integrations\elements;
 use verbb\formie\Formie;
 use verbb\formie\base\Integration;
 use verbb\formie\base\Element;
-use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
@@ -16,19 +15,17 @@ use craft\base\Element as CraftElement;
 use craft\elements\Entry as EntryElement;
 use craft\elements\User;
 use craft\helpers\ArrayHelper;
-use craft\helpers\DateTimeHelper;
 use craft\helpers\Json;
-use craft\helpers\Template;
-use craft\web\View;
+use Throwable;
 
 class Entry extends Element
 {
     // Properties
     // =========================================================================
 
-    public $entryTypeId;
-    public $defaultAuthorId;
-    public $createDraft;
+    public ?int $entryTypeId = null;
+    public ?int $defaultAuthorId = null;
+    public ?bool $createDraft = null;
 
 
     // Public Methods
@@ -42,9 +39,6 @@ class Entry extends Element
         return Craft::t('formie', 'Entry');
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getDescription(): string
     {
         return Craft::t('formie', 'Map content provided by form submissions to create Entry elements.');
@@ -70,10 +64,7 @@ class Entry extends Element
         return $rules;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function fetchFormSettings()
+    public function fetchFormSettings(): IntegrationFormSettings
     {
         $customFields = [];
 
@@ -87,7 +78,7 @@ class Entry extends Element
             foreach ($section->getEntryTypes() as $entryType) {
                 $fields = [];
 
-                foreach ($entryType->getFieldLayout()->getFields() as $field) {
+                foreach ($entryType->getFieldLayout()->getCustomFields() as $field) {
                     $fields[] = new IntegrationField([
                         'handle' => $field->handle,
                         'name' => $field->name,
@@ -110,10 +101,7 @@ class Entry extends Element
         ]);
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getElementAttributes()
+    public function getElementAttributes(): array
     {
         return [
             new IntegrationField([
@@ -161,10 +149,7 @@ class Entry extends Element
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getUpdateAttributes()
+    public function getUpdateAttributes(): array
     {
         $attributes = [
             new IntegrationField([
@@ -193,7 +178,7 @@ class Entry extends Element
             }
 
             foreach ($section->getEntryTypes() as $entryType) {
-                foreach ($entryType->getFieldLayout()->getFields() as $field) {
+                foreach ($entryType->getFieldLayout()->getCustomFields() as $field) {
                     if (!$this->fieldCanBeUniqueId($field)) {
                         continue;
                     }
@@ -210,10 +195,7 @@ class Entry extends Element
         return $attributes;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function sendPayload(Submission $submission)
+    public function sendPayload(Submission $submission): IntegrationResponse|bool
     {
         if (!$this->entryTypeId) {
             Integration::error($this, Craft::t('formie', 'Unable to save element integration. No `entryTypeId`.'), true);
@@ -312,7 +294,7 @@ class Entry extends Element
             if (!$this->afterSendPayload($submission, '', $entry, '', [])) {
                 return true;
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $error = Craft::t('formie', 'Element integration failed for submission “{submission}”. Error: {error} {file}:{line}', [
                 'error' => $e->getMessage(),
                 'file' => $e->getFile(),
@@ -328,10 +310,7 @@ class Entry extends Element
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getAuthor($form)
+    public function getAuthor($form): array
     {
         $defaultAuthorId = $form->settings->integrations[$this->handle]['defaultAuthorId'] ?? '';
 
@@ -350,9 +329,6 @@ class Entry extends Element
     // Private Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     private function _getEntryTypeSettings()
     {
         $entryTypes = $this->getFormSettingValue('elements');

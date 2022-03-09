@@ -2,30 +2,27 @@
 namespace verbb\formie\integrations\addressproviders;
 
 use verbb\formie\base\AddressProvider;
-use verbb\formie\elements\Form;
-use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyAddressProviderHtmlEvent;
 
 use Craft;
 use craft\helpers\Json;
 use craft\helpers\Template;
-use craft\web\View;
 
 class AddressFinder extends AddressProvider
 {
     // Constants
     // =========================================================================
 
-    const AF_INPUT_NAME = 'formie-af-autocomplete';
-    const EVENT_MODIFY_ADDRESS_PROVIDER_HTML = 'modifyAddressProviderHtml';
+    public const AF_INPUT_NAME = 'formie-af-autocomplete';
+    public const EVENT_MODIFY_ADDRESS_PROVIDER_HTML = 'modifyAddressProviderHtml';
 
 
     // Properties
     // =========================================================================
 
-    public $apiKey;
-    public $countryCode;
-    public $widgetOptions = [];
+    public ?string $apiKey = null;
+    public ?string $countryCode = null;
+    public array $widgetOptions = [];
 
 
     // Public Methods
@@ -39,9 +36,6 @@ class AddressFinder extends AddressProvider
         return Craft::t('formie', 'Address Finder');
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getDescription(): string
     {
         return Craft::t('formie', 'Use [Address Finder](https://addressfinder.com.au/) to suggest Australian and New Zealand addresses, for address fields.');
@@ -92,7 +86,7 @@ class AddressFinder extends AddressProvider
     /**
      * @inheritDoc
      */
-    public function getFrontEndJsVariables($field = null)
+    public function getFrontEndJsVariables($field = null): ?array
     {
         if (!$this->hasValidSettings()) {
             return null;
@@ -116,21 +110,14 @@ class AddressFinder extends AddressProvider
      */
     public function hasValidSettings(): bool
     {
-        if ($this->countryCode && $this->apiKey) {
-            return true;
-        }
-
-        return false;
+        return $this->countryCode && $this->apiKey;
     }
 
 
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
-    private function _getOptions()
+    private function _getOptions(): array
     {
         $options = [];
         $optionsRaw = $this->widgetOptions;

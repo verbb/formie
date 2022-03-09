@@ -2,22 +2,22 @@
 namespace verbb\formie\jobs;
 
 use verbb\formie\Formie;
-use verbb\formie\base\Element;
+use verbb\formie\base\Integration;
 use verbb\formie\elements\Submission;
-use verbb\formie\jobs\BaseJob;
 use verbb\formie\models\IntegrationResponse;
 
 use Craft;
 use craft\helpers\Json;
+use Exception;
 
 class TriggerIntegration extends BaseJob
 {
-    // Public Properties
+    // Properties
     // =========================================================================
 
-    public $submissionId;
-    public $payload;
-    public $integration;
+    public ?int $submissionId = null;
+    public mixed $payload = null;
+    public ?Integration $integration = null;
 
 
     // Public Methods
@@ -34,7 +34,7 @@ class TriggerIntegration extends BaseJob
     /**
      * @inheritDoc
      */
-    public function execute($queue)
+    public function execute($queue): void
     {
         $this->setProgress($queue, 0);
 
@@ -53,14 +53,12 @@ class TriggerIntegration extends BaseJob
             $response = Formie::$plugin->getSubmissions()->sendIntegrationPayload($this->integration, $submission);
 
             // Check if some integrations return a response object for more detail
-            if ($response instanceof IntegrationResponse) {
-                if (!$response->success) {
-                    throw new \Exception('Failed to trigger integration: ' . Json::encode($response->message) . '.');
-                }
+            if (($response instanceof IntegrationResponse) && !$response->success) {
+                throw new Exception('Failed to trigger integration: ' . Json::encode($response->message) . '.');
             }
 
             if (!$response) {
-                throw new \Exception('Failed to trigger integration. Check the Formie log files.');
+                throw new Exception('Failed to trigger integration. Check the Formie log files.');
             }
         }
 

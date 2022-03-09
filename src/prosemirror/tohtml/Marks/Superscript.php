@@ -4,6 +4,6 @@ namespace verbb\formie\prosemirror\tohtml\Marks;
 
 class Superscript extends Mark
 {
-    protected $markType = 'superscript';
-    protected $tagName = 'sup';
+    protected ?string $markType = 'superscript';
+    protected string|null|array $tagName = 'sup';
 }

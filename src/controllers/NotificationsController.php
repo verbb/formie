@@ -2,7 +2,6 @@
 namespace verbb\formie\controllers;
 
 use verbb\formie\Formie;
-use verbb\formie\models\Settings;
 
 use craft\web\Controller;
 
@@ -13,9 +12,6 @@ class NotificationsController extends Controller
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritdoc
-     */
     public function actionIndex(): Response
     {
         $settings = Formie::$plugin->getSettings();

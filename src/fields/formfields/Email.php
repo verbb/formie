@@ -19,7 +19,7 @@ class Email extends FormField implements PreviewableFieldInterface
     // Constants
     // =========================================================================
 
-    const EVENT_MODIFY_UNIQUE_QUERY = 'modifyUniqueQuery';
+    public const EVENT_MODIFY_UNIQUE_QUERY = 'modifyUniqueQuery';
 
 
     // Static Methods
@@ -45,9 +45,9 @@ class Email extends FormField implements PreviewableFieldInterface
     // Properties
     // =========================================================================
 
-    public $validateDomain = false;
-    public $blockedDomains = [];
-    public $uniqueValue = false;
+    public bool $validateDomain = false;
+    public array $blockedDomains = [];
+    public bool $uniqueValue = false;
 
 
     // Public Methods
@@ -87,10 +87,7 @@ class Email extends FormField implements PreviewableFieldInterface
         return $rules;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function validateDomain(ElementInterface $element)
+    public function validateDomain(ElementInterface $element): void
     {
         $blockedDomains = ArrayHelper::getColumn($this->blockedDomains, 'value');
 
@@ -109,10 +106,7 @@ class Email extends FormField implements PreviewableFieldInterface
         }
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function validateUniqueEmail(ElementInterface $element)
+    public function validateUniqueEmail(ElementInterface $element): void
     {
         $value = $element->getFieldValue($this->handle);
         $value = trim($value);
@@ -155,7 +149,7 @@ class Email extends FormField implements PreviewableFieldInterface
     /**
      * @inheritDoc
      */
-    public function getInputHtml($value, ElementInterface $element = null): string
+    public function getInputHtml(mixed $value, ?ElementInterface $element = null): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/email/input', [
             'name' => $this->handle,
@@ -273,9 +267,6 @@ class Email extends FormField implements PreviewableFieldInterface
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineConditionsSchema(): array
     {
         return [

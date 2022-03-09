@@ -2,9 +2,7 @@
 namespace verbb\formie\base;
 
 use verbb\formie\Formie;
-use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
-use verbb\formie\elements\db\NestedFieldRowQuery;
 use verbb\formie\errors\IntegrationException;
 use verbb\formie\events\IntegrationConnectionEvent;
 use verbb\formie\events\IntegrationFormSettingsEvent;
@@ -12,71 +10,72 @@ use verbb\formie\events\ModifyFieldIntegrationValuesEvent;
 use verbb\formie\events\SendIntegrationPayloadEvent;
 use verbb\formie\fields\formfields\Agree;
 use verbb\formie\helpers\UrlHelper as FormieUrlHelper;
-use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 use verbb\formie\records\Integration as IntegrationRecord;
 
 use Craft;
 use craft\base\SavableComponent;
-use craft\elements\db\ElementQuery;
 use craft\helpers\ArrayHelper;
-use craft\helpers\DateTimeHelper;
 use craft\helpers\Json;
 use craft\helpers\StringHelper;
 use craft\validators\HandleValidator;
 use craft\validators\UniqueValidator;
 use craft\web\Response;
 
+use League\OAuth2\Client\Provider\AbstractProvider;
 use League\OAuth2\Client\Provider\GenericProvider;
 use GuzzleHttp\Exception\RequestException;
+use GuzzleHttp\Client;
+use Throwable;
+use verbb\formie\models\Token;
 
 abstract class Integration extends SavableComponent implements IntegrationInterface
 {
     // Constants
     // =========================================================================
 
-    const EVENT_BEFORE_SEND_PAYLOAD = 'beforeSendPayload';
-    const EVENT_AFTER_SEND_PAYLOAD = 'afterSendPayload';
-    const EVENT_BEFORE_CHECK_CONNECTION = 'beforeCheckConnection';
-    const EVENT_AFTER_CHECK_CONNECTION = 'afterCheckConnection';
-    const EVENT_BEFORE_FETCH_FORM_SETTINGS = 'beforeFetchFormSettings';
-    const EVENT_AFTER_FETCH_FORM_SETTINGS = 'afterFetchFormSettings';
-    const EVENT_MODIFY_FIELD_MAPPING_VALUES = 'modifyFieldMappingValues';
-    const EVENT_MODIFY_FIELD_MAPPING_VALUE = 'modifyFieldMappingValue';
+    public const EVENT_BEFORE_SEND_PAYLOAD = 'beforeSendPayload';
+    public const EVENT_AFTER_SEND_PAYLOAD = 'afterSendPayload';
+    public const EVENT_BEFORE_CHECK_CONNECTION = 'beforeCheckConnection';
+    public const EVENT_AFTER_CHECK_CONNECTION = 'afterCheckConnection';
+    public const EVENT_BEFORE_FETCH_FORM_SETTINGS = 'beforeFetchFormSettings';
+    public const EVENT_AFTER_FETCH_FORM_SETTINGS = 'afterFetchFormSettings';
+    public const EVENT_MODIFY_FIELD_MAPPING_VALUES = 'modifyFieldMappingValues';
+    public const EVENT_MODIFY_FIELD_MAPPING_VALUE = 'modifyFieldMappingValue';
     
-    const TYPE_ADDRESS_PROVIDER = 'addressProvider';
-    const TYPE_CAPTCHA = 'captcha';
-    const TYPE_ELEMENT = 'element';
-    const TYPE_EMAIL_MARKETING = 'emailMarketing';
-    const TYPE_CRM = 'crm';
-    const TYPE_WEBHOOK = 'webhook';
-    const TYPE_MISC = 'miscellaneous';
+    public const TYPE_ADDRESS_PROVIDER = 'addressProvider';
+    public const TYPE_CAPTCHA = 'captcha';
+    public const TYPE_ELEMENT = 'element';
+    public const TYPE_EMAIL_MARKETING = 'emailMarketing';
+    public const TYPE_CRM = 'crm';
+    public const TYPE_WEBHOOK = 'webhook';
+    public const TYPE_MISC = 'miscellaneous';
 
-    const SCENARIO_FORM = 'form';
+    public const SCENARIO_FORM = 'form';
 
-    const CONNECT_SUCCESS = 'success';
+    public const CONNECT_SUCCESS = 'success';
 
 
     // Properties
     // =========================================================================
 
-    public $name;
-    public $handle;
-    public $type;
-    public $enabled;
-    public $sortOrder;
-    public $cache = [];
-    public $tokenId;
-    public $uid;
+    public ?string $name = null;
+    public ?string $handle = null;
+    public ?string $type = null;
+    public ?bool $enabled = null;
+    public ?int $sortOrder = null;
+    public array $cache = [];
+    public ?string $tokenId = null;
+    public ?string $uid = null;
 
     // Used to retain the referrer URL from submissions
-    public $referrer = '';
+    public string $referrer = '';
 
-    protected $_client;
+    protected ?Client $_client = null;
 
     // Keep track of whether run in the context of a queue job
-    private $_queueJob;
+    private ?bool $_queueJob = null;
 
 
     // Static Methods
@@ -90,42 +89,27 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         return false;
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function supportsConnection(): bool
     {
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function supportsOauthConnection(): bool
     {
         return false;
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function supportsPayloadSending(): bool
     {
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function hasFormSettings(): bool
     {
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public static function log($integration, $message, $throwError = false)
+    public static function log($integration, $message, $throwError = false): void
     {
         Formie::log($integration->name . ': ' . $message);
 
@@ -134,10 +118,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         }
     }
 
-    /**
-     * @inheritDoc
-     */
-    public static function error($integration, $message, $throwError = false)
+    public static function error($integration, $message, $throwError = false): void
     {
         Formie::error($integration->name . ': ' . $message);
 
@@ -146,10 +127,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         }
     }
 
-    /**
-     * @inheritDoc
-     */
-    public static function apiError($integration, $exception, $throwError = true)
+    public static function apiError($integration, $exception, $throwError = true): void
     {
         $messageText = $exception->getMessage();
 
@@ -178,7 +156,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     /**
      * @inheritDoc
      */
-    public function init()
+    public function init(): void
     {
         parent::init();
 
@@ -194,7 +172,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     /**
      * @inheritdoc
      */
-    public function scenarios()
+    public function scenarios(): array
     {
         $scenarios = parent::scenarios();
 
@@ -229,25 +207,16 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         return $rules;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getName(): string
     {
         return $this->name ?? '';
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getHandle(): string
     {
         return $this->handle ?? '';
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getIconUrl(): string
     {
         return '';
@@ -256,54 +225,36 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     /**
      * @inheritDoc
      */
-    public function getSettingsHtml(): string
+    public function getSettingsHtml(): ?string
     {
         return '';
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getFormSettingsHtml($form): string
     {
         return '';
     }
 
-    /**
-     * @inheritDoc
-     */
     public function hasValidSettings(): bool
     {
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function setQueueJob($value)
+    public function setQueueJob($value): void
     {
         $this->_queueJob = $value;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getQueueJob()
+    public function getQueueJob(): ?bool
     {
         return $this->_queueJob;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function setClient($value)
+    public function setClient($value): void
     {
         $this->_client = $value;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function checkConnection($useCache = true): bool
     {
         if ($useCache && $status = $this->getCache('connection')) {
@@ -340,26 +291,20 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         return $event->success;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getIsConnected()
+    public function getIsConnected(): bool
     {
-        if ($this->supportsOauthConnection()) {
+        if (self::supportsOauthConnection()) {
             return (bool)$this->getToken(false);
         }
 
-        if ($this->supportsConnection()) {
-            return (bool)($this->getCache('connection') === self::CONNECT_SUCCESS);
+        if (self::supportsConnection()) {
+            return $this->getCache('connection') === self::CONNECT_SUCCESS;
         }
 
         return false;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getFormSettings($useCache = true)
+    public function getFormSettings($useCache = true): bool|IntegrationFormSettings
     {
         // If using the cache (the default), don't fetch it automatically. Just save API requests a tad.
         if ($useCache) {
@@ -401,18 +346,12 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         return $settings;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getFormSettingValue($key)
     {
         return $this->getFormSettings()->getSettingsByKey($key);
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function validateFieldMapping($attribute, $fields = [])
+    public function validateFieldMapping($attribute, $fields = []): void
     {
         foreach ($fields as $field) {
             $value = $this->$attribute[$field->handle] ?? '';
@@ -428,81 +367,51 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     // OAuth Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public function getAuthorizeUrl(): string
     {
         return '';
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getAccessTokenUrl(): string
     {
         return '';
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getResourceOwner(): string
     {
         return '';
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getClientId(): string
     {
         return '';
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getClientSecret(): string
     {
         return '';
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getOauthScope(): array
     {
         return [];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getOauthAuthorizationOptions(): array
     {
         return [];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function oauthVersion(): int
     {
         return 2;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function oauth2Legged(): bool
     {
         return false;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function oauthConnect()
     {
         switch ($this->oauthVersion()) {
@@ -513,11 +422,10 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
                 return $this->oauth2Connect();
             }
         }
+
+        return null;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function oauthCallback()
     {
         switch ($this->oauthVersion()) {
@@ -528,20 +436,16 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
                 return $this->oauth2Callback();
             }
         }
+
+        return null;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getRedirectUri()
+    public function getRedirectUri(): string
     {
         return FormieUrlHelper::siteActionUrl('formie/integrations/callback');
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getOauthProviderConfig()
+    public function getOauthProviderConfig(): array
     {
         return [
             'urlAuthorize' => $this->getAuthorizeUrl(),
@@ -554,33 +458,21 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getOauthProvider()
+    public function getOauthProvider(): AbstractProvider
     {
         return new GenericProvider($this->getOauthProviderConfig());
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function beforeFetchAccessToken(&$provider)
+    public function beforeFetchAccessToken(&$provider): void
     {
-        return null;
+        return;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function afterFetchAccessToken($token)
+    public function afterFetchAccessToken($token): void
     {
-        return null;
+        return;
     }
 
-    /**
-     * @inheritDoc
-     */
     private function oauth1Connect(): Response
     {
         $provider = $this->getOauthProvider();
@@ -591,15 +483,12 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         // Store credentials in the session
         Craft::$app->getSession()->set('oauth.temporaryCredentials', $temporaryCredentials);
 
-        // Redirect to login screen
+        // Redirect to the login screen
         $authorizationUrl = $provider->getAuthorizationUrl($temporaryCredentials);
 
         return Craft::$app->getResponse()->redirect($authorizationUrl);
     }
 
-    /**
-     * @inheritDoc
-     */
     private function oauth2Connect(): Response
     {
         $provider = $this->getOauthProvider();
@@ -614,9 +503,6 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         return Craft::$app->getResponse()->redirect($authorizationUrl);
     }
 
-    /**
-     * @inheritDoc
-     */
     private function oauth1Callback(): array
     {
         $provider = $this->getOauthProvider();
@@ -636,9 +522,6 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     private function oauth2Callback(): array
     {
         $provider = $this->getOauthProvider();
@@ -660,10 +543,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getToken($refresh = true)
+    public function getToken($refresh = true): ?Token
     {
         if ($this->tokenId) {
             return Formie::$plugin->getTokens()->getTokenById($this->tokenId, $refresh);
@@ -672,9 +552,6 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         return null;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function request(string $method, string $uri, array $options = [])
     {
         $response = $this->getClient()->request($method, ltrim($uri, '/'), $options);
@@ -682,9 +559,6 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         return Json::decode((string)$response->getBody());
     }
 
-    /**
-     * @inheritDoc
-     */
     public function deliverPayload($submission, $endpoint, $payload, $method = 'POST', $contentType = 'json')
     {
         // Allow events to cancel sending
@@ -704,9 +578,6 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         return $response;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getFieldMappingValues(Submission $submission, $fieldMapping, $fieldSettings = [])
     {
         $fieldValues = [];
@@ -721,7 +592,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
                 continue;
             }
 
-            if (strstr($fieldKey, '{')) {
+            if (strpos($fieldKey, '{') !== false) {
                 // Get the type of field we are mapping to (for the integration)
                 $integrationField = ArrayHelper::firstWhere($fieldSettings, 'handle', $tag) ?? new IntegrationField();
 
@@ -752,10 +623,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         return $event->fieldValues;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function beforeSendPayload(Submission $submission, &$endpoint, &$payload, &$method)
+    public function beforeSendPayload(Submission $submission, &$endpoint, &$payload, &$method): bool
     {
         // If in the context of a queue. save the payload for debugging
         if ($this->getQueueJob()) {
@@ -783,10 +651,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         return $event->isValid;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function afterSendPayload(Submission $submission, $endpoint, $payload, $method, $response)
+    public function afterSendPayload(Submission $submission, $endpoint, $payload, $method, $response): bool
     {
         $event = new SendIntegrationPayloadEvent([
             'submission' => $submission,
@@ -805,10 +670,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         return $event->isValid;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function enforceOptInField(Submission $submission)
+    public function enforceOptInField(Submission $submission): bool
     {
         // Default is just always do it!
         if (!$this->optInField) {
@@ -859,20 +721,17 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getMappedFieldInfo($mappedFieldValue, $submission)
+    public function getMappedFieldInfo($mappedFieldValue, $submission): array
     {
         // Replace how we store the value (as `{field_handle}` or `{submission:id}`)
         $fieldKey = str_replace(['{', '}'], ['', ''], $mappedFieldValue);
 
         // Check for nested fields (as `group[name[prefix]]`) - convert to dot-notation
-        if (strstr($fieldKey, '[')) {
+        if (strpos($fieldKey, '[') !== false) {
             $fieldKey = str_replace(['[', ']'], ['.', ''], $fieldKey);
 
             // Change the field handle to reflect the top-level field, not the full path to the value
-            // but still keep the sub-field path (if any) for some fields to use
+            // but still keep the subfield path (if any) for some fields to use
             $fieldKey = explode('.', $fieldKey);
             $fieldHandle = array_shift($fieldKey);
             $fieldKey = implode('.', $fieldKey);
@@ -882,7 +741,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         }
 
         // Fetch all custom fields here for efficiency
-        $formFields = ArrayHelper::index($submission->getFieldLayout()->getFields(), 'handle');
+        $formFields = ArrayHelper::index($submission->getFieldLayout()->getCustomFields(), 'handle');
 
         // Try and get the form field we're pulling data from
         $field = $formFields[$fieldHandle] ?? null;
@@ -890,9 +749,6 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         return ['field' => $field, 'handle' => $fieldHandle, 'key' => $fieldKey];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getMappedFieldValue($mappedFieldValue, $submission, $integrationField)
     {
         try {
@@ -916,7 +772,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
 
                 return $field->getValueForIntegration($value, $integrationField, $this, $submission, $fieldKey);
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Formie::error(Craft::t('formie', 'Error trying to fetch mapped field value: “{message}” {file}:{line}', [
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
@@ -930,10 +786,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     // Private Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
-    private function setCache($values)
+    private function setCache($values): void
     {
         if ($this->cache === null) {
             $this->cache = [];
@@ -947,9 +800,6 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
             ->execute();
     }
 
-    /**
-     * @inheritDoc
-     */
     private function getCache($key)
     {
         if ($this->cache === null) {
@@ -959,15 +809,8 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         return $this->cache[$key] ?? null;
     }
 
-    /**
-     * @inheritDoc
-     */
-    private static function isEmpty($value)
+    private static function isEmpty($value): bool
     {
-        if ($value === '' || $value === [] || $value === null) {
-            return true;
-        }
-
-        return false;
+        return $value === '' || $value === [] || $value === null;
     }
 }

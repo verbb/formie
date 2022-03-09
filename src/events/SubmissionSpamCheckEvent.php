@@ -1,6 +1,8 @@
 <?php
 namespace verbb\formie\events;
 
+use verbb\formie\elements\Submission;
+
 use yii\base\Event;
 
 class SubmissionSpamCheckEvent extends Event
@@ -8,6 +10,6 @@ class SubmissionSpamCheckEvent extends Event
     // Properties
     // =========================================================================
 
-    public $submission;
+    public ?Submission $submission;
     
 }

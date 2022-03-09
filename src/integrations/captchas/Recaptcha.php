@@ -8,32 +8,31 @@ use verbb\formie\elements\Submission;
 use Craft;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
-use craft\web\View;
 
 class Recaptcha extends Captcha
 {
     // Constants
     // =========================================================================
 
-    const RECAPTCHA_TYPE_V2_CHECKBOX  = 'v2_checkbox';
-    const RECAPTCHA_TYPE_V2_INVISIBLE = 'v2_invisible';
-    const RECAPTCHA_TYPE_V3 = 'v3';
-    const RECAPTCHA_TYPE_ENTERPRISE = 'enterprise';
+    public const RECAPTCHA_TYPE_V2_CHECKBOX  = 'v2_checkbox';
+    public const RECAPTCHA_TYPE_V2_INVISIBLE = 'v2_invisible';
+    public const RECAPTCHA_TYPE_V3 = 'v3';
+    public const RECAPTCHA_TYPE_ENTERPRISE = 'enterprise';
 
 
     // Properties
     // =========================================================================
 
-    public $handle = 'recaptcha';
-    public $secretKey;
-    public $siteKey;
-    public $type = 'v3';
-    public $size = 'normal';
-    public $theme = 'light';
-    public $badge = 'bottomright';
-    public $language = 'en';
-    public $minScore = 0.5;
-    public $projectId;
+    public ?string $handle = 'recaptcha';
+    public ?string $secretKey = null;
+    public ?string $siteKey = null;
+    public ?string $type = 'v3';
+    public string $size = 'normal';
+    public string $theme = 'light';
+    public string $badge = 'bottomright';
+    public string $language = 'en';
+    public float $minScore = 0.5;
+    public ?string $projectId = null;
 
 
     // Public Methods
@@ -47,9 +46,6 @@ class Recaptcha extends Captcha
         return Craft::t('formie', 'reCAPTCHA');
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getDescription(): string
     {
         return Craft::t('formie', 'reCAPTCHA is a free service that protects your forms from spam and abuse. Find out more via [Google reCAPTCHA](https://www.google.com/recaptcha).');
@@ -58,7 +54,7 @@ class Recaptcha extends Captcha
     /**
      * @inheritDoc
      */
-    public function getSettingsHtml(): string
+    public function getSettingsHtml(): ?string
     {
         return Craft::$app->getView()->renderTemplate('formie/integrations/captchas/recaptcha/_plugin-settings', [
             'integration' => $this,
@@ -107,7 +103,7 @@ class Recaptcha extends Captcha
     /**
      * @inheritDoc
      */
-    public function getFrontEndJsVariables(Form $form, $page = null)
+    public function getFrontEndJsVariables(Form $form, $page = null): ?array
     {
         $settings = [
             'siteKey' => Craft::parseEnv($this->siteKey),
@@ -227,11 +223,7 @@ class Recaptcha extends Captcha
      */
     public function hasValidSettings(): bool
     {
-        if ($this->siteKey && $this->secretKey) {
-            return true;
-        }
-
-        return false;
+        return $this->siteKey && $this->secretKey;
     }
 
 
@@ -262,7 +254,7 @@ class Recaptcha extends Captcha
         }
 
         // If our current language ID has a more generic match, use it
-        if (strpos($currentLanguageId, '-') !== false) {
+        if (str_contains($currentLanguageId, '-')) {
             $parts = explode('-', $currentLanguageId);
             $baseLanguageId = $parts['0'] ?? null;
 

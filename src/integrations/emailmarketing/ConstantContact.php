@@ -4,10 +4,7 @@ namespace verbb\formie\integrations\emailmarketing;
 use verbb\formie\Formie;
 use verbb\formie\base\Integration;
 use verbb\formie\base\EmailMarketing;
-use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
-use verbb\formie\errors\IntegrationException;
-use verbb\formie\events\SendIntegrationPayloadEvent;
 use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
@@ -16,15 +13,16 @@ use Craft;
 use craft\helpers\ArrayHelper;
 use craft\helpers\DateTimeHelper;
 use craft\helpers\Json;
-use craft\web\View;
+use Throwable;
+use GuzzleHttp\Client;
 
 class ConstantContact extends EmailMarketing
 {
     // Properties
     // =========================================================================
 
-    public $apiKey;
-    public $appSecret;
+    public ?string $apiKey = null;
+    public ?string $appSecret = null;
 
 
     // OAuth Methods
@@ -104,9 +102,6 @@ class ConstantContact extends EmailMarketing
         return Craft::t('formie', 'Constant Contact');
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getDescription(): string
     {
         return Craft::t('formie', 'Sign up users to your Constant Contact lists to grow your audience for campaigns.');
@@ -124,10 +119,7 @@ class ConstantContact extends EmailMarketing
         return $rules;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function fetchFormSettings()
+    public function fetchFormSettings(): IntegrationFormSettings
     {
         $settings = [];
 
@@ -178,16 +170,13 @@ class ConstantContact extends EmailMarketing
                     'fields' => $listFields,
                 ]);
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Integration::apiError($this, $e);
         }
 
         return new IntegrationFormSettings($settings);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function sendPayload(Submission $submission): bool
     {
         try {
@@ -200,7 +189,7 @@ class ConstantContact extends EmailMarketing
             $customFields = [];
 
             foreach ($fieldValues as $key => $fieldValue) {
-                if (strstr($key, '-')) {
+                if (strpos($key, '-') !== false) {
                     $customFields[] = [
                         'custom_field_id' => $key,
                         'value' => ArrayHelper::remove($fieldValues, $key),
@@ -230,7 +219,7 @@ class ConstantContact extends EmailMarketing
 
                 return false;
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
             return false;
@@ -239,10 +228,7 @@ class ConstantContact extends EmailMarketing
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getClient()
+    public function getClient(): Client
     {
         if ($this->_client) {
             return $this->_client;
@@ -262,7 +248,7 @@ class ConstantContact extends EmailMarketing
         // We can't always rely on the EOL of the token.
         try {
             $response = $this->request('GET', 'contact_lists');
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             if ($e->getCode() === 401) {
                 // Force-refresh the token
                 Formie::$plugin->getTokens()->refreshToken($token, true);
@@ -285,9 +271,6 @@ class ConstantContact extends EmailMarketing
     // Private Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     private function _convertFieldType($fieldType)
     {
         $fieldTypes = [
@@ -297,10 +280,7 @@ class ConstantContact extends EmailMarketing
         return $fieldTypes[$fieldType] ?? IntegrationField::TYPE_STRING;
     }
 
-    /**
-     * @inheritDoc
-     */
-    private function _getCustomFields($fields, $excludeNames = [])
+    private function _getCustomFields($fields, $excludeNames = []): array
     {
         $customFields = [];
 

@@ -5,7 +5,6 @@ use verbb\formie\Formie;
 
 use Craft;
 use craft\db\Query;
-use craft\helpers\Json;
 
 class ProjectConfigHelper
 {
@@ -52,8 +51,7 @@ class ProjectConfigHelper
 
         foreach ($statusRows as &$statusRow) {
             $statusUid = $statusRow['uid'];
-            unset($statusRow['id']);
-            unset($statusRow['uid']);
+            unset($statusRow['id'], $statusRow['uid']);
 
             $statusRow['sortOrder'] = (int)$statusRow['sortOrder'];
             $statusRow['isDefault'] = (bool)$statusRow['isDefault'];
@@ -111,9 +109,7 @@ class ProjectConfigHelper
             }
 
             $templateUid = $templateRow['uid'];
-            unset($templateRow['id']);
-            unset($templateRow['uid']);
-            unset($templateRow['fieldLayoutId']);
+            unset($templateRow['id'], $templateRow['uid'], $templateRow['fieldLayoutId']);
 
             $templateRow['sortOrder'] = (int)$templateRow['sortOrder'];
             $templateRow['useCustomTemplates'] = (bool)$templateRow['useCustomTemplates'];
@@ -148,8 +144,7 @@ class ProjectConfigHelper
 
         foreach ($templateRows as &$templateRow) {
             $templateUid = $templateRow['uid'];
-            unset($templateRow['id']);
-            unset($templateRow['uid']);
+            unset($templateRow['id'], $templateRow['uid']);
 
             $templateRow['sortOrder'] = (int)$templateRow['sortOrder'];
 
@@ -180,8 +175,7 @@ class ProjectConfigHelper
 
         foreach ($templateRows as &$templateRow) {
             $templateUid = $templateRow['uid'];
-            unset($templateRow['id']);
-            unset($templateRow['uid']);
+            unset($templateRow['id'], $templateRow['uid']);
 
             $templateRow['sortOrder'] = (int)$templateRow['sortOrder'];
 

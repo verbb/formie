@@ -9,8 +9,8 @@ class Days extends PredefinedOption
     // Protected Properties
     // =========================================================================
 
-    public static $defaultLabelOption = 'day';
-    public static $defaultValueOption = 'day';
+    public static ?string $defaultLabelOption = 'day';
+    public static ?string $defaultValueOption = 'day';
 
 
     // Static Methods
@@ -48,9 +48,6 @@ class Days extends PredefinedOption
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function getDataOptions(): array
     {
         return [

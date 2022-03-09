@@ -3,7 +3,6 @@ namespace verbb\formie\fields\formfields;
 
 use verbb\formie\base\FormFieldInterface;
 use verbb\formie\base\FormFieldTrait;
-use verbb\formie\elements\Form;
 use verbb\formie\helpers\SchemaHelper;
 
 use Craft;
@@ -14,7 +13,6 @@ use craft\fields\Table as CraftTable;
 use craft\helpers\ArrayHelper;
 use craft\helpers\DateTimeHelper;
 use craft\helpers\Html;
-use craft\helpers\Json;
 use craft\helpers\Template;
 use craft\validators\ArrayValidator;
 use craft\validators\ColorValidator;
@@ -22,6 +20,7 @@ use craft\validators\UrlValidator;
 
 use yii\db\Schema;
 use yii\validators\EmailValidator;
+use Twig\Markup;
 
 class Table extends CraftTable implements FormFieldInterface
 {
@@ -57,7 +56,7 @@ class Table extends CraftTable implements FormFieldInterface
     /**
      * @var bool
      */
-    public $searchable = true;
+    public bool $searchable = true;
 
     /**
      * Override the default columns from Craft's table field. We don't want default
@@ -66,12 +65,12 @@ class Table extends CraftTable implements FormFieldInterface
      *
      * @var array
      */
-    public $columns = [];
+    public array $columns = [];
 
     /**
      * @var bool
      */
-    public $static = false;
+    public bool $static = false;
 
 
     // Public Methods
@@ -146,7 +145,7 @@ class Table extends CraftTable implements FormFieldInterface
     /**
      * @inheritDoc
      */
-    public function getInputHtml($value, ElementInterface $element = null): string
+    public function getInputHtml(mixed $value, ?ElementInterface $element = null): string
     {
         /** @var Element $element */
         if (empty($this->columns)) {
@@ -219,7 +218,7 @@ class Table extends CraftTable implements FormFieldInterface
     /**
      * @inheritdoc
      */
-    public function getFrontEndJsModules()
+    public function getFrontEndJsModules(): ?array
     {
         return [
             'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/fields/table.js', true),
@@ -246,11 +245,13 @@ class Table extends CraftTable implements FormFieldInterface
                 $column['id'] = $key;
             }
 
+            unset($column);
+
             $settings['columns'] = array_values($settings['columns']);
         } else {
             // If there are errors though, Craft's table field validation may very likely return an array 
             // for some attributes. We don't want that, so remove them back to single values.
-            foreach ($settings['columns'] as $colId => &$column) {
+            foreach ($settings['columns'] as $colId => $column) {
                 foreach ($column as $key => $col) {
                     if (is_array($col)) {
                         $settings['columns'][$colId][$key] = $col['value'] ?? '';
@@ -286,7 +287,7 @@ class Table extends CraftTable implements FormFieldInterface
     /**
      * @inheritdoc
      */
-    public function normalizeValue($value, ElementInterface $element = null)
+    public function normalizeValue(mixed $value, ?ElementInterface $element = null): mixed
     {
         $value = parent::normalizeValue($value, $element);
 
@@ -450,9 +451,6 @@ class Table extends CraftTable implements FormFieldInterface
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineConditionsSchema(): array
     {
         return [
@@ -468,7 +466,7 @@ class Table extends CraftTable implements FormFieldInterface
     /**
      * @inheritDoc
      */
-    protected function defineValueAsString($value, ElementInterface $element = null)
+    protected function defineValueAsString($value, ElementInterface $element = null): string
     {
         $values = [];
 
@@ -492,7 +490,7 @@ class Table extends CraftTable implements FormFieldInterface
     /**
      * @inheritDoc
      */
-    protected function defineValueForExport($value, ElementInterface $element = null)
+    protected function defineValueForExport($value, ElementInterface $element = null): mixed
     {
         $values = [];
 
@@ -516,7 +514,7 @@ class Table extends CraftTable implements FormFieldInterface
     /**
      * @inheritDoc
      */
-    protected function defineValueForSummary($value, ElementInterface $element = null)
+    protected function defineValueForSummary($value, ElementInterface $element = null): string
     {
         $headValues = '';
         $bodyValues = '';
@@ -562,7 +560,7 @@ class Table extends CraftTable implements FormFieldInterface
      * @param string|null &$error The error text to set on the element
      * @return bool Whether the value is valid
      */
-    private function _validateCellValue(string $type, $value, string &$error = null): bool
+    private function _validateCellValue(string $type, mixed $value, string &$error = null): bool
     {
         if ($value === null || $value === '') {
             return true;
@@ -595,16 +593,12 @@ class Table extends CraftTable implements FormFieldInterface
      * @param mixed $value The cell value
      * @return mixed
      */
-    private function _normalizeCellValue(string $type, $value)
+    private function _normalizeCellValue(string $type, mixed $value): mixed
     {
-        switch ($type) {
-            case 'color':
-                return $value->getHex();
-            case 'date':
-            case 'time':
-                return DateTimeHelper::toIso8601($value) ?: null;
-        }
-
-        return $value;
+        return match ($type) {
+            'color' => $value->getHex(),
+            'date', 'time' => DateTimeHelper::toIso8601($value) ?: null,
+            default => $value,
+        };
     }
 }

@@ -4,40 +4,35 @@ namespace verbb\formie\integrations\crm;
 use verbb\formie\Formie;
 use verbb\formie\base\Crm;
 use verbb\formie\base\Integration;
-use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
-use verbb\formie\errors\IntegrationException;
-use verbb\formie\events\SendIntegrationPayloadEvent;
-use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
-use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
-use craft\helpers\StringHelper;
-use craft\web\View;
 
 use TheNetworg\OAuth2\Client\Provider\Azure;
+use Throwable;
+use GuzzleHttp\Client;
 
 class MicrosoftDynamics365 extends Crm
 {
     // Properties
     // =========================================================================
 
-    public $clientId;
-    public $clientSecret;
-    public $apiDomain;
-    public $mapToContact = false;
-    public $mapToLead = false;
-    public $mapToOpportunity = false;
-    public $mapToAccount = false;
-    public $contactFieldMapping;
-    public $leadFieldMapping;
-    public $opportunityFieldMapping;
-    public $accountFieldMapping;
+    public ?string $clientId = null;
+    public ?string $clientSecret = null;
+    public ?string $apiDomain = null;
+    public bool $mapToContact = false;
+    public bool $mapToLead = false;
+    public bool $mapToOpportunity = false;
+    public bool $mapToAccount = false;
+    public ?array $contactFieldMapping = null;
+    public ?array $leadFieldMapping = null;
+    public ?array $opportunityFieldMapping = null;
+    public ?array $accountFieldMapping = null;
 
-    private $_entityOptions = [];
+    private array $_entityOptions = [];
 
 
     // OAuth Methods
@@ -84,7 +79,7 @@ class MicrosoftDynamics365 extends Crm
     /**
      * @inheritDoc
      */
-    public function getOauthProvider()
+    public function getOauthProvider(): Azure
     {
         return new Azure($this->getOauthProviderConfig());
     }
@@ -112,9 +107,6 @@ class MicrosoftDynamics365 extends Crm
         return Craft::t('formie', 'Microsoft Dynamics 365');
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getDescription(): string
     {
         return Craft::t('formie', 'Manage your Microsoft Dynamics 365 customers by providing important information on their conversion on your site.');
@@ -154,10 +146,7 @@ class MicrosoftDynamics365 extends Crm
         return $rules;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function fetchFormSettings()
+    public function fetchFormSettings(): IntegrationFormSettings
     {
         $settings = [];
 
@@ -173,16 +162,13 @@ class MicrosoftDynamics365 extends Crm
                 'opportunity' => $opportunityFields,
                 'account' => $accountFields,
             ];
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Integration::apiError($this, $e);
         }
 
         return new IntegrationFormSettings($settings);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function sendPayload(Submission $submission): bool
     {
         try {
@@ -295,7 +281,7 @@ class MicrosoftDynamics365 extends Crm
                     return false;
                 }
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
             return false;
@@ -319,10 +305,7 @@ class MicrosoftDynamics365 extends Crm
         return parent::request($method, $uri, $options);
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getClient()
+    public function getClient(): Client
     {
         if ($this->_client) {
             return $this->_client;
@@ -343,7 +326,7 @@ class MicrosoftDynamics365 extends Crm
         // We can't always rely on the EOL of the token.
         try {
             $response = $this->request('GET', 'contacts');
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             if ($e->getCode() === 401) {
                 // Force-refresh the token
                 Formie::$plugin->getTokens()->refreshToken($token, true);
@@ -366,9 +349,6 @@ class MicrosoftDynamics365 extends Crm
     // Private Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     private function _convertFieldType($fieldType)
     {
         $fieldTypes = [
@@ -384,10 +364,7 @@ class MicrosoftDynamics365 extends Crm
         return $fieldTypes[$fieldType] ?? IntegrationField::TYPE_STRING;
     }
 
-    /**
-     * @inheritDoc
-     */
-    private function _getEntityFields($entity)
+    private function _getEntityFields($entity): array
     {
         // Fetch all defined fields on the entity
         // https://docs.microsoft.com/en-us/dynamics365/customer-engagement/web-api/contact?view=dynamics-ce-odata-9
@@ -419,7 +396,7 @@ class MicrosoftDynamics365 extends Crm
 
             // Relational fields need a special handle
             if ($odataType === '#Microsoft.Dynamics.CRM.LookupAttributeMetadata') {
-                $handle = $handle . '@odata.bind';
+                $handle .= '@odata.bind';
             }
 
             // Index by handle for easy lookup with PickLists
@@ -427,7 +404,7 @@ class MicrosoftDynamics365 extends Crm
                 'handle' => $handle,
                 'name' => $label,
                 'type' => $this->_convertFieldType($type),
-                'required' => $requiredLevel === 'None' ? false : true,
+                'required' => !($requiredLevel === 'None'),
             ]);
         }
 
@@ -463,7 +440,7 @@ class MicrosoftDynamics365 extends Crm
         }
 
         // Do the same thing for any fields with an Owner, we have to do multiple queries.
-        // This be be for multiple entities, so have some cache.
+        // This can be for multiple entities, so have some cache.
         $this->_getEntityOwnerOptions($entity, $fields);
 
         // Reset array keys
@@ -477,13 +454,10 @@ class MicrosoftDynamics365 extends Crm
         return $fields;
     }
 
-    /**
-     * @inheritDoc
-     */
-    private function _getEntityOwnerOptions($entity, &$fields)
+    private function _getEntityOwnerOptions($entityName, $fields): void
     {
         // Get all the fields that are relational
-        $response = $this->request('GET', "EntityDefinitions(LogicalName='$entity')/Attributes/Microsoft.Dynamics.CRM.LookupAttributeMetadata?\$select=LogicalName,Targets");
+        $response = $this->request('GET', "EntityDefinitions(LogicalName='$entityName')/Attributes/Microsoft.Dynamics.CRM.LookupAttributeMetadata?\$select=LogicalName,Targets");
         $relationFields = $response['value'] ?? [];
 
         // Define a schema so that we can query each entity according to the target (index)
@@ -560,10 +534,8 @@ class MicrosoftDynamics365 extends Crm
 
                 foreach ($entities as $entity) {
                     // Special-case for systemusers
-                    if ($target === 'systemuser') {
-                        if (isset($entity['applicationid'])) {
-                            continue;
-                        }
+                    if (($target === 'systemuser') && isset($entity['applicationid'])) {
+                        continue;
                     }
 
                     $label = $entity[$targetSchema['label']] ?? '';

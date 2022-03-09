@@ -40,7 +40,6 @@ use craft\fields\BaseRelationField;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Component as ComponentHelper;
 use craft\helpers\Db;
-use craft\helpers\Json;
 use craft\validators\HandleValidator;
 
 use ReflectionClass;
@@ -53,35 +52,35 @@ class Fields extends Component
     // Constants
     // =========================================================================
 
-    const EVENT_MODIFY_EXISTING_FIELDS = 'modifyExistingFields';
-    const EVENT_MODIFY_FIELD_CONFIG = 'modifyFieldConfig';
-    const EVENT_MODIFY_FIELD_ROW_CONFIG = 'modifyFieldRowConfig';
-    const EVENT_BEFORE_SAVE_FIELD_ROW = 'beforeSaveFieldRow';
-    const EVENT_AFTER_SAVE_FIELD_ROW = 'afterSaveFieldRow';
-    const EVENT_BEFORE_SAVE_FIELD_PAGE = 'beforeSaveFieldPage';
-    const EVENT_AFTER_SAVE_FIELD_PAGE = 'afterSaveFieldPage';
+    public const EVENT_MODIFY_EXISTING_FIELDS = 'modifyExistingFields';
+    public const EVENT_MODIFY_FIELD_CONFIG = 'modifyFieldConfig';
+    public const EVENT_MODIFY_FIELD_ROW_CONFIG = 'modifyFieldRowConfig';
+    public const EVENT_BEFORE_SAVE_FIELD_ROW = 'beforeSaveFieldRow';
+    public const EVENT_AFTER_SAVE_FIELD_ROW = 'afterSaveFieldRow';
+    public const EVENT_BEFORE_SAVE_FIELD_PAGE = 'beforeSaveFieldPage';
+    public const EVENT_AFTER_SAVE_FIELD_PAGE = 'afterSaveFieldPage';
     /**
      * @event RegisterFieldsEvent The event that is triggered when registering fields.
      */
-    const EVENT_REGISTER_FIELDS = 'registerFields';
+    public const EVENT_REGISTER_FIELDS = 'registerFields';
 
     /**
      * @event RegisterFieldOptionsEvent The event that is triggered when registering label positions.
      */
-    const EVENT_REGISTER_LABEL_POSITIONS = 'registerLabelPositions';
+    public const EVENT_REGISTER_LABEL_POSITIONS = 'registerLabelPositions';
 
     /**
      * @event RegisterFieldOptionsEvent The event that is triggered when registering instructions positions.
      */
-    const EVENT_REGISTER_INSTRUCTIONS_POSITIONS = 'registerInstructionsPositions';
+    public const EVENT_REGISTER_INSTRUCTIONS_POSITIONS = 'registerInstructionsPositions';
 
 
     // Properties
     // =========================================================================
 
-    private $_fields = [];
-    private $_layoutsById = [];
-    private $_existingFields = [];
+    private array $_fields = [];
+    private array $_layoutsById = [];
+    private array $_existingFields = [];
 
 
     // Public Methods
@@ -92,7 +91,7 @@ class Fields extends Component
      *
      * @return array[]
      */
-    public function getRegisteredFieldGroups()
+    public function getRegisteredFieldGroups(): array
     {
         $registeredFields = $this->getRegisteredFields();
 
@@ -203,15 +202,14 @@ class Fields extends Component
      * @param $class
      * @return FormFieldInterface|null
      */
-    public function getRegisteredField($class)
+    public function getRegisteredField($class): ?FormFieldInterface
     {
         $fields = $this->getRegisteredFields();
 
         foreach ($fields as $field) {
             if (get_class($field) === $class) {
                 /* @var FormFieldInterface $instance */
-                $instance = $this->createField($class);
-                return $instance;
+                return $this->createField($class);
             }
         }
 
@@ -219,6 +217,7 @@ class Fields extends Component
     }
 
     /**
+     * @param bool $excludeDisabled
      * @return array
      */
     public function getRegisteredFields($excludeDisabled = true): array
@@ -302,7 +301,7 @@ class Fields extends Component
      *
      * @return array[]
      */
-    public function getRegisteredFormieFields()
+    public function getRegisteredFormieFields(): array
     {
         $fields = [];
 
@@ -347,7 +346,7 @@ class Fields extends Component
      * @return array
      * @throws InvalidConfigException
      */
-    public function getExistingFields($excludeForm = null): array
+    public function getExistingFields(Form $excludeForm = null): array
     {
         if ($this->_existingFields) {
             return $this->_existingFields;
@@ -419,7 +418,7 @@ class Fields extends Component
             foreach ($form->getPages() as $page) {
                 $pageFields = [];
 
-                $fields = $page->getFields();
+                $fields = $page->getCustomFields();
                 ArrayHelper::multisort($fields, 'name', SORT_ASC, SORT_STRING);
 
                 foreach ($fields as $field) {
@@ -455,13 +454,13 @@ class Fields extends Component
      *
      * @return FormFieldInterface[]
      */
-    public function getAllFields()
+    public function getAllFields(): array
     {
         $allFields = [];
         $fields = Craft::$app->getFields()->getAllFields(false);
 
         foreach ($fields as $field) {
-            if (strpos($field->context, 'formie:') === 0) {
+            if (str_starts_with($field->context, 'formie:')) {
                 $allFields[] = $field;
             }
         }
@@ -474,11 +473,11 @@ class Fields extends Component
      *
      * @return FormFieldInterface[]
      */
-    public function getElementFieldsForType($element, $type)
+    public function getElementFieldsForType($element, $type): array
     {
         $fields = [];
         
-        foreach ($element->getFieldLayout()->getFields() as $field) {
+        foreach ($element->getFieldLayout()->getCustomFields() as $field) {
             if (get_class($field) === $type) {
                 $fields[] = $field;
             }
@@ -494,7 +493,7 @@ class Fields extends Component
     /**
      * Deletes any fields that aren't attached to a form anymore.
      */
-    public function deleteOrphanedFields($consoleInstance = null)
+    public function deleteOrphanedFields($consoleInstance = null): void
     {
         $allFieldIds = [];
         $forms = Form::find()->trashed(null)->all();
@@ -502,7 +501,7 @@ class Fields extends Component
         /* @var Form $form */
         foreach ($forms as $form) {
             /* @var FormField $field */
-            foreach ($form->getFields() as $field) {
+            foreach ($form->getCustomFields() as $field) {
                 $allFieldIds[] = $field->id;
             }
         }
@@ -510,7 +509,7 @@ class Fields extends Component
         foreach ($this->getAllFields() as $field) {
             if (!in_array($field->id, $allFieldIds)) {
                 // Just a sanity check to protect against any non-Formie contexted fields
-                if (!strstr($field->context, 'formie:')) {
+                if (strpos($field->context, 'formie:') === false) {
                     continue;
                 }
 
@@ -531,7 +530,7 @@ class Fields extends Component
      * @param FormFieldInterface $field
      * @return array
      */
-    public function getSavedFieldConfig(FormFieldInterface $field)
+    public function getSavedFieldConfig(FormFieldInterface $field): array
     {
         /* @var FormField $field */
         $config = $field->getSavedFieldConfig();
@@ -563,14 +562,14 @@ class Fields extends Component
         $config['settings']['instructions'] = $field->instructions;
 
         // Nested fields have rows of their own.
-        if ($config['supportsNested'] = $field instanceof NestedFieldInterface) {
+        if ($config['supportsNested'] = ($field instanceof NestedFieldInterface)) {
             $config['isElementField'] = true;
             
             /* @var NestedFieldInterface|NestedFieldTrait $field */
             $config['rows'] = $field->getRows();
         }
 
-        // Allow fields to provide sub-field options for mapping
+        // Allow fields to provide subfield options for mapping
         if ($field instanceof SubFieldInterface) {
             $config['subfieldOptions'] = $field->getSubfieldOptions();
             $config['hasSubfields'] = $field->hasSubfields();
@@ -600,7 +599,7 @@ class Fields extends Component
      * @param array|null $options
      * @return array
      */
-    public function getFieldOptions($field, array $options = null): array
+    public function getFieldOptions(FormFieldInterface $field, array $options = null): array
     {
         if (empty($options)) {
             return [];
@@ -624,7 +623,7 @@ class Fields extends Component
      * @return array
      * @noinspection DuplicatedCode
      */
-    public function getLabelPositions($field = null): array
+    public function getLabelPositions(FormFieldInterface $field = null): array
     {
         $labelPositions = [
             AboveInput::class,
@@ -661,7 +660,7 @@ class Fields extends Component
      * @param FormFieldInterface|null $field
      * @return array
      */
-    public function getLabelPositionsArray($field = null): array
+    public function getLabelPositionsArray(FormFieldInterface $field = null): array
     {
         $labelPositions = [];
 
@@ -682,7 +681,7 @@ class Fields extends Component
      * @return array
      * @noinspection DuplicatedCode
      */
-    public function getInstructionsPositions($field = null): array
+    public function getInstructionsPositions(FormFieldInterface $field = null): array
     {
         $instructionsPositions = [
             AboveInput::class,
@@ -718,7 +717,7 @@ class Fields extends Component
      * @param FormFieldInterface|null $field
      * @return array
      */
-    public function getInstructionsPositionsArray($field = null): array
+    public function getInstructionsPositionsArray(FormFieldInterface $field = null): array
     {
         $instructionsPositions = [];
 
@@ -742,7 +741,7 @@ class Fields extends Component
      * @param int $layoutId The field layout’s ID
      * @return FieldLayout|null The field layout, or null if it doesn’t exist
      */
-    public function getLayoutById(int $layoutId)
+    public function getLayoutById(int $layoutId): ?FieldLayout
     {
         if ($this->_layoutsById !== null && array_key_exists($layoutId, $this->_layoutsById)) {
             return $this->_layoutsById[$layoutId];
@@ -845,7 +844,7 @@ class Fields extends Component
      * @see \craft\services\Fields::saveLayout()
      * @see Formie::_registerFieldsEvents()
      */
-    public function onSaveFieldLayout(FieldLayout $fieldLayout)
+    public function onSaveFieldLayout(FieldLayout $fieldLayout): void
     {
         $this->saveRows($fieldLayout);
         $this->savePages($fieldLayout);
@@ -858,7 +857,7 @@ class Fields extends Component
      * @return FieldInterface The field
      * @noinspection PhpDocMissingThrowsInspection
      */
-    public function createField($config): FieldInterface
+    public function createField(mixed $config): FormFieldInterface
     {
         if (is_string($config)) {
             $config = ['type' => $config];
@@ -870,7 +869,7 @@ class Fields extends Component
         }
 
         try {
-            $field = ComponentHelper::createComponent($config, FieldInterface::class);
+            $field = ComponentHelper::createComponent($config, FormFieldInterface::class);
         } catch (MissingComponentException $e) {
             $config['errorMessage'] = $e->getMessage();
             $config['expectedType'] = $config['type'];
@@ -892,7 +891,7 @@ class Fields extends Component
      * @param FormFieldInterface[] $fields
      * @return array
      */
-    public function groupIntoRows($fields): array
+    public function groupIntoRows(array $fields): array
     {
         $rows = [];
 
@@ -920,7 +919,7 @@ class Fields extends Component
      * @param array $rows
      * @return array
      */
-    public function getRowConfig($rows)
+    public function getRowConfig(array $rows): array
     {
         $rowConfig = [];
 
@@ -930,7 +929,7 @@ class Fields extends Component
             foreach ($row['fields'] as $fieldIndex => $field) {
                 // Set a flag on any field inside a nested field
                 if ($field instanceof NestedFieldInterface) {
-                    foreach ($field->getFields() as $key => $nestedField) {
+                    foreach ($field->getCustomFields() as $key => $nestedField) {
                         $nestedField->isNested = true;
                     }
                 }
@@ -958,9 +957,9 @@ class Fields extends Component
      *
      * @param FieldLayout $fieldLayout
      */
-    public function saveRows(FieldLayout $fieldLayout)
+    public function saveRows(FieldLayout $fieldLayout): void
     {
-        foreach ($fieldLayout->getFields() as $field) {
+        foreach ($fieldLayout->getCustomFields() as $field) {
             $record = new Row();
             $isNew = $record->getIsNewRecord();
 
@@ -1003,7 +1002,7 @@ class Fields extends Component
      *
      * @param FieldLayout $fieldLayout
      */
-    public function savePages(FieldLayout $fieldLayout)
+    public function savePages(FieldLayout $fieldLayout): void
     {
         foreach ($fieldLayout->getPages() as $page) {
             // Try to find the page settings first
@@ -1044,7 +1043,7 @@ class Fields extends Component
      *
      * @return string[]
      */
-    public function getReservedHandles()
+    public function getReservedHandles(): array
     {
         try {
             $class = new ReflectionClass(Field::class);

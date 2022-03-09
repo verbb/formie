@@ -18,20 +18,20 @@ use GraphQL\Type\Definition\ResolveInfo;
 
 use DateTime;
 use DateTimeZone;
+use craft\base\ElementInterface;
 
 class SubmissionResolver extends ElementMutationResolver
 {
     // Properties
     // =========================================================================
 
-    /** @inheritdoc */
-    protected $immutableAttributes = ['id', 'uid'];
+    protected array $immutableAttributes = ['id', 'uid'];
 
 
     // Public Methods
     // =========================================================================
 
-    public function saveSubmission($source, array $arguments, $context, ResolveInfo $resolveInfo)
+    public function saveSubmission($source, array $arguments, $context, ResolveInfo $resolveInfo): ?ElementInterface
     {
         $form = $this->getResolutionData('form');
         $canIdentify = !empty($arguments['id']) || !empty($arguments['uid']);
@@ -155,7 +155,7 @@ class SubmissionResolver extends ElementMutationResolver
         return $elementService->getElementById($submission->id, Submission::class, $submission->siteId);
     }
 
-    public function deleteSubmission($source, array $arguments, $context, ResolveInfo $resolveInfo)
+    public function deleteSubmission($source, array $arguments, $context, ResolveInfo $resolveInfo): bool
     {
         $submissionId = $arguments['id'];
         $siteId = $arguments['siteId'] ?? null;

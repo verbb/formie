@@ -3,8 +3,6 @@ namespace verbb\formie\models;
 
 use verbb\formie\Formie;
 use verbb\formie\positions\AboveInput;
-use verbb\formie\positions\BelowInput;
-use verbb\formie\prosemirror\toprosemirror\Renderer as ProseMirrorRenderer;
 
 use Craft;
 use craft\base\Model;
@@ -12,101 +10,68 @@ use craft\helpers\DateTimeHelper;
 
 use yii\validators\EmailValidator;
 
+use DateTime;
+
 class Settings extends Model
 {
     // Constants
     // =========================================================================
 
-    const SPAM_BEHAVIOUR_SUCCESS = 'showSuccess';
-    const SPAM_BEHAVIOUR_MESSAGE = 'showMessage';
+    public const SPAM_BEHAVIOUR_SUCCESS = 'showSuccess';
+    public const SPAM_BEHAVIOUR_MESSAGE = 'showMessage';
 
-    // Public Properties
+    // Properties
     // =========================================================================
 
-    /**
-     * The plugin display name.
-     *
-     * @var string
-     */
-    public $pluginName = 'Formie';
-
-    /**
-     * The slug to the default page when opening the plugin.
-     *
-     * @var string
-     */
-    public $defaultPage = 'forms';
+    public string $pluginName = 'Formie';
+    public string $defaultPage = 'forms';
 
     // Forms
-    public $defaultFormTemplate = '';
-    public $defaultEmailTemplate = '';
-    public $enableUnloadWarning = true;
-    public $ajaxTimeout = 10;
+    public string $defaultFormTemplate = '';
+    public string $defaultEmailTemplate = '';
+    public bool $enableUnloadWarning = true;
+    public int $ajaxTimeout = 10;
 
     // Fields
-    public $disabledFields = [];
+    public array $disabledFields = [];
 
     // General Fields
-    public $defaultLabelPosition = AboveInput::class;
-    public $defaultInstructionsPosition = AboveInput::class;
+    public string $defaultLabelPosition = AboveInput::class;
+    public string $defaultInstructionsPosition = AboveInput::class;
 
     // Fields
-    public $defaultFileUploadVolume = '';
-    public $defaultDateDisplayType = '';
-    public $defaultDateValueOption = '';
-    public $defaultDateTime = null;
+    public string $defaultFileUploadVolume = '';
+    public string $defaultDateDisplayType = '';
+    public string $defaultDateValueOption = '';
+    public ?DateTime $defaultDateTime = null;
 
-    /**
-     * The maximum age of an incomplete submission in days
-     * before it is deleted in garbage collection.
-     *
-     * Set to 0 to disable automatic deletion.
-     *
-     * @var int days
-     */
-    public $maxIncompleteSubmissionAge = 30;
-
-    /**
-     * Whether to enable Gatsby support for the plugin.
-     * Enabling this will rename the `fields` field on the GraphQL Form type to `formFields`.
-     *
-     * @var bool
-     */
-    public $enableGatsbyCompatibility = false;
-
-    /**
-     * The maximum age of an incomplete submission in days
-     * before it is deleted in garbage collection.
-     *
-     * Set to 0 to disable automatic deletion.
-     *
-     * @var int days
-     */
-    public $maxSentNotificationsAge = 30;
+    public int $maxIncompleteSubmissionAge = 30;
+    public bool $enableGatsbyCompatibility = false;
+    public int $maxSentNotificationsAge = 30;
 
     // Submissions
-    public $enableCsrfValidationForGuests = true;
-    public $useQueueForNotifications = true;
-    public $useQueueForIntegrations = true;
+    public bool $enableCsrfValidationForGuests = true;
+    public bool $useQueueForNotifications = true;
+    public bool $useQueueForIntegrations = true;
 
     // Spam
-    public $saveSpam = true;
-    public $spamLimit = 500;
-    public $spamEmailNotifications = false;
-    public $spamBehaviour = self::SPAM_BEHAVIOUR_SUCCESS;
-    public $spamKeywords = '';
-    public $spamBehaviourMessage = '';
+    public bool $saveSpam = true;
+    public int $spamLimit = 500;
+    public bool $spamEmailNotifications = false;
+    public string $spamBehaviour = self::SPAM_BEHAVIOUR_SUCCESS;
+    public string $spamKeywords = '';
+    public string $spamBehaviourMessage = '';
 
     // Notifications
-    public $sendEmailAlerts = false;
-    public $sentNotifications = true;
-    public $alertEmails;
+    public bool $sendEmailAlerts = false;
+    public bool $sentNotifications = true;
+    public ?array $alertEmails = null;
 
     // PDFs
-    public $pdfPaperSize = 'letter';
-    public $pdfPaperOrientation = 'portrait';
+    public string $pdfPaperSize = 'letter';
+    public string $pdfPaperOrientation = 'portrait';
 
-    public $captchas = [];
+    public array $captchas = [];
 
 
     // Public Methods
@@ -127,10 +92,7 @@ class Settings extends Model
         return $rules;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function validateAlertEmails($attribute)
+    public function validateAlertEmails($attribute): void
     {
         if ($this->sendEmailAlerts) {
             if (empty($this->alertEmails)) {
@@ -154,37 +116,28 @@ class Settings extends Model
         }
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getDefaultFormTemplateId()
+    public function getDefaultFormTemplateId(): ?int
     {
         if ($template = Formie::$plugin->getFormTemplates()->getTemplateByHandle($this->defaultFormTemplate)) {
             return $template->id;
         }
 
-        return '';
+        return null;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getDefaultEmailTemplateId()
+    public function getDefaultEmailTemplateId(): ?int
     {
         if ($template = Formie::$plugin->getEmailTemplates()->getTemplateByHandle($this->defaultEmailTemplate)) {
             return $template->id;
         }
 
-        return '';
+        return null;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getDefaultDateTimeValue()
+    public function getDefaultDateTimeValue(): ?DateTime
     {
-        if ($this->defaultDateTime = DateTimeHelper::toDateTime($this->defaultDateTime)) {
-            return $this->defaultDateTime;
+        if ($defaultDateTime = DateTimeHelper::toDateTime($this->defaultDateTime)) {
+            return $this->defaultDateTime = $defaultDateTime;
         }
 
         return null;

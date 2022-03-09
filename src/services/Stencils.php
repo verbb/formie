@@ -26,12 +26,12 @@ class Stencils extends Component
     // Constants
     // =========================================================================
 
-    const EVENT_BEFORE_SAVE_STENCIL = 'beforeSaveStencil';
-    const EVENT_AFTER_SAVE_STENCIL = 'afterSaveStencil';
-    const EVENT_BEFORE_DELETE_STENCIL = 'beforeDeleteStencil';
-    const EVENT_BEFORE_APPLY_STENCIL_DELETE = 'beforeApplyStencilDelete';
-    const EVENT_AFTER_DELETE_STENCIL = 'afterDeleteStencil';
-    const CONFIG_STENCILS_KEY = 'formie.stencils';
+    public const EVENT_BEFORE_SAVE_STENCIL = 'beforeSaveStencil';
+    public const EVENT_AFTER_SAVE_STENCIL = 'afterSaveStencil';
+    public const EVENT_BEFORE_DELETE_STENCIL = 'beforeDeleteStencil';
+    public const EVENT_BEFORE_APPLY_STENCIL_DELETE = 'beforeApplyStencilDelete';
+    public const EVENT_AFTER_DELETE_STENCIL = 'afterDeleteStencil';
+    public const CONFIG_STENCILS_KEY = 'formie.stencils';
 
 
     // Private Properties
@@ -40,7 +40,7 @@ class Stencils extends Component
     /**
      * @var Stencil[]
      */
-    private $_stencils;
+    private ?array $_stencils = [];
 
 
     // Public Methods
@@ -52,7 +52,7 @@ class Stencils extends Component
      * @param bool $withTrashed
      * @return Stencil[]
      */
-    public function getAllStencils($withTrashed = false): array
+    public function getAllStencils(bool $withTrashed = false): array
     {
         // Get the caches items if we have them cached, and the request is for non-trashed items
         if ($this->_stencils !== null) {
@@ -74,7 +74,7 @@ class Stencils extends Component
      *
      * @return array
      */
-    public function getStencilArray()
+    public function getStencilArray(): array
     {
         $stencils = [];
 
@@ -89,34 +89,34 @@ class Stencils extends Component
     }
 
     /**
-     * Gets a single stencil by it's ID.
+     * Gets a single stencil by its ID.
      *
-     * @param string|int $id
+     * @param int $id
      * @return Stencil|null
      */
-    public function getStencilById($id)
+    public function getStencilById(int $id): ?Stencil
     {
         return ArrayHelper::firstWhere($this->getAllStencils(), 'id', $id);
     }
 
     /**
-     * Gets a single stencil by it's handle.
+     * Gets a single stencil by its handle.
      *
      * @param string $handle
      * @return Stencil|null
      */
-    public function getStencilByHandle($handle)
+    public function getStencilByHandle(string $handle): ?Stencil
     {
         return ArrayHelper::firstWhere($this->getAllStencils(), 'handle', $handle, false);
     }
 
     /**
-     * Returns a stencil identified by it's UID.
+     * Returns a stencil identified by its UID.
      *
      * @param string $uid
      * @return Stencil|null
      */
-    public function getStencilByUid(string $uid)
+    public function getStencilByUid(string $uid): ?Stencil
     {
         return ArrayHelper::firstWhere($this->getAllStencils(), 'uid', $uid, false);
     }
@@ -196,12 +196,12 @@ class Stencils extends Component
      * @param ConfigEvent $event
      * @throws Throwable
      */
-    public function handleChangedStencil(ConfigEvent $event)
+    public function handleChangedStencil(ConfigEvent $event): void
     {
         $stencilUid = $event->tokenMatches[0];
         $data = $event->newValue;
 
-        // Ensure template config's are applied first
+        // Ensure template configs are applied first
         $projectConfig = Craft::$app->getProjectConfig();
         $formTemplates = $projectConfig->get(FormTemplates::CONFIG_TEMPLATES_KEY, true) ?? [];
         $emailTemplates = $projectConfig->get(EmailTemplates::CONFIG_TEMPLATES_KEY, true) ?? [];
@@ -267,7 +267,7 @@ class Stencils extends Component
     }
 
     /**
-     * Delete a stencil by it's id.
+     * Delete a stencil by its id.
      *
      * @param int $id
      * @return bool
@@ -313,7 +313,7 @@ class Stencils extends Component
      * @param ConfigEvent $event
      * @throws Throwable
      */
-    public function handleDeletedStencil(ConfigEvent $event)
+    public function handleDeletedStencil(ConfigEvent $event): void
     {
         $stencilUid = $event->tokenMatches[0];
 
@@ -353,7 +353,7 @@ class Stencils extends Component
      * @param Form $form
      * @param Stencil $stencil
      */
-    public function applyStencil(Form &$form, Stencil $stencil)
+    public function applyStencil(Form $form, Stencil $stencil): void
     {
         $form->settings = $stencil->data->settings;
         $form->requireUser = $stencil->data->requireUser;
@@ -404,7 +404,7 @@ class Stencils extends Component
      * @param bool $withTrashed
      * @return Query
      */
-    private function _createStencilsQuery($withTrashed = false): Query
+    private function _createStencilsQuery(bool $withTrashed = false): Query
     {
         $query = (new Query())
             ->select([

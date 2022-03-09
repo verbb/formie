@@ -16,14 +16,15 @@ use craft\db\Query;
 use craft\helpers\StringHelper;
 
 use Throwable;
+use yii\db\StaleObjectException;
 
 class Syncs extends Component
 {
     // Constants
     // =========================================================================
 
-    const EVENT_BEFORE_SAVE_SYNCED_FIELD = 'beforeSaveSyncedField';
-    const EVENT_AFTER_SAVE_SYNCED_FIELD = 'afterSaveSyncedField';
+    public const EVENT_BEFORE_SAVE_SYNCED_FIELD = 'beforeSaveSyncedField';
+    public const EVENT_AFTER_SAVE_SYNCED_FIELD = 'afterSaveSyncedField';
 
     // Public Methods
     // =========================================================================
@@ -34,7 +35,7 @@ class Syncs extends Component
      * @param string $refId
      * @return FormFieldInterface|null
      */
-    public function parseSyncId(string $refId)
+    public function parseSyncId(string $refId): ?FormFieldInterface
     {
         $parts = StringHelper::explode($refId, ':');
         if (count($parts) !== 2 || $parts[0] !== 'sync') {
@@ -44,8 +45,7 @@ class Syncs extends Component
         $fieldId = $parts[1];
 
         /* @var FormFieldInterface $field */
-        $field = Craft::$app->getFields()->getFieldById($fieldId);
-        return $field;
+        return Craft::$app->getFields()->getFieldById($fieldId);
     }
 
     /**
@@ -53,7 +53,7 @@ class Syncs extends Component
      *
      * @return SyncModel[]
      */
-    public function getAllSyncs()
+    public function getAllSyncs(): array
     {
         $rows = $this->_createSyncsQuery()->all();
 
@@ -69,9 +69,9 @@ class Syncs extends Component
      * Gets a field's sync.
      *
      * @param FormFieldInterface $field
-     * @return SyncModel
+     * @return SyncModel|null
      */
-    public function getFieldSync(FormFieldInterface $field)
+    public function getFieldSync(FormFieldInterface $field): ?SyncModel
     {
         /* @var FormField $field */
         $row = $this->_createSyncsQuery()
@@ -87,12 +87,12 @@ class Syncs extends Component
     }
 
     /**
-     * Returns a sync by it's ID.
+     * Returns a sync by its ID.
      *
      * @param $id
      * @return SyncModel|null
      */
-    public function getSyncById($id)
+    public function getSyncById(int $id): ?SyncModel
     {
         $row = $this->_createSyncsQuery()
             ->where(['id' => $id])
@@ -111,7 +111,7 @@ class Syncs extends Component
      * @param SyncModel $sync
      * @return SyncFieldModel[]
      */
-    public function getSyncFieldsBySync(SyncModel $sync)
+    public function getSyncFieldsBySync(SyncModel $sync): array
     {
         $rows = $this->_createSyncFieldsQuery()
             ->where(['syncId' => $sync->id])
@@ -138,13 +138,13 @@ class Syncs extends Component
     }
 
     /**
-     * Deletes a sync by it's ID.
+     * Deletes a sync by its ID.
      *
      * @param $id
      * @throws Throwable
-     * @throws \yii\db\StaleObjectException
+     * @throws StaleObjectException
      */
-    public function deleteSyncById($id)
+    public function deleteSyncById(int $id): void
     {
         $syncRecord = $this->_getSyncRecord($id);
         $syncRecord->delete();
@@ -156,7 +156,7 @@ class Syncs extends Component
      * @param FormFieldInterface $field
      * @noinspection PhpDocMissingThrowsInspection
      */
-    public function syncField(FormFieldInterface $field)
+    public function syncField(FormFieldInterface $field): void
     {
         /* @var FormField $field */
         $sync = $this->getFieldSync($field);
@@ -164,7 +164,7 @@ class Syncs extends Component
             return;
         }
 
-        foreach ($sync->getFields() as $fieldSync) {
+        foreach ($sync->getCustomFields() as $fieldSync) {
             $otherField = $fieldSync->getField();
 
             /* @var FormField $otherField */
@@ -208,7 +208,7 @@ class Syncs extends Component
      * @param FormFieldInterface $to
      * @return SyncModel|null
      */
-    public function createSync(FormFieldInterface $from, FormFieldInterface $to)
+    public function createSync(FormFieldInterface $from, FormFieldInterface $to): ?SyncModel
     {
         /* @var FormField $from */
         /* @var FormField $to */
@@ -242,7 +242,7 @@ class Syncs extends Component
      * @throws Throwable
      * @noinspection PhpDocMissingThrowsInspection
      */
-    public function saveSync(SyncModel $sync, bool $runValidation = true)
+    public function saveSync(SyncModel $sync, bool $runValidation = true): bool
     {
         if ($runValidation && !$sync->validate()) {
             Formie::log('Sync not saved due to validation error.');
@@ -258,7 +258,7 @@ class Syncs extends Component
 
             $sync->id = $syncRecord->id;
 
-            foreach ($sync->getFields() as $syncField) {
+            foreach ($sync->getCustomFields() as $syncField) {
                 $syncField->setSync($sync);
 
                 $syncFieldRecord = $this->_getSyncFieldRecord($syncField->id);
@@ -274,15 +274,17 @@ class Syncs extends Component
             $transaction->rollBack();
             throw $e;
         }
+
+        return true;
     }
 
     /**
      * Deletes empty syncs.
      *
      * @throws Throwable
-     * @throws \yii\db\StaleObjectException
+     * @throws StaleObjectException
      */
-    public function pruneSyncs($consoleInstance = null)
+    public function pruneSyncs($consoleInstance = null): void
     {
         foreach ($this->getAllSyncs() as $sync) {
             if (!$sync->hasFields()) {
@@ -326,13 +328,13 @@ class Syncs extends Component
     }
 
     /**
-     * Gets a sync record by it's ID, or a new sync record
+     * Gets a sync record by its ID, or a new sync record
      * if it wasn't provided or was not found.
      *
-     * @param string|int|null $id
+     * @param int|string|null $id
      * @return SyncRecord
      */
-    private function _getSyncRecord($id): SyncRecord
+    private function _getSyncRecord(int|string|null $id): SyncRecord
     {
         /** @var SyncRecord $sync */
         if ($id && $sync = SyncRecord::find()->where(['id' => $id])->one()) {
@@ -343,13 +345,13 @@ class Syncs extends Component
     }
 
     /**
-     * Gets a sync field record by it's ID, or a new sync field record
+     * Gets a sync field record by its ID, or a new sync field record
      * if it wasn't provided or was not found.
      *
-     * @param string|int|null $id
+     * @param int|string|null $id
      * @return SyncFieldRecord
      */
-    private function _getSyncFieldRecord($id): SyncFieldRecord
+    private function _getSyncFieldRecord(int|string|null $id): SyncFieldRecord
     {
         /** @var SyncFieldRecord $syncField */
         if ($id && $syncField = SyncFieldRecord::find()->where(['id' => $id])->one()) {

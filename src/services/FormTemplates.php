@@ -26,12 +26,12 @@ class FormTemplates extends Component
     // Constants
     // =========================================================================
 
-    const EVENT_BEFORE_SAVE_FORM_TEMPLATE = 'beforeSaveFormTemplate';
-    const EVENT_AFTER_SAVE_FORM_TEMPLATE = 'afterSaveFormTemplate';
-    const EVENT_BEFORE_DELETE_FORM_TEMPLATE = 'beforeDeleteFormTemplate';
-    const EVENT_BEFORE_APPLY_FORM_TEMPLATE_DELETE = 'beforeApplyFormTemplateDelete';
-    const EVENT_AFTER_DELETE_FORM_TEMPLATE = 'afterDeleteFormTemplate';
-    const CONFIG_TEMPLATES_KEY = 'formie.formTemplates';
+    public const EVENT_BEFORE_SAVE_FORM_TEMPLATE = 'beforeSaveFormTemplate';
+    public const EVENT_AFTER_SAVE_FORM_TEMPLATE = 'afterSaveFormTemplate';
+    public const EVENT_BEFORE_DELETE_FORM_TEMPLATE = 'beforeDeleteFormTemplate';
+    public const EVENT_BEFORE_APPLY_FORM_TEMPLATE_DELETE = 'beforeApplyFormTemplateDelete';
+    public const EVENT_AFTER_DELETE_FORM_TEMPLATE = 'afterDeleteFormTemplate';
+    public const CONFIG_TEMPLATES_KEY = 'formie.formTemplates';
 
 
     // Private Properties
@@ -40,7 +40,7 @@ class FormTemplates extends Component
     /**
      * @var FormTemplate[]
      */
-    private $_templates;
+    private ?array $_templates = null;
 
 
     // Public Methods
@@ -52,7 +52,7 @@ class FormTemplates extends Component
      * @param bool $withTrashed
      * @return FormTemplate[]
      */
-    public function getAllTemplates($withTrashed = false): array
+    public function getAllTemplates(bool $withTrashed = false): array
     {
         // Get the caches items if we have them cached, and the request is for non-trashed items
         if ($this->_templates !== null) {
@@ -70,34 +70,34 @@ class FormTemplates extends Component
     }
 
     /**
-     * Returns a template identified by it's ID.
+     * Returns a template identified by its ID.
      *
      * @param int $id
      * @return FormTemplate|null
      */
-    public function getTemplateById($id)
+    public function getTemplateById(int $id): ?FormTemplate
     {
         return ArrayHelper::firstWhere($this->getAllTemplates(), 'id', $id);
     }
 
     /**
-     * Returns a template identified by it's handle.
+     * Returns a template identified by its handle.
      *
      * @param string $handle
      * @return FormTemplate|null
      */
-    public function getTemplateByHandle($handle)
+    public function getTemplateByHandle(string $handle): ?FormTemplate
     {
         return ArrayHelper::firstWhere($this->getAllTemplates(), 'handle', $handle, false);
     }
 
     /**
-     * Returns a template identified by it's UID.
+     * Returns a template identified by its UID.
      *
      * @param string $uid
      * @return FormTemplate|null
      */
-    public function getTemplateByUid(string $uid)
+    public function getTemplateByUid(string $uid): ?FormTemplate
     {
         return ArrayHelper::firstWhere($this->getAllTemplates(), 'uid', $uid, false);
     }
@@ -180,14 +180,14 @@ class FormTemplates extends Component
                 'name' => $template->name,
                 'handle' => $template->handle,
                 'template' => $template->template,
-                'useCustomTemplates' => (bool)$template->useCustomTemplates,
-                'outputCssTheme' => (bool)$template->outputCssTheme,
-                'outputCssLayout' => (bool)$template->outputCssLayout,
-                'outputJsBase' => (bool)$template->outputJsBase,
-                'outputJsTheme' => (bool)$template->outputJsTheme,
+                'useCustomTemplates' => $template->useCustomTemplates,
+                'outputCssTheme' => $template->outputCssTheme,
+                'outputCssLayout' => $template->outputCssLayout,
+                'outputJsBase' => $template->outputJsBase,
+                'outputJsTheme' => $template->outputJsTheme,
                 'outputCssLocation' => $template->outputCssLocation,
                 'outputJsLocation' => $template->outputJsLocation,
-                'sortOrder' => (int)($template->sortOrder ?? 99),
+                'sortOrder' => $template->sortOrder ?? 99,
             ];
 
             $fieldLayout = $template->getFieldLayout();
@@ -223,7 +223,7 @@ class FormTemplates extends Component
      * @param ConfigEvent $event
      * @throws Throwable
      */
-    public function handleChangedTemplate(ConfigEvent $event)
+    public function handleChangedTemplate(ConfigEvent $event): void
     {
         $templateUid = $event->tokenMatches[0];
         $data = $event->newValue;
@@ -284,7 +284,7 @@ class FormTemplates extends Component
     }
 
     /**
-     * Delete a template by it's id.
+     * Delete a template by its id.
      *
      * @param int $id
      * @return bool
@@ -330,7 +330,7 @@ class FormTemplates extends Component
      * @param ConfigEvent $event
      * @throws Throwable
      */
-    public function handleDeletedTemplate(ConfigEvent $event)
+    public function handleDeletedTemplate(ConfigEvent $event): void
     {
         $uid = $event->tokenMatches[0];
 
@@ -374,7 +374,7 @@ class FormTemplates extends Component
      * @param bool $withTrashed
      * @return Query
      */
-    private function _createTemplatesQuery($withTrashed = false): Query
+    private function _createTemplatesQuery(bool $withTrashed = false): Query
     {
         $query = (new Query())
             ->select([

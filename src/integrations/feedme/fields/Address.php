@@ -1,6 +1,8 @@
 <?php
 namespace verbb\formie\integrations\feedme\fields;
 
+use verbb\formie\fields\formfields\Address as AddressField;
+
 use craft\feedme\base\Field;
 use craft\feedme\base\FieldInterface;
 use craft\feedme\helpers\DataHelper;
@@ -26,7 +28,7 @@ class Address extends Field implements FieldInterface
     /**
      * @var string
      */
-    public static $class = 'verbb\formie\fields\formfields\Address';
+    public static $class = AddressField::class;
 
 
     // Templates

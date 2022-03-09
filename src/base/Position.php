@@ -15,7 +15,7 @@ abstract class Position extends Component implements PositionInterface
      * - above
      * - below
      */
-    protected static $position;
+    protected static ?string $position = null;
 
 
     // Public Method
@@ -32,9 +32,9 @@ abstract class Position extends Component implements PositionInterface
     /**
      * @inheritDoc
      */
-    public function shouldDisplay(string $checkPosition): bool
+    public function shouldDisplay(string $position): bool
     {
-        return $checkPosition === $this::$position;
+        return $position === $this::$position;
     }
 
     /**
@@ -48,7 +48,7 @@ abstract class Position extends Component implements PositionInterface
     /**
      * @inheritDoc
      */
-    public static function fallback(FormFieldInterface $field = null)
+    public static function fallback(FormFieldInterface $field = null): ?string
     {
         return null;
     }

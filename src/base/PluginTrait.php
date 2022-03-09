@@ -29,16 +29,29 @@ use Craft;
 
 use yii\log\Logger;
 
-
 trait PluginTrait
 {
-    // Static Properties
+    // Properties
     // =========================================================================
 
     /**
      * @var Formie
      */
-    public static $plugin;
+    public static Formie $plugin;
+
+
+    // Static Methods
+    // =========================================================================
+
+    public static function log($message): void
+    {
+        Craft::getLogger()->log($message, Logger::LEVEL_INFO, 'formie');
+    }
+
+    public static function error($message): void
+    {
+        Craft::getLogger()->log($message, Logger::LEVEL_ERROR, 'formie');
+    }
 
 
     // Public Methods
@@ -149,21 +162,11 @@ trait PluginTrait
         return $this->get('tokens');
     }
 
-    public static function log($message)
-    {
-        Craft::getLogger()->log($message, Logger::LEVEL_INFO, 'formie');
-    }
-
-    public static function error($message)
-    {
-        Craft::getLogger()->log($message, Logger::LEVEL_ERROR, 'formie');
-    }
-
 
     // Private Methods
     // =========================================================================
 
-    private function _setPluginComponents()
+    private function _setPluginComponents(): void
     {
         $this->setComponents([
             'emails' => Emails::class,
@@ -192,7 +195,7 @@ trait PluginTrait
         BaseHelper::registerModule();
     }
 
-    private function _setLogging()
+    private function _setLogging(): void
     {
         BaseHelper::setFileLogging('formie');
     }

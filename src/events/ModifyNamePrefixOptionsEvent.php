@@ -8,6 +8,6 @@ class ModifyNamePrefixOptionsEvent extends Event
     // Properties
     // =========================================================================
 
-    public $options;
+    public ?array $options = null;
     
 }

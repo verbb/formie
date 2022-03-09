@@ -10,15 +10,13 @@ use craft\errors\MissingComponentException;
 
 use yii\web\BadRequestHttpException;
 use yii\web\Response;
+use verbb\formie\fields\formfields\MissingField;
 
 class SettingsController extends Controller
 {
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritdoc
-     */
     public function actionIndex(): Response
     {
         $settings = Formie::$plugin->getSettings();
@@ -26,14 +24,11 @@ class SettingsController extends Controller
         // Find the first available settings
         if (Craft::$app->getConfig()->getGeneral()->allowAdminChanges) {
             return $this->renderTemplate('formie/settings/general', compact('settings'));
-        } else {
-            return $this->redirect('formie/settings/address-providers');
         }
+
+        return $this->redirect('formie/settings/address-providers');
     }
 
-    /**
-     * @inheritdoc
-     */
     public function actionForms(): Response
     {
         $settings = Formie::$plugin->getSettings();
@@ -43,9 +38,6 @@ class SettingsController extends Controller
         return $this->renderTemplate('formie/settings/forms', compact('settings', 'formTemplates', 'emailTemplates'));
     }
 
-    /**
-     * @inheritdoc
-     */
     public function actionFields(): Response
     {
         $settings = Formie::$plugin->getSettings();
@@ -53,7 +45,7 @@ class SettingsController extends Controller
         $disabledFields = [];
 
         foreach (Formie::$plugin->getFields()->getRegisteredFields(false) as $field) {
-            if ($field instanceof \verbb\formie\fields\formfields\MissingField) {
+            if ($field instanceof MissingField) {
                 continue;
             }
 
@@ -66,9 +58,6 @@ class SettingsController extends Controller
         return $this->renderTemplate('formie/settings/fields', compact('settings', 'disabledFields'));
     }
 
-    /**
-     * @inheritdoc
-     */
     public function actionSubmissions(): Response
     {
         $settings = Formie::$plugin->getSettings();
@@ -76,9 +65,6 @@ class SettingsController extends Controller
         return $this->renderTemplate('formie/settings/submissions', compact('settings'));
     }
 
-    /**
-     * @inheritdoc
-     */
     public function actionSpam(): Response
     {
         $settings = Formie::$plugin->getSettings();
@@ -91,7 +77,7 @@ class SettingsController extends Controller
      * @throws MissingComponentException
      * @throws BadRequestHttpException
      */
-    public function actionSaveSettings()
+    public function actionSaveSettings(): ?Response
     {
         $this->requirePostRequest();
 

@@ -3,25 +3,21 @@ namespace verbb\formie\integrations\emailmarketing;
 
 use verbb\formie\base\Integration;
 use verbb\formie\base\EmailMarketing;
-use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
-use verbb\formie\errors\IntegrationException;
-use verbb\formie\events\SendIntegrationPayloadEvent;
 use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
-use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
-use craft\web\View;
+use Throwable;
 
 class Sender extends EmailMarketing
 {
     // Properties
     // =========================================================================
 
-    public $apiKey;
+    public ?string $apiKey = null;
 
 
     // Public Methods
@@ -35,9 +31,6 @@ class Sender extends EmailMarketing
         return Craft::t('formie', 'Sender');
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getDescription(): string
     {
         return Craft::t('formie', 'Sign up users to your Sender lists to grow your audience for campaigns.');
@@ -55,10 +48,7 @@ class Sender extends EmailMarketing
         return $rules;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function fetchFormSettings()
+    public function fetchFormSettings(): IntegrationFormSettings
     {
         $settings = [];
 
@@ -93,16 +83,13 @@ class Sender extends EmailMarketing
                     'fields' => $listFields,
                 ]);
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Integration::apiError($this, $e);
         }
 
         return new IntegrationFormSettings($settings);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function sendPayload(Submission $submission): bool
     {
         try {
@@ -144,7 +131,7 @@ class Sender extends EmailMarketing
 
                 return false;
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
             return false;
@@ -153,9 +140,6 @@ class Sender extends EmailMarketing
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function fetchConnection(): bool
     {
         try {
@@ -172,7 +156,7 @@ class Sender extends EmailMarketing
                 Integration::error($this, 'Unable to find “{id}” in response.', true);
                 return false;
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
             return false;

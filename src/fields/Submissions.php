@@ -28,7 +28,7 @@ class Submissions extends BaseRelationField
     /**
      * @inheritdoc
      */
-    protected static function elementType(): string
+    public static function elementType(): string
     {
         return Submission::class;
     }
@@ -52,7 +52,7 @@ class Submissions extends BaseRelationField
     /**
      * @inheritdoc
      */
-    public function getContentGqlType()
+    public function getContentGqlType(): array|Type
     {
         return [
             'name' => $this->handle,

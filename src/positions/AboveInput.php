@@ -12,7 +12,7 @@ class AboveInput extends Position
     /**
      * @inheritDoc
      */
-    protected static $position = 'above';
+    protected static ?string $position = 'above';
 
 
     // Static Methods

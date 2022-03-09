@@ -1,25 +1,18 @@
 <?php
 namespace verbb\formie\controllers;
 
-use verbb\formie\elements\db\SubmissionQuery;
-
 use Craft;
 use craft\controllers\ElementIndexesController;
 use craft\helpers\ChartHelper;
 use craft\helpers\DateTimeHelper;
 
 use yii\base\Response;
-use yii\web\BadRequestHttpException;
-use Exception;
 
 class ChartsController extends ElementIndexesController
 {
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritdoc
-     */
     public function actionGetSubmissionsData(): Response
     {
         $request = Craft::$app->getRequest();
@@ -40,7 +33,7 @@ class ChartsController extends ElementIndexesController
 
         foreach ($checkParams as $param) {
             if (isset($criteria[$param])) {
-                $criteria[$param] = filter_var($criteria[$param], FILTER_VALIDATE_BOOLEAN);;
+                $criteria[$param] = filter_var($criteria[$param], FILTER_VALIDATE_BOOLEAN);
             }
         }
 

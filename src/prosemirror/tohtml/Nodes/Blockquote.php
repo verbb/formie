@@ -4,6 +4,6 @@ namespace verbb\formie\prosemirror\tohtml\Nodes;
 
 class Blockquote extends Node
 {
-    protected $nodeType = 'blockquote';
-    protected $tagName = 'blockquote';
+    protected ?string $nodeType = 'blockquote';
+    protected string|null|array $tagName = 'blockquote';
 }

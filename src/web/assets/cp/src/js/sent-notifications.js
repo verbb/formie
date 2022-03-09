@@ -33,7 +33,7 @@ Craft.Formie.ResendNotificationModal = Garnish.Modal.extend({
                 if (response.success) {
                     this.$body.html(response.modalHtml);
                     Craft.appendHeadHtml(response.headHtml);
-                    Craft.appendFootHtml(response.footHtml);
+                    Craft.appendBodyHtml(response.footHtml);
                 }
             }
         }, this));

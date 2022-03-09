@@ -3,27 +3,23 @@ namespace verbb\formie\integrations\emailmarketing;
 
 use verbb\formie\base\Integration;
 use verbb\formie\base\EmailMarketing;
-use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
-use verbb\formie\errors\IntegrationException;
-use verbb\formie\events\SendIntegrationPayloadEvent;
 use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
-use craft\helpers\ArrayHelper;
-use craft\helpers\Json;
-use craft\web\View;
+use GuzzleHttp\Client;
+use Throwable;
 
 class Adestra extends EmailMarketing
 {
     // Properties
     // =========================================================================
 
-    public $apiKey;
-    public $workspaceId;
-    public $coreTableId;
+    public ?string $apiKey = null;
+    public ?string $workspaceId = null;
+    public ?string $coreTableId = null;
 
 
     // Public Methods
@@ -37,9 +33,6 @@ class Adestra extends EmailMarketing
         return Craft::t('formie', 'Adestra');
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getDescription(): string
     {
         return Craft::t('formie', 'Sign up users to your Adestra lists to grow your audience for campaigns.');
@@ -57,10 +50,7 @@ class Adestra extends EmailMarketing
         return $rules;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function fetchFormSettings()
+    public function fetchFormSettings(): IntegrationFormSettings
     {
         $settings = [];
 
@@ -95,16 +85,13 @@ class Adestra extends EmailMarketing
                     'fields' => $listFields,
                 ]);
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Integration::apiError($this, $e);
         }
 
         return new IntegrationFormSettings($settings);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function sendPayload(Submission $submission): bool
     {
         try {
@@ -129,7 +116,7 @@ class Adestra extends EmailMarketing
             if ($response === false) {
                 return true;
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
             return false;
@@ -138,9 +125,6 @@ class Adestra extends EmailMarketing
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function fetchConnection(): bool
     {
         try {
@@ -151,7 +135,7 @@ class Adestra extends EmailMarketing
                 Integration::error($this, 'Unable to find “{name}” in response.', true);
                 return false;
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
             return false;
@@ -160,10 +144,7 @@ class Adestra extends EmailMarketing
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getClient()
+    public function getClient(): Client
     {
         if ($this->_client) {
             return $this->_client;

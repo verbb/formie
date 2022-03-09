@@ -4,32 +4,29 @@ namespace verbb\formie\integrations\crm;
 use verbb\formie\Formie;
 use verbb\formie\base\Crm;
 use verbb\formie\base\Integration;
-use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
-use verbb\formie\errors\IntegrationException;
-use verbb\formie\events\SendIntegrationPayloadEvent;
-use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
-use craft\web\View;
+use Throwable;
+use GuzzleHttp\Client;
 
 class Pardot extends Crm
 {
     // Properties
     // =========================================================================
 
-    public $clientId;
-    public $clientSecret;
-    public $businessUnitId;
-    public $useSandbox = false;
-    public $mapToProspect = false;
-    public $mapToOpportunity = false;
-    public $prospectFieldMapping;
-    public $opportunityFieldMapping;
+    public ?string $clientId = null;
+    public ?string $clientSecret = null;
+    public ?string $businessUnitId = null;
+    public bool $useSandbox = false;
+    public bool $mapToProspect = false;
+    public bool $mapToOpportunity = false;
+    public ?array $prospectFieldMapping = null;
+    public ?array $opportunityFieldMapping = null;
 
 
     // OAuth Methods
@@ -91,9 +88,6 @@ class Pardot extends Crm
         return Craft::t('formie', 'Pardot');
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getDescription(): string
     {
         return Craft::t('formie', 'Manage your Pardot customers by providing important information on their conversion on your site.');
@@ -123,10 +117,7 @@ class Pardot extends Crm
         return $rules;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function fetchFormSettings()
+    public function fetchFormSettings(): IntegrationFormSettings
     {
         $settings = [];
 
@@ -311,16 +302,13 @@ class Pardot extends Crm
                 'prospect' => $prospectFields,
                 'opportunity' => $opportunityFields,
             ];
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Integration::apiError($this, $e);
         }
 
         return new IntegrationFormSettings($settings);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function sendPayload(Submission $submission): bool
     {
         try {
@@ -368,7 +356,7 @@ class Pardot extends Crm
                     return false;
                 }
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
             return false;
@@ -377,10 +365,7 @@ class Pardot extends Crm
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getClient()
+    public function getClient(): Client
     {
         if ($this->_client) {
             return $this->_client;
@@ -403,7 +388,7 @@ class Pardot extends Crm
         // We can't always rely on the EOL of the token.
         try {
             $response = $this->request('GET', '/');
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             if ($e->getCode() === 401) {
                 // Force-refresh the token
                 Formie::$plugin->getTokens()->refreshToken($token, true);
@@ -427,9 +412,6 @@ class Pardot extends Crm
     // Private Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     private function _prepPayload($fields)
     {
         $payload = $fields;
@@ -437,7 +419,7 @@ class Pardot extends Crm
         // Check to see if the ownerId is an email, special handling for that
         $ownerId = $payload['OwnerId'] ?? '';
 
-        if ($ownerId && strstr($ownerId, '@')) {
+        if ($ownerId && strpos($ownerId, '@') !== false) {
             $ownerId = ArrayHelper::remove($payload, 'OwnerId');
 
             $payload['Owner'] = [
@@ -449,9 +431,6 @@ class Pardot extends Crm
         return $payload;
     }
 
-    /**
-     * @inheritDoc
-     */
     private function _convertFieldType($fieldType)
     {
         $fieldTypes = [
@@ -464,10 +443,7 @@ class Pardot extends Crm
         return $fieldTypes[$fieldType] ?? IntegrationField::TYPE_STRING;
     }
 
-    /**
-     * @inheritDoc
-     */
-    private function _getCustomFields($fields, $excludeNames = [])
+    private function _getCustomFields($fields, $excludeNames = []): array
     {
         $customFields = [];
 

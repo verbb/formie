@@ -17,9 +17,6 @@ class Age extends PredefinedOption
         return Craft::t('formie', 'Age');
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function getDataOptions(): array
     {
         return [

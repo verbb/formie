@@ -11,8 +11,8 @@ use verbb\formie\Formie;
 
 class SetSubmissionStatus extends ElementAction
 {
-    public $statusId;
-    public $statuses;
+    public ?int $statusId = null;
+    public ?array $statuses = null;
 
     /**
      * @inheritdoc
@@ -40,7 +40,7 @@ class SetSubmissionStatus extends ElementAction
     /**
      * @inheritdoc
      */
-    public function getTriggerHtml()
+    public function getTriggerHtml(): ?string
     {
         return Craft::$app->getView()->renderTemplate('formie/_components/actions/set-status/trigger', [
             'statuses' => $this->statuses,
@@ -63,7 +63,7 @@ class SetSubmissionStatus extends ElementAction
         foreach ($elements as $element) {
             // Without this, when updating submissions for "All forms", this will reset the content
             // of a submission. This is because the query to fetch element's can't resolve the correct
-            // content table across multiple queries. This does add an extra query, but its pretty unavoidable
+            // content table across multiple queries. This does add an extra query, but it's pretty unavoidable
             Craft::$app->getContent()->populateElementContent($element);
 
             $element->setStatus($status);
@@ -87,12 +87,10 @@ class SetSubmissionStatus extends ElementAction
 
         if ($failCount !== 0) {
             $this->setMessage(Craft::t('app', 'Status updated, with some failures due to validation errors.'));
+        } else if (count($elements) === 1) {
+            $this->setMessage(Craft::t('app', 'Status updated.'));
         } else {
-            if (count($elements) === 1) {
-                $this->setMessage(Craft::t('app', 'Status updated.'));
-            } else {
-                $this->setMessage(Craft::t('app', 'Statuses updated.'));
-            }
+            $this->setMessage(Craft::t('app', 'Statuses updated.'));
         }
 
         return true;

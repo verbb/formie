@@ -2,7 +2,6 @@
 namespace verbb\formie\base;
 
 use verbb\formie\Formie;
-use verbb\formie\elements\Form;
 use verbb\formie\elements\NestedFieldRow;
 use verbb\formie\elements\db\NestedFieldRowQuery;
 use verbb\formie\models\FieldLayout;
@@ -21,33 +20,18 @@ use craft\helpers\ElementHelper;
 use craft\helpers\StringHelper;
 use craft\helpers\Template;
 use craft\services\Elements;
-use craft\validators\ArrayValidator;
+use yii\base\InvalidConfigException;
+use Twig\Markup;
 
 
 trait NestedFieldTrait
 {
-    // Public Properties
+    // Properties
     // =========================================================================
 
-    /**
-     * @var string
-     */
-    public $contentTable;
-
-    /**
-     * @var FieldLayout
-     */
-    private $_fieldLayout;
-
-    /**
-     * @var array
-     */
-    private $_rows;
-
-    /**
-     * @var array
-     */
-    private $_uniqueFieldHandles = [];
+    public ?string $contentTable = null;
+    private ?FieldLayout $_fieldLayout = null;
+    private ?array $_rows = null;
 
 
     // Static Methods
@@ -76,7 +60,7 @@ trait NestedFieldTrait
     /**
      * @inheritDoc
      */
-    public function setAttributes($values, $safeOnly = true)
+    public function setAttributes($values, $safeOnly = true): void
     {
         parent::setAttributes($values, $safeOnly);
 
@@ -95,9 +79,9 @@ trait NestedFieldTrait
     /**
      * @inheritDoc
      */
-    public function getValue(ElementInterface $element)
+    public function getValue(ElementInterface $element): mixed
     {
-        $fields = $this->getFields();
+        $fields = $this->getCustomFields();
         $value = $element->getFieldValue($this->handle);
 
         $rows = [];
@@ -118,17 +102,17 @@ trait NestedFieldTrait
     /**
      * @inheritDoc
      */
-    public function validate($attributeNames = null, $clearErrors = true)
+    public function validate($attributeNames = null, $clearErrors = true): bool
     {
         if (!parent::validate($attributeNames, $clearErrors)) {
             return false;
         }
 
-        $this->_uniqueFieldHandles = [];
+        $_uniqueFieldHandles = [];
 
         $validates = true;
 
-        // Can't validate multiple new rows at once so we'll need to give these temporary context to avoid false unique
+        // Can't validate multiple new rows at once, so we'll need to give these temporary context to avoid false unique
         // handle validation errors, and just validate those manually. Also apply the future fieldColumnPrefix so that
         // field handle validation takes its length into account.
         $contentService = Craft::$app->getContent();
@@ -138,7 +122,7 @@ trait NestedFieldTrait
         $contentService->fieldContext = StringHelper::randomString(10);
         $contentService->fieldColumnPrefix = 'field_';
 
-        foreach ($this->getFields() as $field) {
+        foreach ($this->getCustomFields() as $field) {
             $field->validate();
 
             // Make sure the block type handle + field handle combo is unique for the whole field. This prevents us from
@@ -148,7 +132,7 @@ trait NestedFieldTrait
             if ($this->handle && $field->handle) {
                 $fieldHandle = $this->handle . '_' . $field->handle;
 
-                if (in_array($fieldHandle, $this->_uniqueFieldHandles, true)) {
+                if (in_array($fieldHandle, $_uniqueFieldHandles, true)) {
                     // This error *might* not be entirely accurate, but it's such an edge case that it's probably better
                     // for the error to be worded for the common problem (two duplicate handles within the same block
                     // type).
@@ -159,7 +143,7 @@ trait NestedFieldTrait
 
                     $field->addError('handle', $error);
                 } else {
-                    $this->_uniqueFieldHandles[] = $fieldHandle;
+                    $_uniqueFieldHandles[] = $fieldHandle;
                 }
             }
 
@@ -177,13 +161,13 @@ trait NestedFieldTrait
     /**
      * @inheritDoc
      */
-    public function hasErrors($attribute = null)
+    public function hasErrors($attribute = null): bool
     {
         if (parent::hasErrors($attribute)) {
             return true;
         }
 
-        foreach ($this->getFields() as $field) {
+        foreach ($this->getCustomFields() as $field) {
             if ($field->hasErrors()) {
                 return true;
             }
@@ -210,7 +194,7 @@ trait NestedFieldTrait
     /**
      * @inheritDoc
      */
-    public function setRows(array $rows, $duplicate = false)
+    public function setRows(array $rows, bool $duplicate = false): void
     {
         $fieldLayout = Formie::$plugin->getForms()->buildFieldLayout([
             [
@@ -230,10 +214,10 @@ trait NestedFieldTrait
      * @return FieldInterface[]
      * @throws InvalidConfigException
      */
-    public function getNestedRows()
+    public function getNestedRows(): array
     {
         /* @var FormFieldInterface[] $pageFields */
-        $pageFields = $this->getFields();
+        $pageFields = $this->getCustomFields();
         return Formie::$plugin->getFields()->groupIntoRows($pageFields);
     }
 
@@ -242,10 +226,10 @@ trait NestedFieldTrait
      *
      * @return FieldInterface[]|null
      */
-    public function getFields()
+    public function getCustomFields(): ?array
     {
         if ($fieldLayout = $this->getFieldLayout()) {
-            return $fieldLayout->getFields();
+            return $fieldLayout->getCustomFields();
         }
 
         return null;
@@ -257,26 +241,26 @@ trait NestedFieldTrait
      * @param string $handle
      * @return FormFieldInterface|null
      */
-    public function getFieldByHandle(string $handle)
+    public function getFieldByHandle(string $handle): ?FormFieldInterface
     {
-        return ArrayHelper::firstWhere($this->getFields(), 'handle', $handle);
+        return ArrayHelper::firstWhere($this->getCustomFields(), 'handle', $handle);
     }
 
     /**
      * Returns a field by its id.
      *
-     * @param string $id
+     * @param int $id
      * @return FormFieldInterface|null
      */
-    public function getFieldById($id)
+    public function getFieldById(int $id): ?FormFieldInterface
     {
-        return ArrayHelper::firstWhere($this->getFields(), 'id', $id);
+        return ArrayHelper::firstWhere($this->getCustomFields(), 'id', $id);
     }
 
     /**
      * @inheritDoc
      */
-    public function getFieldLayout()
+    public function getFieldLayout(): ?FieldLayout
     {
         if ($this->_fieldLayout) {
             return $this->_fieldLayout;
@@ -288,7 +272,7 @@ trait NestedFieldTrait
     /**
      * @inheritDoc
      */
-    public function setFieldLayout(FieldLayout $fieldLayout)
+    public function setFieldLayout(FieldLayout $fieldLayout): void
     {
         $this->_fieldLayout = $fieldLayout;
     }
@@ -304,12 +288,12 @@ trait NestedFieldTrait
     /**
      * @inheritDoc
      */
-    public function getFrontEndJsModules()
+    public function getFrontEndJsModules(): ?array
     {
         $modules = [];
 
         // Check for any nested fields
-        foreach ($this->getFields() as $field) {
+        foreach ($this->getCustomFields() as $field) {
             if ($js = $field->getFrontEndJsModules()) {
                 // Handle multiple registrations
                 if (isset($js[0])) {
@@ -345,7 +329,7 @@ trait NestedFieldTrait
 
         // Prep the fields for save
         if ($fieldLayout = $this->getFieldLayout()) {
-            foreach ($fieldLayout->getFields() as $field) {
+            foreach ($fieldLayout->getCustomFields() as $field) {
                 $field->context = $this->getFormFieldContext();
                 $fieldsService->prepFieldForSave($field);
             }
@@ -359,7 +343,7 @@ trait NestedFieldTrait
     /**
      * @inheritDoc
      */
-    public function afterSave(bool $isNew)
+    public function afterSave(bool $isNew): void
     {
         Formie::$plugin->getNestedFields()->saveField($this);
 
@@ -369,7 +353,7 @@ trait NestedFieldTrait
     /**
      * @inheritDoc
      */
-    public function afterElementSave(ElementInterface $element, bool $isNew)
+    public function afterElementSave(ElementInterface $element, bool $isNew): void
     {
         /** @var Element $element */
         if ($element->duplicateOf !== null) {
@@ -389,7 +373,7 @@ trait NestedFieldTrait
     /**
      * @inheritDoc
      */
-    public function beforeApplyDelete()
+    public function beforeApplyDelete(): void
     {
         Formie::$plugin->getNestedFields()->deleteNestedField($this);
 
@@ -429,7 +413,7 @@ trait NestedFieldTrait
     /**
      * @inheritdoc
      */
-    public function afterElementRestore(ElementInterface $element)
+    public function afterElementRestore(ElementInterface $element): void
     {
         // Also restore any nested field rows for this element
         $elementsService = Craft::$app->getElements();
@@ -454,7 +438,7 @@ trait NestedFieldTrait
     /**
      * @inheritdoc
      */
-    public function normalizeValue($value, ElementInterface $element = null)
+    public function normalizeValue(mixed $value, ?ElementInterface $element = null): mixed
     {
         if ($value instanceof ElementQueryInterface) {
             return $value;
@@ -480,7 +464,7 @@ trait NestedFieldTrait
             ->siteId($element->siteId ?? null);
 
         // Set the initially matched elements if $value is already set, which is the case if there was a validation
-        // error or we're loading an entry revision.
+        // error, or we're loading an entry revision.
         if ($value === '') {
             $query->setCachedResult([]);
         } else if ($element && is_array($value)) {
@@ -493,7 +477,7 @@ trait NestedFieldTrait
     /**
      * @inheritdoc
      */
-    public function serializeValue($value, ElementInterface $element = null)
+    public function serializeValue(mixed $value, ?ElementInterface $element = null): mixed
     {
         /** @var NestedFieldRowQuery $value */
         $serialized = [];
@@ -513,7 +497,7 @@ trait NestedFieldTrait
     /**
      * @inheritdoc
      */
-    public function modifyElementsQuery(ElementQueryInterface $query, $value)
+    public function modifyElementsQuery(ElementQueryInterface $query, $value): void
     {
         /** @var ElementQuery $query */
         if ($value === 'not :empty:') {
@@ -528,11 +512,7 @@ trait NestedFieldTrait
                 "(select count([[{$alias}.id]]) from {{%formie_nestedfieldrows}} {{{$alias}}} where [[{$alias}.ownerId]] = [[elements.id]] and [[{$alias}.fieldId]] = :fieldId) {$operator} 0",
                 [':fieldId' => $this->id]
             );
-        } else if ($value !== null) {
-            return false;
         }
-
-        return null;
     }
 
     /**
@@ -546,10 +526,8 @@ trait NestedFieldTrait
 
     /**
      * Validates an owner element’s nested field rows.
-     *
-     * @param ElementInterface $element
      */
-    public function validateRows(ElementInterface $element)
+    public function validateRows(ElementInterface $element): void
     {
         /** @var Element $element */
         /** @var NestedFieldRowQuery $value */
@@ -613,7 +591,7 @@ trait NestedFieldTrait
     /**
      * @inheritdoc
      */
-    public function getEagerLoadingMap(array $sourceElements)
+    public function getEagerLoadingMap(array $sourceElements): array|false|null
     {
         // Get the source element IDs
         $sourceElementIds = [];
@@ -649,12 +627,12 @@ trait NestedFieldTrait
     /**
      * @inheritDoc
      */
-    protected function defineValueAsString($value, ElementInterface $element = null)
+    protected function defineValueAsString($value, ElementInterface $element = null): string
     {
         $values = [];
 
         foreach ($value->all() as $rowId => $row) {
-            foreach ($row->getFieldLayout()->getFields() as $field) {
+            foreach ($row->getFieldLayout()->getCustomFields() as $field) {
                 $subValue = $row->getFieldValue($field->handle);
                 $valueAsString = $field->getValueAsString($subValue, $row);
 
@@ -670,12 +648,12 @@ trait NestedFieldTrait
     /**
      * @inheritDoc
      */
-    protected function defineValueAsJson($value, ElementInterface $element = null)
+    protected function defineValueAsJson($value, ElementInterface $element = null): array
     {
         $values = [];
 
         foreach ($value->all() as $rowId => $row) {
-            foreach ($row->getFieldLayout()->getFields() as $field) {
+            foreach ($row->getFieldLayout()->getCustomFields() as $field) {
                 $subValue = $row->getFieldValue($field->handle);
                 $valueAsJson = $field->getValueAsJson($subValue, $row);
 
@@ -691,12 +669,12 @@ trait NestedFieldTrait
     /**
      * @inheritDoc
      */
-    protected function defineValueForExport($value, ElementInterface $element = null)
+    protected function defineValueForExport($value, ElementInterface $element = null): mixed
     {
         $values = [];
 
         foreach ($value->all() as $rowId => $row) {
-            foreach ($row->getFieldLayout()->getFields() as $field) {
+            foreach ($row->getFieldLayout()->getCustomFields() as $field) {
                 $subValue = $row->getFieldValue($field->handle);
                 $valueForExport = $field->getValueForExport($subValue, $row);
 
@@ -710,12 +688,12 @@ trait NestedFieldTrait
     /**
      * @inheritDoc
      */
-    protected function defineValueForSummary($value, ElementInterface $element = null)
+    protected function defineValueForSummary($value, ElementInterface $element = null): string
     {
         $values = '';
 
         foreach ($value->all() as $rowId => $row) {
-            foreach ($row->getFieldLayout()->getFields() as $field) {
+            foreach ($row->getFieldLayout()->getCustomFields() as $field) {
                 if ($field->getIsCosmetic() || $field->getIsHidden() || $field->isConditionallyHidden($element)) {
                     continue;
                 }
@@ -733,7 +711,7 @@ trait NestedFieldTrait
     /**
      * @inheritDoc
      */
-    protected function defineValueForIntegration($value, $integrationField, $integration, ElementInterface $element = null, $fieldKey = '')
+    protected function defineValueForIntegration($value, $integrationField, $integration, ElementInterface $element = null, $fieldKey = ''): mixed
     {
         // Check if we're trying to get a sub-field value
         if ($fieldKey) {
@@ -830,10 +808,10 @@ trait NestedFieldTrait
                 $rowData = [];
             }
 
-            // If this is a preexisting row but we don't have a record of it,
+            // If this is a preexisting row, but we don't have a record of it,
             // check to see if it was recently duplicated.
             if (
-                strpos($rowId, 'new') !== 0 &&
+                !str_starts_with($rowId, 'new') &&
                 !isset($oldRowsById[$rowId]) &&
                 isset(Elements::$duplicatedElementIds[$rowId]) &&
                 isset($oldRowsById[Elements::$duplicatedElementIds[$rowId]])

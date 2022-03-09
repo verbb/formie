@@ -17,9 +17,6 @@ class Gender extends PredefinedOption
         return Craft::t('formie', 'Gender');
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function getDataOptions(): array
     {
         return [

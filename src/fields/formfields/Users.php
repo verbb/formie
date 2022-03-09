@@ -11,12 +11,8 @@ use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\Notification;
 
 use Craft;
-use craft\base\ElementInterface;
 use craft\elements\User;
 use craft\fields\Users as CraftUsers;
-use craft\fields\data\MultiOptionsFieldData;
-use craft\fields\data\OptionData;
-use craft\fields\data\SingleOptionFieldData;
 use craft\gql\arguments\elements\User as UserArguments;
 use craft\gql\interfaces\elements\User as UserInterface;
 use craft\gql\resolvers\elements\User as UserResolver;
@@ -26,13 +22,14 @@ use craft\helpers\UrlHelper;
 use craft\models\UserGroup;
 
 use GraphQL\Type\Definition\Type;
+use craft\elements\db\ElementQueryInterface;
 
 class Users extends CraftUsers implements FormFieldInterface
 {
     // Constants
     // =========================================================================
 
-    const EVENT_MODIFY_ELEMENT_QUERY = 'modifyElementQuery';
+    public const EVENT_MODIFY_ELEMENT_QUERY = 'modifyElementQuery';
 
 
     // Traits
@@ -76,20 +73,11 @@ class Users extends CraftUsers implements FormFieldInterface
     // Properties
     // =========================================================================
 
-    /**
-     * @var bool
-     */
-    public $searchable = true;
+    public bool $searchable = true;
 
-    /**
-     * @var string
-     */
-    protected $inputTemplate = 'formie/_includes/element-select-input';
+    protected string $inputTemplate = 'formie/_includes/element-select-input';
 
-    /**
-     * @var UserGroup
-     */
-    private $_userGroup;
+    private ?UserGroup $_userGroup = null;
 
 
     // Public Methods
@@ -100,6 +88,8 @@ class Users extends CraftUsers implements FormFieldInterface
      */
     public function __construct()
     {
+        parent::__construct();
+
          $this->labelSource = 'fullName';
     }
 
@@ -144,7 +134,7 @@ class Users extends CraftUsers implements FormFieldInterface
      */
     public function getDefaultValue($attributePrefix = '')
     {
-        // If the default value from the parent field (query params, etc) is empty, use the default values
+        // If the default value from the parent field (query params, etc.) is empty, use the default values
         // set in the field settings.
         $this->defaultValue = $this->traitGetDefaultValue($attributePrefix) ?? $this->defaultValue;
 
@@ -164,7 +154,7 @@ class Users extends CraftUsers implements FormFieldInterface
     /**
      * @inheritDoc
      */
-    public function getFrontEndInputOptions(Form $form, $value, array $options = null): array
+    public function getFrontEndInputOptions(Form $form, mixed $value, array $options = null): array
     {
         $inputOptions = $this->traitGetFrontendInputOptions($form, $value, $options);
         $inputOptions['usersQuery'] = $this->getElementsQuery();
@@ -175,9 +165,9 @@ class Users extends CraftUsers implements FormFieldInterface
     /**
      * @inheritDoc
      */
-    public function getEmailHtml(Submission $submission, Notification $notification, $value, array $options = null)
+    public function getEmailHtml(Submission $submission, Notification $notification, mixed $value, array $options = null): string|null|bool
     {
-        // Ensure we return back the correct, prepped query for emails. Just as we would be submissions.
+        // Ensure we return the correct, prepped query for emails. Just as we would be submissions.
         $value = $this->_all($value, $submission);
 
         return $this->traitGetEmailHtml($submission, $notification, $value, $options);
@@ -186,9 +176,9 @@ class Users extends CraftUsers implements FormFieldInterface
     /**
      * Returns the list of selectable users.
      *
-     * @return User[]
+     * @return \craft\elements\db\ElementQueryInterface
      */
-    public function getElementsQuery()
+    public function getElementsQuery(): \craft\elements\db\ElementQueryInterface
     {
         // Use the currently-set element query, or create a new one.
         $query = $this->elementsQuery ?? User::find();
@@ -240,7 +230,7 @@ class Users extends CraftUsers implements FormFieldInterface
     /**
      * @inheritDoc
      */
-    public function defineLabelSourceOptions()
+    public function defineLabelSourceOptions(): array
     {
         $options = [
             ['value' => 'username', 'label' => Craft::t('app', 'Username')],
@@ -251,7 +241,7 @@ class Users extends CraftUsers implements FormFieldInterface
         ];
 
         if ($fieldLayout = Craft::$app->getFields()->getLayoutByType(User::class)) {
-            $fields = $this->getStringCustomFieldOptions($fieldLayout->getFields());
+            $fields = $this->getStringCustomFieldOptions($fieldLayout->getCustomFields());
 
             $options = array_merge($options, $fields);
         }
@@ -262,13 +252,12 @@ class Users extends CraftUsers implements FormFieldInterface
     /**
      * @inheritDoc
      */
-    public function getSettingGqlTypes()
+    public function getSettingGqlTypes(): array
     {
         return array_merge($this->traitGetSettingGqlTypes(), [
             'users' => [
                 'name' => 'users',
                 'type' => Type::listOf(UserInterface::getType()),
-                'resolve' => UserResolver::class.'::resolve',
                 'args' => UserArguments::getArguments(),
                 'resolve' => function($class) {
                     return $class->getElementsQuery()->all();
@@ -310,7 +299,7 @@ class Users extends CraftUsers implements FormFieldInterface
                 'label' => Craft::t('formie', 'Default Value'),
                 'help' => Craft::t('formie', 'Select a default user to be selected.'),
                 'name' => 'defaultValue',
-                'selectionLabel' => $this->defaultSelectionLabel(),
+                'selectionLabel' => self::defaultSelectionLabel(),
                 'config' => [
                     'jsClass' => $this->inputJsClass,
                     'elementType' => static::elementType(),
@@ -414,9 +403,6 @@ class Users extends CraftUsers implements FormFieldInterface
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineConditionsSchema(): array
     {
         return [

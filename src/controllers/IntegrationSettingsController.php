@@ -14,16 +14,13 @@ use craft\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\web\Response;
 
-use Throwable;
+use craft\web\TemplateResponseBehavior;
 
 class IntegrationSettingsController extends Controller
 {
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public function actionCaptchaIndex(): Response
     {
         $groupedIntegrations = Formie::$plugin->getIntegrations()->getAllGroupedCaptchas();
@@ -31,10 +28,7 @@ class IntegrationSettingsController extends Controller
         return $this->renderTemplate('formie/settings/captchas', compact('groupedIntegrations'));
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function actionSaveCaptchas()
+    public function actionSaveCaptchas(): ?Response
     {
         $this->requirePostRequest();
 
@@ -76,7 +70,7 @@ class IntegrationSettingsController extends Controller
     /**
      * Edit an integration.
      *
-     * @param int|null $integrationId The integrations’s ID, if editing an existing integration.
+     * @param int|null $integrationId The integrations’ ID, if editing an existing integration.
      * @param IntegrationInterface|null $integration The integration being edited, if there were any validation errors.
      * @return Response
      * @throws NotFoundHttpException if the requested integration cannot be found
@@ -100,7 +94,7 @@ class IntegrationSettingsController extends Controller
     /**
      * Edit an integration.
      *
-     * @param int|null $integrationId The integrations’s ID, if editing an existing integration.
+     * @param int|null $integrationId The integrations’ ID, if editing an existing integration.
      * @param IntegrationInterface|null $integration The integration being edited, if there were any validation errors.
      * @return Response
      * @throws NotFoundHttpException if the requested integration cannot be found
@@ -124,7 +118,7 @@ class IntegrationSettingsController extends Controller
     /**
      * Edit an integration.
      *
-     * @param int|null $integrationId The integrations’s ID, if editing an existing integration.
+     * @param int|null $integrationId The integrations’ ID, if editing an existing integration.
      * @param IntegrationInterface|null $integration The integration being edited, if there were any validation errors.
      * @return Response
      * @throws NotFoundHttpException if the requested integration cannot be found
@@ -148,7 +142,7 @@ class IntegrationSettingsController extends Controller
     /**
      * Edit an integration.
      *
-     * @param int|null $integrationId The integrations’s ID, if editing an existing integration.
+     * @param int|null $integrationId The integrations’ ID, if editing an existing integration.
      * @param IntegrationInterface|null $integration The integration being edited, if there were any validation errors.
      * @return Response
      * @throws NotFoundHttpException if the requested integration cannot be found
@@ -172,7 +166,7 @@ class IntegrationSettingsController extends Controller
     /**
      * Edit an integration.
      *
-     * @param int|null $integrationId The integrations’s ID, if editing an existing integration.
+     * @param int|null $integrationId The integrations’ ID, if editing an existing integration.
      * @param IntegrationInterface|null $integration The integration being edited, if there were any validation errors.
      * @return Response
      * @throws NotFoundHttpException if the requested integration cannot be found
@@ -196,7 +190,7 @@ class IntegrationSettingsController extends Controller
     /**
      * Edit an integration.
      *
-     * @param int|null $integrationId The integrations’s ID, if editing an existing integration.
+     * @param int|null $integrationId The integrations’ ID, if editing an existing integration.
      * @param IntegrationInterface|null $integration The integration being edited, if there were any validation errors.
      * @return Response
      * @throws NotFoundHttpException if the requested integration cannot be found
@@ -210,7 +204,7 @@ class IntegrationSettingsController extends Controller
     // Private Methods
     // =========================================================================
 
-    public function _editIntegration($integrationId, $integration, $typeName, $typeHandle)
+    public function _editIntegration($integrationId, $integration, $typeName, $typeHandle): Response|TemplateResponseBehavior
     {
         $integrations = Formie::$plugin->getIntegrations();
 

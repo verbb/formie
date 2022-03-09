@@ -1,15 +1,9 @@
 <?php
 namespace verbb\formie\models;
 
-use Craft;
 use craft\behaviors\FieldLayoutBehavior;
-use craft\helpers\FileHelper;
 use craft\helpers\UrlHelper;
 use craft\models\FieldLayout;
-
-use yii\base\InvalidConfigException;
-use yii\behaviors\AttributeTypecastBehavior;
-use yii\validators\Validator;
 
 use verbb\formie\elements\Form;
 use verbb\formie\records\FormTemplate as FormTemplateRecord;
@@ -19,24 +13,24 @@ class FormTemplate extends BaseTemplate
     // Constants
     // =========================================================================
 
-    const PAGE_HEADER = 'page-header';
-    const PAGE_FOOTER = 'page-footer';
-    const INSIDE_FORM = 'inside-form';
-    const MANUAL = 'manual';
+    public const PAGE_HEADER = 'page-header';
+    public const PAGE_FOOTER = 'page-footer';
+    public const INSIDE_FORM = 'inside-form';
+    public const MANUAL = 'manual';
 
-    // Public Properties
+    // Properties
     // =========================================================================
 
-    public $fieldLayoutId;
-    public $useCustomTemplates = false;
-    public $outputCssLayout = true;
-    public $outputCssTheme = true;
-    public $outputJsBase = true;
-    public $outputJsTheme = true;
-    public $outputCssLocation = self::PAGE_HEADER;
-    public $outputJsLocation = self::PAGE_FOOTER;
+    public ?string $fieldLayoutId = null;
+    public bool $useCustomTemplates = false;
+    public bool $outputCssLayout = true;
+    public bool $outputCssTheme = true;
+    public bool $outputJsBase = true;
+    public bool $outputJsTheme = true;
+    public string $outputCssLocation = self::PAGE_HEADER;
+    public string $outputJsLocation = self::PAGE_FOOTER;
 
-    private $_fieldLayout;
+    private ?FieldLayout $_fieldLayout = null;
 
 
     // Public Methods
@@ -85,11 +79,13 @@ class FormTemplate extends BaseTemplate
      *
      * @param FieldLayout $fieldLayout
      */
-    public function setFieldLayout(FieldLayout $fieldLayout)
+    public function setFieldLayout(FieldLayout $fieldLayout): void
     {
         /** @var FieldLayoutBehavior $behavior */
         $behavior = $this->getBehavior('fieldLayout');
-        return $behavior->setFieldLayout($fieldLayout);
+        $behavior->setFieldLayout($fieldLayout);
+
+        $this->_fieldLayout = $fieldLayout;
     }
 
     /**
@@ -103,12 +99,6 @@ class FormTemplate extends BaseTemplate
             'class' => FieldLayoutBehavior::class,
             'elementType' => Form::class,
         ];
-
-        $typecastBehavior = $behaviors['typecast'];
-        $typecastBehavior['attributeTypes']['outputCssLayout'] = AttributeTypecastBehavior::TYPE_BOOLEAN;
-        $typecastBehavior['attributeTypes']['outputCssTheme'] = AttributeTypecastBehavior::TYPE_BOOLEAN;
-        $typecastBehavior['attributeTypes']['outputJsBase'] = AttributeTypecastBehavior::TYPE_BOOLEAN;
-        $typecastBehavior['attributeTypes']['outputJsTheme'] = AttributeTypecastBehavior::TYPE_BOOLEAN;
 
         return $behaviors;
     }

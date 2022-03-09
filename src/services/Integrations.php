@@ -8,7 +8,6 @@ use verbb\formie\base\IntegrationInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\events\IntegrationEvent;
 use verbb\formie\events\ModifyFormIntegrationsEvent;
-use verbb\formie\events\ModifyIntegrationsEvent;
 use verbb\formie\events\RegisterIntegrationsEvent;
 use verbb\formie\integrations\addressproviders;
 use verbb\formie\integrations\captchas;
@@ -23,11 +22,8 @@ use verbb\formie\records\Integration as IntegrationRecord;
 use Craft;
 use craft\base\VolumeInterface;
 use craft\db\Query;
-use craft\db\Table;
 use craft\errors\MissingComponentException;
 use craft\events\ConfigEvent;
-use craft\events\FieldEvent;
-use craft\events\RegisterComponentTypesEvent;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Component as ComponentHelper;
 use craft\helpers\Db;
@@ -41,27 +37,30 @@ use yii\base\Exception;
 use yii\base\NotSupportedException;
 use yii\base\UnknownPropertyException;
 use yii\web\ServerErrorHttpException;
+use verbb\formie\models\FieldLayoutPage;
+use yii\db\ActiveRecord;
+use Throwable;
 
 class Integrations extends Component
 {
     // Constants
     // =========================================================================
 
-    const EVENT_REGISTER_INTEGRATIONS = 'registerFormieIntegrations';
-    const EVENT_MODIFY_FORM_INTEGRATIONS = 'modifyFormIntegrations';
-    const EVENT_BEFORE_SAVE_INTEGRATION = 'beforeSaveIntegration';
-    const EVENT_AFTER_SAVE_INTEGRATION = 'afterSaveIntegration';
-    const EVENT_BEFORE_DELETE_INTEGRATION = 'beforeDeleteIntegration';
-    const EVENT_BEFORE_APPLY_INTEGRATION_DELETE = 'beforeApplyIntegrationDelete';
-    const EVENT_AFTER_DELETE_INTEGRATION = 'afterDeleteIntegration';
-    const CONFIG_INTEGRATIONS_KEY = 'formie.integrations';
+    public const EVENT_REGISTER_INTEGRATIONS = 'registerFormieIntegrations';
+    public const EVENT_MODIFY_FORM_INTEGRATIONS = 'modifyFormIntegrations';
+    public const EVENT_BEFORE_SAVE_INTEGRATION = 'beforeSaveIntegration';
+    public const EVENT_AFTER_SAVE_INTEGRATION = 'afterSaveIntegration';
+    public const EVENT_BEFORE_DELETE_INTEGRATION = 'beforeDeleteIntegration';
+    public const EVENT_BEFORE_APPLY_INTEGRATION_DELETE = 'beforeApplyIntegrationDelete';
+    public const EVENT_AFTER_DELETE_INTEGRATION = 'afterDeleteIntegration';
+    public const CONFIG_INTEGRATIONS_KEY = 'formie.integrations';
 
 
     // Properties
     // =========================================================================
 
-    private $_integrations;
-    private $_integrationsByType;
+    private ?array $_integrations = null;
+    private ?array $_integrationsByType = null;
 
 
     // Public Methods
@@ -196,9 +195,6 @@ class Integrations extends Component
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getIntegrationTypes($type)
     {
         return $this->getAllIntegrationTypes()[$type] ?? [];
@@ -207,7 +203,9 @@ class Integrations extends Component
     /**
      * Returns all integrations.
      *
-     * @return IntegrationInterface[]
+     * @return array
+     * @throws UnknownPropertyException
+     * @throws \yii\base\InvalidConfigException
      */
     public function getAllIntegrations(): array
     {
@@ -227,9 +225,6 @@ class Integrations extends Component
         return $this->_integrations;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getAllIntegrationsForType($type): array
     {
         if (!empty($this->_integrationsByType[$type])) {
@@ -240,7 +235,7 @@ class Integrations extends Component
 
         $getIntegrationTypes = $this->getIntegrationTypes($type);
 
-        foreach ($this->getAllIntegrations() as $key => $integration) {
+        foreach ($this->getAllIntegrations() as $integration) {
             if (in_array(get_class($integration), $getIntegrationTypes)) {
                 $this->_integrationsByType[$type][] = $integration;
             }
@@ -250,45 +245,45 @@ class Integrations extends Component
     }
 
     /**
-     * Returns a integration by its ID.
+     * Returns an integration by its ID.
      *
      * @param int $integrationId
      * @return IntegrationInterface|null
      */
-    public function getIntegrationById(int $integrationId)
+    public function getIntegrationById(int $integrationId): ?IntegrationInterface
     {
         return ArrayHelper::firstWhere($this->getAllIntegrations(), 'id', $integrationId);
     }
 
     /**
-     * Returns a integration by its UID.
+     * Returns an integration by its UID.
      *
      * @param string $integrationUid
      * @return IntegrationInterface|null
      */
-    public function getIntegrationByUid(string $integrationUid)
+    public function getIntegrationByUid(string $integrationUid): ?IntegrationInterface
     {
         return ArrayHelper::firstWhere($this->getAllIntegrations(), 'uid', $integrationUid);
     }
 
     /**
-     * Returns a integration by its handle.
+     * Returns an integration by its handle.
      *
      * @param string $handle
      * @return IntegrationInterface|null
      */
-    public function getIntegrationByHandle(string $handle)
+    public function getIntegrationByHandle(string $handle): ?IntegrationInterface
     {
         return ArrayHelper::firstWhere($this->getAllIntegrations(), 'handle', $handle, true);
     }
 
     /**
-     * Returns a integration by its tokenId.
+     * Returns an integration by its tokenId.
      *
      * @param $tokenId
      * @return IntegrationInterface|null
      */
-    public function getIntegrationByTokenId($tokenId)
+    public function getIntegrationByTokenId($tokenId): ?IntegrationInterface
     {
         return ArrayHelper::firstWhere($this->getAllIntegrations(), 'tokenId', $tokenId, true);
     }
@@ -296,12 +291,12 @@ class Integrations extends Component
     /**
      * Returns the field layout config for the given integration.
      *
-     * @param VolumeInterface $volume
+     * @param IntegrationInterface $integration
      * @return array
      */
     public function createIntegrationConfig(IntegrationInterface $integration): array
     {
-        $config = [
+        return [
             'name' => $integration->name,
             'handle' => $integration->handle,
             'type' => get_class($integration),
@@ -310,17 +305,15 @@ class Integrations extends Component
             'settings' => ProjectConfigHelper::packAssociativeArrays($integration->getSettings()),
             'tokenId' => $integration->tokenId,
         ];
-
-        return $config;
     }
 
     /**
-     * Creates or updates a integration.
+     * Creates or updates an integration.
      *
      * @param IntegrationInterface $integration the integration to be saved.
      * @param bool $runValidation Whether the integration should be validated
      * @return bool Whether the integration was saved successfully
-     * @throws \Throwable
+     * @throws Throwable
      */
     public function saveIntegration(IntegrationInterface $integration, bool $runValidation = true): bool
     {
@@ -363,10 +356,7 @@ class Integrations extends Component
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function updateIntegrationToken(IntegrationInterface $integration, $token)
+    public function updateIntegrationToken(IntegrationInterface $integration, $token): int
     {
         // Direct DB update to keep it out of PC, plus speed
         // Update the settings as some providers add from provider callback.
@@ -379,8 +369,10 @@ class Integrations extends Component
      * Handle integration change
      *
      * @param ConfigEvent $event
+     * @throws Throwable
+     * @throws \yii\db\Exception
      */
-    public function handleChangedIntegration(ConfigEvent $event)
+    public function handleChangedIntegration(ConfigEvent $event): void
     {
         $integrationUid = $event->tokenMatches[0];
         $data = $event->newValue;
@@ -414,7 +406,7 @@ class Integrations extends Component
             }
 
             $transaction->commit();
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $transaction->rollBack();
             throw $e;
         }
@@ -439,7 +431,7 @@ class Integrations extends Component
      *
      * @param array $integrationIds
      * @return bool
-     * @throws \Throwable
+     * @throws Throwable
      */
     public function reorderIntegrations(array $integrationIds): bool
     {
@@ -462,8 +454,10 @@ class Integrations extends Component
      *
      * @param mixed $config The integration’s class name, or its config, with a `type` value and optionally a `settings` value
      * @return IntegrationInterface The integration
+     * @throws UnknownPropertyException
+     * @throws \yii\base\InvalidConfigException
      */
-    public function createIntegration($config): IntegrationInterface
+    public function createIntegration(mixed $config): IntegrationInterface
     {
         if (is_string($config)) {
             $config = ['type' => $config];
@@ -478,9 +472,6 @@ class Integrations extends Component
         } catch (UnknownPropertyException $e) {
             throw $e;
         } catch (MissingComponentException $e) {
-            // Revert to the original config if it was overridden
-            $config = $originalConfig ?? $config;
-
             $config['errorMessage'] = $e->getMessage();
             $config['expectedType'] = $config['type'];
             unset($config['type']);
@@ -496,7 +487,7 @@ class Integrations extends Component
      *
      * @param int $integrationId
      * @return bool
-     * @throws \Throwable
+     * @throws Throwable
      */
     public function deleteIntegrationById(int $integrationId): bool
     {
@@ -514,7 +505,7 @@ class Integrations extends Component
      *
      * @param IntegrationInterface $integration The integration to delete
      * @return bool
-     * @throws \Throwable
+     * @throws Throwable
      */
     public function deleteIntegration(IntegrationInterface $integration): bool
     {
@@ -538,8 +529,10 @@ class Integrations extends Component
      * Handle integration getting deleted
      *
      * @param ConfigEvent $event
+     * @throws Throwable
+     * @throws \yii\db\Exception
      */
-    public function handleDeletedIntegration(ConfigEvent $event)
+    public function handleDeletedIntegration(ConfigEvent $event): void
     {
         $uid = $event->tokenMatches[0];
         $integrationRecord = $this->_getIntegrationRecord($uid);
@@ -571,7 +564,7 @@ class Integrations extends Component
             $integration->afterDelete();
 
             $transaction->commit();
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $transaction->rollBack();
             throw $e;
         }
@@ -587,9 +580,6 @@ class Integrations extends Component
         }
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getAllIntegrationsForForm(): array
     {
         $grouped = [];
@@ -646,9 +636,6 @@ class Integrations extends Component
         return $event->integrations;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getAllCaptchas(): array
     {
         $settings = Formie::$plugin->getSettings();
@@ -668,9 +655,6 @@ class Integrations extends Component
         return $captchas;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getAllGroupedCaptchas(): array
     {
         $grouped = [];
@@ -685,12 +669,12 @@ class Integrations extends Component
     }
 
     /**
-     * Returns an captcha by its handle.
+     * Returns a captcha by its handle.
      *
      * @param string $handle
      * @return IntegrationInterface|null
      */
-    public function getCaptchaByHandle($handle)
+    public function getCaptchaByHandle(string $handle): ?IntegrationInterface
     {
         return ArrayHelper::firstWhere($this->getAllCaptchas(), 'handle', $handle, false);
     }
@@ -700,26 +684,27 @@ class Integrations extends Component
      *
      * @param Form $form
      * @param FieldLayoutPage|null $page
-     * @return string
+     * @param bool $force
+     * @return array
      */
-    public function getAllEnabledCaptchasForForm(Form $form, $page = null, $force = false): array
+    public function getAllEnabledCaptchasForForm(Form $form, FieldLayoutPage $page = null, $force = false): array
     {
         $captchas = [];
-        $integrations = $this->getAllEnabledIntegrationsForForm($form, $page);
+        $integrations = $this->getAllEnabledIntegrationsForForm($form);
 
         // If we're editing a submission from the front-end, don't enable captchas
         if ($form->isEditingSubmission()) {
             return $captchas;
         }
 
-        // Check if we've disable captchas in the form settings
+        // Check if we've disabled captchas in the form settings
         if ($form->settings->disableCaptchas) {
             return $captchas;
         }
 
         foreach ($integrations as $integration) {
             if ($integration instanceof Captcha) {
-                // Check if this is a multi-page form, because by default, we want to only show it
+                // Check if this is a multipage form, because by default, we want to only show it
                 // on the last page. But also check the form setting if this is enabled to show on each page.
                 //
                 // Lastly, check if we're forcing to return the captcha. Notably, when prepping the JS variables
@@ -745,7 +730,7 @@ class Integrations extends Component
      * @param FieldLayoutPage|null $page
      * @return string
      */
-    public function getCaptchasHtmlForForm(Form $form, $page = null): string
+    public function getCaptchasHtmlForForm(Form $form, FieldLayoutPage $page = null): string
     {
         $html = '';
 
@@ -763,10 +748,6 @@ class Integrations extends Component
      *
      * @param Integration $integration
      * @return bool
-     * @throws ErrorException
-     * @throws Exception
-     * @throws NotSupportedException
-     * @throws ServerErrorHttpException
      */
     public function saveCaptcha(Integration $integration): bool
     {
@@ -819,7 +800,7 @@ class Integrations extends Component
      */
     private function _createIntegrationQuery(): Query
     {
-        $query = (new Query())
+        return (new Query())
             ->select([
                 'id',
                 'name',
@@ -837,18 +818,16 @@ class Integrations extends Component
             ->from(['{{%formie_integrations}}'])
             ->where(['dateDeleted' => null])
             ->orderBy(['sortOrder' => SORT_ASC]);
-
-        return $query;
     }
 
     /**
-     * Gets a integration's record by uid.
+     * Gets an integration's record by uid.
      *
      * @param string $uid
      * @param bool $withTrashed Whether to include trashed integrations in search
-     * @return IntegrationRecord
+     * @return ActiveRecord|array
      */
-    private function _getIntegrationRecord(string $uid, bool $withTrashed = false): IntegrationRecord
+    private function _getIntegrationRecord(string $uid, bool $withTrashed = false): ActiveRecord|array
     {
         $query = $withTrashed ? IntegrationRecord::findWithTrashed() : IntegrationRecord::find();
         $query->andWhere(['uid' => $uid]);

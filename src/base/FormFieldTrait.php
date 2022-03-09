@@ -8,7 +8,6 @@ use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyFieldValueEvent;
 use verbb\formie\events\ModifyFieldEmailValueEvent;
 use verbb\formie\events\ModifyFieldIntegrationValueEvent;
-use verbb\formie\events\ParseMappedFieldValueEvent;
 use verbb\formie\fields\formfields\BaseOptionsField;
 use verbb\formie\helpers\ConditionsHelper;
 use verbb\formie\helpers\SchemaHelper;
@@ -34,9 +33,11 @@ use Exception;
 use GraphQL\Type\Definition\Type;
 use ReflectionClass;
 use Throwable;
-use Twig\Error\LoaderError as TwigLoaderError;
 use Twig\Markup;
-use yii\base\Event;
+use GraphQL\Type\Definition\ScalarType;
+use GraphQL\Type\Definition\ListOfType;
+use yii\base\Model;
+use ReflectionProperty;
 
 trait FormFieldTrait
 {
@@ -80,67 +81,43 @@ trait FormFieldTrait
     }
 
 
-    // Public Properties
+    // Properties
     // =========================================================================
 
-    public $columnWidth;
-    public $limit;
-    public $limitType;
-    public $limitAmount;
-    public $matchField;
-    public $placeholder;
-    public $defaultValue;
-    public $prePopulate;
-    public $errorMessage;
-    public $labelPosition;
-    public $instructionsPosition;
-    public $cssClasses;
-    public $containerAttributes;
-    public $inputAttributes;
-    public $includeInEmail = true;
-    public $enableConditions;
-    public $conditions;
-    public $enableContentEncryption = false;
-    public $visibility;
+    public ?string $columnWidth = null;
+    public ?bool $limit = null;
+    public ?string $limitType = null;
+    public ?string $limitAmount = null;
+    public ?bool $matchField = null;
+    public ?string $placeholder = null;
+    public ?string $defaultValue = null;
+    public ?string $prePopulate = null;
+    public ?string $errorMessage = null;
+    public ?string $labelPosition = null;
+    public ?string $instructionsPosition = null;
+    public ?array $cssClasses = null;
+    public ?array $containerAttributes = null;
+    public ?array $inputAttributes = null;
+    public bool $includeInEmail = true;
+    public ?bool $enableConditions = null;
+    public ?array $conditions = null;
+    public bool $enableContentEncryption = false;
+    public ?bool $visibility = null;
+    
+    public ?int $formId = null;
+    public ?int $rowId = null;
+    public ?string $rowUid = null;
+    public ?int $rowIndex = null;
 
-    /**
-     * @var int
-     */
-    public $formId;
-
-    /**
-     * @var int
-     */
-    public $rowId;
-
-    /**
-     * @var string
-     */
-    public $rowUid;
-
-    /**
-     * @var int
-     */
-    public $rowIndex;
-
-    /**
-     * @var bool
-     */
-    public $isNested = false;
+    public bool $isNested = false;
 
 
     // Private Properties
     // =========================================================================
 
-    /**
-     * @var Form
-     */
-    private $_form;
-    /**
-     * @var NestedFieldInterface
-     */
-    private $_container;
-    private $_namespace = 'fields';
+    private ?Form $_form = null;
+    private ?NestedFieldInterface $_container = null;
+    private string $_namespace = 'fields';
 
 
     // Public Methods
@@ -159,13 +136,13 @@ trait FormFieldTrait
      */
     public function getIsRef(): bool
     {
-        return $this->id && strpos($this->id, 'sync:') === 0;
+        return $this->id && str_starts_with($this->id, 'sync:');
     }
 
     /**
      * @inheritDoc
      */
-    public function getValue(ElementInterface $element)
+    public function getValue(ElementInterface $element): mixed
     {
         return $element->getFieldValue($this->handle);
     }
@@ -173,15 +150,13 @@ trait FormFieldTrait
     /**
      * @inheritdoc
      */
-    public function serializeValue($value, ElementInterface $element = null)
+    public function serializeValue(mixed $value, ?ElementInterface $element = null): mixed
     {
         $value = parent::serializeValue($value, $element);
 
         // Handle if we need to save field content as encrypted
-        if ($this->enableContentEncryption) {
-            if (is_string($value)) {
-                $value = StringHelper::encenc($value);
-            }
+        if ($this->enableContentEncryption && is_string($value)) {
+            $value = StringHelper::encenc($value);
         }
 
         return $value;
@@ -190,15 +165,15 @@ trait FormFieldTrait
     /**
      * @inheritdoc
      */
-    public function normalizeValue($value, ElementInterface $element = null)
+    public function normalizeValue(mixed $value, ?ElementInterface $element = null): mixed
     {
         $value = parent::normalizeValue($value, $element);
 
-        // Check if the string contains a previously encypted version, or the field is enabled
+        // Check if the string contains a previously encrypted version, or the field is enabled
         // This might occur if the field was set to encrypted, but changed later. We still need to
         // decrypt field content
         if (is_string($value)) {
-            if ($this->enableContentEncryption || strpos($value, 'base64:') !== false) {
+            if ($this->enableContentEncryption || str_contains($value, 'base64:')) {
                 $value = StringHelper::decdec($value);
             }
         }
@@ -206,10 +181,7 @@ trait FormFieldTrait
         return $value;
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function getValueAsString($value, ElementInterface $element = null)
+    public function getValueAsString(mixed $value, ?ElementInterface $element = null): mixed
     {
         $value = $this->defineValueAsString($value, $element);
 
@@ -224,10 +196,7 @@ trait FormFieldTrait
         return $event->value;
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function getValueAsJson($value, ElementInterface $element = null)
+    public function getValueAsJson(mixed $value, ?ElementInterface $element = null): mixed
     {
         $value = $this->defineValueAsJson($value, $element);
 
@@ -242,10 +211,7 @@ trait FormFieldTrait
         return $event->value;
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function getValueForExport($value, ElementInterface $element = null)
+    public function getValueForExport(mixed $value, ?ElementInterface $element = null): mixed
     {
         $value = $this->defineValueForExport($value, $element);
 
@@ -260,10 +226,7 @@ trait FormFieldTrait
         return $event->value;
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function getValueForIntegration($value, $integrationField, $integration, ElementInterface $element = null, $fieldKey = '')
+    public function getValueForIntegration(mixed $value, $integrationField, $integration, ?ElementInterface $element = null, $fieldKey = ''): mixed
     {
         $value = $this->defineValueForIntegration($value, $integrationField, $integration, $element, $fieldKey);
 
@@ -283,10 +246,7 @@ trait FormFieldTrait
         return $event->value;
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function getValueForSummary($value, ElementInterface $element = null)
+    public function getValueForSummary(mixed $value, ?ElementInterface $element = null): mixed
     {
         $value = $this->defineValueForSummary($value, $element);
 
@@ -301,10 +261,7 @@ trait FormFieldTrait
         return $event->value;
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function getValueForEmail($value, $notification, ElementInterface $element = null)
+    public function getValueForEmail(mixed $value, $notification, ?ElementInterface $element = null): mixed
     {
         $value = $this->defineValueForEmail($value, $notification, $element);
 
@@ -320,17 +277,11 @@ trait FormFieldTrait
         return $event->value;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function populateValue($value)
+    public function populateValue($value): void
     {
         $this->defaultValue = $value;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function parsePopulatedFieldValues($value, $element)
     {
         return $value;
@@ -371,7 +322,7 @@ trait FormFieldTrait
         }
 
         foreach ($traits as $trait) {
-            foreach ($trait->getProperties(\ReflectionProperty::IS_PUBLIC) as $property) {
+            foreach ($trait->getProperties(ReflectionProperty::IS_PUBLIC) as $property) {
                 if (!$property->isStatic() && !$property->getDeclaringClass()->isAbstract()) {
                     $names[] = $property->getName();
                 }
@@ -400,10 +351,7 @@ trait FormFieldTrait
         return $rules;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function validateMatchField(ElementInterface $element)
+    public function validateMatchField(ElementInterface $element): void
     {
         $fieldHandle = str_replace(['{', '}'], '', $this->matchField);
         $sourceValue = $element->getFieldValue($fieldHandle);
@@ -420,33 +368,33 @@ trait FormFieldTrait
     /**
      * @return NestedFieldInterface|Form|null
      */
-    public function getGqlFieldContext()
+    public function getGqlFieldContext(): Form|NestedFieldInterface|null
     {
         return $this->isNested ? $this->getContainer() : $this->getForm();
     }
 
     /**
      * Set the container for a nested field.
-     * @param NestedFieldInterface $container
      */
-    public function setContainer(NestedFieldInterface $container)
+    public function setContainer(NestedFieldInterface $container): void
     {
         $this->_container = $container;
     }
 
     /**
      * Return the container if this is a nested field.
-     * @param NestedFieldInterface $container
+     *
+     * @return NestedFieldInterface
      */
-    public function getContainer()
+    public function getContainer(): NestedFieldInterface
     {
         return $this->_container;
     }
 
     /**
-     * @return Form|null
+     * @return array|Model|ElementInterface
      */
-    public function getForm()
+    public function getForm(): ?Form
     {
         if (!$this->formId) {
             // Try and fetch the form via the UID from the context
@@ -482,42 +430,27 @@ trait FormFieldTrait
         return $this->hasLabel();
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getHtmlId(Form $form)
+    public function getHtmlId(Form $form): string
     {
         return StringHelper::toKebabCase($form->formId . ' ' . $this->handle);
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getHtmlDataId(Form $form)
+    public function getHtmlDataId(Form $form): string
     {
         return StringHelper::toKebabCase($form->handle . ' ' . $this->handle);
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getHtmlWrapperId(Form $form)
+    public function getHtmlWrapperId(Form $form): string
     {
         return StringHelper::toKebabCase($this->namespace . ' ' . $this->getHtmlId($form) . ' wrap');
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getContextUid()
+    public function getContextUid(): array|string|null
     {
         return str_replace('formie:', '', $this->context);
     }
-    
-    /**
-     * @inheritDoc
-     */
-    public function getType()
+
+    public function getType(): string
     {
         return static::class;
     }
@@ -546,33 +479,21 @@ trait FormFieldTrait
         return false;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function hasSubfields(): bool
     {
         return false;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function hasNestedFields(): bool
     {
         return false;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getIsCosmetic(): bool
     {
         return false;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getIsHidden(): bool
     {
         return $this->visibility === 'hidden';
@@ -594,9 +515,6 @@ trait FormFieldTrait
         return $this->getSettings();
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getSavedFieldConfig(): array
     {
         $config = $this->getAttributes(['id', 'name', 'handle']);
@@ -638,9 +556,6 @@ trait FormFieldTrait
         return $defaults;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getFieldValue($element, $handle = '', $attributePrefix = '')
     {
         // Allow handle to be overridden
@@ -668,9 +583,6 @@ trait FormFieldTrait
         return $value;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getDefaultValue($attributePrefix = '')
     {
         $defaultValue = null;
@@ -775,9 +687,9 @@ trait FormFieldTrait
 
         $config = [
             'type' => $this->getType(),
-            'label' => $this->displayName(),
+            'label' => static::displayName(),
             'defaults' => $this->getAllFieldDefaults(),
-            'icon' => $this->getSvgIcon(),
+            'icon' => static::getSvgIcon(),
             'preview' => $this->getPreviewInputHtml(),
             'data' => $this->getExtraBaseFieldConfig(),
             'hasLabel' => $this->hasLabel(),
@@ -790,7 +702,7 @@ trait FormFieldTrait
         ];
 
         // Nested fields have rows of their own.
-        if ($config['supportsNested'] = $this instanceof NestedFieldInterface) {
+        if ($config['supportsNested'] = ($this instanceof NestedFieldInterface)) {
             /* @var NestedFieldInterface|NestedFieldTrait $field */
             $config['rows'] = [];
         }
@@ -830,10 +742,7 @@ trait FormFieldTrait
         return $this->_namespace;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function setNamespace($value)
+    public function setNamespace($value): void
     {
         $this->_namespace = $value;
     }
@@ -841,7 +750,7 @@ trait FormFieldTrait
     /**
      * @inheritDoc
      */
-    public function getFrontEndInputHtml(Form $form, $value, array $options = null): Markup
+    public function getFrontEndInputHtml(Form $form, mixed $value, array $options = null): Markup
     {
         if (!static::getFrontEndInputTemplatePath()) {
             return Template::raw('');
@@ -863,7 +772,7 @@ trait FormFieldTrait
     /**
      * @inheritDoc
      */
-    public function getFrontEndInputOptions(Form $form, $value, array $options = null): array
+    public function getFrontEndInputOptions(Form $form, mixed $value, array $options = null): array
     {
         // Check to see if we're overriding the field
         $field = $options['field'] ?? $this;
@@ -877,10 +786,7 @@ trait FormFieldTrait
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function applyRenderOptions(array $options = null)
+    public function applyRenderOptions(array $options = null): void
     {
         // Expand this as we allow more field options in render functions
         $fieldNamespace = $options['fieldNamespace'] ?? null;
@@ -891,18 +797,12 @@ trait FormFieldTrait
         }
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getFrontEndJsModules()
+    public function getFrontEndJsModules(): ?array
     {
         return null;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getConfigJson()
+    public function getConfigJson(): ?string
     {
         // From the provided JS module config, extract just the settings and module name
         // for use inline in the HTML. We load the scripts async, and rely on the HTML for
@@ -935,23 +835,15 @@ trait FormFieldTrait
         return null;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function hasConditions()
+    public function hasConditions(): bool
     {
-        $conditionSettings = Json::decode($this->conditions) ?? [];
-
-        return ($this->enableConditions && $conditionSettings);
+        return ($this->enableConditions && $this->conditions);
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getConditionsJson($element = null)
+    public function getConditionsJson($element = null): ?string
     {
         if ($this->enableConditions) {
-            $conditionSettings = Json::decode($this->conditions) ?? [];
+            $conditionSettings = $this->conditions;
             $conditions = $conditionSettings['conditions'] ?? [];
 
             $namespace = $this->getNamespace();
@@ -969,6 +861,8 @@ trait FormFieldTrait
                     $condition['field'] = preg_replace('/\[new\d*\]/', "[$element->id]", $condition['field']);
                 }
             }
+
+            unset($condition);
 
             $conditionSettings['conditions'] = $conditions;
 
@@ -991,14 +885,14 @@ trait FormFieldTrait
     /**
      * Returns whether the field has passed conditional evaluation and is hidden.
      */
-    public function isConditionallyHidden($submission)
+    public function isConditionallyHidden($submission): bool
     {
         $isFieldHidden = false;
         $isPageHidden = false;
 
         // Check if the field itself is hidden
         if ($this->enableConditions) {
-            $conditionSettings = Json::decode($this->conditions) ?? [];
+            $conditionSettings = $this->conditions;
             $conditions = $conditionSettings['conditions'] ?? [];
 
             if ($conditionSettings && $conditions) {
@@ -1007,7 +901,7 @@ trait FormFieldTrait
                 $result = ConditionsHelper::getConditionalTestResult($conditionSettings, $submission);
 
                 // Depending on if we show or hide the field when evaluating. If `false` and set to show, it means
-                // the field is hidden and the conditions to show it aren't met. Therefore, report back that this field is hidden.
+                // the field is hidden and the conditions to show it isn't met. Therefore, report back that this field is hidden.
                 if (($result && $conditionSettings['showRule'] !== 'show') || (!$result && $conditionSettings['showRule'] === 'show')) {
                     $isFieldHidden = true;
                 }
@@ -1015,10 +909,8 @@ trait FormFieldTrait
         }
 
         // Also check if the field is in a hidden page
-        if (!$isFieldHidden) {
-            if ($page = $this->getPage($submission)) {
-                $isPageHidden = $page->isConditionallyHidden($submission);
-            }
+        if (!$isFieldHidden && $page = $this->getPage($submission)) {
+            $isPageHidden = $page->isConditionallyHidden($submission);
         }
 
         return $isFieldHidden || $isPageHidden;
@@ -1027,7 +919,7 @@ trait FormFieldTrait
     /**
      * @inheritDoc
      */
-    public function getEmailHtml(Submission $submission, Notification $notification, $value, array $options = null)
+    public function getEmailHtml(Submission $submission, Notification $notification, mixed $value, array $options = null): string|null|bool
     {
         $view = Craft::$app->getView();
         $oldTemplatesPath = $view->getTemplatesPath();
@@ -1041,12 +933,12 @@ trait FormFieldTrait
             $html = Craft::$app->getView()->renderTemplate(static::getEmailTemplatePath(), $inputOptions);
             $html = Template::raw($html);
         } catch (Exception $e) {
-            // Log anything that isn't a "Unable to find the template" which we take care of shortly
+            // Log anything that isn't an "Unable to find the template" which we take care of shortly
             if (!($e instanceof TemplateLoaderException)) {
                 Formie::error('Failed to render email field content for ' . $this->handle . ': ' . $e->getMessage());
             }
 
-            // Nice an simple for most cases - no need for a template file
+            // Nice and simple for most cases - no need for a template file
             try {
                 $content = ((string)$value ? $value : Craft::t('formie', 'No response.'));
                 $hideName = $options['hideName'] ?? false;
@@ -1073,7 +965,7 @@ trait FormFieldTrait
     /**
      * @inheritDoc
      */
-    public function getEmailOptions(Submission $submission, Notification $notification, $value, array $options = null): array
+    public function getEmailOptions(Submission $submission, Notification $notification, mixed $value, array $options = null): array
     {
         return [
             'notification' => $notification,
@@ -1120,15 +1012,12 @@ trait FormFieldTrait
     /**
      * @inheritDoc
      */
-    public function afterCreateField(array $data)
+    public function afterCreateField(array $data): void
     {
 
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getSettingGqlTypes()
+    public function getSettingGqlTypes(): array
     {
         // Prepare a key-value of handle and type settings for GQL
         $fieldSchema = $this->getFieldSchema();
@@ -1151,10 +1040,7 @@ trait FormFieldTrait
         return $gqlSettingTypes;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getGqlTypeName()
+    public function getGqlTypeName(): string
     {
         $classNameParts = explode('\\', static::class);
         $end = array_pop($classNameParts);
@@ -1208,35 +1094,23 @@ trait FormFieldTrait
         return $rules;
     }
 
-    /**
-     * @inheritdoc
-     */
-    protected function defineValueAsString($value, ElementInterface $element = null)
+    protected function defineValueAsString($value, ElementInterface $element = null): string
     {
         return (string)$value;
     }
 
-    /**
-     * @inheritdoc
-     */
-    protected function defineValueAsJson($value, ElementInterface $element = null)
+    protected function defineValueAsJson($value, ElementInterface $element = null): array
     {
         return Json::decode(Json::encode($value));
     }
 
-    /**
-     * @inheritdoc
-     */
-    protected function defineValueForExport($value, ElementInterface $element = null)
+    protected function defineValueForExport($value, ElementInterface $element = null): mixed
     {
-        // A string-representaion will largely suit our needs
+        // A string-representation will largely suit our needs
         return $this->defineValueAsString($value, $element);
     }
 
-    /**
-     * @inheritdoc
-     */
-    protected function defineValueForIntegration($value, $integrationField, $integration, ElementInterface $element = null, $fieldKey = '')
+    protected function defineValueForIntegration($value, $integrationField, $integration, ElementInterface $element = null, $fieldKey = ''): mixed
     {
         $stringValue = $this->defineValueAsString($value, $element);
         $jsonValue = $this->defineValueAsJson($value, $element);
@@ -1258,11 +1132,11 @@ trait FormFieldTrait
         }
 
         if ($integrationField->getType() === IntegrationField::TYPE_NUMBER) {
-            return intval($stringValue);
+            return (int)$stringValue;
         }
 
         if ($integrationField->getType() === IntegrationField::TYPE_FLOAT) {
-            return floatval($stringValue);
+            return (float)$stringValue;
         }
 
         if ($integrationField->getType() === IntegrationField::TYPE_BOOLEAN) {
@@ -1274,28 +1148,22 @@ trait FormFieldTrait
         return $stringValue;
     }
 
-    /**
-     * @inheritdoc
-     */
-    protected function defineValueForSummary($value, ElementInterface $element = null)
+    protected function defineValueForSummary($value, ElementInterface $element = null): string
     {
-        // A string-representaion will largely suit our needs
+        // A string-representation will largely suit our needs
         return $this->defineValueAsString($value, $element);
     }
 
-    /**
-     * @inheritdoc
-     */
-    protected function defineValueForEmail($value, $notification, ElementInterface $element = null)
+    protected function defineValueForEmail($value, $notification, ElementInterface $element = null): string
     {
-        // A string-representaion will largely suit our needs
+        // A string-representation will largely suit our needs
         return $this->defineValueAsString($value, $element);
     }
 
     /**
      * Returns the GraphQL-equivalent datatype based on a provided field's handle or schema type
      */
-    protected function getSettingGqlType($attribute, $type, $fieldInfo)
+    protected function getSettingGqlType($attribute, $type, $fieldInfo): ListOfType|ScalarType|array
     {
         // Define any non-string properties
         $attributesDefinitions = [
@@ -1361,7 +1229,7 @@ trait FormFieldTrait
         }
 
         // Special case for these as they're not schema-defined fields
-        if (strstr($attribute, 'Enabled') || strstr($attribute, 'Collapsed')) {
+        if (strpos($attribute, 'Enabled') !== false || strpos($attribute, 'Collapsed') !== false) {
             return Type::boolean();
         }
 
@@ -1377,7 +1245,7 @@ trait FormFieldTrait
      *
      * @return string
      */
-    private static function _getKebabName()
+    private static function _getKebabName(): string
     {
         $classNameParts = explode('\\', static::class);
         $end = array_pop($classNameParts);

@@ -17,9 +17,6 @@ class MaritalStatus extends PredefinedOption
         return Craft::t('formie', 'Marital Status');
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function getDataOptions(): array
     {
         return [

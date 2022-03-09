@@ -3,28 +3,25 @@ namespace verbb\formie\integrations\emailmarketing;
 
 use verbb\formie\base\Integration;
 use verbb\formie\base\EmailMarketing;
-use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
-use verbb\formie\errors\IntegrationException;
-use verbb\formie\events\SendIntegrationPayloadEvent;
 use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
 use craft\helpers\ArrayHelper;
-use craft\helpers\Json;
 use craft\helpers\StringHelper;
-use craft\web\View;
+use GuzzleHttp\Client;
+use Throwable;
 
 class Mailchimp extends EmailMarketing
 {
     // Properties
     // =========================================================================
 
-    public $apiKey;
-    public $appendTags = false;
-    public $useDoubleOptIn = false;
+    public ?string $apiKey = null;
+    public bool $appendTags = false;
+    public bool $useDoubleOptIn = false;
 
 
     // Public Methods
@@ -38,9 +35,6 @@ class Mailchimp extends EmailMarketing
         return Craft::t('formie', 'Mailchimp');
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getDescription(): string
     {
         return Craft::t('formie', 'Sign up users to your Mailchimp lists to grow your audience for campaigns.');
@@ -58,10 +52,7 @@ class Mailchimp extends EmailMarketing
         return $rules;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function fetchFormSettings()
+    public function fetchFormSettings(): IntegrationFormSettings
     {
         $settings = [];
 
@@ -152,16 +143,13 @@ class Mailchimp extends EmailMarketing
                     'fields' => $listFields,
                 ]);
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Integration::apiError($this, $e);
         }
 
         return new IntegrationFormSettings($settings);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function sendPayload(Submission $submission): bool
     {
         try {
@@ -235,7 +223,7 @@ class Mailchimp extends EmailMarketing
                     $response = $this->deliverPayload($submission, "lists/{$this->listId}/members/{$emailHash}/tags", $payload);
                 }
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
             return false;
@@ -244,9 +232,6 @@ class Mailchimp extends EmailMarketing
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function fetchConnection(): bool
     {
         try {
@@ -263,7 +248,7 @@ class Mailchimp extends EmailMarketing
                 Integration::error($this, 'Unable to find “{account_id}” in response.', true);
                 return false;
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
             return false;
@@ -272,10 +257,7 @@ class Mailchimp extends EmailMarketing
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getClient()
+    public function getClient(): Client
     {
         if ($this->_client) {
             return $this->_client;
@@ -295,19 +277,15 @@ class Mailchimp extends EmailMarketing
     // Private Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     private function _getDataCenter()
     {
         if (preg_match('/([a-zA-Z]+[\d]+)$/', Craft::parseEnv($this->apiKey), $matches)) {
             return $matches[1] ?? '';
         }
+
+        return true;
     }
 
-    /**
-     * @inheritDoc
-     */
     private function _convertFieldType($fieldType)
     {
         $fieldTypes = [
@@ -317,10 +295,7 @@ class Mailchimp extends EmailMarketing
         return $fieldTypes[$fieldType] ?? IntegrationField::TYPE_STRING;
     }
 
-    /**
-     * @inheritDoc
-     */
-    private function _getCustomFields($fields, $excludeNames = [])
+    private function _getCustomFields($fields, $excludeNames = []): array
     {
         $customFields = [];
 
@@ -367,7 +342,7 @@ class Mailchimp extends EmailMarketing
      * @param string $emailHash
      * @return string[]
      */
-    private function _getExistingTags(string $emailHash)
+    private function _getExistingTags(string $emailHash): array
     {
         $response = $this->request('GET', "lists/{$this->listId}/members/{$emailHash}/tags");
 

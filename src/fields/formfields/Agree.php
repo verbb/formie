@@ -4,17 +4,18 @@ namespace verbb\formie\fields\formfields;
 use verbb\formie\base\FormField;
 use verbb\formie\helpers\RichTextHelper;
 use verbb\formie\helpers\SchemaHelper;
-use verbb\formie\models\IntegrationField;
 use verbb\formie\positions\Hidden as HiddenPosition;
 
 use Craft;
 use craft\base\ElementInterface;
 use craft\base\PreviewableFieldInterface;
-use craft\helpers\Json;
 use craft\helpers\Template;
 
 use yii\db\Schema;
 use GraphQL\Type\Definition\Type;
+use GraphQL\Type\Definition\ScalarType;
+use GraphQL\Type\Definition\ListOfType;
+use Twig\Markup;
 
 class Agree extends FormField implements PreviewableFieldInterface
 {
@@ -41,9 +42,9 @@ class Agree extends FormField implements PreviewableFieldInterface
     // Properties
     // =========================================================================
 
-    public $description;
-    public $checkedValue;
-    public $uncheckedValue;
+    public ?string $description = null;
+    public ?string $checkedValue = null;
+    public ?string $uncheckedValue = null;
 
 
     // Public Methods
@@ -52,7 +53,7 @@ class Agree extends FormField implements PreviewableFieldInterface
     /**
      * @inheritdoc
      */
-    public function getContentColumnType(): string
+    public function getContentColumnType(): array|string
     {
         return Schema::TYPE_BOOLEAN;
     }
@@ -60,34 +61,28 @@ class Agree extends FormField implements PreviewableFieldInterface
     /**
      * @inheritdoc
      */
-    public function normalizeValue($value, ElementInterface $element = null)
+    public function normalizeValue(mixed $value, ?ElementInterface $element = null): mixed
     {
-        return !!$value;
+        return (bool)$value;
     }
 
     /**
      * @inheritDoc
      */
-    public function isValueEmpty($value, ElementInterface $element): bool
+    public function isValueEmpty(mixed $value, ElementInterface $element): bool
     {
         // Default to yii\validators\Validator::isEmpty()'s behavior
         return $value === null || $value === [] || $value === '' || $value === false;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getDescriptionHtml()
+    public function getDescriptionHtml(): Markup
     {
         $html = $this->_getHtmlContent($this->description);
 
         return Template::raw(Craft::t('site', $html));
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getDefaultState()
+    public function getDefaultState(): ?string
     {
         // An alias for `defaultValue` for GQL, as `defaultValue` returns a boolean, not string
         return $this->defaultValue;
@@ -109,7 +104,7 @@ class Agree extends FormField implements PreviewableFieldInterface
     /**
      * @inheritDoc
      */
-    public function getInputHtml($value, ElementInterface $element = null): string
+    public function getInputHtml(mixed $value, ?ElementInterface $element = null): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/agree/input', [
             'name' => $this->handle,
@@ -131,7 +126,7 @@ class Agree extends FormField implements PreviewableFieldInterface
     /**
      * @inheritDoc
      */
-    public function getSettingGqlTypes()
+    public function getSettingGqlTypes(): array
     {
         return array_merge(parent::getSettingGqlTypes(), [
             'descriptionHtml' => [
@@ -225,9 +220,6 @@ class Agree extends FormField implements PreviewableFieldInterface
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineConditionsSchema(): array
     {
         return [
@@ -243,7 +235,7 @@ class Agree extends FormField implements PreviewableFieldInterface
     /**
      * @inheritDoc
      */
-    protected function defineValueAsString($value, ElementInterface $element = null)
+    protected function defineValueAsString($value, ElementInterface $element = null): string
     {
         return ($value) ? $this->checkedValue : $this->uncheckedValue;
     }
@@ -251,7 +243,7 @@ class Agree extends FormField implements PreviewableFieldInterface
     /**
      * @inheritDoc
      */
-    protected function getSettingGqlType($attribute, $type, $fieldInfo)
+    protected function getSettingGqlType($attribute, $type, $fieldInfo): ListOfType|ScalarType|array
     {
         // Disable normal `defaultValue` as it is a boolean, not string. We can't have the same attributes 
         // return multiple types. Instead, return `defaultState` as the attribute name and correct type.
@@ -268,11 +260,8 @@ class Agree extends FormField implements PreviewableFieldInterface
 
     // Private Methods
     // =========================================================================
-    
-    /**
-     * @inheritDoc
-     */
-    private function _getHtmlContent($content)
+
+    private function _getHtmlContent($content): string
     {
         return RichTextHelper::getHtmlContent($content);
     }

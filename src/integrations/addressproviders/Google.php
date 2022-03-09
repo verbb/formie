@@ -2,29 +2,26 @@
 namespace verbb\formie\integrations\addressproviders;
 
 use verbb\formie\base\AddressProvider;
-use verbb\formie\elements\Form;
-use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyAddressProviderHtmlEvent;
 
 use Craft;
 use craft\helpers\Json;
 use craft\helpers\Template;
-use craft\web\View;
 
 class Google extends AddressProvider
 {
     // Constants
     // =========================================================================
 
-    const GOOGLE_INPUT_NAME = 'formie-google-autocomplete';
-    const EVENT_MODIFY_ADDRESS_PROVIDER_HTML = 'modifyAddressProviderHtml';
+    public const GOOGLE_INPUT_NAME = 'formie-google-autocomplete';
+    public const EVENT_MODIFY_ADDRESS_PROVIDER_HTML = 'modifyAddressProviderHtml';
 
 
     // Properties
     // =========================================================================
 
-    public $apiKey;
-    public $options = [];
+    public ?string $apiKey = null;
+    public array $options = [];
 
 
     // Public Methods
@@ -46,9 +43,6 @@ class Google extends AddressProvider
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getDescription(): string
     {
         return Craft::t('formie', 'Use [Google Places Autocomplete](https://developers.google.com/maps/documentation/javascript/places-autocomplete) to suggest addresses, for address fields.');
@@ -99,7 +93,7 @@ class Google extends AddressProvider
     /**
      * @inheritDoc
      */
-    public function getFrontEndJsVariables($field = null)
+    public function getFrontEndJsVariables($field = null): ?array
     {
         if (!$this->hasValidSettings()) {
             return null;
@@ -133,10 +127,7 @@ class Google extends AddressProvider
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
-    private function _getOptions()
+    private function _getOptions(): array
     {
         $options = [];
         $optionsRaw = $this->options;

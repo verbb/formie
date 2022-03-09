@@ -3,7 +3,7 @@
         <strong>{{ field.name | t }}</strong>
     {% endif %}
 
-    {% set fields = field.getFieldLayout().getFields() %}
+    {% set fields = field.getFieldLayout().getCustomFields() %}
 
     {% if value.exists() %}
         <table style="width: 100%; margin: 1em 0; border-collapse: collapse;">

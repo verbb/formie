@@ -8,6 +8,6 @@ class ModifyRenderEvent extends Event
     // Properties
     // =========================================================================
 
-    public $html;
+    public ?string $html = null;
     
 }

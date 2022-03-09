@@ -2,24 +2,15 @@
 namespace verbb\formie\gql\interfaces;
 
 use verbb\formie\fields\formfields\Table;
-use verbb\formie\gql\interfaces\FieldSettingsInterface;
-use verbb\formie\gql\types\SettingType;
-use verbb\formie\gql\types\SettingValue;
 use verbb\formie\gql\types\generators\FieldGenerator;
 use verbb\formie\gql\types\generators\FieldAttributeGenerator;
 
 use craft\gql\base\InterfaceType as BaseInterfaceType;
-use craft\gql\interfaces\Element;
-use craft\gql\types\DateTime;
-use craft\gql\TypeLoader;
 use craft\gql\TypeManager;
 use craft\gql\GqlEntityRegistry;
-use craft\helpers\Gql;
 
 use GraphQL\Type\Definition\InterfaceType;
 use GraphQL\Type\Definition\Type;
-
-use GraphQL\Type\Definition\ObjectType;
 
 class FieldInterface extends BaseInterfaceType
 {

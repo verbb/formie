@@ -16,8 +16,6 @@ use craft\validators\UniqueValidator;
 
 use DateTime;
 
-use yii\behaviors\AttributeTypecastBehavior;
-
 class Stencil extends Model
 {
     // Traits
@@ -28,55 +26,20 @@ class Stencil extends Model
     }
 
 
-    // Public Properties
+    // Properties
     // =========================================================================
 
-    /**
-     * @var int
-     */
-    public $id;
+    public ?int $id = null;
+    public ?string $name = null;
+    public ?string $handle = null;
+    public ?StencilData $data = null;
+    public ?int $templateId = null;
+    public ?int $defaultStatusId = null;
+    public ?DateTime $dateDeleted = null;
+    public ?string $uid = null;
 
-    /**
-     * @var string
-     */
-    public $name;
-
-    /**
-     * @var string
-     */
-    public $handle;
-
-    /**
-     * @var StencilData
-     */
-    public $data;
-
-    /**
-     * @var int
-     */
-    public $templateId;
-
-    /**
-     * @var int
-     */
-    public $defaultStatusId;
-
-    /**
-     * @var DateTime
-     */
-    public $dateDeleted;
-
-    /**
-     * @var string
-     */
-    public $uid;
-
-
-    // Public Properties
-    // =========================================================================
-
-    private $_template;
-    private $_defaultStatus;
+    private ?FormTemplate $_template = null;
+    private ?Status $_defaultStatus = null;
 
 
     // Public Methods
@@ -87,13 +50,13 @@ class Stencil extends Model
      */
     public function __toString()
     {
-        return (string)$this->getDisplayName();
+        return $this->getDisplayName();
     }
 
     /**
      * @inheritDoc
      */
-    public function init()
+    public function init(): void
     {
         parent::init();
 
@@ -104,28 +67,6 @@ class Stencil extends Model
         } else {
             $this->data = new StencilData($data);
         }
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function behaviors(): array
-    {
-        $behaviors = $this->softDeleteBehaviors();
-
-        $behaviors['typecast'] = [
-            'class' => AttributeTypecastBehavior::class,
-            'attributeTypes' => [
-                'id' => AttributeTypecastBehavior::TYPE_INTEGER,
-                'name' => AttributeTypecastBehavior::TYPE_STRING,
-                'handle' => AttributeTypecastBehavior::TYPE_STRING,
-                'templateId' => AttributeTypecastBehavior::TYPE_INTEGER,
-                'defaultStatusId' => AttributeTypecastBehavior::TYPE_INTEGER,
-                'uid' => AttributeTypecastBehavior::TYPE_STRING,
-            ]
-        ];
-
-        return $behaviors;
     }
 
     /**
@@ -143,7 +84,7 @@ class Stencil extends Model
      *
      * @param string $value
      */
-    public function setTitle(string $value)
+    public function setTitle(string $value): void
     {
         $this->name = $value;
     }
@@ -161,9 +102,9 @@ class Stencil extends Model
     /**
      * Sets the form settings.
      *
-     * @param FormSettings|array|string $settings
+     * @param array|string|FormSettings $settings
      */
-    public function setSettings($settings)
+    public function setSettings(FormSettings|array|string $settings): void
     {
         if ($settings instanceof FormSettings) {
             $this->data->settings = $settings;
@@ -222,7 +163,7 @@ class Stencil extends Model
     }
 
     /**
-     * Returns the stencils config for form builder.
+     * Returns the stencils' config for form builder.
      *
      * @return array
      */
@@ -237,7 +178,7 @@ class Stencil extends Model
     }
 
     /**
-     * Returns the stencils config for project config.
+     * Returns the stencils' config for project config.
      *
      * @return array
      */
@@ -253,8 +194,8 @@ class Stencil extends Model
         foreach ($pages as $pageKey => $page) {
             $pageId = $page['id'] ?? '';
 
-            if (strpos($pageId, 'new') !== 0) {
-                $pages[$pageKey]['id'] = 'new' . rand();
+            if (!str_starts_with($pageId, 'new')) {
+                $pages[$pageKey]['id'] = 'new' . mt_rand();
             }
 
             $rows = $page['rows'] ?? [];
@@ -262,8 +203,8 @@ class Stencil extends Model
             foreach ($rows as $rowKey => $row) {
                 $rowId = $row['id'] ?? '';
 
-                if (strpos($rowId, 'new') !== 0) {
-                    $pages[$pageKey]['rows'][$rowKey]['id'] = 'new' . rand();
+                if (!str_starts_with($rowId, 'new')) {
+                    $pages[$pageKey]['rows'][$rowKey]['id'] = 'new' . mt_rand();
                 }
 
                 $fields = $row['fields'] ?? [];
@@ -271,8 +212,8 @@ class Stencil extends Model
                 foreach ($fields as $fieldKey => $field) {
                     $fieldId = $field['id'] ?? '';
 
-                    if (strpos($fieldId, 'new') !== 0) {
-                        $pages[$pageKey]['rows'][$rowKey]['fields'][$fieldKey]['id'] = 'new' . rand();
+                    if (!str_starts_with($fieldId, 'new')) {
+                        $pages[$pageKey]['rows'][$rowKey]['fields'][$fieldKey]['id'] = 'new' . mt_rand();
                     }
                 }
             }
@@ -294,7 +235,7 @@ class Stencil extends Model
      *
      * @return FormTemplate|null
      */
-    public function getTemplate()
+    public function getTemplate(): ?FormTemplate
     {
         if (!$this->_template) {
             if ($this->templateId) {
@@ -312,7 +253,7 @@ class Stencil extends Model
      *
      * @param FormTemplate|null $template
      */
-    public function setTemplate($template)
+    public function setTemplate(?FormTemplate $template): void
     {
         if ($template) {
             $this->_template = $template;
@@ -326,6 +267,10 @@ class Stencil extends Model
      * Returns the default status for a form.
      *
      * @return Status
+     * @throws \yii\base\ErrorException
+     * @throws \yii\base\Exception
+     * @throws \yii\base\NotSupportedException
+     * @throws \yii\web\ServerErrorHttpException
      */
     public function getDefaultStatus(): Status
     {
@@ -376,7 +321,7 @@ class Stencil extends Model
      *
      * @param Status|null $status
      */
-    public function setDefaultStatus($status)
+    public function setDefaultStatus(?Status $status): void
     {
         if ($status) {
             $this->_defaultStatus = $status;
@@ -389,9 +334,9 @@ class Stencil extends Model
     /**
      * Returns a collection of notification models, from their serialized data.
      *
-     * @return Status
+     * @return array
      */
-    public function getNotifications()
+    public function getNotifications(): array
     {
         $notificationsData = $this->data->notifications ?? [];
 

@@ -8,6 +8,6 @@ class ModifyPurifierConfigEvent extends Event
     // Properties
     // =========================================================================
 
-    public $config;
+    public ?array $config = null;
     
 }

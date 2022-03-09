@@ -23,7 +23,6 @@ use verbb\formie\prosemirror\toprosemirror\Renderer;
 use Craft;
 use craft\base\FieldInterface;
 use craft\db\Migration;
-use craft\db\Query;
 use craft\fields\BaseRelationField;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Console;
@@ -48,40 +47,26 @@ class MigrateSproutForms extends Migration
     // Constants
     // =========================================================================
 
-    const EVENT_MODIFY_FIELD = 'modifyField';
-    const EVENT_MODIFY_FORM = 'modifyForm';
-    const EVENT_MODIFY_NOTIFICATION = 'modifyNotification';
-    const EVENT_MODIFY_SUBMISSION = 'modifySubmission';
+    public const EVENT_MODIFY_FIELD = 'modifyField';
+    public const EVENT_MODIFY_FORM = 'modifyForm';
+    public const EVENT_MODIFY_NOTIFICATION = 'modifyNotification';
+    public const EVENT_MODIFY_SUBMISSION = 'modifySubmission';
 
 
     // Properties
     // =========================================================================
 
-    /**
-     * @var int The form ID
-     */
-    public $formId;
+    public ?int $formId = null;
 
-    /**
-     * @var SproutFormsForm
-     */
-    private $_sproutForm;
-
-    /**
-     * @var Form
-     */
-    private $_form;
-
-    /**
-     * @var array
-     */
-    private $_reservedHandles;
+    private ?SproutFormsForm $_sproutForm = null;
+    private ?Form $_form = null;
+    private ?array $_reservedHandles = null;
 
 
     /**
      * @inheritdoc
      */
-    public function safeUp()
+    public function safeUp(): bool
     {
         $this->_reservedHandles = Formie::$plugin->getFields()->getReservedHandles();
         
@@ -92,17 +77,19 @@ class MigrateSproutForms extends Migration
                 $this->_migrateNotifications();
             }
         }
+
+        return true;
     }
 
     /**
      * @inheritdoc
      */
-    public function safeDown()
+    public function safeDown(): bool
     {
         return false;
     }
 
-    private function _migrateForm()
+    private function _migrateForm(): ?Form
     {
         $settings = Formie::$plugin->getSettings();
         $transaction = Craft::$app->db->beginTransaction();
@@ -186,11 +173,11 @@ class MigrateSproutForms extends Migration
         return $form;
     }
 
-    private function _migrateSubmissions()
+    private function _migrateSubmissions(): void
     {
         $status = Formie::$plugin->getStatuses()->getAllStatuses()[0];
 
-        $fields = $this->_sproutForm->getFieldLayout()->getFields();
+        $fields = $this->_sproutForm->getFieldLayout()->getCustomFields();
         $entries = SproutFormsEntry::find()->formId($this->_sproutForm->id)->ids();
         $total = count($entries);
 
@@ -257,7 +244,7 @@ class MigrateSproutForms extends Migration
                             $country = $value->country ?? '';
                             $countryDefaultValue = $value->countryDefaultValue ?? '';
 
-                            $phone->hasCountryCode = !!$country;
+                            $phone->hasCountryCode = (bool)$country;
                             $phone->country = $country ?: $countryDefaultValue;
 
                             $submission->setFieldValue($handle, $phone);
@@ -302,7 +289,7 @@ class MigrateSproutForms extends Migration
         $this->stdout("    > All entries completed.", Console::FG_GREEN);
     }
 
-    private function _migrateNotifications()
+    private function _migrateNotifications(): void
     {
         $settings = Formie::$plugin->getSettings();
         
@@ -347,8 +334,8 @@ class MigrateSproutForms extends Migration
                     $newNotification->from = $notification->fromEmail;
                     $newNotification->fromName = $notification->fromName;
                     $newNotification->replyTo = $notification->replyToEmail;
-                    $newNotification->attachFiles = !!$notification->enableFileAttachments;
-                    $newNotification->enabled = !!$notification->enabled;
+                    $newNotification->attachFiles = (bool)$notification->enableFileAttachments;
+                    $newNotification->enabled = (bool)$notification->enabled;
 
                     // Set default template
                     if ($templateId = $settings->getDefaultEmailTemplateId()) {
@@ -396,7 +383,7 @@ class MigrateSproutForms extends Migration
         $this->stdout("    > All notifications completed.", Console::FG_GREEN);
     }
 
-    private function _getHandle(SproutFormsForm $form)
+    private function _getHandle(SproutFormsForm $form): string
     {
         $increment = 1;
         $handle = $form->handle;
@@ -414,16 +401,13 @@ class MigrateSproutForms extends Migration
 
             $increment++;
         }
-
-        return null;
     }
 
     /**
      * @param SproutFormsForm $form
      * @return FieldLayout
-     * @noinspection PhpDocMissingThrowsInspection
      */
-    private function _buildFieldLayout(SproutFormsForm $form)
+    private function _buildFieldLayout(SproutFormsForm $form): FieldLayout
     {
         $fieldLayout = new FieldLayout([ 'type' => Form::class ]);
         $fieldLayout->type = Form::class;
@@ -439,7 +423,7 @@ class MigrateSproutForms extends Migration
 
                 $pageFields = [];
 
-                foreach ($tab->getFields() as $field) {
+                foreach ($tab->getCustomFields() as $field) {
                     if ($newField = $this->_mapField($field)) {
                         // Fire a 'modifyField' event
                         $event = new ModifyMigrationFieldEvent([
@@ -495,7 +479,7 @@ class MigrateSproutForms extends Migration
      * @param FieldInterface $field
      * @return FormFieldInterface|null
      */
-    private function _mapField(FieldInterface $field)
+    private function _mapField(FieldInterface $field): ?FormFieldInterface
     {
         switch (get_class($field)) {
             case sproutfields\Address::class:
@@ -503,16 +487,16 @@ class MigrateSproutForms extends Migration
                 $newField = new formfields\Address();
                 $this->_applyFieldDefaults($newField);
 
-                $newField->countryEnabled = !!$field->showCountryDropdown;
+                $newField->countryEnabled = (bool)$field->showCountryDropdown;
                 $newField->countryDefaultValue = $field->defaultCountry;
-                $newField->address1Required = !!$field->required;
+                $newField->address1Required = (bool)$field->required;
                 $newField->address2Required = false;
-                $newField->cityRequired = !!$field->required;
-                $newField->stateRequired = !!$field->required;
-                $newField->zipRequired = !!$field->required;
+                $newField->cityRequired = (bool)$field->required;
+                $newField->stateRequired = (bool)$field->required;
+                $newField->zipRequired = (bool)$field->required;
 
                 if ($newField->countryEnabled) {
-                    $newField->countryRequired = !!$field->required;
+                    $newField->countryRequired = (bool)$field->required;
                 }
                 break;
             case sproutfields\Categories::class:
@@ -622,22 +606,22 @@ class MigrateSproutForms extends Migration
                 $newField = new formfields\Name();
                 $this->_applyFieldDefaults($newField);
 
-                $newField->useMultipleFields = !!$field->displayMultipleFields;
+                $newField->useMultipleFields = (bool)$field->displayMultipleFields;
                 if ($newField->useMultipleFields) {
-                    $newField->prefixEnabled = !!$field->displayPrefix;
+                    $newField->prefixEnabled = (bool)$field->displayPrefix;
                     $newField->firstNameEnabled = true;
-                    $newField->middleNameEnabled = !!$field->displayMiddleName;
+                    $newField->middleNameEnabled = (bool)$field->displayMiddleName;
                     $newField->lastNameEnabled = true;
 
-                    $newField->firstNameRequired = !!$field->required;
-                    $newField->lastNameRequired = !!$field->required;
+                    $newField->firstNameRequired = (bool)$field->required;
+                    $newField->lastNameRequired = (bool)$field->required;
 
                     if ($newField->prefixEnabled) {
-                        $newField->prefixRequired = !!$field->required;
+                        $newField->prefixRequired = (bool)$field->required;
                     }
 
                     if ($newField->middleNameRequired) {
-                        $newField->middleNameRequired = !!$field->required;
+                        $newField->middleNameRequired = (bool)$field->required;
                     }
                 }
                 break;
@@ -728,13 +712,13 @@ class MigrateSproutForms extends Migration
         $newField->handle = $this->_getFieldHandle($newField->handle);
 
         if (!$newField instanceof formfields\Address and !$newField instanceof formfields\Name) {
-            $newField->required = !!$field->required;
+            $newField->required = (bool)$field->required;
         }
 
         return $newField;
     }
 
-    private function _getFieldHandle($currentHandle, $showLog = true)
+    private function _getFieldHandle($currentHandle, $showLog = true): array|string
     {
         $newHandle = $currentHandle;
 
@@ -748,7 +732,7 @@ class MigrateSproutForms extends Migration
         }
 
         // Remove any dashes (maybe open up to other characters?)
-        if (strstr($newHandle, '-')) {
+        if (strpos($newHandle, '-') !== false) {
             $newHandle = str_replace('-', '_', $newHandle);
 
             if ($showLog) {
@@ -759,26 +743,26 @@ class MigrateSproutForms extends Migration
         return $newHandle;
     }
 
-    private function _applyFieldDefaults(FormFieldInterface &$field)
+    private function _applyFieldDefaults(FormFieldInterface $field): void
     {
         $defaults = $field->getAllFieldDefaults();
         Craft::configure($field, $defaults);
     }
 
-    private function _mapOptions($options)
+    private function _mapOptions($options): array
     {
         if (!$options) {
             return [];
         }
 
         return array_values(array_map(function ($option) {
-            $option['isDefault'] = !!$option['default'] ?? false;
+            $option['isDefault'] = !!($option['default'] ?? false);
             unset($option['default']);
             return $option;
         }, $options));
     }
 
-    private function _tokenizeNotificationBody($body)
+    private function _tokenizeNotificationBody($body): array
     {
         $variables = Variables::getVariables();
 
@@ -834,7 +818,7 @@ class MigrateSproutForms extends Migration
         ];
     }
 
-    private function stdout($string, $color = '')
+    private function stdout($string, $color = ''): void
     {
         $class = '';
 
@@ -845,7 +829,8 @@ class MigrateSproutForms extends Migration
         echo '<div class="log-label ' . $class . '">' . Markdown::processParagraph($string) . '</div>';
     }
 
-    private function getExceptionTraceAsString($exception) {
+    private function getExceptionTraceAsString($exception): string
+    {
         $rtn = "";
         $count = 0;
 
@@ -873,13 +858,13 @@ class MigrateSproutForms extends Migration
                     }
                 }
 
-                $args = join(", ", $args);
+                $args = implode(", ", $args);
             }
 
             $rtn .= sprintf( "#%s %s(%s): %s(%s)\n",
                                  $count,
-                                 isset($frame['file']) ? $frame['file'] : '[internal function]',
-                                 isset($frame['line']) ? $frame['line'] : '',
+                $frame['file'] ?? '[internal function]',
+                $frame['line'] ?? '',
                                  (isset($frame['class']))  ? $frame['class'].$frame['type'].$frame['function'] : $frame['function'],
                                  $args );
 

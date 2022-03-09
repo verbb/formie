@@ -3,7 +3,6 @@ namespace verbb\formie\gql\types\generators;
 
 use verbb\formie\Formie;
 use verbb\formie\base\NestedFieldInterface;
-use verbb\formie\fields\formfields\Agree;
 use verbb\formie\gql\interfaces\FieldInterface;
 use verbb\formie\gql\interfaces\RowInterface;
 use verbb\formie\gql\types\FieldType;
@@ -12,9 +11,7 @@ use Craft;
 use craft\errors\GqlException;
 use craft\gql\base\GeneratorInterface;
 use craft\gql\GqlEntityRegistry;
-use craft\gql\TypeLoader;
 use craft\gql\TypeManager;
-use craft\helpers\Gql as GqlHelper;
 
 use GraphQL\Type\Definition\Type;
 
@@ -23,7 +20,7 @@ class FieldGenerator implements GeneratorInterface
     // Public Methods
     // =========================================================================
 
-    public static function generateTypes($context = null): array
+    public static function generateTypes(mixed $context = null): array
     {
         $fieldClasses = Formie::$plugin->getFields()->getRegisteredFields();
 

@@ -6,12 +6,8 @@ use verbb\formie\gql\types\generators\PageSettingsGenerator;
 use verbb\formie\models\PageSettings;
 
 use craft\gql\base\InterfaceType as BaseInterfaceType;
-use craft\gql\interfaces\Element;
-use craft\gql\types\DateTime;
-use craft\gql\TypeLoader;
 use craft\gql\TypeManager;
 use craft\gql\GqlEntityRegistry;
-use craft\helpers\Gql;
 use craft\helpers\Json;
 
 use GraphQL\Type\Definition\InterfaceType;

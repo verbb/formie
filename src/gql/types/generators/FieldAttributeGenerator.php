@@ -4,7 +4,6 @@ namespace verbb\formie\gql\types\generators;
 use verbb\formie\gql\types\FieldAttributeType;
 
 use craft\gql\base\GeneratorInterface;
-use craft\gql\base\ObjectType;
 use craft\gql\base\SingleGeneratorInterface;
 use craft\gql\GqlEntityRegistry;
 
@@ -16,14 +15,11 @@ class FieldAttributeGenerator implements GeneratorInterface, SingleGeneratorInte
     /**
      * @inheritdoc
      */
-    public static function generateTypes($context = null): array
+    public static function generateTypes(mixed $context = null): array
     {
         return [static::generateType($context)];
     }
 
-    /**
-     * @inheritdoc
-     */
     public static function getName($context = null): string
     {
         return 'FieldAttribute';
@@ -32,7 +28,7 @@ class FieldAttributeGenerator implements GeneratorInterface, SingleGeneratorInte
     /**
      * @inheritdoc
      */
-    public static function generateType($context = null): ObjectType
+    public static function generateType(mixed $context = null): mixed
     {
         $typeName = self::getName($context);
         $contentFields = FieldAttributeType::prepareRowFieldDefinition($typeName);

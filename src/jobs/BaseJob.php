@@ -8,20 +8,17 @@ use craft\base\Element;
 use craft\db\Table;
 use craft\helpers\Db;
 use craft\helpers\Json;
-use craft\helpers\StringHelper;
 use craft\queue\BaseJob as CraftBaseJob;
+use Throwable;
 
 abstract class BaseJob extends CraftBaseJob
 {
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
-    public function updatePayload($event)
+    public function updatePayload($event): void
     {
-        // When an error occurs on the job, we want to update the Job Data for the job. This helps immensly with
+        // When an error occurs on the job, we want to update the Job Data for the job. This helps immensely with
         // debugging, and provides the customer with context on exactly _what_ is trying to be sent.
         // We have to do a direct database update however, because the Job Data is only serialized when the job 
         // is created. The payload is changed via multiple calls in the task, so we want to reflect that,
@@ -34,7 +31,7 @@ abstract class BaseJob extends CraftBaseJob
                 // Add in custom fields with a bit more context
                 if ($event->job->payload instanceof Element) {
                     if ($fieldLayout = $event->job->payload->getFieldLayout()) {
-                        foreach ($fieldLayout->getFields() as $field) {
+                        foreach ($fieldLayout->getCustomFields() as $field) {
                             $payload['fields'][] = [
                                 'type' => get_class($field),
                                 'handle' => $field->handle,
@@ -61,7 +58,7 @@ abstract class BaseJob extends CraftBaseJob
             $message = Craft::$app->getQueue()->serializer->serialize($event->job);
             
             Db::update(Table::QUEUE, ['job' => $message], ['id' => $event->id], [], false);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Formie::error(Craft::t('formie', 'Unable to update job info debug: “{message}” {file}:{line}', [
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),

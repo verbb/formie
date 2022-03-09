@@ -17,24 +17,25 @@ use Craft;
 use craft\db\Query;
 use craft\elements\Asset;
 use craft\helpers\ArrayHelper;
-use craft\helpers\StringHelper;
 use craft\helpers\Json;
 
 use yii\base\Component;
 use Throwable;
+use yii\base\InvalidConfigException;
+use yii\db\Exception;
 
 class Notifications extends Component
 {
     // Constants
     // =========================================================================
 
-    const EVENT_BEFORE_SAVE_NOTIFICATION = 'beforeSaveNotification';
-    const EVENT_AFTER_SAVE_NOTIFICATION = 'afterSaveNotification';
-    const EVENT_BEFORE_DELETE_NOTIFICATION = 'beforeDeleteNotification';
-    const EVENT_AFTER_DELETE_NOTIFICATION = 'afterDeleteNotification';
-    const EVENT_MODIFY_EXISTING_NOTIFICATIONS = 'modifyExistingNotifications';
+    public const EVENT_BEFORE_SAVE_NOTIFICATION = 'beforeSaveNotification';
+    public const EVENT_AFTER_SAVE_NOTIFICATION = 'afterSaveNotification';
+    public const EVENT_BEFORE_DELETE_NOTIFICATION = 'beforeDeleteNotification';
+    public const EVENT_AFTER_DELETE_NOTIFICATION = 'afterDeleteNotification';
+    public const EVENT_MODIFY_EXISTING_NOTIFICATIONS = 'modifyExistingNotifications';
 
-    private $_existingNotifications;
+    private ?array $_existingNotifications = null;
 
 
     // Public Methods
@@ -80,12 +81,12 @@ class Notifications extends Component
     }
 
     /**
-     * Returns a form notification by it's ID.
+     * Returns a form notification by its ID.
      *
      * @param $id
      * @return Notification|null
      */
-    public function getNotificationById($id)
+    public function getNotificationById(int $id): ?Notification
     {
         $row = $this->_createNotificationsQuery()
             ->where([ 'id' => $id ])
@@ -172,7 +173,7 @@ class Notifications extends Component
     }
 
     /**
-     * Deletes a notification by it's ID.
+     * Deletes a notification by its ID.
      *
      * @param int $id
      * @return bool
@@ -194,7 +195,7 @@ class Notifications extends Component
      *
      * @param Notification $notification
      * @return bool
-     * @throws \yii\db\Exception
+     * @throws Exception
      */
     public function deleteNotification(Notification $notification): bool
     {
@@ -228,7 +229,7 @@ class Notifications extends Component
      *
      * @return Notification[]
      */
-    public function buildNotificationsFromPost()
+    public function buildNotificationsFromPost(): array
     {
         $request = Craft::$app->getRequest();
 
@@ -249,9 +250,7 @@ class Notifications extends Component
 
             // Remove IDs if we're duplicating
             if ($duplicate) {
-                unset($notificationData['id']);
-                unset($notificationData['formId']);
-                unset($notificationData['uid']);
+                unset($notificationData['id'], $notificationData['formId'], $notificationData['uid']);
             }
 
             // Discard some Vue-specific things
@@ -274,8 +273,12 @@ class Notifications extends Component
      *
      * @param Notification[] $notifications
      * @return mixed
+     * @throws \Twig\Error\LoaderError
+     * @throws \Twig\Error\RuntimeError
+     * @throws \Twig\Error\SyntaxError
+     * @throws \yii\base\Exception
      */
-    public function getNotificationsConfig(array $notifications)
+    public function getNotificationsConfig(array $notifications): mixed
     {
         $notificationsConfig = [];
 
@@ -290,14 +293,14 @@ class Notifications extends Component
             if ($ids = ArrayHelper::getColumn($attachAssets, 'id')) {
                 $elements = Asset::find()->id($ids)->all();
 
-                // Maintain an options array so we can keep track of the label in Vue, not just the saved value
+                // Maintain an options array, so we can keep track of the label in Vue, not just the saved value
                 $config['attachAssetsOptions'] = array_map(function($input) {
                     return ['label' => $input->title, 'value' => $input->id];
                 }, $elements);
 
                 // Render the HTML needed for the element select field (for default value). jQuery needs DOM manipulation
                 // so while gross, we have to supply the raw HTML, as opposed to models in the Vue-way.
-                $config['attachAssetsHtml'] = Craft::$app->getView()->renderTemplate('formie/_includes/element-select-inuput-elements', ['elements' => $elements]);
+                $config['attachAssetsHtml'] = Craft::$app->getView()->renderTemplate('formie/_includes/element-select-input-elements', ['elements' => $elements]);
             }
 
             $notificationsConfig[] = $config;
@@ -313,7 +316,7 @@ class Notifications extends Component
      * @return array
      * @throws InvalidConfigException
      */
-    public function getExistingNotifications($excludeForm = null): array
+    public function getExistingNotifications(Form $excludeForm = null): array
     {
         if ($this->_existingNotifications !== null) {
             return $this->_existingNotifications;
@@ -412,9 +415,11 @@ class Notifications extends Component
      * Returns whether the notification has passed conditional evaluation. A `true` result means the notification
      * should be sent, whilst a `false` result means the notification should not send.
      *
+     * @param $notification
+     * @param Submission $submission
      * @return bool
      */
-    public function evaluateConditions($notification, Submission $submission)
+    public function evaluateConditions($notification, Submission $submission): bool
     {
         if ($notification->enableConditions) {
             $conditionSettings = Json::decode($notification->conditions) ?? [];
@@ -426,9 +431,9 @@ class Notifications extends Component
                 // Lastly, check to see if we should return true or false depending on if we want to send or not
                 if ($conditionSettings['sendRule'] === 'send') {
                     return $result;
-                } else {
-                    return !$result;
                 }
+
+                return !$result;
             }
         }
 
@@ -440,7 +445,7 @@ class Notifications extends Component
      *
      * @return array
      */
-    public function getNotificationsSchema()
+    public function getNotificationsSchema(): array
     {
         $user = Craft::$app->getUser();
 
@@ -755,13 +760,13 @@ class Notifications extends Component
     }
 
     /**
-     * Gets a notification record by it's ID, or a new notification record
+     * Gets a notification record by its ID, or a new notification record
      * if it wasn't provided or was not found.
      *
-     * @param string|int|null $id
+     * @param int|string|null $id
      * @return NotificationRecord
      */
-    private function _getNotificationRecord($id): NotificationRecord
+    private function _getNotificationRecord(int|string|null $id): NotificationRecord
     {
         /** @var NotificationRecord $notification */
         if ($id && $notification = NotificationRecord::find()->where(['id' => $id])->one()) {

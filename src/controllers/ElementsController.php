@@ -6,16 +6,14 @@ use craft\web\Controller;
 use craft\commerce\Plugin as Commerce;
 
 use verbb\formie\Formie;
+use yii\web\Response;
 
 class ElementsController extends Controller
 {
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritdoc
-     */
-    public function actionSections()
+    public function actionSections(): Response
     {
         $this->requireAcceptsJson();
 
@@ -24,10 +22,7 @@ class ElementsController extends Controller
         return $this->asJson(['success' => true, 'sections' => $sections]);
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function actionEntryTypes()
+    public function actionEntryTypes(): Response
     {
         $this->requireAcceptsJson();
 
@@ -42,10 +37,7 @@ class ElementsController extends Controller
         return $this->asJson(['success' => true, 'entryTypes' => $entryTypes]);
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function actionCategoryGroups()
+    public function actionCategoryGroups(): Response
     {
         $this->requireAcceptsJson();
 
@@ -54,10 +46,7 @@ class ElementsController extends Controller
         return $this->asJson(['success' => true, 'categoryGroups' => $categoryGroups]);
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function actionTagGroups()
+    public function actionTagGroups(): Response
     {
         $this->requireAcceptsJson();
 
@@ -66,10 +55,7 @@ class ElementsController extends Controller
         return $this->asJson(['success' => true, 'tagGroups' => $tagGroups]);
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function actionProductTypes()
+    public function actionProductTypes(): Response
     {
         $this->requireAcceptsJson();
 
@@ -78,7 +64,7 @@ class ElementsController extends Controller
         if (Formie::$plugin->getService()->isPluginInstalledAndEnabled('commerce')) {
             $productTypes = Commerce::getInstance()->getProductTypes()->getAllProductTypes();
 
-            // Reset keys so its an array
+            // Reset keys so it's an array
             $productTypes = array_values($productTypes);
         }
 

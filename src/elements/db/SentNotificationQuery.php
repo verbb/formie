@@ -1,16 +1,11 @@
 <?php
 namespace verbb\formie\elements\db;
 
-use verbb\formie\Formie;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\SentNotification;
-use verbb\formie\models\Status;
 
-use Craft;
 use craft\db\Query;
-use craft\db\QueryAbortedException;
 use craft\elements\db\ElementQuery;
-use craft\elements\User;
 use craft\helpers\Db;
 
 class SentNotificationQuery extends ElementQuery
@@ -18,10 +13,10 @@ class SentNotificationQuery extends ElementQuery
     // Properties
     // =========================================================================
 
-    public $id;
-    public $formId;
+    public mixed $id = null;
+    public mixed $formId = null;
 
-    protected $defaultOrderBy = ['elements.dateCreated' => SORT_DESC];
+    protected array $defaultOrderBy = ['elements.dateCreated' => SORT_DESC];
 
 
     // Public Methods
@@ -30,10 +25,10 @@ class SentNotificationQuery extends ElementQuery
     /**
      * Sets the [[formId]] property.
      *
-     * @param Form|string|null $value The property value
+     * @param string|Form|null $value The property value
      * @return static self reference
      */
-    public function form($value)
+    public function form(Form|string|null $value): static
     {
         if ($value instanceof Form) {
             $this->formId = $value->id;
@@ -56,7 +51,7 @@ class SentNotificationQuery extends ElementQuery
      * @param int
      * @return static self reference
      */
-    public function formId($value)
+    public function formId($value): static
     {
         $this->formId = $value;
 
@@ -66,7 +61,7 @@ class SentNotificationQuery extends ElementQuery
     /**
      * Narrows the query results based on the notification’s statuses.
      */
-    public function status($value)
+    public function status(array|string|null $value): ElementQuery
     {
         return parent::status($value);
     }
@@ -115,19 +110,16 @@ class SentNotificationQuery extends ElementQuery
     /**
      * @inheritdoc
      */
-    protected function statusCondition(string $status)
+    protected function statusCondition(string $status): mixed
     {
-        switch ($status) {
-            case SentNotification::STATUS_SUCCESS:
-                return [
-                    'formie_sentnotifications.success' => true,
-                ];
-            case SentNotification::STATUS_FAILED:
-                return [
-                    'formie_sentnotifications.success' => false,
-                ];
-            default:
-                return parent::statusCondition($status);
-        }
+        return match ($status) {
+            SentNotification::STATUS_SUCCESS => [
+                'formie_sentnotifications.success' => true,
+            ],
+            SentNotification::STATUS_FAILED => [
+                'formie_sentnotifications.success' => false,
+            ],
+            default => parent::statusCondition($status),
+        };
     }
 }

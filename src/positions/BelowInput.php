@@ -12,7 +12,7 @@ class BelowInput extends Position
     /**
      * @inheritDoc
      */
-    protected static $position = 'below';
+    protected static ?string $position = 'below';
 
 
     // Static Methods

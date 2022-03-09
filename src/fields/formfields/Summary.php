@@ -8,7 +8,6 @@ use verbb\formie\models\Notification;
 
 use Craft;
 use craft\base\ElementInterface;
-use craft\helpers\Html;
 use craft\helpers\StringHelper;
 
 class Summary extends FormField
@@ -71,7 +70,7 @@ class Summary extends FormField
     /**
      * @inheritDoc
      */
-    public function getInputHtml($value, ElementInterface $element = null): string
+    public function getInputHtml(mixed $value, ?ElementInterface $element = null): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/summary/input', [
             'name' => $this->handle,
@@ -93,7 +92,7 @@ class Summary extends FormField
     /**
      * @inheritDoc
      */
-    public function getEmailHtml(Submission $submission, Notification $notification, $value, array $options = null)
+    public function getEmailHtml(Submission $submission, Notification $notification, mixed $value, array $options = null): string|null|bool
     {
         return false;
     }
@@ -101,7 +100,7 @@ class Summary extends FormField
     /**
      * @inheritdoc
      */
-    public function getFrontEndJsModules()
+    public function getFrontEndJsModules(): ?array
     {
         return [
             'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/fields/summary.js', true),
@@ -115,7 +114,7 @@ class Summary extends FormField
     /**
      * @inheritDoc
      */
-    public function afterCreateField(array $data)
+    public function afterCreateField(array $data): void
     {
         $this->name = StringHelper::appendUniqueIdentifier(Craft::t('formie', 'Summary '));
         $this->handle = StringHelper::appendUniqueIdentifier(Craft::t('formie', 'summaryHandle'));
@@ -132,9 +131,6 @@ class Summary extends FormField
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineConditionsSchema(): array
     {
         return [

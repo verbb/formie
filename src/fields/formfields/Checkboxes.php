@@ -2,12 +2,10 @@
 namespace verbb\formie\fields\formfields;
 
 use verbb\formie\base\FormFieldInterface;
-use verbb\formie\elements\Form;
 use verbb\formie\helpers\SchemaHelper;
 
 use Craft;
 use craft\base\ElementInterface;
-use craft\helpers\Json;
 use craft\fields\data\MultiOptionsFieldData;
 
 class Checkboxes extends BaseOptionsField implements FormFieldInterface
@@ -43,10 +41,10 @@ class Checkboxes extends BaseOptionsField implements FormFieldInterface
     // Properties
     // =========================================================================
 
-    public $multi = true;
-    public $layout;
-    public $toggleCheckbox;
-    public $toggleCheckboxLabel;
+    public bool $multi = true;
+    public ?string $layout = null;
+    public ?string $toggleCheckbox = null;
+    public ?string $toggleCheckboxLabel = null;
 
 
     // Public Methods
@@ -55,7 +53,7 @@ class Checkboxes extends BaseOptionsField implements FormFieldInterface
     /**
      * @inheritDoc
      */
-    public function init()
+    public function init(): void
     {
         parent::init();
 
@@ -90,10 +88,7 @@ class Checkboxes extends BaseOptionsField implements FormFieldInterface
         return false;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getFieldOptions()
+    public function getFieldOptions(): array
     {
         return $this->options;
     }
@@ -101,7 +96,7 @@ class Checkboxes extends BaseOptionsField implements FormFieldInterface
     /**
      * @inheritDoc
      */
-    public function getInputHtml($value, ElementInterface $element = null): string
+    public function getInputHtml(mixed $value, ?ElementInterface $element = null): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/checkboxes/input', [
             'name' => $this->handle,
@@ -123,7 +118,7 @@ class Checkboxes extends BaseOptionsField implements FormFieldInterface
     /**
      * @inheritdoc
      */
-    public function getFrontEndJsModules()
+    public function getFrontEndJsModules(): ?array
     {
         return [
             'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/fields/checkbox-radio.js', true),
@@ -255,9 +250,6 @@ class Checkboxes extends BaseOptionsField implements FormFieldInterface
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineConditionsSchema(): array
     {
         return [

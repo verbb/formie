@@ -4,30 +4,27 @@ namespace verbb\formie\integrations\miscellaneous;
 use verbb\formie\Formie;
 use verbb\formie\base\Integration;
 use verbb\formie\base\Miscellaneous;
-use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
-use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
-use craft\helpers\ArrayHelper;
-use craft\helpers\Json;
-use craft\web\View;
 
 use League\OAuth2\Client\Provider\Google as GoogleProvider;
+use Throwable;
+use GuzzleHttp\Client;
 
 class GoogleSheets extends Miscellaneous
 {
     // Properties
     // =========================================================================
 
-    public $clientId;
-    public $clientSecret;
-    public $proxyRedirect;
-    public $spreadsheetId;
-    public $sheetId;
-    public $fieldMapping;
+    public ?string $clientId = null;
+    public ?string $clientSecret = null;
+    public ?string $proxyRedirect = null;
+    public ?string $spreadsheetId = null;
+    public ?string $sheetId = null;
+    public ?array $fieldMapping = null;
 
 
     // OAuth Methods
@@ -95,7 +92,7 @@ class GoogleSheets extends Miscellaneous
     /**
      * @inheritDoc
      */
-    public function getRedirectUri()
+    public function getRedirectUri(): string
     {
         $uri = parent::getRedirectUri();
 
@@ -110,7 +107,7 @@ class GoogleSheets extends Miscellaneous
     /**
      * @inheritDoc
      */
-    public function getOauthProviderConfig()
+    public function getOauthProviderConfig(): array
     {
         return array_merge(parent::getOauthProviderConfig(), [
             'accessType' => 'offline',
@@ -121,7 +118,7 @@ class GoogleSheets extends Miscellaneous
     /**
      * @inheritDoc
      */
-    public function getOauthProvider()
+    public function getOauthProvider(): GoogleProvider
     {
         return new GoogleProvider($this->getOauthProviderConfig());
     }
@@ -133,7 +130,7 @@ class GoogleSheets extends Miscellaneous
     /**
      * @inheritDoc
      */
-    public function init()
+    public function init(): void
     {
         // Allow an .env var to override the proxy state. Due to it being a lightswitch
         // we can't set an override any other way.
@@ -143,7 +140,7 @@ class GoogleSheets extends Miscellaneous
             $this->proxyRedirect = $proxyRedirect;
         }
 
-        return parent::init();
+        parent::init();
     }
 
     /**
@@ -154,9 +151,6 @@ class GoogleSheets extends Miscellaneous
         return Craft::t('formie', 'Google Sheets');
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getDescription(): string
     {
         return Craft::t('formie', 'Send your form content to Google Sheets.');
@@ -177,20 +171,17 @@ class GoogleSheets extends Miscellaneous
         return $rules;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function fetchFormSettings()
+    public function fetchFormSettings(): IntegrationFormSettings
     {
         $settings = [];
 
         try {
             $spreadsheet = $this->request('GET', '');
             $allSheets = $spreadsheet['sheets'] ?? [];
-            $columns = [];
+            $sheets = [];
             $savedColumns = [];
 
-            foreach ($allSheets as $key => $sheet) {
+            foreach ($allSheets as $sheet) {
                 $response = $this->request('GET', "values/'{$sheet['properties']['title']}'!A1:ZZZ1", [
                     'query' => ['majorDimension' => 'ROWS'],
                 ]);
@@ -205,7 +196,7 @@ class GoogleSheets extends Miscellaneous
 
                 $columns = [];
 
-                foreach ($allColumns as $key => $column) {
+                foreach ($allColumns as $column) {
                     $columns[] = new IntegrationField([
                         'handle' => $column,
                         'name' => $column,
@@ -223,16 +214,13 @@ class GoogleSheets extends Miscellaneous
                 'sheets' => $sheets,
                 'columns' => $savedColumns,
             ];
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Integration::apiError($this, $e);
         }
 
         return new IntegrationFormSettings($settings);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function sendPayload(Submission $submission): bool
     {
         try {
@@ -262,7 +250,7 @@ class GoogleSheets extends Miscellaneous
             if ($response === false) {
                 return true;
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
             return false;
@@ -271,10 +259,7 @@ class GoogleSheets extends Miscellaneous
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getClient()
+    public function getClient(): Client
     {
         if ($this->_client) {
             return $this->_client;
@@ -296,7 +281,7 @@ class GoogleSheets extends Miscellaneous
         // We can't always rely on the EOL of the token.
         try {
             $response = $this->request('GET', '');
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             if ($e->getCode() === 401) {
                 // Force-refresh the token
                 Formie::$plugin->getTokens()->refreshToken($token, true);

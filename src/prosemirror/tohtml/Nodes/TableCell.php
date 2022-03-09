@@ -4,10 +4,10 @@ namespace verbb\formie\prosemirror\tohtml\Nodes;
 
 class TableCell extends Node
 {
-    protected $nodeType = 'table_cell';
-    protected $tagName = 'td';
+    protected ?string $nodeType = 'table_cell';
+    protected string|null|array $tagName = 'td';
 
-    public function tag()
+    public function tag(): array
     {
         $attrs = [];
         if (isset($this->node->attrs)) {

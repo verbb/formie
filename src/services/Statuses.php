@@ -27,12 +27,12 @@ class Statuses extends Component
     // Constants
     // =========================================================================
 
-    const EVENT_BEFORE_SAVE_STATUS = 'beforeSaveStatus';
-    const EVENT_AFTER_SAVE_STATUS = 'afterSaveStatus';
-    const EVENT_BEFORE_DELETE_STATUS = 'beforeDeleteStatus';
-    const EVENT_BEFORE_APPLY_STATUS_DELETE = 'beforeApplyStatusDelete';
-    const EVENT_AFTER_DELETE_STATUS = 'afterDeleteStatus';
-    const CONFIG_STATUSES_KEY = 'formie.statuses';
+    public const EVENT_BEFORE_SAVE_STATUS = 'beforeSaveStatus';
+    public const EVENT_AFTER_SAVE_STATUS = 'afterSaveStatus';
+    public const EVENT_BEFORE_DELETE_STATUS = 'beforeDeleteStatus';
+    public const EVENT_BEFORE_APPLY_STATUS_DELETE = 'beforeApplyStatusDelete';
+    public const EVENT_AFTER_DELETE_STATUS = 'afterDeleteStatus';
+    public const CONFIG_STATUSES_KEY = 'formie.statuses';
 
 
     // Private Properties
@@ -41,7 +41,7 @@ class Statuses extends Component
     /**
      * @var Status[]
      */
-    private $_statuses;
+    private ?array $_statuses = null;
 
 
     // Public Methods
@@ -53,7 +53,7 @@ class Statuses extends Component
      * @param bool $withTrashed
      * @return Status[]
      */
-    public function getAllStatuses($withTrashed = false): array
+    public function getAllStatuses(bool $withTrashed = false): array
     {
         // Get the caches items if we have them cached, and the request is for non-trashed items
         if ($this->_statuses !== null) {
@@ -90,44 +90,44 @@ class Statuses extends Component
     }
 
     /**
-     * Gets a single status by it's ID.
+     * Gets a single status by its ID.
      *
-     * @param string|int $id
+     * @param int $id
      * @return Status|null
      */
-    public function getStatusById($id)
+    public function getStatusById(int $id): ?Status
     {
         return ArrayHelper::firstWhere($this->getAllStatuses(), 'id', $id);
     }
 
     /**
-     * Gets a single status by it's handle.
+     * Gets a single status by its handle.
      *
      * @param string $handle
      * @return Status|null
      */
-    public function getStatusByHandle($handle)
+    public function getStatusByHandle(string $handle): ?Status
     {
         return ArrayHelper::firstWhere($this->getAllStatuses(), 'handle', $handle, false);
     }
 
     /**
-     * Returns a status identified by it's UID.
+     * Returns a status identified by its UID.
      *
      * @param string $uid
      * @return Status|null
      */
-    public function getStatusByUid(string $uid)
+    public function getStatusByUid(string $uid): ?Status
     {
         return ArrayHelper::firstWhere($this->getAllStatuses(), 'uid', $uid, false);
     }
 
     /**
-     * Gets a the default status.
+     * Gets the default status.
      *
      * @return Status|null
      */
-    public function getDefaultStatus()
+    public function getDefaultStatus(): ?Status
     {
         return ArrayHelper::firstWhere($this->getAllStatuses(), 'isDefault', true);
     }
@@ -135,23 +135,23 @@ class Statuses extends Component
     /**
      * Saves statuses in a new order by the list of status IDs.
      *
-     * @param int[] $ids
+     * @param int[] $statusIds
      * @return bool
      * @throws ErrorException
      * @throws Exception
      * @throws NotSupportedException
      * @throws ServerErrorHttpException
      */
-    public function reorderStatuses(array $ids): bool
+    public function reorderStatuses(array $statusIds): bool
     {
         $projectConfig = Craft::$app->getProjectConfig();
 
-        $uidsByIds = Db::uidsByIds('{{%formie_statuses}}', $ids);
+        $uidsByIds = Db::uidsByIds('{{%formie_statuses}}', $statusIds);
 
-        foreach ($ids as $status => $statusId) {
+        foreach ($statusIds as $statusOrder => $statusId) {
             if (!empty($uidsByIds[$statusId])) {
                 $statusUid = $uidsByIds[$statusId];
-                $projectConfig->set(self::CONFIG_STATUSES_KEY . '.' . $statusUid . '.sortOrder', $status + 1);
+                $projectConfig->set(self::CONFIG_STATUSES_KEY . '.' . $statusUid . '.sortOrder', $statusOrder + 1, 'Reorder statuses');
             }
         }
 
@@ -161,7 +161,7 @@ class Statuses extends Component
     /**
      * @return array
      */
-    public function getSubmissionCountByStatus()
+    public function getSubmissionCountByStatus(): array
     {
         $countGroupedByStatusId = (new Query())
             ->select(['[[s.statusId]]', 'count(s.id) as submissionCount'])
@@ -243,7 +243,7 @@ class Statuses extends Component
                 'handle' => $status->handle,
                 'color' => $status->color,
                 'description' => $status->description,
-                'sortOrder' => (int)($status->sortOrder ?? 99),
+                'sortOrder' => $status->sortOrder ?? 99,
                 'isDefault' => (bool)$status->isDefault,
             ];
         }
@@ -264,7 +264,7 @@ class Statuses extends Component
      * @param ConfigEvent $event
      * @throws Throwable
      */
-    public function handleChangedStatus(ConfigEvent $event)
+    public function handleChangedStatus(ConfigEvent $event): void
     {
         $statusUid = $event->tokenMatches[0];
         $data = $event->newValue;
@@ -300,7 +300,7 @@ class Statuses extends Component
     }
 
     /**
-     * Delete a status by it's id.
+     * Delete a status by its id.
      *
      * @param int $id
      * @return bool
@@ -347,7 +347,7 @@ class Statuses extends Component
      * @param ConfigEvent $event
      * @throws Throwable
      */
-    public function handleDeletedStatus(ConfigEvent $event)
+    public function handleDeletedStatus(ConfigEvent $event): void
     {
         $statusUid = $event->tokenMatches[0];
 
@@ -391,7 +391,7 @@ class Statuses extends Component
      * @param bool $withTrashed
      * @return Query
      */
-    private function _createStatusesQuery($withTrashed = false): Query
+    private function _createStatusesQuery(bool $withTrashed = false): Query
     {
         $query = (new Query())
             ->select([

@@ -17,9 +17,6 @@ class Education extends PredefinedOption
         return Craft::t('formie', 'Education');
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function getDataOptions(): array
     {
         return [

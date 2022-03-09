@@ -5,7 +5,6 @@ use verbb\formie\Formie;
 use verbb\formie\base\SubfieldInterface;
 use verbb\formie\base\SubfieldTrait;
 use verbb\formie\base\FormField;
-use verbb\formie\elements\Form;
 use verbb\formie\gql\types\generators\FieldAttributeGenerator;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\Phone as PhoneModel;
@@ -52,7 +51,7 @@ class Phone extends FormField implements SubfieldInterface, PreviewableFieldInte
      *
      * @return array
      */
-    public static function getCountryOptions()
+    public static function getCountryOptions(): array
     {
         return Formie::$plugin->getPhone()->getCountries();
     }
@@ -61,11 +60,11 @@ class Phone extends FormField implements SubfieldInterface, PreviewableFieldInte
     // Properties
     // =========================================================================
 
-    public $countryEnabled = true;
-    public $countryCollapsed = true;
-    public $countryShowDialCode = true;
-    public $countryDefaultValue;
-    public $countryAllowed = [];
+    public bool $countryEnabled = true;
+    public bool $countryCollapsed = true;
+    public bool $countryShowDialCode = true;
+    public ?string $countryDefaultValue = null;
+    public array $countryAllowed = [];
 
 
     // Public Methods
@@ -74,13 +73,13 @@ class Phone extends FormField implements SubfieldInterface, PreviewableFieldInte
     /**
      * @inheritDoc
      */
-    public function getContentColumnType(): string
+    public function getContentColumnType(): array|string
     {
         if ($this->countryEnabled) {
             return Schema::TYPE_TEXT;
-        } else {
-            return Schema::TYPE_STRING;
         }
+
+        return Schema::TYPE_STRING;
     }
 
     /**
@@ -98,31 +97,33 @@ class Phone extends FormField implements SubfieldInterface, PreviewableFieldInte
     /**
      * @inheritDoc
      */
-    public function normalizeValue($value, ElementInterface $element = null)
+    public function normalizeValue(mixed $value, ?ElementInterface $element = null): mixed
     {
         $value = parent::normalizeValue($value, $element);
         $value = Json::decodeIfJson($value);
 
         if ($value instanceof PhoneModel) {
             return $value;
-        } else if (is_array($value)) {
+        }
+
+        if (is_array($value)) {
             $phone = new PhoneModel($value);
             $phone->hasCountryCode = isset($value['country']);
 
             return $phone;
-        } else {
-            $phone = new PhoneModel();
-            $phone->number = $value;
-            $phone->hasCountryCode = false;
-
-            return $phone;
         }
+
+        $phone = new PhoneModel();
+        $phone->number = $value;
+        $phone->hasCountryCode = false;
+
+        return $phone;
     }
 
     /**
      * @inheritDoc
      */
-    public function serializeValue($value, ElementInterface $element = null)
+    public function serializeValue(mixed $value, ?ElementInterface $element = null): mixed
     {
         if ($value instanceof PhoneModel) {
             $value = Json::encode($value);
@@ -134,7 +135,7 @@ class Phone extends FormField implements SubfieldInterface, PreviewableFieldInte
     /**
      * @inheritdoc
      */
-    public function getFrontEndJsModules()
+    public function getFrontEndJsModules(): ?array
     {
         if ($this->countryEnabled) {
             return [
@@ -147,6 +148,8 @@ class Phone extends FormField implements SubfieldInterface, PreviewableFieldInte
                 ],
             ];
         }
+
+        return null;
     }
 
     /**
@@ -214,7 +217,7 @@ class Phone extends FormField implements SubfieldInterface, PreviewableFieldInte
     /**
      * @inheritDoc
      */
-    public function validateRequiredFields(ElementInterface $element)
+    public function validateRequiredFields(ElementInterface $element): void
     {
         if ($this->required) {
             $value = $element->getFieldValue($this->handle);
@@ -243,7 +246,7 @@ class Phone extends FormField implements SubfieldInterface, PreviewableFieldInte
     /**
      * @inheritDoc
      */
-    public function getInputHtml($value, ElementInterface $element = null): string
+    public function getInputHtml(mixed $value, ?ElementInterface $element = null): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/phone/input', [
             'name' => $this->handle,
@@ -265,7 +268,7 @@ class Phone extends FormField implements SubfieldInterface, PreviewableFieldInte
     /**
      * @inheritDoc
      */
-    public function populateValue($value)
+    public function populateValue($value): void
     {
         $this->defaultValue = $this->normalizeValue($value);
     }
@@ -273,7 +276,7 @@ class Phone extends FormField implements SubfieldInterface, PreviewableFieldInte
     /**
      * @inheritDoc
      */
-    public function getSettingGqlTypes()
+    public function getSettingGqlTypes(): array
     {
         return array_merge(parent::getSettingGqlTypes(), [
             'countryOptions' => [
@@ -378,9 +381,6 @@ class Phone extends FormField implements SubfieldInterface, PreviewableFieldInte
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineConditionsSchema(): array
     {
         return [

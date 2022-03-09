@@ -14,14 +14,14 @@ class Javascript extends Captcha
     // Constants
     // =========================================================================
 
-    const JAVASCRIPT_INPUT_NAME = '__JSCHK';
+    public const JAVASCRIPT_INPUT_NAME = '__JSCHK';
 
 
     // Properties
     // =========================================================================
 
-    public $handle = 'javascript';
-    public $minTime;
+    public ?string $handle = 'javascript';
+    public ?string $minTime = null;
 
 
     // Public Methods
@@ -35,9 +35,6 @@ class Javascript extends Captcha
         return Craft::t('formie', 'Javascript');
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getDescription(): string
     {
         return Craft::t('formie', 'Check if the user has Javascript enabled, and flag as spam if they do not.');
@@ -46,7 +43,7 @@ class Javascript extends Captcha
     /**
      * @inheritDoc
      */
-    public function getSettingsHtml(): string
+    public function getSettingsHtml(): ?string
     {
         return Craft::$app->getView()->renderTemplate('formie/integrations/captchas/javascript/_plugin-settings', [
             'integration' => $this,
@@ -71,11 +68,11 @@ class Javascript extends Captcha
     /**
      * @inheritDoc
      */
-    public function getFrontEndJsVariables(Form $form, $page = null)
+    public function getFrontEndJsVariables(Form $form, $page = null): ?array
     {
         $sessionKey = $this->getSessionKey($form, $page);
 
-        // Get or create the generated input value so we can validate it properly. Also make it per-form
+        // Get or create the generated input value, so we can validate it properly. Also make it per-form
         $value = $this->getOrSet($sessionKey, function() {
             return uniqid();
         });
@@ -102,11 +99,11 @@ class Javascript extends Captcha
     /**
      * @inheritDoc
      */
-    public function getRefreshJsVariables(Form $form, $page = null)
+    public function getRefreshJsVariables(Form $form, $page = null): array
     {
         $sessionKey = $this->getSessionKey($form, $page);
         
-        // Get or create the generated input value so we can validate it properly. Also make it per-form
+        // Get or create the generated input value, so we can validate it properly. Also make it per-form
         $value = $this->getOrSet($sessionKey, function() {
             return uniqid();
         });
@@ -167,7 +164,7 @@ class Javascript extends Captcha
     // Private Methods
     // =========================================================================
 
-    private function getSessionKey($form, $page = null)
+    private function getSessionKey($form, $page = null): string
     {
         // Default the page to the last page, if not set.
         if (!$page) {

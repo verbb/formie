@@ -5,50 +5,46 @@ use verbb\formie\Formie;
 use verbb\formie\helpers\ConditionsHelper;
 use verbb\formie\helpers\RichTextHelper;
 
-use Craft;
 use craft\base\Model;
 use craft\elements\Asset;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
-use craft\helpers\StringHelper;
-
-use yii\behaviors\AttributeTypecastBehavior;
 
 class Notification extends Model
 {
-    // Public Properties
+    // Properties
     // =========================================================================
 
-    public $id;
-    public $formId;
-    public $templateId;
-    public $pdfTemplateId;
-    public $name;
-    public $enabled;
-    public $subject;
-    public $recipients;
-    public $to;
-    public $toConditions;
-    public $cc;
-    public $bcc;
-    public $replyTo;
-    public $replyToName;
-    public $from;
-    public $fromName;
-    public $content;
-    public $attachFiles;
-    public $attachPdf;
-    public $attachAssets;
-    public $enableConditions;
-    public $conditions;
-    public $uid;
+    public ?int $id = null;
+    public ?int $formId = null;
+    public ?int $templateId = null;
+    public ?int $pdfTemplateId = null;
+    public ?string $name = null;
+    public ?bool $enabled = null;
+    public ?string $subject = null;
+    public ?string $recipients = null;
+    public ?string $to = null;
+    public ?string $toConditions = null;
+    public ?string $cc = null;
+    public ?string $bcc = null;
+    public ?string $replyTo = null;
+    public ?string $replyToName = null;
+    public ?string $from = null;
+    public ?string $fromName = null;
+    public ?string $content = null;
+    public ?bool $attachFiles = null;
+    public ?string $attachPdf = null;
+    public ?string $attachAssets = null;
+    public ?bool $enableConditions = null;
+    public ?array $conditions = null;
+    public ?string $uid = null;
 
 
     // Private Properties
     // =========================================================================
 
-    private $_template;
-    private $_pdfTemplate;
+    private ?EmailTemplate $_template = null;
+    private ?PdfTemplate $_pdfTemplate = null;
 
 
     // Public Methods
@@ -57,7 +53,7 @@ class Notification extends Model
     /**
      * @inheritDoc
      */
-    public function init()
+    public function init(): void
     {
         parent::init();
 
@@ -69,47 +65,10 @@ class Notification extends Model
             $this->pdfTemplateId = null;
         }
 
-        // Cast some properties. Doesn't play with with JS otherwise.
+        // Cast some properties. Doesn't play well with JS otherwise.
         $this->attachFiles = (bool)$this->attachFiles;
         $this->enableConditions = (bool)$this->enableConditions;
         $this->attachPdf = (bool)$this->attachPdf;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function behaviors(): array
-    {
-        $behaviors = parent::behaviors();
-
-        $behaviors['typecast'] = [
-            'class' => AttributeTypecastBehavior::class,
-            'attributeTypes' => [
-                'id' => AttributeTypecastBehavior::TYPE_INTEGER,
-                'formId' => AttributeTypecastBehavior::TYPE_INTEGER,
-                'templateId' => AttributeTypecastBehavior::TYPE_INTEGER,
-                'pdfTemplateId' => AttributeTypecastBehavior::TYPE_INTEGER,
-                'name' => AttributeTypecastBehavior::TYPE_STRING,
-                'enabled' => AttributeTypecastBehavior::TYPE_BOOLEAN,
-                'subject' => AttributeTypecastBehavior::TYPE_STRING,
-                'recipients' => AttributeTypecastBehavior::TYPE_STRING,
-                'to' => AttributeTypecastBehavior::TYPE_STRING,
-                'toConditions' => AttributeTypecastBehavior::TYPE_STRING,
-                'cc' => AttributeTypecastBehavior::TYPE_STRING,
-                'bcc' => AttributeTypecastBehavior::TYPE_STRING,
-                'replyTo' => AttributeTypecastBehavior::TYPE_STRING,
-                'replyToName' => AttributeTypecastBehavior::TYPE_STRING,
-                'from' => AttributeTypecastBehavior::TYPE_STRING,
-                'fromName' => AttributeTypecastBehavior::TYPE_STRING,
-                'attachFiles' => AttributeTypecastBehavior::TYPE_BOOLEAN,
-                'attachPdf' => AttributeTypecastBehavior::TYPE_BOOLEAN,
-                'enableConditions' => AttributeTypecastBehavior::TYPE_BOOLEAN,
-                'conditions' => AttributeTypecastBehavior::TYPE_STRING,
-                'uid' => AttributeTypecastBehavior::TYPE_STRING,
-            ]
-        ];
-
-        return $behaviors;
     }
 
     /**
@@ -143,7 +102,7 @@ class Notification extends Model
      *
      * @return string
      */
-    public function getParsedContent()
+    public function getParsedContent(): string
     {
         return RichTextHelper::getHtmlContent($this->content, null, false);
     }
@@ -151,9 +110,10 @@ class Notification extends Model
     /**
      * Returns the notification's recipients.
      *
+     * @param $submission
      * @return string
      */
-    public function getToEmail($submission)
+    public function getToEmail($submission): string
     {
         if ($this->recipients === 'email') {
             return $this->to;
@@ -183,7 +143,7 @@ class Notification extends Model
      *
      * @return EmailTemplate|null
      */
-    public function getTemplate()
+    public function getTemplate(): ?EmailTemplate
     {
         if (!$this->_template) {
             if ($this->templateId) {
@@ -201,7 +161,7 @@ class Notification extends Model
      *
      * @param EmailTemplate|null $template
      */
-    public function setTemplate($template)
+    public function setTemplate(?EmailTemplate $template): void
     {
         if ($template) {
             $this->_template = $template;
@@ -216,7 +176,7 @@ class Notification extends Model
      *
      * @return PdfTemplate|null
      */
-    public function getPdfTemplate()
+    public function getPdfTemplate(): ?PdfTemplate
     {
         if (!$this->_pdfTemplate) {
             if ($this->pdfTemplateId) {
@@ -234,7 +194,7 @@ class Notification extends Model
      *
      * @param PdfTemplate|null $template
      */
-    public function setPdfTemplate($template)
+    public function setPdfTemplate(?PdfTemplate $template): void
     {
         if ($template) {
             $this->_pdfTemplate = $template;
@@ -244,10 +204,7 @@ class Notification extends Model
         }
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function getAssetAttachments()
+    public function getAssetAttachments(): array
     {
         $attachAssets = Json::decode($this->attachAssets) ?? [];
 

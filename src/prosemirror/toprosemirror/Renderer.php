@@ -7,11 +7,11 @@ use DOMDocument;
 
 class Renderer
 {
-    protected $document;
+    protected mixed $document;
 
-    protected $storedMarks = [];
+    protected array $storedMarks = [];
 
-    protected $marks = [
+    protected array $marks = [
         Marks\Bold::class,
         Marks\Code::class,
         Marks\Italic::class,
@@ -22,7 +22,7 @@ class Renderer
         Marks\Underline::class,
     ];
 
-    protected $nodes = [
+    protected array $nodes = [
         Nodes\Blockquote::class,
         Nodes\BulletList::class,
         Nodes\CodeBlock::class,
@@ -43,7 +43,7 @@ class Renderer
         Nodes\User::class,
     ];
 
-    public function withMarks($marks = null)
+    public function withMarks($marks = null): static
     {
         if (is_array($marks)) {
             $this->marks = $marks;
@@ -52,7 +52,7 @@ class Renderer
         return $this;
     }
 
-    public function withNodes($nodes = null)
+    public function withNodes($nodes = null): static
     {
         if (is_array($nodes)) {
             $this->nodes = $nodes;
@@ -61,14 +61,14 @@ class Renderer
         return $this;
     }
 
-    public function addNode($node)
+    public function addNode($node): static
     {
         $this->nodes[] = $node;
 
         return $this;
     }
 
-    public function addNodes($nodes)
+    public function addNodes($nodes): static
     {
         foreach ($nodes as $node) {
             $this->addNode($node);
@@ -77,14 +77,14 @@ class Renderer
         return $this;
     }
 
-    public function addMark($mark)
+    public function addMark($mark): static
     {
         $this->marks[] = $mark;
 
         return $this;
     }
 
-    public function addMarks($marks)
+    public function addMarks($marks): static
     {
         foreach ($marks as $mark) {
             $this->addMark($mark);
@@ -93,7 +93,7 @@ class Renderer
         return $this;
     }
 
-    public function replaceNode($search_node, $replace_node)
+    public function replaceNode($search_node, $replace_node): static
     {
         foreach ($this->nodes as $key => $node_class) {
             if ($node_class == $search_node) {
@@ -104,7 +104,7 @@ class Renderer
         return $this;
     }
 
-    public function replaceMark($search_mark, $replace_mark)
+    public function replaceMark($search_mark, $replace_mark): static
     {
         foreach ($this->marks as $key => $mark_class) {
             if ($mark_class == $search_mark) {
@@ -129,7 +129,7 @@ class Renderer
         ];
     }
 
-    private function setDocument(string $value): Renderer
+    private function setDocument(string $value): void
     {
         libxml_use_internal_errors(true);
 
@@ -139,11 +139,9 @@ class Renderer
                 $this->stripWhitespace($value)
             )
         );
-
-        return $this;
     }
 
-    private function wrapHtmlDocument($value)
+    private function wrapHtmlDocument($value): string
     {
         return '<?xml encoding="utf-8" ?>' . $value;
     }
@@ -193,9 +191,9 @@ class Renderer
                     ];
                 }
 
-                array_push($nodes, $item);
+                $nodes[] = $item;
             } elseif ($class = $this->getMatchingMark($child)) {
-                array_push($this->storedMarks, $class->data());
+                $this->storedMarks[] = $class->data();
 
                 if ($child->hasChildNodes()) {
                     $nodes = array_merge($nodes, $this->renderChildren($child));

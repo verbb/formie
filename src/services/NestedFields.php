@@ -21,6 +21,7 @@ use verbb\formie\base\FormField;
 use verbb\formie\migrations\CreateFormContentTable;
 use verbb\formie\models\FieldLayout;
 use verbb\formie\records\Nested as NestedRecord;
+use craft\helpers\ArrayHelper;
 
 class NestedFields extends Component
 {
@@ -30,7 +31,7 @@ class NestedFields extends Component
     /**
      * @var FieldLayout[]
      */
-    private $_fieldLayoutsByFieldId = [];
+    private array $_fieldLayoutsByFieldId = [];
 
 
     // Public Methods
@@ -42,7 +43,7 @@ class NestedFields extends Component
      * @param NestedFieldInterface $field
      * @return FieldLayout|null
      */
-    public function getFieldLayout(NestedFieldInterface $field)
+    public function getFieldLayout(NestedFieldInterface $field): ?FieldLayout
     {
         /* @var NestedFieldInterface|NestedFieldTrait|FormField $field */
 
@@ -65,7 +66,7 @@ class NestedFields extends Component
      * @param FieldLayout $fieldLayout
      * @return FieldLayout
      */
-    public function setFieldLayout(NestedFieldInterface $field, FieldLayout $fieldLayout)
+    public function setFieldLayout(NestedFieldInterface $field, FieldLayout $fieldLayout): FieldLayout
     {
         /* @var NestedFieldInterface|NestedFieldTrait|FormField $field */
 
@@ -155,7 +156,7 @@ class NestedFields extends Component
             // Save fields.
             if ($fieldLayout = $nestedField->getFieldLayout()) {
                 $allFields = $fieldsService->getAllFields($nestedField->getFormFieldContext());
-                $allFieldIds = $fieldLayout->getFieldIds();
+                $allFieldIds = ArrayHelper::getColumn($fieldLayout->getCustomFields(), 'id');
 
                 // Delete deleted fields.
                 foreach ($allFields as $field) {
@@ -165,11 +166,10 @@ class NestedFields extends Component
                     }
                 }
 
-                foreach ($fieldLayout->getFields() as $field) {
+                foreach ($fieldLayout->getCustomFields() as $field) {
                     // Ensure fields retain a formId
                     $field->formId = $nestedField->formId;
 
-                    /* @var FormField $field */
                     $fieldsService->saveField($field);
                 }
             }
@@ -247,7 +247,7 @@ class NestedFields extends Component
      * @param ElementInterface $owner
      * @throws Throwable
      */
-    public function saveElements(NestedFieldInterface $field, ElementInterface $owner)
+    public function saveElements(NestedFieldInterface $field, ElementInterface $owner): void
     {
         $elementsService = Craft::$app->getElements();
 
@@ -293,7 +293,7 @@ class NestedFields extends Component
             $this->_deleteOtherRows($field, $owner, $rowIds);
 
             $transaction->commit();
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $transaction->rollBack();
             throw $e;
         }
@@ -308,7 +308,7 @@ class NestedFields extends Component
      * @param bool $checkOtherSites
      * @throws Throwable
      */
-    public function duplicateBlocks(NestedFieldInterface $field, ElementInterface $source, ElementInterface $target, bool $checkOtherSites = false)
+    public function duplicateBlocks(NestedFieldInterface $field, ElementInterface $source, ElementInterface $target, bool $checkOtherSites = false): void
     {
         $elementsService = Craft::$app->getElements();
 
@@ -341,7 +341,7 @@ class NestedFields extends Component
             $this->_deleteOtherRows($field, $target, $newRowIds);
 
             $transaction->commit();
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $transaction->rollBack();
             throw $e;
         }
@@ -357,7 +357,7 @@ class NestedFields extends Component
      * @param string $tableName
      * @throws Throwable
      */
-    private function _createContentTable(string $tableName)
+    private function _createContentTable(string $tableName): void
     {
         $migration = new CreateFormContentTable([
             'tableName' => $tableName
@@ -376,7 +376,7 @@ class NestedFields extends Component
      * @param int[] $except
      * @throws Throwable
      */
-    private function _deleteOtherRows(NestedFieldInterface $field, ElementInterface $owner, array $except)
+    private function _deleteOtherRows(NestedFieldInterface $field, ElementInterface $owner, array $except): void
     {
         /** @var Element $owner */
         $deleteBlocks = NestedFieldRow::find()

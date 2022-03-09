@@ -71,7 +71,7 @@
                 <th>{{ 'Default Value' | t('feed-me') }}</th>
             </thead>
             <tbody>
-                {% for field in tab.getFields() %}
+                {% for field in tab.getCustomFields() %}
                     {% set fieldClass = craft.feedme.fields.getRegisteredField(className(field)) %}
                     {% set template = fieldClass.getMappingTemplate() %}
 
@@ -93,7 +93,7 @@
 {% set uniqueFields = fields %}
 
 {% for tab in formTabs %}
-    {% for field in tab.getFields() %}
+    {% for field in tab.getCustomFields() %}
         {% set uniqueFields = uniqueFields | merge([{ name: field.name, handle: field.handle, type: className(field) }]) %}
     {% endfor %}
 {% endfor %}

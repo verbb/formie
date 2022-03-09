@@ -17,9 +17,6 @@ class Satisfaction extends PredefinedOption
         return Craft::t('formie', 'Satisfaction');
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function getDataOptions(): array
     {
         return [

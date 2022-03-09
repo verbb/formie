@@ -5,7 +5,6 @@ use craft\gql\base\ObjectType;
 use craft\gql\GqlEntityRegistry;
 use craft\gql\interfaces\elements\Entry as EntryInterface;
 use craft\gql\arguments\elements\Entry as EntryArguments;
-use craft\helpers\Json;
 
 use GraphQL\Type\Definition\Type;
 

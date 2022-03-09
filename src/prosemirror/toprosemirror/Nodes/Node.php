@@ -4,23 +4,23 @@ namespace verbb\formie\prosemirror\toprosemirror\Nodes;
 
 class Node
 {
-    public $wrapper = null;
+    public ?array $wrapper = null;
 
-    public $type = 'node';
+    public string $type = 'node';
 
-    protected $DOMNode;
+    protected mixed $DOMNode;
 
     public function __construct($DOMNode)
     {
         $this->DOMNode = $DOMNode;
     }
 
-    public function matching()
+    public function matching(): bool
     {
         return false;
     }
 
-    public function data()
+    public function data(): ?array
     {
         return [];
     }

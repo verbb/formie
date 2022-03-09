@@ -4,14 +4,12 @@ namespace verbb\formie\elements\actions;
 use Craft;
 use craft\base\ElementAction;
 use craft\elements\db\ElementQueryInterface;
-use craft\helpers\ArrayHelper;
 
 use verbb\formie\elements\Submission;
-use verbb\formie\Formie;
 
 class SetSubmissionSpam extends ElementAction
 {
-    public $spam;
+    public ?string $spam = null;
 
     /**
      * @inheritdoc
@@ -24,7 +22,7 @@ class SetSubmissionSpam extends ElementAction
     /**
      * @inheritdoc
      */
-    public function getTriggerHtml()
+    public function getTriggerHtml(): ?string
     {
         return Craft::$app->getView()->renderTemplate('formie/_components/actions/mark-spam/trigger');
     }
@@ -43,10 +41,10 @@ class SetSubmissionSpam extends ElementAction
         foreach ($elements as $element) {
             // Without this, when updating submissions for "All forms", this will reset the content
             // of a submission. This is because the query to fetch element's can't resolve the correct
-            // content table across multiple queries. This does add an extra query, but its pretty unavoidable
+            // content table across multiple queries. This does add an extra query, but it's pretty unavoidable
             Craft::$app->getContent()->populateElementContent($element);
 
-            $element->isSpam = ($this->spam === 'markSpam') ? true : false;
+            $element->isSpam = $this->spam === 'markSpam';
 
             if ($elementsService->saveElement($element) === false) {
                 // Validation error
@@ -68,11 +66,7 @@ class SetSubmissionSpam extends ElementAction
         if ($failCount !== 0) {
             $this->setMessage(Craft::t('app', 'Spam state updated, with some failures due to validation errors.'));
         } else {
-            if (count($elements) === 1) {
-                $this->setMessage(Craft::t('app', 'Spam state updated.'));
-            } else {
-                $this->setMessage(Craft::t('app', 'Spam state updated.'));
-            }
+            $this->setMessage(Craft::t('app', 'Spam state updated.'));
         }
 
         return true;

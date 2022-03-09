@@ -7,54 +7,54 @@ use craft\base\Model;
 
 use League\OAuth1\Client\Credentials\TokenCredentials;
 use League\OAuth2\Client\Token\AccessToken;
+use verbb\formie\base\IntegrationInterface;
+use DateTime;
 
 class Token extends Model
 {
-    // Public Properties
+    // Properties
     // =========================================================================
 
-    public $id;
-    public $type;
-    public $accessToken;
-    public $secret;
-    public $endOfLife;
-    public $refreshToken;
-    public $dateCreated;
-    public $dateUpdated;
+    public ?int $id = null;
+    public ?string $type = null;
+    public ?string $accessToken = null;
+    public ?string $secret = null;
+    public ?string $endOfLife = null;
+    public ?string $refreshToken = null;
+    public ?DateTime $dateCreated = null;
+    public ?DateTime $dateUpdated = null;
 
 
     // Public Methods
     // =========================================================================
 
-    public function getIntegration()
+    public function getIntegration(): ?IntegrationInterface
     {
         return Formie::$plugin->getIntegrations()->getIntegrationByTokenId($this->id);
     }
 
-    public function getToken()
+    public function getToken(): AccessToken|TokenCredentials|null
     {
-        $integration = $this->getIntegration();
-
-        if ($integration) {
+        if ($integration = $this->getIntegration()) {
             switch ($integration->oauthVersion()) {
                 case 1: {
                     $realToken = new TokenCredentials();
-                    $realToken->setIdentifier($response['identifier']);
-                    $realToken->setSecret($response['secret']);
+                    $realToken->setIdentifier($this->accessToken);
+                    $realToken->setSecret($this->secret);
 
                     return $realToken;
                 }
                 case 2: {
-                    $realToken = new AccessToken([
+                    return new AccessToken([
                         'access_token' => $this->accessToken,
                         'refresh_token' => $this->refreshToken,
                         'secret' => $this->secret,
                         'expires' => $this->endOfLife,
                     ]);
-
-                    return $realToken;
                 }
             }
         }
+
+        return null;
     }
 }

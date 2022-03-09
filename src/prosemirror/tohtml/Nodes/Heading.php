@@ -4,9 +4,9 @@ namespace verbb\formie\prosemirror\tohtml\Nodes;
 
 class Heading extends Node
 {
-    protected $nodeType = 'heading';
+    protected ?string $nodeType = 'heading';
 
-    public function tag()
+    public function tag(): string
     {
         return "h{$this->node->attrs->level}";
     }

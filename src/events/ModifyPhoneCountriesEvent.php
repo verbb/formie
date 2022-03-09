@@ -8,6 +8,6 @@ class ModifyPhoneCountriesEvent extends Event
     // Properties
     // =========================================================================
 
-    public $countries;
+    public ?array $countries = null;
     
 }

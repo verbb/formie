@@ -4,7 +4,6 @@ namespace verbb\formie\models;
 use Craft;
 use craft\base\Model;
 use craft\helpers\ArrayHelper;
-use craft\helpers\Json;
 
 use yii\base\InvalidConfigException;
 
@@ -13,8 +12,8 @@ class IntegrationFormSettings extends Model
     // Properties
     // =========================================================================
 
-    public $collections = [];
-    public $classKey = 'class';
+    public array $collections = [];
+    public string $classKey = 'class';
 
 
     // Public Methods
@@ -25,45 +24,32 @@ class IntegrationFormSettings extends Model
      */
     public function __construct($collections = [])
     {
+        parent::__construct();
+
         $this->collections = $collections;
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function getSettings()
+    public function getSettings(): array
     {
         return $this->collections;
     }
 
-    /**
-     * @inheritdoc
-     */
     public function getSettingsByKey($key)
     {
         return ArrayHelper::getValue($this->collections, $key) ?? [];
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function setSettings($collections)
+    public function setSettings($collections): array
     {
         return array_merge($this->collections, $collections);
     }
 
-    /**
-     * @inheritdoc
-     */
     public function serialize()
     {
         return $this->classToArray($this->collections);
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function unserialize($serialized)
+    public function unserialize($serialized): void
     {
         $this->collections = $this->classFromArray($serialized);
     }
@@ -73,7 +59,7 @@ class IntegrationFormSettings extends Model
      * @return array|mixed
      * @throws InvalidConfigException
      */
-    private function classToArray($data)
+    private function classToArray(mixed $data): mixed
     {
         if (is_object($data)) {
             $result = [$this->classKey => get_class($data)];
@@ -105,8 +91,9 @@ class IntegrationFormSettings extends Model
     /**
      * @param array $data
      * @return mixed
+     * @throws InvalidConfigException
      */
-    private function classFromArray($data)
+    private function classFromArray(array $data): mixed
     {
         if (!is_array($data)) {
             return $data;

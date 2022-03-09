@@ -23,13 +23,14 @@ use craft\helpers\UrlHelper;
 use craft\models\CategoryGroup;
 
 use GraphQL\Type\Definition\Type;
+use craft\elements\db\ElementQueryInterface;
 
 class Categories extends CraftCategories implements FormFieldInterface
 {
     // Constants
     // =========================================================================
 
-    const EVENT_MODIFY_ELEMENT_QUERY = 'modifyElementQuery';
+    public const EVENT_MODIFY_ELEMENT_QUERY = 'modifyElementQuery';
 
 
     // Traits
@@ -73,22 +74,13 @@ class Categories extends CraftCategories implements FormFieldInterface
     // Properties
     // =========================================================================
 
-    /**
-     * @var bool
-     */
-    public $searchable = true;
-    public $rootCategory;
-    public $showStructure = false;
+    public bool $searchable = true;
+    public ?array $rootCategory = null;
+    public bool $showStructure = false;
 
-    /**
-     * @var string
-     */
-    protected $inputTemplate = 'formie/_includes/element-select-input';
+    protected string $inputTemplate = 'formie/_includes/element-select-input';
 
-    /**
-     * @var CategoryGroup
-     */
-    private $_categoryGroup;
+    private ?CategoryGroup $_categoryGroup = null;
 
 
     // Public Methods
@@ -97,7 +89,7 @@ class Categories extends CraftCategories implements FormFieldInterface
     /**
      * @inheritdoc
      */
-    public function normalizeValue($value, ElementInterface $element = null)
+    public function normalizeValue(mixed $value, ?ElementInterface $element = null): mixed
     {
         // The default Craft Categories field behaviour is pretty odd. It'll select all child categories in the same branch
         // which is completely not what we want. We just want to save the categories we pick - is that too much to ask?!
@@ -153,7 +145,7 @@ class Categories extends CraftCategories implements FormFieldInterface
      */
     public function getDefaultValue($attributePrefix = '')
     {
-        // If the default value from the parent field (query params, etc) is empty, use the default values
+        // If the default value from the parent field (query params, etc.) is empty, use the default values
         // set in the field settings.
         $this->defaultValue = $this->traitGetDefaultValue($attributePrefix) ?? $this->defaultValue;
 
@@ -173,7 +165,7 @@ class Categories extends CraftCategories implements FormFieldInterface
     /**
      * @inheritDoc
      */
-    public function getFrontEndInputOptions(Form $form, $value, array $options = null): array
+    public function getFrontEndInputOptions(Form $form, mixed $value, array $options = null): array
     {
         $inputOptions = $this->traitGetFrontendInputOptions($form, $value, $options);
         $inputOptions['categoriesQuery'] = $this->getElementsQuery();
@@ -186,9 +178,9 @@ class Categories extends CraftCategories implements FormFieldInterface
     /**
      * @inheritDoc
      */
-    public function getEmailHtml(Submission $submission, Notification $notification, $value, array $options = null)
+    public function getEmailHtml(Submission $submission, Notification $notification, mixed $value, array $options = null): string|null|bool
     {
-        // Ensure we return back the correct, prepped query for emails. Just as we would be submissions.
+        // Ensure we return the correct, prepped query for emails. Just as we would be submissions.
         $value = $this->_all($value, $submission);
 
         return $this->traitGetEmailHtml($submission, $notification, $value, $options);
@@ -197,7 +189,7 @@ class Categories extends CraftCategories implements FormFieldInterface
     /**
      * @inheritDoc
      */
-    public function getFieldOptions()
+    public function getFieldOptions(): array
     {
         $options = [];
 
@@ -209,12 +201,12 @@ class Categories extends CraftCategories implements FormFieldInterface
             // Negate the first level to start at 0, so no "-" character is shown at first level
             $level = $element->level - 1;
 
-            // Reset the level based off the root category. Otherwise the level will start from the root
+            // Reset the level based off the root category. Otherwise, the level will start from the root
             // category's level, not "flush" (ie, "---- Category" instead of "- Category")
             if ($this->rootCategory) {
                 if ($rootCategoryId = ArrayHelper::getColumn($this->rootCategory, 'id')) {
                     if ($rootCategory = Category::find()->id($rootCategoryId)->one()) {
-                        $level = $level - $rootCategory->level;
+                        $level -= $rootCategory->level;
                     }
                 }
             }
@@ -229,9 +221,10 @@ class Categories extends CraftCategories implements FormFieldInterface
     /**
      * Returns the list of selectable categories.
      *
-     * @return Category[]
+     * @return \craft\elements\db\ElementQueryInterface
+     * @throws \craft\errors\SiteNotFoundException
      */
-    public function getElementsQuery()
+    public function getElementsQuery(): \craft\elements\db\ElementQueryInterface
     {
         // Use the currently-set element query, or create a new one.
         $query = $this->elementsQuery ?? Category::find();
@@ -322,7 +315,7 @@ class Categories extends CraftCategories implements FormFieldInterface
     /**
      * @inheritDoc
      */
-    public function defineLabelSourceOptions()
+    public function defineLabelSourceOptions(): array
     {
         $options = [
             ['value' => 'title', 'label' => Craft::t('app', 'Title')],
@@ -338,7 +331,7 @@ class Categories extends CraftCategories implements FormFieldInterface
                     $group = Craft::$app->getCategories()->getGroupById($groupId);
 
                     if ($group) {
-                        $fields = $this->getStringCustomFieldOptions($group->getFields());
+                        $fields = $this->getStringCustomFieldOptions($group->getCustomFields());
 
                         $options = array_merge($options, $fields);
                     }
@@ -352,13 +345,12 @@ class Categories extends CraftCategories implements FormFieldInterface
     /**
      * @inheritDoc
      */
-    public function getSettingGqlTypes()
+    public function getSettingGqlTypes(): array
     {
         return array_merge($this->traitGetSettingGqlTypes(), [
             'categories' => [
                 'name' => 'categories',
                 'type' => Type::listOf(CategoryInterface::getType()),
-                'resolve' => CategoryResolver::class.'::resolve',
                 'args' => CategoryArguments::getArguments(),
                 'resolve' => function($class) {
                     return $class->getElementsQuery()->all();
@@ -399,7 +391,7 @@ class Categories extends CraftCategories implements FormFieldInterface
                 'label' => Craft::t('formie', 'Default Value'),
                 'help' => Craft::t('formie', 'Select a default category to be selected.'),
                 'name' => 'defaultValue',
-                'selectionLabel' => $this->defaultSelectionLabel(),
+                'selectionLabel' => self::defaultSelectionLabel(),
                 'config' => [
                     'jsClass' => $this->inputJsClass,
                     'elementType' => static::elementType(),
@@ -520,9 +512,6 @@ class Categories extends CraftCategories implements FormFieldInterface
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineConditionsSchema(): array
     {
         return [

@@ -40,7 +40,7 @@ class Form extends ActiveRecord
     /**
      * @var string
      */
-    private $_oldHandle;
+    private string $_oldHandle;
 
 
     // Public Methods
@@ -65,7 +65,7 @@ class Form extends ActiveRecord
     /**
      * @inheritDoc
      */
-    public function afterFind()
+    public function afterFind(): void
     {
         parent::afterFind();
         $this->_oldHandle = $this->handle;

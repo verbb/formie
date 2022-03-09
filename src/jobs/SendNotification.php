@@ -2,21 +2,23 @@
 namespace verbb\formie\jobs;
 
 use verbb\formie\Formie;
-use verbb\formie\jobs\BaseJob;
+use verbb\formie\elements\Submission;
+use verbb\formie\models\Notification;
 
 use Craft;
 use craft\helpers\Json;
+use Exception;
 
 class SendNotification extends BaseJob
 {
-    // Public Properties
+    // Properties
     // =========================================================================
 
-    public $submissionId;
-    public $submission;
-    public $notificationId;
-    public $notification;
-    public $email;
+    public ?int $submissionId = null;
+    public ?array $submission = null;
+    public ?int $notificationId = null;
+    public ?array $notification = null;
+    public mixed $email = null;
 
 
     // Public Methods
@@ -33,7 +35,7 @@ class SendNotification extends BaseJob
     /**
      * @inheritDoc
      */
-    public function execute($queue)
+    public function execute($queue): void
     {
         $this->setProgress($queue, 0);
 
@@ -41,11 +43,11 @@ class SendNotification extends BaseJob
         $submission = Formie::$plugin->getSubmissions()->getSubmissionById($this->submissionId);
 
         if (!$notification) {
-            throw new \Exception('Unable to find notification: ' . $this->notificationId . '.');
+            throw new Exception('Unable to find notification: ' . $this->notificationId . '.');
         }
 
         if (!$submission) {
-            throw new \Exception('Unable to find submission: ' . $this->submissionId . '.');
+            throw new Exception('Unable to find submission: ' . $this->submissionId . '.');
         }
 
         $this->submission = $submission->toArray();
@@ -54,7 +56,7 @@ class SendNotification extends BaseJob
 
         // Add a little extra info for submission fields
         if ($fieldLayout = $submission->getFieldLayout()) {
-            foreach ($fieldLayout->getFields() as $field) {
+            foreach ($fieldLayout->getCustomFields() as $field) {
                 $this->submission['fields'][] = [
                     'type' => get_class($field),
                     'handle' => $field->handle,
@@ -69,10 +71,10 @@ class SendNotification extends BaseJob
         $error = $sentResponse['error'] ?? false;
 
         if ($error) {
-            // Check if should send the nominated admin(s) an email about this error.
+            // Check if we should send the nominated admin(s) an email about this error.
             Formie::$plugin->getEmails()->sendFailAlertEmail($notification, $submission, $sentResponse);
 
-            throw new \Exception('Failed to send notification email: ' . Json::encode($sentResponse) . '.');
+            throw new Exception('Failed to send notification email: ' . Json::encode($sentResponse) . '.');
         }
 
         $this->setProgress($queue, 1);

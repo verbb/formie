@@ -2,7 +2,6 @@
 namespace verbb\formie\records;
 
 use craft\db\ActiveRecord;
-use craft\db\SoftDeleteTrait;
 
 /**
  * Class Nested

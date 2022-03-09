@@ -16,20 +16,17 @@ use verbb\formie\records\FormTemplate as FormTemplateRecord;
 use verbb\formie\records\Notification as NotificationRecord;
 use verbb\formie\records\PdfTemplate as PdfTemplateRecord;
 
-use Craft;
 use craft\elements\Entry;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
+use yii\db\ActiveRecord;
 
 class ImportExportHelper
 {
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritdoc
-     */
-    public static function generateFormExport($formElement)
+    public static function generateFormExport($formElement): array|ActiveRecord|null
     {
         $formId = $formElement->id;
 
@@ -135,17 +132,14 @@ class ImportExportHelper
         return $data;
     }
 
-    /**
-     * @inheritdoc
-     */
     public static function createFormFromImport($data, $form = null)
     {
         $existingForm = $form;
         $existingFormFields = [];
 
-        // Store the fields on an existing form so we can retain their IDs later
+        // Store the fields on an existing form, so we can retain their IDs later
         if ($existingForm) {
-            $existingFormFields = ArrayHelper::index($existingForm->getFields(), 'handle');
+            $existingFormFields = ArrayHelper::index($existingForm->getCustomFields(), 'handle');
         }
 
         if (!$form) {
@@ -165,7 +159,7 @@ class ImportExportHelper
         $form->settings = new FormSettings();
         $form->settings->setAttributes($settings, false);
 
-        // Check if there is a entry selected as the redirect action. If not found, will cause a fatal error
+        // Check if there is an entry selected as the redirect action. If not found, will cause a fatal error
         if ($form->submitActionEntryId) {
             $entry = Entry::find()->id($form->submitActionEntryId)->one();
 
@@ -176,7 +170,8 @@ class ImportExportHelper
 
         // Check if this is updating an existing form. We want to try and find existing fields
         // and attach the IDs of them to page data, so new fields aren't created (and their submission data lost)
-        foreach ($existingFormFields as $field) {
+        /** @noinspection PhpUnusedLocalVariableInspection */
+        foreach ($existingFormFields as $existingFormField) {
             // Try to find the field data in the import, and attach the ID
             foreach ($pages as $pageKey => $page) {
                 $rows = $page['rows'] ?? [];
@@ -259,10 +254,7 @@ class ImportExportHelper
     // Private Methods
     // =========================================================================
 
-    /**
-     * @inheritdoc
-     */
-    private static function getFieldInfoForExport($rows, &$pageData)
+    private static function getFieldInfoForExport($rows, &$pageData): void
     {
         foreach ($rows as $rowId => $row) {
             foreach ($row['fields'] as $fieldId => $field) {
@@ -288,10 +280,7 @@ class ImportExportHelper
         }
     }
 
-    /**
-     * @inheritdoc
-     */
-    private static function filterUnsupportedFields(&$pages)
+    private static function filterUnsupportedFields(&$pages): void
     {
         foreach ($pages as $pageKey => $page) {
             $rows = $page['rows'] ?? [];
@@ -303,7 +292,7 @@ class ImportExportHelper
                     $type = $field['type'] ?? '';
 
                     // This will throw an error for Commerce, where the extended class doesn't exist.
-                    // Which unfortunately means we can't use `class_exists()` because its the extended
+                    // Which unfortunately means we can't use `class_exists()` because it's the extended
                     // class that doesn't exist, and that can't be caught for some reason.
                     if (in_array($type, [formfields\Products::class, formfields\Variants::class]) && !Formie::$plugin->getService()->isPluginInstalledAndEnabled('commerce')) {
                         unset($pages[$pageKey]['rows'][$rowKey]['fields'][$fieldKey]);
@@ -316,7 +305,7 @@ class ImportExportHelper
                     $nestedRows = $field['rows'] ?? [];
 
                     if ($nestedRows) {
-                        // Create a new variable so we can use our recursive function
+                        // Create a new variable, so we can use our recursive function
                         $nestedPages = [$nestedRows];
 
                         self::filterUnsupportedFields($nestedPages);

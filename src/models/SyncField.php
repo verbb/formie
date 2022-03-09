@@ -10,19 +10,19 @@ use verbb\formie\Formie;
 
 class SyncField extends Model
 {
-    // Public Properties
+    // Properties
     // =========================================================================
 
-    public $id;
-    public $syncId;
-    public $fieldId;
+    public ?int $id = null;
+    public ?string $syncId = null;
+    public ?string $fieldId = null;
 
 
     // Private Properties
     // =========================================================================
 
-    private $_sync;
-    private $_field;
+    private ?Sync $_sync = null;
+    private ?FormFieldInterface $_field = null;
 
 
     // Public Methods
@@ -33,7 +33,7 @@ class SyncField extends Model
      *
      * @return FormFieldInterface|null
      */
-    public function getField()
+    public function getField(): ?FormFieldInterface
     {
         if (!$this->_field) {
             $this->_field = Craft::$app->getFields()->getFieldById($this->fieldId);
@@ -47,7 +47,7 @@ class SyncField extends Model
      *
      * @param FormFieldInterface $field
      */
-    public function setField(FormFieldInterface $field)
+    public function setField(FormFieldInterface $field): void
     {
         /* @var FormField $field */
         $this->fieldId = $field->id;
@@ -59,7 +59,7 @@ class SyncField extends Model
      *
      * @return Sync|null
      */
-    public function getSync()
+    public function getSync(): ?Sync
     {
         if (!$this->_sync) {
             $this->_sync = Formie::$plugin->getSyncs()->getSyncById($this->syncId);
@@ -73,7 +73,7 @@ class SyncField extends Model
      *
      * @param Sync $sync
      */
-    public function setSync(Sync $sync)
+    public function setSync(Sync $sync): void
     {
         $this->syncId = $sync->id;
         $this->_sync = $sync;

@@ -8,20 +8,19 @@ use verbb\formie\elements\Submission;
 use Craft;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
-use craft\web\View;
 
 class Hcaptcha extends Captcha
 {
     // Properties
     // =========================================================================
 
-    public $handle = 'hcaptcha';
-    public $secretKey;
-    public $siteKey;
-    public $size = 'normal';
-    public $theme = 'light';
-    public $language = 'en';
-    public $minScore = 0.5;
+    public ?string $handle = 'hcaptcha';
+    public ?string $secretKey = null;
+    public ?string $siteKey = null;
+    public string $size = 'normal';
+    public string $theme = 'light';
+    public string $language = 'en';
+    public float $minScore = 0.5;
 
 
     // Public Methods
@@ -35,9 +34,6 @@ class Hcaptcha extends Captcha
         return Craft::t('formie', 'hCaptcha');
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getDescription(): string
     {
         return Craft::t('formie', 'hCaptcha is an anti-bot solution that protects user privacy and rewards websites. It is the most popular reCAPTCHA alternative. Find out more via [hCaptcha](https://www.hcaptcha.com/).');
@@ -46,7 +42,7 @@ class Hcaptcha extends Captcha
     /**
      * @inheritDoc
      */
-    public function getSettingsHtml(): string
+    public function getSettingsHtml(): ?string
     {
         return Craft::$app->getView()->renderTemplate('formie/integrations/captchas/hcaptcha/_plugin-settings', [
             'integration' => $this,
@@ -76,7 +72,7 @@ class Hcaptcha extends Captcha
     /**
      * @inheritDoc
      */
-    public function getFrontEndJsVariables(Form $form, $page = null)
+    public function getFrontEndJsVariables(Form $form, $page = null): ?array
     {
         $settings = [
             'siteKey' => Craft::parseEnv($this->siteKey),
@@ -132,11 +128,7 @@ class Hcaptcha extends Captcha
      */
     public function hasValidSettings(): bool
     {
-        if ($this->siteKey && $this->secretKey) {
-            return true;
-        }
-
-        return false;
+        return $this->siteKey && $this->secretKey;
     }
 
 
@@ -167,7 +159,7 @@ class Hcaptcha extends Captcha
         }
 
         // If our current language ID has a more generic match, use it
-        if (strpos($currentLanguageId, '-') !== false) {
+        if (str_contains($currentLanguageId, '-')) {
             $parts = explode('-', $currentLanguageId);
             $baseLanguageId = $parts['0'] ?? null;
 

@@ -1,8 +1,6 @@
 <?php
 namespace verbb\formie\base;
 
-use verbb\formie\Formie;
-use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyMiscellaneousPayloadEvent;
 
@@ -11,20 +9,17 @@ use craft\helpers\Json;
 use craft\helpers\StringHelper;
 use craft\helpers\UrlHelper;
 
-abstract class Miscellaneous extends Integration implements IntegrationInterface
+abstract class Miscellaneous extends Integration
 {
     // Constants
     // =========================================================================
 
-    const EVENT_MODIFY_MISCELLANEOUS_PAYLOAD = 'modifyMiscellaneousPayload';
+    public const EVENT_MODIFY_MISCELLANEOUS_PAYLOAD = 'modifyMiscellaneousPayload';
 
 
     // Static Methods
     // =========================================================================
-    
-    /**
-     * @inheritDoc
-     */
+
     public static function typeName(): string
     {
         return Craft::t('formie', 'Miscellaneous');
@@ -39,7 +34,7 @@ abstract class Miscellaneous extends Integration implements IntegrationInterface
      */
     public function getIconUrl(): string
     {
-        $handle = StringHelper::toKebabCase($this->displayName());
+        $handle = StringHelper::toKebabCase(static::displayName());
 
         return Craft::$app->getAssetManager()->getPublishedUrl("@verbb/formie/web/assets/miscellaneous/dist/img/{$handle}.svg", true);
     }
@@ -47,9 +42,9 @@ abstract class Miscellaneous extends Integration implements IntegrationInterface
     /**
      * @inheritDoc
      */
-    public function getSettingsHtml(): string
+    public function getSettingsHtml(): ?string
     {
-        $handle = StringHelper::toKebabCase($this->displayName());
+        $handle = StringHelper::toKebabCase(static::displayName());
 
         return Craft::$app->getView()->renderTemplate("formie/integrations/miscellaneous/{$handle}/_plugin-settings", [
             'integration' => $this,
@@ -61,7 +56,7 @@ abstract class Miscellaneous extends Integration implements IntegrationInterface
      */
     public function getFormSettingsHtml($form): string
     {
-        $handle = StringHelper::toKebabCase($this->displayName());
+        $handle = StringHelper::toKebabCase(static::displayName());
 
         return Craft::$app->getView()->renderTemplate("formie/integrations/miscellaneous/{$handle}/_form-settings", [
             'integration' => $this,
@@ -69,17 +64,11 @@ abstract class Miscellaneous extends Integration implements IntegrationInterface
         ]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getCpEditUrl(): string
     {
         return UrlHelper::cpUrl('formie/settings/miscellaneous/edit/' . $this->id);
     }
 
-    /**
-     * @inheritDoc
-     */
     protected function generatePayloadValues(Submission $submission): array
     {
         $submissionContent = $submission->getValuesAsJson();

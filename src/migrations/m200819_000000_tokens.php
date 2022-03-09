@@ -1,17 +1,14 @@
 <?php
 namespace verbb\formie\migrations;
 
-use Craft;
 use craft\db\Migration;
-use craft\db\Query;
-use craft\helpers\MigrationHelper;
 
 class m200819_000000_tokens extends Migration
 {
     /**
      * @inheritdoc
      */
-    public function safeUp()
+    public function safeUp(): bool
     {
         if (!$this->db->tableExists('{{%formie_tokens}}')) {
             $this->createTable('{{%formie_tokens}}', [
@@ -33,7 +30,7 @@ class m200819_000000_tokens extends Migration
     /**
      * @inheritdoc
      */
-    public function safeDown()
+    public function safeDown(): bool
     {
         echo "m200819_000000_tokens cannot be reverted.\n";
         return false;

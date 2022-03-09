@@ -3,32 +3,29 @@ namespace verbb\formie\integrations\crm;
 
 use verbb\formie\base\Crm;
 use verbb\formie\base\Integration;
-use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
-use verbb\formie\errors\IntegrationException;
-use verbb\formie\events\SendIntegrationPayloadEvent;
-use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
-use craft\web\View;
+use GuzzleHttp\Client;
+use Throwable;
 
 class ActiveCampaign extends Crm
 {
     // Properties
     // =========================================================================
 
-    public $apiKey;
-    public $apiUrl;
-    public $mapToContact = false;
-    public $mapToDeal = false;
-    public $mapToAccount = false;
-    public $contactFieldMapping;
-    public $dealFieldMapping;
-    public $accountFieldMapping;
+    public ?string $apiKey = null;
+    public ?string $apiUrl = null;
+    public bool $mapToContact = false;
+    public bool $mapToDeal = false;
+    public bool $mapToAccount = false;
+    public ?array $contactFieldMapping = null;
+    public ?array $dealFieldMapping = null;
+    public ?array $accountFieldMapping = null;
 
 
     // Public Methods
@@ -42,9 +39,6 @@ class ActiveCampaign extends Crm
         return Craft::t('formie', 'ActiveCampaign');
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getDescription(): string
     {
         return Craft::t('formie', 'Manage your ActiveCampaign customers by providing important information on their conversion on your site.');
@@ -79,11 +73,9 @@ class ActiveCampaign extends Crm
         return $rules;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function fetchFormSettings()
+    public function fetchFormSettings(): IntegrationFormSettings
     {
+        $settings = [];
         $dealGroupOptions = [];
         $dealStageOptions = [];
         $listOptions = [];
@@ -260,16 +252,13 @@ class ActiveCampaign extends Crm
                 'deal' => $dealFields,
                 'account' => $accountFields,
             ];
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Integration::apiError($this, $e);
         }
 
         return new IntegrationFormSettings($settings);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function sendPayload(Submission $submission): bool
     {
         try {
@@ -423,7 +412,7 @@ class ActiveCampaign extends Crm
                     return true;
                 }
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
             return false;
@@ -432,14 +421,11 @@ class ActiveCampaign extends Crm
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function fetchConnection(): bool
     {
         try {
             $response = $this->request('GET', 'contacts');
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
             return false;
@@ -448,10 +434,7 @@ class ActiveCampaign extends Crm
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getClient()
+    public function getClient(): Client
     {
         if ($this->_client) {
             return $this->_client;
@@ -467,9 +450,6 @@ class ActiveCampaign extends Crm
     // Private Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     private function _convertFieldType($fieldType)
     {
         $fieldTypes = [
@@ -481,10 +461,7 @@ class ActiveCampaign extends Crm
         return $fieldTypes[$fieldType] ?? IntegrationField::TYPE_STRING;
     }
 
-    /**
-     * @inheritDoc
-     */
-    private function _getCustomFields($fields, $excludeNames = [])
+    private function _getCustomFields($fields, $excludeNames = []): array
     {
         $customFields = [];
 
@@ -525,10 +502,7 @@ class ActiveCampaign extends Crm
         return $customFields;
     }
 
-    /**
-     * @inheritDoc
-     */
-    private function _prepCustomFields($fields)
+    private function _prepCustomFields($fields): array
     {
         $customFields = [];
 
@@ -544,10 +518,7 @@ class ActiveCampaign extends Crm
         return $customFields;
     }
 
-    /**
-     * @inheritDoc
-     */
-    private function _prepAltCustomFields($fields)
+    private function _prepAltCustomFields($fields): array
     {
         $customFields = [];
 
@@ -563,10 +534,7 @@ class ActiveCampaign extends Crm
         return $customFields;
     }
 
-    /**
-     * @inheritDoc
-     */
-    private function _getPaginated($endpoint, $limit = 100, $offset = 0, $items = [])
+    private function _getPaginated($endpoint, $limit = 100, $offset = 0, $items = []): array
     {
         $response = $this->request('GET', $endpoint, [
             'query' => [

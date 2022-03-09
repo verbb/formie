@@ -1,21 +1,12 @@
 <?php
 namespace verbb\formie\fields\formfields;
 
-use verbb\formie\elements\Submission;
-use verbb\formie\Formie;
 use verbb\formie\base\FormField;
-use verbb\formie\elements\Form;
 use verbb\formie\helpers\SchemaHelper;
 
 use Craft;
 use craft\base\ElementInterface;
 use craft\base\PreviewableFieldInterface;
-use craft\helpers\Json;
-use craft\helpers\Template;
-
-use yii\db\Schema;
-use LitEmoji\LitEmoji;
-use Twig\Markup;
 
 class SingleLineText extends FormField implements PreviewableFieldInterface
 {
@@ -71,10 +62,11 @@ class SingleLineText extends FormField implements PreviewableFieldInterface
      * Validates the maximum number of characters.
      *
      * @param ElementInterface $element
+     * @throws \craft\errors\InvalidFieldException
      */
-    public function validateMaxCharacters(ElementInterface $element)
+    public function validateMaxCharacters(ElementInterface $element): void
     {
-        $limitAmount = intval($this->limitAmount ?? 0);
+        $limitAmount = (int)($this->limitAmount ?? 0);
 
         if (!$limitAmount) {
             return;
@@ -97,10 +89,11 @@ class SingleLineText extends FormField implements PreviewableFieldInterface
      * Validates the maximum number of words.
      *
      * @param ElementInterface $element
+     * @throws \craft\errors\InvalidFieldException
      */
-    public function validateMaxWords(ElementInterface $element)
+    public function validateMaxWords(ElementInterface $element): void
     {
-        $limitAmount = intval($this->limitAmount ?? 0);
+        $limitAmount = (int)($this->limitAmount ?? 0);
 
         if (!$limitAmount) {
             return;
@@ -130,7 +123,7 @@ class SingleLineText extends FormField implements PreviewableFieldInterface
     /**
      * @inheritDoc
      */
-    public function getInputHtml($value, ElementInterface $element = null): string
+    public function getInputHtml(mixed $value, ?ElementInterface $element = null): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/single-line-text/input', [
             'name' => $this->handle,
@@ -152,7 +145,7 @@ class SingleLineText extends FormField implements PreviewableFieldInterface
     /**
      * @inheritdoc
      */
-    public function getFrontEndJsModules()
+    public function getFrontEndJsModules(): ?array
     {
         if ($this->limit) {
             return [
@@ -160,6 +153,8 @@ class SingleLineText extends FormField implements PreviewableFieldInterface
                 'module' => 'FormieTextLimit',
             ];
         }
+
+        return null;
     }
 
     /**
@@ -278,9 +273,6 @@ class SingleLineText extends FormField implements PreviewableFieldInterface
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineConditionsSchema(): array
     {
         return [

@@ -6,7 +6,6 @@ use verbb\formie\elements\Submission as SubmissionElement;
 
 use Craft;
 
-use craft\feedme\Plugin as FeedMe;
 use craft\feedme\base\Element;
 
 use Cake\Utility\Hash;
@@ -17,25 +16,25 @@ class Submission extends Element
     // =========================================================================
 
     public static $name = 'Submission';
-    public static $class = 'verbb\formie\elements\Submission';
+    public static $class = SubmissionElement::class;
 
-    public $element;
+    public $element = null;
 
 
     // Templates
     // =========================================================================
 
-    public function getGroupsTemplate()
+    public function getGroupsTemplate(): string
     {
         return 'formie/integrations/feedme/elements/groups';
     }
 
-    public function getColumnTemplate()
+    public function getColumnTemplate(): string
     {
         return 'formie/integrations/feedme/elements/column';
     }
 
-    public function getMappingTemplate()
+    public function getMappingTemplate(): string
     {
         return 'formie/integrations/feedme/elements/map';
     }
@@ -49,6 +48,8 @@ class Submission extends Element
         if (Formie::getInstance()) {
             return Formie::$plugin->getForms()->getAllForms();
         }
+
+        return null;
     }
 
     public function getQuery($settings, $params = [])
@@ -81,7 +82,7 @@ class Submission extends Element
     // Protected Methods
     // =========================================================================
 
-    protected function parseStatusId($feedData, $fieldInfo)
+    protected function parseStatusId($feedData, $fieldInfo): ?int
     {
         $value = $this->fetchSimpleValue($feedData, $fieldInfo);
 

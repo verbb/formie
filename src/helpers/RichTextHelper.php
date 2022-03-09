@@ -1,9 +1,6 @@
 <?php
 namespace verbb\formie\helpers;
 
-use verbb\formie\helpers\VariableNode;
-use verbb\formie\helpers\Variables;
-use verbb\formie\prosemirror\toprosemirror\Renderer as ProseMirrorRenderer;
 use verbb\formie\prosemirror\tohtml\Renderer as HtmlRenderer;
 
 use Craft;
@@ -12,11 +9,10 @@ use craft\elements\Category;
 use craft\elements\Entry;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Db;
-use craft\helpers\FileHelper;
 use craft\helpers\Json;
 use craft\models\Section;
 
-use Throwable;
+use craft\base\ElementInterface;
 
 class RichTextHelper
 {
@@ -43,7 +39,7 @@ class RichTextHelper
         return $config;
     }
 
-    private static function _getDefaultConfig()
+    private static function _getDefaultConfig(): array
     {
         return [
             'forms' => [
@@ -74,7 +70,7 @@ class RichTextHelper
         ];
     }
 
-    public static function getHtmlContent($content, $submission = null, $nl2br = true)
+    public static function getHtmlContent($content, $submission = null, $nl2br = true): string
     {
         if (is_string($content)) {
             $content = Json::decodeIfJson($content);
@@ -100,9 +96,7 @@ class RichTextHelper
 
         // Prosemirror will use `htmlentities` for special characters, but doesn't play nice
         // with static translations. Convert them back.
-        $html = html_entity_decode($html);
-        
-        return $html;
+        return html_entity_decode($html);
     }
 
     private static function _getConfig(string $dir, string $file = null)
@@ -120,7 +114,7 @@ class RichTextHelper
         return Json::decode(file_get_contents($path));
     }
 
-    private static function _getLinkOptions()
+    private static function _getLinkOptions(): array
     {
         $linkOptions = [];
 

@@ -18,17 +18,11 @@ class MissingIntegration extends Integration implements MissingComponentInterfac
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function typeName(): string
     {
         return Craft::t('formie', 'Missing Integration');
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getDescription(): string
     {
         return '';

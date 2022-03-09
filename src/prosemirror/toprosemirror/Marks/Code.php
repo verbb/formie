@@ -4,7 +4,7 @@ namespace verbb\formie\prosemirror\toprosemirror\Marks;
 
 class Code extends Mark
 {
-    public function matching()
+    public function matching(): bool
     {
         if ($this->DOMNode->parentNode->nodeName === 'pre') {
             return false;
@@ -13,7 +13,7 @@ class Code extends Mark
         return $this->DOMNode->nodeName === 'code';
     }
 
-    public function data()
+    public function data(): array
     {
         return [
             'type' => 'code',

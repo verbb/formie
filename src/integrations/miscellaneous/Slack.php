@@ -4,40 +4,37 @@ namespace verbb\formie\integrations\miscellaneous;
 use verbb\formie\Formie;
 use verbb\formie\base\Integration;
 use verbb\formie\base\Miscellaneous;
-use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\RichTextHelper;
-use verbb\formie\models\IntegrationCollection;
-use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
-use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
-use craft\web\View;
 
 use League\HTMLToMarkdown\HtmlConverter;
+use Throwable;
+use GuzzleHttp\Client;
 
 class Slack extends Miscellaneous
 {
     // Constants
     // =========================================================================
 
-    const TYPE_PUBLIC = 'public';
-    const TYPE_DM = 'directMessage';
-    const TYPE_WEBHOOK = 'webhook';
+    public const TYPE_PUBLIC = 'public';
+    public const TYPE_DM = 'directMessage';
+    public const TYPE_WEBHOOK = 'webhook';
 
 
     // Properties
     // =========================================================================
 
-    public $clientId;
-    public $clientSecret;
-    public $channelType;
-    public $userId;
-    public $channelId;
-    public $message;
-    public $webhook;
+    public ?string $clientId = null;
+    public ?string $clientSecret = null;
+    public ?string $channelType = null;
+    public ?string $userId = null;
+    public ?string $channelId = null;
+    public ?string $message = null;
+    public ?string $webhook = null;
 
 
     // OAuth Methods
@@ -120,9 +117,6 @@ class Slack extends Miscellaneous
         return Craft::t('formie', 'Slack');
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getDescription(): string
     {
         return Craft::t('formie', 'Send your form content to Slack.');
@@ -155,10 +149,7 @@ class Slack extends Miscellaneous
         return $rules;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function fetchFormSettings()
+    public function fetchFormSettings(): IntegrationFormSettings
     {
         $settings = [];
 
@@ -185,16 +176,13 @@ class Slack extends Miscellaneous
                 'channels' => $channels,
                 'members' => $members,
             ];
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Integration::apiError($this, $e);
         }
 
         return new IntegrationFormSettings($settings);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function sendPayload(Submission $submission): bool
     {
         try {
@@ -237,14 +225,14 @@ class Slack extends Miscellaneous
                 $isOkay = $response['ok'] ?? '';
 
                 if (!$isOkay) {
-                    Integration::error($this, Craft::t('formie', 'Reponse returned “not ok” {response}', [
+                    Integration::error($this, Craft::t('formie', 'Response returned “not ok” {response}', [
                         'response' => Json::encode($response),
                     ]), true);
 
                     return false;
                 }
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
             return false;
@@ -253,10 +241,7 @@ class Slack extends Miscellaneous
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getClient()
+    public function getClient(): Client
     {
         if ($this->_client) {
             return $this->_client;
@@ -276,7 +261,7 @@ class Slack extends Miscellaneous
         // We can't always rely on the EOL of the token.
         try {
             $response = $this->request('GET', 'users.list');
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             if ($e->getCode() === 401) {
                 // Force-refresh the token
                 Formie::$plugin->getTokens()->refreshToken($token, true);
@@ -299,7 +284,7 @@ class Slack extends Miscellaneous
     // Private Methods
     // =========================================================================
 
-    private function _renderMessage($submission)
+    private function _renderMessage($submission): array|string
     {
         $html = RichTextHelper::getHtmlContent($this->message, $submission);
 
@@ -307,8 +292,6 @@ class Slack extends Miscellaneous
         $markdown = $converter->convert($html);
 
         // Some extra work to get it to play with Slack's mrkdwn
-        $markdown = str_replace(['*', '__'], ['_', '*'], $markdown);
-
-        return $markdown;
+        return str_replace(['*', '__'], ['_', '*'], $markdown);
     }
 }

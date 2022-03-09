@@ -14,7 +14,7 @@ class CsrfController extends Controller
     /**
      * @inheritdoc
      */
-    protected $allowAnonymous = true;
+    protected array|bool|int $allowAnonymous = true;
 
 
     // Public Methods
@@ -23,7 +23,7 @@ class CsrfController extends Controller
     /**
      * @inheritdoc
      */
-    public function beforeAction($action)
+    public function beforeAction($action): bool
     {
         Craft::$app->getDeprecator()->log(__METHOD__, 'The `formie/csrf/*` actions are deprecated. Refer to the docs for the updated code - https://verbb.io/craft-plugins/formie/docs/template-guides/cached-forms.');
         
@@ -32,8 +32,6 @@ class CsrfController extends Controller
 
     /**
      * Returns the CSRF token and param.
-     *
-     * @return Response
      */
     public function actionIndex(): Response
     {
@@ -45,8 +43,6 @@ class CsrfController extends Controller
 
     /**
      * Returns a CSRF input field.
-     *
-     * @return Response
      */
     public function actionInput(): Response
     {
@@ -59,8 +55,6 @@ class CsrfController extends Controller
 
     /**
      * Returns the CSRF param.
-     *
-     * @return Response
      */
     public function actionParam(): Response
     {
@@ -69,8 +63,6 @@ class CsrfController extends Controller
 
     /**
      * Returns a CSRF token.
-     *
-     * @return Response
      */
     public function actionToken(): Response
     {

@@ -1,34 +1,28 @@
 <?php
 namespace verbb\formie\base;
 
-use verbb\formie\Formie;
-use verbb\formie\elements\Form;
-use verbb\formie\elements\Submission;
 use verbb\formie\models\IntegrationField;
 
 use Craft;
 use craft\fields;
-use craft\helpers\ArrayHelper;
 use craft\helpers\StringHelper;
 use craft\helpers\UrlHelper;
+use verbb\formie\models\IntegrationFormSettings;
 
-abstract class Element extends Integration implements IntegrationInterface
+abstract class Element extends Integration
 {
     // Properties
     // =========================================================================
 
-    public $attributeMapping;
-    public $fieldMapping;
-    public $updateElement = false;
-    public $updateElementMapping;
+    public ?array $attributeMapping = null;
+    public ?array $fieldMapping = null;
+    public bool $updateElement = false;
+    public ?array $updateElementMapping = null;
 
 
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function typeName(): string
     {
         return Craft::t('formie', 'Elements');
@@ -51,7 +45,7 @@ abstract class Element extends Integration implements IntegrationInterface
      */
     public function getIconUrl(): string
     {
-        $handle = StringHelper::toKebabCase($this->displayName());
+        $handle = StringHelper::toKebabCase(static::displayName());
 
         return Craft::$app->getAssetManager()->getPublishedUrl("@verbb/formie/web/assets/elements/dist/img/{$handle}.svg", true);
     }
@@ -59,9 +53,9 @@ abstract class Element extends Integration implements IntegrationInterface
     /**
      * @inheritDoc
      */
-    public function getSettingsHtml(): string
+    public function getSettingsHtml(): ?string
     {
-        $handle = StringHelper::toKebabCase($this->displayName());
+        $handle = StringHelper::toKebabCase(static::displayName());
 
         return Craft::$app->getView()->renderTemplate("formie/integrations/elements/{$handle}/_plugin-settings", [
             'integration' => $this,
@@ -73,7 +67,7 @@ abstract class Element extends Integration implements IntegrationInterface
      */
     public function getFormSettingsHtml($form): string
     {
-        $handle = StringHelper::toKebabCase($this->displayName());
+        $handle = StringHelper::toKebabCase(static::displayName());
 
         return Craft::$app->getView()->renderTemplate("formie/integrations/elements/{$handle}/_form-settings", [
             'integration' => $this,
@@ -81,9 +75,6 @@ abstract class Element extends Integration implements IntegrationInterface
         ]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getCpEditUrl(): string
     {
         return UrlHelper::cpUrl('formie/settings/elements/edit/' . $this->id);
@@ -92,7 +83,7 @@ abstract class Element extends Integration implements IntegrationInterface
     /**
      * @inheritDoc
      */
-    public function getFormSettings($useCache = true)
+    public function getFormSettings($useCache = true): IntegrationFormSettings|bool
     {
         // Always fetch, no real need for cache
         return $this->fetchFormSettings();
@@ -102,9 +93,6 @@ abstract class Element extends Integration implements IntegrationInterface
     // Protected Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     protected function getFieldTypeForField($fieldClass)
     {
         // Provide a map of all native Craft fields to the data we expect
@@ -124,12 +112,9 @@ abstract class Element extends Integration implements IntegrationInterface
         return $fieldTypeMap[$fieldClass] ?? IntegrationField::TYPE_STRING;
     }
 
-    /**
-     * @inheritDoc
-     */
-    protected function fieldCanBeUniqueId($field)
+    protected function fieldCanBeUniqueId($field): bool
     {
-        $type = get_class($field);
+        $type = $field::class;
 
         $supportedFields = [
             fields\Checkboxes::class,
@@ -159,9 +144,6 @@ abstract class Element extends Integration implements IntegrationInterface
         return false;
     }
 
-    /**
-     * @inheritDoc
-     */
     protected function getElementForPayload($elementType, $submission)
     {
         $element = new $elementType();

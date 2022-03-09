@@ -44,16 +44,16 @@ class Hidden extends FormField implements PreviewableFieldInterface
     // Properties
     // =========================================================================
 
-    public $defaultOption;
-    public $queryParameter;
-    public $cookieName;
-    public $columnType;
+    public ?string $defaultOption = null;
+    public ?string $queryParameter = null;
+    public ?string $cookieName = null;
+    public ?string $columnType = null;
 
 
     // Public Methods
     // =========================================================================
 
-    public function init()
+    public function init(): void
     {
         parent::init();
 
@@ -92,7 +92,7 @@ class Hidden extends FormField implements PreviewableFieldInterface
     /**
      * @inheritdoc
      */
-    public function getContentColumnType(): string
+    public function getContentColumnType(): array|string
     {
         if ($this->columnType) {
             return $this->columnType;
@@ -120,7 +120,7 @@ class Hidden extends FormField implements PreviewableFieldInterface
     /**
      * @inheritDoc
      */
-    public function serializeValue($value, ElementInterface $element = null)
+    public function serializeValue(mixed $value, ?ElementInterface $element = null): mixed
     {
         // Handle variables use in custom fields
         if ($this->defaultOption === 'custom') {
@@ -156,7 +156,7 @@ class Hidden extends FormField implements PreviewableFieldInterface
     /**
      * @inheritDoc
      */
-    public function getInputHtml($value, ElementInterface $element = null): string
+    public function getInputHtml(mixed $value, ?ElementInterface $element = null): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/hidden-field/input', [
             'name' => $this->handle,
@@ -178,7 +178,7 @@ class Hidden extends FormField implements PreviewableFieldInterface
     /**
      * @inheritdoc
      */
-    public function getFrontEndJsModules()
+    public function getFrontEndJsModules(): ?array
     {
         if ($this->defaultOption === 'cookie' && $this->cookieName) {
             return [
@@ -189,12 +189,14 @@ class Hidden extends FormField implements PreviewableFieldInterface
                 ],
             ];
         }
+
+        return null;
     }
 
     /**
      * @inheritDoc
      */
-    public function getFrontEndInputOptions(Form $form, $value, array $options = null): array
+    public function getFrontEndInputOptions(Form $form, mixed $value, array $options = null): array
     {
         $inputOptions = parent::getFrontEndInputOptions($form, $value, $options);
 

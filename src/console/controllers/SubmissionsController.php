@@ -21,22 +21,22 @@ class SubmissionsController extends Controller
     /**
      * @var int|null The form ID(s) to delete submissions from. Can be set to multiple comma-separated IDs.
      */
-    public $formId;
+    public ?int $formId;
 
     /**
      * @var string|null The form handle(s) to delete submissions from. Can be set to multiple comma-separated handles.
      */
-    public $formHandle;
+    public ?string $formHandle;
 
     /**
      * @var bool Whether to delete only spam submissions.
      */
-    public $spamOnly = false;
+    public bool $spamOnly = false;
 
     /**
      * @var bool Whether to delete only incomplete submissions.
      */
-    public $incompleteOnly = false;
+    public bool $incompleteOnly = false;
 
 
     // Public Methods
@@ -45,7 +45,7 @@ class SubmissionsController extends Controller
     /**
      * @inheritdoc
      */
-    public function options($actionID)
+    public function options($actionID): array
     {
         $options = parent::options($actionID);
 

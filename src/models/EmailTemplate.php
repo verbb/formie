@@ -12,7 +12,7 @@ class EmailTemplate extends BaseTemplate
     // Properties
     // =========================================================================
 
-    public $hasSingleTemplate = true;
+    public bool $hasSingleTemplate = true;
 
 
     // Public Methods

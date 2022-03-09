@@ -33,6 +33,7 @@ use Solspace\Freeform\Elements\Submission as FreeformSubmission;
 use Solspace\Freeform\Library\Composer\Components\FieldInterface;
 use Solspace\Freeform\Library\Composer\Components\Fields\DataContainers\Option;
 use Solspace\Freeform\Fields as freeformfields;
+use Solspace\Freeform\Fields\SubmitField;
 
 /**
  * Migrates Freeform forms, notifications and submissions.
@@ -42,40 +43,26 @@ class MigrateFreeform extends Migration
     // Constants
     // =========================================================================
 
-    const EVENT_MODIFY_FIELD = 'modifyField';
-    const EVENT_MODIFY_FORM = 'modifyForm';
-    const EVENT_MODIFY_NOTIFICATION = 'modifyNotification';
-    const EVENT_MODIFY_SUBMISSION = 'modifySubmission';
+    public const EVENT_MODIFY_FIELD = 'modifyField';
+    public const EVENT_MODIFY_FORM = 'modifyForm';
+    public const EVENT_MODIFY_NOTIFICATION = 'modifyNotification';
+    public const EVENT_MODIFY_SUBMISSION = 'modifySubmission';
 
 
     // Properties
     // =========================================================================
 
-    /**
-     * @var int The form ID
-     */
-    public $formId;
+    public ?int $formId = null;
 
-    /**
-     * @var FormModel
-     */
-    private $_freeformForm;
-
-    /**
-     * @var Form
-     */
-    private $_form;
-
-    /**
-     * @var array
-     */
-    private $_reservedHandles;
+    private ?FormModel $_freeformForm = null;
+    private ?Form $_form = null;
+    private ?array $_reservedHandles = null;
 
 
     /**
      * @inheritdoc
      */
-    public function safeUp()
+    public function safeUp(): bool
     {
         $this->_reservedHandles = Formie::$plugin->getFields()->getReservedHandles();
 
@@ -85,17 +72,19 @@ class MigrateFreeform extends Migration
                 $this->_migrateNotifications();
             }
         }
+
+        return true;
     }
 
     /**
      * @inheritdoc
      */
-    public function safeDown()
+    public function safeDown(): bool
     {
         return false;
     }
 
-    private function _migrateForm()
+    private function _migrateForm(): ?Form
     {
         $settings = Formie::$plugin->getSettings();
         $transaction = Craft::$app->db->beginTransaction();
@@ -184,7 +173,7 @@ class MigrateFreeform extends Migration
         return $form;
     }
 
-    private function _migrateSubmissions()
+    private function _migrateSubmissions(): void
     {
         $status = Formie::$plugin->getStatuses()->getAllStatuses()[0];
 
@@ -248,7 +237,7 @@ class MigrateFreeform extends Migration
                             // Not implemented
                             break;
 
-                        case freeformfields\SubmitField::class:
+                        case SubmitField::class:
                             // Not implemented
                             break;
 
@@ -311,11 +300,9 @@ class MigrateFreeform extends Migration
         $this->stdout("    > All entries completed.", Console::FG_GREEN);
     }
 
-    private function _migrateNotifications()
+    private function _migrateNotifications(): void
     {
         $settings = Formie::$plugin->getSettings();
-        
-        $this->_freeformForm;
 
         $props = $this->_freeformForm->getForm()->getAdminNotificationProperties();
         if ($props && $notificationId = $props->getNotificationId()) {
@@ -381,7 +368,7 @@ class MigrateFreeform extends Migration
         $this->stdout("    > All notifications completed.", Console::FG_GREEN);
     }
 
-    private function _getHandle(FormModel $form)
+    private function _getHandle(FormModel $form): string
     {
         $increment = 1;
         $handle = $form->handle;
@@ -399,8 +386,6 @@ class MigrateFreeform extends Migration
 
             $increment++;
         }
-
-        return null;
     }
 
     /**
@@ -408,7 +393,7 @@ class MigrateFreeform extends Migration
      * @return FieldLayout
      * @noinspection PhpDocMissingThrowsInspection
      */
-    private function _buildFieldLayout(FormModel $form)
+    private function _buildFieldLayout(FormModel $form): FieldLayout
     {
         $fieldLayout = new FieldLayout([ 'type' => Form::class ]);
         $fieldLayout->type = Form::class;
@@ -461,7 +446,7 @@ class MigrateFreeform extends Migration
                             $fields[] = $newField;
                             $fieldHashes[] = $field->getHash();
                         }
-                    } else if (get_class($field) === \Solspace\Freeform\Fields\SubmitField::class) {
+                    } else if (get_class($field) === SubmitField::class) {
                         $newPage->settings->buttonsPosition = $field->getPosition();
                         $newPage->settings->submitButtonLabel = $field->getLabelNext();
                         $newPage->settings->backButtonLabel = $field->getLabelPrev();
@@ -477,7 +462,7 @@ class MigrateFreeform extends Migration
             }
 
             // Migrate any hidden fields excluded from the layout.
-            foreach ($this->_freeformForm->getLayout()->getFields() as $field) {
+            foreach ($this->_freeformForm->getLayout()->getCustomFields() as $field) {
                 if ($field->getPageIndex() != $pageIndex) {
                     continue;
                 }
@@ -536,8 +521,9 @@ class MigrateFreeform extends Migration
     /**
      * @param FieldInterface $field
      * @return FormFieldInterface|null
+     * @throws \yii\base\InvalidConfigException
      */
-    private function _mapField(FieldInterface $field)
+    private function _mapField(FieldInterface $field): ?FormFieldInterface
     {
         switch (get_class($field)) {
             case freeformfields\CheckboxField::class:
@@ -555,12 +541,15 @@ class MigrateFreeform extends Migration
                 // We want to ensure *this* field is the same as the target field, so grab that type    
                 $targetField = $this->_freeformForm->getLayout()->getFieldByHash($field->getTargetFieldHash());
                 $targetFormieField = $this->_mapField($targetField);
-                $fieldClass = get_class($targetFormieField);
 
-                $newField = new $fieldClass();
-                $newField->matchField = '{' . $targetFormieField->handle . '}';
+                if ($targetFormieField) {
+                    $fieldClass = get_class($targetFormieField);
 
-                $this->_applyFieldDefaults($newField);
+                    $newField = new $fieldClass();
+                    $newField->matchField = '{' . $targetFormieField->handle . '}';
+
+                    $this->_applyFieldDefaults($newField);
+                }
 
                 break;
 
@@ -705,7 +694,7 @@ class MigrateFreeform extends Migration
                 $newField->options = $this->_mapOptions($field->getOptions());
                 break;
 
-            case freeformfields\SubmitField::class:
+            case SubmitField::class:
                 // Not implemented
                 return null;
 
@@ -789,13 +778,13 @@ class MigrateFreeform extends Migration
         }
 
         if (!$newField instanceof formfields\Address and !$newField instanceof formfields\Name) {
-            $newField->required = !!($field->isRequired() ?? false);
+            $newField->required = (bool)($field->isRequired() ?? false);
         }
 
         return $newField;
     }
 
-    private function _getFieldHandle($currentHandle, $showLog = true)
+    private function _getFieldHandle($currentHandle, $showLog = true): array|string
     {
         $newHandle = $currentHandle;
 
@@ -809,7 +798,7 @@ class MigrateFreeform extends Migration
         }
 
         // Remove any dashes (maybe open up to other characters?)
-        if (strstr($newHandle, '-')) {
+        if (strpos($newHandle, '-') !== false) {
             $newHandle = str_replace('-', '_', $newHandle);
 
             if ($showLog) {
@@ -820,7 +809,7 @@ class MigrateFreeform extends Migration
         return $newHandle;
     }
 
-    private function _applyFieldDefaults(FormFieldInterface &$field)
+    private function _applyFieldDefaults(FormFieldInterface $field): void
     {
         $defaults = $field->getAllFieldDefaults();
         Craft::configure($field, $defaults);
@@ -830,7 +819,7 @@ class MigrateFreeform extends Migration
      * @param Option[] $options
      * @return array
      */
-    private function _mapOptions($options)
+    private function _mapOptions(array $options): array
     {
         if (!$options) {
             return [];
@@ -845,7 +834,7 @@ class MigrateFreeform extends Migration
         }, $options));
     }
 
-    private function _tokenizeNotificationBody($body)
+    private function _tokenizeNotificationBody($body): array
     {
         $variables = Variables::getVariables();
 
@@ -901,7 +890,7 @@ class MigrateFreeform extends Migration
         ];
     }
 
-    private function stdout($string, $color = '')
+    private function stdout($string, $color = ''): void
     {
         $class = '';
 
@@ -912,7 +901,8 @@ class MigrateFreeform extends Migration
         echo '<div class="log-label ' . $class . '">' . Markdown::processParagraph($string) . '</div>';
     }
 
-    private function getExceptionTraceAsString($exception) {
+    private function getExceptionTraceAsString($exception): string
+    {
         $rtn = "";
         $count = 0;
 
@@ -940,13 +930,13 @@ class MigrateFreeform extends Migration
                     }
                 }
 
-                $args = join(", ", $args);
+                $args = implode(", ", $args);
             }
 
             $rtn .= sprintf( "#%s %s(%s): %s(%s)\n",
                                  $count,
-                                 isset($frame['file']) ? $frame['file'] : '[internal function]',
-                                 isset($frame['line']) ? $frame['line'] : '',
+                $frame['file'] ?? '[internal function]',
+                $frame['line'] ?? '',
                                  (isset($frame['class']))  ? $frame['class'].$frame['type'].$frame['function'] : $frame['function'],
                                  $args );
 

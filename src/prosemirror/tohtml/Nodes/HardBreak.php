@@ -4,10 +4,10 @@ namespace verbb\formie\prosemirror\tohtml\Nodes;
 
 class HardBreak extends Node
 {
-    protected $nodeType = 'hard_break';
-    protected $tagName = 'br';
+    protected ?string $nodeType = 'hard_break';
+    protected string|null|array $tagName = 'br';
 
-    public function selfClosing()
+    public function selfClosing(): bool
     {
         return true;
     }

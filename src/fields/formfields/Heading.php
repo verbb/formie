@@ -2,17 +2,10 @@
 namespace verbb\formie\fields\formfields;
 
 use verbb\formie\base\FormField;
-use verbb\formie\Formie;
 use verbb\formie\helpers\SchemaHelper;
 
 use Craft;
 use craft\base\ElementInterface;
-use craft\base\PreviewableFieldInterface;
-use craft\helpers\Template;
-
-use yii\db\Schema;
-use LitEmoji\LitEmoji;
-use Twig\Markup;
 
 class Heading extends FormField
 {
@@ -47,7 +40,7 @@ class Heading extends FormField
     // Properties
     // =========================================================================
 
-    public $headingSize;
+    public ?string $headingSize = null;
 
 
     // Public Methods
@@ -99,7 +92,7 @@ class Heading extends FormField
     /**
      * @inheritDoc
      */
-    public function getInputHtml($value, ElementInterface $element = null): string
+    public function getInputHtml(mixed $value, ?ElementInterface $element = null): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/heading/input', [
             'name' => $this->handle,
@@ -155,9 +148,6 @@ class Heading extends FormField
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineConditionsSchema(): array
     {
         return [

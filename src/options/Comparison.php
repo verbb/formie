@@ -17,9 +17,6 @@ class Comparison extends PredefinedOption
         return Craft::t('formie', 'Comparison');
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function getDataOptions(): array
     {
         return [

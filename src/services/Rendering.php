@@ -1,7 +1,6 @@
 <?php
 namespace verbb\formie\services;
 
-use verbb\formie\Formie;
 use verbb\formie\base\FormField;
 use verbb\formie\base\FormFieldInterface;
 use verbb\formie\elements\Form;
@@ -26,24 +25,25 @@ use Twig\Markup;
 
 use yii\base\Exception;
 use yii\base\InvalidConfigException;
+use Throwable;
 
 class Rendering extends Component
 {
     // Constants
     // =========================================================================
 
-    const EVENT_MODIFY_RENDER_FORM = 'modifyRenderForm';
-    const EVENT_MODIFY_RENDER_PAGE = 'modifyRenderPage';
-    const EVENT_MODIFY_RENDER_FIELD = 'modifyRenderField';
-    const EVENT_MODIFY_FORM_RENDER_OPTIONS = 'modifyFormRenderOptions';
-    const RENDER_TYPE_CSS = 'css';
-    const RENDER_TYPE_JS = 'js';
+    public const EVENT_MODIFY_RENDER_FORM = 'modifyRenderForm';
+    public const EVENT_MODIFY_RENDER_PAGE = 'modifyRenderPage';
+    public const EVENT_MODIFY_RENDER_FIELD = 'modifyRenderField';
+    public const EVENT_MODIFY_FORM_RENDER_OPTIONS = 'modifyFormRenderOptions';
+    public const RENDER_TYPE_CSS = 'css';
+    public const RENDER_TYPE_JS = 'js';
 
 
     // Properties
     // =========================================================================
 
-    private $_renderedJs = false;
+    private bool $_renderedJs = false;
 
 
     // Public Methods
@@ -52,16 +52,17 @@ class Rendering extends Component
     /**
      * Renders and returns a form's HTML.
      *
-     * @param Form|string $form
-     * @param array $options
+     * @param string|Form $form
+     * @param array|null $options
      * @return Markup|null
+     * @throws Exception
+     * @throws InvalidConfigException
      * @throws LoaderError
      * @throws RuntimeError
      * @throws SyntaxError
-     * @throws Exception
-     * @throws InvalidConfigException
+     * @throws \craft\errors\MissingComponentException
      */
-    public function renderForm($form, array $options = null)
+    public function renderForm(Form|string $form, array $options = null): ?Markup
     {
         if (is_string($form)) {
             $form = Form::find()->handle($form)->one();
@@ -137,15 +138,16 @@ class Rendering extends Component
      * Renders and returns a form page's HTML.
      *
      * @param Form $form
-     * @param FieldLayoutPage $page
+     * @param FieldLayoutPage|null $page
      * @param array|null $options
-     * @return Markup
+     * @return string|null
      * @throws Exception
      * @throws LoaderError
      * @throws RuntimeError
      * @throws SyntaxError
+     * @throws \craft\errors\MissingComponentException
      */
-    public function renderPage(Form $form, FieldLayoutPage $page = null, array $options = null)
+    public function renderPage(Form $form, FieldLayoutPage $page = null, array $options = null): ?string
     {
         $view = Craft::$app->getView();
 
@@ -186,13 +188,13 @@ class Rendering extends Component
      * @param Form $form
      * @param FormFieldInterface $field
      * @param array|null $options
-     * @return Markup
+     * @return string
      * @throws Exception
      * @throws LoaderError
      * @throws RuntimeError
      * @throws SyntaxError
      */
-    public function renderField(Form $form, $field, array $options = null)
+    public function renderField(Form $form, FormFieldInterface $field, array $options = null): ?string
     {
         $view = Craft::$app->getView();
 
@@ -246,18 +248,21 @@ class Rendering extends Component
      * settings. This should be used for cached forms, as their assets will not be output
      * when inside a cache tag. See `renderFormJs` and `renderFormCss` for more controlled output.
      *
-     * @param Form|string $form
-     * @param array $options
+     * @param string|Form $form
+     * @param array|null $options
      * @return null
+     * @throws Exception
+     * @throws InvalidConfigException
+     * @throws LoaderError
+     * @throws RuntimeError
+     * @throws SyntaxError
      */
-    public function registerAssets($form, array $options = null)
+    public function registerAssets(Form|string $form, array $options = null): void
     {
         // So we can easily re-use code, we just call the `renderForm` function
         // This will register any assets, and should be included outside of cached areas.
         // It should be called like `{% do craft.formie.registerAssets(handle) %}`
         $this->renderForm($form, $options);
-
-        return null;
     }
 
     /**
@@ -265,11 +270,13 @@ class Rendering extends Component
      * either add the JS/CSS to the head/footer of the page, or directly return the CSS/JS strings
      * for use when manually calling this function through render variable tags.
      *
-     * @param Form|string $form
-     * @param array $options
+     * @param string|Form $form
+     * @param null $type
+     * @param array $attributes
      * @return null
+     * @throws InvalidConfigException
      */
-    public function renderFormAssets($form, $type = null, $attributes = [])
+    public function renderFormAssets(Form|string $form, $type = null, $attributes = []): ?string
     {
         if (is_string($form)) {
             $form = Form::find()->handle($form)->one();
@@ -338,7 +345,7 @@ class Rendering extends Component
         return TemplateHelper::raw(implode(PHP_EOL, $output));
     }
 
-    public function getFrontEndJsTranslations()
+    public function getFrontEndJsTranslations(): array
     {
         return $this->_getTranslatedStrings([
             'File {filename} must be smaller than {filesize} MB.',
@@ -420,7 +427,7 @@ class Rendering extends Component
      * @throws Exception
      * @throws LoaderError
      */
-    public function getEmailComponentTemplatePath($notification, string $component): string
+    public function getEmailComponentTemplatePath(?Notification $notification, string $component): string
     {
         $view = Craft::$app->getView();
         $oldTemplatePath = $view->getTemplatesPath();
@@ -441,8 +448,11 @@ class Rendering extends Component
         return $templatePath;
     }
 
-    public function populateFormValues($element, $values = [], $force = false)
+    public function populateFormValues($element, $values = [], $force = false): void
     {
+        $submission = null;
+        $form = null;
+
         // We allow a submission or a form to be passed in here. Handle and get both.
         if ($element instanceof Form || is_string($element)) {
             $form = $element;
@@ -452,7 +462,7 @@ class Rendering extends Component
             }
 
             if (!$form) {
-                return null;
+                return;
             }
             
             // Fetch the existing submission, if there is one, in case we're force-applying
@@ -464,7 +474,7 @@ class Rendering extends Component
             $form = $submission->getForm();
 
             if (!$form) {
-                return null;
+                return;
             }
         }
         
@@ -475,19 +485,21 @@ class Rendering extends Component
             try {
                 $field = $form->getFieldByHandle($key);
 
-                // Store any visibly disabled fields against the form to apply later
-                if ($field->visibility === 'disabled') {
-                    $disabledValues[$key] = $value;
-                }
+                if ($field) {
+                    // Store any visibly disabled fields against the form to apply later
+                    if ($field->visibility === 'disabled') {
+                        $disabledValues[$key] = $value;
+                    }
 
-                $field->populateValue($value);
+                    $field->populateValue($value);
 
-                // If forcing, set the value every time this is called
-                if ($force && $submission) {
-                    // The value will be normalised already as the `defaulValue`
-                    $submission->setFieldValue($field->handle, $field->defaultValue);
+                    // If forcing, set the value every time this is called
+                    if ($force && $submission) {
+                        // The value will be normalised already as the `defaulValue`
+                        $submission->setFieldValue($field->handle, $field->defaultValue);
+                    }
                 }
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 continue;
             }
         }
@@ -502,7 +514,7 @@ class Rendering extends Component
     // Private Methods
     // =========================================================================
 
-    private function _getTranslatedStrings($array)
+    private function _getTranslatedStrings($array): array
     {
         $strings = [];
 

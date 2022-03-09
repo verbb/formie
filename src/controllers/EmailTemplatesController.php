@@ -74,23 +74,18 @@ class EmailTemplatesController extends Controller
      * @throws BadRequestHttpException
      * @throws ServerErrorHttpException
      */
-    public function actionSave()
+    public function actionSave(): void
     {
         $this->requirePostRequest();
 
         $request = Craft::$app->getRequest();
 
-        $id = $request->getBodyParam('id');
-        $template = Formie::$plugin->getEmailTemplates()->getTemplateById($id);
-
-        if (!$template) {
-            $template = new EmailTemplate();
-        }
-
+        $template = new EmailTemplate();
+        $template->id = $request->getBodyParam('id');
         $template->name = $request->getBodyParam('name');
         $template->handle = $request->getBodyParam('handle');
         $template->template = preg_replace('/\/index(?:\.html|\.twig)?$/', '', $request->getBodyParam('template'));
-        $template->copyTemplates = $request->getBodyParam('copyTemplates', false);
+        $template->copyTemplates = (bool)$request->getBodyParam('copyTemplates', false);
 
         // Save it
         if (Formie::$plugin->getEmailTemplates()->saveTemplate($template)) {
@@ -133,13 +128,13 @@ class EmailTemplatesController extends Controller
      * @throws BadRequestHttpException
      * @throws Throwable
      */
-    public function actionDelete()
+    public function actionDelete(): Response
     {
         $this->requireAcceptsJson();
 
-        $templateId = Craft::$app->getRequest()->getRequiredParam('id');
+        $templateId = (int)Craft::$app->getRequest()->getRequiredParam('id');
 
-        if (Formie::$plugin->getEmailTemplates()->deleteTemplateById((int)$templateId)) {
+        if (Formie::$plugin->getEmailTemplates()->deleteTemplateById($templateId)) {
             return $this->asJson(['success' => true]);
         }
 

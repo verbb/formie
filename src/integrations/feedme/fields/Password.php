@@ -1,6 +1,8 @@
 <?php
 namespace verbb\formie\integrations\feedme\fields;
 
+use verbb\formie\fields\formfields\Password as PasswordField;
+
 class Password extends DefaultField
 {
     // Traits
@@ -13,6 +15,6 @@ class Password extends DefaultField
     // =========================================================================
 
     public static $name = 'Password';
-    public static $class = 'verbb\formie\fields\formfields\Password';
+    public static $class = PasswordField::class;
 
 }

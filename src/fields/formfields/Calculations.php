@@ -1,20 +1,15 @@
 <?php
 namespace verbb\formie\fields\formfields;
 
-use verbb\formie\Formie;
 use verbb\formie\base\FormField;
 use verbb\formie\base\SubfieldInterface;
-use verbb\formie\elements\Form;
-use verbb\formie\elements\Submission;
 use verbb\formie\helpers\RichTextHelper;
 use verbb\formie\helpers\SchemaHelper;
 
 use Craft;
 use craft\base\ElementInterface;
 use craft\base\PreviewableFieldInterface;
-use craft\helpers\ArrayHelper;
 use craft\helpers\Html;
-use craft\helpers\Json;
 
 class Calculations extends FormField implements PreviewableFieldInterface
 {
@@ -41,9 +36,9 @@ class Calculations extends FormField implements PreviewableFieldInterface
     // Properties
     // =========================================================================
 
-    public $formula;
+    public ?array $formula = [];
 
-    private $_renderedFormula;
+    private ?array $_renderedFormula = null;
 
 
     // Public Methods
@@ -52,7 +47,7 @@ class Calculations extends FormField implements PreviewableFieldInterface
     /**
      * @inheritDoc
      */
-    public function getInputHtml($value, ElementInterface $element = null): string
+    public function getInputHtml(mixed $value, ?ElementInterface $element = null): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/calculations/input', [
             'name' => $this->handle,
@@ -74,7 +69,7 @@ class Calculations extends FormField implements PreviewableFieldInterface
     /**
      * @inheritdoc
      */
-    public function getFrontEndJsModules()
+    public function getFrontEndJsModules(): ?array
     {
         return [
             'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/fields/calculations.js', true),
@@ -85,10 +80,7 @@ class Calculations extends FormField implements PreviewableFieldInterface
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getFormula()
+    public function getFormula(): array
     {
         if ($this->_renderedFormula) {
             return $this->_renderedFormula;
@@ -111,7 +103,7 @@ class Calculations extends FormField implements PreviewableFieldInterface
         $values = $matches[1] ?? [];
         $handles = array_combine($keys, $values);
 
-        // Go through each field and make sure we namespace it for DOM lookup
+        // Go through each field and make sure to namespace it for DOM lookup
         foreach ($handles as $key => $handle) {
             $newHandle = 'field_' . str_replace('.', '_', $handle);
 
@@ -195,9 +187,6 @@ class Calculations extends FormField implements PreviewableFieldInterface
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineConditionsSchema(): array
     {
         return [
@@ -210,13 +199,10 @@ class Calculations extends FormField implements PreviewableFieldInterface
     // Private Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     private function _getFieldVariable($fieldKey, $element = null, $inputNames = [])
     {
         // Check for nested field handles
-        if (strstr($fieldKey, '.')) {
+        if (strpos($fieldKey, '.') !== false) {
             $fieldKey = explode('.', $fieldKey);
             $fieldHandle = array_shift($fieldKey);
             $fieldKey = implode('.', $fieldKey);
@@ -252,11 +238,10 @@ class Calculations extends FormField implements PreviewableFieldInterface
                 'type' => get_class($field),
             ];
         }
+
+        return null;
     }
 
-    /**
-     * @inheritDoc
-     */
     private function _getInputName($names)
     {
         $first = array_shift($names);

@@ -3,7 +3,6 @@ namespace verbb\formie\services;
 
 use verbb\formie\Formie;
 use verbb\formie\base\NestedFieldInterface;
-use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\MailEvent;
 use verbb\formie\events\MailRenderEvent;
@@ -12,13 +11,10 @@ use verbb\formie\helpers\Variables;
 use verbb\formie\models\Notification;
 
 use Craft;
-use craft\db\Query;
 use craft\elements\Asset;
 use craft\elements\db\AssetQuery;
 use craft\helpers\App;
 use craft\helpers\Assets;
-use craft\helpers\DateTimeHelper;
-use craft\helpers\Db;
 use craft\helpers\FileHelper;
 use craft\helpers\Json;
 use craft\helpers\StringHelper;
@@ -27,12 +23,8 @@ use craft\mail\Message;
 use craft\volumes\Local;
 
 use yii\base\Component;
-use yii\base\ErrorException;
 use yii\base\Exception;
-use yii\base\NotSupportedException;
-use yii\web\ServerErrorHttpException;
 
-use DateTime;
 use Html2Text\Html2Text;
 use Throwable;
 
@@ -41,26 +33,23 @@ class Emails extends Component
     // Constants
     // =========================================================================
 
-    const EVENT_MODIFY_RENDER_VARIABLES = 'modifyRenderVariables';
-    const EVENT_BEFORE_RENDER_EMAIL = 'beforeRenderEmail';
-    const EVENT_AFTER_RENDER_EMAIL = 'afterRenderEmail';
-    const EVENT_BEFORE_SEND_MAIL = 'beforeSendEmail';
-    const EVENT_AFTER_SEND_MAIL = 'afterSendEmail';
+    public const EVENT_MODIFY_RENDER_VARIABLES = 'modifyRenderVariables';
+    public const EVENT_BEFORE_RENDER_EMAIL = 'beforeRenderEmail';
+    public const EVENT_AFTER_RENDER_EMAIL = 'afterRenderEmail';
+    public const EVENT_BEFORE_SEND_MAIL = 'beforeSendEmail';
+    public const EVENT_AFTER_SEND_MAIL = 'afterSendEmail';
 
 
     // Properties
     // =========================================================================
 
-    private $_tempAttachments = [];
+    private array $_tempAttachments = [];
 
 
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
-    public function renderEmail(Notification $notification, Submission $submission)
+    public function renderEmail(Notification $notification, Submission $submission): array
     {
         // Set Craft to the site template mode
         $view = Craft::$app->getView();
@@ -103,7 +92,7 @@ class Emails extends Component
 
         // To:
         try {
-            $to = Variables::getParsedValue((string)$notification->getToEmail($submission), $submission, $form, $notification);
+            $to = Variables::getParsedValue($notification->getToEmail($submission), $submission, $form, $notification);
             $to = $this->_getParsedEmails($to);
 
             if ($to) {
@@ -293,10 +282,7 @@ class Emails extends Component
         return ['success' => true, 'email' => $newEmail];
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function sendEmail(Notification $notification, Submission $submission, $queueJob = null)
+    public function sendEmail(Notification $notification, Submission $submission, $queueJob = null): array
     {
         // Render the email
         $emailRender = $this->renderEmail($notification, $submission);
@@ -427,9 +413,6 @@ class Emails extends Component
         return ['success' => true];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function sendFailAlertEmail(Notification $notification, Submission $submission, $emailResponse)
     {
         $settings = Formie::$plugin->getSettings();
@@ -477,39 +460,30 @@ class Emails extends Component
                 return ['error' => $error];
             }
         }
+
+        return null;
     }
 
 
     // Private Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
-    private function _htmlToPlainText($html)
+    private function _htmlToPlainText($html): string
     {
         $html = new Html2Text($html);
 
         return $html->getText();
     }
 
-    /**
-     * @inheritDoc
-     */
-    private function _getFilteredString($string)
+    private function _getFilteredString($string): string
     {
         $string = trim(Craft::parseEnv(trim($string)));
 
         // Strip out any emoji's
-        $string = trim(StringHelper::replaceMb4($string, ''));
-
-        return $string;
+        return trim(StringHelper::replaceMb4($string, ''));
     }
 
-    /**
-     * @inheritDoc
-     */
-    private function _getParsedEmails($emails)
+    private function _getParsedEmails($emails): array
     {
         $emails = str_replace(';', ',', $emails);
         $emails = preg_split('/[\s,]+/', $emails);
@@ -525,19 +499,14 @@ class Emails extends Component
             $emailsEnv[] = trim(Craft::parseEnv(trim($email)));
         }
 
-        $emailsEnv = array_filter($emailsEnv);
-
-        return $emailsEnv;
+        return array_filter($emailsEnv);
     }
 
-    /**
-     * @inheritDoc
-     */
-    private function _getAssetsForSubmission($element)
+    private function _getAssetsForSubmission($element): array
     {
         $assets = [];
         
-        foreach ($element->getFieldLayout()->getFields() as $field) {
+        foreach ($element->getFieldLayout()->getCustomFields() as $field) {
             if (get_class($field) === FileUpload::class) {
                 $value = $element->getFieldValue($field->handle);
 
@@ -561,10 +530,7 @@ class Emails extends Component
         return $assets;
     }
 
-    /**
-     * @inheritDoc
-     */
-    private function _attachAssetsToEmail($assets, Message $message)
+    private function _attachAssetsToEmail($assets, Message $message): void
     {
         foreach ($assets as $asset) {
             $path = '';
@@ -573,7 +539,7 @@ class Emails extends Component
             if (get_class($asset->getVolume()) === Local::class) {
                 $path = $this->_getFullAssetFilePath($asset);
             } else {
-                // Make a local copy of the file, and store so we can delete
+                // Make a local copy of the file, and store, so we can delete
                 $this->_tempAttachments[] = $path = $asset->getCopyOfFile();
             }
 
@@ -593,10 +559,7 @@ class Emails extends Component
         }
     }
 
-    /**
-     * @inheritDoc
-     */
-    private function _fixSwiftMailerBody($message)
+    private function _fixSwiftMailerBody($message): void
     {
         // Fix a bug with SwiftMailer where setting an attachment clears out the body of the email!
         $textBody = $message->getSwiftMessage()->getBody();
@@ -618,9 +581,6 @@ class Emails extends Component
         $message->setTextBody($textBody);
     }
 
-    /**
-     * @inheritDoc
-     */
     private function _getFullAssetFilePath(Asset $asset): string
     {
         $path = $asset->getVolume()->getRootPath() . DIRECTORY_SEPARATOR . $asset->getPath();
@@ -628,10 +588,7 @@ class Emails extends Component
         return FileHelper::normalizePath($path);
     }
 
-    /**
-     * @inheritDoc
-     */
-    private function _serializeEmail($email)
+    private function _serializeEmail($email): array
     {
         $htmlBody = $email->getSwiftMessage()->getBody();
         $children = $email->getSwiftMessage()->getChildren();
@@ -657,10 +614,7 @@ class Emails extends Component
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
-    private function _attachPdfToEmail(Notification $notification, Message $message, Submission $submission)
+    private function _attachPdfToEmail(Notification $notification, Message $message, Submission $submission): void
     {
         // Render the PDF template
         $template = $notification->getPdfTemplate();
@@ -671,7 +625,7 @@ class Emails extends Component
             return;
         }
 
-        // Save it in a temp location so we can attach it
+        // Save it in a temp location, so we can attach it
         $pdfPath = Assets::tempFilePath('pdf');
         file_put_contents($pdfPath, $pdf);
 

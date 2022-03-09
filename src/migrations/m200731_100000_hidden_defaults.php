@@ -1,24 +1,19 @@
 <?php
 namespace verbb\formie\migrations;
 
-use verbb\formie\elements\Form;
 use verbb\formie\fields\formfields\Hidden;
 
-use Craft;
 use craft\db\Migration;
 use craft\db\Query;
 use craft\db\Table;
-use craft\helpers\ArrayHelper;
-use craft\helpers\Db;
 use craft\helpers\Json;
-use craft\helpers\StringHelper;
 
 class m200731_100000_hidden_defaults extends Migration
 {
     /**
      * @inheritdoc
      */
-    public function safeUp()
+    public function safeUp(): bool
     {
         $fields = (new Query())
             ->select(['id', 'settings'])
@@ -35,12 +30,14 @@ class m200731_100000_hidden_defaults extends Migration
                 'settings' => Json::encode($settings)
             ], ['id' => $field['id']], [], false);
         }
+
+        return true;
     }
 
     /**
      * @inheritdoc
      */
-    public function safeDown()
+    public function safeDown(): bool
     {
         echo "m200731_100000_hidden_defaults cannot be reverted.\n";
         return false;

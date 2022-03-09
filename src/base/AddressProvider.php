@@ -1,15 +1,11 @@
 <?php
 namespace verbb\formie\base;
 
-use verbb\formie\Formie;
-use verbb\formie\elements\Form;
-use verbb\formie\elements\Submission;
-
 use Craft;
 use craft\helpers\StringHelper;
 use craft\helpers\UrlHelper;
 
-abstract class AddressProvider extends Integration implements IntegrationInterface
+abstract class AddressProvider extends Integration
 {
     // Properties
     // =========================================================================
@@ -18,9 +14,6 @@ abstract class AddressProvider extends Integration implements IntegrationInterfa
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function typeName(): string
     {
         return Craft::t('formie', 'Address Providers');
@@ -42,9 +35,6 @@ abstract class AddressProvider extends Integration implements IntegrationInterfa
         return false;
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function supportsCurrentLocation(): bool
     {
         return false;
@@ -67,7 +57,7 @@ abstract class AddressProvider extends Integration implements IntegrationInterfa
      */
     public function getIconUrl(): string
     {
-        $handle = StringHelper::toKebabCase($this->displayName());
+        $handle = StringHelper::toKebabCase(static::displayName());
 
         return Craft::$app->getAssetManager()->getPublishedUrl("@verbb/formie/web/assets/addressproviders/dist/img/{$handle}.svg", true);
     }
@@ -75,18 +65,15 @@ abstract class AddressProvider extends Integration implements IntegrationInterfa
     /**
      * @inheritDoc
      */
-    public function getSettingsHtml(): string
+    public function getSettingsHtml(): ?string
     {
-        $handle = StringHelper::toKebabCase($this->displayName());
+        $handle = StringHelper::toKebabCase(static::displayName());
 
         return Craft::$app->getView()->renderTemplate("formie/integrations/address-providers/{$handle}/_settings", [
             'integration' => $this,
         ]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getCpEditUrl(): string
     {
         return UrlHelper::cpUrl('formie/settings/address-providers/edit/' . $this->id);
@@ -95,7 +82,8 @@ abstract class AddressProvider extends Integration implements IntegrationInterfa
     /**
      * Returns the frontend HTML.
      *
-     * @param Form $form
+     * @param $field
+     * @param $options
      * @return string
      */
     public function getFrontEndHtml($field, $options): string
@@ -104,11 +92,9 @@ abstract class AddressProvider extends Integration implements IntegrationInterfa
     }
 
     /**
-     * Returns the front-end JS.
-     *
-     * @return string
+     * Returns the front-end JS variables.
      */
-    public function getFrontEndJsVariables($field = null)
+    public function getFrontEndJsVariables($field = null): ?array
     {
         return null;
     }

@@ -15,12 +15,12 @@ class ArrayHelper extends CraftArrayHelper
      * 
      * @access  public
      * @param   array   $array         multi-dimensional array to recursively implode
-     * @param   string  $glue          value that glues elements together   
-     * @param   bool    $include_keys  include keys before their values
-     * @param   bool    $trim_all      trim ALL whitespace from string
+     * @param string $glue          value that glues elements together
+     * @param bool $include_keys  include keys before their values
+     * @param bool $trim_all      trim ALL whitespace from string
      * @return  string  imploded array
      */ 
-    public static function recursiveImplode($glue = ',', array $array, $include_keys = false, $trim_all = false)
+    public static function recursiveImplode(string $glue = ',', array $array, bool $include_keys = false, bool $trim_all = false): string
     {
         $glued_string = '';
 
@@ -31,7 +31,7 @@ class ArrayHelper extends CraftArrayHelper
         });
 
         // Removes last $glue from string
-        strlen($glue) > 0 && $glued_string = substr($glued_string, 0, -strlen($glue));
+        $glue !== '' && $glued_string = substr($glued_string, 0, -strlen($glue));
 
         // Trim ALL whitespace
         $trim_all && $glued_string = preg_replace("/(\s)/ixsm", '', $glued_string);
@@ -40,9 +40,9 @@ class ArrayHelper extends CraftArrayHelper
     }
 
     /**
-     * Collapses a multi-dimensional array into a single dimension, using a delimited array path for
+     * Collapses a multidimensional array into a single dimension, using a delimited array path for
      * each array element's key, i.e. [['Foo' => ['Bar' => 'Far']]] becomes
-     * ['0.Foo.Bar' => 'Far'].)
+     * ['0.Foo.Bar' => 'Far']
      *
      * @param array $data Array to flatten
      * @param string $separator String used to separate array key elements in a path, defaults to '.'
@@ -84,8 +84,8 @@ class ArrayHelper extends CraftArrayHelper
     /**
      * Expands a flat array to a nested array.
      *
-     * For example, unflattens an array that was collapsed with `Hash::flatten()`
-     * into a multi-dimensional array. So, `['0.Foo.Bar' => 'Far']` becomes
+     * For example, un-flattens an array that was collapsed with `Hash::flatten()`
+     * into a multidimensional array. So, `['0.Foo.Bar' => 'Far']` becomes
      * `[['Foo' => ['Bar' => 'Far']]]`.
      *
      * @param array $data Flattened array
@@ -148,6 +148,7 @@ class ArrayHelper extends CraftArrayHelper
                         $curMerge[1][$key] = $val;
                     }
                 }
+                unset($val);
                 unset($stack[$curKey]);
             }
             unset($curMerge);

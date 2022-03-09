@@ -1,7 +1,6 @@
 <?php
 namespace verbb\formie\models;
 
-use Craft;
 use craft\base\Model;
 
 use verbb\formie\base\FormField;
@@ -10,29 +9,22 @@ use verbb\formie\Formie;
 
 class Sync extends Model
 {
-    // Public Properties
+    // Properties
     // =========================================================================
 
-    public $id;
+    public ?int $id = null;
 
-
-    // Private Properties
-    // =========================================================================
-
-    /**
-     * @var SyncField[]
-     */
-    private $_fields;
+    private ?array $_fields = null;
 
 
     // Public Methods
     // =========================================================================
 
-    public function init()
+    public function init(): void
     {
         parent::init();
 
-        $this->getFields();
+        $this->getCustomFields();
     }
 
     /**
@@ -40,7 +32,7 @@ class Sync extends Model
      *
      * @return SyncField[]
      */
-    public function getFields()
+    public function getCustomFields(): array
     {
         if (!$this->_fields) {
             $this->_fields = Formie::$plugin->getSyncs()->getSyncFieldsBySync($this);
@@ -56,7 +48,7 @@ class Sync extends Model
      */
     public function hasFields(): bool
     {
-        return count($this->getFields()) > 1;
+        return count($this->getCustomFields()) > 1;
     }
 
     /**
@@ -64,7 +56,7 @@ class Sync extends Model
      *
      * @param FormFieldInterface $field
      */
-    public function addField(FormFieldInterface $field)
+    public function addField(FormFieldInterface $field): void
     {
         /* @var FormField $field */
         if (!$field->id) {

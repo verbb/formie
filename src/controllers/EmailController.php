@@ -9,16 +9,14 @@ use verbb\formie\models\Notification;
 use Craft;
 use craft\helpers\StringHelper;
 use craft\web\Controller;
+use yii\web\Response;
 
 class EmailController extends Controller
 {
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritdoc
-     */
-    public function actionPreview()
+    public function actionPreview(): Response
     {
         $this->requirePostRequest();
 
@@ -70,10 +68,7 @@ class EmailController extends Controller
         ]);
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function actionSendTestEmail()
+    public function actionSendTestEmail(): Response
     {
         $this->requirePostRequest();
 
@@ -102,10 +97,7 @@ class EmailController extends Controller
     // Private Methods
     // =========================================================================
 
-    /**
-     * @inheritdoc
-     */
-    private function _populateFromPost($notification, $submission)
+    private function _populateFromPost($notification, $submission): void
     {
         $request = Craft::$app->getRequest();
         $formId = $request->getParam('formId');
@@ -120,7 +112,7 @@ class EmailController extends Controller
         $notification->attachPdf = StringHelper::toBoolean($notification->attachPdf);
         $notification->enableConditions = StringHelper::toBoolean($notification->enableConditions);
 
-        // If a stencil, creata a fake form
+        // If a stencil, create a fake form
         if (!$formId) {
             $form = new Form();
             $stencil = Formie::$plugin->getStencils()->getStencilByHandle($handle);
@@ -135,7 +127,5 @@ class EmailController extends Controller
 
         // Populate all fields with fake content
         Formie::$plugin->getSubmissions()->populateFakeSubmission($submission);
-
-        return $submission;
     }
 }

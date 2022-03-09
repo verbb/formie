@@ -3,34 +3,28 @@ namespace verbb\formie\integrations\crm;
 
 use verbb\formie\base\Crm;
 use verbb\formie\base\Integration;
-use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
-use verbb\formie\errors\IntegrationException;
-use verbb\formie\events\SendIntegrationPayloadEvent;
-use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
-use craft\helpers\ArrayHelper;
-use craft\helpers\Json;
-use craft\helpers\StringHelper;
-use craft\web\View;
+use GuzzleHttp\Client;
+use Throwable;
 
 class Mercury extends Crm
 {
     // Properties
     // =========================================================================
 
-    public $apiKey;
-    public $apiToken;
-    public $uatKey;
-    public $uatToken;
-    public $useUat = false;
-    public $mapToContact = false;
-    public $mapToOpportunity = false;
-    public $contactFieldMapping;
-    public $opportunityFieldMapping;
+    public ?string $apiKey = null;
+    public ?string $apiToken = null;
+    public ?string $uatKey = null;
+    public ?string $uatToken = null;
+    public bool $useUat = false;
+    public bool $mapToContact = false;
+    public bool $mapToOpportunity = false;
+    public ?array $contactFieldMapping = null;
+    public ?array $opportunityFieldMapping = null;
 
 
     // Public Methods
@@ -44,9 +38,6 @@ class Mercury extends Crm
         return Craft::t('formie', 'Mercury');
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getDescription(): string
     {
         return Craft::t('formie', 'Manage your Mercury customers by providing important information on their conversion on your site.');
@@ -81,10 +72,7 @@ class Mercury extends Crm
         return $rules;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function fetchFormSettings()
+    public function fetchFormSettings(): IntegrationFormSettings
     {
         $settings = [];
 
@@ -364,16 +352,13 @@ class Mercury extends Crm
                 'contact' => $contactFields,
                 'opportunity' => $opportunityFields,
             ];
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Integration::apiError($this, $e);
         }
 
         return new IntegrationFormSettings($settings);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function sendPayload(Submission $submission): bool
     {
         try {
@@ -424,7 +409,7 @@ class Mercury extends Crm
                 }
             }
 
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
             return false;
@@ -433,9 +418,6 @@ class Mercury extends Crm
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function fetchConnection(): bool
     {
         try {
@@ -444,7 +426,7 @@ class Mercury extends Crm
                     'search' => true,
                 ],
             ]);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
             return false;
@@ -453,10 +435,7 @@ class Mercury extends Crm
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getClient()
+    public function getClient(): Client
     {
         if ($this->_client) {
             return $this->_client;
@@ -484,9 +463,6 @@ class Mercury extends Crm
     // Private Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     private function _prepCustomFields($fields)
     {
         // Emails need to be handled specifically.

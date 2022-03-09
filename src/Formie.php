@@ -21,7 +21,6 @@ use verbb\formie\gql\queries\SubmissionQuery;
 use verbb\formie\helpers\Gql as GqlHelper;
 use verbb\formie\helpers\ProjectConfigHelper;
 use verbb\formie\integrations\feedme\elements\Submission as FeedMeSubmission;
-use verbb\formie\integrations\feedme\fields as FeedMeField;
 use verbb\formie\jobs\BaseJob;
 use verbb\formie\models\FieldLayout;
 use verbb\formie\models\Settings;
@@ -36,6 +35,7 @@ use verbb\formie\web\twig\Extension;
 use verbb\formie\widgets\RecentSubmissions;
 
 use Craft;
+use craft\base\Model;
 use craft\base\Plugin;
 use craft\controllers\UsersController;
 use craft\console\Application as ConsoleApplication;
@@ -77,15 +77,17 @@ use craft\feedme\services\Fields as FeedMeFields;
 
 use yii\base\Event;
 use yii\queue\ExecEvent;
+use craft\elements\exporters\Expanded;
+use craft\elements\exporters\Raw;
 
 class Formie extends Plugin
 {
-    // Public Properties
+    // Properties
     // =========================================================================
 
-    public $schemaVersion = '1.2.7';
-    public $hasCpSettings = true;
-    public $hasCpSection = true;
+    public string $schemaVersion = '1.2.7';
+    public bool $hasCpSettings = true;
+    public bool $hasCpSection = true;
 
 
     // Traits
@@ -98,7 +100,7 @@ class Formie extends Plugin
     // Public Methods
     // =========================================================================
 
-    public function init()
+    public function init(): void
     {
         parent::init();
 
@@ -125,22 +127,22 @@ class Formie extends Plugin
         $this->_registerThirdPartyEventListeners();
 
         // Add default captcha integrations
-        Craft::$app->view->hook('formie.buttons.before', static function(array &$context) {
+        Craft::$app->view->hook('formie.buttons.before', static function(array $context) {
             return Formie::$plugin->getForms()->handleBeforeSubmitHook($context);
         });
     }
 
-    public function getPluginName()
+    public function getPluginName(): string
     {
         return Craft::t('formie', $this->getSettings()->pluginName);
     }
 
-    public function getSettingsResponse()
+    public function getSettingsResponse(): mixed
     {
-        Craft::$app->getResponse()->redirect(UrlHelper::cpUrl('formie/settings'));
+        return Craft::$app->getResponse()->redirect(UrlHelper::cpUrl('formie/settings'));
     }
 
-    public function getCpNavItem(): array
+    public function getCpNavItem(): ?array
     {
         $nav = parent::getCpNavItem();
 
@@ -183,7 +185,7 @@ class Formie extends Plugin
     // Protected Methods
     // =========================================================================
 
-    protected function createSettingsModel(): Settings
+    protected function createSettingsModel(): ?Model
     {
         return new Settings();
     }
@@ -192,12 +194,12 @@ class Formie extends Plugin
     // Private Methods
     // =========================================================================
 
-    private function _registerTwigExtensions()
+    private function _registerTwigExtensions(): void
     {
         Craft::$app->view->registerTwigExtension(new Extension);
     }
 
-    private function _registerPermissions()
+    private function _registerPermissions(): void
     {
         Event::on(UserPermissions::class, UserPermissions::EVENT_REGISTER_PERMISSIONS, function(RegisterUserPermissionsEvent $event) {
             $formPermissions = [
@@ -241,15 +243,18 @@ class Formie extends Plugin
                 ];
             }
 
-            $event->permissions['Formie'] = [
-                'formie-viewForms' => ['label' => Craft::t('formie', 'View forms'), 'nested' => $formPermissions],
-                'formie-viewSubmissions' => ['label' => Craft::t('formie', 'View submissions'), 'nested' => $submissionPermissions],
-                'formie-viewSentNotifications' => ['label' => Craft::t('formie', 'View sent notifications')],
+            $event->permissions[] = [
+                'heading' => Craft::t('formie', 'Formie'),
+                'permissions' => [
+                    'formie-viewForms' => ['label' => Craft::t('formie', 'View forms'), 'nested' => $formPermissions],
+                    'formie-viewSubmissions' => ['label' => Craft::t('formie', 'View submissions'), 'nested' => $submissionPermissions],
+                    'formie-viewSentNotifications' => ['label' => Craft::t('formie', 'View sent notifications')],
+                ],
             ];
         });
     }
 
-    private function _registerVariable()
+    private function _registerVariable(): void
     {
         Event::on(CraftVariable::class, CraftVariable::EVENT_INIT, function(Event $event) {
             /** @var CraftVariable $variable */
@@ -258,7 +263,7 @@ class Formie extends Plugin
         });
     }
 
-    private function _registerElementTypes()
+    private function _registerElementTypes(): void
     {
         Event::on(Elements::class, Elements::EVENT_REGISTER_ELEMENT_TYPES, function(RegisterComponentTypesEvent $event) {
             $event->types[] = Form::class;
@@ -267,7 +272,7 @@ class Formie extends Plugin
         });
     }
 
-    private function _registerFieldsEvents()
+    private function _registerFieldsEvents(): void
     {
         Event::on(Fields::class, Fields::EVENT_AFTER_SAVE_FIELD_LAYOUT, function (FieldLayoutEvent $event) {
             $fieldLayout = $event->layout;
@@ -279,7 +284,7 @@ class Formie extends Plugin
         });
     }
 
-    private function _registerFieldTypes()
+    private function _registerFieldTypes(): void
     {
         Event::on(Fields::class, Fields::EVENT_REGISTER_FIELD_TYPES, function(RegisterComponentTypesEvent $event) {
             $event->types[] = Forms::class;
@@ -287,7 +292,7 @@ class Formie extends Plugin
         });
     }
 
-    private function _registerGarbageCollection()
+    private function _registerGarbageCollection(): void
     {
         Event::on(Gc::class, Gc::EVENT_RUN, function () {
             // Delete fields with no form.
@@ -310,7 +315,7 @@ class Formie extends Plugin
         });
     }
 
-    private function _registerGraphQl()
+    private function _registerGraphQl(): void
     {
         Event::on(Gql::class, Gql::EVENT_REGISTER_GQL_TYPES, function(RegisterGqlTypesEvent $event) {
             $event->types[] = FormInterface::class;
@@ -388,11 +393,11 @@ class Formie extends Plugin
         });
     }
 
-    private function _registerCraftEventListeners()
+    private function _registerCraftEventListeners(): void
     {
-        Event::on(UsersController::class, UsersController::EVENT_DEFINE_CONTENT_SUMMARY, [$this->getSubmissions(), 'defineUserSubmssions']);
-        Event::on(UserElement::class, UserElement::EVENT_AFTER_DELETE, [$this->getSubmissions(), 'deleteUserSubmssions']);
-        Event::on(UserElement::class, UserElement::EVENT_AFTER_RESTORE, [$this->getSubmissions(), 'restoreUserSubmssions']);
+        Event::on(UsersController::class, UsersController::EVENT_DEFINE_CONTENT_SUMMARY, [$this->getSubmissions(), 'defineUserSubmissions']);
+        Event::on(UserElement::class, UserElement::EVENT_AFTER_DELETE, [$this->getSubmissions(), 'deleteUserSubmissions']);
+        Event::on(UserElement::class, UserElement::EVENT_AFTER_RESTORE, [$this->getSubmissions(), 'restoreUserSubmissions']);
     
         // Add additional error information to queue jobs when there's an error
         Event::on(Queue::class, Queue::EVENT_AFTER_ERROR, function(ExecEvent $event) {
@@ -402,7 +407,7 @@ class Formie extends Plugin
         });
     }
 
-    private function _registerThirdPartyEventListeners()
+    private function _registerThirdPartyEventListeners(): void
     {
         if (class_exists(SourceNodes::class)) {
             Event::on(SourceNodes::class, SourceNodes::EVENT_REGISTER_SOURCE_NODE_TYPES, function(RegisterSourceNodeTypesEvent $event) {
@@ -443,7 +448,7 @@ class Formie extends Plugin
         }
     }
 
-    private function _registerProjectConfigEventListeners()
+    private function _registerProjectConfigEventListeners(): void
     {
         $projectConfigService = Craft::$app->getProjectConfig();
 
@@ -488,7 +493,7 @@ class Formie extends Plugin
         });
     }
 
-    private function _registerEmailMessages()
+    private function _registerEmailMessages(): void
     {
         Event::on(SystemMessages::class, SystemMessages::EVENT_REGISTER_MESSAGES, function(RegisterEmailMessagesEvent $event) {
             $event->messages = array_merge($event->messages, [
@@ -502,16 +507,16 @@ class Formie extends Plugin
         });
     }
 
-    private function _registerElementExports()
+    private function _registerElementExports(): void
     {
         Event::on(Submission::class, Submission::EVENT_REGISTER_EXPORTERS, function(RegisterElementExportersEvent $e) {
             // Remove defaults, but allow third-party ones
             foreach ($e->exporters as $key => $exporter) {
-                if ($exporter === \craft\elements\exporters\Raw::class) {
+                if ($exporter === Raw::class) {
                     unset($e->exporters[$key]);
                 }
 
-                if ($exporter === \craft\elements\exporters\Expanded::class) {
+                if ($exporter === Expanded::class) {
                     unset($e->exporters[$key]);
                 }
             }
@@ -522,21 +527,21 @@ class Formie extends Plugin
         });
     }
 
-    private function _registerTemplateRoots()
+    private function _registerTemplateRoots(): void
     {
         Event::on(View::class, View::EVENT_REGISTER_SITE_TEMPLATE_ROOTS, function(RegisterTemplateRootsEvent $e) {
             $e->roots[$this->id] = $this->getBasePath() . DIRECTORY_SEPARATOR . 'templates/_special';
         });
     }
 
-    private function _registerWidgets()
+    private function _registerWidgets(): void
     {
         Event::on(Dashboard::class, Dashboard::EVENT_REGISTER_WIDGET_TYPES, function(RegisterComponentTypesEvent $event) {
             $event->types[] = RecentSubmissions::class;
         });
     }
 
-    private function _registerResaveCommand()
+    private function _registerResaveCommand(): void
     {
         if (!Craft::$app instanceof ConsoleApplication) {
             return;

@@ -4,17 +4,17 @@ namespace verbb\formie\prosemirror\toprosemirror\Nodes;
 
 class Text extends Node
 {
-    public function matching()
+    public function matching(): bool
     {
         return $this->DOMNode->nodeName === '#text';
     }
 
-    public function data()
+    public function data(): ?array
     {
         $text = ltrim($this->DOMNode->nodeValue, "\n");
 
         if ($text === '') {
-            return null;
+            return [];
         }
 
         return [

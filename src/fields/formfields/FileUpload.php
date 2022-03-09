@@ -6,8 +6,6 @@ use verbb\formie\base\Element;
 use verbb\formie\base\FormFieldInterface;
 use verbb\formie\base\FormFieldTrait;
 use verbb\formie\base\RelationFieldTrait;
-use verbb\formie\elements\Form;
-use verbb\formie\elements\Submission;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\IntegrationField;
 
@@ -18,11 +16,11 @@ use craft\elements\Asset;
 use craft\fields\Assets as CraftAssets;
 use craft\helpers\Assets;
 use craft\helpers\Html;
-use craft\helpers\Json;
 use craft\helpers\Template;
 use craft\web\UploadedFile;
 
 use GraphQL\Type\Definition\Type;
+use Twig\Markup;
 
 class FileUpload extends CraftAssets implements FormFieldInterface
 {
@@ -68,19 +66,19 @@ class FileUpload extends CraftAssets implements FormFieldInterface
     /**
      * @var bool
      */
-    public $searchable = true;
-    public $sizeLimit;
-    public $sizeMinLimit;
-    public $limitFiles;
-    public $restrictFiles;
-    public $allowedKinds;
-    public $uploadLocationSource;
-    public $uploadLocationSubpath;
-    public $useSingleFolder = true;
+    public bool $searchable = true;
+    public ?string $sizeLimit = null;
+    public ?string $sizeMinLimit = null;
+    public ?string $limitFiles = null;
+    public bool $restrictFiles = false;
+    public ?array $allowedKinds = null;
+    public ?string $uploadLocationSource = null;
+    public ?string $uploadLocationSubpath = null;
+    public bool $restrictLocation = true;
 
-    protected $inputTemplate = 'formie/_includes/element-select-input';
+    protected string $inputTemplate = 'formie/_includes/element-select-input';
 
-    private $_assetsToDelete = [];
+    private array $_assetsToDelete = [];
 
 
     // Public Methods
@@ -89,11 +87,11 @@ class FileUpload extends CraftAssets implements FormFieldInterface
     /**
      * @inheritDoc
      */
-    public function init()
+    public function init(): void
     {
         // For Assets field compatibility - we always use a single upload location
-        $this->singleUploadLocationSource = $this->uploadLocationSource;
-        $this->singleUploadLocationSubpath = $this->uploadLocationSubpath ?? '';
+        $this->restrictedLocationSource = $this->uploadLocationSource;
+        $this->restrictedLocationSubpath = $this->uploadLocationSubpath ?? '';
     }
 
     /**
@@ -102,8 +100,8 @@ class FileUpload extends CraftAssets implements FormFieldInterface
     public function beforeSave(bool $isNew): bool
     {
         // For Assets field compatibility - we always use a single upload location
-        $this->singleUploadLocationSource = $this->uploadLocationSource;
-        $this->singleUploadLocationSubpath = $this->uploadLocationSubpath ?? '';
+        $this->restrictedLocationSource = $this->uploadLocationSource;
+        $this->restrictedLocationSubpath = $this->uploadLocationSubpath ?? '';
 
         return parent::beforeSave($isNew);
     }
@@ -111,7 +109,7 @@ class FileUpload extends CraftAssets implements FormFieldInterface
     /**
      * @inheritDoc
      */
-    public function getValue(ElementInterface $element)
+    public function getValue(ElementInterface $element): mixed
     {
         $values = [];
         foreach ($element->getFieldValue($this->handle)->all() as $asset) {
@@ -185,9 +183,9 @@ class FileUpload extends CraftAssets implements FormFieldInterface
      *
      * @param ElementInterface $element
      */
-    public function validateFileLimit(ElementInterface $element)
+    public function validateFileLimit(ElementInterface $element): void
     {
-        $fileLimit = intval($this->limitFiles ?? 1);
+        $fileLimit = (int)($this->limitFiles ?? 1);
 
         $filenames = [];
 
@@ -206,7 +204,7 @@ class FileUpload extends CraftAssets implements FormFieldInterface
      *
      * @param ElementInterface $element
      */
-    public function validateMinFileSize(ElementInterface $element)
+    public function validateMinFileSize(ElementInterface $element): void
     {
         $filenames = [];
 
@@ -233,7 +231,7 @@ class FileUpload extends CraftAssets implements FormFieldInterface
      *
      * @param ElementInterface $element
      */
-    public function validateMaxFileSize(ElementInterface $element)
+    public function validateMaxFileSize(ElementInterface $element): void
     {
         $filenames = [];
 
@@ -271,7 +269,7 @@ class FileUpload extends CraftAssets implements FormFieldInterface
      *
      * @return string|null
      */
-    public function getAccept()
+    public function getAccept(): ?string
     {
         if (!$this->restrictFiles) {
             return null;
@@ -291,10 +289,7 @@ class FileUpload extends CraftAssets implements FormFieldInterface
         return implode(', ', $extensions);
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function getVolumeOptions()
+    public function getVolumeOptions(): array
     {
         $volumes = [];
 
@@ -312,7 +307,7 @@ class FileUpload extends CraftAssets implements FormFieldInterface
     /**
      * @inheritdoc
      */
-    public function getFrontEndJsModules()
+    public function getFrontEndJsModules(): ?array
     {
         return [
             'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/fields/file-upload.js', true),
@@ -394,7 +389,7 @@ class FileUpload extends CraftAssets implements FormFieldInterface
             ]),
             SchemaHelper::textField([
                 'label' => Craft::t('formie', 'Max File Size'),
-                'help' => Craft::t('formie', 'Set the maxiumum size of the files a user can upload.'),
+                'help' => Craft::t('formie', 'Set the maximum size of the files a user can upload.'),
                 'name' => 'sizeLimit',
                 'size' => '3',
                 'class' => 'text',
@@ -442,9 +437,6 @@ class FileUpload extends CraftAssets implements FormFieldInterface
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineConditionsSchema(): array
     {
         return [
@@ -459,8 +451,8 @@ class FileUpload extends CraftAssets implements FormFieldInterface
     public function beforeElementSave(ElementInterface $element, bool $isNew): bool
     {
         // For Assets field compatibility - we always use a single upload location
-        $this->singleUploadLocationSource = $this->uploadLocationSource;
-        $this->singleUploadLocationSubpath = $this->uploadLocationSubpath ?? '';
+        $this->restrictedLocationSource = $this->uploadLocationSource;
+        $this->restrictedLocationSubpath = $this->uploadLocationSubpath ?? '';
 
         if (!parent::beforeElementSave($element, $isNew)) {
             return false;
@@ -488,7 +480,7 @@ class FileUpload extends CraftAssets implements FormFieldInterface
     /**
      * @inheritdoc
      */
-    public function afterElementSave(ElementInterface $element, bool $isNew)
+    public function afterElementSave(ElementInterface $element, bool $isNew): void
     {
         parent::afterElementSave($element, $isNew);
 
@@ -511,7 +503,7 @@ class FileUpload extends CraftAssets implements FormFieldInterface
     /**
      * @inheritDoc
      */
-    protected function defineValueAsString($value, ElementInterface $element = null)
+    protected function defineValueAsString($value, ElementInterface $element = null): string
     {
         $value = $this->_all($value, $element)->all();
 
@@ -524,7 +516,7 @@ class FileUpload extends CraftAssets implements FormFieldInterface
     /**
      * @inheritDoc
      */
-    protected function defineValueForIntegration($value, $integrationField, $integration, ElementInterface $element = null, $fieldKey = '')
+    protected function defineValueForIntegration($value, $integrationField, $integration, ElementInterface $element = null, $fieldKey = ''): mixed
     {
         if ($integrationField->getType() === IntegrationField::TYPE_ARRAY) {
             // For any element integrations, always return IDs (default behaviour)
@@ -547,7 +539,7 @@ class FileUpload extends CraftAssets implements FormFieldInterface
     /**
      * @inheritDoc
      */
-    protected function defineValueForSummary($value, ElementInterface $element = null)
+    protected function defineValueForSummary($value, ElementInterface $element = null): string
     {
         $html = '';
         $value = $this->_all($value, $element)->all();
@@ -566,7 +558,7 @@ class FileUpload extends CraftAssets implements FormFieldInterface
     /**
      * @inheritDoc
      */
-    public function getSettingGqlTypes()
+    public function getSettingGqlTypes(): array
     {
         return array_merge($this->traitGetSettingGqlTypes(), [
             'allowedKinds' => [
@@ -587,14 +579,11 @@ class FileUpload extends CraftAssets implements FormFieldInterface
     // Private Methods
     // =========================================================================
 
-    /**
-     * @inheritdoc
-     */
-    private function getVolume()
+    private function getVolume(): ?\craft\models\Volume
     {
         $sourceKey = $this->uploadLocationSource;
 
-        if ($sourceKey && is_string($sourceKey) && strpos($sourceKey, 'folder:') === 0) {
+        if ($sourceKey && is_string($sourceKey) && str_starts_with($sourceKey, 'folder:')) {
             $parts = explode(':', $sourceKey);
             
             return Craft::$app->getVolumes()->getVolumeByUid($parts[1]);
@@ -603,10 +592,7 @@ class FileUpload extends CraftAssets implements FormFieldInterface
         return null;
     }
 
-    /**
-     * @inheritDoc
-     */
-    private function humanFilesize($size, $precision = 2)
+    private function humanFilesize($size, $precision = 2): string
     {
         for ($i = 0; ($size / 1024) > 0.9; $i++, $size /= 1024) {}
         return round($size, $precision).['B','kB','MB','GB','TB','PB','EB','ZB','YB'][$i];

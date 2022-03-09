@@ -1,6 +1,8 @@
 <?php
 namespace verbb\formie\integrations\feedme\fields;
 
+use verbb\formie\fields\formfields\Categories as CategoriesField;
+
 use craft\feedme\fields\Categories as FeedMeCategories;
 
 class Categories extends FeedMeCategories
@@ -15,6 +17,6 @@ class Categories extends FeedMeCategories
     // =========================================================================
 
     public static $name = 'Categories';
-    public static $class = 'verbb\formie\fields\formfields\Categories';
+    public static $class = CategoriesField::class;
 
 }

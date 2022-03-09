@@ -2,10 +2,8 @@
 namespace verbb\formie\controllers;
 
 use verbb\formie\Formie;
-use verbb\formie\base\Integration;
 use verbb\formie\errors\IntegrationException;
 use verbb\formie\events\OauthTokenEvent;
-use verbb\formie\models\Settings;
 use verbb\formie\models\Token;
 
 use Craft;
@@ -14,7 +12,6 @@ use craft\helpers\UrlHelper;
 use craft\web\Controller;
 
 use yii\web\BadRequestHttpException;
-use yii\web\HttpException;
 use yii\web\Response;
 
 use Exception;
@@ -25,32 +22,34 @@ class IntegrationsController extends Controller
     // Constants
     // =========================================================================
 
-    const EVENT_AFTER_OAUTH_CALLBACK = 'afterOauthCallback';
+    public const EVENT_AFTER_OAUTH_CALLBACK = 'afterOauthCallback';
 
     // Properties
     // =========================================================================
 
-    protected $allowAnonymous = ['callback'];
+    protected array|bool|int $allowAnonymous = ['callback'];
     
-    private $originUrl;
+    private ?string $originUrl = null;
 
 
     // Public Methods
     // =========================================================================
-
     /**
      * Saves an integration.
      *
      * @return Response|null
      * @throws BadRequestHttpException
+     * @throws Throwable
+     * @throws \yii\base\UnknownPropertyException
      */
-    public function actionSaveIntegration()
+    public function actionSaveIntegration(): ?Response
     {
+        $savedIntegration = null;
         $this->requirePostRequest();
 
         $integrationsService = Formie::$plugin->getIntegrations();
         $type = $this->request->getParam('type');
-        $integrationId = $this->request->getParam('id') ?: null;
+        $integrationId = (int)$this->request->getParam('id');
 
         $settings = $this->request->getParam('types.' . $type, []);
 
@@ -71,7 +70,7 @@ class IntegrationsController extends Controller
             'handle' => $this->request->getParam('handle'),
             'type' => $type,
             'sortOrder' => $savedIntegration->sortOrder ?? null,
-            'enabled' => $this->request->getParam('enabled'),
+            'enabled' => (bool)$this->request->getParam('enabled'),
             'settings' => $settings,
             'tokenId' => $savedIntegration->tokenId ?? null,
             'uid' => $savedIntegration->uid ?? null,
@@ -97,8 +96,6 @@ class IntegrationsController extends Controller
 
     /**
      * Reorders integrations.
-     *
-     * @return Response
      */
     public function actionReorderIntegrations(): Response
     {
@@ -113,8 +110,6 @@ class IntegrationsController extends Controller
 
     /**
      * Deletes an integration.
-     *
-     * @return Response
      */
     public function actionDeleteIntegration(): Response
     {
@@ -136,10 +131,7 @@ class IntegrationsController extends Controller
         return $this->redirectToPostedUrl();
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function actionFormSettings()
+    public function actionFormSettings(): Response
     {
         $this->requirePostRequest();
 
@@ -156,10 +148,7 @@ class IntegrationsController extends Controller
         return $this->asJson($integration->getFormSettings(false)->getSettings());
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function actionCheckConnection()
+    public function actionCheckConnection(): Response
     {
         $this->requirePostRequest();
 
@@ -173,7 +162,7 @@ class IntegrationsController extends Controller
 
         $integration = Formie::$plugin->getIntegrations()->getIntegrationById($integrationId);
 
-        if (!$integration->supportsConnection()) {
+        if (!$integration::supportsConnection()) {
             return $this->asErrorJson(Craft::t('formie', '“{id}” does not support connection.', ['id' => $integrationId]));
         }
 
@@ -191,9 +180,6 @@ class IntegrationsController extends Controller
     // OAuth Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public function actionConnect(): Response
     {
         $request = Craft::$app->getRequest();
@@ -279,9 +265,6 @@ class IntegrationsController extends Controller
         }
     }
 
-    /**
-     * @inheritDoc
-     */
     public function actionDisconnect(): Response
     {
         $request = Craft::$app->getRequest();
@@ -306,9 +289,6 @@ class IntegrationsController extends Controller
         return $this->redirect($request->referrer);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function actionCallback(): Response
     {
         $request = Craft::$app->getRequest();
@@ -318,7 +298,7 @@ class IntegrationsController extends Controller
 
         $url = $session->get('formie.controllerUrl');
 
-        if (strpos($url, '?') === false) {
+        if (!str_contains($url, '?')) {
             $url .= '?';
         } else {
             $url .= '&';
@@ -339,15 +319,12 @@ class IntegrationsController extends Controller
     // Private Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
-    private function _createToken($response, $integration)
+    private function _createToken($response, $integration): ?Response
     {
         $session = Craft::$app->getSession();
 
         $token = new Token();
-        $token->type = get_class($integration);
+        $token->type = $integration::class;
 
         switch ($integration->oauthVersion()) {
             case 1: {
@@ -403,10 +380,7 @@ class IntegrationsController extends Controller
         return $this->redirect($this->originUrl);
     }
 
-    /**
-     * @inheritDoc
-     */
-    private function _deleteToken($integration)
+    private function _deleteToken($integration): void
     {
         $session = Craft::$app->getSession();
         
@@ -417,8 +391,8 @@ class IntegrationsController extends Controller
 
             Formie::error($error);
             $session->setError($error);
-        
-            return null;
+
+            return;
         }
 
         if (!Formie::$plugin->getIntegrations()->updateIntegrationToken($integration, null)) {
@@ -428,15 +402,10 @@ class IntegrationsController extends Controller
 
             Formie::error($error);
             $session->setError($error);
-        
-            return null;
         }
     }
 
-    /**
-     * @inheritDoc
-     */
-    private function _cleanSession()
+    private function _cleanSession(): void
     {
         Craft::$app->getSession()->remove('formie.originUrl');
     }

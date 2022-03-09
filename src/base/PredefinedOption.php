@@ -9,16 +9,13 @@ abstract class PredefinedOption extends Component implements PredefinedOptionInt
     // Protected Properties
     // =========================================================================
 
-    public static $defaultLabelOption;
-    public static $defaultValueOption;
+    public static ?string $defaultLabelOption = null;
+    public static ?string $defaultValueOption = null;
 
 
     // Public Method
     // =========================================================================
-    
-    /**
-     * @inheritDoc
-     */
+
     public function __toString()
     {
         $classNameParts = explode('\\', get_class($this));
@@ -27,17 +24,11 @@ abstract class PredefinedOption extends Component implements PredefinedOptionInt
         return StringHelper::toKebabCase($end);
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function getLabelOptions(): array
     {
         return [];
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function getValueOptions(): array
     {
         return [];

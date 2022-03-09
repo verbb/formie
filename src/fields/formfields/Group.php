@@ -4,19 +4,17 @@ namespace verbb\formie\fields\formfields;
 use verbb\formie\base\FormField;
 use verbb\formie\base\NestedFieldInterface;
 use verbb\formie\base\NestedFieldTrait;
-use verbb\formie\elements\Form;
-use verbb\formie\elements\db\NestedFieldRowQuery;
 use verbb\formie\gql\types\input\GroupInputType;
 use verbb\formie\helpers\SchemaHelper;
 
 use Craft;
 use craft\base\EagerLoadingFieldInterface;
-use craft\base\Element;
 use craft\base\ElementInterface;
 use craft\gql\GqlEntityRegistry;
 use craft\helpers\Gql;
 
 use GraphQL\Type\Definition\ObjectType;
+use GraphQL\Type\Definition\Type;
 
 class Group extends FormField implements NestedFieldInterface, EagerLoadingFieldInterface
 {
@@ -79,7 +77,7 @@ class Group extends FormField implements NestedFieldInterface, EagerLoadingField
     /**
      * @inheritDoc
      */
-    public function getInputHtml($value, ElementInterface $element = null): string
+    public function getInputHtml(mixed $value, ?ElementInterface $element = null): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/group/input', [
             'name' => $this->handle,
@@ -101,13 +99,13 @@ class Group extends FormField implements NestedFieldInterface, EagerLoadingField
     /**
      * @inheritDoc
      */
-    public function populateValue($value)
+    public function populateValue($value): void
     {
         if (!is_array($value)) {
             return;
         }
 
-        if ($fields = $this->getFields()) {
+        if ($fields = $this->getCustomFields()) {
             foreach ($fields as $field) {
                 $fieldValue = $value[$field->handle] ?? null;
 
@@ -121,7 +119,7 @@ class Group extends FormField implements NestedFieldInterface, EagerLoadingField
     /**
      * @inheritDoc
      */
-    public function parsePopulatedFieldValues($value, $element)
+    public function parsePopulatedFieldValues($value, $element): array
     {
         // For when parsing populated content from the cache, when the field is visibly disabled
         // It's supplied in a format that makes sense for `populateValue()` but not for `$element->setFieldValue()`.
@@ -135,7 +133,7 @@ class Group extends FormField implements NestedFieldInterface, EagerLoadingField
     /**
      * @inheritDoc
      */
-    public function getConfigJson()
+    public function getConfigJson(): ?string
     {
         // Group fields themselves should not contain the inner field's JS
         return null;
@@ -176,9 +174,6 @@ class Group extends FormField implements NestedFieldInterface, EagerLoadingField
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineConditionsSchema(): array
     {
         return [
@@ -190,7 +185,7 @@ class Group extends FormField implements NestedFieldInterface, EagerLoadingField
     /**
      * @inheritDoc
      */
-    public function getContentGqlMutationArgumentType()
+    public function getContentGqlMutationArgumentType(): array|Type
     {
         return GroupInputType::getType($this);
     }
@@ -198,7 +193,7 @@ class Group extends FormField implements NestedFieldInterface, EagerLoadingField
     /**
      * @inheritDoc
      */
-    public function getContentGqlType()
+    public function getContentGqlType(): array|Type
     {
         $typeName = ($this->getForm()->handle ?? '') . '_' . $this->handle . '_FormieGroupField';
 
@@ -208,7 +203,7 @@ class Group extends FormField implements NestedFieldInterface, EagerLoadingField
 
         $groupFields = [];
 
-        foreach ($this->getFields() as $field) {
+        foreach ($this->getCustomFields() as $field) {
             $groupFields[$field->handle] = $field->getContentGqlType();
         }
 

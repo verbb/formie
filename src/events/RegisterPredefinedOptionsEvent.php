@@ -8,5 +8,5 @@ class RegisterPredefinedOptionsEvent extends Event
     // Properties
     // =========================================================================
 
-    public $options = [];
+    public array $options = [];
 }

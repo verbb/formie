@@ -4,10 +4,7 @@ namespace verbb\formie\gql\types\input;
 use verbb\formie\fields\formfields\Name as NameField;
 use verbb\formie\models\Name as NameModel;
 
-use Craft;
-use craft\base\Field;
 use craft\gql\GqlEntityRegistry;
-use craft\gql\types\QueryArgument;
 
 use GraphQL\Type\Definition\InputObjectType;
 use GraphQL\Type\Definition\Type;
@@ -17,10 +14,10 @@ class NameInputType extends InputObjectType
     /**
      * Create the type for a name field.
      *
-     * @param $context
+     * @param NameField $context
      * @return bool|mixed
      */
-    public static function getType(NameField $context)
+    public static function getType(NameField $context): mixed
     {
         /** @var NameField $context */
         $typeName = $context->getGqlFieldContext()->handle . '_' . $context->handle . '_FormieNameInput';
@@ -52,15 +49,13 @@ class NameInputType extends InputObjectType
             ];
         }
 
-        $inputType = GqlEntityRegistry::createEntity($typeName, new InputObjectType([
+        return GqlEntityRegistry::createEntity($typeName, new InputObjectType([
             'name' => $typeName,
             'fields' => function() use ($fields) {
                 return $fields;
             },
             'normalizeValue' => [self::class, 'normalizeValue'],
         ]));
-
-        return $inputType;
     }
 
     /**
@@ -69,7 +64,7 @@ class NameInputType extends InputObjectType
      * @param $value
      * @return mixed
      */
-    public static function normalizeValue($value)
+    public static function normalizeValue($value): mixed
     {
         if (!empty($value['name'])) {
             return $value['name'];

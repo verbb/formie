@@ -9,36 +9,11 @@ class FieldLayout extends CraftFieldLayout
     // Properties
     // =========================================================================
 
-    private $_pages;
-    private $_fields;
+    private ?array $_pages = null;
 
 
-    // Public Properties
+    // Properties
     // =========================================================================
-
-    /**
-     * @inheritDoc
-     */
-    public function getFields(): array
-    {
-        if ($this->_fields !== null) {
-            return $this->_fields;
-        }
-
-        if (!$this->id) {
-            return [];
-        }
-
-        return $this->_fields = Formie::$plugin->getFields()->getFieldsByLayoutId($this->id);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function setFields(array $fields = null)
-    {
-        $this->_fields = $fields;
-    }
 
     /**
      * Returns the layout’s pages.
@@ -64,7 +39,7 @@ class FieldLayout extends CraftFieldLayout
      * @param array|FieldLayoutPage[] $pages An array of the layout’s pages, which can either be FieldLayoutPage
      * objects or arrays defining the page’s attributes.
      */
-    public function setPages($pages)
+    public function setPages(array $pages): void
     {
         $this->_pages = [];
 
@@ -90,7 +65,7 @@ class FieldLayout extends CraftFieldLayout
     /**
      * @inheritDoc
      */
-    public function setTabs($tabs)
+    public function setTabs($tabs): void
     {
         // Override `setPages()` to refer to pages for convenience.
         $this->setPages($tabs);

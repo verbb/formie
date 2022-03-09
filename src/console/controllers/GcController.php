@@ -5,6 +5,7 @@ use verbb\formie\Formie;
 
 use yii\console\Controller;
 use yii\console\ExitCode;
+use Throwable;
 
 class GcController extends Controller
 {
@@ -17,7 +18,7 @@ class GcController extends Controller
      * @return int
      * @throws Throwable
      */
-    public function actionDeleteOrphanedFields()
+    public function actionDeleteOrphanedFields(): int
     {
         Formie::$plugin->getFields()->deleteOrphanedFields($this);
 
@@ -29,8 +30,9 @@ class GcController extends Controller
      *
      * @return int
      * @throws Throwable
+     * @throws \yii\db\StaleObjectException
      */
-    public function actionPruneSyncs()
+    public function actionPruneSyncs(): int
     {
         Formie::$plugin->getSyncs()->pruneSyncs($this);
 
@@ -43,7 +45,7 @@ class GcController extends Controller
      * @return int
      * @throws Throwable
      */
-    public function actionPruneIncompleteSubmissions()
+    public function actionPruneIncompleteSubmissions(): int
     {
         Formie::$plugin->getSubmissions()->pruneIncompleteSubmissions($this);
 
@@ -56,7 +58,7 @@ class GcController extends Controller
      * @return int
      * @throws Throwable
      */
-    public function actionPruneDataRetentionSubmissions()
+    public function actionPruneDataRetentionSubmissions(): int
     {
         Formie::$plugin->getSubmissions()->pruneDataRetentionSubmissions($this);
 
@@ -67,9 +69,9 @@ class GcController extends Controller
      * Delete leftover content tables, for deleted forms.
      *
      * @return int
-     * @throws Throwable
+     * @throws \yii\db\Exception
      */
-    public function actionPruneContentTables()
+    public function actionPruneContentTables(): int
     {
         Formie::$plugin->getForms()->pruneContentTables($this);
 

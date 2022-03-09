@@ -5,8 +5,6 @@ use verbb\formie\elements\Submission;
 
 use Craft;
 use craft\db\Migration;
-use craft\db\Query;
-use craft\helpers\MigrationHelper;
 use craft\queue\jobs\ResaveElements;
 
 class m201010_000000_resave_submissions extends Migration
@@ -14,7 +12,7 @@ class m201010_000000_resave_submissions extends Migration
     /**
      * @inheritdoc
      */
-    public function safeUp()
+    public function safeUp(): bool
     {
         Craft::$app->getQueue()->push(new ResaveElements([
             'elementType' => Submission::class,
@@ -30,7 +28,7 @@ class m201010_000000_resave_submissions extends Migration
     /**
      * @inheritdoc
      */
-    public function safeDown()
+    public function safeDown(): bool
     {
         echo "m201010_000000_resave_submissions cannot be reverted.\n";
         return false;

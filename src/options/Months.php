@@ -9,8 +9,8 @@ class Months extends PredefinedOption
     // Protected Properties
     // =========================================================================
 
-    public static $defaultLabelOption = 'month';
-    public static $defaultValueOption = 'month';
+    public static ?string $defaultLabelOption = 'month';
+    public static ?string $defaultValueOption = 'month';
 
 
     // Static Methods
@@ -48,9 +48,6 @@ class Months extends PredefinedOption
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function getDataOptions(): array
     {
         return [

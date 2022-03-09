@@ -8,12 +8,12 @@ class VariableNode extends Node
     // Public Methods
     // =========================================================================
 
-    public function matching()
+    public function matching(): bool
     {
         return $this->node->type === 'variableTag';
     }
 
-    public function text()
+    public function text(): ?string
     {
         return $this->node->attrs->value ?? '';
     }

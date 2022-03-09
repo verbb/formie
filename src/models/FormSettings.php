@@ -2,85 +2,83 @@
 namespace verbb\formie\models;
 
 use verbb\formie\Formie;
+use verbb\formie\elements\Form;
 use verbb\formie\helpers\RichTextHelper;
-use verbb\formie\positions\AboveInput;
-use verbb\formie\positions\BelowInput;
 use verbb\formie\prosemirror\toprosemirror\Renderer as ProseMirrorRenderer;
 
 use Craft;
 use craft\base\Model;
 use craft\helpers\ArrayHelper;
-use craft\helpers\Json;
 
-use yii\behaviors\AttributeTypecastBehavior;
+use craft\elements\Entry;
 
 class FormSettings extends Model
 {
-    // Public Properties
+    // Properties
     // =========================================================================
 
     // Appearance
-    public $displayFormTitle = false;
-    public $displayCurrentPageTitle = false;
-    public $displayPageTabs = false;
-    public $displayPageProgress = false;
-    public $scrollToTop = true;
-    public $progressPosition = 'end';
-    public $defaultLabelPosition;
-    public $defaultInstructionsPosition;
+    public bool $displayFormTitle = false;
+    public bool $displayCurrentPageTitle = false;
+    public bool $displayPageTabs = false;
+    public bool $displayPageProgress = false;
+    public bool $scrollToTop = true;
+    public string $progressPosition = 'end';
+    public ?string $defaultLabelPosition = null;
+    public ?string $defaultInstructionsPosition = null;
 
     // Behaviour
-    public $submitMethod;
-    public $submitAction;
-    public $submitActionTab;
-    public $submitActionUrl;
-    public $submitActionFormHide;
-    public $submitActionMessage;
-    public $submitActionMessageTimeout;
-    public $submitActionMessagePosition = 'top-form';
-    public $loadingIndicator;
-    public $loadingIndicatorText;
+    public ?string $submitMethod = null;
+    public ?string $submitAction = null;
+    public ?string $submitActionTab = null;
+    public ?string $submitActionUrl = null;
+    public ?bool $submitActionFormHide = null;
+    public mixed $submitActionMessage = null;
+    public mixed $submitActionMessageTimeout = null;
+    public string $submitActionMessagePosition = 'top-form';
+    public ?string $loadingIndicator = null;
+    public ?string $loadingIndicatorText = null;
 
     // Behaviour - Validation
-    public $validationOnSubmit;
-    public $validationOnFocus;
-    public $errorMessage;
-    public $errorMessagePosition = 'top-form';
+    public ?bool $validationOnSubmit = null;
+    public ?bool $validationOnFocus = null;
+    public mixed $errorMessage = null;
+    public string $errorMessagePosition = 'top-form';
 
     // Behaviour - Availability
-    public $availabilityMessage;
-    public $availabilityMessageDate;
-    public $availabilityMessageSubmissions;
+    public ?string $availabilityMessage = null;
+    public ?string $availabilityMessageDate = null;
+    public ?string $availabilityMessageSubmissions = null;
 
     // Integrations
-    public $integrations = [];
+    public array $integrations = [];
 
     // Settings
-    public $submissionTitleFormat = '{timestamp}';
+    public string $submissionTitleFormat = '{timestamp}';
 
     // Settings - Privacy
-    public $collectIp;
-    public $collectUser;
-    public $dataRetention;
-    public $dataRetentionValue;
-    public $fileUploadsAction;
+    public ?bool $collectIp = null;
+    public ?bool $collectUser = null;
+    public ?string $dataRetention = null;
+    public ?string $dataRetentionValue = null;
+    public ?string $fileUploadsAction = null;
 
     // Other
-    public $redirectUrl;
-    public $defaultEmailTemplateId = '';
+    public ?string $redirectUrl = null;
+    public ?string $defaultEmailTemplateId = null;
 
     // Private (template-only)
-    public $disableCaptchas = false;
+    public bool $disableCaptchas = false;
 
     // TODO: to remove
-    public $storeData;
-    public $userDeletedAction;
+    public ?bool $storeData = null;
+    public ?string $userDeletedAction = null;
 
 
     // Private Properties
     // =========================================================================
 
-    private $_form;
+    private ?Form $_form = null;
 
 
     // Public Methods
@@ -89,7 +87,7 @@ class FormSettings extends Model
     /**
      * @inheritDoc
      */
-    public function init()
+    public function init(): void
     {
         parent::init();
 
@@ -118,97 +116,37 @@ class FormSettings extends Model
         $this->defaultEmailTemplateId = $settings->getDefaultEmailTemplateId();
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function behaviors(): array
-    {
-        return [
-            'typecast' => [
-                'class' => AttributeTypecastBehavior::class,
-                'attributeTypes' => [
-                    'displayFormTitle' => AttributeTypecastBehavior::TYPE_BOOLEAN,
-                    'displayPageTabs' => AttributeTypecastBehavior::TYPE_BOOLEAN,
-                    'displayCurrentPageTitle' => AttributeTypecastBehavior::TYPE_BOOLEAN,
-                    'displayPageProgress' => AttributeTypecastBehavior::TYPE_BOOLEAN,
-                    'scrollToTop' => AttributeTypecastBehavior::TYPE_BOOLEAN,
-                    'submitMethod' => AttributeTypecastBehavior::TYPE_STRING,
-                    'submitAction' => AttributeTypecastBehavior::TYPE_STRING,
-                    'submitActionTab' => AttributeTypecastBehavior::TYPE_STRING,
-                    'submitActionFormHide' => AttributeTypecastBehavior::TYPE_BOOLEAN,
-                    'submitActionMessage' => AttributeTypecastBehavior::TYPE_STRING,
-                    'submitActionMessageTimeout' => AttributeTypecastBehavior::TYPE_INTEGER,
-                    'submitActionUrl' => AttributeTypecastBehavior::TYPE_STRING,
-                    'errorMessage' => AttributeTypecastBehavior::TYPE_STRING,
-                    'loadingIndicator' => AttributeTypecastBehavior::TYPE_STRING,
-                    'loadingIndicatorText' => AttributeTypecastBehavior::TYPE_STRING,
-                    'validationOnSubmit' => AttributeTypecastBehavior::TYPE_BOOLEAN,
-                    'validationOnFocus' => AttributeTypecastBehavior::TYPE_BOOLEAN,
-                    'submissionTitleFormat' => AttributeTypecastBehavior::TYPE_STRING,
-                    'collectIp' => AttributeTypecastBehavior::TYPE_BOOLEAN,
-                    'collectUser' => AttributeTypecastBehavior::TYPE_BOOLEAN,
-                    'storeData' => AttributeTypecastBehavior::TYPE_BOOLEAN,
-                    'availabilityMessage' => AttributeTypecastBehavior::TYPE_STRING,
-                    'defaultLabelPosition' => AttributeTypecastBehavior::TYPE_STRING,
-                    'defaultInstructionsPosition' => AttributeTypecastBehavior::TYPE_STRING,
-                    'progressPosition' => AttributeTypecastBehavior::TYPE_STRING,
-                ]
-            ]
-        ];
-    }
-    
-    /**
-     * @inheritDoc
-     */
-    public function getForm()
+    public function getForm(): ?Form
     {
         return $this->_form;
     }
-    
-    /**
-     * @inheritDoc
-     */
-    public function setForm($value)
+
+    public function setForm($value): void
     {
         $this->_form = $value;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getSubmitActionMessage($submission = null)
+    public function getSubmitActionMessage($submission = null): string
     {
         return Craft::t('site', $this->_getHtmlContent($this->submitActionMessage, $submission));
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getSubmitActionMessageHtml()
+    public function getSubmitActionMessageHtml(): string
     {
         return $this->_getHtmlContent($this->submitActionMessage);
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getErrorMessage()
+    public function getErrorMessage(): string
     {
         return Craft::t('site', $this->_getHtmlContent($this->errorMessage));
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getErrorMessageHtml()
+    public function getErrorMessageHtml(): string
     {
         return $this->_getHtmlContent($this->errorMessage);
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getEnabledIntegrations()
+    public function getEnabledIntegrations(): array
     {
         $enabledIntegrations = [];
 
@@ -236,9 +174,12 @@ class FormSettings extends Model
     /**
      * Gets the form's redirect URL.
      *
+     * @param bool $checkLastPage
      * @return String
+     * @throws \Twig\Error\LoaderError
+     * @throws \Twig\Error\SyntaxError
      */
-    public function getFormRedirectUrl($checkLastPage = true)
+    public function getFormRedirectUrl($checkLastPage = true): string
     {
         return $this->getForm()->getRedirectUrl($checkLastPage);
     }
@@ -248,7 +189,7 @@ class FormSettings extends Model
      *
      * @return Entry|null
      */
-    public function getRedirectEntry()
+    public function getRedirectEntry(): ?Entry
     {
         return $this->getForm()->getRedirectEntry();
     }
@@ -256,11 +197,8 @@ class FormSettings extends Model
 
     // Private Methods
     // =========================================================================
-    
-    /**
-     * @inheritDoc
-     */
-    private function _getHtmlContent($content, $submission = null)
+
+    private function _getHtmlContent($content, $submission = null): string
     {
         return RichTextHelper::getHtmlContent($content, $submission);
     }

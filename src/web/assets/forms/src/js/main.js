@@ -474,7 +474,7 @@ Craft.Formie = Garnish.Base.extend({
                         }
 
                         Craft.appendHeadHtml(data.headHtml);
-                        Craft.appendFootHtml(data.bodyHtml);
+                        Craft.appendBodyHtml(data.bodyHtml);
                         Craft.cp.initTabs();
 
                         this.formTemplateLoading = false;

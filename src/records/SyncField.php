@@ -2,10 +2,6 @@
 namespace verbb\formie\records;
 
 use craft\db\ActiveRecord;
-use craft\records\Element;
-
-use DateTime;
-use yii\db\ActiveQueryInterface;
 
 /**
  * Class SyncField

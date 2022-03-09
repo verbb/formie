@@ -3,23 +3,20 @@ namespace verbb\formie\helpers;
 
 use verbb\formie\Formie;
 use verbb\formie\fields\formfields\Group;
-use verbb\formie\helpers\ArrayHelper;
 
 use Craft;
 use craft\fields\BaseRelationField;
 use craft\helpers\StringHelper;
 
 use Symfony\Component\ExpressionLanguage\ExpressionLanguage;
+use Throwable;
 
 class ConditionsHelper
 {
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
-    public static function getEvaluator()
+    public static function getEvaluator(): ExpressionLanguage
     {
         $expressionLanguage = new ExpressionLanguage();
 
@@ -27,17 +24,17 @@ class ConditionsHelper
         $expressionLanguage->register('contains', function() {}, function($args, $subject, $pattern) {
             if (is_array($subject)) {
                 return in_array($pattern, $subject);
-            } else {
-                return StringHelper::contains((string)$subject, $pattern);
             }
+
+            return StringHelper::contains((string)$subject, $pattern);
         });
 
         $expressionLanguage->register('notContains', function() {}, function($args, $subject, $pattern) {
             if (is_array($subject)) {
                 return !in_array($pattern, $subject);
-            } else {
-                return !StringHelper::contains((string)$subject, $pattern);
             }
+
+            return !StringHelper::contains((string)$subject, $pattern);
         });
 
         $expressionLanguage->register('startsWith', function() {}, function($args, $subject, $pattern) {
@@ -51,10 +48,7 @@ class ConditionsHelper
         return $expressionLanguage;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public static function getCondition($condition)
+    public static function getCondition($condition): string
     {   
         // Handle some settings defined in JS, so they're compatible with the evaluator we're using.
         // FYI, mostly for backward compatibility with `hoa/ruler` conditions.
@@ -65,10 +59,7 @@ class ConditionsHelper
         return $condition;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public static function getRule($condition)
+    public static function getRule($condition): string
     {
         // Convert condition set via JS into ruler-compatible
         $operator = ConditionsHelper::getCondition($condition);
@@ -82,10 +73,7 @@ class ConditionsHelper
         return "field {$operator} value";
     }
 
-    /**
-     * @inheritDoc
-     */
-    public static function evaluateConditions($conditions, $submission, $callback = null)
+    public static function evaluateConditions($conditions, $submission, $callback = null): array
     {
         $results = [];
         $evaluator = ConditionsHelper::getEvaluator();
@@ -150,7 +138,7 @@ class ConditionsHelper
                 } else {
                     $results[] = $result;
                 }
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 Formie::error(Craft::t('formie', 'Failed to parse conditional “{rule}”: “{message}” {file}:{line}', [
                     'rule' => trim(ArrayHelper::recursiveImplode('', $condition)),
                     'message' => $e->getMessage(),
@@ -165,10 +153,7 @@ class ConditionsHelper
         return $results;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public static function getConditionalTestResult($conditionSettings, $submission)
+    public static function getConditionalTestResult($conditionSettings, $submission): bool
     {
         $conditions = $conditionSettings['conditions'] ?? [];
 
@@ -180,21 +165,18 @@ class ConditionsHelper
             // Are _all_ the conditions the same?
             $result = (bool)array_product($results);
         } else {
-            $result = (bool)in_array(true, $results);
+            $result = in_array(true, $results);
         }
 
         return $result;
     }
 
-    /**
-     * @inheritdoc
-     */
     public static function getSerializedFieldValues($submission): array
     {
         $serializedValues = [];
 
         if ($fieldLayout = $submission->getFieldLayout()) {
-            foreach ($fieldLayout->getFields() as $field) {
+            foreach ($fieldLayout->getCustomFields() as $field) {
                 $value = $submission->getFieldValue($field->handle);
 
                 // Special-handling for element fields which for integrations contain their titles

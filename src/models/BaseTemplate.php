@@ -3,13 +3,12 @@ namespace verbb\formie\models;
 
 use Craft;
 use craft\base\Model;
-use craft\db\ActiveRecord;
 use craft\db\SoftDeleteTrait;
 use craft\helpers\FileHelper;
 use craft\validators\HandleValidator;
 use craft\validators\UniqueValidator;
-use yii\behaviors\AttributeTypecastBehavior;
 use yii\validators\Validator;
+use DateTime;
 
 abstract class BaseTemplate extends Model
 {
@@ -18,19 +17,19 @@ abstract class BaseTemplate extends Model
     }
 
 
-    // Public Properties
+    // Properties
     // =========================================================================
 
-    public $id;
-    public $name;
-    public $handle;
-    public $template;
-    public $sortOrder;
-    public $dateDeleted;
-    public $uid;
+    public ?int $id = null;
+    public ?string $name = null;
+    public ?string $handle = null;
+    public ?string $template = null;
+    public ?int $sortOrder = null;
+    public ?DateTime $dateDeleted = null;
+    public ?string $uid = null;
     
-    public $copyTemplates = false;
-    public $hasSingleTemplate = false;
+    public bool $copyTemplates = false;
+    public bool $hasSingleTemplate = false;
 
 
     // Public Methods
@@ -41,7 +40,7 @@ abstract class BaseTemplate extends Model
      */
     public function __toString()
     {
-        return (string)$this->getDisplayName();
+        return $this->getDisplayName();
     }
 
     /**
@@ -116,28 +115,6 @@ abstract class BaseTemplate extends Model
         }];
 
         return $rules;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function behaviors(): array
-    {
-        $behaviors = $this->softDeleteBehaviors();
-
-        $behaviors['typecast'] = [
-            'class' => AttributeTypecastBehavior::class,
-            'attributeTypes' => [
-                'id' => AttributeTypecastBehavior::TYPE_INTEGER,
-                'name' => AttributeTypecastBehavior::TYPE_STRING,
-                'handle' => AttributeTypecastBehavior::TYPE_STRING,
-                'template' => AttributeTypecastBehavior::TYPE_STRING,
-                'sortOrder' => AttributeTypecastBehavior::TYPE_INTEGER,
-                'uid' => AttributeTypecastBehavior::TYPE_STRING,
-            ]
-        ];
-
-        return $behaviors;
     }
 
     /**

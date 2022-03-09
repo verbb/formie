@@ -1,40 +1,34 @@
 <?php
 namespace verbb\formie\integrations\crm;
 
-use verbb\formie\Formie;
 use verbb\formie\base\Crm;
 use verbb\formie\base\Integration;
-use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
-use verbb\formie\errors\IntegrationException;
-use verbb\formie\events\SendIntegrationPayloadEvent;
 use verbb\formie\helpers\ArrayHelper;
-use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
 use craft\helpers\Json;
-use craft\helpers\StringHelper;
-use craft\web\View;
+use GuzzleHttp\Client;
+use Throwable;
+use Exception;
 
 class Maximizer extends Crm
 {
     // Properties
     // =========================================================================
 
-    public $username;
-    public $password;
-    public $webAccessUrl;
-    public $databaseId;
-    public $vendorId;
-    public $appKey;
-    public $mapToContact = false;
-    public $mapToOpportunity = false;
-    public $contactFieldMapping;
-    public $opportunityFieldMapping;
-
-    private $_token;
+    public ?string $username = null;
+    public ?string $password = null;
+    public ?string $webAccessUrl = null;
+    public ?string $databaseId = null;
+    public ?string $vendorId = null;
+    public ?string $appKey = null;
+    public bool $mapToContact = false;
+    public bool $mapToOpportunity = false;
+    public ?array $contactFieldMapping = null;
+    public ?array $opportunityFieldMapping = null;
 
 
     // Public Methods
@@ -48,9 +42,6 @@ class Maximizer extends Crm
         return Craft::t('formie', 'Maximizer');
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getDescription(): string
     {
         return Craft::t('formie', 'Manage your Maximizer customers by providing important information on their conversion on your site.');
@@ -80,10 +71,7 @@ class Maximizer extends Crm
         return $rules;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function fetchFormSettings()
+    public function fetchFormSettings(): IntegrationFormSettings
     {
         $settings = [];
 
@@ -118,16 +106,13 @@ class Maximizer extends Crm
                 'contact' => $contactFields,
                 'opportunity' => $opportunityFields,
             ];
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Integration::apiError($this, $e);
         }
 
         return new IntegrationFormSettings($settings);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function sendPayload(Submission $submission): bool
     {
         try {
@@ -157,7 +142,7 @@ class Maximizer extends Crm
                 $code = $response['Code'] ?? -1;
 
                 if ($code !== 0) {
-                    throw new \Exception(Json::encode($response));
+                    throw new Exception(Json::encode($response));
                 }
             }
 
@@ -181,10 +166,10 @@ class Maximizer extends Crm
                 $code = $response['Code'] ?? -1;
 
                 if ($code !== 0) {
-                    throw new \Exception(Json::encode($response));
+                    throw new Exception(Json::encode($response));
                 }
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
             return false;
@@ -206,9 +191,6 @@ class Maximizer extends Crm
         return parent::request($method, $uri, $options);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function fetchConnection(): bool
     {
         try {
@@ -235,9 +217,9 @@ class Maximizer extends Crm
             $errorMessage = $response['Msg'][0]['Message'] ?? '';
 
             if ($errorMessage) {
-                throw new \Exception(Json::encode($response));
+                throw new Exception(Json::encode($response));
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
             return false;
@@ -246,10 +228,7 @@ class Maximizer extends Crm
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getClient()
+    public function getClient(): Client
     {
         if ($this->_client) {
             return $this->_client;
@@ -278,7 +257,7 @@ class Maximizer extends Crm
             'headers' => [
                 'Content-Type' => 'application/json',
 
-                // Save it in the header so we can attach it on every request later
+                // Save it in the header, so we can attach it on every request later
                 'X-Token' => $token,
             ],
         ]);
@@ -288,9 +267,6 @@ class Maximizer extends Crm
     // Private Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     private function _convertFieldType($fieldType)
     {
         $fieldTypes = [
@@ -307,7 +283,7 @@ class Maximizer extends Crm
     // /**
     //  * @inheritDoc
     //  */
-    private function _getCustomFields($fields, $parentFieldKey = '', $parentField = [])
+    private function _getCustomFields($fields, $parentFieldKey = '', $parentField = []): array
     {
         $customFields = [];
 
@@ -364,10 +340,7 @@ class Maximizer extends Crm
         return $customFields;
     }
 
-    /**
-     * @inheritDoc
-     */
-    private function _prepPayload($fields)
+    private function _prepPayload($fields): array
     {
         return ArrayHelper::expand($fields, ':');
     }

@@ -3,11 +3,8 @@ namespace verbb\formie\integrations\crm;
 
 use verbb\formie\base\Crm;
 use verbb\formie\base\Integration;
-use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
-use verbb\formie\errors\IntegrationException;
 use verbb\formie\events\ModifyFieldIntegrationValueEvent;
-use verbb\formie\events\SendIntegrationPayloadEvent;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
@@ -15,27 +12,28 @@ use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
 use craft\helpers\Json;
-use craft\web\View;
 
 use yii\base\Event;
+use GuzzleHttp\Client;
+use Throwable;
 
 class HubSpot extends Crm
 {
     // Properties
     // =========================================================================
 
-    public $apiKey;
-    public $mapToContact = false;
-    public $mapToDeal = false;
-    public $mapToCompany = false;
-    public $mapToForm = false;
-    public $contactFieldMapping;
-    public $dealFieldMapping;
-    public $companyFieldMapping;
-    public $formFieldMapping;
-    public $formId;
+    public ?string $apiKey = null;
+    public bool $mapToContact = false;
+    public bool $mapToDeal = false;
+    public bool $mapToCompany = false;
+    public bool $mapToForm = false;
+    public ?array $contactFieldMapping = null;
+    public ?array $dealFieldMapping = null;
+    public ?array $companyFieldMapping = null;
+    public ?array $formFieldMapping = null;
+    public ?string $formId = null;
 
-    private $_formsClient;
+    private ?Client $_formsClient = null;
 
 
     // Public Methods
@@ -44,7 +42,7 @@ class HubSpot extends Crm
     /**
      * @inheritDoc
      */
-    public function init()
+    public function init(): void
     {
         parent::init();
 
@@ -57,7 +55,7 @@ class HubSpot extends Crm
 
             // Special handling for arrays for checkboxes
             if ($event->integrationField->getType() === IntegrationField::TYPE_ARRAY) {
-                $event->value = array_filter($event->value);
+                $event->value = array_filter((array)$event->value);
                 $event->value = ArrayHelper::recursiveImplode(';', $event->value);
             }
         });
@@ -71,9 +69,6 @@ class HubSpot extends Crm
         return Craft::t('formie', 'HubSpot');
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getDescription(): string
     {
         return Craft::t('formie', 'Manage your HubSpot customers by providing important information on their conversion on your site.');
@@ -103,11 +98,9 @@ class HubSpot extends Crm
         return $rules;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function fetchFormSettings()
+    public function fetchFormSettings(): IntegrationFormSettings
     {
+        $settings = [];
         $dealPipelinesOptions = [];
         $dealStageOptions = [];
 
@@ -206,7 +199,7 @@ class HubSpot extends Crm
                     'company' => $companyFields,
                 ];
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Integration::apiError($this, $e);
         }
 
@@ -223,9 +216,6 @@ class HubSpot extends Crm
         return new IntegrationFormSettings($settings);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function sendPayload(Submission $submission): bool
     {
         try {
@@ -339,7 +329,7 @@ class HubSpot extends Crm
                     $formPayload['context']['pageUri'] = $pageUri;
                 }
 
-                list($portalId, $formGuid) = explode('__', $this->formId);
+                [$portalId, $formGuid] = explode('__', $this->formId);
 
                 // Bloody HubSpot have old APIs, so they require a separate endpoint
                 $endpoint = "submissions/v3/integration/submit/${portalId}/${formGuid}";
@@ -362,7 +352,7 @@ class HubSpot extends Crm
                     return true;
                 }
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
             return false;
@@ -371,14 +361,11 @@ class HubSpot extends Crm
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function fetchConnection(): bool
     {
         try {
             $response = $this->request('GET', 'crm/v3/properties/contacts');
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
             return false;
@@ -387,10 +374,7 @@ class HubSpot extends Crm
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getClient()
+    public function getClient(): Client
     {
         if ($this->_client) {
             return $this->_client;
@@ -402,10 +386,7 @@ class HubSpot extends Crm
         ]);
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getFormsClient()
+    public function getFormsClient(): Client
     {
         if ($this->_formsClient) {
             return $this->_formsClient;
@@ -420,9 +401,6 @@ class HubSpot extends Crm
     // Private Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     private function _convertFieldType($fieldType)
     {
         $fieldTypes = [
@@ -435,10 +413,7 @@ class HubSpot extends Crm
         return $fieldTypes[$fieldType] ?? IntegrationField::TYPE_STRING;
     }
 
-    /**
-     * @inheritDoc
-     */
-    private function _getCustomFields($fields, $excludeNames = [])
+    private function _getCustomFields($fields, $excludeNames = []): array
     {
         $customFields = [];
 
@@ -475,7 +450,7 @@ class HubSpot extends Crm
             $options = [];
             $fieldOptions = $field['options'] ?? [];
 
-            foreach ($fieldOptions as $key => $fieldOption) {
+            foreach ($fieldOptions as $fieldOption) {
                 $options[] = [
                     'label' => $fieldOption['label'],
                     'value' => $fieldOption['value'],
@@ -500,10 +475,7 @@ class HubSpot extends Crm
         return $customFields;
     }
 
-    /**
-     * @inheritDoc
-     */
-    private function _getFormFields($form)
+    private function _getFormFields($form): array
     {
         $fields = [];
 

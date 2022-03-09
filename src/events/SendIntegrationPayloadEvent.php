@@ -1,6 +1,9 @@
 <?php
 namespace verbb\formie\events;
 
+use verbb\formie\base\Integration;
+use verbb\formie\elements\Submission;
+
 use craft\events\CancelableEvent;
 
 class SendIntegrationPayloadEvent extends CancelableEvent
@@ -8,11 +11,11 @@ class SendIntegrationPayloadEvent extends CancelableEvent
     // Properties
     // =========================================================================
 
-    public $submission;
-    public $integration;
-    public $payload;
-    public $response;
-    public $endpoint;
-    public $method;
+    public ?Submission $submission = null;
+    public ?Integration $integration = null;
+    public mixed $payload = null;
+    public mixed $response = null;
+    public ?string $endpoint = null;
+    public ?string $method = null;
     
 }

@@ -13,6 +13,7 @@ use verbb\formie\migrations\MigrateSproutForms;
 use barrelstrength\sproutforms\elements\Form as SproutFormsForm;
 
 use yii\base\Exception;
+use Throwable;
 
 class MigrationsController extends Controller
 {
@@ -24,7 +25,7 @@ class MigrationsController extends Controller
      * @throws ShellCommandException
      * @throws Exception
      */
-    public function actionSproutForms()
+    public function actionSproutForms(): void
     {
         App::maxPowerCaptain();
 
@@ -48,11 +49,10 @@ class MigrationsController extends Controller
             try {
                 ob_start();
                 $migration->up();
-                $output = ob_get_contents();
-                ob_end_clean();
+                $output = ob_get_clean();
 
                 $outputs[$form->id] = nl2br($output);
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 $outputs[$form->id] = 'Failed to migrate: ' . $e->getMessage();
             }
         }
@@ -71,7 +71,7 @@ class MigrationsController extends Controller
      * @throws ShellCommandException
      * @throws Exception
      */
-    public function actionFreeform()
+    public function actionFreeform(): void
     {
         App::maxPowerCaptain();
 
@@ -101,11 +101,10 @@ class MigrationsController extends Controller
             try {
                 ob_start();
                 $migration->up();
-                $output = ob_get_contents();
-                ob_end_clean();
+                $output = ob_get_clean();
 
                 $outputs[$form->id] = nl2br($output);
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 $outputs[$form->id] = 'Failed to migrate: ' . $e->getMessage();
             }
         }

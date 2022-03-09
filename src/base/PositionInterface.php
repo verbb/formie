@@ -30,5 +30,5 @@ interface PositionInterface extends ComponentInterface
      * @param FormFieldInterface|null $field
      * @return string|null the PositionInterface class name
      */
-    public static function fallback(FormFieldInterface $field = null);
+    public static function fallback(FormFieldInterface $field = null): ?string;
 }

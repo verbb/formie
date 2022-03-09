@@ -9,8 +9,6 @@ use craft\helpers\App;
 use craft\helpers\Db;
 use craft\helpers\Json;
 use craft\helpers\StringHelper;
-use craft\mail\Mailer as CraftMailer;
-use craft\mail\Message;
 use craft\mail\transportadapters\BaseTransportAdapter;
 use craft\mail\transportadapters\Smtp;
 
@@ -19,16 +17,14 @@ use yii\base\Component;
 use DateInterval;
 use DateTime;
 use Throwable;
+use verbb\formie\models\Settings;
 
 class SentNotifications extends Component
 {
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritdoc
-     */
-    public function saveSentNotification($submission, $notification, $email, $success = true, $error = null)
+    public function saveSentNotification($submission, $notification, $email, $success = true, $error = null): void
     {
         $settings = Formie::$plugin->getSettings();
 
@@ -114,10 +110,7 @@ class SentNotifications extends Component
         }
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function getDeliveryInfo($email)
+    public function getDeliveryInfo($email): array
     {
         $info = [];
 
@@ -156,7 +149,7 @@ class SentNotifications extends Component
     /**
      * Deletes sent notifications older than the configured interval.
      */
-    public function pruneSentNotifications()
+    public function pruneSentNotifications(): void
     {
         /* @var Settings $settings */
         $settings = Formie::$plugin->getSettings();

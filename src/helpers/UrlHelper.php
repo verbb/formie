@@ -3,9 +3,6 @@ namespace verbb\formie\helpers;
 
 use Craft;
 use craft\helpers\UrlHelper as CraftUrlHelper;
-use craft\helpers\StringHelper;
-
-use Throwable;
 
 class UrlHelper
 {

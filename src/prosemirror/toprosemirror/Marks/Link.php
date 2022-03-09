@@ -4,12 +4,12 @@ namespace verbb\formie\prosemirror\toprosemirror\Marks;
 
 class Link extends Mark
 {
-    public function matching()
+    public function matching(): bool
     {
         return $this->DOMNode->nodeName === 'a';
     }
 
-    public function data()
+    public function data(): array
     {
         $data = [
             'type' => 'link',

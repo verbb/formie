@@ -8,12 +8,12 @@ use verbb\formie\gql\resolvers\mutations\SubmissionResolver;
 use verbb\formie\gql\types\generators\SubmissionGenerator;
 
 use Craft;
-use craft\gql\base\ElementMutationArguments;
 use craft\gql\base\ElementMutationResolver;
 use craft\gql\base\Mutation;
 use craft\helpers\Gql;
 
 use GraphQL\Type\Definition\Type;
+use yii\base\InvalidConfigException;
 
 class SubmissionMutation extends Mutation
 {
@@ -71,7 +71,7 @@ class SubmissionMutation extends Mutation
      *
      * @param Form $form
      * @return array
-     * @throws \yii\base\InvalidConfigException
+     * @throws InvalidConfigException
      */
     public static function createSaveMutation(Form $form): array
     {
@@ -81,9 +81,9 @@ class SubmissionMutation extends Mutation
 
         $resolver = Craft::createObject(SubmissionResolver::class);
         $resolver->setResolutionData('form', $form);
-        $contentFields = $form->getFields();
+        $contentFields = $form->getCustomFields();
 
-        foreach ($contentFields as &$contentField) {
+        foreach ($contentFields as $contentField) {
             $contentField->formId = $form->id;
         }
 

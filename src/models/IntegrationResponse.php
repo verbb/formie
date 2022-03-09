@@ -2,26 +2,23 @@
 namespace verbb\formie\models;
 
 use craft\base\Model;
-use craft\helpers\ArrayHelper;
-use craft\helpers\StringHelper;
 
 class IntegrationResponse extends Model
 {
     // Properties
     // =========================================================================
 
-    public $success;
-    public $message;
+    public ?bool $success = null;
+    public ?array $message = null;
 
 
     // Public Methods
     // =========================================================================
 
-    /**
-     * @return string
-     */
     public function __construct($success, $message = [])
     {
+        parent::__construct();
+
         $this->success = $success;
         $this->message = $message;
     }

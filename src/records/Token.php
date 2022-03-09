@@ -3,8 +3,6 @@ namespace verbb\formie\records;
 
 use craft\db\ActiveRecord;
 
-use yii\db\ActiveQueryInterface;
-
 class Token extends ActiveRecord
 {
     // Public Methods

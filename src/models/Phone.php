@@ -3,31 +3,20 @@ namespace verbb\formie\models;
 
 use Craft;
 use craft\base\Model;
-use craft\helpers\ArrayHelper;
-use craft\helpers\StringHelper;
 
 use libphonenumber\NumberParseException;
 use libphonenumber\PhoneNumberFormat;
 use libphonenumber\PhoneNumberUtil;
+use Throwable;
 
 class Phone extends Model
 {
     // Properties
     // =========================================================================
 
-    /**
-     * @var string
-     */
-    public $number;
-    /**
-     * @var string
-     */
-    public $country;
-
-    /**
-     * @var bool
-     */
-    public $hasCountryCode;
+    public ?string $number = null;
+    public ?string $country = null;
+    public ?bool $hasCountryCode = null;
 
 
     // Public Methods
@@ -50,8 +39,10 @@ class Phone extends Model
                 if ($this->number) {
                     $countryString = $this->country ? '(' . $this->country . ') ' : '';
                     
-                    return $countryString . (string)$this->number;
-                } else if ($this->country) {
+                    return $countryString . $this->number;
+                }
+
+                if ($this->country) {
                     return Craft::t('formie', '({country}) Not provided.', [
                         'country' => $this->country,
                     ]);
@@ -64,10 +55,7 @@ class Phone extends Model
         }
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getCountryCode()
+    public function getCountryCode(): string
     {
         if ($this->hasCountryCode) {
             try {
@@ -78,7 +66,7 @@ class Phone extends Model
                 if ($countryCode) {
                     return '+' . $countryCode;
                 }
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 
             }
         }

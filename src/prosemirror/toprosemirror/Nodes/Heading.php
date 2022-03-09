@@ -11,12 +11,12 @@ class Heading extends Node
         return $match[1] ?? null;
     }
 
-    public function matching()
+    public function matching(): bool
     {
         return (boolean) $this->getLevel($this->DOMNode->nodeName);
     }
 
-    public function data()
+    public function data(): ?array
     {
         return [
             'type' => 'heading',

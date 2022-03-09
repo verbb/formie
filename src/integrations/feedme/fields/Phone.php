@@ -6,6 +6,7 @@ use craft\feedme\base\FieldInterface;
 use craft\feedme\helpers\DataHelper;
 
 use Cake\Utility\Hash;
+use verbb\formie\fields\formfields\Phone as PhoneField;
 
 class Phone extends Field implements FieldInterface
 {
@@ -26,7 +27,7 @@ class Phone extends Field implements FieldInterface
     /**
      * @var string
      */
-    public static $class = 'verbb\formie\fields\formfields\Phone';
+    public static $class = PhoneField::class;
 
 
     // Templates

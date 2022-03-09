@@ -6,6 +6,7 @@ use craft\feedme\base\FieldInterface;
 use craft\feedme\helpers\DataHelper;
 
 use Cake\Utility\Hash;
+use verbb\formie\fields\formfields\Name as NameField;
 
 class Name extends Field implements FieldInterface
 {
@@ -26,7 +27,7 @@ class Name extends Field implements FieldInterface
     /**
      * @var string
      */
-    public static $class = 'verbb\formie\fields\formfields\Name';
+    public static $class = NameField::class;
 
 
     // Templates
@@ -70,8 +71,8 @@ class Name extends Field implements FieldInterface
             }
 
             return $preppedData;
-        } else {
-            return $this->fetchValue();
         }
+
+        return $this->fetchValue();
     }
 }

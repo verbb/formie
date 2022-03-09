@@ -6,7 +6,7 @@ use craft\elements\Tag as CraftTag;
 
 class Tag extends CraftTag
 {
-    // Static
+    // Static Methods
     // =========================================================================
 
     /**

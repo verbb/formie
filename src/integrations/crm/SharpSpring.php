@@ -7,31 +7,27 @@ use verbb\formie\base\Integration;
 use verbb\formie\base\SubfieldInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
-use verbb\formie\errors\IntegrationException;
-use verbb\formie\events\SendIntegrationPayloadEvent;
 use verbb\formie\fields\formfields\Group;
 use verbb\formie\models\FakeElementQuery;
-use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
-use craft\helpers\ArrayHelper;
-use craft\helpers\Json;
-use craft\web\View;
+use GuzzleHttp\Client;
+use Throwable;
 
 class SharpSpring extends Crm
 {
     // Properties
     // =========================================================================
 
-    public $accountId;
-    public $secretKey;
-    public $formUrl;
-    public $mapToContact = false;
-    public $mapToForm = false;
-    public $contactFieldMapping;
-    public $endpoint;
+    public ?string $accountId = null;
+    public ?string $secretKey = null;
+    public ?string $formUrl = null;
+    public bool $mapToContact = false;
+    public bool $mapToForm = false;
+    public ?array $contactFieldMapping = null;
+    public ?string $endpoint = null;
 
 
     // Public Methods
@@ -45,9 +41,6 @@ class SharpSpring extends Crm
         return Craft::t('formie', 'SharpSpring');
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getDescription(): string
     {
         return Craft::t('formie', 'Manage your SharpSpring customers by providing important information on their conversion on your site.');
@@ -72,10 +65,7 @@ class SharpSpring extends Crm
         return $rules;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function fetchFormSettings()
+    public function fetchFormSettings(): IntegrationFormSettings
     {
         $settings = [];
 
@@ -95,12 +85,12 @@ class SharpSpring extends Crm
                     // Create a fake submission to send to SharpSpring
                     $submission = new Submission();
                     $submission->setForm($form);
-                    $fieldContent = Formie::$plugin->getSubmissions()->populateFakeSubmission($submission);
-                    
+                    Formie::$plugin->getSubmissions()->populateFakeSubmission($submission);
+
                     $response = $this->_sendFormSubmission($endpoint, $submission);
 
                     // HTML/JS is returned from the response, so handle that.
-                    if (strstr($response, '__ss_noform.success = true')) {
+                    if (strpos($response, '__ss_noform.success = true') !== false) {
                         $settings['syncFormSuccess'] = Craft::t('formie', 'Successfully synced with SharpSpring');
                     } else {
                         $settings['syncFormError'] = $response;
@@ -202,12 +192,12 @@ class SharpSpring extends Crm
                     'contact' => $contactFields,
                 ];
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Integration::apiError($this, $e);
         }
 
-        // Because we have split settings for partial settings fetches, enssure we populate settings from cache
-        // So we need to unserialize the cached form settings, and combine with any new settings and return
+        // Because we have split settings for partial settings fetches, ensure we populate settings from cache
+        // So we need to un-serialize the cached form settings, and combine with any new settings and return
         $cachedSettings = $this->cache['settings'] ?? [];
 
         if ($cachedSettings) {
@@ -219,9 +209,6 @@ class SharpSpring extends Crm
         return new IntegrationFormSettings($settings);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function sendPayload(Submission $submission): bool
     {
         try {
@@ -249,7 +236,7 @@ class SharpSpring extends Crm
             if ($this->mapToForm) {
                 $response = $this->_sendFormSubmission($this->endpoint, $submission);
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
             return false;
@@ -257,14 +244,11 @@ class SharpSpring extends Crm
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function fetchConnection(): bool
     {
         try {
             $response = $this->request('GET', '');
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
             return false;
@@ -273,10 +257,7 @@ class SharpSpring extends Crm
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getClient()
+    public function getClient(): Client
     {
         if ($this->_client) {
             return $this->_client;
@@ -295,9 +276,6 @@ class SharpSpring extends Crm
     // Private Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     private function _convertFieldType($fieldType)
     {
         $fieldTypes = [
@@ -308,10 +286,7 @@ class SharpSpring extends Crm
         return $fieldTypes[$fieldType] ?? IntegrationField::TYPE_STRING;
     }
 
-    /**
-     * @inheritDoc
-     */
-    private function _getCustomFields($fields, $excludeNames = [])
+    private function _getCustomFields($fields, $excludeNames = []): array
     {
         $customFields = [];
 
@@ -336,10 +311,7 @@ class SharpSpring extends Crm
         return $customFields;
     }
 
-    /**
-     * @inheritDoc
-     */
-    private function _sendFormSubmission($endpoint, $submission)
+    private function _sendFormSubmission($endpoint, $submission): string
     {
         $formUrl = Craft::parseEnv($this->formUrl);
 
@@ -347,7 +319,7 @@ class SharpSpring extends Crm
 
         // Convert the subscription fields into a format SharpSpring can handle
         // This is unfortunately very specialised...
-        foreach ($submission->getFieldLayout()->getFields() as $field) {
+        foreach ($submission->getFieldLayout()->getCustomFields() as $field) {
             $value = $submission->getFieldValue($field->handle);
 
             if (method_exists($field, 'serializeValueForIntegration')) {
@@ -356,15 +328,13 @@ class SharpSpring extends Crm
                 $value = $field->serializeValue($value, $submission);
             }
 
-            // Handle when generating a fake submission to setup mapping, this doesn't mess
+            // Handle when generating a fake submission to set up mapping, this doesn't mess
             // up group fields (repeaters technically work, but aren't supported in SharpSpring)
-            if ($value instanceof FakeElementQuery) {
-                if ($row = $value->one()) {
-                    $value = $row->getSerializedFieldValues();
-                }
+            if (($value instanceof FakeElementQuery) && $row = $value->one()) {
+                $value = $row->getSerializedFieldValues();
             }
 
-            // Handle sub-fields and group fields
+            // Handle subfields and group fields
             if ($field instanceof SubfieldInterface || $field instanceof Group) {
                 if (is_array($value)) {
                     foreach ($value as $k => $v) {
