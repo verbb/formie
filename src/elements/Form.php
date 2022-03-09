@@ -923,7 +923,6 @@ class Form extends Element
         if (!$submission) {
             $this->resetCurrentSubmission();
         } else {
-            Craft::$app->getContent()->populateElementContent($submission);
             Craft::$app->getSession()->set($this->_getSessionKey('submissionId'), $submission->id);
         }
 

@@ -61,11 +61,6 @@ class SetSubmissionStatus extends ElementAction
         $status = Formie::$plugin->getStatuses()->getStatusById($this->statusId);
 
         foreach ($elements as $element) {
-            // Without this, when updating submissions for "All forms", this will reset the content
-            // of a submission. This is because the query to fetch element's can't resolve the correct
-            // content table across multiple queries. This does add an extra query, but it's pretty unavoidable
-            Craft::$app->getContent()->populateElementContent($element);
-
             $element->setStatus($status);
 
             if ($elementsService->saveElement($element) === false) {

@@ -63,9 +63,6 @@ class SubmissionExport extends ElementExporter
             // Fetch the attributes for the element
             $row = $element->toArray($attributes);
 
-            // Unavoidable, but we need to ensure the correct content table is resolves when using "All Forms"
-            Craft::$app->getContent()->populateElementContent($element);
-
             // Fetch the custom field content, already prepped
             $fieldValues = $element->getValuesForExport();
 
