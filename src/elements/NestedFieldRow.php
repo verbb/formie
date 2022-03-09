@@ -169,7 +169,7 @@ class NestedFieldRow extends Element implements BlockElementInterface
 
             $fieldsByHandle = ArrayHelper::getColumn($fields, 'handle');
 
-            // Evaulate field conditions. What if this is a required field, but conditionally hidden?
+            // Evaluate field conditions. What if this is a required field, but conditionally hidden?
             foreach ($rules as $key => $rule) {
                 foreach ($fields as $field) {
                     [$attribute, $validator] = $rule;

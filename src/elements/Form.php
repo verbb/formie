@@ -78,7 +78,7 @@ class Form extends Element
     private ?Entry $_submitActionEntry = null;
     private ?array $_notifications = null;
     private ?Submission $_currentSubmission = null;
-    private ?bool $_editingSubmission = null;
+    private ?Submission $_editingSubmission = null;
     private ?string $_formId = null;
     private bool $_appliedFieldSettings = false;
     private bool $_appliedFormSettings = false;
@@ -896,13 +896,15 @@ class Form extends Element
         // Check if there's a session variable
         $submissionId = Craft::$app->getSession()->get($this->_getSessionKey('submissionId'));
 
-        if ($submissionId && $submission = Submission::find()->id($submissionId)->isIncomplete(true)->one()) {
+        if ($submissionId) {
+            $submission = Submission::find()->id($submissionId)->isIncomplete(true)->one();
+
             return $this->_currentSubmission = $submission;
         }
 
         // Or, if we're editing a submission
-        if ($submission = $this->_editingSubmission) {
-            return $this->_currentSubmission = $submission;
+        if ($this->_editingSubmission) {
+            return $this->_currentSubmission = $this->_editingSubmission;
         }
 
         return null;

@@ -8,7 +8,7 @@ class StringHelper extends CraftStringHelper
     // Public Methods
     // =========================================================================
 
-    public static function toId(mixed $value, bool $allowNull = true)
+    public static function toId(mixed $value, bool $allowNull = true): ?int
     {
         if ($allowNull && ($value === null || $value === '')) {
             return null;
@@ -17,5 +17,7 @@ class StringHelper extends CraftStringHelper
         if ($value === null || is_scalar($value)) {
             return (int)$value;
         }
+
+        return null;
     }
 }
