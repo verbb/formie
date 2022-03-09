@@ -75,7 +75,7 @@ class Extension extends AbstractExtension
         $view = $context['view'];
 
         $oldTemplatesPath = $view->getTemplatesPath();
-        $view->setTemplatesPath(Craft::$app->path->getSiteTemplatesPath());
+        $view->setTemplatesPath(Craft::$app->getPath()->getSiteTemplatesPath());
 
         $result = twig_include($env, $context, $template, $variables, $withContext, $ignoreMissing, $sandboxed);
 

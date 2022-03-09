@@ -24,7 +24,7 @@ class Notification extends Model
     public ?string $subject = null;
     public ?string $recipients = null;
     public ?string $to = null;
-    public ?string $toConditions = null;
+    public ?array $toConditions = null;
     public ?string $cc = null;
     public ?string $bcc = null;
     public ?string $replyTo = null;
@@ -34,7 +34,7 @@ class Notification extends Model
     public ?string $content = null;
     public ?bool $attachFiles = null;
     public ?string $attachPdf = null;
-    public ?string $attachAssets = null;
+    public ?array $attachAssets = null;
     public ?bool $enableConditions = null;
     public ?array $conditions = null;
     public ?string $uid = null;
@@ -120,7 +120,7 @@ class Notification extends Model
         }
 
         if ($this->recipients === 'conditions') {
-            $conditionSettings = Json::decode($this->toConditions) ?? [];
+            $conditionSettings = $this->toConditions ?? [];
             
             if ($conditionSettings) {
                 $toRecipients = $conditionSettings['toRecipients'] ?? [];
@@ -206,9 +206,7 @@ class Notification extends Model
 
     public function getAssetAttachments(): array
     {
-        $attachAssets = Json::decode($this->attachAssets) ?? [];
-
-        if ($ids = ArrayHelper::getColumn($attachAssets, 'id')) {
+        if ($ids = ArrayHelper::getColumn($this->attachAssets, 'id')) {
             return Asset::find()->id($ids)->all();
         }
 

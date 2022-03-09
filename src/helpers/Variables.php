@@ -139,7 +139,7 @@ class Variables
      * @return string|null
      * @throws \Exception
      */
-    public static function getParsedValue(string $value, Submission $submission = null, Form $form = null, Notification $notification = null): ?string
+    public static function getParsedValue(mixed $value, Submission $submission = null, Form $form = null, Notification $notification = null): ?string
     {
         $originalValue = $value;
 

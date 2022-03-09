@@ -528,7 +528,7 @@ class Install extends Migration
 
         foreach ($statuses as $status) {
             $orderStatus = new Status($status);
-            Formie::getInstance()->getStatuses()->saveStatus($orderStatus);
+            Formie::$plugin->getStatuses()->saveStatus($orderStatus);
         }
     }
 

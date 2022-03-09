@@ -75,7 +75,7 @@ class Form extends Element
     private ?array $_pages = null;
     private ?FormTemplate $_template = null;
     private ?Status $_defaultStatus = null;
-    private ?string $_submitActionEntry = null;
+    private ?Entry $_submitActionEntry = null;
     private ?array $_notifications = null;
     private ?Submission $_currentSubmission = null;
     private ?bool $_editingSubmission = null;

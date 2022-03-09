@@ -358,7 +358,7 @@ class SubmissionsController extends Controller
                 'success' => true,
                 'id' => $submission->id,
                 'title' => $submission->title,
-                'status' => $submission->getStatus(true)->handle ?? '',
+                'status' => $submission->getStatusModel(true)->handle ?? '',
                 'url' => $submission->getUrl(),
                 'cpEditUrl' => $submission->getCpEditUrl(),
             ]);

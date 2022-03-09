@@ -149,7 +149,7 @@ class Campaign extends EmailMarketing
     {
         $customFields = [];
 
-        $fieldLayout = Craft::$app->fields->getLayoutByType(ContactElement::class);
+        $fieldLayout = Craft::$app->getFields()->getLayoutByType(ContactElement::class);
 
         foreach ($fieldLayout->getCustomFields() as $field) {
             $customFields[] = new IntegrationField([

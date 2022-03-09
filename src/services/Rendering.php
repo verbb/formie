@@ -25,6 +25,7 @@ use Twig\Markup;
 
 use yii\base\Exception;
 use yii\base\InvalidConfigException;
+
 use Throwable;
 
 class Rendering extends Component
@@ -62,14 +63,14 @@ class Rendering extends Component
      * @throws SyntaxError
      * @throws \craft\errors\MissingComponentException
      */
-    public function renderForm(Form|string $form, array $options = null): ?Markup
+    public function renderForm(Form|string|null $form, array $options = null): ?Markup
     {
-        if (is_string($form)) {
-            $form = Form::find()->handle($form)->one();
-        }
-
         if (!$form) {
             return null;
+        }
+
+        if (is_string($form)) {
+            $form = Form::find()->handle($form)->one();
         }
 
         // Fire a 'modifyFormRenderOptions' event
@@ -147,13 +148,17 @@ class Rendering extends Component
      * @throws SyntaxError
      * @throws \craft\errors\MissingComponentException
      */
-    public function renderPage(Form $form, FieldLayoutPage $page = null, array $options = null): ?string
+    public function renderPage(Form|string|null $form, FieldLayoutPage $page = null, array $options = null): ?Markup
     {
-        $view = Craft::$app->getView();
-
         if (!$form) {
             return null;
         }
+
+        if (is_string($form)) {
+            $form = Form::find()->handle($form)->one();
+        }
+
+        $view = Craft::$app->getView();
 
         $templatePath = $this->getFormComponentTemplatePath($form, 'page');
         $oldTemplatesPath = $view->getTemplatesPath();
@@ -177,11 +182,11 @@ class Rendering extends Component
 
         // Fire a 'modifyRenderPage' event
         $event = new ModifyRenderEvent([
-            'html' => TemplateHelper::raw($html),
+            'html' => $html,
         ]);
         $this->trigger(self::EVENT_MODIFY_RENDER_PAGE, $event);
 
-        return $event->html;
+        return TemplateHelper::raw($event->html);
     }
 
     /**
@@ -194,13 +199,17 @@ class Rendering extends Component
      * @throws RuntimeError
      * @throws SyntaxError
      */
-    public function renderField(Form $form, FormFieldInterface $field, array $options = null): ?string
+    public function renderField(Form|string|null $form, FormFieldInterface|string $field, array $options = null): ?Markup
     {
-        $view = Craft::$app->getView();
-
         if (!$form) {
             return null;
         }
+
+        if (is_string($form)) {
+            $form = Form::find()->handle($form)->one();
+        }
+        
+        $view = Craft::$app->getView();
 
         if (is_string($field)) {
             $field = $form->getFieldByHandle($field);
@@ -236,11 +245,11 @@ class Rendering extends Component
 
         // Fire a 'modifyRenderField' event
         $event = new ModifyRenderEvent([
-            'html' => TemplateHelper::raw($html),
+            'html' => $html,
         ]);
         $this->trigger(self::EVENT_MODIFY_RENDER_FIELD, $event);
 
-        return $event->html;
+        return TemplateHelper::raw($event->html);
     }
 
     /**
@@ -276,7 +285,7 @@ class Rendering extends Component
      * @return null
      * @throws InvalidConfigException
      */
-    public function renderFormAssets(Form|string $form, $type = null, $attributes = []): ?string
+    public function renderFormAssets(Form|string $form, $type = null, $attributes = []): ?Markup
     {
         if (is_string($form)) {
             $form = Form::find()->handle($form)->one();

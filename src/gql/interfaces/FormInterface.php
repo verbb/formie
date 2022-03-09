@@ -53,7 +53,7 @@ class FormInterface extends Element
 
     public static function getFieldDefinitions(): array
     {
-        $formFieldName = Formie::getInstance()->getSettings()->enableGatsbyCompatibility ? 'formFields' : 'fields';
+        $formFieldName = Formie::$plugin->getSettings()->enableGatsbyCompatibility ? 'formFields' : 'fields';
 
         return TypeManager::prepareFieldDefinitions(array_merge(parent::getFieldDefinitions(), [
             'handle' => [
@@ -107,10 +107,10 @@ class FormInterface extends Element
                     $populateFormValues = Json::decodeIfJson($arguments['populateFormValues'] ?? null);
 
                     if ($populateFormValues) {
-                        Formie::getInstance()->getRendering()->populateFormValues($source, $populateFormValues);
+                        Formie::$plugin->getRendering()->populateFormValues($source, $populateFormValues);
                     }
 
-                    return Formie::getInstance()->getRendering()->renderForm($source, $options);
+                    return Formie::$plugin->getRendering()->renderForm($source, $options);
                 },
             ],
             'csrfToken' => [
@@ -118,7 +118,7 @@ class FormInterface extends Element
                 'type' => CsrfTokenType::getType(),
                 'description' => 'A CSRF token (name and value)',
                 'resolve' => function () {
-                    if (!Craft::$app->getConfig()->general->enableCsrfProtection) {
+                    if (!Craft::$app->getConfig()->getGeneral()->enableCsrfProtection) {
                         return null;
                     }
 

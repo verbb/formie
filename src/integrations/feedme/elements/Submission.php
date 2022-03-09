@@ -45,7 +45,7 @@ class Submission extends Element
 
     public function getGroups()
     {
-        if (Formie::getInstance()) {
+        if (Formie::$plugin) {
             return Formie::$plugin->getForms()->getAllForms();
         }
 

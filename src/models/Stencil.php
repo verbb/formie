@@ -308,7 +308,7 @@ class Stencil extends Model
                         'isDefault' => 1
                     ]);
 
-                    Formie::getInstance()->getStatuses()->saveStatus($this->_defaultStatus);
+                    Formie::$plugin->getStatuses()->saveStatus($this->_defaultStatus);
                 }
             }
         }

@@ -4,8 +4,8 @@ namespace verbb\formie\prosemirror\tohtml\Nodes;
 
 class Node
 {
-    protected self $node;
-    protected ?string $nodeType;
+    protected mixed $node = null;
+    protected ?string $nodeType = null;
     protected string|null|array $tagName = null;
 
     public function __construct($node)

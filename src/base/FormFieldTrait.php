@@ -30,14 +30,17 @@ use craft\validators\HandleValidator;
 use craft\web\twig\TemplateLoaderException;
 
 use Exception;
-use GraphQL\Type\Definition\Type;
 use ReflectionClass;
-use Throwable;
-use Twig\Markup;
-use GraphQL\Type\Definition\ScalarType;
-use GraphQL\Type\Definition\ListOfType;
-use yii\base\Model;
 use ReflectionProperty;
+use Throwable;
+
+use Twig\Markup;
+
+use yii\base\Model;
+
+use GraphQL\Type\Definition\ListOfType;
+use GraphQL\Type\Definition\ScalarType;
+use GraphQL\Type\Definition\Type;
 
 trait FormFieldTrait
 {
@@ -885,7 +888,7 @@ trait FormFieldTrait
     /**
      * Returns whether the field has passed conditional evaluation and is hidden.
      */
-    public function isConditionallyHidden($submission): bool
+    public function isConditionallyHidden(Submission $submission): bool
     {
         $isFieldHidden = false;
         $isPageHidden = false;

@@ -127,7 +127,7 @@ class Formie extends Plugin
         $this->_registerThirdPartyEventListeners();
 
         // Add default captcha integrations
-        Craft::$app->view->hook('formie.buttons.before', static function(array $context) {
+        Craft::$app->getView()->hook('formie.buttons.before', static function(array $context) {
             return Formie::$plugin->getForms()->handleBeforeSubmitHook($context);
         });
     }
@@ -196,7 +196,7 @@ class Formie extends Plugin
 
     private function _registerTwigExtensions(): void
     {
-        Craft::$app->view->registerTwigExtension(new Extension);
+        Craft::$app->getView()->registerTwigExtension(new Extension);
     }
 
     private function _registerPermissions(): void
@@ -550,7 +550,7 @@ class Formie extends Plugin
         Event::on(ResaveController::class, ConsoleController::EVENT_DEFINE_ACTIONS, function(DefineConsoleActionsEvent $e) {
             $e->actions['formie-forms'] = [
                 'action' => function(): int {
-                    $controller = Craft::$app->controller;
+                    $controller = Craft::$app->getController();
                     $query = Form::find();
                     return $controller->saveElements($query);
                 },
@@ -560,7 +560,7 @@ class Formie extends Plugin
 
             $e->actions['formie-submissions'] = [
                 'action' => function(): int {
-                    $controller = Craft::$app->controller;
+                    $controller = Craft::$app->getController();
                     
                     if ($controller->formId !== null) {
                         $formIds = explode(',', $controller->formId);

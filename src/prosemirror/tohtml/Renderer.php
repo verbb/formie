@@ -59,7 +59,7 @@ class Renderer
         if (is_string($value)) {
             $value = Json::decode($value);
         } elseif (is_array($value)) {
-            $value = Json::decode(Json::encode($value));
+            $value = Json::decode(Json::encode($value), false);
         }
 
         $this->document = $value;

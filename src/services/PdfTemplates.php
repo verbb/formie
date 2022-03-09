@@ -330,7 +330,7 @@ class PdfTemplates extends Component
 
     public function renderPdf($pdfTemplate, $submission, $notification): string
     {
-        $settings = Formie::getInstance()->getSettings();
+        $settings = Formie::$plugin->getSettings();
         $view = Craft::$app->getView();
 
         $form = $submission->getForm();
@@ -385,17 +385,7 @@ class PdfTemplates extends Component
             $emailRender = Formie::$plugin->getEmails()->renderEmail($notification, $submission);
             $message = $emailRender['email'] ?? '';
 
-            $html = $message->getSwiftMessage()->getBody();
-            $children = $message->getSwiftMessage()->getChildren();
-
-            // Getting the content from an email is a little more involved...
-            if (!$html && $children) {
-                foreach ($children as $child) {
-                    if ($child->getContentType() == 'text/html') {
-                        $html = $child->getBody();
-                    }
-                }
-            }
+            $html = $message->getHtmlBody();
         }
 
         $dompdf = new Dompdf();

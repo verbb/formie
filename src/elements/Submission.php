@@ -573,22 +573,18 @@ class Submission extends Element
     }
 
     /**
-     * Gets the submission's status handle.
+     * Gets the submission's status model.
      *
      * @param bool $returnStatus return the status model
      */
-    public function getStatus(bool $returnStatus = false): ?string
+    public function getStatusModel(): Status
     {
         if (!$this->_status && $this->statusId) {
             $this->_status = Formie::$plugin->getStatuses()->getStatusById($this->statusId);
         }
 
         if ($this->_status) {
-            if ($returnStatus) {
-                return $this->_status;
-            }
-
-            return $this->_status->handle;
+            return $this->_status;
         }
 
         if ($form = $this->getForm()) {

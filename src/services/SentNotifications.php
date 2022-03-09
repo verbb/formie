@@ -2,7 +2,10 @@
 namespace verbb\formie\services;
 
 use verbb\formie\Formie;
+use verbb\formie\elements\Submission;
 use verbb\formie\elements\SentNotification;
+use verbb\formie\models\Notification;
+use verbb\formie\models\Settings;
 
 use Craft;
 use craft\helpers\App;
@@ -17,14 +20,13 @@ use yii\base\Component;
 use DateInterval;
 use DateTime;
 use Throwable;
-use verbb\formie\models\Settings;
 
 class SentNotifications extends Component
 {
     // Public Methods
     // =========================================================================
 
-    public function saveSentNotification($submission, $notification, $email, $success = true, $error = null): void
+    public function saveSentNotification(Submission $submission, Notification $notification, mixed $email, mixed $success = true, mixed $error = null): void
     {
         $settings = Formie::$plugin->getSettings();
 
@@ -81,23 +83,8 @@ class SentNotifications extends Component
             $sentNotification->bcc = $bcc;
         }
 
-        $body = $email->getSwiftMessage()->getBody();
-        $children = $email->getSwiftMessage()->getChildren();
-
-        if ($body) {
-            $sentNotification->htmlBody = $body;
-            $sentNotification->body = $body;
-        } else if ($children) {
-            foreach ($children as $child) {
-                if ($child->getContentType() == 'text/html') {
-                    $sentNotification->htmlBody = $child->getBody();
-                }
-
-                if ($child->getContentType() == 'text/plain') {
-                    $sentNotification->body = $child->getBody();
-                }
-            }
-        }
+        $sentNotification->htmlBody = $email->getHtmlBody();
+        $sentNotification->body = $email->getTextBody();
 
         $sentNotification->info = $this->getDeliveryInfo($email);
 
@@ -131,7 +118,11 @@ class SentNotifications extends Component
 
         /** @var BaseTransportAdapter $transportType */
         $transportType = new $emailSettings->transportType();
-        $transportType->setAttributes($emailSettings->transportSettings);
+
+        if ($emailSettings->transportSettings) {
+            $transportType->setAttributes($emailSettings->transportSettings);
+        }
+
         $info['transportType'] = $transportType::displayName();
 
         if (get_class($transportType) === Smtp::class) {

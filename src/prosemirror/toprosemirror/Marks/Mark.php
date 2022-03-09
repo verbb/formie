@@ -6,7 +6,7 @@ class Mark
 {
     public string $type = 'mark';
 
-    protected mixed $DOMNode;
+    protected mixed $DOMNode = null;
 
     public function __construct($DOMNode)
     {

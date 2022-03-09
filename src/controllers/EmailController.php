@@ -45,18 +45,6 @@ class EmailController extends Controller
 
         $email = $emailRender['email'];
 
-        $htmlBody = $email->getSwiftMessage()->getBody();
-        $children = $email->getSwiftMessage()->getChildren();
-
-        // Getting the content from an email is a little more involved...
-        if (!$htmlBody && $children) {
-            foreach ($children as $child) {
-                if ($child->getContentType() == 'text/html') {
-                    $htmlBody = $child->getBody();
-                }
-            }
-        }
-
         return $this->asJson([
             'from' => $email->getFrom(),
             'to' => $email->getTo(),
@@ -64,7 +52,7 @@ class EmailController extends Controller
             'cc' => $email->getCc(),
             'replyTo' => $email->getReplyTo(),
             'subject' => $email->getSubject(),
-            'body' => $htmlBody,
+            'body' => $email->getHtmlBody(),
         ]);
     }
 
@@ -83,7 +71,7 @@ class EmailController extends Controller
         // Override the 'to' field
         $notification->to = $request->getParam('to');
 
-        $sentResponse = Formie::$plugin->getEmails()->sendEmail($notification, $submission);
+        $sentResponse = Formie::$plugin->getEmails()->sendEmail($notification, $submission, null, false);
         $success = $sentResponse['success'] ?? false;
         $error = $sentResponse['error'] ?? false;
 
@@ -107,10 +95,10 @@ class EmailController extends Controller
         $notification->setAttributes($request->getParam('notification'), false);
 
         // Ensure some settings are type-cast
-        $notification->enabled = StringHelper::toBoolean($notification->enabled);
-        $notification->attachFiles = StringHelper::toBoolean($notification->attachFiles);
-        $notification->attachPdf = StringHelper::toBoolean($notification->attachPdf);
-        $notification->enableConditions = StringHelper::toBoolean($notification->enableConditions);
+        $notification->enabled = StringHelper::toBoolean((string)$notification->enabled);
+        $notification->attachFiles = StringHelper::toBoolean((string)$notification->attachFiles);
+        $notification->attachPdf = StringHelper::toBoolean((string)$notification->attachPdf);
+        $notification->enableConditions = StringHelper::toBoolean((string)$notification->enableConditions);
 
         // If a stencil, create a fake form
         if (!$formId) {

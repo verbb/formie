@@ -193,22 +193,24 @@ class Emails extends Component
             return ['error' => $error, 'email' => $newEmail, 'exception' => $e];
         }
 
-        // Fetch the email template for the notification - if we're using one
-        $emailTemplate = Formie::$plugin->getEmailTemplates()->getTemplateById($notification->templateId);
-
         // We always need a template, so log the error, but use the default built-in one.
         $templatePath = '';
 
-        // Check to see if an email template has been set for the form
-        if ($emailTemplate) {
-            // Check to see the template is valid
-            if (!$view->doesTemplateExist($emailTemplate->template)) {
-                // Let's press on if we can't find the template - use the default
-                Formie::error(Craft::t('formie', 'Notification email template does not exist at “{templatePath}”.', [
-                    'templatePath' => $emailTemplate->template,
-                ]));
-            } else {
-                $templatePath = $emailTemplate->template;
+        // Fetch the email template for the notification - if we're using one
+        if ($notification->templateId) {
+            $emailTemplate = Formie::$plugin->getEmailTemplates()->getTemplateById($notification->templateId);
+
+            // Check to see if an email template has been set for the form
+            if ($emailTemplate) {
+                // Check to see the template is valid
+                if (!$view->doesTemplateExist($emailTemplate->template)) {
+                    // Let's press on if we can't find the template - use the default
+                    Formie::error(Craft::t('formie', 'Notification email template does not exist at “{templatePath}”.', [
+                        'templatePath' => $emailTemplate->template,
+                    ]));
+                } else {
+                    $templatePath = $emailTemplate->template;
+                }
             }
         }
 
@@ -282,7 +284,7 @@ class Emails extends Component
         return ['success' => true, 'email' => $newEmail];
     }
 
-    public function sendEmail(Notification $notification, Submission $submission, $queueJob = null): array
+    public function sendEmail(Notification $notification, Submission $submission, mixed $queueJob = null, bool $createSentNotification = true): array
     {
         // Render the email
         $emailRender = $this->renderEmail($notification, $submission);
@@ -302,7 +304,9 @@ class Emails extends Component
             }
 
             // Save the sent notification, as failed
-            Formie::$plugin->getSentNotifications()->saveSentNotification($submission, $notification, $newEmail, false, $error);
+            if ($createSentNotification) {
+                Formie::$plugin->getSentNotifications()->saveSentNotification($submission, $notification, $newEmail, false, $error);
+            }
 
             return ['error' => $error];
         }
@@ -351,7 +355,9 @@ class Emails extends Component
                 Formie::error('Email payload: ' . Json::encode($this->_serializeEmail($newEmail)));
 
                 // Save the sent notification, as failed
-                Formie::$plugin->getSentNotifications()->saveSentNotification($submission, $notification, $newEmail, false, $error);
+                if ($createSentNotification) {
+                    Formie::$plugin->getSentNotifications()->saveSentNotification($submission, $notification, $newEmail, false, $error);
+                }
 
                 return ['error' => $error];
             }
@@ -367,13 +373,17 @@ class Emails extends Component
                 Formie::error('Email payload: ' . Json::encode($this->_serializeEmail($newEmail)));
 
                 // Save the sent notification, as failed
-                Formie::$plugin->getSentNotifications()->saveSentNotification($submission, $notification, $newEmail, false, $error);
-
+                if ($createSentNotification) {
+                    Formie::$plugin->getSentNotifications()->saveSentNotification($submission, $notification, $newEmail, false, $error);
+                }
+            
                 return ['error' => $error];
             }
 
             // Save the sent notification, as successful
-            Formie::$plugin->getSentNotifications()->saveSentNotification($submission, $notification, $newEmail);
+            if ($createSentNotification) {
+                Formie::$plugin->getSentNotifications()->saveSentNotification($submission, $notification, $newEmail);
+            }
         } catch (Throwable $e) {
             $error = Craft::t('formie', 'Notification email “{notification}” could not be sent for submission “{submission}”. Error: {error} {file}:{line}', [
                 'error' => $e->getMessage(),
@@ -553,32 +563,7 @@ class Emails extends Component
             if ($path) {
                 $message->attach($path, ['fileName' => $asset->filename]);
             }
-
-            // Fix a bug with SwiftMailer where setting an attachment clears out the body of the email!
-            $this->_fixSwiftMailerBody($message);
         }
-    }
-
-    private function _fixSwiftMailerBody($message): void
-    {
-        // Fix a bug with SwiftMailer where setting an attachment clears out the body of the email!
-        $textBody = $message->getSwiftMessage()->getBody();
-        $htmlBody = $message->getSwiftMessage()->getBody();
-        $children = $message->getSwiftMessage()->getChildren();
-
-        // Getting the content from an email is a little more involved...
-        if (!$htmlBody && $children) {
-            foreach ($children as $child) {
-                if ($child->getContentType() == 'text/html') {
-                    $htmlBody = $child->getBody();
-                } else if ($child->getContentType() == 'text/plain') {
-                    $textBody = $child->getBody();
-                }
-            }
-        }
-
-        $message->setHtmlBody($htmlBody);
-        $message->setTextBody($textBody);
     }
 
     private function _getFullAssetFilePath(Asset $asset): string
@@ -590,18 +575,6 @@ class Emails extends Component
 
     private function _serializeEmail($email): array
     {
-        $htmlBody = $email->getSwiftMessage()->getBody();
-        $children = $email->getSwiftMessage()->getChildren();
-
-        // Getting the content from an email is a little more involved...
-        if (!$htmlBody && $children) {
-            foreach ($children as $child) {
-                if ($child->getContentType() == 'text/html') {
-                    $htmlBody = $child->getBody();
-                }
-            }
-        }
-
         return [
             'charset' => $email->getCharset(),
             'from' => $email->getFrom(),
@@ -610,7 +583,7 @@ class Emails extends Component
             'cc' => $email->getCc(),
             'bcc' => $email->getBcc(),
             'subject' => $email->getSubject(),
-            'body' => $htmlBody,
+            'body' => $email->getHtmlBody(),
         ];
     }
 

@@ -170,7 +170,7 @@ class SentNotification extends Element
     public ?string $fromName = null;
     public ?string $body = null;
     public ?string $htmlBody = null;
-    public ?string $info = null;
+    public ?array $info = null;
     public ?string $success = null;
     public ?string $message = null;
 
@@ -178,9 +178,9 @@ class SentNotification extends Element
     // Private Properties
     // =========================================================================
 
-    private array|Model|null|ElementInterface $_form;
-    private array|Model|null|ElementInterface $_submission;
-    private ?Notification $_notification;
+    private ?Form $_form = null;
+    private ?Submission $_submission = null;
+    private ?Notification $_notification = null;
 
 
     // Public Methods

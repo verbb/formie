@@ -157,13 +157,13 @@
         {{ forms.hidden({
             id: 'statusId',
             name: 'statusId',
-            value: submission.getStatus(true).id,
+            value: submission.getStatusModel(true).id,
         }) }}
 
         {% set statusField %}
             <div>
                 <a id="status-menu-btn" class="btn menubtn" href="javascript:;">
-                    <span class="status {{ submission.getStatus(true).color }}"></span>{{ submission.getStatus(true).name }}
+                    <span class="status {{ submission.getStatusModel(true).color }}"></span>{{ submission.getStatusModel(true).name }}
                 </a>
 
                 <div class="menu" id="status-menu-select">

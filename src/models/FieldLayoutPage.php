@@ -3,6 +3,7 @@ namespace verbb\formie\models;
 
 use verbb\formie\Formie;
 use verbb\formie\base\FormFieldInterface;
+use verbb\formie\elements\Submission;
 use verbb\formie\helpers\ConditionsHelper;
 
 use Craft;
@@ -57,7 +58,12 @@ class FieldLayoutPage extends CraftFieldLayoutTab
 
         foreach ($this->getElements() as $layoutElement) {
             if ($layoutElement instanceof CustomField) {
-                $fields[] = $layoutElement->getField();
+                $field = $layoutElement->getField();
+
+                // Populate things from the field layout to the field model
+                $field->required = $layoutElement->required;
+
+                $fields[] = $field;
             }
         }
 

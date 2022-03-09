@@ -84,6 +84,22 @@ class FormSettings extends Model
     // Public Methods
     // =========================================================================
 
+    public function __construct($config = [])
+    {
+        // Config normalization
+        if (array_key_exists('customAttributes', $config)) {
+            if (is_string($config['customAttributes'])) {
+                $config['customAttributes'] = Json::decodeIfJson($config['customAttributes']);
+            }
+
+            if (!is_array($config['customAttributes'])) {
+                $config['customAttributes'] = [];
+            }
+        }
+
+        parent::__construct($config);
+    }
+
     /**
      * @inheritDoc
      */

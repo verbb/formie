@@ -98,7 +98,7 @@ class Formie
      * @return Markup|null
      * @noinspection PhpDocMissingThrowsInspection
      */
-    public function renderForm(Form|string $form, array $options = null): ?string
+    public function renderForm(Form|string|null $form, array $options = null): ?Markup
     {
         return FormiePlugin::$plugin->getRendering()->renderForm($form, $options);
     }
@@ -116,7 +116,7 @@ class Formie
      * @throws \yii\base\Exception
      * @noinspection PhpDocMissingThrowsInspection
      */
-    public function renderPage(Form $form, FieldLayoutPage $page = null, array $options = null): ?string
+    public function renderPage(Form|string|null $form, ?FieldLayoutPage $page = null, array $options = null): ?Markup
     {
         return FormiePlugin::$plugin->getRendering()->renderPage($form, $page, $options);
     }
@@ -130,7 +130,7 @@ class Formie
      * @return Markup|null
      * @noinspection PhpDocMissingThrowsInspection
      */
-    public function renderField(Form $form, FormFieldInterface $field, array $options = null): ?string
+    public function renderField(Form|string|null $form, ?FormFieldInterface $field = null, array $options = null): ?Markup
     {
         return FormiePlugin::$plugin->getRendering()->renderField($form, $field, $options);
     }
@@ -148,12 +148,12 @@ class Formie
         FormiePlugin::$plugin->getRendering()->registerAssets($form, $options);
     }
 
-    public function renderFormCss($form, $attributes = []): ?string
+    public function renderFormCss($form, $attributes = []): ?Markup
     {
         return FormiePlugin::$plugin->getRendering()->renderFormAssets($form, Rendering::RENDER_TYPE_CSS, $attributes);
     }
 
-    public function renderFormJs($form, $attributes = []): ?string
+    public function renderFormJs($form, $attributes = []): ?Markup
     {
         return FormiePlugin::$plugin->getRendering()->renderFormAssets($form, Rendering::RENDER_TYPE_JS, $attributes);
     }

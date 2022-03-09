@@ -484,7 +484,7 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
     public function getFrontEndJsModules(): ?array
     {
         if ($this->displayType === 'calendar' && $this->useDatePicker) {
-            $locale = Craft::$app->locale->id;
+            $locale = Craft::$app->getLocale()->id;
 
             // Handle language variants
             if (preg_match('/^([a-z]{2})-/', $locale, $matches)) {
