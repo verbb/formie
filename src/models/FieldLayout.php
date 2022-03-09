@@ -10,10 +10,35 @@ class FieldLayout extends CraftFieldLayout
     // =========================================================================
 
     private ?array $_pages = null;
+    private ?array $_fields = null;
 
 
-    // Properties
+    // Public Methods
     // =========================================================================
+
+    /**
+     * @inheritDoc
+     */
+    public function getCustomFields(): array
+    {
+        if ($this->_fields !== null) {
+            return $this->_fields;
+        }
+
+        if (!$this->id) {
+            return [];
+        }
+
+        return $this->_fields = Formie::$plugin->getFields()->getFieldsByLayoutId($this->id);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setCustomFields(array $fields = null)
+    {
+        $this->_fields = $fields;
+    }
 
     /**
      * Returns the layout’s pages.

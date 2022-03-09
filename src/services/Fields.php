@@ -766,7 +766,7 @@ class Fields extends Component
             ->addSelect([
                 'ps.settings',
             ])
-            ->leftJoin('{{%formie_pagesettings}} ps', '[[ps.fieldLayoutTabId]] = [[fieldlayouttabs.id]]')
+            ->leftJoin('{{%formie_pagesettings}} ps', '[[ps.fieldLayoutTabId]] = [[flt.id]]')
             ->where(['layoutId' => $layoutId])
             ->all();
 
@@ -1076,7 +1076,7 @@ class Fields extends Component
      */
     private function _createFieldQuery(): Query
     {
-        $query = (new Query())
+        return (new Query())
             ->select([
                 'fields.id',
                 'fields.dateCreated',
@@ -1085,6 +1085,7 @@ class Fields extends Component
                 'fields.name',
                 'fields.handle',
                 'fields.context',
+                'fields.columnSuffix',
                 'fields.instructions',
                 'fields.searchable',
                 'fields.translationMethod',
@@ -1095,15 +1096,6 @@ class Fields extends Component
             ])
             ->from(['fields' => CraftTable::FIELDS])
             ->orderBy(['fields.name' => SORT_ASC, 'fields.handle' => SORT_ASC]);
-
-        // TODO: remove schema version condition after next beakpoint
-        $schemaVersion = Craft::$app->getInstalledSchemaVersion();
-        
-        if (version_compare($schemaVersion, '3.7.0', '>=')) {
-            $query->addSelect(['fields.columnSuffix']);
-        }
-
-        return $query;
     }
 
     /**
@@ -1132,13 +1124,15 @@ class Fields extends Component
     {
         return (new Query())
             ->select([
-                'fieldlayouttabs.id',
-                'fieldlayouttabs.layoutId',
-                'fieldlayouttabs.name',
-                'fieldlayouttabs.sortOrder',
-                'fieldlayouttabs.uid'
+                'flt.id',
+                'flt.layoutId',
+                'flt.name',
+                'flt.settings',
+                'flt.elements',
+                'flt.sortOrder',
+                'flt.uid',
             ])
-            ->from([CraftTable::FIELDLAYOUTTABS . ' fieldlayouttabs'])
+            ->from(['flt' => CraftTable::FIELDLAYOUTTABS])
             ->orderBy(['sortOrder' => SORT_ASC]);
     }
 }

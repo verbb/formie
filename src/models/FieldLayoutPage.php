@@ -25,6 +25,7 @@ class FieldLayoutPage extends CraftFieldLayoutTab
     public ?PageSettings $settings = null;
 
     private ?array $_fields = null;
+    private ?FieldLayout $_layout = null;
 
 
     // Public Methods
@@ -48,26 +49,85 @@ class FieldLayoutPage extends CraftFieldLayoutTab
         parent::__construct($config);
     }
 
+    /**
+     * Returns the tab’s layout.
+     *
+     * @return FieldLayout|null The tab’s layout.
+     * @throws InvalidConfigException if [[groupId]] is set but invalid
+     */
+    public function getLayout(): FieldLayout
+    {
+        if ($this->_layout !== null) {
+            return $this->_layout;
+        }
+
+        if (!$this->layoutId) {
+            return null;
+        }
+
+        if (($this->_layout = Formie::$plugin->getFields()->getLayoutById($this->layoutId)) === null) {
+            throw new InvalidConfigException('Invalid layout ID: ' . $this->layoutId);
+        }
+
+        return $this->_layout;
+    }
+
+    /**
+     * Sets the page’s layout.
+     *
+     * @param FieldLayout $layout The page’s layout.
+     */
+    public function setLayout(CraftFieldLayout $layout): void
+    {
+        $this->_layout = $layout;
+    }
+
+    /**
+     * Returns the tab’s fields.
+     *
+     * @return FieldInterface[] The tab’s fields.
+     * @throws InvalidConfigException
+     */
     public function getCustomFields(): array
     {
         if ($this->_fields !== null) {
             return $this->_fields;
         }
 
-        $fields = [];
+        $this->_fields = [];
 
-        foreach ($this->getElements() as $layoutElement) {
-            if ($layoutElement instanceof CustomField) {
-                $field = $layoutElement->getField();
-
-                // Populate things from the field layout to the field model
-                $field->required = $layoutElement->required;
-
-                $fields[] = $field;
+        if ($layout = $this->getLayout()) {
+            foreach ($layout->getCustomFields() as $field) {
+                /** @var Field $field */
+                if ($field->tabId == $this->id) {
+                    $this->_fields[] = $field;
+                }
             }
         }
 
-        return $this->_fields = $fields;
+        return $this->_fields;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setCustomFields(array $fields)
+    {
+        ArrayHelper::multisort($fields, 'sortOrder');
+        $this->_fields = $fields;
+
+        $elements = [];
+        
+        foreach ($this->_fields as $field) {
+            $elements[] = Craft::createObject([
+                'class' => CustomField::class,
+                'required' => $field->required,
+            ], [
+                $field,
+            ]);
+        }
+
+        $this->elements = $elements;
     }
 
     /**

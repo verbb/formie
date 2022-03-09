@@ -359,21 +359,6 @@ class Forms extends Component
         return $fieldLayout;
     }
 
-    // private const TYPE_BOOL = 'bool';
-    // private const TYPE_FLOAT = 'float';
-    // private const TYPE_INT = 'int';
-    // private const TYPE_INT_FLOAT = 'int|float';
-    // private const TYPE_STRING = 'string';
-    // private const TYPE_ARRAY = 'array';
-    // private const TYPE_NULL = 'null';
-    // private const TYPE_DATETIME = DateTime::class;
-    // private const TYPE_NULL_INT = 'int|null';
-
-    // public static function cast(mixed $value, string $type = self::TYPE_STRING)
-    // {
-
-    // }
-
     /**
      * Builds a form element from POST data.
      *
@@ -547,9 +532,7 @@ class Forms extends Component
 
                     $fields[] = $field;
 
-                    $pageFields[] = new \craft\fieldlayoutelements\CustomField($field, [
-                        'required' => (bool)$required,
-                    ]);
+                    $pageFields[] = $field;
                 }
             }
 
@@ -557,24 +540,27 @@ class Forms extends Component
             $page->name = urldecode($pageData['label']);
             $page->sortOrder = '' . $pageIndex;
             $page->setLayout($fieldLayout);
-            $page->setElements($pageFields);
+            $page->setCustomFields($pageFields);
 
             // Handle page ID - new or existing
-            $page->id = $pageData['id'] ?? null;
+            $pageId = ArrayHelper::remove($pageData, 'id');
 
-            if (str_starts_with($page->id, 'new')) {
-                $page->id = null;
+            if (str_starts_with($pageId, 'new')) {
+                $pageId = null;
             }
+
+            $page->id = $pageId;
 
             // Set page settings.
             $pageSettings = $pageData['settings'] ?? [];
             unset($pageSettings['label']);
-            Craft::configure($page->settings, $pageSettings);
+            $page->settings->setAttributes($pageSettings);
 
             $pages[] = $page;
         }
 
         $fieldLayout->setPages($pages);
+        $fieldLayout->setCustomFields($fields);
 
         return $fieldLayout;
     }
