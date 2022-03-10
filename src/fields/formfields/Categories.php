@@ -17,13 +17,13 @@ use craft\fields\BaseRelationField;
 use craft\fields\Categories as CraftCategories;
 use craft\gql\arguments\elements\Category as CategoryArguments;
 use craft\gql\interfaces\elements\Category as CategoryInterface;
-use craft\gql\resolvers\elements\Category as CategoryResolver;
 use craft\helpers\ArrayHelper;
 use craft\helpers\UrlHelper;
 use craft\models\CategoryGroup;
 
 use GraphQL\Type\Definition\Type;
 use craft\elements\db\ElementQueryInterface;
+use craft\errors\SiteNotFoundException;
 
 class Categories extends CraftCategories implements FormFieldInterface
 {
@@ -97,9 +97,6 @@ class Categories extends CraftCategories implements FormFieldInterface
         return BaseRelationField::normalizeValue($value, $element);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getSavedFieldConfig(): array
     {
         $settings = $this->traitGetSavedFieldConfig();
@@ -140,9 +137,6 @@ class Categories extends CraftCategories implements FormFieldInterface
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getDefaultValue($attributePrefix = '')
     {
         // If the default value from the parent field (query params, etc.) is empty, use the default values
@@ -186,9 +180,6 @@ class Categories extends CraftCategories implements FormFieldInterface
         return $this->traitGetEmailHtml($submission, $notification, $value, $options);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getFieldOptions(): array
     {
         $options = [];
@@ -221,10 +212,10 @@ class Categories extends CraftCategories implements FormFieldInterface
     /**
      * Returns the list of selectable categories.
      *
-     * @return \craft\elements\db\ElementQueryInterface
-     * @throws \craft\errors\SiteNotFoundException
+     * @return ElementQueryInterface
+     * @throws SiteNotFoundException
      */
-    public function getElementsQuery(): \craft\elements\db\ElementQueryInterface
+    public function getElementsQuery(): ElementQueryInterface
     {
         // Use the currently-set element query, or create a new one.
         $query = $this->elementsQuery ?? Category::find();
@@ -245,8 +236,6 @@ class Categories extends CraftCategories implements FormFieldInterface
 
         // Check if a default value has been set AND we're limiting. We need to resolve the value before limiting
         if ($this->defaultValue && $this->limitOptions) {
-            $ids = [];
-
             // Handle the two ways a default value can be set
             if ($this->defaultValue instanceof ElementQueryInterface) {
                 $ids = $this->defaultValue->id;
@@ -261,8 +250,6 @@ class Categories extends CraftCategories implements FormFieldInterface
 
         // If the root category is selected
         if ($this->rootCategory) {
-            $ids = [];
-
             // Handle the two ways a default value can be set
             if ($this->rootCategory instanceof ElementQueryInterface) {
                 $ids = $this->rootCategory->id;
@@ -312,9 +299,6 @@ class Categories extends CraftCategories implements FormFieldInterface
         return array_merge([['label' => Craft::t('formie', 'Select an option'), 'value' => '']], $options);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineLabelSourceOptions(): array
     {
         $options = [
@@ -341,14 +325,9 @@ class Categories extends CraftCategories implements FormFieldInterface
             }
         }
 
-        $options = array_merge($options, ...$extraOptions);
-
-        return $options;
+        return array_merge($options, ...$extraOptions);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getSettingGqlTypes(): array
     {
         return array_merge($this->traitGetSettingGqlTypes(), [

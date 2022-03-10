@@ -10,7 +10,6 @@ use craft\base\PreviewableFieldInterface;
 use craft\db\mysql\Schema;
 use craft\helpers\Html;
 use craft\helpers\Template;
-use Twig\Markup;
 
 class Signature extends FormField implements PreviewableFieldInterface
 {
@@ -71,9 +70,6 @@ class Signature extends FormField implements PreviewableFieldInterface
         ]);
     }
 
-    /**
-     * @inheritdoc
-     */
     public function getFrontEndJsModules(): ?array
     {
         return [
@@ -188,9 +184,6 @@ class Signature extends FormField implements PreviewableFieldInterface
     // Protected Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     protected function defineValueForSummary($value, ElementInterface $element = null): string
     {
         return Template::raw(Html::tag('img', null, ['src' => $value]));

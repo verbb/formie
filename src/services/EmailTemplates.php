@@ -257,10 +257,6 @@ class EmailTemplates extends Component
      */
     public function deleteTemplate(EmailTemplate $template): bool
     {
-        if (!$template) {
-            return false;
-        }
-
         // Fire a 'beforeDeleteEmailTemplate' event
         if ($this->hasEventHandlers(self::EVENT_BEFORE_DELETE_EMAIL_TEMPLATE)) {
             $this->trigger(self::EVENT_BEFORE_DELETE_EMAIL_TEMPLATE, new EmailTemplateEvent([

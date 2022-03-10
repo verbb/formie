@@ -205,7 +205,7 @@ class ActiveCampaign extends EmailMarketing
                             ],
                         ];
 
-                        $response = $this->deliverPayload($submission, 'contactTags', $payload);
+                        $this->deliverPayload($submission, 'contactTags', $payload);
                     }
                 }
             }
@@ -221,7 +221,7 @@ class ActiveCampaign extends EmailMarketing
     public function fetchConnection(): bool
     {
         try {
-            $response = $this->request('GET', 'contacts');
+            $this->request('GET', 'contacts');
         } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
@@ -274,7 +274,7 @@ class ActiveCampaign extends EmailMarketing
             // 'listbox',
         ];
 
-        foreach ($fields as $key => $field) {
+        foreach ($fields as $field) {
             // Some endpoints return different things!
             $fieldName = $field['fieldLabel'] ?? $field['title'] ?? '';
             $fieldType = $field['fieldType'] ?? $field['type'] ?? '';

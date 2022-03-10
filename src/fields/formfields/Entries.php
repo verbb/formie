@@ -16,12 +16,12 @@ use craft\elements\db\ElementQueryInterface;
 use craft\fields\Entries as CraftEntries;
 use craft\gql\arguments\elements\Entry as EntryArguments;
 use craft\gql\interfaces\elements\Entry as EntryInterface;
-use craft\gql\resolvers\elements\Entry as EntryResolver;
 use craft\helpers\ArrayHelper;
 use craft\helpers\UrlHelper;
 use craft\records\EntryType as EntryTypeRecord;
 
 use GraphQL\Type\Definition\Type;
+use craft\errors\SiteNotFoundException;
 
 class Entries extends CraftEntries implements FormFieldInterface
 {
@@ -85,9 +85,6 @@ class Entries extends CraftEntries implements FormFieldInterface
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public function getSavedFieldConfig(): array
     {
         $settings = $this->traitGetSavedFieldConfig();
@@ -121,9 +118,6 @@ class Entries extends CraftEntries implements FormFieldInterface
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getDefaultValue($attributePrefix = '')
     {
         // If the default value from the parent field (query params, etc.) is empty, use the default values
@@ -169,7 +163,7 @@ class Entries extends CraftEntries implements FormFieldInterface
      * Returns the list of selectable entries.
      *
      * @return ElementQueryInterface
-     * @throws \craft\errors\SiteNotFoundException
+     * @throws SiteNotFoundException
      */
     public function getElementsQuery(): ElementQueryInterface
     {
@@ -182,7 +176,7 @@ class Entries extends CraftEntries implements FormFieldInterface
             // Try to find the criteria we're restricting by - if any
             foreach ($this->sources as $source) {
                 // Check if we're looking for a type
-                if (strpos($source, 'type:') !== false) {
+                if (str_contains($source, 'type:')) {
                     $entryTypeUid = str_replace('type:', '', $source);
                     $entryType = EntryTypeRecord::find()->where(['uid' => $entryTypeUid])->one();
 
@@ -286,9 +280,6 @@ class Entries extends CraftEntries implements FormFieldInterface
         return $this->_sourceOptions = $options;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineLabelSourceOptions(): array
     {
         $options = [
@@ -320,9 +311,6 @@ class Entries extends CraftEntries implements FormFieldInterface
         return array_merge($options, ...$extraOptions);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getSettingGqlTypes(): array
     {
         return array_merge($this->traitGetSettingGqlTypes(), [

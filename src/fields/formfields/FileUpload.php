@@ -19,6 +19,7 @@ use craft\helpers\Template;
 use craft\web\UploadedFile;
 
 use GraphQL\Type\Definition\Type;
+use craft\models\Volume;
 
 class FileUpload extends CraftAssets implements FormFieldInterface
 {
@@ -299,9 +300,6 @@ class FileUpload extends CraftAssets implements FormFieldInterface
         return $volumes;
     }
 
-    /**
-     * @inheritdoc
-     */
     public function getFrontEndJsModules(): ?array
     {
         return [
@@ -495,9 +493,6 @@ class FileUpload extends CraftAssets implements FormFieldInterface
     // Protected Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     protected function defineValueAsString($value, ElementInterface $element = null): string
     {
         $value = $this->_all($value, $element)->all();
@@ -508,9 +503,6 @@ class FileUpload extends CraftAssets implements FormFieldInterface
         }, $value));
     }
 
-    /**
-     * @inheritDoc
-     */
     protected function defineValueForIntegration($value, $integrationField, $integration, ElementInterface $element = null, $fieldKey = ''): mixed
     {
         if ($integrationField->getType() === IntegrationField::TYPE_ARRAY) {
@@ -531,9 +523,6 @@ class FileUpload extends CraftAssets implements FormFieldInterface
         return $this->traitDefineValueForIntegration($value, $integrationField, $integration, $element);
     }
 
-    /**
-     * @inheritDoc
-     */
     protected function defineValueForSummary($value, ElementInterface $element = null): string
     {
         $html = '';
@@ -550,9 +539,6 @@ class FileUpload extends CraftAssets implements FormFieldInterface
         return Template::raw($html);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getSettingGqlTypes(): array
     {
         return array_merge($this->traitGetSettingGqlTypes(), [
@@ -574,7 +560,7 @@ class FileUpload extends CraftAssets implements FormFieldInterface
     // Private Methods
     // =========================================================================
 
-    private function getVolume(): ?\craft\models\Volume
+    private function getVolume(): ?Volume
     {
         $sourceKey = $this->uploadLocationSource;
 

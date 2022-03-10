@@ -106,9 +106,6 @@ class Algolia extends AddressProvider
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function hasValidSettings(): bool
     {
         return $this->appId && $this->apiKey;
@@ -123,11 +120,7 @@ class Algolia extends AddressProvider
         $options = [];
         $optionsRaw = $this->reconfigurableOptions;
 
-        if (!is_array($optionsRaw)) {
-            $optionsRaw = [];
-        }
-
-        foreach ($optionsRaw as $key => $value) {
+        foreach ($optionsRaw as $value) {
             $options[$value[0]] = Json::decode($value[1]);
         }
 

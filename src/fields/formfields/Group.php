@@ -96,9 +96,6 @@ class Group extends FormField implements NestedFieldInterface, EagerLoadingField
         ]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function populateValue($value): void
     {
         if (!is_array($value)) {
@@ -116,9 +113,6 @@ class Group extends FormField implements NestedFieldInterface, EagerLoadingField
         }
     }
 
-    /**
-     * @inheritDoc
-     */
     public function parsePopulatedFieldValues($value, $element): array
     {
         // For when parsing populated content from the cache, when the field is visibly disabled
@@ -130,9 +124,6 @@ class Group extends FormField implements NestedFieldInterface, EagerLoadingField
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getConfigJson(): ?string
     {
         // Group fields themselves should not contain the inner field's JS

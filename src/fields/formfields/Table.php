@@ -20,7 +20,6 @@ use craft\validators\UrlValidator;
 
 use yii\db\Schema;
 use yii\validators\EmailValidator;
-use Twig\Markup;
 
 class Table extends CraftTable implements FormFieldInterface
 {
@@ -152,10 +151,6 @@ class Table extends CraftTable implements FormFieldInterface
             return '';
         }
 
-        if (!is_array($this->columns)) {
-            $this->columns = [];
-        }
-
         // Translate the column headings
         foreach ($this->columns as &$column) {
             if (!empty($column['heading'])) {
@@ -215,9 +210,6 @@ class Table extends CraftTable implements FormFieldInterface
         ]);
     }
 
-    /**
-     * @inheritdoc
-     */
     public function getFrontEndJsModules(): ?array
     {
         return [
@@ -463,9 +455,6 @@ class Table extends CraftTable implements FormFieldInterface
     // Protected Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     protected function defineValueAsString($value, ElementInterface $element = null): string
     {
         $values = [];
@@ -487,9 +476,6 @@ class Table extends CraftTable implements FormFieldInterface
         return implode(', ', $values);
     }
 
-    /**
-     * @inheritDoc
-     */
     protected function defineValueForExport($value, ElementInterface $element = null): mixed
     {
         $values = [];
@@ -511,9 +497,6 @@ class Table extends CraftTable implements FormFieldInterface
         return $values;
     }
 
-    /**
-     * @inheritDoc
-     */
     protected function defineValueForSummary($value, ElementInterface $element = null): string
     {
         $headValues = '';

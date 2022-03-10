@@ -148,8 +148,7 @@ class ArrayHelper extends CraftArrayHelper
                         $curMerge[1][$key] = $val;
                     }
                 }
-                unset($val);
-                unset($stack[$curKey]);
+                unset($val, $stack[$curKey]);
             }
             unset($curMerge);
         }

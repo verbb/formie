@@ -66,9 +66,6 @@ class Calculations extends FormField implements PreviewableFieldInterface
         ]);
     }
 
-    /**
-     * @inheritdoc
-     */
     public function getFrontEndJsModules(): ?array
     {
         return [
@@ -104,7 +101,7 @@ class Calculations extends FormField implements PreviewableFieldInterface
         $handles = array_combine($keys, $values);
 
         // Go through each field and make sure to namespace it for DOM lookup
-        foreach ($handles as $key => $handle) {
+        foreach ($handles as $handle) {
             $newHandle = 'field_' . str_replace('.', '_', $handle);
 
             $variables[$newHandle] = $this->_getFieldVariable($handle);
@@ -199,10 +196,10 @@ class Calculations extends FormField implements PreviewableFieldInterface
     // Private Methods
     // =========================================================================
 
-    private function _getFieldVariable($fieldKey, $element = null, $inputNames = [])
+    private function _getFieldVariable($fieldKey, $element = null, $inputNames = []): ?array
     {
         // Check for nested field handles
-        if (strpos($fieldKey, '.') !== false) {
+        if (str_contains($fieldKey, '.')) {
             $fieldKey = explode('.', $fieldKey);
             $fieldHandle = array_shift($fieldKey);
             $fieldKey = implode('.', $fieldKey);

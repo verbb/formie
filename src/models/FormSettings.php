@@ -8,9 +8,11 @@ use verbb\formie\prosemirror\toprosemirror\Renderer as ProseMirrorRenderer;
 
 use Craft;
 use craft\base\Model;
-use craft\helpers\ArrayHelper;
-
 use craft\elements\Entry;
+use craft\helpers\ArrayHelper;
+use craft\helpers\Json;
+use Twig\Error\SyntaxError;
+use Twig\Error\LoaderError;
 
 class FormSettings extends Model
 {
@@ -192,10 +194,10 @@ class FormSettings extends Model
      *
      * @param bool $checkLastPage
      * @return String
-     * @throws \Twig\Error\LoaderError
-     * @throws \Twig\Error\SyntaxError
+     * @throws LoaderError
+     * @throws SyntaxError
      */
-    public function getFormRedirectUrl($checkLastPage = true): string
+    public function getFormRedirectUrl(bool $checkLastPage = true): string
     {
         return $this->getForm()->getRedirectUrl($checkLastPage);
     }

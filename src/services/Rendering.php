@@ -27,6 +27,7 @@ use yii\base\Exception;
 use yii\base\InvalidConfigException;
 
 use Throwable;
+use craft\errors\MissingComponentException;
 
 class Rendering extends Component
 {
@@ -53,15 +54,15 @@ class Rendering extends Component
     /**
      * Renders and returns a form's HTML.
      *
-     * @param string|Form $form
+     * @param Form|string|null $form
      * @param array|null $options
      * @return Markup|null
      * @throws Exception
      * @throws InvalidConfigException
      * @throws LoaderError
+     * @throws MissingComponentException
      * @throws RuntimeError
      * @throws SyntaxError
-     * @throws \craft\errors\MissingComponentException
      */
     public function renderForm(Form|string|null $form, array $options = null): ?Markup
     {
@@ -138,15 +139,15 @@ class Rendering extends Component
     /**
      * Renders and returns a form page's HTML.
      *
-     * @param Form $form
+     * @param Form|string|null $form
      * @param FieldLayoutPage|null $page
      * @param array|null $options
-     * @return string|null
+     * @return Markup|null
      * @throws Exception
      * @throws LoaderError
+     * @throws MissingComponentException
      * @throws RuntimeError
      * @throws SyntaxError
-     * @throws \craft\errors\MissingComponentException
      */
     public function renderPage(Form|string|null $form, FieldLayoutPage $page = null, array $options = null): ?Markup
     {
@@ -190,12 +191,13 @@ class Rendering extends Component
     }
 
     /**
-     * @param Form $form
-     * @param FormFieldInterface $field
+     * @param Form|string|null $form
+     * @param FormFieldInterface|string $field
      * @param array|null $options
-     * @return string
+     * @return Markup|null
      * @throws Exception
      * @throws LoaderError
+     * @throws MissingComponentException
      * @throws RuntimeError
      * @throws SyntaxError
      */
@@ -259,10 +261,11 @@ class Rendering extends Component
      *
      * @param string|Form $form
      * @param array|null $options
-     * @return null
+     * @return void
      * @throws Exception
      * @throws InvalidConfigException
      * @throws LoaderError
+     * @throws MissingComponentException
      * @throws RuntimeError
      * @throws SyntaxError
      */
@@ -282,10 +285,10 @@ class Rendering extends Component
      * @param string|Form $form
      * @param null $type
      * @param array $attributes
-     * @return null
+     * @return Markup|null
      * @throws InvalidConfigException
      */
-    public function renderFormAssets(Form|string $form, $type = null, $attributes = []): ?Markup
+    public function renderFormAssets(Form|string $form, string $type = null, array $attributes = []): ?Markup
     {
         if (is_string($form)) {
             $form = Form::find()->handle($form)->one();

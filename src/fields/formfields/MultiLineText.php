@@ -80,9 +80,6 @@ class MultiLineText extends FormField implements PreviewableFieldInterface
         ]);
     }
 
-    /**
-     * @inheritdoc
-     */
     public function getFrontEndJsModules(): ?array
     {
         $modules = [];

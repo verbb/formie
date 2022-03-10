@@ -7,6 +7,7 @@ use verbb\formie\helpers\SchemaHelper;
 use Craft;
 use craft\base\ElementInterface;
 use craft\base\PreviewableFieldInterface;
+use craft\errors\InvalidFieldException;
 
 class SingleLineText extends FormField implements PreviewableFieldInterface
 {
@@ -42,15 +43,12 @@ class SingleLineText extends FormField implements PreviewableFieldInterface
 
         if ($this->limit) {
             $limitType = $this->limitType ?? '';
-            $limitAmount = $this->limitAmount ?? false;
-            $maxlength = ($limitType == 'characters') ? $limitAmount : '';
-            $wordlimit = ($limitType == 'words') ? $limitAmount : '';
 
-            if ($maxlength) {
+            if ($limitType === 'characters') {
                 $rules[] = 'validateMaxCharacters';
             }
 
-            if ($wordlimit) {
+            if ($limitType === 'words') {
                 $rules[] = 'validateMaxWords';
             }
         }
@@ -62,7 +60,7 @@ class SingleLineText extends FormField implements PreviewableFieldInterface
      * Validates the maximum number of characters.
      *
      * @param ElementInterface $element
-     * @throws \craft\errors\InvalidFieldException
+     * @throws InvalidFieldException
      */
     public function validateMaxCharacters(ElementInterface $element): void
     {
@@ -89,7 +87,7 @@ class SingleLineText extends FormField implements PreviewableFieldInterface
      * Validates the maximum number of words.
      *
      * @param ElementInterface $element
-     * @throws \craft\errors\InvalidFieldException
+     * @throws InvalidFieldException
      */
     public function validateMaxWords(ElementInterface $element): void
     {
@@ -142,9 +140,6 @@ class SingleLineText extends FormField implements PreviewableFieldInterface
         ]);
     }
 
-    /**
-     * @inheritdoc
-     */
     public function getFrontEndJsModules(): ?array
     {
         if ($this->limit) {

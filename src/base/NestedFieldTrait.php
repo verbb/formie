@@ -21,7 +21,6 @@ use craft\helpers\StringHelper;
 use craft\helpers\Template;
 use craft\services\Elements;
 use yii\base\InvalidConfigException;
-use Twig\Markup;
 
 
 trait NestedFieldTrait
@@ -49,9 +48,6 @@ trait NestedFieldTrait
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public function hasNestedFields(): bool
     {
         return true;
@@ -215,7 +211,6 @@ trait NestedFieldTrait
 
     /**
      * @return FieldInterface[]
-     * @throws InvalidConfigException
      */
     public function getNestedRows(): array
     {
@@ -288,9 +283,6 @@ trait NestedFieldTrait
         return "formieField:{$this->uid}";
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getFrontEndJsModules(): ?array
     {
         $modules = [];
@@ -482,7 +474,7 @@ trait NestedFieldTrait
         $new = 0;
 
         foreach ($value->all() as $row) {
-            $rowId = $row->id ?? 'new' . ++$new;
+            $rowId = $row->id ?: ('new' . $new++);
 
             $serialized[$rowId] = [
                 'fields' => $row->getSerializedFieldValues(),
@@ -622,9 +614,6 @@ trait NestedFieldTrait
     // Protected Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     protected function defineValueAsString($value, ElementInterface $element = null): string
     {
         $values = [];
@@ -643,10 +632,7 @@ trait NestedFieldTrait
         return implode(', ', $values);
     }
 
-    /**
-     * @inheritDoc
-     */
-    protected function defineValueAsJson($value, ElementInterface $element = null): array
+    protected function defineValueAsJson($value, ElementInterface $element = null): mixed
     {
         $values = [];
 
@@ -664,9 +650,6 @@ trait NestedFieldTrait
         return $values;
     }
 
-    /**
-     * @inheritDoc
-     */
     protected function defineValueForExport($value, ElementInterface $element = null): mixed
     {
         $values = [];
@@ -683,9 +666,6 @@ trait NestedFieldTrait
         return $values;
     }
 
-    /**
-     * @inheritDoc
-     */
     protected function defineValueForSummary($value, ElementInterface $element = null): string
     {
         $values = '';
@@ -706,9 +686,6 @@ trait NestedFieldTrait
         return Template::raw($values);
     }
 
-    /**
-     * @inheritDoc
-     */
     protected function defineValueForIntegration($value, $integrationField, $integration, ElementInterface $element = null, $fieldKey = ''): mixed
     {
         // Check if we're trying to get a sub-field value
@@ -797,8 +774,7 @@ trait NestedFieldTrait
             if (isset($newRowData[$rowId])) {
                 $rowData = $newRowData[$rowId];
             } else if (
-                isset(Elements::$duplicatedElementSourceIds[$rowId]) &&
-                isset($newRowData[Elements::$duplicatedElementSourceIds[$rowId]])
+                isset(Elements::$duplicatedElementSourceIds[$rowId], $newRowData[Elements::$duplicatedElementSourceIds[$rowId]])
             ) {
                 // $rowId is a duplicated row's ID, but the data was sent with the original row ID
                 $rowData = $newRowData[Elements::$duplicatedElementSourceIds[$rowId]];
@@ -808,12 +784,7 @@ trait NestedFieldTrait
 
             // If this is a preexisting row, but we don't have a record of it,
             // check to see if it was recently duplicated.
-            if (
-                !str_starts_with($rowId, 'new') &&
-                !isset($oldRowsById[$rowId]) &&
-                isset(Elements::$duplicatedElementIds[$rowId]) &&
-                isset($oldRowsById[Elements::$duplicatedElementIds[$rowId]])
-            ) {
+            if (isset(Elements::$duplicatedElementIds[$rowId], $oldRowsById[Elements::$duplicatedElementIds[$rowId]]) && !str_starts_with($rowId, 'new') && !isset($oldRowsById[$rowId])) {
                 $rowId = Elements::$duplicatedElementIds[$rowId];
             }
 

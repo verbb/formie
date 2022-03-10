@@ -9,10 +9,7 @@ class Iframe extends Node
 
     public function tag(): array
     {
-        $attrs = [];
-        if (isset($this->node->attrs)) {
-            $attrs = $this->node->attrs;
-        }
+        $attrs = $this->node->attrs ?? [];
 
         return [
             [

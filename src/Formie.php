@@ -550,7 +550,7 @@ class Formie extends Plugin
         Event::on(ResaveController::class, ConsoleController::EVENT_DEFINE_ACTIONS, function(DefineConsoleActionsEvent $e) {
             $e->actions['formie-forms'] = [
                 'action' => function(): int {
-                    $controller = Craft::$app->getController();
+                    $controller = Craft::$app->controller;
                     $query = Form::find();
                     return $controller->saveElements($query);
                 },
@@ -560,7 +560,7 @@ class Formie extends Plugin
 
             $e->actions['formie-submissions'] = [
                 'action' => function(): int {
-                    $controller = Craft::$app->getController();
+                    $controller = Craft::$app->controller;
                     
                     if ($controller->formId !== null) {
                         $formIds = explode(',', $controller->formId);

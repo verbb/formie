@@ -43,6 +43,7 @@ use verbb\formie\base\Integration;
 use libphonenumber\PhoneNumberUtil;
 use verbb\formie\models\Name;
 use verbb\formie\models\Address;
+use Exception;
 
 class Submissions extends Component
 {
@@ -65,7 +66,7 @@ class Submissions extends Component
     /**
      * Returns a submission by its ID.
      *
-     * @param $id
+     * @param int $id
      * @param string|null $siteId
      * @return Submission|null
      */
@@ -474,6 +475,7 @@ class Submissions extends Component
      * Performs spam checks on a submission.
      *
      * @param Submission $submission
+     * @throws Exception
      */
     public function spamChecks(Submission $submission): void
     {
@@ -493,7 +495,7 @@ class Submissions extends Component
 
             // Handle any Twig used in the field
             foreach ($excludes as $key => $exclude) {
-                if (strpos($exclude, '{') !== false) {
+                if (str_contains($exclude, '{')) {
                     unset($excludes[$key]);
 
                     $parsedString = $this->_getArrayFromMultiline(Variables::getParsedValue($exclude));
@@ -510,7 +512,7 @@ class Submissions extends Component
 
             foreach ($excludes as $exclude) {
                 // Check if string contains
-                if (strtolower($exclude) && strpos(strtolower($fieldValues), strtolower($exclude)) !== false) {
+                if (strtolower($exclude) && str_contains(strtolower($fieldValues), strtolower($exclude))) {
                     $submission->isSpam = true;
                     $submission->spamReason = Craft::t('formie', 'Contains banned keyword: “{c}”', ['c' => $exclude]);
 

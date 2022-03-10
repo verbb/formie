@@ -220,7 +220,7 @@ class Fields extends Component
      * @param bool $excludeDisabled
      * @return array
      */
-    public function getRegisteredFields($excludeDisabled = true): array
+    public function getRegisteredFields(bool $excludeDisabled = true): array
     {
         if (count($this->_fields)) {
             return $this->_fields;
@@ -286,7 +286,7 @@ class Fields extends Component
 
         foreach ($event->fields as $class) {
             // Check against plugin settings whether to exclude or not
-            if ($excludeDisabled && is_array($disabledFields) && in_array($class, $disabledFields)) {
+            if ($excludeDisabled && in_array($class, $disabledFields)) {
                 continue;
             }
 
@@ -510,7 +510,7 @@ class Fields extends Component
         foreach ($this->getAllFields() as $field) {
             if (!in_array($field->id, $allFieldIds)) {
                 // Just a sanity check to protect against any non-Formie contexted fields
-                if (strpos($field->context, 'formie:') === false) {
+                if (!str_contains($field->context, 'formie:')) {
                     continue;
                 }
 
@@ -744,7 +744,7 @@ class Fields extends Component
      */
     public function getLayoutById(int $layoutId): ?FieldLayout
     {
-        if ($this->_layoutsById !== null && array_key_exists($layoutId, $this->_layoutsById)) {
+        if (array_key_exists($layoutId, $this->_layoutsById)) {
             return $this->_layoutsById[$layoutId];
         }
 
@@ -782,17 +782,6 @@ class Fields extends Component
         }
 
         return $tabs;
-    }
-
-    /**
-     * Returns the field IDs for a given layout ID.
-     *
-     * @param int $layoutId The field layout ID
-     * @return int[]
-     */
-    public function getFieldIdsByLayoutId(int $layoutId): array
-    {
-        return Craft::$app->getFields()->getFieldIdsByLayoutId($layoutId);
     }
 
     /**
@@ -855,7 +844,8 @@ class Fields extends Component
      * Creates a field with a given config.
      *
      * @param mixed $config The field’s class name, or its config, with a `type` value and optionally a `settings` value
-     * @return FieldInterface The field
+     * @return FormFieldInterface The field
+     * @throws InvalidConfigException
      * @noinspection PhpDocMissingThrowsInspection
      */
     public function createField(mixed $config): FormFieldInterface

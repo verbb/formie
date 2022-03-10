@@ -116,8 +116,8 @@ class EmailTemplatesController extends Controller
         $this->requireAcceptsJson();
         $ids = Json::decode(Craft::$app->getRequest()->getRequiredBodyParam('ids'));
 
-        if ($success = Formie::$plugin->getEmailTemplates()->reorderTemplates($ids)) {
-            return $this->asJson(['success' => $success]);
+        if (Formie::$plugin->getEmailTemplates()->reorderTemplates($ids)) {
+            return $this->asJson(['success' => true]);
         }
 
         return $this->asJson(['error' => Craft::t('formie', 'Couldn’t reorder templates.')]);

@@ -78,9 +78,6 @@ abstract class BaseOptionsField extends CraftBaseOptionsField
         return null;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getDefaultValue()
     {
         $value = $this->traitGetDefaultValue() ?? $this->defaultValue;
@@ -102,13 +99,11 @@ abstract class BaseOptionsField extends CraftBaseOptionsField
         }
 
         try {
-            $options = [];
             $optionValues = [];
             $optionLabels = [];
 
             foreach ($this->options() as $option) {
                 if (!isset($option['optgroup'])) {
-                    $options[] = new OptionData($option['label'], $option['value'], false, true);
                     $optionValues[] = (string)$option['value'];
                     $optionLabels[] = (string)$option['label'];
                 }
@@ -201,9 +196,6 @@ abstract class BaseOptionsField extends CraftBaseOptionsField
     // Protected Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     protected function defineValueAsString($value, ElementInterface $element = null): string
     {
         if ($value instanceof MultiOptionsFieldData) {
@@ -215,9 +207,6 @@ abstract class BaseOptionsField extends CraftBaseOptionsField
         return $value->value ?? '';
     }
 
-    /**
-     * @inheritDoc
-     */
     protected function defineValueForIntegration($value, $integrationField, $integration, ElementInterface $element = null, $fieldKey = ''): mixed
     {
         // If mapping to an array, extract just the values
@@ -235,9 +224,6 @@ abstract class BaseOptionsField extends CraftBaseOptionsField
         return $this->traitDefineValueForIntegration($value, $integrationField, $integration, $element);
     }
 
-    /**
-     * @inheritDoc
-     */
     protected function defineValueForSummary($value, ElementInterface $element = null): string
     {
         if ($value instanceof MultiOptionsFieldData) {

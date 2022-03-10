@@ -2,8 +2,6 @@
 namespace verbb\formie\jobs;
 
 use verbb\formie\Formie;
-use verbb\formie\elements\Submission;
-use verbb\formie\models\Notification;
 
 use Craft;
 use craft\helpers\Json;

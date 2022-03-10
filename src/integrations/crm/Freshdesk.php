@@ -16,6 +16,7 @@ use craft\helpers\StringHelper;
 use GuzzleHttp\Psr7\Utils;
 use GuzzleHttp\Client;
 use Throwable;
+use craft\elements\db\AssetQuery;
 
 class Freshdesk extends Crm
 {
@@ -481,7 +482,7 @@ class Freshdesk extends Crm
                 $name = $tag;
             }
 
-            if (strpos($fieldKey, '{') !== false) {
+            if (str_contains($fieldKey, '{')) {
                 // Handle attachments differently to get file contents
                 if ($tag === 'attachments') {
                     $name .= '[]';
@@ -621,7 +622,7 @@ class Freshdesk extends Crm
         }
 
         // Check for nested fields (as `group[name[prefix]]`) - convert to dot-notation
-        if (strpos($fieldKey, '[') !== false) {
+        if (str_contains($fieldKey, '[')) {
             $fieldKey = str_replace(['[', ']'], ['.', ''], $fieldKey);
 
             // Change the field handle to reflect the top-level field, not the full path to the value
@@ -643,7 +644,7 @@ class Freshdesk extends Crm
         // If the field exists, check if any value exists
         if ($field && $value = $submission->getFieldValue($fieldHandle)) {
             // If the value is an AssetQuery, get the results
-            if (is_object($value) && $value instanceof \craft\elements\db\AssetQuery) {
+            if ($value instanceof AssetQuery) {
                 $assets = $value->all();
 
                 if (!empty($assets)){

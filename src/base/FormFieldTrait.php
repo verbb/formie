@@ -400,12 +400,13 @@ trait FormFieldTrait
     }
 
     /**
-     * @return array|Model|ElementInterface
+     * @return Form|null
      */
     public function getForm(): ?Form
     {
         if (!$this->formId) {
             // Try and fetch the form via the UID from the context
+            /* @var Form $form */
             if ($form = Form::find()->uid($this->getContextUid())->one()) {
                 $this->formId = $form->id;
                 
@@ -1107,7 +1108,7 @@ trait FormFieldTrait
         return (string)$value;
     }
 
-    protected function defineValueAsJson($value, ElementInterface $element = null): array
+    protected function defineValueAsJson($value, ElementInterface $element = null): mixed
     {
         return Json::decode(Json::encode($value));
     }
@@ -1237,7 +1238,7 @@ trait FormFieldTrait
         }
 
         // Special case for these as they're not schema-defined fields
-        if (strpos($attribute, 'Enabled') !== false || strpos($attribute, 'Collapsed') !== false) {
+        if (str_contains($attribute, 'Enabled') || str_contains($attribute, 'Collapsed')) {
             return Type::boolean();
         }
 

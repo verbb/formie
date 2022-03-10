@@ -109,9 +109,6 @@ class Hidden extends FormField implements PreviewableFieldInterface
         return false;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getIsHidden(): bool
     {
         return true;
@@ -175,9 +172,6 @@ class Hidden extends FormField implements PreviewableFieldInterface
         ]);
     }
 
-    /**
-     * @inheritdoc
-     */
     public function getFrontEndJsModules(): ?array
     {
         if ($this->defaultOption === 'cookie' && $this->cookieName) {

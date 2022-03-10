@@ -40,7 +40,7 @@ class MigrationsController extends Controller
         if (!$forms) {
             Craft::$app->getSession()->setError(Craft::t('formie', 'No forms selected.'));
 
-            return null;
+            return;
         }
 
         foreach ($forms as $form) {
@@ -62,8 +62,6 @@ class MigrationsController extends Controller
         ]);
 
         Craft::$app->getSession()->setNotice(Craft::t('formie', 'Forms migrated.'));
-
-        return null;
     }
 
     /**
@@ -92,7 +90,7 @@ class MigrationsController extends Controller
         if (!$forms) {
             Craft::$app->getSession()->setError(Craft::t('formie', 'No forms selected.'));
 
-            return null;
+            return;
         }
 
         foreach ($forms as $form) {
@@ -114,7 +112,5 @@ class MigrationsController extends Controller
         ]);
 
         Craft::$app->getSession()->setNotice(Craft::t('formie', 'Forms migrated.'));
-
-        return null;
     }
 }

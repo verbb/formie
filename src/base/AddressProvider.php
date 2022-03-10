@@ -19,17 +19,11 @@ abstract class AddressProvider extends Integration
         return Craft::t('formie', 'Address Providers');
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function supportsConnection(): bool
     {
         return false;
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function supportsPayloadSending(): bool
     {
         return false;
@@ -40,9 +34,6 @@ abstract class AddressProvider extends Integration
         return false;
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function hasFormSettings(): bool
     {
         return false;
@@ -52,9 +43,6 @@ abstract class AddressProvider extends Integration
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public function getIconUrl(): string
     {
         $handle = StringHelper::toKebabCase(static::displayName());

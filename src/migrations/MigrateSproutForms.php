@@ -464,12 +464,13 @@ class MigrateSproutForms extends Migration
                     }
                 }
 
-                $newPage->setFields($pageFields);
+                $newPage->setLayout($fieldLayout);
+                $newPage->setCustomFields($pageFields);
                 $pages[] = $newPage;
             }
 
             $fieldLayout->setPages($pages);
-            $fieldLayout->setFields($fields);
+            $fieldLayout->setCustomFields($fields);
         }
 
         return $fieldLayout;
@@ -732,7 +733,7 @@ class MigrateSproutForms extends Migration
         }
 
         // Remove any dashes (maybe open up to other characters?)
-        if (strpos($newHandle, '-') !== false) {
+        if (str_contains($newHandle, '-')) {
             $newHandle = str_replace('-', '_', $newHandle);
 
             if ($showLog) {
@@ -756,7 +757,7 @@ class MigrateSproutForms extends Migration
         }
 
         return array_values(array_map(function ($option) {
-            $option['isDefault'] = !!($option['default'] ?? false);
+            $option['isDefault'] = (bool)($option['default'] ?? false);
             unset($option['default']);
             return $option;
         }, $options));

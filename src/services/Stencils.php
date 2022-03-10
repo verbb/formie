@@ -20,6 +20,9 @@ use yii\base\Component;
 
 use Exception;
 use Throwable;
+use yii\web\ServerErrorHttpException;
+use yii\base\NotSupportedException;
+use yii\base\ErrorException;
 
 class Stencils extends Component
 {
@@ -292,10 +295,6 @@ class Stencils extends Component
      */
     public function deleteStencil(Stencil $stencil): bool
     {
-        if (!$stencil) {
-            return false;
-        }
-
         // Fire a 'beforeDeleteStencil' event
         if ($this->hasEventHandlers(self::EVENT_BEFORE_DELETE_STENCIL)) {
             $this->trigger(self::EVENT_BEFORE_DELETE_STENCIL, new StencilEvent([
@@ -352,6 +351,10 @@ class Stencils extends Component
      *
      * @param Form $form
      * @param Stencil $stencil
+     * @throws ErrorException
+     * @throws \yii\base\Exception
+     * @throws NotSupportedException
+     * @throws ServerErrorHttpException
      */
     public function applyStencil(Form $form, Stencil $stencil): void
     {

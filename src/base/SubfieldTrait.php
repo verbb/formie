@@ -17,9 +17,6 @@ trait SubfieldTrait
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public function hasSubfields(): bool
     {
         return true;
@@ -65,9 +62,6 @@ trait SubfieldTrait
     // Protected Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     protected function defineValueForIntegration($value, $integrationField, $integration, ElementInterface $element = null, $fieldKey = ''): mixed
     {
         // Check if we're trying to get a subfield value

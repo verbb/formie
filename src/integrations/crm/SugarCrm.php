@@ -37,25 +37,16 @@ class SugarCrm extends Crm
     // OAuth Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function supportsOauthConnection(): bool
     {
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function oauth2Legged(): bool
     {
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getAccessTokenUrl(): string
     {
         $apiDomain = rtrim(Craft::parseEnv($this->apiDomain), '/');
@@ -63,18 +54,12 @@ class SugarCrm extends Crm
         return "{$apiDomain}/rest/v11/oauth2/token";
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getClientId(): string
     {
         return 'sugar';
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function oauthCallback(): array
+    public function oauthCallback(): ?array
     {
         $provider = $this->getOauthProvider();
 
@@ -374,8 +359,6 @@ class SugarCrm extends Crm
                     }
 
                     Formie::$plugin->getTokens()->saveToken($token);
-
-                    return;
                 }
             }
         }

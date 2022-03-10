@@ -19,11 +19,12 @@ use craft\commerce\elements\Variant;
 use craft\commerce\fields\Variants as CommerceVariants;
 use craft\commerce\gql\arguments\elements\Variant as VariantArguments;
 use craft\commerce\gql\interfaces\elements\Variant as VariantInterface;
-use craft\commerce\gql\resolvers\elements\Variant as VariantResolver;
 use craft\commerce\models\ProductType;
 
 use GraphQL\Type\Definition\Type;
 use craft\elements\db\ElementQueryInterface;
+use craft\errors\SiteNotFoundException;
+use yii\base\InvalidConfigException;
 
 class Variants extends CommerceVariants implements FormFieldInterface
 {
@@ -84,9 +85,6 @@ class Variants extends CommerceVariants implements FormFieldInterface
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public function getSavedFieldConfig(): array
     {
         $settings = $this->traitGetSavedFieldConfig();
@@ -120,9 +118,6 @@ class Variants extends CommerceVariants implements FormFieldInterface
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getDefaultValue($attributePrefix = '')
     {
         // If the default value from the parent field (query params, etc.) is empty, use the default values
@@ -167,10 +162,10 @@ class Variants extends CommerceVariants implements FormFieldInterface
     /**
      * Returns the list of selectable variants.
      *
-     * @return \craft\elements\db\ElementQueryInterface
-     * @throws \craft\errors\SiteNotFoundException
+     * @return ElementQueryInterface
+     * @throws SiteNotFoundException
      */
-    public function getElementsQuery(): \craft\elements\db\ElementQueryInterface
+    public function getElementsQuery(): ElementQueryInterface
     {
         // Use the currently-set element query, or create a new one.
         $query = $this->elementsQuery ?? Variant::find();
@@ -228,9 +223,6 @@ class Variants extends CommerceVariants implements FormFieldInterface
         return array_merge([['label' => Craft::t('formie', 'Select an option'), 'value' => '']], $options);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineLabelSourceOptions(): array
     {
         $options = [
@@ -262,9 +254,6 @@ class Variants extends CommerceVariants implements FormFieldInterface
         return array_merge($options, ...$extraOptions);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getSettingGqlTypes(): array
     {
         return array_merge($this->traitGetSettingGqlTypes(), [
@@ -431,6 +420,7 @@ class Variants extends CommerceVariants implements FormFieldInterface
      * Returns the product type.
      *
      * @return ProductType|null
+     * @throws InvalidConfigException
      */
     private function _getProductType(): ?ProductType
     {
@@ -438,7 +428,7 @@ class Variants extends CommerceVariants implements FormFieldInterface
             return null;
         }
 
-        if (!$this->_productType && is_array($this->source)) {
+        if (!$this->_productType) {
             [, $uid] = explode(':', $this->source);
             return Commerce::getInstance()->getProductTypes()->getProductTypeByUid($uid);
         }

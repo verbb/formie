@@ -318,7 +318,7 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
      */
     public function getIsFieldset(): bool
     {
-        return (bool)$this->useMultipleFields;
+        return $this->useMultipleFields;
     }
 
     /**
@@ -344,9 +344,6 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
         ]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getSettingGqlTypes(): array
     {
         return array_merge(parent::getSettingGqlTypes(), [
@@ -544,9 +541,6 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
     // Protected Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     protected function defineValueForExport($value, ElementInterface $element = null): mixed
     {
         if ($this->useMultipleFields) {

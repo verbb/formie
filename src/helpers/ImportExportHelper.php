@@ -19,7 +19,6 @@ use verbb\formie\records\PdfTemplate as PdfTemplateRecord;
 use craft\elements\Entry;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
-use yii\db\ActiveRecord;
 
 class ImportExportHelper
 {

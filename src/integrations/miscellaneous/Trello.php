@@ -35,25 +35,16 @@ class Trello extends Miscellaneous
     // OAuth Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function supportsOauthConnection(): bool
     {
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function oauthVersion(): int
     {
         return 1;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getOauthProviderConfig(): array
     {
         return [
@@ -66,18 +57,12 @@ class Trello extends Miscellaneous
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getOauthProvider(): AbstractProvider
     {
         /** @noinspection PhpIncompatibleReturnTypeInspection */
         return new TrelloProvider($this->getOauthProviderConfig());
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getOauthScope(): array
     {
         return [

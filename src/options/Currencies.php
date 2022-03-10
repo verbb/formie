@@ -24,9 +24,6 @@ class Currencies extends PredefinedOption
         return Craft::t('formie', 'Currencies');
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function getLabelOptions(): array
     {
         return [
@@ -35,9 +32,6 @@ class Currencies extends PredefinedOption
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function getValueOptions(): array
     {
         return [

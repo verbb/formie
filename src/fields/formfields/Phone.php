@@ -132,9 +132,6 @@ class Phone extends FormField implements SubfieldInterface, PreviewableFieldInte
         return parent::serializeValue($value, $element);
     }
 
-    /**
-     * @inheritdoc
-     */
     public function getFrontEndJsModules(): ?array
     {
         if ($this->countryEnabled) {
@@ -265,17 +262,11 @@ class Phone extends FormField implements SubfieldInterface, PreviewableFieldInte
         ]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function populateValue($value): void
     {
         $this->defaultValue = $this->normalizeValue($value);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getSettingGqlTypes(): array
     {
         return array_merge(parent::getSettingGqlTypes(), [

@@ -37,25 +37,16 @@ class Zoho extends Crm
     // OAuth Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function supportsOauthConnection(): bool
     {
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getAuthorizeUrl(): string
     {
         return 'https://accounts.zoho.com/oauth/v2/auth';
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getAccessTokenUrl(): string
     {
         // Populated after OAuth connection
@@ -65,25 +56,16 @@ class Zoho extends Crm
         return "$url/oauth/v2/token";
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getClientId(): string
     {
         return Craft::parseEnv($this->clientId);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getClientSecret(): string
     {
         return Craft::parseEnv($this->clientSecret);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getOauthScope(): array
     {
         return [
@@ -92,9 +74,6 @@ class Zoho extends Crm
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getOauthAuthorizationOptions(): array
     {
         return [
@@ -102,9 +81,6 @@ class Zoho extends Crm
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function beforeFetchAccessToken(&$provider): void
     {
         // Save these properties for later...
@@ -116,9 +92,6 @@ class Zoho extends Crm
         $provider = $this->getOauthProvider();
     }
 
-    /**
-     * @inheritDoc
-     */
     public function afterFetchAccessToken($token): void
     {
         // Save these properties for later...

@@ -14,6 +14,7 @@ use craft\helpers\HTMLPurifier;
 use craft\helpers\Json;
 
 use HTMLPurifier_Config;
+use yii\base\Exception;
 
 class Html extends FormField
 {
@@ -60,9 +61,6 @@ class Html extends FormField
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public function getIsCosmetic(): bool
     {
         return true;
@@ -207,7 +205,7 @@ class Html extends FormField
      * @param string $dir The directory name within the config/ folder to look for the config file
      * @param string|null $file The filename to load.
      * @return array|false The config, or false if the file doesn't exist
-     * @throws \yii\base\Exception
+     * @throws Exception
      */
     private function _getConfig(string $dir, string $file = null): bool|array
     {

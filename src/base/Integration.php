@@ -154,22 +154,6 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     // =========================================================================
 
     /**
-     * @inheritDoc
-     */
-    public function init(): void
-    {
-        parent::init();
-
-        if ($this->cache) {
-            $this->cache = Json::decodeIfJson($this->cache);
-        }
-
-        if (is_string($this->enabled)) {
-            $this->enabled = (bool)$this->enabled;
-        }
-    }
-
-    /**
      * @inheritdoc
      */
     public function scenarios(): array
@@ -412,7 +396,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         return false;
     }
 
-    public function oauthConnect()
+    public function oauthConnect(): ?Response
     {
         switch ($this->oauthVersion()) {
             case 1: {
@@ -426,7 +410,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         return null;
     }
 
-    public function oauthCallback()
+    public function oauthCallback(): ?array
     {
         switch ($this->oauthVersion()) {
             case 1: {
@@ -592,7 +576,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
                 continue;
             }
 
-            if (strpos($fieldKey, '{') !== false) {
+            if (str_contains($fieldKey, '{')) {
                 // Get the type of field we are mapping to (for the integration)
                 $integrationField = ArrayHelper::firstWhere($fieldSettings, 'handle', $tag) ?? new IntegrationField();
 
@@ -698,7 +682,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         // For Checkboxes fields, we'll have an object, but let's check for anything iterable just to be safe
         if (is_iterable($fieldValue)) {
             $hasOptedIn = (bool)count($fieldValue);
-        } else if ($field && $field instanceof Agree) {
+        } else if ($field instanceof Agree) {
             // If this is an agree field, check this is the "Checked Value". This needs to handle strings
             // which won't work as falsey values.
             if ($field->checkedValue !== $fieldValue) {
@@ -727,7 +711,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         $fieldKey = str_replace(['{', '}'], ['', ''], $mappedFieldValue);
 
         // Check for nested fields (as `group[name[prefix]]`) - convert to dot-notation
-        if (strpos($fieldKey, '[') !== false) {
+        if (str_contains($fieldKey, '[')) {
             $fieldKey = str_replace(['[', ']'], ['.', ''], $fieldKey);
 
             // Change the field handle to reflect the top-level field, not the full path to the value
@@ -779,7 +763,6 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
                 'line' => $e->getLine(),
             ]));
         }
-
         return null;
     }
 

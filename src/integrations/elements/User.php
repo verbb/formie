@@ -201,7 +201,7 @@ class User extends Element
 
             // Check if the password was mapped, as if the source field was a Password field.
             // The value will already be hashed, and we need to do a manual DB-level update
-            if (isset($attributeValues['newPassword']) && $passwordField) {
+            if (isset($attributeValues['newPassword'])) {
                 // If this a Password field?
                 if ($passwordField instanceof Password) {
                     $hashedPassword = ArrayHelper::remove($attributeValues, 'newPassword');

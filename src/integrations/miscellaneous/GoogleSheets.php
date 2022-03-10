@@ -30,57 +30,36 @@ class GoogleSheets extends Miscellaneous
     // OAuth Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function supportsOauthConnection(): bool
     {
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getAuthorizeUrl(): string
     {
         return 'https://accounts.google.com/o/oauth2/v2/auth';
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getAccessTokenUrl(): string
     {
         return 'https://www.googleapis.com/oauth2/v4/token';
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getResourceOwner(): string
     {
         return 'https://openidconnect.googleapis.com/v1/userinfo';
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getClientId(): string
     {
         return Craft::parseEnv($this->clientId);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getClientSecret(): string
     {
         return Craft::parseEnv($this->clientSecret);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getOauthScope(): array
     {
         return [
@@ -89,9 +68,6 @@ class GoogleSheets extends Miscellaneous
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getRedirectUri(): string
     {
         $uri = parent::getRedirectUri();
@@ -104,9 +80,6 @@ class GoogleSheets extends Miscellaneous
         return $uri;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getOauthProviderConfig(): array
     {
         return array_merge(parent::getOauthProviderConfig(), [
@@ -115,9 +88,6 @@ class GoogleSheets extends Miscellaneous
         ]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getOauthProvider(): GoogleProvider
     {
         return new GoogleProvider($this->getOauthProviderConfig());

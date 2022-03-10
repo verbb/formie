@@ -105,9 +105,6 @@ class AddressFinder extends AddressProvider
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function hasValidSettings(): bool
     {
         return $this->countryCode && $this->apiKey;
@@ -122,11 +119,7 @@ class AddressFinder extends AddressProvider
         $options = [];
         $optionsRaw = $this->widgetOptions;
 
-        if (!is_array($optionsRaw)) {
-            $optionsRaw = [];
-        }
-
-        foreach ($optionsRaw as $key => $value) {
+        foreach ($optionsRaw as $value) {
             $options[$value[0]] = Json::decode($value[1]);
         }
 

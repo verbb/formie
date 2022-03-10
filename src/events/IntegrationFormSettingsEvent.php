@@ -2,6 +2,7 @@
 namespace verbb\formie\events;
 
 use verbb\formie\base\Integration;
+use verbb\formie\models\IntegrationFormSettings;
 
 use craft\events\CancelableEvent;
 
@@ -11,6 +12,6 @@ class IntegrationFormSettingsEvent extends CancelableEvent
     // =========================================================================
 
     public ?Integration $integration = null;
-    public ?array $settings = null;
+    public ?IntegrationFormSettings $settings = null;
     
 }

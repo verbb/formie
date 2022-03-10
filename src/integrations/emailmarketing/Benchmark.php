@@ -80,7 +80,7 @@ class Benchmark extends EmailMarketing
                 ];
             
                 foreach ($listAttributes as $listKey => $listAttribute) {
-                    if (strpos($listKey, 'Field') !== false && strpos($listKey, 'Name') !== false) {
+                    if (str_contains($listKey, 'Field') && str_contains($listKey, 'Name')) {
                         $listFields[] = new IntegrationField([
                             'handle' => str_replace('Name', '', $listKey),
                             'name' => $listAttribute,

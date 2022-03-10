@@ -22,8 +22,6 @@ use craft\fields\data\OptionData;
 use craft\fields\data\SingleOptionFieldData;
 use craft\helpers\Cp;
 use craft\helpers\ArrayHelper;
-use craft\helpers\ElementHelper;
-use craft\helpers\Html;
 use craft\helpers\Json;
 use craft\helpers\Template as TemplateHelper;
 
@@ -295,7 +293,7 @@ trait RelationFieldTrait
         }, $value));
     }
 
-    protected function defineValueAsJson($value, ElementInterface $element = null): array
+    protected function defineValueAsJson($value, ElementInterface $element = null): mixed
     {
         $value = $this->_all($value, $element)->all();
 

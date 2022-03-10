@@ -8,7 +8,7 @@ class IntegrationCollection extends Model
     // Properties
     // =========================================================================
 
-    public ?int $id = null;
+    public ?string $id = null;
     public ?string $name = null;
     public array $fields = [];
 

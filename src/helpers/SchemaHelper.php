@@ -394,7 +394,7 @@ class SchemaHelper
     public static function setFieldValidationName(&$fieldSchema): void
     {
         foreach ($fieldSchema as &$field) {
-            if (isset($field['name']) && isset($field['label'])) {
+            if (isset($field['name'], $field['label'])) {
                 $field['validationName'] = $field['label'] ?? '';
             }
 

@@ -326,7 +326,7 @@ class Statuses extends Component
     public function deleteStatus(Status $status): bool
     {
         // Can't delete the default status
-        if (!$status || $status->isDefault) {
+        if ($status->isDefault) {
             return false;
         }
 
@@ -338,6 +338,7 @@ class Statuses extends Component
         }
 
         Craft::$app->getProjectConfig()->remove(self::CONFIG_STATUSES_KEY . '.' . $status->uid);
+
         return true;
     }
 

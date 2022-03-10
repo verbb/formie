@@ -20,9 +20,6 @@ class Snaptcha extends Captcha
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public function getName(): string
     {
         return Craft::t('formie', 'Snaptcha');

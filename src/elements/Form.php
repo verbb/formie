@@ -39,6 +39,8 @@ use yii\validators\Validator;
 use Throwable;
 use craft\base\ElementInterface;
 use yii\base\Model;
+use Twig\Error\SyntaxError;
+use Twig\Error\LoaderError;
 
 class Form extends Element
 {
@@ -483,10 +485,6 @@ class Form extends Element
         $pages = [];
         $fieldLayout = $this->getFormFieldLayout();
 
-        if (!$fieldLayout) {
-            return [];
-        }
-
         foreach ($fieldLayout->getPages() as $page) {
             /* @var FormFieldInterface[] $pageFields */
             $rows = $page->getRows();
@@ -571,10 +569,6 @@ class Form extends Element
             return [];
         }
 
-        if (!$fieldLayout) {
-            return [];
-        }
-
         return $this->_pages = $fieldLayout->getPages();
     }
 
@@ -582,7 +576,6 @@ class Form extends Element
      * Returns the form’s rows.
      *
      * @return FieldInterface[][] The form’s rows.
-     * @throws InvalidConfigException
      */
     public function getRows(): array
     {
@@ -864,7 +857,7 @@ class Form extends Element
     /**
      * Returns the current submission.
      *
-     * @return array|Model|ElementInterface
+     * @return Submission|null
      * @throws MissingComponentException
      */
     public function getCurrentSubmission(): ?Submission
@@ -896,6 +889,7 @@ class Form extends Element
         $submissionId = Craft::$app->getSession()->get($this->_getSessionKey('submissionId'));
 
         if ($submissionId) {
+            /* @var Submission $submission */
             $submission = Submission::find()->id($submissionId)->isIncomplete(true)->one();
 
             return $this->_currentSubmission = $submission;
@@ -1050,10 +1044,6 @@ class Form extends Element
 
         $fieldLayout = $this->getFormFieldLayout();
 
-        if (!$fieldLayout) {
-            return [];
-        }
-
         return $this->_fields = $fieldLayout->getCustomFields();
     }
 
@@ -1116,10 +1106,10 @@ class Form extends Element
      *
      * @param bool $checkLastPage
      * @return String
-     * @throws \Twig\Error\LoaderError
-     * @throws \Twig\Error\SyntaxError
+     * @throws LoaderError
+     * @throws SyntaxError
      */
-    public function getRedirectUrl($checkLastPage = true): string
+    public function getRedirectUrl(bool $checkLastPage = true): string
     {
         $request = Craft::$app->getRequest();
         $url = '';
@@ -1210,7 +1200,7 @@ class Form extends Element
             'pages' => $this->getPages(),
 
             'redirectUrl' => $this->getRedirectUrl(),
-            'currentPageId' => $this->getCurrentPage()->id ?? '',
+            'currentPageId' => $this->getCurrentPage()->id ?: '',
             'outputJsTheme' => $this->getFrontEndTemplateOption('outputJsTheme'),
             'enableUnloadWarning' => $pluginSettings->enableUnloadWarning,
             'ajaxTimeout' => $pluginSettings->ajaxTimeout,

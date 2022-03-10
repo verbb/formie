@@ -63,9 +63,6 @@ class Heading extends FormField
         return $rules;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getIsCosmetic(): bool
     {
         return true;

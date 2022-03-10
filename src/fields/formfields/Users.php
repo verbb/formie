@@ -15,7 +15,6 @@ use craft\elements\User;
 use craft\fields\Users as CraftUsers;
 use craft\gql\arguments\elements\User as UserArguments;
 use craft\gql\interfaces\elements\User as UserInterface;
-use craft\gql\resolvers\elements\User as UserResolver;
 use craft\helpers\ArrayHelper;
 use craft\helpers\UrlHelper;
 
@@ -93,9 +92,6 @@ class Users extends CraftUsers implements FormFieldInterface
          $this->labelSource = 'fullName';
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getSavedFieldConfig(): array
     {
         $settings = $this->traitGetSavedFieldConfig();
@@ -129,9 +125,6 @@ class Users extends CraftUsers implements FormFieldInterface
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getDefaultValue($attributePrefix = '')
     {
         // If the default value from the parent field (query params, etc.) is empty, use the default values
@@ -176,9 +169,9 @@ class Users extends CraftUsers implements FormFieldInterface
     /**
      * Returns the list of selectable users.
      *
-     * @return \craft\elements\db\ElementQueryInterface
+     * @return ElementQueryInterface
      */
-    public function getElementsQuery(): \craft\elements\db\ElementQueryInterface
+    public function getElementsQuery(): ElementQueryInterface
     {
         // Use the currently-set element query, or create a new one.
         $query = $this->elementsQuery ?? User::find();
@@ -227,9 +220,6 @@ class Users extends CraftUsers implements FormFieldInterface
         return $event->query;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineLabelSourceOptions(): array
     {
         $options = [
@@ -249,9 +239,6 @@ class Users extends CraftUsers implements FormFieldInterface
         return $options;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getSettingGqlTypes(): array
     {
         return array_merge($this->traitGetSettingGqlTypes(), [

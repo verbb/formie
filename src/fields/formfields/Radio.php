@@ -102,9 +102,6 @@ class Radio extends BaseOptionsField implements FormFieldInterface
         ]);
     }
 
-    /**
-     * @inheritdoc
-     */
     public function getFrontEndJsModules(): ?array
     {
         return [

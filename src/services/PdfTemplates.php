@@ -273,10 +273,6 @@ class PdfTemplates extends Component
      */
     public function deleteTemplate(PdfTemplate $template): bool
     {
-        if (!$template) {
-            return false;
-        }
-
         // Fire a 'beforeDeletePdfTemplate' event
         if ($this->hasEventHandlers(self::EVENT_BEFORE_DELETE_PDF_TEMPLATE)) {
             $this->trigger(self::EVENT_BEFORE_DELETE_PDF_TEMPLATE, new PdfTemplateEvent([
@@ -365,7 +361,7 @@ class PdfTemplates extends Component
             // We need to do a little more work here to deal with a template, if picked
             $view->setTemplatesPath(Craft::$app->getPath()->getSiteTemplatesPath());
 
-            if (!$template || !$view->doesTemplateExist($template)) {
+            if (!$view->doesTemplateExist($template)) {
                 throw new Exception('PDF template file does not exist.');
             }
 

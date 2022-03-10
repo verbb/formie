@@ -169,9 +169,6 @@ class Password extends FormField implements PreviewableFieldInterface
     // Protected Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     protected function defineValueForSummary($value, ElementInterface $element = null): string
     {
         // Mask the value for submissions (but no indication of length)
@@ -182,9 +179,6 @@ class Password extends FormField implements PreviewableFieldInterface
         return '';
     }
 
-    /**
-     * @inheritdoc
-     */
     protected function defineValueForExport($value, ElementInterface $element = null): mixed
     {
         // Hide the hashed password from exports as well

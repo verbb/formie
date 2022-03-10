@@ -15,6 +15,10 @@ use craft\validators\HandleValidator;
 use craft\validators\UniqueValidator;
 
 use DateTime;
+use yii\web\ServerErrorHttpException;
+use yii\base\NotSupportedException;
+use yii\base\Exception;
+use yii\base\ErrorException;
 
 class Stencil extends Model
 {
@@ -181,6 +185,10 @@ class Stencil extends Model
      * Returns the stencils' config for project config.
      *
      * @return array
+     * @throws ErrorException
+     * @throws Exception
+     * @throws NotSupportedException
+     * @throws ServerErrorHttpException
      */
     public function getConfig(): array
     {
@@ -267,10 +275,10 @@ class Stencil extends Model
      * Returns the default status for a form.
      *
      * @return Status
-     * @throws \yii\base\ErrorException
-     * @throws \yii\base\Exception
-     * @throws \yii\base\NotSupportedException
-     * @throws \yii\web\ServerErrorHttpException
+     * @throws ErrorException
+     * @throws Exception
+     * @throws NotSupportedException
+     * @throws ServerErrorHttpException
      */
     public function getDefaultStatus(): Status
     {

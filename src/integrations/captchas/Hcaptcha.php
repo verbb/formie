@@ -26,9 +26,6 @@ class Hcaptcha extends Captcha
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public function getName(): string
     {
         return Craft::t('formie', 'hCaptcha');
@@ -123,9 +120,6 @@ class Hcaptcha extends Captcha
         return $result['success'] ?? false;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function hasValidSettings(): bool
     {
         return $this->siteKey && $this->secretKey;

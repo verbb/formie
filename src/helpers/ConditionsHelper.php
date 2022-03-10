@@ -158,17 +158,14 @@ class ConditionsHelper
         $conditions = $conditionSettings['conditions'] ?? [];
 
         $results = ConditionsHelper::evaluateConditions($conditions, $submission);
-        $result = false;
 
         // Check to see how to compare the result (any or all).
         if ($conditionSettings['conditionRule'] === 'all') {
             // Are _all_ the conditions the same?
-            $result = (bool)array_product($results);
-        } else {
-            $result = in_array(true, $results);
+            return (bool)array_product($results);
         }
 
-        return $result;
+        return in_array(true, $results);
     }
 
     public static function getSerializedFieldValues($submission): array

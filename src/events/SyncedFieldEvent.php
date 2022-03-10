@@ -1,7 +1,7 @@
 <?php
 namespace verbb\formie\events;
 
-use verbb\formie\base\FormField;
+use verbb\formie\base\FormFieldInterface;
 
 use yii\base\Event;
 
@@ -10,6 +10,6 @@ class SyncedFieldEvent extends Event
     // Properties
     // =========================================================================
 
-    public ?FormField $field = null;
+    public ?FormFieldInterface $field = null;
     
 }

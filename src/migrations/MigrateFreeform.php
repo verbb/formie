@@ -34,6 +34,7 @@ use Solspace\Freeform\Library\Composer\Components\FieldInterface;
 use Solspace\Freeform\Library\Composer\Components\Fields\DataContainers\Option;
 use Solspace\Freeform\Fields as freeformfields;
 use Solspace\Freeform\Fields\SubmitField;
+use yii\base\InvalidConfigException;
 
 /**
  * Migrates Freeform forms, notifications and submissions.
@@ -508,12 +509,13 @@ class MigrateFreeform extends Migration
                 }
             }
 
-            $newPage->setFields($pageFields);
+            $newPage->setLayout($fieldLayout);
+            $newPage->setCustomFields($pageFields);
             $pages[] = $newPage;
         }
 
         $fieldLayout->setPages($pages);
-        $fieldLayout->setFields($fields);
+        $fieldLayout->setCustomFields($fields);
 
         return $fieldLayout;
     }
@@ -521,7 +523,7 @@ class MigrateFreeform extends Migration
     /**
      * @param FieldInterface $field
      * @return FormFieldInterface|null
-     * @throws \yii\base\InvalidConfigException
+     * @throws InvalidConfigException
      */
     private function _mapField(FieldInterface $field): ?FormFieldInterface
     {
@@ -798,7 +800,7 @@ class MigrateFreeform extends Migration
         }
 
         // Remove any dashes (maybe open up to other characters?)
-        if (strpos($newHandle, '-') !== false) {
+        if (str_contains($newHandle, '-')) {
             $newHandle = str_replace('-', '_', $newHandle);
 
             if ($showLog) {

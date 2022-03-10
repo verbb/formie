@@ -28,9 +28,6 @@ abstract class Element extends Integration
         return Craft::t('formie', 'Elements');
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function supportsConnection(): bool
     {
         return false;
@@ -40,9 +37,6 @@ abstract class Element extends Integration
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public function getIconUrl(): string
     {
         $handle = StringHelper::toKebabCase(static::displayName());
@@ -62,9 +56,6 @@ abstract class Element extends Integration
         ]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getFormSettingsHtml($form): string
     {
         $handle = StringHelper::toKebabCase(static::displayName());
@@ -80,9 +71,6 @@ abstract class Element extends Integration
         return UrlHelper::cpUrl('formie/settings/elements/edit/' . $this->id);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getFormSettings($useCache = true): IntegrationFormSettings|bool
     {
         // Always fetch, no real need for cache

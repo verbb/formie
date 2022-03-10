@@ -142,9 +142,6 @@ class Repeater extends FormField implements NestedFieldInterface, EagerLoadingFi
         ]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function populateValue($value): void
     {
         if (!is_array($value) || !isset($value[0])) {
@@ -172,9 +169,6 @@ class Repeater extends FormField implements NestedFieldInterface, EagerLoadingFi
         }
     }
 
-    /**
-     * @inheritDoc
-     */
     public function parsePopulatedFieldValues($value, $element): array
     {
         // For when parsing populated content from the cache, when the field is visibly disabled
@@ -204,9 +198,6 @@ class Repeater extends FormField implements NestedFieldInterface, EagerLoadingFi
         return array_merge($modules, $this->traitGetFrontEndJsModules());
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getConfigJson(): ?string
     {
         // Override `getConfigJson` as we don't want to initialise any inner fields immediately.

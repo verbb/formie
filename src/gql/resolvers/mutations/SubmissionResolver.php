@@ -44,14 +44,18 @@ class SubmissionResolver extends ElementMutationResolver
         $canCreate = Gql::canSchema($scope, 'create');
         $canSave = Gql::canSchema($scope, 'save');
 
+        $submission = null;
+
         if ($canIdentify) {
             if (!$canSaveAll && !$canSave) {
                 throw new Error('Unable to perform the action.');
             }
 
             if (!empty($arguments['uid'])) {
+                /* @var Submission $submission */
                 $submission = $elementService->createElementQuery(Submission::class)->uid($arguments['uid'])->one();
             } else {
+                /* @var Submission $submission */
                 $submission = $elementService->getElementById($arguments['id'], Submission::class);
             }
 
@@ -63,6 +67,7 @@ class SubmissionResolver extends ElementMutationResolver
                 throw new Error('Unable to perform the action.');
             }
 
+            /* @var Submission $submission */
             $submission = $elementService->createElement(['type' => Submission::class, 'formId' => $form->id]);
         }
 

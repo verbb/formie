@@ -24,9 +24,6 @@ class StatesAustralia extends PredefinedOption
         return Craft::t('formie', 'States (Australia)');
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function getLabelOptions(): array
     {
         return [
@@ -35,9 +32,6 @@ class StatesAustralia extends PredefinedOption
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function getValueOptions(): array
     {
         return [

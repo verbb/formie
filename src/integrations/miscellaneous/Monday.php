@@ -276,8 +276,7 @@ class Monday extends Miscellaneous
         // Prepare columns for the API - we keep a record of the type when mapping
         foreach ($columns as $key => $value) {
             $columnInfo = explode(':', $key);
-            $type = $columnInfo[0];
-            $handle = $columnInfo[1];
+            [$type, $handle] = $columnInfo;
 
             if ($type === 'email') {
                 $newColumns[$handle] = [

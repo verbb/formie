@@ -28,6 +28,7 @@ use yii\web\Response;
 use DateTime;
 use DateTimeZone;
 use Throwable;
+use craft\errors\SiteNotFoundException;
 
 class SubmissionsController extends Controller
 {
@@ -105,7 +106,7 @@ class SubmissionsController extends Controller
      * @throws BadRequestHttpException
      * @throws ForbiddenHttpException
      * @throws HttpException
-     * @throws \craft\errors\SiteNotFoundException
+     * @throws SiteNotFoundException
      */
     public function actionEditSubmission(string $formHandle, int $submissionId = null, ?Submission $submission = null, ?string $site = null): Response
     {
@@ -227,12 +228,9 @@ class SubmissionsController extends Controller
         $submission->title = $request->getParam('title', $submission->title);
         $submission->statusId = $request->getParam('statusId', $submission->statusId);
         $submission->isSpam = $request->getParam('isSpam', $submission->isSpam);
+        $submission->setScenario(Element::SCENARIO_LIVE);
 
         // Save the submission
-        if ($submission->enabled && $submission->enabledForSite) {
-            $submission->setScenario(Element::SCENARIO_LIVE);
-        }
-
         if ($request->getParam('saveAction') === 'draft') {
             $submission->setScenario(Element::SCENARIO_ESSENTIALS);
         }
@@ -358,7 +356,7 @@ class SubmissionsController extends Controller
                 'success' => true,
                 'id' => $submission->id,
                 'title' => $submission->title,
-                'status' => $submission->getStatusModel(true)->handle ?? '',
+                'status' => $submission->getStatusModel()->handle ?? '',
                 'url' => $submission->getUrl(),
                 'cpEditUrl' => $submission->getCpEditUrl(),
             ]);
@@ -597,12 +595,12 @@ class SubmissionsController extends Controller
         // Fire an 'afterSubmissionRequest' event
         $event = new SubmissionEvent([
             'submission' => $submission,
-            'success' => $success,
+            'success' => true,
         ]);
         $this->trigger(self::EVENT_AFTER_SUBMISSION_REQUEST, $event);
 
         if ($request->getAcceptsJson()) {
-            return $this->_returnJsonResponse($success, $submission, $form, $nextPage);
+            return $this->_returnJsonResponse(true, $submission, $form, $nextPage);
         }
 
         if (!empty($nextPage)) {

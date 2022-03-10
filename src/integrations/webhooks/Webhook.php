@@ -23,9 +23,6 @@ class Webhook extends BaseWebhook
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function supportsConnection(): bool
     {
         return false;

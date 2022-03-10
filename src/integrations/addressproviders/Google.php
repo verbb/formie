@@ -35,9 +35,6 @@ class Google extends AddressProvider
         return Craft::t('formie', 'Google Places');
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function supportsCurrentLocation(): bool
     {
         return true;
@@ -111,9 +108,6 @@ class Google extends AddressProvider
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function hasValidSettings(): bool
     {
         if ($this->apiKey) {
@@ -131,10 +125,6 @@ class Google extends AddressProvider
     {
         $options = [];
         $optionsRaw = $this->options;
-
-        if (!is_array($optionsRaw)) {
-            $optionsRaw = [];
-        }
 
         foreach ($optionsRaw as $key => $value) {
             $options[$value[0]] = Json::decode($value[1]);

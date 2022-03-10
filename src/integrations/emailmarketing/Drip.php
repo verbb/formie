@@ -27,41 +27,26 @@ class Drip extends EmailMarketing
     // OAuth Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function supportsOauthConnection(): bool
     {
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getAuthorizeUrl(): string
     {
         return 'https://www.getdrip.com/oauth/authorize';
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getAccessTokenUrl(): string
     {
         return 'https://www.getdrip.com/oauth/token';
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getClientId(): string
     {
         return Craft::parseEnv($this->clientId);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getClientSecret(): string
     {
         return Craft::parseEnv($this->clientSecret);

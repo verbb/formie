@@ -52,7 +52,7 @@ class FieldLayoutPage extends CraftFieldLayoutTab
     /**
      * Returns the tab’s layout.
      *
-     * @return FieldLayout|null The tab’s layout.
+     * @return FieldLayout The tab’s layout.
      * @throws InvalidConfigException if [[groupId]] is set but invalid
      */
     public function getLayout(): FieldLayout
@@ -104,10 +104,7 @@ class FieldLayoutPage extends CraftFieldLayoutTab
         return $this->_fields;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function setCustomFields(array $fields)
+    public function setCustomFields(array $fields): void
     {
         ArrayHelper::multisort($fields, 'sortOrder');
         $this->_fields = $fields;
@@ -127,7 +124,9 @@ class FieldLayoutPage extends CraftFieldLayoutTab
     }
 
     /**
+     * @param bool $includeDisabled
      * @return FieldInterface[]
+     * @throws InvalidConfigException
      */
     public function getRows(bool $includeDisabled = true): array
     {
@@ -193,14 +192,12 @@ class FieldLayoutPage extends CraftFieldLayoutTab
     {
         $errors = [];
 
-        if ($submission) {
-            // Find all errors that match field handles in this page
-            $fieldHandles = ArrayHelper::getColumn($this->getCustomFields(), 'handle');
+        // Find all errors that match field handles in this page
+        $fieldHandles = ArrayHelper::getColumn($this->getCustomFields(), 'handle');
 
-            foreach ($submission->getErrors() as $fieldHandle => $submissionError) {
-                if (in_array($fieldHandle, $fieldHandles)) {
-                    $errors[$fieldHandle] = $submissionError;
-                }
+        foreach ($submission->getErrors() as $fieldHandle => $submissionError) {
+            if (in_array($fieldHandle, $fieldHandles)) {
+                $errors[$fieldHandle] = $submissionError;
             }
         }
 

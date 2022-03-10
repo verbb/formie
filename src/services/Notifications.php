@@ -23,6 +23,9 @@ use yii\base\Component;
 use Throwable;
 use yii\base\InvalidConfigException;
 use yii\db\Exception;
+use Twig\Error\SyntaxError;
+use Twig\Error\RuntimeError;
+use Twig\Error\LoaderError;
 
 class Notifications extends Component
 {
@@ -83,7 +86,7 @@ class Notifications extends Component
     /**
      * Returns a form notification by its ID.
      *
-     * @param $id
+     * @param int $id
      * @return Notification|null
      */
     public function getNotificationById(int $id): ?Notification
@@ -199,10 +202,6 @@ class Notifications extends Component
      */
     public function deleteNotification(Notification $notification): bool
     {
-        if (!$notification) {
-            return false;
-        }
-
         // Fire a 'beforeDeleteNotification' event
         if ($this->hasEventHandlers(self::EVENT_BEFORE_DELETE_NOTIFICATION)) {
             $this->trigger(self::EVENT_BEFORE_DELETE_NOTIFICATION, new NotificationEvent([
@@ -273,9 +272,9 @@ class Notifications extends Component
      *
      * @param Notification[] $notifications
      * @return mixed
-     * @throws \Twig\Error\LoaderError
-     * @throws \Twig\Error\RuntimeError
-     * @throws \Twig\Error\SyntaxError
+     * @throws LoaderError
+     * @throws RuntimeError
+     * @throws SyntaxError
      * @throws \yii\base\Exception
      */
     public function getNotificationsConfig(array $notifications): mixed
@@ -314,7 +313,10 @@ class Notifications extends Component
      *
      * @param Form|null $excludeForm
      * @return array
-     * @throws InvalidConfigException
+     * @throws LoaderError
+     * @throws RuntimeError
+     * @throws SyntaxError
+     * @throws \yii\base\Exception
      */
     public function getExistingNotifications(Form $excludeForm = null): array
     {
@@ -325,7 +327,7 @@ class Notifications extends Component
         $query = Form::find()->orderBy('title ASC');
 
         // Exclude the current form.
-        if ($excludeForm && $excludeForm instanceof Form) {
+        if ($excludeForm instanceof Form) {
             $query = $query->id("not {$excludeForm->id}");
         }
 
@@ -334,7 +336,7 @@ class Notifications extends Component
         $stencils = Formie::$plugin->getStencils()->getAllStencils();
 
         // Exclude the current stencil.
-        if ($excludeForm && $excludeForm instanceof Stencil) {
+        if ($excludeForm instanceof Stencil) {
             $filteredStencils = [];
 
             foreach ($stencils as $stencil) {

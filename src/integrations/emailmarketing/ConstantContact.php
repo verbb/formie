@@ -28,17 +28,11 @@ class ConstantContact extends EmailMarketing
     // OAuth Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function supportsOauthConnection(): bool
     {
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getAuthorizeUrl(): string
     {
         $useNewEndpoint = Craft::parseEnv('$FORMIE_INTEGRATION_CC_NEW_ENDPOINT');
@@ -51,9 +45,6 @@ class ConstantContact extends EmailMarketing
         return 'https://authz.constantcontact.com/oauth2/default/v1/authorize';
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getAccessTokenUrl(): string
     {
         $useNewEndpoint = Craft::parseEnv('$FORMIE_INTEGRATION_CC_NEW_ENDPOINT');
@@ -66,25 +57,16 @@ class ConstantContact extends EmailMarketing
         return 'https://authz.constantcontact.com/oauth2/default/v1/token';
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getClientId(): string
     {
         return Craft::parseEnv($this->apiKey);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getClientSecret(): string
     {
         return Craft::parseEnv($this->appSecret);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getOauthScope(): array
     {
         return ['contact_data'];
@@ -189,7 +171,7 @@ class ConstantContact extends EmailMarketing
             $customFields = [];
 
             foreach ($fieldValues as $key => $fieldValue) {
-                if (strpos($key, '-') !== false) {
+                if (str_contains($key, '-')) {
                     $customFields[] = [
                         'custom_field_id' => $key,
                         'value' => ArrayHelper::remove($fieldValues, $key),
@@ -251,7 +233,7 @@ class ConstantContact extends EmailMarketing
         // Always provide an authenticated client - so check first.
         // We can't always rely on the EOL of the token.
         try {
-            $response = $this->request('GET', 'contact_lists');
+            $this->request('GET', 'contact_lists');
         } catch (Throwable $e) {
             if ($e->getCode() === 401) {
                 // Force-refresh the token
@@ -288,7 +270,7 @@ class ConstantContact extends EmailMarketing
     {
         $customFields = [];
 
-        foreach ($fields as $key => $field) {
+        foreach ($fields as $field) {
             // Exclude any names
             if (in_array($field['label'], $excludeNames)) {
                  continue;

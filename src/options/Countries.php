@@ -24,9 +24,6 @@ class Countries extends PredefinedOption
         return Craft::t('formie', 'Countries');
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function getLabelOptions(): array
     {
         return [
@@ -36,9 +33,6 @@ class Countries extends PredefinedOption
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function getValueOptions(): array
     {
         return [

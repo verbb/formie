@@ -29,8 +29,6 @@ use yii\base\Exception;
 use yii\base\InvalidConfigException;
 use yii\base\NotSupportedException;
 use Throwable;
-use craft\base\ElementInterface;
-use yii\base\Model;
 
 class Forms extends Component
 {
@@ -332,6 +330,7 @@ class Forms extends Component
      *
      * @param bool $duplicate
      * @return FieldLayout
+     * @throws \Exception
      */
     public function assembleLayout(bool $duplicate = false): FieldLayout
     {
@@ -721,19 +720,19 @@ class Forms extends Component
     {
         $fieldLayout = $form->getFormFieldLayout();
 
-        if ($fieldLayout) {
-            $fieldLayout->hasErrors();
+        if ($fieldLayout->hasErrors()) {
+            return true;
+        }
 
-            foreach ($fieldLayout->getPages() as $page) {
-                if ($page->hasErrors()) {
+        foreach ($fieldLayout->getPages() as $page) {
+            if ($page->hasErrors()) {
+                return true;
+            }
+
+            foreach ($page->getCustomFields() as $field) {
+                /* @var FormField $field */
+                if ($field->hasErrors()) {
                     return true;
-                }
-
-                foreach ($page->getCustomFields() as $field) {
-                    /* @var FormField $field */
-                    if ($field->hasErrors()) {
-                        return true;
-                    }
                 }
             }
         }
@@ -766,7 +765,7 @@ class Forms extends Component
 
         // Find any `fmcd_*` tables - these are content tables for soft-deleted forms
         foreach ($db->schema->getTableNames() as $tableName) {
-            if (strpos($tableName, 'fmcd_') !== false) {
+            if (str_contains($tableName, 'fmcd_')) {
                 $db->createCommand()
                     ->dropTableIfExists($tableName)
                     ->execute();

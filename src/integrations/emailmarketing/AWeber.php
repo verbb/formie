@@ -14,6 +14,7 @@ use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 use Throwable;
 use GuzzleHttp\Client;
+use verbb\formie\errors\IntegrationException;
 
 class AWeber extends EmailMarketing
 {
@@ -27,57 +28,36 @@ class AWeber extends EmailMarketing
     // OAuth Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function supportsOauthConnection(): bool
     {
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getAuthorizeUrl(): string
     {
         return 'https://auth.aweber.com/oauth2/authorize';
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getAccessTokenUrl(): string
     {
         return 'https://auth.aweber.com/oauth2/token';
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getResourceOwner(): string
     {
         return 'https://api.aweber.com/1.0/accounts';
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getClientId(): string
     {
         return Craft::parseEnv($this->clientId);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getClientSecret(): string
     {
         return Craft::parseEnv($this->clientSecret);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getOauthScope(): array
     {
         return [
@@ -93,9 +73,6 @@ class AWeber extends EmailMarketing
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getOauthProviderConfig(): array
     {
         return array_merge(parent::getOauthProviderConfig(), [
@@ -244,7 +221,7 @@ class AWeber extends EmailMarketing
     }
 
     /**
-     * @throws \verbb\formie\errors\IntegrationException
+     * @throws IntegrationException
      */
     public function getClient(): Client
     {
@@ -269,7 +246,7 @@ class AWeber extends EmailMarketing
         // Always provide an authenticated client - so check first.
         // We can't always rely on the EOL of the token.
         try {
-            $response = $this->request('GET', 'accounts');
+            $this->request('GET', 'accounts');
         } catch (Throwable $e) {
             if ($e->getCode() === 401) {
                 // Force-refresh the token

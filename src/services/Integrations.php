@@ -16,11 +16,11 @@ use verbb\formie\integrations\elements;
 use verbb\formie\integrations\emailmarketing;
 use verbb\formie\integrations\miscellaneous;
 use verbb\formie\integrations\webhooks;
+use verbb\formie\models\FieldLayoutPage;
 use verbb\formie\models\MissingIntegration;
 use verbb\formie\records\Integration as IntegrationRecord;
 
 use Craft;
-use craft\base\VolumeInterface;
 use craft\db\Query;
 use craft\errors\MissingComponentException;
 use craft\events\ConfigEvent;
@@ -32,14 +32,12 @@ use craft\helpers\ProjectConfig as ProjectConfigHelper;
 use craft\helpers\StringHelper;
 
 use yii\base\Component;
-use yii\base\ErrorException;
-use yii\base\Exception;
-use yii\base\NotSupportedException;
 use yii\base\UnknownPropertyException;
-use yii\web\ServerErrorHttpException;
-use verbb\formie\models\FieldLayoutPage;
 use yii\db\ActiveRecord;
+
 use Throwable;
+use yii\base\InvalidConfigException;
+use yii\db\Exception;
 
 class Integrations extends Component
 {
@@ -205,7 +203,7 @@ class Integrations extends Component
      *
      * @return array
      * @throws UnknownPropertyException
-     * @throws \yii\base\InvalidConfigException
+     * @throws InvalidConfigException
      */
     public function getAllIntegrations(): array
     {
@@ -249,6 +247,8 @@ class Integrations extends Component
      *
      * @param int $integrationId
      * @return IntegrationInterface|null
+     * @throws InvalidConfigException
+     * @throws UnknownPropertyException
      */
     public function getIntegrationById(int $integrationId): ?IntegrationInterface
     {
@@ -260,6 +260,8 @@ class Integrations extends Component
      *
      * @param string $integrationUid
      * @return IntegrationInterface|null
+     * @throws InvalidConfigException
+     * @throws UnknownPropertyException
      */
     public function getIntegrationByUid(string $integrationUid): ?IntegrationInterface
     {
@@ -271,6 +273,8 @@ class Integrations extends Component
      *
      * @param string $handle
      * @return IntegrationInterface|null
+     * @throws InvalidConfigException
+     * @throws UnknownPropertyException
      */
     public function getIntegrationByHandle(string $handle): ?IntegrationInterface
     {
@@ -282,6 +286,8 @@ class Integrations extends Component
      *
      * @param $tokenId
      * @return IntegrationInterface|null
+     * @throws InvalidConfigException
+     * @throws UnknownPropertyException
      */
     public function getIntegrationByTokenId($tokenId): ?IntegrationInterface
     {
@@ -370,7 +376,7 @@ class Integrations extends Component
      *
      * @param ConfigEvent $event
      * @throws Throwable
-     * @throws \yii\db\Exception
+     * @throws Exception
      */
     public function handleChangedIntegration(ConfigEvent $event): void
     {
@@ -455,7 +461,7 @@ class Integrations extends Component
      * @param mixed $config The integration’s class name, or its config, with a `type` value and optionally a `settings` value
      * @return IntegrationInterface The integration
      * @throws UnknownPropertyException
-     * @throws \yii\base\InvalidConfigException
+     * @throws InvalidConfigException
      */
     public function createIntegration(mixed $config): IntegrationInterface
     {
@@ -530,7 +536,7 @@ class Integrations extends Component
      *
      * @param ConfigEvent $event
      * @throws Throwable
-     * @throws \yii\db\Exception
+     * @throws Exception
      */
     public function handleDeletedIntegration(ConfigEvent $event): void
     {
@@ -604,6 +610,8 @@ class Integrations extends Component
      *
      * @param Form $form
      * @return array
+     * @throws InvalidConfigException
+     * @throws UnknownPropertyException
      */
     public function getAllEnabledIntegrationsForForm(Form $form): array
     {
@@ -687,7 +695,7 @@ class Integrations extends Component
      * @param bool $force
      * @return array
      */
-    public function getAllEnabledCaptchasForForm(Form $form, FieldLayoutPage $page = null, $force = false): array
+    public function getAllEnabledCaptchasForForm(Form $form, FieldLayoutPage $page = null, bool $force = false): array
     {
         $captchas = [];
         $integrations = $this->getAllEnabledIntegrationsForForm($form);

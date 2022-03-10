@@ -3,9 +3,7 @@ namespace verbb\formie\variables;
 
 use verbb\formie\Formie as FormiePlugin;
 use verbb\formie\base\FormFieldInterface;
-use verbb\formie\base\FormFieldTrait;
 use verbb\formie\base\PositionInterface;
-use verbb\formie\base\SubfieldTrait;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\elements\db\FormQuery;
@@ -19,6 +17,11 @@ use Craft;
 use craft\errors\MissingComponentException;
 
 use Twig\Markup;
+use Exception;
+use Twig\Error\SyntaxError;
+use Twig\Error\RuntimeError;
+use Twig\Error\LoaderError;
+use yii\base\InvalidConfigException;
 
 class Formie
 {
@@ -93,10 +96,15 @@ class Formie
     /**
      * Renders a form.
      *
-     * @param string|Form $form
+     * @param Form|string|null $form
      * @param array|null $options
      * @return Markup|null
-     * @noinspection PhpDocMissingThrowsInspection
+     * @throws LoaderError
+     * @throws MissingComponentException
+     * @throws RuntimeError
+     * @throws SyntaxError
+     * @throws \yii\base\Exception
+     * @throws InvalidConfigException
      */
     public function renderForm(Form|string|null $form, array $options = null): ?Markup
     {
@@ -106,15 +114,15 @@ class Formie
     /**
      * Renders a form page.
      *
-     * @param Form $form
+     * @param Form|string|null $form
      * @param FieldLayoutPage|null $page
      * @param array|null $options
      * @return Markup|null
-     * @throws \Twig\Error\LoaderError
-     * @throws \Twig\Error\RuntimeError
-     * @throws \Twig\Error\SyntaxError
+     * @throws LoaderError
+     * @throws MissingComponentException
+     * @throws RuntimeError
+     * @throws SyntaxError
      * @throws \yii\base\Exception
-     * @noinspection PhpDocMissingThrowsInspection
      */
     public function renderPage(Form|string|null $form, ?FieldLayoutPage $page = null, array $options = null): ?Markup
     {
@@ -124,11 +132,14 @@ class Formie
     /**
      * Renders a form field.
      *
-     * @param Form $form
-     * @param FormFieldInterface $field
+     * @param Form|string|null $form
+     * @param FormFieldInterface|null $field
      * @param array|null $options
      * @return Markup|null
-     * @noinspection PhpDocMissingThrowsInspection
+     * @throws LoaderError
+     * @throws RuntimeError
+     * @throws SyntaxError
+     * @throws \yii\base\Exception
      */
     public function renderField(Form|string|null $form, ?FormFieldInterface $field = null, array $options = null): ?Markup
     {
@@ -140,8 +151,12 @@ class Formie
      *
      * @param string|Form $form
      * @param array|null $options
-     * @return null
-     * @noinspection PhpDocMissingThrowsInspection
+     * @return void
+     * @throws LoaderError
+     * @throws RuntimeError
+     * @throws SyntaxError
+     * @throws \yii\base\Exception
+     * @throws InvalidConfigException
      */
     public function registerAssets(Form|string $form, array $options = null): void
     {
@@ -212,7 +227,7 @@ class Formie
      * @param Form|null $form
      * @param Notification|null $notification
      * @return string|null
-     * @throws \Exception
+     * @throws Exception
      */
     public function getParsedValue(string $value, Submission $submission, Form $form = null, Notification $notification = null): ?string
     {

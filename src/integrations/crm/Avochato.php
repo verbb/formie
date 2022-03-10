@@ -166,7 +166,7 @@ class Avochato extends Crm
     public function fetchConnection(): bool
     {
         try {
-            $response = $this->request('GET', 'contacts');
+            $this->request('GET', 'contacts');
         } catch (Throwable $e) {
             Integration::apiError($this, $e);
 

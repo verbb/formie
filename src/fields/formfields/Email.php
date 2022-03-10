@@ -76,7 +76,7 @@ class Email extends FormField implements PreviewableFieldInterface
             $rules[] = [$this->handle, EmailValidator::class, 'skipOnEmpty' => true, 'checkDNS' => true];
         }
 
-        if ($this->blockedDomains && is_array($this->blockedDomains)) {
+        if ($this->blockedDomains) {
             $rules[] = 'validateDomain';
         }
 

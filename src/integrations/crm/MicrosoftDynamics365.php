@@ -38,33 +38,21 @@ class MicrosoftDynamics365 extends Crm
     // OAuth Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function supportsOauthConnection(): bool
     {
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getClientId(): string
     {
         return Craft::parseEnv($this->clientId);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getClientSecret(): string
     {
         return Craft::parseEnv($this->clientSecret);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getOauthScope(): array
     {
         return [
@@ -76,17 +64,11 @@ class MicrosoftDynamics365 extends Crm
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getOauthProvider(): Azure
     {
         return new Azure($this->getOauthProviderConfig());
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getOauthProviderConfig(): array
     {
         return array_merge(parent::getOauthProviderConfig(), [
@@ -290,9 +272,6 @@ class MicrosoftDynamics365 extends Crm
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function request(string $method, string $uri, array $options = [])
     {
         // Dynamics doesn't return a response for POST requests by default. Riiiiight...

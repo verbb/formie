@@ -20,7 +20,7 @@ class m210309_000000_fix_formId extends Migration
             ->all();
 
         foreach ($fields as $field) {
-            if (strpos($field['context'], 'formie:') !== false) {
+            if (str_contains($field['context'], 'formie:')) {
                 $settings = Json::decode($field['settings']);
                 $formId = $settings['formId'] ?? null;
 
@@ -31,7 +31,7 @@ class m210309_000000_fix_formId extends Migration
                 $this->update('{{%fields}}', ['settings' => Json::encode($settings)], ['id' => $field['id']], [], false);
             }
 
-            if (strpos($field['context'], 'formieField:') !== false) {
+            if (str_contains($field['context'], 'formieField:')) {
                 $settings = Json::decode($field['settings']);
                 $formId = $settings['formId'] ?? null;
 

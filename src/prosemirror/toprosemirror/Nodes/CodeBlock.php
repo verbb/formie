@@ -18,7 +18,7 @@ class CodeBlock extends Node
 
     public function data(): ?array
     {
-        if ($language = $this->getLanguage()) {
+        if ($this->getLanguage()) {
             return [
                 'type' => 'code_block',
                 'attrs' => [

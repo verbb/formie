@@ -19,10 +19,10 @@ use craft\commerce\elements\Product;
 use craft\commerce\fields\Products as CommerceProducts;
 use craft\commerce\gql\arguments\elements\Product as ProductArguments;
 use craft\commerce\gql\interfaces\elements\Product as ProductInterface;
-use craft\commerce\gql\resolvers\elements\Product as ProductResolver;
 
 use GraphQL\Type\Definition\Type;
 use craft\elements\db\ElementQueryInterface;
+use craft\errors\SiteNotFoundException;
 
 class Products extends CommerceProducts implements FormFieldInterface
 {
@@ -81,9 +81,6 @@ class Products extends CommerceProducts implements FormFieldInterface
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public function getSavedFieldConfig(): array
     {
         $settings = $this->traitGetSavedFieldConfig();
@@ -117,9 +114,6 @@ class Products extends CommerceProducts implements FormFieldInterface
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getDefaultValue($attributePrefix = '')
     {
         // If the default value from the parent field (query params, etc.) is empty, use the default values
@@ -164,10 +158,10 @@ class Products extends CommerceProducts implements FormFieldInterface
     /**
      * Returns the list of selectable products.
      *
-     * @return \craft\elements\db\ElementQueryInterface
-     * @throws \craft\errors\SiteNotFoundException
+     * @return ElementQueryInterface
+     * @throws SiteNotFoundException
      */
-    public function getElementsQuery(): \craft\elements\db\ElementQueryInterface
+    public function getElementsQuery(): ElementQueryInterface
     {
         // Use the currently-set element query, or create a new one.
         $query = $this->elementsQuery ?? Product::find();
@@ -222,9 +216,6 @@ class Products extends CommerceProducts implements FormFieldInterface
         return $event->query;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineLabelSourceOptions(): array
     {
         $options = [
@@ -258,9 +249,6 @@ class Products extends CommerceProducts implements FormFieldInterface
         return array_merge($options, ...$extraOptions);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getSettingGqlTypes(): array
     {
         return array_merge($this->traitGetSettingGqlTypes(), [

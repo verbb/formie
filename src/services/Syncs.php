@@ -89,7 +89,7 @@ class Syncs extends Component
     /**
      * Returns a sync by its ID.
      *
-     * @param $id
+     * @param int $id
      * @return SyncModel|null
      */
     public function getSyncById(int $id): ?SyncModel
@@ -140,8 +140,7 @@ class Syncs extends Component
     /**
      * Deletes a sync by its ID.
      *
-     * @param $id
-     * @throws Throwable
+     * @param int $id
      * @throws StaleObjectException
      */
     public function deleteSyncById(int $id): void

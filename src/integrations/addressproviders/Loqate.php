@@ -105,9 +105,6 @@ class Loqate extends AddressProvider
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function hasValidSettings(): bool
     {
         if ($this->apiKey) {
@@ -125,10 +122,6 @@ class Loqate extends AddressProvider
     {
         $options = [];
         $optionsRaw = $this->reconfigurableOptions;
-
-        if (!is_array($optionsRaw)) {
-            $optionsRaw = [];
-        }
 
         foreach ($optionsRaw as $key => $value) {
             $options[$value[0]] = Json::decode($value[1]);

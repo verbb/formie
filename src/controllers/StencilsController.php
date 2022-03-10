@@ -18,6 +18,7 @@ use Throwable;
 
 use yii\web\HttpException;
 use yii\web\Response;
+use yii\base\InvalidConfigException;
 
 class StencilsController extends Controller
 {
@@ -61,7 +62,7 @@ class StencilsController extends Controller
      * @param Stencil|null $stencil
      * @return Response
      * @throws HttpException
-     * @throws \yii\base\InvalidConfigException
+     * @throws InvalidConfigException
      */
     public function actionEdit(int $id = null, Stencil $stencil = null): Response
     {

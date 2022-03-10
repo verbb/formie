@@ -95,8 +95,8 @@ class StatusesController extends Controller
         $this->requireAcceptsJson();
         $ids = Json::decode(Craft::$app->getRequest()->getRequiredBodyParam('ids'));
 
-        if ($success = Formie::$plugin->getStatuses()->reorderStatuses($ids)) {
-            return $this->asJson(['success' => $success]);
+        if (Formie::$plugin->getStatuses()->reorderStatuses($ids)) {
+            return $this->asJson(['success' => true]);
         }
 
         return $this->asJson(['error' => Craft::t('formie', 'Couldn’t reorder statuses.')]);

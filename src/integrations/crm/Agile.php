@@ -469,7 +469,7 @@ class Agile extends Crm
     public function fetchConnection(): bool
     {
         try {
-            $response = $this->request('GET', 'contacts');
+            $this->request('GET', 'contacts');
         } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
@@ -500,7 +500,7 @@ class Agile extends Crm
     // Private Methods
     // =========================================================================
 
-    private function _convertFieldType($fieldType)
+    private function _convertFieldType($fieldType): string
     {
         return IntegrationField::TYPE_STRING;
     }
@@ -509,7 +509,7 @@ class Agile extends Crm
     {
         $customFields = [];
 
-        foreach ($fields as $key => $field) {
+        foreach ($fields as $field) {
             if ($field['type'] !== 'CUSTOM') {
                 continue;
             }
@@ -530,7 +530,7 @@ class Agile extends Crm
 
         foreach ($fields as $key => $value) {
             if (StringHelper::startsWith($key, 'custom:')) {
-                $field = ArrayHelper::remove($fields, $key);
+                ArrayHelper::remove($fields, $key);
 
                 $customFields[] = [
                     'type' => 'CUSTOM',
@@ -540,7 +540,7 @@ class Agile extends Crm
             }
 
             if (in_array($key, $extras)) {
-                $field = ArrayHelper::remove($fields, $key);
+                ArrayHelper::remove($fields, $key);
 
                 $customFields[] = [
                     'type' => 'SYSTEM',
@@ -550,7 +550,7 @@ class Agile extends Crm
             }
 
             if ($key === 'email') {
-                $field = ArrayHelper::remove($fields, $key);
+                ArrayHelper::remove($fields, $key);
 
                 $customFields[] = [
                     'subtype' => 'work',
@@ -560,7 +560,7 @@ class Agile extends Crm
             }
 
             if ($key === 'phone') {
-                $field = ArrayHelper::remove($fields, $key);
+                ArrayHelper::remove($fields, $key);
 
                 $customFields[] = [
                     'subtype' => 'work',
@@ -570,7 +570,7 @@ class Agile extends Crm
             }
 
             if ($key === 'website') {
-                $field = ArrayHelper::remove($fields, $key);
+                ArrayHelper::remove($fields, $key);
 
                 $customFields[] = [
                     'subtype' => 'URL',

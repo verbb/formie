@@ -8,7 +8,6 @@ use verbb\formie\helpers\RichTextHelper;
 use craft\base\Model;
 use craft\elements\Asset;
 use craft\helpers\ArrayHelper;
-use craft\helpers\Json;
 
 class Notification extends Model
 {

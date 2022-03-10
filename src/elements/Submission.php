@@ -31,6 +31,7 @@ use craft\helpers\UrlHelper;
 use yii\base\Exception;
 use Throwable;
 use craft\models\FieldLayout;
+use yii\base\InvalidConfigException;
 
 class Submission extends Element
 {
@@ -353,7 +354,7 @@ class Submission extends Element
 
         // Ensure we set up the correct content table before fetching the eager-loading map.
         // This is particular helps resolve element fields' content.
-        if ($submission && $submission instanceof self) {
+        if ($submission instanceof self) {
             $contentService->fieldContext = $submission->getFieldContext();
         }
 
@@ -367,18 +368,6 @@ class Submission extends Element
 
     // Public Methods
     // =========================================================================
-
-    /**
-     * @inheritDoc
-     */
-    public function init(): void
-    {
-        parent::init();
-
-        if (is_string($this->snapshot)) {
-            $this->snapshot = Json::decodeIfJson($this->snapshot);
-        }
-    }
 
     /**
      * @inheritDoc
@@ -563,7 +552,7 @@ class Submission extends Element
         return null;
     }
 
-    public function getFormName()
+    public function getFormName(): ?string
     {
         if ($form = $this->getForm()) {
             return $form->title;
@@ -575,7 +564,7 @@ class Submission extends Element
     /**
      * Gets the submission's status model.
      *
-     * @param bool $returnStatus return the status model
+     * @return Status
      */
     public function getStatusModel(): Status
     {
@@ -676,7 +665,7 @@ class Submission extends Element
      *
      * @param FieldLayoutPage|null
      * @return array
-     * @throws \yii\base\InvalidConfigException
+     * @throws InvalidConfigException
      */
     public function getValues($page): array
     {
@@ -745,9 +734,7 @@ class Submission extends Element
         }
 
         // For performance
-        $values = array_merge(...$values);
-
-        return $values;
+        return array_merge(...$values);
     }
 
     public function getValuesForSummary(): array

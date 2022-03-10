@@ -60,7 +60,7 @@ class Adestra extends EmailMarketing
 
             $listFields = [];
 
-            foreach ($fields as $key => $field) {
+            foreach ($fields as $field) {
                 $listFields[] = new IntegrationField([
                     'handle' => $field['name'],
                     'name' => $field['name'],

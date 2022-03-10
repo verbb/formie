@@ -38,9 +38,6 @@ class Recaptcha extends Captcha
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public function getName(): string
     {
         return Craft::t('formie', 'reCAPTCHA');
@@ -218,9 +215,6 @@ class Recaptcha extends Captcha
         return $result['success'] ?? false;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function hasValidSettings(): bool
     {
         return $this->siteKey && $this->secretKey;

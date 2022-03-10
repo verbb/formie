@@ -16,6 +16,7 @@ use yii\web\Response;
 
 use Exception;
 use Throwable;
+use yii\base\UnknownPropertyException;
 
 class IntegrationsController extends Controller
 {
@@ -40,7 +41,7 @@ class IntegrationsController extends Controller
      * @return Response|null
      * @throws BadRequestHttpException
      * @throws Throwable
-     * @throws \yii\base\UnknownPropertyException
+     * @throws UnknownPropertyException
      */
     public function actionSaveIntegration(): ?Response
     {

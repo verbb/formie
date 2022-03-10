@@ -129,8 +129,8 @@ class FormTemplatesController extends Controller
         $this->requireAcceptsJson();
         $ids = Json::decode(Craft::$app->getRequest()->getRequiredBodyParam('ids'));
 
-        if ($success = Formie::$plugin->getFormTemplates()->reorderTemplates($ids)) {
-            return $this->asJson(['success' => $success]);
+        if (Formie::$plugin->getFormTemplates()->reorderTemplates($ids)) {
+            return $this->asJson(['success' => true]);
         }
 
         return $this->asJson(['error' => Craft::t('formie', 'Couldn’t reorder templates.')]);

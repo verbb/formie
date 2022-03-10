@@ -28,9 +28,6 @@ abstract class Crm extends Integration
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public function getIconUrl(): string
     {
         $handle = StringHelper::toKebabCase(static::displayName());
@@ -50,9 +47,6 @@ abstract class Crm extends Integration
         ]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getFormSettingsHtml($form): string
     {
         $handle = StringHelper::toKebabCase(static::displayName());
@@ -68,9 +62,6 @@ abstract class Crm extends Integration
         return UrlHelper::cpUrl('formie/settings/crm/edit/' . $this->id);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getFieldMappingValues(Submission $submission, $fieldMapping, $fieldSettings = [])
     {
         // A quick shortcut to keep CRM's simple, just pass in a string to the namespace
@@ -79,9 +70,6 @@ abstract class Crm extends Integration
         return parent::getFieldMappingValues($submission, $fieldMapping, $fields);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function beforeSendPayload(Submission $submission, &$endpoint, &$payload, &$method): bool
     {
         // If in the context of a queue. save the payload for debugging

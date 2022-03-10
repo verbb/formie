@@ -43,9 +43,6 @@ class Summary extends FormField
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public function getIsCosmetic(): bool
     {
         return true;
@@ -97,9 +94,6 @@ class Summary extends FormField
         return false;
     }
 
-    /**
-     * @inheritdoc
-     */
     public function getFrontEndJsModules(): ?array
     {
         return [

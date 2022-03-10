@@ -23,6 +23,7 @@ use Throwable;
 use craft\models\Site;
 use yii\web\IdentityInterface;
 use craft\elements\User;
+use Exception;
 
 class Variables
 {
@@ -137,7 +138,7 @@ class Variables
      * @param Form|null $form
      * @param Notification|null $notification
      * @return string|null
-     * @throws \Exception
+     * @throws Exception
      */
     public static function getParsedValue(mixed $value, Submission $submission = null, Form $form = null, Notification $notification = null): ?string
     {
@@ -204,7 +205,7 @@ class Variables
             Formie::$plugin->getRenderCache()->setGlobalVariables($cacheKey, [
                 'formName' => $formName,
                 'submissionUrl' => $submission->cpEditUrl ?? '',
-                'submissionId' => $submission->id ?? '',
+                'submissionId' => $submission->id ?: '',
 
                 'siteName' => $siteName,
                 'systemEmail' => $systemEmail,
@@ -340,7 +341,7 @@ class Variables
         $parsedFieldContent = self::getFormFieldsHtml($form, $notification, $submission, true, true, true);
 
         // For now, only handle element fields, which need HTML generated
-        if ($submission && $submission->getFieldLayout()) {
+        if ($submission->getFieldLayout()) {
             foreach ($submission->getFieldLayout()->getCustomFields() as $field) {
                 // Element fields
                 if ($field instanceof BaseRelationField) {
@@ -355,7 +356,7 @@ class Variables
                 if ($field instanceof Date) {
                     $parsedContent = $submission[$field->handle] ?? '';
 
-                    if ($parsedContent && $parsedContent instanceof DateTime) {
+                    if ($parsedContent instanceof DateTime) {
                         $values[$field->handle] = $parsedContent->format('Y-m-d H:i:s');
                     }
                 }
@@ -373,7 +374,7 @@ class Variables
             return $values;
         }
 
-        if ($submission && $submission->getFieldLayout()) {
+        if ($submission->getFieldLayout()) {
             foreach ($submission->getFieldLayout()->getCustomFields() as $field) {
                 $submissionValue = $submission->getFieldValue($field->handle);
 
@@ -404,7 +405,7 @@ class Variables
         $prefix = 'field.';
 
         if ($field instanceof Date) {
-            if ($submissionValue && $submissionValue instanceof DateTime) {
+            if ($submissionValue instanceof DateTime) {
                 $values["{$prefix}{$field->handle}"] = $submissionValue->format('Y-m-d H:i:s');
 
                 // Generate additional values
@@ -514,7 +515,7 @@ class Variables
         return null;
     }
 
-    public static function _getSite($submission): Site|int|null
+    public static function _getSite($submission): ?Site
     {
         // Get the current site, based on front-end requests first. This will fail for a queue job.
         // For front-end requests where we want to parse content, we must respect the current site.
@@ -532,6 +533,6 @@ class Variables
         }
 
         // If all else fails, the primary site.
-        return Craft::$app->getSites()->getPrimarySite()->id;
+        return Craft::$app->getSites()->getPrimarySite();
     }
 }

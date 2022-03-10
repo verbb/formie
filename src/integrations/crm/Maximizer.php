@@ -178,9 +178,6 @@ class Maximizer extends Crm
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function request(string $method, string $uri, array $options = [])
     {
         // Fetch and merge the token in for each request, which isn't a header, but part of every request

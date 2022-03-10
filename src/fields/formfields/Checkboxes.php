@@ -115,9 +115,6 @@ class Checkboxes extends BaseOptionsField implements FormFieldInterface
         ]);
     }
 
-    /**
-     * @inheritdoc
-     */
     public function getFrontEndJsModules(): ?array
     {
         return [

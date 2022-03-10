@@ -179,7 +179,7 @@ class ImportExportController extends Controller
         return $this->redirectToPostedUrl($form);
     }
 
-    public function actionImportCompleted($formId): Response|TemplateResponseBehavior
+    public function actionImportCompleted($formId): Response
     {
         $form = Formie::$plugin->getForms()->getFormById($formId);
 

@@ -13,6 +13,7 @@ use verbb\formie\models\Notification;
 use Craft;
 use craft\elements\Asset;
 use craft\elements\db\AssetQuery;
+use craft\fs\Local;
 use craft\helpers\App;
 use craft\helpers\Assets;
 use craft\helpers\FileHelper;
@@ -20,7 +21,6 @@ use craft\helpers\Json;
 use craft\helpers\StringHelper;
 use craft\helpers\Template;
 use craft\mail\Message;
-use craft\volumes\Local;
 
 use yii\base\Component;
 use yii\base\Exception;
@@ -348,7 +348,7 @@ class Emails extends Component
             if (!$event->isValid) {
                 $error = Craft::t('formie', 'Notification email “{notification}” for submission “{submission}” was cancelled by Formie.', [
                     'notification' => $notification->name,
-                    'submission' => $submission->id ?? 'new',
+                    'submission' => $submission->id ?: 'new',
                 ]);
 
                 Formie::error($error);
@@ -366,7 +366,7 @@ class Emails extends Component
                 $error = Craft::t('formie', 'Notification email “{notification}” could not be sent for submission “{submission}”. The mailer service failed to send the notification: “{e}”.', [
                     'e' => $newEmail->error ?? '',
                     'notification' => $notification->name,
-                    'submission' => $submission->id ?? 'new',
+                    'submission' => $submission->id ?: 'new',
                 ]);
 
                 Formie::error($error);
@@ -390,7 +390,7 @@ class Emails extends Component
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
                 'notification' => $notification->name,
-                'submission' => $submission->id ?? 'new',
+                'submission' => $submission->id ?: 'new',
             ]);
 
             Formie::error($error);
@@ -423,7 +423,7 @@ class Emails extends Component
         return ['success' => true];
     }
 
-    public function sendFailAlertEmail(Notification $notification, Submission $submission, $emailResponse)
+    public function sendFailAlertEmail(Notification $notification, Submission $submission, $emailResponse): ?array
     {
         $settings = Formie::$plugin->getSettings();
 
@@ -462,7 +462,7 @@ class Emails extends Component
                     'error' => $e->getMessage(),
                     'file' => $e->getFile(),
                     'line' => $e->getLine(),
-                    'submission' => $submission->id ?? 'new',
+                    'submission' => $submission->id ?: 'new',
                 ]);
 
                 Formie::error($error);
@@ -546,7 +546,7 @@ class Emails extends Component
             $path = '';
 
             // Check for local assets - they're easy
-            if (get_class($asset->getVolume()) === Local::class) {
+            if (get_class($asset->getVolume()->getFs()) === Local::class) {
                 $path = $this->_getFullAssetFilePath($asset);
             } else {
                 // Make a local copy of the file, and store, so we can delete
@@ -568,7 +568,7 @@ class Emails extends Component
 
     private function _getFullAssetFilePath(Asset $asset): string
     {
-        $path = $asset->getVolume()->getRootPath() . DIRECTORY_SEPARATOR . $asset->getPath();
+        $path = $asset->getVolume()->getFs()->getRootPath() . DIRECTORY_SEPARATOR . $asset->getPath();
 
         return FileHelper::normalizePath($path);
     }
@@ -616,9 +616,6 @@ class Emails extends Component
         $fileName = Craft::$app->getView()->renderObjectTemplate($filenameFormat, $variables);
 
         $message->attach($pdfPath, ['fileName' => $fileName . '.pdf', 'contentType' => 'application/pdf']);
-
-        // Fix a bug with SwiftMailer where setting an attachment clears out the body of the email!
-        $this->_fixSwiftMailerBody($message);
 
         // Store for later
         $this->_tempAttachments[] = $pdfPath;

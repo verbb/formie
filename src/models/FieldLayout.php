@@ -32,10 +32,7 @@ class FieldLayout extends CraftFieldLayout
         return $this->_fields = Formie::$plugin->getFields()->getFieldsByLayoutId($this->id);
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function setCustomFields(array $fields = null)
+    public function setCustomFields(array $fields = null): void
     {
         $this->_fields = $fields;
     }

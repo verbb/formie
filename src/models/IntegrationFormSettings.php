@@ -93,7 +93,7 @@ class IntegrationFormSettings extends Model
      * @return mixed
      * @throws InvalidConfigException
      */
-    private function classFromArray(array $data): mixed
+    private function classFromArray(mixed $data): mixed
     {
         if (!is_array($data)) {
             return $data;

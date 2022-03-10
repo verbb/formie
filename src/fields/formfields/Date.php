@@ -195,7 +195,7 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
 
         // For dropdowns and inputs, we need to convert our array syntax to string
         if ($this->displayType === 'dropdowns' || $this->displayType === 'inputs') {
-            if ($value && is_array($value)) {
+            if (is_array($value)) {
                 $value = array_filter($value);
 
                 // Convert array-syntax value into a date string. Ensure we pad it out to fill in gaps.
@@ -292,7 +292,7 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
 
         $yearOptions = [];
 
-        for ($y = $minYear; $y < $maxYear; ++$y) {
+        for ($y = $minYear; $y < $maxYear; $y++) {
             $yearOptions[] = ['value' => $y, 'label' => $y];
         }
 
@@ -478,9 +478,6 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
         return $this->defaultValue;
     }
 
-    /**
-     * @inheritdoc
-     */
     public function getFrontEndJsModules(): ?array
     {
         if ($this->displayType === 'calendar' && $this->useDatePicker) {
@@ -782,9 +779,6 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
     // Protected Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     protected function defineValueAsString($value, ElementInterface $element = null): string
     {
         if ($value instanceof DateTime) {
@@ -808,10 +802,7 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
         return '';
     }
 
-    /**
-     * @inheritDoc
-     */
-    protected function defineValueAsJson($value, ElementInterface $element = null): array
+    protected function defineValueAsJson($value, ElementInterface $element = null): mixed
     {
         return $this->getValueAsString($value, $element);
     }

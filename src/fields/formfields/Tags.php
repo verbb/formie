@@ -21,7 +21,6 @@ use craft\fields\data\SingleOptionFieldData;
 use craft\fields\data\MultiOptionsFieldData;
 use craft\gql\arguments\elements\Tag as TagArguments;
 use craft\gql\interfaces\elements\Tag as TagInterface;
-use craft\gql\resolvers\elements\Tag as TagResolver;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 use craft\helpers\StringHelper;
@@ -91,9 +90,6 @@ class Tags extends CraftTags implements FormFieldInterface
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public function getSavedFieldConfig(): array
     {
         $settings = $this->traitGetSavedFieldConfig();
@@ -195,9 +191,6 @@ class Tags extends CraftTags implements FormFieldInterface
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getDefaultValue($attributePrefix = '')
     {
         // If the default value from the parent field (query params, etc.) is empty, use the default values
@@ -239,9 +232,6 @@ class Tags extends CraftTags implements FormFieldInterface
         return $this->traitGetEmailHtml($submission, $notification, $value, $options);
     }
 
-    /**
-     * @inheritdoc
-     */
     public function getFrontEndJsModules(): ?array
     {
         return [
@@ -284,9 +274,9 @@ class Tags extends CraftTags implements FormFieldInterface
     /**
      * Returns the list of selectable tags.
      *
-     * @return \craft\elements\db\ElementQueryInterface
+     * @return ElementQueryInterface
      */
-    public function getElementsQuery(): \craft\elements\db\ElementQueryInterface
+    public function getElementsQuery(): ElementQueryInterface
     {
         // Use the currently-set element query, or create a new one.
         $query = $this->elementsQuery ?? Tag::find();
@@ -324,9 +314,6 @@ class Tags extends CraftTags implements FormFieldInterface
         return $event->query;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineLabelSourceOptions(): array
     {
         $options = [
@@ -354,9 +341,6 @@ class Tags extends CraftTags implements FormFieldInterface
         return array_merge($options, ...$extraOptions);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getDisplayTypeValue($value): MultiOptionsFieldData|SingleOptionFieldData|null
     {
         // Special case for 'dropdown' in that it's a tag-select/create field
@@ -367,9 +351,6 @@ class Tags extends CraftTags implements FormFieldInterface
         return $this->traitGetDisplayTypeValue($value);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getSettingGqlTypes(): array
     {
         return array_merge($this->traitGetSettingGqlTypes(), [

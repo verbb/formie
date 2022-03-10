@@ -24,9 +24,6 @@ class Languages extends PredefinedOption
         return Craft::t('formie', 'Languages');
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function getLabelOptions(): array
     {
         return [
@@ -36,9 +33,6 @@ class Languages extends PredefinedOption
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function getValueOptions(): array
     {
         return [

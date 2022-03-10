@@ -305,7 +305,7 @@ class Autopilot extends EmailMarketing
     {
         $customFields = [];
 
-        foreach ($fields as $key => $field) {
+        foreach ($fields as $field) {
             // Exclude any names
             if (in_array($field['name'], $excludeNames)) {
                  continue;

@@ -503,9 +503,6 @@ class FormsController extends Controller
                 $variables['form'] = new Form();
 
                 if (!empty($variables['site'])) {
-                    /** @var Site $site */
-                    $site = $variables['site'];
-
                     $variables['form']->siteId = $site->id;
                 }
             }

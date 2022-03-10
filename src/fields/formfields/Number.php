@@ -75,16 +75,6 @@ class Number extends FormField implements PreviewableFieldInterface
             $this->defaultValue = null;
         }
 
-        // Normalize $max
-        if ($this->max === '') {
-            $this->max = null;
-        }
-
-        // Normalize $min
-        if ($this->min === '') {
-            $this->min = null;
-        }
-
         // Normalize $decimals
         if (!$this->decimals) {
             $this->decimals = 0;

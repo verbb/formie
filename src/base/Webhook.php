@@ -29,9 +29,6 @@ abstract class Webhook extends Integration
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public function getIconUrl(): string
     {
         $handle = StringHelper::toKebabCase(static::displayName());
@@ -51,9 +48,6 @@ abstract class Webhook extends Integration
         ]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getFormSettingsHtml($form): string
     {
         $handle = StringHelper::toKebabCase(static::displayName());

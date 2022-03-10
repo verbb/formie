@@ -68,9 +68,6 @@ class Recipients extends FormField
         return false;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getIsHidden(): bool
     {
         return $this->displayType === 'hidden';
@@ -252,9 +249,6 @@ class Recipients extends FormField
         return $inputOptions;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getDefaultValue($attributePrefix = '')
     {
         $value = parent::getDefaultValue($attributePrefix) ?? $this->defaultValue;
@@ -402,9 +396,6 @@ class Recipients extends FormField
     // Protected Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     protected function defineValueAsString($value, ElementInterface $element = null): string
     {
         if ($value instanceof MultiOptionsFieldData) {
@@ -425,9 +416,6 @@ class Recipients extends FormField
         return $value->value ?? '';
     }
 
-    /**
-     * @inheritDoc
-     */
     protected function defineValueForIntegration($value, $integrationField, $integration, ElementInterface $element = null, $fieldKey = ''): mixed
     {
         // If mapping to an array, extract just the values
@@ -454,9 +442,6 @@ class Recipients extends FormField
         return parent::defineValueForIntegration($value, $integrationField, $integration, $element);
     }
 
-    /**
-     * @inheritDoc
-     */
     protected function defineValueForSummary($value, ElementInterface $element = null): string
     {
         if ($value instanceof MultiOptionsFieldData) {
@@ -504,7 +489,7 @@ class Recipients extends FormField
             $value = StringHelper::decdec($value);
 
             // Check if this was an array of data
-            if (is_string($value) && Json::isJsonObject($value)) {
+            if (Json::isJsonObject($value)) {
                 $value = implode(',', array_filter(Json::decode($value)));
             }
         }

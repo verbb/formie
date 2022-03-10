@@ -24,6 +24,7 @@ use GraphQL\Type\Definition\Type;
 
 use yii\db\Schema;
 use verbb\formie\base\IntegrationInterface;
+use craft\errors\InvalidFieldException;
 
 class Address extends FormField implements SubfieldInterface, PreviewableFieldInterface
 {
@@ -299,7 +300,7 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
      * Validates the required address subfields.
      *
      * @param ElementInterface $element
-     * @throws \craft\errors\InvalidFieldException
+     * @throws InvalidFieldException
      */
     public function validateRequiredFields(ElementInterface $element): void
     {
@@ -486,9 +487,6 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
         return $integration->getFrontEndHtml($this, $options);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getFrontEndJsModules(): ?array
     {
         $integration = $this->getAddressProviderIntegration();
@@ -506,7 +504,7 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
             return null;
         }
 
-        return Formie::$plugin->getIntegrations()->getIntegrationByHandle($this->autocompleteIntegration) ?? null;
+        return Formie::$plugin->getIntegrations()->getIntegrationByHandle($this->autocompleteIntegration);
     }
 
     public function supportsCurrentLocation(): bool
@@ -521,9 +519,6 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
         return $this->supportsCurrentLocation() && $this->autocompleteCurrentLocation;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getSettingGqlTypes(): array
     {
         return array_merge(parent::getSettingGqlTypes(), [
@@ -546,7 +541,7 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
             SchemaHelper::labelField(),
         ];
 
-        foreach ($this->getSubfieldOptions() as $key => $nestedField) {
+        foreach ($this->getSubfieldOptions() as $nestedField) {
             $subfields = [];
 
             if ($nestedField['handle'] === 'autocomplete' && $addressProviderOptions) {
@@ -615,7 +610,7 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
     {
         $fields = [];
 
-        foreach ($this->getSubfieldOptions() as $key => $nestedField) {
+        foreach ($this->getSubfieldOptions() as $nestedField) {
             $subfields = [
                 SchemaHelper::lightswitchField([
                     'label' => Craft::t('formie', 'Required Field'),
@@ -710,9 +705,6 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
     // Protected Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     protected function defineValueForExport($value, ElementInterface $element = null): mixed
     {
         $values = [];

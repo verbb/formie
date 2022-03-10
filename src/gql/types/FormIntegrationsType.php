@@ -46,13 +46,13 @@ class FormIntegrationsType extends ObjectType
 
                         // Remove all field mapping (different for each provider)
                         foreach ($json as $key => $value) {
-                            if (strpos($key, 'mapTo') !== false || strpos($key, 'FieldMapping') !== false) {
+                            if (str_contains($key, 'mapTo') || str_contains($key, 'FieldMapping')) {
                                 unset($json[$key]);
                                 continue;
                             }
 
                             // Parse any .env variables
-                            if (is_string($value) && strpos($value, '$') !== false) {
+                            if (is_string($value) && str_contains($value, '$')) {
                                 $json[$key] = Craft::parseEnv($value);
                             }
                         }

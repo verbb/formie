@@ -309,10 +309,6 @@ class FormTemplates extends Component
      */
     public function deleteTemplate(FormTemplate $template): bool
     {
-        if (!$template) {
-            return false;
-        }
-
         // Fire a 'beforeDeleteFormTemplate' event
         if ($this->hasEventHandlers(self::EVENT_BEFORE_DELETE_FORM_TEMPLATE)) {
             $this->trigger(self::EVENT_BEFORE_DELETE_FORM_TEMPLATE, new FormTemplateEvent([

@@ -45,17 +45,11 @@ class Salesforce extends Crm
     // OAuth Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function supportsOauthConnection(): bool
     {
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getAuthorizeUrl(): string
     {
         $prefix = $this->useSandbox ? 'test' : 'login';
@@ -63,9 +57,6 @@ class Salesforce extends Crm
         return "https://{$prefix}.salesforce.com/services/oauth2/authorize";
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getAccessTokenUrl(): string
     {
         $prefix = $this->useSandbox ? 'test' : 'login';
@@ -73,25 +64,16 @@ class Salesforce extends Crm
         return "https://{$prefix}.salesforce.com/services/oauth2/token";
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getClientId(): string
     {
         return Craft::parseEnv($this->clientId);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getClientSecret(): string
     {
         return Craft::parseEnv($this->clientSecret);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function afterFetchAccessToken($token): void
     {
         // Save these properties for later...
@@ -548,7 +530,7 @@ class Salesforce extends Crm
         // Check to see if the ownerId is an email, special handling for that
         $ownerId = $payload['OwnerId'] ?? '';
 
-        if ($ownerId && strpos($ownerId, '@') !== false) {
+        if ($ownerId && str_contains($ownerId, '@')) {
             $ownerId = ArrayHelper::remove($payload, 'OwnerId');
 
             $payload['Owner'] = [

@@ -123,9 +123,6 @@ class Agree extends FormField implements PreviewableFieldInterface
         ]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getSettingGqlTypes(): array
     {
         return array_merge(parent::getSettingGqlTypes(), [
@@ -232,9 +229,6 @@ class Agree extends FormField implements PreviewableFieldInterface
     // Protected Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     protected function defineValueAsString($value, ElementInterface $element = null): string
     {
         return ($value) ? $this->checkedValue : $this->uncheckedValue;

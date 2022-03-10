@@ -90,7 +90,7 @@ class SharpSpring extends Crm
                     $response = $this->_sendFormSubmission($endpoint, $submission);
 
                     // HTML/JS is returned from the response, so handle that.
-                    if (strpos($response, '__ss_noform.success = true') !== false) {
+                    if (str_contains($response, '__ss_noform.success = true')) {
                         $settings['syncFormSuccess'] = Craft::t('formie', 'Successfully synced with SharpSpring');
                     } else {
                         $settings['syncFormError'] = $response;

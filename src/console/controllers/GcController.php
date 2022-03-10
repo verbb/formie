@@ -6,6 +6,8 @@ use verbb\formie\Formie;
 use yii\console\Controller;
 use yii\console\ExitCode;
 use Throwable;
+use yii\db\Exception;
+use yii\db\StaleObjectException;
 
 class GcController extends Controller
 {
@@ -30,7 +32,7 @@ class GcController extends Controller
      *
      * @return int
      * @throws Throwable
-     * @throws \yii\db\StaleObjectException
+     * @throws StaleObjectException
      */
     public function actionPruneSyncs(): int
     {
@@ -69,7 +71,7 @@ class GcController extends Controller
      * Delete leftover content tables, for deleted forms.
      *
      * @return int
-     * @throws \yii\db\Exception
+     * @throws Exception
      */
     public function actionPruneContentTables(): int
     {

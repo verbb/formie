@@ -5,7 +5,6 @@ use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 
 use Craft;
-use craft\helpers\Json;
 use craft\helpers\StringHelper;
 
 abstract class Captcha extends Integration
@@ -25,17 +24,11 @@ abstract class Captcha extends Integration
         return Craft::t('formie', 'Captchas');
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function supportsConnection(): bool
     {
         return false;
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function supportsPayloadSending(): bool
     {
         return false;
@@ -45,9 +38,6 @@ abstract class Captcha extends Integration
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public function getIconUrl(): string
     {
         $handle = StringHelper::toKebabCase($this->getHandle());
@@ -55,9 +45,6 @@ abstract class Captcha extends Integration
         return Craft::$app->getAssetManager()->getPublishedUrl("@verbb/formie/web/assets/captchas/dist/img/{$handle}.svg", true);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getFormSettingsHtml($form): string
     {
         return Craft::$app->getView()->renderTemplate('formie/integrations/captchas/_form-settings', [
