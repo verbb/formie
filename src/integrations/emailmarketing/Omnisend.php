@@ -9,6 +9,7 @@ use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
+use craft\helpers\App;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 
@@ -158,7 +159,7 @@ class Omnisend extends EmailMarketing
 
         return $this->_client = Craft::createGuzzleClient([
             'base_uri' => 'https://api.omnisend.com/v3/',
-            'headers' => ['X-API-KEY' => Craft::parseEnv($this->apiKey)],
+            'headers' => ['X-API-KEY' => App::parseEnv($this->apiKey)],
         ]);
     }
 }

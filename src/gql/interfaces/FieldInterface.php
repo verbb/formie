@@ -5,8 +5,8 @@ use verbb\formie\fields\formfields\Table;
 use verbb\formie\gql\types\generators\FieldGenerator;
 use verbb\formie\gql\types\generators\FieldAttributeGenerator;
 
+use Craft;
 use craft\gql\base\InterfaceType as BaseInterfaceType;
-use craft\gql\TypeManager;
 use craft\gql\GqlEntityRegistry;
 
 use GraphQL\Type\Definition\InterfaceType;
@@ -49,7 +49,7 @@ class FieldInterface extends BaseInterfaceType
 
     public static function getFieldDefinitions(): array
     {
-        return TypeManager::prepareFieldDefinitions(array_merge(parent::getFieldDefinitions(), [
+        return Craft::$app->getGql()->prepareFieldDefinitions(array_merge(parent::getFieldDefinitions(), [
             'name' => [
                 'name' => 'name',
                 'type' => Type::string(),

@@ -9,10 +9,13 @@ use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
+use craft\helpers\App;
 use craft\helpers\Json;
+
 use Throwable;
-use GuzzleHttp\Client;
 use Exception;
+
+use GuzzleHttp\Client;
 
 class Zoho extends Crm
 {
@@ -70,12 +73,12 @@ class Zoho extends Crm
 
     public function getClientId(): string
     {
-        return Craft::parseEnv($this->clientId);
+        return App::parseEnv($this->clientId);
     }
 
     public function getClientSecret(): string
     {
-        return Craft::parseEnv($this->clientSecret);
+        return App::parseEnv($this->clientSecret);
     }
 
     public function getOauthScope(): array

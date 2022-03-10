@@ -8,6 +8,7 @@ use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
+use craft\helpers\App;
 use craft\helpers\ArrayHelper;
 use craft\helpers\DateTimeHelper;
 use craft\helpers\Json;
@@ -223,7 +224,7 @@ class Monday extends Miscellaneous
         return $this->_client = Craft::createGuzzleClient([
             'base_uri' => 'https://api.monday.com/v2/',
             'headers' => [
-                'Authorization' => Craft::parseEnv($this->apiKey),
+                'Authorization' => App::parseEnv($this->apiKey),
                 'Content-Type' => 'application/json',
             ],
         ]);

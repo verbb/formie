@@ -8,10 +8,13 @@ use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
+use craft\helpers\App;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 use craft\helpers\StringHelper;
+
 use GuzzleHttp\Client;
+
 use Throwable;
 
 class Scoro extends Crm
@@ -172,7 +175,7 @@ class Scoro extends Crm
             // Special processing on this due to nested content in payload
             $contactPayload = [
                 'request' => $this->_prepContactPayload($contactValues),
-                'apiKey' => Craft::parseEnv($this->apiKey),
+                'apiKey' => App::parseEnv($this->apiKey),
                 'company_account_id' => $this->_getCompanyAccountId(),
             ];
 
@@ -220,11 +223,11 @@ class Scoro extends Crm
             return $this->_client;
         }
 
-        $url = rtrim(Craft::parseEnv($this->apiDomain), '/');
+        $url = rtrim(App::parseEnv($this->apiDomain), '/');
 
         return $this->_client = Craft::createGuzzleClient([
             'base_uri' => "$url/api/v2/",
-            'query' => ['apiKey' => Craft::parseEnv($this->apiKey)],
+            'query' => ['apiKey' => App::parseEnv($this->apiKey)],
         ]);
     }
 
@@ -245,8 +248,8 @@ class Scoro extends Crm
 
     private function _getCompanyAccountId(): string
     {
-        if (Craft::parseEnv($this->apiDomain)) {
-            $parsedUrl = parse_url(Craft::parseEnv($this->apiDomain));
+        if (App::parseEnv($this->apiDomain)) {
+            $parsedUrl = parse_url(App::parseEnv($this->apiDomain));
             $host = explode('.', $parsedUrl['host']);
 
             return $host[0] ?? '';

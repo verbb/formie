@@ -11,7 +11,6 @@ use Craft;
 use craft\errors\GqlException;
 use craft\gql\base\GeneratorInterface;
 use craft\gql\GqlEntityRegistry;
-use craft\gql\TypeManager;
 
 use GraphQL\Type\Definition\Type;
 
@@ -58,7 +57,7 @@ class FieldGenerator implements GeneratorInterface
                 continue;
             }
 
-            $fieldFields = TypeManager::prepareFieldDefinitions(array_merge(FieldInterface::getFieldDefinitions(), $contentFieldGqlTypes), $typeName);
+            $fieldFields = Craft::$app->getGql()->prepareFieldDefinitions(array_merge(FieldInterface::getFieldDefinitions(), $contentFieldGqlTypes), $typeName);
 
             $gqlTypes[$typeName] = GqlEntityRegistry::getEntity($typeName) ?: GqlEntityRegistry::createEntity($typeName, new FieldType([
                 'name' => $typeName,

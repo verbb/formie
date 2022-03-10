@@ -3,8 +3,8 @@ namespace verbb\formie\gql\interfaces;
 
 use verbb\formie\gql\types\generators\RowGenerator;
 
+use Craft;
 use craft\gql\base\InterfaceType as BaseInterfaceType;
-use craft\gql\TypeManager;
 use craft\gql\GqlEntityRegistry;
 
 use GraphQL\Type\Definition\InterfaceType;
@@ -47,7 +47,7 @@ class RowInterface extends BaseInterfaceType
 
     public static function getFieldDefinitions(): array
     {
-        return TypeManager::prepareFieldDefinitions(array_merge(parent::getFieldDefinitions(), [
+        return Craft::$app->getGql()->prepareFieldDefinitions(array_merge(parent::getFieldDefinitions(), [
             'fields' => [
                 'name' => 'fields',
                 'type' => Type::listOf(FieldInterface::getType()),

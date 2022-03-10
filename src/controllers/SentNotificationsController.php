@@ -94,7 +94,7 @@ class SentNotificationsController extends Controller
 
             Craft::$app->getSession()->setError($error);
 
-            return $this->asErrorJson($error);
+            return $this->asFailure($error);
         }
 
         $emails = $request->getRequiredParam('to');
@@ -104,7 +104,7 @@ class SentNotificationsController extends Controller
 
             Craft::$app->getSession()->setError($error);
 
-            return $this->asErrorJson($error);
+            return $this->asFailure($error);
         }
 
         $emails = str_replace(';', ',', $emails);
@@ -119,7 +119,7 @@ class SentNotificationsController extends Controller
 
                 Craft::$app->getSession()->setError($error);
 
-                return $this->asErrorJson($error);
+                return $this->asFailure($error);
             }
         }
 
@@ -131,7 +131,7 @@ class SentNotificationsController extends Controller
 
             Craft::$app->getSession()->setError($error);
 
-            return $this->asErrorJson($error);
+            return $this->asFailure($error);
         }
 
         // Log the sent notification - if enabled
@@ -160,7 +160,7 @@ class SentNotificationsController extends Controller
 
             Craft::$app->getSession()->setError($error);
 
-            return $this->asErrorJson($error);
+            return $this->asFailure($error);
         }
 
         $sentNotifications = SentNotification::find()
@@ -172,7 +172,7 @@ class SentNotificationsController extends Controller
 
             Craft::$app->getSession()->setError($error);
 
-            return $this->asErrorJson($error);
+            return $this->asFailure($error);
         }
 
         foreach ($sentNotifications as $sentNotification) {
@@ -186,7 +186,7 @@ class SentNotificationsController extends Controller
 
                     Craft::$app->getSession()->setError($error);
 
-                    return $this->asErrorJson($error);
+                    return $this->asFailure($error);
                 }
 
                 $emails = str_replace(';', ',', $emails);
@@ -201,7 +201,7 @@ class SentNotificationsController extends Controller
 
                         Craft::$app->getSession()->setError($error);
 
-                        return $this->asErrorJson($error);
+                        return $this->asFailure($error);
                     }
                 }
             }
@@ -214,7 +214,7 @@ class SentNotificationsController extends Controller
 
                 Craft::$app->getSession()->setError($error);
 
-                return $this->asErrorJson($error);
+                return $this->asFailure($error);
             }
 
             // Log the sent notification - if enabled

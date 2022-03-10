@@ -42,7 +42,7 @@ class TriggerIntegration extends BaseJob
         $submission = Submission::find()
             ->id($this->submissionId)
             ->isIncomplete(null)
-            ->anyStatus()
+            ->status(null)
             ->one();
 
         if ($submission) {

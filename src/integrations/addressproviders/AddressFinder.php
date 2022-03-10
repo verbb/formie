@@ -5,6 +5,7 @@ use verbb\formie\base\AddressProvider;
 use verbb\formie\events\ModifyAddressProviderHtmlEvent;
 
 use Craft;
+use craft\helpers\App;
 use craft\helpers\Json;
 use craft\helpers\Template;
 
@@ -97,7 +98,7 @@ class AddressFinder extends AddressProvider
         }
 
         $settings = [
-            'apiKey' => Craft::parseEnv($this->apiKey),
+            'apiKey' => App::parseEnv($this->apiKey),
             'countryCode' => $this->countryCode,
             'widgetOptions' => $this->_getOptions(),
         ];

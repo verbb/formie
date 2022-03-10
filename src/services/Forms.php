@@ -22,7 +22,6 @@ use craft\helpers\Db;
 use craft\helpers\DateTimeHelper;
 use craft\helpers\Html;
 use craft\helpers\Json;
-use craft\helpers\MigrationHelper;
 use craft\helpers\StringHelper;
 
 use yii\base\Exception;
@@ -149,7 +148,7 @@ class Forms extends Component
             // Create table or rename if necessary.
             if (!$db->tableExists($contentTable)) {
                 if ($oldContentTable && $db->tableExists($oldContentTable)) {
-                    MigrationHelper::renameTable($oldContentTable, $contentTable);
+                    Db::renameTable($oldContentTable, $contentTable);
                 } else if ($this->_createContentTable($contentTable) === false) {
                     return false;
                 }
@@ -291,7 +290,7 @@ class Forms extends Component
                 // form content tables to cleanup later, or restore
                 $newContentTableName = $this->defineContentTableName($form, false, true);
 
-                MigrationHelper::renameTable($form->fieldContentTable, $newContentTableName);
+                Db::renameTable($form->fieldContentTable, $newContentTableName);
 
                 $db->createCommand()
                     ->update('{{%formie_forms}}', ['fieldContentTable' => $newContentTableName], [

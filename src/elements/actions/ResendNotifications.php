@@ -23,7 +23,7 @@ class ResendNotifications extends ElementAction
      */
     public function getTriggerHtml(): ?string
     {
-        $type = Json::encode(static::className());
+        $type = Json::encode(static::class);
 
         Craft::$app->view->registerJs('new Craft.Formie.BulkResendElementAction(' .
             $type .

@@ -8,6 +8,7 @@ use verbb\formie\helpers\RichTextHelper;
 use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
+use craft\helpers\App;
 use craft\helpers\Json;
 
 use League\HTMLToMarkdown\HtmlConverter;
@@ -61,8 +62,8 @@ class Trello extends Miscellaneous
     public function getOauthProviderConfig(): array
     {
         return [
-            'identifier' => Craft::parseEnv($this->clientId),
-            'secret' => Craft::parseEnv($this->clientSecret),
+            'identifier' => App::parseEnv($this->clientId),
+            'secret' => App::parseEnv($this->clientSecret),
             'name' => Craft::t('formie', 'Formie'),
             'callback_uri' => $this->getRedirectUri(),
             'scope' => $this->getOauthScope(),

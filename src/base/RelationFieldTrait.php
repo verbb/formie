@@ -373,7 +373,7 @@ trait RelationFieldTrait
     {
         $clone = clone $query;
         $clone
-            ->anyStatus()
+            ->status(null)
             ->siteId('*')
             ->unique();
 

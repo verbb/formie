@@ -3,9 +3,9 @@ namespace verbb\formie\gql\types\generators;
 
 use verbb\formie\gql\types\KeyValueType;
 
+use Craft;
 use craft\gql\base\GeneratorInterface;
 use craft\gql\GqlEntityRegistry;
-use craft\gql\TypeManager;
 
 class KeyValueGenerator implements GeneratorInterface
 {
@@ -19,7 +19,7 @@ class KeyValueGenerator implements GeneratorInterface
     {
         $typeName = self::getName();
 
-        $contentFields = TypeManager::prepareFieldDefinitions($contentFields, $typeName);
+        $contentFields = Craft::$app->getGql()->prepareFieldDefinitions($contentFields, $typeName);
 
         $type = GqlEntityRegistry::getEntity($typeName) ?: GqlEntityRegistry::createEntity($typeName, new KeyValueType([
             'name' => $typeName,

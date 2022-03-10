@@ -5,6 +5,7 @@ use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyWebhookPayloadEvent;
 
 use Craft;
+use craft\helpers\App;
 use craft\helpers\Json;
 use craft\helpers\StringHelper;
 use craft\helpers\UrlHelper;
@@ -112,6 +113,6 @@ abstract class Webhook extends Integration
     {
         $url = Craft::$app->getView()->renderObjectTemplate($url, $submission);
 
-        return Craft::parseEnv($url);
+        return App::parseEnv($url);
     }
 }

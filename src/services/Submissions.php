@@ -398,7 +398,7 @@ class Submissions extends Component
             ->userId($userIds)
             ->siteId('*')
             ->unique()
-            ->anyStatus()
+            ->status(null)
             ->count();
 
         if ($submissionCount) {
@@ -418,7 +418,7 @@ class Submissions extends Component
             ->userId($user->id)
             ->siteId('*')
             ->unique()
-            ->anyStatus()
+            ->status(null)
             ->all();
 
         if (!$submissions) {
@@ -457,7 +457,7 @@ class Submissions extends Component
             ->userId($user->id)
             ->siteId('*')
             ->unique()
-            ->anyStatus()
+            ->status(null)
             ->trashed(true)
             ->all();
 

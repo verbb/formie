@@ -6,12 +6,14 @@ use verbb\formie\elements\Submission;
 use verbb\formie\gql\interfaces\SubmissionInterface;
 use verbb\formie\gql\types\SubmissionType;
 
+use Craft;
 use craft\gql\base\Generator;
 use craft\gql\base\GeneratorInterface;
 use craft\gql\base\SingleGeneratorInterface;
 use craft\gql\GqlEntityRegistry;
 use craft\gql\TypeManager;
 use craft\helpers\Gql as GqlHelper;
+use craft\services\Gql;
 
 class SubmissionGenerator extends Generator implements GeneratorInterface, SingleGeneratorInterface
 {
@@ -52,7 +54,7 @@ class SubmissionGenerator extends Generator implements GeneratorInterface, Singl
         }
 
         $contentFieldGqlTypes = self::getContentFields($context);
-        $submissionFields = TypeManager::prepareFieldDefinitions(array_merge(SubmissionInterface::getFieldDefinitions(), $contentFieldGqlTypes), $typeName);
+        $submissionFields = Craft::$app->getGql()->prepareFieldDefinitions(array_merge(SubmissionInterface::getFieldDefinitions(), $contentFieldGqlTypes), $typeName);
 
         return GqlEntityRegistry::createEntity($typeName, new SubmissionType([
             'name' => $typeName,

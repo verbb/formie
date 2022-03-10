@@ -141,7 +141,7 @@ class IntegrationsController extends Controller
         $handle = $request->getParam('integration');
 
         if (!$handle) {
-            return $this->asErrorJson(Craft::t('formie', 'Unknown integration: “{handle}”', ['handle' => $handle]));
+            return $this->asFailure(Craft::t('formie', 'Unknown integration: “{handle}”', ['handle' => $handle]));
         }
 
         $integration = Formie::$plugin->getIntegrations()->getIntegrationByHandle($handle);
@@ -159,13 +159,13 @@ class IntegrationsController extends Controller
         $integrationId = $request->getParam('id');
 
         if (!$integrationId) {
-            return $this->asErrorJson(Craft::t('formie', 'Unknown integration: “{id}”', ['id' => $integrationId]));
+            return $this->asFailure(Craft::t('formie', 'Unknown integration: “{id}”', ['id' => $integrationId]));
         }
 
         $integration = Formie::$plugin->getIntegrations()->getIntegrationById($integrationId);
 
         if (!$integration::supportsConnection()) {
-            return $this->asErrorJson(Craft::t('formie', '“{id}” does not support connection.', ['id' => $integrationId]));
+            return $this->asFailure(Craft::t('formie', '“{id}” does not support connection.', ['id' => $integrationId]));
         }
 
         try {
@@ -174,7 +174,7 @@ class IntegrationsController extends Controller
                 'success' => $integration->checkConnection(false),
             ]);
         } catch (IntegrationException $e) {
-            return $this->asErrorJson($e->getMessage());
+            return $this->asFailure($e->getMessage());
         }
     }
 

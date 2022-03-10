@@ -6,7 +6,10 @@ use verbb\formie\base\Integration;
 use verbb\formie\elements\Submission;
 
 use Craft;
+use craft\helpers\App;
+
 use GuzzleHttp\Client;
+
 use Throwable;
 
 class Zengine extends Crm
@@ -96,7 +99,7 @@ class Zengine extends Crm
 
         return $this->_client = Craft::createGuzzleClient([
             'base_uri' => '',
-            'headers' => ['Api-Token' => Craft::parseEnv($this->apiKey)],
+            'headers' => ['Api-Token' => App::parseEnv($this->apiKey)],
         ]);
     }
 }

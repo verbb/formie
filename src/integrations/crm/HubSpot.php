@@ -11,10 +11,13 @@ use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
+use craft\helpers\App;
 use craft\helpers\Json;
 
 use yii\base\Event;
+
 use GuzzleHttp\Client;
+
 use Throwable;
 
 class HubSpot extends Crm
@@ -390,7 +393,7 @@ class HubSpot extends Crm
 
         return $this->_client = Craft::createGuzzleClient([
             'base_uri' => 'https://api.hubapi.com/',
-            'query' => ['hapikey' => Craft::parseEnv($this->apiKey)],
+            'query' => ['hapikey' => App::parseEnv($this->apiKey)],
         ]);
     }
 

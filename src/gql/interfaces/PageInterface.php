@@ -4,8 +4,8 @@ namespace verbb\formie\gql\interfaces;
 use verbb\formie\gql\types\generators\PageGenerator;
 use verbb\formie\models\FieldLayoutPage;
 
+use Craft;
 use craft\gql\base\InterfaceType as BaseInterfaceType;
-use craft\gql\TypeManager;
 use craft\gql\GqlEntityRegistry;
 
 use GraphQL\Type\Definition\InterfaceType;
@@ -71,6 +71,6 @@ class PageInterface extends BaseInterfaceType
             ],
         ]);
 
-        return TypeManager::prepareFieldDefinitions($fields, self::getName());
+        return Craft::$app->getGql()->prepareFieldDefinitions($fields, self::getName());
     }
 }

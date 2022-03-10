@@ -6,11 +6,11 @@ use verbb\formie\elements\Form;
 use verbb\formie\gql\interfaces\FormInterface;
 use verbb\formie\gql\types\FormType;
 
+use Craft;
 use craft\gql\base\Generator;
 use craft\gql\base\GeneratorInterface;
 use craft\gql\base\SingleGeneratorInterface;
 use craft\gql\GqlEntityRegistry;
-use craft\gql\TypeManager;
 use craft\helpers\Gql as GqlHelper;
 
 class FormGenerator extends Generator implements GeneratorInterface, SingleGeneratorInterface
@@ -52,7 +52,7 @@ class FormGenerator extends Generator implements GeneratorInterface, SingleGener
         }
 
         $contentFieldGqlTypes = self::getContentFields($context);
-        $formFields = TypeManager::prepareFieldDefinitions(array_merge(FormInterface::getFieldDefinitions(), $contentFieldGqlTypes), $typeName);
+        $formFields = Craft::$app->getGql()->prepareFieldDefinitions(array_merge(FormInterface::getFieldDefinitions(), $contentFieldGqlTypes), $typeName);
 
         return GqlEntityRegistry::createEntity($typeName, new FormType([
             'name' => $typeName,

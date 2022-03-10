@@ -9,13 +9,15 @@ use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
+use craft\helpers\App;
 use craft\helpers\ArrayHelper;
 use craft\helpers\DateTimeHelper;
 use craft\helpers\Json;
 
+use GuzzleHttp\Client;
+
 use DateTime;
 use Throwable;
-use GuzzleHttp\Client;
 use Exception;
 
 class Salesforce extends Crm
@@ -78,12 +80,12 @@ class Salesforce extends Crm
 
     public function getClientId(): string
     {
-        return Craft::parseEnv($this->clientId);
+        return App::parseEnv($this->clientId);
     }
 
     public function getClientSecret(): string
     {
-        return Craft::parseEnv($this->clientSecret);
+        return App::parseEnv($this->clientSecret);
     }
 
     public function afterFetchAccessToken($token): void

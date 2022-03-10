@@ -9,6 +9,7 @@ use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
+use craft\helpers\App;
 
 use League\OAuth2\Client\Provider\Google as GoogleProvider;
 
@@ -66,12 +67,12 @@ class GoogleSheets extends Miscellaneous
 
     public function getClientId(): string
     {
-        return Craft::parseEnv($this->clientId);
+        return App::parseEnv($this->clientId);
     }
 
     public function getClientSecret(): string
     {
-        return Craft::parseEnv($this->clientSecret);
+        return App::parseEnv($this->clientSecret);
     }
 
     public function getOauthScope(): array
@@ -118,7 +119,7 @@ class GoogleSheets extends Miscellaneous
     {
         // Allow an .env var to override the proxy state. Due to it being a lightswitch
         // we can't set an override any other way.
-        $proxyRedirect = Craft::parseEnv('$FORMIE_INTEGRATION_PROXY_REDIRECT');
+        $proxyRedirect = App::parseEnv('$FORMIE_INTEGRATION_PROXY_REDIRECT');
 
         if (!is_null($proxyRedirect)) {
             $this->proxyRedirect = $proxyRedirect;
@@ -247,7 +248,7 @@ class GoogleSheets extends Miscellaneous
             Integration::apiError($this, 'Token not found for integration.', true);
         }
 
-        $spreadsheetId = Craft::parseEnv($this->spreadsheetId);
+        $spreadsheetId = App::parseEnv($this->spreadsheetId);
 
         $this->_client = Craft::createGuzzleClient([
             'base_uri' => "https://sheets.googleapis.com/v4/spreadsheets/{$spreadsheetId}/",

@@ -9,6 +9,7 @@ use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
+use craft\helpers\App;
 use craft\helpers\Json;
 
 use Throwable;
@@ -60,7 +61,7 @@ class Sender extends EmailMarketing
             $lists = $this->_request([
                 'method' => 'listGetAllLists',
                 'params' => [
-                    'api_key' => Craft::parseEnv($this->apiKey),
+                    'api_key' => App::parseEnv($this->apiKey),
                 ],
             ]);
 
@@ -102,7 +103,7 @@ class Sender extends EmailMarketing
             $payload = [
                 'method' => 'listSubscribe',
                 'params' => [
-                    'api_key' => Craft::parseEnv($this->apiKey),
+                    'api_key' => App::parseEnv($this->apiKey),
                     'list_id' => $this->listId,
                     'emails' => $fieldValues,
                 ],
@@ -150,7 +151,7 @@ class Sender extends EmailMarketing
             $response = $this->_request([
                 'method' => 'listGetAllLists',
                 'params' => [
-                    'api_key' => Craft::parseEnv($this->apiKey),
+                    'api_key' => App::parseEnv($this->apiKey),
                 ],
             ]);
 

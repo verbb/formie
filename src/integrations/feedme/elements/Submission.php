@@ -54,7 +54,7 @@ class Submission extends Element
     public function getQuery($settings, $params = [])
     {
         $query = SubmissionElement::find()
-            ->anyStatus()
+            ->status(null)
             ->formId($settings['elementGroup'][SubmissionElement::class])
             ->siteId(Hash::get($settings, 'siteId') ?: Craft::$app->getSites()->getPrimarySite()->id);
 

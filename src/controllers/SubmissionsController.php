@@ -802,7 +802,7 @@ class SubmissionsController extends Controller
 
             Craft::$app->getSession()->setError($error);
 
-            return $this->asErrorJson($error);
+            return $this->asFailure($error);
         }
 
         if (!$submission) {
@@ -810,7 +810,7 @@ class SubmissionsController extends Controller
 
             Craft::$app->getSession()->setError($error);
 
-            return $this->asErrorJson($error);
+            return $this->asFailure($error);
         }
 
         Formie::$plugin->getSubmissions()->sendNotificationEmail($notification, $submission);
@@ -840,7 +840,7 @@ class SubmissionsController extends Controller
 
             Craft::$app->getSession()->setError($error);
 
-            return $this->asErrorJson($error);
+            return $this->asFailure($error);
         }
 
         $form = $submission->getForm();
@@ -865,7 +865,7 @@ class SubmissionsController extends Controller
 
             Craft::$app->getSession()->setError($error);
 
-            return $this->asErrorJson($error);
+            return $this->asFailure($error);
         }
 
         Formie::$plugin->getSubmissions()->sendIntegrationPayload($resolvedIntegration, $submission);

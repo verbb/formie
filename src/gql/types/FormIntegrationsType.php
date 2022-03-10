@@ -4,6 +4,7 @@ namespace verbb\formie\gql\types;
 use Craft;
 use craft\gql\base\ObjectType;
 use craft\gql\GqlEntityRegistry;
+use craft\helpers\App;
 use craft\helpers\Json;
 
 use GraphQL\Type\Definition\Type;
@@ -53,7 +54,7 @@ class FormIntegrationsType extends ObjectType
 
                             // Parse any .env variables
                             if (is_string($value) && str_contains($value, '$')) {
-                                $json[$key] = Craft::parseEnv($value);
+                                $json[$key] = App::parseEnv($value);
                             }
                         }
 

@@ -8,9 +8,12 @@ use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
+use craft\helpers\App;
 use craft\helpers\ArrayHelper;
 use craft\helpers\StringHelper;
+
 use GuzzleHttp\Client;
+
 use Throwable;
 
 class Freshsales extends Crm
@@ -643,12 +646,12 @@ class Freshsales extends Crm
             return $this->_client;
         }
 
-        $url = rtrim(Craft::parseEnv($this->apiDomain), '/');
+        $url = rtrim(App::parseEnv($this->apiDomain), '/');
 
         return $this->_client = Craft::createGuzzleClient([
             'base_uri' => "$url/api/",
             'headers' => [
-                'Authorization' => 'Token token=' . Craft::parseEnv($this->apiKey),
+                'Authorization' => 'Token token=' . App::parseEnv($this->apiKey),
                 'Accept' => 'application/json',
                 'Content-type' => 'application/json',
             ],

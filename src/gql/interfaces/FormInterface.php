@@ -9,7 +9,6 @@ use verbb\formie\gql\types\generators\FormGenerator;
 
 use Craft;
 use craft\gql\interfaces\Element;
-use craft\gql\TypeManager;
 use craft\gql\GqlEntityRegistry;
 use craft\helpers\Json;
 
@@ -55,7 +54,7 @@ class FormInterface extends Element
     {
         $formFieldName = Formie::$plugin->getSettings()->enableGatsbyCompatibility ? 'formFields' : 'fields';
 
-        return TypeManager::prepareFieldDefinitions(array_merge(parent::getFieldDefinitions(), [
+        return Craft::$app->getGql()->prepareFieldDefinitions(array_merge(parent::getFieldDefinitions(), [
             'handle' => [
                 'name' => 'handle',
                 'type' => Type::string(),

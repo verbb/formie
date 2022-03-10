@@ -9,8 +9,11 @@ use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
+use craft\helpers\App;
 use craft\helpers\Json;
+
 use GuzzleHttp\Client;
+
 use Throwable;
 use Exception;
 
@@ -240,17 +243,17 @@ class Maximizer extends Crm
         }
 
         // From the Web Access URL, get the API Base URL
-        $webAccessUrl = Craft::parseEnv($this->webAccessUrl);
+        $webAccessUrl = App::parseEnv($this->webAccessUrl);
         $baseApiUrl = file_get_contents($webAccessUrl . '?request=api');
 
         // Then, fetch the token we need to use on every request for this session (10min)
         $request = Craft::createGuzzleClient()->request('POST', "$baseApiUrl/Data.svc/json/Authenticate", [
             'json' => [
-                'Database' => Craft::parseEnv($this->databaseId),
-                'UID' => Craft::parseEnv($this->username),
-                'Password' => Craft::parseEnv($this->password),
-                'VendorId' => Craft::parseEnv($this->vendorId),
-                'AppKey' => Craft::parseEnv($this->appKey),
+                'Database' => App::parseEnv($this->databaseId),
+                'UID' => App::parseEnv($this->username),
+                'Password' => App::parseEnv($this->password),
+                'VendorId' => App::parseEnv($this->vendorId),
+                'AppKey' => App::parseEnv($this->appKey),
             ],
         ]);
 

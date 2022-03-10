@@ -2,7 +2,7 @@
 namespace verbb\formie\migrations;
 
 use craft\db\Migration;
-use craft\helpers\MigrationHelper;
+use craft\helpers\Db;
 
 class m200807_000000_form_css_js extends Migration
 {
@@ -16,7 +16,7 @@ class m200807_000000_form_css_js extends Migration
         }
 
         if ($this->db->columnExists('{{%formie_formtemplates}}', 'outputJs')) {
-            MigrationHelper::renameColumn('{{%formie_formtemplates}}', 'outputJs', 'outputJsTheme', $this);
+            Db::renameColumn('{{%formie_formtemplates}}', 'outputJs', 'outputJsTheme', $this);
         }
 
         if (!$this->db->columnExists('{{%formie_formtemplates}}', 'outputCssLocation')) {

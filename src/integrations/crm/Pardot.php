@@ -9,9 +9,12 @@ use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
+use craft\helpers\App;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
+
 use Throwable;
+
 use GuzzleHttp\Client;
 
 class Pardot extends Crm
@@ -66,12 +69,12 @@ class Pardot extends Crm
 
     public function getClientId(): string
     {
-        return Craft::parseEnv($this->clientId);
+        return App::parseEnv($this->clientId);
     }
 
     public function getClientSecret(): string
     {
-        return Craft::parseEnv($this->clientSecret);
+        return App::parseEnv($this->clientSecret);
     }
 
     public function getDescription(): string
@@ -368,7 +371,7 @@ class Pardot extends Crm
         }
 
         $baseUrl = $this->useSandbox ? 'https://pi.demo.pardot.com/api/' : 'https://pi.pardot.com/api/';
-        $businessUnitId = Craft::parseEnv($this->businessUnitId);
+        $businessUnitId = App::parseEnv($this->businessUnitId);
 
         $this->_client = Craft::createGuzzleClient([
             'base_uri' => $baseUrl,

@@ -6,6 +6,7 @@ use verbb\formie\base\AddressProvider;
 use verbb\formie\events\ModifyAddressProviderHtmlEvent;
 
 use Craft;
+use craft\helpers\App;
 use craft\helpers\Json;
 use craft\helpers\Template;
 
@@ -97,7 +98,7 @@ class Loqate extends AddressProvider
         }
 
         $settings = [
-            'apiKey' => Craft::parseEnv($this->apiKey),
+            'apiKey' => App::parseEnv($this->apiKey),
             'namespace' => $field ? Formie::$plugin->getService()->getFieldNamespaceForScript($field) : '',
             'reconfigurableOptions' => $this->_getOptions(),
         ];

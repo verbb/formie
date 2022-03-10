@@ -8,8 +8,11 @@ use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
+use craft\helpers\App;
 use craft\helpers\Json;
+
 use GuzzleHttp\Client;
+
 use Throwable;
 
 class Avochato extends Crm
@@ -191,8 +194,8 @@ class Avochato extends Crm
         return $this->_client = Craft::createGuzzleClient([
             'base_uri' => 'https://www.avochato.com/v1/',
             'query' => [
-                'auth_id' => Craft::parseEnv($this->authId),
-                'auth_secret' => Craft::parseEnv($this->authSecret),
+                'auth_id' => App::parseEnv($this->authId),
+                'auth_secret' => App::parseEnv($this->authSecret),
             ],
         ]);
     }

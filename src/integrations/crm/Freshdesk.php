@@ -9,14 +9,16 @@ use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
+use craft\elements\db\AssetQuery;
+use craft\helpers\App;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 use craft\helpers\StringHelper;
 
 use GuzzleHttp\Psr7\Utils;
 use GuzzleHttp\Client;
+
 use Throwable;
-use craft\elements\db\AssetQuery;
 
 class Freshdesk extends Crm
 {
@@ -451,11 +453,11 @@ class Freshdesk extends Crm
             return $this->_client;
         }
 
-        $url = rtrim(Craft::parseEnv($this->apiDomain), '/');
+        $url = rtrim(App::parseEnv($this->apiDomain), '/');
 
         return $this->_client = Craft::createGuzzleClient([
             'base_uri' => "$url/api/v2/",
-            'auth' => [Craft::parseEnv($this->apiKey), 'password'],
+            'auth' => [App::parseEnv($this->apiKey), 'password'],
         ]);
     }
 

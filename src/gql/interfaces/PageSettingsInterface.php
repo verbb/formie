@@ -5,8 +5,8 @@ use verbb\formie\gql\types\generators\FieldAttributeGenerator;
 use verbb\formie\gql\types\generators\PageSettingsGenerator;
 use verbb\formie\models\PageSettings;
 
+use Craft;
 use craft\gql\base\InterfaceType as BaseInterfaceType;
-use craft\gql\TypeManager;
 use craft\gql\GqlEntityRegistry;
 use craft\helpers\Json;
 
@@ -118,6 +118,6 @@ class PageSettingsInterface extends BaseInterfaceType
             ],
         ]);
 
-        return TypeManager::prepareFieldDefinitions($fields, self::getName());
+        return Craft::$app->getGql()->prepareFieldDefinitions($fields, self::getName());
     }
 }

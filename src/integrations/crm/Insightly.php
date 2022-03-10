@@ -8,10 +8,13 @@ use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
+use craft\helpers\App;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 use craft\helpers\StringHelper;
+
 use GuzzleHttp\Client;
+
 use Throwable;
 
 class Insightly extends Crm
@@ -329,7 +332,7 @@ class Insightly extends Crm
 
         return $this->_client = Craft::createGuzzleClient([
             'base_uri' => 'https://api.insightly.com/v3.1/',
-            'auth' => [Craft::parseEnv($this->apiKey), ''],
+            'auth' => [App::parseEnv($this->apiKey), ''],
         ]);
     }
 

@@ -385,7 +385,7 @@ trait NestedFieldTrait
         // Delete any nested field rows that belong to this element(s)
         foreach (Craft::$app->getSites()->getAllSiteIds() as $siteId) {
             $nestedFieldRowQuery = NestedFieldRow::find();
-            $nestedFieldRowQuery->anyStatus();
+            $nestedFieldRowQuery->status(null);
             $nestedFieldRowQuery->siteId($siteId);
             $nestedFieldRowQuery->ownerId($element->id);
 
@@ -411,7 +411,7 @@ trait NestedFieldTrait
 
         foreach (ElementHelper::supportedSitesForElement($element) as $siteInfo) {
             $blocks = NestedFieldRow::find()
-                ->anyStatus()
+                ->status(null)
                 ->siteId($siteInfo['siteId'])
                 ->ownerId($element->id)
                 ->trashed()
@@ -727,7 +727,7 @@ trait NestedFieldTrait
             $oldRowsById = NestedFieldRow::find()
                 ->fieldId($this->id)
                 ->ownerId($element->id)
-                ->anyStatus()
+                ->status(null)
                 ->siteId($element->siteId)
                 ->indexBy('id')
                 ->all();

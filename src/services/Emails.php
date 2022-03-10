@@ -487,7 +487,7 @@ class Emails extends Component
 
     private function _getFilteredString($string): string
     {
-        $string = trim(Craft::parseEnv(trim($string)));
+        $string = trim(App::parseEnv(trim($string)));
 
         // Strip out any emoji's
         return trim(StringHelper::replaceMb4($string, ''));
@@ -506,7 +506,7 @@ class Emails extends Component
             // Also check for control characters, which aren't included above
             $email = preg_replace('/[^\PC\s]/u', '', $email);
 
-            $emailsEnv[] = trim(Craft::parseEnv(trim($email)));
+            $emailsEnv[] = trim(App::parseEnv(trim($email)));
         }
 
         return array_filter($emailsEnv);

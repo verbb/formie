@@ -9,6 +9,7 @@ use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
+use craft\helpers\App;
 use craft\helpers\Json;
 
 use GuzzleHttp\Client;
@@ -196,7 +197,7 @@ class Benchmark extends EmailMarketing
 
         return $this->_client = Craft::createGuzzleClient([
             'base_uri' => 'https://clientapi.benchmarkemail.com/',
-            'headers' => ['AuthToken' => Craft::parseEnv($this->apiKey)],
+            'headers' => ['AuthToken' => App::parseEnv($this->apiKey)],
         ]);
     }
 }

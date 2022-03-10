@@ -1,8 +1,8 @@
 <?php
 namespace verbb\formie\gql\types;
 
+use Craft;
 use craft\gql\base\ObjectType;
-use craft\gql\TypeManager;
 
 use GraphQL\Type\Definition\Type;
 
@@ -18,6 +18,6 @@ class FieldAttributeType extends ObjectType
             'value' => Type::string(),
         ];
 
-        return TypeManager::prepareFieldDefinitions($contentFields, $typeName);
+        return Craft::$app->getGql()->prepareFieldDefinitions($contentFields, $typeName);
     }
 }

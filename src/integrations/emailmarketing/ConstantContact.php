@@ -10,6 +10,7 @@ use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
+use craft\helpers\App;
 use craft\helpers\ArrayHelper;
 use craft\helpers\DateTimeHelper;
 use craft\helpers\Json;
@@ -49,7 +50,7 @@ class ConstantContact extends EmailMarketing
 
     public function getAuthorizeUrl(): string
     {
-        $useNewEndpoint = Craft::parseEnv('$FORMIE_INTEGRATION_CC_NEW_ENDPOINT');
+        $useNewEndpoint = App::parseEnv('$FORMIE_INTEGRATION_CC_NEW_ENDPOINT');
 
         // Check for deprecated endpoint
         if (!DateTimeHelper::isInThePast('2022-04-01 00:00:00') && $useNewEndpoint !== true) {
@@ -61,7 +62,7 @@ class ConstantContact extends EmailMarketing
 
     public function getAccessTokenUrl(): string
     {
-        $useNewEndpoint = Craft::parseEnv('$FORMIE_INTEGRATION_CC_NEW_ENDPOINT');
+        $useNewEndpoint = App::parseEnv('$FORMIE_INTEGRATION_CC_NEW_ENDPOINT');
 
         // Check for deprecated endpoint
         if (!DateTimeHelper::isInThePast('2022-04-01 00:00:00') && $useNewEndpoint !== true) {
@@ -73,12 +74,12 @@ class ConstantContact extends EmailMarketing
 
     public function getClientId(): string
     {
-        return Craft::parseEnv($this->apiKey);
+        return App::parseEnv($this->apiKey);
     }
 
     public function getClientSecret(): string
     {
-        return Craft::parseEnv($this->appSecret);
+        return App::parseEnv($this->appSecret);
     }
 
     public function getOauthScope(): array

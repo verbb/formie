@@ -4,8 +4,8 @@ namespace verbb\formie\gql\interfaces;
 use verbb\formie\elements\Submission;
 use verbb\formie\gql\types\generators\SubmissionGenerator;
 
+use Craft;
 use craft\gql\interfaces\Element;
-use craft\gql\TypeManager;
 use craft\gql\GqlEntityRegistry;
 
 use GraphQL\Type\Definition\InterfaceType;
@@ -48,7 +48,7 @@ class SubmissionInterface extends Element
 
     public static function getFieldDefinitions(): array
     {
-        return TypeManager::prepareFieldDefinitions(array_merge(parent::getFieldDefinitions(), [
+        return Craft::$app->getGql()->prepareFieldDefinitions(array_merge(parent::getFieldDefinitions(), [
             'status' => [
                 'name' => 'status',
                 'type' => Type::string(),

@@ -1,27 +1,27 @@
 <?php
 namespace verbb\formie\services;
 
+use verbb\formie\Formie;
+use verbb\formie\base\FormField;
+use verbb\formie\base\NestedFieldInterface;
+use verbb\formie\base\NestedFieldTrait;
+use verbb\formie\elements\NestedFieldRow;
+use verbb\formie\elements\db\NestedFieldRowQuery;
+use verbb\formie\migrations\CreateFormContentTable;
+use verbb\formie\models\FieldLayout;
+use verbb\formie\records\Nested as NestedRecord;
+
 use Craft;
 use craft\base\Component;
-
 use craft\base\Element;
 use craft\base\ElementInterface;
 use craft\db\Table;
 use craft\helpers\Db;
-use craft\helpers\MigrationHelper;
 use craft\helpers\StringHelper;
+use craft\helpers\ArrayHelper;
+
 use Exception;
 use Throwable;
-use verbb\formie\base\NestedFieldInterface;
-use verbb\formie\base\NestedFieldTrait;
-use verbb\formie\elements\db\NestedFieldRowQuery;
-use verbb\formie\elements\NestedFieldRow;
-use verbb\formie\Formie;
-use verbb\formie\base\FormField;
-use verbb\formie\migrations\CreateFormContentTable;
-use verbb\formie\models\FieldLayout;
-use verbb\formie\records\Nested as NestedRecord;
-use craft\helpers\ArrayHelper;
 
 class NestedFields extends Component
 {
@@ -141,7 +141,7 @@ class NestedFields extends Component
                 $oldContentTable = $nestedField->oldSettings['contentTable'] ?? null;
 
                 if ($oldContentTable && $db->tableExists($oldContentTable)) {
-                    MigrationHelper::renameTable($oldContentTable, $nestedField->contentTable);
+                    Db::renameTable($oldContentTable, $nestedField->contentTable);
                 } else {
                     $this->_createContentTable($nestedField->contentTable);
                 }
@@ -261,7 +261,7 @@ class NestedFields extends Component
             $saveAll = false;
         } else {
             $rowsQuery = clone $query;
-            $rows = $rowsQuery->anyStatus()->all();
+            $rows = $rowsQuery->status(null)->all();
             $saveAll = true;
         }
         $rowIds = [];
@@ -320,7 +320,7 @@ class NestedFields extends Component
         /** @var NestedFieldRow[] $rows */
         if (($rows = $query->getCachedResult()) === null) {
             $rowsQuery = clone $query;
-            $rows = $rowsQuery->anyStatus()->all();
+            $rows = $rowsQuery->status(null)->all();
         }
         $newRowIds = [];
 
@@ -380,7 +380,7 @@ class NestedFields extends Component
     {
         /** @var Element $owner */
         $deleteBlocks = NestedFieldRow::find()
-            ->anyStatus()
+            ->status(null)
             ->ownerId($owner->id)
             ->fieldId($field->id)
             ->siteId($owner->siteId)

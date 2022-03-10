@@ -1,8 +1,8 @@
 <?php
 namespace verbb\formie\integrations\captchas;
 
-use verbb\formie\elements\Form;
 use verbb\formie\base\Captcha;
+use verbb\formie\elements\Form;
 
 use Craft;
 

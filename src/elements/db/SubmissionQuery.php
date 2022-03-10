@@ -11,6 +11,7 @@ use craft\db\Query;
 use craft\db\QueryAbortedException;
 use craft\elements\db\ElementQuery;
 use craft\helpers\Db;
+
 use Throwable;
 
 class SubmissionQuery extends ElementQuery
@@ -168,7 +169,7 @@ class SubmissionQuery extends ElementQuery
      */
     public function anyStatus(): ElementQuery
     {
-        parent::anyStatus();
+        parent::status(null);
 
         $this->isIncomplete = null;
         $this->isSpam = null;

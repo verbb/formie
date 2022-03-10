@@ -9,6 +9,7 @@ use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
+use craft\helpers\App;
 use craft\helpers\ArrayHelper;
 
 use GuzzleHttp\Client;
@@ -145,7 +146,7 @@ class Sendinblue extends EmailMarketing
 
         return $this->_client = Craft::createGuzzleClient([
             'base_uri' => 'https://api.sendinblue.com/v3/',
-            'headers' => ['api-key' => Craft::parseEnv($this->apiKey)],
+            'headers' => ['api-key' => App::parseEnv($this->apiKey)],
         ]);
     }
 

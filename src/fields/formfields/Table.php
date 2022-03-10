@@ -176,7 +176,7 @@ class Table extends CraftTable implements FormFieldInterface
         }
 
         $view = Craft::$app->getView();
-        $id = $view->formatInputId($this->handle);
+        $id = Html::id($this->handle);
 
         return $view->renderTemplate('formie/_formfields/table/input', [
             'id' => $id,

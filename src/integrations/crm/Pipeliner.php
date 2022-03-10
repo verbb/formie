@@ -8,8 +8,11 @@ use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
+use craft\helpers\App;
 use craft\helpers\Json;
+
 use GuzzleHttp\Client;
+
 use Throwable;
 
 class Pipeliner extends Crm
@@ -230,12 +233,12 @@ class Pipeliner extends Crm
             return $this->_client;
         }
 
-        $apiServiceUrl = Craft::parseEnv($this->apiServiceUrl);
-        $apiSpaceId = Craft::parseEnv($this->apiSpaceId);
+        $apiServiceUrl = App::parseEnv($this->apiServiceUrl);
+        $apiSpaceId = App::parseEnv($this->apiSpaceId);
 
         return $this->_client = Craft::createGuzzleClient([
             'base_uri' => "{$apiServiceUrl}/api/v100/rest/spaces/{$apiSpaceId}/",
-            'auth' => [Craft::parseEnv($this->apiToken), Craft::parseEnv($this->apiPassword)],
+            'auth' => [App::parseEnv($this->apiToken), App::parseEnv($this->apiPassword)],
         ]);
     }
 

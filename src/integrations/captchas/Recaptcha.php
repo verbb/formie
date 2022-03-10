@@ -6,6 +6,7 @@ use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 
 use Craft;
+use craft\helpers\App;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 
@@ -103,7 +104,7 @@ class Recaptcha extends Captcha
     public function getFrontEndJsVariables(Form $form, $page = null): ?array
     {
         $settings = [
-            'siteKey' => Craft::parseEnv($this->siteKey),
+            'siteKey' => App::parseEnv($this->siteKey),
             'formId' => $form->getFormId(),
             'theme' => $this->theme,
             'size' => $this->size,
@@ -169,9 +170,9 @@ class Recaptcha extends Captcha
         }
 
         $client = Craft::createGuzzleClient();
-        $siteKey = Craft::parseEnv($this->siteKey);
-        $secretKey = Craft::parseEnv($this->secretKey);
-        $projectId = Craft::parseEnv($this->projectId);
+        $siteKey = App::parseEnv($this->siteKey);
+        $secretKey = App::parseEnv($this->secretKey);
+        $projectId = App::parseEnv($this->projectId);
 
         if ($this->type === self::RECAPTCHA_TYPE_ENTERPRISE) {
             $response = $client->post('https://recaptchaenterprise.googleapis.com/v1beta1/projects/' . $projectId . '/assessments?key=' . $secretKey, [
