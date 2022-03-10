@@ -126,7 +126,6 @@ trait FormFieldTrait
     public ?int $rowIndex = null;
 
     public bool $isNested = false;
-    public ?bool $visibility = null;
 
     private ?Form $_form = null;
     private ?NestedFieldInterface $_container = null;

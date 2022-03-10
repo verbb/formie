@@ -300,9 +300,22 @@ class Form extends Element
     public string $userDeletedAction = 'retain';
     public string $fileUploadsAction = 'retain';
     public ?int $fieldLayoutId = null;
-
     public ?FormSettings $settings = null;
 
+    private ?CraftFieldLayout $_fieldLayout = null;
+    private ?FieldLayout $_formFieldLayout = null;
+    private ?array $_fields = null;
+    private ?array $_rows = null;
+    private ?array $_pages = null;
+    private ?FormTemplate $_template = null;
+    private ?Status $_defaultStatus = null;
+    private ?Entry $_submitActionEntry = null;
+    private ?array $_notifications = null;
+    private ?Submission $_currentSubmission = null;
+    private ?Submission $_editingSubmission = null;
+    private ?string $_formId = null;
+    private bool $_appliedFieldSettings = false;
+    private bool $_appliedFormSettings = false;
     private static ?array $_layoutsByType = null;
 
 

@@ -76,16 +76,6 @@ class Repeater extends FormField implements NestedFieldInterface, EagerLoadingFi
     /**
      * @inheritdoc
      */
-    protected function defineRules(): array
-    {
-        $rules = parent::defineRules();
-        $rules[] = [['minRows', 'maxRows'], 'integer', 'min' => 0];
-        return $rules;
-    }
-
-    /**
-     * @inheritdoc
-     */
     public function getElementValidationRules(): array
     {
         return [

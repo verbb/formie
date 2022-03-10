@@ -132,22 +132,6 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
     /**
      * @inheritDoc
      */
-    protected function defineRules(): array
-    {
-        $rules = parent::defineRules();
-        $rules[] = [
-            ['subfieldLabelPosition'],
-            'in',
-            'range' => Formie::$plugin->getFields()->getLabelPositions(),
-            'skipOnEmpty' => true,
-        ];
-
-        return $rules;
-    }
-
-    /**
-     * @inheritDoc
-     */
     public function getContentColumnType(): array|string
     {
         return Schema::TYPE_TEXT;

@@ -76,16 +76,6 @@ class Table extends CraftTable implements FormFieldInterface
     // =========================================================================
 
     /**
-     * @inheritdoc
-     */
-    protected function defineRules(): array
-    {
-        $rules = parent::defineRules();
-        $rules[] = [['minRows', 'maxRows'], 'integer', 'min' => 0];
-        return $rules;
-    }
-
-    /**
      * @inheritDoc
      */
     public function getContentColumnType(): string
