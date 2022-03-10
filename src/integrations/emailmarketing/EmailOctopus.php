@@ -153,7 +153,11 @@ class EmailOctopus extends EmailMarketing
     public function fetchConnection(): bool
     {
         try {
-            $response = $this->request('GET', 'lists');
+            $response = $this->request('GET', 'lists', [
+                'query' => [
+                    'api_key' => Craft::parseEnv($this->apiKey),
+                ],
+            ]);
         } catch (\Throwable $e) {
             Integration::apiError($this, $e);
 
