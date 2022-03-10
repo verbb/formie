@@ -243,6 +243,8 @@ class Variants extends CommerceVariants implements FormFieldInterface
             ['value' => 'weight', 'label' => Craft::t('app', 'Weight')],
         ];
 
+        $extraOptions = [];
+
         foreach ($this->availableSources() as $source) {
             if (!isset($source['heading'])) {
                 $typeId = $source['criteria']['typeId'] ?? null;
@@ -252,12 +254,12 @@ class Variants extends CommerceVariants implements FormFieldInterface
 
                     $fields = $this->getStringCustomFieldOptions($productType->getCustomFields());
 
-                    $options = array_merge($options, $fields);
+                    $extraOptions[] = $fields;
                 }
             }
         }
 
-        return $options;
+        return array_merge($options, ...$extraOptions);
     }
 
     /**

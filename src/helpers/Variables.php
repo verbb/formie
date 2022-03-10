@@ -377,9 +377,12 @@ class Variables
             foreach ($submission->getFieldLayout()->getCustomFields() as $field) {
                 $submissionValue = $submission->getFieldValue($field->handle);
 
-                $values = array_merge($values, self::_getParsedFieldValue($field, $submissionValue, $submission, $notification));
+                $values[] = self::_getParsedFieldValue($field, $submissionValue, $submission, $notification);
             }
         }
+
+        // For performance
+        $values = array_merge(...$values);
 
         return self::_expandArray($values);
     }
@@ -486,10 +489,11 @@ class Variables
                 $value = [$k => $value];
             }
 
-            $result = array_merge_recursive($result, $value);
+            $result[] = $value;
         }
 
-        return $result;
+        // For performance
+        return array_merge_recursive(...$result);
     }
 
     private static function _getCurrentUser($submission = null): bool|User|IdentityInterface|null

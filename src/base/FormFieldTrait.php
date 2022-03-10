@@ -301,10 +301,12 @@ trait FormFieldTrait
         // Parent method does not get properties from traits.
         $parent = $class->getParentClass();
         $traits = $class->getTraits();
+        
+        $extraTraits = [];
 
         if ($class->isSubclassOf(FormField::class)) {
             while (true) {
-                $traits = array_merge($traits, $parent->getTraits());
+                $extraTraits[] = $parent->getTraits();
                 $parent = $parent->getParentClass();
 
                 if ($parent->name !== FormField::class) {
@@ -315,7 +317,7 @@ trait FormFieldTrait
 
         if ($class->isSubclassOf(BaseOptionsField::class)) {
             while (true) {
-                $traits = array_merge($traits, $parent->getTraits());
+                $extraTraits[] = $parent->getTraits();
                 $parent = $parent->getParentClass();
 
                 if ($parent->name !== BaseOptionsField::class) {
@@ -323,6 +325,9 @@ trait FormFieldTrait
                 }
             }
         }
+        
+        // For performance
+        $traits = array_merge(...$extraTraits);
 
         foreach ($traits as $trait) {
             foreach ($trait->getProperties(ReflectionProperty::IS_PUBLIC) as $property) {

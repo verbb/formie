@@ -351,12 +351,16 @@ class Notifications extends Component
         $stencilNotifications = [];
 
         foreach ($forms as $form) {
-            $formNotifications = array_merge($formNotifications, $this->getNotificationsConfig($form->getNotifications()));
+            $formNotifications[] = $this->getNotificationsConfig($form->getNotifications());
         }
 
         foreach ($stencils as $stencil) {
-            $stencilNotifications = array_merge($stencilNotifications, $this->getNotificationsConfig($stencil->getNotifications()));
+            $stencilNotifications[] = $this->getNotificationsConfig($stencil->getNotifications());
         }
+
+        // For performance
+        $formNotifications = array_merge(...$formNotifications);
+        $stencilNotifications = array_merge(...$stencilNotifications);
 
         $existingNotifications[] = [
             'key' => '*',

@@ -595,11 +595,10 @@ class Form extends Element
         $rows = [];
 
         foreach ($pages as $page) {
-            $pageRows = $page->getRows();
-            $rows = array_merge($rows, $pageRows);
+            $rows[] = $page->getRows();
         }
 
-        return $this->_rows = $rows;
+        return $this->_rows = array_merge(...$rows);
     }
 
     /**
@@ -1222,7 +1221,7 @@ class Form extends Element
         // Add any JS per-field
         foreach ($this->getCustomFields() as $field) {
             if ($fieldJs = $this->_getFrontEndJsModules($field)) {
-                $registeredJs = array_merge($registeredJs, $fieldJs);
+                $registeredJs[] = $fieldJs;
             }
         }
 
@@ -1234,11 +1233,7 @@ class Form extends Element
         if (!Craft::$app->getRequest()->getIsCpRequest()) {
             foreach ($captchas as $captcha) {
                 if ($js = $captcha->getFrontEndJsVariables($this)) {
-                    if (isset($js[0])) {
-                        $registeredJs = array_merge($registeredJs, $js);
-                    } else {
-                        $registeredJs[] = $js;
-                    }
+                    $registeredJs[] = $js;
                 }
             }
         }
@@ -1251,9 +1246,12 @@ class Form extends Element
             ];
         }
 
+        // For performance, merge after building
+        $registeredJs = array_merge(...$registeredJs);
+
         // Cleanup - Ensure we don't include JS multiple times
         $registeredJs = array_values(array_unique(array_filter($registeredJs), SORT_REGULAR));
-
+        
         return [
             'formHashId' => $this->getFormId(),
             'formId' => $this->id,

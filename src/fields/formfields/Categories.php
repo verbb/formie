@@ -323,6 +323,8 @@ class Categories extends CraftCategories implements FormFieldInterface
             ['value' => 'uri', 'label' => Craft::t('app', 'URI')],
         ];
 
+        $extraOptions = [];
+
         foreach ($this->availableSources() as $source) {
             if (!isset($source['heading'])) {
                 $groupId = $source['criteria']['groupId'] ?? null;
@@ -333,11 +335,13 @@ class Categories extends CraftCategories implements FormFieldInterface
                     if ($group) {
                         $fields = $this->getStringCustomFieldOptions($group->getCustomFields());
 
-                        $options = array_merge($options, $fields);
+                        $extraOptions[] = $fields;
                     }
                 }
             }
         }
+
+        $options = array_merge($options, ...$extraOptions);
 
         return $options;
     }

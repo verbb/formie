@@ -521,7 +521,7 @@ class Emails extends Component
                 $value = $element->getFieldValue($field->handle);
 
                 if ($value instanceof AssetQuery) {
-                    $assets = array_merge($assets, $value->all());
+                    $assets[] = $value->all();
                 }
             }
 
@@ -531,13 +531,13 @@ class Emails extends Component
 
                 if ($query) {
                     foreach ($query->all() as $nestedElement) {
-                        $assets = array_merge($assets, $this->_getAssetsForSubmission($nestedElement));
+                        $assets[] = $this->_getAssetsForSubmission($nestedElement);
                     }
                 }
             }
         }
 
-        return $assets;
+        return array_merge(...$assets);
     }
 
     private function _attachAssetsToEmail($assets, Message $message): void

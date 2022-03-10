@@ -489,6 +489,7 @@ class Submissions extends Component
         // Is it already spam?
         if (!$submission->isSpam) {
             $excludes = $this->_getArrayFromMultiline($settings->spamKeywords);
+            $extraExcludes = [];
 
             // Handle any Twig used in the field
             foreach ($excludes as $key => $exclude) {
@@ -496,9 +497,12 @@ class Submissions extends Component
                     unset($excludes[$key]);
 
                     $parsedString = $this->_getArrayFromMultiline(Variables::getParsedValue($exclude));
-                    $excludes = array_merge($excludes, $parsedString);
+                    $extraExcludes[] = $parsedString;
                 }
             }
+
+            // For performance
+            $excludes = array_merge($excludes, ...$extraExcludes);
 
             // Build a string based on field content - much easier to find values
             // in a single string than iterate through multiple arrays

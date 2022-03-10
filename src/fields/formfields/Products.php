@@ -178,10 +178,11 @@ class Products extends CommerceProducts implements FormFieldInterface
             // Try to find the criteria we're restricting by - if any
             foreach ($this->sources as $source) {
                 $elementSource = ArrayHelper::firstWhere($this->availableSources(), 'key', $source);
-                $elementCriteria = $elementSource['criteria'] ?? [];
-
-                $criteria = array_merge_recursive($criteria, $elementCriteria);
+                $criteria[] = $elementSource['criteria'] ?? [];
             }
+
+            // For performance
+            $criteria = array_merge_recursive(...$criteria);
 
             // Apply the criteria on our query
             Craft::configure($query, $criteria);
@@ -238,6 +239,8 @@ class Products extends CommerceProducts implements FormFieldInterface
             ['value' => 'expiryDate', 'label' => Craft::t('app', 'Expiry Date')],
         ];
 
+        $extraOptions = [];
+
         foreach ($this->availableSources() as $source) {
             if (!isset($source['heading'])) {
                 $typeId = $source['criteria']['typeId'] ?? null;
@@ -247,12 +250,12 @@ class Products extends CommerceProducts implements FormFieldInterface
 
                     $fields = $this->getStringCustomFieldOptions($productType->getCustomFields());
 
-                    $options = array_merge($options, $fields);
+                    $extraOptions[] = $fields;
                 }
             }
         }
 
-        return $options;
+        return array_merge($options, ...$extraOptions);
     }
 
     /**

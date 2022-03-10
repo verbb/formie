@@ -187,17 +187,19 @@ class Entries extends CraftEntries implements FormFieldInterface
                     $entryType = EntryTypeRecord::find()->where(['uid' => $entryTypeUid])->one();
 
                     if ($entryType) {
-                        $criteria = array_merge_recursive($criteria, ['typeId' => $entryType->id]);
+                        $criteria[] = ['typeId' => $entryType->id];
                     }
                 } else {
                     $elementSource = ArrayHelper::firstWhere($this->availableSources(), 'key', $source);
                     $sectionId = $elementSource['criteria']['sectionId'] ?? null;
 
                     if ($sectionId) {
-                        $criteria = array_merge_recursive($criteria, ['sectionId' => $sectionId]);
+                        $criteria[] = ['sectionId' => $sectionId];
                     }
                 }
             }
+
+            $criteria = array_merge_recursive(...$criteria);
 
             // Apply the criteria on our query
             Craft::configure($query, $criteria);
@@ -297,6 +299,8 @@ class Entries extends CraftEntries implements FormFieldInterface
             ['value' => 'expiryDate', 'label' => Craft::t('app', 'Expiry Date')],
         ];
 
+        $extraOptions = [];
+
         foreach ($this->availableSources() as $source) {
             if (!isset($source['heading'])) {
                 $sectionId = $source['criteria']['sectionId'] ?? null;
@@ -307,13 +311,13 @@ class Entries extends CraftEntries implements FormFieldInterface
                     foreach ($entryTypes as $entryType) {
                         $fields = $this->getStringCustomFieldOptions($entryType->getCustomFields());
 
-                        $options = array_merge($options, $fields);
+                        $extraOptions[] = $fields;
                     }
                 }
             }
         }
 
-        return $options;
+        return array_merge($options, ...$extraOptions);
     }
 
     /**

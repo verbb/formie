@@ -189,10 +189,10 @@ class Users extends CraftUsers implements FormFieldInterface
             // Try to find the criteria we're restricting by - if any
             foreach ($this->sources as $source) {
                 $elementSource = ArrayHelper::firstWhere($this->availableSources(), 'key', $source);
-                $elementCriteria = $elementSource['criteria'] ?? [];
-
-                $criteria = array_merge_recursive($criteria, $elementCriteria);
+                $criteria[] = $elementSource['criteria'] ?? [];
             }
+
+            $criteria = array_merge_recursive(...$criteria);
 
             // Apply the criteria on our query
             Craft::configure($query, $criteria);

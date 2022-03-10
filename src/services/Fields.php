@@ -479,15 +479,16 @@ class Fields extends Component
         
         foreach ($element->getFieldLayout()->getCustomFields() as $field) {
             if (get_class($field) === $type) {
-                $fields[] = $field;
+                $fields[] = [$field];
             }
 
             if ($field instanceof NestedFieldInterface) {
-                $fields = array_merge($fields, $this->getElementFieldsForType($field, $type));
+                $fields[] = $this->getElementFieldsForType($field, $type);
             }
         }
 
-        return $fields;
+        // For performance
+        return array_merge(...$fields);
     }
 
     /**
