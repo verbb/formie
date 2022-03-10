@@ -316,6 +316,9 @@ class Form extends Element
     private ?string $_formId = null;
     private bool $_appliedFieldSettings = false;
     private bool $_appliedFormSettings = false;
+    private ?array $_relations = [];
+    private ?array $_populatedFieldValues = [];
+
     private static ?array $_layoutsByType = null;
 
 
