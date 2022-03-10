@@ -61,10 +61,6 @@ class FieldLayoutPage extends CraftFieldLayoutTab
             return $this->_layout;
         }
 
-        if (!$this->layoutId) {
-            return null;
-        }
-
         if (($this->_layout = Formie::$plugin->getFields()->getLayoutById($this->layoutId)) === null) {
             throw new InvalidConfigException('Invalid layout ID: ' . $this->layoutId);
         }
@@ -132,7 +128,6 @@ class FieldLayoutPage extends CraftFieldLayoutTab
 
     /**
      * @return FieldInterface[]
-     * @throws InvalidConfigException
      */
     public function getRows(bool $includeDisabled = true): array
     {

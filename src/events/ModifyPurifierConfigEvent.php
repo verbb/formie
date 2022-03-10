@@ -3,11 +3,13 @@ namespace verbb\formie\events;
 
 use yii\base\Event;
 
+use HTMLPurifier_Config;
+
 class ModifyPurifierConfigEvent extends Event
 {
     // Properties
     // =========================================================================
 
-    public ?array $config = null;
+    public ?HTMLPurifier_Config $config = null;
     
 }

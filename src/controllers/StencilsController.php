@@ -1,19 +1,21 @@
 <?php
 namespace verbb\formie\controllers;
 
-use Craft;
-use craft\helpers\ArrayHelper;
-use craft\helpers\DateTimeHelper;
-use craft\helpers\Json;
-use craft\web\Controller;
-
 use verbb\formie\Formie;
 use verbb\formie\helpers\HandleHelper;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\Stencil;
 use verbb\formie\models\StencilData;
 
+use Craft;
+use craft\helpers\ArrayHelper;
+use craft\helpers\DateTimeHelper;
+use craft\helpers\Json;
+use craft\helpers\StringHelper;
+use craft\web\Controller;
+
 use Throwable;
+
 use yii\web\HttpException;
 use yii\web\Response;
 
@@ -174,8 +176,14 @@ class StencilsController extends Controller
             $stencil->data->dataRetention = $request->getParam('dataRetention', $stencil->data->dataRetention);
             $stencil->data->dataRetentionValue = $request->getParam('dataRetentionValue', $stencil->data->dataRetentionValue);
             $stencil->data->availabilitySubmissions = $request->getParam('availabilitySubmissions', $stencil->data->availabilitySubmissions);
-            $stencil->data->availabilityFrom = (($date = $request->getParam('availabilityFrom')) !== false ? (DateTimeHelper::toDateTime($date) ?: null) : $stencil->data->availabilityFrom);
-            $stencil->data->availabilityTo = (($date = $request->getParam('availabilityTo')) !== false ? (DateTimeHelper::toDateTime($date) ?: null) : $stencil->data->availabilityTo);
+
+            if (($availabilityFrom = $request->getParam('availabilityFrom')) !== null) {
+                $stencil->data->availabilityFrom = DateTimeHelper::toDateTime($availabilityFrom);
+            }
+
+            if (($availabilityTo = $request->getParam('availabilityTo')) !== null) {
+                $stencil->data->availabilityTo = DateTimeHelper::toDateTime($availabilityTo);
+            }
 
             // Build temp form for validation.
             $form = Formie::$plugin->getForms()->buildFormFromPost();
@@ -228,7 +236,7 @@ class StencilsController extends Controller
             // Setup fake IDs for the notifications. They're saved on the stencil, not models, but show like they are
             foreach ($notificationsConfig as $key => $notification) {
                 // Generate a fake ID just for stencils. Helps to not show it as saved
-                $notificationsConfig[$key]['id'] = uniqId('stencil');
+                $notificationsConfig[$key]['id'] = StringHelper::appendRandomString('stencil', 16);
             }
         }
 

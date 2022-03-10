@@ -46,7 +46,7 @@ class Duplicate extends Captcha
 
         // Get or create the generated input value, so we can validate it properly. Also make it per-form
         $value = $this->getOrSet($sessionKey, function() {
-            return uniqid();
+            return uniqid('', true);
         });
 
         // Set a hidden field with no value and use javascript to set it.
@@ -62,7 +62,7 @@ class Duplicate extends Captcha
         
         // Get or create the generated input value, so we can validate it properly. Also make it per-form
         $value = $this->getOrSet($sessionKey, function() {
-            return uniqid();
+            return uniqid('', true);
         });
 
         return [

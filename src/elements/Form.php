@@ -506,7 +506,7 @@ class Form extends Element
         // up Vue's reactivity of pages as an array.
         if (!$pages) {
             $pages[] = [
-                'id' => uniqid('new'),
+                'id' => StringHelper::appendRandomString('new', 16),
                 'label' => Craft::t('site', 'Page 1'),
                 'rows' => [],
             ];
@@ -527,7 +527,7 @@ class Form extends Element
             return $this->_formId;
         }
         
-        return $this->_formId = uniqid("formie-form-{$this->id}");
+        return $this->_formId = StringHelper::appendRandomString("formie-form-{$this->id}", 16);
     }
 
     public function setFormId($value): void

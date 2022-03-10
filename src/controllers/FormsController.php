@@ -255,8 +255,14 @@ class FormsController extends Controller
             $stencil->data->dataRetention = $request->getParam('dataRetention', $stencil->data->dataRetention);
             $stencil->data->dataRetentionValue = $request->getParam('dataRetentionValue', $stencil->data->dataRetentionValue);
             $stencil->data->availabilitySubmissions = $request->getParam('availabilitySubmissions', $stencil->data->availabilitySubmissions);
-            $stencil->data->availabilityFrom = (($date = $request->getParam('availabilityFrom')) !== false ? (DateTimeHelper::toDateTime($date) ?: null) : $stencil->data->availabilityFrom);
-            $stencil->data->availabilityTo = (($date = $request->getParam('availabilityTo')) !== false ? (DateTimeHelper::toDateTime($date) ?: null) : $stencil->data->availabilityTo);
+
+            if (($availabilityFrom = $request->getParam('availabilityFrom')) !== null) {
+                $stencil->data->availabilityFrom = DateTimeHelper::toDateTime($availabilityFrom);
+            }
+
+            if (($availabilityTo = $request->getParam('availabilityTo')) !== null) {
+                $stencil->data->availabilityTo = DateTimeHelper::toDateTime($availabilityTo);
+            }
 
             // Build temp form for validation.
             $form = Formie::$plugin->getForms()->buildFormFromPost();

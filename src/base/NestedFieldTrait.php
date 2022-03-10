@@ -181,10 +181,13 @@ trait NestedFieldTrait
      */
     public function getRows(): array
     {
-        if ($fieldLayout = $this->getFieldLayout()) {
-            foreach ($fieldLayout->getPages() as $page) {
-                $rows = $page->getRows();
-                return Formie::$plugin->getFields()->getRowConfig($rows);
+        if (($fieldLayout = $this->getFieldLayout())) {
+            if ($pages = $fieldLayout->getPages()) {
+                foreach ($pages as $page) {
+                    if ($rows = $page->getRows()) {
+                        return Formie::$plugin->getFields()->getRowConfig($rows);
+                    }
+                }
             }
         }
 

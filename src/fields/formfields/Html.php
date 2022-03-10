@@ -174,7 +174,7 @@ class Html extends FormField
     // Private Methods
     // =========================================================================
 
-    private function _getPurifierConfig(): array
+    private function _getPurifierConfig(): HTMLPurifier_Config
     {
         $purifierConfig = HTMLPurifier_Config::createDefault();
         $purifierConfig->autoFinalize = false;

@@ -11,7 +11,6 @@ use verbb\formie\models\IntegrationField;
 
 use Craft;
 use craft\base\ElementInterface;
-use craft\base\Volume;
 use craft\elements\Asset;
 use craft\fields\Assets as CraftAssets;
 use craft\helpers\Assets;
@@ -20,7 +19,6 @@ use craft\helpers\Template;
 use craft\web\UploadedFile;
 
 use GraphQL\Type\Definition\Type;
-use Twig\Markup;
 
 class FileUpload extends CraftAssets implements FormFieldInterface
 {
@@ -187,8 +185,6 @@ class FileUpload extends CraftAssets implements FormFieldInterface
     {
         $fileLimit = (int)($this->limitFiles ?? 1);
 
-        $filenames = [];
-
         // Get any uploaded filenames
         $uploadedFiles = $this->_getUploadedFiles($element);
 
@@ -219,7 +215,7 @@ class FileUpload extends CraftAssets implements FormFieldInterface
             }
         }
 
-        foreach ($filenames as $filename) {
+        if ($filenames) {
             $element->addError($this->handle, Craft::t('formie', 'File must be larger than {size} MB.', [
                 'size' => $this->sizeMinLimit,
             ]));
@@ -246,7 +242,7 @@ class FileUpload extends CraftAssets implements FormFieldInterface
             }
         }
 
-        foreach ($filenames as $filename) {
+        if ($filenames) {
             $element->addError($this->handle, Craft::t('formie', 'File must be smaller than {size} MB.', [
                 'size' => $this->sizeLimit,
             ]));
@@ -293,7 +289,6 @@ class FileUpload extends CraftAssets implements FormFieldInterface
     {
         $volumes = [];
 
-        /* @var Volume $volume */
         foreach (Craft::$app->getVolumes()->getAllVolumes() as $volume) {
             $volumes[] = [
                 'label' => $volume->name,
@@ -583,7 +578,7 @@ class FileUpload extends CraftAssets implements FormFieldInterface
     {
         $sourceKey = $this->uploadLocationSource;
 
-        if ($sourceKey && is_string($sourceKey) && str_starts_with($sourceKey, 'folder:')) {
+        if ($sourceKey && str_starts_with($sourceKey, 'folder:')) {
             $parts = explode(':', $sourceKey);
             
             return Craft::$app->getVolumes()->getVolumeByUid($parts[1]);

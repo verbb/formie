@@ -26,7 +26,7 @@ class ImportExportHelper
     // Public Methods
     // =========================================================================
 
-    public static function generateFormExport($formElement): array|ActiveRecord|null
+    public static function generateFormExport(Form $formElement): array
     {
         $formId = $formElement->id;
 
@@ -132,7 +132,7 @@ class ImportExportHelper
         return $data;
     }
 
-    public static function createFormFromImport($data, $form = null)
+    public static function createFormFromImport($data, $form = null): Form
     {
         $existingForm = $form;
         $existingFormFields = [];

@@ -93,7 +93,7 @@ trait FormFieldTrait
     public ?string $limitAmount = null;
     public ?bool $matchField = null;
     public ?string $placeholder = null;
-    public ?string $defaultValue = null;
+    public mixed $defaultValue = null;
     public ?string $prePopulate = null;
     public ?string $errorMessage = null;
     public ?string $labelPosition = null;

@@ -16,6 +16,9 @@ use Craft;
 use craft\base\ElementInterface;
 use craft\elements\Tag;
 use craft\fields\Tags as CraftTags;
+use craft\elements\db\ElementQueryInterface;
+use craft\fields\data\SingleOptionFieldData;
+use craft\fields\data\MultiOptionsFieldData;
 use craft\gql\arguments\elements\Tag as TagArguments;
 use craft\gql\interfaces\elements\Tag as TagInterface;
 use craft\gql\resolvers\elements\Tag as TagResolver;
@@ -28,9 +31,6 @@ use craft\models\TagGroup;
 use Throwable;
 
 use GraphQL\Type\Definition\Type;
-use craft\elements\db\ElementQueryInterface;
-use craft\fields\data\SingleOptionFieldData;
-use craft\fields\data\MultiOptionsFieldData;
 
 class Tags extends CraftTags implements FormFieldInterface
 {
@@ -85,7 +85,7 @@ class Tags extends CraftTags implements FormFieldInterface
 
     protected string $inputTemplate = 'formie/_includes/element-select-input';
 
-    private ?TagGroup $_tagGroupId = null;
+    private ?TagGroup $_tagGroup = null;
 
 
     // Public Methods
@@ -333,6 +333,8 @@ class Tags extends CraftTags implements FormFieldInterface
             ['value' => 'title', 'label' => Craft::t('app', 'Title')],
         ];
 
+        $extraOptions = [];
+
         foreach ($this->availableSources() as $source) {
             if (!isset($source['heading'])) {
                 $groupId = $source['criteria']['groupId'] ?? null;
@@ -343,13 +345,13 @@ class Tags extends CraftTags implements FormFieldInterface
                     if ($group) {
                         $fields = $this->getStringCustomFieldOptions($group->getCustomFields());
 
-                        $options = array_merge($options, $fields);
+                        $extraOptions[] = $fields;
                     }
                 }
             }
         }
 
-        return $options;
+        return array_merge($options, ...$extraOptions);
     }
 
     /**
@@ -524,10 +526,14 @@ class Tags extends CraftTags implements FormFieldInterface
      */
     private function _getTagGroup(): ?TagGroup
     {
+        if ($this->_tagGroup !== null) {
+            return $this->_tagGroup;
+        }
+
         $tagGroupId = $this->_getTagGroupId();
 
-        if ($tagGroupId !== false) {
-            return Craft::$app->getTags()->getTagGroupByUid($tagGroupId);
+        if ($tagGroupId !== null) {
+            return $this->_tagGroup = Craft::$app->getTags()->getTagGroupByUid($tagGroupId);
         }
 
         return null;
@@ -536,18 +542,14 @@ class Tags extends CraftTags implements FormFieldInterface
     /**
      * Returns the tag group ID this field is associated with.
      *
-     * @return bool|int|TagGroup
+     * @return int|null
      */
-    private function _getTagGroupId(): bool|int|TagGroup
+    private function _getTagGroupId(): ?int
     {
-        if ($this->_tagGroupId !== null) {
-            return $this->_tagGroupId;
-        }
-
         if (!preg_match('/^taggroup:(([0-9a-f\-]+))$/', $this->source, $matches)) {
-            return $this->_tagGroupId = null;
+            return null;
         }
 
-        return $this->_tagGroupId = $matches[1];
+        return (int)$matches[1];
     }
 }

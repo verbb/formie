@@ -16,14 +16,15 @@ use craft\web\UploadedFile;
 use yii\helpers\Markdown;
 use yii\web\HttpException;
 use yii\web\Response;
-use craft\web\TemplateResponseBehavior;
+
+use stdClass;
 
 class ImportExportController extends Controller
 {
     // Public Methods
     // =========================================================================
 
-    public function actionIndex($importError = null, $exportError = null): Response|TemplateResponseBehavior
+    public function actionIndex($importError = null, $exportError = null): ?Response
     {
         $settings = Formie::$plugin->getSettings();
 
@@ -50,10 +51,13 @@ class ImportExportController extends Controller
             
         move_uploaded_file($uploadedFile->tempName, $fileLocation);
 
-        return $this->redirectToPostedUrl(['filename' => $filename]);
+        $object = new stdClass();
+        $object->filename = $filename;
+
+        return $this->redirectToPostedUrl($object);
     }
 
-    public function actionImportConfigure($filename): Response|TemplateResponseBehavior
+    public function actionImportConfigure($filename): ?Response
     {
         $request = Craft::$app->getRequest();
 
