@@ -412,6 +412,10 @@ class Salesforce extends Crm
 
         $token = $this->getToken();
 
+        if (!$token) {
+            Integration::apiError($this, 'Token not found for integration.', true);
+        }
+
         $this->_client = Craft::createGuzzleClient([
             'base_uri' => "{$this->apiDomain}/services/data/v49.0/",
             'headers' => [

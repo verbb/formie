@@ -347,11 +347,15 @@ class Zoho extends Crm
             return $this->_client;
         }
 
+        $token = $this->getToken();
+
+        if (!$token) {
+            Integration::apiError($this, 'Token not found for integration.', true);
+        }
+
         // Populated after OAuth connection
         $url = $this->apiDomain ?? 'https://www.zohoapis.com';
         $url = rtrim($url, '/');
-
-        $token = $this->getToken();
 
         $this->_client = Craft::createGuzzleClient([
             'base_uri' => "$url/crm/v2/",

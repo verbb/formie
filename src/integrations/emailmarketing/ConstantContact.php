@@ -236,6 +236,10 @@ class ConstantContact extends EmailMarketing
 
         $token = $this->getToken();
 
+        if (!$token) {
+            Integration::apiError($this, 'Token not found for integration.', true);
+        }
+
         $this->_client = Craft::createGuzzleClient([
             'base_uri' => 'https://api.cc.email/v3/',
             'headers' => [

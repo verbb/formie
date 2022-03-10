@@ -372,6 +372,11 @@ class Pardot extends Crm
         }
 
         $token = $this->getToken();
+
+        if (!$token) {
+            Integration::apiError($this, 'Token not found for integration.', true);
+        }
+
         $baseUrl = $this->useSandbox ? 'https://pi.demo.pardot.com/api/' : 'https://pi.pardot.com/api/';
         $businessUnitId = Craft::parseEnv($this->businessUnitId);
 

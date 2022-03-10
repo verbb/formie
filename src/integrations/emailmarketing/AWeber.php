@@ -243,6 +243,9 @@ class AWeber extends EmailMarketing
         return true;
     }
 
+    /**
+     * @throws \verbb\formie\errors\IntegrationException
+     */
     public function getClient(): Client
     {
         if ($this->_client) {
@@ -250,6 +253,10 @@ class AWeber extends EmailMarketing
         }
 
         $token = $this->getToken();
+
+        if (!$token) {
+            Integration::apiError($this, 'Token not found for integration.', true);
+        }
 
         $this->_client = Craft::createGuzzleClient([
             'base_uri' => 'https://api.aweber.com/1.0/',

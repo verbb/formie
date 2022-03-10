@@ -267,6 +267,10 @@ class GoogleSheets extends Miscellaneous
 
         $token = $this->getToken();
 
+        if (!$token) {
+            Integration::apiError($this, 'Token not found for integration.', true);
+        }
+
         $spreadsheetId = Craft::parseEnv($this->spreadsheetId);
 
         $this->_client = Craft::createGuzzleClient([

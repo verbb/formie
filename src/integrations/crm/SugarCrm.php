@@ -307,8 +307,13 @@ class SugarCrm extends Crm
             return $this->_client;
         }
 
-        $apiDomain = rtrim(Craft::parseEnv($this->apiDomain), '/');
         $token = $this->getToken();
+
+        if (!$token) {
+            Integration::apiError($this, 'Token not found for integration.', true);
+        }
+
+        $apiDomain = rtrim(Craft::parseEnv($this->apiDomain), '/');
 
         $this->_client = Craft::createGuzzleClient([
             'base_uri' => "{$apiDomain}/rest/v11/",

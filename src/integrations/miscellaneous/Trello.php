@@ -197,6 +197,11 @@ class Trello extends Miscellaneous
         }
 
         $token = $this->getToken();
+
+        if (!$token) {
+            Integration::apiError($this, 'Token not found for integration.', true);
+        }
+        
         $info = $this->getOauthProviderConfig();
         $stack = HandlerStack::create();
 

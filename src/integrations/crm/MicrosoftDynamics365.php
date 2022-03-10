@@ -312,6 +312,11 @@ class MicrosoftDynamics365 extends Crm
         }
 
         $token = $this->getToken();
+
+        if (!$token) {
+            Integration::apiError($this, 'Token not found for integration.', true);
+        }
+        
         $url = rtrim(Craft::parseEnv($this->apiDomain), '/');
 
         $this->_client = Craft::createGuzzleClient([

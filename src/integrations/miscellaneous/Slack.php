@@ -249,6 +249,10 @@ class Slack extends Miscellaneous
 
         $token = $this->getToken();
 
+        if (!$token) {
+            Integration::apiError($this, 'Token not found for integration.', true);
+        }
+
         $this->_client = Craft::createGuzzleClient([
             'base_uri' => 'https://slack.com/api/',
             'headers' => [
