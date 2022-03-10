@@ -205,7 +205,7 @@ class Variables
             Formie::$plugin->getRenderCache()->setGlobalVariables($cacheKey, [
                 'formName' => $formName,
                 'submissionUrl' => $submission->cpEditUrl ?? '',
-                'submissionId' => $submission->id ?: '',
+                'submissionId' => $submission->id ?? null,
 
                 'siteName' => $siteName,
                 'systemEmail' => $systemEmail,

@@ -341,16 +341,6 @@ class Tags extends CraftTags implements FormFieldInterface
         return array_merge($options, ...$extraOptions);
     }
 
-    public function getDisplayTypeValue($value): MultiOptionsFieldData|SingleOptionFieldData|null
-    {
-        // Special case for 'dropdown' in that it's a tag-select/create field
-        if ($this->displayType === 'dropdown') {
-            return $value;
-        }
-
-        return $this->traitGetDisplayTypeValue($value);
-    }
-
     public function getSettingGqlTypes(): array
     {
         return array_merge($this->traitGetSettingGqlTypes(), [

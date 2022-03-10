@@ -32,6 +32,7 @@ use yii\base\Exception;
 use Throwable;
 use craft\models\FieldLayout;
 use yii\base\InvalidConfigException;
+use craft\helpers\Template;
 
 class Submission extends Element
 {
@@ -752,7 +753,7 @@ class Submission extends Element
             $items[] = [
                 'field' => $field,
                 'value' => $value,
-                'html' => $html,
+                'html' => Template::raw($html),
             ];
         }
 
