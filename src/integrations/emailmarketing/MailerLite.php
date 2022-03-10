@@ -11,18 +11,14 @@ use verbb\formie\models\IntegrationFormSettings;
 use Craft;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
+
 use GuzzleHttp\Client;
+
 use Throwable;
 
 class MailerLite extends EmailMarketing
 {
-    // Properties
-    // =========================================================================
-
-    public ?string $apiKey = null;
-
-
-    // Public Methods
+    // Static Methods
     // =========================================================================
 
     /**
@@ -32,6 +28,15 @@ class MailerLite extends EmailMarketing
     {
         return Craft::t('formie', 'MailerLite');
     }
+
+    // Properties
+    // =========================================================================
+
+    public ?string $apiKey = null;
+
+
+    // Public Methods
+    // =========================================================================
 
     public function getDescription(): string
     {
@@ -56,7 +61,7 @@ class MailerLite extends EmailMarketing
 
         try {
             $lists = $this->request('GET', 'groups');
-            
+
             // While we're at it, fetch the fields for the list
             $fields = $this->request('GET', 'fields');
 
@@ -169,7 +174,7 @@ class MailerLite extends EmailMarketing
         foreach ($fields as $key => $field) {
             // Exclude any names
             if (in_array($field['title'], $excludeNames)) {
-                 continue;
+                continue;
             }
 
             $customFields[] = new IntegrationField([

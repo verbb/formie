@@ -11,11 +11,11 @@ class Radio extends FeedMeRadioButtons
 
     use BaseFieldTrait;
 
-    
+
     // Properties
     // =========================================================================
 
-    public static $name = 'Radio';
     public static $class = RadioField::class;
+    public static $name = 'Radio';
 
 }

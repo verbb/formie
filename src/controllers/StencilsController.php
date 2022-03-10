@@ -14,11 +14,11 @@ use craft\helpers\Json;
 use craft\helpers\StringHelper;
 use craft\web\Controller;
 
-use Throwable;
-
+use yii\base\InvalidConfigException;
 use yii\web\HttpException;
 use yii\web\Response;
-use yii\base\InvalidConfigException;
+
+use Throwable;
 
 class StencilsController extends Controller
 {

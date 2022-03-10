@@ -11,6 +11,9 @@ use GraphQL\Type\Definition\Type;
 
 class AddressInputType extends InputObjectType
 {
+    // Static Methods
+    // =========================================================================
+
     /**
      * Create the type for an address field.
      *

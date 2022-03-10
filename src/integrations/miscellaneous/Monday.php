@@ -11,20 +11,14 @@ use Craft;
 use craft\helpers\ArrayHelper;
 use craft\helpers\DateTimeHelper;
 use craft\helpers\Json;
+
 use GuzzleHttp\Client;
+
 use Throwable;
 
 class Monday extends Miscellaneous
 {
-    // Properties
-    // =========================================================================
-
-    public ?string $apiKey = null;
-    public ?string $boardId = null;
-    public ?array $fieldMapping = null;
-
-
-    // Public Methods
+    // Static Methods
     // =========================================================================
 
     /**
@@ -34,6 +28,18 @@ class Monday extends Miscellaneous
     {
         return Craft::t('formie', 'Monday');
     }
+    
+
+    // Properties
+    // =========================================================================
+    
+    public ?string $apiKey = null;
+    public ?string $boardId = null;
+    public ?array $fieldMapping = null;
+
+
+    // Public Methods
+    // =========================================================================
 
     public function getDescription(): string
     {
@@ -52,9 +58,11 @@ class Monday extends Miscellaneous
         $fields = $this->_getBoardSettings()->fields ?? [];
 
         // Validate the following when saving form settings
-        $rules[] = [['fieldMapping'], 'validateFieldMapping', 'params' => $fields, 'when' => function($model) {
-            return $model->enabled;
-        }, 'on' => [Integration::SCENARIO_FORM]];
+        $rules[] = [
+            ['fieldMapping'], 'validateFieldMapping', 'params' => $fields, 'when' => function($model) {
+                return $model->enabled;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
 
         return $rules;
     }
@@ -283,25 +291,25 @@ class Monday extends Miscellaneous
                     'email' => $value,
                     'text' => $value,
                 ];
-            } elseif ($type === 'link') {
+            } else if ($type === 'link') {
                 $newColumns[$handle] = [
                     'url' => $value,
                     'text' => $value,
                 ];
-            } elseif ($type === 'phone') {
+            } else if ($type === 'phone') {
                 $newColumns[$handle] = [
                     'phone' => $value,
                     'countryShortName' => '',
                 ];
-            } elseif ($type === 'color') {
+            } else if ($type === 'color') {
                 $newColumns[$handle] = [
                     'index' => (int)$value,
                 ];
-            } elseif ($type === 'lookup') {
+            } else if ($type === 'lookup') {
                 // No supported in API
-            } elseif ($type === 'board-relation') {
+            } else if ($type === 'board-relation') {
                 // No supported in API
-            } elseif ($type === 'date') {
+            } else if ($type === 'date') {
                 $date = DateTimeHelper::toDateTime($value);
 
                 if ($date) {

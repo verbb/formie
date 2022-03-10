@@ -14,7 +14,7 @@ use craft\db\ActiveRecord;
  */
 class Nested extends ActiveRecord
 {
-    // Public Methods
+    // Static Methods
     // =========================================================================
 
     /**

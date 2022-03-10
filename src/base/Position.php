@@ -6,7 +6,7 @@ use craft\helpers\StringHelper;
 
 abstract class Position extends Component implements PositionInterface
 {
-    // Protected Properties
+    // Properties
     // =========================================================================
 
     /**
@@ -16,6 +16,26 @@ abstract class Position extends Component implements PositionInterface
      * - below
      */
     protected static ?string $position = null;
+
+
+    // Static Method
+    // =========================================================================
+
+    /**
+     * @inheritDoc
+     */
+    public static function supports(FormFieldInterface $field = null): bool
+    {
+        return true;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public static function fallback(FormFieldInterface $field = null): ?string
+    {
+        return null;
+    }
 
 
     // Public Method
@@ -35,21 +55,5 @@ abstract class Position extends Component implements PositionInterface
     public function shouldDisplay(string $position): bool
     {
         return $position === $this::$position;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public static function supports(FormFieldInterface $field = null): bool
-    {
-        return true;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public static function fallback(FormFieldInterface $field = null): ?string
-    {
-        return null;
     }
 }

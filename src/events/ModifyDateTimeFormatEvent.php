@@ -1,8 +1,9 @@
 <?php
 namespace verbb\formie\events;
 
-use yii\base\Event;
 use verbb\formie\base\FormFieldInterface;
+
+use yii\base\Event;
 
 class ModifyDateTimeFormatEvent extends Event
 {

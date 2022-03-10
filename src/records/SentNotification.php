@@ -15,7 +15,7 @@ use yii\db\ActiveQueryInterface;
  */
 class SentNotification extends ActiveRecord
 {
-    // Public Methods
+    // Static Methods
     // =========================================================================
 
     /**
@@ -25,6 +25,10 @@ class SentNotification extends ActiveRecord
     {
         return '{{%formie_sentnotifications}}';
     }
+
+
+    // Public Methods
+    // =========================================================================
 
     /**
      * @return ActiveQueryInterface

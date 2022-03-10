@@ -21,6 +21,7 @@ use yii\web\Response;
 use ZipArchive;
 
 use GuzzleHttp\Exception\RequestException;
+
 use Throwable;
 
 class SupportController extends Controller
@@ -68,7 +69,7 @@ class SupportController extends Controller
 
         // Add some extra info about this install
         $message = $support->message . PHP_EOL;
-        $message .= PHP_EOL . '------------------------------' . PHP_EOL .  PHP_EOL;
+        $message .= PHP_EOL . '------------------------------' . PHP_EOL . PHP_EOL;
         $message .= 'Craft ' . Craft::$app->getEditionName() . ' ' . Craft::$app->getVersion() . PHP_EOL;
         $message .= 'Formie: ' . Formie::$plugin->getVersion() . PHP_EOL;
         $message .= 'License: ' . $plugins->getPluginLicenseKey('formie') . ' - ' . $plugins->getPluginLicenseKeyStatus('formie') . PHP_EOL;
@@ -83,7 +84,7 @@ class SupportController extends Controller
         ];
 
         $zipPath = $tempFolder . '/' . StringHelper::UUID() . '.zip';
-        
+
         try {
             $tempFileForm = null;
 
@@ -98,7 +99,7 @@ class SupportController extends Controller
             try {
                 $composerService = Craft::$app->getComposer();
                 $zip->addFile($composerService->getJsonPath(), 'composer.json');
-                
+
                 if (($composerLockPath = $composerService->getLockPath()) !== null) {
                     $zip->addFile($composerLockPath, 'composer.lock');
                 }
@@ -115,7 +116,7 @@ class SupportController extends Controller
                 try {
                     $logFiles = FileHelper::findFiles($logPath, [
                         'only' => ['formie.log*'],
-                        'recursive' => false
+                        'recursive' => false,
                     ]);
                 } catch (ErrorException $e) {
                     $logFiles = [];
@@ -232,7 +233,7 @@ class SupportController extends Controller
         ]);
 
         try {
-            $guzzleClient->post('https://support.verbb.io/api/get-help', [ 'json' => $requestParams ]);
+            $guzzleClient->post('https://support.verbb.io/api/get-help', ['json' => $requestParams]);
         } catch (Throwable $e) {
             $messageText = $e->getMessage();
 

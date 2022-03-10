@@ -5,7 +5,7 @@ use craft\db\ActiveRecord;
 
 class Token extends ActiveRecord
 {
-    // Public Methods
+    // Static Methods
     // =========================================================================
 
     public static function tableName(): string

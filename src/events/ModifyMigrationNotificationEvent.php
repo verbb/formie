@@ -1,9 +1,10 @@
 <?php
 namespace verbb\formie\events;
 
-use craft\events\CancelableEvent;
 use verbb\formie\elements\Form;
 use verbb\formie\models\Notification;
+
+use craft\events\CancelableEvent;
 
 class ModifyMigrationNotificationEvent extends CancelableEvent
 {

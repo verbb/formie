@@ -23,7 +23,7 @@ use yii\db\ActiveQueryInterface;
  */
 class Submission extends ActiveRecord
 {
-    // Public Methods
+    // Static Methods
     // =========================================================================
 
     /**
@@ -33,6 +33,10 @@ class Submission extends ActiveRecord
     {
         return '{{%formie_submissions}}';
     }
+
+
+    // Public Methods
+    // =========================================================================
 
     /**
      * @return ActiveQueryInterface

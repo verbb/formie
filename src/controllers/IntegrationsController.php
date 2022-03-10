@@ -11,12 +11,13 @@ use craft\helpers\Json;
 use craft\helpers\UrlHelper;
 use craft\web\Controller;
 
+use yii\base\UnknownPropertyException;
 use yii\web\BadRequestHttpException;
 use yii\web\Response;
 
 use Exception;
 use Throwable;
-use yii\base\UnknownPropertyException;
+
 
 class IntegrationsController extends Controller
 {
@@ -29,7 +30,7 @@ class IntegrationsController extends Controller
     // =========================================================================
 
     protected array|bool|int $allowAnonymous = ['callback'];
-    
+
     private ?string $originUrl = null;
 
 
@@ -279,7 +280,7 @@ class IntegrationsController extends Controller
 
         if ($request->getAcceptsJson()) {
             return $this->asJson([
-                'success' => true
+                'success' => true,
             ]);
         }
 
@@ -328,13 +329,15 @@ class IntegrationsController extends Controller
         $token->type = $integration::class;
 
         switch ($integration->oauthVersion()) {
-            case 1: {
+            case 1:
+            {
                 $token->accessToken = $response['token']->getIdentifier();
                 $token->secret = $response['token']->getSecret();
 
                 break;
             }
-            case 2: {
+            case 2:
+            {
                 $token->accessToken = $response['token']->getToken();
                 $token->endOfLife = $response['token']->getExpires();
                 $token->refreshToken = $response['token']->getRefreshToken();
@@ -357,7 +360,7 @@ class IntegrationsController extends Controller
 
             Formie::error($error);
             $session->setError($error);
-        
+
             return null;
         }
 
@@ -384,7 +387,7 @@ class IntegrationsController extends Controller
     private function _deleteToken($integration): void
     {
         $session = Craft::$app->getSession();
-        
+
         if (!Formie::$plugin->getTokens()->deleteTokenById($integration->tokenId)) {
             $error = Craft::t('formie', 'Unable to delete token - {errors}.', [
                 'errors' => Json::encode($integration->getErrors()),

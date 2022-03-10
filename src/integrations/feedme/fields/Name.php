@@ -15,19 +15,18 @@ class Name extends Field implements FieldInterface
 
     use BaseFieldTrait;
 
-    
+
     // Properties
     // =========================================================================
 
     /**
      * @var string
      */
-    public static $name = 'Name';
-
+    public static $class = NameField::class;
     /**
      * @var string
      */
-    public static $class = NameField::class;
+    public static $name = 'Name';
 
 
     // Templates

@@ -11,11 +11,11 @@ class Users extends FeedMeUsers
 
     use BaseFieldTrait;
 
-    
+
     // Properties
     // =========================================================================
 
-    public static $name = 'Users';
     public static $class = UsersField::class;
+    public static $name = 'Users';
 
 }

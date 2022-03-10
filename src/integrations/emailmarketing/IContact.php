@@ -10,22 +10,14 @@ use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
 use craft\helpers\Json;
+
 use GuzzleHttp\Client;
+
 use Throwable;
 
 class IContact extends EmailMarketing
 {
-    // Properties
-    // =========================================================================
-
-    public ?string $appId = null;
-    public ?string $password = null;
-    public ?string $username = null;
-    public ?string $accountId = null;
-    public ?string $clientFolderId = null;
-
-
-    // Public Methods
+    // Static Methods
     // =========================================================================
 
     /**
@@ -35,6 +27,19 @@ class IContact extends EmailMarketing
     {
         return Craft::t('formie', 'iContact');
     }
+
+    // Properties
+    // =========================================================================
+
+    public ?string $accountId = null;
+    public ?string $appId = null;
+    public ?string $clientFolderId = null;
+    public ?string $password = null;
+    public ?string $username = null;
+
+
+    // Public Methods
+    // =========================================================================
 
     public function getDescription(): string
     {
@@ -265,11 +270,11 @@ class IContact extends EmailMarketing
         foreach ($fields as $key => $field) {
             // Exclude any names
             if (in_array($field['publicName'], $excludeNames)) {
-                 continue;
+                continue;
             }
 
             $customFields[] = new IntegrationField([
-                'handle' => $field['customFieldId'] ,
+                'handle' => $field['customFieldId'],
                 'name' => $field['publicName'],
                 'type' => $this->_convertFieldType($field['fieldType']),
             ]);

@@ -23,7 +23,7 @@ class TableCell extends Node
             $attrs['colspan'] = (int)$colspan;
         }
         if ($colwidth = $this->DOMNode->getAttribute('data-colwidth')) {
-            $widths = array_map(function ($w) {
+            $widths = array_map(function($w) {
                 return (int)$w;
             }, explode(',', $colwidth));
             if (count($widths) === $attrs['colspan']) {

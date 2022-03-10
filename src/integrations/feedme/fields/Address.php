@@ -23,12 +23,11 @@ class Address extends Field implements FieldInterface
     /**
      * @var string
      */
-    public static $name = 'Address';
-
+    public static $class = AddressField::class;
     /**
      * @var string
      */
-    public static $class = AddressField::class;
+    public static $name = 'Address';
 
 
     // Templates

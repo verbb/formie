@@ -21,6 +21,7 @@ use craft\validators\ArrayValidator;
 
 use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Type\Definition\Type;
+
 use Throwable;
 
 class Repeater extends FormField implements NestedFieldInterface, EagerLoadingFieldInterface
@@ -138,7 +139,7 @@ class Repeater extends FormField implements NestedFieldInterface, EagerLoadingFi
     public function getPreviewInputHtml(): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/repeater/preview', [
-            'field' => $this
+            'field' => $this,
         ]);
     }
 
@@ -188,7 +189,7 @@ class Repeater extends FormField implements NestedFieldInterface, EagerLoadingFi
     public function getFrontEndJsModules(): ?array
     {
         $modules = [];
-        
+
         $modules[] = [
             'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/fields/repeater.js', true),
             'module' => 'FormieRepeater',
@@ -279,7 +280,7 @@ class Repeater extends FormField implements NestedFieldInterface, EagerLoadingFi
             SchemaHelper::conditionsField(),
         ];
     }
-    
+
     /**
      * @inheritDoc
      */
@@ -319,11 +320,21 @@ class Repeater extends FormField implements NestedFieldInterface, EagerLoadingFi
                 'rows' => [
                     'name' => 'rows',
                     'type' => Type::listOf($rowType),
-                    'resolve' => function ($rootValue) {
+                    'resolve' => function($rootValue) {
                         return $rootValue;
-                    }
-                ]
-            ]
+                    },
+                ],
+            ],
         ]));
+    }
+
+    /**
+     * @inheritdoc
+     */
+    protected function defineRules(): array
+    {
+        $rules = parent::defineRules();
+        $rules[] = [['minRows', 'maxRows'], 'integer', 'min' => 0];
+        return $rules;
     }
 }

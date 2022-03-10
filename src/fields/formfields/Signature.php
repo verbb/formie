@@ -66,7 +66,7 @@ class Signature extends FormField implements PreviewableFieldInterface
     public function getPreviewInputHtml(): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/signature/preview', [
-            'field' => $this
+            'field' => $this,
         ]);
     }
 

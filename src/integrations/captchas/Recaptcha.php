@@ -333,7 +333,7 @@ class Recaptcha extends Captcha
             'Ukrainian' => 'uk',
             'Urdu' => 'ur',
             'Vietnamese' => 'vi',
-            'Zulu' => 'zu'
+            'Zulu' => 'zu',
         ];
 
         $languageOptions = [];
@@ -341,7 +341,7 @@ class Recaptcha extends Captcha
         foreach ($languages as $languageName => $languageCode) {
             $languageOptions[] = [
                 'label' => Craft::t('formie', $languageName),
-                'value' => $languageCode
+                'value' => $languageCode,
             ];
         }
 

@@ -83,6 +83,19 @@ trait FormFieldTrait
         return '';
     }
 
+    /**
+     * Returns the kebab-case name of the field class.
+     *
+     * @return string
+     */
+    private static function _getKebabName(): string
+    {
+        $classNameParts = explode('\\', static::class);
+        $end = array_pop($classNameParts);
+
+        return StringHelper::toKebabCase($end);
+    }
+
 
     // Properties
     // =========================================================================
@@ -113,13 +126,11 @@ trait FormFieldTrait
     public ?int $rowIndex = null;
 
     public bool $isNested = false;
-
-
-    // Private Properties
-    // =========================================================================
+    public ?bool $visibility = null;
 
     private ?Form $_form = null;
     private ?NestedFieldInterface $_container = null;
+
     private string $_namespace = 'fields';
 
 
@@ -301,7 +312,7 @@ trait FormFieldTrait
         // Parent method does not get properties from traits.
         $parent = $class->getParentClass();
         $traits = $class->getTraits();
-        
+
         $extraTraits = [];
 
         if ($class->isSubclassOf(FormField::class)) {
@@ -325,7 +336,7 @@ trait FormFieldTrait
                 }
             }
         }
-        
+
         // For performance
         $traits = array_merge(...$extraTraits);
 
@@ -382,14 +393,6 @@ trait FormFieldTrait
     }
 
     /**
-     * Set the container for a nested field.
-     */
-    public function setContainer(NestedFieldInterface $container): void
-    {
-        $this->_container = $container;
-    }
-
-    /**
      * Return the container if this is a nested field.
      *
      * @return NestedFieldInterface
@@ -397,6 +400,14 @@ trait FormFieldTrait
     public function getContainer(): NestedFieldInterface
     {
         return $this->_container;
+    }
+
+    /**
+     * Set the container for a nested field.
+     */
+    public function setContainer(NestedFieldInterface $container): void
+    {
+        $this->_container = $container;
     }
 
     /**
@@ -409,7 +420,7 @@ trait FormFieldTrait
             /* @var Form $form */
             if ($form = Form::find()->uid($this->getContextUid())->one()) {
                 $this->formId = $form->id;
-                
+
                 return $this->_form = $form;
             }
 
@@ -530,7 +541,7 @@ trait FormFieldTrait
 
         // TODO: remove schema version condition after next beakpoint
         $schemaVersion = Craft::$app->getInstalledSchemaVersion();
-        
+
         if (version_compare($schemaVersion, '3.7.0', '>=')) {
             $config = array_merge($config, $this->getAttributes(['columnSuffix']));
         }
@@ -818,7 +829,7 @@ trait FormFieldTrait
         // fields to output their config, so it's reliable and works for on-demand HTML (repeater)
         $modules = $this->getFrontEndJsModules();
 
-         // Normalise to handle multiple module registrations
+        // Normalise to handle multiple module registrations
         if (!isset($modules[0])) {
             $modules = [$modules];
         }
@@ -863,7 +874,7 @@ trait FormFieldTrait
 
                 // Dot-notation to name input syntax
                 $condition['field'] = $namespace . '[' . str_replace(['{', '}', '.'], ['', '', ']['], $condition['field']) . ']';
-                
+
                 // A little extra work for Group/Repeater fields, which conditions would be set with `new1`.
                 // When going back to a previous page this will be replaced with the blockId and the condition won't work.
                 if ($element instanceof NestedFieldRow && $element->id) {
@@ -1078,13 +1089,15 @@ trait FormFieldTrait
                 'form',
                 'field',
                 'submission',
-            ]
+            ],
         ];
 
-        $rules[] = [['limitType'], 'in', 'range' => [
-            'characters',
-            'words',
-        ]];
+        $rules[] = [
+            ['limitType'], 'in', 'range' => [
+                'characters',
+                'words',
+            ],
+        ];
 
         $rules[] = [
             ['labelPosition'],
@@ -1243,22 +1256,5 @@ trait FormFieldTrait
         }
 
         return Type::string();
-    }
-
-
-    // Private Methods
-    // =========================================================================
-
-    /**
-     * Returns the kebab-case name of the field class.
-     *
-     * @return string
-     */
-    private static function _getKebabName(): string
-    {
-        $classNameParts = explode('\\', static::class);
-        $end = array_pop($classNameParts);
-
-        return StringHelper::toKebabCase($end);
     }
 }

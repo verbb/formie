@@ -15,7 +15,7 @@ use craft\db\ActiveRecord;
  */
 class Row extends ActiveRecord
 {
-    // Public Methods
+    // Static Methods
     // =========================================================================
 
     /**

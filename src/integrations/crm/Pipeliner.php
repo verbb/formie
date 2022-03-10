@@ -14,9 +14,21 @@ use Throwable;
 
 class Pipeliner extends Crm
 {
-    // Properties
+    // Static Methods
     // =========================================================================
 
+    /**
+     * @inheritDoc
+     */
+    public static function displayName(): string
+    {
+        return Craft::t('formie', 'Pipeliner');
+    }
+    
+
+    // Properties
+    // =========================================================================
+    
     public ?string $apiToken = null;
     public ?string $apiPassword = null;
     public ?string $apiSpaceId = null;
@@ -27,14 +39,6 @@ class Pipeliner extends Crm
 
     // Public Methods
     // =========================================================================
-
-    /**
-     * @inheritDoc
-     */
-    public static function displayName(): string
-    {
-        return Craft::t('formie', 'Pipeliner');
-    }
 
     public function getDescription(): string
     {
@@ -53,9 +57,11 @@ class Pipeliner extends Crm
         $contact = $this->getFormSettingValue('contact');
 
         // Validate the following when saving form settings
-        $rules[] = [['contactFieldMapping'], 'validateFieldMapping', 'params' => $contact, 'when' => function($model) {
-            return $model->enabled && $model->mapToContact;
-        }, 'on' => [Integration::SCENARIO_FORM]];
+        $rules[] = [
+            ['contactFieldMapping'], 'validateFieldMapping', 'params' => $contact, 'when' => function($model) {
+                return $model->enabled && $model->mapToContact;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
 
         return $rules;
     }

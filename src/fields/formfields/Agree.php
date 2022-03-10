@@ -12,9 +12,11 @@ use craft\base\PreviewableFieldInterface;
 use craft\helpers\Template;
 
 use yii\db\Schema;
+
 use GraphQL\Type\Definition\Type;
 use GraphQL\Type\Definition\ScalarType;
 use GraphQL\Type\Definition\ListOfType;
+
 use Twig\Markup;
 
 class Agree extends FormField implements PreviewableFieldInterface
@@ -233,7 +235,7 @@ class Agree extends FormField implements PreviewableFieldInterface
     {
         return ($value) ? $this->checkedValue : $this->uncheckedValue;
     }
-      
+
     /**
      * @inheritDoc
      */

@@ -11,6 +11,9 @@ use GraphQL\Type\Definition\Type;
 
 class NameInputType extends InputObjectType
 {
+    // Static Methods
+    // =========================================================================
+
     /**
      * Create the type for a name field.
      *

@@ -24,7 +24,7 @@ class EmailTemplate extends ActiveRecord
     use SoftDeleteTrait;
 
 
-    // Public Methods
+    // Static Methods
     // =========================================================================
 
     /**

@@ -90,7 +90,7 @@ class Phone extends FormField implements SubfieldInterface, PreviewableFieldInte
         if ($this->countryEnabled) {
             return true;
         }
-        
+
         return false;
     }
 
@@ -258,7 +258,7 @@ class Phone extends FormField implements SubfieldInterface, PreviewableFieldInte
     public function getPreviewInputHtml(): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/phone/preview', [
-            'field' => $this
+            'field' => $this,
         ]);
     }
 
@@ -315,7 +315,7 @@ class Phone extends FormField implements SubfieldInterface, PreviewableFieldInte
                     'help' => Craft::t('formie', 'Entering a default value will place the value in the field when it loads.'),
                     'name' => 'countryDefaultValue',
                     'options' => array_merge(
-                        [[ 'label' => Craft::t('formie', 'Select an option'), 'value' => '' ]],
+                        [['label' => Craft::t('formie', 'Select an option'), 'value' => '']],
                         static::getCountryOptions()
                     ),
                 ]),

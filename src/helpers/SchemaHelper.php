@@ -8,7 +8,7 @@ use Craft;
 
 class SchemaHelper
 {
-    // Public Methods
+    // Static Methods
     // =========================================================================
 
     public static function textField($config = []): array
@@ -249,7 +249,7 @@ class SchemaHelper
                     'type' => 'value',
                     'label' => 'Value',
                     'class' => 'singleline-cell textual',
-                ]
+                ],
             ],
             'name' => 'containerAttributes',
         ]), $config);
@@ -276,7 +276,7 @@ class SchemaHelper
                     'type' => 'value',
                     'label' => 'Value',
                     'class' => 'singleline-cell textual',
-                ]
+                ],
             ],
             'name' => 'inputAttributes',
         ]), $config);
@@ -359,7 +359,7 @@ class SchemaHelper
             'name' => 'matchField',
             'excludeSelf' => true,
         ], $config);
-    } 
+    }
 
     public static function extractFieldsFromSchema($fieldSchema, $names = []): array
     {

@@ -11,11 +11,30 @@ use verbb\formie\models\IntegrationFormSettings;
 use Craft;
 
 use League\OAuth2\Client\Provider\Google as GoogleProvider;
+
 use Throwable;
+
 use GuzzleHttp\Client;
 
 class GoogleSheets extends Miscellaneous
 {
+    // Static Methods
+    // =========================================================================
+
+    public static function supportsOauthConnection(): bool
+    {
+        return true;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public static function displayName(): string
+    {
+        return Craft::t('formie', 'Google Sheets');
+    }
+    
+
     // Properties
     // =========================================================================
 
@@ -27,13 +46,8 @@ class GoogleSheets extends Miscellaneous
     public ?array $fieldMapping = null;
 
 
-    // OAuth Methods
+    // Public Methods
     // =========================================================================
-
-    public static function supportsOauthConnection(): bool
-    {
-        return true;
-    }
 
     public function getAuthorizeUrl(): string
     {
@@ -88,14 +102,14 @@ class GoogleSheets extends Miscellaneous
         ]);
     }
 
+
+    // Public Methods
+    // =========================================================================
+
     public function getOauthProvider(): GoogleProvider
     {
         return new GoogleProvider($this->getOauthProviderConfig());
     }
-    
-
-    // Public Methods
-    // =========================================================================
 
     /**
      * @inheritDoc
@@ -111,14 +125,6 @@ class GoogleSheets extends Miscellaneous
         }
 
         parent::init();
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public static function displayName(): string
-    {
-        return Craft::t('formie', 'Google Sheets');
     }
 
     public function getDescription(): string

@@ -2,24 +2,15 @@
 namespace verbb\formie\base;
 
 use verbb\formie\models\IntegrationField;
+use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
 use craft\fields;
 use craft\helpers\StringHelper;
 use craft\helpers\UrlHelper;
-use verbb\formie\models\IntegrationFormSettings;
 
 abstract class Element extends Integration
 {
-    // Properties
-    // =========================================================================
-
-    public ?array $attributeMapping = null;
-    public ?array $fieldMapping = null;
-    public bool $updateElement = false;
-    public ?array $updateElementMapping = null;
-
-
     // Static Methods
     // =========================================================================
 
@@ -32,6 +23,15 @@ abstract class Element extends Integration
     {
         return false;
     }
+
+
+    // Properties
+    // =========================================================================
+
+    public ?array $attributeMapping = null;
+    public ?array $fieldMapping = null;
+    public bool $updateElement = false;
+    public ?array $updateElementMapping = null;
 
 
     // Public Methods

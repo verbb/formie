@@ -11,19 +11,14 @@ use verbb\formie\models\IntegrationFormSettings;
 use Craft;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
+
 use GuzzleHttp\Client;
+
 use Throwable;
 
 class ActiveCampaign extends EmailMarketing
 {
-    // Properties
-    // =========================================================================
-
-    public ?string $apiKey = null;
-    public ?string $apiUrl = null;
-
-
-    // Public Methods
+    // Static Methods
     // =========================================================================
 
     /**
@@ -33,6 +28,16 @@ class ActiveCampaign extends EmailMarketing
     {
         return Craft::t('formie', 'ActiveCampaign');
     }
+
+    // Properties
+    // =========================================================================
+
+    public ?string $apiKey = null;
+    public ?string $apiUrl = null;
+
+
+    // Public Methods
+    // =========================================================================
 
     public function getDescription(): string
     {
@@ -281,12 +286,12 @@ class ActiveCampaign extends EmailMarketing
 
             // // Only allow supported types
             if (!in_array($fieldType, $supportedFields)) {
-                 continue;
+                continue;
             }
 
             // Exclude any names
             if (in_array($fieldName, $excludeNames)) {
-                 continue;
+                continue;
             }
 
             $customFields[] = new IntegrationField([
@@ -319,7 +324,7 @@ class ActiveCampaign extends EmailMarketing
             'query' => [
                 'limit' => $limit,
                 'offset' => $offset,
-            ]
+            ],
         ]);
 
         $newItems = $response[$endpoint] ?? [];

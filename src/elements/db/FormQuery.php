@@ -1,10 +1,11 @@
 <?php
 namespace verbb\formie\elements\db;
 
+use verbb\formie\models\FormTemplate;
+
 use craft\db\Query;
 use craft\elements\db\ElementQuery;
 use craft\helpers\Db;
-use verbb\formie\models\FormTemplate;
 
 class FormQuery extends ElementQuery
 {

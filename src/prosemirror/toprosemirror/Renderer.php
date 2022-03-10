@@ -124,7 +124,7 @@ class Renderer
         );
 
         return [
-            'type'    => 'doc',
+            'type' => 'doc',
             'content' => $content,
         ];
     }
@@ -192,7 +192,7 @@ class Renderer
                 }
 
                 $nodes[] = $item;
-            } elseif ($class = $this->getMatchingMark($child)) {
+            } else if ($class = $this->getMatchingMark($child)) {
                 $this->storedMarks[] = $class->data();
 
                 if ($child->hasChildNodes()) {
@@ -200,7 +200,7 @@ class Renderer
                 }
 
                 array_pop($this->storedMarks);
-            } elseif ($child->hasChildNodes()) {
+            } else if ($child->hasChildNodes()) {
                 $nodes = array_merge($nodes, $this->renderChildren($child));
             }
         }

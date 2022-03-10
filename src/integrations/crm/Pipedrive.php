@@ -15,9 +15,21 @@ use Throwable;
 
 class Pipedrive extends Crm
 {
-    // Properties
+    // Static Methods
     // =========================================================================
 
+    /**
+     * @inheritDoc
+     */
+    public static function displayName(): string
+    {
+        return Craft::t('formie', 'Pipedrive');
+    }
+    
+
+    // Properties
+    // =========================================================================
+    
     public ?string $apiKey = null;
     public bool $mapToPerson = false;
     public bool $mapToDeal = false;
@@ -33,14 +45,6 @@ class Pipedrive extends Crm
 
     // Public Methods
     // =========================================================================
-
-    /**
-     * @inheritDoc
-     */
-    public static function displayName(): string
-    {
-        return Craft::t('formie', 'Pipedrive');
-    }
 
     public function getDescription(): string
     {
@@ -63,25 +67,35 @@ class Pipedrive extends Crm
         $note = $this->getFormSettingValue('note');
 
         // Validate the following when saving form settings
-        $rules[] = [['personFieldMapping'], 'validateFieldMapping', 'params' => $person, 'when' => function($model) {
-            return $model->enabled && $model->mapToPerson;
-        }, 'on' => [Integration::SCENARIO_FORM]];
+        $rules[] = [
+            ['personFieldMapping'], 'validateFieldMapping', 'params' => $person, 'when' => function($model) {
+                return $model->enabled && $model->mapToPerson;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
 
-        $rules[] = [['dealFieldMapping'], 'validateFieldMapping', 'params' => $deal, 'when' => function($model) {
-            return $model->enabled && $model->mapToDeal;
-        }, 'on' => [Integration::SCENARIO_FORM]];
+        $rules[] = [
+            ['dealFieldMapping'], 'validateFieldMapping', 'params' => $deal, 'when' => function($model) {
+                return $model->enabled && $model->mapToDeal;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
 
-        $rules[] = [['leadFieldMapping'], 'validateFieldMapping', 'params' => $lead, 'when' => function($model) {
-            return $model->enabled && $model->mapToLead;
-        }, 'on' => [Integration::SCENARIO_FORM]];
+        $rules[] = [
+            ['leadFieldMapping'], 'validateFieldMapping', 'params' => $lead, 'when' => function($model) {
+                return $model->enabled && $model->mapToLead;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
 
-        $rules[] = [['organizationFieldMapping'], 'validateFieldMapping', 'params' => $organization, 'when' => function($model) {
-            return $model->enabled && $model->mapToOrganization;
-        }, 'on' => [Integration::SCENARIO_FORM]];
+        $rules[] = [
+            ['organizationFieldMapping'], 'validateFieldMapping', 'params' => $organization, 'when' => function($model) {
+                return $model->enabled && $model->mapToOrganization;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
 
-        $rules[] = [['noteFieldMapping'], 'validateFieldMapping', 'params' => $note, 'when' => function($model) {
-            return $model->enabled && $model->mapToNote;
-        }, 'on' => [Integration::SCENARIO_FORM]];
+        $rules[] = [
+            ['noteFieldMapping'], 'validateFieldMapping', 'params' => $note, 'when' => function($model) {
+                return $model->enabled && $model->mapToNote;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
 
         return $rules;
     }
@@ -141,7 +155,7 @@ class Pipedrive extends Crm
                     'name' => Craft::t('formie', 'Note'),
                 ]),
             ]);
-            
+
             // Get Note fields
             $response = $this->request('GET', 'noteFields');
             $fields = $response['data'] ?? [];
@@ -475,7 +489,7 @@ class Pipedrive extends Crm
 
             // Exclude any names
             if (in_array($field['key'], $excludeNames)) {
-                 continue;
+                continue;
             }
 
             $required = $field['mandatory_flag'] ?? false;

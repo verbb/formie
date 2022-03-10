@@ -11,11 +11,11 @@ class Table extends FeedMeTable
 
     use BaseFieldTrait;
 
-    
+
     // Properties
     // =========================================================================
 
-    public static $name = 'Table';
     public static $class = TableField::class;
+    public static $name = 'Table';
 
 }

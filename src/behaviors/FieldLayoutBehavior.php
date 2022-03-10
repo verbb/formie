@@ -11,10 +11,17 @@ use yii\base\InvalidConfigException;
 
 class FieldLayoutBehavior extends CraftFieldLayoutBehavior
 {
+    // Properties
+    // =========================================================================
+
     /**
      * @var FieldLayout|null The field layout associated with the owner
      */
     private ?FieldLayout $_fieldLayout = null;
+
+
+    // Public Methods
+    // =========================================================================
 
     /**
      * Returns the owner's field layout.
@@ -43,7 +50,7 @@ class FieldLayoutBehavior extends CraftFieldLayoutBehavior
                     'type' => $this->elementType,
                 ]);
             }
-            
+
             throw new InvalidConfigException('Invalid field layout ID: ' . $id);
         }
 

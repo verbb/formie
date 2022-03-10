@@ -9,7 +9,7 @@ use craft\helpers\Db;
 
 class FormResolver extends ElementResolver
 {
-    // Public Methods
+    // Static Methods
     // =========================================================================
 
     public static function prepareQuery(mixed $source, array $arguments, $fieldName = null): mixed

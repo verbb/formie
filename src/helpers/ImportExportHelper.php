@@ -22,7 +22,7 @@ use craft\helpers\Json;
 
 class ImportExportHelper
 {
-    // Public Methods
+    // Static Methods
     // =========================================================================
 
     public static function generateFormExport(Form $formElement): array

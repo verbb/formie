@@ -20,9 +20,26 @@ use Exception;
 
 class Salesforce extends Crm
 {
-    // Properties
+    // Static Methods
     // =========================================================================
 
+    public static function supportsOauthConnection(): bool
+    {
+        return true;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public static function displayName(): string
+    {
+        return Craft::t('formie', 'Salesforce');
+    }
+    
+
+    // Properties
+    // =========================================================================
+    
     public ?string $clientId = null;
     public ?string $clientSecret = null;
     public ?string $apiDomain = null;
@@ -42,13 +59,8 @@ class Salesforce extends Crm
     private array $users = [];
 
 
-    // OAuth Methods
+    // Public Methods
     // =========================================================================
-
-    public static function supportsOauthConnection(): bool
-    {
-        return true;
-    }
 
     public function getAuthorizeUrl(): string
     {
@@ -84,18 +96,6 @@ class Salesforce extends Crm
         }
     }
 
-
-    // Public Methods
-    // =========================================================================
-
-    /**
-     * @inheritDoc
-     */
-    public static function displayName(): string
-    {
-        return Craft::t('formie', 'Salesforce');
-    }
-
     public function getDescription(): string
     {
         return Craft::t('formie', 'Manage your Salesforce customers by providing important information on their conversion on your site.');
@@ -116,21 +116,29 @@ class Salesforce extends Crm
         $account = $this->getFormSettingValue('account');
 
         // Validate the following when saving form settings
-        $rules[] = [['contactFieldMapping'], 'validateFieldMapping', 'params' => $contact, 'when' => function($model) {
-            return $model->enabled && $model->mapToContact;
-        }, 'on' => [Integration::SCENARIO_FORM]];
+        $rules[] = [
+            ['contactFieldMapping'], 'validateFieldMapping', 'params' => $contact, 'when' => function($model) {
+                return $model->enabled && $model->mapToContact;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
 
-        $rules[] = [['leadFieldMapping'], 'validateFieldMapping', 'params' => $lead, 'when' => function($model) {
-            return $model->enabled && $model->mapToLead;
-        }, 'on' => [Integration::SCENARIO_FORM]];
+        $rules[] = [
+            ['leadFieldMapping'], 'validateFieldMapping', 'params' => $lead, 'when' => function($model) {
+                return $model->enabled && $model->mapToLead;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
 
-        $rules[] = [['opportunityFieldMapping'], 'validateFieldMapping', 'params' => $opportunity, 'when' => function($model) {
-            return $model->enabled && $model->mapToOpportunity;
-        }, 'on' => [Integration::SCENARIO_FORM]];
+        $rules[] = [
+            ['opportunityFieldMapping'], 'validateFieldMapping', 'params' => $opportunity, 'when' => function($model) {
+                return $model->enabled && $model->mapToOpportunity;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
 
-        $rules[] = [['accountFieldMapping'], 'validateFieldMapping', 'params' => $account, 'when' => function($model) {
-            return $model->enabled && $model->mapToAccount;
-        }, 'on' => [Integration::SCENARIO_FORM]];
+        $rules[] = [
+            ['accountFieldMapping'], 'validateFieldMapping', 'params' => $account, 'when' => function($model) {
+                return $model->enabled && $model->mapToAccount;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
 
         return $rules;
     }
@@ -479,12 +487,12 @@ class Salesforce extends Crm
 
             // Only allow supported types
             if (!in_array($field['type'], $supportedFields)) {
-                 continue;
+                continue;
             }
 
             // Exclude any names
             if (in_array($field['name'], $excludeNames)) {
-                 continue;
+                continue;
             }
 
             $options = [];

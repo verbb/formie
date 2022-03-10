@@ -34,16 +34,7 @@ use yii\db\ActiveQueryInterface;
  */
 class Form extends ActiveRecord
 {
-    // Private Properties
-    // =========================================================================
-
-    /**
-     * @var string
-     */
-    private string $_oldHandle;
-
-
-    // Public Methods
+    // Static Methods
     // =========================================================================
 
     /**
@@ -54,6 +45,17 @@ class Form extends ActiveRecord
         return '{{%formie_forms}}';
     }
 
+
+    // Properties
+    // =========================================================================
+    /**
+     * @var string
+     */
+    private string $_oldHandle;
+
+
+    // Public Methods
+    // =========================================================================
     /**
      * @return ActiveQueryInterface
      */

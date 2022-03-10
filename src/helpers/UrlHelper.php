@@ -6,7 +6,7 @@ use craft\helpers\UrlHelper as CraftUrlHelper;
 
 class UrlHelper
 {
-    // Public Methods
+    // Static Methods
     // =========================================================================
 
     public static function siteActionUrl(string $path = '', $params = null, string $protocol = null): string

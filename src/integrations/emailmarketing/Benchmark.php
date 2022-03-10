@@ -10,18 +10,14 @@ use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
 use craft\helpers\Json;
+
 use GuzzleHttp\Client;
+
 use Throwable;
 
 class Benchmark extends EmailMarketing
 {
-    // Properties
-    // =========================================================================
-
-    public ?string $apiKey = null;
-
-
-    // Public Methods
+    // Static Methods
     // =========================================================================
 
     /**
@@ -31,6 +27,15 @@ class Benchmark extends EmailMarketing
     {
         return Craft::t('formie', 'Benchmark');
     }
+
+    // Properties
+    // =========================================================================
+
+    public ?string $apiKey = null;
+
+
+    // Public Methods
+    // =========================================================================
 
     public function getDescription(): string
     {
@@ -78,7 +83,7 @@ class Benchmark extends EmailMarketing
                         'name' => $listAttributes['LastnameLabel'] ?? Craft::t('formie', 'Last Name'),
                     ]),
                 ];
-            
+
                 foreach ($listAttributes as $listKey => $listAttribute) {
                     if (str_contains($listKey, 'Field') && str_contains($listKey, 'Name')) {
                         $listFields[] = new IntegrationField([
@@ -134,7 +139,6 @@ class Benchmark extends EmailMarketing
                 $response = $this->request('PATCH', "Contact/{$this->listId}/ContactDetails/{$existingContact['ID']}", [
                     'json' => $payload,
                 ]);
-
             } else {
                 $response = $this->request('POST', "Contact/{$this->listId}/ContactDetails", [
                     'json' => $payload,

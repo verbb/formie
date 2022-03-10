@@ -17,6 +17,18 @@ class AddressFinder extends AddressProvider
     public const EVENT_MODIFY_ADDRESS_PROVIDER_HTML = 'modifyAddressProviderHtml';
 
 
+    // Static Methods
+    // =========================================================================
+
+    /**
+     * @inheritDoc
+     */
+    public static function displayName(): string
+    {
+        return Craft::t('formie', 'Address Finder');
+    }
+
+
     // Properties
     // =========================================================================
 
@@ -27,14 +39,6 @@ class AddressFinder extends AddressProvider
 
     // Public Methods
     // =========================================================================
-
-    /**
-     * @inheritDoc
-     */
-    public static function displayName(): string
-    {
-        return Craft::t('formie', 'Address Finder');
-    }
 
     public function getDescription(): string
     {
@@ -91,7 +95,7 @@ class AddressFinder extends AddressProvider
         if (!$this->hasValidSettings()) {
             return null;
         }
-        
+
         $settings = [
             'apiKey' => Craft::parseEnv($this->apiKey),
             'countryCode' => $this->countryCode,

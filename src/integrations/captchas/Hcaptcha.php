@@ -238,7 +238,7 @@ class Hcaptcha extends Captcha
             'Ukrainian' => 'uk',
             'Urdu' => 'ur',
             'Vietnamese' => 'vi',
-            'Zulu' => 'zu'
+            'Zulu' => 'zu',
         ];
 
         $languageOptions = [];
@@ -246,7 +246,7 @@ class Hcaptcha extends Captcha
         foreach ($languages as $languageName => $languageCode) {
             $languageOptions[] = [
                 'label' => Craft::t('formie', $languageName),
-                'value' => $languageCode
+                'value' => $languageCode,
             ];
         }
 

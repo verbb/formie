@@ -401,36 +401,6 @@ class Install extends Migration
         $this->addForeignKey(null, '{{%formie_syncfields}}', ['fieldId'], '{{%fields}}', ['id'], 'CASCADE', null);
     }
 
-    protected function dropForeignKeys(): void
-    {
-        $tables = [
-            'formie_emailtemplates',
-            'formie_forms',
-            'formie_formtemplates',
-            'formie_integrations',
-            'formie_nested',
-            'formie_nestedfieldrows',
-            'formie_notifications',
-            'formie_pdftemplates',
-            'formie_pagesettings',
-            'formie_relations',
-            'formie_rows',
-            'formie_sentnotifications',
-            'formie_statuses',
-            'formie_stencils',
-            'formie_submissions',
-            'formie_syncfields',
-            'formie_syncs',
-            'formie_tokens',
-        ];
-
-        foreach ($tables as $table) {
-            if ($this->db->tableExists('{{%' . $table . '}}')) {
-                MigrationHelper::dropAllForeignKeysOnTable('{{%' . $table . '}}', $this);
-            }
-        }
-    }
-
     public function removeTables(): void
     {
         $tables = [
@@ -514,6 +484,36 @@ class Install extends Migration
         }
     }
 
+    protected function dropForeignKeys(): void
+    {
+        $tables = [
+            'formie_emailtemplates',
+            'formie_forms',
+            'formie_formtemplates',
+            'formie_integrations',
+            'formie_nested',
+            'formie_nestedfieldrows',
+            'formie_notifications',
+            'formie_pdftemplates',
+            'formie_pagesettings',
+            'formie_relations',
+            'formie_rows',
+            'formie_sentnotifications',
+            'formie_statuses',
+            'formie_stencils',
+            'formie_submissions',
+            'formie_syncfields',
+            'formie_syncs',
+            'formie_tokens',
+        ];
+
+        foreach ($tables as $table) {
+            if ($this->db->tableExists('{{%' . $table . '}}')) {
+                MigrationHelper::dropAllForeignKeysOnTable('{{%' . $table . '}}', $this);
+            }
+        }
+    }
+
     private function _defaultStatuses(): void
     {
         $statuses = [
@@ -522,7 +522,7 @@ class Install extends Migration
                 'handle' => 'new',
                 'color' => 'green',
                 'sortOrder' => 1,
-                'isDefault' => 1
+                'isDefault' => 1,
             ],
         ];
 
@@ -539,7 +539,7 @@ class Install extends Migration
                 'name' => Craft::t('formie', 'Contact Form'),
                 'handle' => 'contactForm',
                 'file' => Craft::getAlias('@verbb/formie/migrations/stencils/contact-form.json'),
-            ]
+            ],
         ];
 
         foreach ($stencils as $stencilInfo) {
@@ -552,6 +552,5 @@ class Install extends Migration
 
             Formie::$plugin->getStencils()->saveStencil($stencil);
         }
-
     }
 }

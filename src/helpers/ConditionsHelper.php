@@ -13,7 +13,7 @@ use Throwable;
 
 class ConditionsHelper
 {
-    // Public Methods
+    // Static Methods
     // =========================================================================
 
     public static function getEvaluator(): ExpressionLanguage
@@ -21,7 +21,8 @@ class ConditionsHelper
         $expressionLanguage = new ExpressionLanguage();
 
         // Add custom evaluation rules
-        $expressionLanguage->register('contains', function() {}, function($args, $subject, $pattern) {
+        $expressionLanguage->register('contains', function() {
+        }, function($args, $subject, $pattern) {
             if (is_array($subject)) {
                 return in_array($pattern, $subject);
             }
@@ -29,7 +30,8 @@ class ConditionsHelper
             return StringHelper::contains((string)$subject, $pattern);
         });
 
-        $expressionLanguage->register('notContains', function() {}, function($args, $subject, $pattern) {
+        $expressionLanguage->register('notContains', function() {
+        }, function($args, $subject, $pattern) {
             if (is_array($subject)) {
                 return !in_array($pattern, $subject);
             }
@@ -37,11 +39,13 @@ class ConditionsHelper
             return !StringHelper::contains((string)$subject, $pattern);
         });
 
-        $expressionLanguage->register('startsWith', function() {}, function($args, $subject, $pattern) {
+        $expressionLanguage->register('startsWith', function() {
+        }, function($args, $subject, $pattern) {
             return StringHelper::startsWith((string)$subject, $pattern);
         });
 
-        $expressionLanguage->register('endsWith', function() {}, function($args, $subject, $pattern) {
+        $expressionLanguage->register('endsWith', function() {
+        }, function($args, $subject, $pattern) {
             return StringHelper::endsWith((string)$subject, $pattern);
         });
 
@@ -49,7 +53,7 @@ class ConditionsHelper
     }
 
     public static function getCondition($condition): string
-    {   
+    {
         // Handle some settings defined in JS, so they're compatible with the evaluator we're using.
         // FYI, mostly for backward compatibility with `hoa/ruler` conditions.
         if ($condition === '=') {

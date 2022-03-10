@@ -15,7 +15,7 @@ use craft\db\ActiveRecord;
  */
 class PageSettings extends ActiveRecord
 {
-    // Public Methods
+    // Static Methods
     // =========================================================================
 
     /**

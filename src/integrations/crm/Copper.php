@@ -16,6 +16,18 @@ use Throwable;
 
 class Copper extends Crm
 {
+    // Static Methods
+    // =========================================================================
+
+    /**
+     * @inheritDoc
+     */
+    public static function displayName(): string
+    {
+        return Craft::t('formie', 'Copper');
+    }
+    
+
     // Properties
     // =========================================================================
 
@@ -34,22 +46,13 @@ class Copper extends Crm
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
-    public static function displayName(): string
-    {
-        return Craft::t('formie', 'Copper');
-    }
-
     public function getDescription(): string
     {
         return Craft::t('formie', 'Manage your Copper customers by providing important information on their conversion on your site.');
     }
 
     /**
-     * @inheritDoc
-     */
+     * @inheritDoc     */
     public function defineRules(): array
     {
         $rules = parent::defineRules();
@@ -62,21 +65,29 @@ class Copper extends Crm
         $task = $this->getFormSettingValue('task');
 
         // Validate the following when saving form settings
-        $rules[] = [['peopleFieldMapping'], 'validateFieldMapping', 'params' => $people, 'when' => function($model) {
-            return $model->enabled && $model->mapToPeople;
-        }, 'on' => [Integration::SCENARIO_FORM]];
+        $rules[] = [
+            ['peopleFieldMapping'], 'validateFieldMapping', 'params' => $people, 'when' => function($model) {
+                return $model->enabled && $model->mapToPeople;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
 
-        $rules[] = [['leadFieldMapping'], 'validateFieldMapping', 'params' => $lead, 'when' => function($model) {
-            return $model->enabled && $model->mapToLead;
-        }, 'on' => [Integration::SCENARIO_FORM]];
+        $rules[] = [
+            ['leadFieldMapping'], 'validateFieldMapping', 'params' => $lead, 'when' => function($model) {
+                return $model->enabled && $model->mapToLead;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
 
-        $rules[] = [['opportunityFieldMapping'], 'validateFieldMapping', 'params' => $opportunity, 'when' => function($model) {
-            return $model->enabled && $model->mapToOpportunity;
-        }, 'on' => [Integration::SCENARIO_FORM]];
+        $rules[] = [
+            ['opportunityFieldMapping'], 'validateFieldMapping', 'params' => $opportunity, 'when' => function($model) {
+                return $model->enabled && $model->mapToOpportunity;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
 
-        $rules[] = [['taskFieldMapping'], 'validateFieldMapping', 'params' => $task, 'when' => function($model) {
-            return $model->enabled && $model->mapToTask;
-        }, 'on' => [Integration::SCENARIO_FORM]];
+        $rules[] = [
+            ['taskFieldMapping'], 'validateFieldMapping', 'params' => $task, 'when' => function($model) {
+                return $model->enabled && $model->mapToTask;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
 
         return $rules;
     }
@@ -84,7 +95,6 @@ class Copper extends Crm
     public function fetchFormSettings(): IntegrationFormSettings
     {
         $settings = [];
-
         try {
             // Get Custom fields
             $fields = $this->request('GET', 'custom_field_definitions');
@@ -241,7 +251,7 @@ class Copper extends Crm
             $lossReasonOptions = [];
             $pipelineOptions = [];
             $stageOptions = [];
-            
+
             $customerSources = $this->request('GET', 'customer_sources');
             $lossReasons = $this->request('GET', 'loss_reasons');
             $pipelines = $this->request('GET', 'pipelines');
@@ -693,31 +703,39 @@ class Copper extends Crm
             }
 
             if ($key === 'emails') {
-                $fields[$key] = [[
-                    'category' => 'work',
-                    'email' => $value,
-                ]];
+                $fields[$key] = [
+                    [
+                        'category' => 'work',
+                        'email' => $value,
+                    ],
+                ];
             }
 
             if ($key === 'phone_numbers') {
-                $fields[$key] = [[
-                    'category' => 'work',
-                    'number' => $value,
-                ]];
+                $fields[$key] = [
+                    [
+                        'category' => 'work',
+                        'number' => $value,
+                    ],
+                ];
             }
 
             if ($key === 'socials') {
-                $fields[$key] = [[
-                    'category' => '',
-                    'url' => $value,
-                ]];
+                $fields[$key] = [
+                    [
+                        'category' => '',
+                        'url' => $value,
+                    ],
+                ];
             }
 
             if ($key === 'websites') {
-                $fields[$key] = [[
-                    'category' => 'work',
-                    'url' => $value,
-                ]];
+                $fields[$key] = [
+                    [
+                        'category' => 'work',
+                        'url' => $value,
+                    ],
+                ];
             }
         }
 

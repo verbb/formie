@@ -18,14 +18,7 @@ class Loqate extends AddressProvider
     public const EVENT_MODIFY_ADDRESS_PROVIDER_HTML = 'modifyAddressProviderHtml';
 
 
-    // Properties
-    // =========================================================================
-
-    public ?string $apiKey = null;
-    public array $reconfigurableOptions = [];
-
-
-    // Public Methods
+    // Static Methods
     // =========================================================================
 
     /**
@@ -35,6 +28,17 @@ class Loqate extends AddressProvider
     {
         return Craft::t('formie', 'Loqate');
     }
+    
+
+    // Properties
+    // =========================================================================
+
+    public ?string $apiKey = null;
+    public array $reconfigurableOptions = [];
+
+
+    // Public Methods
+    // =========================================================================
 
     public function getDescription(): string
     {
@@ -91,7 +95,7 @@ class Loqate extends AddressProvider
         if (!$this->hasValidSettings()) {
             return null;
         }
-        
+
         $settings = [
             'apiKey' => Craft::parseEnv($this->apiKey),
             'namespace' => $field ? Formie::$plugin->getService()->getFieldNamespaceForScript($field) : '',

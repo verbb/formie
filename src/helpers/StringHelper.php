@@ -5,7 +5,7 @@ use craft\helpers\StringHelper as CraftStringHelper;
 
 class StringHelper extends CraftStringHelper
 {
-    // Public Methods
+    // Static Methods
     // =========================================================================
 
     public static function toId(mixed $value, bool $allowNull = true): ?int

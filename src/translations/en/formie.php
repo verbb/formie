@@ -2670,5 +2670,5 @@ return [
     'Micronesia' => 'Micronesia',
     'Notification email “{notification}” could not be sent for submission “{submission}”. Error: {error} {file}:{line}' => 'Notification email “{notification}” could not be sent for submission “{submission}”. Error: {error} {file}:{line}',
     'Belarusian Ruble' => 'Belarusian Ruble',
-    '“{domain}” is not allowed.' => '“{domain}” is not allowed.'
+    '“{domain}” is not allowed.' => '“{domain}” is not allowed.',
 ];

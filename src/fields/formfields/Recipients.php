@@ -73,11 +73,6 @@ class Recipients extends FormField
         return $this->displayType === 'hidden';
     }
 
-    protected function options(): array
-    {
-        return $this->options ?? [];
-    }
-
     /**
      * @inheritdoc
      */
@@ -284,10 +279,10 @@ class Recipients extends FormField
                 'help' => Craft::t('formie', 'Set different display layouts for this field.'),
                 'name' => 'displayType',
                 'options' => [
-                    [ 'label' => Craft::t('formie', 'Hidden'), 'value' => 'hidden' ],
-                    [ 'label' => Craft::t('formie', 'Dropdown'), 'value' => 'dropdown' ],
-                    [ 'label' => Craft::t('formie', 'Checkboxes'), 'value' => 'checkboxes' ],
-                    [ 'label' => Craft::t('formie', 'Radio Buttons'), 'value' => 'radio' ],
+                    ['label' => Craft::t('formie', 'Hidden'), 'value' => 'hidden'],
+                    ['label' => Craft::t('formie', 'Dropdown'), 'value' => 'dropdown'],
+                    ['label' => Craft::t('formie', 'Checkboxes'), 'value' => 'checkboxes'],
+                    ['label' => Craft::t('formie', 'Radio Buttons'), 'value' => 'radio'],
                 ],
             ]),
             SchemaHelper::toggleContainer('!settings.displayType=hidden', [
@@ -390,6 +385,11 @@ class Recipients extends FormField
         }
 
         return Type::string();
+    }
+
+    protected function options(): array
+    {
+        return $this->options ?? [];
     }
 
 
@@ -501,7 +501,7 @@ class Recipients extends FormField
     {
         if (in_array($this->displayType, ['dropdown', 'radio'])) {
             foreach ($this->options() as $key => $option) {
-                $id =  'id:' . $key;
+                $id = 'id:' . $key;
 
                 if ((string)$option['value'] === (string)$value) {
                     $value = new SingleOptionFieldData($option['label'], $id, true);
@@ -520,7 +520,7 @@ class Recipients extends FormField
             $options = [];
 
             foreach ($this->options() as $key => $option) {
-                $id =  'id:' . $key;
+                $id = 'id:' . $key;
 
                 if (in_array((string)$option['value'], $selectedValues, true)) {
                     $options[] = new OptionData($option['label'], $id, true);

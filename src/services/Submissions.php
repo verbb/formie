@@ -274,7 +274,7 @@ class Submissions extends Component
 
         $submissions = Submission::find()
             ->isIncomplete(true)
-            ->dateUpdated('< ' .  Db::prepareDateForDb($date))
+            ->dateUpdated('< ' . Db::prepareDateForDb($date))
             ->all();
 
         foreach ($submissions as $submission) {
@@ -433,7 +433,6 @@ class Submissions extends Component
             Craft::$app->getDb()->createCommand()
                 ->update('{{%formie_submissions}}', ['userId' => $inheritorOnDelete->id], ['userId' => $user->id])
                 ->execute();
-
         } else {
             // We just want to delete each submission - bye!
             foreach ($submissions as $submission) {
@@ -461,7 +460,7 @@ class Submissions extends Component
             ->anyStatus()
             ->trashed(true)
             ->all();
-        
+
         foreach ($submissions as $submission) {
             try {
                 Craft::$app->getElements()->restoreElement($submission);
@@ -566,68 +565,6 @@ class Submissions extends Component
     // Private Methods
     // =========================================================================
 
-    /**
-     * Converts a multiline string to an array.
-     *
-     * @param $string
-     * @return array
-     */
-    private function _getArrayFromMultiline($string): array
-    {
-        $array = [];
-
-        if ($string) {
-            $array = array_map('trim', explode(PHP_EOL, $string));
-        }
-
-        return array_filter($array);
-    }
-
-    /**
-     * Converts a field value to a string.
-     *
-     * @param $submission
-     * @return string
-     */
-    private function _getContentAsString($submission): string
-    {
-        $fieldValues = [];
-
-        if (($fieldLayout = $submission->getFieldLayout()) !== null) {
-            foreach ($fieldLayout->getCustomFields() as $field) {
-                try {
-                    $value = $submission->getFieldValue($field->handle);
-
-                    if ($value instanceof NestedFieldRowQuery) {
-                        $values = [];
-
-                        foreach ($value->all() as $row) {
-                            $fieldValues[] = $this->_getContentAsString($row);
-                        }
-
-                        continue;
-                    }
-
-                    if ($value instanceof ElementQuery) {
-                        $value = $value->one();
-                    }
-
-                    if ($value instanceof MultiOptionsFieldData) {
-                        $value = implode(' ', array_map(function($item) {
-                            return $item->value;
-                        }, (array)$value));
-                    }
-
-                    $fieldValues[] = (string)$value;
-                } catch (Throwable $e) {
-                    continue;
-                }
-            }
-        }
-
-        return implode(' ', $fieldValues);
-    }
-
     public function getFakeFieldContent($fields): array
     {
         $fieldContent = [];
@@ -644,7 +581,7 @@ class Submissions extends Component
                 case formfields\Variants::class:
                     $fieldContent[$field->handle] = $field->getElementsQuery();
 
-                    break;                    
+                    break;
                 case formfields\Address::class:
                     $fieldContent[$field->handle] = new Address([
                         'address1' => $faker->address,
@@ -788,5 +725,67 @@ class Submissions extends Component
         }
 
         return $submissions;
+    }
+
+    /**
+     * Converts a multiline string to an array.
+     *
+     * @param $string
+     * @return array
+     */
+    private function _getArrayFromMultiline($string): array
+    {
+        $array = [];
+
+        if ($string) {
+            $array = array_map('trim', explode(PHP_EOL, $string));
+        }
+
+        return array_filter($array);
+    }
+
+    /**
+     * Converts a field value to a string.
+     *
+     * @param $submission
+     * @return string
+     */
+    private function _getContentAsString($submission): string
+    {
+        $fieldValues = [];
+
+        if (($fieldLayout = $submission->getFieldLayout()) !== null) {
+            foreach ($fieldLayout->getCustomFields() as $field) {
+                try {
+                    $value = $submission->getFieldValue($field->handle);
+
+                    if ($value instanceof NestedFieldRowQuery) {
+                        $values = [];
+
+                        foreach ($value->all() as $row) {
+                            $fieldValues[] = $this->_getContentAsString($row);
+                        }
+
+                        continue;
+                    }
+
+                    if ($value instanceof ElementQuery) {
+                        $value = $value->one();
+                    }
+
+                    if ($value instanceof MultiOptionsFieldData) {
+                        $value = implode(' ', array_map(function($item) {
+                            return $item->value;
+                        }, (array)$value));
+                    }
+
+                    $fieldValues[] = (string)$value;
+                } catch (Throwable $e) {
+                    continue;
+                }
+            }
+        }
+
+        return implode(' ', $fieldValues);
     }
 }

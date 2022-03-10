@@ -12,7 +12,7 @@ use GraphQL\Type\Definition\Type;
 
 class SubmissionQuery extends Query
 {
-    // Public Methods
+    // Static Methods
     // =========================================================================
 
     public static function getQueries(bool $checkToken = true): array
@@ -20,7 +20,7 @@ class SubmissionQuery extends Query
         if ($checkToken && !GqlHelper::canQuerySubmissions()) {
             return [];
         }
-        
+
         return [
             'formieSubmissions' => [
                 'type' => Type::listOf(SubmissionInterface::getType()),

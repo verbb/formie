@@ -55,8 +55,7 @@ class Status extends Model
      */
     public function getDisplayName(): string
     {
-        if ($this->dateDeleted !== null)
-        {
+        if ($this->dateDeleted !== null) {
             return $this->name . Craft::t('formie', ' (Trashed)');
         }
 
@@ -75,12 +74,12 @@ class Status extends Model
         $rules[] = [
             ['handle'],
             HandleValidator::class,
-            'reservedWords' => ['id', 'dateCreated', 'dateUpdated', 'uid', 'title']
+            'reservedWords' => ['id', 'dateCreated', 'dateUpdated', 'uid', 'title'],
         ];
         $rules[] = [
             ['handle'],
             UniqueValidator::class,
-            'targetClass' => SubmissionStatusRecord::class
+            'targetClass' => SubmissionStatusRecord::class,
         ];
 
         return $rules;
@@ -104,8 +103,8 @@ class Status extends Model
     public function getLabelHtml(): string
     {
         return Html::tag('span', Html::tag('span', '', [
-            'class' => ['status', $this->color],
-        ]) . $this->getDisplayName(), [
+                'class' => ['status', $this->color],
+            ]) . $this->getDisplayName(), [
             'class' => 'formieStatusLabel',
         ]);
     }

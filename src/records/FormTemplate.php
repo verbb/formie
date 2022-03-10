@@ -31,7 +31,7 @@ class FormTemplate extends ActiveRecord
     use SoftDeleteTrait;
 
 
-    // Public Methods
+    // Static Methods
     // =========================================================================
 
     /**

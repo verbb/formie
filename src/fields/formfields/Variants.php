@@ -11,6 +11,8 @@ use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\Notification;
 
 use Craft;
+use craft\elements\db\ElementQueryInterface;
+use craft\errors\SiteNotFoundException;
 use craft\helpers\ArrayHelper;
 use craft\helpers\UrlHelper;
 
@@ -22,8 +24,7 @@ use craft\commerce\gql\interfaces\elements\Variant as VariantInterface;
 use craft\commerce\models\ProductType;
 
 use GraphQL\Type\Definition\Type;
-use craft\elements\db\ElementQueryInterface;
-use craft\errors\SiteNotFoundException;
+
 use yii\base\InvalidConfigException;
 
 class Variants extends CommerceVariants implements FormFieldInterface
@@ -101,7 +102,7 @@ class Variants extends CommerceVariants implements FormFieldInterface
 
         return [
             'sourceOptions' => $options,
-            'warning' => count($options) === 1 ? Craft::t('formie', 'No product types available. View [product type settings]({link}).', ['link' => UrlHelper::cpUrl('commerce/settings/producttypes') ]) : false,
+            'warning' => count($options) === 1 ? Craft::t('formie', 'No product types available. View [product type settings]({link}).', ['link' => UrlHelper::cpUrl('commerce/settings/producttypes')]) : false,
         ];
     }
 
@@ -133,7 +134,7 @@ class Variants extends CommerceVariants implements FormFieldInterface
     public function getPreviewInputHtml(): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/variants/preview', [
-            'field' => $this
+            'field' => $this,
         ]);
     }
 
@@ -194,7 +195,7 @@ class Variants extends CommerceVariants implements FormFieldInterface
             } else {
                 $ids = ArrayHelper::getColumn($this->defaultValue, 'id');
             }
-            
+
             if ($ids) {
                 $query->id($ids);
             }
@@ -294,7 +295,7 @@ class Variants extends CommerceVariants implements FormFieldInterface
                 'validation' => 'required',
                 'required' => true,
                 'element-class' => count($options) === 1 ? 'hidden' : false,
-                'warning' => count($options) === 1 ? Craft::t('formie', 'No product types available. View [product type settings]({link}).', ['link' => UrlHelper::cpUrl('commerce/settings/producttypes') ]) : false,
+                'warning' => count($options) === 1 ? Craft::t('formie', 'No product types available. View [product type settings]({link}).', ['link' => UrlHelper::cpUrl('commerce/settings/producttypes')]) : false,
             ]),
             SchemaHelper::elementSelectField([
                 'label' => Craft::t('formie', 'Default Value'),
@@ -315,7 +316,7 @@ class Variants extends CommerceVariants implements FormFieldInterface
     public function defineSettingsSchema(): array
     {
         $labelSourceOptions = $this->getLabelSourceOptions();
-        
+
         return [
             SchemaHelper::lightswitchField([
                 'label' => Craft::t('formie', 'Required Field'),
@@ -373,9 +374,9 @@ class Variants extends CommerceVariants implements FormFieldInterface
                 'help' => Craft::t('formie', 'Set different display layouts for this field.'),
                 'name' => 'displayType',
                 'options' => [
-                    [ 'label' => Craft::t('formie', 'Dropdown'), 'value' => 'dropdown' ],
-                    [ 'label' => Craft::t('formie', 'Checkboxes'), 'value' => 'checkboxes' ],
-                    [ 'label' => Craft::t('formie', 'Radio Buttons'), 'value' => 'radio' ],
+                    ['label' => Craft::t('formie', 'Dropdown'), 'value' => 'dropdown'],
+                    ['label' => Craft::t('formie', 'Checkboxes'), 'value' => 'checkboxes'],
+                    ['label' => Craft::t('formie', 'Radio Buttons'), 'value' => 'radio'],
                 ],
             ]),
             SchemaHelper::toggleContainer('settings.displayType=dropdown', [

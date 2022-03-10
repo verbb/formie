@@ -125,8 +125,7 @@ class Stencil extends Model
      */
     public function getDisplayName(): string
     {
-        if ($this->dateDeleted !== null)
-        {
+        if ($this->dateDeleted !== null) {
             return $this->name . Craft::t('formie', ' (Trashed)');
         }
 
@@ -145,12 +144,12 @@ class Stencil extends Model
         $rules[] = [
             ['handle'],
             HandleValidator::class,
-            'reservedWords' => ['id', 'dateCreated', 'dateUpdated', 'uid', 'title']
+            'reservedWords' => ['id', 'dateCreated', 'dateUpdated', 'uid', 'title'],
         ];
         $rules[] = [
             ['handle'],
             UniqueValidator::class,
-            'targetClass' => StencilRecord::class
+            'targetClass' => StencilRecord::class,
         ];
 
         return $rules;
@@ -313,7 +312,7 @@ class Stencil extends Model
                         'handle' => 'new',
                         'color' => 'green',
                         'sortOrder' => 1,
-                        'isDefault' => 1
+                        'isDefault' => 1,
                     ]);
 
                     Formie::$plugin->getStatuses()->saveStatus($this->_defaultStatus);

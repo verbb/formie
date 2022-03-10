@@ -15,19 +15,18 @@ class Phone extends Field implements FieldInterface
 
     use BaseFieldTrait;
 
-    
+
     // Properties
     // =========================================================================
 
     /**
      * @var string
      */
-    public static $name = 'Phone';
-
+    public static $class = PhoneField::class;
     /**
      * @var string
      */
-    public static $class = PhoneField::class;
+    public static $name = 'Phone';
 
 
     // Templates
@@ -51,7 +50,7 @@ class Phone extends Field implements FieldInterface
     public function parseField()
     {
         $this->beforeParseField();
-        
+
         $preppedData = [];
 
         $fields = Hash::get($this->fieldInfo, 'fields');

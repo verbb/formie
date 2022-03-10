@@ -12,6 +12,7 @@ use verbb\formie\models\Notification;
 
 use Craft;
 use craft\elements\User;
+use craft\elements\db\ElementQueryInterface;
 use craft\fields\Users as CraftUsers;
 use craft\gql\arguments\elements\User as UserArguments;
 use craft\gql\interfaces\elements\User as UserInterface;
@@ -21,7 +22,6 @@ use craft\helpers\UrlHelper;
 use craft\models\UserGroup;
 
 use GraphQL\Type\Definition\Type;
-use craft\elements\db\ElementQueryInterface;
 
 class Users extends CraftUsers implements FormFieldInterface
 {
@@ -89,7 +89,7 @@ class Users extends CraftUsers implements FormFieldInterface
     {
         parent::__construct();
 
-         $this->labelSource = 'fullName';
+        $this->labelSource = 'fullName';
     }
 
     public function getSavedFieldConfig(): array
@@ -108,7 +108,7 @@ class Users extends CraftUsers implements FormFieldInterface
 
         return [
             'sourceOptions' => $options,
-            'warning' => count($options) < 2 ? Craft::t('formie', 'No user groups available. View [user group settings]({link}).', ['link' => UrlHelper::cpUrl('settings/users') ]) : false,
+            'warning' => count($options) < 2 ? Craft::t('formie', 'No user groups available. View [user group settings]({link}).', ['link' => UrlHelper::cpUrl('settings/users')]) : false,
         ];
     }
 
@@ -140,7 +140,7 @@ class Users extends CraftUsers implements FormFieldInterface
     public function getPreviewInputHtml(): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/users/preview', [
-            'field' => $this
+            'field' => $this,
         ]);
     }
 
@@ -201,7 +201,7 @@ class Users extends CraftUsers implements FormFieldInterface
             } else {
                 $ids = ArrayHelper::getColumn($this->defaultValue, 'id');
             }
-            
+
             if ($ids) {
                 $query->id($ids);
             }
@@ -280,7 +280,7 @@ class Users extends CraftUsers implements FormFieldInterface
                 'validation' => 'required',
                 'required' => true,
                 'element-class' => count($options) < 2 ? 'hidden' : false,
-                'warning' => count($options) < 2 ? Craft::t('formie', 'No user groups available. View [user group settings]({link}).', ['link' => UrlHelper::cpUrl('settings/users') ]) : false,
+                'warning' => count($options) < 2 ? Craft::t('formie', 'No user groups available. View [user group settings]({link}).', ['link' => UrlHelper::cpUrl('settings/users')]) : false,
             ]),
             SchemaHelper::elementSelectField([
                 'label' => Craft::t('formie', 'Default Value'),
@@ -301,7 +301,7 @@ class Users extends CraftUsers implements FormFieldInterface
     public function defineSettingsSchema(): array
     {
         $labelSourceOptions = $this->getLabelSourceOptions();
-        
+
         return [
             SchemaHelper::lightswitchField([
                 'label' => Craft::t('formie', 'Required Field'),
@@ -359,9 +359,9 @@ class Users extends CraftUsers implements FormFieldInterface
                 'help' => Craft::t('formie', 'Set different display layouts for this field.'),
                 'name' => 'displayType',
                 'options' => [
-                    [ 'label' => Craft::t('formie', 'Dropdown'), 'value' => 'dropdown' ],
-                    [ 'label' => Craft::t('formie', 'Checkboxes'), 'value' => 'checkboxes' ],
-                    [ 'label' => Craft::t('formie', 'Radio Buttons'), 'value' => 'radio' ],
+                    ['label' => Craft::t('formie', 'Dropdown'), 'value' => 'dropdown'],
+                    ['label' => Craft::t('formie', 'Checkboxes'), 'value' => 'checkboxes'],
+                    ['label' => Craft::t('formie', 'Radio Buttons'), 'value' => 'radio'],
                 ],
             ]),
             SchemaHelper::toggleContainer('settings.displayType=dropdown', [

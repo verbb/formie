@@ -8,7 +8,7 @@ use craft\db\Query;
 
 class ProjectConfigHelper
 {
-    // Public Methods
+    // Static Methods
     // =========================================================================
 
     public static function rebuildProjectConfig(): array

@@ -7,6 +7,9 @@ use craft\helpers\Json;
 
 class ResendNotifications extends ElementAction
 {
+    // Public Methods
+    // =========================================================================
+
     /**
      * @inheritdoc
      */
@@ -24,7 +27,7 @@ class ResendNotifications extends ElementAction
 
         Craft::$app->view->registerJs('new Craft.Formie.BulkResendElementAction(' .
             $type .
-        ');');
+            ');');
 
         return null;
     }

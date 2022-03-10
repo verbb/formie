@@ -8,7 +8,9 @@ use craft\helpers\Json;
 use craft\web\Controller;
 
 use GuzzleHttp\Exception\RequestException;
+
 use Throwable;
+
 use yii\web\Response;
 
 class AddressController extends Controller
@@ -18,7 +20,7 @@ class AddressController extends Controller
 
     protected array|bool|int $allowAnonymous = ['google-places-geocode'];
 
-    
+
     // Public Methods
     // =========================================================================
 

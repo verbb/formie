@@ -1,6 +1,11 @@
 <?php
 namespace verbb\formie\controllers;
 
+use verbb\formie\Formie;
+use verbb\formie\elements\Form;
+use verbb\formie\helpers\FileHelper;
+use verbb\formie\models\FormTemplate;
+
 use Craft;
 use craft\errors\MissingComponentException;
 use craft\helpers\Json;
@@ -13,11 +18,6 @@ use yii\web\BadRequestHttpException;
 use yii\web\HttpException;
 use yii\web\Response;
 use yii\web\ServerErrorHttpException;
-
-use verbb\formie\Formie;
-use verbb\formie\elements\Form;
-use verbb\formie\helpers\FileHelper;
-use verbb\formie\models\FormTemplate;
 
 use Throwable;
 
@@ -94,7 +94,7 @@ class FormTemplatesController extends Controller
         $template->outputJsTheme = (bool)$request->getBodyParam('outputJsTheme');
         $template->outputCssLocation = $request->getBodyParam('outputCssLocation');
         $template->outputJsLocation = $request->getBodyParam('outputJsLocation');
-        
+
         // Set the form field layout
         $fieldLayout = Craft::$app->getFields()->assembleLayoutFromPost();
         $fieldLayout->type = Form::class;

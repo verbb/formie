@@ -10,19 +10,14 @@ use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
 use craft\helpers\ArrayHelper;
+
 use GuzzleHttp\Client;
+
 use Throwable;
 
 class ConvertKit extends EmailMarketing
 {
-    // Properties
-    // =========================================================================
-
-    public ?string $apiKey = null;
-    public ?string $apiSecret = null;
-
-
-    // Public Methods
+    // Static Methods
     // =========================================================================
 
     /**
@@ -32,6 +27,17 @@ class ConvertKit extends EmailMarketing
     {
         return Craft::t('formie', 'ConvertKit');
     }
+
+    // Properties
+    // =========================================================================
+
+    
+    public ?string $apiKey = null;
+    public ?string $apiSecret = null;
+
+
+    // Public Methods
+    // =========================================================================
 
     public function getDescription(): string
     {
@@ -74,7 +80,7 @@ class ConvertKit extends EmailMarketing
                         'name' => Craft::t('formie', 'First Name'),
                     ]),
                 ];
-            
+
                 foreach ($fields as $field) {
                     $listFields[] = new IntegrationField([
                         'handle' => $field['key'],

@@ -8,6 +8,7 @@ use Craft;
 use craft\web\Controller;
 
 use yii\web\Response;
+
 use Throwable;
 
 class FieldsController extends Controller
@@ -78,7 +79,7 @@ class FieldsController extends Controller
     {
         $fieldId = Craft::$app->getRequest()->getParam('fieldId');
         $submissionId = Craft::$app->getRequest()->getParam('submissionId');
-        
+
         if ($submissionId && $fieldId) {
             $submission = Submission::find()->id($submissionId)->isIncomplete(null)->one();
 

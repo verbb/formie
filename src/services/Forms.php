@@ -123,7 +123,7 @@ class Forms extends Component
         try {
             // Prep the fields for save
             $fieldLayout = $form->getFormFieldLayout();
-            
+
             foreach ($fieldLayout->getCustomFields() as $field) {
                 $field->context = $form->getFormFieldContext();
                 $fieldsService->prepFieldForSave($field);
@@ -250,7 +250,7 @@ class Forms extends Component
             $transaction->commit();
         } catch (Throwable $e) {
             $transaction->rollBack();
-            
+
             Formie::error('Unable to save form “' . $form->handle . '”: ' . $e->getMessage());
 
             return false;
@@ -338,12 +338,12 @@ class Forms extends Component
         $pagesData = $request->getBodyParam('pages');
 
         if (!$pagesData) {
-            $fieldLayout = new FieldLayout([ 'type' => Form::class ]);
+            $fieldLayout = new FieldLayout(['type' => Form::class]);
             $fieldLayout->setPages([
                 new FieldLayoutPage([
                     'name' => Craft::t('site', 'Page 1'),
                     'sortOrder' => '0',
-                ])
+                ]),
             ]);
 
             return $fieldLayout;
@@ -480,7 +480,7 @@ class Forms extends Component
         $pages = [];
         $fields = [];
 
-        $fieldLayout = new FieldLayout([ 'type' => $type ]);
+        $fieldLayout = new FieldLayout(['type' => $type]);
 
         foreach ($data as $pageIndex => $pageData) {
             $pageFields = [];
@@ -599,7 +599,6 @@ class Forms extends Component
         do {
             $i++;
             $name = '{{%' . $baseName . ($i !== 0 ? '_' . $i : '') . '}}';
-
         } while ($name !== $form->fieldContentTable && $db->tableExists($name));
 
         return $name;
@@ -639,7 +638,7 @@ class Forms extends Component
                 } else {
                     $page->addError($attribute, Craft::t('app', '{attribute} "{value}" has already been taken.', [
                         'attribute' => $page->getAttributeLabel($attribute),
-                        'value' => Html::encode($value)
+                        'value' => Html::encode($value),
                     ]));
 
                     $validates = false;
@@ -672,7 +671,7 @@ class Forms extends Component
 
         $contentService->fieldContext = StringHelper::randomString(10);
         $contentService->fieldColumnPrefix = 'field_';
-        
+
         foreach ($page->getCustomFields() as $field) {
             $field->validate();
 
@@ -689,7 +688,7 @@ class Forms extends Component
                     // type).
                     $error = Craft::t('formie', '{attribute} "{value}" has already been taken.', [
                         'attribute' => Craft::t('formie', 'Handle'),
-                        'value' => $field->handle
+                        'value' => $field->handle,
                     ]);
 
                     $field->addError('handle', $error);

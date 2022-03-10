@@ -14,13 +14,7 @@ use Throwable;
 
 class Zapier extends Webhook
 {
-    // Properties
-    // =========================================================================
-
-    public ?string $webhook = null;
-
-
-    // Public Methods
+    // Static Methods
     // =========================================================================
 
     public static function supportsConnection(): bool
@@ -35,6 +29,16 @@ class Zapier extends Webhook
     {
         return Craft::t('formie', 'Zapier');
     }
+    
+
+    // Properties
+    // =========================================================================
+    
+    public ?string $webhook = null;
+    
+
+    // Public Methods
+    // =========================================================================
 
     public function getDescription(): string
     {

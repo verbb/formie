@@ -66,6 +66,26 @@ class RecentSubmissions extends Widget
     ];
 
 
+    // Static Methods
+    // =========================================================================
+
+    /**
+     * @inheritdoc
+     */
+    public static function displayName(): string
+    {
+        return Craft::t('formie', 'Recent Form Submissions');
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public static function icon(): string
+    {
+        return Craft::getAlias('@verbb/formie/icon-mask.svg');
+    }
+
+
     // Properties
     // =========================================================================
 
@@ -103,14 +123,6 @@ class RecentSubmissions extends Widget
     /**
      * @inheritdoc
      */
-    public static function displayName(): string
-    {
-        return Craft::t('formie', 'Recent Form Submissions');
-    }
-
-    /**
-     * @inheritdoc
-     */
     public function getTitle(): string
     {
         return $this->title ?: static::displayName();
@@ -124,14 +136,6 @@ class RecentSubmissions extends Widget
         return [
             [['formIds'], 'required'],
         ];
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public static function icon(): string
-    {
-        return Craft::getAlias('@verbb/formie/icon-mask.svg');
     }
 
     /**
@@ -187,7 +191,7 @@ class RecentSubmissions extends Widget
 
             // Normalise the chart data for multiple forms
             $normalisedData = [];
-            
+
             foreach ($combinedChartData as $date => $chartData) {
                 $variables['labels'][] = $date;
 

@@ -8,6 +8,7 @@ use verbb\formie\models\Settings;
 
 use Craft;
 use craft\base\Element;
+use craft\base\ElementInterface;
 use craft\gql\base\ElementMutationResolver;
 use craft\helpers\Db;
 use craft\helpers\Json;
@@ -18,7 +19,6 @@ use GraphQL\Type\Definition\ResolveInfo;
 
 use DateTime;
 use DateTimeZone;
-use craft\base\ElementInterface;
 
 class SubmissionResolver extends ElementMutationResolver
 {
@@ -39,7 +39,7 @@ class SubmissionResolver extends ElementMutationResolver
 
         $canCreateAll = Gql::canSchema('formieSubmissions.all', 'create');
         $canSaveAll = Gql::canSchema('formieSubmissions.all', 'save');
-        
+
         $scope = 'formieSubmissions.' . $form->uid;
         $canCreate = Gql::canSchema($scope, 'create');
         $canSave = Gql::canSchema($scope, 'save');

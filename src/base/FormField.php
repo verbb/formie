@@ -53,18 +53,22 @@ abstract class FormField extends Field implements FormFieldInterface
     /**
      * @inheritDoc
      */
-    protected function defineRules(): array
-    {
-        // These are already populated with base Field rules
-        return $this->traitDefineRules();
-    }
-
-    /**
-     * @inheritDoc
-     */
     public function getElementValidationRules(): array
     {
         // These are already populated with base Field rules
         return $this->traitGetElementValidationRules();
+    }
+
+
+    // Protected
+    // =========================================================================
+
+    /**
+     * @inheritDoc
+     */
+    protected function defineRules(): array
+    {
+        // These are already populated with base Field rules
+        return $this->traitDefineRules();
     }
 }

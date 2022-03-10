@@ -38,7 +38,7 @@ class Phone extends Model
             } catch (NumberParseException $e) {
                 if ($this->number) {
                     $countryString = $this->country ? '(' . $this->country . ') ' : '';
-                    
+
                     return $countryString . $this->number;
                 }
 
@@ -67,7 +67,7 @@ class Phone extends Model
                     return '+' . $countryCode;
                 }
             } catch (Throwable $e) {
-                
+
             }
         }
 

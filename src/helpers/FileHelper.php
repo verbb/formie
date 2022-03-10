@@ -9,7 +9,7 @@ use Throwable;
 
 class FileHelper
 {
-    // Public Methods
+    // Static Methods
     // =========================================================================
 
     /**

@@ -11,13 +11,7 @@ use Throwable;
 
 class Zengine extends Crm
 {
-    // Properties
-    // =========================================================================
-
-    public ?string $apiKey = null;
-
-
-    // Public Methods
+    // Static Methods
     // =========================================================================
 
     /**
@@ -27,6 +21,16 @@ class Zengine extends Crm
     {
         return Craft::t('formie', 'Zengine');
     }
+    
+
+    // Properties
+    // =========================================================================
+    
+    public ?string $apiKey = null;
+
+
+    // Public Methods
+    // =========================================================================
 
     public function getDescription(): string
     {
@@ -50,7 +54,7 @@ class Zengine extends Crm
         $allLists = [];
 
         try {
-            
+
         } catch (Throwable $e) {
             Integration::apiError($this, $e);
         }
@@ -61,7 +65,7 @@ class Zengine extends Crm
     public function sendPayload(Submission $submission): bool
     {
         try {
-            
+
         } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
@@ -74,7 +78,7 @@ class Zengine extends Crm
     public function fetchConnection(): bool
     {
         try {
-            
+
         } catch (Throwable $e) {
             Integration::apiError($this, $e);
 

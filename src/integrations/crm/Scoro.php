@@ -16,16 +16,7 @@ use Throwable;
 
 class Scoro extends Crm
 {
-    // Properties
-    // =========================================================================
-
-    public ?string $apiKey = null;
-    public ?string $apiDomain = null;
-    public bool $mapToContact = false;
-    public ?array $contactFieldMapping = null;
-
-
-    // Public Methods
+    // Static Methods
     // =========================================================================
 
     /**
@@ -35,6 +26,19 @@ class Scoro extends Crm
     {
         return Craft::t('formie', 'Scoro');
     }
+    
+
+    // Properties
+    // =========================================================================
+    
+    public ?string $apiKey = null;
+    public ?string $apiDomain = null;
+    public bool $mapToContact = false;
+    public ?array $contactFieldMapping = null;
+
+
+    // Public Methods
+    // =========================================================================
 
     public function getDescription(): string
     {
@@ -53,9 +57,11 @@ class Scoro extends Crm
         $contact = $this->getFormSettingValue('contact');
 
         // Validate the following when saving form settings
-        $rules[] = [['contactFieldMapping'], 'validateFieldMapping', 'params' => $contact, 'when' => function($model) {
-            return $model->enabled && $model->mapToContact;
-        }, 'on' => [Integration::SCENARIO_FORM]];
+        $rules[] = [
+            ['contactFieldMapping'], 'validateFieldMapping', 'params' => $contact, 'when' => function($model) {
+                return $model->enabled && $model->mapToContact;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
 
         return $rules;
     }

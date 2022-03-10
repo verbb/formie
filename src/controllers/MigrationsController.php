@@ -1,19 +1,21 @@
 <?php
 namespace verbb\formie\controllers;
 
+use verbb\formie\migrations\MigrateFreeform;
+use verbb\formie\migrations\MigrateSproutForms;
+
 use Craft;
 use craft\errors\MissingComponentException;
 use craft\errors\ShellCommandException;
 use craft\helpers\App;
 use craft\web\Controller;
 
-use Solspace\Freeform\Freeform;
-use verbb\formie\migrations\MigrateFreeform;
-use verbb\formie\migrations\MigrateSproutForms;
-use barrelstrength\sproutforms\elements\Form as SproutFormsForm;
-
 use yii\base\Exception;
+
 use Throwable;
+
+use Solspace\Freeform\Freeform;
+use barrelstrength\sproutforms\elements\Form as SproutFormsForm;
 
 class MigrationsController extends Controller
 {

@@ -16,9 +16,26 @@ use GuzzleHttp\Client;
 
 class Pardot extends Crm
 {
-    // Properties
+    // Static Methods
     // =========================================================================
 
+    public static function supportsOauthConnection(): bool
+    {
+        return true;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public static function displayName(): string
+    {
+        return Craft::t('formie', 'Pardot');
+    }
+    
+
+    // Properties
+    // =========================================================================
+    
     public ?string $clientId = null;
     public ?string $clientSecret = null;
     public ?string $businessUnitId = null;
@@ -27,15 +44,11 @@ class Pardot extends Crm
     public bool $mapToOpportunity = false;
     public ?array $prospectFieldMapping = null;
     public ?array $opportunityFieldMapping = null;
+    public bool $useSandbox = false;
 
 
-    // OAuth Methods
+    // Public Methods
     // =========================================================================
-
-    public static function supportsOauthConnection(): bool
-    {
-        return true;
-    }
 
     public function getAuthorizeUrl(): string
     {
@@ -61,18 +74,6 @@ class Pardot extends Crm
         return Craft::parseEnv($this->clientSecret);
     }
 
-
-    // Public Methods
-    // =========================================================================
-
-    /**
-     * @inheritDoc
-     */
-    public static function displayName(): string
-    {
-        return Craft::t('formie', 'Pardot');
-    }
-
     public function getDescription(): string
     {
         return Craft::t('formie', 'Manage your Pardot customers by providing important information on their conversion on your site.');
@@ -91,13 +92,17 @@ class Pardot extends Crm
         $opportunity = $this->getFormSettingValue('opportunity');
 
         // Validate the following when saving form settings
-        $rules[] = [['prospectFieldMapping'], 'validateFieldMapping', 'params' => $prospect, 'when' => function($model) {
-            return $model->enabled && $model->mapToProspect;
-        }, 'on' => [Integration::SCENARIO_FORM]];
+        $rules[] = [
+            ['prospectFieldMapping'], 'validateFieldMapping', 'params' => $prospect, 'when' => function($model) {
+                return $model->enabled && $model->mapToProspect;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
 
-        $rules[] = [['opportunityFieldMapping'], 'validateFieldMapping', 'params' => $opportunity, 'when' => function($model) {
-            return $model->enabled && $model->mapToOpportunity;
-        }, 'on' => [Integration::SCENARIO_FORM]];
+        $rules[] = [
+            ['opportunityFieldMapping'], 'validateFieldMapping', 'params' => $opportunity, 'when' => function($model) {
+                return $model->enabled && $model->mapToOpportunity;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
 
         return $rules;
     }

@@ -103,7 +103,7 @@ class Section extends FormField
     public function getPreviewInputHtml(): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/section/preview', [
-            'field' => $this
+            'field' => $this,
         ]);
     }
 
@@ -136,9 +136,9 @@ class Section extends FormField
                 'help' => Craft::t('formie', 'Add a border to this section.'),
                 'name' => 'borderStyle',
                 'options' => array_merge(
-                    [[ 'label' => Craft::t('formie', 'None'), 'value' => '' ]],
-                    [[ 'label' => Craft::t('formie', 'Solid'), 'value' => 'solid' ]],
-                    [[ 'label' => Craft::t('formie', 'Dashed'), 'value' => 'dashed' ]]
+                    [['label' => Craft::t('formie', 'None'), 'value' => '']],
+                    [['label' => Craft::t('formie', 'Solid'), 'value' => 'solid']],
+                    [['label' => Craft::t('formie', 'Dashed'), 'value' => 'dashed']]
                 ),
             ]),
             SchemaHelper::toggleContainer('settings.borderStyle', [

@@ -11,19 +11,15 @@ use verbb\formie\models\IntegrationFormSettings;
 use Craft;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
+
 use GuzzleHttp\Client;
+
 use Throwable;
 use DateTime;
 
 class Omnisend extends EmailMarketing
 {
-    // Properties
-    // =========================================================================
-
-    public ?string $apiKey = null;
-
-
-    // Public Methods
+    // Static Methods
     // =========================================================================
 
     /**
@@ -33,6 +29,15 @@ class Omnisend extends EmailMarketing
     {
         return Craft::t('formie', 'Omnisend');
     }
+
+    // Properties
+    // =========================================================================
+
+    public ?string $apiKey = null;
+
+
+    // Public Methods
+    // =========================================================================
 
     public function getDescription(): string
     {

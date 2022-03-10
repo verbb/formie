@@ -19,17 +19,10 @@ class NestedFieldRowQuery extends ElementQuery
     // Properties
     // =========================================================================
 
-    /**
-     * @inheritdoc
-     */
-    protected array $defaultOrderBy = ['formie_nestedfieldrows.sortOrder' => SORT_ASC];
-
-
-    // General parameters
-    // -------------------------------------------------------------------------
-
     public mixed $fieldId = null;
     public mixed $ownerId = null;
+
+    protected array $defaultOrderBy = ['formie_nestedfieldrows.sortOrder' => SORT_ASC];
 
     private array $_blocks = [];
 

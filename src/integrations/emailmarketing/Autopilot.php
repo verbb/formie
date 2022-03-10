@@ -11,18 +11,14 @@ use verbb\formie\models\IntegrationFormSettings;
 use Craft;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
+
 use GuzzleHttp\Client;
+
 use Throwable;
 
 class Autopilot extends EmailMarketing
 {
-    // Properties
-    // =========================================================================
-
-    public ?string $apiKey = null;
-
-
-    // Public Methods
+    // Static Methods
     // =========================================================================
 
     /**
@@ -32,6 +28,16 @@ class Autopilot extends EmailMarketing
     {
         return Craft::t('formie', 'Autopilot');
     }
+    
+
+    // Properties
+    // =========================================================================
+
+    public ?string $apiKey = null;
+
+
+    // Public Methods
+    // =========================================================================
 
     public function getDescription(): string
     {
@@ -157,7 +163,7 @@ class Autopilot extends EmailMarketing
                         'name' => Craft::t('formie', 'Unsubscribed'),
                     ]),
                 ], $this->_getCustomFields($fields));
-            
+
                 $settings['lists'][] = new IntegrationCollection([
                     'id' => $list['list_id'],
                     'name' => $list['title'],
@@ -308,7 +314,7 @@ class Autopilot extends EmailMarketing
         foreach ($fields as $field) {
             // Exclude any names
             if (in_array($field['name'], $excludeNames)) {
-                 continue;
+                continue;
             }
 
             $customFields[] = new IntegrationField([

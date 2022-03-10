@@ -11,11 +11,11 @@ class Variants extends FeedMeVariants
 
     use BaseFieldTrait;
 
-    
+
     // Properties
     // =========================================================================
 
-    public static $name = 'Variants';
     public static $class = VariantsField::class;
+    public static $name = 'Variants';
 
 }

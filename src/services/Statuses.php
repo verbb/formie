@@ -179,7 +179,7 @@ class Statuses extends Component
                 $countGroupedByStatusId[$status->id] = [
                     'orderStatusId' => $status->id,
                     'handle' => $status->handle,
-                    'orderCount' => 0
+                    'orderCount' => 0,
                 ];
             }
 
@@ -404,7 +404,7 @@ class Statuses extends Component
                 'sortOrder',
                 'isDefault',
                 'dateDeleted',
-                'uid'
+                'uid',
             ])
             ->orderBy('sortOrder')
             ->from(['{{%formie_statuses}}']);

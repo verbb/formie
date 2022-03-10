@@ -17,10 +17,23 @@ use craft\elements\User as UserElement;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Db;
 use craft\helpers\Json;
+
 use Throwable;
 
 class User extends Element
 {
+    // Static Methods
+    // =========================================================================
+
+    /**
+     * @inheritDoc
+     */
+    public static function displayName(): string
+    {
+        return Craft::t('formie', 'User');
+    }
+
+
     // Properties
     // =========================================================================
 
@@ -32,14 +45,6 @@ class User extends Element
 
     // Public Methods
     // =========================================================================
-
-    /**
-     * @inheritDoc
-     */
-    public static function displayName(): string
-    {
-        return Craft::t('formie', 'User');
-    }
 
     public function getDescription(): string
     {
@@ -55,9 +60,11 @@ class User extends Element
 
         $fields = $this->getFormSettingValue('elements')[0]->fields ?? [];
 
-        $rules[] = [['fieldMapping'], 'validateFieldMapping', 'params' => $fields, 'when' => function($model) {
-            return $model->enabled;
-        }, 'on' => [Integration::SCENARIO_FORM]];
+        $rules[] = [
+            ['fieldMapping'], 'validateFieldMapping', 'params' => $fields, 'when' => function($model) {
+                return $model->enabled;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
 
         return $rules;
     }
@@ -193,7 +200,7 @@ class User extends Element
             }
 
             $attributeValues = $this->getFieldMappingValues($submission, $this->attributeMapping, $this->getElementAttributes());
-            
+
             // Filter null values
             $attributeValues = array_filter($attributeValues, function($var) {
                 return $var !== null;
@@ -213,7 +220,7 @@ class User extends Element
 
             $fields = $this->getFormSettingValue('elements')[0]->fields ?? [];
             $fieldValues = $this->getFieldMappingValues($submission, $this->fieldMapping, $fields);
-            
+
             // Filter null values
             $fieldValues = array_filter($fieldValues, function($var) {
                 return $var !== null;
@@ -244,7 +251,7 @@ class User extends Element
                     'type' => $this->handle,
                     'error' => Json::encode($user->getErrors()),
                 ]), true);
-                
+
                 return false;
             }
 
@@ -277,13 +284,13 @@ class User extends Element
             // store the password content against the submission.
             if ($passwordField) {
                 $submission->setFieldValue($passwordField->handle, '');
-            
+
                 if (!Craft::$app->getElements()->saveElement($submission, false)) {
                     Integration::error($this, Craft::t('formie', 'Unable to save “{type}” element integration. Error: {error}.', [
                         'type' => $this->handle,
                         'error' => Json::encode($submission->getErrors()),
                     ]), true);
-                    
+
                     return false;
                 }
             }
@@ -321,7 +328,7 @@ class User extends Element
 
         return $userGroups;
     }
-    
+
 
     // Private Methods
     // =========================================================================

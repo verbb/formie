@@ -11,18 +11,14 @@ use verbb\formie\models\IntegrationFormSettings;
 use Craft;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
+
 use GuzzleHttp\Client;
+
 use Throwable;
 
 class Moosend extends EmailMarketing
 {
-    // Properties
-    // =========================================================================
-
-    public ?string $apiKey = null;
-
-
-    // Public Methods
+    // Static Methods
     // =========================================================================
 
     /**
@@ -32,6 +28,15 @@ class Moosend extends EmailMarketing
     {
         return Craft::t('formie', 'Moosend');
     }
+
+    // Properties
+    // =========================================================================
+
+    public ?string $apiKey = null;
+
+
+    // Public Methods
+    // =========================================================================
 
     public function getDescription(): string
     {
@@ -72,7 +77,7 @@ class Moosend extends EmailMarketing
                         'name' => Craft::t('formie', 'Name'),
                     ]),
                 ];
-        
+
                 $fields = $list['CustomFieldsDefinition'] ?? [];
 
                 foreach ($fields as $field) {

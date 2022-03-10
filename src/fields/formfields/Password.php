@@ -78,7 +78,7 @@ class Password extends FormField implements PreviewableFieldInterface
     public function getPreviewInputHtml(): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/password/preview', [
-            'field' => $this
+            'field' => $this,
         ]);
     }
 

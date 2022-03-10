@@ -13,16 +13,7 @@ use Throwable;
 
 class Klaviyo extends Crm
 {
-    // Properties
-    // =========================================================================
-
-    public ?string $publicApiKey = null;
-    public ?string $privateApiKey = null;
-    public bool $mapToProfile = false;
-    public ?array $profileFieldMapping = null;
-
-
-    // Public Methods
+    // Static Methods
     // =========================================================================
 
     /**
@@ -32,6 +23,19 @@ class Klaviyo extends Crm
     {
         return Craft::t('formie', 'Klaviyo');
     }
+    
+
+    // Properties
+    // =========================================================================
+    
+    public ?string $publicApiKey = null;
+    public ?string $privateApiKey = null;
+    public bool $mapToProfile = false;
+    public ?array $profileFieldMapping = null;
+
+
+    // Public Methods
+    // =========================================================================
 
     public function getDescription(): string
     {
@@ -50,9 +54,11 @@ class Klaviyo extends Crm
         $profile = $this->getFormSettingValue('profile');
 
         // Validate the following when saving form settings
-        $rules[] = [['profileFieldMapping'], 'validateFieldMapping', 'params' => $profile, 'when' => function($model) {
-            return $model->enabled && $model->mapToProfile;
-        }, 'on' => [Integration::SCENARIO_FORM]];
+        $rules[] = [
+            ['profileFieldMapping'], 'validateFieldMapping', 'params' => $profile, 'when' => function($model) {
+                return $model->enabled && $model->mapToProfile;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
 
         return $rules;
     }

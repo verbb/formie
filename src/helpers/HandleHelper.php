@@ -5,7 +5,7 @@ use Craft;
 
 class HandleHelper
 {
-    // Public Methods
+    // Static Methods
     // =========================================================================
 
     public static function getUniqueHandle($handles, $handle, $suffix = 0)

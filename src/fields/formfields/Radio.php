@@ -98,7 +98,7 @@ class Radio extends BaseOptionsField implements FormFieldInterface
     public function getPreviewInputHtml(): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/radio/preview', [
-            'field' => $this
+            'field' => $this,
         ]);
     }
 
@@ -108,14 +108,6 @@ class Radio extends BaseOptionsField implements FormFieldInterface
             'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/fields/checkbox-radio.js', true),
             'module' => 'FormieCheckboxRadio',
         ];
-    }
-
-    /**
-     * @inheritdoc
-     */
-    protected function optionsSettingLabel(): string
-    {
-        return Craft::t('app', 'Radio Button Options');
     }
 
     /**
@@ -192,8 +184,8 @@ class Radio extends BaseOptionsField implements FormFieldInterface
                 'help' => Craft::t('formie', 'Select which layout to use for these fields.'),
                 'name' => 'layout',
                 'options' => [
-                    [ 'label' => Craft::t('formie', 'Vertical'), 'value' => 'vertical' ],
-                    [ 'label' => Craft::t('formie', 'Horizontal'), 'value' => 'horizontal' ],
+                    ['label' => Craft::t('formie', 'Vertical'), 'value' => 'vertical'],
+                    ['label' => Craft::t('formie', 'Horizontal'), 'value' => 'horizontal'],
                 ],
             ]),
             SchemaHelper::labelPosition($this),
@@ -223,5 +215,13 @@ class Radio extends BaseOptionsField implements FormFieldInterface
             SchemaHelper::enableConditionsField(),
             SchemaHelper::conditionsField(),
         ];
+    }
+
+    /**
+     * @inheritdoc
+     */
+    protected function optionsSettingLabel(): string
+    {
+        return Craft::t('app', 'Radio Button Options');
     }
 }

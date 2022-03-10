@@ -17,7 +17,7 @@ use GraphQL\Type\Definition\Type;
 
 class FieldGenerator implements GeneratorInterface
 {
-    // Public Methods
+    // Static Methods
     // =========================================================================
 
     public static function generateTypes(mixed $context = null): array
@@ -64,7 +64,7 @@ class FieldGenerator implements GeneratorInterface
                 'name' => $typeName,
                 'fields' => function() use ($fieldFields) {
                     return $fieldFields;
-                }
+                },
             ]));
         }
 

@@ -23,17 +23,9 @@ interface FormFieldInterface extends ComponentInterface
     public const EVENT_MODIFY_VALUE_FOR_SUMMARY = 'modifyValueForSummary';
     public const EVENT_MODIFY_VALUE_FOR_EMAIL = 'modifyValueForEmail';
 
-    
+
     // Public Methods
     // =========================================================================
-
-    /**
-     * Returns true if this field is an unsaved field
-     * with a reference to another.
-     *
-     * @return bool
-     */
-    public function getIsRef(): bool;
 
     /**
      * Returns the SVG icon.
@@ -64,6 +56,14 @@ interface FormFieldInterface extends ComponentInterface
     public static function getEmailTemplatePath(): string;
 
     /**
+     * Returns true if this field is an unsaved field
+     * with a reference to another.
+     *
+     * @return bool
+     */
+    public function getIsRef(): bool;
+
+    /**
      * Returns the nice submission value for this field.
      *
      * @param ElementInterface $element
@@ -81,16 +81,16 @@ interface FormFieldInterface extends ComponentInterface
     /**
      * Returns all the default settings for a field.
      *
-     * @see FormFieldTrait::getFieldDefaults() to add aditional settings.
      * @return array
+     * @see FormFieldTrait::getFieldDefaults() to add aditional settings.
      */
     public function getAllFieldDefaults(): array;
 
     /**
      * Defines the schema for the edit field modal.
      *
-     * @see FormFieldTrait::getFieldSchema()
      * @return array
+     * @see FormFieldTrait::getFieldSchema()
      */
     public function getFieldSchema(): array;
 

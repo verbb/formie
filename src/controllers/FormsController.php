@@ -141,7 +141,7 @@ class FormsController extends Controller
 
         // If the user has create permissions, but not edit permissions, we can run into issues...
         if (!$form->uid) {
-             $this->requirePermission('formie-createForms');
+            $this->requirePermission('formie-createForms');
         } else {
             // User must have at least one of these permissions to edit (all, or the specific form)
             $formsPermission = Craft::$app->getUser()->checkPermission('formie-editForms');
@@ -448,7 +448,7 @@ class FormsController extends Controller
                 $params['captchas'][$captcha->handle] = $jsVariables;
             }
         }
-        
+
         return $this->asJson($params);
     }
 

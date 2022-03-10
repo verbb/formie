@@ -2,15 +2,15 @@
 namespace verbb\formie\controllers;
 
 use verbb\formie\Formie;
+use verbb\formie\fields\formfields\MissingField;
 use verbb\formie\models\Settings;
 
 use Craft;
-use craft\web\Controller;
 use craft\errors\MissingComponentException;
+use craft\web\Controller;
 
 use yii\web\BadRequestHttpException;
 use yii\web\Response;
-use verbb\formie\fields\formfields\MissingField;
 
 class SettingsController extends Controller
 {

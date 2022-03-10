@@ -4,16 +4,9 @@ namespace verbb\formie\prosemirror\toprosemirror\Nodes;
 
 class Heading extends Node
 {
-    private function getLevel($value)
-    {
-        preg_match("/^h([1-6])$/", $value, $match);
-
-        return $match[1] ?? null;
-    }
-
     public function matching(): bool
     {
-        return (boolean) $this->getLevel($this->DOMNode->nodeName);
+        return (boolean)$this->getLevel($this->DOMNode->nodeName);
     }
 
     public function data(): ?array
@@ -24,5 +17,12 @@ class Heading extends Node
                 'level' => $this->getLevel($this->DOMNode->nodeName),
             ],
         ];
+    }
+
+    private function getLevel($value)
+    {
+        preg_match("/^h([1-6])$/", $value, $match);
+
+        return $match[1] ?? null;
     }
 }

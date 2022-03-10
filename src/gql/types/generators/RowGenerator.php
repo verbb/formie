@@ -9,7 +9,7 @@ use craft\gql\GqlEntityRegistry;
 
 class RowGenerator implements GeneratorInterface
 {
-    // Public Methods
+    // Static Methods
     // =========================================================================
 
     public static function generateTypes(mixed $context = null): array
@@ -24,7 +24,7 @@ class RowGenerator implements GeneratorInterface
             'name' => $typeName,
             'fields' => function() use ($fieldFields) {
                 return $fieldFields;
-            }
+            },
         ]));
 
         return $gqlTypes;

@@ -15,12 +15,12 @@ class Group extends Field implements FieldInterface
 
     use BaseFieldTrait;
 
-    
+
     // Properties
     // =========================================================================
 
-    public static $name = 'Group';
     public static $class = GroupField::class;
+    public static $name = 'Group';
 
 
     // Templates
@@ -44,7 +44,7 @@ class Group extends Field implements FieldInterface
     public function parseField()
     {
         $this->beforeParseField();
-        
+
         $preppedData = [];
 
         $fields = Hash::get($this->fieldInfo, 'fields');

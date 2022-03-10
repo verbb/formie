@@ -63,6 +63,10 @@ abstract class Webhook extends Integration
         return UrlHelper::cpUrl('formie/settings/webhooks/edit/' . $this->id);
     }
 
+
+    // Protected Methods
+    // =========================================================================
+
     protected function generatePayloadValues(Submission $submission): array
     {
         $submissionContent = $submission->getValuesAsJson();

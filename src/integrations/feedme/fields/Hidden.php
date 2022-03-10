@@ -10,11 +10,11 @@ class Hidden extends DefaultField
 
     use BaseFieldTrait;
 
-    
+
     // Properties
     // =========================================================================
 
-    public static $name = 'Hidden';
     public static $class = HiddenField::class;
+    public static $name = 'Hidden';
 
 }

@@ -206,7 +206,7 @@ class Table extends CraftTable implements FormFieldInterface
     public function getPreviewInputHtml(): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/table/preview', [
-            'field' => $this
+            'field' => $this,
         ]);
     }
 
@@ -241,7 +241,7 @@ class Table extends CraftTable implements FormFieldInterface
 
             $settings['columns'] = array_values($settings['columns']);
         } else {
-            // If there are errors though, Craft's table field validation may very likely return an array 
+            // If there are errors though, Craft's table field validation may very likely return an array
             // for some attributes. We don't want that, so remove them back to single values.
             foreach ($settings['columns'] as $colId => $column) {
                 foreach ($column as $key => $col) {
@@ -449,6 +449,16 @@ class Table extends CraftTable implements FormFieldInterface
             SchemaHelper::enableConditionsField(),
             SchemaHelper::conditionsField(),
         ];
+    }
+
+    /**
+     * @inheritdoc
+     */
+    protected function defineRules(): array
+    {
+        $rules = parent::defineRules();
+        $rules[] = [['minRows', 'maxRows'], 'integer', 'min' => 0];
+        return $rules;
     }
 
 

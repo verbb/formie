@@ -17,10 +17,28 @@ use League\OAuth1\Client\Server\Trello as TrelloProvider;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Subscriber\Oauth\Oauth1;
 use GuzzleHttp\Client;
+
 use Throwable;
 
 class Trello extends Miscellaneous
 {
+    // Static Methods
+    // =========================================================================
+
+    public static function supportsOauthConnection(): bool
+    {
+        return true;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public static function displayName(): string
+    {
+        return Craft::t('formie', 'Trello');
+    }
+
+
     // Properties
     // =========================================================================
 
@@ -32,13 +50,8 @@ class Trello extends Miscellaneous
     public ?string $cardDescription = null;
 
 
-    // OAuth Methods
+    // Public Methods
     // =========================================================================
-
-    public static function supportsOauthConnection(): bool
-    {
-        return true;
-    }
 
     public function oauthVersion(): int
     {
@@ -63,6 +76,10 @@ class Trello extends Miscellaneous
         return new TrelloProvider($this->getOauthProviderConfig());
     }
 
+
+    // Public Methods
+    // =========================================================================
+
     public function getOauthScope(): array
     {
         return [
@@ -70,18 +87,6 @@ class Trello extends Miscellaneous
             'write',
             'account',
         ];
-    }
-
-
-    // Public Methods
-    // =========================================================================
-
-    /**
-     * @inheritDoc
-     */
-    public static function displayName(): string
-    {
-        return Craft::t('formie', 'Trello');
     }
 
     public function getDescription(): string
@@ -186,7 +191,7 @@ class Trello extends Miscellaneous
         if (!$token) {
             Integration::apiError($this, 'Token not found for integration.', true);
         }
-        
+
         $info = $this->getOauthProviderConfig();
         $stack = HandlerStack::create();
 
@@ -200,7 +205,7 @@ class Trello extends Miscellaneous
         $this->_client = Craft::createGuzzleClient([
             'base_uri' => 'https://api.trello.com/1/',
             'handler' => $stack,
-            'auth' => 'oauth'
+            'auth' => 'oauth',
         ]);
 
         return $this->_client;

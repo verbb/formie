@@ -20,19 +20,11 @@ use craft\helpers\ElementHelper;
 use craft\helpers\StringHelper;
 use craft\helpers\Template;
 use craft\services\Elements;
-use yii\base\InvalidConfigException;
 
+use yii\base\InvalidConfigException;
 
 trait NestedFieldTrait
 {
-    // Properties
-    // =========================================================================
-
-    public ?string $contentTable = null;
-    private ?FieldLayout $_fieldLayout = null;
-    private ?array $_rows = null;
-
-
     // Static Methods
     // =========================================================================
 
@@ -43,6 +35,15 @@ trait NestedFieldTrait
     {
         return NestedFieldRowQuery::class;
     }
+
+
+    // Properties
+    // =========================================================================
+
+    public ?string $contentTable = null;
+
+    private ?FieldLayout $_fieldLayout = null;
+    private ?array $_rows = null;
 
 
     // Public Methods
@@ -134,7 +135,7 @@ trait NestedFieldTrait
                     // type).
                     $error = Craft::t('formie', '{attribute} "{value}" has already been taken.', [
                         'attribute' => Craft::t('formie', 'Handle'),
-                        'value' => $field->handle
+                        'value' => $field->handle,
                     ]);
 
                     $field->addError('handle', $error);
@@ -199,7 +200,7 @@ trait NestedFieldTrait
             [
                 'label' => 'Fields',
                 'rows' => $rows,
-            ]
+            ],
         ], static::class, $duplicate);
 
         if ($oldFieldLayout = $this->getFieldLayout()) {
@@ -606,7 +607,7 @@ trait NestedFieldTrait
             'map' => $map,
             'criteria' => [
                 'fieldId' => $this->id,
-            ]
+            ],
         ];
     }
 
@@ -706,7 +707,7 @@ trait NestedFieldTrait
     }
 
 
-    // Public Methods
+    // Private Methods
     // =========================================================================
 
     /**

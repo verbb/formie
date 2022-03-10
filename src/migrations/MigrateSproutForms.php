@@ -69,7 +69,7 @@ class MigrateSproutForms extends Migration
     public function safeUp(): bool
     {
         $this->_reservedHandles = Formie::$plugin->getFields()->getReservedHandles();
-        
+
         /* @var SproutFormsForm $sproutFormsForm */
         if ($this->_sproutForm = SproutFormsForm::find()->id($this->formId)->one()) {
             if ($this->_form = $this->_migrateForm()) {
@@ -292,7 +292,7 @@ class MigrateSproutForms extends Migration
     private function _migrateNotifications(): void
     {
         $settings = Formie::$plugin->getSettings();
-        
+
         /* @var NotificationEmail[] $notifications */
         $notifications = SproutBaseEmail::$app->notifications->getAllNotificationEmails();
         $total = 0;
@@ -409,7 +409,7 @@ class MigrateSproutForms extends Migration
      */
     private function _buildFieldLayout(SproutFormsForm $form): FieldLayout
     {
-        $fieldLayout = new FieldLayout([ 'type' => Form::class ]);
+        $fieldLayout = new FieldLayout(['type' => Form::class]);
         $fieldLayout->type = Form::class;
 
         if ($sproutFieldLayout = $form->getFieldLayout()) {
@@ -756,7 +756,7 @@ class MigrateSproutForms extends Migration
             return [];
         }
 
-        return array_values(array_map(function ($option) {
+        return array_values(array_map(function($option) {
             $option['isDefault'] = (bool)($option['default'] ?? false);
             unset($option['default']);
             return $option;
@@ -802,7 +802,7 @@ class MigrateSproutForms extends Migration
         return [
             [
                 'type' => 'paragraph',
-                'content' => $content
+                'content' => $content,
             ],
             [
                 'type' => 'paragraph',
@@ -813,8 +813,8 @@ class MigrateSproutForms extends Migration
                             'label' => Craft::t('formie', 'All Form Fields'),
                             'value' => '{allFields}',
                         ],
-                    ]
-                ]
+                    ],
+                ],
             ],
         ];
     }
@@ -839,20 +839,20 @@ class MigrateSproutForms extends Migration
             $args = "";
 
             if (isset($frame['args'])) {
-                $args = array();
+                $args = [];
 
                 foreach ($frame['args'] as $arg) {
                     if (is_string($arg)) {
                         $args[] = "'" . $arg . "'";
-                    } elseif (is_array($arg)) {
+                    } else if (is_array($arg)) {
                         $args[] = "Array";
-                    } elseif (is_null($arg)) {
+                    } else if (is_null($arg)) {
                         $args[] = 'NULL';
-                    } elseif (is_bool($arg)) {
+                    } else if (is_bool($arg)) {
                         $args[] = ($arg) ? "true" : "false";
-                    } elseif (is_object($arg)) {
+                    } else if (is_object($arg)) {
                         $args[] = get_class($arg);
-                    } elseif (is_resource($arg)) {
+                    } else if (is_resource($arg)) {
                         $args[] = get_resource_type($arg);
                     } else {
                         $args[] = $arg;
@@ -862,12 +862,12 @@ class MigrateSproutForms extends Migration
                 $args = implode(", ", $args);
             }
 
-            $rtn .= sprintf( "#%s %s(%s): %s(%s)\n",
-                                 $count,
+            $rtn .= sprintf("#%s %s(%s): %s(%s)\n",
+                $count,
                 $frame['file'] ?? '[internal function]',
                 $frame['line'] ?? '',
-                                 (isset($frame['class']))  ? $frame['class'].$frame['type'].$frame['function'] : $frame['function'],
-                                 $args );
+                (isset($frame['class'])) ? $frame['class'] . $frame['type'] . $frame['function'] : $frame['function'],
+                $args);
 
             $count++;
         }

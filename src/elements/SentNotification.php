@@ -4,10 +4,12 @@ namespace verbb\formie\elements;
 use verbb\formie\Formie;
 use verbb\formie\elements\actions\ResendNotifications;
 use verbb\formie\elements\db\SentNotificationQuery;
+use verbb\formie\models\Notification;
 use verbb\formie\records\SentNotification as SentNotificationRecord;
 
 use Craft;
 use craft\base\Element;
+use craft\base\ElementInterface;
 use craft\db\Query;
 use craft\elements\actions\Delete;
 use craft\elements\actions\Restore;
@@ -16,10 +18,10 @@ use craft\helpers\Html;
 use craft\helpers\Json;
 use craft\helpers\StringHelper;
 use craft\helpers\UrlHelper;
-use Exception;
-use verbb\formie\models\Notification;
+
 use yii\base\Model;
-use craft\base\ElementInterface;
+
+use Exception;
 
 class SentNotification extends Element
 {
@@ -90,8 +92,8 @@ class SentNotification extends Element
                 'key' => '*',
                 'label' => Craft::t('formie', 'All forms'),
                 'criteria' => ['formId' => $ids],
-                'defaultSort' => ['elements.dateCreated', 'desc']
-            ]
+                'defaultSort' => ['elements.dateCreated', 'desc'],
+            ],
         ];
 
         $sources[] = ['heading' => Craft::t('formie', 'Forms')];
@@ -115,7 +117,7 @@ class SentNotification extends Element
                     'handle' => $form->handle,
                 ],
                 'criteria' => ['formId' => $form->id],
-                'defaultSort' => ['elements.dateCreated', 'desc']
+                'defaultSort' => ['elements.dateCreated', 'desc'],
             ];
         }
 
@@ -151,10 +153,102 @@ class SentNotification extends Element
         return $actions;
     }
 
+    /**
+     * @inheritDoc
+     */
+    protected static function defineTableAttributes(): array
+    {
+        return [
+            'dateCreated' => ['label' => Craft::t('formie', 'Date Sent')],
+            'form' => ['label' => Craft::t('formie', 'Form')],
+            'submission' => ['label' => Craft::t('formie', 'Submission')],
+            'notification' => ['label' => Craft::t('formie', 'Email Notification')],
+            'to' => ['label' => Craft::t('formie', 'Recipient')],
+            'subject' => ['label' => Craft::t('formie', 'Subject')],
+            'resend' => ['label' => Craft::t('formie', 'Resend')],
+            'preview' => ['label' => Craft::t('formie', 'Preview'), 'icon' => 'view'],
+            'status' => ['label' => Craft::t('formie', 'Status')],
+        ];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected static function defineDefaultTableAttributes(string $source): array
+    {
+        $attributes = [];
+        $attributes[] = 'dateCreated';
+
+        if ($source === '*') {
+            $attributes[] = 'form';
+        }
+
+        $attributes[] = 'to';
+        $attributes[] = 'subject';
+        $attributes[] = 'resend';
+
+        return $attributes;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    protected static function defineSearchableAttributes(): array
+    {
+        return ['to', 'subject'];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected static function defineSortOptions(): array
+    {
+        return [
+            [
+                'label' => Craft::t('formie', 'Date Sent'),
+                'orderBy' => 'elements.dateCreated',
+                'attribute' => 'dateCreated',
+            ],
+        ];
+    }
+
+    private static function _getAvailableFormIds(): int|array
+    {
+        $userSession = Craft::$app->getUser();
+
+        $editableIds = [];
+
+        // Fetch all form UIDs
+        $formInfo = (new Query())
+            ->from('{{%formie_forms}}')
+            ->select(['id', 'uid'])
+            ->all();
+
+        // Can the user edit _every_ form?
+        if ($userSession->checkPermission('formie-viewSubmissions')) {
+            $editableIds = ArrayHelper::getColumn($formInfo, 'id');
+        } else {
+            // Find all UIDs the user has permission to
+            foreach ($formInfo as $form) {
+                if ($userSession->checkPermission('formie-manageSubmission:' . $form['uid'])) {
+                    $editableIds[] = $form['id'];
+                }
+            }
+        }
+
+        // Important to check if empty, there are zero editable forms, but as we use this as a criteria param
+        // that would return all forms, not what we want.
+        if (!$editableIds) {
+            $editableIds = 0;
+        }
+
+        return $editableIds;
+    }
+
 
     // Properties
     // =========================================================================
-
+    
     public ?int $id = null;
     public ?string $title = null;
     public ?string $formId = null;
@@ -173,10 +267,6 @@ class SentNotification extends Element
     public ?array $info = null;
     public ?string $success = null;
     public ?string $message = null;
-
-
-    // Private Properties
-    // =========================================================================
 
     private ?Form $_form = null;
     private ?Submission $_submission = null;
@@ -253,10 +343,6 @@ class SentNotification extends Element
         return $this->_notification;
     }
 
-
-    // Events
-    // =========================================================================
-
     /**
      * @inheritDoc
      */
@@ -305,43 +391,6 @@ class SentNotification extends Element
     /**
      * @inheritDoc
      */
-    protected static function defineTableAttributes(): array
-    {
-        return [
-            'dateCreated' => ['label' => Craft::t('formie', 'Date Sent')],
-            'form' => ['label' => Craft::t('formie', 'Form')],
-            'submission' => ['label' => Craft::t('formie', 'Submission')],
-            'notification' => ['label' => Craft::t('formie', 'Email Notification')],
-            'to' => ['label' => Craft::t('formie', 'Recipient')],
-            'subject' => ['label' => Craft::t('formie', 'Subject')],
-            'resend' => ['label' => Craft::t('formie', 'Resend')],
-            'preview' => ['label' => Craft::t('formie', 'Preview'), 'icon' => 'view'],
-            'status' => ['label' => Craft::t('formie', 'Status')],
-        ];
-    }
-
-    /**
-     * @inheritDoc
-     */
-    protected static function defineDefaultTableAttributes(string $source): array
-    {
-        $attributes = [];
-        $attributes[] = 'dateCreated';
-
-        if ($source === '*') {
-            $attributes[] = 'form';
-        }
-
-        $attributes[] = 'to';
-        $attributes[] = 'subject';
-        $attributes[] = 'resend';
-
-        return $attributes;
-    }
-
-    /**
-     * @inheritDoc
-     */
     protected function tableAttributeHtml(string $attribute): string
     {
         return match ($attribute) {
@@ -357,64 +406,5 @@ class SentNotification extends Element
             'status' => '<span class="status ' . $this->status . '"></span>',
             default => parent::tableAttributeHtml($attribute),
         };
-    }
-
-    /**
-     * @inheritdoc
-     */
-    protected static function defineSearchableAttributes(): array
-    {
-        return ['to', 'subject'];
-    }
-
-    /**
-     * @inheritDoc
-     */
-    protected static function defineSortOptions(): array
-    {
-        return [
-            [
-                'label' => Craft::t('formie', 'Date Sent'),
-                'orderBy' => 'elements.dateCreated',
-                'attribute' => 'dateCreated'
-            ],
-        ];
-    }
-
-
-    // Private methods
-    // =========================================================================
-
-    private static function _getAvailableFormIds(): int|array
-    {
-        $userSession = Craft::$app->getUser();
-
-        $editableIds = [];
-
-        // Fetch all form UIDs
-        $formInfo = (new Query())
-            ->from('{{%formie_forms}}')
-            ->select(['id', 'uid'])
-            ->all();
-
-        // Can the user edit _every_ form?
-        if ($userSession->checkPermission('formie-viewSubmissions')) {
-            $editableIds = ArrayHelper::getColumn($formInfo, 'id');
-        } else {
-            // Find all UIDs the user has permission to
-            foreach ($formInfo as $form) {
-                if ($userSession->checkPermission('formie-manageSubmission:' . $form['uid'])) {
-                    $editableIds[] = $form['id'];
-                }
-            }
-        }
-
-        // Important to check if empty, there are zero editable forms, but as we use this as a criteria param
-        // that would return all forms, not what we want.
-        if (!$editableIds) {
-            $editableIds = 0;
-        }
-
-        return $editableIds;
     }
 }

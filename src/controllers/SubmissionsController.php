@@ -12,6 +12,7 @@ use verbb\formie\web\assets\cp\CpAsset;
 
 use Craft;
 use craft\base\Element;
+use craft\errors\SiteNotFoundException;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 use craft\helpers\StringHelper;
@@ -28,20 +29,18 @@ use yii\web\Response;
 use DateTime;
 use DateTimeZone;
 use Throwable;
-use craft\errors\SiteNotFoundException;
 
 class SubmissionsController extends Controller
 {
     // Constants
     // =========================================================================
 
-    public const EVENT_BEFORE_SUBMISSION_REQUEST = 'beforeSubmissionRequest';
     public const EVENT_AFTER_SUBMISSION_REQUEST = 'afterSubmissionRequest';
+    public const EVENT_BEFORE_SUBMISSION_REQUEST = 'beforeSubmissionRequest';
 
 
     // Protected Properties
     // =========================================================================
-
     protected array|bool|int $allowAnonymous = [
         'api' => self::ALLOW_ANONYMOUS_LIVE,
         'submit' => self::ALLOW_ANONYMOUS_LIVE,
@@ -817,7 +816,7 @@ class SubmissionsController extends Controller
         Formie::$plugin->getSubmissions()->sendNotificationEmail($notification, $submission);
 
         $message = Craft::t('formie', 'Email Notification was sent successfully.');
-        
+
         Craft::$app->getSession()->setNotice($message);
 
         return $this->asJson([
@@ -872,7 +871,7 @@ class SubmissionsController extends Controller
         Formie::$plugin->getSubmissions()->sendIntegrationPayload($resolvedIntegration, $submission);
 
         $message = Craft::t('formie', 'Integration was run successfully.');
-        
+
         Craft::$app->getSession()->setNotice($message);
 
         return $this->asJson([
@@ -975,7 +974,6 @@ class SubmissionsController extends Controller
             if (!in_array($variables['site']->id, $variables['siteIds'], false)) {
                 $variables['site'] = Craft::$app->getSites()->getSiteById($variables['siteIds'][0]);
             }
-
             // $site = $variables['site'];
         } else {
             // Make sure they were requesting a valid site
@@ -1009,7 +1007,7 @@ class SubmissionsController extends Controller
             $variables['tabs'][$tabId] = [
                 'label' => Craft::t('site', $tab->name),
                 'url' => '#' . $tabId,
-                'class' => $hasErrors ? 'error' : null
+                'class' => $hasErrors ? 'error' : null,
             ];
         }
     }
@@ -1022,7 +1020,7 @@ class SubmissionsController extends Controller
         $submissionId = $this->_getTypedParam('submissionId', 'id');
         $siteId = $this->_getTypedParam('siteId', 'id');
         $userParam = $request->getParam('user');
-        
+
         if ($submissionId) {
             // Allow fetching spammed submissions for multistep forms, where it has been flagged as spam
             // already, but we want to complete the form submission.

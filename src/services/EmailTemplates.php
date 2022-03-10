@@ -328,7 +328,7 @@ class EmailTemplates extends Component
                 'template',
                 'sortOrder',
                 'dateDeleted',
-                'uid'
+                'uid',
             ])
             ->orderBy('sortOrder')
             ->from(['{{%formie_emailtemplates}}']);

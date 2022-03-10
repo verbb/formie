@@ -16,6 +16,18 @@ use Throwable;
 
 class Agile extends Crm
 {
+    // Static Methods
+    // =========================================================================
+
+    /**
+     * @inheritDoc
+     */
+    public static function displayName(): string
+    {
+        return Craft::t('formie', 'Agile CRM');
+    }
+    
+
     // Properties
     // =========================================================================
 
@@ -32,14 +44,6 @@ class Agile extends Crm
 
     // Public Methods
     // =========================================================================
-
-    /**
-     * @inheritDoc
-     */
-    public static function displayName(): string
-    {
-        return Craft::t('formie', 'Agile CRM');
-    }
 
     public function getDescription(): string
     {
@@ -60,17 +64,23 @@ class Agile extends Crm
         $task = $this->getFormSettingValue('task');
 
         // Validate the following when saving form settings
-        $rules[] = [['contactFieldMapping'], 'validateFieldMapping', 'params' => $contact, 'when' => function($model) {
-            return $model->enabled && $model->mapToContact;
-        }, 'on' => [Integration::SCENARIO_FORM]];
+        $rules[] = [
+            ['contactFieldMapping'], 'validateFieldMapping', 'params' => $contact, 'when' => function($model) {
+                return $model->enabled && $model->mapToContact;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
 
-        $rules[] = [['dealFieldMapping'], 'validateFieldMapping', 'params' => $deal, 'when' => function($model) {
-            return $model->enabled && $model->mapToDeal;
-        }, 'on' => [Integration::SCENARIO_FORM]];
+        $rules[] = [
+            ['dealFieldMapping'], 'validateFieldMapping', 'params' => $deal, 'when' => function($model) {
+                return $model->enabled && $model->mapToDeal;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
 
-        $rules[] = [['taskFieldMapping'], 'validateFieldMapping', 'params' => $task, 'when' => function($model) {
-            return $model->enabled && $model->mapToTask;
-        }, 'on' => [Integration::SCENARIO_FORM]];
+        $rules[] = [
+            ['taskFieldMapping'], 'validateFieldMapping', 'params' => $task, 'when' => function($model) {
+                return $model->enabled && $model->mapToTask;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
 
         return $rules;
     }
@@ -377,7 +387,7 @@ class Agile extends Crm
 
                     if ($tags) {
                         $tagsPayload = ['id' => $existingContact, 'tags' => $tags];
-                        
+
                         $response = $this->deliverPayload($submission, 'contacts/edit/tags', $tagsPayload, 'PUT');
                     }
                 } else {

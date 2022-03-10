@@ -15,7 +15,7 @@ use craft\helpers\Gql as GqlHelper;
 
 class SubmissionGenerator extends Generator implements GeneratorInterface, SingleGeneratorInterface
 {
-    // Public Methods
+    // Static Methods
     // =========================================================================
 
     /**
@@ -32,7 +32,7 @@ class SubmissionGenerator extends Generator implements GeneratorInterface, Singl
             if (!GqlHelper::isSchemaAwareOf($requiredContexts) && !GqlHelper::isSchemaAwareOf('formieSubmissions.all')) {
                 continue;
             }
-            
+
             $type = static::generateType($form);
             $gqlTypes[$type->name] = $type;
         }

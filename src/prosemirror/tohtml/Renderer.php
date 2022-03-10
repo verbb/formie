@@ -58,117 +58,13 @@ class Renderer
     {
         if (is_string($value)) {
             $value = Json::decode($value);
-        } elseif (is_array($value)) {
+        } else if (is_array($value)) {
             $value = Json::decode(Json::encode($value), false);
         }
 
         $this->document = $value;
 
         return $this;
-    }
-
-    private function renderNode($node): string
-    {
-        $html = [];
-
-        if (isset($node->marks)) {
-            foreach ($node->marks as $mark) {
-                foreach ($this->marks as $class) {
-                    $renderClass = new $class($mark);
-
-                    if ($renderClass->matching()) {
-                        $html[] = $this->renderOpeningTag($renderClass->tag());
-                    }
-                }
-            }
-        }
-
-        foreach ($this->nodes as $class) {
-            $renderClass = new $class($node);
-
-            if ($renderClass->matching()) {
-                $html[] = $this->renderOpeningTag($renderClass->tag());
-                break;
-            }
-        }
-
-        if (isset($node->content)) {
-            foreach ($node->content as $nestedNode) {
-                $html[] = $this->renderNode($nestedNode);
-            }
-        } elseif (isset($node->text)) {
-            $html[] = $node->text;
-        } elseif ($text = $renderClass->text()) {
-            $html[] = $text;
-        }
-
-        foreach ($this->nodes as $class) {
-            $renderClass = new $class($node);
-
-            if ($renderClass->selfClosing()) {
-                continue;
-            }
-
-            if ($renderClass->matching()) {
-                $html[] = $this->renderClosingTag($renderClass->tag());
-            }
-        }
-
-        if (isset($node->marks)) {
-            foreach (array_reverse($node->marks) as $mark) {
-                foreach ($this->marks as $class) {
-                    $renderClass = new $class($mark);
-
-                    if ($renderClass->matching()) {
-                        $html[] = $this->renderClosingTag($renderClass->tag());
-                    }
-                }
-            }
-        }
-
-        return implode($html);
-    }
-
-    private function renderOpeningTag($tags): ?string
-    {
-        $tags = (array) $tags;
-
-        if (!$tags || !count($tags)) {
-            return null;
-        }
-
-        return implode('', array_map(function ($item) {
-            if (is_string($item)) {
-                return "<{$item}>";
-            }
-
-            $attrs = '';
-            if (isset($item['attrs'])) {
-                foreach ($item['attrs'] as $attribute => $value) {
-                    $attrs .= " {$attribute}=\"{$value}\"";
-                }
-            }
-
-            return "<{$item['tag']}{$attrs}>";
-        }, $tags));
-    }
-
-    private function renderClosingTag($tags): ?string
-    {
-        $tags = (array) $tags;
-        $tags = array_reverse($tags);
-
-        if (!$tags || !count($tags)) {
-            return null;
-        }
-
-        return implode('', array_map(function ($item) {
-            if (is_string($item)) {
-                return "</{$item}>";
-            }
-
-            return "</{$item['tag']}>";
-        }, $tags));
     }
 
     public function render($value): string
@@ -238,5 +134,109 @@ class Renderer
         }
 
         return $this;
+    }
+
+    private function renderNode($node): string
+    {
+        $html = [];
+
+        if (isset($node->marks)) {
+            foreach ($node->marks as $mark) {
+                foreach ($this->marks as $class) {
+                    $renderClass = new $class($mark);
+
+                    if ($renderClass->matching()) {
+                        $html[] = $this->renderOpeningTag($renderClass->tag());
+                    }
+                }
+            }
+        }
+
+        foreach ($this->nodes as $class) {
+            $renderClass = new $class($node);
+
+            if ($renderClass->matching()) {
+                $html[] = $this->renderOpeningTag($renderClass->tag());
+                break;
+            }
+        }
+
+        if (isset($node->content)) {
+            foreach ($node->content as $nestedNode) {
+                $html[] = $this->renderNode($nestedNode);
+            }
+        } else if (isset($node->text)) {
+            $html[] = $node->text;
+        } else if ($text = $renderClass->text()) {
+            $html[] = $text;
+        }
+
+        foreach ($this->nodes as $class) {
+            $renderClass = new $class($node);
+
+            if ($renderClass->selfClosing()) {
+                continue;
+            }
+
+            if ($renderClass->matching()) {
+                $html[] = $this->renderClosingTag($renderClass->tag());
+            }
+        }
+
+        if (isset($node->marks)) {
+            foreach (array_reverse($node->marks) as $mark) {
+                foreach ($this->marks as $class) {
+                    $renderClass = new $class($mark);
+
+                    if ($renderClass->matching()) {
+                        $html[] = $this->renderClosingTag($renderClass->tag());
+                    }
+                }
+            }
+        }
+
+        return implode($html);
+    }
+
+    private function renderOpeningTag($tags): ?string
+    {
+        $tags = (array)$tags;
+
+        if (!$tags || !count($tags)) {
+            return null;
+        }
+
+        return implode('', array_map(function($item) {
+            if (is_string($item)) {
+                return "<{$item}>";
+            }
+
+            $attrs = '';
+            if (isset($item['attrs'])) {
+                foreach ($item['attrs'] as $attribute => $value) {
+                    $attrs .= " {$attribute}=\"{$value}\"";
+                }
+            }
+
+            return "<{$item['tag']}{$attrs}>";
+        }, $tags));
+    }
+
+    private function renderClosingTag($tags): ?string
+    {
+        $tags = (array)$tags;
+        $tags = array_reverse($tags);
+
+        if (!$tags || !count($tags)) {
+            return null;
+        }
+
+        return implode('', array_map(function($item) {
+            if (is_string($item)) {
+                return "</{$item}>";
+            }
+
+            return "</{$item['tag']}>";
+        }, $tags));
     }
 }

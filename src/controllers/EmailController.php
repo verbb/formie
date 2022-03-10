@@ -9,6 +9,7 @@ use verbb\formie\models\Notification;
 use Craft;
 use craft\helpers\StringHelper;
 use craft\web\Controller;
+
 use yii\web\Response;
 
 class EmailController extends Controller

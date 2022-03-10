@@ -15,7 +15,7 @@ use craft\helpers\Gql as GqlHelper;
 
 class FormGenerator extends Generator implements GeneratorInterface, SingleGeneratorInterface
 {
-    // Public Methods
+    // Static Methods
     // =========================================================================
 
     /**

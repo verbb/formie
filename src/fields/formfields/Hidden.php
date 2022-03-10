@@ -63,27 +63,27 @@ class Hidden extends FormField implements PreviewableFieldInterface
         if (!Craft::$app->getRequest()->getIsConsoleRequest()) {
             if ($this->defaultOption === 'dateUs') {
                 $this->defaultValue = DateTimeHelper::toDateTime(new DateTime())->format('m/d/Y');
-            } elseif ($this->defaultOption === 'dateInt') {
+            } else if ($this->defaultOption === 'dateInt') {
                 $this->defaultValue = DateTimeHelper::toDateTime(new DateTime())->format('d/m/Y');
-            } elseif ($this->defaultOption === 'userAgent') {
+            } else if ($this->defaultOption === 'userAgent') {
                 $this->defaultValue = $request->getUserAgent();
-            } elseif ($this->defaultOption === 'referUrl') {
+            } else if ($this->defaultOption === 'referUrl') {
                 $this->defaultValue = $request->getReferrer();
-            } elseif ($this->defaultOption === 'currentUrl') {
+            } else if ($this->defaultOption === 'currentUrl') {
                 $this->defaultValue = $request->getAbsoluteUrl();
-            } elseif ($this->defaultOption === 'currentUrlNoQueryString') {
+            } else if ($this->defaultOption === 'currentUrlNoQueryString') {
                 $this->defaultValue = UrlHelper::stripQueryString($request->getAbsoluteUrl());
-            } elseif ($this->defaultOption === 'userId') {
+            } else if ($this->defaultOption === 'userId') {
                 $this->defaultValue = $currentUser->id ?? null;
-            } elseif ($this->defaultOption === 'username') {
+            } else if ($this->defaultOption === 'username') {
                 $this->defaultValue = $currentUser->username ?? null;
-            } elseif ($this->defaultOption === 'userEmail') {
+            } else if ($this->defaultOption === 'userEmail') {
                 $this->defaultValue = $currentUser->email ?? null;
-            } elseif ($this->defaultOption === 'userIp') {
+            } else if ($this->defaultOption === 'userIp') {
                 $this->defaultValue = $request->getUserIP();
-            } elseif ($this->defaultOption === 'query' && $this->queryParameter) {
+            } else if ($this->defaultOption === 'query' && $this->queryParameter) {
                 $this->defaultValue = $request->getParam($this->queryParameter);
-            } elseif ($this->defaultOption === 'cookie' && $this->cookieName) {
+            } else if ($this->defaultOption === 'cookie' && $this->cookieName) {
                 $this->defaultValue = $_COOKIE[$this->cookieName] ?? '';
             }
         }
@@ -168,7 +168,7 @@ class Hidden extends FormField implements PreviewableFieldInterface
     public function getPreviewInputHtml(): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/hidden-field/preview', [
-            'field' => $this
+            'field' => $this,
         ]);
     }
 
@@ -228,19 +228,19 @@ class Hidden extends FormField implements PreviewableFieldInterface
                 'help' => Craft::t('formie', 'Select an option for the default value.'),
                 'name' => 'defaultOption',
                 'options' => [
-                    [ 'label' => Craft::t('formie', 'Date (mm/dd/yyyy)'), 'value' => 'dateUs' ],
-                    [ 'label' => Craft::t('formie', 'Date (dd/mm/yyyy)'), 'value' => 'dateInt' ],
-                    [ 'label' => Craft::t('formie', 'Current URL'), 'value' => 'currentUrl' ],
-                    [ 'label' => Craft::t('formie', 'Current URL (without Query String)'), 'value' => 'currentUrlNoQueryString' ],
-                    [ 'label' => Craft::t('formie', 'HTTP User Agent'), 'value' => 'userAgent' ],
-                    [ 'label' => Craft::t('formie', 'HTTP Refer URL'), 'value' => 'referUrl' ],
-                    [ 'label' => Craft::t('formie', 'User ID'), 'value' => 'userId' ],
-                    [ 'label' => Craft::t('formie', 'Username'), 'value' => 'username' ],
-                    [ 'label' => Craft::t('formie', 'User Email'), 'value' => 'userEmail' ],
-                    [ 'label' => Craft::t('formie', 'User IP Address'), 'value' => 'userIp' ],
-                    [ 'label' => Craft::t('formie', 'Cookie Value'), 'value' => 'cookie' ],
-                    [ 'label' => Craft::t('formie', 'Query Parameter'), 'value' => 'query' ],
-                    [ 'label' => Craft::t('formie', 'Custom Value'), 'value' => 'custom' ],
+                    ['label' => Craft::t('formie', 'Date (mm/dd/yyyy)'), 'value' => 'dateUs'],
+                    ['label' => Craft::t('formie', 'Date (dd/mm/yyyy)'), 'value' => 'dateInt'],
+                    ['label' => Craft::t('formie', 'Current URL'), 'value' => 'currentUrl'],
+                    ['label' => Craft::t('formie', 'Current URL (without Query String)'), 'value' => 'currentUrlNoQueryString'],
+                    ['label' => Craft::t('formie', 'HTTP User Agent'), 'value' => 'userAgent'],
+                    ['label' => Craft::t('formie', 'HTTP Refer URL'), 'value' => 'referUrl'],
+                    ['label' => Craft::t('formie', 'User ID'), 'value' => 'userId'],
+                    ['label' => Craft::t('formie', 'Username'), 'value' => 'username'],
+                    ['label' => Craft::t('formie', 'User Email'), 'value' => 'userEmail'],
+                    ['label' => Craft::t('formie', 'User IP Address'), 'value' => 'userIp'],
+                    ['label' => Craft::t('formie', 'Cookie Value'), 'value' => 'cookie'],
+                    ['label' => Craft::t('formie', 'Query Parameter'), 'value' => 'query'],
+                    ['label' => Craft::t('formie', 'Custom Value'), 'value' => 'custom'],
                 ],
             ]),
             SchemaHelper::toggleContainer('settings.defaultOption=custom', [

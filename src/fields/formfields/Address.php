@@ -4,6 +4,7 @@ namespace verbb\formie\fields\formfields;
 use verbb\formie\Formie;
 use verbb\formie\base\FormField;
 use verbb\formie\base\Integration;
+use verbb\formie\base\IntegrationInterface;
 use verbb\formie\base\SubfieldInterface;
 use verbb\formie\base\SubfieldTrait;
 use verbb\formie\gql\types\generators\FieldAttributeGenerator;
@@ -15,6 +16,7 @@ use verbb\formie\positions\FieldsetStart;
 use Craft;
 use craft\base\ElementInterface;
 use craft\base\PreviewableFieldInterface;
+use craft\errors\InvalidFieldException;
 use craft\helpers\Json;
 use craft\helpers\StringHelper;
 
@@ -23,8 +25,6 @@ use CommerceGuys\Addressing\Country\CountryRepository;
 use GraphQL\Type\Definition\Type;
 
 use yii\db\Schema;
-use verbb\formie\base\IntegrationInterface;
-use craft\errors\InvalidFieldException;
 
 class Address extends FormField implements SubfieldInterface, PreviewableFieldInterface
 {
@@ -164,22 +164,6 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
 
     // Public Methods
     // =========================================================================
-
-    /**
-     * @inheritDoc
-     */
-    protected function defineRules(): array
-    {
-        $rules = parent::defineRules();
-        $rules[] = [
-            ['subfieldLabelPosition'],
-            'in',
-            'range' => Formie::$plugin->getFields()->getLabelPositions(),
-            'skipOnEmpty' => true,
-        ];
-
-        return $rules;
-    }
 
     /**
      * @inheritDoc
@@ -331,7 +315,7 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
                 $element->addError(
                     $this->handle,
                     Craft::t('formie', '"{label}" cannot be blank.', [
-                        'label' => $this->$labelProp
+                        'label' => $this->$labelProp,
                     ])
                 );
             }
@@ -397,7 +381,7 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
 
         return $subFields;
     }
-    
+
     /**
      * @inheritDoc
      */
@@ -472,7 +456,7 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
     public function getPreviewInputHtml(): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/address/preview', [
-            'field' => $this
+            'field' => $this,
         ]);
     }
 
@@ -552,7 +536,7 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
                     'validation' => 'requiredIf:autocompleteEnabled',
                     'required' => true,
                     'options' => array_merge(
-                        [[ 'label' => Craft::t('formie', 'Select an option'), 'value' => '' ]],
+                        [['label' => Craft::t('formie', 'Select an option'), 'value' => '']],
                         $addressProviderOptions
                     ),
                 ]);
@@ -578,7 +562,7 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
                     'help' => Craft::t('formie', 'Entering a default value will place the value in the field when it loads.'),
                     'name' => $nestedField['handle'] . 'DefaultValue',
                     'options' => array_merge(
-                        [[ 'label' => Craft::t('formie', 'Select an option'), 'value' => '' ]],
+                        [['label' => Craft::t('formie', 'Select an option'), 'value' => '']],
                         static::getCountryOptions()
                     ),
                 ]);
@@ -705,6 +689,22 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
     // Protected Methods
     // =========================================================================
 
+    /**
+     * @inheritDoc
+     */
+    protected function defineRules(): array
+    {
+        $rules = parent::defineRules();
+        $rules[] = [
+            ['subfieldLabelPosition'],
+            'in',
+            'range' => Formie::$plugin->getFields()->getLabelPositions(),
+            'skipOnEmpty' => true,
+        ];
+
+        return $rules;
+    }
+
     protected function defineValueForExport($value, ElementInterface $element = null): mixed
     {
         $values = [];
@@ -729,7 +729,7 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
 
         foreach ($addressProviders as $addressProvider) {
             if ($addressProvider->enabled) {
-                $addressProviderOptions[] = [ 'label' => $addressProvider->getName(), 'value' => $addressProvider->getHandle() ];
+                $addressProviderOptions[] = ['label' => $addressProvider->getName(), 'value' => $addressProvider->getHandle()];
             }
         }
 

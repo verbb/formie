@@ -12,7 +12,7 @@ use GraphQL\Type\Definition\Type;
 
 class RowInterface extends BaseInterfaceType
 {
-    // Public Methods
+    // Static Methods
     // =========================================================================
 
     public static function getTypeGenerator(): string

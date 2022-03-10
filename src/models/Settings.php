@@ -77,21 +77,6 @@ class Settings extends Model
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
-    protected function defineRules(): array
-    {
-        $rules = parent::defineRules();
-
-        $rules[] = [['pluginName', 'defaultPage', 'maxIncompleteSubmissionAge', 'maxSentNotificationsAge'], 'required'];
-        $rules[] = [['pluginName'], 'string', 'max' => 52];
-        $rules[] = [['maxIncompleteSubmissionAge', 'maxSentNotificationsAge'], 'number', 'integerOnly' => true];
-        $rules[] = [['alertEmails'], 'validateAlertEmails'];
-
-        return $rules;
-    }
-
     public function validateAlertEmails($attribute): void
     {
         if ($this->sendEmailAlerts) {
@@ -141,5 +126,20 @@ class Settings extends Model
         }
 
         return null;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected function defineRules(): array
+    {
+        $rules = parent::defineRules();
+
+        $rules[] = [['pluginName', 'defaultPage', 'maxIncompleteSubmissionAge', 'maxSentNotificationsAge'], 'required'];
+        $rules[] = [['pluginName'], 'string', 'max' => 52];
+        $rules[] = [['maxIncompleteSubmissionAge', 'maxSentNotificationsAge'], 'number', 'integerOnly' => true];
+        $rules[] = [['alertEmails'], 'validateAlertEmails'];
+
+        return $rules;
     }
 }

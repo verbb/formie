@@ -13,7 +13,7 @@ use GraphQL\Type\Definition\Type;
 
 class SubmissionInterface extends Element
 {
-    // Public Methods
+    // Static Methods
     // =========================================================================
 
     public static function getTypeGenerator(): string

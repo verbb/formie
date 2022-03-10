@@ -11,11 +11,11 @@ class FileUpload extends FeedMeAssets
 
     use BaseFieldTrait;
 
-    
+
     // Properties
     // =========================================================================
 
-    public static $name = 'FileUpload';
     public static $class = FileUploadField::class;
+    public static $name = 'FileUpload';
 
 }

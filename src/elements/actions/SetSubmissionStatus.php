@@ -1,18 +1,25 @@
 <?php
 namespace verbb\formie\elements\actions;
 
+use verbb\formie\Formie;
+use verbb\formie\elements\Submission;
+
 use Craft;
 use craft\base\ElementAction;
 use craft\elements\db\ElementQueryInterface;
 use craft\helpers\ArrayHelper;
 
-use verbb\formie\elements\Submission;
-use verbb\formie\Formie;
-
 class SetSubmissionStatus extends ElementAction
 {
+    // Properties
+    // =========================================================================
+
     public ?int $statusId = null;
     public ?array $statuses = null;
+
+
+    // Public Methods
+    // =========================================================================
 
     /**
      * @inheritdoc
@@ -20,21 +27,6 @@ class SetSubmissionStatus extends ElementAction
     public function getTriggerLabel(): string
     {
         return Craft::t('app', 'Set Status');
-    }
-
-    /**
-     * @inheritdoc
-     */
-    protected function defineRules(): array
-    {
-        $rules = parent::defineRules();
-
-        $statusIds = ArrayHelper::getColumn($this->statuses, 'id');
-
-        $rules[] = [['statusId'], 'required'];
-        $rules[] = [['statusId'], 'in', 'range' => $statusIds];
-
-        return $rules;
     }
 
     /**
@@ -89,5 +81,24 @@ class SetSubmissionStatus extends ElementAction
         }
 
         return true;
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
+    /**
+     * @inheritdoc
+     */
+    protected function defineRules(): array
+    {
+        $rules = parent::defineRules();
+
+        $statusIds = ArrayHelper::getColumn($this->statuses, 'id');
+
+        $rules[] = [['statusId'], 'required'];
+        $rules[] = [['statusId'], 'in', 'range' => $statusIds];
+
+        return $rules;
     }
 }

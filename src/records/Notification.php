@@ -27,7 +27,7 @@ use craft\db\ActiveRecord;
  */
 class Notification extends ActiveRecord
 {
-    // Public Methods
+    // Static Methods
     // =========================================================================
 
     /**

@@ -15,9 +15,8 @@ class Submission extends Element
     // Properties
     // =========================================================================
 
-    public static $name = 'Submission';
     public static $class = SubmissionElement::class;
-
+    public static $name = 'Submission';
     public $element = null;
 
 
@@ -58,9 +57,9 @@ class Submission extends Element
             ->anyStatus()
             ->formId($settings['elementGroup'][SubmissionElement::class])
             ->siteId(Hash::get($settings, 'siteId') ?: Craft::$app->getSites()->getPrimarySite()->id);
-        
+
         Craft::configure($query, $params);
-        
+
         return $query;
     }
 

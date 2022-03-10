@@ -11,11 +11,11 @@ class Products extends FeedMeProducts
 
     use BaseFieldTrait;
 
-    
+
     // Properties
     // =========================================================================
 
-    public static $name = 'Products';
     public static $class = ProductsField::class;
+    public static $name = 'Products';
 
 }

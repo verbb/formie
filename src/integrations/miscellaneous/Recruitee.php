@@ -11,11 +11,25 @@ use Craft;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 use craft\helpers\StringHelper;
+
 use GuzzleHttp\Client;
+
 use Throwable;
 
 class Recruitee extends Miscellaneous
 {
+    // Static Methods
+    // =========================================================================
+
+    /**
+     * @inheritDoc
+     */
+    public static function displayName(): string
+    {
+        return Craft::t('formie', 'Recruitee');
+    }
+
+
     // Properties
     // =========================================================================
 
@@ -27,14 +41,6 @@ class Recruitee extends Miscellaneous
 
     // Public Methods
     // =========================================================================
-
-    /**
-     * @inheritDoc
-     */
-    public static function displayName(): string
-    {
-        return Craft::t('formie', 'Recruitee');
-    }
 
     public function getDescription(): string
     {
@@ -53,9 +59,11 @@ class Recruitee extends Miscellaneous
         $candidate = $this->getFormSettingValue('candidate');
 
         // Validate the following when saving form settings
-        $rules[] = [['candidateFieldMapping'], 'validateFieldMapping', 'params' => $candidate, 'when' => function($model) {
-            return $model->enabled && $model->mapToCandidate;
-        }, 'on' => [Integration::SCENARIO_FORM]];
+        $rules[] = [
+            ['candidateFieldMapping'], 'validateFieldMapping', 'params' => $candidate, 'when' => function($model) {
+                return $model->enabled && $model->mapToCandidate;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
 
         return $rules;
     }

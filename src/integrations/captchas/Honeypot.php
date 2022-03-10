@@ -57,7 +57,7 @@ class Honeypot extends Captcha
     {
         // The honeypot field must be left blank
         if (Craft::$app->getRequest()->getParam(self::HONEYPOT_INPUT_NAME)) {
-            return false;           
+            return false;
         }
 
         return true;

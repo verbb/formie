@@ -12,7 +12,7 @@ use craft\db\ActiveRecord;
  */
 class Sync extends ActiveRecord
 {
-    // Public Methods
+    // Static Methods
     // =========================================================================
 
     /**

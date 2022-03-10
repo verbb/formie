@@ -10,18 +10,14 @@ use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
 use craft\helpers\ArrayHelper;
+
 use GuzzleHttp\Client;
+
 use Throwable;
 
 class Sendinblue extends EmailMarketing
 {
-    // Properties
-    // =========================================================================
-
-    public ?string $apiKey = null;
-
-
-    // Public Methods
+    // Static Methods
     // =========================================================================
 
     /**
@@ -31,6 +27,15 @@ class Sendinblue extends EmailMarketing
     {
         return Craft::t('formie', 'Sendinblue');
     }
+
+    // Properties
+    // =========================================================================
+
+    public ?string $apiKey = null;
+
+
+    // Public Methods
+    // =========================================================================
 
     public function getDescription(): string
     {
@@ -154,7 +159,7 @@ class Sendinblue extends EmailMarketing
             'query' => [
                 'limit' => $limit,
                 'offset' => $offset,
-            ]
+            ],
         ]);
 
         $newItems = $response[$param] ?? [];

@@ -25,7 +25,7 @@ class Status extends ActiveRecord
     use SoftDeleteTrait;
 
 
-    // Public Methods
+    // Static Methods
     // =========================================================================
 
     /**

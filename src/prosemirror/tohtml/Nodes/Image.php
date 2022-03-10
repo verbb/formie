@@ -11,7 +11,7 @@ class Image extends Node
     {
         return true;
     }
-    
+
     public function tag(): array
     {
         return [

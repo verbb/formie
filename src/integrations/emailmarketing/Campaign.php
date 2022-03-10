@@ -18,11 +18,12 @@ use putyourlightson\campaign\elements\ContactElement;
 use putyourlightson\campaign\elements\MailingListElement;
 use putyourlightson\campaign\records\MailingListRecord;
 use putyourlightson\campaign\records\MailingListTypeRecord;
+
 use Throwable;
 
 class Campaign extends EmailMarketing
 {
-    // Public Methods
+    // Static Methods
     // =========================================================================
 
     public static function supportsConnection(): bool
@@ -37,6 +38,10 @@ class Campaign extends EmailMarketing
     {
         return Craft::t('formie', 'Campaign');
     }
+
+
+    // Public Methods
+    // =========================================================================
 
     public function getDescription(): string
     {

@@ -1,8 +1,7 @@
 <?php
-
 namespace verbb\formie\elements;
 
-use Exception;
+use verbb\formie\base\FormFieldInterface;
 use verbb\formie\base\NestedFieldInterface;
 use verbb\formie\elements\db\NestedFieldRowQuery;
 use verbb\formie\records\NestedFieldRow as NestedFieldRowRecord;
@@ -12,27 +11,14 @@ use craft\base\Element;
 use craft\base\BlockElementInterface;
 use craft\base\ElementInterface;
 use craft\helpers\ArrayHelper;
+use craft\models\FieldLayout;
 
 use yii\base\InvalidConfigException;
-use verbb\formie\base\FormFieldInterface;
-use craft\models\FieldLayout;
+
+use Exception;
 
 class NestedFieldRow extends Element implements BlockElementInterface
 {
-    // Properties
-    // =========================================================================
-
-    public ?int $fieldId = null;
-    public ?int $ownerId = null;
-    public ?int $sortOrder = null;
-    public bool $dirty = false;
-    public bool $collapsed = false;
-    public bool $deletedWithOwner = false;
-
-    private ElementInterface|false|null $_owner = null;
-    private ?array $_fields = null;
-
-
     // Static Methods
     // =========================================================================
 
@@ -131,6 +117,20 @@ class NestedFieldRow extends Element implements BlockElementInterface
     }
 
 
+    // Properties
+    // =========================================================================
+
+    public ?int $fieldId = null;
+    public ?int $ownerId = null;
+    public ?int $sortOrder = null;
+    public bool $dirty = false;
+    public bool $collapsed = false;
+    public bool $deletedWithOwner = false;
+
+    private ElementInterface|false|null $_owner = null;
+    private ?array $_fields = null;
+
+
     // Public Methods
     // =========================================================================
 
@@ -153,40 +153,6 @@ class NestedFieldRow extends Element implements BlockElementInterface
         $names[] = 'owner';
 
         return $names;
-    }
-
-    /**
-     * @inheritdoc
-     */
-    protected function defineRules(): array
-    {
-        $rules = parent::defineRules();
-
-        $rules[] = [['fieldId', 'ownerId', 'sortOrder'], 'number', 'integerOnly' => true];
-
-        if ($fieldLayout = $this->getFieldLayout()) {
-            $fields = $this->getFieldLayout()->getCustomFields();
-
-            $fieldsByHandle = ArrayHelper::getColumn($fields, 'handle');
-
-            // Evaluate field conditions. What if this is a required field, but conditionally hidden?
-            foreach ($rules as $key => $rule) {
-                foreach ($fields as $field) {
-                    [$attribute, $validator] = $rule;
-                    $attribute = is_array($attribute) ? $attribute[0] : $attribute;
-
-                    if ($attribute === "field:{$field->handle}") {
-                        // If this field is conditionally hidden, remove it from validation
-                        if ($field->isConditionallyHidden($this->owner)) {
-                            unset($rules[$key]);
-                        }
-                    }
-                }
-            }
-        }
-
-
-        return $rules;
     }
 
     /**
@@ -218,7 +184,7 @@ class NestedFieldRow extends Element implements BlockElementInterface
                 throw new InvalidConfigException('Nested field row is missing its owner ID');
             }
 
-            if (($this->_owner = Craft::$app->getElements()->getElementById($this->ownerId, null, $this->siteId, [ 'isIncomplete' => null ])) === null) {
+            if (($this->_owner = Craft::$app->getElements()->getElementById($this->ownerId, null, $this->siteId, ['isIncomplete' => null])) === null) {
                 throw new InvalidConfigException('Invalid owner ID: ' . $this->ownerId);
             }
         }
@@ -294,10 +260,6 @@ class NestedFieldRow extends Element implements BlockElementInterface
         return ArrayHelper::firstWhere($this->getCustomFields(), 'id', $id);
     }
 
-
-    // Events
-    // -------------------------------------------------------------------------
-
     /**
      * @inheritdoc
      */
@@ -345,8 +307,47 @@ class NestedFieldRow extends Element implements BlockElementInterface
     }
 
 
+    // Protected Methods
+    // =========================================================================
+
+    /**
+     * @inheritdoc
+     */
+    protected function defineRules(): array
+    {
+        $rules = parent::defineRules();
+
+        $rules[] = [['fieldId', 'ownerId', 'sortOrder'], 'number', 'integerOnly' => true];
+
+        if ($fieldLayout = $this->getFieldLayout()) {
+            $fields = $this->getFieldLayout()->getCustomFields();
+
+            $fieldsByHandle = ArrayHelper::getColumn($fields, 'handle');
+
+            // Evaluate field conditions. What if this is a required field, but conditionally hidden?
+            foreach ($rules as $key => $rule) {
+                foreach ($fields as $field) {
+                    [$attribute, $validator] = $rule;
+                    $attribute = is_array($attribute) ? $attribute[0] : $attribute;
+
+                    if ($attribute === "field:{$field->handle}") {
+                        // If this field is conditionally hidden, remove it from validation
+                        if ($field->isConditionallyHidden($this->owner)) {
+                            unset($rules[$key]);
+                        }
+                    }
+                }
+            }
+        }
+
+
+        return $rules;
+    }
+
+
     // Private Methods
     // =========================================================================
+
     /**
      * Returns the nested field.
      */

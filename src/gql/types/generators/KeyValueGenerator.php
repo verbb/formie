@@ -9,7 +9,7 @@ use craft\gql\TypeManager;
 
 class KeyValueGenerator implements GeneratorInterface
 {
-    // Public Methods
+    // Static Methods
     // =========================================================================
 
     /**
@@ -25,7 +25,7 @@ class KeyValueGenerator implements GeneratorInterface
             'name' => $typeName,
             'fields' => function() use ($contentFields) {
                 return $contentFields;
-            }
+            },
         ]));
 
         return [$type];

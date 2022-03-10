@@ -85,9 +85,9 @@ class Formie extends Plugin
     // Properties
     // =========================================================================
 
-    public string $schemaVersion = '1.2.7';
-    public bool $hasCpSettings = true;
     public bool $hasCpSection = true;
+    public bool $hasCpSettings = true;
+    public string $schemaVersion = '1.2.7';
 
 
     // Traits
@@ -208,12 +208,14 @@ class Formie extends Plugin
                 'formie-editForms' => ['label' => Craft::t('formie', 'Manage all forms'), 'info' => Craft::t('formie', 'This user will be able to manage all Formie forms.')],
                 'formie-manageFormAppearance' => ['label' => Craft::t('formie', 'Manage form appearance'), 'info' => Craft::t('formie', 'This permission will be applied to new forms automatically.')],
                 'formie-manageFormBehavior' => ['label' => Craft::t('formie', 'Manage form behavior'), 'info' => Craft::t('formie', 'This permission will be applied to new forms automatically.')],
-                'formie-manageNotifications' => ['label' => Craft::t('formie', 'Manage form notifications'), 'nested' => [
-                    'formie-manageNotificationsAdvanced' => ['label' => Craft::t('formie', 'Manage notification advanced'), 'info' => Craft::t('formie', 'This permission will be applied to new forms automatically.')],
-                    'formie-manageNotificationsTemplates' => ['label' => Craft::t('formie', 'Manage notification templates'), 'info' => Craft::t('formie', 'This permission will be applied to new forms automatically.')],
-                ]],
+                'formie-manageNotifications' => [
+                    'label' => Craft::t('formie', 'Manage form notifications'), 'nested' => [
+                        'formie-manageNotificationsAdvanced' => ['label' => Craft::t('formie', 'Manage notification advanced'), 'info' => Craft::t('formie', 'This permission will be applied to new forms automatically.')],
+                        'formie-manageNotificationsTemplates' => ['label' => Craft::t('formie', 'Manage notification templates'), 'info' => Craft::t('formie', 'This permission will be applied to new forms automatically.')],
+                    ],
+                ],
                 'formie-manageFormIntegrations' => ['label' => Craft::t('formie', 'Manage form integrations'), 'info' => Craft::t('formie', 'This permission will be applied to new forms automatically.')],
-                'formie-manageFormSettings' => ['label' => Craft::t('formie','Manage form settings'), 'info' => Craft::t('formie', 'This permission will be applied to new forms automatically.')],
+                'formie-manageFormSettings' => ['label' => Craft::t('formie', 'Manage form settings'), 'info' => Craft::t('formie', 'This permission will be applied to new forms automatically.')],
             ];
 
             $submissionPermissions = [
@@ -229,13 +231,15 @@ class Formie extends Plugin
                     'nested' => [
                         "formie-manageFormAppearance{$suffix}" => ['label' => Craft::t('formie', 'Manage form appearance')],
                         "formie-manageFormBehavior{$suffix}" => ['label' => Craft::t('formie', 'Manage form behavior')],
-                        "formie-manageNotifications{$suffix}" => ['label' => Craft::t('formie', 'Manage form notifications'), 'nested' => [
-                            "formie-manageNotificationsAdvanced{$suffix}" => ['label' => Craft::t('formie', 'Manage notification advanced')],
-                            "formie-manageNotificationsTemplates{$suffix}" => ['label' => Craft::t('formie', 'Manage notification templates')],
-                        ]],
+                        "formie-manageNotifications{$suffix}" => [
+                            'label' => Craft::t('formie', 'Manage form notifications'), 'nested' => [
+                                "formie-manageNotificationsAdvanced{$suffix}" => ['label' => Craft::t('formie', 'Manage notification advanced')],
+                                "formie-manageNotificationsTemplates{$suffix}" => ['label' => Craft::t('formie', 'Manage notification templates')],
+                            ],
+                        ],
                         "formie-manageFormIntegrations{$suffix}" => ['label' => Craft::t('formie', 'Manage form integrations')],
                         "formie-manageFormSettings{$suffix}" => ['label' => Craft::t('formie', 'Manage form settings')],
-                    ]
+                    ],
                 ];
 
                 $submissionPermissions["formie-manageSubmission{$suffix}"] = [
@@ -274,7 +278,7 @@ class Formie extends Plugin
 
     private function _registerFieldsEvents(): void
     {
-        Event::on(Fields::class, Fields::EVENT_AFTER_SAVE_FIELD_LAYOUT, function (FieldLayoutEvent $event) {
+        Event::on(Fields::class, Fields::EVENT_AFTER_SAVE_FIELD_LAYOUT, function(FieldLayoutEvent $event) {
             $fieldLayout = $event->layout;
 
             if ($fieldLayout instanceof FieldLayout) {
@@ -294,7 +298,7 @@ class Formie extends Plugin
 
     private function _registerGarbageCollection(): void
     {
-        Event::on(Gc::class, Gc::EVENT_RUN, function () {
+        Event::on(Gc::class, Gc::EVENT_RUN, function() {
             // Delete fields with no form.
             $this->getFields()->deleteOrphanedFields();
 
@@ -331,7 +335,7 @@ class Formie extends Plugin
                 FormQuery::getQueries(),
                 SubmissionQuery::getQueries(),
             ];
-            
+
             foreach ($queries as $k => $v) {
                 foreach ($v as $key => $value) {
                     $event->queries[$key] = $value;
@@ -398,7 +402,7 @@ class Formie extends Plugin
         Event::on(UsersController::class, UsersController::EVENT_DEFINE_CONTENT_SUMMARY, [$this->getSubmissions(), 'defineUserSubmissions']);
         Event::on(UserElement::class, UserElement::EVENT_AFTER_DELETE, [$this->getSubmissions(), 'deleteUserSubmissions']);
         Event::on(UserElement::class, UserElement::EVENT_AFTER_RESTORE, [$this->getSubmissions(), 'restoreUserSubmissions']);
-    
+
         // Add additional error information to queue jobs when there's an error
         Event::on(Queue::class, Queue::EVENT_AFTER_ERROR, function(ExecEvent $event) {
             if ($event->error && $event->job instanceof BaseJob) {
@@ -561,7 +565,7 @@ class Formie extends Plugin
             $e->actions['formie-submissions'] = [
                 'action' => function(): int {
                     $controller = Craft::$app->controller;
-                    
+
                     if ($controller->formId !== null) {
                         $formIds = explode(',', $controller->formId);
                     } else {

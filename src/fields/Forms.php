@@ -14,7 +14,7 @@ use GraphQL\Type\Definition\Type;
 
 class Forms extends BaseRelationField
 {
-    // Public Methods
+    // Static Methods
     // =========================================================================
 
     /**
@@ -48,6 +48,10 @@ class Forms extends BaseRelationField
     {
         return FormQuery::class;
     }
+
+
+    // Public Methods
+    // =========================================================================
 
     /**
      * @inheritdoc

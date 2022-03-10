@@ -11,11 +11,24 @@ use verbb\formie\models\IntegrationFormSettings;
 use Craft;
 use craft\helpers\ArrayHelper;
 use craft\helpers\StringHelper;
+
 use GuzzleHttp\Client;
+
 use Throwable;
 
 class Mailchimp extends EmailMarketing
 {
+    // Static Methods
+    // =========================================================================
+
+    /**
+     * @inheritDoc
+     */
+    public static function displayName(): string
+    {
+        return Craft::t('formie', 'Mailchimp');
+    }
+
     // Properties
     // =========================================================================
 
@@ -26,14 +39,6 @@ class Mailchimp extends EmailMarketing
 
     // Public Methods
     // =========================================================================
-
-    /**
-     * @inheritDoc
-     */
-    public static function displayName(): string
-    {
-        return Craft::t('formie', 'Mailchimp');
-    }
 
     public function getDescription(): string
     {
@@ -317,12 +322,12 @@ class Mailchimp extends EmailMarketing
         foreach ($fields as $key => $field) {
             // // Only allow supported types
             if (!in_array($field['type'], $supportedFields)) {
-                 continue;
+                continue;
             }
 
             // Exclude any names
             if (in_array($field['name'], $excludeNames)) {
-                 continue;
+                continue;
             }
 
             $customFields[] = new IntegrationField([

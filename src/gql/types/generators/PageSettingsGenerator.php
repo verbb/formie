@@ -9,7 +9,7 @@ use craft\gql\GqlEntityRegistry;
 
 class PageSettingsGenerator implements GeneratorInterface
 {
-    // Public Methods
+    // Static Methods
     // =========================================================================
 
     public static function generateTypes(mixed $context = null): array
@@ -24,7 +24,7 @@ class PageSettingsGenerator implements GeneratorInterface
             'name' => $typeName,
             'fields' => function() use ($fieldFields) {
                 return $fieldFields;
-            }
+            },
         ]));
 
         return $gqlTypes;

@@ -11,11 +11,11 @@ class Tags extends FeedMeTags
 
     use BaseFieldTrait;
 
-    
+
     // Properties
     // =========================================================================
 
-    public static $name = 'Tags';
     public static $class = TagsField::class;
+    public static $name = 'Tags';
 
 }

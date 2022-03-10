@@ -1,15 +1,22 @@
 <?php
 namespace verbb\formie\elements\actions;
 
+use verbb\formie\elements\Submission;
+
 use Craft;
 use craft\base\ElementAction;
 use craft\elements\db\ElementQueryInterface;
 
-use verbb\formie\elements\Submission;
-
 class SetSubmissionSpam extends ElementAction
 {
+    // Properties
+    // =========================================================================
+
     public ?string $spam = null;
+
+
+    // Public Methods
+    // =========================================================================
 
     /**
      * @inheritdoc

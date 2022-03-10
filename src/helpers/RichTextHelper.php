@@ -4,6 +4,7 @@ namespace verbb\formie\helpers;
 use verbb\formie\prosemirror\tohtml\Renderer as HtmlRenderer;
 
 use Craft;
+use craft\base\ElementInterface;
 use craft\elements\Asset;
 use craft\elements\Category;
 use craft\elements\Entry;
@@ -12,11 +13,9 @@ use craft\helpers\Db;
 use craft\helpers\Json;
 use craft\models\Section;
 
-use craft\base\ElementInterface;
-
 class RichTextHelper
 {
-    // Public Methods
+    // Static Methods
     // =========================================================================
 
     public static function getRichTextConfig($key)
@@ -37,6 +36,35 @@ class RichTextHelper
         $config['linkOptions'] = self::_getLinkOptions();
 
         return $config;
+    }
+
+    public static function getHtmlContent($content, $submission = null, $nl2br = true): string
+    {
+        if (is_string($content)) {
+            $content = Json::decodeIfJson($content);
+        }
+
+        $renderer = new HtmlRenderer();
+        $renderer->addNode(VariableNode::class);
+
+        $html = $renderer->render([
+            'type' => 'doc',
+            'content' => $content,
+        ]);
+
+        if ($submission) {
+            $html = Variables::getParsedValue($html, $submission);
+        }
+
+        // Strip out paragraphs, replace with `<br>`
+        if ($nl2br) {
+            $html = str_replace(['<p>', '</p>'], ['', '<br>'], $html);
+            $html = preg_replace('/(<br>)+$/', '', $html);
+        }
+
+        // Prosemirror will use `htmlentities` for special characters, but doesn't play nice
+        // with static translations. Convert them back.
+        return html_entity_decode($html);
     }
 
     private static function _getDefaultConfig(): array
@@ -70,35 +98,6 @@ class RichTextHelper
         ];
     }
 
-    public static function getHtmlContent($content, $submission = null, $nl2br = true): string
-    {
-        if (is_string($content)) {
-            $content = Json::decodeIfJson($content);
-        }
-
-        $renderer = new HtmlRenderer();
-        $renderer->addNode(VariableNode::class);
-
-        $html = $renderer->render([
-            'type' => 'doc',
-            'content' => $content,
-        ]);
-
-        if ($submission) {
-            $html = Variables::getParsedValue($html, $submission);
-        }
-
-        // Strip out paragraphs, replace with `<br>`
-        if ($nl2br) {
-            $html = str_replace(['<p>', '</p>'], ['', '<br>'], $html);
-            $html = preg_replace('/(<br>)+$/', '', $html);
-        }
-
-        // Prosemirror will use `htmlentities` for special characters, but doesn't play nice
-        // with static translations. Convert them back.
-        return html_entity_decode($html);
-    }
-
     private static function _getConfig(string $dir, string $file = null)
     {
         if (!$file) {
@@ -128,7 +127,7 @@ class RichTextHelper
                 'elementType' => Entry::class,
                 'refHandle' => Entry::refHandle(),
                 'sources' => $sectionSources,
-                'criteria' => ['uri' => ':notempty:']
+                'criteria' => ['uri' => ':notempty:'],
             ];
         }
 

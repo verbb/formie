@@ -15,7 +15,7 @@ use GraphQL\Type\Definition\Type;
 
 class PageSettingsInterface extends BaseInterfaceType
 {
-    // Public Methods
+    // Static Methods
     // =========================================================================
 
     public static function getTypeGenerator(): string
@@ -117,7 +117,7 @@ class PageSettingsInterface extends BaseInterfaceType
                 },
             ],
         ]);
-        
+
         return TypeManager::prepareFieldDefinitions($fields, self::getName());
     }
 }

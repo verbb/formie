@@ -14,15 +14,7 @@ use Throwable;
 
 class VCita extends Crm
 {
-    // Properties
-    // =========================================================================
-
-    public ?string $apiKey = null;
-    public bool $mapToClient = false;
-    public ?array $clientFieldMapping = null;
-
-
-    // Public Methods
+    // Static Methods
     // =========================================================================
 
     /**
@@ -32,6 +24,18 @@ class VCita extends Crm
     {
         return Craft::t('formie', 'vCita');
     }
+    
+
+    // Properties
+    // =========================================================================
+    
+    public ?string $apiKey = null;
+    public bool $mapToClient = false;
+    public ?array $clientFieldMapping = null;
+
+
+    // Public Methods
+    // =========================================================================
 
     public function getDescription(): string
     {
@@ -50,9 +54,11 @@ class VCita extends Crm
         $client = $this->getFormSettingValue('client');
 
         // Validate the following when saving form settings
-        $rules[] = [['clientFieldMapping'], 'validateFieldMapping', 'params' => $client, 'when' => function($model) {
-            return $model->enabled && $model->mapToClient;
-        }, 'on' => [Integration::SCENARIO_FORM]];
+        $rules[] = [
+            ['clientFieldMapping'], 'validateFieldMapping', 'params' => $client, 'when' => function($model) {
+                return $model->enabled && $model->mapToClient;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
 
         return $rules;
     }
@@ -137,10 +143,12 @@ class VCita extends Crm
             $clientPayload = $clientValues;
 
             // Can't handle update and create, so check first
-            $response = $this->request('GET', 'clients', ['query' => [
-                'search_by' => 'email',
-                'search_term' => $clientPayload['email'] ?? '',
-            ]]);
+            $response = $this->request('GET', 'clients', [
+                'query' => [
+                    'search_by' => 'email',
+                    'search_term' => $clientPayload['email'] ?? '',
+                ],
+            ]);
             $existingClient = $response['data']['clients'][0]['id'] ?? '';
 
             if ($existingClient) {
@@ -236,7 +244,7 @@ class VCita extends Crm
         foreach ($fields as $key => $field) {
             // Only allow supported types
             if (in_array($field['type'], $unsupportedFields) || in_array($field['label'], $unsupportedFields)) {
-                 continue;
+                continue;
             }
 
             $customFields[] = new IntegrationField([

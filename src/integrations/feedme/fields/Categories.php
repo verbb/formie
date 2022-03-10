@@ -12,11 +12,11 @@ class Categories extends FeedMeCategories
 
     use BaseFieldTrait;
 
-    
+
     // Properties
     // =========================================================================
 
-    public static $name = 'Categories';
     public static $class = CategoriesField::class;
+    public static $name = 'Categories';
 
 }

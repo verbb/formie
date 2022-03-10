@@ -26,13 +26,14 @@ use craft\helpers\ArrayHelper;
 use craft\helpers\Cp;
 use craft\helpers\Html;
 use craft\helpers\Json;
+use craft\helpers\Template;
 use craft\helpers\UrlHelper;
+use craft\models\FieldLayout;
 
 use yii\base\Exception;
-use Throwable;
-use craft\models\FieldLayout;
 use yii\base\InvalidConfigException;
-use craft\helpers\Template;
+
+use Throwable;
 
 class Submission extends Element
 {
@@ -41,29 +42,6 @@ class Submission extends Element
 
     public const EVENT_DEFINE_RULES = 'defineSubmissionRules';
     public const EVENT_BEFORE_MARKED_AS_SPAM = 'beforeMarkedAsSpam';
-
-
-    // Properties
-    // =========================================================================
-
-    public ?int $id = null;
-    public ?int $formId = null;
-    public ?int $statusId = null;
-    public ?int $userId = null;
-    public ?string $ipAddress = null;
-    public bool $isIncomplete = false;
-    public bool $isSpam = false;
-    public ?string $spamReason = null;
-    public array $snapshot = [];
-    public ?bool $validateCurrentPageOnly = null;
-
-    private ?Form $_form = null;
-    private ?Status $_status = null;
-    private ?User $_user = null;
-    private ?FieldLayout $_fieldLayout = null;
-    private ?string $_fieldContext = null;
-    private ?string $_contentTable = null;
-    private ?array $_pagesForField = null;
 
 
     // Static Methods
@@ -161,106 +139,26 @@ class Submission extends Element
     }
 
     /**
-     * @inheritDoc
+     * @inheritdoc
      */
-    protected function defineRules(): array
+    public static function eagerLoadingMap(array $sourceElements, string $handle): array|null|false
     {
-        $rules = parent::defineRules();
+        $contentService = Craft::$app->getContent();
+        $originalFieldContext = $contentService->fieldContext;
 
-        $fieldsByHandle = [];
-        
-        if ($fieldLayout = $this->getFieldLayout()) {
-            // Check when we're doing a submission from the front-end, and we choose to validate the current page only
-            // Remove any custom fields that aren't in the current page. These are added by default
-            if ($this->validateCurrentPageOnly) {
-                $currentPageFields = $this->form->getCurrentPage()->getCustomFields();
+        $submission = $sourceElements[0] ?? null;
 
-                // Organise fields, so they're easier to check against
-                $currentPageFieldHandles = ArrayHelper::getColumn($currentPageFields, 'handle');
-
-                foreach ($rules as $key => $rule) {
-                    [$attribute, $validator] = $rule;
-                    $attribute = is_array($attribute) ? $attribute[0] : $attribute;
-
-                    if (str_contains($attribute, 'field:')) {
-                        $handle = str_replace('field:', '', $attribute);
-
-                        if (!in_array($handle, $currentPageFieldHandles)) {
-                            unset($rules[$key]);
-                        }
-                    }
-                }
-            }
-
-            $fields = $this->getFieldLayout()->getCustomFields();
-
-            $fieldsByHandle = ArrayHelper::getColumn($fields, 'handle');
-
-            // Evaluate field conditions. What if this is a required field, but conditionally hidden?
-            foreach ($rules as $key => $rule) {
-                foreach ($fields as $field) {
-                    [$attribute, $validator] = $rule;
-                    $attribute = is_array($attribute) ? $attribute[0] : $attribute;
-
-                    if ($attribute === "field:{$field->handle}") {
-                        // If this field is conditionally hidden, remove it from validation
-                        if ($field->isConditionallyHidden($this)) {
-                            unset($rules[$key]);
-                        }
-                    }
-                }
-            }
-
-            // Add custom error messages to fields with custom message set.
-            foreach ($rules as $key => $rule) {
-                /* @var FormField|FormFieldTrait $field */
-                foreach ($fields as $field) {
-                    if (!$field->errorMessage) {
-                        continue;
-                    }
-
-                    [$attribute, $validator] = $rule;
-                    $attribute = is_array($attribute) ? $attribute[0] : $attribute;
-
-                    if ($attribute === "field:{$field->handle}") {
-                        $rules[$key]['message'] = $field->errorMessage;
-                        break;
-                    }
-                }
-            }
+        // Ensure we set up the correct content table before fetching the eager-loading map.
+        // This is particular helps resolve element fields' content.
+        if ($submission instanceof self) {
+            $contentService->fieldContext = $submission->getFieldContext();
         }
 
-        // Reset keys just in case
-        $rules = array_values($rules);
+        $map = parent::eagerLoadingMap($sourceElements, $handle);
 
-        $rules[] = [['title'], 'required'];
-        $rules[] = [['title'], 'string', 'max' => 255];
-        $rules[] = [['formId'], 'number', 'integerOnly' => true];
+        $contentService->fieldContext = $originalFieldContext;
 
-        // Fire a 'defineSubmissionRules' event
-        $event = new SubmissionRulesEvent([
-            'rules' => $rules,
-            'submission' => $this,
-        ]);
-        $this->trigger(self::EVENT_DEFINE_RULES, $event);
-
-        // Ensure that any rules defined in events actually exists and are valid for this submission/form.
-        // Otherwise, fatal errors will occur trying to validate a field that doesn't exist in this context.
-        foreach ($event->rules as $key => $rule) {
-            [$attribute, $validator] = $rule;
-            $attr = is_array($attribute) ? $attribute[0] : $attribute;
-
-            if (str_contains($attr, 'field:')) {
-                $fieldHandle = str_replace('field:', '', $attr);
-
-                // Remove any rules for fields not defined in this form for safety.
-                if (!in_array($fieldHandle, $fieldsByHandle)) {
-                    unset($event->rules[$key]);
-                }
-            }
-        }
-
-        return $event->rules;
+        return $map;
     }
 
     /**
@@ -277,8 +175,8 @@ class Submission extends Element
                 'key' => '*',
                 'label' => Craft::t('formie', 'All forms'),
                 'criteria' => ['formId' => $ids],
-                'defaultSort' => ['formie_submissions.title', 'desc']
-            ]
+                'defaultSort' => ['formie_submissions.title', 'desc'],
+            ],
         ];
 
         $sources[] = ['heading' => Craft::t('formie', 'Forms')];
@@ -346,25 +244,125 @@ class Submission extends Element
     /**
      * @inheritdoc
      */
-    public static function eagerLoadingMap(array $sourceElements, string $handle): array|null|false
+    protected static function defineFieldLayouts(string $source): array
     {
-        $contentService = Craft::$app->getContent();
-        $originalFieldContext = $contentService->fieldContext;
+        $fieldLayouts = [];
 
-        $submission = $sourceElements[0] ?? null;
-
-        // Ensure we set up the correct content table before fetching the eager-loading map.
-        // This is particular helps resolve element fields' content.
-        if ($submission instanceof self) {
-            $contentService->fieldContext = $submission->getFieldContext();
+        if (preg_match('/^form:(.+)$/', $source, $matches) && ($form = Formie::$plugin->getForms()->getFormById($matches[1]))) {
+            if ($fieldLayout = $form->getFormFieldLayout()) {
+                $fieldLayouts[] = $fieldLayout;
+            }
         }
 
-        $map = parent::eagerLoadingMap($sourceElements, $handle);
-
-        $contentService->fieldContext = $originalFieldContext;
-
-        return $map;
+        return $fieldLayouts;
     }
+
+    /**
+     * @inheritDoc
+     */
+    protected static function defineTableAttributes(): array
+    {
+        return [
+            'title' => ['label' => Craft::t('app', 'Title')],
+            'id' => ['label' => Craft::t('app', 'ID')],
+            'form' => ['label' => Craft::t('formie', 'Form')],
+            'spamReason' => ['label' => Craft::t('app', 'Spam Reason')],
+            'ipAddress' => ['label' => Craft::t('app', 'IP Address')],
+            'userId' => ['label' => Craft::t('app', 'User')],
+            'sendNotification' => ['label' => Craft::t('formie', 'Send Notification')],
+            'status' => ['label' => Craft::t('formie', 'Status')],
+            'dateCreated' => ['label' => Craft::t('app', 'Date Created')],
+            'dateUpdated' => ['label' => Craft::t('app', 'Date Updated')],
+        ];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected static function defineDefaultTableAttributes(string $source): array
+    {
+        $attributes = [];
+        $attributes[] = 'title';
+
+        if ($source === '*') {
+            $attributes[] = 'form';
+        }
+
+        $attributes[] = 'dateCreated';
+        $attributes[] = 'dateUpdated';
+
+        return $attributes;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    protected static function defineSearchableAttributes(): array
+    {
+        return ['title'];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected static function defineSortOptions(): array
+    {
+        return [
+            [
+                'label' => Craft::t('app', 'Title'),
+                'orderBy' => 'formie_submissions.title',
+                'attribute' => 'title',
+            ],
+            [
+                'label' => Craft::t('app', 'Date Created'),
+                'orderBy' => 'elements.dateCreated',
+                'attribute' => 'dateCreated',
+            ],
+            [
+                'label' => Craft::t('app', 'Date Updated'),
+                'orderBy' => 'elements.dateUpdated',
+                'attribute' => 'dateUpdated',
+            ],
+        ];
+    }
+
+    private static function _getAvailableFormIds(): int|array
+    {
+        $currentUser = Craft::$app->getUser()->getIdentity();
+
+        $submissions = Formie::$plugin->getSubmissions()->getEditableSubmissions($currentUser);
+        $editableIds = ArrayHelper::getColumn($submissions, 'id');
+
+        // Important to check if empty, there are zero editable forms, but as we use this as a criteria param
+        // that would return all forms, not what we want.
+        if (!$editableIds) {
+            $editableIds = 0;
+        }
+
+        return $editableIds;
+    }
+
+    // Properties
+    // =========================================================================
+
+    public ?int $id = null;
+    public ?int $formId = null;
+    public ?int $statusId = null;
+    public ?int $userId = null;
+    public ?string $ipAddress = null;
+    public bool $isIncomplete = false;
+    public bool $isSpam = false;
+    public ?string $spamReason = null;
+    public array $snapshot = [];
+    public ?bool $validateCurrentPageOnly = null;
+
+    private ?Form $_form = null;
+    private ?Status $_status = null;
+    private ?User $_user = null;
+    private ?FieldLayout $_fieldLayout = null;
+    private ?string $_fieldContext = null;
+    private ?string $_contentTable = null;
+    private ?array $_pagesForField = null;
 
 
     // Public Methods
@@ -717,6 +715,10 @@ class Submission extends Element
         return $values;
     }
 
+
+    // Events
+    // =========================================================================
+
     public function getValuesForExport(): array
     {
         $values = [];
@@ -791,10 +793,6 @@ class Submission extends Element
     {
         return static::gqlTypeNameByContext($this->getForm());
     }
-
-
-    // Events
-    // =========================================================================
 
     /**
      * @inheritDoc
@@ -918,56 +916,106 @@ class Submission extends Element
     // =========================================================================
 
     /**
-     * @inheritdoc
+     * @inheritDoc
      */
-    protected static function defineFieldLayouts(string $source): array
+    protected function defineRules(): array
     {
-        $fieldLayouts = [];
+        $rules = parent::defineRules();
 
-        if (preg_match('/^form:(.+)$/', $source, $matches) && ($form = Formie::$plugin->getForms()->getFormById($matches[1]))) {
-            if ($fieldLayout = $form->getFormFieldLayout()) {
-                $fieldLayouts[] = $fieldLayout;
+        $fieldsByHandle = [];
+
+        if ($fieldLayout = $this->getFieldLayout()) {
+            // Check when we're doing a submission from the front-end, and we choose to validate the current page only
+            // Remove any custom fields that aren't in the current page. These are added by default
+            if ($this->validateCurrentPageOnly) {
+                $currentPageFields = $this->form->getCurrentPage()->getCustomFields();
+
+                // Organise fields, so they're easier to check against
+                $currentPageFieldHandles = ArrayHelper::getColumn($currentPageFields, 'handle');
+
+                foreach ($rules as $key => $rule) {
+                    [$attribute, $validator] = $rule;
+                    $attribute = is_array($attribute) ? $attribute[0] : $attribute;
+
+                    if (str_contains($attribute, 'field:')) {
+                        $handle = str_replace('field:', '', $attribute);
+
+                        if (!in_array($handle, $currentPageFieldHandles)) {
+                            unset($rules[$key]);
+                        }
+                    }
+                }
+            }
+
+            $fields = $this->getFieldLayout()->getCustomFields();
+
+            $fieldsByHandle = ArrayHelper::getColumn($fields, 'handle');
+
+            // Evaluate field conditions. What if this is a required field, but conditionally hidden?
+            foreach ($rules as $key => $rule) {
+                foreach ($fields as $field) {
+                    [$attribute, $validator] = $rule;
+                    $attribute = is_array($attribute) ? $attribute[0] : $attribute;
+
+                    if ($attribute === "field:{$field->handle}") {
+                        // If this field is conditionally hidden, remove it from validation
+                        if ($field->isConditionallyHidden($this)) {
+                            unset($rules[$key]);
+                        }
+                    }
+                }
+            }
+
+            // Add custom error messages to fields with custom message set.
+            foreach ($rules as $key => $rule) {
+                /* @var FormField|FormFieldTrait $field */
+                foreach ($fields as $field) {
+                    if (!$field->errorMessage) {
+                        continue;
+                    }
+
+                    [$attribute, $validator] = $rule;
+                    $attribute = is_array($attribute) ? $attribute[0] : $attribute;
+
+                    if ($attribute === "field:{$field->handle}") {
+                        $rules[$key]['message'] = $field->errorMessage;
+                        break;
+                    }
+                }
             }
         }
 
-        return $fieldLayouts;
-    }
+        // Reset keys just in case
+        $rules = array_values($rules);
 
-    /**
-     * @inheritDoc
-     */
-    protected static function defineTableAttributes(): array
-    {
-        return [
-            'title' => ['label' => Craft::t('app', 'Title')],
-            'id' => ['label' => Craft::t('app', 'ID')],
-            'form' => ['label' => Craft::t('formie', 'Form')],
-            'spamReason' => ['label' => Craft::t('app', 'Spam Reason')],
-            'ipAddress' => ['label' => Craft::t('app', 'IP Address')],
-            'userId' => ['label' => Craft::t('app', 'User')],
-            'sendNotification' => ['label' => Craft::t('formie', 'Send Notification')],
-            'status' => ['label' => Craft::t('formie', 'Status')],
-            'dateCreated' => ['label' => Craft::t('app', 'Date Created')],
-            'dateUpdated' => ['label' => Craft::t('app', 'Date Updated')],
-        ];
-    }
+        $rules[] = [['title'], 'required'];
+        $rules[] = [['title'], 'string', 'max' => 255];
+        $rules[] = [['formId'], 'number', 'integerOnly' => true];
 
-    /**
-     * @inheritDoc
-     */
-    protected static function defineDefaultTableAttributes(string $source): array
-    {
-        $attributes = [];
-        $attributes[] = 'title';
+        // Fire a 'defineSubmissionRules' event
+        $event = new SubmissionRulesEvent([
+            'rules' => $rules,
+            'submission' => $this,
+        ]);
+        $this->trigger(self::EVENT_DEFINE_RULES, $event);
 
-        if ($source === '*') {
-            $attributes[] = 'form';
+        // Ensure that any rules defined in events actually exists and are valid for this submission/form.
+        // Otherwise, fatal errors will occur trying to validate a field that doesn't exist in this context.
+        foreach ($event->rules as $key => $rule) {
+            [$attribute, $validator] = $rule;
+            $attr = is_array($attribute) ? $attribute[0] : $attribute;
+
+            if (str_contains($attr, 'field:')) {
+                $fieldHandle = str_replace('field:', '', $attr);
+
+                // Remove any rules for fields not defined in this form for safety.
+                if (!in_array($fieldHandle, $fieldsByHandle)) {
+                    unset($event->rules[$key]);
+                }
+            }
         }
 
-        $attributes[] = 'dateCreated';
-        $attributes[] = 'dateUpdated';
-
-        return $attributes;
+        return $event->rules;
     }
 
     /**
@@ -986,14 +1034,14 @@ class Submission extends Element
             case 'status':
                 $statusHandle = $this->getStatus();
                 $status = self::statuses()[$statusHandle] ?? null;
-                
+
                 return Html::tag('span', Html::tag('span', '', [
-                    'class' => array_filter([
-                        'status',
-                        $statusHandle,
-                        ($status ? $status['color'] : null)
-                    ]),
-                ]) . ($status ? $status['label'] : null), [
+                        'class' => array_filter([
+                            'status',
+                            $statusHandle,
+                            ($status ? $status['color'] : null),
+                        ]),
+                    ]) . ($status ? $status['label'] : null), [
                     'style' => [
                         'display' => 'flex',
                         'align-items' => 'center',
@@ -1012,57 +1060,5 @@ class Submission extends Element
             default:
                 return parent::tableAttributeHtml($attribute);
         }
-    }
-
-    /**
-     * @inheritdoc
-     */
-    protected static function defineSearchableAttributes(): array
-    {
-        return ['title'];
-    }
-
-    /**
-     * @inheritDoc
-     */
-    protected static function defineSortOptions(): array
-    {
-        return [
-            [
-                'label' => Craft::t('app', 'Title'),
-                'orderBy' => 'formie_submissions.title',
-                'attribute' => 'title'
-            ],
-            [
-                'label' => Craft::t('app', 'Date Created'),
-                'orderBy' => 'elements.dateCreated',
-                'attribute' => 'dateCreated'
-            ],
-            [
-                'label' => Craft::t('app', 'Date Updated'),
-                'orderBy' => 'elements.dateUpdated',
-                'attribute' => 'dateUpdated'
-            ],
-        ];
-    }
-
-
-    // Private methods
-    // =========================================================================
-
-    private static function _getAvailableFormIds(): int|array
-    {
-        $currentUser = Craft::$app->getUser()->getIdentity();
-
-        $submissions = Formie::$plugin->getSubmissions()->getEditableSubmissions($currentUser);
-        $editableIds = ArrayHelper::getColumn($submissions, 'id');
-
-        // Important to check if empty, there are zero editable forms, but as we use this as a criteria param
-        // that would return all forms, not what we want.
-        if (!$editableIds) {
-            $editableIds = 0;
-        }
-
-        return $editableIds;
     }
 }

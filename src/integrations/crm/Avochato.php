@@ -14,6 +14,18 @@ use Throwable;
 
 class Avochato extends Crm
 {
+    // Static Methods
+    // =========================================================================
+
+    /**
+     * @inheritDoc
+     */
+    public static function displayName(): string
+    {
+        return Craft::t('formie', 'Avochato');
+    }
+    
+
     // Properties
     // =========================================================================
 
@@ -25,14 +37,6 @@ class Avochato extends Crm
 
     // Public Methods
     // =========================================================================
-
-    /**
-     * @inheritDoc
-     */
-    public static function displayName(): string
-    {
-        return Craft::t('formie', 'Avochato');
-    }
 
     public function getDescription(): string
     {
@@ -51,9 +55,11 @@ class Avochato extends Crm
         $contact = $this->getFormSettingValue('contact');
 
         // Validate the following when saving form settings
-        $rules[] = [['contactFieldMapping'], 'validateFieldMapping', 'params' => $contact, 'when' => function($model) {
-            return $model->enabled && $model->mapToContact;
-        }, 'on' => [Integration::SCENARIO_FORM]];
+        $rules[] = [
+            ['contactFieldMapping'], 'validateFieldMapping', 'params' => $contact, 'when' => function($model) {
+                return $model->enabled && $model->mapToContact;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
 
         return $rules;
     }

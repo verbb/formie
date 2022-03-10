@@ -396,7 +396,7 @@ class MigrateFreeform extends Migration
      */
     private function _buildFieldLayout(FormModel $form): FieldLayout
     {
-        $fieldLayout = new FieldLayout([ 'type' => Form::class ]);
+        $fieldLayout = new FieldLayout(['type' => Form::class]);
         $fieldLayout->type = Form::class;
 
         $pages = [];
@@ -471,7 +471,7 @@ class MigrateFreeform extends Migration
                 if (in_array($field->getHash(), $fieldHashes)) {
                     continue;
                 }
-                    
+
                 if ($newField = $this->_mapField($field)) {
                     // Fire a 'modifyField' event
                     $event = new ModifyMigrationFieldEvent([
@@ -827,7 +827,7 @@ class MigrateFreeform extends Migration
             return [];
         }
 
-        return array_values(array_map(function ($option) {
+        return array_values(array_map(function($option) {
             return [
                 'isDefault' => $option->isChecked(),
                 'label' => $option->getLabel(),
@@ -875,7 +875,7 @@ class MigrateFreeform extends Migration
         return [
             [
                 'type' => 'paragraph',
-                'content' => $content
+                'content' => $content,
             ],
             [
                 'type' => 'paragraph',
@@ -886,8 +886,8 @@ class MigrateFreeform extends Migration
                             'label' => Craft::t('formie', 'All Form Fields'),
                             'value' => '{allFields}',
                         ],
-                    ]
-                ]
+                    ],
+                ],
             ],
         ];
     }
@@ -912,20 +912,20 @@ class MigrateFreeform extends Migration
             $args = "";
 
             if (isset($frame['args'])) {
-                $args = array();
+                $args = [];
 
                 foreach ($frame['args'] as $arg) {
                     if (is_string($arg)) {
                         $args[] = "'" . $arg . "'";
-                    } elseif (is_array($arg)) {
+                    } else if (is_array($arg)) {
                         $args[] = "Array";
-                    } elseif (is_null($arg)) {
+                    } else if (is_null($arg)) {
                         $args[] = 'NULL';
-                    } elseif (is_bool($arg)) {
+                    } else if (is_bool($arg)) {
                         $args[] = ($arg) ? "true" : "false";
-                    } elseif (is_object($arg)) {
+                    } else if (is_object($arg)) {
                         $args[] = get_class($arg);
-                    } elseif (is_resource($arg)) {
+                    } else if (is_resource($arg)) {
                         $args[] = get_resource_type($arg);
                     } else {
                         $args[] = $arg;
@@ -935,12 +935,12 @@ class MigrateFreeform extends Migration
                 $args = implode(", ", $args);
             }
 
-            $rtn .= sprintf( "#%s %s(%s): %s(%s)\n",
-                                 $count,
+            $rtn .= sprintf("#%s %s(%s): %s(%s)\n",
+                $count,
                 $frame['file'] ?? '[internal function]',
                 $frame['line'] ?? '',
-                                 (isset($frame['class']))  ? $frame['class'].$frame['type'].$frame['function'] : $frame['function'],
-                                 $args );
+                (isset($frame['class'])) ? $frame['class'] . $frame['type'] . $frame['function'] : $frame['function'],
+                $args);
 
             $count++;
         }

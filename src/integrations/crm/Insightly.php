@@ -16,17 +16,7 @@ use Throwable;
 
 class Insightly extends Crm
 {
-    // Properties
-    // =========================================================================
-
-    public ?string $apiKey = null;
-    public bool $mapToContact = false;
-    public bool $mapToLead = false;
-    public ?array $contactFieldMapping = null;
-    public ?array $leadFieldMapping = null;
-
-
-    // Public Methods
+    // Static Methods
     // =========================================================================
 
     /**
@@ -36,6 +26,20 @@ class Insightly extends Crm
     {
         return Craft::t('formie', 'Insightly');
     }
+    
+
+    // Properties
+    // =========================================================================
+    
+    public ?string $apiKey = null;
+    public bool $mapToContact = false;
+    public bool $mapToLead = false;
+    public ?array $contactFieldMapping = null;
+    public ?array $leadFieldMapping = null;
+
+
+    // Public Methods
+    // =========================================================================
 
     public function getDescription(): string
     {
@@ -55,13 +59,17 @@ class Insightly extends Crm
         $lead = $this->getFormSettingValue('lead');
 
         // Validate the following when saving form settings
-        $rules[] = [['contactFieldMapping'], 'validateFieldMapping', 'params' => $contact, 'when' => function($model) {
-            return $model->enabled && $model->mapToContact;
-        }, 'on' => [Integration::SCENARIO_FORM]];
+        $rules[] = [
+            ['contactFieldMapping'], 'validateFieldMapping', 'params' => $contact, 'when' => function($model) {
+                return $model->enabled && $model->mapToContact;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
 
-        $rules[] = [['leadFieldMapping'], 'validateFieldMapping', 'params' => $lead, 'when' => function($model) {
-            return $model->enabled && $model->mapToLead;
-        }, 'on' => [Integration::SCENARIO_FORM]];
+        $rules[] = [
+            ['leadFieldMapping'], 'validateFieldMapping', 'params' => $lead, 'when' => function($model) {
+                return $model->enabled && $model->mapToLead;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
 
         return $rules;
     }
@@ -361,12 +369,12 @@ class Insightly extends Crm
 
             // Only allow supported types
             if (!in_array($field['FIELD_TYPE'], $supportedFields)) {
-                 continue;
+                continue;
             }
 
             // Exclude any names
             if (in_array($field['FIELD_NAME'], $excludeNames)) {
-                 continue;
+                continue;
             }
 
             $customFields[] = new IntegrationField([

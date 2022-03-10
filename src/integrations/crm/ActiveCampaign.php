@@ -15,6 +15,18 @@ use Throwable;
 
 class ActiveCampaign extends Crm
 {
+    // Static Methods
+    // =========================================================================
+
+    /**
+     * @inheritDoc
+     */
+    public static function displayName(): string
+    {
+        return Craft::t('formie', 'ActiveCampaign');
+    }
+
+
     // Properties
     // =========================================================================
 
@@ -30,14 +42,6 @@ class ActiveCampaign extends Crm
 
     // Public Methods
     // =========================================================================
-
-    /**
-     * @inheritDoc
-     */
-    public static function displayName(): string
-    {
-        return Craft::t('formie', 'ActiveCampaign');
-    }
 
     public function getDescription(): string
     {
@@ -58,17 +62,23 @@ class ActiveCampaign extends Crm
         $account = $this->getFormSettingValue('account');
 
         // Validate the following when saving form settings
-        $rules[] = [['contactFieldMapping'], 'validateFieldMapping', 'params' => $contact, 'when' => function($model) {
-            return $model->enabled && $model->mapToContact;
-        }, 'on' => [Integration::SCENARIO_FORM]];
+        $rules[] = [
+            ['contactFieldMapping'], 'validateFieldMapping', 'params' => $contact, 'when' => function($model) {
+                return $model->enabled && $model->mapToContact;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
 
-        $rules[] = [['dealFieldMapping'], 'validateFieldMapping', 'params' => $deal, 'when' => function($model) {
-            return $model->enabled && $model->mapToDeal;
-        }, 'on' => [Integration::SCENARIO_FORM]];
+        $rules[] = [
+            ['dealFieldMapping'], 'validateFieldMapping', 'params' => $deal, 'when' => function($model) {
+                return $model->enabled && $model->mapToDeal;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
 
-        $rules[] = [['accountFieldMapping'], 'validateFieldMapping', 'params' => $account, 'when' => function($model) {
-            return $model->enabled && $model->mapToAccount;
-        }, 'on' => [Integration::SCENARIO_FORM]];
+        $rules[] = [
+            ['accountFieldMapping'], 'validateFieldMapping', 'params' => $account, 'when' => function($model) {
+                return $model->enabled && $model->mapToAccount;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
 
         return $rules;
     }
@@ -484,12 +494,12 @@ class ActiveCampaign extends Crm
 
             // // Only allow supported types
             if (!in_array($fieldType, $supportedFields)) {
-                 continue;
+                continue;
             }
 
             // Exclude any names
             if (in_array($fieldName, $excludeNames)) {
-                 continue;
+                continue;
             }
 
             $customFields[] = new IntegrationField([
@@ -540,7 +550,7 @@ class ActiveCampaign extends Crm
             'query' => [
                 'limit' => $limit,
                 'offset' => $offset,
-            ]
+            ],
         ]);
 
         $newItems = $response[$endpoint] ?? [];

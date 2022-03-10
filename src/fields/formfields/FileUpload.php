@@ -16,10 +16,10 @@ use craft\fields\Assets as CraftAssets;
 use craft\helpers\Assets;
 use craft\helpers\Html;
 use craft\helpers\Template;
+use craft\models\Volume;
 use craft\web\UploadedFile;
 
 use GraphQL\Type\Definition\Type;
-use craft\models\Volume;
 
 class FileUpload extends CraftAssets implements FormFieldInterface
 {
@@ -207,7 +207,7 @@ class FileUpload extends CraftAssets implements FormFieldInterface
 
         // Get any uploaded filenames
         $uploadedFiles = $this->_getUploadedFiles($element);
-        
+
         $sizeMinLimit = $this->sizeMinLimit * 1000000;
 
         foreach ($uploadedFiles as $file) {
@@ -234,7 +234,7 @@ class FileUpload extends CraftAssets implements FormFieldInterface
 
         // Get any uploaded filenames
         $uploadedFiles = $this->_getUploadedFiles($element);
-        
+
         $sizeLimit = $this->sizeLimit * 1000000;
 
         foreach ($uploadedFiles as $file) {
@@ -493,6 +493,23 @@ class FileUpload extends CraftAssets implements FormFieldInterface
     // Protected Methods
     // =========================================================================
 
+    public function getSettingGqlTypes(): array
+    {
+        return array_merge($this->traitGetSettingGqlTypes(), [
+            'allowedKinds' => [
+                'name' => 'allowedKinds',
+                'type' => Type::listOf(Type::string()),
+            ],
+            'volumeHandle' => [
+                'name' => 'volumeHandle',
+                'type' => Type::string(),
+                'resolve' => function($class) {
+                    return $class->getVolume()->handle ?? '';
+                },
+            ],
+        ]);
+    }
+
     protected function defineValueAsString($value, ElementInterface $element = null): string
     {
         $value = $this->_all($value, $element)->all();
@@ -539,23 +556,6 @@ class FileUpload extends CraftAssets implements FormFieldInterface
         return Template::raw($html);
     }
 
-    public function getSettingGqlTypes(): array
-    {
-        return array_merge($this->traitGetSettingGqlTypes(), [
-            'allowedKinds' => [
-                'name' => 'allowedKinds',
-                'type' => Type::listOf(Type::string()),
-            ],
-            'volumeHandle' => [
-                'name' => 'volumeHandle',
-                'type' => Type::string(),
-                'resolve' => function($class) {
-                    return $class->getVolume()->handle ?? '';
-                },
-            ],
-        ]);
-    }
-
 
     // Private Methods
     // =========================================================================
@@ -566,7 +566,7 @@ class FileUpload extends CraftAssets implements FormFieldInterface
 
         if ($sourceKey && str_starts_with($sourceKey, 'folder:')) {
             $parts = explode(':', $sourceKey);
-            
+
             return Craft::$app->getVolumes()->getVolumeByUid($parts[1]);
         }
 
@@ -575,8 +575,9 @@ class FileUpload extends CraftAssets implements FormFieldInterface
 
     private function humanFilesize($size, $precision = 2): string
     {
-        for ($i = 0; ($size / 1024) > 0.9; $i++, $size /= 1024) {}
-        return round($size, $precision).['B','kB','MB','GB','TB','PB','EB','ZB','YB'][$i];
+        for ($i = 0; ($size / 1024) > 0.9; $i++, $size /= 1024) {
+        }
+        return round($size, $precision) . ['B', 'kB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'][$i];
     }
 
     /**

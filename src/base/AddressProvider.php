@@ -7,10 +7,6 @@ use craft\helpers\UrlHelper;
 
 abstract class AddressProvider extends Integration
 {
-    // Properties
-    // =========================================================================
-
-
     // Static Methods
     // =========================================================================
 

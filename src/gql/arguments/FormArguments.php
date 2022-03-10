@@ -7,7 +7,7 @@ use GraphQL\Type\Definition\Type;
 
 class FormArguments extends ElementArguments
 {
-    // Public Methods
+    // Static Methods
     // =========================================================================
 
     public static function getArguments(): array

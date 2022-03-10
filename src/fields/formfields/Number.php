@@ -13,6 +13,7 @@ use craft\helpers\Localization;
 use craft\i18n\Locale;
 
 use GraphQL\Type\Definition\Type;
+
 use Throwable;
 
 class Number extends FormField implements PreviewableFieldInterface
@@ -79,29 +80,6 @@ class Number extends FormField implements PreviewableFieldInterface
         if (!$this->decimals) {
             $this->decimals = 0;
         }
-    }
-
-    /**
-     * @inheritDoc
-     */
-    protected function defineRules(): array
-    {
-        $rules = parent::defineRules();
-
-        $rules[] = [['defaultValue', 'min', 'max'], 'number'];
-        $rules[] = [['decimals'], 'integer'];
-        $rules[] = [
-            ['max'],
-            'compare',
-            'compareAttribute' => 'min',
-            'operator' => '>='
-        ];
-
-        if (!$this->decimals) {
-            $rules[] = [['defaultValue', 'min', 'max'], 'integer'];
-        }
-
-        return $rules;
     }
 
     /**
@@ -181,7 +159,7 @@ class Number extends FormField implements PreviewableFieldInterface
     public function getPreviewInputHtml(): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/number/preview', [
-            'field' => $this
+            'field' => $this,
         ]);
     }
 
@@ -326,5 +304,28 @@ class Number extends FormField implements PreviewableFieldInterface
             'type' => NumberType::getType(),
             'description' => $this->instructions,
         ];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected function defineRules(): array
+    {
+        $rules = parent::defineRules();
+
+        $rules[] = [['defaultValue', 'min', 'max'], 'number'];
+        $rules[] = [['decimals'], 'integer'];
+        $rules[] = [
+            ['max'],
+            'compare',
+            'compareAttribute' => 'min',
+            'operator' => '>=',
+        ];
+
+        if (!$this->decimals) {
+            $rules[] = [['defaultValue', 'min', 'max'], 'integer'];
+        }
+
+        return $rules;
     }
 }

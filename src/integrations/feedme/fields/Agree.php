@@ -11,11 +11,11 @@ class Agree extends FeedMeLightswitch
 
     use BaseFieldTrait;
 
-    
+
     // Properties
     // =========================================================================
 
-    public static $name = 'Agree';
     public static $class = AgreeField::class;
+    public static $name = 'Agree';
 
 }

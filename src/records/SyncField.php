@@ -14,7 +14,7 @@ use craft\db\ActiveRecord;
  */
 class SyncField extends ActiveRecord
 {
-    // Public Methods
+    // Static Methods
     // =========================================================================
 
     /**

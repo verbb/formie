@@ -11,8 +11,8 @@ use craft\web\Controller;
 
 use yii\validators\EmailValidator;
 use yii\web\HttpException;
-use yii\web\Response;
 use yii\web\NotFoundHttpException;
+use yii\web\Response;
 
 class SentNotificationsController extends Controller
 {
@@ -138,7 +138,7 @@ class SentNotificationsController extends Controller
         Formie::$plugin->getSentNotifications()->saveSentNotification($sentNotification->submission, $sentNotification->notification, $newEmail);
 
         $message = Craft::t('formie', 'Notification email was resent successfully.');
-        
+
         Craft::$app->getSession()->setNotice($message);
 
         return $this->asJson([
@@ -222,7 +222,7 @@ class SentNotificationsController extends Controller
         }
 
         $message = Craft::t('formie', '{count} notification emails resent successfully.', ['count' => count($ids)]);
-        
+
         Craft::$app->getSession()->setNotice($message);
 
         return $this->asJson([

@@ -15,6 +15,18 @@ use Throwable;
 
 class Freshsales extends Crm
 {
+    // Static Methods
+    // =========================================================================
+
+    /**
+     * @inheritDoc
+     */
+    public static function displayName(): string
+    {
+        return Craft::t('formie', 'Freshsales');
+    }
+    
+
     // Properties
     // =========================================================================
 
@@ -32,14 +44,6 @@ class Freshsales extends Crm
 
     // Public Methods
     // =========================================================================
-
-    /**
-     * @inheritDoc
-     */
-    public static function displayName(): string
-    {
-        return Craft::t('formie', 'Freshsales');
-    }
 
     public function getDescription(): string
     {
@@ -61,21 +65,29 @@ class Freshsales extends Crm
         $account = $this->getFormSettingValue('account');
 
         // Validate the following when saving form settings
-        $rules[] = [['contactFieldMapping'], 'validateFieldMapping', 'params' => $contact, 'when' => function($model) {
-            return $model->enabled && $model->mapToContact;
-        }, 'on' => [Integration::SCENARIO_FORM]];
+        $rules[] = [
+            ['contactFieldMapping'], 'validateFieldMapping', 'params' => $contact, 'when' => function($model) {
+                return $model->enabled && $model->mapToContact;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
 
-        $rules[] = [['leadFieldMapping'], 'validateFieldMapping', 'params' => $lead, 'when' => function($model) {
-            return $model->enabled && $model->mapToLead;
-        }, 'on' => [Integration::SCENARIO_FORM]];
+        $rules[] = [
+            ['leadFieldMapping'], 'validateFieldMapping', 'params' => $lead, 'when' => function($model) {
+                return $model->enabled && $model->mapToLead;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
 
-        $rules[] = [['dealFieldMapping'], 'validateFieldMapping', 'params' => $deal, 'when' => function($model) {
-            return $model->enabled && $model->mapToDeal;
-        }, 'on' => [Integration::SCENARIO_FORM]];
+        $rules[] = [
+            ['dealFieldMapping'], 'validateFieldMapping', 'params' => $deal, 'when' => function($model) {
+                return $model->enabled && $model->mapToDeal;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
 
-        $rules[] = [['accountFieldMapping'], 'validateFieldMapping', 'params' => $account, 'when' => function($model) {
-            return $model->enabled && $model->mapToAccount;
-        }, 'on' => [Integration::SCENARIO_FORM]];
+        $rules[] = [
+            ['accountFieldMapping'], 'validateFieldMapping', 'params' => $account, 'when' => function($model) {
+                return $model->enabled && $model->mapToAccount;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
 
         return $rules;
     }
@@ -680,16 +692,16 @@ class Freshsales extends Crm
 
             // Only allow supported types
             if (!in_array($field['type'], $supportedFields)) {
-                 continue;
+                continue;
             }
 
             // Exclude any names
             if (in_array($field['name'], $excludeNames)) {
-                 continue;
+                continue;
             }
 
             if (!StringHelper::startsWith($field['name'], 'cf_')) {
-                 continue;
+                continue;
             }
 
             $customFields[] = new IntegrationField([

@@ -12,7 +12,7 @@ use GraphQL\Type\Definition\Type;
 
 class FormQuery extends Query
 {
-    // Public Methods
+    // Static Methods
     // =========================================================================
 
     public static function getQueries(bool $checkToken = true): array
@@ -20,7 +20,7 @@ class FormQuery extends Query
         if ($checkToken && !GqlHelper::canQueryForms()) {
             return [];
         }
-        
+
         return [
             'formieForms' => [
                 'type' => Type::listOf(FormInterface::getType()),

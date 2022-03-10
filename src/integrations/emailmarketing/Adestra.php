@@ -9,20 +9,14 @@ use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
+
 use GuzzleHttp\Client;
+
 use Throwable;
 
 class Adestra extends EmailMarketing
 {
-    // Properties
-    // =========================================================================
-
-    public ?string $apiKey = null;
-    public ?string $workspaceId = null;
-    public ?string $coreTableId = null;
-
-
-    // Public Methods
+    // Static Methods
     // =========================================================================
 
     /**
@@ -32,6 +26,18 @@ class Adestra extends EmailMarketing
     {
         return Craft::t('formie', 'Adestra');
     }
+
+    // Properties
+    // =========================================================================
+
+    
+    public ?string $apiKey = null;
+    public ?string $coreTableId = null;
+    public ?string $workspaceId = null;
+
+
+    // Public Methods
+    // =========================================================================
 
     public function getDescription(): string
     {
@@ -64,7 +70,7 @@ class Adestra extends EmailMarketing
                 $listFields[] = new IntegrationField([
                     'handle' => $field['name'],
                     'name' => $field['name'],
-                    'type' => IntegrationField::TYPE_STRING
+                    'type' => IntegrationField::TYPE_STRING,
                 ]);
             }
 
@@ -106,7 +112,7 @@ class Adestra extends EmailMarketing
                 'table_id' => (int)Craft::parseEnv($this->coreTableId),
                 'dedupe_field' => 'email',
                 'options' => [
-                    'list_id' => (int)$this->listId
+                    'list_id' => (int)$this->listId,
                 ],
                 'contact_data' => $contactData,
             ];
@@ -153,7 +159,7 @@ class Adestra extends EmailMarketing
         return $this->_client = Craft::createGuzzleClient([
             'base_uri' => 'https://app.adestra.com/api/rest/1/',
             'headers' => [
-                'Authorization' => 'TOKEN ' . Craft::parseEnv($this->apiKey)
+                'Authorization' => 'TOKEN ' . Craft::parseEnv($this->apiKey),
             ],
         ]);
     }

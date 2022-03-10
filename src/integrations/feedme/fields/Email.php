@@ -10,11 +10,11 @@ class Email extends DefaultField
 
     use BaseFieldTrait;
 
-    
+
     // Properties
     // =========================================================================
 
-    public static $name = 'Email';
     public static $class = EmailField::class;
+    public static $name = 'Email';
 
 }

@@ -10,19 +10,14 @@ use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
 use craft\helpers\ArrayHelper;
+
 use GuzzleHttp\Client;
+
 use Throwable;
 
 class Klaviyo extends EmailMarketing
 {
-    // Properties
-    // =========================================================================
-
-    public ?string $publicApiKey = null;
-    public ?string $privateApiKey = null;
-
-
-    // Public Methods
+    // Static Methods
     // =========================================================================
 
     /**
@@ -32,6 +27,16 @@ class Klaviyo extends EmailMarketing
     {
         return Craft::t('formie', 'Klaviyo');
     }
+
+    // Properties
+    // =========================================================================
+
+    public ?string $privateApiKey = null;
+    public ?string $publicApiKey = null;
+
+
+    // Public Methods
+    // =========================================================================
 
     public function getDescription(): string
     {

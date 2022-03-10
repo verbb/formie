@@ -9,6 +9,9 @@ use GraphQL\Type\Definition\InputObjectType;
 
 class GroupInputType extends InputObjectType
 {
+    // Static Methods
+    // =========================================================================
+
     /**
      * Create the type for a Group form field
      *
@@ -31,7 +34,7 @@ class GroupInputType extends InputObjectType
         foreach ($fields as $field) {
             $field->isNested = true;
             $field->setContainer($context);
-            
+
             $fieldInput = $field->getContentGqlMutationArgumentType();
             $groupFields[$field->handle] = $fieldInput;
         }
@@ -56,10 +59,10 @@ class GroupInputType extends InputObjectType
         return [
             'rows' => [
                 'new1' => [
-                    'fields' => $value
-                ]
+                    'fields' => $value,
+                ],
             ],
-            'sortOrder' => ['new1']
+            'sortOrder' => ['new1'],
         ];
     }
 }

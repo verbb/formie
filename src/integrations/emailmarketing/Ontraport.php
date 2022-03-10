@@ -10,19 +10,14 @@ use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
 use craft\helpers\Json;
+
 use GuzzleHttp\Client;
+
 use Throwable;
 
 class Ontraport extends EmailMarketing
 {
-    // Properties
-    // =========================================================================
-
-    public ?string $apiKey = null;
-    public ?string $appId = null;
-
-
-    // Public Methods
+    // Static Methods
     // =========================================================================
 
     /**
@@ -32,6 +27,16 @@ class Ontraport extends EmailMarketing
     {
         return Craft::t('formie', 'Ontraport');
     }
+
+    // Properties
+    // =========================================================================
+    
+    public ?string $apiKey = null;
+    public ?string $appId = null;
+
+
+    // Public Methods
+    // =========================================================================
 
     public function getDescription(): string
     {

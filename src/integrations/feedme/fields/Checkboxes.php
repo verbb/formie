@@ -11,11 +11,11 @@ class Checkboxes extends FeedMeCheckboxes
 
     use BaseFieldTrait;
 
-    
+
     // Properties
     // =========================================================================
 
-    public static $name = 'Checkboxes';
     public static $class = CheckboxesField::class;
+    public static $name = 'Checkboxes';
 
 }

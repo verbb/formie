@@ -92,7 +92,7 @@ class Group extends FormField implements NestedFieldInterface, EagerLoadingField
     public function getPreviewInputHtml(): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/group/preview', [
-            'field' => $this
+            'field' => $this,
         ]);
     }
 
@@ -203,10 +203,10 @@ class Group extends FormField implements NestedFieldInterface, EagerLoadingField
             'fields' => function() use ($groupFields) {
                 return $groupFields;
             },
-            'resolveField' => function ($source, $args, $context, $info) {
+            'resolveField' => function($source, $args, $context, $info) {
                 $fieldName = Gql::getFieldNameWithAlias($info, $source, $context);
                 return $source[0][$fieldName] ?? null;
-            }
+            },
         ]));
     }
 }

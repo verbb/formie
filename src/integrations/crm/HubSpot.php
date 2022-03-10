@@ -19,6 +19,18 @@ use Throwable;
 
 class HubSpot extends Crm
 {
+    // Static Methods
+    // =========================================================================
+
+    /**
+     * @inheritDoc
+     */
+    public static function displayName(): string
+    {
+        return Craft::t('formie', 'HubSpot');
+    }
+    
+
     // Properties
     // =========================================================================
 
@@ -38,7 +50,7 @@ class HubSpot extends Crm
 
     // Public Methods
     // =========================================================================
-    
+
     /**
      * @inheritDoc
      */
@@ -61,14 +73,6 @@ class HubSpot extends Crm
         });
     }
 
-    /**
-     * @inheritDoc
-     */
-    public static function displayName(): string
-    {
-        return Craft::t('formie', 'HubSpot');
-    }
-
     public function getDescription(): string
     {
         return Craft::t('formie', 'Manage your HubSpot customers by providing important information on their conversion on your site.');
@@ -87,13 +91,17 @@ class HubSpot extends Crm
         $deal = $this->getFormSettingValue('deal');
 
         // Validate the following when saving form settings
-        $rules[] = [['contactFieldMapping'], 'validateFieldMapping', 'params' => $contact, 'when' => function($model) {
-            return $model->enabled && $model->mapToContact;
-        }, 'on' => [Integration::SCENARIO_FORM]];
+        $rules[] = [
+            ['contactFieldMapping'], 'validateFieldMapping', 'params' => $contact, 'when' => function($model) {
+                return $model->enabled && $model->mapToContact;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
 
-        $rules[] = [['dealFieldMapping'], 'validateFieldMapping', 'params' => $deal, 'when' => function($model) {
-            return $model->enabled && $model->mapToDeal;
-        }, 'on' => [Integration::SCENARIO_FORM]];
+        $rules[] = [
+            ['dealFieldMapping'], 'validateFieldMapping', 'params' => $deal, 'when' => function($model) {
+                return $model->enabled && $model->mapToDeal;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
 
         return $rules;
     }
@@ -438,12 +446,12 @@ class HubSpot extends Crm
 
             // Only allow supported types
             if (!in_array($field['type'], $supportedFields)) {
-                 continue;
+                continue;
             }
 
             // Exclude any names
             if (in_array($field['name'], $excludeNames)) {
-                 continue;
+                continue;
             }
 
             // Add in any options for some fields

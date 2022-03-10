@@ -58,12 +58,14 @@ class Dropdown extends BaseOptionsField implements FormFieldInterface
     public function getFieldDefaults(): array
     {
         return [
-            'options' => [[
-                'label' => Craft::t('formie', 'Select an option'),
-                'value' => '',
-                'isOptgroup' => false,
-                'isDefault' => true,
-            ]],
+            'options' => [
+                [
+                    'label' => Craft::t('formie', 'Select an option'),
+                    'value' => '',
+                    'isOptgroup' => false,
+                    'isDefault' => true,
+                ],
+            ],
         ];
     }
 
@@ -91,7 +93,7 @@ class Dropdown extends BaseOptionsField implements FormFieldInterface
     public function getPreviewInputHtml(): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/dropdown/preview', [
-            'field' => $this
+            'field' => $this,
         ]);
     }
 
@@ -123,16 +125,6 @@ class Dropdown extends BaseOptionsField implements FormFieldInterface
     }
 
     /**
-     * Sets the multi property.
-     *
-     * @param $value
-     */
-    public function setMultiple($value): void
-    {
-        $this->multi = $value;
-    }
-
-    /**
      * Returns the multi property.
      *
      * @return bool
@@ -143,11 +135,13 @@ class Dropdown extends BaseOptionsField implements FormFieldInterface
     }
 
     /**
-     * @inheritdoc
+     * Sets the multi property.
+     *
+     * @param $value
      */
-    protected function optionsSettingLabel(): string
+    public function setMultiple($value): void
     {
-        return Craft::t('app', 'Dropdown Options');
+        $this->multi = $value;
     }
 
     /**
@@ -255,5 +249,13 @@ class Dropdown extends BaseOptionsField implements FormFieldInterface
             SchemaHelper::enableConditionsField(),
             SchemaHelper::conditionsField(),
         ];
+    }
+
+    /**
+     * @inheritdoc
+     */
+    protected function optionsSettingLabel(): string
+    {
+        return Craft::t('app', 'Dropdown Options');
     }
 }

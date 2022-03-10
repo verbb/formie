@@ -11,11 +11,11 @@ class Date extends FeedMeDate
 
     use BaseFieldTrait;
 
-    
+
     // Properties
     // =========================================================================
 
-    public static $name = 'Date';
     public static $class = DateField::class;
+    public static $name = 'Date';
 
 }

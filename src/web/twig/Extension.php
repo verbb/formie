@@ -66,7 +66,7 @@ class Extension extends AbstractExtension
             $templatePath = Formie::$plugin->getRendering()->getFormComponentTemplatePath($form, $template);
             $view->setTemplatesPath($templatePath);
         }
-        
+
         return twig_include($env, $context, $template, $variables, $withContext, $ignoreMissing, $sandboxed);
     }
 

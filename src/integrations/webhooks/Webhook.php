@@ -14,13 +14,7 @@ use Throwable;
 
 class Webhook extends BaseWebhook
 {
-    // Properties
-    // =========================================================================
-
-    public ?string $webhook = null;
-
-
-    // Public Methods
+    // Static Methods
     // =========================================================================
 
     public static function supportsConnection(): bool
@@ -35,6 +29,16 @@ class Webhook extends BaseWebhook
     {
         return Craft::t('formie', 'Webhook');
     }
+    
+
+    // Properties
+    // =========================================================================
+
+    public ?string $webhook = null;
+
+
+    // Public Methods
+    // =========================================================================
 
     public function getDescription(): string
     {

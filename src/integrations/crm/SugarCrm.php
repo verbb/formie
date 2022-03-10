@@ -18,9 +18,26 @@ use GuzzleHttp\Client;
 
 class SugarCrm extends Crm
 {
-    // Properties
+    // Static Methods
     // =========================================================================
 
+    public static function supportsOauthConnection(): bool
+    {
+        return true;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public static function displayName(): string
+    {
+        return Craft::t('formie', 'SugarCRM');
+    }
+    
+
+    // Properties
+    // =========================================================================
+    
     public ?string $username = null;
     public ?string $password = null;
     public ?string $apiDomain = null;
@@ -34,13 +51,8 @@ class SugarCrm extends Crm
     public ?array $accountFieldMapping = null;
 
 
-    // OAuth Methods
+    // Public Methods
     // =========================================================================
-
-    public static function supportsOauthConnection(): bool
-    {
-        return true;
-    }
 
     public function oauth2Legged(): bool
     {
@@ -80,18 +92,6 @@ class SugarCrm extends Crm
         ];
     }
 
-
-    // Public Methods
-    // =========================================================================
-
-    /**
-     * @inheritDoc
-     */
-    public static function displayName(): string
-    {
-        return Craft::t('formie', 'SugarCRM');
-    }
-
     public function getDescription(): string
     {
         return Craft::t('formie', 'Manage your SugarCRM customers by providing important information on their conversion on your site.');
@@ -112,21 +112,29 @@ class SugarCrm extends Crm
         $account = $this->getFormSettingValue('account');
 
         // Validate the following when saving form settings
-        $rules[] = [['contactFieldMapping'], 'validateFieldMapping', 'params' => $contact, 'when' => function($model) {
-            return $model->enabled && $model->mapToContact;
-        }, 'on' => [Integration::SCENARIO_FORM]];
+        $rules[] = [
+            ['contactFieldMapping'], 'validateFieldMapping', 'params' => $contact, 'when' => function($model) {
+                return $model->enabled && $model->mapToContact;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
 
-        $rules[] = [['leadFieldMapping'], 'validateFieldMapping', 'params' => $lead, 'when' => function($model) {
-            return $model->enabled && $model->mapToLead;
-        }, 'on' => [Integration::SCENARIO_FORM]];
+        $rules[] = [
+            ['leadFieldMapping'], 'validateFieldMapping', 'params' => $lead, 'when' => function($model) {
+                return $model->enabled && $model->mapToLead;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
 
-        $rules[] = [['opportunityFieldMapping'], 'validateFieldMapping', 'params' => $opportunity, 'when' => function($model) {
-            return $model->enabled && $model->mapToOpportunity;
-        }, 'on' => [Integration::SCENARIO_FORM]];
+        $rules[] = [
+            ['opportunityFieldMapping'], 'validateFieldMapping', 'params' => $opportunity, 'when' => function($model) {
+                return $model->enabled && $model->mapToOpportunity;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
 
-        $rules[] = [['accountFieldMapping'], 'validateFieldMapping', 'params' => $account, 'when' => function($model) {
-            return $model->enabled && $model->mapToAccount;
-        }, 'on' => [Integration::SCENARIO_FORM]];
+        $rules[] = [
+            ['accountFieldMapping'], 'validateFieldMapping', 'params' => $account, 'when' => function($model) {
+                return $model->enabled && $model->mapToAccount;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
 
         return $rules;
     }
@@ -401,7 +409,7 @@ class SugarCrm extends Crm
 
             // Only allow supported types
             if (!in_array($type, $supportedFields)) {
-                 continue;
+                continue;
             }
 
             $customFields[] = new IntegrationField([

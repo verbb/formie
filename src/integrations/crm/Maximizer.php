@@ -16,9 +16,21 @@ use Exception;
 
 class Maximizer extends Crm
 {
-    // Properties
+    // Static Methods
     // =========================================================================
 
+    /**
+     * @inheritDoc
+     */
+    public static function displayName(): string
+    {
+        return Craft::t('formie', 'Maximizer');
+    }
+    
+
+    // Properties
+    // =========================================================================
+    
     public ?string $username = null;
     public ?string $password = null;
     public ?string $webAccessUrl = null;
@@ -33,14 +45,6 @@ class Maximizer extends Crm
 
     // Public Methods
     // =========================================================================
-
-    /**
-     * @inheritDoc
-     */
-    public static function displayName(): string
-    {
-        return Craft::t('formie', 'Maximizer');
-    }
 
     public function getDescription(): string
     {
@@ -60,13 +64,17 @@ class Maximizer extends Crm
         $opportunity = $this->getFormSettingValue('opportunity');
 
         // Validate the following when saving form settings
-        $rules[] = [['contactFieldMapping'], 'validateFieldMapping', 'params' => $contact, 'when' => function($model) {
-            return $model->enabled && $model->mapToContact;
-        }, 'on' => [Integration::SCENARIO_FORM]];
+        $rules[] = [
+            ['contactFieldMapping'], 'validateFieldMapping', 'params' => $contact, 'when' => function($model) {
+                return $model->enabled && $model->mapToContact;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
 
-        $rules[] = [['contactFieldMapping'], 'validateFieldMapping', 'params' => $opportunity, 'when' => function($model) {
-            return $model->enabled && $model->mapToOpportunity;
-        }, 'on' => [Integration::SCENARIO_FORM]];
+        $rules[] = [
+            ['contactFieldMapping'], 'validateFieldMapping', 'params' => $opportunity, 'when' => function($model) {
+                return $model->enabled && $model->mapToOpportunity;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
 
         return $rules;
     }
@@ -192,7 +200,7 @@ class Maximizer extends Crm
     {
         try {
             $response = $this->request('POST', 'AbEntryRead', [
-               'json' => [
+                'json' => [
                     'AbEntry' => [
                         'Criteria' => [
                             'SearchQuery' => [

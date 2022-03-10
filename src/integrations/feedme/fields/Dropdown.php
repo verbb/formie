@@ -11,11 +11,11 @@ class Dropdown extends FeedMeDropdown
 
     use BaseFieldTrait;
 
-    
+
     // Properties
     // =========================================================================
 
-    public static $name = 'Dropdown';
     public static $class = DropdownField::class;
+    public static $name = 'Dropdown';
 
 }

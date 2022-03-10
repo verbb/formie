@@ -5,6 +5,7 @@ use verbb\formie\Formie;
 use verbb\formie\base\Integration;
 use verbb\formie\base\EmailMarketing;
 use verbb\formie\elements\Submission;
+use verbb\formie\errors\IntegrationException;
 use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
@@ -12,12 +13,29 @@ use verbb\formie\models\IntegrationFormSettings;
 use Craft;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
+
 use Throwable;
+
 use GuzzleHttp\Client;
-use verbb\formie\errors\IntegrationException;
 
 class AWeber extends EmailMarketing
 {
+    // Static Methods
+    // =========================================================================
+
+    public static function supportsOauthConnection(): bool
+    {
+        return true;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public static function displayName(): string
+    {
+        return Craft::t('formie', 'AWeber');
+    }
+
     // Properties
     // =========================================================================
 
@@ -25,13 +43,8 @@ class AWeber extends EmailMarketing
     public ?string $clientSecret = null;
 
 
-    // OAuth Methods
+    // Public Methods
     // =========================================================================
-
-    public static function supportsOauthConnection(): bool
-    {
-        return true;
-    }
 
     public function getAuthorizeUrl(): string
     {
@@ -78,18 +91,6 @@ class AWeber extends EmailMarketing
         return array_merge(parent::getOauthProviderConfig(), [
             'scopeSeparator' => ' ',
         ]);
-    }
-
-
-    // Public Methods
-    // =========================================================================
-
-    /**
-     * @inheritDoc
-     */
-    public static function displayName(): string
-    {
-        return Craft::t('formie', 'AWeber');
     }
 
     public function getDescription(): string

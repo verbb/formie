@@ -11,13 +11,7 @@ use Throwable;
 
 class MethodCrm extends Crm
 {
-    // Properties
-    // =========================================================================
-
-    public ?string $apiKey = null;
-
-
-    // Public Methods
+    // Static Methods
     // =========================================================================
 
     /**
@@ -27,6 +21,16 @@ class MethodCrm extends Crm
     {
         return Craft::t('formie', 'Method:CRM');
     }
+    
+
+    // Properties
+    // =========================================================================
+    
+    public ?string $apiKey = null;
+
+
+    // Public Methods
+    // =========================================================================
 
     public function getDescription(): string
     {
@@ -50,7 +54,7 @@ class MethodCrm extends Crm
         $allLists = [];
 
         try {
-            
+
         } catch (Throwable $e) {
             Integration::apiError($this, $e);
         }
@@ -61,7 +65,7 @@ class MethodCrm extends Crm
     public function sendPayload(Submission $submission): bool
     {
         try {
-            
+
         } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
@@ -74,7 +78,7 @@ class MethodCrm extends Crm
     public function fetchConnection(): bool
     {
         try {
-            
+
         } catch (Throwable $e) {
             Integration::apiError($this, $e);
 

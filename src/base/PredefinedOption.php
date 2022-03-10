@@ -6,11 +6,25 @@ use craft\helpers\StringHelper;
 
 abstract class PredefinedOption extends Component implements PredefinedOptionInterface
 {
-    // Protected Properties
+    // Properties
     // =========================================================================
 
     public static ?string $defaultLabelOption = null;
     public static ?string $defaultValueOption = null;
+
+
+    // Static Method
+    // =========================================================================
+
+    public static function getLabelOptions(): array
+    {
+        return [];
+    }
+
+    public static function getValueOptions(): array
+    {
+        return [];
+    }
 
 
     // Public Method
@@ -22,15 +36,5 @@ abstract class PredefinedOption extends Component implements PredefinedOptionInt
         $end = array_pop($classNameParts);
 
         return StringHelper::toKebabCase($end);
-    }
-
-    public static function getLabelOptions(): array
-    {
-        return [];
-    }
-
-    public static function getValueOptions(): array
-    {
-        return [];
     }
 }

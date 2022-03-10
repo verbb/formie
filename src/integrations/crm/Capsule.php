@@ -16,6 +16,18 @@ use Throwable;
 
 class Capsule extends Crm
 {
+    // Static Methods
+    // =========================================================================
+
+    /**
+     * @inheritDoc
+     */
+    public static function displayName(): string
+    {
+        return Craft::t('formie', 'Capsule');
+    }
+    
+
     // Properties
     // =========================================================================
 
@@ -30,14 +42,6 @@ class Capsule extends Crm
 
     // Public Methods
     // =========================================================================
-
-    /**
-     * @inheritDoc
-     */
-    public static function displayName(): string
-    {
-        return Craft::t('formie', 'Capsule');
-    }
 
     public function getDescription(): string
     {
@@ -58,17 +62,23 @@ class Capsule extends Crm
         $task = $this->getFormSettingValue('task');
 
         // Validate the following when saving form settings
-        $rules[] = [['peopleFieldMapping'], 'validateFieldMapping', 'params' => $people, 'when' => function($model) {
-            return $model->enabled && $model->mapToPeople;
-        }, 'on' => [Integration::SCENARIO_FORM]];
+        $rules[] = [
+            ['peopleFieldMapping'], 'validateFieldMapping', 'params' => $people, 'when' => function($model) {
+                return $model->enabled && $model->mapToPeople;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
 
-        $rules[] = [['opportunityFieldMapping'], 'validateFieldMapping', 'params' => $opportunity, 'when' => function($model) {
-            return $model->enabled && $model->mapToOpportunity;
-        }, 'on' => [Integration::SCENARIO_FORM]];
+        $rules[] = [
+            ['opportunityFieldMapping'], 'validateFieldMapping', 'params' => $opportunity, 'when' => function($model) {
+                return $model->enabled && $model->mapToOpportunity;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
 
-        $rules[] = [['taskFieldMapping'], 'validateFieldMapping', 'params' => $task, 'when' => function($model) {
-            return $model->enabled && $model->mapToTask;
-        }, 'on' => [Integration::SCENARIO_FORM]];
+        $rules[] = [
+            ['taskFieldMapping'], 'validateFieldMapping', 'params' => $task, 'when' => function($model) {
+                return $model->enabled && $model->mapToTask;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
 
         return $rules;
     }
@@ -123,7 +133,7 @@ class Capsule extends Crm
             // Get Opportunity fields
             $milestoneOptions = [];
             $lostReasonOptions = [];
-            
+
             $milestones = $this->request('GET', 'milestones')['milestones'] ?? [];
             $lostReasons = $this->request('GET', 'lostreasons')['lostReasons'] ?? [];
 
@@ -231,7 +241,7 @@ class Capsule extends Crm
 
             // Get Task fields
             $categoryOptions = [];
-            
+
             $categories = $this->request('GET', 'categories')['categories'] ?? [];
 
             foreach ($categories as $category) {
@@ -485,24 +495,30 @@ class Capsule extends Crm
             }
 
             if ($key === 'emailAddresses') {
-                $fields[$key] = [[
-                    'type' => 'Work',
-                    'address' => $value,
-                ]];
+                $fields[$key] = [
+                    [
+                        'type' => 'Work',
+                        'address' => $value,
+                    ],
+                ];
             }
 
             if ($key === 'phoneNumbers') {
-                $fields[$key] = [[
-                    'type' => 'Work',
-                    'number' => $value,
-                ]];
+                $fields[$key] = [
+                    [
+                        'type' => 'Work',
+                        'number' => $value,
+                    ],
+                ];
             }
 
             if ($key === 'websites') {
-                $fields[$key] = [[
-                    'service' => 'URL',
-                    'address' => $value,
-                ]];
+                $fields[$key] = [
+                    [
+                        'service' => 'URL',
+                        'address' => $value,
+                    ],
+                ];
             }
 
             if ($key === 'milestone') {

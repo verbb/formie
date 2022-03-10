@@ -11,11 +11,11 @@ class Number extends FeedMeNumber
 
     use BaseFieldTrait;
 
-    
+
     // Properties
     // =========================================================================
 
-    public static $name = 'Number';
     public static $class = NumberField::class;
+    public static $name = 'Number';
 
 }

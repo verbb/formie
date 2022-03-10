@@ -17,14 +17,7 @@ class Google extends AddressProvider
     public const EVENT_MODIFY_ADDRESS_PROVIDER_HTML = 'modifyAddressProviderHtml';
 
 
-    // Properties
-    // =========================================================================
-
-    public ?string $apiKey = null;
-    public array $options = [];
-
-
-    // Public Methods
+    // Static Methods
     // =========================================================================
 
     /**
@@ -39,6 +32,17 @@ class Google extends AddressProvider
     {
         return true;
     }
+    
+
+    // Properties
+    // =========================================================================
+
+    public ?string $apiKey = null;
+    public array $options = [];
+
+
+    // Public Methods
+    // =========================================================================
 
     public function getDescription(): string
     {

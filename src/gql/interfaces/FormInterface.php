@@ -18,7 +18,7 @@ use GraphQL\Type\Definition\Type;
 
 class FormInterface extends Element
 {
-    // Public Methods
+    // Static Methods
     // =========================================================================
 
     public static function getTypeGenerator(): string
@@ -102,7 +102,7 @@ class FormInterface extends Element
                         'type' => Type::string(),
                     ],
                 ],
-                'resolve' => function ($source, $arguments) {
+                'resolve' => function($source, $arguments) {
                     $options = Json::decodeIfJson($arguments['options'] ?? null);
                     $populateFormValues = Json::decodeIfJson($arguments['populateFormValues'] ?? null);
 
@@ -117,7 +117,7 @@ class FormInterface extends Element
                 'name' => 'csrfToken',
                 'type' => CsrfTokenType::getType(),
                 'description' => 'A CSRF token (name and value)',
-                'resolve' => function () {
+                'resolve' => function() {
                     if (!Craft::$app->getConfig()->getGeneral()->enableCsrfProtection) {
                         return null;
                     }

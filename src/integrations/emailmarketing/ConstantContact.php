@@ -13,19 +13,14 @@ use Craft;
 use craft\helpers\ArrayHelper;
 use craft\helpers\DateTimeHelper;
 use craft\helpers\Json;
+
 use Throwable;
+
 use GuzzleHttp\Client;
 
 class ConstantContact extends EmailMarketing
 {
-    // Properties
-    // =========================================================================
-
-    public ?string $apiKey = null;
-    public ?string $appSecret = null;
-
-
-    // OAuth Methods
+    // Static Methods
     // =========================================================================
 
     public static function supportsOauthConnection(): bool
@@ -33,10 +28,29 @@ class ConstantContact extends EmailMarketing
         return true;
     }
 
+    /**
+     * @inheritDoc
+     */
+    public static function displayName(): string
+    {
+        return Craft::t('formie', 'Constant Contact');
+    }
+
+
+    // Properties
+    // =========================================================================
+
+    public ?string $apiKey = null;
+    public ?string $appSecret = null;
+
+
+    // Public Methods
+    // =========================================================================
+
     public function getAuthorizeUrl(): string
     {
         $useNewEndpoint = Craft::parseEnv('$FORMIE_INTEGRATION_CC_NEW_ENDPOINT');
-        
+
         // Check for deprecated endpoint
         if (!DateTimeHelper::isInThePast('2022-04-01 00:00:00') && $useNewEndpoint !== true) {
             return 'https://api.cc.email/v3/idfed';
@@ -70,18 +84,6 @@ class ConstantContact extends EmailMarketing
     public function getOauthScope(): array
     {
         return ['contact_data'];
-    }
-
-
-    // Public Methods
-    // =========================================================================
-
-    /**
-     * @inheritDoc
-     */
-    public static function displayName(): string
-    {
-        return Craft::t('formie', 'Constant Contact');
     }
 
     public function getDescription(): string
@@ -273,7 +275,7 @@ class ConstantContact extends EmailMarketing
         foreach ($fields as $field) {
             // Exclude any names
             if (in_array($field['label'], $excludeNames)) {
-                 continue;
+                continue;
             }
 
             $customFields[] = new IntegrationField([

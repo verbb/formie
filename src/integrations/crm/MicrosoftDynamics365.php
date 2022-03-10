@@ -17,9 +17,26 @@ use GuzzleHttp\Client;
 
 class MicrosoftDynamics365 extends Crm
 {
-    // Properties
+    // Static Methods
     // =========================================================================
 
+    public static function supportsOauthConnection(): bool
+    {
+        return true;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public static function displayName(): string
+    {
+        return Craft::t('formie', 'Microsoft Dynamics 365');
+    }
+    
+
+    // Properties
+    // =========================================================================
+    
     public ?string $clientId = null;
     public ?string $clientSecret = null;
     public ?string $apiDomain = null;
@@ -35,13 +52,8 @@ class MicrosoftDynamics365 extends Crm
     private array $_entityOptions = [];
 
 
-    // OAuth Methods
+    // Public Methods
     // =========================================================================
-
-    public static function supportsOauthConnection(): bool
-    {
-        return true;
-    }
 
     public function getClientId(): string
     {
@@ -77,18 +89,6 @@ class MicrosoftDynamics365 extends Crm
         ]);
     }
 
-
-    // Public Methods
-    // =========================================================================
-
-    /**
-     * @inheritDoc
-     */
-    public static function displayName(): string
-    {
-        return Craft::t('formie', 'Microsoft Dynamics 365');
-    }
-
     public function getDescription(): string
     {
         return Craft::t('formie', 'Manage your Microsoft Dynamics 365 customers by providing important information on their conversion on your site.');
@@ -109,21 +109,29 @@ class MicrosoftDynamics365 extends Crm
         $account = $this->getFormSettingValue('account');
 
         // Validate the following when saving form settings
-        $rules[] = [['contactFieldMapping'], 'validateFieldMapping', 'params' => $contact, 'when' => function($model) {
-            return $model->enabled && $model->mapToContact;
-        }, 'on' => [Integration::SCENARIO_FORM]];
+        $rules[] = [
+            ['contactFieldMapping'], 'validateFieldMapping', 'params' => $contact, 'when' => function($model) {
+                return $model->enabled && $model->mapToContact;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
 
-        $rules[] = [['leadFieldMapping'], 'validateFieldMapping', 'params' => $lead, 'when' => function($model) {
-            return $model->enabled && $model->mapToLead;
-        }, 'on' => [Integration::SCENARIO_FORM]];
+        $rules[] = [
+            ['leadFieldMapping'], 'validateFieldMapping', 'params' => $lead, 'when' => function($model) {
+                return $model->enabled && $model->mapToLead;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
 
-        $rules[] = [['opportunityFieldMapping'], 'validateFieldMapping', 'params' => $opportunity, 'when' => function($model) {
-            return $model->enabled && $model->mapToOpportunity;
-        }, 'on' => [Integration::SCENARIO_FORM]];
+        $rules[] = [
+            ['opportunityFieldMapping'], 'validateFieldMapping', 'params' => $opportunity, 'when' => function($model) {
+                return $model->enabled && $model->mapToOpportunity;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
 
-        $rules[] = [['accountFieldMapping'], 'validateFieldMapping', 'params' => $account, 'when' => function($model) {
-            return $model->enabled && $model->mapToAccount;
-        }, 'on' => [Integration::SCENARIO_FORM]];
+        $rules[] = [
+            ['accountFieldMapping'], 'validateFieldMapping', 'params' => $account, 'when' => function($model) {
+                return $model->enabled && $model->mapToAccount;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
 
         return $rules;
     }
@@ -295,7 +303,7 @@ class MicrosoftDynamics365 extends Crm
         if (!$token) {
             Integration::apiError($this, 'Token not found for integration.', true);
         }
-        
+
         $url = rtrim(Craft::parseEnv($this->apiDomain), '/');
 
         $this->_client = Craft::createGuzzleClient([

@@ -11,6 +11,9 @@ use GraphQL\Type\Definition\Type;
 
 class RepeaterInputType extends InputObjectType
 {
+    // Static Methods
+    // =========================================================================
+
     /**
      * Create the type for a Repeater form field
      *
@@ -80,7 +83,7 @@ class RepeaterInputType extends InputObjectType
                     $key = 'new' . $rowCounter++;
                     $sortOrder[] = $key;
                     $preparedRows[$key] = [
-                        'fields' => $row
+                        'fields' => $row,
                     ];
                 }
             }

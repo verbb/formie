@@ -18,9 +18,21 @@ use Throwable;
 
 class SharpSpring extends Crm
 {
-    // Properties
+    // Static Methods
     // =========================================================================
 
+    /**
+     * @inheritDoc
+     */
+    public static function displayName(): string
+    {
+        return Craft::t('formie', 'SharpSpring');
+    }
+    
+
+    // Properties
+    // =========================================================================
+    
     public ?string $accountId = null;
     public ?string $secretKey = null;
     public ?string $formUrl = null;
@@ -32,14 +44,6 @@ class SharpSpring extends Crm
 
     // Public Methods
     // =========================================================================
-
-    /**
-     * @inheritDoc
-     */
-    public static function displayName(): string
-    {
-        return Craft::t('formie', 'SharpSpring');
-    }
 
     public function getDescription(): string
     {
@@ -58,9 +62,11 @@ class SharpSpring extends Crm
         $contact = $this->getFormSettingValue('contact');
 
         // Validate the following when saving form settings
-        $rules[] = [['contactFieldMapping'], 'validateFieldMapping', 'params' => $contact, 'when' => function($model) {
-            return $model->enabled && $model->mapToContact;
-        }, 'on' => [Integration::SCENARIO_FORM]];
+        $rules[] = [
+            ['contactFieldMapping'], 'validateFieldMapping', 'params' => $contact, 'when' => function($model) {
+                return $model->enabled && $model->mapToContact;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
 
         return $rules;
     }

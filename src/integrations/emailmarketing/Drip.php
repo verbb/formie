@@ -12,11 +12,29 @@ use verbb\formie\models\IntegrationFormSettings;
 use Craft;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
+
 use Throwable;
+
 use GuzzleHttp\Client;
 
 class Drip extends EmailMarketing
 {
+    // Static Methods
+    // =========================================================================
+
+    public static function supportsOauthConnection(): bool
+    {
+        return true;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public static function displayName(): string
+    {
+        return Craft::t('formie', 'Drip');
+    }
+
     // Properties
     // =========================================================================
 
@@ -24,13 +42,8 @@ class Drip extends EmailMarketing
     public ?string $clientSecret = null;
 
 
-    // OAuth Methods
+    // Public Methods
     // =========================================================================
-
-    public static function supportsOauthConnection(): bool
-    {
-        return true;
-    }
 
     public function getAuthorizeUrl(): string
     {
@@ -50,18 +63,6 @@ class Drip extends EmailMarketing
     public function getClientSecret(): string
     {
         return Craft::parseEnv($this->clientSecret);
-    }
-
-
-    // Public Methods
-    // =========================================================================
-
-    /**
-     * @inheritDoc
-     */
-    public static function displayName(): string
-    {
-        return Craft::t('formie', 'Drip');
     }
 
     public function getDescription(): string

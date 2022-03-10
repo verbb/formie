@@ -10,12 +10,6 @@ use craft\helpers\UrlHelper;
 
 abstract class Crm extends Integration
 {
-    // Properties
-    // =========================================================================
-
-    public ?string $optInField = null;
-
-
     // Static Methods
     // =========================================================================
 
@@ -23,6 +17,12 @@ abstract class Crm extends Integration
     {
         return Craft::t('formie', 'CRM');
     }
+
+
+    // Properties
+    // =========================================================================
+    
+    public ?string $optInField = null;
 
 
     // Public Methods

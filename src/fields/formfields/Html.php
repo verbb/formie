@@ -13,8 +13,9 @@ use craft\base\ElementInterface;
 use craft\helpers\HTMLPurifier;
 use craft\helpers\Json;
 
-use HTMLPurifier_Config;
 use yii\base\Exception;
+
+use HTMLPurifier_Config;
 
 class Html extends FormField
 {
@@ -107,7 +108,7 @@ class Html extends FormField
     public function getPreviewInputHtml(): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/html/preview', [
-            'field' => $this
+            'field' => $this,
         ]);
     }
 
@@ -220,7 +221,7 @@ class Html extends FormField
                 // Try again with Default
                 return $this->_getConfig($dir);
             }
-            
+
             return false;
         }
 

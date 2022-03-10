@@ -12,8 +12,9 @@ use craft\gql\base\ElementMutationResolver;
 use craft\gql\base\Mutation;
 use craft\helpers\Gql;
 
-use GraphQL\Type\Definition\Type;
 use yii\base\InvalidConfigException;
+
+use GraphQL\Type\Definition\Type;
 
 class SubmissionMutation extends Mutation
 {
@@ -35,7 +36,7 @@ class SubmissionMutation extends Mutation
             $canCreateAll = Gql::canSchema('formieSubmissions.all', 'create');
             $canSaveAll = Gql::canSchema('formieSubmissions.all', 'save');
             $canDeleteAll = Gql::canSchema('formieSubmissions.all', 'delete');
-            
+
             $canCreate = Gql::canSchema($scope, 'create');
             $canSave = Gql::canSchema($scope, 'save');
             $canDelete = Gql::canSchema($scope, 'delete');

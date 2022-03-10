@@ -10,17 +10,12 @@ use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
 use craft\helpers\Json;
+
 use Throwable;
 
 class Sender extends EmailMarketing
 {
-    // Properties
-    // =========================================================================
-
-    public ?string $apiKey = null;
-
-
-    // Public Methods
+    // Static Methods
     // =========================================================================
 
     /**
@@ -30,6 +25,15 @@ class Sender extends EmailMarketing
     {
         return Craft::t('formie', 'Sender');
     }
+
+    // Properties
+    // =========================================================================
+
+    public ?string $apiKey = null;
+
+
+    // Public Methods
+    // =========================================================================
 
     public function getDescription(): string
     {
@@ -176,7 +180,7 @@ class Sender extends EmailMarketing
                 'method' => 'POST',
                 'header' => 'Content-Type: application/x-www-form-urlencoded',
                 'content' => http_build_query(['data' => Json::encode($data)]),
-            ]
+            ],
         ];
 
         $context = stream_context_create($options);

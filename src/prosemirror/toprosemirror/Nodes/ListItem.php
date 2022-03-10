@@ -16,7 +16,7 @@ class ListItem extends Node
     public function data(): ?array
     {
         if ($this->DOMNode->childNodes->length === 1
-                && $this->DOMNode->childNodes[0]->nodeName == "p") {
+            && $this->DOMNode->childNodes[0]->nodeName == "p") {
             $this->wrapper = null;
         }
 

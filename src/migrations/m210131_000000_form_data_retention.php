@@ -15,8 +15,8 @@ class m210131_000000_form_data_retention extends Migration
         if ($this->db->getIsPgsql()) {
             // Manually construct the SQL for Postgres
             $checkSql = '[[dataRetention]] in (' . implode(',', array_map(function(string $item) {
-                return $this->db->quoteValue($item);
-            }, $items)) . ')';
+                    return $this->db->quoteValue($item);
+                }, $items)) . ')';
 
             $this->execute("alter table {{%formie_forms}} drop constraint {{%formie_forms_dataRetention_check}}, add check ($checkSql)");
         } else {

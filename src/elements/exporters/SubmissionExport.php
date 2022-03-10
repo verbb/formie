@@ -11,7 +11,7 @@ class SubmissionExport extends ElementExporter
 {
     // Static Methods
     // =========================================================================
-    
+
     /**
      * @inheritdoc
      */

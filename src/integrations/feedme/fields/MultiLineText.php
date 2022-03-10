@@ -10,11 +10,11 @@ class MultiLineText extends DefaultField
 
     use BaseFieldTrait;
 
-    
+
     // Properties
     // =========================================================================
 
-    public static $name = 'MultiLineText';
     public static $class = MultiLineTextField::class;
+    public static $name = 'MultiLineText';
 
 }

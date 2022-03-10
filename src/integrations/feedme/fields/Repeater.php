@@ -15,12 +15,12 @@ class Repeater extends Field implements FieldInterface
 
     use BaseFieldTrait;
 
-    
+
     // Properties
     // =========================================================================
 
-    public static $name = 'Repeater';
     public static $class = RepeaterField::class;
+    public static $name = 'Repeater';
 
 
     // Templates
@@ -44,7 +44,7 @@ class Repeater extends Field implements FieldInterface
     public function parseField()
     {
         $this->beforeParseField();
-        
+
         $preppedData = [];
 
         $fields = Hash::get($this->fieldInfo, 'fields');

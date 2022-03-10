@@ -14,17 +14,12 @@ use craft\helpers\Json;
 
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Client;
+
 use Throwable;
 
 class EmailOctopus extends EmailMarketing
 {
-    // Properties
-    // =========================================================================
-
-    public ?string $apiKey = null;
-
-
-    // Public Methods
+    // Static Methods
     // =========================================================================
 
     /**
@@ -34,6 +29,15 @@ class EmailOctopus extends EmailMarketing
     {
         return Craft::t('formie', 'EmailOctopus');
     }
+
+    // Properties
+    // =========================================================================
+
+    public ?string $apiKey = null;
+
+
+    // Public Methods
+    // =========================================================================
 
     public function getDescription(): string
     {
@@ -67,7 +71,7 @@ class EmailOctopus extends EmailMarketing
 
             foreach ($lists as $list) {
                 $listFields = $this->_getCustomFields($list['fields']);
-            
+
                 $settings['lists'][] = new IntegrationCollection([
                     'id' => $list['id'],
                     'name' => $list['name'],

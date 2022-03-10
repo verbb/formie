@@ -11,11 +11,6 @@ class CodeBlock extends Node
             $this->DOMNode->parentNode->nodeName === 'pre';
     }
 
-    private function getLanguage(): array|string|null
-    {
-        return preg_replace("/^language-/", "", $this->DOMNode->getAttribute('class'));
-    }
-
     public function data(): ?array
     {
         if ($this->getLanguage()) {
@@ -30,5 +25,10 @@ class CodeBlock extends Node
         return [
             'type' => 'code_block',
         ];
+    }
+
+    private function getLanguage(): array|string|null
+    {
+        return preg_replace("/^language-/", "", $this->DOMNode->getAttribute('class'));
     }
 }

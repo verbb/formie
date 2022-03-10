@@ -46,7 +46,7 @@ class m210309_000000_fix_formId extends Migration
 
                     if ($outerField) {
                         $settings['formId'] = $this->getFormId($outerField);
-                        
+
                         $this->update('{{%fields}}', ['settings' => Json::encode($settings)], ['id' => $field['id']], [], false);
                     }
                 }

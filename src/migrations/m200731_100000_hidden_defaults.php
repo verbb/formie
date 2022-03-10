@@ -27,7 +27,7 @@ class m200731_100000_hidden_defaults extends Migration
             $settings['defaultOption'] = 'custom';
 
             $this->update(Table::FIELDS, [
-                'settings' => Json::encode($settings)
+                'settings' => Json::encode($settings),
             ], ['id' => $field['id']], [], false);
         }
 

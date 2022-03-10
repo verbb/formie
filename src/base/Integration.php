@@ -12,6 +12,7 @@ use verbb\formie\fields\formfields\Agree;
 use verbb\formie\helpers\UrlHelper as FormieUrlHelper;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
+use verbb\formie\models\Token;
 use verbb\formie\records\Integration as IntegrationRecord;
 
 use Craft;
@@ -25,10 +26,11 @@ use craft\web\Response;
 
 use League\OAuth2\Client\Provider\AbstractProvider;
 use League\OAuth2\Client\Provider\GenericProvider;
+
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Client;
+
 use Throwable;
-use verbb\formie\models\Token;
 
 abstract class Integration extends SavableComponent implements IntegrationInterface
 {
@@ -55,27 +57,6 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     public const SCENARIO_FORM = 'form';
 
     public const CONNECT_SUCCESS = 'success';
-
-
-    // Properties
-    // =========================================================================
-
-    public ?string $name = null;
-    public ?string $handle = null;
-    public ?string $type = null;
-    public ?bool $enabled = null;
-    public ?int $sortOrder = null;
-    public array $cache = [];
-    public ?string $tokenId = null;
-    public ?string $uid = null;
-
-    // Used to retain the referrer URL from submissions
-    public string $referrer = '';
-
-    protected ?Client $_client = null;
-
-    // Keep track of whether run in the context of a queue job
-    private ?bool $_queueJob = null;
 
 
     // Static Methods
@@ -149,6 +130,32 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         }
     }
 
+    private static function isEmpty($value): bool
+    {
+        return $value === '' || $value === [] || $value === null;
+    }
+
+
+    // Properties
+    // =========================================================================
+
+    public ?string $name = null;
+    public ?string $handle = null;
+    public ?string $type = null;
+    public ?bool $enabled = null;
+    public ?int $sortOrder = null;
+    public array $cache = [];
+    public ?string $tokenId = null;
+    public ?string $uid = null;
+
+    // Used to retain the referrer URL from submissions
+    public string $referrer = '';
+
+    protected ?Client $_client = null;
+
+    // Keep track of whether run in the context of a queue job
+    private ?bool $_queueJob = null;
+
 
     // Public Methods
     // =========================================================================
@@ -164,31 +171,6 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         $scenarios[self::SCENARIO_FORM] = $scenarios[self::SCENARIO_FORM] ?? [];
 
         return $scenarios;
-    }
-
-    /**
-     * @inheritdoc
-     */
-    protected function defineRules(): array
-    {
-        $rules = parent::defineRules();
-        $rules[] = [['id'], 'number', 'integerOnly' => true];
-        $rules[] = [['handle'], UniqueValidator::class, 'targetClass' => IntegrationRecord::class];
-        $rules[] = [['name', 'handle'], 'string', 'max' => 255];
-        $rules[] = [['name', 'handle'], 'required'];
-        $rules[] = [
-            ['handle'],
-            HandleValidator::class,
-            'reservedWords' => [
-                'id',
-                'dateCreated',
-                'dateUpdated',
-                'uid',
-                'title',
-            ]
-        ];
-
-        return $rules;
     }
 
     public function getName(): string
@@ -224,14 +206,14 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         return true;
     }
 
-    public function setQueueJob($value): void
-    {
-        $this->_queueJob = $value;
-    }
-
     public function getQueueJob(): ?bool
     {
         return $this->_queueJob;
+    }
+
+    public function setQueueJob($value): void
+    {
+        $this->_queueJob = $value;
     }
 
     public function setClient($value): void
@@ -293,7 +275,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         // If using the cache (the default), don't fetch it automatically. Just save API requests a tad.
         if ($useCache) {
             $settings = $this->getCache('settings') ?: [];
-            
+
             // De-serialize it from the cache back into full, nested class objects
             $formSettings = new IntegrationFormSettings();
             $formSettings->unserialize($settings);
@@ -325,7 +307,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
 
         // Save a serialised version to the cache, that retains classes
         $this->setCache(['settings' => $settings->serialize()]);
-        
+
         // Always deal with a `IntegrationFormSettings` model
         return $settings;
     }
@@ -399,10 +381,12 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     public function oauthConnect(): ?Response
     {
         switch ($this->oauthVersion()) {
-            case 1: {
+            case 1:
+            {
                 return $this->oauth1Connect();
             }
-            case 2: {
+            case 2:
+            {
                 return $this->oauth2Connect();
             }
         }
@@ -413,10 +397,12 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     public function oauthCallback(): ?array
     {
         switch ($this->oauthVersion()) {
-            case 1: {
+            case 1:
+            {
                 return $this->oauth1Callback();
             }
-            case 2: {
+            case 2:
+            {
                 return $this->oauth2Callback();
             }
         }
@@ -455,76 +441,6 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     public function afterFetchAccessToken($token): void
     {
         return;
-    }
-
-    private function oauth1Connect(): Response
-    {
-        $provider = $this->getOauthProvider();
-
-        // Obtain temporary credentials
-        $temporaryCredentials = $provider->getTemporaryCredentials();
-
-        // Store credentials in the session
-        Craft::$app->getSession()->set('oauth.temporaryCredentials', $temporaryCredentials);
-
-        // Redirect to the login screen
-        $authorizationUrl = $provider->getAuthorizationUrl($temporaryCredentials);
-
-        return Craft::$app->getResponse()->redirect($authorizationUrl);
-    }
-
-    private function oauth2Connect(): Response
-    {
-        $provider = $this->getOauthProvider();
-
-        Craft::$app->getSession()->set('formie.oauthState', $provider->getState());
-
-        $options = $this->getOauthAuthorizationOptions();
-        $options['scope'] = $this->getOauthScope();
-
-        $authorizationUrl = $provider->getAuthorizationUrl($options);
-
-        return Craft::$app->getResponse()->redirect($authorizationUrl);
-    }
-
-    private function oauth1Callback(): array
-    {
-        $provider = $this->getOauthProvider();
-
-        $oauthToken = Craft::$app->getRequest()->getParam('oauth_token');
-        $oauthVerifier = Craft::$app->getRequest()->getParam('oauth_verifier');
-
-        // Retrieve the temporary credentials we saved before.
-        $temporaryCredentials = Craft::$app->getSession()->get('oauth.temporaryCredentials');
-
-        // Obtain token credentials from the server.
-        $token = $provider->getTokenCredentials($temporaryCredentials, $oauthToken, $oauthVerifier);
-
-        return [
-            'success' => true,
-            'token' => $token
-        ];
-    }
-
-    private function oauth2Callback(): array
-    {
-        $provider = $this->getOauthProvider();
-
-        $code = Craft::$app->getRequest()->getParam('code');
-
-        $this->beforeFetchAccessToken($provider);
-
-        // Try to get an access token (using the authorization code grant)
-        $token = $provider->getAccessToken('authorization_code', [
-            'code' => $code,
-        ]);
-
-        $this->afterFetchAccessToken($token);
-
-        return [
-            'success' => true,
-            'token' => $token,
-        ];
     }
 
     public function getToken($refresh = true): ?Token
@@ -766,8 +682,108 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         return null;
     }
 
+
+    // Protected Methods
+    // =========================================================================
+
+    /**
+     * @inheritdoc
+     */
+    protected function defineRules(): array
+    {
+        $rules = parent::defineRules();
+        $rules[] = [['id'], 'number', 'integerOnly' => true];
+        $rules[] = [['handle'], UniqueValidator::class, 'targetClass' => IntegrationRecord::class];
+        $rules[] = [['name', 'handle'], 'string', 'max' => 255];
+        $rules[] = [['name', 'handle'], 'required'];
+        $rules[] = [
+            ['handle'],
+            HandleValidator::class,
+            'reservedWords' => [
+                'id',
+                'dateCreated',
+                'dateUpdated',
+                'uid',
+                'title',
+            ],
+        ];
+
+        return $rules;
+    }
+
+
     // Private Methods
     // =========================================================================
+
+    private function oauth1Connect(): Response
+    {
+        $provider = $this->getOauthProvider();
+
+        // Obtain temporary credentials
+        $temporaryCredentials = $provider->getTemporaryCredentials();
+
+        // Store credentials in the session
+        Craft::$app->getSession()->set('oauth.temporaryCredentials', $temporaryCredentials);
+
+        // Redirect to the login screen
+        $authorizationUrl = $provider->getAuthorizationUrl($temporaryCredentials);
+
+        return Craft::$app->getResponse()->redirect($authorizationUrl);
+    }
+
+    private function oauth2Connect(): Response
+    {
+        $provider = $this->getOauthProvider();
+
+        Craft::$app->getSession()->set('formie.oauthState', $provider->getState());
+
+        $options = $this->getOauthAuthorizationOptions();
+        $options['scope'] = $this->getOauthScope();
+
+        $authorizationUrl = $provider->getAuthorizationUrl($options);
+
+        return Craft::$app->getResponse()->redirect($authorizationUrl);
+    }
+
+    private function oauth1Callback(): array
+    {
+        $provider = $this->getOauthProvider();
+
+        $oauthToken = Craft::$app->getRequest()->getParam('oauth_token');
+        $oauthVerifier = Craft::$app->getRequest()->getParam('oauth_verifier');
+
+        // Retrieve the temporary credentials we saved before.
+        $temporaryCredentials = Craft::$app->getSession()->get('oauth.temporaryCredentials');
+
+        // Obtain token credentials from the server.
+        $token = $provider->getTokenCredentials($temporaryCredentials, $oauthToken, $oauthVerifier);
+
+        return [
+            'success' => true,
+            'token' => $token,
+        ];
+    }
+
+    private function oauth2Callback(): array
+    {
+        $provider = $this->getOauthProvider();
+
+        $code = Craft::$app->getRequest()->getParam('code');
+
+        $this->beforeFetchAccessToken($provider);
+
+        // Try to get an access token (using the authorization code grant)
+        $token = $provider->getAccessToken('authorization_code', [
+            'code' => $code,
+        ]);
+
+        $this->afterFetchAccessToken($token);
+
+        return [
+            'success' => true,
+            'token' => $token,
+        ];
+    }
 
     private function setCache($values): void
     {
@@ -790,10 +806,5 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         }
 
         return $this->cache[$key] ?? null;
-    }
-
-    private static function isEmpty($value): bool
-    {
-        return $value === '' || $value === [] || $value === null;
     }
 }

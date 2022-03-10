@@ -20,7 +20,7 @@ use yii\db\ActiveQueryInterface;
  */
 class NestedFieldRow extends ActiveRecord
 {
-    // Public Methods
+    // Static Methods
     // =========================================================================
 
     /**
@@ -32,6 +32,10 @@ class NestedFieldRow extends ActiveRecord
     {
         return '{{%formie_nestedfieldrows}}';
     }
+
+
+    // Public Methods
+    // =========================================================================
 
     /**
      * Returns the nested field row’s element.

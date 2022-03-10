@@ -11,11 +11,11 @@ class Entries extends FeedMeEntries
 
     use BaseFieldTrait;
 
-    
+
     // Properties
     // =========================================================================
 
-    public static $name = 'Entries';
     public static $class = EntriesField::class;
+    public static $name = 'Entries';
 
 }

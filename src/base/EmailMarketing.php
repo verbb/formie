@@ -11,14 +11,6 @@ use craft\helpers\UrlHelper;
 
 abstract class EmailMarketing extends Integration
 {
-    // Properties
-    // =========================================================================
-
-    public ?string $listId = null;
-    public ?string $optInField = null;
-    public ?array $fieldMapping = null;
-
-    
     // Static Methods
     // =========================================================================
 
@@ -26,7 +18,14 @@ abstract class EmailMarketing extends Integration
     {
         return Craft::t('formie', 'Email Marketing');
     }
-    
+
+    // Properties
+    // =========================================================================
+
+    public ?array $fieldMapping = null;
+    public ?string $listId = null;
+    public ?string $optInField = null;
+
 
     // Public Methods
     // =========================================================================
@@ -77,9 +76,11 @@ abstract class EmailMarketing extends Integration
 
         $fields = $this->_getListSettings()->fields ?? [];
 
-        $rules[] = [['fieldMapping'], 'validateFieldMapping', 'params' => $fields, 'when' => function($model) {
-            return $model->enabled;
-        }, 'on' => [Integration::SCENARIO_FORM]];
+        $rules[] = [
+            ['fieldMapping'], 'validateFieldMapping', 'params' => $fields, 'when' => function($model) {
+                return $model->enabled;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
 
         return $rules;
     }

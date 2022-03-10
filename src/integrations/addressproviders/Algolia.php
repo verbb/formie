@@ -17,6 +17,18 @@ class Algolia extends AddressProvider
     public const EVENT_MODIFY_ADDRESS_PROVIDER_HTML = 'modifyAddressProviderHtml';
 
 
+    // Static Methods
+    // =========================================================================
+
+    /**
+     * @inheritDoc
+     */
+    public static function displayName(): string
+    {
+        return Craft::t('formie', 'Algolia Places');
+    }
+
+
     // Properties
     // =========================================================================
 
@@ -27,14 +39,6 @@ class Algolia extends AddressProvider
 
     // Public Methods
     // =========================================================================
-
-    /**
-     * @inheritDoc
-     */
-    public static function displayName(): string
-    {
-        return Craft::t('formie', 'Algolia Places');
-    }
 
     public function getDescription(): string
     {
@@ -91,7 +95,7 @@ class Algolia extends AddressProvider
         if (!$this->hasValidSettings()) {
             return null;
         }
-        
+
         // These are reversed on purpose!
         $settings = [
             'appId' => Craft::parseEnv($this->apiKey),

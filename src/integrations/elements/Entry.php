@@ -16,10 +16,23 @@ use craft\elements\Entry as EntryElement;
 use craft\elements\User;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
+
 use Throwable;
 
 class Entry extends Element
 {
+    // Static Methods
+    // =========================================================================
+
+    /**
+     * @inheritDoc
+     */
+    public static function displayName(): string
+    {
+        return Craft::t('formie', 'Entry');
+    }
+
+
     // Properties
     // =========================================================================
 
@@ -30,14 +43,6 @@ class Entry extends Element
 
     // Public Methods
     // =========================================================================
-
-    /**
-     * @inheritDoc
-     */
-    public static function displayName(): string
-    {
-        return Craft::t('formie', 'Entry');
-    }
 
     public function getDescription(): string
     {
@@ -57,9 +62,11 @@ class Entry extends Element
         // Find the field for the entry type - a little trickier due to nested in sections
         $fields = $this->_getEntryTypeSettings()->fields ?? [];
 
-        $rules[] = [['fieldMapping'], 'validateFieldMapping', 'params' => $fields, 'when' => function($model) {
-            return $model->enabled;
-        }, 'on' => [Integration::SCENARIO_FORM]];
+        $rules[] = [
+            ['fieldMapping'], 'validateFieldMapping', 'params' => $fields, 'when' => function($model) {
+                return $model->enabled;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
 
         return $rules;
     }
@@ -199,7 +206,7 @@ class Entry extends Element
     {
         if (!$this->entryTypeId) {
             Integration::error($this, Craft::t('formie', 'Unable to save element integration. No `entryTypeId`.'), true);
-            
+
             return false;
         }
 
@@ -212,7 +219,7 @@ class Entry extends Element
             $entry->sectionId = $entryType->sectionId;
 
             $attributeValues = $this->getFieldMappingValues($submission, $this->attributeMapping, $this->getElementAttributes());
-            
+
             // Filter null values
             $attributeValues = array_filter($attributeValues, function($var) {
                 return $var !== null;
@@ -230,7 +237,7 @@ class Entry extends Element
 
             $fields = $this->_getEntryTypeSettings()->fields ?? [];
             $fieldValues = $this->getFieldMappingValues($submission, $this->fieldMapping, $fields);
-            
+
             // Filter null values
             $fieldValues = array_filter($fieldValues, function($var) {
                 return $var !== null;
@@ -255,13 +262,13 @@ class Entry extends Element
                 // Is this a brand-new entry?
                 if (!$entry->id) {
                     $entry->setScenario(CraftElement::SCENARIO_ESSENTIALS);
-                    
+
                     if (!Craft::$app->getDrafts()->saveElementAsDraft($entry, $authorId)) {
                         Integration::error($this, Craft::t('formie', 'Unable to save “{type}” draft element integration. Error: {error}.', [
                             'type' => $this->handle,
                             'error' => Json::encode($entry->getErrors()),
                         ]), true);
-                        
+
                         return false;
                     }
                 } else {
@@ -286,7 +293,7 @@ class Entry extends Element
                     'type' => $this->handle,
                     'error' => Json::encode($entry->getErrors()),
                 ]), true);
-                
+
                 return false;
             }
 

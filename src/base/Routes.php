@@ -3,6 +3,7 @@ namespace verbb\formie\base;
 
 use craft\events\RegisterUrlRulesEvent;
 use craft\web\UrlManager;
+
 use yii\base\Event;
 
 trait Routes

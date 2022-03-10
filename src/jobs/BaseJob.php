@@ -53,10 +53,10 @@ abstract class BaseJob extends CraftBaseJob
                 // Clear out the cache for the same reason (can get immensely large)
                 $event->job->integration->cache = null;
             }
-            
+
             // Serialize it again ready to save
             $message = Craft::$app->getQueue()->serializer->serialize($event->job);
-            
+
             Db::update(Table::QUEUE, ['job' => $message], ['id' => $event->id], [], false);
         } catch (Throwable $e) {
             Formie::error(Craft::t('formie', 'Unable to update job info debug: “{message}” {file}:{line}', [

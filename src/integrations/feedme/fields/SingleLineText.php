@@ -10,11 +10,11 @@ class SingleLineText extends DefaultField
 
     use BaseFieldTrait;
 
-    
+
     // Properties
     // =========================================================================
 
-    public static $name = 'SingleLineText';
     public static $class = SingleLineTextField::class;
+    public static $name = 'SingleLineText';
 
 }

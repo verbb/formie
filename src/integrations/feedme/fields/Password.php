@@ -10,11 +10,11 @@ class Password extends DefaultField
 
     use BaseFieldTrait;
 
-    
+
     // Properties
     // =========================================================================
 
-    public static $name = 'Password';
     public static $class = PasswordField::class;
+    public static $name = 'Password';
 
 }

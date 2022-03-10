@@ -89,9 +89,11 @@ class Notification extends Model
         $rules[] = [['name', 'subject', 'to', 'cc', 'bcc', 'replyTo', 'replyToName', 'from', 'fromName'], 'string'];
         $rules[] = [['formId', 'templateId', 'pdfTemplateId'], 'number', 'integerOnly' => true];
 
-        $rules[] = [['to'], 'required', 'when' => function($model) {
-            return $model->recipients === 'email';
-        }];
+        $rules[] = [
+            ['to'], 'required', 'when' => function($model) {
+                return $model->recipients === 'email';
+            },
+        ];
 
         return $rules;
     }
@@ -120,7 +122,7 @@ class Notification extends Model
 
         if ($this->recipients === 'conditions') {
             $conditionSettings = $this->toConditions ?? [];
-            
+
             if ($conditionSettings) {
                 $toRecipients = $conditionSettings['toRecipients'] ?? [];
 

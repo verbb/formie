@@ -9,13 +9,6 @@ use craft\helpers\StringHelper;
 
 abstract class Captcha extends Integration
 {
-    // Properties
-    // =========================================================================
-
-    public bool $showAllPages = false;
-    public ?string $spamReason = null;
-
-
     // Static Methods
     // =========================================================================
 
@@ -33,6 +26,12 @@ abstract class Captcha extends Integration
     {
         return false;
     }
+
+    // Properties
+    // =========================================================================
+
+    public bool $showAllPages = false;
+    public ?string $spamReason = null;
 
 
     // Public Methods

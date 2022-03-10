@@ -1,16 +1,17 @@
 <?php
 namespace verbb\formie\controllers;
 
+use verbb\formie\Formie;
+use verbb\formie\models\Status;
+
 use Craft;
 use craft\helpers\Json;
 use craft\web\Controller;
 
 use Throwable;
+
 use yii\web\HttpException;
 use yii\web\Response;
-
-use verbb\formie\Formie;
-use verbb\formie\models\Status;
 
 class StatusesController extends Controller
 {

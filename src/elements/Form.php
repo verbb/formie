@@ -19,6 +19,7 @@ use verbb\formie\services\Statuses;
 
 use Craft;
 use craft\base\Element;
+use craft\base\ElementInterface;
 use craft\db\Query;
 use craft\db\Table;
 use craft\elements\Entry;
@@ -35,58 +36,16 @@ use craft\validators\HandleValidator;
 
 use yii\base\Exception;
 use yii\base\InvalidConfigException;
-use yii\validators\Validator;
-use Throwable;
-use craft\base\ElementInterface;
 use yii\base\Model;
+use yii\validators\Validator;
+
+use Throwable;
+
 use Twig\Error\SyntaxError;
 use Twig\Error\LoaderError;
 
 class Form extends Element
 {
-    // Properties
-    // =========================================================================
-
-    public ?FormSettings $settings = null;
-
-    public ?string $handle = null;
-    public ?string $oldHandle = null;
-    public ?string $fieldContentTable = null;
-    public ?int $templateId = null;
-    public ?int $submitActionEntryId = null;
-    public bool $requireUser = false;
-    public string $availability = 'always';
-    public ?string $availabilityFrom = null;
-    public ?string $availabilityTo = null;
-    public ?string $availabilitySubmissions = null;
-    public ?int $defaultStatusId = null;
-    public string $dataRetention = 'forever';
-    public ?string $dataRetentionValue = null;
-    public string $userDeletedAction = 'retain';
-    public string $fileUploadsAction = 'retain';
-    public ?int $fieldLayoutId = null;
-
-
-    // Private Properties
-    // =========================================================================
-
-    private ?CraftFieldLayout $_fieldLayout = null;
-    private ?FieldLayout $_formFieldLayout = null;
-    private ?array $_fields = null;
-    private ?array $_rows = null;
-    private ?array $_pages = null;
-    private ?FormTemplate $_template = null;
-    private ?Status $_defaultStatus = null;
-    private ?Entry $_submitActionEntry = null;
-    private ?array $_notifications = null;
-    private ?Submission $_currentSubmission = null;
-    private ?Submission $_editingSubmission = null;
-    private ?string $_formId = null;
-    private bool $_appliedFieldSettings = false;
-    private bool $_appliedFormSettings = false;
-    private static ?array $_layoutsByType = null;
-
-
     // Static Methods
     // =========================================================================
 
@@ -152,14 +111,14 @@ class Form extends Element
     public static function defineSources(string $context = null): array
     {
         $ids = self::_getAvailableFormIds();
-        
+
         $sources = [
             [
                 'key' => '*',
                 'label' => 'All forms',
                 'defaultSort' => ['title', 'desc'],
                 'criteria' => ['id' => $ids],
-            ]
+            ],
         ];
 
         $templates = Formie::$plugin->getFormTemplates()->getAllTemplates();
@@ -226,41 +185,125 @@ class Form extends Element
     /**
      * @inheritDoc
      */
-    protected function defineRules(): array
+    protected static function defineTableAttributes(): array
     {
-        $rules = parent::defineRules();
-
-        $rules[] = [['title', 'handle'], 'required'];
-        $rules[] = [['title'], 'string', 'max' => 255];
-        $rules[] = [['templateId', 'submitActionEntryId', 'defaultStatusId', 'fieldLayoutId'], 'number', 'integerOnly' => true];
-        
-        // Make sure the column name is under the database’s maximum allowed column length
-        $rules[] = [['handle'], 'string', 'max' => HandleHelper::getMaxFormHandle()];
-        
-        $rules[] = [
-            ['handle'],
-            HandleValidator::class,
-            'reservedWords' => ['id', 'dateCreated', 'dateUpdated', 'uid', 'title']
+        return [
+            'title' => ['label' => Craft::t('app', 'Title')],
+            'id' => ['label' => Craft::t('app', 'ID')],
+            'handle' => ['label' => Craft::t('app', 'Handle')],
+            'template' => ['label' => Craft::t('app', 'Template')],
+            'usageCount' => ['label' => Craft::t('formie', 'Usage Count')],
+            'dateCreated' => ['label' => Craft::t('app', 'Date Created')],
+            'dateUpdated' => ['label' => Craft::t('app', 'Date Updated')],
         ];
-
-        $rules[] = ['handle', function($attribute, $params, Validator $validator): void {
-            $query = static::find()->handle($this->$attribute);
-            if ($this->id) {
-                $query = $query->id("not {$this->id}");
-            }
-
-            if ($query->exists()) {
-                $error = Craft::t('formie', '{attribute} "{value}" has already been taken.', [
-                    'attribute' => $attribute,
-                    'value' => $this->$attribute,
-                ]);
-
-                $validator->addError($this, $attribute, $error);
-            }
-        }];
-
-        return $rules;
     }
+
+    /**
+     * @inheritDoc
+     */
+    protected static function defineDefaultTableAttributes(string $source): array
+    {
+        $attributes = [];
+        $attributes[] = 'title';
+        $attributes[] = 'handle';
+        $attributes[] = 'template';
+        $attributes[] = 'dateCreated';
+        $attributes[] = 'dateUpdated';
+
+        return $attributes;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    protected static function defineSearchableAttributes(): array
+    {
+        return ['title', 'handle'];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected static function defineSortOptions(): array
+    {
+        return [
+            'title' => Craft::t('app', 'Title'),
+            'handle' => Craft::t('app', 'Handle'),
+            [
+                'label' => Craft::t('app', 'Date Created'),
+                'orderBy' => 'elements.dateCreated',
+                'attribute' => 'dateCreated',
+            ],
+            [
+                'label' => Craft::t('app', 'Date Updated'),
+                'orderBy' => 'elements.dateUpdated',
+                'attribute' => 'dateUpdated',
+            ],
+            [
+                'label' => Craft::t('app', 'ID'),
+                'orderBy' => 'elements.id',
+                'attribute' => 'id',
+            ],
+        ];
+    }
+
+    private static function _getAvailableFormIds(): int|array
+    {
+        $userSession = Craft::$app->getUser();
+
+        $editableIds = [];
+
+        // Fetch all form UIDs
+        $formInfo = (new Query())
+            ->from('{{%formie_forms}}')
+            ->select(['id', 'uid'])
+            ->all();
+
+        // Can the user edit _every_ form?
+        if ($userSession->checkPermission('formie-viewForms')) {
+            $editableIds = ArrayHelper::getColumn($formInfo, 'id');
+        } else {
+            // Find all UIDs the user has permission to
+            foreach ($formInfo as $form) {
+                if ($userSession->checkPermission('formie-manageForm:' . $form['uid'])) {
+                    $editableIds[] = $form['id'];
+                }
+            }
+        }
+
+        // Important to check if empty, there are zero editable forms, but as we use this as a criteria param
+        // that would return all forms, not what we want.
+        if (!$editableIds) {
+            $editableIds = 0;
+        }
+
+        return $editableIds;
+    }
+
+
+    //  Properties
+    // =========================================================================
+
+    public ?string $handle = null;
+    public ?string $oldHandle = null;
+    public ?string $fieldContentTable = null;
+    public ?int $templateId = null;
+    public ?int $submitActionEntryId = null;
+    public bool $requireUser = false;
+    public string $availability = 'always';
+    public ?string $availabilityFrom = null;
+    public ?string $availabilityTo = null;
+    public ?string $availabilitySubmissions = null;
+    public ?int $defaultStatusId = null;
+    public string $dataRetention = 'forever';
+    public ?string $dataRetentionValue = null;
+    public string $userDeletedAction = 'retain';
+    public string $fileUploadsAction = 'retain';
+    public ?int $fieldLayoutId = null;
+
+    public ?FormSettings $settings = null;
+
+    private static ?array $_layoutsByType = null;
 
 
     // Public Methods
@@ -331,7 +374,7 @@ class Form extends Element
 
         /* @var FieldLayoutBehavior $behavior */
         $behavior = $this->getBehavior('fieldLayout');
-        
+
         return $this->_formFieldLayout = $behavior->getFieldLayout();
     }
 
@@ -340,7 +383,7 @@ class Form extends Element
         /* @var FieldLayoutBehavior $behavior */
         $behavior = $this->getBehavior('fieldLayout');
         $behavior->setFieldLayout($fieldLayout);
-        
+
         $this->_formFieldLayout = $fieldLayout;
     }
 
@@ -449,7 +492,7 @@ class Form extends Element
                         'handle' => 'new',
                         'color' => 'green',
                         'sortOrder' => 1,
-                        'isDefault' => 1
+                        'isDefault' => 1,
                     ]);
 
                     Formie::getInstance()->getStatuses()->saveStatus($this->_defaultStatus);
@@ -524,7 +567,7 @@ class Form extends Element
         if ($this->_formId) {
             return $this->_formId;
         }
-        
+
         return $this->_formId = StringHelper::appendRandomString("formie-form-{$this->id}", 16);
     }
 
@@ -626,7 +669,7 @@ class Form extends Element
                 return true;
             }
         }
-        
+
         return false;
     }
 
@@ -640,7 +683,7 @@ class Form extends Element
                 return true;
             }
         }
-        
+
         return false;
     }
 
@@ -975,9 +1018,6 @@ class Form extends Element
         return 'formie/submissions/submit';
     }
 
-    private array $_relations = [];
-    private array $_populatedFieldValues = [];
-
     public function getRelations(): string
     {
         if ($values = $this->_relations) {
@@ -985,17 +1025,6 @@ class Form extends Element
         }
 
         return '';
-    }
-
-    public function getRelationsFromRequest()
-    {
-        if (Craft::$app->getRequest()->getIsConsoleRequest()) {
-            return null;
-        }
-
-        $value = (string)Craft::$app->getRequest()->getBodyParam('relations', '');
-
-        return Json::decode(StringHelper::decdec($value));
     }
 
     public function setRelations($elements = []): void
@@ -1009,6 +1038,17 @@ class Form extends Element
         }
     }
 
+    public function getRelationsFromRequest()
+    {
+        if (Craft::$app->getRequest()->getIsConsoleRequest()) {
+            return null;
+        }
+
+        $value = (string)Craft::$app->getRequest()->getBodyParam('relations', '');
+
+        return Json::decode(StringHelper::decdec($value));
+    }
+
     public function getPopulatedFieldValues(): string
     {
         if ($values = $this->_populatedFieldValues) {
@@ -1018,16 +1058,16 @@ class Form extends Element
         return '';
     }
 
+    public function setPopulatedFieldValues($values): void
+    {
+        $this->_populatedFieldValues = $values;
+    }
+
     public function getPopulatedFieldValuesFromRequest()
     {
         $value = (string)Craft::$app->getRequest()->getBodyParam('extraFields', '');
 
         return Json::decode(StringHelper::decdec($value));
-    }
-
-    public function setPopulatedFieldValues($values): void
-    {
-        $this->_populatedFieldValues = $values;
     }
 
     /**
@@ -1177,7 +1217,7 @@ class Form extends Element
     }
 
     public function getFrontEndJsVariables(): array
-    {   
+    {
         $pluginSettings = Formie::$plugin->getSettings();
 
         // Only provide what we need, both for security/privacy but also DOM size
@@ -1241,7 +1281,7 @@ class Form extends Element
 
         // Cleanup - Ensure we don't include JS multiple times
         $registeredJs = array_values(array_unique(array_filter($registeredJs), SORT_REGULAR));
-        
+
         return [
             'formHashId' => $this->getFormId(),
             'formId' => $this->id,
@@ -1292,6 +1332,10 @@ class Form extends Element
             $this->_appliedFormSettings = true;
         }
     }
+
+
+    // Events
+    // =========================================================================
 
     public function setFieldSettings($handle, $settings, $updateSnapshot = true): void
     {
@@ -1345,10 +1389,6 @@ class Form extends Element
 
         Craft::$app->getSession()->remove($this->_getSessionKey('snapshot'));
     }
-
-
-    // Events
-    // =========================================================================
 
     /**
      * @inheritDoc
@@ -1405,7 +1445,8 @@ class Form extends Element
                     }
                 }
             }
-        } catch (Throwable) {}
+        } catch (Throwable) {
+        }
 
         return $hasErrors;
     }
@@ -1552,66 +1593,42 @@ class Form extends Element
     /**
      * @inheritDoc
      */
-    protected static function defineTableAttributes(): array
+    protected function defineRules(): array
     {
-        return [
-            'title' => ['label' => Craft::t('app', 'Title')],
-            'id' => ['label' => Craft::t('app', 'ID')],
-            'handle' => ['label' => Craft::t('app', 'Handle')],
-            'template' => ['label' => Craft::t('app', 'Template')],
-            'usageCount' => ['label' => Craft::t('formie', 'Usage Count')],
-            'dateCreated' => ['label' =>Craft::t('app', 'Date Created')],
-            'dateUpdated' => ['label' => Craft::t('app', 'Date Updated')],
+        $rules = parent::defineRules();
+
+        $rules[] = [['title', 'handle'], 'required'];
+        $rules[] = [['title'], 'string', 'max' => 255];
+        $rules[] = [['templateId', 'submitActionEntryId', 'defaultStatusId', 'fieldLayoutId'], 'number', 'integerOnly' => true];
+
+        // Make sure the column name is under the database’s maximum allowed column length
+        $rules[] = [['handle'], 'string', 'max' => HandleHelper::getMaxFormHandle()];
+
+        $rules[] = [
+            ['handle'],
+            HandleValidator::class,
+            'reservedWords' => ['id', 'dateCreated', 'dateUpdated', 'uid', 'title'],
         ];
-    }
 
-    /**
-     * @inheritDoc
-     */
-    protected static function defineDefaultTableAttributes(string $source): array
-    {
-        $attributes = [];
-        $attributes[] = 'title';
-        $attributes[] = 'handle';
-        $attributes[] = 'template';
-        $attributes[] = 'dateCreated';
-        $attributes[] = 'dateUpdated';
+        $rules[] = [
+            'handle', function($attribute, $params, Validator $validator): void {
+                $query = static::find()->handle($this->$attribute);
+                if ($this->id) {
+                    $query = $query->id("not {$this->id}");
+                }
 
-        return $attributes;
-    }
+                if ($query->exists()) {
+                    $error = Craft::t('formie', '{attribute} "{value}" has already been taken.', [
+                        'attribute' => $attribute,
+                        'value' => $this->$attribute,
+                    ]);
 
-    /**
-     * @inheritdoc
-     */
-    protected static function defineSearchableAttributes(): array
-    {
-        return ['title', 'handle'];
-    }
-
-    /**
-     * @inheritDoc
-     */
-    protected static function defineSortOptions(): array
-    {
-        return [
-            'title' => Craft::t('app', 'Title'),
-            'handle' => Craft::t('app', 'Handle'),
-            [
-                'label' => Craft::t('app', 'Date Created'),
-                'orderBy' => 'elements.dateCreated',
-                'attribute' => 'dateCreated'
-            ],
-            [
-                'label' => Craft::t('app', 'Date Updated'),
-                'orderBy' => 'elements.dateUpdated',
-                'attribute' => 'dateUpdated'
-            ],
-            [
-                'label' => Craft::t('app', 'ID'),
-                'orderBy' => 'elements.id',
-                'attribute' => 'id',
-            ],
+                    $validator->addError($this, $attribute, $error);
+                }
+            },
         ];
+
+        return $rules;
     }
 
     protected function tableAttributeHtml(string $attribute): string
@@ -1625,7 +1642,6 @@ class Form extends Element
         };
     }
 
-
     // Private methods
     // =========================================================================
 
@@ -1637,39 +1653,6 @@ class Form extends Element
         }
 
         return 'formie:' . $this->id . ':' . $key;
-    }
-
-    private static function _getAvailableFormIds(): int|array
-    {
-        $userSession = Craft::$app->getUser();
-
-        $editableIds = [];
-
-        // Fetch all form UIDs
-        $formInfo = (new Query())
-            ->from('{{%formie_forms}}')
-            ->select(['id', 'uid'])
-            ->all();
-
-        // Can the user edit _every_ form?
-        if ($userSession->checkPermission('formie-viewForms')) {
-            $editableIds = ArrayHelper::getColumn($formInfo, 'id');
-        } else {
-            // Find all UIDs the user has permission to
-            foreach ($formInfo as $form) {
-                if ($userSession->checkPermission('formie-manageForm:' . $form['uid'])) {
-                    $editableIds[] = $form['id'];
-                }
-            }
-        }
-
-        // Important to check if empty, there are zero editable forms, but as we use this as a criteria param
-        // that would return all forms, not what we want.
-        if (!$editableIds) {
-            $editableIds = 0;
-        }
-
-        return $editableIds;
     }
 
     private function _getFrontEndJsModules($field): array

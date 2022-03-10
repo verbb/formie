@@ -369,11 +369,13 @@ class Stencils extends Component
 
         try {
             $form->availabilityFrom = $stencil->data->availabilityFrom ? DateTimeHelper::toDateTime($stencil->data->availabilityFrom) : null;
-        } catch (Exception $e) {}
+        } catch (Exception $e) {
+        }
 
         try {
             $form->availabilityTo = $stencil->data->availabilityTo ? DateTimeHelper::toDateTime($stencil->data->availabilityTo) : null;
-        } catch (Exception $e) {}
+        } catch (Exception $e) {
+        }
 
         $form->setTemplate($stencil->getTemplate());
         $form->setDefaultStatus($stencil->getDefaultStatus());
@@ -418,7 +420,7 @@ class Stencils extends Component
                 'templateId',
                 'defaultStatusId',
                 'dateDeleted',
-                'uid'
+                'uid',
             ])
             ->orderBy('name ASC')
             ->from(['{{%formie_stencils}}']);

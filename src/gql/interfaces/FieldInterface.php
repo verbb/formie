@@ -14,7 +14,7 @@ use GraphQL\Type\Definition\Type;
 
 class FieldInterface extends BaseInterfaceType
 {
-    // Public Methods
+    // Static Methods
     // =========================================================================
 
     public static function getTypeGenerator(): string

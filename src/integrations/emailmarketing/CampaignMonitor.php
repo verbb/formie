@@ -10,19 +10,14 @@ use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
 use craft\helpers\ArrayHelper;
+
 use GuzzleHttp\Client;
+
 use Throwable;
 
 class CampaignMonitor extends EmailMarketing
 {
-    // Properties
-    // =========================================================================
-
-    public ?string $apiKey = null;
-    public ?string $clientId = null;
-
-
-    // Public Methods
+    // Static Methods
     // =========================================================================
 
     /**
@@ -32,6 +27,17 @@ class CampaignMonitor extends EmailMarketing
     {
         return Craft::t('formie', 'Campaign Monitor');
     }
+
+
+    // Properties
+    // =========================================================================
+    
+    public ?string $apiKey = null;
+    public ?string $clientId = null;
+
+
+    // Public Methods
+    // =========================================================================
 
     public function getDescription(): string
     {
@@ -123,7 +129,7 @@ class CampaignMonitor extends EmailMarketing
                 'RestartSubscriptionBasedAutoresponders' => true,
                 'ConsentToTrack' => 'Yes',
             ];
-            
+
             $response = $this->deliverPayload($submission, "subscribers/{$this->listId}.json", $payload);
 
             if ($response === false) {
@@ -198,7 +204,7 @@ class CampaignMonitor extends EmailMarketing
         foreach ($fields as $field) {
             // Exclude any names
             if (in_array($field['FieldName'], $excludeNames)) {
-                 continue;
+                continue;
             }
 
             $customFields[] = new IntegrationField([
