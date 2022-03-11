@@ -380,6 +380,21 @@ class Pardot extends Crm
     /**
      * @inheritDoc
      */
+    public function getMappedFieldValue($mappedFieldValue, $submission, $integrationField)
+    {
+        $value = parent::getMappedFieldValue($mappedFieldValue, $submission, $integrationField);
+
+        // SalesForce needs values delimited with semicolon's
+        if ($integrationField->getType() === IntegrationField::TYPE_ARRAY) {
+            $value = is_array($value) ? implode(';', $value) : $value;
+        }
+
+        return $value;
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function getClient()
     {
         if ($this->_client) {
@@ -396,6 +411,9 @@ class Pardot extends Crm
                 'Authorization' => 'Bearer ' . ($token->accessToken ?? 'empty'),
                 'Pardot-Business-Unit-Id' => $businessUnitId,
                 'Content-Type' => 'application/json',
+            ],
+            'query' => [
+                'format' => 'json',
             ],
         ]);
 
@@ -415,6 +433,9 @@ class Pardot extends Crm
                         'Authorization' => 'Bearer ' . ($token->accessToken ?? 'empty'),
                         'Pardot-Business-Unit-Id' => $businessUnitId,
                         'Content-Type' => 'application/json',
+                    ],
+                    'query' => [
+                        'format' => 'json',
                     ],
                 ]);
             }
