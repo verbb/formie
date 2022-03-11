@@ -41,6 +41,14 @@ class Email extends FormField implements PreviewableFieldInterface
         return 'formie/_formfields/email/icon.svg';
     }
 
+    /**
+     * @inheritDoc
+     */
+    public static function supportsIdn(): bool
+    {
+        return function_exists('idn_to_ascii') && defined('INTL_IDNA_VARIANT_UTS46');
+    }
+
 
     // Properties
     // =========================================================================
@@ -70,7 +78,8 @@ class Email extends FormField implements PreviewableFieldInterface
 
         // Enable base validations
         $rules[] = ['trim'];
-        $rules[] = ['email', 'enableIDN' => App::supportsIdn(), 'enableLocalIDN' => false];
+        $rules[] = ['email', 'enableIDN' => self::supportsIdn(), 'enableLocalIDN' => false];
+
 
         if ($this->validateDomain) {
             $rules[] = [$this->handle, EmailValidator::class, 'skipOnEmpty' => true, 'checkDNS' => true];
