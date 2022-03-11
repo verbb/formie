@@ -420,7 +420,7 @@ class Pardot extends Crm
         // Always provide an authenticated client - so check first.
         // We can't always rely on the EOL of the token.
         try {
-            $response = $this->request('GET', '/');
+            $response = $this->request('GET', 'list/version/4/do/query');
         } catch (\Throwable $e) {
             if ($e->getCode() === 401) {
                 // Force-refresh the token
