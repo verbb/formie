@@ -330,13 +330,13 @@ class Pardot extends Crm
             if ($this->mapToProspect) {
                 $prospectPayload = $this->_prepPayload($prospectValues);
 
-                $response = $this->deliverPayload($submission, 'prospect/version/4/do/upsert/email', $prospectPayload);
+                $response = $this->deliverPayload($submission, "prospect/version/4/do/upsert/email/{$prospectPayload['email']}", $prospectPayload);
 
                 if ($response === false) {
                     return true;
                 }
 
-                $prospectId = $response['id'] ?? '';
+                $prospectId = $response['prospect']['id'] ?? '';
 
                 if (!$prospectId) {
                     Integration::error($this, Craft::t('formie', 'Missing return “prospectId” {response}. Sent payload {payload}', [
@@ -357,7 +357,7 @@ class Pardot extends Crm
                     return true;
                 }
 
-                $opportunityId = $response['id'] ?? '';
+                $opportunityId = $response['opportunity']['id'] ?? '';
 
                 if (!$opportunityId) {
                     Integration::error($this, Craft::t('formie', 'Missing return “opportunityId” {response}. Sent payload {payload}', [
