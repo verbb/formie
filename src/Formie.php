@@ -88,7 +88,7 @@ class Formie extends Plugin
     public bool $hasCpSection = true;
     public bool $hasCpSettings = true;
     public string $schemaVersion = '1.2.7';
-    public string $minVersionRequired = '1.2.7';
+    public string $minVersionRequired = '1.5.10';
 
 
     // Traits
@@ -147,6 +147,7 @@ class Formie extends Plugin
     {
         $nav = parent::getCpNavItem();
 
+        /* @var Settings $settings */
         $settings = Formie::$plugin->getSettings();
 
         $nav['label'] = $this->getPluginName();
