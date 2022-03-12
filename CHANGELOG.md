@@ -1,5 +1,30 @@
 # Changelog
 
+## 1.5.11 - 2022-03-12
+
+### Added
+- Added `FORMIE_INTEGRATION_CC_NEW_ENDPOINT` .env variable for Constant Contact overriding for endpoints.
+- Added `Email::EVENT_MODIFY_UNIQUE_QUERY` event to modify the submissions query that determines if an email is unique.
+
+### Fixed
+- Fixed when un-marking a submission as spam, not being saved correct (`null` instead of `0`).
+- Fixed Pardot CRM integration not working correctly.
+- Fixed Pardot integration connection.
+- Fixed Salesforce and Pardot multi-picklist fields not formatting data correctly.
+- Fixed an error when editing a Form Template in the control panel.
+- Fixed a compatibility error with Craft 3.6.x for email field validation.
+- Fixed Email Octopus test connection not working correctly.
+- Fixed being able to incorrectly pick Optgroups for conditions (field, page, email notifications) values.
+- Fixed Calculations field not working correctly for nested and sub fields.
+- Fixed server-side validation for conditionally hidden nested fields for Group/Repeater fields.
+- Fixed error noticed for GraphQL querying for Repeater fields.
+- Fixed an error with OAuth-based integrations when an access token isn’t always available.
+- Fixed an error with Pardot CRM integration.
+- Fixed agree fields’ “Checked Value” not being taken into account when used as a “Opt-in Field” for integrations.
+- Fixed being unable to delete a form if its content table has already been removed.
+- Fixed long form handles not being validated and truncated correctly.
+- Fixed new forms not throwing an error when the content table cannot be created.
+
 ## 1.5.10 - 2022-02-27
 
 ### Added
