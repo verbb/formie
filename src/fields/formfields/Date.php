@@ -8,6 +8,7 @@ use verbb\formie\base\SubfieldTrait;
 use verbb\formie\events\ModifyDateTimeFormatEvent;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\IntegrationField;
+use verbb\formie\models\Settings;
 
 use Craft;
 use craft\base\ElementInterface;
@@ -250,6 +251,7 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
      */
     public function getFieldDefaults(): array
     {
+        /* @var Settings $settings */
         $settings = Formie::$plugin->getSettings();
         $displayType = $settings->defaultDateDisplayType ?? 'calendar';
         $defaultOption = $settings->defaultDateValue ?? '';

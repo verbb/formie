@@ -19,6 +19,7 @@ class SettingsController extends Controller
 
     public function actionIndex(): Response
     {
+        /* @var Settings $settings */
         $settings = Formie::$plugin->getSettings();
 
         // Find the first available settings
@@ -31,6 +32,7 @@ class SettingsController extends Controller
 
     public function actionForms(): Response
     {
+        /* @var Settings $settings */
         $settings = Formie::$plugin->getSettings();
         $formTemplates = Formie::$plugin->getFormTemplates()->getAllTemplates();
         $emailTemplates = Formie::$plugin->getEmailTemplates()->getAllTemplates();
@@ -40,6 +42,7 @@ class SettingsController extends Controller
 
     public function actionFields(): Response
     {
+        /* @var Settings $settings */
         $settings = Formie::$plugin->getSettings();
 
         $disabledFields = [];
@@ -60,6 +63,7 @@ class SettingsController extends Controller
 
     public function actionSubmissions(): Response
     {
+        /* @var Settings $settings */
         $settings = Formie::$plugin->getSettings();
 
         return $this->renderTemplate('formie/settings/submissions', compact('settings'));
@@ -67,6 +71,7 @@ class SettingsController extends Controller
 
     public function actionSpam(): Response
     {
+        /* @var Settings $settings */
         $settings = Formie::$plugin->getSettings();
 
         return $this->renderTemplate('formie/settings/spam', compact('settings'));

@@ -35,6 +35,7 @@ use Solspace\Freeform\Library\Composer\Components\Fields\DataContainers\Option;
 use Solspace\Freeform\Fields as freeformfields;
 use Solspace\Freeform\Fields\SubmitField;
 use yii\base\InvalidConfigException;
+use verbb\formie\models\Settings;
 
 /**
  * Migrates Freeform forms, notifications and submissions.
@@ -87,6 +88,7 @@ class MigrateFreeform extends Migration
 
     private function _migrateForm(): ?Form
     {
+        /* @var Settings $settings */
         $settings = Formie::$plugin->getSettings();
         $transaction = Craft::$app->db->beginTransaction();
         $freeformForm = $this->_freeformForm;

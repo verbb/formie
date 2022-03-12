@@ -109,6 +109,7 @@ class FormSettings extends Model
     {
         parent::init();
 
+        /* @var Settings $settings */
         $settings = Formie::$plugin->getSettings();
 
         if (!$this->errorMessage) {

@@ -3,6 +3,7 @@ namespace verbb\formie\controllers;
 
 use verbb\formie\Formie;
 use verbb\formie\helpers\ImportExportHelper;
+use verbb\formie\models\Settings;
 use verbb\formie\models\Support;
 
 use Craft;
@@ -31,6 +32,7 @@ class SupportController extends Controller
 
     public function actionIndex(Support $support = null, $error = null): Response
     {
+        /* @var Settings $settings */
         $settings = Formie::$plugin->getSettings();
         $variables = compact('settings', 'support', 'error');
 

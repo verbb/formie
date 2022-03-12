@@ -7,6 +7,7 @@ use verbb\formie\events\PdfRenderOptionsEvent;
 use verbb\formie\events\PdfTemplateEvent;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\PdfTemplate;
+use verbb\formie\models\Settings;
 use verbb\formie\records\PdfTemplate as TemplateRecord;
 
 use Craft;
@@ -26,6 +27,7 @@ use yii\base\ErrorException;
 use yii\base\Exception;
 use yii\base\NotSupportedException;
 use yii\web\ServerErrorHttpException;
+
 use Throwable;
 
 class PdfTemplates extends Component
@@ -326,6 +328,7 @@ class PdfTemplates extends Component
 
     public function renderPdf($pdfTemplate, $submission, $notification): string
     {
+        /* @var Settings $settings */
         $settings = Formie::$plugin->getSettings();
         $view = Craft::$app->getView();
 

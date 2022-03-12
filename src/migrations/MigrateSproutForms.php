@@ -38,6 +38,7 @@ use barrelstrength\sproutforms\fields\formfields as sproutfields;
 use barrelstrength\sproutbaseemail\elements\NotificationEmail;
 use barrelstrength\sproutbaseemail\SproutBaseEmail;
 use barrelstrength\sproutforms\SproutForms;
+use verbb\formie\models\Settings;
 
 /**
  * Migrates Sprout Forms forms, notifications and submissions.
@@ -91,6 +92,7 @@ class MigrateSproutForms extends Migration
 
     private function _migrateForm(): ?Form
     {
+        /* @var Settings $settings */
         $settings = Formie::$plugin->getSettings();
         $transaction = Craft::$app->db->beginTransaction();
         $sproutFormsForm = $this->_sproutForm;
@@ -291,9 +293,10 @@ class MigrateSproutForms extends Migration
 
     private function _migrateNotifications(): void
     {
+        /* @var Settings $settings */
         $settings = Formie::$plugin->getSettings();
 
-        /* @var NotificationEmail[] $notifications */
+        /* @var Notification[] $notifications */
         $notifications = SproutBaseEmail::$app->notifications->getAllNotificationEmails();
         $total = 0;
 

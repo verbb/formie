@@ -28,6 +28,7 @@ class SentNotifications extends Component
 
     public function saveSentNotification(Submission $submission, Notification $notification, mixed $email, mixed $success = true, mixed $error = null): void
     {
+        /* @var Settings $settings */
         $settings = Formie::$plugin->getSettings();
 
         if (!$settings->sentNotifications) {

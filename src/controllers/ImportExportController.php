@@ -4,6 +4,7 @@ namespace verbb\formie\controllers;
 use verbb\formie\Formie;
 use verbb\formie\helpers\HandleHelper;
 use verbb\formie\helpers\ImportExportHelper;
+use verbb\formie\models\Settings;
 
 use Craft;
 use craft\db\Query;
@@ -26,6 +27,7 @@ class ImportExportController extends Controller
 
     public function actionIndex($importError = null, $exportError = null): ?Response
     {
+        /* @var Settings $settings */
         $settings = Formie::$plugin->getSettings();
 
         return $this->renderTemplate('formie/settings/import-export', compact('settings', 'importError', 'exportError'));

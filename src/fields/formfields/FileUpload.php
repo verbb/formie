@@ -8,6 +8,7 @@ use verbb\formie\base\FormFieldTrait;
 use verbb\formie\base\RelationFieldTrait;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\IntegrationField;
+use verbb\formie\models\Settings;
 
 use Craft;
 use craft\base\ElementInterface;
@@ -135,6 +136,7 @@ class FileUpload extends CraftAssets implements FormFieldInterface
      */
     public function getFieldDefaults(): array
     {
+        /* @var Settings $settings */
         $settings = Formie::$plugin->getSettings();
 
         $volume = $settings->defaultFileUploadVolume;

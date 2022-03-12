@@ -108,6 +108,7 @@ class Submissions extends Component
      */
     public function onAfterSubmission(bool $success, Submission $submission): void
     {
+        /* @var Settings $settings */
         $settings = Formie::$plugin->getSettings();
 
         // Check to see if this is an incomplete submission. Return immediately, but fire an event
@@ -153,6 +154,7 @@ class Submissions extends Component
      */
     public function sendNotifications(Submission $submission): void
     {
+        /* @var Settings $settings */
         $settings = Formie::$plugin->getSettings();
 
         // Get all enabled notifications, and push them to the queue for performance
@@ -207,6 +209,7 @@ class Submissions extends Component
      */
     public function triggerIntegrations(Submission $submission): void
     {
+        /* @var Settings $settings */
         $settings = Formie::$plugin->getSettings();
 
         $form = $submission->getForm();

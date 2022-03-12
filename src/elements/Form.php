@@ -13,6 +13,7 @@ use verbb\formie\models\FieldLayoutPage;
 use verbb\formie\models\FormSettings;
 use verbb\formie\models\FormTemplate;
 use verbb\formie\models\Notification;
+use verbb\formie\models\Settings;
 use verbb\formie\models\Status;
 use verbb\formie\records\Form as FormRecord;
 use verbb\formie\services\Statuses;
@@ -1234,6 +1235,7 @@ class Form extends Element
 
     public function getFrontEndJsVariables(): array
     {
+        /* @var Settings $pluginSettings */
         $pluginSettings = Formie::$plugin->getSettings();
 
         // Only provide what we need, both for security/privacy but also DOM size

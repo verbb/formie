@@ -9,6 +9,7 @@ use verbb\formie\events\MailRenderEvent;
 use verbb\formie\fields\formfields\FileUpload;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\Notification;
+use verbb\formie\models\Settings;
 
 use Craft;
 use craft\elements\Asset;
@@ -425,6 +426,7 @@ class Emails extends Component
 
     public function sendFailAlertEmail(Notification $notification, Submission $submission, $emailResponse): ?array
     {
+        /* @var Settings $settings */
         $settings = Formie::$plugin->getSettings();
 
         // Check our settings are all in order first.

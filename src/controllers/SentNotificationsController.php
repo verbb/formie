@@ -3,6 +3,7 @@ namespace verbb\formie\controllers;
 
 use verbb\formie\Formie;
 use verbb\formie\elements\SentNotification;
+use verbb\formie\models\Settings;
 use verbb\formie\web\assets\cp\CpAsset;
 
 use Craft;
@@ -28,6 +29,7 @@ class SentNotificationsController extends Controller
 
     public function actionSettings(): Response
     {
+        /* @var Settings $settings */
         $settings = Formie::$plugin->getSettings();
 
         return $this->renderTemplate('formie/settings/sent-notifications', compact('settings'));

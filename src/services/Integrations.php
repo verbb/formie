@@ -18,6 +18,7 @@ use verbb\formie\integrations\miscellaneous;
 use verbb\formie\integrations\webhooks;
 use verbb\formie\models\FieldLayoutPage;
 use verbb\formie\models\MissingIntegration;
+use verbb\formie\models\Settings;
 use verbb\formie\records\Integration as IntegrationRecord;
 
 use Craft;
@@ -646,6 +647,7 @@ class Integrations extends Component
 
     public function getAllCaptchas(): array
     {
+        /* @var Settings $settings */
         $settings = Formie::$plugin->getSettings();
 
         $captchas = [];
@@ -759,6 +761,7 @@ class Integrations extends Component
      */
     public function saveCaptcha(Integration $integration): bool
     {
+        /* @var Settings $settings */
         $settings = Formie::$plugin->getSettings();
 
         // Fire an 'afterSaveIntegration' event
