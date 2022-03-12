@@ -17,7 +17,7 @@
 - Fixed being able to incorrectly pick Optgroups for conditions (field, page, email notifications) values.
 - Fixed Calculations field not working correctly for nested and sub fields.
 - Fixed server-side validation for conditionally hidden nested fields for Group/Repeater fields.
-- Fixed error noticed for GraphQL querying for Repeater fields.
+- Fixed error notice for GraphQL querying for Repeater fields.
 - Fixed an error with OAuth-based integrations when an access token isn’t always available.
 - Fixed an error with Pardot CRM integration.
 - Fixed agree fields’ “Checked Value” not being taken into account when used as a “Opt-in Field” for integrations.
