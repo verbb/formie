@@ -974,6 +974,14 @@ class Fields extends Component
                 ])
                 ->scalar();
 
+            // This can happen in very specific circumstances
+            if (!$record->fieldLayoutFieldId) {
+                Formie::error(Craft::t('app', 'Preparing row error: layoutId:{layoutId} - fieldId:{fieldId}', [
+                    'layoutId' => $fieldLayout->id,
+                    'fieldId' => $field->id,
+                ]));
+            }
+
             // Fire a 'beforeSaveFieldRow' event
             if ($this->hasEventHandlers(self::EVENT_BEFORE_SAVE_FIELD_ROW)) {
                 $this->trigger(self::EVENT_BEFORE_SAVE_FIELD_ROW, new FieldRowEvent([
