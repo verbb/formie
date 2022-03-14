@@ -326,7 +326,7 @@ class Pardot extends Crm
             if ($this->mapToProspect) {
                 $prospectPayload = $this->_prepPayload($prospectValues);
 
-                $response = $this->deliverPayload($submission, "prospect/version/4/do/upsert/email/{$prospectPayload['email']}", $prospectPayload);
+                $response = $this->deliverPayload($submission, "prospect/version/4/do/upsert/email/{$prospectPayload['email']}", $prospectPayload, 'POST', 'form_params');
 
                 if ($response === false) {
                     return true;
@@ -347,7 +347,7 @@ class Pardot extends Crm
             if ($this->mapToOpportunity) {
                 $opportunityPayload = $this->_prepPayload($opportunityValues);
 
-                $response = $this->deliverPayload($submission, 'opportunity/version/4/do/create', $opportunityPayload);
+                $response = $this->deliverPayload($submission, 'opportunity/version/4/do/create', $opportunityPayload, 'POST', 'form_params');
 
                 if ($response === false) {
                     return true;
