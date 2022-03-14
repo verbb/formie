@@ -48,9 +48,7 @@ class Pardot extends Crm
      */
     public function getAuthorizeUrl(): string
     {
-        $prefix = $this->useSandbox ? 'test' : 'login';
-
-        return "https://{$prefix}.salesforce.com/services/oauth2/authorize";
+        return 'https://login.salesforce.com/services/oauth2/authorize';
     }
 
     /**
@@ -58,9 +56,7 @@ class Pardot extends Crm
      */
     public function getAccessTokenUrl(): string
     {
-        $prefix = $this->useSandbox ? 'test' : 'login';
-
-        return "https://{$prefix}.salesforce.com/services/oauth2/token";
+        return 'https://login.salesforce.com/services/oauth2/token';
     }
 
     /**
