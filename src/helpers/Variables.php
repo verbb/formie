@@ -410,7 +410,7 @@ class Variables
 
         if ($field instanceof Date) {
             if ($submissionValue && $submissionValue instanceof DateTime) {
-                $values["{$prefix}{$field->handle}"] = $submissionValue->format('Y-m-d H:i:s');
+                $values["{$prefix}{$field->handle}"] = $field->getValueAsString($submissionValue, $submission);
 
                 // Generate additional values
                 if ($field->displayType !== 'calendar') {
