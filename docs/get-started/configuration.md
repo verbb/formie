@@ -1,6 +1,5 @@
 # Configuration
-
-Create an `formie.php` file under your `/config` directory with the following options available to you. You can also use multi-environment options to change these per environment.
+Create a `formie.php` file under your `/config` directory with the following options available to you. You can also use multi-environment options to change these settings per-environment.
 
 The below shows the defaults already used by Formie, so you don't need to add these options unless you want to modify the values.
 
@@ -56,11 +55,11 @@ return [
 ### Configuration options
 - `pluginName` - Set a custom name for the plugin.
 - `defaultPage` - Set the default sub-page navigated to when clicking "Formie" in the main menu.
-- `enableGatsbyCompatibility` - Opt-in to Gatsby support, which structures the GraphQL interfaces differently so they are compatible with Gatsby.
+- `enableGatsbyCompatibility` - Opt-in to Gatsby support, which structures the GraphQL interfaces differently, so they are compatible with Gatsby.
 
 #### Forms
 - `defaultFormTemplate` - The handle for the default form template used for new forms. Formie‘s defaults will be used if not specified.
-- `defaultEmailTemplate` - The handle for the default email template used for new forms. Formie's defaults will be used if not specified.
+- `defaultEmailTemplate` - The handle for the default email template used for new forms. Formie‘s defaults will be used if not specified.
 - `enableUnloadWarning` - Whether front-end forms should trigger an "unload" warning when a form‘s content has changed and the user tries to navigate away without submitting.
 - `ajaxTimeout` - Set the timeout in seconds for Ajax/XHR requests when using the front-end JS. Default to 10 seconds.
 
@@ -77,8 +76,8 @@ return [
 #### Submissions
 - `maxIncompleteSubmissionAge` - The maximum age of an incomplete submission in days before it is deleted in garbage collection. Set to 0 to disable automatic deletion.
 - `enableCsrfValidationForGuests` - Whether to enable Craft‘s CSRF validation checks for anonymous form submissions.
-- `useQueueForNotifications` - Whether to use Craft‘s queue system to trigger emails. This is highly, **highly** recommended to prevent slow submissions for your users. This may be useful to disable for local development.
-- `useQueueForIntegrations` - Whether to use Craft‘s queue system to trigger integrations. This is highly, **highly** recommended to prevent slow submissions for your users. This may be useful to disable for local development.
+- `useQueueForNotifications` - Whether to use Craft‘s queue system to trigger emails. This is highly, **highly** recommended, to prevent slow submissions for your users. This may be useful to disable for local development.
+- `useQueueForIntegrations` - Whether to use Craft‘s queue system to trigger integrations. This is highly, **highly** recommended, to prevent slow submissions for your users. This may be useful to disable for local development.
 
 #### Sent Notifications
 - `maxSentNotificationsAge` - The number of days to keep sent notifications before they are deleted permanently. Set to 0 to disable automatic deletion.

@@ -5,7 +5,7 @@ Formie uses Craft‘s Queue system to send data to third-party providers. When a
 
 <img src="https://verbb.io/uploads/plugins/formie/crm.png" />
 
-You can create CRM integrations by going to **Formie** → **Settings** → **CRM**. You can pick from a list of providers Formie supports, and provide details for connecting to their respective APIs. You can also created multiple CRM integrations, in case you need to connect to multiple, different providers.
+You can create CRM integrations by going to **Formie** → **Settings** → **CRM**. You can pick from a list of providers Formie supports, and provide details for connecting to their respective APIs. You can also create multiple CRM integrations, in case you need to connect to multiple, different providers.
 
 You can also test the connection to the APIs, to ensure that your site and Formie can communicate with the API.
 
@@ -14,7 +14,7 @@ Once created, enabled and connected, these integrations will be available to con
 <img src="https://verbb.io/uploads/plugins/formie/crm-form.png" />
 
 ### Refresh Integration
-Formie will fetch a number of data objects for the provider - each being specific to the provider. These objects are are cached for performance, you can also refresh the available data objects if they change.
+Formie will fetch a number of data objects for the provider - each being specific to the provider. These objects are cached for performance, you can also refresh the available data objects if they change.
 
 #### Field Mapping
 For each data object, Formie will also fetch all available fields, and any provider-specific fields for a particular CRM provider or data object. You can map which Formie fields should have their values connected to their third-party field counterpart. Each field mapping field can be opted-in, in case you don't require mapping content to all data objects.

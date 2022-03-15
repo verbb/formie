@@ -3,7 +3,7 @@ Miscellaneous integrations are one of the provided integrations with Formie, and
 
 Formie uses Craft‘s Queue system to send data to third-party providers. When a submission is successful a job is added to the queue so that it can be processed asynchronously.
 
-You can create Miscellaneous integrations by going to **Formie** → **Settings** → **Miscellaneous**. You can pick from a list of providers Formie supports, and provide details for connecting to their respective APIs. You can also created multiple Miscellaneous integrations, in case you need to connect to multiple, different providers.
+You can create Miscellaneous integrations by going to **Formie** → **Settings** → **Miscellaneous**. You can pick from a list of providers Formie supports, and provide details for connecting to their respective APIs. You can also create multiple Miscellaneous integrations, in case you need to connect to multiple, different providers.
 
 ## Supported Providers
 Formie integrates with the following providers:
@@ -164,7 +164,7 @@ Follow the below steps to connect to the Trello API.
 
 
 ## Local Testing Proxy
-Some integration providers are configured through OAuth, which involves a round trip from your Craft install, to the providers authentication servers, and back again. For some providers - like Google - they require your Craft install to be on a public domain with SSL enabled. In practice, you might like to test out the integrations locally on your testing environment, which may not be on a publicly accessible domain.
+Some integration providers are configured through OAuth, which involves a round trip from your Craft install, to the providers' authentication servers, and back again. For some providers - like Google - they require your Craft install to be on a public domain with SSL enabled. In practice, you might like to test out the integrations locally on your testing environment, which may not be on a publicly accessible domain.
 
 Formie can help with this, by providing a **Proxy Redirect URI** for some integrations. What this does is modify the URL for the redirect to Verbb servers, to redirect back to your install.
 

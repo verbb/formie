@@ -1,5 +1,5 @@
 # Import/Export
-Formie allows you to import and export your forms. This can be greatly benefitial when working across multiple envionments, where you want to migrate forms and their fields. You could also use this to manage your forms across multiple projects as well.
+Formie allows you to import and export your forms. This can be greatly beneficial when working across multiple environments, where you want to migrate forms and their fields. You could also use this to manage your forms across multiple projects as well.
 
 ## Export
 Navigate to **Formie** → **Settings** → **Import/Export** and in the Export section, select the form you want to export. This will download a JSON file containing everything that makes up your form:

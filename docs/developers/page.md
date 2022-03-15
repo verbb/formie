@@ -20,7 +20,7 @@ Method | Description
 `getFields()` | Returns an array of [Field](docs:developers/field) objects for this page.
 
 
-# Page Setttings
+# Page Settings
 
 ## Attributes
 

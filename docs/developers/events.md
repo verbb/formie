@@ -47,7 +47,7 @@ Event::on(Form::class, Form::EVENT_AFTER_SAVE, function(Event $event) {
 ### The `beforeDeleteForm` event
 The event that is triggered before a form is deleted.
 
-The `isValid` event property can be set to `false` to prevent the the deletion from proceeding.
+The `isValid` event property can be set to `false` to prevent the deletion from proceeding.
 
 ```php
 use verbb\formie\elements\Form;
@@ -235,7 +235,7 @@ Event::on(Submissions::class, Submissions::EVENT_AFTER_INCOMPLETE_SUBMISSION, fu
 ### The `beforeDeleteSubmission` event
 The event that is triggered before a submission is deleted.
 
-The `isValid` event property can be set to `false` to prevent the the deletion from proceeding.
+The `isValid` event property can be set to `false` to prevent the deletion from proceeding.
 
 ```php
 use verbb\formie\elements\Submission;
@@ -1228,7 +1228,7 @@ Event::on(FormTemplates::class, FormTemplates::EVENT_AFTER_DELETE_FORM_TEMPLATE,
 ## PDF Template Events
 
 ### The `beforeSavePdfTemplate` event
-The event that is triggered before an pdf template is saved.
+The event that is triggered before a pdf template is saved.
 
 ```php
 use verbb\formie\events\PdfTemplateEvent;
@@ -1243,7 +1243,7 @@ Event::on(PdfTemplates::class, PdfTemplates::EVENT_BEFORE_SAVE_PDF_TEMPLATE, fun
 ```
 
 ### The `afterSavePdfTemplate` event
-The event that is triggered after an pdf template is saved.
+The event that is triggered after a pdf template is saved.
 
 ```php
 use verbb\formie\events\PdfTemplateEvent;
@@ -1258,7 +1258,7 @@ Event::on(PdfTemplates::class, PdfTemplates::EVENT_AFTER_SAVE_PDF_TEMPLATE, func
 ```
 
 ### The `beforeDeletePdfTemplate` event
-The event that is triggered before an pdf template is deleted.
+The event that is triggered before a pdf template is deleted.
 
 ```php
 use verbb\formie\events\PdfTemplateEvent;
@@ -1272,7 +1272,7 @@ Event::on(PdfTemplates::class, PdfTemplates::EVENT_BEFORE_DELETE_PDF_TEMPLATE, f
 ```
 
 ### The `beforeApplyPdfTemplateDelete` event
-The event that is triggered before an pdf template is deleted.
+The event that is triggered before a pdf template is deleted.
 
 ```php
 use verbb\formie\events\PdfTemplateEvent;
@@ -1286,7 +1286,7 @@ Event::on(PdfTemplates::class, PdfTemplates::EVENT_BEFORE_APPLY_PDF_TEMPLATE_DEL
 ```
 
 ### The `afterDeletePdfTemplate` event
-The event that is triggered after an pdf template is deleted.
+The event that is triggered after a pdf template is deleted.
 
 ```php
 use verbb\formie\events\PdfTemplateEvent;
@@ -1410,7 +1410,7 @@ Event::on(Integrations::class, Integrations::EVENT_BEFORE_DELETE_INTEGRATION, fu
 ```
 
 ### The `beforeApplyIntegrationDelete` event
-The event that is triggered before a integration delete is applied to the database.
+The event that is triggered before an integration delete is applied to the database.
 
 ```php
 use verbb\formie\events\IntegrationEvent;

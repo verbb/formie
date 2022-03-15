@@ -23,15 +23,15 @@ Instructions | Instructions to guide the user when filling out this form.
 Instructions Position | How the instructions for the field should be positioned.
 CSS Classes | Add classes to be outputted on this field’s container.
 Container Attributes | Add attributes to be outputted on this field’s container.
-Input Atributes | Add attributes to be outputted on this field’s input.
+Input Attributes | Add attributes to be outputted on this field’s input.
 Visibility | See below.
 
 ### Visibility
-You can set any field to be "Hidden" on the front-end. This will still be available in the source of the page, but hidden for general users. You can also set it to be "Disabled", where the field is never rendered on the front-end, but can still have its value set via [Field Population](docs:template-guides/populating-forms). This can be benefitial if you're concerned with tampering of the HTML before submission.
+You can set any field to be "Hidden" on the front-end. This will still be available in the source of the page, but hidden for general users. You can also set it to be "Disabled", where the field is never rendered on the front-end, but can still have its value set via [Field Population](docs:template-guides/populating-forms). This can be beneficial if you're concerned with tampering of the HTML before submission.
 
 See the full [Field](docs:developers/field) documentation for more.
 
-In addition some fields have some additional specific settings, described below.
+In addition, some fields have some additional specific settings, described below.
 
 ### Match Field
 For some fields (Text, Number, Password and Email) you can select whether to enforce validation where two fields need to have the same value. This is most commonly used for "confirm" fields, such as Email, or Password.
@@ -55,7 +55,7 @@ A field for addresses. There are a number of sub-fields that can be enabled as r
 - ZIP / Postcode
 - Country
 
-If you have any [Address Providers](docs:feature-tour/integrations#address-providers) configured, you can also enable an *Auto-Complete* setting. This allows the use of a single text input to type an address, and be have it auto-completed.
+If you have any [Address Providers](docs:feature-tour/integrations#address-providers) configured, you can also enable an *Auto-Complete* setting. This allows the use of a single text input to type an address, and have it auto-completed.
 
 
 ### Agree
@@ -172,8 +172,8 @@ Layout | Select which layout to use for these fields.
 A field to select the date or time, or both. There are some different display types:
 
 - Calendar
-- Dropdown fields (a field for year, month, etc)
-- Text input fields (a field for year, month, etc)
+- Dropdown fields (a field for year, month, etc.)
+- Text input fields (a field for year, month, etc.)
 
 #### Settings
 Setting | Description
@@ -192,7 +192,7 @@ Date Picker Options | Add any additional options for the date picker to use. For
 
 
 ### Dropdown
-A field for users select from a dropdown field. The field can also get to to allow multiple options to be set.
+A field for users select from a dropdown field. The field can also get to allow multiple options to be set.
 
 #### Settings
 Setting | Description

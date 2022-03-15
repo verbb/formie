@@ -5,7 +5,7 @@ Formie uses Craft‘s Queue system to send data to third-party providers. When a
 
 <img src="https://verbb.io/uploads/plugins/formie/email-marketing.png" />
 
-You can create Email Marketing integrations by going to **Formie** → **Settings** → **Email Marketing**. You can pick from a list of providers Formie supports, and provide details for connecting to their respective APIs. You can also created multiple Email Marketing integrations, in case you need to connect to multiple, different providers.
+You can create Email Marketing integrations by going to **Formie** → **Settings** → **Email Marketing**. You can pick from a list of providers Formie supports, and provide details for connecting to their respective APIs. You can also create multiple Email Marketing integrations, in case you need to connect to multiple, different providers.
 
 You can also test the connection to the APIs, to ensure that your site and Formie can communicate with the API.
 

@@ -1,7 +1,7 @@
 # Rendering Fields
-You can render a specific field completely on its own, outside of a `<form>` element context. This can be useful if you want complete control over your form layout. Due to this, you are required to provide your own template code for the `<form>` element, in order for submissions to actually work.
+You can render a specific field completely on its own, outside a `<form>` element context. This can be useful if you want complete control over your form layout. Due to this, you are required to provide your own template code for the `<form>` element, in order for submissions to actually work.
 
-The `renderField()` reqiures both a [Form](docs:developers/form) object and a [Field](docs:developers/field) object.
+The `renderField()` requires both a [Form](docs:developers/form) object and a [Field](docs:developers/field) object.
 
 ```twig
 {% set form = craft.formie.forms({ handle: 'contactForm' }).one() %}

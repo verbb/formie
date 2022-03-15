@@ -6,7 +6,7 @@ The URL can be set at the plugin-settings level, or customised per-form. When ed
 There are 2 types of Webhooks Formie provides.
 
 ## Webhook
-A general-purpose webhook can be use to send any URL you provide with the payload of content. This can be use to POST-forward content to a URL you choose.
+A general-purpose webhook can be used to send any URL you provide with the payload of content. This can be used to POST-forward content to a URL you choose.
 
 ### Step 1. Create the Integration
 1. Navigate to **Formie** → **Settings** → **Webhooks**.
@@ -77,7 +77,7 @@ An example payload would look something like:
                 "date":"2020-08-30 11:40:38.000000",
                 "timezone_type":3,
                 "timezone":"Australia\/Melbourne"
-            }
+            },
             "text":"Natus ex sint aut et. Laudantium aut voluptas necessitatibus mollitia. Dolorum aut officiis ea.",
             "email":"hackett.pauline@gmail.com",
             "multiName":"{\"prefix\":\"Prof.\",\"firstName\":\"Catherine\",\"middleName\":\"Erling\",\"lastName\":\"Padberg\",\"name\":null,\"isMultiple\":true}",

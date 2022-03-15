@@ -1,7 +1,7 @@
 # Rendering Pages
 In some cases, you may wish to render specific pages, rather than an entire form. Pages will also include the submit button and captchas. For multi-page forms, this can be multiple buttons for going back to a previous page, or to continue to the next page.
 
-Rendering a page can be acheived with the following Twig.
+Rendering a page can be achieved with the following Twig.
 
 ```twig
 {% set form = craft.formie.forms({ handle: 'contactForm' }).one() %}

@@ -17,7 +17,7 @@ For a form, you can configure entries to be created for submissions. You'll need
 - Entry Field Mapping
 
 ### Mapping
-For both the entries attributes (Title, Post Date, etc) and any custom fields, you can assign a field's content to be mapped to that attribute or field.
+For both the entries attributes (Title, Post Date, etc.) and any custom fields, you can assign a field's content to be mapped to that attribute or field.
 
 For instance, you might have a Date, Users and Single-Line Text field for your form. With this integration, you could map these fields to the entry Post Date, Author and Title respectively.
 

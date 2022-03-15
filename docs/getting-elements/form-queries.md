@@ -24,7 +24,7 @@ See Introduction to [Element Queries](https://docs.craftcms.com/v3/dev/element-q
 
 We can display a form for a given handle by doing the following:
 
-1. Create an form query with `craft.formie.forms()`.
+1. Create a form query with `craft.formie.forms()`.
 2. Set the [handle](#handle) parameter on it.
 3. Fetch a single form with `.one()` and output.
 

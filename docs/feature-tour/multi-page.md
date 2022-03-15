@@ -5,7 +5,7 @@ For more complex forms however, you may need to create additional pages, splitti
 
 <img src="https://verbb.io/uploads/plugins/formie/formie-pages.png" />
 
-Submissions are set to `isIncomplete` at this point, and are not shown in the control panel by default. You can use the dropdown in the Submissions element index to show these as required.
+Submissions are set to `isIncomplete` at this point, and are not shown in the control panel by default. You can use the dropdown in the Submissions' element index to show these as required.
 
 Navigating to previous or next pages is possible with Formie, in case users want to skip ahead, or go back to previous pages. At the final step of the form however, Formie will ensure all pages validate, just in case the user goes back to previous pages and changes a required field's value.
 

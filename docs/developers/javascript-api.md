@@ -31,7 +31,7 @@ We're loading using `defer` to ensure loading doesn't block the page render. Be 
 :::
 
 ### Form Factory
-The `formie.js` has a main entry point to hold a collection of forms. Commonly, this is for a single page, but if your project uses a SPA or similar architecture, this collection would be for the entire session, as the user navigates your site. We call this the Form Factory, where you can get instances of forms for a given page.
+The `formie.js` has a main entry point to hold a collection of forms. Commonly, this is for a single page, but if your project uses an SPA or similar architecture, this collection would be for the entire session, as the user navigates your site. We call this the Form Factory, where you can get instances of forms for a given page.
 
 You can access this factory a number of ways:
 
@@ -99,7 +99,7 @@ let form = $form.form.formTheme;
 Consult the [JS Class](https://github.com/verbb/formie/blob/craft-3/src/web/assets/frontend/src/js/formie-form-theme.js) for more on what you have access to.
 
 ### Additional JS
-For some forms, they might contain additional fields, like a Repeater, or a captcha like reCAPTCHA. These have critical JavaScript associated with them in order for them to function. Rather than bundle this JS into the `formie.js` code for every form, they a lazy-loaded only if the form contains this module. This can be seen in the `registeredJs` property in the Form Config.
+For some forms, they might contain additional fields, like a Repeater, or a captcha like reCAPTCHA. These have critical JavaScript associated with them in order for them to function. Rather than bundle this JS into the `formie.js` code for every form, they are lazy-loaded only if the form contains this module. This can be seen in the `registeredJs` property in the Form Config.
 
 For this example, you would see an initial network request to fetch `formie.js`. Once loaded, it will load `repeater.js` and `recaptcha-v3.js` (also via `defer`) to initialise these extra items in your form. 
 
@@ -200,7 +200,7 @@ Formie's JavaScript provides a number of event hooks for the form and fields, wh
 
 ### The `onFormieInit` event
 
-Because Formie's JavaScript is loaded with `defer`, this means that regardless of it's placement on a page, it won't block rendering, which is great for performance. However, this proves an issue when you want to interact with Formie's JS, as your code needs to ensure Formie's JS has loaded. 
+Because Formie's JavaScript is loaded with `defer`, this means that regardless of its placement on a page, it won't block rendering, which is great for performance. However, this proves an issue when you want to interact with Formie's JS, as your code needs to ensure Formie's JS has loaded. 
 
 In this scenario, you should listen to the `onFormieInit` event, which is fired when Formie's JS has been loaded.
 

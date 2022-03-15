@@ -122,9 +122,9 @@ The way populating values work in Formie is by setting the default value for a f
 
 However, there's one caveat with this approach, to do with incomplete submissions. If you were to try to populate an incomplete submission with field values, you'll find it won't work. This is because the submission technically already has a value - even if it's a blank value.
 
-You can even test this in effect for a multi-page form by submitting the first page of a form, **then** adding your `populateFormValues()` call to your templates, so see that it'll have no effect on any of the fields on any page. This is because Formie can't determine if the empty value a field might have is "correct" (the user intentially left it blank), or whether to populate (override) the value.
+You can even test this in effect for a multi-page form by submitting the first page of a form, **then** adding your `populateFormValues()` call to your templates, so see that it'll have no effect on any of the fields on any page. This is because Formie can't determine if the empty value a field might have is "correct" (the user intentionally left it blank), or whether to populate (override) the value.
 
-But there are scenarios where you want certain field to **always** have a set value, even for incomplete submissions, or if for example a user is coming back to a submission at a later stage. You can use the `force` option for `populateFormValues()` to acheive this.
+But there are scenarios where you want certain field to **always** have a set value, even for incomplete submissions, or if for example a user is coming back to a submission at a later stage. You can use the `force` option for `populateFormValues()` to achieve this.
 
 ```twig
 {% do craft.formie.populateFormValues(form, {

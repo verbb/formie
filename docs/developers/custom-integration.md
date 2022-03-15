@@ -400,7 +400,7 @@ class ExampleEmailMarketing extends EmailMarketing
                 ]);
             }
 
-            // Add a a new collection to our settings, including fields specific for it
+            // Add a new collection to our settings, including fields specific for it
             $settings['lists'][] = new IntegrationCollection([
                 'id' => $list['id'],
                 'name' => $list['name'],
@@ -698,7 +698,7 @@ For a number of integrations (CRM, Element, Email Marketing, Miscellaneous) ther
 
 All that's required is you return a `IntegrationFormSettings` object from this function.
 
-This function is also called when using some of the Vue components to refresh the available settings.
+This function is also called when using some Vue components to refresh the available settings.
 
 ### `IntegrationFormSettings`
 An `IntegrationFormSettings` defines the available 'collections' of information available to your integration for the form. When creating the object, you should provide an array, which key you'll use in your template. For example, for a CRM integration, there are a number of different collections of data we might need, for contacts, leads and deals.
@@ -797,35 +797,35 @@ return new IntegrationFormSettings([
 ]);
 ```
 
-Here, we build a nested stucture comprised of a single `IntegrationFormSettings` containing multiple `IntegrationCollection`, containing multiple `IntegrationField`. This would produce an object, represented in JSON:
+Here, we build a nested structure comprised of a single `IntegrationFormSettings` containing multiple `IntegrationCollection`, containing multiple `IntegrationField`. This would produce an object, represented in JSON:
 
 ```json
 {
     "elements": {
         "Blog": [
             {
-                "id": "123"
+                "id": "123",
                 "name": "Regular Article",
-                "fields": [
+                "fields": {
                     "handle": "plainText",
                     "name": "Plain Text",
-                    "type": "craft\elements\Entry",
-                    "required": false,
-                ],
+                    "type": "craft\\elements\\Entry",
+                    "required": false
+                }
                 //...
             },
             {
-                "id": "342"
+                "id": "342",
                 "name": "Sponsored Article",
-                "fields": [
+                "fields": {
                     "handle": "plainText",
                     "name": "Plain Text",
-                    "type": "craft\elements\Entry",
-                    "required": false,
-                ],
+                    "type": "craft\\elements\\Entry",
+                    "required": false
+                }
                 //...
             }
-        ],
+        ]
         //...
     }
 }
@@ -863,7 +863,7 @@ foreach ($lists as $list) {
         ]);
     }
 
-    // Add a a new collection to our settings, including fields specific for it
+    // Add a new collection to our settings, including fields specific for it
     $settings['lists'][] = new IntegrationCollection([
         'id' => $list['id'],
         'name' => $list['name'],
@@ -878,14 +878,14 @@ return new IntegrationFormSettings($settings);
 {
     "lists": [
         {
-            "id": "hjg34hsdfsjg"
+            "id": "hjg34hsdfsjg",
             "name": "Newsletter",
             "fields": [
                 //...
             ],
         },
         {
-            "id": "213hjk342hk"
+            "id": "213hjk342hk",
             "name": "Sponsors",
             "fields": [
                 //...
@@ -919,7 +919,7 @@ Attribute | Description
 `options` | An array of additional options, able to be selected.
 
 #### Types
-If not specified, the default type of a `IntegrationField` will be `TYPE_STRING`.
+If not specified, the default type of `IntegrationField` will be `TYPE_STRING`.
 
 Attribute
 ---

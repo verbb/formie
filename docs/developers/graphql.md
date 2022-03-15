@@ -397,7 +397,7 @@ Once using the necessary [Inline Fragments](https://graphql.org/learn/queries/#i
 | Field | Type | Description
 | - | - | -
 |`defaultOption` | `String` | The selected option for the preset default value chosen.
-|`defaultValue` | `String` | Entering a default value will place the value in the field when it loads. This will be dependant on the value chosen for the `defaultOption`.
+|`defaultValue` | `String` | Entering a default value will place the value in the field when it loads. This will be dependent on the value chosen for the `defaultOption`.
 |`queryParameter` | `String` | If `query` string is selected for the `defaultOption`, this will contain the query string parameter to look up.
 
 

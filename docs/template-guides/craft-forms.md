@@ -223,12 +223,12 @@ The above profile form does a great job of updating all the core user attributes
 {% endnamespace %}
 ```
 
-Here, we render the core fields (`username`, `firstName`, `email`, etc) first, which are managed by Formie. Then, we wrap all our custom fields in a `{% namespace 'fields' %}` tag, which automatically sets the `name` attributes to `fields[myNameAttribute]` and output each custom field for users.
+Here, we render the core fields (`username`, `firstName`, `email`, etc.) first, which are managed by Formie. Then, we wrap all our custom fields in a `{% namespace 'fields' %}` tag, which automatically sets the `name` attributes to `fields[myNameAttribute]` and output each custom field for users.
 
 There's nothing stopping you from duplicating fields in Formie though, if that's what you'd like to do!
 
 ## Entry Form
-You could also use Formie to manage a [Entry Form](https://craftcms.com/knowledge-base/entry-form), but you'd also be duplicating a lot of fields in Formie to the ones you've already attached to the entry.
+You could also use Formie to manage an [Entry Form](https://craftcms.com/knowledge-base/entry-form), but you'd also be duplicating a lot of fields in Formie to the ones you've already attached to the entry.
 
 For this reason, we recommend you stick with the custom [Entry Form](https://craftcms.com/knowledge-base/entry-form).
 

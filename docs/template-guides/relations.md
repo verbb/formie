@@ -1,5 +1,5 @@
 # Relations
-When submitting a form in your templates, you can optionally chose to relate other elements to that submission, without needing to create an element field to relate to.
+When submitting a form in your templates, you can optionally choose to relate other elements to that submission, without needing to create an element field to relate to.
 
 For example, you might want to relate a specific entry or product element with a form submission. Whilst you could create an Entry or Product element field, you might not want admin's to be able to edit this relation. Through this approach, you can essentially set a hidden relationship to other elements and the submission.
 

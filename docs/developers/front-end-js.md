@@ -45,7 +45,7 @@ For Single-line Text and Multi-line text fields, and if the `Limit` options are 
 Your [Form Templates](docs:template-guides/form-templates) can control where and how the JS for a form is rendered. You can also disable the "Form Base" or "Form Theme" JavaScript, if you wish to write your own JS.
 
 :::warning
-Be aware that if disabling the "Form Base" you will loose Formie's submit-handler binding on the form. This will mean reCAPTCHA will not work on your forms, as it relies on interrupting the submit of a form to validate. You will need to manage reCAPTCHA yourself.
+Be aware that if disabling the "Form Base" you will lose Formie's submit-handler binding on the form. This will mean reCAPTCHA will not work on your forms, as it relies on interrupting the submission of a form to validate. You will need to manage reCAPTCHA yourself.
 :::
 
 For example, if you wish to disable the "Form Theme", client-side validation will no longer work. It will be up to you to implement this behaviour for your site.

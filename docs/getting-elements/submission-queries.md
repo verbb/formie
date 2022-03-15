@@ -24,7 +24,7 @@ See Introduction to [Element Queries](https://docs.craftcms.com/v3/dev/element-q
 
 We can display submissions for a given form by doing the following:
 
-1. Create an submission query with `craft.formie.submissions()`.
+1. Create a submission query with `craft.formie.submissions()`.
 2. Set the [form](#form) and [limit](#limit) parameters on it.
 3. Fetch all submissions with `.all()` and output.
 4. Loop through the submissions using a [for](https://twig.symfony.com/doc/2.x/tags/for.html) tag to output the contents.
@@ -226,7 +226,7 @@ Possible values include:
 | `'not foo'` | not for a form with a handle of `foo`.
 | `['foo', 'bar']` | for a form with a handle of `foo` or `bar`.
 | `['not', 'foo', 'bar']` | not for a form with a handle of `foo` or `bar`.
-| an [Form](docs:developers/form) object | for a form represented by the object.
+| a [Form](docs:developers/form) object | for a form represented by the object.
 
 ::: code
 ```twig

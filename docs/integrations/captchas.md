@@ -21,7 +21,7 @@ You can also configure which type of reCAPTCHA captcha to use. We highly recomme
 [hCaptcha](https://www.hcaptcha.com/) is an anti-bot solution that protects user privacy and rewards websites. It is the most popular reCAPTCHA alternative.
 
 ## Snaptcha Plugin
-The [Snaptcha Plugin](https://plugins.craftcms.com/snaptcha) is an invisible CAPTCHA that automatically validates forms and prevents spam bots from submitting to your Craft CMS site.
+The [Snaptcha Plugin](https://plugins.craftcms.com/snaptcha) is an invisible CAPTCHA that automatically validates forms and prevents spam-bots from submitting to your Craft CMS site.
 
 ## Duplicate
 This captcha checks for duplicate submissions, where bots might be submitting multiple times. This mechanism assigns a unique value to a submission, so if the same content is submitted again without refreshing or changing the form content, it will be marked as a duplicate. 
@@ -30,7 +30,7 @@ This captcha checks for duplicate submissions, where bots might be submitting mu
 This captcha checks for bots that auto-fill forms, by providing an additional hidden field that should be left blank. This is completely hidden to normal users filling out the form.
 
 ## Javascript
-This captcha checks if the user has Javascript enabled, and flags as spam if they do not. This may be benefitial in some cases, but due to the reliance on the presence of Javascript being enabled (which can sometimes be valid for users), this should be enabled with caution.
+This captcha checks if the user has Javascript enabled, and flags as spam if they do not. This may be beneficial in some cases, but due to the reliance on the presence of Javascript being enabled (which can sometimes be valid for users), this should be enabled with caution.
 
 ## Multi-page Forms
 For multi-page forms, you have the open to enable captchas to be shown and validate on each step of the form submission process, or at the very end. This is through the "Show on All Pages" setting.
