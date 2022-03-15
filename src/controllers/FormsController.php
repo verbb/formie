@@ -356,6 +356,7 @@ class FormsController extends Controller
 
         // Ensure the appearance tab is selected
         $variables['selectedTab'] = '1';
+        $variables['containerAttributes']['id'] = 'tabs';
 
         $tabsHtml = $view->renderTemplate('_includes/tabs', $variables);
         $positionsHtml = $view->renderTemplate('formie/forms/_panes/_positions', $variables);
