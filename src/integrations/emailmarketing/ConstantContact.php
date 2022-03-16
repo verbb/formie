@@ -89,7 +89,9 @@ class ConstantContact extends EmailMarketing
      */
     public function getOauthScope(): array
     {
-        return ['contact_data'];
+        // The non-array syntax here is deliberate
+        // https://community.constantcontact.com/t5/Developer-Support-ask-questions/One-or-more-scopes-are-not-configured-for-the-authorization/m-p/383293#M12904
+        return ['contact_data offline_access'];
     }
 
 
