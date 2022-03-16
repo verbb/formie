@@ -326,7 +326,21 @@ class Pardot extends Crm
             if ($this->mapToProspect) {
                 $prospectPayload = $this->_prepPayload($prospectValues);
 
-                $response = $this->deliverPayload($submission, "prospect/version/4/do/upsert/email/{$prospectPayload['email']}", $prospectPayload, 'POST', 'form_params');
+                // It'd be great to use `upsert/email/{email}` but that always creates a new prospect - useless!!
+                // https://developer.salesforce.com/docs/marketing/pardot/guide/prospects-v4.html#prospect-upsert
+                // Even more annoying it throws an error if the email wasn't found...
+                try {
+                    $response = $this->request('GET', "prospect/version/4/do/read/email/{$prospectPayload['email']}");
+                    $prospectId = $response['prospect'][0]['id'] ?? '';
+
+                    if ($prospectId) {
+                        $response = $this->deliverPayload($submission, "prospect/version/4/do/update/id/{$prospectId}", $prospectPayload, 'POST', 'form_params');
+                    } else {
+                        $response = $this->deliverPayload($submission, "prospect/version/4/do/create/{$prospectPayload['email']}", $prospectPayload, 'POST', 'form_params');
+                    }
+                } catch (\Throwable $e) {
+                    $response = $this->deliverPayload($submission, "prospect/version/4/do/create/{$prospectPayload['email']}", $prospectPayload, 'POST', 'form_params');
+                }
 
                 if ($response === false) {
                     return true;
