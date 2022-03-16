@@ -1238,40 +1238,14 @@ trait FormFieldTrait
      */
     protected function defineValueForIntegration($value, $integrationField, $integration, ElementInterface $element = null, $fieldKey = '')
     {
-        $stringValue = $this->defineValueAsString($value, $element);
-        $jsonValue = $this->defineValueAsJson($value, $element);
+        $fieldValue = $this->defineValueAsString($value, $element);
 
+        // Special case for array fields, we should be using the `defineValueAsJson()` function
         if ($integrationField->getType() === IntegrationField::TYPE_ARRAY) {
-            return (is_array($jsonValue)) ? $jsonValue : [$jsonValue];
+            $fieldValue = $this->defineValueAsJson($value, $element);
         }
 
-        if ($integrationField->getType() === IntegrationField::TYPE_DATE) {
-            if ($date = DateTimeHelper::toDateTime($stringValue)) {
-                return $date->format('Y-m-d');
-            }
-        }
-
-        if ($integrationField->getType() === IntegrationField::TYPE_DATETIME) {
-            if ($date = DateTimeHelper::toDateTime($stringValue)) {
-                return $date->format('Y-m-d H:i:s');
-            }
-        }
-
-        if ($integrationField->getType() === IntegrationField::TYPE_NUMBER) {
-            return intval($stringValue);
-        }
-
-        if ($integrationField->getType() === IntegrationField::TYPE_FLOAT) {
-            return floatval($stringValue);
-        }
-
-        if ($integrationField->getType() === IntegrationField::TYPE_BOOLEAN) {
-            return StringHelper::toBoolean($stringValue);
-        }
-
-        // Return the string representation of it by default (also default for integration fields)
-        // You could argue we should return `null`, but let's not be too strict on types.
-        return $stringValue;
+        return Integration::convertValueForIntegration($fieldValue, $integrationField);
     }
 
     /**

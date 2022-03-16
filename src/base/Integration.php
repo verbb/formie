@@ -171,6 +171,41 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         }
     }
 
+    public static function convertValueForIntegration($value, $integrationField)
+    {
+        if ($integrationField->getType() === IntegrationField::TYPE_ARRAY) {
+            return (is_array($value)) ? $value : [$value];
+        }
+
+        if ($integrationField->getType() === IntegrationField::TYPE_DATE) {
+            if ($date = DateTimeHelper::toDateTime($value)) {
+                return $date->format('Y-m-d');
+            }
+        }
+
+        if ($integrationField->getType() === IntegrationField::TYPE_DATETIME) {
+            if ($date = DateTimeHelper::toDateTime($value)) {
+                return $date->format('Y-m-d H:i:s');
+            }
+        }
+
+        if ($integrationField->getType() === IntegrationField::TYPE_NUMBER) {
+            return intval($value);
+        }
+
+        if ($integrationField->getType() === IntegrationField::TYPE_FLOAT) {
+            return floatval($value);
+        }
+
+        if ($integrationField->getType() === IntegrationField::TYPE_BOOLEAN) {
+            return StringHelper::toBoolean($value);
+        }
+
+        // Return the string representation of it by default (also default for integration fields)
+        // You could argue we should return `null`, but let's not be too strict on types.
+        return $value;
+    }
+
 
     // Public Methods
     // =========================================================================
@@ -721,10 +756,10 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
                 continue;
             }
 
-            if (strstr($fieldKey, '{')) {
-                // Get the type of field we are mapping to (for the integration)
-                $integrationField = ArrayHelper::firstWhere($fieldSettings, 'handle', $tag) ?? new IntegrationField();
+            // Get the type of field we are mapping to (for the integration)
+            $integrationField = ArrayHelper::firstWhere($fieldSettings, 'handle', $tag) ?? new IntegrationField();
 
+            if (strstr($fieldKey, '{')) {
                 // Get the value of the mapped field, from the submission.
                 $fieldValue = $this->getMappedFieldValue($fieldKey, $submission, $integrationField);
 
@@ -734,8 +769,8 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
                     $fieldValues[$tag] = $fieldValue;
                 }
             } else {
-                // Otherwise, might have passed in a direct, static value
-                $fieldValues[$tag] = $fieldKey;
+                // Otherwise, might have passed in a direct, static value. But ensure they're typecasted properly
+                $fieldValues[$tag] = self::convertValueForIntegration($fieldKey, $integrationField);
             }
         }
 
