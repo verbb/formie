@@ -27,6 +27,7 @@ class Zoho extends Crm
     public $apiServer;
     public $apiLocation;
     public $apiDomain;
+    public $useDeveloper = false;
     public $mapToContact = false;
     public $mapToDeal = false;
     public $mapToLead = false;
@@ -365,6 +366,10 @@ class Zoho extends Crm
         // Populated after OAuth connection
         $url = $this->apiDomain ?? 'https://www.zohoapis.com';
         $url = rtrim($url, '/');
+
+        if ($this->useDeveloper) {
+            $url = 'https://developer.zohoapis.com';
+        }
 
         $token = $this->getToken();
 
