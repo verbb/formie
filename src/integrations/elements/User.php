@@ -188,7 +188,11 @@ class User extends Element
     {
         try {
             $user = $this->getElementForPayload(UserElement::class, $submission);
-            $user->pending = true;
+
+            // If a new user, set as pending
+            if (!$user->id) {
+                $user->pending = true;
+            }
 
             // Get the source form field if we're mapping the password. A few things to do.
             $passwordField = $this->_getPasswordField($submission);
