@@ -16,6 +16,7 @@ use Craft;
 use craft\errors\SiteNotFoundException;
 use craft\fields\BaseRelationField;
 use craft\fields\data\MultiOptionsFieldData;
+use craft\fields\data\SingleOptionsFieldData;
 use craft\helpers\App;
 
 use DateTime;
@@ -465,6 +466,9 @@ class Variables
             // It's arguable that `getValueAsString()` should be the default behaviour but requires more testing
             $values["{$prefix}{$field->handle}"] = $field->getValueAsString($submissionValue, $submission);
         } else if ($submissionValue instanceof MultiOptionsFieldData) {
+            // TODO: this should become the single thing we need to use here at the next breakpoint. Requires full testing.
+            $values["{$prefix}{$field->handle}"] = $field->getValueForEmail($submissionValue, $notification, $submission);
+        } else if ($submissionValue instanceof SingleOptionsFieldData) {
             // TODO: this should become the single thing we need to use here at the next breakpoint. Requires full testing.
             $values["{$prefix}{$field->handle}"] = $field->getValueForEmail($submissionValue, $notification, $submission);
         } else {
