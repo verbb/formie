@@ -331,7 +331,9 @@ class Pardot extends Crm
                 // Even more annoying it throws an error if the email wasn't found...
                 try {
                     $response = $this->request('GET', "prospect/version/4/do/read/email/{$prospectPayload['email']}");
-                    $prospectId = $response['prospect'][0]['id'] ?? '';
+
+                    // This can either be a single prospect, or multiple prospects
+                    $prospectId = $response['prospect']['id'] ?? $response['prospect'][0]['id'] ?? '';
 
                     if ($prospectId) {
                         $response = $this->deliverPayload($submission, "prospect/version/4/do/update/id/{$prospectId}", $prospectPayload, 'POST', 'form_params');
