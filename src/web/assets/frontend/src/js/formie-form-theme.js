@@ -613,6 +613,14 @@ export class FormieFormTheme {
             if (this.settings.submitActionFormHide) {
                 this.$form.style.display = 'none';
             }
+
+            // Smooth-scroll to the top of the form.
+            if (this.settings.scrollToTop) {
+                window.scrollTo({
+                    top: this.$form.getBoundingClientRect().top + window.pageYOffset - 100,
+                    behavior: 'smooth',
+                });
+            }
         }
 
         // Reset values regardless, for the moment
@@ -705,7 +713,7 @@ export class FormieFormTheme {
         // Smooth-scroll to the top of the form.
         if (this.settings.scrollToTop) {
             window.scrollTo({
-                top: this.$form.getBoundingClientRect().top + window.pageYOffset - 50,
+                top: this.$form.getBoundingClientRect().top + window.pageYOffset - 100,
                 behavior: 'smooth',
             });
         }
