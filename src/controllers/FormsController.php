@@ -591,6 +591,10 @@ class FormsController extends Controller
             $permissions[] = "formie-manageFormSettings{$suffix}";
         }
 
+        // Check if they have "View Submissions" - they should have access to manage
+        if ($userService->checkPermission('formie-viewSubmissions')) {
+            $permissions[] = "formie-manageSubmission{$suffix}";
+        }
 
         Craft::$app->getUserPermissions()->saveUserPermissions($currentUser->id, $permissions);
     }
