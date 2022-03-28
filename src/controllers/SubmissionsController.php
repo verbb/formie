@@ -96,6 +96,8 @@ class SubmissionsController extends Controller
     {
         $this->getView()->registerAssetBundle(CpAsset::class);
 
+        $this->requirePermission('formie-viewSubmissions');
+
         return $this->renderTemplate('formie/submissions/index', []);
     }
 
@@ -137,6 +139,14 @@ class SubmissionsController extends Controller
 
         if (!$form) {
             throw new HttpException(404);
+        }
+
+        // User must have at least one of these permissions to edit (all, or the specific form)
+        $submissionsPermission = Craft::$app->getUser()->checkPermission('formie-editSubmissions');
+        $submissionPermission = Craft::$app->getUser()->checkPermission('formie-manageSubmission:' . $form->uid);
+
+        if (!$submissionsPermission && !$submissionPermission) {
+            throw new ForbiddenHttpException('User is not permitted to perform this action');
         }
 
         $variables = [
