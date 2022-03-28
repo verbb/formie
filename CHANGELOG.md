@@ -1,5 +1,32 @@
 # Changelog
 
+## 1.5.12 - 2022-03-29
+
+### Added
+- Added “Developer API” setting for Zoho CRM integration.
+- Added error logging for invalid rows.
+
+### Changed
+- When creating a new form, users automatically receive the “Manage form submissions” permission for that form.
+- Allow Radio Buttons and Dropdown fields to make use of `Field::EVENT_MODIFY_VALUE_FOR_EMAIL`.
+
+### Fixed
+- Fixed proper permissions checks for submission viewing/editing.
+- Fixed not being able to view any submissions when only “View Submissions” was enabled.
+- Fixed “Manage notification advanced” and “Manage notification templates” permissions not propagating for newly created forms.
+- Fixed “Create Submissions” permission not applying correctly.
+- Fixed “Scroll To Top” form setting not working for single-page forms.
+- Fixed User element integrations not working correctly for updating existing users.
+- Fixed static values mapped in integrations not being typecasted correctly.
+- Fixed Date fields not respecting their date/time formats in email notifications.
+- Fixed when switching Form templates, tabs not working correctly in the form builder.
+- Fixed general errors when saving a form not being shown to the user.
+- Fixed the payload format for Pardot CRM integration.
+- Fixed Pardot using incorrect OAuth endpoints for Sandbox requests.
+- Fixed Pardot CRM integration creating duplicate prospects in some instances.
+- Fixed Pardot CRM integration not correctly checking for duplicates, due to Prospect Upsert API limitations/incorrectness.
+- Fixed Constant Contact integration not generating a refresh token.
+
 ## 1.5.11 - 2022-03-12
 
 ### Added
