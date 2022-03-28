@@ -575,6 +575,14 @@ class FormsController extends Controller
             $permissions[] = "formie-manageNotifications{$suffix}";
         }
 
+        if ($userService->checkPermission('formie-manageNotificationsAdvanced')) {
+            $permissions[] = "formie-manageNotificationsAdvanced{$suffix}";
+        }
+
+        if ($userService->checkPermission('formie-manageNotificationsTemplates')) {
+            $permissions[] = "formie-manageNotificationsTemplates{$suffix}";
+        }
+
         if ($userService->checkPermission('formie-manageFormIntegrations')) {
             $permissions[] = "formie-manageFormIntegrations{$suffix}";
         }
