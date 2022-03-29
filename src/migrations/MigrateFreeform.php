@@ -562,6 +562,9 @@ class MigrateFreeform extends Migration
                 $this->_applyFieldDefaults($newField);
 
                 $newField->options = $this->_mapOptions($field->getOptions());
+
+                // Setup the default value properly in options
+                $newField->defaultValue = null;
                 break;
 
             case freeformfields\DynamicRecipientField::class:
@@ -657,6 +660,9 @@ class MigrateFreeform extends Migration
 
                 $newField->setMultiple(true);
                 $newField->options = $this->_mapOptions($field->getOptions());
+
+                // Setup the default value properly in options
+                $newField->defaultValue = null;
                 break;
 
             case freeformfields\NumberField::class:
@@ -683,6 +689,9 @@ class MigrateFreeform extends Migration
 
                 $newField->layout = $field->isOneLine() ? 'horizontal' : 'vertical';
                 $newField->options = $this->_mapOptions($field->getOptions());
+
+                // Setup the default value properly in options
+                $newField->defaultValue = null;
                 break;
 
             case freeformfields\RecaptchaField::class:
@@ -695,6 +704,9 @@ class MigrateFreeform extends Migration
                 $this->_applyFieldDefaults($newField);
 
                 $newField->options = $this->_mapOptions($field->getOptions());
+
+                // Setup the default value properly in options
+                $newField->defaultValue = null;
                 break;
 
             case freeformfields\SubmitField::class:
