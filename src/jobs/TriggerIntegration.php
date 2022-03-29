@@ -52,6 +52,8 @@ class TriggerIntegration extends BaseJob
 
             // Ensure we set the correct language for a potential CLI request
             Craft::$app->language = $submission->getSite()->language;
+            Craft::$app->set('locale', Craft::$app->getI18n()->getLocaleById($submission->getSite()->language));
+            Craft::$app->getSites()->setCurrentSite($submission->getSite());
 
             $response = Formie::$plugin->getSubmissions()->sendIntegrationPayload($this->integration, $submission);
 
