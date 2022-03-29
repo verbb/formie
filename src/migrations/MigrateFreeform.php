@@ -117,14 +117,6 @@ class MigrateFreeform extends Migration
                 $form->templateId = $templateId;
             }
 
-            // "storeData" is private.
-            if ($f = $freeformForm->getForm()) {
-                $reflection = new ReflectionClass($f);
-                $storeDataProp = $reflection->getProperty('storeData');
-                $storeDataProp->setAccessible(true);
-                $form->settings->storeData = $storeDataProp->getValue($f) ?? true;
-            }
-
             // Fire a 'modifyForm' event
             $event = new ModifyMigrationFormEvent([
                 'form' => $freeformForm,
