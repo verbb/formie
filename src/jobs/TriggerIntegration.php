@@ -50,6 +50,9 @@ class TriggerIntegration extends BaseJob
             // Set with a private variable, so it doesn't appear in the queue job data which would be mayhem.
             $this->integration->setQueueJob($this);
 
+            // Ensure we set the correct language for a potential CLI request
+            Craft::$app->language = $submission->getSite()->language;
+
             $response = Formie::$plugin->getSubmissions()->sendIntegrationPayload($this->integration, $submission);
 
             // Check if some integrations return a response object for more detail
