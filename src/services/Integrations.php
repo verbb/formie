@@ -308,6 +308,8 @@ class Integrations extends Component
             'enabled' => (bool)$integration->enabled,
             'sortOrder' => (int)$integration->sortOrder,
             'settings' => ProjectConfigHelper::packAssociativeArrays($integration->getSettings()),
+
+            // TODO: remove this from the PC, but not without migrating existing values, to prevent data loss
             'tokenId' => $integration->tokenId,
         ];
 
@@ -403,7 +405,6 @@ class Integrations extends Component
             $integrationRecord->enabled = $data['enabled'];
             $integrationRecord->sortOrder = $data['sortOrder'];
             $integrationRecord->settings = ProjectConfigHelper::unpackAssociativeArrays($settings);
-            $integrationRecord->tokenId = $data['tokenId'] ?? null;
             $integrationRecord->uid = $integrationUid;
 
             // Save the integration
