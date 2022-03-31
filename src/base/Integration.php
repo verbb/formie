@@ -701,7 +701,13 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     public function getToken($refresh = true)
     {
         if ($this->tokenId) {
-            return Formie::$plugin->getTokens()->getTokenById($this->tokenId, $refresh);
+            $token = Formie::$plugin->getTokens()->getTokenById($this->tokenId, $refresh);
+
+            if (!$token) {
+                self::error($this, 'Integration is missing its token. Please re-connect your integration via its settings.', true);
+            }
+
+            return $token;
         }
 
         return null;
