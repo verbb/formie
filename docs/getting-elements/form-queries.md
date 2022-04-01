@@ -61,6 +61,7 @@ Form queries support the following parameters:
 | [template](#template)                         | Narrows the query results based on the forms’ template.
 | [templateId](#templateId)                     | Narrows the query results based on the forms’ template, per their IDs.
 | [title](#title)                               | Narrows the query results based on the forms’ titles.
+| [trashed](#trashed)                           | Narrows the query results to only forms that have been soft-deleted.
 | [uid](#uid)                                   | Narrows the query results based on the forms’ UIDs.
 
 
@@ -417,6 +418,28 @@ Possible values include:
 // Fetch forms with a title that contains "Foo"
 $forms = \verbb\formie\elements\Form::find()
     ->title('*Foo*')
+    ->all();
+```
+:::
+
+
+
+### `trashed`
+
+Narrows the query results to only forms that have been soft-deleted.
+
+::: code
+```twig
+{# Fetch trashed forms #}
+{% set entries = craft.formie.forms()
+    .trashed()
+    .all() %}
+```
+
+```php
+// Fetch trashed forms
+$forms = \verbb\formie\elements\Form::find()
+    ->trashed()
     ->all();
 ```
 :::
