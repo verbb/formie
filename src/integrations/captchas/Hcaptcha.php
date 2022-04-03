@@ -119,12 +119,17 @@ class Hcaptcha extends Captcha
         ]);
 
         $result = Json::decode((string)$response->getBody(), true);
+        $success = $result['success'] ?? false;
+
+        if (!$success) {
+            $this->spamReason = Json::encode($result);
+        }
 
         if (isset($result['score'])) {
             return ($result['score'] < $this->minScore);
         }
 
-        return $result['success'] ?? false;
+        return $success;
     }
 
     /**
