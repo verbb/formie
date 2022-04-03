@@ -339,8 +339,6 @@ class Tags extends CraftTags implements FormFieldInterface
             ['value' => 'title', 'label' => Craft::t('app', 'Title')],
         ];
 
-        // Craft::dd($this->availableSources());
-
         foreach ($this->availableSources() as $source) {
             if (!isset($source['heading'])) {
                 $groupId = $source['criteria']['groupId'] ?? null;

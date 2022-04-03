@@ -65,7 +65,6 @@ class Klaviyo extends EmailMarketing
 
         try {
             $lists = $this->request('GET', 'v2/lists');
-            // Craft::dd($response);
 
             foreach ($lists as $list) {
                 $listFields = [
