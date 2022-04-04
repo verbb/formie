@@ -15,7 +15,7 @@ class Table extends FeedMeTable
     // Properties
     // =========================================================================
 
-    public static $class = TableField::class;
-    public static $name = 'Table';
+    public static string $class = TableField::class;
+    public static string $name = 'Table';
 
 }

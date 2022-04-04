@@ -15,7 +15,7 @@ class Tags extends FeedMeTags
     // Properties
     // =========================================================================
 
-    public static $class = TagsField::class;
-    public static $name = 'Tags';
+    public static string $class = TagsField::class;
+    public static string $name = 'Tags';
 
 }

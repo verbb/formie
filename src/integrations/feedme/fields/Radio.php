@@ -15,7 +15,7 @@ class Radio extends FeedMeRadioButtons
     // Properties
     // =========================================================================
 
-    public static $class = RadioField::class;
-    public static $name = 'Radio';
+    public static string $class = RadioField::class;
+    public static string $name = 'Radio';
 
 }

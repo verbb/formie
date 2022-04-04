@@ -15,7 +15,7 @@ class Variants extends FeedMeVariants
     // Properties
     // =========================================================================
 
-    public static $class = VariantsField::class;
-    public static $name = 'Variants';
+    public static string $class = VariantsField::class;
+    public static string $name = 'Variants';
 
 }

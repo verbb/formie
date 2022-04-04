@@ -15,7 +15,7 @@ class Checkboxes extends FeedMeCheckboxes
     // Properties
     // =========================================================================
 
-    public static $class = CheckboxesField::class;
-    public static $name = 'Checkboxes';
+    public static string $class = CheckboxesField::class;
+    public static string $name = 'Checkboxes';
 
 }

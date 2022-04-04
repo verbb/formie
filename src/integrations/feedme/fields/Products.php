@@ -15,7 +15,7 @@ class Products extends FeedMeProducts
     // Properties
     // =========================================================================
 
-    public static $class = ProductsField::class;
-    public static $name = 'Products';
+    public static string $class = ProductsField::class;
+    public static string $name = 'Products';
 
 }

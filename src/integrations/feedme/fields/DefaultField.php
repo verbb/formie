@@ -17,7 +17,7 @@ class DefaultField extends FeedMeDefault
     /**
      * @inheritDoc
      */
-    public function parseField()
+    public function parseField(): mixed
     {
         $this->beforeParseField();
     }

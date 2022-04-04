@@ -23,11 +23,11 @@ class Address extends Field implements FieldInterface
     /**
      * @var string
      */
-    public static $class = AddressField::class;
+    public static string $class = AddressField::class;
     /**
      * @var string
      */
-    public static $name = 'Address';
+    public static string $name = 'Address';
 
 
     // Templates
@@ -36,7 +36,7 @@ class Address extends Field implements FieldInterface
     /**
      * @inheritDoc
      */
-    public function getMappingTemplate()
+    public function getMappingTemplate(): string
     {
         return 'formie/integrations/feedme/fields/address';
     }
@@ -48,7 +48,7 @@ class Address extends Field implements FieldInterface
     /**
      * @inheritDoc
      */
-    public function parseField()
+    public function parseField(): mixed
     {
         $this->beforeParseField();
 

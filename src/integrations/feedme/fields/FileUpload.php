@@ -15,7 +15,7 @@ class FileUpload extends FeedMeAssets
     // Properties
     // =========================================================================
 
-    public static $class = FileUploadField::class;
-    public static $name = 'FileUpload';
+    public static string $class = FileUploadField::class;
+    public static string $name = 'FileUpload';
 
 }

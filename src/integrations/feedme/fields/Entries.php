@@ -15,7 +15,7 @@ class Entries extends FeedMeEntries
     // Properties
     // =========================================================================
 
-    public static $class = EntriesField::class;
-    public static $name = 'Entries';
+    public static string $class = EntriesField::class;
+    public static string $name = 'Entries';
 
 }

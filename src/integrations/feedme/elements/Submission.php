@@ -5,6 +5,7 @@ use verbb\formie\Formie;
 use verbb\formie\elements\Submission as SubmissionElement;
 
 use Craft;
+use craft\base\ElementInterface;
 
 use craft\feedme\base\Element;
 
@@ -15,9 +16,10 @@ class Submission extends Element
     // Properties
     // =========================================================================
 
-    public static $class = SubmissionElement::class;
-    public static $name = 'Submission';
-    public $element = null;
+    public static string $class = SubmissionElement::class;
+    public static string $name = 'Submission';
+
+    public ?ElementInterface $element = null;
 
 
     // Templates
@@ -42,16 +44,16 @@ class Submission extends Element
     // Public Methods
     // =========================================================================
 
-    public function getGroups()
+    public function getGroups(): array
     {
         if (Formie::$plugin) {
             return Formie::$plugin->getForms()->getAllForms();
         }
 
-        return null;
+        return [];
     }
 
-    public function getQuery($settings, $params = [])
+    public function getQuery($settings, array $params = []): mixed
     {
         $query = SubmissionElement::find()
             ->status(null)
@@ -63,7 +65,7 @@ class Submission extends Element
         return $query;
     }
 
-    public function setModel($settings)
+    public function setModel($settings): \craft\base\Element
     {
         $this->element = new SubmissionElement();
         $this->element->formId = $settings['elementGroup'][SubmissionElement::class];

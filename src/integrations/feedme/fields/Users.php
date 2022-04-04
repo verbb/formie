@@ -15,7 +15,7 @@ class Users extends FeedMeUsers
     // Properties
     // =========================================================================
 
-    public static $class = UsersField::class;
-    public static $name = 'Users';
+    public static string $class = UsersField::class;
+    public static string $name = 'Users';
 
 }

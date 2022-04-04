@@ -15,7 +15,7 @@ class Dropdown extends FeedMeDropdown
     // Properties
     // =========================================================================
 
-    public static $class = DropdownField::class;
-    public static $name = 'Dropdown';
+    public static string $class = DropdownField::class;
+    public static string $name = 'Dropdown';
 
 }

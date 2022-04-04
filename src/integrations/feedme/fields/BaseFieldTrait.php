@@ -19,7 +19,7 @@ trait BaseFieldTrait
     /**
      * @inheritDoc
      */
-    public function parseField(): void
+    public function parseField(): mixed
     {
         $this->beforeParseField();
     }

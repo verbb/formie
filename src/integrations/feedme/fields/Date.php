@@ -15,7 +15,7 @@ class Date extends FeedMeDate
     // Properties
     // =========================================================================
 
-    public static $class = DateField::class;
-    public static $name = 'Date';
+    public static string $class = DateField::class;
+    public static string $name = 'Date';
 
 }

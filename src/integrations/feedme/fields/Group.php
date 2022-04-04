@@ -19,8 +19,8 @@ class Group extends Field implements FieldInterface
     // Properties
     // =========================================================================
 
-    public static $class = GroupField::class;
-    public static $name = 'Group';
+    public static string $class = GroupField::class;
+    public static string $name = 'Group';
 
 
     // Templates
@@ -29,7 +29,7 @@ class Group extends Field implements FieldInterface
     /**
      * @inheritDoc
      */
-    public function getMappingTemplate()
+    public function getMappingTemplate(): string
     {
         return 'formie/integrations/feedme/fields/group';
     }
@@ -41,7 +41,7 @@ class Group extends Field implements FieldInterface
     /**
      * @inheritDoc
      */
-    public function parseField()
+    public function parseField(): mixed
     {
         $this->beforeParseField();
 

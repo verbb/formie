@@ -14,7 +14,7 @@ class Password extends DefaultField
     // Properties
     // =========================================================================
 
-    public static $class = PasswordField::class;
-    public static $name = 'Password';
+    public static string $class = PasswordField::class;
+    public static string $name = 'Password';
 
 }

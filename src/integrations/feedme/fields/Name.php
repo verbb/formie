@@ -22,11 +22,11 @@ class Name extends Field implements FieldInterface
     /**
      * @var string
      */
-    public static $class = NameField::class;
+    public static string $class = NameField::class;
     /**
      * @var string
      */
-    public static $name = 'Name';
+    public static string $name = 'Name';
 
 
     // Templates
@@ -35,7 +35,7 @@ class Name extends Field implements FieldInterface
     /**
      * @inheritDoc
      */
-    public function getMappingTemplate()
+    public function getMappingTemplate(): string
     {
         return 'formie/integrations/feedme/fields/name';
     }
@@ -47,7 +47,7 @@ class Name extends Field implements FieldInterface
     /**
      * @inheritDoc
      */
-    public function parseField()
+    public function parseField(): mixed
     {
         $this->beforeParseField();
 

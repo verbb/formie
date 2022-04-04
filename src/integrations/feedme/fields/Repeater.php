@@ -19,8 +19,8 @@ class Repeater extends Field implements FieldInterface
     // Properties
     // =========================================================================
 
-    public static $class = RepeaterField::class;
-    public static $name = 'Repeater';
+    public static string $class = RepeaterField::class;
+    public static string $name = 'Repeater';
 
 
     // Templates
@@ -29,7 +29,7 @@ class Repeater extends Field implements FieldInterface
     /**
      * @inheritDoc
      */
-    public function getMappingTemplate()
+    public function getMappingTemplate(): string
     {
         return 'formie/integrations/feedme/fields/repeater';
     }
@@ -41,7 +41,7 @@ class Repeater extends Field implements FieldInterface
     /**
      * @inheritDoc
      */
-    public function parseField()
+    public function parseField(): mixed
     {
         $this->beforeParseField();
 

@@ -15,7 +15,7 @@ class Agree extends FeedMeLightswitch
     // Properties
     // =========================================================================
 
-    public static $class = AgreeField::class;
-    public static $name = 'Agree';
+    public static string $class = AgreeField::class;
+    public static string $name = 'Agree';
 
 }

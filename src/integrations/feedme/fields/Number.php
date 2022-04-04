@@ -15,7 +15,7 @@ class Number extends FeedMeNumber
     // Properties
     // =========================================================================
 
-    public static $class = NumberField::class;
-    public static $name = 'Number';
+    public static string $class = NumberField::class;
+    public static string $name = 'Number';
 
 }
