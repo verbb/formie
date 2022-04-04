@@ -77,7 +77,7 @@ class SubmissionQuery extends ElementQuery
      * @param Status|string|null $value
      * @return static self reference
      */
-    public function status($value): ElementQuery
+    public function status(array|string|null $value): static
     {
         if ($value instanceof Status) {
             $this->statusId = $value->id;
@@ -167,7 +167,7 @@ class SubmissionQuery extends ElementQuery
     /**
      * @inheritdoc
      */
-    public function anyStatus(): ElementQuery
+    public function anyStatus(): static
     {
         parent::status(null);
 

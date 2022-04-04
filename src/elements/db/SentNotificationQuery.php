@@ -61,7 +61,7 @@ class SentNotificationQuery extends ElementQuery
     /**
      * Narrows the query results based on the notification’s statuses.
      */
-    public function status(array|string|null $value): ElementQuery
+    public function status(array|string|null $value): static
     {
         return parent::status($value);
     }
