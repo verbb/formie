@@ -9,6 +9,7 @@ use verbb\formie\gql\interfaces\FieldInterface;
 use verbb\formie\gql\interfaces\PageInterface;
 use verbb\formie\gql\interfaces\RowInterface;
 use verbb\formie\gql\interfaces\FormInterface as FormInterfaceLocal;
+use verbb\formie\gql\types\CaptchaValueType;
 use verbb\formie\gql\types\CsrfTokenType;
 use verbb\formie\gql\types\FormSettingsType;
 use verbb\formie\gql\types\generators\FormGenerator;
@@ -22,6 +23,7 @@ use craft\gql\TypeManager;
 use craft\gql\GqlEntityRegistry;
 use craft\helpers\Gql;
 use craft\helpers\Json;
+use craft\helpers\StringHelper;
 
 use GraphQL\Type\Definition\InterfaceType;
 use GraphQL\Type\Definition\Type;
@@ -136,6 +138,28 @@ class FormInterface extends Element
                         'name' => Craft::$app->getRequest()->csrfParam,
                         'value' => Craft::$app->getRequest()->getCsrfToken(),
                     ];
+                },
+            ],
+            'captchas' => [
+                'name' => 'captchas',
+                'type' => Type::listOf(CaptchaValueType::getType()),
+                'description' => 'A list of captcha values (name and value) to assist with spam protection',
+                'resolve' => function ($source, $arguments) {
+                    $values = [];
+
+                    $captchas = Formie::$plugin->getIntegrations()->getAllEnabledCaptchasForForm($source);
+
+                    foreach ($captchas as $captcha) {
+                        if ($jsVariables = $captcha->getRefreshJsVariables($source)) {
+                            $values[] = [
+                                'handle' => $captcha->getGqlHandle(),
+                                'name' => $jsVariables['sessionKey'] ?? '',
+                                'value' => $jsVariables['value'] ?? '',
+                            ];
+                        }
+                    }
+
+                    return $values;
                 },
             ],
         ]), self::getName());

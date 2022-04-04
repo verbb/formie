@@ -62,7 +62,7 @@ class Honeypot extends Captcha
     public function validateSubmission(Submission $submission): bool
     {
         // The honeypot field must be left blank
-        if (Craft::$app->getRequest()->getParam(self::HONEYPOT_INPUT_NAME)) {
+        if ($this->getRequestParam(self::HONEYPOT_INPUT_NAME)) {
             return false;           
         }
 

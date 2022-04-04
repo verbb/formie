@@ -113,6 +113,14 @@ abstract class Captcha extends Integration implements IntegrationInterface
         return true;
     }
 
+    /**
+     * @inheritDoc
+     */
+    public function getGqlHandle()
+    {
+        return StringHelper::toCamelCase($this->handle . 'Captcha');
+    }
+
 
     // Protected Methods
     // =========================================================================
@@ -133,5 +141,27 @@ abstract class Captcha extends Integration implements IntegrationInterface
         }
 
         return $value;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected function getRequestParam($name)
+    {
+        // Handle the traditional param, as a POST param
+        if ($param = Craft::$app->getRequest()->getParam($name)) {
+            return $param;
+        }
+
+        // Handle the param being set in a GQL mutation
+        if ($param = Craft::$app->getRequest()->getParam('variables.' . $this->getGqlHandle())) {
+            $paramName = $param['name'] ?? null;
+
+            if ($paramName === $name) {
+                return $param['value'] ?? null;
+            }
+        }
+
+        return null;
     }
 }

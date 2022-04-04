@@ -883,3 +883,50 @@ If a mutation triggers a validation error, you'll get a response back, similar t
 }
 ```
 
+#### Captchas
+You'll likely want to implement some form of captcha on the front-end for your headless forms. We would recommend either [reCAPTCHA](https://www.google.com/recaptcha/about/) or [hCaptcha](https://www.hcaptcha.com/), as other captchas require a bit more work. Refer to our [Headless Demo](https://github.com/verbb/formie-headless) for more information on the specifics of this, primarily to deal with CORS, and cross-site cookies.
+
+You can add the following to your GQL form query to fetch tokens generated server-side.
+
+```json
+{
+    form (handle: "contactForm") {
+        ...
+
+        captchas {
+            handle
+            name
+            value
+        }
+    }
+}
+```
+
+Here, you'll need 3 vital bits of information, which is the `handle` of the Captcha integration, the `name` of the session variable used to compare the tokens between client and server, and the `value` of the token.
+
+To authenticate your enabled Captchas correctly, you'll need to include these in your mutation, sent to the server.
+
+```json
+// Query
+mutation saveSubmission($yourName:contactForm_yourName_FormieNameInput $javascriptCaptcha: FormieCaptchaInput) {
+    save_contactForm_Submission(yourName: $yourName, javascriptCaptcha: $javascriptCaptcha) {
+        title
+    }
+}
+
+// Query Variables
+{
+    "yourName": {
+        "firstName": "Peter",
+        "lastName": "Sherman"
+    },
+    "javascriptCaptcha": {
+        "name": "__JSCHK_8403842",
+        "value": "1234"
+    }
+}
+```
+
+Here, we've included an additional parameter that includes the handle, name and value of the captcha in our mutation.
+
+For an example with reCAPTCHA, refer to our [Headless Demo docs](https://github.com/verbb/formie-headless).

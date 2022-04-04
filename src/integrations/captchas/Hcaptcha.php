@@ -102,7 +102,7 @@ class Hcaptcha extends Captcha
      */
     public function validateSubmission(Submission $submission): bool
     {
-        $response = Craft::$app->request->post('h-captcha-response');
+        $response = $this->getRequestParam('h-captcha-response');
 
         if (!$response) {
             return false;
