@@ -29,6 +29,7 @@ use craft\helpers\Cp;
 use craft\helpers\Html;
 use craft\helpers\Json;
 use craft\helpers\UrlHelper;
+use craft\validators\SiteIdValidator;
 
 use yii\base\Exception;
 use yii\behaviors\AttributeTypecastBehavior;
@@ -182,6 +183,16 @@ class Submission extends Element
     protected function defineRules(): array
     {
         $rules = parent::defineRules();
+
+        // Find and override the `SiteIdValidator` from the base element rules, to allow creation for disabled sites
+        // This is otherwise only enabled during element propagation, which doesn't happen for submissions.
+        foreach ($rules as $key => $rule) {
+            list($attribute, $validator) = $rule;
+
+            if ($validator === SiteIdValidator::class) {
+                $rules[$key]['allowDisabled'] = true;
+            }
+        }
 
         $fieldsByHandle = [];
         
