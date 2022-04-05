@@ -266,10 +266,12 @@ class Rendering extends Component
      * for use when manually calling this function through render variable tags.
      *
      * @param Form|string $form
+     * @param string $type
+     * @param bool $forceInline
      * @param array $options
      * @return null
      */
-    public function renderFormAssets($form, $type = null, $attributes = [])
+    public function renderFormAssets($form, $type = null, $forceInline = false, $attributes = [])
     {
         if (is_string($form)) {
             $form = Form::find()->handle($form)->one();
@@ -297,7 +299,7 @@ class Rendering extends Component
             // Only output this if we're not showing the theme. We bundle the two together
             // during build, so we don't have to serve two stylesheets.
             if ($outputCssLayout && !$outputCssTheme) {
-                if ($outputCssLocation === FormTemplate::PAGE_HEADER) {
+                if ($outputCssLocation === FormTemplate::PAGE_HEADER && !$forceInline) {
                     $view->registerCssFile($cssLayout);
                 } else {
                     $output[] = Html::cssFile($cssLayout, $attributes);
@@ -305,7 +307,7 @@ class Rendering extends Component
             }
 
             if ($outputCssLayout && $outputCssTheme) {
-                if ($outputCssLocation === FormTemplate::PAGE_HEADER) {
+                if ($outputCssLocation === FormTemplate::PAGE_HEADER && !$forceInline) {
                     $view->registerCssFile($cssTheme);
                 } else {
                     $output[] = Html::cssFile($cssTheme, $attributes);
@@ -316,7 +318,7 @@ class Rendering extends Component
         if ($type !== self::RENDER_TYPE_CSS) {
             // Only output this file once. It's applicable to all forms on a page.
             if (!$this->_renderedJs) {
-                if ($outputJsLocation === FormTemplate::PAGE_FOOTER) {
+                if ($outputJsLocation === FormTemplate::PAGE_FOOTER && !$forceInline) {
                     $view->registerJsFile($jsFile, array_merge(['defer' => true], $attributes));
                 } else {
                     $output[] = Html::jsFile($jsFile, array_merge(['defer' => true], $attributes));
@@ -325,7 +327,7 @@ class Rendering extends Component
                 // Add locale definition JS variables
                 $jsString = 'window.FormieTranslations=' . Json::encode($this->getFrontEndJsTranslations()) . ';';
 
-                if ($outputJsLocation === FormTemplate::PAGE_FOOTER) {
+                if ($outputJsLocation === FormTemplate::PAGE_FOOTER && !$forceInline) {
                     $view->registerJs($jsString, View::POS_END);
                 } else {
                     $output[] = Html::script($jsString, ['type' => 'text/javascript']);

@@ -146,12 +146,12 @@ class Formie
 
     public function renderFormCss($form, $attributes = [])
     {
-        return FormiePlugin::$plugin->getRendering()->renderFormAssets($form, Rendering::RENDER_TYPE_CSS, $attributes);
+        return FormiePlugin::$plugin->getRendering()->renderFormAssets($form, Rendering::RENDER_TYPE_CSS, true, $attributes);
     }
 
     public function renderFormJs($form, $attributes = [])
     {
-        return FormiePlugin::$plugin->getRendering()->renderFormAssets($form, Rendering::RENDER_TYPE_JS, $attributes);
+        return FormiePlugin::$plugin->getRendering()->renderFormAssets($form, Rendering::RENDER_TYPE_JS, true, $attributes);
     }
 
     /**
