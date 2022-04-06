@@ -44,6 +44,9 @@ class Rendering extends Component
     // =========================================================================
 
     private $_renderedJs = false;
+    private $_cssFiles = [];
+    private $_jsFiles = [];
+    private $_filesBuffers = [];
 
 
     // Public Methods
@@ -498,6 +501,110 @@ class Rendering extends Component
             // Apply any disabled field values via session cache, to keep out of requests
             $form->setPopulatedFieldValues($disabledValues);
         }
+    }
+
+    /**
+     * Starts a buffer for any files registered with `View::registerJsFile()` or `View::registerCssFile()`.
+     *
+     * @return void
+     */
+    public function startFileBuffer($type, $view): void
+    {
+        // Save any currently queued tags into a new buffer, and reset the active queue
+        $this->_filesBuffers[$type][] = $view->$type;
+        $view->$type = [];
+    }
+
+    /**
+     * Clears and ends a file buffer, returning whatever files were registered while the buffer was active.
+     *
+     * @return array|false The files that were registered in the active buffer, grouped by position, or `false` if there isn’t one
+     */
+    public function clearFileBuffer($type, $view)
+    {
+        if (empty($this->_filesBuffers[$type])) {
+            return false;
+        }
+
+        $bufferedFiles = $view->$type;
+        $view->$type = array_pop($this->_filesBuffers[$type]);
+        return $bufferedFiles;
+    }
+
+    /**
+     * Returns the JS/CSS for the rendering of a form. This will include buffering any JS/CSS files
+     * This is also done in a single function to capture both CSS/JS files which are only registered once per request
+     *
+     * @param Form|string $form
+     * @param array|null $options
+     * @return string
+     */
+    public function renderFormCssJs($form, array $options = null): void
+    {
+        // Don't re-render the form multiple times if it's already rendered
+        if ($this->_jsFiles || $this->_cssFiles) {
+            return;
+        }
+
+        $view = Craft::$app->getView();
+
+        // Create our own buffer for CSS files. `View::startCssBuffer()` only handles CSS code, not files
+        $this->startFileBuffer('cssFiles', $view);
+        $css = $view->startCssBuffer();
+
+        $this->startFileBuffer('jsFiles', $view);
+        $js = $view->startJsBuffer();
+
+        // Render the form, and capture any CSS being output to the asset manager. Grab that and output it directly.
+        // This helps when targeting head/body/inline and ensure we output it **here**
+        $this->renderForm($form, $options);
+
+        $this->_cssFiles = $this->clearFileBuffer('cssFiles', $view);
+        $this->_cssFiles = array_merge($this->_cssFiles, [$view->clearCssBuffer()]);
+
+        $this->_jsFiles = $this->clearFileBuffer('jsFiles', $view);
+        $this->_jsFiles = array_merge($this->_jsFiles, [$view->clearJsBuffer()]);
+
+        $this->_cssFiles = array_filter($this->_cssFiles);
+        $this->_jsFiles = array_filter($this->_jsFiles);
+    }
+
+    /**
+     * Returns the CSS for the rendering of a form. This will include buffering any CSS files
+     *
+     * @param Form|string $form
+     * @param array|null $options
+     * @return string
+     */
+    public function renderFormCss($form, array $options = null)
+    {
+        $this->renderFormCssJs($form, $options);
+
+        return TemplateHelper::raw(implode("\n", $this->_cssFiles));
+    }
+
+    /**
+     * Returns the JS for the rendering of a form. This will include buffering any JS files
+     *
+     * @param Form|string $form
+     * @param array|null $options
+     * @return string
+     */
+    public function renderFormJs($form, array $options = null)
+    {
+        $this->renderFormCssJs($form, $options);
+
+        $allJsFiles = [];
+
+        foreach ($this->_jsFiles as $jsFile) {
+            if (is_array($jsFile)) {
+                $allJsFiles = array_merge($allJsFiles, $jsFile);
+            } else {
+                $allJsFiles[] = $jsFile;
+            }
+        }
+
+        return TemplateHelper::raw(implode("\n", $allJsFiles));
     }
 
 
