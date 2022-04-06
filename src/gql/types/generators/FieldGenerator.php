@@ -3,6 +3,7 @@ namespace verbb\formie\gql\types\generators;
 
 use verbb\formie\Formie;
 use verbb\formie\base\NestedFieldInterface;
+use verbb\formie\fields\formfields\MissingField;
 use verbb\formie\gql\interfaces\FieldInterface;
 use verbb\formie\gql\interfaces\RowInterface;
 use verbb\formie\gql\types\FieldType;
@@ -34,6 +35,10 @@ class FieldGenerator implements GeneratorInterface
         }
 
         foreach ($fieldClasses as $fieldClass) {
+            if ($fieldClass instanceof MissingField) {
+                continue;
+            }
+
             $field = new $fieldClass;
             $typeName = $field->getGqlTypeName();
             $contentFieldGqlTypes = $field->getSettingGqlTypes();
