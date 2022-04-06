@@ -1360,7 +1360,7 @@ use verbb\formie\services\Integrations;
 use yii\base\Event;
 
 Event::on(Integrations::class, Integrations::EVENT_REGISTER_INTEGRATIONS, function(RegisterIntegrationsEvent $event) {
-    $event->captchas = new myCaptcha();
+    $event->captchas = myCaptcha::class;
     // ...
 });
 ```
