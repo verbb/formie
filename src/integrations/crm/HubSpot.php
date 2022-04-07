@@ -310,6 +310,18 @@ class HubSpot extends Crm
                 // Prepare the payload for HubSpot, required for v1 API
                 $formPayload = [];
 
+                // Handle GDPR fields
+                $legalConsentOptions = ArrayHelper::remove($formValues, 'legalConsentOptions');
+
+                if ($legalConsentOptions) {
+                    $formPayload['legalConsentOptions'] = [
+                        'consent' => [
+                            'consentToProcess' => true,
+                            'text' => 'I consent',
+                        ],
+                    ];
+                }
+
                 foreach ($formValues as $key => $value) {
                     // Don't include the tracking ID, it's invalid to HubSpot
                     if ($key === 'trackingID') {
@@ -506,6 +518,13 @@ class HubSpot extends Crm
     private function _getFormFields($form)
     {
         $fields = [];
+        
+        $extraFields = [
+            new IntegrationField([
+                'handle' => 'trackingID',
+                'name' => Craft::t('formie', 'Tracking ID'),
+            ]),
+        ];
 
         $formFieldGroups = $form['formFieldGroups'] ?? [];
 
@@ -517,11 +536,18 @@ class HubSpot extends Crm
             }
         }
 
-        return array_merge([
-            new IntegrationField([
-                'handle' => 'trackingID',
-                'name' => Craft::t('formie', 'Tracking ID'),
-            ]),
-        ], $this->_getCustomFields($fields));
+        // Extra handling for GDPR fields
+        $metaData = $form['metaData'] ?? [];
+
+        foreach ($metaData as $data) {
+            if ($data['name'] === 'legalConsentOptions') {
+                $extraFields[] = new IntegrationField([
+                    'handle' => 'legalConsentOptions',
+                    'name' => Craft::t('formie', 'Legal Consent Options'),
+                ]);
+            }
+        }
+
+        return array_merge($extraFields, $this->_getCustomFields($fields));
     }
 }
