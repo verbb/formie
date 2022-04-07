@@ -217,6 +217,7 @@ class Submissions extends Component
 
             // Add additional useful info for the integration
             $integration->referrer = Craft::$app->getRequest()->getReferrer();
+            $integration->ipAddress = Craft::$app->getRequest()->getUserIP();
 
             if ($settings->useQueueForIntegrations) {
                 Craft::$app->getQueue()->push(new TriggerIntegration([

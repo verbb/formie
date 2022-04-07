@@ -305,8 +305,6 @@ class HubSpot extends Crm
             }
 
             if ($this->mapToForm) {
-                $request = Craft::$app->getRequest();
-
                 // Prepare the payload for HubSpot, required for v1 API
                 $formPayload = [];
 
@@ -336,15 +334,13 @@ class HubSpot extends Crm
 
                 // Setup Hubspot's context
                 $hutk = $formValues['trackingID'] ?? $_COOKIE['hubspotutk'] ?? '';
-                $ipAddress = $request->remoteIP ?? '';
-                $pageUri = $request->referrer ?? '';
 
                 if ($hutk) {
                     $formPayload['context']['hutk'] = $hutk;
                 }
 
                 if ($ipAddress) {
-                    $formPayload['context']['ipAddress'] = $ipAddress;
+                    $formPayload['context']['ipAddress'] = $integration->ipAddress;
                 }
 
                 if ($pageUri) {

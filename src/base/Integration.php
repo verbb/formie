@@ -73,6 +73,9 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     // Used to retain the referrer URL from submissions
     public $referrer = '';
 
+    // Used to retain the referrer IP from submissions
+    public $ipAddress = '';
+
     protected $_client;
 
     // Keep track of whether run in the context of a queue job

@@ -896,6 +896,7 @@ class SubmissionsController extends Controller
 
             // Add additional useful info for the integration
             $resolvedIntegration->referrer = Craft::$app->getRequest()->getReferrer();
+            $resolvedIntegration->ipAddress = Craft::$app->getRequest()->getUserIP();
         }
 
         if (!$resolvedIntegration) {
