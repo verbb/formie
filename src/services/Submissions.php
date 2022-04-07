@@ -216,6 +216,7 @@ class Submissions extends Component
             }
 
             // Add additional useful info for the integration
+            // TODO: refactor this to allow integrations access to control this
             $integration->referrer = Craft::$app->getRequest()->getReferrer();
             $integration->ipAddress = Craft::$app->getRequest()->getUserIP();
 
