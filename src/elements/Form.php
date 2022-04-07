@@ -286,7 +286,7 @@ class Form extends Element
             $this->settings = new FormSettings();
             $this->settings->setForm($this);
         } else {
-            $settings = Json::decodeIfJson($this->settings);
+            $settings = Json::decode($this->settings);
             $this->settings = new FormSettings($settings);
             $this->settings->setForm($this);
         }
