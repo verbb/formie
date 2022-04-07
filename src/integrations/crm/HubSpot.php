@@ -340,8 +340,8 @@ class HubSpot extends Crm
                     $formPayload['context']['hutk'] = $hutk;
                 }
 
-                $formPayload['context']['ipAddress'] = $integration->ipAddress;
-                $formPayload['context']['pageUri'] = $integration->referrer;
+                $formPayload['context']['ipAddress'] = $this->ipAddress;
+                $formPayload['context']['pageUri'] = $this->referrer;
 
                 list($portalId, $formGuid) = explode('__', $this->formId);
 
