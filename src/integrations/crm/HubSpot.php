@@ -348,7 +348,7 @@ class HubSpot extends Crm
                 }
 
                 if ($pageUri) {
-                    $formPayload['context']['pageUri'] = $pageUri;
+                    $formPayload['context']['pageUri'] = $integration->referrer;
                 }
 
                 list($portalId, $formGuid) = explode('__', $this->formId);
