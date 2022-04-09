@@ -1,5 +1,33 @@
 # Changelog
 
+## 1.5.13 - 2022-04-09
+
+### Added
+- Added “IP Address” to integrations that require recording it.
+- Added true/false options for Salesforce integration when mapping boolean (checkbox) fields.
+- Added support for GDPR fields with HubSpot CRM integration for forms.
+- Added support for submissions to be made on disabled sites.
+- Added support for Captchas for GQL mutations.
+- Added spam reason for reCAPTCHA and hCAPTCHA when available.
+- Added `setCurrentSite()` to queue jobs for email notifications and integrations to maintain the `currentSite` variable.
+- Added `includeScriptsInline` option to `templateHtml` for GraphQL queries.
+
+### Changed
+- Improve `renderFormCss()` and `renderFormJs()` to properly capture all CSS and JS files used by the form and field, that would normally be output in the header/footer.
+- Using `renderFormCss()` and `renderFormJs()` now no longer relies on the Form Template render location. It will now be output inline, where the tags are included on the page.
+
+### Fixed
+- Fixed some fields not able to have their template overrides resolve correctly.
+- Fixed an error on pre-Craft 3.7.32 sites, with `SiteIdValidator::allowDisabled`.
+- Fixed HubSpot CRM integration not using the correct referrer when mapping to a form.
+- Fixed not triggering a fatal error if form settings had become corrupted.
+- Fixed integrations and their `tokenId` values getting out of sync with project config.
+- Fixed submissions index allowing any submissions to be viewable.
+- Fixed email notifications and integrations not retaining the language for the site it was made on, when triggered from the queue.
+- Fixed options fields’ default values not working correctly, if they were imported from Freeform.
+- Fixed option fields not importing their default value correctly when migrating from Freeform.
+- Fixed an error with Freeform migration.
+
 ## 1.5.12 - 2022-03-29
 
 ### Added
