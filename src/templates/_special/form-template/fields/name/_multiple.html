@@ -7,7 +7,7 @@
         {% for row in field.getFrontEndSubfields() %}
             <div class="fui-row">
                 {% for handle, autocomplete in row %}
-                    {% include 'fields/name/_field' %}
+                    {{ formieInclude('fields/name/_field') }}
                 {% endfor %}
             </div>
         {% endfor %}
