@@ -186,11 +186,13 @@ class Submission extends Element
 
         // Find and override the `SiteIdValidator` from the base element rules, to allow creation for disabled sites
         // This is otherwise only enabled during element propagation, which doesn't happen for submissions.
-        foreach ($rules as $key => $rule) {
-            list($attribute, $validator) = $rule;
+        if (version_compare(Craft::$app->getInfo()->version, '3.7.32', '>=')) {
+            foreach ($rules as $key => $rule) {
+                list($attribute, $validator) = $rule;
 
-            if ($validator === SiteIdValidator::class) {
-                $rules[$key]['allowDisabled'] = true;
+                if ($validator === SiteIdValidator::class) {
+                    $rules[$key]['allowDisabled'] = true;
+                }
             }
         }
 
