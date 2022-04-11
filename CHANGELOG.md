@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.5.13.2 - 2022-04-11
+
+### Fixed
+- Fix element field templating throwing an error (again).
+
 ## 1.5.13.1 - 2022-04-11
 
 ### Fixed
