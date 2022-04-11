@@ -1,7 +1,7 @@
 {% set value = field.getDisplayTypeValue(value) %}
 
 {% if field.displayType == 'dropdown' %}
-    {{ formieInclude('fields/dropdown', { fieldName: field.handle ~ '[]' } }}
+    {{ formieInclude('fields/dropdown', { fieldName: field.handle ~ '[]' }) }}
 {% endif %}
 
 {% if field.displayType == 'checkboxes' %}
@@ -9,5 +9,5 @@
 {% endif %}
 
 {% if field.displayType == 'radio' %}
-    {{ formieInclude('fields/radio', { fieldName: field.handle ~ '[]') } }}
+    {{ formieInclude('fields/radio', { fieldName: field.handle ~ '[]') }) }}
 {% endif %}
