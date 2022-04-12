@@ -634,6 +634,21 @@ class Submission extends Element
     }
 
     /**
+     * Returns a field by its handle.
+     *
+     * @param string $handle
+     * @return FormFieldInterface|null
+     */
+    public function getFieldByHandle(string $handle)
+    {
+        if ($fieldLayout = $this->getFieldLayout()) {
+            return ArrayHelper::firstWhere($fieldLayout->getFields(), 'handle', $handle);
+        }
+
+        return null;
+    }
+
+    /**
      * Gets the submission's status handle.
      *
      * @param bool $returnStatus return the status model

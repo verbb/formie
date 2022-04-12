@@ -410,9 +410,11 @@ trait FormFieldTrait
         $value = $element->getFieldValue($this->handle);
 
         if ($sourceValue !== $value) {
-            $element->addError($this->handle, Craft::t('formie', '{name} must be equal to "{value}".', [
+            $sourceField = $element->getFieldByHandle($fieldHandle);
+
+            $element->addError($this->handle, Craft::t('formie', '{name} must match {value}.', [
                 'name' => $this->name,
-                'value' => $sourceValue,
+                'value' => $sourceField->name ?? '',
             ]));
         }
     }
