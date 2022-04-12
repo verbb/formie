@@ -14,8 +14,9 @@ use verbb\formie\services\Stencils;
 
 use Craft;
 use craft\db\Migration;
-use craft\helpers\Json;
 use craft\helpers\Db;
+use craft\helpers\Json;
+use craft\helpers\MigrationHelper;
 
 /**
  * Install migration.
@@ -45,7 +46,7 @@ class Install extends Migration
             foreach (Form::find()->trashed(null)->all() as $form) {
                 /* @var Form $form */
                 if ($this->db->tableExists($form->fieldContentTable)) {
-                    Db::dropAllForeignKeysOnTable($form->fieldContentTable, $this);
+                    MigrationHelper::dropAllForeignKeysOnTable($form->fieldContentTable, $this);
                 }
 
                 $this->dropTableIfExists($form->fieldContentTable);
@@ -509,7 +510,7 @@ class Install extends Migration
 
         foreach ($tables as $table) {
             if ($this->db->tableExists('{{%' . $table . '}}')) {
-                Db::dropAllForeignKeysOnTable('{{%' . $table . '}}', $this);
+                MigrationHelper::dropAllForeignKeysOnTable('{{%' . $table . '}}', $this);
             }
         }
     }
