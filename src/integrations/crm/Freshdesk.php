@@ -346,9 +346,14 @@ class Freshdesk extends Crm
                 // Directly modify the field values first
                 $contactFields = $this->_prepCustomFields($contactValues);
 
-                $contactPayload = array_merge($contactValues, [
-                    'custom_fields' => $contactFields,
-                ]);
+                // Only add custom fields if array not empty to prevent validation error
+                if ($contactFields) {
+                    $contactPayload = array_merge($contactValues, [
+                        'custom_fields' => $contactFields,
+                    ]);
+                } else {
+                    $contactPayload = $contactValues;
+                }
 
                 try {
                     $response = $this->deliverPayload($submission, 'contacts', $contactPayload);
@@ -368,7 +373,30 @@ class Freshdesk extends Crm
                         return false;
                     }
                 } catch (\Throwable $e) {
-                    // For now, we don't care about an existing contact
+                    $body = json_decode((string)$e->getResponse()->getBody());
+
+                    // Check number of errors; if more than one, we can't update anyway
+                    if (count($body->errors) === 1) {
+                        $err = $body->errors[0];
+
+                        // Now check that the sole error is actually due to existing contact
+                        if ($err->field === 'email' && $err->code === 'duplicate_value') {
+                            try {
+                                $updateResponse = $this->deliverPayload(
+                                    $submission,
+                                    "contacts/{$err->additional_info->user_id}",
+                                    $contactPayload,
+                                    'PUT'
+                                );
+    
+                                if ($updateResponse === false) {
+                                    return true;
+                                }
+                            } catch (\Throwable $e) {
+                                // If fails to update, most likely an agent and can safely ignore exception
+                            }
+                        }
+                    }
                 }
             }
 
