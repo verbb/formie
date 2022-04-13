@@ -6,7 +6,9 @@ use verbb\formie\base\Integration;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\errors\IntegrationException;
+use verbb\formie\events\ModifyFieldIntegrationValueEvent;
 use verbb\formie\events\SendIntegrationPayloadEvent;
+use verbb\formie\fields\formfields\Phone;
 use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
@@ -15,6 +17,8 @@ use Craft;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 use craft\web\View;
+
+use yii\base\Event;
 
 class Pipedrive extends Crm
 {
@@ -36,6 +40,25 @@ class Pipedrive extends Crm
 
     // Public Methods
     // =========================================================================
+
+    /**
+     * @inheritDoc
+     */
+    public function init()
+    {
+        parent::init();
+
+        Event::on(self::class, self::EVENT_MODIFY_FIELD_MAPPING_VALUE, function(ModifyFieldIntegrationValueEvent $event) {
+            // Special handling for phone fields which need to be supplied as an array, but for country dropdown enabled
+            // fields, this will produce an array, but with extra info. Just simplify the value.
+            if ($event->integrationField->getType() === IntegrationField::TYPE_ARRAY && $event->field instanceof Phone) {
+                // Skip when the field is a plain phone number field, or mapping the "number" directly
+                if (is_array($event->value) && isset($event->value['number'])) {
+                    $event->value = [$event->value['number']];
+                }
+            }
+        });
+    }
 
     /**
      * @inheritDoc
