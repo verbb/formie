@@ -187,6 +187,8 @@ class User extends Element
     public function sendPayload(Submission $submission)
     {
         try {
+            $generalConfig = Craft::$app->getConfig()->getGeneral();
+
             $user = $this->getElementForPayload(UserElement::class, $submission);
 
             // If a new user, set as pending
@@ -279,9 +281,13 @@ class User extends Element
                 $user->password = $hashedPassword;
             }
 
+            $autoLogin = false;
+
             if ($user->getStatus() == UserElement::STATUS_PENDING) {
                 if ($this->activateUser) {
                     Craft::$app->getUsers()->activateUser($user);
+
+                    $autoLogin = true;
                 }
 
                 if ($this->sendActivationEmail) {
@@ -313,6 +319,14 @@ class User extends Element
             // Allow events to say the response is invalid
             if (!$this->afterSendPayload($submission, '', $user, '', [])) {
                 return true;
+            }
+
+            // Maybe login the user after activation
+            if ($autoLogin && $generalConfig->autoLoginAfterAccountActivation) {
+                // When run from the queue, this will fail due to session being unavailable
+                if (!$this->getQueueJob()) {
+                    Craft::$app->getUser()->login($user, $generalConfig->userSessionDuration);
+                }
             }
         } catch (\Throwable $e) {
             $error = Craft::t('formie', 'Element integration failed for submission “{submission}”. Error: {error} {file}:{line}', [
