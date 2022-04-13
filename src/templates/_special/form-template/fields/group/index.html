@@ -7,13 +7,13 @@
 
             {% set block = value.one() ?? null %}
             {% if block and block.id %}
-                {% include 'fields/group/_row' with {
+                {{ formieInclude('fields/group/_row', {
                     id: block.id ?? 'new1',
-                } %}
+                }) }}
             {% else %}
-                {% include 'fields/group/_row' with {
+                {{ formieInclude('fields/group/_row', {
                     id: 'new1',
-                } %}
+                }) }}
             {% endif %}
 
             {{ formieInclude('_includes/instructions', { position: 'fieldset-end' }) }}

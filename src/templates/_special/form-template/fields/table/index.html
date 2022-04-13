@@ -23,28 +23,28 @@
                 {% if value %}
                     {% for rowId, row in value %}
                         <tr class="fui-table-row">
-                            {% include 'fields/table/_row' with {
+                            {{ formieInclude('fields/table/_row', {
                                 index: rowId,
                                 row: row,
-                            } %}
+                            }) }}
                         </tr>
                     {% endfor %}
                 {% elseif field.defaults %}
                     {% for default in field.defaults %}
                         <tr class="fui-table-row">
-                            {% include 'fields/table/_row' with {
+                            {{ formieInclude('fields/table/_row', {
                                 index: loop.index0,
                                 row: default,
-                            } %}
+                            }) }}
                         </tr>
                     {% endfor %}
                 {% elseif field.minRows > 0 %}
                     {% for i in 1..field.minRows %}
                         <tr class="fui-table-row">
-                            {% include 'fields/table/_row' with {
+                            {{ formieInclude('fields/table/_row', {
                                 index: loop.index0,
                                 row: [],
-                            } %}
+                            }) }}
                         </tr>
                     {% endfor %}
                 {% endif %}
@@ -85,10 +85,10 @@
     {# `namespace` won't work outside `script` tag, so extra work here, particularly #}
     {# to deal with higher-level namespaces like the default `fields`. #}
     {% namespace craft.formie.getFieldNamespaceForScript(field) %}
-        {% include 'fields/table/_row' with {
+        {{ formieInclude('fields/table/_row', {
             index: '__ROW__',
             row: [],
-        } %}
+        }) }}
     {% endnamespace %}
 {% endset %}
 

@@ -9,15 +9,15 @@
         <div class="fui-repeater-rows">
             {% if value and value.exists() %}
                 {% for block in value.all() %}
-                    {% include 'fields/repeater/_row' with {
+                    {{ formieInclude('fields/repeater/_row', {
                         id: block.id ?? 'new' ~ loop.index,
-                    } %}
+                    }) }}
                 {% endfor %}
             {% elseif field.minRows > 0 %}
                 {% for i in 1..field.minRows %}
-                    {% include 'fields/repeater/_row' with {
+                    {{ formieInclude('fields/repeater/_row', {
                         id: 'new' ~ i,
-                    } %}
+                    }) }}
                 {% endfor %}
             {% endif %}
         </div>
@@ -56,9 +56,9 @@
     {# `namespace` won't work outside `script` tag, so extra work here, particularly #}
     {# to deal with higher-level namespaces like the default `fields`. #}
     {% namespace craft.formie.getFieldNamespaceForScript(field) %}
-        {% include 'fields/repeater/_row' with {
+        {{ formieInclude('fields/repeater/_row', {
             id: '__ROW__',
-        } %}
+        }) }}
     {% endnamespace %}
 {% endset %}
 
