@@ -53,15 +53,6 @@ class Extension extends Twig_Extension
         if ($form) {
             $view = $context['view'];
 
-            // Handle providing the template as an array. Let Twig resolve it first
-            if (is_array($template)) {
-                $loaded = $env->resolveTemplate($template);
-
-                if ($loaded) {
-                    $template = $loaded->getSourceContext()->getName();
-                }
-            }
-
             // Render the provided include depending on form template overrides
             $templatePath = Formie::$plugin->getRendering()->getFormComponentTemplatePath($form, $template);
             $view->setTemplatesPath($templatePath);

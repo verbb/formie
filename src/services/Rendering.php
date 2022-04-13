@@ -390,12 +390,12 @@ class Rendering extends Component
      * Returns the template path for a form component.
      *
      * @param Form $form
-     * @param string $component can be 'form', 'page' or 'field'.
+     * @param string|array $components can be 'form', 'page' or ['field1', 'field2'].
      * @return string
      * @throws Exception
      * @throws LoaderError
      */
-    public function getFormComponentTemplatePath(Form $form, string $component): string
+    public function getFormComponentTemplatePath(Form $form, $components): string
     {
         $view = Craft::$app->getView();
         $oldTemplatePath = $view->getTemplatesPath();
@@ -404,10 +404,20 @@ class Rendering extends Component
         $templatePath = Craft::getAlias('@verbb/formie/templates/_special/form-template');
 
         if (($template = $form->getTemplate()) && $template->useCustomTemplates && $template->template) {
-            $path = $template->template . DIRECTORY_SEPARATOR . $component;
+            // Normalise the components to allow for a single component
+            if (!is_array($components)) {
+                $components = [$components];
+            }
 
-            if ($view->resolveTemplate($path, View::TEMPLATE_MODE_SITE)) {
-                $templatePath = Craft::$app->getPath()->getSiteTemplatesPath() . DIRECTORY_SEPARATOR . $template->template;
+            // Find the first available, resolved template in potential multiple components
+            foreach ($components as $component) {
+                $path = $template->template . DIRECTORY_SEPARATOR . $component;
+
+                if ($view->resolveTemplate($path, View::TEMPLATE_MODE_SITE)) {
+                    $templatePath = Craft::$app->getPath()->getSiteTemplatesPath() . DIRECTORY_SEPARATOR . $template->template;
+
+                    break;
+                }
             }
         }
 
