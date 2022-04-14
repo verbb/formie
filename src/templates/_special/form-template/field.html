@@ -92,6 +92,7 @@
     ] | filter,
     data: {
         'field-handle': field.handle,
+        'field-type': field.displayName | kebab,
         'field-config': field.getConfigJson(),
         'field-conditions': field.getConditionsJson(element),
     },
