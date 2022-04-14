@@ -91,6 +91,7 @@
         field.isHidden() ? 'fui-hidden',
     ] | filter,
     data: {
+        'field-handle': field.handle,
         'field-config': field.getConfigJson(),
         'field-conditions': field.getConditionsJson(element),
     },
