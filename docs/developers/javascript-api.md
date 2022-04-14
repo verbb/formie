@@ -473,6 +473,60 @@ $('#formie-form-1').on('registerFormieValidation', function(e) {
 ```
 
 
+## Conditions
+You can also hook into events that are triggered before and after conditional logic has been triggered for a field. This is useful in particular to be notified when a field has been conditionally hidden or shown, or to add additional handling before evaulating conditions.
+
+### The `onFormieEvaluateConditions` event
+The event that is triggered when a field with conditions is about to be evaluated. This will also fire on page load, as conditions need to be evaluated immediately, to determine if a field should be shown or hidden.
+
+:::code
+```js
+const $form = document.querySelector('#formie-form-1');
+const $myField = $form.querySelector('[data-field-handle="myFieldHandle"]');
+
+$myField.addEventListener('onFormieEvaluateConditions', (e) => {
+    const isInit = e.detail.init;
+
+    // ...
+});
+```
+
+```jQuery
+$('#formie-form-1 [data-field-handle="myFieldHandle"]').on('onFormieEvaluateConditions', function(e) {
+    const isInit = e.detail.init;
+
+    // ...
+});
+```
+:::
+
+### The `onAfterFormieEvaluateConditions` event
+The event that is triggered when a field with conditions has been evaluated. This will also fire on page load, as conditions need to be evaluated immediately, to determine if a field should be shown or hidden.
+
+:::code
+```js
+const $form = document.querySelector('#formie-form-1');
+const $myField = $form.querySelector('[data-field-handle="myFieldHandle"]');
+
+$myField.addEventListener('onAfterFormieEvaluateConditions', (e) => {
+    const isInit = e.detail.init;
+    const conditionallyHidden = e.target.conditionallyHidden;
+
+    // ...
+});
+```
+
+```jQuery
+$('#formie-form-1 [data-field-handle="myFieldHandle"]').on('onAfterFormieEvaluateConditions', function(e) {
+    const isInit = e.detail.init;
+    const conditionallyHidden = e.target.conditionallyHidden;
+
+    // ...
+});
+```
+:::
+
+
 ## JavaScript for Custom Fields
 If your custom field, or integration requires JavaScript on the front-end, you'll need to provide it in a specific way. This is so Formie can correctly place and initialise it, for the variety of different scenarios and use-cases required.
 

@@ -213,6 +213,9 @@ export class FormieConditions {
                 $input.removeAttribute('disabled');
             });
         }
+
+        // Fire an event to notify that the field's conditions have been evaluated
+        $field.dispatchEvent(new CustomEvent('onAfterFormieEvaluateConditions', { bubbles: true, detail: { init: isInit } }));
     }
 
     parseJsonConditions($field) {
