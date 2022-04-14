@@ -89,7 +89,7 @@
         field.isTextInput ? 'fui-text-input-field',
         field.cssClasses ?? '',
         field.isHidden() ? 'fui-hidden',
-    ],
+    ] | filter,
     data: {
         'field-config': field.getConfigJson(),
         'field-conditions': field.getConditionsJson(element),
