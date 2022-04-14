@@ -130,6 +130,41 @@ class Pardot extends Crm
             $response = $this->request('GET', 'customField/version/4/do/query');
             $fields = $response['result']['customField'] ?? [];
 
+            $response = $this->request('GET', 'campaign/version/4/do/query');
+            $campaigns = $response['result']['campaign'] ?? [];
+
+            $campaignOptions = [];
+
+            foreach ($campaigns as $campaign) {
+                $campaignOptions[] = [
+                    'label' => $campaign['name'],
+                    'value' => $campaign['id'],
+                ];
+            }
+
+            $response = $this->request('GET', 'prospectAccount/version/4/do/query');
+            $prospectAccounts = $response['result']['prospectAccount'] ?? [];
+
+            $prospectAccountOptions = [];
+
+            foreach ($prospectAccounts as $prospectAccount) {
+                $accountOptions[] = [
+                    'label' => $prospectAccount['name'],
+                    'value' => $prospectAccount['id'],
+                ];
+            }
+
+            $booleanOptions = [
+                [
+                    'label' => Craft::t('formie', 'Yes'),
+                    'value' => true,
+                ],
+                [
+                    'label' => Craft::t('formie', 'No'),
+                    'value' => false,
+                ],
+            ];
+
             $prospectFields = array_merge([
                 new IntegrationField([
                     'handle' => 'salutation',
@@ -160,6 +195,10 @@ class Pardot extends Crm
                     'handle' => 'prospect_account_id',
                     'name' => Craft::t('formie', 'Prospect Account Id'),
                     'type' => IntegrationField::TYPE_NUMBER,
+                    'options' => [
+                        'label' => Craft::t('formie', 'Prospect Accounts'),
+                        'options' => $prospectAccountOptions,
+                    ],
                 ]),
                 new IntegrationField([
                     'handle' => 'website',
@@ -246,31 +285,55 @@ class Pardot extends Crm
                     'handle' => 'is_do_not_email',
                     'name' => Craft::t('formie', 'Do Not Email'),
                     'type' => IntegrationField::TYPE_BOOLEAN,
+                    'options' => [
+                        'label' => Craft::t('formie', 'Do Not Email'),
+                        'options' => $booleanOptions,
+                    ],
                 ]),
                 new IntegrationField([
                     'handle' => 'is_do_not_call',
                     'name' => Craft::t('formie', 'Do Not Call'),
                     'type' => IntegrationField::TYPE_BOOLEAN,
+                    'options' => [
+                        'label' => Craft::t('formie', 'Do Not Call'),
+                        'options' => $booleanOptions,
+                    ],
                 ]),
                 new IntegrationField([
                     'handle' => 'is_reviewed',
                     'name' => Craft::t('formie', 'Reviewed'),
                     'type' => IntegrationField::TYPE_BOOLEAN,
+                    'options' => [
+                        'label' => Craft::t('formie', 'Reviewed'),
+                        'options' => $booleanOptions,
+                    ],
                 ]),
                 new IntegrationField([
                     'handle' => 'is_archived',
                     'name' => Craft::t('formie', 'Archived'),
                     'type' => IntegrationField::TYPE_BOOLEAN,
+                    'options' => [
+                        'label' => Craft::t('formie', 'Archived'),
+                        'options' => $booleanOptions,
+                    ],
                 ]),
                 new IntegrationField([
                     'handle' => 'is_starred',
                     'name' => Craft::t('formie', 'Starred'),
                     'type' => IntegrationField::TYPE_BOOLEAN,
+                    'options' => [
+                        'label' => Craft::t('formie', 'Starred'),
+                        'options' => $booleanOptions,
+                    ],
                 ]),
                 new IntegrationField([
                     'handle' => 'campaign_id',
                     'name' => Craft::t('formie', 'Campaign ID'),
                     'type' => IntegrationField::TYPE_NUMBER,
+                    'options' => [
+                        'label' => Craft::t('formie', 'Campaigns'),
+                        'options' => $campaignOptions,
+                    ],
                 ]),
                 new IntegrationField([
                     'handle' => 'profile',
