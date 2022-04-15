@@ -1,5 +1,27 @@
 # Changelog
 
+## 1.5.14 - 2022-04-15
+
+### Added
+- Added `data-field-type` to the field on front-end templates.
+- Added `data-field-handle` to the field on front-end templates.
+- Added predefined options for some Prospect fields for Pardot CRM integration (Campaign, Prospect Account, boolean fields).
+- Added `onAfterFormieEvaluateConditions` JS event.
+- Added handling for existing Freshdesk contacts. (thanks @jmauzyk).
+
+### Changed
+- Changed “Match Field” validation message to “{field1Label} must match {field2Label}” instead of showing the value.
+- Changed `FormieEvaluateConditions` JS event to `onFormieEvaluateConditions`.
+
+### Fixed
+- Fixed repeater fields not working when adding more rows.
+- Fixed empty spaces being show in `fui-field` classes.
+- Fixed User Element integration not automatically logging in the user when auto-activated, and not processed via the queue.
+- Update some more fields to correctly using `formieInclude()` to resolve to the correct template when using overrides.
+- Fixed Address field custom templates not resolving to the correct sub-field templates when using overrides.
+- Fixed Pipedrive CRM integration not mapping Phone fields with a country dropdown correctly.
+- Fixed required Password fields for page-reload, multi-page forms throwing validation errors due to the value already having been submitted in a previous page.
+
 ## 1.5.13.2 - 2022-04-11
 
 ### Fixed
