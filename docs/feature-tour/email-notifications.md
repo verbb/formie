@@ -20,7 +20,7 @@ Each notification is form-specific, and you can create as many notifications as 
 - Attach File Uploads - Whether to attach any user-uploaded files to the email.
 - Email Template - To select a custom [Email Template](docs:feature-tour/email-templates).
 - Attach PDF Template - Whether to attach a PDF template to this email notification.
-- PDF Template - To select a custom [PDF Template](docs:feature-tour/pdf-templates).
+- PDF Template - To select a custom [PDF Template](docs:template-guides/pdf-templates).
 
 
 :::warning
