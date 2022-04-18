@@ -35,7 +35,7 @@ And then instead of using `craft.formie.renderForm()`, we'll want to modify this
 </form>
 ```
 
-There's a few important things to note here. Firstly, we're using the `users/login` action endpoint, instead of `formie/submissions/submit`. This is because we don't want to submit the form to Formie and save a submission each time this form is filled out - like you would any other form. Instead, we want to login users. In this way, we're purely using Formie for content management of the form fields, and some settings.
+There's a few important things to note here. Firstly, we're using the `users/login` action endpoint, instead of `formie/submissions/submit`. This is because we don't want to submit the form to Formie and save a submission each time this form is filled out - like you would any other form. Instead, we want to log in users. In this way, we're purely using Formie for content management of the form fields, and some settings.
 
 Secondly, we're not rendering the entire form, but calling `craft.formie.renderPage()` which will render just the first page and all its fields. You'll notice we're passing in the `fieldNamespace` [render option](docs:template-guides/rendering-options#base-options) with an empty string. This is because Formie will namespace the fields with `fields` by default, but for the login form, we don't want that.
 
