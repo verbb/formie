@@ -52,12 +52,12 @@ return [
 ];
 ```
 
-### Configuration options
+## Configuration options
 - `pluginName` - Set a custom name for the plugin.
 - `defaultPage` - Set the default sub-page navigated to when clicking "Formie" in the main menu.
 - `enableGatsbyCompatibility` - Opt-in to Gatsby support, which structures the GraphQL interfaces differently, so they are compatible with Gatsby.
 
-#### Forms
+### Forms
 - `defaultFormTemplate` - The handle for the default form template used for new forms. Formie‘s defaults will be used if not specified.
 - `defaultEmailTemplate` - The handle for the default email template used for new forms. Formie‘s defaults will be used if not specified.
 - `enableUnloadWarning` - Whether front-end forms should trigger an "unload" warning when a form‘s content has changed and the user tries to navigate away without submitting.
@@ -73,16 +73,16 @@ return [
 - `defaultDateValueOption` - The default value option to be used as the default for all new date fields. Can be `today`, `date`. 
 - `defaultDateTime` - When `defaultDateValueOption` is set to `date`, this date will be used as the default value. Must be a valid datetime.
 
-#### Submissions
+### Submissions
 - `maxIncompleteSubmissionAge` - The maximum age of an incomplete submission in days before it is deleted in garbage collection. Set to 0 to disable automatic deletion.
 - `enableCsrfValidationForGuests` - Whether to enable Craft‘s CSRF validation checks for anonymous form submissions.
 - `useQueueForNotifications` - Whether to use Craft‘s queue system to trigger emails. This is highly, **highly** recommended, to prevent slow submissions for your users. This may be useful to disable for local development.
 - `useQueueForIntegrations` - Whether to use Craft‘s queue system to trigger integrations. This is highly, **highly** recommended, to prevent slow submissions for your users. This may be useful to disable for local development.
 
-#### Sent Notifications
+### Sent Notifications
 - `maxSentNotificationsAge` - The number of days to keep sent notifications before they are deleted permanently. Set to 0 to disable automatic deletion.
 
-#### Spam
+### Spam
 - `saveSpam` - Whether to save spam submissions to the database.
 - `spamLimit` - If saving spam, set a suitable limit for how many to keep. Spam submissions past this limit will be deleted.
 - `spamEmailNotifications` - Whether submissions marked as spam should still trigger email notifications.
