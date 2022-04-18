@@ -57,7 +57,7 @@ Option | Description
 --- | ---
 `fieldHandle` | Set the key to the handle of the field you would like to affect. Accepts a [Field Options](#field-options) object as the value
 
-### Field Options
+## Field Options
 
 Option | Description
 --- | ---

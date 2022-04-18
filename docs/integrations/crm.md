@@ -13,10 +13,10 @@ Once created, enabled and connected, these integrations will be available to con
 
 <img src="https://verbb.io/uploads/plugins/formie/crm-form.png" />
 
-### Refresh Integration
+## Refresh Integration
 Formie will fetch a number of data objects for the provider - each being specific to the provider. These objects are cached for performance, you can also refresh the available data objects if they change.
 
-#### Field Mapping
+## Field Mapping
 For each data object, Formie will also fetch all available fields, and any provider-specific fields for a particular CRM provider or data object. You can map which Formie fields should have their values connected to their third-party field counterpart. Each field mapping field can be opted-in, in case you don't require mapping content to all data objects.
 
 ## Supported Providers
