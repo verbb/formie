@@ -25,15 +25,12 @@ export class FormieCheckboxRadio {
 
                         $radioButtons.forEach(($radioButton) => {
                             $radioButton.removeAttribute('checked');
-                            $radioButton.setAttribute('aria-checked', false);
                         });
                     }
 
                     e.target.setAttribute('checked', true);
-                    e.target.setAttribute('aria-checked', true);
                 } else {
                     e.target.removeAttribute('checked');
-                    e.target.setAttribute('aria-checked', false);
                 }
             }, false);
         });
