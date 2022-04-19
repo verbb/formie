@@ -30,7 +30,7 @@
     {{ formieInclude('_includes/instructions', { position: 'above' }) }}
     {{ formieInclude('_includes/instructions', { position: 'fieldset-start' }) }}
 
-    <input type="hidden" aria-hidden="true" name="{{ field.handle }}" value="">
+    <input type="hidden" name="{{ field.handle }}" value="">
 
     <div class="fui-layout-wrap">
         {% if field.toggleCheckbox == 'top' and field.toggleCheckboxLabel %}
