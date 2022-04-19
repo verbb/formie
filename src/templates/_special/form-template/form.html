@@ -65,7 +65,7 @@
 
         {% if showForm %}
             <form {{ attr(attributes) }}>
-                {{ csrfInput({ autocomplete: 'false' }) }}
+                {{ csrfInput({ autocomplete: 'off' }) }}
                 {{ actionInput(form.getActionUrl()) }}
                 {{ hiddenInput('handle', form.handle) }}
                 {{ hiddenInput('siteId', craft.app.sites.currentSite.id) }}
