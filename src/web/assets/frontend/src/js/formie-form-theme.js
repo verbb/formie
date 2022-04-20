@@ -567,9 +567,9 @@ export class FormieFormTheme {
         if (data.redirectUrl) {
             if (this.settings.submitActionTab === 'new-tab') {
                 window.open(data.redirectUrl, '_blank');
+            } else {
+                window.location.href = data.redirectUrl;
             }
-
-            window.location.href = data.redirectUrl;
 
             return;
         }
