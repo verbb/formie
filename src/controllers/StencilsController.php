@@ -137,6 +137,9 @@ class StencilsController extends Controller
         $stencil->name = $request->getParam('title', $stencil->name);
         $stencil->handle = $request->getParam('handle', $stencil->handle);
 
+        $entryId = $request->getParam('submitActionEntryId', $stencil->submitActionEntryId);
+        $stencil->submitActionEntryId = is_array($entryId) && !empty($entryId) ? $entryId[0] : null;
+
         $originalName = $stencil->name;
 
         if ($duplicate) {

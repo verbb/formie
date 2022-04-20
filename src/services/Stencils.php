@@ -230,6 +230,7 @@ class Stencils extends Component
             $stencilRecord->uid = $stencilUid;
 
             // Handle UIDs for templates/statuses
+            $submitActionEntryUid = $data['submitActionEntry'] ?: null;
             $defaultStatusUid = $data['defaultStatus'] ?: null;
             $templateUid = $data['template'] ?: null;
 
@@ -238,6 +239,14 @@ class Stencils extends Component
 
                 if ($defaultStatus) {
                     $stencilRecord->defaultStatusId = $defaultStatus->id;
+                }
+            }
+
+            if ($submitActionEntryUid) {
+                $submitActionEntry = Craft::$app->getElements()->getElementByUid($submitActionEntryUid);
+
+                if ($submitActionEntry) {
+                    $stencilRecord->submitActionEntryId = $submitActionEntry->id;
                 }
             }
 
@@ -413,6 +422,7 @@ class Stencils extends Component
                 'handle',
                 'data',
                 'templateId',
+                'submitActionEntryId',
                 'defaultStatusId',
                 'dateDeleted',
                 'uid'

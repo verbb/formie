@@ -283,6 +283,7 @@ class Install extends Migration
             'handle' => $this->string(64)->notNull(),
             'data' => $this->mediumText(),
             'templateId' => $this->integer(),
+            'submitActionEntryId' => $this->integer(),
             'defaultStatusId' => $this->integer(),
             'dateDeleted' => $this->dateTime(),
             'dateCreated' => $this->dateTime()->notNull(),
