@@ -315,7 +315,6 @@ This can be combined with [fixedOrder](#fixedorder) if you want the results to b
 
 
 ### `inReverse`
-
 Causes the query results to be returned in reverse order.
 
 ::: code
@@ -330,6 +329,48 @@ Causes the query results to be returned in reverse order.
 // Fetch submissions in reverse
 $submissions = \verbb\formie\elements\Submission::find()
     ->inReverse()
+    ->all();
+```
+:::
+
+
+
+### `isIncomplete`
+Narrows the query results to only submissions that are incomplete.
+
+::: code
+```twig
+{# Fetch submissions that are incomplete #}
+{% set submissions = craft.formie.submissions()
+    .isIncomplete()
+    .all() %}
+```
+
+```php
+// Fetch submissions that are incomplete
+$submissions = \verbb\formie\elements\Submission::find()
+    ->isIncomplete()
+    ->all();
+```
+:::
+
+
+
+### `isSpam`
+Narrows the query results to only submissions that are marked as spam.
+
+::: code
+```twig
+{# Fetch submissions that is spam #}
+{% set submissions = craft.formie.submissions()
+    .isSpam()
+    .all() %}
+```
+
+```php
+// Fetch submissions that is spam
+$submissions = \verbb\formie\elements\Submission::find()
+    ->isSpam()
     ->all();
 ```
 :::
