@@ -6,6 +6,7 @@ use verbb\formie\base\FormField;
 use verbb\formie\base\SubfieldInterface;
 use verbb\formie\base\SubfieldTrait;
 use verbb\formie\events\ModifyDateTimeFormatEvent;
+use verbb\formie\events\ModifyFrontEndSubfieldsEvent;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\IntegrationField;
 
@@ -28,6 +29,7 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
     // Constants
     // =========================================================================
 
+    const EVENT_MODIFY_FRONT_END_SUBFIELDS = 'modifyFrontEndSubfields';
     const EVENT_MODIFY_DATE_FORMAT = 'modifyDateFormat';
     const EVENT_MODIFY_TIME_FORMAT = 'modifyTimeFormat';
 
@@ -363,9 +365,17 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
             $row[$char] = $available[$char];
         }
 
-        return [
+        $rows = [
             $row,
         ];
+
+        $event = new ModifyFrontEndSubfieldsEvent([
+            'rows' => $rows,
+        ]);
+
+        Event::trigger(static::class, self::EVENT_MODIFY_FRONT_END_SUBFIELDS, $event);
+
+        return $event->rows;
     }
 
     /**

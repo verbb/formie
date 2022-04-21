@@ -709,6 +709,34 @@ Event::on(Date::class, Date::EVENT_MODIFY_TIME_FORMAT, function(ModifyDateTimeFo
 });
 ```
 
+### The `modifyFrontEndSubfields` event
+The event that is triggered to modify the front-end subfields for the field.
+
+```php
+use verbb\formie\events\ModifyFrontEndSubfieldsEvent;
+use verbb\formie\fields\formfields\Date;
+use yii\base\Event;
+use DateTime;
+
+Event::on(Date::class, Date::EVENT_MODIFY_FRONT_END_SUBFIELDS, function(ModifyFrontEndSubfieldsEvent $event) {
+    $defaultValue = $this->defaultValue ? $this->defaultValue : new DateTime();
+    $year = intval($defaultValue->format('Y'));
+    $minYear = $year - 10;
+    $maxYear = $year + 10;
+
+    $yearOptions = [];
+
+    for ($y = $minYear; $y < $maxYear; ++$y) {
+        $yearOptions[] = ['value' => $y, 'label' => $y];
+    }
+
+    $event->rows[0]['Y'] = [
+        'handle' => 'year',
+        'options' => $yearOptions,
+        'min' => $minYear,
+        'max' => $maxYear,
+    ];
+});
 
 
 ## Email Field Events
