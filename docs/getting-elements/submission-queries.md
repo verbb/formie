@@ -338,6 +338,14 @@ $submissions = \verbb\formie\elements\Submission::find()
 ### `isIncomplete`
 Narrows the query results to only submissions that are incomplete.
 
+Possible values include:
+
+| Value | Fetches submissions…
+| - | -
+| `false` _(default)_ | that are not incomplete.
+| `true` | that are incomplete.
+| `null` | that are either incomplete or not incomplete.
+
 ::: code
 ```twig
 {# Fetch submissions that are incomplete #}
@@ -358,6 +366,14 @@ $submissions = \verbb\formie\elements\Submission::find()
 
 ### `isSpam`
 Narrows the query results to only submissions that are marked as spam.
+
+Possible values include:
+
+| Value | Fetches submissions…
+| - | -
+| `false` _(default)_ | that are not marked as spam.
+| `true` | that are marked as spam.
+| `null` | that are either marked as spam or not marked as spam.
 
 ::: code
 ```twig
