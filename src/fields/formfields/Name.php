@@ -5,6 +5,7 @@ use verbb\formie\Formie;
 use verbb\formie\base\FormField;
 use verbb\formie\base\SubfieldInterface;
 use verbb\formie\base\SubfieldTrait;
+use verbb\formie\events\ModifyFrontEndSubfieldsEvent;
 use verbb\formie\events\ModifyNamePrefixOptionsEvent;
 use verbb\formie\gql\types\generators\FieldAttributeGenerator;
 use verbb\formie\gql\types\input\NameInputType;
@@ -27,6 +28,7 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
     // Constants
     // =========================================================================
 
+    const EVENT_MODIFY_FRONT_END_SUBFIELDS = 'modifyFrontEndSubfields';
     const EVENT_MODIFY_PREFIX_OPTIONS = 'modifyPrefixOptions';
 
 
@@ -268,7 +270,13 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
             }
         }
 
-        return array_filter($subFields);
+        $event = new ModifyFrontEndSubfieldsEvent([
+            'rows' => array_filter($subFields),
+        ]);
+
+        Event::trigger(static::class, self::EVENT_MODIFY_FRONT_END_SUBFIELDS, $event);
+
+        return $event->rows;
     }
 
     /**

@@ -737,6 +737,7 @@ Event::on(Date::class, Date::EVENT_MODIFY_FRONT_END_SUBFIELDS, function(ModifyFr
         'max' => $maxYear,
     ];
 });
+```
 
 
 ## Email Field Events
@@ -810,6 +811,19 @@ Event::on(Name::class, Name::EVENT_MODIFY_PREFIX_OPTIONS, function(ModifyNamePre
 });
 ```
 
+### The `modifyFrontEndSubfields` event
+The event that is triggered to modify the front-end subfields for the field.
+
+```php
+use verbb\formie\events\ModifyFrontEndSubfieldsEvent;
+use verbb\formie\fields\formfields\Name;
+use yii\base\Event;
+
+Event::on(Name::class, Name::EVENT_MODIFY_FRONT_END_SUBFIELDS, function(ModifyFrontEndSubfieldsEvent $event) {
+    $event->rows[0]['prefix'] = 'honorific-prefix';
+});
+```
+
 
 ## Phone Field Events
 
@@ -839,6 +853,7 @@ Event::on(Phone::class, Phone::EVENT_MODIFY_FRONT_END_SUBFIELDS, function(Modify
     $event->rows[0]['number'] = 'tel-national';
 });
 ```
+
 
 ## Predefined Field Options
 
