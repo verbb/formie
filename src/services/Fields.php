@@ -1069,8 +1069,7 @@ class Fields extends Component
 
         return array_merge(
             $reservedWords,
-            HandleValidator::$baseReservedWords,
-            ['form', 'field', 'submission']
+            HandleValidator::$baseReservedWords
         );
     }
 

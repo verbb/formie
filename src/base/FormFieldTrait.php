@@ -30,13 +30,17 @@ use craft\helpers\StringHelper;
 use craft\validators\HandleValidator;
 use craft\web\twig\TemplateLoaderException;
 
-use Exception;
 use GraphQL\Type\Definition\Type;
-use ReflectionClass;
-use Throwable;
+
+use yii\base\Event;
+
 use Twig\Error\LoaderError as TwigLoaderError;
 use Twig\Markup;
-use yii\base\Event;
+
+use ReflectionClass;
+use ReflectionProperty;
+use Exception;
+use Throwable;
 
 trait FormFieldTrait
 {
@@ -1181,11 +1185,7 @@ trait FormFieldTrait
         $rules[] = [
             ['handle'],
             HandleValidator::class,
-            'reservedWords' => [
-                'form',
-                'field',
-                'submission',
-            ]
+            'reservedWords' => self::_getReservedWords(),
         ];
 
         $rules[] = [['limitType'], 'in', 'range' => [
@@ -1359,5 +1359,33 @@ trait FormFieldTrait
         $end = array_pop($classNameParts);
 
         return StringHelper::toKebabCase($end);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    private static function _getReservedWords()
+    {
+        $reservedWords = [
+            ['form', 'field', 'submission'],
+        ];
+
+        try {
+            // Add public properties from submission class
+            $reflection = new ReflectionClass(Submission::class);
+            $reservedWords[] = array_map(function($prop) {
+                return $prop->name;
+            }, $reflection->getProperties(ReflectionProperty::IS_PUBLIC));
+            
+            // Add public properties from form class
+            $reflection = new ReflectionClass(Form::class);
+            $reservedWords[] = array_map(function($prop) {
+                return $prop->name;
+            }, $reflection->getProperties(ReflectionProperty::IS_PUBLIC));
+        } catch (Throwable $e) {
+
+        }
+
+        return array_values(array_unique(array_merge(...$reservedWords)));
     }
 }
