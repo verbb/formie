@@ -782,6 +782,18 @@ Event::on(Phone::class, Phone::EVENT_MODIFY_PHONE_COUNTRIES, function(ModifyPhon
 });
 ```
 
+### The `modifyFrontEndSubfields` event
+The event that is triggered to modify the front-end subfields for the field.
+
+```php
+use verbb\formie\events\ModifyFrontEndSubfieldsEvent;
+use verbb\formie\fields\formfields\Phone;
+use yii\base\Event;
+
+Event::on(Phone::class, Phone::EVENT_MODIFY_FRONT_END_SUBFIELDS, function(ModifyFrontEndSubfieldsEvent $event) {
+    $event->rows[0]['number'] = 'tel-national';
+});
+```
 
 ## Predefined Field Options
 

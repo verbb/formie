@@ -6,6 +6,7 @@ use verbb\formie\base\SubfieldInterface;
 use verbb\formie\base\SubfieldTrait;
 use verbb\formie\base\FormField;
 use verbb\formie\elements\Form;
+use verbb\formie\events\ModifyFrontEndSubfieldsEvent;
 use verbb\formie\gql\types\generators\FieldAttributeGenerator;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\Phone as PhoneModel;
@@ -22,6 +23,12 @@ use yii\db\Schema;
 
 class Phone extends FormField implements SubfieldInterface, PreviewableFieldInterface
 {
+    // Constants
+    // =========================================================================
+
+    const EVENT_MODIFY_FRONT_END_SUBFIELDS = 'modifyFrontEndSubfields';
+
+
     // Traits
     // =========================================================================
 
@@ -177,9 +184,17 @@ class Phone extends FormField implements SubfieldInterface, PreviewableFieldInte
 
         $row['number'] = 'tel-national';
 
-        return [
+        $rows = [
             $row,
         ];
+
+        $event = new ModifyFrontEndSubfieldsEvent([
+            'rows' => array_filter($rows),
+        ]);
+
+        Event::trigger(static::class, self::EVENT_MODIFY_FRONT_END_SUBFIELDS, $event);
+
+        return $event->rows;
     }
 
     /**
