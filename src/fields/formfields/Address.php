@@ -7,6 +7,7 @@ use verbb\formie\base\Integration;
 use verbb\formie\base\SubfieldInterface;
 use verbb\formie\base\SubfieldTrait;
 use verbb\formie\elements\Form;
+use verbb\formie\events\ModifyFrontEndSubfieldsEvent;
 use verbb\formie\gql\types\generators\FieldAttributeGenerator;
 use verbb\formie\gql\types\input\AddressInputType;
 use verbb\formie\helpers\SchemaHelper;
@@ -28,6 +29,12 @@ use yii\db\Schema;
 
 class Address extends FormField implements SubfieldInterface, PreviewableFieldInterface
 {
+    // Constants
+    // =========================================================================
+
+    const EVENT_MODIFY_FRONT_END_SUBFIELDS = 'modifyFrontEndSubfields';
+
+
     // Traits
     // =========================================================================
 
@@ -374,7 +381,13 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
             }
         }
 
-        return array_filter($subFields);
+        $event = new ModifyFrontEndSubfieldsEvent([
+            'rows' => array_filter($subFields),
+        ]);
+
+        Event::trigger(static::class, self::EVENT_MODIFY_FRONT_END_SUBFIELDS, $event);
+
+        return $event->rows;
     }
 
     /**
