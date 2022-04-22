@@ -126,7 +126,7 @@ class FileUpload extends CraftAssets implements FormFieldInterface
     public function getExtraBaseFieldConfig(): array
     {
         return [
-            'volumes' => $this->getVolumeOptions(),
+            'volumes' => $this->getSourceOptions(),
             'fileKindOptions' => $this->getFileKindOptions(),
         ];
     }
@@ -143,7 +143,7 @@ class FileUpload extends CraftAssets implements FormFieldInterface
         $volumes = Craft::$app->getVolumes()->getAllVolumes();
 
         if (!$volume && !empty($volumes)) {
-            $volume = 'folder:' . $volumes[0]->uid;
+            $volume = 'volume:' . $volumes[0]->uid;
         }
 
         return [
@@ -288,20 +288,6 @@ class FileUpload extends CraftAssets implements FormFieldInterface
         return implode(', ', $extensions);
     }
 
-    public function getVolumeOptions(): array
-    {
-        $volumes = [];
-
-        foreach (Craft::$app->getVolumes()->getAllVolumes() as $volume) {
-            $volumes[] = [
-                'label' => $volume->name,
-                'value' => 'folder:' . $volume->uid,
-            ];
-        }
-
-        return $volumes;
-    }
-
     public function getFrontEndJsModules(): ?array
     {
         return [
@@ -328,7 +314,7 @@ class FileUpload extends CraftAssets implements FormFieldInterface
                         'children' => [
                             SchemaHelper::selectField([
                                 'name' => 'uploadLocationSource',
-                                'options' => $this->getVolumeOptions(),
+                                'options' => $this->getSourceOptions(),
                             ]),
                             SchemaHelper::textField([
                                 'name' => 'uploadLocationSubpath',
@@ -566,7 +552,7 @@ class FileUpload extends CraftAssets implements FormFieldInterface
     {
         $sourceKey = $this->uploadLocationSource;
 
-        if ($sourceKey && str_starts_with($sourceKey, 'folder:')) {
+        if ($sourceKey && str_starts_with($sourceKey, 'volume:')) {
             $parts = explode(':', $sourceKey);
 
             return Craft::$app->getVolumes()->getVolumeByUid($parts[1]);
