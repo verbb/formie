@@ -52,11 +52,11 @@ These variables are stored in shorthand Twig format, and are parsed before they 
 If you wanted to show this content in the email, directly outputting the `to` attribute would render `{emailAddress}` - probably not what you want. Instead, you can wrap this content in the variable-parsing function Formie itself uses.
 
 :::code
-```twig
+```twig Twig
 {% set toEmail = craft.formie.getParsedValue(notification.to, submission) %}
 ```
 
-```php
+```php PHP
 $toEmail = \verbb\formie\helpers\Variables::getParsedValue($notification->to, $submission);
 ```
 :::

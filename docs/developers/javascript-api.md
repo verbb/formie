@@ -205,7 +205,7 @@ Because Formie's JavaScript is loaded with `defer`, this means that regardless o
 In this scenario, you should listen to the `onFormieInit` event, which is fired when Formie's JS has been loaded.
 
 :::code
-```js
+```js JavaScript
 let $form = document.querySelector('#formie-form-1');
 $form.addEventListener('onFormieInit', (e) => {
     let Formie = e.detail.formie;
@@ -214,7 +214,7 @@ $form.addEventListener('onFormieInit', (e) => {
 });
 ```
 
-```jQuery
+```js jQuery
 $('#formie-form-1').on('onFormieInit', function(e) {
     let Formie = e.detail.formie;
 
@@ -231,7 +231,7 @@ Our JS hijacks the native submit handler of a form, and wraps it in a number of 
 The event that is triggered before a form is submitted, and before validation is triggered. You can cancel a submission by using `preventDefault()`.
 
 :::code
-```js
+```js JavaScript
 let $form = document.querySelector('#formie-form-1');
 $form.addEventListener('onBeforeFormieSubmit', (e) => {
     e.preventDefault();
@@ -240,7 +240,7 @@ $form.addEventListener('onBeforeFormieSubmit', (e) => {
 });
 ```
 
-```jQuery
+```js jQuery
 $('#formie-form-1').on('onBeforeFormieSubmit', function(e) {
     e.preventDefault();
 
@@ -255,7 +255,7 @@ $('#formie-form-1').on('onBeforeFormieSubmit', function(e) {
 The event that is triggered before a form is submitted, and before the validation is triggered. This event is specifically for captchas, triggered before client-side validation runs. You can cancel a submission by using `preventDefault()`.
 
 :::code
-```js
+```js JavaScript
 let $form = document.querySelector('#formie-form-1');
 $form.addEventListener('onFormieCaptchaValidate', (e) => {
     e.preventDefault();
@@ -265,7 +265,7 @@ $form.addEventListener('onFormieCaptchaValidate', (e) => {
 });
 ```
 
-```jQuery
+```js jQuery
 $('#formie-form-1').on('onFormieCaptchaValidate', function(e) {
     e.preventDefault();
 
@@ -281,7 +281,7 @@ $('#formie-form-1').on('onFormieCaptchaValidate', function(e) {
 The event that is triggered before a form is submitted, but after validation is triggered. You can use this event to handle custom validation. You can cancel a submission by using `preventDefault()`.
 
 :::code
-```js
+```js JavaScript
 let $form = document.querySelector('#formie-form-1');
 $form.addEventListener('onFormieValidate', (e) => {
     e.preventDefault();
@@ -291,7 +291,7 @@ $form.addEventListener('onFormieValidate', (e) => {
 });
 ```
 
-```jQuery
+```js jQuery
 $('#formie-form-1').on('onFormieValidate', function(e) {
     e.preventDefault();
 
@@ -307,7 +307,7 @@ $('#formie-form-1').on('onFormieValidate', function(e) {
 The event that is triggered before a form is submitted, after validation is triggered and after `onFormieValidate`. Like the `onFormieValidate` event, you can also use this to handle custom validation, if for some reason you prefer it to happen after all other validation events have been triggered. You can cancel a submission by using `preventDefault()`.
 
 :::code
-```js
+```js JavaScript
 let $form = document.querySelector('#formie-form-1');
 $form.addEventListener('onAfterFormieValidate', (e) => {
     e.preventDefault();
@@ -317,7 +317,7 @@ $form.addEventListener('onAfterFormieValidate', (e) => {
 });
 ```
 
-```jQuery
+```js jQuery
 $('#formie-form-1').on('onAfterFormieValidate', function(e) {
     e.preventDefault();
 
@@ -333,7 +333,7 @@ $('#formie-form-1').on('onAfterFormieValidate', function(e) {
 The event that is triggered after a form is submitted.
 
 :::code
-```js
+```js JavaScript
 let $form = document.querySelector('#formie-form-1');
 $form.addEventListener('onAfterFormieSubmit', (e) => {
     e.preventDefault();
@@ -343,7 +343,7 @@ $form.addEventListener('onAfterFormieSubmit', (e) => {
 });
 ```
 
-```jQuery
+```js jQuery
 $('#formie-form-1').on('onAfterFormieSubmit', function(e) {
     e.preventDefault();
 
@@ -359,7 +359,7 @@ $('#formie-form-1').on('onAfterFormieSubmit', function(e) {
 The event that is triggered if an error on submission is detected. This can also be called manually through `formSubmitError()`.
 
 :::code
-```js
+```js JavaScript
 let $form = document.querySelector('#formie-form-1');
 $form.addEventListener('onFormieSubmitError', (e) => {
     e.preventDefault();
@@ -368,7 +368,7 @@ $form.addEventListener('onFormieSubmitError', (e) => {
 });
 ```
 
-```jQuery
+```js jQuery
 $('#formie-form-1').on('onFormieSubmitError', function(e) {
     e.preventDefault();
 
@@ -480,7 +480,7 @@ You can also hook into events that are triggered before and after conditional lo
 The event that is triggered when a field with conditions is about to be evaluated. This will also fire on page load, as conditions need to be evaluated immediately, to determine if a field should be shown or hidden.
 
 :::code
-```js
+```js JavaScript
 const $form = document.querySelector('#formie-form-1');
 const $myField = $form.querySelector('[data-field-handle="myFieldHandle"]');
 
@@ -491,7 +491,7 @@ $myField.addEventListener('onFormieEvaluateConditions', (e) => {
 });
 ```
 
-```jQuery
+```js jQuery
 $('#formie-form-1 [data-field-handle="myFieldHandle"]').on('onFormieEvaluateConditions', function(e) {
     const isInit = e.detail.init;
 
@@ -504,7 +504,7 @@ $('#formie-form-1 [data-field-handle="myFieldHandle"]').on('onFormieEvaluateCond
 The event that is triggered when a field with conditions has been evaluated. This will also fire on page load, as conditions need to be evaluated immediately, to determine if a field should be shown or hidden.
 
 :::code
-```js
+```js JavaScript
 const $form = document.querySelector('#formie-form-1');
 const $myField = $form.querySelector('[data-field-handle="myFieldHandle"]');
 
@@ -516,7 +516,7 @@ $myField.addEventListener('onAfterFormieEvaluateConditions', (e) => {
 });
 ```
 
-```jQuery
+```js jQuery
 $('#formie-form-1 [data-field-handle="myFieldHandle"]').on('onAfterFormieEvaluateConditions', function(e) {
     const isInit = e.detail.init;
     const conditionallyHidden = e.target.conditionallyHidden;

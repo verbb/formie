@@ -1,5 +1,4 @@
 # GraphQL
-
 Formie supports accessing [Form](docs:developers/form) and [Submission](docs:developers/submission) objects via GraphQL. Be sure to read about [Craft's GraphQL support](https://docs.craftcms.com/v3/graphql.html).
 
 :::tip
@@ -8,9 +7,10 @@ Have a look at our [headless Formie demo](https://formie-headless.verbb.io/?form
 
 ## Forms
 
-### Query payload
+### Query
 
-```json
+:::code
+```graphql GraphQL
 {
     form (handle: "contactForm") {
         title
@@ -47,9 +47,7 @@ Have a look at our [headless Formie demo](https://formie-headless.verbb.io/?form
 }
 ```
 
-### The response
-
-```json
+```json JSON Response
 {
     "data": {
         "form": {
@@ -104,6 +102,7 @@ Have a look at our [headless Formie demo](https://formie-headless.verbb.io/?form
     }
 }
 ```
+:::
 
 ### The `forms` query
 This query is used to query for [Form](docs:developers/form) objects. You can also use the singular `form` to fetch a single form. There are also `formieForms` and `formieForm` aliases.

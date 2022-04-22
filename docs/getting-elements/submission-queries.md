@@ -3,12 +3,12 @@
 You can fetch submissions in your templates or PHP code using **submission queries**.
 
 :::code
-```twig
+```twig Twig
 {# Create a new submission query #}
 {% set myQuery = craft.formie.submissions() %}
 ```
 
-```php
+```php PHP
 // Create a new submission query
 $myQuery = \verbb\formie\elements\Submission::find();
 ```
@@ -21,7 +21,6 @@ See Introduction to [Element Queries](https://docs.craftcms.com/v3/dev/element-q
 :::
 
 ## Example
-
 We can display submissions for a given form by doing the following:
 
 1. Create a submission query with `craft.formie.submissions()`.

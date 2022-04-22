@@ -3,12 +3,12 @@
 You can fetch forms in your templates or PHP code using **form queries**.
 
 :::code
-```twig
+```twig Twig
 {# Create a new form query #}
 {% set myQuery = craft.formie.forms() %}
 ```
 
-```php
+```php PHP
 // Create a new form query
 $myQuery = \verbb\formie\elements\Form::find();
 ```

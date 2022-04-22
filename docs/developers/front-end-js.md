@@ -84,7 +84,7 @@ There are also further scenarios where you want more fine-grained control over t
 You can also trigger form submission through JavaScript.
 
 :::code
-```js
+```js JavaScript
 let $form = document.querySelector('#formie-form-1');
 let data = new FormData($form);
 
@@ -102,7 +102,7 @@ fetch('/', {
 });
 ```
 
-```jQuery
+```js jQuery
 let data = $('#formie-form-1').serialize();
 
 $.ajax({
