@@ -12,7 +12,7 @@ Have a look at our [headless Formie demo](https://formie-headless.verbb.io/?form
 
 ```json
 {
-    form (handle: "contactForm") {
+    formieForm (handle: "contactForm") {
         title
         handle
 
@@ -52,7 +52,7 @@ Have a look at our [headless Formie demo](https://formie-headless.verbb.io/?form
 ```json
 {
     "data": {
-        "form": {
+        "formieForm": {
             "title": "Contact Form",
             "handle": "contactForm",
             "settings": {
@@ -105,8 +105,8 @@ Have a look at our [headless Formie demo](https://formie-headless.verbb.io/?form
 }
 ```
 
-### The `forms` query
-This query is used to query for [Form](docs:developers/form) objects. You can also use the singular `form` to fetch a single form. There are also `formieForms` and `formieForm` aliases.
+### The `formieForms` query
+This query is used to query for [Form](docs:developers/form) objects. You can also use the singular `formieForm` to fetch a single form.
 
 | Argument | Type | Description
 | - | - | -
@@ -572,7 +572,7 @@ For nested fields like Group and Repeater, you have access to `nestedRows` and `
 
 ```json
 {
-    form (handle: "contactForm") {
+    formieForm (handle: "contactForm") {
         title
         handle
         
