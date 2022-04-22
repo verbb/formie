@@ -25,6 +25,7 @@ use CommerceGuys\Addressing\Country\CountryRepository;
 
 use GraphQL\Type\Definition\Type;
 
+use yii\base\Event;
 use yii\db\Schema;
 
 class Address extends FormField implements SubfieldInterface, PreviewableFieldInterface

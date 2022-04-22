@@ -19,6 +19,7 @@ use craft\helpers\StringHelper;
 
 use GraphQL\Type\Definition\Type;
 
+use yii\base\Event;
 use yii\db\Schema;
 
 class Phone extends FormField implements SubfieldInterface, PreviewableFieldInterface

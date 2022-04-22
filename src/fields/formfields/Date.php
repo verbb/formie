@@ -19,10 +19,12 @@ use craft\helpers\Json;
 use craft\helpers\StringHelper;
 use craft\i18n\Locale;
 
-use DateTime;
+use GraphQL\Type\Definition\Type;
+
 use yii\base\Event;
 use yii\db\Schema;
-use GraphQL\Type\Definition\Type;
+
+use DateTime;
 
 class Date extends FormField implements SubfieldInterface, PreviewableFieldInterface
 {
