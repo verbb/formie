@@ -48,8 +48,8 @@ class RowInterface extends BaseInterfaceType
     public static function getFieldDefinitions(): array
     {
         return Craft::$app->getGql()->prepareFieldDefinitions(array_merge(parent::getFieldDefinitions(), [
-            'fields' => [
-                'name' => 'fields',
+            'rowFields' => [
+                'name' => 'rowFields',
                 'type' => Type::listOf(FieldInterface::getType()),
                 'description' => 'The row’s fields.',
             ],

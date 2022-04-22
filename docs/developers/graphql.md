@@ -24,7 +24,7 @@ Have a look at our [headless Formie demo](https://formie-headless.verbb.io/?form
             name
 
             rows {
-                fields {
+                rowFields {
                     name
                     handle
                     type
@@ -63,7 +63,7 @@ Have a look at our [headless Formie demo](https://formie-headless.verbb.io/?form
                     "name": "Page 1",
                     "rows": [
                         {
-                            "fields": [
+                            "rowFields": [
                                 {
                                     "name": "Your Name",
                                     "handle": "yourName",
@@ -77,7 +77,7 @@ Have a look at our [headless Formie demo](https://formie-headless.verbb.io/?form
                             ]
                         },
                         {
-                            "fields": [
+                            "rowFields": [
                                 {
                                     "name": "Email Address",
                                     "handle": "emailAddress",
@@ -88,7 +88,7 @@ Have a look at our [headless Formie demo](https://formie-headless.verbb.io/?form
                             ]
                         },
                         {
-                            "fields": [
+                            "rowFields": [
                                 {
                                     "name": "Message",
                                     "handle": "message",
@@ -146,7 +146,7 @@ This is the interface implemented by all forms.
 | `dateUpdated`| `DateTime` | The date the element was last updated.
 | `pages`| `[PageInterface]` | The form’s pages.
 | `rows`| `[RowInterface]` | The form’s rows.
-| `fields`| `[FieldInterface]` | The form’s fields.
+| `formFields`| `[FieldInterface]` | The form’s fields.
 | `settings`| `[FormSettingsInterface]` | The form’s settings.
 | `configJson`| `String` | The form’s config as JSON.
 | `templateHtml`| `String` | The form’s rendered HTML.
@@ -204,7 +204,7 @@ This is the interface implemented by all pages.
 | `dateUpdated`| `DateTime` | The date the element was last updated.
 | `name`| `String` | The name of the page.
 | `rows`| `[RowInterface]` | The pages’s rows.
-| `fields`| `[FieldInterface]` | The pages’s fields.
+| `pageFields`| `[FieldInterface]` | The pages’s fields.
 | `settings`| `[PageSettingsInterface]` | The pages’s settings
 
 
@@ -226,7 +226,7 @@ This is the interface implemented by all rows.
 | - | - | -
 | `id`| `ID` | The id of the entity.
 | `uid`| `String` | The uid of the entity.
-| `fields`| `[FieldInterface]` | The row’s fields.
+| `rowFields`| `[FieldInterface]` | The row’s fields.
 
 
 ### The `FieldInterface` interface
@@ -576,7 +576,7 @@ For nested fields like Group and Repeater, you have access to `nestedRows` and `
         title
         handle
         
-        fields {
+        formFields {
             name
 
             ... on Field_Group {

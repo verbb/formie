@@ -59,8 +59,8 @@ class PageInterface extends BaseInterfaceType
                 'type' => Type::listOf(RowInterface::getType()),
                 'description' => 'The page’s rows.',
             ],
-            'fields' => [
-                'name' => 'fields',
+            'pageFields' => [
+                'name' => 'pageFields',
                 'type' => Type::listOf(FieldInterface::getType()),
                 'description' => 'The page’s fields.',
             ],

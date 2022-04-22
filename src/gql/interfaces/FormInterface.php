@@ -68,8 +68,8 @@ class FormInterface extends Element
                 'type' => Type::listOf(RowInterface::getType()),
                 'description' => 'The form’s rows.',
             ],
-            $formFieldName => [
-                'name' => $formFieldName,
+            'formFields' => [
+                'name' => 'formFields',
                 'type' => Type::listOf(FieldInterface::getType()),
                 'description' => 'The form’s fields.',
             ],

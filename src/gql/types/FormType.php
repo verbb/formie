@@ -1,10 +1,10 @@
 <?php
 namespace verbb\formie\gql\types;
 
-use craft\helpers\Gql;
 use verbb\formie\gql\interfaces\FormInterface;
 
 use craft\gql\types\elements\Element;
+use craft\helpers\Gql;
 
 use GraphQL\Type\Definition\ResolveInfo;
 
