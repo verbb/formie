@@ -383,6 +383,7 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
         }
 
         $event = new ModifyFrontEndSubfieldsEvent([
+            'field' => $this,
             'rows' => array_filter($subFields),
         ]);
 

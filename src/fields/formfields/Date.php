@@ -372,6 +372,7 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
         ];
 
         $event = new ModifyFrontEndSubfieldsEvent([
+            'field' => $this,
             'rows' => $rows,
         ]);
 

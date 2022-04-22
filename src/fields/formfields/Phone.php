@@ -190,6 +190,7 @@ class Phone extends FormField implements SubfieldInterface, PreviewableFieldInte
         ];
 
         $event = new ModifyFrontEndSubfieldsEvent([
+            'field' => $this,
             'rows' => array_filter($rows),
         ]);
 

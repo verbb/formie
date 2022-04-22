@@ -719,7 +719,9 @@ use yii\base\Event;
 use DateTime;
 
 Event::on(Date::class, Date::EVENT_MODIFY_FRONT_END_SUBFIELDS, function(ModifyFrontEndSubfieldsEvent $event) {
-    $defaultValue = $this->defaultValue ? $this->defaultValue : new DateTime();
+    $field = $event->field;
+
+    $defaultValue = $field->defaultValue ? $field->defaultValue : new DateTime();
     $year = intval($defaultValue->format('Y'));
     $minYear = $year - 10;
     $maxYear = $year + 10;

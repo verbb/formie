@@ -271,6 +271,7 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
         }
 
         $event = new ModifyFrontEndSubfieldsEvent([
+            'field' => $this,
             'rows' => array_filter($subFields),
         ]);
 
