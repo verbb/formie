@@ -52,8 +52,6 @@ class FormInterface extends Element
 
     public static function getFieldDefinitions(): array
     {
-        $formFieldName = Formie::$plugin->getSettings()->enableGatsbyCompatibility ? 'formFields' : 'fields';
-
         return Craft::$app->getGql()->prepareFieldDefinitions(array_merge(parent::getFieldDefinitions(), [
             'handle' => [
                 'name' => 'handle',

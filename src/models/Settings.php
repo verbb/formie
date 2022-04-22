@@ -46,7 +46,6 @@ class Settings extends Model
     public ?DateTime $defaultDateTime = null;
 
     public int $maxIncompleteSubmissionAge = 30;
-    public bool $enableGatsbyCompatibility = false;
     public int $maxSentNotificationsAge = 30;
 
     // Submissions
@@ -76,6 +75,14 @@ class Settings extends Model
 
     // Public Methods
     // =========================================================================
+
+    public function __construct($config = [])
+    {
+        // Remove deprecated settings
+        unset($config['enableGatsbyCompatibility']);
+
+        parent::__construct($config);
+    }
 
     public function validateAlertEmails($attribute): void
     {
