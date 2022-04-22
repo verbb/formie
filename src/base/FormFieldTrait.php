@@ -111,7 +111,7 @@ trait FormFieldTrait
     public ?string $errorMessage = null;
     public ?string $labelPosition = null;
     public ?string $instructionsPosition = null;
-    public ?array $cssClasses = null;
+    public ?string $cssClasses = null;
     public ?array $containerAttributes = null;
     public ?array $inputAttributes = null;
     public bool $includeInEmail = true;
