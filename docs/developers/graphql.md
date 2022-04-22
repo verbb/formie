@@ -7,7 +7,7 @@ Have a look at our [headless Formie demo](https://formie-headless.verbb.io/?form
 
 ## Forms
 
-### Query
+### Example
 
 :::code
 ```graphql GraphQL
@@ -569,7 +569,7 @@ Once using the necessary [Inline Fragments](https://graphql.org/learn/queries/#i
 #### Nested Fields
 For nested fields like Group and Repeater, you have access to `nestedRows` and `fields`.
 
-```json
+```graphql
 {
     form (handle: "contactForm") {
         title
@@ -601,9 +601,10 @@ This is the interface to allow easy retrieval of a CSRF token and value.
 
 ## Submissions
 
-### Query payload
+### Example
 
-```json
+:::code
+```graphql GraphQL
 {
     submissions (form: "contactForm") {
         title
@@ -617,9 +618,7 @@ This is the interface to allow easy retrieval of a CSRF token and value.
 }
 ```
 
-### The response
-
-```json
+```json JSON Response
 {
     "data": {
         "submissions": [
@@ -633,6 +632,7 @@ This is the interface to allow easy retrieval of a CSRF token and value.
     }
 }
 ```
+:::
 
 ### The `submissions` query
 This query is used to query for [Submission](docs:developers/submission) objects. You can also use the singular `submission` to fetch a single submission. There are also `formieSubmissions` and `formieSubmission` aliases.
@@ -661,7 +661,7 @@ This query is used to query for [Submission](docs:developers/submission) objects
 #### Nested Fields
 An example for querying Repeater and Group field content.
 
-```json
+```graphql
 {
     submissions (handle: "contactForm") {
         title
@@ -708,7 +708,7 @@ To create or update a submission use the form-specific mutation, which will have
 
 The below shows an example request to create a new submission. For this form, we have a single-line text field with the handle `yourName`. In our query variables, we pass the value(s) we want to use in the query.
 
-```json
+```graphql
 // Query
 mutation saveSubmission($yourName:String) {
     save_contactForm_Submission(yourName: $yourName) {
@@ -741,7 +741,7 @@ Some fields, such as Name and Address fields are much more than primitive values
 
 For example, you can populate a name and address field using the below:
 
-```json
+```graphql
 // Query
 mutation saveSubmission($yourName:contactForm_yourName_FormieNameInput $yourAddress:contactForm_yourAddress_FormieAddressInput) {
     save_contactForm_Submission(yourName: $yourName, yourAddress: $yourAddress) {
@@ -769,7 +769,7 @@ mutation saveSubmission($yourName:contactForm_yourName_FormieNameInput $yourAddr
 You'll notice the `contactForm_yourName_FormieNameInput` type being used. This follows the structure of `{formHandle}_{fieldHandle}_FormieNameInput`. There are also a number of other input types to consider.
 
 #### Address Field
-```json
+```graphql
 // Query
 mutation saveSubmission($yourAddress:contactForm_yourAddress_FormieAddressInput) {
     save_contactForm_Submission(yourAddress: $yourAddress) {
@@ -790,7 +790,7 @@ mutation saveSubmission($yourAddress:contactForm_yourAddress_FormieAddressInput)
 ```
 
 #### Group Field
-```json
+```graphql
 // Query
 mutation saveSubmission($groupField:contactForm_groupField_FormieGroupInput) {
     save_contactForm_Submission(groupField: $groupField) {
@@ -811,7 +811,7 @@ mutation saveSubmission($groupField:contactForm_groupField_FormieGroupInput) {
 ```
 
 #### Repeater Field
-```json
+```graphql
 // Query
 mutation saveSubmission($repeaterField:contactForm_repeaterField_FormieRepeaterInput) {
     save_contactForm_Submission(repeaterField: $repeaterField) {
@@ -845,7 +845,7 @@ mutation saveSubmission($repeaterField:contactForm_repeaterField_FormieRepeaterI
 #### Deleting a submission
 To delete a submission use the `deleteSubmission` mutation, which requires the `id` of the submission that must be deleted. It returns a boolean value as the result to indicate whether the operation was successful.
 
-```json
+```graphql
 // Query to delete a submission with ID of `1110` for a site with an ID of `2`.
 mutation deleteSubmission {
     deleteSubmission(id:1110 siteId:2)
@@ -887,7 +887,7 @@ You'll likely want to implement some form of captcha on the front-end for your h
 
 You can add the following to your GQL form query to fetch tokens generated server-side.
 
-```json
+```graphql
 {
     form (handle: "contactForm") {
         ...
@@ -905,7 +905,7 @@ Here, you'll need 3 vital bits of information, which is the `handle` of the Capt
 
 To authenticate your enabled Captchas correctly, you'll need to include these in your mutation, sent to the server.
 
-```json
+```graphql
 // Query
 mutation saveSubmission($yourName:contactForm_yourName_FormieNameInput $javascriptCaptcha: FormieCaptchaInput) {
     save_contactForm_Submission(yourName: $yourName, javascriptCaptcha: $javascriptCaptcha) {
