@@ -50,7 +50,7 @@ class PageSettingsInterface extends BaseInterfaceType
 
     public static function getFieldDefinitions(): array
     {
-        $fields = array_merge(parent::getFieldDefinitions(), [
+        $fields = [
             'submitButtonLabel' => [
                 'name' => 'submitButtonLabel',
                 'type' => Type::string(),
@@ -116,7 +116,7 @@ class PageSettingsInterface extends BaseInterfaceType
                     return is_array($value) ? Json::encode($value) : $value;
                 },
             ],
-        ]);
+        ];
 
         return Craft::$app->getGql()->prepareFieldDefinitions($fields, self::getName());
     }
