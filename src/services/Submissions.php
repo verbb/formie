@@ -668,7 +668,13 @@ class Submissions extends Component
 
                     break;
                 case formfields\Dropdown::class:
-                    $fieldContent[$field->handle] = $faker->randomElement($field->options)['value'] ?? '';
+                    $values = $faker->randomElement($field->options)['value'] ?? '';
+
+                    if ($field->multi) {
+                        $values = [$values];
+                    }
+
+                    $fieldContent[$field->handle] = $values;
 
                     break;
                 case formfields\Email::class:
