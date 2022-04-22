@@ -168,13 +168,13 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
      */
     public function getTimeFormat()
     {
-        // Allow plugins to modify the date format, commonly for specific sites
+        // Allow plugins to modify the time format, commonly for specific sites
         $event = new ModifyDateTimeFormatEvent([
             'field' => $this,
             'timeFormat' => $this->timeFormat,
         ]);
 
-        Event::trigger(static::class, self::EVENT_MODIFY_DATE_FORMAT, $event);
+        Event::trigger(static::class, self::EVENT_MODIFY_TIME_FORMAT, $event);
 
         return $event->timeFormat;
     }
