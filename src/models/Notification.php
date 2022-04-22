@@ -11,6 +11,7 @@ use craft\elements\Asset;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 use craft\helpers\StringHelper;
+use craft\web\View;
 
 use yii\behaviors\AttributeTypecastBehavior;
 
@@ -172,6 +173,60 @@ class Notification extends Model
                 });
 
                 return implode(',', $results);
+            }
+        }
+
+        return '';
+    }
+
+    /**
+     * Returns the template path for an email component.
+     *
+     * @param string|array $components can be 'form', 'page' or ['field1', 'field2'].
+     * @param array $variables any variables to use with `$view->renderTemplate()`.
+     * @return string
+     * @throws Exception
+     * @throws LoaderError
+     */
+    public function renderTemplate($components, $variables = []): string
+    {
+        $view = Craft::$app->getView();
+        
+        // Normalise the components to allow for a single component
+        if (!is_array($components)) {
+            $components = [$components];
+        }
+
+        // Check for email templates, and a custom set of templates
+        if (($template = $this->getTemplate()) && $template->template) {
+            // Find the first available, resolved template in potential multiple components
+            foreach ($components as $component) {
+                $path = $template->template . DIRECTORY_SEPARATOR . $component;
+
+                // Ensure that the path exists in site templates
+                if ($view->doesTemplateExist($path, View::TEMPLATE_MODE_SITE)) {
+                    return $view->renderTemplate($path, $variables, View::TEMPLATE_MODE_SITE);
+                }
+            }
+        }
+
+        // Otherwise, fall bacl on the default Formie templates.
+        // Find the first available, resolved template in potential multiple components
+        foreach ($components as $component) {
+            $templatePath = 'formie/_special/email-template' . DIRECTORY_SEPARATOR . $component;
+
+            // Note we need to include `.html` for default templates, because of users potentially setting `defaultTemplateExtensions`
+            // which would be unable to find our templates if they disallow `.html`.
+            // Check for `form.html` or `form/index.html` because we have to try resolving on our own...
+            $paths = [
+                $templatePath . '.html',
+                $templatePath . DIRECTORY_SEPARATOR . 'index.html',
+            ];
+
+            foreach ($paths as $path) {
+                if ($view->doesTemplateExist($path, View::TEMPLATE_MODE_CP)) {
+                    return $view->renderTemplate($path, $variables, View::TEMPLATE_MODE_CP);
+                }
             }
         }
 

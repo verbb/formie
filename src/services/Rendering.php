@@ -82,24 +82,16 @@ class Rendering extends Component
         $this->trigger(self::EVENT_MODIFY_FORM_RENDER_OPTIONS, $event);
         $options = $event->options;
 
-        $view = Craft::$app->getView();
-
-        $templatePath = $this->getFormComponentTemplatePath($form, 'form');
-        $view->setTemplatesPath($templatePath);
-
         // Get the active submission.
         $submission = $form->getCurrentSubmission();
-
         $jsVariables = $form->getFrontEndJsVariables();
 
-        $html = $view->renderTemplate('form', [
+        $html = $form->renderTemplate('form', [
             'form' => $form,
             'options' => $options,
             'submission' => $submission,
             'jsVariables' => $jsVariables,
         ]);
-
-        $view->setTemplatesPath(Craft::$app->path->getSiteTemplatesPath());
 
         // Fire a 'modifyRenderForm' event
         $event = new ModifyRenderEvent([
@@ -150,15 +142,9 @@ class Rendering extends Component
      */
     public function renderPage(Form $form, FieldLayoutPage $page = null, array $options = null)
     {
-        $view = Craft::$app->getView();
-
         if (!$form) {
             return null;
         }
-
-        $templatePath = $this->getFormComponentTemplatePath($form, 'page');
-        $oldTemplatesPath = $view->getTemplatesPath();
-        $view->setTemplatesPath($templatePath);
 
         if (!$page) {
             $page = $form->getCurrentPage();
@@ -167,14 +153,12 @@ class Rendering extends Component
         // Get the active submission.
         $submission = $form->getCurrentSubmission();
 
-        $html = $view->renderTemplate('page', [
+        $html = $form->renderTemplate('page', [
             'form' => $form,
             'page' => $page,
             'options' => $options,
             'submission' => $submission,
         ]);
-
-        $view->setTemplatesPath($oldTemplatesPath);
 
         // Fire a 'modifyRenderPage' event
         $event = new ModifyRenderEvent([
@@ -197,8 +181,6 @@ class Rendering extends Component
      */
     public function renderField(Form $form, $field, array $options = null)
     {
-        $view = Craft::$app->getView();
-
         if (!$form) {
             return null;
         }
@@ -211,11 +193,6 @@ class Rendering extends Component
             }
         }
 
-        $templatePath = $this->getFormComponentTemplatePath($form, 'field');
-
-        $oldTemplatePath = $view->getTemplatesPath();
-        $view->setTemplatesPath($templatePath);
-
         // Allow fields to apply any render options in their own way
         if ($options) {
             $field->applyRenderOptions($options);
@@ -225,15 +202,13 @@ class Rendering extends Component
         $element = $options['element'] ?? $form->getCurrentSubmission();
 
         /* @var FormField $field */
-        $html = $view->renderTemplate('field', [
+        $html = $form->renderTemplate('field', [
             'form' => $form,
             'field' => $field,
             'handle' => $field->handle,
             'options' => $options,
             'element' => $element,
         ]);
-
-        $view->setTemplatesPath($oldTemplatePath);
 
         // Fire a 'modifyRenderField' event
         $event = new ModifyRenderEvent([
@@ -384,76 +359,6 @@ class Rendering extends Component
             'Too short',
             'Too long',
         ]);
-    }
-
-    /**
-     * Returns the template path for a form component.
-     *
-     * @param Form $form
-     * @param string|array $components can be 'form', 'page' or ['field1', 'field2'].
-     * @return string
-     * @throws Exception
-     * @throws LoaderError
-     */
-    public function getFormComponentTemplatePath(Form $form, $components): string
-    {
-        $view = Craft::$app->getView();
-        $oldTemplatePath = $view->getTemplatesPath();
-        $view->setTemplatesPath(Craft::$app->path->getSiteTemplatesPath());
-
-        $templatePath = Craft::getAlias('@verbb/formie/templates/_special/form-template');
-
-        if (($template = $form->getTemplate()) && $template->useCustomTemplates && $template->template) {
-            // Normalise the components to allow for a single component
-            if (!is_array($components)) {
-                $components = [$components];
-            }
-
-            // Find the first available, resolved template in potential multiple components
-            foreach ($components as $component) {
-                $path = $template->template . DIRECTORY_SEPARATOR . $component;
-
-                if ($view->resolveTemplate($path, View::TEMPLATE_MODE_SITE)) {
-                    $templatePath = Craft::$app->getPath()->getSiteTemplatesPath() . DIRECTORY_SEPARATOR . $template->template;
-
-                    break;
-                }
-            }
-        }
-
-        $view->setTemplatesPath($oldTemplatePath);
-
-        return $templatePath;
-    }
-
-    /**
-     * Returns the template path for an email component.
-     *
-     * @param Notification|null $notification
-     * @param string $component can be 'form', 'page' or 'field'.
-     * @return string
-     * @throws Exception
-     * @throws LoaderError
-     */
-    public function getEmailComponentTemplatePath($notification, string $component): string
-    {
-        $view = Craft::$app->getView();
-        $oldTemplatePath = $view->getTemplatesPath();
-        $view->setTemplatesPath(Craft::$app->path->getSiteTemplatesPath());
-
-        $templatePath = Craft::getAlias('@verbb/formie/templates/_special/email-template');
-
-        if ($notification && ($template = $notification->getTemplate()) && $template->template) {
-            $path = $template->template . DIRECTORY_SEPARATOR . $component;
-
-            if ($view->resolveTemplate($path, View::TEMPLATE_MODE_SITE)) {
-                $templatePath = Craft::$app->getPath()->getSiteTemplatesPath() . DIRECTORY_SEPARATOR . $template->template;
-            }
-        }
-
-        $view->setTemplatesPath($oldTemplatePath);
-
-        return $templatePath;
     }
 
     public function populateFormValues($element, $values = [], $force = false)

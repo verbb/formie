@@ -853,15 +853,8 @@ trait FormFieldTrait
             return Template::raw('');
         }
 
-        $view = Craft::$app->getView();
-        $oldTemplatesPath = $view->getTemplatesPath();
-        $templatesPath = Formie::$plugin->getRendering()->getFormComponentTemplatePath($form, static::getFrontEndInputTemplatePath());
-        $view->setTemplatesPath($templatesPath);
-
         $inputOptions = $this->getFrontEndInputOptions($form, $value, $options);
-        $html = Craft::$app->getView()->renderTemplate(static::getFrontEndInputTemplatePath(), $inputOptions);
-
-        $view->setTemplatesPath($oldTemplatesPath);
+        $html = $form->renderTemplate(static::getFrontEndInputTemplatePath(), $inputOptions);
 
         return Template::raw($html);
     }
@@ -1035,45 +1028,10 @@ trait FormFieldTrait
      */
     public function getEmailHtml(Submission $submission, Notification $notification, $value, array $options = null)
     {
-        $view = Craft::$app->getView();
-        $oldTemplatesPath = $view->getTemplatesPath();
+        $inputOptions = $this->getEmailOptions($submission, $notification, $value, $options);
+        $html = $notification->renderTemplate(static::getEmailTemplatePath(), $inputOptions);
 
-        try {
-            $templatesPath = Formie::$plugin->getRendering()->getEmailComponentTemplatePath($notification, static::getEmailTemplatePath());
-
-            $view->setTemplatesPath($templatesPath);
-
-            $inputOptions = $this->getEmailOptions($submission, $notification, $value, $options);
-            $html = Craft::$app->getView()->renderTemplate(static::getEmailTemplatePath(), $inputOptions);
-            $html = Template::raw($html);
-        } catch (Exception $e) {
-            // Log anything that isn't a "Unable to find the template" which we take care of shortly
-            if (!($e instanceof TemplateLoaderException)) {
-                Formie::error('Failed to render email field content for ' . $this->handle . ': ' . $e->getMessage());
-            }
-
-            // Nice an simple for most cases - no need for a template file
-            try {
-                $content = ((string)$value ? $value : Craft::t('formie', 'No response.'));
-                $hideName = $options['hideName'] ?? false;
-
-                // Ensure we sanitize any HTML in text values
-                $content = StringHelper::escape($content);
-
-                if (!$hideName) {
-                    $content = Html::tag('strong', Craft::t('site', $this->name)) . '<br>' . $content;
-                }
-
-                $html = Html::tag('p', $content);
-            } catch (Throwable $e) {
-                $html = '';
-                Formie::error('Failed to render email field content for ' . $this->handle . ': ' . $e->getMessage());
-            }
-        }
-
-        $view->setTemplatesPath($oldTemplatesPath);
-
-        return $html;
+        return Template::raw($html);
     }
 
     /**

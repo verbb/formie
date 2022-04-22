@@ -51,11 +51,8 @@ class Extension extends Twig_Extension
         $form = $context['form'] ?? null;
 
         if ($form) {
-            $view = $context['view'];
-
             // Render the provided include depending on form template overrides
-            $templatePath = Formie::$plugin->getRendering()->getFormComponentTemplatePath($form, $template);
-            $view->setTemplatesPath($templatePath);
+            return $form->renderTemplate($template, array_merge($context, $variables));
         }
         
         return twig_include($env, $context, $template, $variables, $withContext, $ignoreMissing, $sandboxed);
