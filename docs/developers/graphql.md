@@ -635,8 +635,8 @@ This is the interface to allow easy retrieval of a CSRF token and value.
 }
 ```
 
-### The `submissions` query
-This query is used to query for [Submission](docs:developers/submission) objects. You can also use the singular `submission` to fetch a single submission. There are also `formieSubmissions` and `formieSubmission` aliases.
+### The `formieSubmissions` query
+This query is used to query for [Submission](docs:developers/submission) objects. You can also use the singular `formieSubmission` to fetch a single submission.
 
 | Argument | Type | Description
 | - | - | -
@@ -664,7 +664,7 @@ An example for querying Repeater and Group field content.
 
 ```json
 {
-    submissions (handle: "contactForm") {
+    formieSubmissions (handle: "contactForm") {
         title
         
         ... on contactForm_Submission {

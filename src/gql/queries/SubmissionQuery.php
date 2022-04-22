@@ -43,27 +43,6 @@ class SubmissionQuery extends Query
                 'description' => 'This query is used to return the number of submissions.',
                 'complexity' => GqlHelper::singleQueryComplexity(),
             ],
-            'submissions' => [
-                'type' => Type::listOf(SubmissionInterface::getType()),
-                'args' => SubmissionArguments::getArguments(),
-                'resolve' => SubmissionResolver::class . '::resolve',
-                'description' => 'This query is used to query for submissions.',
-                'complexity' => GqlHelper::relatedArgumentComplexity(),
-            ],
-            'submission' => [
-                'type' => SubmissionInterface::getType(),
-                'args' => SubmissionArguments::getArguments(),
-                'resolve' => SubmissionResolver::class . '::resolveOne',
-                'description' => 'This query is used to query for a single submission.',
-                'complexity' => GqlHelper::singleQueryComplexity(),
-            ],
-            'submissionCount' => [
-                'type' => Type::nonNull(Type::int()),
-                'args' => SubmissionArguments::getArguments(),
-                'resolve' => SubmissionResolver::class . '::resolveCount',
-                'description' => 'This query is used to return the number of submissions.',
-                'complexity' => GqlHelper::singleQueryComplexity(),
-            ],
         ];
     }
 }
