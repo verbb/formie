@@ -3,6 +3,7 @@ namespace verbb\formie\helpers;
 
 use verbb\formie\Formie;
 use verbb\formie\fields\formfields\Group;
+use verbb\formie\fields\formfields\Password;
 use verbb\formie\helpers\ArrayHelper;
 
 use Craft;
@@ -195,12 +196,20 @@ class ConditionsHelper
 
         if ($fieldLayout = $submission->getFieldLayout()) {
             foreach ($fieldLayout->getFields() as $field) {
+                if ($field->getIsCosmetic()) {
+                    continue;
+                }
+
                 $value = $submission->getFieldValue($field->handle);
 
                 // Special-handling for element fields which for integrations contain their titles
                 // (or field setting labels), but we want IDs.
                 if ($field instanceof BaseRelationField) {
                     $value = $field->serializeValue($value, $submission);
+                } else if ($field instanceof Password) {
+                    // Don't mess around with passwords for conditions. We don't really "know" the value
+                    // but more important will cause an infinite loop (somehow)
+                    $value = '•••••••••••••••••••••';
                 } else if ($field instanceof Group) {
                     // Handling for Group fields who have a particular structure
                     $rows = array_values($field->serializeValue($value, $submission))[0] ?? [];
