@@ -5,7 +5,7 @@
 ### Added
 - Added `field` to `ModifyFrontEndSubfieldsEvent`.
 - Added support for double opt-in setting for Campaign plugin email marketing integration.
-- Added Submision and Form properties to reserved words for field handles.
+- Added Submission and Form properties to reserved words for field handles.
 - Added `Name::EVENT_MODIFY_FRONT_END_SUBFIELDS`.
 - Added `Date::EVENT_MODIFY_FRONT_END_SUBFIELDS`.
 - Added `Address::EVENT_MODIFY_FRONT_END_SUBFIELDS`.
