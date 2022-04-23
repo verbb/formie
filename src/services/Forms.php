@@ -514,14 +514,8 @@ class Forms extends Component
                         'columnWidth' => $columnWidth,
                         'settings' => $settings,
                         'required' => (bool)$required,
+                        'columnSuffix' => $fieldData['columnSuffix'] ?? null,
                     ];
-
-                    // TODO: remove schema version condition after next beakpoint
-                    $schemaVersion = Craft::$app->getInstalledSchemaVersion();
-
-                    if (version_compare($schemaVersion, '3.7.0', '>=')) {
-                        $fieldConfig['columnSuffix'] = $fieldData['columnSuffix'] ?? null;
-                    }
 
                     $field = Craft::$app->getFields()->createField($fieldConfig);
 

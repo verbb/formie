@@ -527,16 +527,7 @@ trait FormFieldTrait
 
     public function getSavedFieldConfig(): array
     {
-        $config = $this->getAttributes(['id', 'name', 'handle']);
-
-        // TODO: remove schema version condition after next beakpoint
-        $schemaVersion = Craft::$app->getInstalledSchemaVersion();
-
-        if (version_compare($schemaVersion, '3.7.0', '>=')) {
-            $config = array_merge($config, $this->getAttributes(['columnSuffix']));
-        }
-
-        return $config;
+        return $this->getAttributes(['id', 'name', 'handle', 'columnSuffix']);
     }
 
     /**

@@ -78,13 +78,7 @@ class Email extends FormField implements PreviewableFieldInterface
 
         // Enable base validations
         $rules[] = ['trim'];
-
-        // TODO: remove at next breakpoint
-        if (version_compare(Craft::$app->getInfo()->version, '3.7.9', '>=')) {
-            $rules[] = ['email', 'enableIDN' => self::supportsIdn(), 'enableLocalIDN' => false];
-        } else {
-            $rules[] = ['email', 'enableIDN' => self::supportsIdn()];
-        }
+        $rules[] = ['email', 'enableIDN' => self::supportsIdn(), 'enableLocalIDN' => false];
 
         if ($this->validateDomain) {
             $rules[] = [$this->handle, EmailValidator::class, 'skipOnEmpty' => true, 'checkDNS' => true];
@@ -129,11 +123,8 @@ class Email extends FormField implements PreviewableFieldInterface
         $fieldHandle = $element->fieldColumnPrefix . $this->handle;
         $contentTable = $element->contentTable;
 
-        // TODO: remove schema version condition after next beakpoint
-        if (version_compare(Craft::$app->getInstalledSchemaVersion(), '3.7.0', '>=')) {
-            if ($this->columnSuffix) {
-                $fieldHandle .= '_' . $this->columnSuffix;
-            }
+        if ($this->columnSuffix) {
+            $fieldHandle .= '_' . $this->columnSuffix;
         }
 
         $query = (new Query())
