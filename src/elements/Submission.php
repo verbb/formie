@@ -142,7 +142,7 @@ class Submission extends Element
     /**
      * @inheritdoc
      */
-    public static function eagerLoadingMap(array $sourceElements, string $handle)
+    public static function eagerLoadingMap(array $sourceElements, string $handle): array|null|false
     {
         $contentService = Craft::$app->getContent();
         $originalFieldContext = $contentService->fieldContext;

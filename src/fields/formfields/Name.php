@@ -28,7 +28,7 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
     // Constants
     // =========================================================================
 
-    const EVENT_MODIFY_FRONT_END_SUBFIELDS = 'modifyFrontEndSubfields';
+    public const EVENT_MODIFY_FRONT_END_SUBFIELDS = 'modifyFrontEndSubfields';
     public const EVENT_MODIFY_PREFIX_OPTIONS = 'modifyPrefixOptions';
 
 

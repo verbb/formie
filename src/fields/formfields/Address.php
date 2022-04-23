@@ -34,7 +34,7 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
     // Constants
     // =========================================================================
 
-    const EVENT_MODIFY_FRONT_END_SUBFIELDS = 'modifyFrontEndSubfields';
+    public const EVENT_MODIFY_FRONT_END_SUBFIELDS = 'modifyFrontEndSubfields';
 
 
     // Traits

@@ -20,14 +20,12 @@ use craft\helpers\Json;
 use craft\helpers\StringHelper;
 use craft\i18n\Locale;
 
+use GraphQL\Type\Definition\ScalarType;
+use GraphQL\Type\Definition\ListOfType;
 use GraphQL\Type\Definition\Type;
 
 use yii\base\Event;
 use yii\db\Schema;
-
-use GraphQL\Type\Definition\ScalarType;
-use GraphQL\Type\Definition\ListOfType;
-use GraphQL\Type\Definition\Type;
 
 use DateTime;
 
@@ -36,7 +34,7 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
     // Constants
     // =========================================================================
 
-    const EVENT_MODIFY_FRONT_END_SUBFIELDS = 'modifyFrontEndSubfields';
+    public const EVENT_MODIFY_FRONT_END_SUBFIELDS = 'modifyFrontEndSubfields';
     public const EVENT_MODIFY_DATE_FORMAT = 'modifyDateFormat';
     public const EVENT_MODIFY_TIME_FORMAT = 'modifyTimeFormat';
 

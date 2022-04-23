@@ -27,7 +27,7 @@ class Phone extends FormField implements SubfieldInterface, PreviewableFieldInte
     // Constants
     // =========================================================================
 
-    const EVENT_MODIFY_FRONT_END_SUBFIELDS = 'modifyFrontEndSubfields';
+    public const EVENT_MODIFY_FRONT_END_SUBFIELDS = 'modifyFrontEndSubfields';
 
 
     // Traits
