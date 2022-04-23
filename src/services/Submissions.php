@@ -606,9 +606,14 @@ class Submissions extends Component
                     $fieldContent[$field->handle] = $faker->dateTime();
 
                     break;
-                case formfields\Radio::class:
                 case formfields\Dropdown::class:
-                    $fieldContent[$field->handle] = $faker->randomElement($field->options)['value'] ?? '';
+                    $values = $faker->randomElement($field->options)['value'] ?? '';
+
+                    if ($field->multi) {
+                        $values = [$values];
+                    }
+
+                    $fieldContent[$field->handle] = $values;
 
                     break;
                 case formfields\Email::class:
@@ -667,6 +672,10 @@ class Submissions extends Component
                     } else {
                         $fieldContent[$field->handle] = $faker->phoneNumber;
                     }
+
+                    break;
+                case formfields\Radio::class:
+                    $fieldContent[$field->handle] = $faker->randomElement($field->options)['value'] ?? '';
 
                     break;
                 case formfields\Recipients::class:
