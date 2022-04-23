@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.0.0-beta.3 - Unreleased
+
+### Changed
+- Update `league/oauth2-google:^3.0` to `league/oauth2-google:^4.0` to support PHP 8+.
+- Update `league/oauth2-client:^2.4` to `league/oauth2-client:^2.6` to support PHP 8+.
+- Update `league/oauth1-client:^1.7` to `league/oauth1-client:^1.9` to support PHP 8+.
+- Update `commerceguys/addressing:^1.0` to `commerceguys/addressing:^1.2` inline with Craft 4.
+
 ## 2.0.0-beta.2 - 2022-04-23
 
 ### Added
