@@ -8,6 +8,7 @@ use verbb\formie\gql\types\generators\FieldAttributeGenerator;
 use Craft;
 use craft\gql\base\InterfaceType as BaseInterfaceType;
 use craft\gql\GqlEntityRegistry;
+use craft\helpers\Json;
 
 use GraphQL\Type\Definition\InterfaceType;
 use GraphQL\Type\Definition\Type;
@@ -183,6 +184,11 @@ class FieldInterface extends BaseInterfaceType
                 'name' => 'conditions',
                 'type' => Type::string(),
                 'description' => 'The field’s conditions.',
+                'resolve' => function($field) {
+                    $value = $field->conditions;
+
+                    return is_array($value) ? Json::encode($value) : $value;
+                },
             ],
             'enableContentEncryption' => [
                 'name' => 'enableContentEncryption',
