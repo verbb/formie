@@ -1,5 +1,27 @@
 # Changelog
 
+## 2.0.0-beta.2 - 2022-04-23
+
+### Added
+- Added Feed Me v5 support.
+- Merge changes from Formie `1.5.10` to `1.5.15`.
+
+### Changed
+- Now requires Formie `1.5.15` in order to update from Craft 3.
+- `FormInterface::fields` is now `FormInterface::formFields` for GraphQL queries.
+- `PageInterface::fields` is now `PageInterface::pageFields` for GraphQL queries.
+- `RowInterface::fields` is now `RowInterface::rowFields` for GraphQL queries.
+
+### Fixed
+- Fixed compatibilities with Craft 4.
+- Fixed asset volume settings for File Upload fields.
+- Fix `PageSettings::id` and `PageSettings::uid` appearing in the GraphQL explorer.
+
+### Removed
+- Removed `enableGatsbyCompatibility` plugin setting, as it's no longer needed.
+- Removed `forms`, `form` and `formCount` from GraphQL queries. Please use `formieForms`, `formieForm` and `formieFormCount`.
+- Removed `submissions`, `submission` and `submissionCount` from GraphQL queries. Please use `formieSubmissions`, `formieSubmission` and `formieSubmissionCount`.
+
 ## 2.0.0-beta.1 - 2022-03-10
 
 ### Changed
