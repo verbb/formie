@@ -1,5 +1,35 @@
 # Changelog
 
+## 1.5.15 - 2022-04-23
+
+### Added
+- Added `field` to `ModifyFrontEndSubfieldsEvent`.
+- Added support for double opt-in setting for Campaign plugin email marketing integration.
+- Added Submision and Form properties to reserved words for field handles.
+- Added `Name::EVENT_MODIFY_FRONT_END_SUBFIELDS`.
+- Added `Date::EVENT_MODIFY_FRONT_END_SUBFIELDS`.
+- Added `Address::EVENT_MODIFY_FRONT_END_SUBFIELDS`.
+- Added `Phone::EVENT_MODIFY_FRONT_END_SUBFIELDS`.
+- Added missing (previously automated) email templates for some fields.
+- It’s now possible to save a “Redirect Entry” for a stencil.
+
+### Changed
+- Refactor email/form template rendering to better handle `defaultTemplateExtensions`, and cleanup switching template paths.
+- Changed `autocomplete=false` to `autocomplete=off` for CSRF input.
+
+### Fixed
+- Fixed event name of modify time format for Date fields. (thanks @xinningsu).
+- Fixed being forced to use `.html` for custom email/form templates.
+- Fixed being able to create fields with certain reserved field handles.
+- Fixed an error when previewing a multi-dropdown field in email notifications.
+- Fixed an error when serializing values for conditions, where a form contained a password field.
+- Fix redirecting to a new tab not working correctly for Ajax forms.
+- Fix an error with Email field validation pre-Craft 3.7.9.
+
+### Removed
+- Removed `aria-checked` for checkboxes/radio buttons, which are no longer required and throw HTML validation errors.
+- Removed `aria-hidden` from hidden inputs, which are no longer required and throw HTML validation errors.
+
 ## 1.5.14 - 2022-04-15
 
 ### Added
