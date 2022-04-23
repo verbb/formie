@@ -5,7 +5,7 @@ Formie uses Craft‘s Queue system to send data to third-party providers. When a
 
 <img src="https://verbb.io/uploads/plugins/formie/email-marketing.png" />
 
-You can create Email Marketing integrations by going to **Formie** → **Settings** → **Email Marketing**. You can pick from a list of providers Formie supports, and provide details for connecting to their respective APIs. You can also created multiple Email Marketing integrations, in case you need to connect to multiple, different providers.
+You can create Email Marketing integrations by going to **Formie** → **Settings** → **Email Marketing**. You can pick from a list of providers Formie supports, and provide details for connecting to their respective APIs. You can also create multiple Email Marketing integrations, in case you need to connect to multiple, different providers.
 
 You can also test the connection to the APIs, to ensure that your site and Formie can communicate with the API.
 
@@ -13,13 +13,13 @@ Once created, enabled and connected, these integrations will be available to con
 
 <img src="https://verbb.io/uploads/plugins/formie/email-marketing-form.png" />
 
-#### Opt-in Field
+## Opt-in Field
 You can nominate a field in your form to enforce opt-in behaviour. This means that data will only be sent if the nominated field provides a “truthy” value. For instance, it‘s common to provide an Agree field for users to tick to say they want to sign up to your newsletter. In this case, you would add an Agree field to your form, and select that as the **Opt-in Field**.
 
-### List
+## List
 Formie will fetch all available lists for the provider, allowing you to pick from. As lists and their available fields are cached for performance, you can also refresh the available lists if they change.
 
-#### Field Mapping
+## Field Mapping
 Along with lists, Formie will also fetch any custom fields, or provider-specific fields for a particular email marketing provider. You can map which Formie fields should have their values connected to their third-party field counterpart. 
 
 ## Supported Providers

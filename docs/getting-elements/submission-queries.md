@@ -3,12 +3,12 @@
 You can fetch submissions in your templates or PHP code using **submission queries**.
 
 :::code
-```twig
+```twig Twig
 {# Create a new submission query #}
 {% set myQuery = craft.formie.submissions() %}
 ```
 
-```php
+```php PHP
 // Create a new submission query
 $myQuery = \verbb\formie\elements\Submission::find();
 ```
@@ -21,10 +21,9 @@ See Introduction to [Element Queries](https://docs.craftcms.com/v3/dev/element-q
 :::
 
 ## Example
-
 We can display submissions for a given form by doing the following:
 
-1. Create an submission query with `craft.formie.submissions()`.
+1. Create a submission query with `craft.formie.submissions()`.
 2. Set the [form](#form) and [limit](#limit) parameters on it.
 3. Fetch all submissions with `.all()` and output.
 4. Loop through the submissions using a [for](https://twig.symfony.com/doc/2.x/tags/for.html) tag to output the contents.
@@ -70,6 +69,7 @@ Submission queries support the following parameters:
 | [status](#status)                             | Narrows the query results based on the submissions’ statuses.
 | [statusId](#statusId)                         | Narrows the query results based on the submissions’ statuses, per their IDs.
 | [title](#title)                               | Narrows the query results based on the submissions’ titles.
+| [trashed](#trashed)                           | Narrows the query results to only submissions that have been soft-deleted.
 | [user](#user)                                 | Narrows the query results based on the submissions’ user.
 | [userId](#userId)                             | Narrows the query results based on the submissions’ userId.
 | [uid](#uid)                                   | Narrows the query results based on the submissions’ UIDs.
@@ -226,7 +226,7 @@ Possible values include:
 | `'not foo'` | not for a form with a handle of `foo`.
 | `['foo', 'bar']` | for a form with a handle of `foo` or `bar`.
 | `['not', 'foo', 'bar']` | not for a form with a handle of `foo` or `bar`.
-| an [Form](docs:developers/form) object | for a form represented by the object.
+| a [Form](docs:developers/form) object | for a form represented by the object.
 
 ::: code
 ```twig
@@ -314,7 +314,6 @@ This can be combined with [fixedOrder](#fixedorder) if you want the results to b
 
 
 ### `inReverse`
-
 Causes the query results to be returned in reverse order.
 
 ::: code
@@ -329,6 +328,64 @@ Causes the query results to be returned in reverse order.
 // Fetch submissions in reverse
 $submissions = \verbb\formie\elements\Submission::find()
     ->inReverse()
+    ->all();
+```
+:::
+
+
+
+### `isIncomplete`
+Narrows the query results to only submissions that are incomplete.
+
+Possible values include:
+
+| Value | Fetches submissions…
+| - | -
+| `false` _(default)_ | that are not incomplete.
+| `true` | that are incomplete.
+| `null` | that are either incomplete or not incomplete.
+
+::: code
+```twig
+{# Fetch submissions that are incomplete #}
+{% set submissions = craft.formie.submissions()
+    .isIncomplete()
+    .all() %}
+```
+
+```php
+// Fetch submissions that are incomplete
+$submissions = \verbb\formie\elements\Submission::find()
+    ->isIncomplete()
+    ->all();
+```
+:::
+
+
+
+### `isSpam`
+Narrows the query results to only submissions that are marked as spam.
+
+Possible values include:
+
+| Value | Fetches submissions…
+| - | -
+| `false` _(default)_ | that are not marked as spam.
+| `true` | that are marked as spam.
+| `null` | that are either marked as spam or not marked as spam.
+
+::: code
+```twig
+{# Fetch submissions that is spam #}
+{% set submissions = craft.formie.submissions()
+    .isSpam()
+    .all() %}
+```
+
+```php
+// Fetch submissions that is spam
+$submissions = \verbb\formie\elements\Submission::find()
+    ->isSpam()
     ->all();
 ```
 :::
@@ -517,6 +574,28 @@ Possible values include:
 // Fetch submissions with a title that contains "Foo"
 $submissions = \verbb\formie\elements\Submission::find()
     ->title('*Foo*')
+    ->all();
+```
+:::
+
+
+
+### `trashed`
+
+Narrows the query results to only submissions that have been soft-deleted.
+
+::: code
+```twig
+{# Fetch trashed submissions #}
+{% set entries = craft.formie.submissions()
+    .trashed()
+    .all() %}
+```
+
+```php
+// Fetch trashed submissions
+$submissions = \verbb\formie\elements\Submission::find()
+    ->trashed()
     ->all();
 ```
 :::

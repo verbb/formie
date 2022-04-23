@@ -38,6 +38,29 @@ class Password extends FormField implements PreviewableFieldInterface
     /**
      * @inheritDoc
      */
+    public function isValueEmpty($value, ElementInterface $element): bool
+    {
+        // Evaluate password fields differently. Because we don't populate the value back to the
+        // field on reload, for multi-page forms this messes validation up. Because while for _this_
+        // request we don't have a value, the submission stored does.
+        // So, if the field is considered empty, do a fresh lookup to see if there's already a value.
+        // We don't want to tell _what_ the value is, just if it can skip validation.
+        $isValueEmpty = parent::isValueEmpty($value, $element);
+
+        if ($isValueEmpty && $element->id) {
+            $savedElement = Craft::$app->getElements()->getElementById($element->id, Submission::class);
+
+            if ($savedElement) {
+                $isValueEmpty = parent::isValueEmpty($savedElement->getFieldValue($this->handle), $savedElement);
+            }
+        }
+
+        return $isValueEmpty;
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function getIsTextInput(): bool
     {
         return true;

@@ -9,15 +9,15 @@
         <div class="fui-repeater-rows">
             {% if value and value.exists() %}
                 {% for block in value.all() %}
-                    {% include 'fields/repeater/_row' with {
+                    {{ formieInclude('fields/repeater/_row', {
                         id: block.id ?? 'new' ~ loop.index,
-                    } %}
+                    }) }}
                 {% endfor %}
             {% elseif field.minRows > 0 %}
                 {% for i in 1..field.minRows %}
-                    {% include 'fields/repeater/_row' with {
+                    {{ formieInclude('fields/repeater/_row', {
                         id: 'new' ~ i,
-                    } %}
+                    }) }}
                 {% endfor %}
             {% endif %}
         </div>
@@ -52,14 +52,27 @@
     </fieldset>
 {% endnamespace %}
 
-{# Have to use the `script` tag here to place the script outside of a Vue3 wrapper #}
-{# as Vue3 will strip out inline `script` tags (all other scenarios would be fine) #}
-{% script with { type: 'text/x-template', 'data-repeater-template': field.handle } %}
+{% set newRowScript %}
     {# `namespace` won't work outside `script` tag, so extra work here, particularly #}
     {# to deal with higher-level namespaces like the default `fields`. #}
     {% namespace craft.formie.getFieldNamespaceForScript(field) %}
-        {% include 'fields/repeater/_row' with {
+        {{ formieInclude('fields/repeater/_row', {
             id: '__ROW__',
-        } %}
+        }) }}
     {% endnamespace %}
-{% endscript %}
+{% endset %}
+
+{% set includeScriptsInline = options.renderOptions.includeScriptsInline ?? false %}
+
+{% if includeScriptsInline %}
+    {# For GraphQL requests we need to render this inline #}
+    <script type="text/x-template" data-repeater-template="{{ field.handle }}">
+        {{ newRowScript }}
+    </script>
+{% else %}
+    {# Have to use the `script` tag here to place the script outside of a Vue3 wrapper #}
+    {# as Vue3 will strip out inline `script` tags (all other scenarios would be fine) #}
+    {% script with { type: 'text/x-template', 'data-repeater-template': field.handle } %}
+        {{ newRowScript }}
+    {% endscript %}
+{% endif %}

@@ -1,5 +1,4 @@
 # Page
-
 A page represents a collection of fields, grouped by rows. For single-page forms, there will always be a single page. Whenever you're dealing with a page in your template, you're actually working with a `Page` object.
 
 ## Attributes
@@ -20,9 +19,9 @@ Method | Description
 `getFields()` | Returns an array of [Field](docs:developers/field) objects for this page.
 
 
-# Page Setttings
+## Page Settings
 
-## Attributes
+### Attributes
 
 Attribute | Description
 --- | ---

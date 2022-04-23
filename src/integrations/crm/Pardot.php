@@ -47,7 +47,6 @@ class Pardot extends Crm
     public bool $mapToOpportunity = false;
     public ?array $prospectFieldMapping = null;
     public ?array $opportunityFieldMapping = null;
-    public bool $useSandbox = false;
 
 
     // Public Methods
@@ -55,16 +54,12 @@ class Pardot extends Crm
 
     public function getAuthorizeUrl(): string
     {
-        $prefix = $this->useSandbox ? 'test' : 'login';
-
-        return "https://{$prefix}.salesforce.com/services/oauth2/authorize";
+        return 'https://login.salesforce.com/services/oauth2/authorize';
     }
 
     public function getAccessTokenUrl(): string
     {
-        $prefix = $this->useSandbox ? 'test' : 'login';
-
-        return "https://{$prefix}.salesforce.com/services/oauth2/token";
+        return 'https://login.salesforce.com/services/oauth2/token';
     }
 
     public function getClientId(): string
@@ -118,6 +113,41 @@ class Pardot extends Crm
             $response = $this->request('GET', 'customField/version/4/do/query');
             $fields = $response['result']['customField'] ?? [];
 
+            $response = $this->request('GET', 'campaign/version/4/do/query');
+            $campaigns = $response['result']['campaign'] ?? [];
+
+            $campaignOptions = [];
+
+            foreach ($campaigns as $campaign) {
+                $campaignOptions[] = [
+                    'label' => $campaign['name'],
+                    'value' => $campaign['id'],
+                ];
+            }
+
+            $response = $this->request('GET', 'prospectAccount/version/4/do/query');
+            $prospectAccounts = $response['result']['prospectAccount'] ?? [];
+
+            $prospectAccountOptions = [];
+
+            foreach ($prospectAccounts as $prospectAccount) {
+                $accountOptions[] = [
+                    'label' => $prospectAccount['name'],
+                    'value' => $prospectAccount['id'],
+                ];
+            }
+
+            $booleanOptions = [
+                [
+                    'label' => Craft::t('formie', 'Yes'),
+                    'value' => true,
+                ],
+                [
+                    'label' => Craft::t('formie', 'No'),
+                    'value' => false,
+                ],
+            ];
+
             $prospectFields = array_merge([
                 new IntegrationField([
                     'handle' => 'salutation',
@@ -148,6 +178,10 @@ class Pardot extends Crm
                     'handle' => 'prospect_account_id',
                     'name' => Craft::t('formie', 'Prospect Account Id'),
                     'type' => IntegrationField::TYPE_NUMBER,
+                    'options' => [
+                        'label' => Craft::t('formie', 'Prospect Accounts'),
+                        'options' => $prospectAccountOptions,
+                    ],
                 ]),
                 new IntegrationField([
                     'handle' => 'website',
@@ -234,31 +268,55 @@ class Pardot extends Crm
                     'handle' => 'is_do_not_email',
                     'name' => Craft::t('formie', 'Do Not Email'),
                     'type' => IntegrationField::TYPE_BOOLEAN,
+                    'options' => [
+                        'label' => Craft::t('formie', 'Do Not Email'),
+                        'options' => $booleanOptions,
+                    ],
                 ]),
                 new IntegrationField([
                     'handle' => 'is_do_not_call',
                     'name' => Craft::t('formie', 'Do Not Call'),
                     'type' => IntegrationField::TYPE_BOOLEAN,
+                    'options' => [
+                        'label' => Craft::t('formie', 'Do Not Call'),
+                        'options' => $booleanOptions,
+                    ],
                 ]),
                 new IntegrationField([
                     'handle' => 'is_reviewed',
                     'name' => Craft::t('formie', 'Reviewed'),
                     'type' => IntegrationField::TYPE_BOOLEAN,
+                    'options' => [
+                        'label' => Craft::t('formie', 'Reviewed'),
+                        'options' => $booleanOptions,
+                    ],
                 ]),
                 new IntegrationField([
                     'handle' => 'is_archived',
                     'name' => Craft::t('formie', 'Archived'),
                     'type' => IntegrationField::TYPE_BOOLEAN,
+                    'options' => [
+                        'label' => Craft::t('formie', 'Archived'),
+                        'options' => $booleanOptions,
+                    ],
                 ]),
                 new IntegrationField([
                     'handle' => 'is_starred',
                     'name' => Craft::t('formie', 'Starred'),
                     'type' => IntegrationField::TYPE_BOOLEAN,
+                    'options' => [
+                        'label' => Craft::t('formie', 'Starred'),
+                        'options' => $booleanOptions,
+                    ],
                 ]),
                 new IntegrationField([
                     'handle' => 'campaign_id',
                     'name' => Craft::t('formie', 'Campaign ID'),
                     'type' => IntegrationField::TYPE_NUMBER,
+                    'options' => [
+                        'label' => Craft::t('formie', 'Campaigns'),
+                        'options' => $campaignOptions,
+                    ],
                 ]),
                 new IntegrationField([
                     'handle' => 'profile',
@@ -311,13 +369,29 @@ class Pardot extends Crm
             if ($this->mapToProspect) {
                 $prospectPayload = $this->_prepPayload($prospectValues);
 
-                $response = $this->deliverPayload($submission, 'prospect/version/4/do/upsert/email', $prospectPayload);
+                // It'd be great to use `upsert/email/{email}` but that always creates a new prospect - useless!!
+                // https://developer.salesforce.com/docs/marketing/pardot/guide/prospects-v4.html#prospect-upsert
+                // Even more annoying it throws an error if the email wasn't found...
+                try {
+                    $response = $this->request('GET', "prospect/version/4/do/read/email/{$prospectPayload['email']}");
+
+                    // This can either be a single prospect, or multiple prospects
+                    $prospectId = $response['prospect']['id'] ?? $response['prospect'][0]['id'] ?? '';
+
+                    if ($prospectId) {
+                        $response = $this->deliverPayload($submission, "prospect/version/4/do/update/id/{$prospectId}", $prospectPayload, 'POST', 'form_params');
+                    } else {
+                        $response = $this->deliverPayload($submission, "prospect/version/4/do/create/{$prospectPayload['email']}", $prospectPayload, 'POST', 'form_params');
+                    }
+                } catch (\Throwable $e) {
+                    $response = $this->deliverPayload($submission, "prospect/version/4/do/create/{$prospectPayload['email']}", $prospectPayload, 'POST', 'form_params');
+                }
 
                 if ($response === false) {
                     return true;
                 }
 
-                $prospectId = $response['id'] ?? '';
+                $prospectId = $response['prospect']['id'] ?? '';
 
                 if (!$prospectId) {
                     Integration::error($this, Craft::t('formie', 'Missing return “prospectId” {response}. Sent payload {payload}', [
@@ -332,13 +406,13 @@ class Pardot extends Crm
             if ($this->mapToOpportunity) {
                 $opportunityPayload = $this->_prepPayload($opportunityValues);
 
-                $response = $this->deliverPayload($submission, 'opportunity/version/4/do/create', $opportunityPayload);
+                $response = $this->deliverPayload($submission, 'opportunity/version/4/do/create', $opportunityPayload, 'POST', 'form_params');
 
                 if ($response === false) {
                     return true;
                 }
 
-                $opportunityId = $response['id'] ?? '';
+                $opportunityId = $response['opportunity']['id'] ?? '';
 
                 if (!$opportunityId) {
                     Integration::error($this, Craft::t('formie', 'Missing return “opportunityId” {response}. Sent payload {payload}', [
@@ -356,6 +430,21 @@ class Pardot extends Crm
         }
 
         return true;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getMappedFieldValue($mappedFieldValue, $submission, $integrationField)
+    {
+        $value = parent::getMappedFieldValue($mappedFieldValue, $submission, $integrationField);
+
+        // SalesForce needs values delimited with semicolon's
+        if ($integrationField->getType() === IntegrationField::TYPE_ARRAY) {
+            $value = is_array($value) ? implode(';', $value) : $value;
+        }
+
+        return $value;
     }
 
     public function getClient(): Client
@@ -380,13 +469,16 @@ class Pardot extends Crm
                 'Pardot-Business-Unit-Id' => $businessUnitId,
                 'Content-Type' => 'application/json',
             ],
+            'query' => [
+                'format' => 'json',
+            ],
         ]);
 
         // Always provide an authenticated client - so check first.
         // We can't always rely on the EOL of the token.
         try {
-            $response = $this->request('GET', '/');
-        } catch (Throwable $e) {
+            $response = $this->request('GET', 'list/version/4/do/query');
+        } catch (\Throwable $e) {
             if ($e->getCode() === 401) {
                 // Force-refresh the token
                 Formie::$plugin->getTokens()->refreshToken($token, true);
@@ -398,6 +490,9 @@ class Pardot extends Crm
                         'Authorization' => 'Bearer ' . ($token->accessToken ?? 'empty'),
                         'Pardot-Business-Unit-Id' => $businessUnitId,
                         'Content-Type' => 'application/json',
+                    ],
+                    'query' => [
+                        'format' => 'json',
                     ],
                 ]);
             }

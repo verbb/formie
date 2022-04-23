@@ -7,7 +7,7 @@
         {% for row in field.getFrontEndSubfields() %}
             <div class="fui-row">
                 {% for char, attrs in row %}
-                    {% include 'fields/date/_inputs/_field' %}
+                    {{ formieInclude('fields/date/_inputs/_field') }}
                 {% endfor %}
             </div>
         {% endfor %}

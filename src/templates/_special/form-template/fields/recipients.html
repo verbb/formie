@@ -1,15 +1,15 @@
 {% if field.displayType == 'hidden' %}
-    {% include 'fields/hidden' %}
+    {{ formieInclude('fields/hidden') }}
 {% endif %}
 
 {% if field.displayType == 'dropdown' %}
-    {% include 'fields/dropdown' %}
+    {{ formieInclude('fields/dropdown') }}
 {% endif %}
 
 {% if field.displayType == 'checkboxes' %}
-    {% include 'fields/_includes/element-checkboxes' %}
+    {{ formieInclude('fields/_includes/element-checkboxes') }}
 {% endif %}
 
 {% if field.displayType == 'radio' %}
-    {% include 'fields/radio' with { fieldName: field.handle } %}
+    {{ formieInclude('fields/radio', { fieldName: field.handle }) }}
 {% endif %}

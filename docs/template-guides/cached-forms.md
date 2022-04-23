@@ -78,7 +78,7 @@ Let's take a look at some examples in action.
 
 Here, we've combined rendering the form as we normally would, with some extra JavaScript. While this entire code will be cached and served exactly the same to each visitor, the JavaScript will be executed when the page is loaded. The above script makes a `GET` call to our `actions/formie/forms/refresh-tokens` controller action, which returns a collection of useful token information - part of which is a fresh CSRF token. 
 
-We use this to inject and replace the cached CSRF token (which is completely invalid now), after which the form will submit as expected. It's a little bit of extra work to get things working with a static cached page, but it's worth it for significant performance gains!
+We use this to inject and replace the cached CSRF token (which is completely invalid now), after which the form will submit as expected. It's a little extra work to get things working with a static cached page, but it's worth it for significant performance gains!
 
 The response from the `formie/forms/refresh-tokens` action would look something like:
 
@@ -176,7 +176,7 @@ Which we can use in our callback to find the hidden `<input>` elements, and upda
 </script>
 ```
 
-Here we're implementing the same approach as the CSRF token, by getting fresh information for each captcha, querying for the hidden `<input>` elements in the form, and updating those values. The `result.captchas` will only contain token information for the captchas you have enabled, so if you aren't using all of them, you need not include the respective captchas - if if you're not using the JavaScript or Duplicate captcha, this can be omitted altogether.
+Here we're implementing the same approach as the CSRF token, by getting fresh information for each captcha, querying for the hidden `<input>` elements in the form, and updating those values. The `result.captchas` will only contain token information for the captchas you have enabled, so if you aren't using all of them, you need not include the respective captchas - if you're not using the JavaScript or Duplicate captcha, this can be omitted altogether.
 
 ### Unload Event
 As a nice UX, Formie provides a prompt for when a form's content has changed when users try to navigate away from a form. This prevents users from filling out a form, but not submitting, when accidentally (or on purpose) navigating away.

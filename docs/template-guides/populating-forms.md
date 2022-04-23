@@ -17,7 +17,7 @@ When rendering a form, you might like to populate the values of a field with som
 Looking to update or override settings for the field before they're rendered? Look at [Override Field Settings](docs:template-guides/rendering-fields#override-field-settings). This includes setting available options for Dropdown, Checkbox, Radio and similar fields.
 :::
 
-### Standard Fields
+## Standard Fields
 Most fields will accept a single value as a string. Fields like Single-Line Text, Multi-Line text, Dropdown and more.
 
 ```twig
@@ -30,7 +30,7 @@ Most fields will accept a single value as a string. Fields like Single-Line Text
 
 Ensure you replace the key for the Twig object above with the Formie field handle you want to set values on.
 
-### Element Fields
+## Element Fields
 For element fields (Entries, Categories, Tags, Users, Products, Variants), you'll need to supply an array of element IDs for the elements you want to populate. For example, for an Entries field:
 
 ```twig
@@ -49,7 +49,7 @@ You can do the same for other elements:
 }) %}
 ```
 
-### Group
+## Group
 To populate values for fields within a Group field, you'll need to supply both the handle for the Group field, and the values for the inner fields as you normally would.
 
 ```twig
@@ -60,7 +60,7 @@ To populate values for fields within a Group field, you'll need to supply both t
 }) %}
 ```
 
-### Phone
+## Phone
 Because a Phone field can handle the country code and the actual phone number, you have two options when populating the field. You can either provide just the phone number, or an object with the number and the two-letter ISO country code to pre-select the country dropdown.
 
 ```twig
@@ -76,7 +76,7 @@ Because a Phone field can handle the country code and the actual phone number, y
 }) %}
 ```
 
-### Recipients
+## Recipients
 When using a Recipients field, you can hard-code the recipient for the field. Depending on what display type you've chosen will depend on the available options to set. Notably, only the "Checkboxes" and "Hidden" display types can support multiple recipients.
 
 ```twig
@@ -97,7 +97,7 @@ When using a Recipients field, you can hard-code the recipient for the field. De
 
 For all options, the email address is never exposed in the HTML source of the page, keeping your recipient's emails safe. For Checkboxes, Radio and Dropdown, an ID value is used to reference the real email defined in the field settings. For a Hidden field, which allows for much more arbitrary template-level email definitions, the provided email values are encoded with a string unique to your site.
 
-### Repeater
+## Repeater
 To populate a Repeater field, you'll also be creating the "blocks", as well as defining the inner field values. For instance, you might like to create 2 Repeater blocks on the page, with the first having one value, the next another. You'll need to provide the value as an array of objects.
 
 ```twig
@@ -117,14 +117,14 @@ To populate a Repeater field, you'll also be creating the "blocks", as well as d
 
 The above will create two "blocks" for the repeater field.
 
-### Forcing Values
+## Forcing Values
 The way populating values work in Formie is by setting the default value for a field. This means that when you start a new submission, the values you set in `populateFormValues()` will be applied to the field, the same way a default value would.
 
 However, there's one caveat with this approach, to do with incomplete submissions. If you were to try to populate an incomplete submission with field values, you'll find it won't work. This is because the submission technically already has a value - even if it's a blank value.
 
-You can even test this in effect for a multi-page form by submitting the first page of a form, **then** adding your `populateFormValues()` call to your templates, so see that it'll have no effect on any of the fields on any page. This is because Formie can't determine if the empty value a field might have is "correct" (the user intentially left it blank), or whether to populate (override) the value.
+You can even test this in effect for a multi-page form by submitting the first page of a form, **then** adding your `populateFormValues()` call to your templates, so see that it'll have no effect on any of the fields on any page. This is because Formie can't determine if the empty value a field might have is "correct" (the user intentionally left it blank), or whether to populate (override) the value.
 
-But there are scenarios where you want certain field to **always** have a set value, even for incomplete submissions, or if for example a user is coming back to a submission at a later stage. You can use the `force` option for `populateFormValues()` to acheive this.
+But there are scenarios where you want certain field to **always** have a set value, even for incomplete submissions, or if for example a user is coming back to a submission at a later stage. You can use the `force` option for `populateFormValues()` to achieve this.
 
 ```twig
 {% do craft.formie.populateFormValues(form, {

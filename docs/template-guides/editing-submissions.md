@@ -11,7 +11,7 @@ First, let's get a collection of submissions for the `contactForm` form. We'll w
 {% endfor %}
 ```
 
-In this example, our `contactForm` form has a field with a handle `email` - your form may be different. You might like to link off to a individual template for each submission, which we've shown above. It'll be up to you to setup your template structure. 
+In this example, our `contactForm` form has a field with a handle `email` - your form may be different. You might like to link off to an individual template for each submission, which we've shown above. It'll be up to you to set up your template structure. 
 
 In our example, we have a route setup to handle `account/form/{{ submission.id }}`.
 

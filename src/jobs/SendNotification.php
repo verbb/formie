@@ -48,6 +48,11 @@ class SendNotification extends BaseJob
             throw new Exception('Unable to find submission: ' . $this->submissionId . '.');
         }
 
+        // Ensure we set the correct language for a potential CLI request
+        Craft::$app->language = $submission->getSite()->language;
+        Craft::$app->set('locale', Craft::$app->getI18n()->getLocaleById($submission->getSite()->language));
+        Craft::$app->getSites()->setCurrentSite($submission->getSite());
+
         $this->submission = $submission->toArray();
         $this->notification = $notification->toArray();
         $this->notification['content'] = $notification->getParsedContent();

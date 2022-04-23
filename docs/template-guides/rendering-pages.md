@@ -1,7 +1,7 @@
 # Rendering Pages
 In some cases, you may wish to render specific pages, rather than an entire form. Pages will also include the submit button and captchas. For multi-page forms, this can be multiple buttons for going back to a previous page, or to continue to the next page.
 
-Rendering a page can be acheived with the following Twig.
+Rendering a page can be achieved with the following Twig.
 
 ```twig
 {% set form = craft.formie.forms({ handle: 'contactForm' }).one() %}
@@ -52,7 +52,7 @@ If you are using custom templates, you can also pass in a number of options to t
 
 {% for page in form.getPages() %}
     {{ craft.formie.renderPage(form, page, options) }}
-{% endif %}
+{% endfor %}
 ```
 
 ## Rendering Rows & Fields
@@ -90,7 +90,7 @@ As shown above, we can fetch all available pages on a form using `form.getPages(
 
 {% for page in form.getPages() %}
     {{ page.name }}
-{% endif %}
+{% endfor %}
 ```
 
 Because pages don't have a unique handle to fetch by, you need to rely on this function to fetch all the pages for a form. If you want to find a specific page to use in your templates, you can either rely on the `id`, the `name` or the `sortOrder` of a [Page](docs:developers/page) object.

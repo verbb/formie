@@ -140,18 +140,16 @@
     </div>
 
     <div id="submit-action-entry" class="{{ submitAction != 'entry' ? 'hidden' }}">
-        {% if stencil is not defined %}
-            {{ forms.elementSelectField({
-                label: 'Redirect Entry' | t('formie'),
-                instructions: 'Select an entry for the user to be redirected to.' | t('formie'),
-                id: 'submitActionEntryId',
-                name: 'submitActionEntryId',
-                limit: 1,
-                elementType: 'craft\\elements\\Entry',
-                elements: form.redirectEntry ? [ form.redirectEntry ] : [],
-                showSiteMenu: true,
-            }) }}
-        {% endif %}
+        {{ forms.elementSelectField({
+            label: 'Redirect Entry' | t('formie'),
+            instructions: 'Select an entry for the user to be redirected to.' | t('formie'),
+            id: 'submitActionEntryId',
+            name: 'submitActionEntryId',
+            limit: 1,
+            elementType: 'craft\\elements\\Entry',
+            elements: form.redirectEntry ? [ form.redirectEntry ] : [],
+            showSiteMenu: true,
+        }) }}
 
         {{ forms.selectField({
             label: 'Redirect Option' | t('formie'),

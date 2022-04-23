@@ -16,11 +16,10 @@
     },
     aria: {
         required: field.required ? 'true' : 'false',
-        checked: value ? 'true' : 'false',
     },
 } | merge(field.getInputAttributes()) %}
 
-<input type="hidden" aria-checked="false" aria-hidden="true" name="{{ field.handle }}" value="" data-fui-input-type="agree">
+<input type="hidden" name="{{ field.handle }}" value="" data-fui-input-type="agree">
 
 <div class="fui-checkbox">
     <input {{ attr(attributes) }} />

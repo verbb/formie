@@ -23,28 +23,28 @@
                 {% if value %}
                     {% for rowId, row in value %}
                         <tr class="fui-table-row">
-                            {% include 'fields/table/_row' with {
+                            {{ formieInclude('fields/table/_row', {
                                 index: rowId,
                                 row: row,
-                            } %}
+                            }) }}
                         </tr>
                     {% endfor %}
                 {% elseif field.defaults %}
                     {% for default in field.defaults %}
                         <tr class="fui-table-row">
-                            {% include 'fields/table/_row' with {
+                            {{ formieInclude('fields/table/_row', {
                                 index: loop.index0,
                                 row: default,
-                            } %}
+                            }) }}
                         </tr>
                     {% endfor %}
                 {% elseif field.minRows > 0 %}
                     {% for i in 1..field.minRows %}
                         <tr class="fui-table-row">
-                            {% include 'fields/table/_row' with {
+                            {{ formieInclude('fields/table/_row', {
                                 index: loop.index0,
                                 row: [],
-                            } %}
+                            }) }}
                         </tr>
                     {% endfor %}
                 {% endif %}
@@ -81,15 +81,28 @@
     </fieldset>
 {% endnamespace %}
 
-{# Have to use the `script` tag here to place the script outside of a Vue3 wrapper #}
-{# as Vue3 will strip out inline `script` tags (all other scenarios would be fine) #}
-{% script with { type: 'text/x-template', 'data-table-template': field.handle } %}
+{% set newRowScript %}
     {# `namespace` won't work outside `script` tag, so extra work here, particularly #}
     {# to deal with higher-level namespaces like the default `fields`. #}
     {% namespace craft.formie.getFieldNamespaceForScript(field) %}
-        {% include 'fields/table/_row' with {
+        {{ formieInclude('fields/table/_row', {
             index: '__ROW__',
             row: [],
-        } %}
+        }) }}
     {% endnamespace %}
-{% endscript %}
+{% endset %}
+
+{% set includeScriptsInline = options.renderOptions.includeScriptsInline ?? false %}
+
+{% if includeScriptsInline %}
+    {# For GraphQL requests we need to render this inline #}
+    <script type="text/x-template" data-table-template="{{ field.handle }}">
+        {{ newRowScript }}
+    </script>
+{% else %}
+    {# Have to use the `script` tag here to place the script outside of a Vue3 wrapper #}
+    {# as Vue3 will strip out inline `script` tags (all other scenarios would be fine) #}
+    {% script with { type: 'text/x-template', 'data-table-template': field.handle } %}
+        {{ newRowScript }}
+    {% endscript %}
+{% endif %}

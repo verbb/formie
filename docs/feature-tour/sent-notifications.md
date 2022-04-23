@@ -1,5 +1,5 @@
 # Sent Notifications
-Formie keeps track of every [Email Notification](docs:feature-tour/email-notifications) that's sent from your site. This not only helps to keep a record of what email notifications have been sent, but provides you the ability to easily re-send an email notitification.
+Formie keeps track of every [Email Notification](docs:feature-tour/email-notifications) that's sent from your site. This not only helps to keep a record of what email notifications have been sent, but provides you the ability to easily re-send an email notification.
 
 <img src="https://verbb.io/uploads/plugins/formie/formie-sent-notifications.png" />
 

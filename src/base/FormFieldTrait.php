@@ -29,18 +29,20 @@ use craft\helpers\StringHelper;
 use craft\validators\HandleValidator;
 use craft\web\twig\TemplateLoaderException;
 
-use Exception;
-use ReflectionClass;
-use ReflectionProperty;
-use Throwable;
-
-use Twig\Markup;
-
-use yii\base\Model;
-
 use GraphQL\Type\Definition\ListOfType;
 use GraphQL\Type\Definition\ScalarType;
 use GraphQL\Type\Definition\Type;
+
+use yii\base\Event;
+use yii\base\Model;
+
+use Twig\Error\LoaderError as TwigLoaderError;
+use Twig\Markup;
+
+use ReflectionClass;
+use ReflectionProperty;
+use Exception;
+use Throwable;
 
 trait FormFieldTrait
 {
@@ -81,19 +83,6 @@ trait FormFieldTrait
     public static function getSvgIconPath(): string
     {
         return '';
-    }
-
-    /**
-     * Returns the kebab-case name of the field class.
-     *
-     * @return string
-     */
-    private static function _getKebabName(): string
-    {
-        $classNameParts = explode('\\', static::class);
-        $end = array_pop($classNameParts);
-
-        return StringHelper::toKebabCase($end);
     }
 
 
@@ -376,9 +365,11 @@ trait FormFieldTrait
         $value = $element->getFieldValue($this->handle);
 
         if ($sourceValue !== $value) {
-            $element->addError($this->handle, Craft::t('formie', '{name} must be equal to "{value}".', [
+            $sourceField = $element->getFieldByHandle($fieldHandle);
+
+            $element->addError($this->handle, Craft::t('formie', '{name} must match {value}.', [
                 'name' => $this->name,
-                'value' => $sourceValue,
+                'value' => $sourceField->name ?? '',
             ]));
         }
     }
@@ -775,15 +766,8 @@ trait FormFieldTrait
             return Template::raw('');
         }
 
-        $view = Craft::$app->getView();
-        $oldTemplatesPath = $view->getTemplatesPath();
-        $templatesPath = Formie::$plugin->getRendering()->getFormComponentTemplatePath($form, static::getFrontEndInputTemplatePath());
-        $view->setTemplatesPath($templatesPath);
-
         $inputOptions = $this->getFrontEndInputOptions($form, $value, $options);
-        $html = Craft::$app->getView()->renderTemplate(static::getFrontEndInputTemplatePath(), $inputOptions);
-
-        $view->setTemplatesPath($oldTemplatesPath);
+        $html = $form->renderTemplate(static::getFrontEndInputTemplatePath(), $inputOptions);
 
         return Template::raw($html);
     }
@@ -940,45 +924,10 @@ trait FormFieldTrait
      */
     public function getEmailHtml(Submission $submission, Notification $notification, mixed $value, array $options = null): string|null|bool
     {
-        $view = Craft::$app->getView();
-        $oldTemplatesPath = $view->getTemplatesPath();
+        $inputOptions = $this->getEmailOptions($submission, $notification, $value, $options);
+        $html = $notification->renderTemplate(static::getEmailTemplatePath(), $inputOptions);
+        return Template::raw($html);
 
-        try {
-            $templatesPath = Formie::$plugin->getRendering()->getEmailComponentTemplatePath($notification, static::getEmailTemplatePath());
-
-            $view->setTemplatesPath($templatesPath);
-
-            $inputOptions = $this->getEmailOptions($submission, $notification, $value, $options);
-            $html = Craft::$app->getView()->renderTemplate(static::getEmailTemplatePath(), $inputOptions);
-            $html = Template::raw($html);
-        } catch (Exception $e) {
-            // Log anything that isn't an "Unable to find the template" which we take care of shortly
-            if (!($e instanceof TemplateLoaderException)) {
-                Formie::error('Failed to render email field content for ' . $this->handle . ': ' . $e->getMessage());
-            }
-
-            // Nice and simple for most cases - no need for a template file
-            try {
-                $content = ((string)$value ? $value : Craft::t('formie', 'No response.'));
-                $hideName = $options['hideName'] ?? false;
-
-                // Ensure we sanitize any HTML in text values
-                $content = StringHelper::escape($content);
-
-                if (!$hideName) {
-                    $content = Html::tag('strong', Craft::t('site', $this->name)) . '<br>' . $content;
-                }
-
-                $html = Html::tag('p', $content);
-            } catch (Throwable $e) {
-                $html = '';
-                Formie::error('Failed to render email field content for ' . $this->handle . ': ' . $e->getMessage());
-            }
-        }
-
-        $view->setTemplatesPath($oldTemplatesPath);
-
-        return $html;
     }
 
     /**
@@ -1084,11 +1033,7 @@ trait FormFieldTrait
         $rules[] = [
             ['handle'],
             HandleValidator::class,
-            'reservedWords' => [
-                'form',
-                'field',
-                'submission',
-            ],
+            'reservedWords' => self::_getReservedWords(),
         ];
 
         $rules[] = [
@@ -1133,40 +1078,14 @@ trait FormFieldTrait
 
     protected function defineValueForIntegration($value, $integrationField, $integration, ElementInterface $element = null, $fieldKey = ''): mixed
     {
-        $stringValue = $this->defineValueAsString($value, $element);
-        $jsonValue = $this->defineValueAsJson($value, $element);
+        $fieldValue = $this->defineValueAsString($value, $element);
 
+        // Special case for array fields, we should be using the `defineValueAsJson()` function
         if ($integrationField->getType() === IntegrationField::TYPE_ARRAY) {
-            return (is_array($jsonValue)) ? $jsonValue : [$jsonValue];
+            $fieldValue = $this->defineValueAsJson($value, $element);
         }
 
-        if ($integrationField->getType() === IntegrationField::TYPE_DATE) {
-            if ($date = DateTimeHelper::toDateTime($stringValue)) {
-                return $date->format('Y-m-d');
-            }
-        }
-
-        if ($integrationField->getType() === IntegrationField::TYPE_DATETIME) {
-            if ($date = DateTimeHelper::toDateTime($stringValue)) {
-                return $date->format('Y-m-d H:i:s');
-            }
-        }
-
-        if ($integrationField->getType() === IntegrationField::TYPE_NUMBER) {
-            return (int)$stringValue;
-        }
-
-        if ($integrationField->getType() === IntegrationField::TYPE_FLOAT) {
-            return (float)$stringValue;
-        }
-
-        if ($integrationField->getType() === IntegrationField::TYPE_BOOLEAN) {
-            return StringHelper::toBoolean($stringValue);
-        }
-
-        // Return the string representation of it by default (also default for integration fields)
-        // You could argue we should return `null`, but let's not be too strict on types.
-        return $stringValue;
+        return Integration::convertValueForIntegration($fieldValue, $integrationField);
     }
 
     protected function defineValueForSummary($value, ElementInterface $element = null): string
@@ -1232,6 +1151,51 @@ trait FormFieldTrait
             return Type::boolean();
         }
 
-        return [];
+        return Type::string();
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    /**
+     * Returns the kebab-case name of the field class.
+     *
+     * @return string
+     */
+    private static function _getKebabName(): string
+    {
+        $classNameParts = explode('\\', static::class);
+        $end = array_pop($classNameParts);
+
+        return StringHelper::toKebabCase($end);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    private static function _getReservedWords()
+    {
+        $reservedWords = [
+            ['form', 'field', 'submission'],
+        ];
+
+        try {
+            // Add public properties from submission class
+            $reflection = new ReflectionClass(Submission::class);
+            $reservedWords[] = array_map(function($prop) {
+                return $prop->name;
+            }, $reflection->getProperties(ReflectionProperty::IS_PUBLIC));
+            
+            // Add public properties from form class
+            $reflection = new ReflectionClass(Form::class);
+            $reservedWords[] = array_map(function($prop) {
+                return $prop->name;
+            }, $reflection->getProperties(ReflectionProperty::IS_PUBLIC));
+        } catch (Throwable $e) {
+
+        }
+
+        return array_values(array_unique(array_merge(...$reservedWords)));
     }
 }

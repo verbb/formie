@@ -162,7 +162,7 @@ class Recaptcha extends Captcha
      */
     public function validateSubmission(Submission $submission): bool
     {
-        $response = Craft::$app->request->post('g-recaptcha-response');
+        $response = $this->getRequestParam('g-recaptcha-response');
 
         // Protect against invalid data being sent. No need to log, likely malicious
         if (!$response || !is_string($response)) {
@@ -208,12 +208,17 @@ class Recaptcha extends Captcha
         ]);
 
         $result = Json::decode((string)$response->getBody(), true);
+        $success = $result['success'] ?? false;
+
+        if (!$success) {
+            $this->spamReason = Json::encode($result);
+        }
 
         if (isset($result['score'])) {
             return ($result['score'] >= $this->minScore);
         }
 
-        return $result['success'] ?? false;
+        return $success;
     }
 
     public function hasValidSettings(): bool

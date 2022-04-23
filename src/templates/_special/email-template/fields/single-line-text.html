@@ -1,0 +1,11 @@
+<p>
+    {% if not (options.hideName ?? false) %}
+        <strong>{{ field.name | t }}</strong><br>
+    {% endif %}
+
+    {% if value %}
+        {{ value }}
+    {% else %}
+        {{ 'No response.' | t('formie') }}
+    {% endif %}
+</p>

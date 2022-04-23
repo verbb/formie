@@ -1,5 +1,4 @@
 # GraphQL
-
 Formie supports accessing [Form](docs:developers/form) and [Submission](docs:developers/submission) objects via GraphQL. Be sure to read about [Craft's GraphQL support](https://docs.craftcms.com/v3/graphql.html).
 
 :::tip
@@ -8,9 +7,10 @@ Have a look at our [headless Formie demo](https://formie-headless.verbb.io/?form
 
 ## Forms
 
-### Query payload
+### Example
 
-```json
+:::code
+```graphql GraphQL
 {
     formieForm (handle: "contactForm") {
         title
@@ -47,9 +47,7 @@ Have a look at our [headless Formie demo](https://formie-headless.verbb.io/?form
 }
 ```
 
-### The response
-
-```json
+```json JSON Response
 {
     "data": {
         "formieForm": {
@@ -104,6 +102,7 @@ Have a look at our [headless Formie demo](https://formie-headless.verbb.io/?form
     }
 }
 ```
+:::
 
 ### The `formieForms` query
 This query is used to query for [Form](docs:developers/form) objects. You can also use the singular `formieForm` to fetch a single form.
@@ -397,7 +396,7 @@ Once using the necessary [Inline Fragments](https://graphql.org/learn/queries/#i
 | Field | Type | Description
 | - | - | -
 |`defaultOption` | `String` | The selected option for the preset default value chosen.
-|`defaultValue` | `String` | Entering a default value will place the value in the field when it loads. This will be dependant on the value chosen for the `defaultOption`.
+|`defaultValue` | `String` | Entering a default value will place the value in the field when it loads. This will be dependent on the value chosen for the `defaultOption`.
 |`queryParameter` | `String` | If `query` string is selected for the `defaultOption`, this will contain the query string parameter to look up.
 
 
@@ -570,7 +569,7 @@ Once using the necessary [Inline Fragments](https://graphql.org/learn/queries/#i
 #### Nested Fields
 For nested fields like Group and Repeater, you have access to `nestedRows` and `fields`.
 
-```json
+```graphql
 {
     formieForm (handle: "contactForm") {
         title
@@ -602,9 +601,10 @@ This is the interface to allow easy retrieval of a CSRF token and value.
 
 ## Submissions
 
-### Query payload
+### Example
 
-```json
+:::code
+```graphql GraphQL
 {
     submissions (form: "contactForm") {
         title
@@ -618,9 +618,7 @@ This is the interface to allow easy retrieval of a CSRF token and value.
 }
 ```
 
-### The response
-
-```json
+```json JSON Response
 {
     "data": {
         "submissions": [
@@ -634,6 +632,7 @@ This is the interface to allow easy retrieval of a CSRF token and value.
     }
 }
 ```
+:::
 
 ### The `formieSubmissions` query
 This query is used to query for [Submission](docs:developers/submission) objects. You can also use the singular `formieSubmission` to fetch a single submission.
@@ -662,7 +661,7 @@ This query is used to query for [Submission](docs:developers/submission) objects
 #### Nested Fields
 An example for querying Repeater and Group field content.
 
-```json
+```graphql
 {
     formieSubmissions (handle: "contactForm") {
         title
@@ -709,7 +708,7 @@ To create or update a submission use the form-specific mutation, which will have
 
 The below shows an example request to create a new submission. For this form, we have a single-line text field with the handle `yourName`. In our query variables, we pass the value(s) we want to use in the query.
 
-```json
+```graphql
 // Query
 mutation saveSubmission($yourName:String) {
     save_contactForm_Submission(yourName: $yourName) {
@@ -742,7 +741,7 @@ Some fields, such as Name and Address fields are much more than primitive values
 
 For example, you can populate a name and address field using the below:
 
-```json
+```graphql
 // Query
 mutation saveSubmission($yourName:contactForm_yourName_FormieNameInput $yourAddress:contactForm_yourAddress_FormieAddressInput) {
     save_contactForm_Submission(yourName: $yourName, yourAddress: $yourAddress) {
@@ -770,7 +769,7 @@ mutation saveSubmission($yourName:contactForm_yourName_FormieNameInput $yourAddr
 You'll notice the `contactForm_yourName_FormieNameInput` type being used. This follows the structure of `{formHandle}_{fieldHandle}_FormieNameInput`. There are also a number of other input types to consider.
 
 #### Address Field
-```json
+```graphql
 // Query
 mutation saveSubmission($yourAddress:contactForm_yourAddress_FormieAddressInput) {
     save_contactForm_Submission(yourAddress: $yourAddress) {
@@ -791,7 +790,7 @@ mutation saveSubmission($yourAddress:contactForm_yourAddress_FormieAddressInput)
 ```
 
 #### Group Field
-```json
+```graphql
 // Query
 mutation saveSubmission($groupField:contactForm_groupField_FormieGroupInput) {
     save_contactForm_Submission(groupField: $groupField) {
@@ -812,7 +811,7 @@ mutation saveSubmission($groupField:contactForm_groupField_FormieGroupInput) {
 ```
 
 #### Repeater Field
-```json
+```graphql
 // Query
 mutation saveSubmission($repeaterField:contactForm_repeaterField_FormieRepeaterInput) {
     save_contactForm_Submission(repeaterField: $repeaterField) {
@@ -846,7 +845,7 @@ mutation saveSubmission($repeaterField:contactForm_repeaterField_FormieRepeaterI
 #### Deleting a submission
 To delete a submission use the `deleteSubmission` mutation, which requires the `id` of the submission that must be deleted. It returns a boolean value as the result to indicate whether the operation was successful.
 
-```json
+```graphql
 // Query to delete a submission with ID of `1110` for a site with an ID of `2`.
 mutation deleteSubmission {
     deleteSubmission(id:1110 siteId:2)
@@ -883,3 +882,50 @@ If a mutation triggers a validation error, you'll get a response back, similar t
 }
 ```
 
+#### Captchas
+You'll likely want to implement some form of captcha on the front-end for your headless forms. We would recommend either [reCAPTCHA](https://www.google.com/recaptcha/about/) or [hCaptcha](https://www.hcaptcha.com/), as other captchas require a bit more work. Refer to our [Headless Demo](https://github.com/verbb/formie-headless) for more information on the specifics of this, primarily to deal with CORS, and cross-site cookies.
+
+You can add the following to your GQL form query to fetch tokens generated server-side.
+
+```graphql
+{
+    form (handle: "contactForm") {
+        ...
+
+        captchas {
+            handle
+            name
+            value
+        }
+    }
+}
+```
+
+Here, you'll need 3 vital bits of information, which is the `handle` of the Captcha integration, the `name` of the session variable used to compare the tokens between client and server, and the `value` of the token.
+
+To authenticate your enabled Captchas correctly, you'll need to include these in your mutation, sent to the server.
+
+```graphql
+// Query
+mutation saveSubmission($yourName:contactForm_yourName_FormieNameInput $javascriptCaptcha: FormieCaptchaInput) {
+    save_contactForm_Submission(yourName: $yourName, javascriptCaptcha: $javascriptCaptcha) {
+        title
+    }
+}
+
+// Query Variables
+{
+    "yourName": {
+        "firstName": "Peter",
+        "lastName": "Sherman"
+    },
+    "javascriptCaptcha": {
+        "name": "__JSCHK_8403842",
+        "value": "1234"
+    }
+}
+```
+
+Here, we've included an additional parameter that includes the handle, name and value of the captcha in our mutation.
+
+For an example with reCAPTCHA, refer to our [Headless Demo docs](https://github.com/verbb/formie-headless).

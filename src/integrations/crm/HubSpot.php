@@ -306,10 +306,20 @@ class HubSpot extends Crm
             }
 
             if ($this->mapToForm) {
-                $request = Craft::$app->getRequest();
-
                 // Prepare the payload for HubSpot, required for v1 API
                 $formPayload = [];
+
+                // Handle GDPR fields
+                $legalConsentOptions = ArrayHelper::remove($formValues, 'legalConsentOptions');
+
+                if ($legalConsentOptions) {
+                    $formPayload['legalConsentOptions'] = [
+                        'consent' => [
+                            'consentToProcess' => true,
+                            'text' => 'I consent',
+                        ],
+                    ];
+                }
 
                 foreach ($formValues as $key => $value) {
                     // Don't include the tracking ID, it's invalid to HubSpot
@@ -324,21 +334,15 @@ class HubSpot extends Crm
                 }
 
                 // Setup Hubspot's context
+                // TODO: change this when we refactor integrations to allow arbitrary storing of extra data at submission time
                 $hutk = $formValues['trackingID'] ?? $_COOKIE['hubspotutk'] ?? '';
-                $ipAddress = $request->remoteIP ?? '';
-                $pageUri = $request->referrer ?? '';
 
                 if ($hutk) {
                     $formPayload['context']['hutk'] = $hutk;
                 }
 
-                if ($ipAddress) {
-                    $formPayload['context']['ipAddress'] = $ipAddress;
-                }
-
-                if ($pageUri) {
-                    $formPayload['context']['pageUri'] = $pageUri;
-                }
+                $formPayload['context']['ipAddress'] = $this->ipAddress;
+                $formPayload['context']['pageUri'] = $this->referrer;
 
                 [$portalId, $formGuid] = explode('__', $this->formId);
 
@@ -489,6 +493,13 @@ class HubSpot extends Crm
     private function _getFormFields($form): array
     {
         $fields = [];
+        
+        $extraFields = [
+            new IntegrationField([
+                'handle' => 'trackingID',
+                'name' => Craft::t('formie', 'Tracking ID'),
+            ]),
+        ];
 
         $formFieldGroups = $form['formFieldGroups'] ?? [];
 
@@ -500,11 +511,18 @@ class HubSpot extends Crm
             }
         }
 
-        return array_merge([
-            new IntegrationField([
-                'handle' => 'trackingID',
-                'name' => Craft::t('formie', 'Tracking ID'),
-            ]),
-        ], $this->_getCustomFields($fields));
+        // Extra handling for GDPR fields
+        $metaData = $form['metaData'] ?? [];
+
+        foreach ($metaData as $data) {
+            if ($data['name'] === 'legalConsentOptions') {
+                $extraFields[] = new IntegrationField([
+                    'handle' => 'legalConsentOptions',
+                    'name' => Craft::t('formie', 'Legal Consent Options'),
+                ]);
+            }
+        }
+
+        return array_merge($extraFields, $this->_getCustomFields($fields));
     }
 }

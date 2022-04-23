@@ -6,6 +6,148 @@
 - Now requires PHP `^8.0.2`.
 - Now requires Craft `^4.0.0-beta.1`.
 
+## 1.5.15 - 2022-04-23
+
+### Added
+- Added `field` to `ModifyFrontEndSubfieldsEvent`.
+- Added support for double opt-in setting for Campaign plugin email marketing integration.
+- Added Submission and Form properties to reserved words for field handles.
+- Added `Name::EVENT_MODIFY_FRONT_END_SUBFIELDS`.
+- Added `Date::EVENT_MODIFY_FRONT_END_SUBFIELDS`.
+- Added `Address::EVENT_MODIFY_FRONT_END_SUBFIELDS`.
+- Added `Phone::EVENT_MODIFY_FRONT_END_SUBFIELDS`.
+- Added missing (previously automated) email templates for some fields.
+- It’s now possible to save a “Redirect Entry” for a stencil.
+
+### Changed
+- Refactor email/form template rendering to better handle `defaultTemplateExtensions`, and cleanup switching template paths.
+- Changed `autocomplete=false` to `autocomplete=off` for CSRF input.
+
+### Fixed
+- Fixed event name of modify time format for Date fields. (thanks @xinningsu).
+- Fixed being forced to use `.html` for custom email/form templates.
+- Fixed being able to create fields with certain reserved field handles.
+- Fixed an error when previewing a multi-dropdown field in email notifications.
+- Fixed an error when serializing values for conditions, where a form contained a password field.
+- Fix redirecting to a new tab not working correctly for Ajax forms.
+- Fix an error with Email field validation pre-Craft 3.7.9.
+
+### Removed
+- Removed `aria-checked` for checkboxes/radio buttons, which are no longer required and throw HTML validation errors.
+- Removed `aria-hidden` from hidden inputs, which are no longer required and throw HTML validation errors.
+
+## 1.5.14 - 2022-04-15
+
+### Added
+- Added `data-field-type` to the field on front-end templates.
+- Added `data-field-handle` to the field on front-end templates.
+- Added predefined options for some Prospect fields for Pardot CRM integration (Campaign, Prospect Account, boolean fields).
+- Added `onAfterFormieEvaluateConditions` JS event.
+- Added handling for existing Freshdesk contacts. (thanks @jmauzyk).
+
+### Changed
+- Changed “Match Field” validation message to “{field1Label} must match {field2Label}” instead of showing the value.
+- Changed `FormieEvaluateConditions` JS event to `onFormieEvaluateConditions`.
+
+### Fixed
+- Fixed repeater fields not working when adding more rows.
+- Fixed empty spaces being show in `fui-field` classes.
+- Fixed User Element integration not automatically logging in the user when auto-activated, and not processed via the queue.
+- Update some more fields to correctly using `formieInclude()` to resolve to the correct template when using overrides.
+- Fixed Address field custom templates not resolving to the correct sub-field templates when using overrides.
+- Fixed Pipedrive CRM integration not mapping Phone fields with a country dropdown correctly.
+- Fixed required Password fields for page-reload, multi-page forms throwing validation errors due to the value already having been submitted in a previous page.
+
+## 1.5.13.2 - 2022-04-11
+
+### Fixed
+- Fix element field templating throwing an error (again).
+
+## 1.5.13.1 - 2022-04-11
+
+### Fixed
+- Fix element field templating throwing an error.
+
+## 1.5.13 - 2022-04-09
+
+### Added
+- Added “IP Address” to integrations that require recording it.
+- Added true/false options for Salesforce integration when mapping boolean (checkbox) fields.
+- Added support for GDPR fields with HubSpot CRM integration for forms.
+- Added support for submissions to be made on disabled sites.
+- Added support for Captchas for GQL mutations.
+- Added spam reason for reCAPTCHA and hCAPTCHA when available.
+- Added `setCurrentSite()` to queue jobs for email notifications and integrations to maintain the `currentSite` variable.
+- Added `includeScriptsInline` option to `templateHtml` for GraphQL queries.
+
+### Changed
+- Improve `renderFormCss()` and `renderFormJs()` to properly capture all CSS and JS files used by the form and field, that would normally be output in the header/footer.
+- Using `renderFormCss()` and `renderFormJs()` now no longer relies on the Form Template render location. It will now be output inline, where the tags are included on the page.
+
+### Fixed
+- Fixed some fields not able to have their template overrides resolve correctly.
+- Fixed an error on pre-Craft 3.7.32 sites, with `SiteIdValidator::allowDisabled`.
+- Fixed HubSpot CRM integration not using the correct referrer when mapping to a form.
+- Fixed not triggering a fatal error if form settings had become corrupted.
+- Fixed integrations and their `tokenId` values getting out of sync with project config.
+- Fixed submissions index allowing any submissions to be viewable.
+- Fixed email notifications and integrations not retaining the language for the site it was made on, when triggered from the queue.
+- Fixed options fields’ default values not working correctly, if they were imported from Freeform.
+- Fixed option fields not importing their default value correctly when migrating from Freeform.
+- Fixed an error with Freeform migration.
+
+## 1.5.12 - 2022-03-29
+
+### Added
+- Added “Developer API” setting for Zoho CRM integration.
+- Added error logging for invalid rows.
+
+### Changed
+- When creating a new form, users automatically receive the “Manage form submissions” permission for that form.
+- Allow Radio Buttons and Dropdown fields to make use of `Field::EVENT_MODIFY_VALUE_FOR_EMAIL`.
+
+### Fixed
+- Fixed proper permissions checks for submission viewing/editing.
+- Fixed not being able to view any submissions when only “View Submissions” was enabled.
+- Fixed “Manage notification advanced” and “Manage notification templates” permissions not propagating for newly created forms.
+- Fixed “Create Submissions” permission not applying correctly.
+- Fixed “Scroll To Top” form setting not working for single-page forms.
+- Fixed User element integrations not working correctly for updating existing users.
+- Fixed static values mapped in integrations not being typecasted correctly.
+- Fixed Date fields not respecting their date/time formats in email notifications.
+- Fixed when switching Form templates, tabs not working correctly in the form builder.
+- Fixed general errors when saving a form not being shown to the user.
+- Fixed the payload format for Pardot CRM integration.
+- Fixed Pardot using incorrect OAuth endpoints for Sandbox requests.
+- Fixed Pardot CRM integration creating duplicate prospects in some instances.
+- Fixed Pardot CRM integration not correctly checking for duplicates, due to Prospect Upsert API limitations/incorrectness.
+- Fixed Constant Contact integration not generating a refresh token.
+
+## 1.5.11 - 2022-03-12
+
+### Added
+- Added `FORMIE_INTEGRATION_CC_NEW_ENDPOINT` .env variable for Constant Contact overriding for endpoints.
+- Added `Email::EVENT_MODIFY_UNIQUE_QUERY` event to modify the submissions query that determines if an email is unique.
+
+### Fixed
+- Fixed when un-marking a submission as spam, not being saved correct (`null` instead of `0`).
+- Fixed Pardot CRM integration not working correctly.
+- Fixed Pardot integration connection.
+- Fixed Salesforce and Pardot multi-picklist fields not formatting data correctly.
+- Fixed an error when editing a Form Template in the control panel.
+- Fixed a compatibility error with Craft 3.6.x for email field validation.
+- Fixed Email Octopus test connection not working correctly.
+- Fixed being able to incorrectly pick Optgroups for conditions (field, page, email notifications) values.
+- Fixed Calculations field not working correctly for nested and sub fields.
+- Fixed server-side validation for conditionally hidden nested fields for Group/Repeater fields.
+- Fixed error notice for GraphQL querying for Repeater fields.
+- Fixed an error with OAuth-based integrations when an access token isn’t always available.
+- Fixed an error with Pardot CRM integration.
+- Fixed agree fields’ “Checked Value” not being taken into account when used as a “Opt-in Field” for integrations.
+- Fixed being unable to delete a form if its content table has already been removed.
+- Fixed long form handles not being validated and truncated correctly.
+- Fixed new forms not throwing an error when the content table cannot be created.
+
 ## 1.5.10 - 2022-02-27
 
 ### Added

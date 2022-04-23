@@ -37,13 +37,16 @@ class Stencil extends Model
     public ?string $name = null;
     public ?string $handle = null;
     public ?StencilData $data = null;
+
     public ?int $templateId = null;
+    public ?int $submitActionEntryId;
     public ?int $defaultStatusId = null;
     public ?DateTime $dateDeleted = null;
     public ?string $uid = null;
 
     private ?FormTemplate $_template = null;
     private ?Status $_defaultStatus = null;
+    private mixed $_submitActionEntry = null;
 
 
     // Public Methods
@@ -233,6 +236,7 @@ class Stencil extends Model
             'handle' => $this->handle,
             'template' => $this->getTemplate()->uid ?? null,
             'defaultStatus' => $this->getDefaultStatus()->uid ?? null,
+            'submitActionEntry' => $this->getRedirectEntry()->uid ?? null,
             'data' => $data,
         ];
     }
@@ -268,6 +272,24 @@ class Stencil extends Model
         } else {
             $this->_template = $this->templateId = null;
         }
+    }
+
+    /**
+     * Gets the stencil's redirect entry, or null if not set.
+     *
+     * @return Entry|null
+     */
+    public function getRedirectEntry()
+    {
+        if (!$this->submitActionEntryId) {
+            return null;
+        }
+
+        if (!$this->_submitActionEntry) {
+            $this->_submitActionEntry = Craft::$app->getEntries()->getEntryById($this->submitActionEntryId, '*');
+        }
+
+        return $this->_submitActionEntry;
     }
 
     /**

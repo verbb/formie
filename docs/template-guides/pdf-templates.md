@@ -17,7 +17,7 @@ Let's go ahead and edit an Email Notification for a form. If you haven't added o
 
 A PDF will be rendered according to the Twig template you've provided, and attach to the email notification when it's being sent.
 
-### Available Template Variables
+## Available Template Variables
 Your templates have access to the following variables:
 
 Variable | Description

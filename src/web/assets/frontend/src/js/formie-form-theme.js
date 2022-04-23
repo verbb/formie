@@ -567,9 +567,9 @@ export class FormieFormTheme {
         if (data.redirectUrl) {
             if (this.settings.submitActionTab === 'new-tab') {
                 window.open(data.redirectUrl, '_blank');
+            } else {
+                window.location.href = data.redirectUrl;
             }
-
-            window.location.href = data.redirectUrl;
 
             return;
         }
@@ -612,6 +612,14 @@ export class FormieFormTheme {
 
             if (this.settings.submitActionFormHide) {
                 this.$form.style.display = 'none';
+            }
+
+            // Smooth-scroll to the top of the form.
+            if (this.settings.scrollToTop) {
+                window.scrollTo({
+                    top: this.$form.getBoundingClientRect().top + window.pageYOffset - 100,
+                    behavior: 'smooth',
+                });
             }
         }
 
@@ -705,7 +713,7 @@ export class FormieFormTheme {
         // Smooth-scroll to the top of the form.
         if (this.settings.scrollToTop) {
             window.scrollTo({
-                top: this.$form.getBoundingClientRect().top + window.pageYOffset - 50,
+                top: this.$form.getBoundingClientRect().top + window.pageYOffset - 100,
                 behavior: 'smooth',
             });
         }

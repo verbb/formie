@@ -48,3 +48,12 @@
     warning: macros.configWarning('clientSecret', 'formie'),
     errors: integration.getErrors('clientSecret'),
 }) }}
+
+{{ forms.lightswitchField({
+    label: 'Use Developer API' | t('formie'),
+    instructions: 'Whether to use the {name} developer API. Only use this for specific {name} developer accounts.' | t('formie', { name: integration.displayName() }),
+    name: 'useDeveloper',
+    on: integration.settings.useDeveloper ?? '',
+    warning: macros.configWarning('useDeveloper', 'formie'),
+    errors: integration.getErrors('useDeveloper'),
+}) }}

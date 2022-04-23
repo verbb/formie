@@ -12,11 +12,9 @@ The following Freeform fields are currently unsupported in Formie:
 
 - Payments fields (Pro)
 - Opinion Scale Field (Pro)
-- Password Field (Pro)
 - Rating Field (Pro)
 - Regex Field (Pro)
 - Rich Text Field (Pro)
-- Signature Field (Pro)
 - Dynamic Recipient Field
 - Mailing List Field
 - Recaptcha Field

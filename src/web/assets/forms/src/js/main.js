@@ -395,7 +395,7 @@ Craft.Formie = Garnish.Base.extend({
                 onError(data = {}) {
                     let message = 'Unable to save form.';
 
-                    if (data.errors && data.errors.length) {
+                    if (data.errors && (data.errors.length || data.errors)) {
                         message = 'Unable to save form: ' + JSON.stringify(data.errors) + '.';
                     }
 

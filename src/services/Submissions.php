@@ -222,7 +222,9 @@ class Submissions extends Component
             }
 
             // Add additional useful info for the integration
+            // TODO: refactor this to allow integrations access to control this
             $integration->referrer = Craft::$app->getRequest()->getReferrer();
+            $integration->ipAddress = Craft::$app->getRequest()->getUserIP();
 
             if ($settings->useQueueForIntegrations) {
                 Craft::$app->getQueue()->push(new TriggerIntegration([
@@ -703,14 +705,15 @@ class Submissions extends Component
     {
         $editableIds = [];
         $submissions = [];
+        $editableIds = [];
 
-        // Fetch all form UIDs
+        // Fetch all submission UIDs
         $formInfo = (new Query())
             ->from('{{%formie_forms}}')
             ->select(['id', 'uid'])
             ->all();
 
-        // Can the user edit _every_ form?
+        // Can the user edit _every_ submission?
         if ($currentUser->can('formie-editSubmissions')) {
             $editableIds = ArrayHelper::getColumn($formInfo, 'id');
         } else {

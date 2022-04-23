@@ -26,7 +26,7 @@ Then, navigate to **Formie** → **Settings** → **Email Templates** and select
 You'll notice there's a **Copy Templates** field. You can use this to copy the default template into the provided folder to get off to an even quicker start to customise the template.
 :::
 
-### Available Template Variables
+## Available Template Variables
 Your templates have access to the following variables:
 
 Variable | Description
@@ -71,7 +71,7 @@ Just wanted to say, I love the new website!
 Don't forget, Formie will automatically generate a plain-text version of your HTML emails.
 :::
 
-# Custom Templates
+## Custom Templates
 In addition to providing a template for the overall email, you can customise the content for each field.
 
 :::tip

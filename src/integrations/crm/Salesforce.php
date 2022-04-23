@@ -197,6 +197,24 @@ class Salesforce extends Crm
         return new IntegrationFormSettings($settings);
     }
 
+    /**
+     * @inheritDoc
+     */
+    public function getMappedFieldValue($mappedFieldValue, $submission, $integrationField)
+    {
+        $value = parent::getMappedFieldValue($mappedFieldValue, $submission, $integrationField);
+
+        // SalesForce needs values delimited with semicolon's
+        if ($integrationField->getType() === IntegrationField::TYPE_ARRAY) {
+            $value = is_array($value) ? implode(';', $value) : $value;
+        }
+
+        return $value;
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function sendPayload(Submission $submission): bool
     {
         try {
@@ -511,6 +529,19 @@ class Salesforce extends Crm
                 $options[] = [
                     'label' => $pickListValue['label'],
                     'value' => $pickListValue['value'],
+                ];
+            }
+
+            // Any Boolean fields should have a true/false option to pick from
+            if ($field['type'] === 'boolean') {
+                $options[] = [
+                    'label' => Craft::t('site', 'True'),
+                    'value' => 'true',
+                ];
+
+                $options[] = [
+                    'label' => Craft::t('site', 'False'),
+                    'value' => 'false',
                 ];
             }
 

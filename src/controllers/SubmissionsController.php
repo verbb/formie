@@ -91,6 +91,8 @@ class SubmissionsController extends Controller
     {
         $this->getView()->registerAssetBundle(CpAsset::class);
 
+        $this->requirePermission('formie-viewSubmissions');
+
         return $this->renderTemplate('formie/submissions/index', []);
     }
 
@@ -134,6 +136,14 @@ class SubmissionsController extends Controller
 
         if (!$form) {
             throw new HttpException(404);
+        }
+
+        // User must have at least one of these permissions to edit (all, or the specific form)
+        $submissionsPermission = Craft::$app->getUser()->checkPermission('formie-editSubmissions');
+        $submissionPermission = Craft::$app->getUser()->checkPermission('formie-manageSubmission:' . $form->uid);
+
+        if (!$submissionsPermission && !$submissionPermission) {
+            throw new ForbiddenHttpException('User is not permitted to perform this action');
         }
 
         $variables = [
@@ -226,7 +236,7 @@ class SubmissionsController extends Controller
         $submission->enabledForSite = true;
         $submission->title = $request->getParam('title', $submission->title);
         $submission->statusId = $request->getParam('statusId', $submission->statusId);
-        $submission->isSpam = $request->getParam('isSpam', $submission->isSpam);
+        $submission->isSpam = (bool)$request->getParam('isSpam', $submission->isSpam);
         $submission->setScenario(Element::SCENARIO_LIVE);
 
         // Save the submission
@@ -857,7 +867,9 @@ class SubmissionsController extends Controller
             $resolvedIntegration = $integration;
 
             // Add additional useful info for the integration
+            // TODO: refactor this to allow integrations access to control this
             $resolvedIntegration->referrer = Craft::$app->getRequest()->getReferrer();
+            $resolvedIntegration->ipAddress = Craft::$app->getRequest()->getUserIP();
         }
 
         if (!$resolvedIntegration) {

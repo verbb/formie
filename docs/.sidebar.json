@@ -104,12 +104,5 @@
             "guides/migrating-from-freeform",
             "guides/migrating-from-sprout-forms"
         ]
-    },
-    {
-        "title": "Support",
-        "collapsable": false,
-        "children": [
-            "support/get-support"
-        ]
     }
 ]

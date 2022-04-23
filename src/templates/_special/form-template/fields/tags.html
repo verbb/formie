@@ -30,9 +30,9 @@
 {% endif %}
 
 {% if field.displayType == 'checkboxes' %}
-    {% include 'fields/_includes/element-checkboxes' %}
+    {{ formieInclude('fields/_includes/element-checkboxes') }}
 {% endif %}
 
 {% if field.displayType == 'radio' %}
-    {% include 'fields/radio' with { fieldName: field.handle ~ '[]' } %}
+    {{ formieInclude('fields/radio', { fieldName: field.handle ~ '[]' }) }}
 {% endif %}

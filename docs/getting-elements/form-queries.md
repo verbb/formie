@@ -3,12 +3,12 @@
 You can fetch forms in your templates or PHP code using **form queries**.
 
 :::code
-```twig
+```twig Twig
 {# Create a new form query #}
 {% set myQuery = craft.formie.forms() %}
 ```
 
-```php
+```php PHP
 // Create a new form query
 $myQuery = \verbb\formie\elements\Form::find();
 ```
@@ -24,7 +24,7 @@ See Introduction to [Element Queries](https://docs.craftcms.com/v3/dev/element-q
 
 We can display a form for a given handle by doing the following:
 
-1. Create an form query with `craft.formie.forms()`.
+1. Create a form query with `craft.formie.forms()`.
 2. Set the [handle](#handle) parameter on it.
 3. Fetch a single form with `.one()` and output.
 
@@ -61,6 +61,7 @@ Form queries support the following parameters:
 | [template](#template)                         | Narrows the query results based on the forms’ template.
 | [templateId](#templateId)                     | Narrows the query results based on the forms’ template, per their IDs.
 | [title](#title)                               | Narrows the query results based on the forms’ titles.
+| [trashed](#trashed)                           | Narrows the query results to only forms that have been soft-deleted.
 | [uid](#uid)                                   | Narrows the query results based on the forms’ UIDs.
 
 
@@ -417,6 +418,28 @@ Possible values include:
 // Fetch forms with a title that contains "Foo"
 $forms = \verbb\formie\elements\Form::find()
     ->title('*Foo*')
+    ->all();
+```
+:::
+
+
+
+### `trashed`
+
+Narrows the query results to only forms that have been soft-deleted.
+
+::: code
+```twig
+{# Fetch trashed forms #}
+{% set entries = craft.formie.forms()
+    .trashed()
+    .all() %}
+```
+
+```php
+// Fetch trashed forms
+$forms = \verbb\formie\elements\Form::find()
+    ->trashed()
     ->all();
 ```
 :::

@@ -163,14 +163,28 @@ class Formie
         FormiePlugin::$plugin->getRendering()->registerAssets($form, $options);
     }
 
-    public function renderFormCss($form, $attributes = []): ?Markup
+    /**
+     * Returns the CSS for the rendering of a form. This will include buffering any CSS files
+     *
+     * @param Form|string $form
+     * @param array|null $options
+     * @return string
+     */
+    public function renderFormCss($form, array $options = null): ?Markup
     {
-        return FormiePlugin::$plugin->getRendering()->renderFormAssets($form, Rendering::RENDER_TYPE_CSS, $attributes);
+        return FormiePlugin::$plugin->getRendering()->renderFormCss($form, $options);
     }
 
-    public function renderFormJs($form, $attributes = []): ?Markup
+    /**
+     * Returns the JS for the rendering of a form. This will include buffering any JS files
+     *
+     * @param Form|string $form
+     * @param array|null $options
+     * @return string
+     */
+    public function renderFormJs($form, array $options = null): ?Markup
     {
-        return FormiePlugin::$plugin->getRendering()->renderFormAssets($form, Rendering::RENDER_TYPE_JS, $attributes);
+        return FormiePlugin::$plugin->getRendering()->renderFormJs($form, $options);
     }
 
     /**

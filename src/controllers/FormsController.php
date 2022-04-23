@@ -363,6 +363,7 @@ class FormsController extends Controller
 
         // Ensure the appearance tab is selected
         $variables['selectedTab'] = '1';
+        $variables['containerAttributes']['id'] = 'tabs';
 
         $tabsHtml = $view->renderTemplate('_includes/tabs', $variables);
         $positionsHtml = $view->renderTemplate('formie/forms/_panes/_positions', $variables);
@@ -571,6 +572,14 @@ class FormsController extends Controller
             $permissions[] = "formie-manageNotifications{$suffix}";
         }
 
+        if ($userService->checkPermission('formie-manageNotificationsAdvanced')) {
+            $permissions[] = "formie-manageNotificationsAdvanced{$suffix}";
+        }
+
+        if ($userService->checkPermission('formie-manageNotificationsTemplates')) {
+            $permissions[] = "formie-manageNotificationsTemplates{$suffix}";
+        }
+
         if ($userService->checkPermission('formie-manageFormIntegrations')) {
             $permissions[] = "formie-manageFormIntegrations{$suffix}";
         }
@@ -579,6 +588,10 @@ class FormsController extends Controller
             $permissions[] = "formie-manageFormSettings{$suffix}";
         }
 
+        // Check if they have "View Submissions" - they should have access to manage
+        if ($userService->checkPermission('formie-viewSubmissions')) {
+            $permissions[] = "formie-manageSubmission{$suffix}";
+        }
 
         Craft::$app->getUserPermissions()->saveUserPermissions($currentUser->id, $permissions);
     }

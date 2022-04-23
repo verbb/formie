@@ -23,15 +23,15 @@ You can create conditions to show or hide fields in your form, depending on thei
 ## Pages
 You can create conditions to show or hide entire pages in your form, depending on values for your fields. You can choose whether you want these sets of rules to "Show" or "Hide" the field. For example, you might only want to show a page if the user has selected a value in a Dropdown field, otherwise the page's fields may not be applicable to the submission.
 
-In addition, any hidden page will not be navigatable in a multi-page form. If you have 4 pages, but the 3rd page is hidden, when proceeding to the next page from page 2, you'll be navigated to page 4.
+In addition, any hidden page will not be navigable in a multi-page form. If you have 4 pages, but the 3rd page is hidden, when proceeding to the next page from page 2, you'll be navigated to page 4.
 
-In a similar scenario, you might have pages 2-4 hidden, so that when submitting on the first page, if no conditions are setup to show pages 2-4, the form will be submitted and finished. This functionality provides you the means to skip straight to submission.
+In a similar scenario, you might have pages 2-4 hidden, so that when submitting on the first page, if no conditions are set up to show pages 2-4, the form will be submitted and finished. This functionality provides you the means to skip straight to submission.
 
 ### Buttons
 You can also set conditions on the buttons on any page. This allows hiding or showing the "next" button. This could be useful in preventing users from proceeding, unless they provide appropriate values for fields.
 
 ## Email Notifications
-Email notifications can also have set conditions on whether they send or not. Through the conditions builder, you can create complex rules for each of your email notifications.
+Email notifications can also have set conditions on whether they send or not. Through the conditions' builder, you can create complex rules for each of your email notifications.
 
 You can choose whether you want these sets of rules to "Send" or "Not Send" the email notification. For example, you might like to only send an email notification if the users' email isn't for a number of domain names.
 

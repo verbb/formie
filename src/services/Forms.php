@@ -250,6 +250,8 @@ class Forms extends Component
         } catch (Throwable $e) {
             $transaction->rollBack();
 
+            $form->addErrors(['general' => $e->getMessage()]);
+            
             Formie::error('Unable to save form “' . $form->handle . '”: ' . $e->getMessage());
 
             return false;

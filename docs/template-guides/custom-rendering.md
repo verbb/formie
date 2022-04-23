@@ -55,13 +55,13 @@ This guide serves as a starter. There are several aspects of templating that sho
 </form>
 ```
 
-Stepping through the above, we prepare an array of HTML attributes, for the `<form>` element, and use Craft's `attr()` Twig function to apply them - its a little easier than all those attributes!
+Stepping through the above, we prepare an array of HTML attributes, for the `<form>` element, and use Craft's `attr()` Twig function to apply them - it's a little easier than all those attributes!
 
 Make sure to use `{{ form.formId }}` for the `id` attribute, and `{{ form.configJson }}` for the `data-config` attribute. These are the only two things Formie needs to hook up the JavaScript used to handle forms. Everything else related to markup is up to you.
 
 We're then including the `actionInput`, `hiddenInput` and `csrfInput` to the form - all requirements and should not be changed. If the form has a redirect URL, we're also setting that with a `redirectInput`.
 
-Finally, we're looping through all fields defined in the form, and namespacing them, so Formie can grab the field values. We're also using `getFrontEndInputHtml` to output the HTML for the field. You could write the individual `<input>` elements, but we'd highly recommend you use the [Form Templates](docs:template-guides/form-templates) to override individual field HTML. The reason is simple - you're keeping field HTML modular so it's easily resuable across multiple forms.
+Finally, we're looping through all fields defined in the form, and namespacing them, so Formie can grab the field values. We're also using `getFrontEndInputHtml` to output the HTML for the field. You could write the individual `<input>` elements, but we'd highly recommend you use the [Form Templates](docs:template-guides/form-templates) to override individual field HTML. The reason is simple - you're keeping field HTML modular, so it's easily reusable across multiple forms.
 
 Be sure to include the `id` and `labelId` for accessibility, but some fieldtypes rely on this to hook in JavaScript behaviour.
 
@@ -139,7 +139,7 @@ Then, we want to add information about the submission. This is important if the 
 </form>
 ```
 
-We're fetching the `submission` based on the current submission for this form. For a brand new form, this will be `null`, but if the page has reloaded with validation errors, this will be populated. For multi-page forms, this is particularly useful. We can also check the `flash` for whether the form has been submitted, to show the success message.
+We're fetching the `submission` based on the current submission for this form. For a brand-new form, this will be `null`, but if the page has reloaded with validation errors, this will be populated. For multi-page forms, this is particularly useful. We can also check the `flash` for whether the form has been submitted, to show the success message.
 
 We also add the `submissionId` as a `hiddenInput` if we're trying to submit the form again. We also check if there are any validation errors on the `submission` element for the form, as well as for each individual field.
 
@@ -267,11 +267,11 @@ That should provide us with a working example to continue building. Here's the t
 ```
 
 ### What's Not Covered
-Whilst we've covered the basics, there's still plenty of things left to address, such as handling the different forms of sumission (redirecting the user away, hiding the form, only showing a message), and multi-page forms. That's beyond the scope of this guide, and we'd encourage you to consult the templates on [Formie's Github](https://github.com/verbb/formie/tree/craft-3/src/templates/_special).
+Whilst we've covered the basics, there's still plenty of things left to address, such as handling the different forms of submission (redirecting the user away, hiding the form, only showing a message), and multi-page forms. That's beyond the scope of this guide, and we'd encourage you to consult the templates on [Formie's GitHub](https://github.com/verbb/formie/tree/craft-3/src/templates/_special).
 
 ### Next Steps
 The above is a quick guide to the basics, but be warned that you'll be required to keep an eye on Formie's templates and development, in order to keep up with any core changes for your templates. We highly recommend you test your template code to ensure Formie's JavaScript works with your HTML markup as well, particularly for things like Captchas.
 
 :::tip
-Check out the raw templates on [Formie's Github](https://github.com/verbb/formie/tree/craft-3/src/templates/_special/form-template) - they'll be the most up to date. This example serves as a brief, cut-down version of what Formie does under the hood, to use these templates as further inspiration for your own templates.
+Check out the raw templates on [Formie's GitHub](https://github.com/verbb/formie/tree/craft-3/src/templates/_special/form-template) - they'll be the most up to date. This example serves as a brief, cut-down version of what Formie does under the hood, to use these templates as further inspiration for your own templates.
 :::

@@ -5,7 +5,7 @@
     {{ formieInclude('_includes/instructions', { position: 'above' }) }}
     {{ formieInclude('_includes/instructions', { position: 'fieldset-start' }) }}
 
-    <input type="hidden" aria-hidden="true" aria-checked="false" name="{{ field.handle }}" value="">
+    <input type="hidden" name="{{ field.handle }}" value="">
 
     <div class="fui-layout-wrap">
         {% for option in fieldOptions ?? field.getFieldOptions() %}
@@ -31,7 +31,6 @@
                     },
                     aria: {
                         required: field.required ? 'true' : 'false',
-                        checked: selected ? 'true' : 'false',
                     },
                 } | merge(field.getInputAttributes()) %}
 

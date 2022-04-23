@@ -11,9 +11,11 @@ use verbb\formie\models\IntegrationFormSettings;
 use Craft;
 use craft\helpers\App;
 use craft\helpers\Json;
-
 use Throwable;
 use Exception;
+use craft\web\View;
+
+    
 
 use GuzzleHttp\Client;
 
@@ -44,6 +46,7 @@ class Zoho extends Crm
     public ?string $apiServer = null;
     public ?string $apiLocation = null;
     public ?string $apiDomain = null;
+    public bool $useDeveloper = false;
     public bool $mapToContact = false;
     public bool $mapToDeal = false;
     public bool $mapToLead = false;
@@ -340,6 +343,10 @@ class Zoho extends Crm
         // Populated after OAuth connection
         $url = $this->apiDomain ?? 'https://www.zohoapis.com';
         $url = rtrim($url, '/');
+
+        if ($this->useDeveloper) {
+            $url = 'https://developer.zohoapis.com';
+        }
 
         $this->_client = Craft::createGuzzleClient([
             'base_uri' => "$url/crm/v2/",

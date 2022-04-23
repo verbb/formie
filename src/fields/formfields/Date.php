@@ -6,6 +6,7 @@ use verbb\formie\base\FormField;
 use verbb\formie\base\SubfieldInterface;
 use verbb\formie\base\SubfieldTrait;
 use verbb\formie\events\ModifyDateTimeFormatEvent;
+use verbb\formie\events\ModifyFrontEndSubfieldsEvent;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\Settings;
@@ -18,6 +19,8 @@ use craft\helpers\DateTimeHelper;
 use craft\helpers\Json;
 use craft\helpers\StringHelper;
 use craft\i18n\Locale;
+
+use GraphQL\Type\Definition\Type;
 
 use yii\base\Event;
 use yii\db\Schema;
@@ -33,6 +36,7 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
     // Constants
     // =========================================================================
 
+    const EVENT_MODIFY_FRONT_END_SUBFIELDS = 'modifyFrontEndSubfields';
     public const EVENT_MODIFY_DATE_FORMAT = 'modifyDateFormat';
     public const EVENT_MODIFY_TIME_FORMAT = 'modifyTimeFormat';
 
@@ -156,13 +160,13 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
 
     public function getTimeFormat(): ?string
     {
-        // Allow plugins to modify the date format, commonly for specific sites
+        // Allow plugins to modify the time format, commonly for specific sites
         $event = new ModifyDateTimeFormatEvent([
             'field' => $this,
             'timeFormat' => $this->timeFormat,
         ]);
 
-        Event::trigger(static::class, self::EVENT_MODIFY_DATE_FORMAT, $event);
+        Event::trigger(static::class, self::EVENT_MODIFY_TIME_FORMAT, $event);
 
         return $event->timeFormat;
     }
@@ -356,9 +360,18 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
             $row[$char] = $available[$char];
         }
 
-        return [
+        $rows = [
             $row,
         ];
+
+        $event = new ModifyFrontEndSubfieldsEvent([
+            'field' => $this,
+            'rows' => $rows,
+        ]);
+
+        Event::trigger(static::class, self::EVENT_MODIFY_FRONT_END_SUBFIELDS, $event);
+
+        return $event->rows;
     }
 
     /**

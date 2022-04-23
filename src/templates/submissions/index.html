@@ -16,7 +16,11 @@
         Craft.Formie = {};
     }
 
-    {% set editableSubmissions = craft.formie.getPlugin().getSubmissions().getEditableSubmissions(currentUser) ?: [] %}
+    {% if currentUser.can('formie-createSubmissions') %}
+        {% set editableSubmissions = craft.formie.getPlugin().getSubmissions().getEditableSubmissions(currentUser) ?: [] %}
+    {% else %}
+        {% set editableSubmissions = [] %}
+    {% endif %}
 
     Craft.Formie.editableSubmissions = {{ editableSubmissions | json_encode() | raw }};
 

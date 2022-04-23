@@ -9,7 +9,7 @@
 
             <div class="fui-row {{ not visibleFields ? 'fui-row-empty' }}">
                 {% for handle, autocomplete in row %}
-                    {% include 'fields/address/_field' %}
+                    {{ formieInclude('fields/address/_field') }}
                 {% endfor %}
             </div>
         {% endfor %}

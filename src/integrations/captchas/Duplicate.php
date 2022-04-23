@@ -79,7 +79,7 @@ class Duplicate extends Captcha
         $value = Craft::$app->getSession()->get($sessionKey);
 
         // Check the provided value
-        $jsset = Craft::$app->getRequest()->getParam($sessionKey);
+        $jsset = $this->getRequestParam($sessionKey);
 
         // Protect against invalid data being sent. No need to log, likely malicious
         if (!is_string($jsset)) {

@@ -37,7 +37,7 @@ General appearance attributes can be managed here, including:
 ### Behaviour
 The behaviour section provides options on how the form and submission behaves to users. This includes:
 
-- How the form should be submissed, via Page Reload, or Ajax
+- How the form should be submitted, via Page Reload, or Ajax
 - Configure the on-submit action between:
     - Displaying a message
     - Redirecting to an entry
@@ -51,7 +51,7 @@ The behaviour section provides options on how the form and submission behaves to
     - Enabling on-blur (when typing)
 
 ### Email Notifications
-Email notifications are an important part of forms, to both notify the user their submission has been received, and to notfy admin's of their submission so they can action.
+Email notifications are an important part of forms, to both notify the user their submission has been received, and to notify admins of their submission, so they can action.
 
 Each notification is form-specific, and you can create as many notifications as required. Refer to [Email Notifications](docs:feature-tour/email-notifications)
 

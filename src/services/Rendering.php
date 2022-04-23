@@ -46,6 +46,9 @@ class Rendering extends Component
     // =========================================================================
 
     private bool $_renderedJs = false;
+    private $_cssFiles = [];
+    private $_jsFiles = [];
+    private $_filesBuffers = [];
 
 
     // Public Methods
@@ -82,24 +85,16 @@ class Rendering extends Component
         $this->trigger(self::EVENT_MODIFY_FORM_RENDER_OPTIONS, $event);
         $options = $event->options;
 
-        $view = Craft::$app->getView();
-
-        $templatePath = $this->getFormComponentTemplatePath($form, 'form');
-        $view->setTemplatesPath($templatePath);
-
         // Get the active submission.
         $submission = $form->getCurrentSubmission();
-
         $jsVariables = $form->getFrontEndJsVariables();
 
-        $html = $view->renderTemplate('form', [
+        $html = $form->renderTemplate('form', [
             'form' => $form,
             'options' => $options,
             'submission' => $submission,
             'jsVariables' => $jsVariables,
         ]);
-
-        $view->setTemplatesPath(Craft::$app->path->getSiteTemplatesPath());
 
         // Fire a 'modifyRenderForm' event
         $event = new ModifyRenderEvent([
@@ -159,12 +154,6 @@ class Rendering extends Component
             $form = Form::find()->handle($form)->one();
         }
 
-        $view = Craft::$app->getView();
-
-        $templatePath = $this->getFormComponentTemplatePath($form, 'page');
-        $oldTemplatesPath = $view->getTemplatesPath();
-        $view->setTemplatesPath($templatePath);
-
         if (!$page) {
             $page = $form->getCurrentPage();
         }
@@ -172,14 +161,12 @@ class Rendering extends Component
         // Get the active submission.
         $submission = $form->getCurrentSubmission();
 
-        $html = $view->renderTemplate('page', [
+        $html = $form->renderTemplate('page', [
             'form' => $form,
             'page' => $page,
             'options' => $options,
             'submission' => $submission,
         ]);
-
-        $view->setTemplatesPath($oldTemplatesPath);
 
         // Fire a 'modifyRenderPage' event
         $event = new ModifyRenderEvent([
@@ -221,11 +208,6 @@ class Rendering extends Component
             }
         }
 
-        $templatePath = $this->getFormComponentTemplatePath($form, 'field');
-
-        $oldTemplatePath = $view->getTemplatesPath();
-        $view->setTemplatesPath($templatePath);
-
         // Allow fields to apply any render options in their own way
         if ($options) {
             $field->applyRenderOptions($options);
@@ -235,15 +217,13 @@ class Rendering extends Component
         $element = $options['element'] ?? $form->getCurrentSubmission();
 
         /* @var FormField $field */
-        $html = $view->renderTemplate('field', [
+        $html = $form->renderTemplate('field', [
             'form' => $form,
             'field' => $field,
             'handle' => $field->handle,
             'options' => $options,
             'element' => $element,
         ]);
-
-        $view->setTemplatesPath($oldTemplatePath);
 
         // Fire a 'modifyRenderField' event
         $event = new ModifyRenderEvent([
@@ -282,13 +262,13 @@ class Rendering extends Component
      * either add the JS/CSS to the head/footer of the page, or directly return the CSS/JS strings
      * for use when manually calling this function through render variable tags.
      *
-     * @param string|Form $form
-     * @param null $type
-     * @param array $attributes
-     * @return Markup|null
-     * @throws InvalidConfigException
+     * @param Form|string $form
+     * @param string $type
+     * @param bool $forceInline
+     * @param array $options
+     * @return null
      */
-    public function renderFormAssets(Form|string $form, string $type = null, array $attributes = []): ?Markup
+    public function renderFormAssets(Form|string $form, string $type = null, bool $forceInline = false, array $attributes = []): ?Markup
     {
         if (is_string($form)) {
             $form = Form::find()->handle($form)->one();
@@ -316,7 +296,7 @@ class Rendering extends Component
             // Only output this if we're not showing the theme. We bundle the two together
             // during build, so we don't have to serve two stylesheets.
             if ($outputCssLayout && !$outputCssTheme) {
-                if ($outputCssLocation === FormTemplate::PAGE_HEADER) {
+                if ($outputCssLocation === FormTemplate::PAGE_HEADER && !$forceInline) {
                     $view->registerCssFile($cssLayout);
                 } else {
                     $output[] = Html::cssFile($cssLayout, $attributes);
@@ -324,7 +304,7 @@ class Rendering extends Component
             }
 
             if ($outputCssLayout && $outputCssTheme) {
-                if ($outputCssLocation === FormTemplate::PAGE_HEADER) {
+                if ($outputCssLocation === FormTemplate::PAGE_HEADER && !$forceInline) {
                     $view->registerCssFile($cssTheme);
                 } else {
                     $output[] = Html::cssFile($cssTheme, $attributes);
@@ -335,7 +315,7 @@ class Rendering extends Component
         if ($type !== self::RENDER_TYPE_CSS) {
             // Only output this file once. It's applicable to all forms on a page.
             if (!$this->_renderedJs) {
-                if ($outputJsLocation === FormTemplate::PAGE_FOOTER) {
+                if ($outputJsLocation === FormTemplate::PAGE_FOOTER && !$forceInline) {
                     $view->registerJsFile($jsFile, array_merge(['defer' => true], $attributes));
                 } else {
                     $output[] = Html::jsFile($jsFile, array_merge(['defer' => true], $attributes));
@@ -344,7 +324,7 @@ class Rendering extends Component
                 // Add locale definition JS variables
                 $jsString = 'window.FormieTranslations=' . Json::encode($this->getFrontEndJsTranslations()) . ';';
 
-                if ($outputJsLocation === FormTemplate::PAGE_FOOTER) {
+                if ($outputJsLocation === FormTemplate::PAGE_FOOTER && !$forceInline) {
                     $view->registerJs($jsString, View::POS_END);
                 } else {
                     $output[] = Html::script($jsString, ['type' => 'text/javascript']);
@@ -520,6 +500,110 @@ class Rendering extends Component
             // Apply any disabled field values via session cache, to keep out of requests
             $form->setPopulatedFieldValues($disabledValues);
         }
+    }
+
+    /**
+     * Starts a buffer for any files registered with `View::registerJsFile()` or `View::registerCssFile()`.
+     *
+     * @return void
+     */
+    public function startFileBuffer($type, $view): void
+    {
+        // Save any currently queued tags into a new buffer, and reset the active queue
+        $this->_filesBuffers[$type][] = $view->$type;
+        $view->$type = [];
+    }
+
+    /**
+     * Clears and ends a file buffer, returning whatever files were registered while the buffer was active.
+     *
+     * @return array|false The files that were registered in the active buffer, grouped by position, or `false` if there isn’t one
+     */
+    public function clearFileBuffer($type, $view)
+    {
+        if (empty($this->_filesBuffers[$type])) {
+            return false;
+        }
+
+        $bufferedFiles = $view->$type;
+        $view->$type = array_pop($this->_filesBuffers[$type]);
+        return $bufferedFiles;
+    }
+
+    /**
+     * Returns the JS/CSS for the rendering of a form. This will include buffering any JS/CSS files
+     * This is also done in a single function to capture both CSS/JS files which are only registered once per request
+     *
+     * @param Form|string $form
+     * @param array|null $options
+     * @return string
+     */
+    public function renderFormCssJs($form, array $options = null): void
+    {
+        // Don't re-render the form multiple times if it's already rendered
+        if ($this->_jsFiles || $this->_cssFiles) {
+            return;
+        }
+
+        $view = Craft::$app->getView();
+
+        // Create our own buffer for CSS files. `View::startCssBuffer()` only handles CSS code, not files
+        $this->startFileBuffer('cssFiles', $view);
+        $css = $view->startCssBuffer();
+
+        $this->startFileBuffer('jsFiles', $view);
+        $js = $view->startJsBuffer();
+
+        // Render the form, and capture any CSS being output to the asset manager. Grab that and output it directly.
+        // This helps when targeting head/body/inline and ensure we output it **here**
+        $this->renderForm($form, $options);
+
+        $this->_cssFiles = $this->clearFileBuffer('cssFiles', $view);
+        $this->_cssFiles = array_merge($this->_cssFiles, [$view->clearCssBuffer()]);
+
+        $this->_jsFiles = $this->clearFileBuffer('jsFiles', $view);
+        $this->_jsFiles = array_merge($this->_jsFiles, [$view->clearJsBuffer()]);
+
+        $this->_cssFiles = array_filter($this->_cssFiles);
+        $this->_jsFiles = array_filter($this->_jsFiles);
+    }
+
+    /**
+     * Returns the CSS for the rendering of a form. This will include buffering any CSS files
+     *
+     * @param Form|string $form
+     * @param array|null $options
+     * @return string
+     */
+    public function renderFormCss($form, array $options = null)
+    {
+        $this->renderFormCssJs($form, $options);
+
+        return TemplateHelper::raw(implode("\n", $this->_cssFiles));
+    }
+
+    /**
+     * Returns the JS for the rendering of a form. This will include buffering any JS files
+     *
+     * @param Form|string $form
+     * @param array|null $options
+     * @return string
+     */
+    public function renderFormJs($form, array $options = null)
+    {
+        $this->renderFormCssJs($form, $options);
+
+        $allJsFiles = [];
+
+        foreach ($this->_jsFiles as $jsFile) {
+            if (is_array($jsFile)) {
+                $allJsFiles = array_merge($allJsFiles, $jsFile);
+            } else {
+                $allJsFiles[] = $jsFile;
+            }
+        }
+
+        return TemplateHelper::raw(implode("\n", $allJsFiles));
     }
 
 

@@ -193,6 +193,18 @@ abstract class BaseOptionsField extends CraftBaseOptionsField
         return $this->getSettings();
     }
 
+    /**
+     * @inheritDoc
+     */
+    public function beforeSave(bool $isNew): bool
+    {
+        // Fix an error with migrating from Freeform/Sprout where the default value is set.
+        // Can eventually remove this!
+        $this->defaultValue = null;
+
+        return parent::beforeSave($isNew);
+    }
+
 
     // Protected Methods
     // =========================================================================

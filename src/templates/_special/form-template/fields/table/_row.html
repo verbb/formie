@@ -5,13 +5,7 @@
     {% switch col.type %}
         {% case 'checkbox' %}
             <td data-col="{{ colId }}">
-                <input
-                    type="hidden"
-                    aria-checked="false"
-                    aria-hidden="true"
-                    name="{{ "#{index}[#{colId}]" }}"
-                    value=""
-                >
+                <input type="hidden" name="{{ "#{index}[#{colId}]" }}" value="">
 
                 <div class="fui-checkbox">
                     <input {{ attr({

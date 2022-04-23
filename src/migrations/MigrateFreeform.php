@@ -109,14 +109,6 @@ class MigrateFreeform extends Migration
                 $form->templateId = $templateId;
             }
 
-            // "storeData" is private.
-            if ($f = $freeformForm->getForm()) {
-                $reflection = new ReflectionClass($f);
-                $storeDataProp = $reflection->getProperty('storeData');
-                $storeDataProp->setAccessible(true);
-                $form->settings->storeData = $storeDataProp->getValue($f) ?? true;
-            }
-
             // Fire a 'modifyForm' event
             $event = new ModifyMigrationFormEvent([
                 'form' => $freeformForm,
@@ -563,6 +555,9 @@ class MigrateFreeform extends Migration
                 $this->_applyFieldDefaults($newField);
 
                 $newField->options = $this->_mapOptions($field->getOptions());
+
+                // Setup the default value properly in options
+                $newField->defaultValue = null;
                 break;
 
             case freeformfields\DynamicRecipientField::class:
@@ -658,6 +653,9 @@ class MigrateFreeform extends Migration
 
                 $newField->setMultiple(true);
                 $newField->options = $this->_mapOptions($field->getOptions());
+
+                // Setup the default value properly in options
+                $newField->defaultValue = null;
                 break;
 
             case freeformfields\NumberField::class:
@@ -684,6 +682,9 @@ class MigrateFreeform extends Migration
 
                 $newField->layout = $field->isOneLine() ? 'horizontal' : 'vertical';
                 $newField->options = $this->_mapOptions($field->getOptions());
+
+                // Setup the default value properly in options
+                $newField->defaultValue = null;
                 break;
 
             case freeformfields\RecaptchaField::class:
@@ -696,6 +697,9 @@ class MigrateFreeform extends Migration
                 $this->_applyFieldDefaults($newField);
 
                 $newField->options = $this->_mapOptions($field->getOptions());
+
+                // Setup the default value properly in options
+                $newField->defaultValue = null;
                 break;
 
             case SubmitField::class:

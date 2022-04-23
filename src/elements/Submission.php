@@ -29,6 +29,7 @@ use craft\helpers\Json;
 use craft\helpers\Template;
 use craft\helpers\UrlHelper;
 use craft\models\FieldLayout;
+use craft\validators\SiteIdValidator;
 
 use yii\base\Exception;
 use yii\base\InvalidConfigException;
@@ -141,16 +142,16 @@ class Submission extends Element
     /**
      * @inheritdoc
      */
-    public static function eagerLoadingMap(array $sourceElements, string $handle): array|null|false
+    public static function eagerLoadingMap(array $sourceElements, string $handle)
     {
         $contentService = Craft::$app->getContent();
         $originalFieldContext = $contentService->fieldContext;
 
         $submission = $sourceElements[0] ?? null;
 
-        // Ensure we set up the correct content table before fetching the eager-loading map.
+        // Ensure we setup the correct content table before fetching the eager-loading map.
         // This is particular helps resolve element fields' content.
-        if ($submission instanceof self) {
+        if ($submission && $submission instanceof self) {
             $contentService->fieldContext = $submission->getFieldContext();
         }
 
@@ -556,6 +557,19 @@ class Submission extends Element
         if ($form = $this->getForm()) {
             return $form->title;
         }
+    }
+
+    /**
+     * Returns a field by its handle.
+     *
+     * @param string $handle
+     * @return FormFieldInterface|null
+     */
+    public function getFieldByHandle(string $handle)
+    {
+        if ($fieldLayout = $this->getFieldLayout()) {
+            return ArrayHelper::firstWhere($fieldLayout->getFields(), 'handle', $handle);
+        }
 
         return null;
     }
@@ -714,10 +728,6 @@ class Submission extends Element
 
         return $values;
     }
-
-
-    // Events
-    // =========================================================================
 
     public function getValuesForExport(): array
     {
@@ -921,6 +931,16 @@ class Submission extends Element
     protected function defineRules(): array
     {
         $rules = parent::defineRules();
+
+        // Find and override the `SiteIdValidator` from the base element rules, to allow creation for disabled sites
+        // This is otherwise only enabled during element propagation, which doesn't happen for submissions.
+        foreach ($rules as $key => $rule) {
+            list($attribute, $validator) = $rule;
+
+            if ($validator === SiteIdValidator::class) {
+                $rules[$key]['allowDisabled'] = true;
+            }
+        }
 
         $fieldsByHandle = [];
 

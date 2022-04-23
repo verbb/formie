@@ -60,7 +60,7 @@ export class FormieConditions {
                     // Watch for changes on the target field. When one occurs, fire off a custom event on the source field
                     // We need to do this because target fields can be targetted by multiple conditions, and source
                     // fields can have multiple conditions - we need to check them all for all/any logic.
-                    this.form.addEventListener($target, eventKey(eventType), () => $field.dispatchEvent(new CustomEvent('FormieEvaluateConditions', { bubbles: true })));
+                    this.form.addEventListener($target, eventKey(eventType), () => $field.dispatchEvent(new CustomEvent('onFormieEvaluateConditions', { bubbles: true })));
                 });
             });
         
@@ -73,11 +73,11 @@ export class FormieConditions {
             });
 
             // Add a custom event listener to fire when the field event listener fires
-            this.form.addEventListener($field, eventKey('FormieEvaluateConditions'), this.evaluateConditions.bind(this));
+            this.form.addEventListener($field, eventKey('onFormieEvaluateConditions'), this.evaluateConditions.bind(this));
 
             // Also - trigger the event right now to evaluate immediately. Namely if we need to hide
             // field that are set to show if conditions are met. Pass in a param to let fields know if this is "init".
-            $field.dispatchEvent(new CustomEvent('FormieEvaluateConditions', { bubbles: true, detail: { init: true } }));
+            $field.dispatchEvent(new CustomEvent('onFormieEvaluateConditions', { bubbles: true, detail: { init: true } }));
         });
 
         // Update the form hash, so we don't get change warnings
@@ -213,6 +213,9 @@ export class FormieConditions {
                 $input.removeAttribute('disabled');
             });
         }
+
+        // Fire an event to notify that the field's conditions have been evaluated
+        $field.dispatchEvent(new CustomEvent('onAfterFormieEvaluateConditions', { bubbles: true, detail: { init: isInit } }));
     }
 
     parseJsonConditions($field) {
