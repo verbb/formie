@@ -5,14 +5,14 @@
     class: [
         'fui-page',
         form.hasMultiplePages and page.id != currentPage.id ? 'fui-hidden',
-    ],
+    ] | filter,
     data: {
         index: page.sortOrder,
         id: page.id,
     },
 } %}
 
-<div {{ attr(attributes) }}>
+<div {{- attr(attributes) -}}>
     {% set html %}
         {% hook 'formie.page.start' %}
 
@@ -23,7 +23,7 @@
         {% endif %}
 
         {% for row in page.getRows(false) %}
-            <div class="fui-row fui-page-row {{ not craft.formie.getVisibleFields(row) ? 'fui-row-empty' }}">
+            <div class="fui-row fui-page-row {{- not craft.formie.getVisibleFields(row) ? 'fui-row-empty' -}}">
                 {% for field in row.fields %}
                     {{ craft.formie.renderField(form, field, options) }}
                 {% endfor %}
@@ -37,7 +37,7 @@
         class: [
             'fui-page-container',
             displayCurrentPageTitle ? 'fui-fieldset',
-        ],
+        ] | filter,
         html: html,
     }) }}
 

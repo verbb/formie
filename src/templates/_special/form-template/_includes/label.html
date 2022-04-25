@@ -9,16 +9,16 @@
     } | filter %}
 
     {% if label %}
-        <label {{ attr(attributes) }}>
-            {{ label | t | raw -}}
+        <label {{- attr(attributes) -}}>
+            {{- label | t | raw -}}
 
             {%- if field.required ?? required ?? false -%}
                 &nbsp;<span class="fui-required">*</span>
-            {% endif %}
+            {%- endif -%}
 
             {% if extraContent is defined %}
                 {{ extraContent | raw }}
-            {% endif %}
+            {%- endif -%}
         </label>
     {% endif %}
 {% endif %}
