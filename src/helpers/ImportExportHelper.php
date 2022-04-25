@@ -146,6 +146,13 @@ class ImportExportHelper
         // Store the fields on an existing form so we can retain their IDs later
         if ($existingForm) {
             $existingFormFields = ArrayHelper::index($existingForm->getFields(), 'handle');
+
+            // Handle any nested fields from Group/Repeater. Save them as `repeaterHandle_fields`.
+            foreach ($existingFormFields as $existingFormField) {
+                if ($existingFormField instanceof NestedFieldInterface) {
+                    $existingFormFields[$existingFormField->handle . '_fields'] = ArrayHelper::index($existingFormField->getFields(), 'handle');
+                }
+            }
         }
 
         if (!$form) {
@@ -189,6 +196,21 @@ class ImportExportHelper
 
                         if ($existingField) {
                             $pages[$pageKey]['rows'][$rowKey]['fields'][$fieldKey]['id'] = $existingField->id;
+                        }
+
+                        // Handle Group/Repeater to do the same, but slightly different
+                        $nestedRows = $field['rows'] ?? [];
+
+                        foreach ($nestedRows as $nestedRowKey => $nestedRow) {
+                            $nestedFields = $nestedRow['fields'] ?? [];
+
+                            foreach ($nestedFields as $nestedFieldKey => $nestedField) {
+                                $existingNestedField = $existingFormFields[$field['handle'] . '_fields'][$nestedField['handle']] ?? null;
+
+                                if ($existingNestedField) {
+                                    $pages[$pageKey]['rows'][$rowKey]['fields'][$fieldKey]['rows'][$nestedRowKey]['fields'][$nestedFieldKey]['id'] = $existingNestedField->id;
+                                }
+                            }
                         }
                     }
                 }
