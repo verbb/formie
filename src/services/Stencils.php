@@ -230,9 +230,9 @@ class Stencils extends Component
             $stencilRecord->uid = $stencilUid;
 
             // Handle UIDs for templates/statuses
-            $submitActionEntryUid = $data['submitActionEntry'] ?: null;
-            $defaultStatusUid = $data['defaultStatus'] ?: null;
-            $templateUid = $data['template'] ?: null;
+            $submitActionEntryUid = $data['submitActionEntry'] ?? null;
+            $defaultStatusUid = $data['defaultStatus'] ?? null;
+            $templateUid = $data['template'] ?? null;
 
             if ($defaultStatusUid) {
                 $defaultStatus = Formie::$plugin->getStatuses()->getStatusByUid($defaultStatusUid);
