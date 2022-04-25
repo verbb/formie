@@ -39,7 +39,7 @@ class Stencil extends Model
     public ?StencilData $data = null;
 
     public ?int $templateId = null;
-    public ?int $submitActionEntryId;
+    public ?int $submitActionEntryId = null;
     public ?int $defaultStatusId = null;
     public ?DateTime $dateDeleted = null;
     public ?string $uid = null;
