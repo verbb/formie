@@ -17,6 +17,7 @@ use craft\fields\Users as CraftUsers;
 use craft\gql\arguments\elements\User as UserArguments;
 use craft\gql\interfaces\elements\User as UserInterface;
 use craft\helpers\ArrayHelper;
+use craft\helpers\Json;
 use craft\helpers\UrlHelper;
 
 use craft\models\UserGroup;
@@ -242,6 +243,15 @@ class Users extends CraftUsers implements FormFieldInterface
     public function getSettingGqlTypes(): array
     {
         return array_merge($this->traitGetSettingGqlTypes(), [
+           'defaultValue' => [
+                'name' => 'defaultValue',
+                'type' => Type::string(),
+                'resolve' => function($field) {
+                    $value = $field->defaultValue;
+
+                    return is_array($value) ? Json::encode($value) : $value;
+                },
+            ],
             'users' => [
                 'name' => 'users',
                 'type' => Type::listOf(UserInterface::getType()),

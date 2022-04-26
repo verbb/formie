@@ -18,6 +18,7 @@ use craft\fields\Entries as CraftEntries;
 use craft\gql\arguments\elements\Entry as EntryArguments;
 use craft\gql\interfaces\elements\Entry as EntryInterface;
 use craft\helpers\ArrayHelper;
+use craft\helpers\Json;
 use craft\helpers\UrlHelper;
 use craft\records\EntryType as EntryTypeRecord;
 
@@ -314,6 +315,15 @@ class Entries extends CraftEntries implements FormFieldInterface
     public function getSettingGqlTypes(): array
     {
         return array_merge($this->traitGetSettingGqlTypes(), [
+           'defaultValue' => [
+                'name' => 'defaultValue',
+                'type' => Type::string(),
+                'resolve' => function($field) {
+                    $value = $field->defaultValue;
+
+                    return is_array($value) ? Json::encode($value) : $value;
+                },
+            ],
             'entries' => [
                 'name' => 'entries',
                 'type' => Type::listOf(EntryInterface::getType()),

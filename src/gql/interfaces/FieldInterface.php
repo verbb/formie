@@ -135,10 +135,25 @@ class FieldInterface extends BaseInterfaceType
                 'type' => Type::int(),
                 'description' => 'The field’s limit amount.',
             ],
+            'matchField' => [
+                'name' => 'matchField',
+                'type' => Type::boolean(),
+                'description' => 'Whether the field’s value should match another field.',
+            ],
             'placeholder' => [
                 'name' => 'placeholder',
                 'type' => Type::string(),
                 'description' => 'The field’s placeholder.',
+            ],
+            'defaultValue' => [
+                'name' => 'defaultValue',
+                'type' => Type::string(),
+                'description' => 'The field’s default value.',
+            ],
+            'prePopulate' => [
+                'name' => 'prePopulate',
+                'type' => Type::string(),
+                'description' => 'The field’s pre-populated value extracted from the query string.',
             ],
             'errorMessage' => [
                 'name' => 'errorMessage',

@@ -978,25 +978,53 @@ trait FormFieldTrait
 
     public function getSettingGqlTypes(): array
     {
-        // Prepare a key-value of handle and type settings for GQL
-        $fieldSchema = $this->getFieldSchema();
+        $types = [];
+        $excludedProperties = [];
 
-        // Now we have our Schema-based types, we should convert those to GQL types
-        $fieldTypes = SchemaHelper::extractFieldInfoFromSchema($fieldSchema['fields']);
-        $gqlSettingTypes = [];
+        // Use reflections to grab most (if not all) properties and automate casting. To do this, we need to fetch 
+        // properties that are _just_ from the individual classes not any inherited or through traits. The only way 
+        // to handle this is to fetch all traits first, and diff them later on.
+        $class = new ReflectionClass($this);
 
-        foreach ($this->getSettings() as $attribute => $setting) {
-            $fieldInfo = $fieldTypes[$attribute] ?? [];
-            $schemaType = $fieldInfo['type'] ?? $fieldInfo['component'] ?? 'text';
-
-            $gqlAttribute = $this->getSettingGqlType($attribute, $schemaType, $fieldInfo);
-
-            if ($gqlAttribute) {
-                $gqlSettingTypes[$attribute] = $gqlAttribute;
+        foreach ($class->getTraits() as $trait) {
+            foreach ($trait->getProperties(ReflectionProperty::IS_PUBLIC) as $property) {
+                $excludedProperties[] = $property->getName();
             }
         }
 
-        return $gqlSettingTypes;
+        $typeMap = [
+            'string' => Type::string(),
+            'int' => Type::int(),
+            'bool' => Type::boolean(),
+            'datetime' => DateTimeType::getType(),
+        ];
+
+        foreach ($class->getProperties(ReflectionProperty::IS_PUBLIC) as $property) {
+            if (!$property->isStatic() && !$property->getDeclaringClass()->isAbstract() && !in_array($property->getName(), $excludedProperties)) {
+                // If we haven't defined mapping, don't assume its value. It'll be up to classes to define these
+                $propertyType = $property->getType()->getName();
+                $type = $typeMap[$propertyType] ?? null;
+
+                if ($type) {
+                    $types[] = [
+                        'name' => $property->getName(),
+                        'type' => $type,
+                    ];
+                } else if ($propertyType === 'array') {
+                    $types[] = [
+                        'name' => $property->getName(),
+                        'type' => Type::string(),
+                        'resolve' => function($field) use ($property) {
+                            $value = $field->{$property->getName()};
+
+                            return is_array($value) ? Json::encode($value) : $value;
+                        },
+                    ];
+                }
+            }
+        }
+
+        return $types;
     }
 
     public function getGqlTypeName(): string
@@ -1089,60 +1117,6 @@ trait FormFieldTrait
     {
         // A string-representation will largely suit our needs
         return $this->defineValueAsString($value, $element);
-    }
-
-    /**
-     * Returns the GraphQL-equivalent datatype based on a provided field's handle or schema type
-     */
-    protected function getSettingGqlType($attribute, $type, $fieldInfo): ListOfType|ScalarType|array
-    {
-        $typeDefinitions = [
-            'lightswitch' => Type::boolean(),
-            'date' => DateTimeType::getType(),
-        ];
-
-        $typeDefinition = $typeDefinitions[$type] ?? null;
-
-        if ($typeDefinition) {
-            return [
-                'name' => $attribute,
-                'type' => $typeDefinition,
-            ];
-        }
-
-        if ($type === 'table-block') {
-            $columns = [
-                'label' => Type::string(),
-                'heading' => Type::string(),
-                'value' => Type::string(),
-                'handle' => Type::string(),
-                'width' => Type::string(),
-                'type' => Type::string(),
-                'isOptgroup' => Type::boolean(),
-                'optgroup' => Type::boolean(),
-                'isDefault' => Type::boolean(),
-                'default' => Type::boolean(),
-            ];
-
-            $fieldColumns = $fieldInfo['columns'] ?? [];
-
-            // Figure something out with table defaults. It almost can't be done because we're
-            // getting this information from the class, not an instance of the field.
-            if (!is_array($fieldColumns)) {
-
-            }
-
-            $typeArray = KeyValueGenerator::generateTypes($this, $columns);
-
-            return Type::listOf(array_pop($typeArray));
-        }
-
-        // Special case for these as they're not schema-defined fields
-        if (str_contains($attribute, 'Enabled') || str_contains($attribute, 'Collapsed')) {
-            return Type::boolean();
-        }
-
-        return Type::string();
     }
 
 

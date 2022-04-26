@@ -14,6 +14,7 @@ use Craft;
 use craft\elements\db\ElementQueryInterface;
 use craft\errors\SiteNotFoundException;
 use craft\helpers\ArrayHelper;
+use craft\helpers\Json;
 use craft\helpers\UrlHelper;
 
 use craft\commerce\Plugin as Commerce;
@@ -252,6 +253,15 @@ class Products extends CommerceProducts implements FormFieldInterface
     public function getSettingGqlTypes(): array
     {
         return array_merge($this->traitGetSettingGqlTypes(), [
+           'defaultValue' => [
+                'name' => 'defaultValue',
+                'type' => Type::string(),
+                'resolve' => function($field) {
+                    $value = $field->defaultValue;
+
+                    return is_array($value) ? Json::encode($value) : $value;
+                },
+            ],
             'entries' => [
                 'name' => 'products',
                 'type' => Type::listOf(ProductInterface::getType()),

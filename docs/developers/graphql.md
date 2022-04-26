@@ -240,13 +240,16 @@ This is the interface implemented by all fields. Note that as settings are speci
 | `instructions`| `String` | The field’s instructions.
 | `required`| `Boolean` | Whether the field is required.
 | `type`| `String` | The field’s full class type.
-| `typeName`| `String` | The field’s full GQL type.
 | `displayName`| `String` | The field’s display name (last portion of the class).
+| `typeName`| `String` | The field’s full GQL type.
 | `inputTypeName`| `String` | The field’s full GQL input type. Useful for mutations.
 | `limit`| `Boolean` | Whether the field should limit content.
 | `limitType`| `String` | The field’s limit type.
 | `limitAmount`| `Int` | The field’s limit amount.
+| `matchField`| `Boolean` | Whether the field’s value should match another field.
 | `placeholder`| `String` | The field’s placeholder.
+| `defaultValue`| `String` | The field’s default value. This type will change depending on the field.
+| `prePopulate`| `String` | The field’s pre-populated value extracted from the query string.
 | `errorMessage`| `String` | The field’s error message.
 | `labelPosition`| `String` | The field’s label position.
 | `instructionsPosition`| `String` | The field’s instructions position.
@@ -258,6 +261,7 @@ This is the interface implemented by all fields. Note that as settings are speci
 | `conditions`| `String` | The field’s conditions.
 | `enableContentEncryption`| `Boolean` | Whether the field has content encryption enabled.
 | `visibility`| `String` | The field’s visibility.
+
 
 Once using the necessary [Inline Fragments](https://graphql.org/learn/queries/#inline-fragments) for each field type, you'll have access to the same variables as described on the [Field](docs:developers/field) docs.
 

@@ -344,6 +344,15 @@ class Tags extends CraftTags implements FormFieldInterface
     public function getSettingGqlTypes(): array
     {
         return array_merge($this->traitGetSettingGqlTypes(), [
+           'defaultValue' => [
+                'name' => 'defaultValue',
+                'type' => Type::string(),
+                'resolve' => function($field) {
+                    $value = $field->defaultValue;
+
+                    return is_array($value) ? Json::encode($value) : $value;
+                },
+            ],
             'tags' => [
                 'name' => 'tags',
                 'type' => Type::listOf(TagInterface::getType()),

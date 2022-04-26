@@ -790,6 +790,36 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
         ];
     }
 
+    /**
+     * @inheritdoc
+     */
+    public function getSettingGqlTypes(): array
+    {
+        return array_merge(parent::getSettingGqlTypes(), [
+            // We're force to use a string-representation of the default value, due to the parent `defaultValue` definition
+            // So cast it properly here as a string, but also provide `defaultDate` as the proper type.
+            'defaultValue' => [
+                'name' => 'defaultValue',
+                'type' => Type::string(),
+                'resolve' => function($field) {
+                    return (string)$field->defaultValue;
+                },
+            ],
+            'defaultDate' => [
+                'name' => 'defaultDate',
+                'type' => DateTimeType::getType(),
+            ],
+            'minDate' => [
+                'name' => 'minDate',
+                'type' => DateTimeType::getType(),
+            ],
+            'maxDate' => [
+                'name' => 'maxDate',
+                'type' => DateTimeType::getType(),
+            ],
+        ]);
+    }
+
 
     // Protected Methods
     // =========================================================================
@@ -836,22 +866,5 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
 
         // Fetch the default handling
         return parent::defineValueForIntegration($value, $integrationField, $integration, $element);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    protected function getSettingGqlType($attribute, $type, $fieldInfo): ListOfType|ScalarType|array
-    {
-        // Disable normal `defaultValue` as it is a DateTime, not string. We can't have the same attributes 
-        // return multiple types. Instead, return `defaultDate` as the attribute name and correct type.
-        if ($attribute === 'defaultValue') {
-            return [
-                'name' => 'defaultDate',
-                'type' => DateTimeType::getType(),
-            ];
-        }
-
-        return parent::getSettingGqlType($attribute, $type, $fieldInfo);
     }
 }

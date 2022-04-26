@@ -128,6 +128,19 @@ class Agree extends FormField implements PreviewableFieldInterface
     public function getSettingGqlTypes(): array
     {
         return array_merge(parent::getSettingGqlTypes(), [
+            // We're force to use a string-representation of the default value, due to the parent `defaultValue` definition
+            // So cast it properly here as a string, but also provide `defaultState` as the proper type.
+            'defaultValue' => [
+                'name' => 'defaultValue',
+                'type' => Type::string(),
+                'resolve' => function($field) {
+                    return (string)$field->defaultValue;
+                },
+            ],
+            'defaultState' => [
+                'name' => 'defaultState',
+                'type' => Type::boolean(),
+            ],
             'descriptionHtml' => [
                 'name' => 'descriptionHtml',
                 'type' => Type::string(),
@@ -234,23 +247,6 @@ class Agree extends FormField implements PreviewableFieldInterface
     protected function defineValueAsString($value, ElementInterface $element = null): string
     {
         return ($value) ? $this->checkedValue : $this->uncheckedValue;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    protected function getSettingGqlType($attribute, $type, $fieldInfo): ListOfType|ScalarType|array
-    {
-        // Disable normal `defaultValue` as it is a boolean, not string. We can't have the same attributes 
-        // return multiple types. Instead, return `defaultState` as the attribute name and correct type.
-        if ($attribute === 'defaultValue') {
-            return [
-                'name' => 'defaultState',
-                'type' => Type::boolean(),
-            ];
-        }
-
-        return parent::getSettingGqlType($attribute, $type, $fieldInfo);
     }
 
 
