@@ -20,8 +20,6 @@ use craft\helpers\Json;
 use craft\helpers\StringHelper;
 use craft\i18n\Locale;
 
-use GraphQL\Type\Definition\ScalarType;
-use GraphQL\Type\Definition\ListOfType;
 use GraphQL\Type\Definition\Type;
 
 use yii\base\Event;
@@ -135,9 +133,6 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
         return Schema::TYPE_DATETIME;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function hasSubfields(): bool
     {
         return $this->displayType !== 'calendar';
@@ -790,9 +785,6 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
         ];
     }
 
-    /**
-     * @inheritdoc
-     */
     public function getSettingGqlTypes(): array
     {
         return array_merge(parent::getSettingGqlTypes(), [
@@ -852,9 +844,6 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
         return $this->getValueAsString($value, $element);
     }
 
-    /**
-     * @inheritDoc
-     */
     protected function defineValueForIntegration($value, $integrationField, $integration, ElementInterface $element = null, $fieldKey = ''): mixed
     {
         // If a string value is requested for a date, return the ISO 8601 date string

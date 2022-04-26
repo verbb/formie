@@ -4,7 +4,6 @@ namespace verbb\formie\helpers;
 use verbb\formie\Formie;
 use verbb\formie\fields\formfields\Group;
 use verbb\formie\fields\formfields\Password;
-use verbb\formie\helpers\ArrayHelper;
 
 use Craft;
 use craft\fields\BaseRelationField;

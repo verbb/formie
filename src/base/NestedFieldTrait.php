@@ -21,8 +21,6 @@ use craft\helpers\StringHelper;
 use craft\helpers\Template;
 use craft\services\Elements;
 
-use yii\base\InvalidConfigException;
-
 trait NestedFieldTrait
 {
     // Static Methods

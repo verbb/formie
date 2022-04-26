@@ -74,7 +74,7 @@ class SubmissionQuery extends ElementQuery
     /**
      * Sets the [[statusId]] property.
      *
-     * @param Status|string|null $value
+     * @param array|string|null $value
      * @return static self reference
      */
     public function status(array|string|null $value): static

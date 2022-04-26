@@ -16,7 +16,7 @@ use Craft;
 use craft\elements\User;
 use craft\fields\BaseRelationField;
 use craft\fields\data\MultiOptionsFieldData;
-use craft\fields\data\SingleOptionsFieldData;
+use craft\fields\data\SingleOptionFieldData;
 use craft\helpers\App;
 use craft\models\Site;
 
@@ -486,7 +486,7 @@ class Variables
         } else if ($submissionValue instanceof MultiOptionsFieldData) {
             // TODO: this should become the single thing we need to use here at the next breakpoint. Requires full testing.
             $values["{$prefix}{$field->handle}"] = $field->getValueForEmail($submissionValue, $notification, $submission);
-        } else if ($submissionValue instanceof SingleOptionsFieldData) {
+        } else if ($submissionValue instanceof SingleOptionFieldData) {
             // TODO: this should become the single thing we need to use here at the next breakpoint. Requires full testing.
             $values["{$prefix}{$field->handle}"] = $field->getValueForEmail($submissionValue, $notification, $submission);
         } else {

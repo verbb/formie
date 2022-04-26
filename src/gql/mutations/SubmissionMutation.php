@@ -13,7 +13,6 @@ use Craft;
 use craft\gql\base\ElementMutationResolver;
 use craft\gql\base\Mutation;
 use craft\helpers\Gql;
-use craft\helpers\StringHelper;
 
 use yii\base\InvalidConfigException;
 

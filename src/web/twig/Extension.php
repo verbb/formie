@@ -1,7 +1,6 @@
 <?php
 namespace verbb\formie\web\twig;
 
-use verbb\formie\Formie;
 use verbb\formie\helpers\RichTextHelper;
 
 use Craft;

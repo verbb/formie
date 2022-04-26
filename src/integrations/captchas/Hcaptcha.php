@@ -48,9 +48,6 @@ class Hcaptcha extends Captcha
         ]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getFormSettingsHtml($form): string
     {
         return Craft::$app->getView()->renderTemplate('formie/integrations/captchas/hcaptcha/_form-settings', [

@@ -139,9 +139,6 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
         return Schema::TYPE_TEXT;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function hasSubfields(): bool
     {
         if ($this->useMultipleFields) {

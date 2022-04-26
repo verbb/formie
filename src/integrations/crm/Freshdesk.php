@@ -371,8 +371,8 @@ class Freshdesk extends Crm
 
                         return false;
                     }
-                } catch (\Throwable $e) {
-                    $body = json_decode((string)$e->getResponse()->getBody());
+                } catch (Throwable $e) {
+                    $body = Json::decode((string)$e->getResponse()->getBody());
 
                     // Check number of errors; if more than one, we can't update anyway
                     if (count($body->errors) === 1) {
@@ -391,7 +391,7 @@ class Freshdesk extends Crm
                                 if ($updateResponse === false) {
                                     return true;
                                 }
-                            } catch (\Throwable $e) {
+                            } catch (Throwable $e) {
                                 // If fails to update, most likely an agent and can safely ignore exception
                             }
                         }
@@ -491,9 +491,6 @@ class Freshdesk extends Crm
         ]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getFieldMappingValues(Submission $submission, $fieldMapping, $fieldSettings = [], bool $multipart = false)
     {
         // If multipart isn't required, just use verbb\formie\base\Crm::getFieldMappingValues

@@ -8,6 +8,7 @@ use verbb\formie\services\Statuses;
 use Craft;
 use craft\base\Model;
 use craft\db\SoftDeleteTrait;
+use craft\elements\Entry;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 use craft\helpers\UrlHelper;
@@ -279,7 +280,7 @@ class Stencil extends Model
      *
      * @return Entry|null
      */
-    public function getRedirectEntry()
+    public function getRedirectEntry(): ?Entry
     {
         if (!$this->submitActionEntryId) {
             return null;

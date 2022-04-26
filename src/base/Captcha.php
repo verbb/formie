@@ -100,10 +100,7 @@ abstract class Captcha extends Integration
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getGqlHandle()
+    public function getGqlHandle(): string
     {
         return StringHelper::toCamelCase($this->handle . 'Captcha');
     }
@@ -125,9 +122,6 @@ abstract class Captcha extends Integration
         return $value;
     }
 
-    /**
-     * @inheritDoc
-     */
     protected function getRequestParam($name)
     {
         // Handle the traditional param, as a POST param

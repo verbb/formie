@@ -197,10 +197,7 @@ class Salesforce extends Crm
         return new IntegrationFormSettings($settings);
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getMappedFieldValue($mappedFieldValue, $submission, $integrationField)
+    public function getMappedFieldValue($mappedFieldValue, $submission, $integrationField): ?string
     {
         $value = parent::getMappedFieldValue($mappedFieldValue, $submission, $integrationField);
 
@@ -212,9 +209,6 @@ class Salesforce extends Crm
         return $value;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function sendPayload(Submission $submission): bool
     {
         try {

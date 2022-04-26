@@ -5,12 +5,15 @@ use verbb\formie\Formie;
 use verbb\formie\helpers\ConditionsHelper;
 use verbb\formie\helpers\RichTextHelper;
 
+use Craft;
 use craft\base\Model;
 use craft\elements\Asset;
 use craft\helpers\ArrayHelper;
-use craft\helpers\Json;
-use craft\helpers\StringHelper;
 use craft\web\View;
+
+use Twig\Error\LoaderError;
+
+use Exception;
 
 class Notification extends Model
 {
@@ -145,13 +148,13 @@ class Notification extends Model
     /**
      * Returns the template path for an email component.
      *
-     * @param string|array $components can be 'form', 'page' or ['field1', 'field2'].
+     * @param array|string $components can be 'form', 'page' or ['field1', 'field2'].
      * @param array $variables any variables to use with `$view->renderTemplate()`.
      * @return string
      * @throws Exception
      * @throws LoaderError
      */
-    public function renderTemplate($components, $variables = []): string
+    public function renderTemplate(array|string $components, array $variables = []): string
     {
         $view = Craft::$app->getView();
         

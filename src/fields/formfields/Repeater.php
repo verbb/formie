@@ -173,9 +173,6 @@ class Repeater extends FormField implements NestedFieldInterface, EagerLoadingFi
         return $rows;
     }
 
-    /**
-     * @inheritdoc
-     */
     public function getFrontEndJsModules(): ?array
     {
         $modules = [];

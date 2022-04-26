@@ -3,6 +3,7 @@ namespace verbb\formie\elements;
 
 use verbb\formie\Formie;
 use verbb\formie\base\FormField;
+use verbb\formie\base\FormFieldInterface;
 use verbb\formie\base\FormFieldTrait;
 use verbb\formie\base\NestedFieldInterface;
 use verbb\formie\elements\actions\SetSubmissionSpam;
@@ -565,7 +566,7 @@ class Submission extends Element
      * @param string $handle
      * @return FormFieldInterface|null
      */
-    public function getFieldByHandle(string $handle)
+    public function getFieldByHandle(string $handle): ?FormFieldInterface
     {
         if ($fieldLayout = $this->getFieldLayout()) {
             return ArrayHelper::firstWhere($fieldLayout->getFields(), 'handle', $handle);
@@ -935,7 +936,7 @@ class Submission extends Element
         // Find and override the `SiteIdValidator` from the base element rules, to allow creation for disabled sites
         // This is otherwise only enabled during element propagation, which doesn't happen for submissions.
         foreach ($rules as $key => $rule) {
-            list($attribute, $validator) = $rule;
+            [$attribute, $validator] = $rule;
 
             if ($validator === SiteIdValidator::class) {
                 $rules[$key]['allowDisabled'] = true;

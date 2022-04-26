@@ -1,7 +1,6 @@
 <?php
 namespace verbb\formie\gql\types;
 
-use Craft;
 use craft\gql\base\ObjectType;
 use craft\gql\GqlEntityRegistry;
 

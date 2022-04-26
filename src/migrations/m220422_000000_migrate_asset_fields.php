@@ -3,7 +3,6 @@ namespace verbb\formie\migrations;
 
 use verbb\formie\fields\formfields\FileUpload;
 
-use Craft;
 use craft\db\Migration;
 use craft\db\Query;
 use craft\db\Table;
@@ -11,7 +10,7 @@ use craft\helpers\Json;
 
 class m220422_000000_migrate_asset_fields extends Migration
 {
-    private $_volumesByFolderUids = [];
+    private array $_volumesByFolderUids = [];
 
     /**
      * @inheritdoc
@@ -60,7 +59,7 @@ class m220422_000000_migrate_asset_fields extends Migration
 
     private function _normalizeSourceKey(string $sourceKey): string
     {
-        if (empty($sourceKey) || strpos($sourceKey, 'folder:') !== 0) {
+        if (empty($sourceKey) || !str_starts_with($sourceKey, 'folder:')) {
             return $sourceKey;
         }
 

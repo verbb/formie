@@ -146,7 +146,7 @@ class EmailOctopus extends EmailMarketing
         try {
             $response = $this->request('GET', 'lists', [
                 'query' => [
-                    'api_key' => Craft::parseEnv($this->apiKey),
+                    'api_key' => App::parseEnv($this->apiKey),
                 ],
             ]);
         } catch (Throwable $e) {

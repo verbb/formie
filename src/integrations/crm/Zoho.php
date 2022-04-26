@@ -11,7 +11,6 @@ use verbb\formie\models\IntegrationFormSettings;
 use Craft;
 use craft\helpers\App;
 use craft\helpers\Json;
-use craft\web\View;
 
 use GuzzleHttp\Client;
 

@@ -20,7 +20,6 @@ use verbb\formie\services\Statuses;
 
 use Craft;
 use craft\base\Element;
-use craft\base\ElementInterface;
 use craft\db\Query;
 use craft\db\Table;
 use craft\elements\Entry;
@@ -38,7 +37,6 @@ use craft\web\View;
 
 use yii\base\Exception;
 use yii\base\InvalidConfigException;
-use yii\base\Model;
 use yii\validators\Validator;
 
 use Throwable;
@@ -1237,13 +1235,13 @@ class Form extends Element
     /**
      * Returns the template for a form component.
      *
-     * @param string|array $components can be 'form', 'page' or ['field1', 'field2'].
+     * @param array|string $components can be 'form', 'page' or ['field1', 'field2'].
      * @param array $variables any variables to use with `$view->renderTemplate()`.
      * @return string
      * @throws Exception
      * @throws LoaderError
      */
-    public function renderTemplate($components, $variables = []): string
+    public function renderTemplate(array|string $components, array $variables = []): string
     {
         $view = Craft::$app->getView();
         
@@ -1288,9 +1286,6 @@ class Form extends Element
         return '';
     }
 
-    /**
-     * @inheritdoc
-     */
     public function getFrontEndJsVariables(): array
     {
         /* @var Settings $pluginSettings */

@@ -17,8 +17,6 @@ use craft\base\ElementInterface;
 use craft\elements\Tag;
 use craft\fields\Tags as CraftTags;
 use craft\elements\db\ElementQueryInterface;
-use craft\fields\data\SingleOptionFieldData;
-use craft\fields\data\MultiOptionsFieldData;
 use craft\gql\arguments\elements\Tag as TagArguments;
 use craft\gql\interfaces\elements\Tag as TagInterface;
 use craft\helpers\ArrayHelper;

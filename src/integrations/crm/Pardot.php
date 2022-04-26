@@ -383,7 +383,7 @@ class Pardot extends Crm
                     } else {
                         $response = $this->deliverPayload($submission, "prospect/version/4/do/create/{$prospectPayload['email']}", $prospectPayload, 'POST', 'form_params');
                     }
-                } catch (\Throwable $e) {
+                } catch (Throwable $e) {
                     $response = $this->deliverPayload($submission, "prospect/version/4/do/create/{$prospectPayload['email']}", $prospectPayload, 'POST', 'form_params');
                 }
 
@@ -432,10 +432,7 @@ class Pardot extends Crm
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getMappedFieldValue($mappedFieldValue, $submission, $integrationField)
+    public function getMappedFieldValue($mappedFieldValue, $submission, $integrationField): ?string
     {
         $value = parent::getMappedFieldValue($mappedFieldValue, $submission, $integrationField);
 
@@ -478,7 +475,7 @@ class Pardot extends Crm
         // We can't always rely on the EOL of the token.
         try {
             $response = $this->request('GET', 'list/version/4/do/query');
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             if ($e->getCode() === 401) {
                 // Force-refresh the token
                 Formie::$plugin->getTokens()->refreshToken($token, true);

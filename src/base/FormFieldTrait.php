@@ -12,8 +12,6 @@ use verbb\formie\fields\formfields\BaseOptionsField;
 use verbb\formie\helpers\ConditionsHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\Variables;
-use verbb\formie\gql\types\generators\FieldAttributeGenerator;
-use verbb\formie\gql\types\generators\KeyValueGenerator;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\Notification;
 
@@ -21,27 +19,17 @@ use Craft;
 use craft\base\ElementInterface;
 use craft\gql\types\DateTime as DateTimeType;
 use craft\helpers\ArrayHelper;
-use craft\helpers\DateTimeHelper;
-use craft\helpers\Html;
 use craft\helpers\Json;
 use craft\helpers\Template;
 use craft\helpers\StringHelper;
 use craft\validators\HandleValidator;
-use craft\web\twig\TemplateLoaderException;
 
-use GraphQL\Type\Definition\ListOfType;
-use GraphQL\Type\Definition\ScalarType;
 use GraphQL\Type\Definition\Type;
 
-use yii\base\Event;
-use yii\base\Model;
-
-use Twig\Error\LoaderError as TwigLoaderError;
 use Twig\Markup;
 
 use ReflectionClass;
 use ReflectionProperty;
-use Exception;
 use Throwable;
 
 trait FormFieldTrait
@@ -1136,10 +1124,7 @@ trait FormFieldTrait
         return StringHelper::toKebabCase($end);
     }
 
-    /**
-     * @inheritdoc
-     */
-    private static function _getReservedWords()
+    private static function _getReservedWords(): array
     {
         $reservedWords = [
             ['form', 'field', 'submission'],

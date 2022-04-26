@@ -46,9 +46,9 @@ class Rendering extends Component
     // =========================================================================
 
     private bool $_renderedJs = false;
-    private $_cssFiles = [];
-    private $_jsFiles = [];
-    private $_filesBuffers = [];
+    private array $_cssFiles = [];
+    private array $_jsFiles = [];
+    private array $_filesBuffers = [];
 
 
     // Public Methods
@@ -64,8 +64,6 @@ class Rendering extends Component
      * @throws InvalidConfigException
      * @throws LoaderError
      * @throws MissingComponentException
-     * @throws RuntimeError
-     * @throws SyntaxError
      */
     public function renderForm(Form|string|null $form, array $options = null): ?Markup
     {
@@ -141,8 +139,6 @@ class Rendering extends Component
      * @throws Exception
      * @throws LoaderError
      * @throws MissingComponentException
-     * @throws RuntimeError
-     * @throws SyntaxError
      */
     public function renderPage(Form|string|null $form, FieldLayoutPage $page = null, array $options = null): ?Markup
     {
@@ -263,10 +259,11 @@ class Rendering extends Component
      * for use when manually calling this function through render variable tags.
      *
      * @param Form|string $form
-     * @param string $type
+     * @param string|null $type
      * @param bool $forceInline
-     * @param array $options
-     * @return null
+     * @param array $attributes
+     * @return Markup|null
+     * @throws InvalidConfigException
      */
     public function renderFormAssets(Form|string $form, string $type = null, bool $forceInline = false, array $attributes = []): ?Markup
     {
@@ -519,7 +516,7 @@ class Rendering extends Component
      *
      * @return array|false The files that were registered in the active buffer, grouped by position, or `false` if there isn’t one
      */
-    public function clearFileBuffer($type, $view)
+    public function clearFileBuffer($type, $view): bool|array
     {
         if (empty($this->_filesBuffers[$type])) {
             return false;
@@ -534,11 +531,17 @@ class Rendering extends Component
      * Returns the JS/CSS for the rendering of a form. This will include buffering any JS/CSS files
      * This is also done in a single function to capture both CSS/JS files which are only registered once per request
      *
-     * @param Form|string $form
+     * @param string|Form $form
      * @param array|null $options
-     * @return string
+     * @return void
+     * @throws Exception
+     * @throws InvalidConfigException
+     * @throws LoaderError
+     * @throws MissingComponentException
+     * @throws RuntimeError
+     * @throws SyntaxError
      */
-    public function renderFormCssJs($form, array $options = null): void
+    public function renderFormCssJs(Form|string $form, array $options = null): void
     {
         // Don't re-render the form multiple times if it's already rendered
         if ($this->_jsFiles || $this->_cssFiles) {
@@ -571,11 +574,11 @@ class Rendering extends Component
     /**
      * Returns the CSS for the rendering of a form. This will include buffering any CSS files
      *
-     * @param Form|string $form
+     * @param string|Form $form
      * @param array|null $options
-     * @return string
+     * @return Markup
      */
-    public function renderFormCss($form, array $options = null)
+    public function renderFormCss(Form|string $form, array $options = null): Markup
     {
         $this->renderFormCssJs($form, $options);
 
@@ -585,11 +588,11 @@ class Rendering extends Component
     /**
      * Returns the JS for the rendering of a form. This will include buffering any JS files
      *
-     * @param Form|string $form
+     * @param string|Form $form
      * @param array|null $options
-     * @return string
+     * @return Markup
      */
-    public function renderFormJs($form, array $options = null)
+    public function renderFormJs(Form|string $form, array $options = null): Markup
     {
         $this->renderFormCssJs($form, $options);
 

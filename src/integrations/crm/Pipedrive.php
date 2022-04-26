@@ -13,7 +13,6 @@ use Craft;
 use craft\helpers\App;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
-use craft\web\View;
 
 use yii\base\Event;
 
@@ -29,7 +28,7 @@ class Pipedrive extends Crm
     /**
      * @inheritDoc
      */
-    public function init()
+    public function init(): void
     {
         parent::init();
 

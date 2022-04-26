@@ -14,8 +14,6 @@ use craft\helpers\Template;
 use yii\db\Schema;
 
 use GraphQL\Type\Definition\Type;
-use GraphQL\Type\Definition\ScalarType;
-use GraphQL\Type\Definition\ListOfType;
 
 use Twig\Markup;
 

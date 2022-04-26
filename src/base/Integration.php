@@ -131,7 +131,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         }
     }
 
-    public static function convertValueForIntegration($value, $integrationField)
+    public static function convertValueForIntegration($value, $integrationField): mixed
     {
         if ($integrationField->getType() === IntegrationField::TYPE_ARRAY) {
             return (is_array($value)) ? $value : [$value];
@@ -150,11 +150,11 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         }
 
         if ($integrationField->getType() === IntegrationField::TYPE_NUMBER) {
-            return intval($value);
+            return (int)$value;
         }
 
         if ($integrationField->getType() === IntegrationField::TYPE_FLOAT) {
-            return floatval($value);
+            return (float)$value;
         }
 
         if ($integrationField->getType() === IntegrationField::TYPE_BOOLEAN) {

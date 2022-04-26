@@ -21,7 +21,6 @@ use craft\helpers\Json;
 
 use yii\base\Component;
 use Throwable;
-use yii\base\InvalidConfigException;
 use yii\db\Exception;
 use Twig\Error\SyntaxError;
 use Twig\Error\RuntimeError;

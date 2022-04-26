@@ -5,7 +5,6 @@ use verbb\formie\Formie;
 use verbb\formie\base\SubfieldInterface;
 use verbb\formie\base\SubfieldTrait;
 use verbb\formie\base\FormField;
-use verbb\formie\elements\Form;
 use verbb\formie\events\ModifyFrontEndSubfieldsEvent;
 use verbb\formie\gql\types\generators\FieldAttributeGenerator;
 use verbb\formie\helpers\SchemaHelper;
@@ -91,9 +90,6 @@ class Phone extends FormField implements SubfieldInterface, PreviewableFieldInte
         return Schema::TYPE_STRING;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function hasSubfields(): bool
     {
         if ($this->countryEnabled) {

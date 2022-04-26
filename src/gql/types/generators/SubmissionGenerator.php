@@ -11,9 +11,7 @@ use craft\gql\base\Generator;
 use craft\gql\base\GeneratorInterface;
 use craft\gql\base\SingleGeneratorInterface;
 use craft\gql\GqlEntityRegistry;
-use craft\gql\TypeManager;
 use craft\helpers\Gql as GqlHelper;
-use craft\services\Gql;
 
 class SubmissionGenerator extends Generator implements GeneratorInterface, SingleGeneratorInterface
 {

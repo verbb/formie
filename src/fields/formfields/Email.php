@@ -9,7 +9,6 @@ use Craft;
 use craft\base\ElementInterface;
 use craft\base\PreviewableFieldInterface;
 use craft\db\Query;
-use craft\helpers\App;
 use craft\helpers\ArrayHelper;
 
 use yii\validators\EmailValidator;
@@ -41,9 +40,6 @@ class Email extends FormField implements PreviewableFieldInterface
         return 'formie/_formfields/email/icon.svg';
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function supportsIdn(): bool
     {
         return function_exists('idn_to_ascii') && defined('INTL_IDNA_VARIANT_UTS46');

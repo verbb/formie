@@ -11,7 +11,6 @@ use verbb\formie\elements\db\SubmissionQuery;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\FieldLayoutPage;
 use verbb\formie\models\Notification;
-use verbb\formie\services\Rendering;
 
 use Craft;
 use craft\errors\MissingComponentException;
@@ -166,11 +165,11 @@ class Formie
     /**
      * Returns the CSS for the rendering of a form. This will include buffering any CSS files
      *
-     * @param Form|string $form
+     * @param string|Form $form
      * @param array|null $options
-     * @return string
+     * @return Markup|null
      */
-    public function renderFormCss($form, array $options = null): ?Markup
+    public function renderFormCss(Form|string $form, array $options = null): ?Markup
     {
         return FormiePlugin::$plugin->getRendering()->renderFormCss($form, $options);
     }
@@ -178,11 +177,11 @@ class Formie
     /**
      * Returns the JS for the rendering of a form. This will include buffering any JS files
      *
-     * @param Form|string $form
+     * @param string|Form $form
      * @param array|null $options
-     * @return string
+     * @return Markup|null
      */
-    public function renderFormJs($form, array $options = null): ?Markup
+    public function renderFormJs(Form|string $form, array $options = null): ?Markup
     {
         return FormiePlugin::$plugin->getRendering()->renderFormJs($form, $options);
     }

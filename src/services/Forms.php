@@ -49,7 +49,6 @@ class Forms extends Component
      */
     public function getFormById(int $id, int $siteId = null): ?Form
     {
-        /* @noinspection PhpIncompatibleReturnTypeInspection */
         return Form::find()->id($id)->siteId($siteId)->one();
     }
 
@@ -62,7 +61,6 @@ class Forms extends Component
      */
     public function getFormByHandle(string $handle, int $siteId = null): ?Form
     {
-        /* @noinspection PhpIncompatibleReturnTypeInspection */
         return Form::find()->handle($handle)->siteId($siteId)->one();
     }
 

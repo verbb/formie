@@ -7,7 +7,6 @@ use verbb\formie\base\Integration;
 use verbb\formie\base\IntegrationInterface;
 use verbb\formie\base\SubfieldInterface;
 use verbb\formie\base\SubfieldTrait;
-use verbb\formie\elements\Form;
 use verbb\formie\events\ModifyFrontEndSubfieldsEvent;
 use verbb\formie\gql\types\generators\FieldAttributeGenerator;
 use verbb\formie\gql\types\input\AddressInputType;
