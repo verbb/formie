@@ -95,7 +95,7 @@ trait FormFieldTrait
     public ?bool $enableConditions = null;
     public ?array $conditions = null;
     public bool $enableContentEncryption = false;
-    public ?bool $visibility = null;
+    public ?string $visibility = null;
     
     public ?int $formId = null;
     public ?int $rowId = null;
