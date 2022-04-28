@@ -4,7 +4,7 @@ namespace verbb\formie\prosemirror\tohtml\Marks;
 
 class Mark
 {
-    protected self $mark;
+    protected mixed $mark = null;
     protected ?string $markType = null;
     protected string|null|array $tagName = null;
 
