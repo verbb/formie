@@ -339,6 +339,12 @@ Once using the necessary [Inline Fragments](https://graphql.org/learn/queries/#i
 |`defaultValue` | `String` | The default value for the field when it loads.
 
 
+####  Calculations
+| Field | Type | Description
+| - | - | -
+|`formula` | `String` | A JSON string including the parsed formula and variables for any fields used in the formula.
+
+
 ####  Categories
 | Field | Type | Description
 | - | - | -

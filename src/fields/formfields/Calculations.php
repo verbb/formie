@@ -3,6 +3,7 @@ namespace verbb\formie\fields\formfields;
 
 use verbb\formie\base\FormField;
 use verbb\formie\base\SubfieldInterface;
+use verbb\formie\gql\types\generators\FieldAttributeGenerator;
 use verbb\formie\helpers\RichTextHelper;
 use verbb\formie\helpers\SchemaHelper;
 
@@ -10,6 +11,9 @@ use Craft;
 use craft\base\ElementInterface;
 use craft\base\PreviewableFieldInterface;
 use craft\helpers\Html;
+use craft\helpers\Json;
+
+use GraphQL\Type\Definition\Type;
 
 class Calculations extends FormField implements PreviewableFieldInterface
 {
@@ -115,6 +119,19 @@ class Calculations extends FormField implements PreviewableFieldInterface
             'formula' => $formula,
             'variables' => $variables,
         ];
+    }
+
+    public function getSettingGqlTypes(): array
+    {
+        return array_merge(parent::getSettingGqlTypes(), [
+            'formula' => [
+                'name' => 'formula',
+                'type' => Type::string(),
+                'resolve' => function($field) {
+                    return (string)Json::encode($field->getFormula());
+                },
+            ],
+        ]);
     }
 
     /**
