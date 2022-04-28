@@ -13,6 +13,7 @@ use Craft;
 use craft\gql\interfaces\Element;
 use craft\gql\GqlEntityRegistry;
 use craft\helpers\Json;
+use craft\helpers\UrlHelper;
 
 use GraphQL\Type\Definition\InterfaceType;
 use GraphQL\Type\Definition\Type;
@@ -115,7 +116,7 @@ class FormInterface extends Element
             'csrfToken' => [
                 'name' => 'csrfToken',
                 'type' => CsrfTokenType::getType(),
-                'description' => 'A CSRF token (name and value)',
+                'description' => 'A CSRF token (name and value).',
                 'resolve' => function() {
                     if (!Craft::$app->getConfig()->getGeneral()->enableCsrfProtection) {
                         return null;
@@ -130,7 +131,7 @@ class FormInterface extends Element
             'captchas' => [
                 'name' => 'captchas',
                 'type' => Type::listOf(CaptchaValueType::getType()),
-                'description' => 'A list of captcha values (name and value) to assist with spam protection',
+                'description' => 'A list of captcha values (name and value) to assist with spam protection.',
                 'resolve' => function ($source, $arguments) {
                     $values = [];
 
@@ -155,6 +156,14 @@ class FormInterface extends Element
                 'description' => 'The form’s GQL mutation name for submissions to use.',
                 'resolve' => function ($source) {
                     return Submission::gqlMutationNameByContext($source);
+                },
+            ],
+            'submissionEndpoint' => [
+                'name' => 'submissionEndpoint',
+                'type' => Type::string(),
+                'description' => 'The form’s endpoint for sending submissions to, if using POST requests.',
+                'resolve' => function ($source) {
+                    return UrlHelper::actionUrl('formie/submission/submit');
                 },
             ],
         ]), self::getName());

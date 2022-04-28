@@ -150,6 +150,9 @@ This is the interface implemented by all forms.
 | `configJson`| `String` | The form’s config as JSON.
 | `templateHtml`| `String` | The form’s rendered HTML.
 | `csrfToken`| `[CsrfTokenInterface]` | A CSRF token (name and value).
+| `captchas`| `[CaptchaValueInterface]` | A list of captcha values (name and value) to assist with spam protection.
+| `submissionMutationName`| `String` | The form’s GQL mutation name for submissions to use.
+| `submissionEndpoint`| `String` | The form’s endpoint for sending submissions to, if using POST requests.
 
 
 ### The `FormSettingsInterface` interface
