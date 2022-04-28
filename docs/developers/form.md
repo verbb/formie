@@ -63,8 +63,10 @@ Attribute | Description
 `submitActionFormHide` | Whether the form should be hidden on success.
 `submitActionMessage` | The success message as HTML shown on validation success.
 `submitActionMessageTimeout` | Whether the success message should hide after the provided number of milliseconds.
+`submitActionMessagePosition` | The form’s submit message position.
 `errorMessage` | The error message as HTML shown on validation failure.
-`loadingIndicator` | The type of loading indicator to use. `none`, `spinner` or `text`.
+`errorMessagePosition` | The form’s error message position.
+`loadingIndicator` | The type of loading indicator to use. `spinner` or `text`.
 `loadingIndicatorText` | The text for the loading indicator.
 `validationOnSubmit` | Whether to validate the form fields on-submit.
 `validationOnFocus` | Whether to validate the form fields on-focus.

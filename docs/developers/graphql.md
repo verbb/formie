@@ -161,22 +161,25 @@ This is the interface implemented by all forms.
 | `displayPageTabs`| `Boolean` | Whether to show the form’s page tabs.
 | `displayCurrentPageTitle`| `Boolean` | Whether to show the form’s current page title.
 | `displayPageProgress`| `Boolean` | Whether to show the form’s page progress.
-| `submitMethod`| `String` | The form’s submit method.
-| `submitAction`| `String` | The form’s submit action.
-| `submitActionTab`| `String` | The form’s submit redirect option (if in new tab or same tab).
-| `submitActionUrl`| `String` | The form’s submit action URL.
-| `submitActionFormHide`| `Boolean` | Whether to hide the form’s success message.
+| `scrollToTop`| `Boolean` | Whether to the form should scroll to the top of the page when submitted.
+| `submitMethod`| `String!` | The form’s submit method.
+| `submitAction`| `String!` | The form’s submit action.
+| `submitActionTab`| `String!` | The form’s submit redirect option (if in new tab or same tab).
+| `submitActionUrl`| `String!` | The form’s submit action URL.
+| `submitActionFormHide`| `Boolean!` | Whether to hide the form’s success message.
 | `submitActionMessageHtml`| `String` | The form’s submit success message.
 | `submitActionMessageTimeout`| `Integer` | The form’s submit success message timeout.
-| `redirectUrl`| `String` | The form’s submit action redirect URL.
-| `redirectEntry`| `EntryInterface` | The form’s submit action entry (for redirection).
+| `submitActionMessagePosition`| `String` | The form’s submit message position.
+| `redirectUrl`| `String!` | The form’s submit action redirect URL.
+| `redirectEntry`| `EntryInterface!` | The form’s submit action entry (for redirection).
 | `errorMessageHtml`| `String` | The form’s submit error message.
-| `loadingIndicator`| `Boolean` | Whether to show the form’s loading indicator.
-| `loadingIndicatorText`| `String` | The form’s loading indicator text.
-| `validationOnSubmit`| `Boolean` | Whether to validate the form’s on submit.
-| `validationOnFocus`| `Boolean` | Whether to validate the form’s on focus.
-| `defaultLabelPosition`| `String` | The form’s default label position for fields.
-| `defaultInstructionsPosition`| `String` | The form’s default instructions position for fields.
+| `errorMessagePosition`| `String` | The form’s error message position.
+| `loadingIndicator`| `String!` | The type of loading indicator to use. `spinner` or `text`.
+| `loadingIndicatorText`| `String!` | The form’s loading indicator text.
+| `validationOnSubmit`| `Boolean!` | Whether to validate the form’s on submit.
+| `validationOnFocus`| `Boolean!` | Whether to validate the form’s on focus.
+| `defaultLabelPosition`| `String!` | The form’s default label position for fields.
+| `defaultInstructionsPosition`| `String!` | The form’s default instructions position for fields.
 | `progressPosition`| `String` | The form’s progress bar position.
 | `integrations`| `[FormIntegrationsInterface]` | The form’s enabled integrations.
 
@@ -212,11 +215,17 @@ This is the interface implemented by all pages.
 
 | Field | Type | Description
 | - | - | -
-| `submitButtonLabel`| `String` | The page’s submit button label.
-| `backButtonLabel`| `String` | The page’s back button label.
+| `submitButtonLabel`| `String!` | The page’s submit button label.
+| `backButtonLabel`| `String!` | The page’s back button label.
 | `showBackButton`| `Boolean` | Whether to show the page’s back button.
 | `buttonsPosition`| `String` | The page’s button positions.
-
+| `cssClasses`| `String!` | The field’s CSS classes.
+| `containerAttributes| `FieldAttribute!` | The field’s container attributes.
+| `inputAttributes| `FieldAttribute!` | The field’s input attributes.
+| `enablePageConditions`| `Boolean` | Whether the page has conditions enabled.',
+| `pageConditions`| `String` | The page’s conditions.',
+| `enableNextButtonConditions`| `Boolean` | Whether the page has conditions enabled.
+| `nextButtonConditions`| `String` | The page’s conditions.
 
 ### The `RowInterface` interface
 This is the interface implemented by all rows.
@@ -243,24 +252,24 @@ This is the interface implemented by all fields. Note that as settings are speci
 | `displayName`| `String` | The field’s display name (last portion of the class).
 | `typeName`| `String` | The field’s full GQL type.
 | `inputTypeName`| `String` | The field’s full GQL input type. Useful for mutations.
-| `limit`| `Boolean` | Whether the field should limit content.
-| `limitType`| `String` | The field’s limit type.
-| `limitAmount`| `Int` | The field’s limit amount.
-| `matchField`| `Boolean` | Whether the field’s value should match another field.
-| `placeholder`| `String` | The field’s placeholder.
+| `limit`| `Boolean!` | Whether the field should limit content.
+| `limitType`| `String!` | The field’s limit type.
+| `limitAmount`| `Int!` | The field’s limit amount.
+| `matchField`| `Boolean!` | Whether the field’s value should match another field.
+| `placeholder`| `String!` | The field’s placeholder.
 | `defaultValue`| `String` | The field’s default value. This type will change depending on the field.
-| `prePopulate`| `String` | The field’s pre-populated value extracted from the query string.
-| `errorMessage`| `String` | The field’s error message.
-| `labelPosition`| `String` | The field’s label position.
-| `instructionsPosition`| `String` | The field’s instructions position.
-| `cssClasses`| `String` | The field’s CSS classes.
-| `containerAttributes`| `String` | The field’s container attributes.
-| `inputAttributes`| `String` | The field’s input attributes.
-| `includeInEmail`| `Boolean` | Whether the field should be included in email content.
-| `enableConditions`| `Boolean` | Whether the field has conditions enabled.
-| `conditions`| `String` | The field’s conditions.
+| `prePopulate`| `String!` | The field’s pre-populated value extracted from the query string.
+| `errorMessage`| `String!` | The field’s error message.
+| `labelPosition`| `String!` | The field’s label position.
+| `instructionsPosition`| `String!` | The field’s instructions position.
+| `cssClasses`| `String!` | The field’s CSS classes.
+| `containerAttributes`| `String!` | The field’s container attributes.
+| `inputAttributes`| `String!` | The field’s input attributes.
+| `includeInEmail`| `Boolean!` | Whether the field should be included in email content.
+| `enableConditions`| `Boolean!` | Whether the field has conditions enabled.
+| `conditions`| `String!` | The field’s conditions.
 | `enableContentEncryption`| `Boolean` | Whether the field has content encryption enabled.
-| `visibility`| `String` | The field’s visibility.
+| `visibility`| `String!` | The field’s visibility.
 
 
 Once using the necessary [Inline Fragments](https://graphql.org/learn/queries/#inline-fragments) for each field type, you'll have access to the same variables as described on the [Field](docs:developers/field) docs.
