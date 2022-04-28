@@ -69,22 +69,22 @@ class PageSettingsInterface extends BaseInterfaceType
             'buttonsPosition' => [
                 'name' => 'buttonsPosition',
                 'type' => Type::string(),
-                'description' => 'The page’s button positions.',
+                'description' => 'The page’s button (back and submit) positions.',
             ],
             'cssClasses' => [
                 'name' => 'cssClasses',
                 'type' => Type::string(),
-                'description' => 'The field’s CSS classes.',
+                'description' => 'The page’s button (back and submit) CSS classes.',
             ],
             'containerAttributes' => [
                 'name' => 'containerAttributes',
                 'type' => Type::listOf(FieldAttributeGenerator::generateType()),
-                'description' => 'The field’s container attributes.',
+                'description' => 'The page’s button (back and submit) container attributes.',
             ],
             'inputAttributes' => [
                 'name' => 'inputAttributes',
                 'type' => Type::listOf(FieldAttributeGenerator::generateType()),
-                'description' => 'The field’s input attributes.',
+                'description' => 'The page’s button (back and submit) input attributes.',
             ],
             'enablePageConditions' => [
                 'name' => 'enablePageConditions',
@@ -104,12 +104,12 @@ class PageSettingsInterface extends BaseInterfaceType
             'enableNextButtonConditions' => [
                 'name' => 'enableNextButtonConditions',
                 'type' => Type::boolean(),
-                'description' => 'Whether the page has conditions enabled.',
+                'description' => 'Whether the page’s next button has conditions enabled, for multi-page forms.',
             ],
             'nextButtonConditions' => [
                 'name' => 'nextButtonConditions',
                 'type' => Type::string(),
-                'description' => 'The page’s conditions.',
+                'description' => 'The page’s conditions for whether to show the next button, for multi-page forms.',
                 'resolve' => function($source) {
                     $value = $source->nextButtonConditions;
 
