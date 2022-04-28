@@ -11,7 +11,7 @@
         'fui-btn-container',
         "fui-btn-#{page.settings.buttonsPosition}",
         page.settings.cssClasses,
-    ],
+    ] | filter,
 } | merge(containerAttributes) %}
 
 <div {{ attr(attributes) }}>
@@ -27,17 +27,17 @@
             'fui-btn',
             'fui-submit',
             nextPage ? 'fui-next',
-        ],
+        ] | filter,
         type: 'submit',
         'data-field-conditions': page.settings.getConditionsJson(),
     } | merge(options.buttons.submit ?? {}) | merge(inputAttributes) %}
 
-    <button {{ attr(submitAttributes) }}>
-        {% hook 'formie.buttons.submit-start' %}
+    <button {{- attr(submitAttributes) -}}>
+        {%- hook 'formie.buttons.submit-start' -%}
 
         {{ page.settings.submitButtonLabel | t }}
 
-        {% hook 'formie.buttons.submit-end' %}
+        {%- hook 'formie.buttons.submit-end' -%}
     </button>
 
     {% if page.settings.showBackButton and prevPage %}
@@ -51,12 +51,12 @@
             onclick: 'this.form.goBack = true;',
         } | merge(options.buttons.prev ?? {}) | merge(inputAttributes) %}
 
-        <button {{ attr(prevAttributes) }}>
-            {% hook 'formie.buttons.prev-start' %}
+        <button {{- attr(prevAttributes) -}}>
+            {%- hook 'formie.buttons.prev-start' -%}
 
             {{ page.settings.backButtonLabel | t }}
 
-            {% hook 'formie.buttons.prev-end' %}
+            {%- hook 'formie.buttons.prev-end' -%}
         </button>
     {% endif %}
 
