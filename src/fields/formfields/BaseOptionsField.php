@@ -3,6 +3,7 @@ namespace verbb\formie\fields\formfields;
 
 use verbb\formie\Formie;
 use verbb\formie\base\FormFieldTrait;
+use verbb\formie\gql\types\generators\FieldAttributeGenerator;
 use verbb\formie\models\IntegrationField;
 
 use Craft;
@@ -11,6 +12,8 @@ use craft\fields\BaseOptionsField as CraftBaseOptionsField;
 use craft\fields\data\MultiOptionsFieldData;
 use craft\fields\data\OptionData;
 use craft\fields\data\SingleOptionFieldData;
+
+use GraphQL\Type\Definition\Type;
 
 use Throwable;
 
@@ -23,6 +26,7 @@ abstract class BaseOptionsField extends CraftBaseOptionsField
         getFrontEndInputOptions as traitGetFrontendInputOptions;
         getDefaultValue as traitGetDefaultValue;
         defineValueForIntegration as traitDefineValueForIntegration;
+        getSettingGqlTypes as traitGetSettingGqlTypes;
     }
 
 
@@ -203,6 +207,16 @@ abstract class BaseOptionsField extends CraftBaseOptionsField
         $this->defaultValue = null;
 
         return parent::beforeSave($isNew);
+    }
+
+    public function getSettingGqlTypes(): array
+    {
+        return array_merge($this->traitGetSettingGqlTypes(), [
+            'options' => [
+                'name' => 'options',
+                'type' => Type::listOf(FieldAttributeGenerator::generateType()),
+            ],
+        ]);
     }
 
 

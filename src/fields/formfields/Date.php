@@ -7,6 +7,7 @@ use verbb\formie\base\SubfieldInterface;
 use verbb\formie\base\SubfieldTrait;
 use verbb\formie\events\ModifyDateTimeFormatEvent;
 use verbb\formie\events\ModifyFrontEndSubfieldsEvent;
+use verbb\formie\gql\types\generators\FieldAttributeGenerator;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\Settings;
@@ -808,6 +809,10 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
             'maxDate' => [
                 'name' => 'maxDate',
                 'type' => DateTimeType::getType(),
+            ],
+            'datePickerOptions' => [
+                'name' => 'datePickerOptions',
+                'type' => Type::listOf(FieldAttributeGenerator::generateType()),
             ],
         ]);
     }

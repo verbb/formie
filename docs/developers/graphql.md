@@ -220,8 +220,8 @@ This is the interface implemented by all pages.
 | `showBackButton`| `Boolean` | Whether to show the page’s back button.
 | `buttonsPosition`| `String` | The page’s button positions.
 | `cssClasses`| `String!` | The field’s CSS classes.
-| `containerAttributes| `FieldAttribute!` | The field’s container attributes.
-| `inputAttributes| `FieldAttribute!` | The field’s input attributes.
+| `containerAttributes| `[FieldAttribute]!` | The field’s container attributes.
+| `inputAttributes| `[FieldAttribute]!` | The field’s input attributes.
 | `enablePageConditions`| `Boolean` | Whether the page has conditions enabled.',
 | `pageConditions`| `String` | The page’s conditions.',
 | `enableNextButtonConditions`| `Boolean` | Whether the page has conditions enabled.
@@ -326,7 +326,7 @@ Once using the necessary [Inline Fragments](https://graphql.org/learn/queries/#i
 |`countryErrorMessage` | `String` | The error message for the Country sub-field.
 |`countryCollapsed` | `Boolean` | Whether the Country sub-field is collapsed in the control panel.
 |`countryEnabled` | `Boolean` | Whether the Country sub-field is enabled in the control panel.
-|`countryOptions` | `FieldAttribute` | An array of options available to pick a country from.
+|`countryOptions` | `[FieldAttribute]` | An array of options available to pick a country from.
 
 
 ####  Agree
@@ -442,7 +442,7 @@ Once using the necessary [Inline Fragments](https://graphql.org/learn/queries/#i
 |`prefixErrorMessage` | `String` | The error message for the Prefix sub-field.
 |`prefixCollapsed` | `Boolean` | Whether the Prefix sub-field is collapsed in the control panel.
 |`prefixEnabled` | `Boolean` | Whether the Prefix sub-field is enabled in the control panel.
-|`prefixOptions` | `FieldAttribute` | An array of options available to pick a prefix from.
+|`prefixOptions` | `[FieldAttribute]` | An array of options available to pick a prefix from.
 |`firstNameLabel` | `String` | The label for the First Name sub-field.
 |`firstNamePlaceholder` | `String` | The placeholder for the First Name sub-field.
 |`firstNameDefaultValue` | `String` | The default value for the First Name sub-field.
@@ -486,7 +486,7 @@ Once using the necessary [Inline Fragments](https://graphql.org/learn/queries/#i
 |`countryDefaultValue` | `String` | The default value for the Country sub-field.
 |`countryCollapsed` | `Boolean` | Whether the Country sub-field is collapsed in the control panel.
 |`countryEnabled` | `Boolean` | Whether the Country sub-field is enabled in the control panel.
-|`countryOptions` | `FieldAttribute` | An array of options available to pick a country from.
+|`countryOptions` | `[FieldAttribute]` | An array of options available to pick a country from.
 |`numberLabel` | `String` | The label for the Number sub-field.
 |`numberPlaceholder` | `String` | The placeholder for the Number sub-field.
 |`numberDefaultValue` | `String` | The default value for the Number sub-field.

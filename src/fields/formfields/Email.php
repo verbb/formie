@@ -3,6 +3,7 @@ namespace verbb\formie\fields\formfields;
 
 use verbb\formie\base\FormField;
 use verbb\formie\events\ModifyEmailFieldUniqueQueryEvent;
+use verbb\formie\gql\types\generators\FieldAttributeGenerator;
 use verbb\formie\helpers\SchemaHelper;
 
 use Craft;
@@ -10,6 +11,8 @@ use craft\base\ElementInterface;
 use craft\base\PreviewableFieldInterface;
 use craft\db\Query;
 use craft\helpers\ArrayHelper;
+
+use GraphQL\Type\Definition\Type;
 
 use yii\validators\EmailValidator;
 
@@ -166,6 +169,21 @@ class Email extends FormField implements PreviewableFieldInterface
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/email/preview', [
             'field' => $this,
+        ]);
+    }
+
+    public function getSettingGqlTypes(): array
+    {
+        return array_merge(parent::getSettingGqlTypes(), [
+            'blockedDomains' => [
+                'name' => 'blockedDomains',
+                'type' => Type::listOf(Type::string()),
+                'resolve' => function($field) {
+                    return array_map(function($item) {
+                        return $item['value'] ?? '';
+                    }, $field->blockedDomains);
+                },
+            ],
         ]);
     }
 

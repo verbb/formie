@@ -4,6 +4,7 @@ namespace verbb\formie\fields\formfields;
 use verbb\formie\base\FormFieldInterface;
 use verbb\formie\base\FormFieldTrait;
 use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\gql\types\generators\KeyValueGenerator;
 
 use Craft;
 use craft\base\Element;
@@ -18,6 +19,8 @@ use craft\validators\ArrayValidator;
 use craft\validators\ColorValidator;
 use craft\validators\UrlValidator;
 
+use GraphQL\Type\Definition\Type;
+
 use yii\db\Schema;
 use yii\validators\EmailValidator;
 
@@ -26,7 +29,9 @@ class Table extends CraftTable implements FormFieldInterface
     // Traits
     // =========================================================================
 
-    use FormFieldTrait;
+    use FormFieldTrait {
+        getSettingGqlTypes as traitGetSettingGqlTypes;
+    }
 
 
     // Static Methods
@@ -300,6 +305,28 @@ class Table extends CraftTable implements FormFieldInterface
     public function hasMaxRows(): bool
     {
         return (bool)$this->maxRows;
+    }
+
+    public function getSettingGqlTypes(): array
+    {
+        $columns = [
+            'heading' => Type::string(),
+            'handle' => Type::string(),
+            'width' => Type::string(),
+            'type' => Type::string(),
+        ];
+
+        // Figure something out with table defaults. It almost can't be done because we're
+        // getting this information from the class, not an instance of the field.
+
+        $typeArray = KeyValueGenerator::generateTypes($this, $columns);
+
+        return array_merge($this->traitGetSettingGqlTypes(), [
+            'columns' => [
+                'name' => 'columns',
+                'type' => Type::listOf(array_pop($typeArray)),
+            ],
+        ]);
     }
 
     /**

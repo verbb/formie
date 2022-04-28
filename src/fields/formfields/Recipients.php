@@ -4,6 +4,7 @@ namespace verbb\formie\fields\formfields;
 use verbb\formie\base\FormField;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
+use verbb\formie\gql\types\generators\FieldAttributeGenerator;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\Notification;
@@ -373,6 +374,16 @@ class Recipients extends FormField
             SchemaHelper::enableConditionsField(),
             SchemaHelper::conditionsField(),
         ];
+    }
+
+    public function getSettingGqlTypes(): array
+    {
+        return array_merge(parent::getSettingGqlTypes(), [
+            'options' => [
+                'name' => 'options',
+                'type' => Type::listOf(FieldAttributeGenerator::generateType()),
+            ],
+        ]);
     }
 
     /**
