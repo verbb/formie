@@ -310,14 +310,14 @@ class Notifications extends Component
     /**
      * Returns an array of existing form notifications.
      *
-     * @param Form|null $excludeForm
+     * @param Form|Stencil|null $excludeForm
      * @return array
      * @throws LoaderError
      * @throws RuntimeError
      * @throws SyntaxError
      * @throws \yii\base\Exception
      */
-    public function getExistingNotifications(Form $excludeForm = null): array
+    public function getExistingNotifications(Form|Stencil $excludeForm = null): array
     {
         if ($this->_existingNotifications !== null) {
             return $this->_existingNotifications;

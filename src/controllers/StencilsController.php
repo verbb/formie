@@ -129,15 +129,10 @@ class StencilsController extends Controller
         $notificationsConfig = null;
         $form = null;
 
-        $stencilId = $request->getParam('stencilId');
         $duplicate = (bool)$request->getParam('duplicateStencil');
 
-        $stencil = Formie::$plugin->getStencils()->getStencilById($stencilId);
-
-        if (!$stencil) {
-            $stencil = new Stencil();
-        }
-
+        $stencil = new Stencil();
+        $stencil->id = $request->getParam('stencilId');
         $stencil->name = $request->getParam('title', $stencil->name);
         $stencil->handle = $request->getParam('handle', $stencil->handle);
 

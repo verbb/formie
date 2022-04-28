@@ -43,7 +43,7 @@ class Stencils extends Component
     /**
      * @var Stencil[]
      */
-    private ?array $_stencils = [];
+    private ?array $_stencils = null;
 
 
     // Public Methods

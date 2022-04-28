@@ -53,28 +53,30 @@ class Stencil extends Model
     // Public Methods
     // =========================================================================
 
+    public function __construct($config = [])
+    {
+        // Config normalization
+        if (array_key_exists('data', $config)) {
+            if (is_string($config['data'])) {
+                $config['data'] = new StencilData(Json::decodeIfJson($config['data']));
+            }
+
+            if (!($config['data'] instanceof StencilData)) {
+                $config['data'] = new StencilData();
+            }
+        } else {
+            $config['data'] = new StencilData();
+        }
+
+        parent::__construct($config);
+    }
+
     /**
      * @return string
      */
     public function __toString()
     {
         return $this->getDisplayName();
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function init(): void
-    {
-        parent::init();
-
-        $data = Json::decodeIfJson($this->data);
-
-        if (!is_array($data)) {
-            $this->data = new StencilData();
-        } else {
-            $this->data = new StencilData($data);
-        }
     }
 
     /**
