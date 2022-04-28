@@ -117,7 +117,7 @@ class FormSettingsType extends ObjectType
                 ],
                 'loadingIndicator' => [
                     'name' => 'loadingIndicator',
-                    'type' => Type::boolean(),
+                    'type' => Type::string(),
                     'description' => 'Whether to show the form’s loading indicator.',
                 ],
                 'loadingIndicatorText' => [
