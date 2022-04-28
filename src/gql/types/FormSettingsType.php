@@ -86,6 +86,11 @@ class FormSettingsType extends ObjectType
                         return (int)$class->submitActionMessageTimeout;
                     },
                 ],
+                'submitActionMessagePosition' => [
+                    'name' => 'submitActionMessagePosition',
+                    'type' => Type::string(),
+                    'description' => 'The form’s submit message position.',
+                ],
                 'redirectUrl' => [
                     'name' => 'redirectUrl',
                     'type' => Type::string(),
