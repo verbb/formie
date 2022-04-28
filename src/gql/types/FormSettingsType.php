@@ -105,6 +105,11 @@ class FormSettingsType extends ObjectType
                     'type' => Type::string(),
                     'description' => 'The form’s submit error message.',
                 ],
+                'errorMessagePosition' => [
+                    'name' => 'errorMessagePosition',
+                    'type' => Type::string(),
+                    'description' => 'The form’s error message position.',
+                ],
                 'loadingIndicator' => [
                     'name' => 'loadingIndicator',
                     'type' => Type::boolean(),
