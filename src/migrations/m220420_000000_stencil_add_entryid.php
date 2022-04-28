@@ -10,7 +10,7 @@ class m220420_000000_stencil_add_entryid extends Migration
      */
     public function safeUp()
     {
-        if (!$this->db->columnExists('{{%formie_stencils}}', 'attachAssets')) {
+        if (!$this->db->columnExists('{{%formie_stencils}}', 'submitActionEntryId')) {
             $this->addColumn('{{%formie_stencils}}', 'submitActionEntryId', $this->integer()->after('templateId'));
         }
     }
