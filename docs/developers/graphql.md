@@ -332,11 +332,11 @@ Once using the necessary [Inline Fragments](https://graphql.org/learn/queries/#i
 ####  Agree
 | Field | Type | Description
 | - | - | -
-|`description` | `String` | The description for the field.
+|`description` | `String!` | The description for the field.
 |`descriptionHtml` | `String` | The HTML description for the field.
-|`checkedValue ` | `String` | The value of this field when it is checked.
-|`uncheckedValue` | `String` | The value of this field when it is unchecked.
-|`defaultValue` | `String` | The default value for the field when it loads.
+|`checkedValue ` | `String!` | The value of this field when it is checked.
+|`uncheckedValue` | `String!` | The value of this field when it is unchecked.
+|`defaultValue` | `String!` | The default value for the field when it loads.
 
 
 ####  Calculations
