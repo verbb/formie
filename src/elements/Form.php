@@ -1182,7 +1182,7 @@ class Form extends Element
             $url = $this->settings->redirectUrl;
         } else if ($this->settings->submitAction == 'entry' && $this->getRedirectEntry()) {
             $url = $this->getRedirectEntry()->url;
-        } else if ($this->settings->submitAction == 'url') {
+        } else if ($this->settings->submitAction == 'url' && $this->settings->submitActionUrl) {
             // Parse Twig
             $url = Craft::$app->getView()->renderString($this->settings->submitActionUrl);
         }
