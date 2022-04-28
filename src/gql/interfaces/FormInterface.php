@@ -3,6 +3,7 @@ namespace verbb\formie\gql\interfaces;
 
 use verbb\formie\Formie;
 use verbb\formie\elements\Form;
+use verbb\formie\elements\Submission;
 use verbb\formie\gql\types\CaptchaValueType;
 use verbb\formie\gql\types\CsrfTokenType;
 use verbb\formie\gql\types\FormSettingsType;
@@ -146,6 +147,14 @@ class FormInterface extends Element
                     }
 
                     return $values;
+                },
+            ],
+            'submissionMutationName' => [
+                'name' => 'submissionMutationName',
+                'type' => Type::string(),
+                'description' => 'The form’s GQL mutation name for submissions to use.',
+                'resolve' => function ($source) {
+                    return Submission::gqlMutationNameByContext($source);
                 },
             ],
         ]), self::getName());
