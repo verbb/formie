@@ -57,7 +57,6 @@ export default {
             modalVisible: false,
             originalField: null,
             submitButton: true,
-            field: {},
         };
     },
 
@@ -66,6 +65,11 @@ export default {
             pages: state => state.form.pages,
             form: state => state.form,
         }),
+
+        field() {
+            // Create a mock field to make editing easier
+            return this.pages[this.pageIndex];
+        },
 
         settings() {
             return this.$store.getters['form/pageSettings'](this.pageId);
@@ -351,9 +355,6 @@ export default {
     created() {
         // Store this so we can cancel changes.
         this.originalField = clone(this.settings);
-
-        // Create a mock field to make editing easier
-        this.field = this.pages[this.pageIndex];
     },
 
     methods: {
