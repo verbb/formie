@@ -432,11 +432,11 @@ Once using the necessary [Inline Fragments](https://graphql.org/learn/queries/#i
 | - | - | -
 |`placeholder` | `String` | The text that will be shown if the field doesn’t have a value.
 |`defaultValue` | `String` | Entering a default value will place the value in the field when it loads.
-|`limit` | `String` | Whether to limit the content of this field.
+|`limit` | `Boolean` | Whether to limit the content of this field.
 |`limitType` | `String` | Either `words` or `characters`.
 |`limitAmount` | `String` | The number of character or words to limit this field by.
-|`useRichText` | `String` | Whether the front-end of the field should use a Rich Text editor. This is powered by [Pell](https://github.com/jaredreich/pell).
-|`richTextButtons` | `String` | An array of available buttons the Rich Text field should use. Consult the [Pell](https://github.com/jaredreich/pell) docs for these options.
+|`useRichText` | `Boolean` | Whether the front-end of the field should use a Rich Text editor. This is powered by [Pell](https://github.com/jaredreich/pell).
+|`richTextButtons` | `[String]!` | An array of available buttons the Rich Text field should use. Consult the [Pell](https://github.com/jaredreich/pell) docs for these options.
 
 
 ####  Name
@@ -479,7 +479,7 @@ Once using the necessary [Inline Fragments](https://graphql.org/learn/queries/#i
 | - | - | -
 |`placeholder` | `String` | The text that will be shown if the field doesn’t have a value.
 |`defaultValue` | `String` | Entering a default value will place the value in the field when it loads.
-|`limit` | `String` | Whether to limit the numbers for this field.
+|`limit` | `Boolean` | Whether to limit the numbers for this field.
 |`min` | `String` | The minimum number that can be entered for this field.
 |`max` | `String` | The maximum number that can be entered for this field.
 |`decimals` | `String` | Set the number of decimal points to format the field value.
@@ -506,7 +506,7 @@ Once using the necessary [Inline Fragments](https://graphql.org/learn/queries/#i
 | - | - | -
 |`placeholder` | `String` | The option shown initially, when no option is selected.
 |`sources` | `String` | Which sources do you want to select products from?
-|`limit` | `String` | Limit the number of selectable products.
+|`limit` | `Boolean` | Limit the number of selectable products.
 |`products` | `ProductQuery` | The product query for available products.
 
 
@@ -545,7 +545,7 @@ Once using the necessary [Inline Fragments](https://graphql.org/learn/queries/#i
 | - | - | -
 |`placeholder` | `String` | The text that will be shown if the field doesn’t have a value.
 |`defaultValue` | `String` | Entering a default value will place the value in the field when it loads.
-|`limit` | `String` | Whether to limit the content of this field.
+|`limit` | `Boolean` | Whether to limit the content of this field.
 |`limitType` | `String` | Either `words` or `characters`.
 |`limitAmount` | `String` | The number of character or words to limit this field by.
 

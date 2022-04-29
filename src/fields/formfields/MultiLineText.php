@@ -9,6 +9,8 @@ use Craft;
 use craft\base\ElementInterface;
 use craft\base\PreviewableFieldInterface;
 
+use GraphQL\Type\Definition\Type;
+
 use yii\db\Schema;
 
 class MultiLineText extends FormField implements PreviewableFieldInterface
@@ -112,6 +114,16 @@ class MultiLineText extends FormField implements PreviewableFieldInterface
         return [
             'richTextButtons' => ['bold', 'italic'],
         ];
+    }
+
+    public function getSettingGqlTypes(): array
+    {
+        return array_merge(parent::getSettingGqlTypes(), [
+            'richTextButtons' => [
+                'name' => 'richTextButtons',
+                'type' => Type::listOf(Type::string()),
+            ],
+        ]);
     }
 
     /**
