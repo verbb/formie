@@ -55,6 +55,9 @@ class FieldGenerator implements GeneratorInterface
                     'name' => 'fields',
                     'type' => Type::listOf(FieldInterface::getType()),
                     'description' => 'The field’s nested fields.',
+                    'resolve' => function($source, $arguments) {
+                        return $source->getCustomFields();
+                    },
                 ];
             }
 
