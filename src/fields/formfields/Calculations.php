@@ -240,6 +240,7 @@ class Calculations extends FormField implements PreviewableFieldInterface
                 $inputNames = array_merge($inputNames, [$fieldHandle, $fieldKey]);
 
                 return [
+                    'handle' => $this->_getInputName($inputNames),
                     'name' => Html::namespaceInputName($this->_getInputName($inputNames), $field->namespace),
                     'type' => get_class($field),
                 ];
@@ -248,6 +249,7 @@ class Calculations extends FormField implements PreviewableFieldInterface
             $inputNames[] = $fieldHandle;
 
             return [
+                'handle' => $this->_getInputName($inputNames),
                 'name' => Html::namespaceInputName($this->_getInputName($inputNames), $field->namespace),
                 'type' => get_class($field),
             ];
