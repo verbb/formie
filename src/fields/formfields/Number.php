@@ -41,8 +41,8 @@ class Number extends FormField implements PreviewableFieldInterface
     // Properties
     // =========================================================================
 
-    public ?int $min = null;
-    public ?int $max = null;
+    public int|float|null $min = null;
+    public int|float|null $max = null;
     public ?int $decimals = null;
 
 
