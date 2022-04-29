@@ -219,7 +219,7 @@ abstract class BaseOptionsField extends CraftBaseOptionsField
         ]);
 
         // Remove this for dropdowns, which is a duplicate of `multi`
-        unset($types['multiple']);
+        unset($types['multiple'], $types['optgroups']);
 
         return $types;
     }
