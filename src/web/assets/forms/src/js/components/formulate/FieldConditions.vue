@@ -92,6 +92,7 @@
 
 <script>
 import truncate from 'lodash/truncate';
+import isPlainObject from 'lodash/isPlainObject';
 
 import { newId } from '../../utils/string';
 import { toBoolean } from '../../utils/bool';
@@ -167,7 +168,7 @@ export default {
                 return this.defaultSettings;
             }
 
-            if (!Array.isArray(value)) {
+            if (!Array.isArray(value) && !isPlainObject(value)) {
                 try {
                     parsedValue = JSON.parse(value);
                 } catch (e) {
