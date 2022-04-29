@@ -3,12 +3,12 @@
 ## 1.5.16 - 2022-04-29
 
 ### Fixed
-- Fix an error caused by stencil migrations.
-- Fix Repeater and Table new row HTML for GraphQL queries being incorrectly namespaced.
-- Fix an error when updating from Formie pre-1.5.2 regarding stencils.
-- Fix not being able to import Group/Repeater fields correctly.
-- Fix spacing for some HTML elements for front-end forms.
-- Fix an error when applying project config updates with stencils.
+- Fixed an error caused by stencil migrations.
+- Fixed Repeater and Table new row HTML for GraphQL queries being incorrectly namespaced.
+- Fixed an error when updating from Formie pre-1.5.2 regarding stencils.
+- Fixed not being able to import Group/Repeater fields correctly.
+- Fixed spacing for some HTML elements for front-end forms.
+- Fixed an error when applying project config updates with stencils.
 
 ## 1.5.15 - 2022-04-23
 
