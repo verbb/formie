@@ -552,7 +552,7 @@ class Forms extends Component
             // Set page settings.
             $pageSettings = $pageData['settings'] ?? [];
             unset($pageSettings['label']);
-            $page->settings->setAttributes($pageSettings);
+            $page->settings->setAttributes($pageSettings, false);
 
             $pages[] = $page;
         }

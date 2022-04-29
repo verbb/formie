@@ -121,7 +121,7 @@ class SentNotifications extends Component
         $transportType = new $emailSettings->transportType();
 
         if ($emailSettings->transportSettings) {
-            $transportType->setAttributes($emailSettings->transportSettings);
+            $transportType->setAttributes($emailSettings->transportSettings, false);
         }
 
         $info['transportType'] = $transportType::displayName();
