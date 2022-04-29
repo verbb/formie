@@ -276,7 +276,7 @@ This is the interface implemented by all fields. Note that as settings are speci
 
 Once using the necessary [Inline Fragments](https://graphql.org/learn/queries/#inline-fragments) for each field type, you'll have access to the same variables as described on the [Field](docs:developers/field) docs.
 
-####  Address Fields
+#### Address Fields
 | Field | Type | Description
 | - | - | -
 |`address1Label` | `String` | The label for the Address 1 sub-field.
@@ -331,7 +331,7 @@ Once using the necessary [Inline Fragments](https://graphql.org/learn/queries/#i
 |`countryOptions` | `[FieldAttribute]` | An array of options available to pick a country from.
 
 
-####  Agree
+#### Agree
 | Field | Type | Description
 | - | - | -
 |`description` | `String!` | The description for the field.
@@ -341,13 +341,13 @@ Once using the necessary [Inline Fragments](https://graphql.org/learn/queries/#i
 |`defaultValue` | `String!` | The default value for the field when it loads.
 
 
-####  Calculations
+#### Calculations
 | Field | Type | Description
 | - | - | -
 |`formula` | `String` | A JSON string including the parsed formula and variables for any fields used in the formula.
 
 
-####  Categories
+#### Categories
 | Field | Type | Description
 | - | - | -
 |`placeholder` | `String` | The option shown initially, when no option is selected.
@@ -356,7 +356,7 @@ Once using the necessary [Inline Fragments](https://graphql.org/learn/queries/#i
 |`categories` | `CategoryQuery` | The category query for available categories.
 
 
-####  Checkboxes
+#### Checkboxes
 | Field | Type | Description
 | - | - | -
 |`options` | `KeyValue` | Define the available options for users to select from.
@@ -364,7 +364,7 @@ Once using the necessary [Inline Fragments](https://graphql.org/learn/queries/#i
 |`defaultValue` | `String` | Entering a default value will place the value in the field when it loads.
 
 
-####  Date/Time
+#### Date/Time
 | Field | Type | Description
 | - | - | -
 |`includeTime` | `Boolean` | Whether this field should include the time.
@@ -372,7 +372,7 @@ Once using the necessary [Inline Fragments](https://graphql.org/learn/queries/#i
 |`displayType` | `String` | Set different display layouts for this field.
 
 
-####  Dropdown
+#### Dropdown
 | Field | Type | Description
 | - | - | -
 |`multiple` | `Boolean` | Whether this field should allow multiple options to be selected.
@@ -380,14 +380,14 @@ Once using the necessary [Inline Fragments](https://graphql.org/learn/queries/#i
 |`defaultValue` | `String` | Entering a default value will place the value in the field when it loads.
 
 
-####  Email Address
+#### Email Address
 | Field | Type | Description
 | - | - | -
 |`placeholder` | `String` | The text that will be shown if the field doesn’t have a value.
 |`defaultValue` | `String` | Entering a default value will place the value in the field when it loads.
 
 
-####  Entries
+#### Entries
 | Field | Type | Description
 | - | - | -
 |`placeholder` | `String` | The option shown initially, when no option is selected.
@@ -396,7 +396,7 @@ Once using the necessary [Inline Fragments](https://graphql.org/learn/queries/#i
 |`entries` | `EntryQuery` | The entry query for available entries.
 
 
-####  File Upload
+#### File Upload
 | Field | Type | Description
 | - | - | -
 |`uploadLocationSource` | `String` | The volume for files to be uploaded into.
@@ -404,16 +404,15 @@ Once using the necessary [Inline Fragments](https://graphql.org/learn/queries/#i
 |`limitFiles` | `String` | Limit the number of files a user can upload.
 |`sizeLimit` | `String` | Limit the size of the files a user can upload.
 |`allowedKinds` | `String` | A collection of allowed mime-types the user can upload.
-|
 
 
-####  Heading
+#### Heading
 | Field | Type | Description
 | - | - | -
 |`headingSize` | `String` | Choose the size for the heading.
 
 
-####  Hidden
+#### Hidden
 | Field | Type | Description
 | - | - | -
 |`defaultOption` | `String` | The selected option for the preset default value chosen.
@@ -421,13 +420,13 @@ Once using the necessary [Inline Fragments](https://graphql.org/learn/queries/#i
 |`queryParameter` | `String` | If `query` string is selected for the `defaultOption`, this will contain the query string parameter to look up.
 
 
-####  Html
+#### Html
 | Field | Type | Description
 | - | - | -
 |`htmlContent` | `String` | Enter HTML content to be rendered for this field.
 
 
-####  Multi-Line Text
+#### Multi-Line Text
 | Field | Type | Description
 | - | - | -
 |`placeholder` | `String` | The text that will be shown if the field doesn’t have a value.
@@ -439,7 +438,7 @@ Once using the necessary [Inline Fragments](https://graphql.org/learn/queries/#i
 |`richTextButtons` | `[String]!` | An array of available buttons the Rich Text field should use. Consult the [Pell](https://github.com/jaredreich/pell) docs for these options.
 
 
-####  Name
+#### Name
 | Field | Type | Description
 | - | - | -
 |`useMultipleFields` | `String` | Whether this field should use multiple fields for users to enter their details.
@@ -474,7 +473,7 @@ Once using the necessary [Inline Fragments](https://graphql.org/learn/queries/#i
 |`lastNameEnabled` | `Boolean` | Whether the Last Name sub-field is enabled in the control panel.
 
 
-####  Number
+#### Number
 | Field | Type | Description
 | - | - | -
 |`placeholder` | `String` | The text that will be shown if the field doesn’t have a value.
@@ -485,7 +484,7 @@ Once using the necessary [Inline Fragments](https://graphql.org/learn/queries/#i
 |`decimals` | `String` | Set the number of decimal points to format the field value.
 
 
-####  Phone
+#### Phone
 | Field | Type | Description
 | - | - | -
 |`showCountryCode` | `String` | Whether to show an additional dropdown for selecting the country code.
@@ -501,7 +500,7 @@ Once using the necessary [Inline Fragments](https://graphql.org/learn/queries/#i
 |`numberCollapsed` | `Boolean` | Whether the Number sub-field is collapsed in the control panel.
 
 
-####  Products
+#### Products
 | Field | Type | Description
 | - | - | -
 |`placeholder` | `String` | The option shown initially, when no option is selected.
@@ -510,14 +509,14 @@ Once using the necessary [Inline Fragments](https://graphql.org/learn/queries/#i
 |`products` | `ProductQuery` | The product query for available products.
 
 
-####  Radio
+#### Radio
 | Field | Type | Description
 | - | - | -
 |`options` | `String` | Define the available options for users to select from.
 |`layout` | `String` | Select which layout to use for these fields.
 
 
-####  Repeater
+#### Repeater
 | Field | Type | Description
 | - | - | -
 |`addLabel` | `String` | The label for the button that adds another instance.
@@ -525,14 +524,14 @@ Once using the necessary [Inline Fragments](https://graphql.org/learn/queries/#i
 |`maxRows` | `String` | The maximum required number of instances of this repeater's fields that must be completed.
 
 
-####  Recipients
+#### Recipients
 | Field | Type | Description
 | - | - | -
 |`displayType` | `String` | What sort of field to show on the front-end for users.
 |`options` | `String` | Define the available options for users to select from.
 
 
-####  Section
+#### Section
 | Field | Type | Description
 | - | - | -
 |`border` | `String` | Add a border to this section.
@@ -540,7 +539,7 @@ Once using the necessary [Inline Fragments](https://graphql.org/learn/queries/#i
 |`borderColor` | `String` | Set the border color.
 
 
-####  Single-Line Text
+#### Single-Line Text
 | Field | Type | Description
 | - | - | -
 |`placeholder` | `String` | The text that will be shown if the field doesn’t have a value.
@@ -550,7 +549,7 @@ Once using the necessary [Inline Fragments](https://graphql.org/learn/queries/#i
 |`limitAmount` | `String` | The number of character or words to limit this field by.
 
 
-####  Table
+#### Table
 | Field | Type | Description
 | - | - | -
 |`columns` | `String` | Define the columns your table should have.
@@ -561,7 +560,7 @@ Once using the necessary [Inline Fragments](https://graphql.org/learn/queries/#i
 |`maxRows` | `String` | The maximum required number of rows in this table that must be completed.
 
 
-####  Tags
+#### Tags
 | Field | Type | Description
 | - | - | -
 |`placeholder` | `String` | The option shown initially, when no option is selected.
@@ -569,7 +568,7 @@ Once using the necessary [Inline Fragments](https://graphql.org/learn/queries/#i
 |`tags` | `TagQuery` | The tag query for available tags.
 
 
-####  Users
+#### Users
 | Field | Type | Description
 | - | - | -
 |`placeholder` | `String` | The option shown initially, when no option is selected.
@@ -578,7 +577,7 @@ Once using the necessary [Inline Fragments](https://graphql.org/learn/queries/#i
 |`users` | `UserQuery` | The user query for available users.
 
 
-####  Variants
+#### Variants
 | Field | Type | Description
 | - | - | -
 |`placeholder` | `String` | The option shown initially, when no option is selected.
