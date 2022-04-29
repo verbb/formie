@@ -990,20 +990,21 @@ trait FormFieldTrait
         foreach ($class->getProperties(ReflectionProperty::IS_PUBLIC) as $property) {
             if (!$property->isStatic() && !$property->getDeclaringClass()->isAbstract() && !in_array($property->getName(), $excludedProperties)) {
                 // If we haven't defined mapping, don't assume its value. It'll be up to classes to define these
+                $propertyName = $property->getName();
                 $propertyType = $property->getType()->getName();
                 $type = $typeMap[$propertyType] ?? null;
 
                 if ($type) {
-                    $types[] = [
-                        'name' => $property->getName(),
+                    $types[$propertyName] = [
+                        'name' => $propertyName,
                         'type' => $type,
                     ];
                 } else if ($propertyType === 'array') {
-                    $types[] = [
-                        'name' => $property->getName(),
+                    $types[$propertyName] = [
+                        'name' => $propertyName,
                         'type' => Type::string(),
                         'resolve' => function($field) use ($property) {
-                            $value = $field->{$property->getName()};
+                            $value = $field->{$propertyName};
 
                             return is_array($value) ? Json::encode($value) : $value;
                         },

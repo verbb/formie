@@ -78,3 +78,12 @@ The following properties have been removed.
 Old | What to do instead
 --- | ---
 | `submitActionUrl` | `redirectUrl`
+
+
+### Dropdown
+The following properties have been removed.
+
+Old | What to do instead
+--- | ---
+| `multiple` | `multi`
+

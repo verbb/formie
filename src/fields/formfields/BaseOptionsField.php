@@ -211,12 +211,17 @@ abstract class BaseOptionsField extends CraftBaseOptionsField
 
     public function getSettingGqlTypes(): array
     {
-        return array_merge($this->traitGetSettingGqlTypes(), [
+        $types = array_merge($this->traitGetSettingGqlTypes(), [
             'options' => [
                 'name' => 'options',
                 'type' => Type::listOf(FieldOptionGenerator::generateType()),
             ],
         ]);
+
+        // Remove this for dropdowns, which is a duplicate of `multi`
+        unset($types['multiple']);
+
+        return $types;
     }
 
 
