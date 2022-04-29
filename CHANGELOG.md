@@ -2,6 +2,8 @@
 
 ## 1.5.15 - 2022-04-23
 
+> {warning} If you are using custom templates, or template overrides, please read through the breaking changes.
+
 ### Added
 - Added `field` to `ModifyFrontEndSubfieldsEvent`.
 - Added support for double opt-in setting for Campaign plugin email marketing integration.
@@ -29,6 +31,9 @@
 ### Removed
 - Removed `aria-checked` for checkboxes/radio buttons, which are no longer required and throw HTML validation errors.
 - Removed `aria-hidden` from hidden inputs, which are no longer required and throw HTML validation errors.
+
+### Breaking Changes
+- For custom templates or template overrides, ensure you replace all references to `{% include ... %}` with `{{ formieInclude() }}` or refer to the [default templates](https://github.com/verbb/formie/tree/craft-3/src/templates/_special/form-template) for the exact syntax. Changes have needed to be made to support some scenarios where custom templates aren't loaded correctly.
 
 ## 1.5.14 - 2022-04-15
 
