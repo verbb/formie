@@ -359,7 +359,7 @@ Once using the necessary [Inline Fragments](https://graphql.org/learn/queries/#i
 #### Checkboxes
 | Field | Type | Description
 | - | - | -
-|`options` | `KeyValue` | Define the available options for users to select from.
+|`options` | `[FieldOption]` | Define the available options for users to select from.
 |`layout` | `String` | Select which layout to use for these fields.
 |`defaultValue` | `String` | Entering a default value will place the value in the field when it loads.
 
@@ -376,7 +376,7 @@ Once using the necessary [Inline Fragments](https://graphql.org/learn/queries/#i
 | Field | Type | Description
 | - | - | -
 |`multiple` | `Boolean` | Whether this field should allow multiple options to be selected.
-|`options` | `String` | Define the available options for users to select from.
+|`options` | `[FieldOption]` | Define the available options for users to select from.
 |`defaultValue` | `String` | Entering a default value will place the value in the field when it loads.
 
 
@@ -512,7 +512,7 @@ Once using the necessary [Inline Fragments](https://graphql.org/learn/queries/#i
 #### Radio
 | Field | Type | Description
 | - | - | -
-|`options` | `String` | Define the available options for users to select from.
+|`options` | `[FieldOption]` | Define the available options for users to select from.
 |`layout` | `String` | Select which layout to use for these fields.
 
 
@@ -528,7 +528,7 @@ Once using the necessary [Inline Fragments](https://graphql.org/learn/queries/#i
 | Field | Type | Description
 | - | - | -
 |`displayType` | `String` | What sort of field to show on the front-end for users.
-|`options` | `String` | Define the available options for users to select from.
+|`options` | `[FieldOption]` | Define the available options for users to select from.
 
 
 #### Section
@@ -609,6 +609,17 @@ For nested fields like Group and Repeater, you have access to `nestedRows` and `
     }
 }
 ```
+
+#### FieldOption
+For option-based fields, a `FieldOption` represents a single option row.
+
+| Field | Type | Description
+| - | - | -
+|`label` | `String` | The label of the option.
+|`value` | `String` | The value of the option.
+|`isOptgroup` | `Boolean` | Whether this option has been marked as an `optgroup`.
+|`isDefault` | `Boolean` | Whether this option has been marked as a default.
+
 
 ### The `CsrfTokenInterface` interface
 This is the interface to allow easy retrieval of a CSRF token and value.

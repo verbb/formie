@@ -3,7 +3,7 @@ namespace verbb\formie\fields\formfields;
 
 use verbb\formie\Formie;
 use verbb\formie\base\FormFieldTrait;
-use verbb\formie\gql\types\generators\FieldAttributeGenerator;
+use verbb\formie\gql\types\generators\FieldOptionGenerator;
 use verbb\formie\models\IntegrationField;
 
 use Craft;
@@ -214,7 +214,7 @@ abstract class BaseOptionsField extends CraftBaseOptionsField
         return array_merge($this->traitGetSettingGqlTypes(), [
             'options' => [
                 'name' => 'options',
-                'type' => Type::listOf(FieldAttributeGenerator::generateType()),
+                'type' => Type::listOf(FieldOptionGenerator::generateType()),
             ],
         ]);
     }
