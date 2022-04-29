@@ -1,10 +1,13 @@
 <?php
 namespace verbb\formie\gql\types\generators;
 
+use Craft;
 use craft\gql\base\GeneratorInterface;
-use craft\gql\base\ObjectType;
 use craft\gql\base\SingleGeneratorInterface;
 use craft\gql\GqlEntityRegistry;
+
+use GraphQL\Type\Definition\ObjectType;
+use GraphQL\Type\Definition\Type;
 
 class FieldOptionGenerator implements GeneratorInterface, SingleGeneratorInterface
 {
@@ -74,6 +77,6 @@ class FieldOptionGenerator implements GeneratorInterface, SingleGeneratorInterfa
                     },
                 ],
             ], $typeName),
-        ]);
+        ]));
     }
 }
