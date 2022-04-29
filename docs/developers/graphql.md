@@ -479,8 +479,8 @@ Once using the necessary [Inline Fragments](https://graphql.org/learn/queries/#i
 |`placeholder` | `String` | The text that will be shown if the field doesn’t have a value.
 |`defaultValue` | `String` | Entering a default value will place the value in the field when it loads.
 |`limit` | `Boolean` | Whether to limit the numbers for this field.
-|`min` | `String` | The minimum number that can be entered for this field.
-|`max` | `String` | The maximum number that can be entered for this field.
+|`min` | `Float` | The minimum number that can be entered for this field.
+|`max` | `Float` | The maximum number that can be entered for this field.
 |`decimals` | `String` | Set the number of decimal points to format the field value.
 
 

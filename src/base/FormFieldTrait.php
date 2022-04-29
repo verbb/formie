@@ -29,7 +29,10 @@ use GraphQL\Type\Definition\Type;
 use Twig\Markup;
 
 use ReflectionClass;
+use ReflectionException;
+use ReflectionNamedType;
 use ReflectionProperty;
+use ReflectionUnionType;
 use Throwable;
 
 trait FormFieldTrait
@@ -983,6 +986,7 @@ trait FormFieldTrait
         $typeMap = [
             'string' => Type::string(),
             'int' => Type::int(),
+            'float' => Type::float(),
             'bool' => Type::boolean(),
             'datetime' => DateTimeType::getType(),
         ];
@@ -991,15 +995,32 @@ trait FormFieldTrait
             if (!$property->isStatic() && !$property->getDeclaringClass()->isAbstract() && !in_array($property->getName(), $excludedProperties)) {
                 // If we haven't defined mapping, don't assume its value. It'll be up to classes to define these
                 $propertyName = $property->getName();
-                $propertyType = $property->getType()->getName();
-                $type = $typeMap[$propertyType] ?? null;
 
-                if ($type) {
+                // Properties can have multiple types
+                $propertyType = $property->getType();
+
+                // Handle _some_ union types
+                if ($propertyType instanceof ReflectionUnionType) {
+                    // Special case for int|float
+                    $names = array_map(fn(ReflectionNamedType $type) => $type->getName(), $propertyType->getTypes());
+                    sort($names);
+
+                    // For numbers, pick the type that can contain the most value
+                    if ($names === ['float', 'int'] || $names === ['float', 'int', 'null']) {
+                        $propertyTypeName = 'float';
+                    }
+                } else {
+                    $propertyTypeName = $propertyType->getName();
+                }
+
+                $gqlType = $typeMap[$propertyTypeName] ?? null;
+
+                if ($gqlType) {
                     $types[$propertyName] = [
                         'name' => $propertyName,
-                        'type' => $type,
+                        'type' => $gqlType,
                     ];
-                } else if ($propertyType === 'array') {
+                } else if ($propertyTypeName === 'array') {
                     $types[$propertyName] = [
                         'name' => $propertyName,
                         'type' => Type::string(),
