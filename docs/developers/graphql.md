@@ -165,16 +165,15 @@ This is the interface implemented by all forms.
 | `displayCurrentPageTitle`| `Boolean` | Whether to show the form’s current page title.
 | `displayPageProgress`| `Boolean` | Whether to show the form’s page progress.
 | `scrollToTop`| `Boolean` | Whether to the form should scroll to the top of the page when submitted.
-| `submitMethod`| `String!` | The form’s submit method.
-| `submitAction`| `String!` | The form’s submit action.
+| `submitMethod`| `String!` | The form’s submit method. Either `page-reload` or `ajax`.
+| `submitAction`| `String!` | The form’s submit action. Either `message`, `entry`, `url`, `reload`.
 | `submitActionTab`| `String!` | The form’s submit redirect option (if in new tab or same tab).
-| `submitActionUrl`| `String!` | The form’s submit action URL.
 | `submitActionFormHide`| `Boolean!` | Whether to hide the form’s success message.
 | `submitActionMessageHtml`| `String` | The form’s submit success message.
 | `submitActionMessageTimeout`| `Integer` | The form’s submit success message timeout.
 | `submitActionMessagePosition`| `String` | The form’s submit message position.
-| `redirectUrl`| `String!` | The form’s submit action redirect URL.
-| `redirectEntry`| `EntryInterface!` | The form’s submit action entry (for redirection).
+| `redirectUrl`| `String!` | The form’s submit action redirect URL, resolved depending on `submitAction` being `entry` or `url`.
+| `redirectEntry`| `EntryInterface!` | The form’s submit action entry (for redirection), if `submitAction` is `entry`.
 | `errorMessageHtml`| `String` | The form’s submit error message.
 | `errorMessagePosition`| `String` | The form’s error message position.
 | `loadingIndicator`| `String!` | The type of loading indicator to use. `spinner` or `text`.

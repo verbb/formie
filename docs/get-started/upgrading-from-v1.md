@@ -71,3 +71,10 @@ Old | What to do instead
     }
 }
 ```
+
+### `FormSettingsInterface`
+The following properties have been removed.
+
+Old | What to do instead
+--- | ---
+| `submitActionUrl` | `redirectUrl`

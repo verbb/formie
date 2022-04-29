@@ -51,22 +51,17 @@ class FormSettingsType extends ObjectType
                 'submitMethod' => [
                     'name' => 'submitMethod',
                     'type' => Type::string(),
-                    'description' => 'The form’s submit method.',
+                    'description' => 'The form’s submit method. Either `page-reload` or `ajax`.',
                 ],
                 'submitAction' => [
                     'name' => 'submitAction',
                     'type' => Type::string(),
-                    'description' => 'The form’s submit action.',
+                    'description' => 'The form’s submit action. Either `message`, `entry`, `url`, `reload`.',
                 ],
                 'submitActionTab' => [
                     'name' => 'submitActionTab',
                     'type' => Type::string(),
                     'description' => 'The form’s submit redirect option (if in new tab or same tab).',
-                ],
-                'submitActionUrl' => [
-                    'name' => 'submitActionUrl',
-                    'type' => Type::string(),
-                    'description' => 'The form’s submit action URL.',
                 ],
                 'submitActionFormHide' => [
                     'name' => 'submitActionFormHide',
@@ -94,7 +89,7 @@ class FormSettingsType extends ObjectType
                 'redirectUrl' => [
                     'name' => 'redirectUrl',
                     'type' => Type::string(),
-                    'description' => 'The form’s submit action redirect URL.',
+                    'description' => 'The form’s submit action redirect URL, resolved depending on `submitAction` being `entry` or `url`.',
                     'resolve' => function($class) {
                         return $class->getFormRedirectUrl(false);
                     },
@@ -103,7 +98,7 @@ class FormSettingsType extends ObjectType
                     'name' => 'redirectEntry',
                     'type' => EntryInterface::getType(),
                     'args' => EntryArguments::getArguments(),
-                    'description' => 'The form’s submit action entry (for redirection).',
+                    'description' => 'The form’s submit action entry (for redirection), if `submitAction` is `entry`.',
                 ],
                 'errorMessageHtml' => [
                     'name' => 'errorMessageHtml',
