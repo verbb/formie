@@ -62,6 +62,7 @@ class Install extends Migration
 
     public function createTables(): void
     {
+        $this->archiveTableIfExists('{{%formie_emailtemplates}}');
         $this->createTable('{{%formie_emailtemplates}}', [
             'id' => $this->primaryKey(),
             'name' => $this->string()->notNull(),
@@ -74,6 +75,7 @@ class Install extends Migration
             'uid' => $this->uid(),
         ]);
 
+        $this->archiveTableIfExists('{{%formie_forms}}');
         $this->createTable('{{%formie_forms}}', [
             'id' => $this->primaryKey(),
             'handle' => $this->string(64)->notNull(),
@@ -106,6 +108,7 @@ class Install extends Migration
             'uid' => $this->uid(),
         ]);
 
+        $this->archiveTableIfExists('{{%formie_formtemplates}}');
         $this->createTable('{{%formie_formtemplates}}', [
             'id' => $this->primaryKey(),
             'name' => $this->string()->notNull(),
@@ -126,6 +129,7 @@ class Install extends Migration
             'uid' => $this->uid(),
         ]);
 
+        $this->archiveTableIfExists('{{%formie_integrations}}');
         $this->createTable('{{%formie_integrations}}', [
             'id' => $this->primaryKey(),
             'name' => $this->string()->notNull(),
@@ -142,6 +146,7 @@ class Install extends Migration
             'uid' => $this->uid(),
         ]);
 
+        $this->archiveTableIfExists('{{%formie_nested}}');
         $this->createTable('{{%formie_nested}}', [
             'id' => $this->primaryKey(),
             'fieldId' => $this->integer()->notNull(),
@@ -151,6 +156,7 @@ class Install extends Migration
             'uid' => $this->uid(),
         ]);
 
+        $this->archiveTableIfExists('{{%formie_nestedfieldrows}}');
         $this->createTable('{{%formie_nestedfieldrows}}', [
             'id' => $this->primaryKey(),
             'ownerId' => $this->integer()->notNull(),
@@ -162,6 +168,7 @@ class Install extends Migration
             'uid' => $this->uid(),
         ]);
 
+        $this->archiveTableIfExists('{{%formie_notifications}}');
         $this->createTable('{{%formie_notifications}}', [
             'id' => $this->primaryKey(),
             'formId' => $this->integer()->notNull(),
@@ -192,6 +199,7 @@ class Install extends Migration
             'uid' => $this->uid(),
         ]);
 
+        $this->archiveTableIfExists('{{%formie_pdftemplates}}');
         $this->createTable('{{%formie_pdftemplates}}', [
             'id' => $this->primaryKey(),
             'name' => $this->string()->notNull(),
@@ -205,6 +213,7 @@ class Install extends Migration
             'uid' => $this->uid(),
         ]);
 
+        $this->archiveTableIfExists('{{%formie_pagesettings}}');
         $this->createTable('{{%formie_pagesettings}}', [
             'id' => $this->primaryKey(),
             'fieldLayoutId' => $this->integer()->notNull(),
@@ -215,6 +224,7 @@ class Install extends Migration
             'uid' => $this->uid(),
         ]);
 
+        $this->archiveTableIfExists('{{%formie_relations}}');
         $this->createTable('{{%formie_relations}}', [
             'id' => $this->primaryKey(),
             'type' => $this->string(255)->notNull(),
@@ -226,6 +236,7 @@ class Install extends Migration
             'uid' => $this->uid(),
         ]);
 
+        $this->archiveTableIfExists('{{%formie_rows}}');
         $this->createTable('{{%formie_rows}}', [
             'id' => $this->primaryKey(),
             'fieldLayoutId' => $this->integer()->notNull(),
@@ -236,6 +247,7 @@ class Install extends Migration
             'uid' => $this->uid(),
         ]);
 
+        $this->archiveTableIfExists('{{%formie_sentnotifications}}');
         $this->createTable('{{%formie_sentnotifications}}', [
             'id' => $this->primaryKey(),
             'title' => $this->string(),
@@ -260,6 +272,7 @@ class Install extends Migration
             'uid' => $this->uid(),
         ]);
 
+        $this->archiveTableIfExists('{{%formie_statuses}}');
         $this->createTable('{{%formie_statuses}}', [
             'id' => $this->primaryKey(),
             'name' => $this->string()->notNull(),
@@ -276,6 +289,7 @@ class Install extends Migration
             'uid' => $this->uid(),
         ]);
 
+        $this->archiveTableIfExists('{{%formie_stencils}}');
         $this->createTable('{{%formie_stencils}}', [
             'id' => $this->primaryKey(),
             'name' => $this->string()->notNull(),
@@ -290,6 +304,7 @@ class Install extends Migration
             'uid' => $this->uid(),
         ]);
 
+        $this->archiveTableIfExists('{{%formie_submissions}}');
         $this->createTable('{{%formie_submissions}}', [
             'id' => $this->primaryKey(),
             'title' => $this->string(255)->notNull(),
@@ -306,6 +321,7 @@ class Install extends Migration
             'uid' => $this->uid(),
         ]);
 
+        $this->archiveTableIfExists('{{%formie_syncs}}');
         $this->createTable('{{%formie_syncs}}', [
             'id' => $this->primaryKey(),
             'dateCreated' => $this->dateTime()->notNull(),
@@ -313,6 +329,7 @@ class Install extends Migration
             'uid' => $this->uid(),
         ]);
 
+        $this->archiveTableIfExists('{{%formie_syncfields}}');
         $this->createTable('{{%formie_syncfields}}', [
             'id' => $this->primaryKey(),
             'syncId' => $this->integer()->notNull(),
@@ -322,6 +339,7 @@ class Install extends Migration
             'uid' => $this->uid(),
         ]);
 
+        $this->archiveTableIfExists('{{%formie_tokens}}');
         $this->createTable('{{%formie_tokens}}', [
             'id' => $this->primaryKey(),
             'type' => $this->string()->notNull(),
