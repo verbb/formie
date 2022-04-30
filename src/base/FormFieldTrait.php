@@ -81,10 +81,10 @@ trait FormFieldTrait
     // =========================================================================
 
     public ?string $columnWidth = null;
-    public ?bool $limit = null;
+    public bool $limit = false;
     public ?string $limitType = null;
     public ?string $limitAmount = null;
-    public ?bool $matchField = null;
+    public ?string $matchField = null;
     public ?string $placeholder = null;
     public mixed $defaultValue = null;
     public ?string $prePopulate = null;
@@ -95,7 +95,7 @@ trait FormFieldTrait
     public ?array $containerAttributes = null;
     public ?array $inputAttributes = null;
     public bool $includeInEmail = true;
-    public ?bool $enableConditions = null;
+    public bool $enableConditions = false;
     public ?array $conditions = null;
     public bool $enableContentEncryption = false;
     public ?string $visibility = null;

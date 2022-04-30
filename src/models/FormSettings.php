@@ -34,7 +34,7 @@ class FormSettings extends Model
     public ?string $submitAction = null;
     public ?string $submitActionTab = null;
     public ?string $submitActionUrl = null;
-    public ?bool $submitActionFormHide = null;
+    public bool $submitActionFormHide = false;
     public mixed $submitActionMessage = null;
     public mixed $submitActionMessageTimeout = null;
     public string $submitActionMessagePosition = 'top-form';
@@ -42,8 +42,8 @@ class FormSettings extends Model
     public ?string $loadingIndicatorText = null;
 
     // Behaviour - Validation
-    public ?bool $validationOnSubmit = null;
-    public ?bool $validationOnFocus = null;
+    public bool $validationOnSubmit = true;
+    public bool $validationOnFocus = false;
     public mixed $errorMessage = null;
     public string $errorMessagePosition = 'top-form';
 
@@ -59,8 +59,8 @@ class FormSettings extends Model
     public string $submissionTitleFormat = '{timestamp}';
 
     // Settings - Privacy
-    public ?bool $collectIp = null;
-    public ?bool $collectUser = null;
+    public bool $collectIp = false;
+    public bool $collectUser = false;
     public ?string $dataRetention = null;
     public ?string $dataRetentionValue = null;
     public ?string $fileUploadsAction = null;
@@ -73,7 +73,7 @@ class FormSettings extends Model
     public bool $disableCaptchas = false;
 
     // TODO: to remove
-    public ?bool $storeData = null;
+    public bool $storeData = true;
     public ?string $userDeletedAction = null;
 
 
