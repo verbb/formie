@@ -120,21 +120,6 @@ class FieldInterface extends BaseInterfaceType
                     return $inputType;
                 },
             ],
-            'limit' => [
-                'name' => 'limit',
-                'type' => Type::boolean(),
-                'description' => 'Whether the field should limit content.',
-            ],
-            'limitType' => [
-                'name' => 'limitType',
-                'type' => Type::string(),
-                'description' => 'The field’s limiting type. Either `characters` or `words`.',
-            ],
-            'limitAmount' => [
-                'name' => 'limitAmount',
-                'type' => Type::int(),
-                'description' => 'The field’s number of characters/words to limit, based on `limitType`.',
-            ],
             'matchField' => [
                 'name' => 'matchField',
                 'type' => Type::string(),

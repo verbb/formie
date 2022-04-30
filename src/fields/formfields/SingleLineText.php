@@ -30,6 +30,13 @@ class SingleLineText extends FormField implements PreviewableFieldInterface
         return 'formie/_formfields/single-line-text/icon.svg';
     }
 
+    // Properties
+    // =========================================================================
+
+    public bool $limit = false;
+    public ?string $limitType = null;
+    public ?int $limitAmount = null;
+
 
     // Public Methods
     // =========================================================================

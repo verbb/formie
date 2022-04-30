@@ -8,6 +8,7 @@ use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyFieldValueEvent;
 use verbb\formie\events\ModifyFieldEmailValueEvent;
 use verbb\formie\events\ModifyFieldIntegrationValueEvent;
+use verbb\formie\fields\formfields;
 use verbb\formie\fields\formfields\BaseOptionsField;
 use verbb\formie\helpers\ConditionsHelper;
 use verbb\formie\helpers\SchemaHelper;
@@ -80,9 +81,6 @@ trait FormFieldTrait
     // Properties
     // =========================================================================
 
-    public bool $limit = false;
-    public ?string $limitType = null;
-    public ?string $limitAmount = null;
     public ?string $matchField = null;
     public ?string $placeholder = null;
     public mixed $defaultValue = null;
@@ -1142,8 +1140,47 @@ trait FormFieldTrait
 
     private static function normalizeConfig(array &$config = [])
     {
+        // Normalise the config from Formie v1 to v2. This is a bit more reliable than a migration
+        // updating all field settings, as the presence of these properties in field classes that don't
+        // support them would be otherwise catastrophic, and blow up people's CP's.
+        // Eventually, these can be removed at the next breakpoint, as users re-save their fields.
         if (array_key_exists('columnWidth', $config)) {
             unset($config['columnWidth']);
+        }
+
+        $supportedLimitConfigTypes = [
+            formfields\MultiLineText::class,
+            formfields\SingleLineText::class,
+        ];
+
+        $supportedLimitTypes = [
+            formfields\Categories::class,
+            formfields\Entries::class,
+            formfields\FileUpload::class,
+            formfields\MultiLineText::class,
+            formfields\Products::class,
+            formfields\SingleLineText::class,
+            formfields\Tags::class,
+            formfields\Users::class,
+            formfields\Variants::class,
+        ];
+
+        if (array_key_exists('limitType', $config)) {
+            if (!in_array(static::class, $supportedLimitConfigTypes)) {
+                unset($config['limitType']);
+            }
+        }
+
+        if (array_key_exists('limitAmount', $config)) {
+            if (!in_array(static::class, $supportedLimitConfigTypes)) {
+                unset($config['limitAmount']);
+            }
+        }
+
+        if (array_key_exists('limit', $config)) {
+            if (!in_array(static::class, $supportedLimitTypes)) {
+                unset($config['limit']);
+            }
         }
     }
 
