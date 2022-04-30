@@ -66,7 +66,6 @@
                     "fields":[
                         {
                             "brandNewField":false,
-                            "columnWidth":12,
                             "handle":"yourName",
                             "hasLabel":true,
                             "id":"new7715-7348",
@@ -113,7 +112,6 @@
                     "fields":[
                         {
                             "brandNewField":false,
-                            "columnWidth":12,
                             "handle":"emailAddress",
                             "hasLabel":true,
                             "id":"new6482-9528",
@@ -137,7 +135,6 @@
                     "fields":[
                         {
                             "brandNewField":false,
-                            "columnWidth":12,
                             "handle":"message",
                             "hasLabel":true,
                             "id":"new982-7322",

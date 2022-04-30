@@ -493,7 +493,6 @@ class Forms extends Component
                     ArrayHelper::remove($settings, 'label');
                     ArrayHelper::remove($settings, 'handle');
                     $required = ArrayHelper::remove($settings, 'required', false);
-                    $columnWidth = ArrayHelper::remove($settings, 'columnWidth', 12);
 
                     $fieldId = $fieldData['id'] ?? null;
 
@@ -509,7 +508,6 @@ class Forms extends Component
                         'handle' => $fieldData['handle'] ?? null,
                         'rowId' => $fieldData['rowId'] ?? null,
                         'rowIndex' => $rowIndex,
-                        'columnWidth' => $columnWidth,
                         'settings' => $settings,
                         'required' => (bool)$required,
                         'columnSuffix' => $fieldData['columnSuffix'] ?? null,

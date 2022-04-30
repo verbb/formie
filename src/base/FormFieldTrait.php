@@ -80,7 +80,6 @@ trait FormFieldTrait
     // Properties
     // =========================================================================
 
-    public ?string $columnWidth = null;
     public bool $limit = false;
     public ?string $limitType = null;
     public ?string $limitAmount = null;
@@ -115,6 +114,14 @@ trait FormFieldTrait
 
     // Public Methods
     // =========================================================================
+
+    public function __construct(array $config = [])
+    {
+        // Config normalization
+        self::normalizeConfig($config);
+
+        parent::__construct($config);
+    }
 
     /**
      * @inheritDoc
@@ -1056,7 +1063,7 @@ trait FormFieldTrait
     {
         $rules = parent::defineRules();
 
-        $rules[] = [['columnWidth', 'limitAmount'], 'number', 'integerOnly' => true];
+        $rules[] = [['limitAmount'], 'number', 'integerOnly' => true];
         $rules[] = [['placeholder', 'errorMessage', 'cssClasses'], 'string', 'max' => 255];
 
         $rules[] = [
@@ -1132,6 +1139,13 @@ trait FormFieldTrait
 
     // Private Methods
     // =========================================================================
+
+    private static function normalizeConfig(array &$config = [])
+    {
+        if (array_key_exists('columnWidth', $config)) {
+            unset($config['columnWidth']);
+        }
+    }
 
     /**
      * Returns the kebab-case name of the field class.

@@ -86,9 +86,12 @@ class Users extends CraftUsers implements FormFieldInterface
     /**
      * @inheritDoc
      */
-    public function __construct()
+    public function __construct(array $config = [])
     {
-        parent::__construct();
+        // Config normalization
+        self::normalizeConfig($config);
+
+        parent::__construct($config);
 
         $this->labelSource = 'fullName';
     }
