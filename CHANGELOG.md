@@ -8,8 +8,8 @@
 - Added non-namespaced field handle to Calculations formula variables.
 - Added `FieldOption` for checkboxes/radio/dropdown fields.
 - Added correct type for `MultiLineText::richTextButtons` for GraphQL.
-- Added `FormSettings::submitActionMessagePosition` for GraphlQL.
-- Added `FormSettings::errorMessagePosition` for GraphlQL.
+- Added `FormSettings::submitActionMessagePosition` for GraphQL.
+- Added `FormSettings::errorMessagePosition` for GraphQL.
 - Added `FormInterface::submissionMutationName` for GraphQL.
 
 ### Changed
