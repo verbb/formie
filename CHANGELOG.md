@@ -1,12 +1,46 @@
 # Changelog
 
-## 2.0.0-beta.3 - Unreleased
+## 2.0.0-beta.3 - 2022-04-30
+
+### Added
+- Merge changes from Formie `1.5.10` to `1.5.16`.
+- Added `FormInterface::submissionEndpoint` for GraphQL queries.
+- Added non-namespaced field handle to Calculations formula variables.
+- Added `FieldOption` for checkboxes/radio/dropdown fields.
+- Added correct type for `MultiLineText::richTextButtons` for GraphQL.
+- Added `FormSettings::submitActionMessagePosition` for GraphlQL.
+- Added `FormSettings::errorMessagePosition` for GraphlQL.
+- Added `FormInterface::submissionMutationName` for GraphQL.
 
 ### Changed
-- Update `league/oauth2-google:^3.0` to `league/oauth2-google:^4.0` to support PHP 8+.
-- Update `league/oauth2-client:^2.4` to `league/oauth2-client:^2.6` to support PHP 8+.
-- Update `league/oauth1-client:^1.7` to `league/oauth1-client:^1.9` to support PHP 8+.
-- Update `commerceguys/addressing:^1.0` to `commerceguys/addressing:^1.2` inline with Craft 4.
+- Updated `league/oauth2-google:^3.0` to `league/oauth2-google:^4.0` to support PHP 8+.
+- Updated `league/oauth2-client:^2.4` to `league/oauth2-client:^2.6` to support PHP 8+.
+- Updated `league/oauth1-client:^1.7` to `league/oauth1-client:^1.9` to support PHP 8+.
+- Updated `commerceguys/addressing:^1.0` to `commerceguys/addressing:^1.2` inline with Craft 4.
+- Querying fields via GraphQL will now only return fields that do not have Visibility = “disabled”. Change this behaviour by using `includeDisabled: true`.
+- Provide better native typing for GraphQL field properties, thanks to PHP 8.
+
+### Fixed
+- Fixed duplicated “CSS Classes” setting for Agree fields.
+- Fixed querying `fields` for Repeater and Group fields in GraphQL.
+- Fixed GraphQL types for union types.
+- Fixed typing for Number field min/max settings.
+- Fixed form builder page settings becoming un-reactive when the form is saved once and continued to be edited.
+- Fixed a JS error in the form builder for page conditions.
+- Fixed page settings not saving correctly in the form builder.
+- Fixed `Field::visibility` typing.
+- Fixed Mark typing for rich text content.
+- Fixed `Calculations::formula` for GraphQL queries.
+- Fixed an error with `Form::getRedirectUrl()` when set to redirect to an entry, but left empty.
+- Fixed table-based settings not working for GraphQL.
+- Fixed `FormInterface::loadingIndicator` type not being `string` for GraphQL.
+- Fixed a type error for `submitActionEntryId` for stencils.
+
+### Removed
+- Removed `optgroups` from GraphQL queries for dropdown fields.
+- Removed `multiple` from Dropdown GraphQL queries.
+- Removed `FormSettngsInterface::submitActionUrl` for GraphQL. Use `FormSettngsInterface::redirectUrl`.
+- Remove Craft 3 version checks, no longer needed.
 
 ## 2.0.0-beta.2 - 2022-04-23
 
