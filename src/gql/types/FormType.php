@@ -26,8 +26,18 @@ class FormType extends Element
     {
         $fieldName = Gql::getFieldNameWithAlias($resolveInfo, $source, $context);
 
+        $fields = $source->getCustomFields();
+        $includeDisabled = $arguments['includeDisabled'] ?? false;
+
+        // Don't include disabled fields by default for GQL
+        if (!$includeDisabled) {
+            $fields = array_filter($fields, function($field) {
+                return $field->visibility !== 'disabled';
+            });
+        }
+
         return match ($fieldName) {
-            'formFields' => $source->getCustomFields(),
+            'formFields' => $fields,
             default => $source[$resolveInfo->fieldName],
         };
     }

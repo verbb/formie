@@ -143,6 +143,7 @@ This is the interface implemented by all forms.
 | `trashed`| `Boolean` | Whether the element has been soft-deleted or not.
 | `dateCreated`| `DateTime` | The date the element was created.
 | `dateUpdated`| `DateTime` | The date the element was last updated.
+| `handle`| `String` | The form’s handle.
 | `pages`| `[PageInterface]` | The form’s pages.
 | `rows`| `[RowInterface]` | The form’s rows.
 | `formFields`| `[FieldInterface]` | The form’s fields.
@@ -153,6 +154,21 @@ This is the interface implemented by all forms.
 | `captchas`| `[CaptchaValueInterface]` | A list of captcha values (name and value) to assist with spam protection.
 | `submissionMutationName`| `String` | The form’s GQL mutation name for submissions to use.
 | `submissionEndpoint`| `String` | The form’s endpoint for sending submissions to, if using POST requests.
+
+#### The `formFields` query
+This query is used to query for [Field](docs:developers/field) objects on a form.
+
+| Argument | Type | Description
+| - | - | -
+| `includeDisabled`| `Boolean` | Expands the query results to include fields that have a visibility of "disabled". These are omitted by default.
+
+#### The `templateHtml` query
+You can also add query arguments to `templateHtml` to narrow your results.
+
+| Argument | Type | Description
+| - | - | -
+| `options`| `String` | The form template HTML will be rendered with these JSON serialized options.
+| `populateFormValues`| `String` | The form field values will be populated with these JSON serialized options.
 
 
 ### The `FormSettingsInterface` interface
@@ -211,6 +227,13 @@ This is the interface implemented by all pages.
 | `pageFields`| `[FieldInterface]` | The pages’s fields.
 | `settings`| `[PageSettingsInterface]` | The pages’s settings
 
+#### The `pageFields` query
+This query is used to query for [Field](docs:developers/field) objects on a page.
+
+| Argument | Type | Description
+| - | - | -
+| `includeDisabled`| `Boolean` | Expands the query results to include fields that have a visibility of "disabled". These are omitted by default.
+
 
 ### The `PageSettingsInterface` interface
 This is the interface implemented by all pages.
@@ -237,6 +260,13 @@ This is the interface implemented by all rows.
 | `id`| `ID` | The id of the entity.
 | `uid`| `String` | The uid of the entity.
 | `rowFields`| `[FieldInterface]` | The row’s fields.
+
+#### The `rowFields` query
+This query is used to query for [Field](docs:developers/field) objects on a row.
+
+| Argument | Type | Description
+| - | - | -
+| `includeDisabled`| `Boolean` | Expands the query results to include fields that have a visibility of "disabled". These are omitted by default.
 
 
 ### The `FieldInterface` interface

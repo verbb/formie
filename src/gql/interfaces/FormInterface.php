@@ -75,6 +75,13 @@ class FormInterface extends Element
                 'name' => 'formFields',
                 'type' => Type::listOf(FieldInterface::getType()),
                 'description' => 'The form’s fields.',
+                'args' => [
+                    'includeDisabled' => [
+                        'name' => 'includeDisabled',
+                        'description' => 'Whether to include fields with visibility "disabled".',
+                        'type' => Type::boolean(),
+                    ],
+                ],
             ],
             'settings' => [
                 'name' => 'settings',

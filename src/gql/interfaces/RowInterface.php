@@ -52,6 +52,13 @@ class RowInterface extends BaseInterfaceType
                 'name' => 'rowFields',
                 'type' => Type::listOf(FieldInterface::getType()),
                 'description' => 'The row’s fields.',
+                'args' => [
+                    'includeDisabled' => [
+                        'name' => 'includeDisabled',
+                        'description' => 'Whether to include fields with visibility "disabled".',
+                        'type' => Type::boolean(),
+                    ],
+                ],
             ],
         ]), self::getName());
     }

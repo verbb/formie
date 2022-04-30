@@ -63,6 +63,13 @@ class PageInterface extends BaseInterfaceType
                 'name' => 'pageFields',
                 'type' => Type::listOf(FieldInterface::getType()),
                 'description' => 'The page’s fields.',
+                'args' => [
+                    'includeDisabled' => [
+                        'name' => 'includeDisabled',
+                        'description' => 'Whether to include fields with visibility "disabled".',
+                        'type' => Type::boolean(),
+                    ],
+                ],
             ],
             'settings' => [
                 'name' => 'settings',
