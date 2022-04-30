@@ -22,10 +22,11 @@ Event::on(Form::class, Form::EVENT_MODIFY_FORM_CAPTCHAS, function(ModifyFormCapt
 The event that is triggered before a form is saved. You can set `$event->isValid` to false to prevent saving.
 
 ```php
+use craft\events\ModelEvent;
 use verbb\formie\elements\Form;
 use yii\base\Event;
 
-Event::on(Form::class, Form::EVENT_BEFORE_SAVE, function(Event $event) {
+Event::on(Form::class, Form::EVENT_BEFORE_SAVE, function(ModelEvent $event) {
     $form = $event->sender;
 
     $event->isValid = false;
@@ -36,10 +37,11 @@ Event::on(Form::class, Form::EVENT_BEFORE_SAVE, function(Event $event) {
 The event that is triggered after a form is saved.
 
 ```php
+use craft\events\ModelEvent;
 use verbb\formie\elements\Form;
 use yii\base\Event;
 
-Event::on(Form::class, Form::EVENT_AFTER_SAVE, function(Event $event) {
+Event::on(Form::class, Form::EVENT_AFTER_SAVE, function(ModelEvent $event) {
     $form = $event->sender;
 });
 ```
@@ -146,10 +148,11 @@ The event that is triggered before a submission is saved. For multi-page forms, 
 You can set `$event->isValid` to false to prevent saving.
 
 ```php
+use craft\events\ModelEvent;
 use verbb\formie\elements\Submission;
 use yii\base\Event;
 
-Event::on(Submission::class, Submission::EVENT_BEFORE_SAVE, function(Event $event) {
+Event::on(Submission::class, Submission::EVENT_BEFORE_SAVE, function(ModelEvent $event) {
     $submission = $event->sender;
 
     $event->isValid = false;
@@ -162,10 +165,11 @@ The event that is triggered after a submission is saved. For multi-page forms, t
 Do note the difference between this event and `afterSubmission`.
 
 ```php
+use craft\events\ModelEvent;
 use verbb\formie\elements\Submission;
 use yii\base\Event;
 
-Event::on(Submission::class, Submission::EVENT_AFTER_SAVE, function(Event $event) {
+Event::on(Submission::class, Submission::EVENT_AFTER_SAVE, function(ModelEvent $event) {
     $submission = $event->sender;
 });
 ```

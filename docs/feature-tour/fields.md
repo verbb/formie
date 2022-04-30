@@ -61,7 +61,7 @@ If you have any [Address Providers](docs:feature-tour/integrations#address-provi
 ### Agree
 A field for a single checkbox. Its ideal purpose is to be an agreement checkbox for terms & conditions, or similar. It can be marked as required or not as well as have its checked and unchecked values set.
 
-The description for the Agree field can also contain HTML via a WYSIWYG editor. You can control the available buttons and formatting via [docs:get-started/configuration#available-buttons](available buttons).
+The description for the Agree field can also contain HTML via a WYSIWYG editor. You can control the available buttons and formatting via [available buttons](docs:get-started/configuration#available-buttons).
 
 #### Settings
 Setting | Description
