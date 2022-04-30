@@ -53,7 +53,7 @@ class Number extends FormField implements PreviewableFieldInterface
     /**
      * @inheritDoc
      */
-    public function __construct($config = [])
+    public function __construct(array $config = [])
     {
         // Normalize number settings
         foreach (['defaultValue', 'min', 'max'] as $name) {
