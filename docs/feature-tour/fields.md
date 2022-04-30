@@ -479,7 +479,6 @@ You can also select what content to use for the Label and Value of each option. 
 
 The below is a list of options Formie provides by default.
 
-<div class="index-exclude">
 ### Countries
 - Afghanistan
 - Albania
@@ -1348,6 +1347,7 @@ The below is a list of options Formie provides by default.
 - Probably Not
 - Definitely Not
 - Not applicable
-</div>
+
+
 
 You can also register your own [predefined options](docs:developers/events#predefined-field-options)
