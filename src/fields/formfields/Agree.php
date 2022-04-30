@@ -213,7 +213,6 @@ class Agree extends FormField implements PreviewableFieldInterface
             SchemaHelper::labelPosition($this),
             SchemaHelper::instructions(),
             SchemaHelper::instructionsPosition($this),
-            SchemaHelper::cssClasses(),
         ];
     }
 
