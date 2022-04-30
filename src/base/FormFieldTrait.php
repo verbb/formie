@@ -1061,20 +1061,12 @@ trait FormFieldTrait
     {
         $rules = parent::defineRules();
 
-        $rules[] = [['limitAmount'], 'number', 'integerOnly' => true];
         $rules[] = [['placeholder', 'errorMessage', 'cssClasses'], 'string', 'max' => 255];
 
         $rules[] = [
             ['handle'],
             HandleValidator::class,
             'reservedWords' => self::_getReservedWords(),
-        ];
-
-        $rules[] = [
-            ['limitType'], 'in', 'range' => [
-                'characters',
-                'words',
-            ],
         ];
 
         $rules[] = [

@@ -275,4 +275,20 @@ class MultiLineText extends FormField implements PreviewableFieldInterface
             SchemaHelper::conditionsField(),
         ];
     }
+
+    // Protected Methods
+    // =========================================================================
+
+    /**
+     * @inheritDoc
+     */
+    protected function defineRules(): array
+    {
+        $rules = parent::defineRules();
+
+        $rules[] = [['limitAmount'], 'number', 'integerOnly' => true];
+        $rules[] = [['limitType'], 'in', 'range' => ['characters', 'words']];
+
+        return $rules;
+    }
 }
