@@ -86,85 +86,85 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
 
     public ?string $autocompleteIntegration = null;
 
-    public ?bool $autocompleteEnabled = null;
-    public ?bool $autocompleteCollapsed = null;
+    public bool $autocompleteEnabled = false;
+    public bool $autocompleteCollapsed = true;
     public ?string $autocompleteLabel = null;
     public ?string $autocompletePlaceholder = null;
     public ?string $autocompleteDefaultValue = null;
     public ?string $autocompletePrePopulate = null;
-    public ?bool $autocompleteRequired = null;
+    public bool $autocompleteRequired = false;
     public ?string $autocompleteErrorMessage = null;
-    public ?bool $autocompleteCurrentLocation = null;
+    public bool $autocompleteCurrentLocation = false;
 
-    public ?bool $address1Enabled = null;
-    public ?bool $address1Collapsed = null;
+    public bool $address1Enabled = true;
+    public bool $address1Collapsed = true;
     public ?string $address1Label = null;
     public ?string $address1Placeholder = null;
     public ?string $address1DefaultValue = null;
     public ?string $address1PrePopulate = null;
-    public ?bool $address1Required = null;
+    public bool $address1Required = false;
     public ?string $address1ErrorMessage = null;
-    public ?bool $address1Hidden = null;
+    public bool $address1Hidden = false;
 
-    public ?bool $address2Enabled = null;
-    public ?bool $address2Collapsed = null;
+    public bool $address2Enabled = false;
+    public bool $address2Collapsed = true;
     public ?string $address2Label = null;
     public ?string $address2Placeholder = null;
     public ?string $address2DefaultValue = null;
     public ?string $address2PrePopulate = null;
-    public ?bool $address2Required = null;
+    public bool $address2Required = false;
     public ?string $address2ErrorMessage = null;
-    public ?bool $address2Hidden = null;
+    public bool $address2Hidden = false;
 
-    public ?bool $address3Enabled = null;
-    public ?bool $address3Collapsed = null;
+    public bool $address3Enabled = false;
+    public bool $address3Collapsed = true;
     public ?string $address3Label = null;
     public ?string $address3Placeholder = null;
     public ?string $address3DefaultValue = null;
     public ?string $address3PrePopulate = null;
-    public ?bool $address3Required = null;
+    public bool $address3Required = false;
     public ?string $address3ErrorMessage = null;
-    public ?bool $address3Hidden = null;
+    public bool $address3Hidden = false;
 
-    public ?bool $cityEnabled = null;
-    public ?bool $cityCollapsed = null;
+    public bool $cityEnabled = true;
+    public bool $cityCollapsed = true;
     public ?string $cityLabel = null;
     public ?string $cityPlaceholder = null;
     public ?string $cityDefaultValue = null;
     public ?string $cityPrePopulate = null;
-    public ?bool $cityRequired = null;
+    public bool $cityRequired = false;
     public ?string $cityErrorMessage = null;
-    public ?bool $cityHidden = null;
+    public bool $cityHidden = false;
 
-    public ?bool $stateEnabled = null;
-    public ?bool $stateCollapsed = null;
+    public bool $stateEnabled = true;
+    public bool $stateCollapsed = true;
     public ?string $stateLabel = null;
     public ?string $statePlaceholder = null;
     public ?string $stateDefaultValue = null;
     public ?string $statePrePopulate = null;
-    public ?bool $stateRequired = null;
+    public bool $stateRequired = false;
     public ?string $stateErrorMessage = null;
-    public ?bool $stateHidden = null;
+    public bool $stateHidden = false;
 
-    public ?bool $zipEnabled = null;
-    public ?bool $zipCollapsed = null;
+    public bool $zipEnabled = true;
+    public bool $zipCollapsed = true;
     public ?string $zipLabel = null;
     public ?string $zipPlaceholder = null;
     public ?string $zipDefaultValue = null;
     public ?string $zipPrePopulate = null;
-    public ?bool $zipRequired = null;
+    public bool $zipRequired = false;
     public ?string $zipErrorMessage = null;
-    public ?bool $zipHidden = null;
+    public bool $zipHidden = false;
 
-    public ?bool $countryEnabled = null;
-    public ?bool $countryCollapsed = null;
+    public bool $countryEnabled = true;
+    public bool $countryCollapsed = true;
     public ?string $countryLabel = null;
     public ?string $countryPlaceholder = null;
     public ?string $countryDefaultValue = null;
     public ?string $countryPrePopulate = null;
-    public ?bool $countryRequired = null;
+    public bool $countryRequired = false;
     public ?string $countryErrorMessage = null;
-    public ?bool $countryHidden = null;
+    public bool $countryHidden = false;
 
     // TODO: Remove at next breakpoint. Will blow up CP unless the migration is done first.
     public ?bool $enableAutocomplete = null;

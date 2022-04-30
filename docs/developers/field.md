@@ -53,6 +53,16 @@ Attribute | Description
 ### Address
 Setting | Description
 --- | ---
+`autocompleteLabel` | The label for the Autocomplete sub-field.
+`autocompletePlaceholder` | The placeholder for the Autocomplete sub-field.
+`autocompleteDefaultValue` | The default value for the Autocomplete sub-field.
+`autocompleteRequired` | Whether the Autocomplete sub-field should be required.
+`autocompleteErrorMessage` | The error message for the Autocomplete sub-field.
+`autocompleteCollapsed` | Whether the Autocomplete sub-field is collapsed in the control panel.
+`autocompleteEnabled` | Whether the Autocomplete sub-field is enabled in the control panel.
+`autocompleteCurrentLocation` | Whether the Autocomplete sub-field should show a "Show location" link.
+`autocompletePrePopulate` | The field’s pre-populated value extracted from the query string.
+`autocompleteIntegration` | The handle of the Address Provider integration, if set.
 `address1Label` | The label for the Address 1 sub-field.
 `address1Placeholder` | The placeholder for the Address 1 sub-field.
 `address1DefaultValue` | The default value for the Address 1 sub-field.
@@ -60,6 +70,7 @@ Setting | Description
 `address1ErrorMessage` | The error message for the Address 1 sub-field.
 `address1Collapsed` | Whether the Address 1 sub-field is collapsed in the control panel.
 `address1Enabled` | Whether the Address 1 sub-field is enabled in the control panel.
+`address1Hidden` | Whether the Address 1 sub-field is hidden.
 `address2Label` | The label for the Address 2 sub-field.
 `address2Placeholder` | The placeholder for the Address 2 sub-field.
 `address2DefaultValue` | The default value for the Address 2 sub-field.
@@ -67,6 +78,7 @@ Setting | Description
 `address2ErrorMessage` | The error message for the Address 2 sub-field.
 `address2Collapsed` | Whether the Address 2 sub-field is collapsed in the control panel.
 `address2Enabled` | Whether the Address 2 sub-field is enabled in the control panel.
+`address2Hidden` | Whether the Address 2 sub-field is hidden.
 `address3Label` | The label for the Address 3 sub-field.
 `address3Placeholder` | The placeholder for the Address 3 sub-field.
 `address3DefaultValue` | The default value for the Address 3 sub-field.
@@ -74,6 +86,7 @@ Setting | Description
 `address3ErrorMessage` | The error message for the Address 3 sub-field.
 `address3Collapsed` | Whether the Address 3 sub-field is collapsed in the control panel.
 `address3Enabled` | Whether the Address 3 sub-field is enabled in the control panel.
+`address3Hidden` | Whether the Address 3 sub-field is hidden.
 `cityLabel` | The label for the City sub-field.
 `cityPlaceholder` | The placeholder for the City sub-field.
 `cityDefaultValue` | The default value for the City sub-field.
@@ -81,6 +94,7 @@ Setting | Description
 `cityErrorMessage` | The error message for the City sub-field.
 `cityCollapsed` | Whether the City sub-field is collapsed in the control panel.
 `cityEnabled` | Whether the City sub-field is enabled in the control panel.
+`cityHidden` | Whether the City sub-field is hidden.
 `stateLabel` | The label for the State sub-field.
 `statePlaceholder` | The placeholder for the State sub-field.
 `stateDefaultValue` | The default value for the State sub-field.
@@ -88,6 +102,7 @@ Setting | Description
 `stateErrorMessage` | The error message for the State sub-field.
 `stateCollapsed` | Whether the State sub-field is collapsed in the control panel.
 `stateEnabled` | Whether the State sub-field is enabled in the control panel.
+`stateHidden` | Whether the State sub-field is hidden.
 `zipLabel` | The label for the Zip sub-field.
 `zipPlaceholder` | The placeholder for the Zip sub-field.
 `zipDefaultValue` | The default value for the Zip sub-field.
@@ -95,6 +110,7 @@ Setting | Description
 `zipErrorMessage` | The error message for the Zip sub-field.
 `zipCollapsed` | Whether the Zip sub-field is collapsed in the control panel.
 `zipEnabled` | Whether the Zip sub-field is enabled in the control panel.
+`zipHidden` | Whether the Zip sub-field is hidden.
 `countryLabel` | The label for the Country sub-field.
 `countryPlaceholder` | The placeholder for the Country sub-field.
 `countryDefaultValue` | The default value for the Country sub-field.
@@ -102,7 +118,8 @@ Setting | Description
 `countryErrorMessage` | The error message for the Country sub-field.
 `countryCollapsed` | Whether the Country sub-field is collapsed in the control panel.
 `countryEnabled` | Whether the Country sub-field is enabled in the control panel.
-`countryOptions` | An array of options available to pick a country from.
+`countryHidden` | Whether the Country sub-field is hidden.
+`countryOptions` | `[FieldAttribute]` | An array of options available to pick a country from.
 
 
 ### Agree
@@ -139,15 +156,15 @@ Setting | Description
 --- | ---
 `options` | Define the available options for users to select from.
 `layout` | Select which layout to use for these fields.
+`toggleCheckbox` | Whether to add an additional checkbox to toggle all checkboxes in this field by. Either `null`, `top`, `bottom`.
+`toggleCheckboxLabel` | The label for the toggle checkbox field.
 
 
 ### Date/Time
 Setting | Description
 --- | ---
-`minDate` | The minimum allowed date.
-`maxDate` | The maximum allowed date.
 `defaultValue` | Entering a default value will place the value in the field when it loads.
-`displayType` | Set different display layouts for this field.
+`displayType` | The display layout for this field. Either `calendar`, `dropdowns` or `inputs`.
 `dateFormat` | The chosen format for the date.
 `timeFormat` | The chosen format for the time.
 `includeDate` | Whether this field should include the date.
@@ -169,6 +186,8 @@ Setting | Description
 `ampmPlaceholder` | The placeholder for the AM/PM sub-field.
 `useDatePicker` | Whether this field should use the Flatpickr datepicker.
 `datePickerOptions` | A collection of options for the Flatpickr datepicker.
+`minDate` | The minimum allowed date.
+`maxDate` | The maximum allowed date.
 
 
 ### Dropdown
@@ -217,7 +236,8 @@ Setting | Description
 --- | ---
 `defaultOption` | The selected option for the preset default value chosen.
 `defaultValue` | Entering a default value will place the value in the field when it loads. This will be dependant on the value chosen for the `defaultOption`.
-`queryParameter` | If `query` string is selected for the `defaultOption`, this will contain the query string parameter to look up.
+`queryParameter` | If `query string` is selected for the `defaultOption`, this will contain the query string parameter to look up.
+`cookieName` | If `cookie` is selected for the `defaultOption`, this will contain the cookie name to look up.
 
 
 ### Html
@@ -232,8 +252,8 @@ Setting | Description
 `placeholder` | The text that will be shown if the field doesn’t have a value.
 `defaultValue` | Entering a default value will place the value in the field when it loads.
 `limit` | Whether to limit the content of this field.
-`limitType` | Either `words` or `characters`.
-`limitAmount` | The number of character or words to limit this field by.
+`limitType` | The field’s limiting type. Either `characters` or `words`.
+`limitAmount` | The field’s number of characters/words to limit, based on `limitType`.
 `useRichText` | Whether the front-end of the field should use a Rich Text editor. This is powered by [Pell](https://github.com/jaredreich/pell).
 `richTextButtons` | An array of available buttons the Rich Text field should use. Consult the [Pell](https://github.com/jaredreich/pell) docs for these options.
 
@@ -314,13 +334,13 @@ Setting | Description
 Setting | Description
 --- | ---
 `options` | Define the available options for users to select from.
-`layout` | Select which layout to use for these fields.
+`layout` | Select which layout to use for these fields. Either `vertical` or `horizontal`,
 
 
 ### Recipients
 Setting | Description
 --- | ---
-`displayType` | What sort of field to show on the front-end for users.
+`displayType` | What sort of field to show on the front-end for users. Either `hidden`, `dropdown`, `checkboxes` or `radio`.
 `options` | Define the available options for users to select from.
 
 
@@ -354,8 +374,8 @@ Setting | Description
 `placeholder` | The text that will be shown if the field doesn’t have a value.
 `defaultValue` | Entering a default value will place the value in the field when it loads.
 `limit` | Whether to limit the content of this field.
-`limitType` | Either `words` or `characters`.
-`limitAmount` | The number of character or words to limit this field by.
+`limitType` | The field’s limiting type. Either `characters` or `words`.
+`limitAmount` | The field’s number of characters/words to limit, based on `limitType`.
 
 
 ### Table

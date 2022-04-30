@@ -41,7 +41,7 @@ class Radio extends BaseOptionsField implements FormFieldInterface
     // Properties
     // =========================================================================
 
-    public ?string $layout = null;
+    public ?string $layout = 'vertical';
 
 
     // Public Methods

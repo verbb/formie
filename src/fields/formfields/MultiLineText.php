@@ -38,7 +38,7 @@ class MultiLineText extends FormField implements PreviewableFieldInterface
     // Properties
     // =========================================================================
 
-    public ?bool $useRichText = null;
+    public bool $useRichText = false;
     public ?array $richTextButtons = null;
 
 

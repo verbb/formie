@@ -77,7 +77,7 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
     public string $timeFormat = 'H:i';
     public string $displayType = 'calendar';
     public bool $includeDate = true;
-    public bool $includeTime = false;
+    public bool $includeTime = true;
     public ?string $timeLabel = null;
     public ?string $defaultOption = null;
     public ?string $dayLabel = null;

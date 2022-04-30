@@ -44,9 +44,9 @@ class Section extends FormField
     // Properties
     // =========================================================================
 
-    public ?string $borderStyle = null;
-    public ?int $borderWidth = null;
-    public ?string $borderColor = null;
+    public ?string $borderStyle = 'solid';
+    public ?int $borderWidth = 1;
+    public ?string $borderColor = '#ccc';
 
 
     // Public Methods

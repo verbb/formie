@@ -128,12 +128,12 @@ class FieldInterface extends BaseInterfaceType
             'limitType' => [
                 'name' => 'limitType',
                 'type' => Type::string(),
-                'description' => 'The field’s limit type.',
+                'description' => 'The field’s limiting type. Either `characters` or `words`.',
             ],
             'limitAmount' => [
                 'name' => 'limitAmount',
                 'type' => Type::int(),
-                'description' => 'The field’s limit amount.',
+                'description' => 'The field’s number of characters/words to limit, based on `limitType`.',
             ],
             'matchField' => [
                 'name' => 'matchField',
@@ -163,12 +163,12 @@ class FieldInterface extends BaseInterfaceType
             'labelPosition' => [
                 'name' => 'labelPosition',
                 'type' => Type::string(),
-                'description' => 'The field’s label position.',
+                'description' => 'The field’s label position. This will be a `verbb\formie\positions` class name.',
             ],
             'instructionsPosition' => [
                 'name' => 'instructionsPosition',
                 'type' => Type::string(),
-                'description' => 'The field’s instructions position.',
+                'description' => 'The field’s instructions position. This will be a `verbb\formie\positions` class name.',
             ],
             'cssClasses' => [
                 'name' => 'cssClasses',

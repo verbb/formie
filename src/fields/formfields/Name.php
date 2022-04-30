@@ -91,40 +91,40 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
 
     public bool $useMultipleFields = false;
 
-    public ?bool $prefixEnabled = null;
-    public ?bool $prefixCollapsed = null;
+    public bool $prefixEnabled = false;
+    public bool $prefixCollapsed = true;
     public ?string $prefixLabel = null;
     public ?string $prefixPlaceholder = null;
     public ?string $prefixDefaultValue = null;
     public ?string $prefixPrePopulate = null;
-    public ?bool $prefixRequired = null;
+    public bool $prefixRequired = false;
     public ?string $prefixErrorMessage = null;
 
-    public ?bool $firstNameEnabled = null;
-    public ?bool $firstNameCollapsed = null;
+    public bool $firstNameEnabled = true;
+    public bool $firstNameCollapsed = true;
     public ?string $firstNameLabel = null;
     public ?string $firstNamePlaceholder = null;
     public ?string $firstNameDefaultValue = null;
     public ?string $firstNamePrePopulate = null;
-    public ?bool $firstNameRequired = null;
+    public bool $firstNameRequired = false;
     public ?string $firstNameErrorMessage = null;
 
-    public ?bool $middleNameEnabled = null;
-    public ?bool $middleNameCollapsed = null;
+    public bool $middleNameEnabled = false;
+    public bool $middleNameCollapsed = true;
     public ?string $middleNameLabel = null;
     public ?string $middleNamePlaceholder = null;
     public ?string $middleNameDefaultValue = null;
     public ?string $middleNamePrePopulate = null;
-    public ?bool $middleNameRequired = null;
+    public bool $middleNameRequired = false;
     public ?string $middleNameErrorMessage = null;
 
-    public ?bool $lastNameEnabled = null;
-    public ?bool $lastNameCollapsed = null;
+    public bool $lastNameEnabled = true;
+    public bool $lastNameCollapsed = true;
     public ?string $lastNameLabel = null;
     public ?string $lastNamePlaceholder = null;
     public ?string $lastNameDefaultValue = null;
     public ?string $lastNamePrePopulate = null;
-    public ?bool $lastNameRequired = null;
+    public bool $lastNameRequired = false;
     public ?string $lastNameErrorMessage = null;
 
 
