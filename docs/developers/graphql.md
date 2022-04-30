@@ -177,28 +177,28 @@ This is the interface implemented by all forms.
 | Field | Type | Description
 | - | - | -
 | `displayFormTitle`| `Boolean` | Whether to show the form’s title.
-| `displayPageTabs`| `Boolean` | Whether to show the form’s page tabs.
 | `displayCurrentPageTitle`| `Boolean` | Whether to show the form’s current page title.
+| `displayPageTabs`| `Boolean` | Whether to show the form’s page tabs.
 | `displayPageProgress`| `Boolean` | Whether to show the form’s page progress.
 | `scrollToTop`| `Boolean` | Whether to the form should scroll to the top of the page when submitted.
+| `progressPosition`| `String` | The form’s progress bar position. Either `start` or `end`.
+| `defaultLabelPosition`| `String!` | The form’s default label position for fields. This will be a `verbb\formie\positions` class name.
+| `defaultInstructionsPosition`| `String!` | The form’s default instructions position for fields. This will be a `verbb\formie\positions` class name.
 | `submitMethod`| `String!` | The form’s submit method. Either `page-reload` or `ajax`.
 | `submitAction`| `String!` | The form’s submit action. Either `message`, `entry`, `url`, `reload`.
-| `submitActionTab`| `String!` | The form’s submit redirect option (if in new tab or same tab).
-| `submitActionFormHide`| `Boolean!` | Whether to hide the form’s success message.
+| `submitActionTab`| `String!` | The form’s submit redirect option (if in new tab or same tab). Either `same-tab` or `new-tab`.
+| `submitActionFormHide`| `Boolean` | Whether to hide the form’s success message.
 | `submitActionMessageHtml`| `String` | The form’s submit success message.
-| `submitActionMessageTimeout`| `Integer` | The form’s submit success message timeout.
-| `submitActionMessagePosition`| `String` | The form’s submit message position.
+| `submitActionMessageTimeout`| `Integer` | The form’s submit success message timeout in seconds.
+| `submitActionMessagePosition`| `String` | The form’s submit message position. Either `top-form` or `bottom-form`.
+| `loadingIndicator`| `String!` | The type of loading indicator to use. Either `spinner` or `text`.
+| `loadingIndicatorText`| `String!` | The form’s loading indicator text.
+| `validationOnSubmit`| `Boolean` | Whether to validate the form’s on submit.
+| `validationOnFocus`| `Boolean` | Whether to validate the form’s on focus.
+| `errorMessageHtml`| `String` | The form’s submit error message.
+| `errorMessagePosition`| `String` | The form’s error message position. Either `null`, `top-form` or `bottom-form`.
 | `redirectUrl`| `String!` | The form’s submit action redirect URL, resolved depending on `submitAction` being `entry` or `url`.
 | `redirectEntry`| `EntryInterface!` | The form’s submit action entry (for redirection), if `submitAction` is `entry`.
-| `errorMessageHtml`| `String` | The form’s submit error message.
-| `errorMessagePosition`| `String` | The form’s error message position.
-| `loadingIndicator`| `String!` | The type of loading indicator to use. `spinner` or `text`.
-| `loadingIndicatorText`| `String!` | The form’s loading indicator text.
-| `validationOnSubmit`| `Boolean!` | Whether to validate the form’s on submit.
-| `validationOnFocus`| `Boolean!` | Whether to validate the form’s on focus.
-| `defaultLabelPosition`| `String!` | The form’s default label position for fields.
-| `defaultInstructionsPosition`| `String!` | The form’s default instructions position for fields.
-| `progressPosition`| `String` | The form’s progress bar position.
 | `integrations`| `[FormIntegrationsInterface]` | The form’s enabled integrations.
 
 
@@ -225,7 +225,7 @@ This is the interface implemented by all pages.
 | `name`| `String` | The name of the page.
 | `rows`| `[RowInterface]` | The pages’s rows.
 | `pageFields`| `[FieldInterface]` | The pages’s fields.
-| `settings`| `[PageSettingsInterface]` | The pages’s settings
+| `settings`| `[PageSettingsInterface]` | The pages’s settings, including buttons.
 
 #### The `pageFields` query
 This query is used to query for [Field](docs:developers/field) objects on a page.
@@ -243,14 +243,14 @@ This is the interface implemented by all pages.
 | `submitButtonLabel`| `String!` | The page’s submit button label.
 | `backButtonLabel`| `String!` | The page’s back button label.
 | `showBackButton`| `Boolean` | Whether to show the page’s back button.
-| `buttonsPosition`| `String` | The page’s button positions.
-| `cssClasses`| `String!` | The field’s CSS classes.
-| `containerAttributes| `[FieldAttribute]!` | The field’s container attributes.
-| `inputAttributes| `[FieldAttribute]!` | The field’s input attributes.
-| `enablePageConditions`| `Boolean` | Whether the page has conditions enabled.',
-| `pageConditions`| `String` | The page’s conditions.',
-| `enableNextButtonConditions`| `Boolean` | Whether the page has conditions enabled.
-| `nextButtonConditions`| `String` | The page’s conditions.
+| `buttonsPosition`| `String` | The page’s button (back and submit) positions.
+| `cssClasses`| `String!` | The page’s button (back and submit) CSS classes.
+| `containerAttributes| `[FieldAttribute]!` | The page’s button (back and submit) container attributes.
+| `inputAttributes| `[FieldAttribute]!` | The page’s button (back and submit) input attributes.
+| `enablePageConditions`| `Boolean` | Whether the page has conditions enabled.
+| `pageConditions`| `String` | The page’s conditions as a JSON string.
+| `enableNextButtonConditions`| `Boolean` | Whether the page’s next button has conditions enabled, for multi-page forms.
+| `nextButtonConditions`| `String` | The page’s conditions for whether to show the next button, for multi-page forms as a JSON string.
 
 ### The `RowInterface` interface
 This is the interface implemented by all rows.
@@ -284,25 +284,24 @@ This is the interface implemented by all fields. Note that as settings are speci
 | `displayName`| `String` | The field’s display name (last portion of the class).
 | `typeName`| `String` | The field’s full GQL type.
 | `inputTypeName`| `String` | The field’s full GQL input type. Useful for mutations.
-| `limit`| `Boolean!` | Whether the field should limit content.
+| `limit`| `Boolean` | Whether the field should limit content.
 | `limitType`| `String!` | The field’s limit type.
 | `limitAmount`| `Int!` | The field’s limit amount.
-| `matchField`| `Boolean!` | Whether the field’s value should match another field.
+| `matchField`| `String!` | The field handle for another field that this value should match exactly.
 | `placeholder`| `String!` | The field’s placeholder.
-| `defaultValue`| `String` | The field’s default value. This type will change depending on the field.
+| `defaultValue`| `String` | The field’s default value as a string. Some fields have different fields for their default value.
 | `prePopulate`| `String!` | The field’s pre-populated value extracted from the query string.
 | `errorMessage`| `String!` | The field’s error message.
 | `labelPosition`| `String!` | The field’s label position.
 | `instructionsPosition`| `String!` | The field’s instructions position.
 | `cssClasses`| `String!` | The field’s CSS classes.
-| `containerAttributes`| `String!` | The field’s container attributes.
-| `inputAttributes`| `String!` | The field’s input attributes.
-| `includeInEmail`| `Boolean!` | Whether the field should be included in email content.
-| `enableConditions`| `Boolean!` | Whether the field has conditions enabled.
-| `conditions`| `String!` | The field’s conditions.
+| `containerAttributes`| `[FieldAttribute]` | The field’s container attributes.
+| `inputAttributes`| `[FieldAttribute]` | The field’s input attributes.
+| `includeInEmail`| `Boolean` | Whether the field should be included in email content.
+| `enableConditions`| `Boolean` | Whether the field has conditions enabled.
+| `conditions`| `String!` | The field’s conditions as a JSON string.
 | `enableContentEncryption`| `Boolean` | Whether the field has content encryption enabled.
 | `visibility`| `String!` | The field’s visibility.
-
 
 Once using the necessary [Inline Fragments](https://graphql.org/learn/queries/#inline-fragments) for each field type, you'll have access to the same variables as described on the [Field](docs:developers/field) docs.
 
@@ -640,7 +639,15 @@ For nested fields like Group and Repeater, you have access to `nestedRows` and `
 }
 ```
 
-#### FieldOption
+### The `FieldAttribute` interface
+This interface defines a key-value stored value, where you want the label and value.
+
+| Field | Type | Description
+| - | - | -
+|`label` | `String` | The label of the attribute.
+|`value` | `String` | The value of the attribute.
+
+### The `FieldOption` interface
 For option-based fields, a `FieldOption` represents a single option row.
 
 | Field | Type | Description
@@ -658,6 +665,16 @@ This is the interface to allow easy retrieval of a CSRF token and value.
 | - | - | -
 | `name`| `String` | The CSRF name.
 | `value`| `String` | The CSRF token.
+
+
+### The `CaptchaValueInterface` interface
+This is the interface to fetch enabled captchas for the form.
+
+| Field | Type | Description
+| - | - | -
+| `handle`| `String` | The captcha name.
+| `name`| `String` | The captcha name.
+| `value`| `String` | The captcha value.
 
 
 ## Submissions

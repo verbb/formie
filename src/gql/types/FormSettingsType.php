@@ -23,20 +23,21 @@ class FormSettingsType extends ObjectType
         return GqlEntityRegistry::getEntity(self::getName()) ?: GqlEntityRegistry::createEntity(self::getName(), new self([
             'name' => self::getName(),
             'fields' => [
+                // Appearance
                 'displayFormTitle' => [
                     'name' => 'displayFormTitle',
                     'type' => Type::boolean(),
                     'description' => 'Whether to show the form’s title.',
                 ],
-                'displayPageTabs' => [
-                    'name' => 'displayPageTabs',
-                    'type' => Type::boolean(),
-                    'description' => 'Whether to show the form’s page tabs.',
-                ],
                 'displayCurrentPageTitle' => [
                     'name' => 'displayCurrentPageTitle',
                     'type' => Type::boolean(),
                     'description' => 'Whether to show the form’s current page title.',
+                ],
+                'displayPageTabs' => [
+                    'name' => 'displayPageTabs',
+                    'type' => Type::boolean(),
+                    'description' => 'Whether to show the form’s page tabs.',
                 ],
                 'displayPageProgress' => [
                     'name' => 'displayPageProgress',
@@ -48,6 +49,23 @@ class FormSettingsType extends ObjectType
                     'type' => Type::boolean(),
                     'description' => 'Whether to the form should scroll to the top of the page when submitted.',
                 ],
+                'progressPosition' => [
+                    'name' => 'progressPosition',
+                    'type' => Type::string(),
+                    'description' => 'The form’s progress bar position. Either `start` or `end`.',
+                ],
+                'defaultLabelPosition' => [
+                    'name' => 'defaultLabelPosition',
+                    'type' => Type::string(),
+                    'description' => 'The form’s default label position for fields. This will be a `verbb\formie\positions` class name.',
+                ],
+                'defaultInstructionsPosition' => [
+                    'name' => 'defaultInstructionsPosition',
+                    'type' => Type::string(),
+                    'description' => 'The form’s default instructions position for fields. This will be a `verbb\formie\positions` class name.',
+                ],
+
+                // Behaviour
                 'submitMethod' => [
                     'name' => 'submitMethod',
                     'type' => Type::string(),
@@ -61,7 +79,7 @@ class FormSettingsType extends ObjectType
                 'submitActionTab' => [
                     'name' => 'submitActionTab',
                     'type' => Type::string(),
-                    'description' => 'The form’s submit redirect option (if in new tab or same tab).',
+                    'description' => 'The form’s submit redirect option (if in new tab or same tab). Either `same-tab` or `new-tab`.',
                 ],
                 'submitActionFormHide' => [
                     'name' => 'submitActionFormHide',
@@ -76,7 +94,7 @@ class FormSettingsType extends ObjectType
                 'submitActionMessageTimeout' => [
                     'name' => 'submitActionMessageTimeout',
                     'type' => Type::int(),
-                    'description' => 'The form’s submit success message timeout.',
+                    'description' => 'The form’s submit success message timeout in seconds.',
                     'resolve' => function($class) {
                         return (int)$class->submitActionMessageTimeout;
                     },
@@ -84,8 +102,42 @@ class FormSettingsType extends ObjectType
                 'submitActionMessagePosition' => [
                     'name' => 'submitActionMessagePosition',
                     'type' => Type::string(),
-                    'description' => 'The form’s submit message position.',
+                    'description' => 'The form’s submit message position. Either `top-form` or `bottom-form`.',
                 ],
+                'loadingIndicator' => [
+                    'name' => 'loadingIndicator',
+                    'type' => Type::string(),
+                    'description' => 'The type of loading indicator to use. Either `spinner` or `text`.',
+                ],
+                'loadingIndicatorText' => [
+                    'name' => 'loadingIndicatorText',
+                    'type' => Type::string(),
+                    'description' => 'The form’s loading indicator text.',
+                ],
+
+                // Behaviour - Validation
+                'validationOnSubmit' => [
+                    'name' => 'validationOnSubmit',
+                    'type' => Type::boolean(),
+                    'description' => 'Whether to validate the form’s on submit.',
+                ],
+                'validationOnFocus' => [
+                    'name' => 'validationOnFocus',
+                    'type' => Type::boolean(),
+                    'description' => 'Whether to validate the form’s on focus.',
+                ],
+                'errorMessageHtml' => [
+                    'name' => 'errorMessageHtml',
+                    'type' => Type::string(),
+                    'description' => 'The form’s submit error message.',
+                ],
+                'errorMessagePosition' => [
+                    'name' => 'errorMessagePosition',
+                    'type' => Type::string(),
+                    'description' => 'The form’s error message position. Either `null`, `top-form` or `bottom-form`.',
+                ],
+
+                // Other
                 'redirectUrl' => [
                     'name' => 'redirectUrl',
                     'type' => Type::string(),
@@ -100,55 +152,10 @@ class FormSettingsType extends ObjectType
                     'args' => EntryArguments::getArguments(),
                     'description' => 'The form’s submit action entry (for redirection), if `submitAction` is `entry`.',
                 ],
-                'errorMessageHtml' => [
-                    'name' => 'errorMessageHtml',
-                    'type' => Type::string(),
-                    'description' => 'The form’s submit error message.',
-                ],
-                'errorMessagePosition' => [
-                    'name' => 'errorMessagePosition',
-                    'type' => Type::string(),
-                    'description' => 'The form’s error message position.',
-                ],
-                'loadingIndicator' => [
-                    'name' => 'loadingIndicator',
-                    'type' => Type::string(),
-                    'description' => 'Whether to show the form’s loading indicator.',
-                ],
-                'loadingIndicatorText' => [
-                    'name' => 'loadingIndicatorText',
-                    'type' => Type::string(),
-                    'description' => 'The form’s loading indicator text.',
-                ],
-                'validationOnSubmit' => [
-                    'name' => 'validationOnSubmit',
-                    'type' => Type::boolean(),
-                    'description' => 'Whether to validate the form’s on submit.',
-                ],
-                'validationOnFocus' => [
-                    'name' => 'validationOnFocus',
-                    'type' => Type::boolean(),
-                    'description' => 'Whether to validate the form’s on focus.',
-                ],
-                'defaultLabelPosition' => [
-                    'name' => 'defaultLabelPosition',
-                    'type' => Type::string(),
-                    'description' => 'The form’s default label position for fields.',
-                ],
-                'defaultInstructionsPosition' => [
-                    'name' => 'defaultInstructionsPosition',
-                    'type' => Type::string(),
-                    'description' => 'The form’s default instructions position for fields.',
-                ],
-                'progressPosition' => [
-                    'name' => 'progressPosition',
-                    'type' => Type::string(),
-                    'description' => 'The form’s progress bar position.',
-                ],
                 'integrations' => [
                     'name' => 'integrations',
                     'type' => Type::listOf(FormIntegrationsType::getType()),
-                    'description' => 'The form’s integrations.',
+                    'description' => 'The form’s enabled integrations.',
                     'resolve' => function($source, $arguments) {
                         return $source->getEnabledIntegrations();
                     },

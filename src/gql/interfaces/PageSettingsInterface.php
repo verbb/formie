@@ -94,7 +94,7 @@ class PageSettingsInterface extends BaseInterfaceType
             'pageConditions' => [
                 'name' => 'pageConditions',
                 'type' => Type::string(),
-                'description' => 'The page’s conditions.',
+                'description' => 'The page’s conditions as a JSON string.',
                 'resolve' => function($source) {
                     $value = $source->pageConditions;
 
@@ -109,7 +109,7 @@ class PageSettingsInterface extends BaseInterfaceType
             'nextButtonConditions' => [
                 'name' => 'nextButtonConditions',
                 'type' => Type::string(),
-                'description' => 'The page’s conditions for whether to show the next button, for multi-page forms.',
+                'description' => 'The page’s conditions for whether to show the next button, for multi-page forms as a JSON string.',
                 'resolve' => function($source) {
                     $value = $source->nextButtonConditions;
 

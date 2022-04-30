@@ -82,7 +82,7 @@ class FieldInterface extends BaseInterfaceType
             'displayName' => [
                 'name' => 'displayName',
                 'type' => Type::string(),
-                'description' => 'The field’s display name.',
+                'description' => 'The field’s display name (last portion of the class).',
                 'resolve' => function($field) {
                     $classNameParts = explode('\\', get_class($field));
 
@@ -92,7 +92,7 @@ class FieldInterface extends BaseInterfaceType
             'typeName' => [
                 'name' => 'typeName',
                 'type' => Type::string(),
-                'description' => 'The field’s GQL type.',
+                'description' => 'The field’s full GQL type.',
                 'resolve' => function($field) {
                     return $field->getGqlTypeName();
                 },
@@ -100,7 +100,7 @@ class FieldInterface extends BaseInterfaceType
             'inputTypeName' => [
                 'name' => 'inputTypeName',
                 'type' => Type::string(),
-                'description' => 'The field’s GQL input name.',
+                'description' => 'The field’s full GQL input type. Useful for mutations.',
                 'resolve' => function($field) {
                     $inputType = $field->getContentGqlMutationArgumentType();
 
@@ -137,8 +137,8 @@ class FieldInterface extends BaseInterfaceType
             ],
             'matchField' => [
                 'name' => 'matchField',
-                'type' => Type::boolean(),
-                'description' => 'Whether the field’s value should match another field.',
+                'type' => Type::string(),
+                'description' => 'The field handle for another field that this value should match exactly.',
             ],
             'placeholder' => [
                 'name' => 'placeholder',
@@ -148,7 +148,7 @@ class FieldInterface extends BaseInterfaceType
             'defaultValue' => [
                 'name' => 'defaultValue',
                 'type' => Type::string(),
-                'description' => 'The field’s default value.',
+                'description' => 'The field’s default value as a string. Some fields have different fields for their default value.',
             ],
             'prePopulate' => [
                 'name' => 'prePopulate',
@@ -198,7 +198,7 @@ class FieldInterface extends BaseInterfaceType
             'conditions' => [
                 'name' => 'conditions',
                 'type' => Type::string(),
-                'description' => 'The field’s conditions.',
+                'description' => 'The field’s conditions as a JSON string.',
                 'resolve' => function($field) {
                     $value = $field->conditions;
 

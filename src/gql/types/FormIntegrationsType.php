@@ -26,18 +26,22 @@ class FormIntegrationsType extends ObjectType
                 'name' => [
                     'name' => 'name',
                     'type' => Type::string(),
+                    'description' => 'The integration’s name.',
                 ],
                 'handle' => [
                     'name' => 'handle',
                     'type' => Type::string(),
+                    'description' => 'The integration’s handle.',
                 ],
                 'enabled' => [
                     'name' => 'enabled',
                     'type' => Type::boolean(),
+                    'description' => 'Whether the integration is enabled.',
                 ],
                 'settings' => [
                     'name' => 'settings',
                     'type' => Type::string(),
+                    'description' => 'The integration’s settings as a JSON string.',
                     'resolve' => function($source, $arguments) {
                         $json = Json::decode(Json::encode($source));
 

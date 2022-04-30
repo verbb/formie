@@ -74,7 +74,7 @@ class PageInterface extends BaseInterfaceType
             'settings' => [
                 'name' => 'settings',
                 'type' => PageSettingsInterface::getType(),
-                'description' => 'The page’s settings.',
+                'description' => 'The page’s settings, including buttons.',
             ],
         ]);
 
