@@ -61,7 +61,7 @@ If you have any [Address Providers](docs:feature-tour/integrations#address-provi
 ### Agree
 A field for a single checkbox. Its ideal purpose is to be an agreement checkbox for terms & conditions, or similar. It can be marked as required or not as well as have its checked and unchecked values set.
 
-The description for the Agree field can also contain HTML via a WYSIWYG editor. You can control the available buttons and formatting via [docs:get-started/configuration#available-buttons](available buttons).
+The description for the Agree field can also contain HTML via a WYSIWYG editor. You can control the available buttons and formatting via [available buttons](docs:get-started/configuration#available-buttons).
 
 #### Settings
 Setting | Description
@@ -478,6 +478,8 @@ For Dropdown, Checkboxes and Radio Buttons, Formie provides a collection of pres
 You can also select what content to use for the Label and Value of each option. For instance, you might like to label the option as Australia, but have the value as the abbreviated "AU".
 
 The below is a list of options Formie provides by default.
+
+<!-- index-disable -->
 
 ### Countries
 - Afghanistan
@@ -1348,5 +1350,6 @@ The below is a list of options Formie provides by default.
 - Definitely Not
 - Not applicable
 
+<!-- index-disable-end -->
 
 You can also register your own [predefined options](docs:developers/events#predefined-field-options)
