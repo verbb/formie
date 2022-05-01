@@ -109,11 +109,9 @@ class Formie extends Plugin
 
         $this->_registerComponents();
         $this->_registerLogTarget();
-        $this->_registerCpRoutes();
         $this->_registerTwigExtensions();
         $this->_registerFieldsEvents();
         $this->_registerFieldTypes();
-        $this->_registerPermissions();
         $this->_registerVariable();
         $this->_registerElementTypes();
         $this->_registerGarbageCollection();
@@ -121,16 +119,23 @@ class Formie extends Plugin
         $this->_registerCraftEventListeners();
         $this->_registerProjectConfigEventListeners();
         $this->_registerEmailMessages();
-        $this->_registerElementExports();
         $this->_registerTemplateRoots();
-        $this->_registerWidgets();
-        $this->_registerResaveCommand();
         $this->_registerThirdPartyEventListeners();
+        $this->_registerTemplateHooks();
 
-        // Add default captcha integrations
-        Craft::$app->getView()->hook('formie.buttons.before', static function(array $context) {
-            return Formie::$plugin->getForms()->handleBeforeSubmitHook($context);
-        });
+        if (Craft::$app->getRequest()->getIsCpRequest()) {
+            $this->_registerCpRoutes();
+            $this->_registerWidgets();
+            $this->_registerElementExports();
+        }
+
+        if (Craft::$app->getRequest()->getIsConsoleRequest()) {
+            $this->_registerResaveCommand();
+        }
+
+        if (Craft::$app->getEdition() === Craft::Pro) {
+            $this->_registerPermissions();
+        }
     }
 
     public function getPluginName(): string
@@ -588,6 +593,14 @@ class Formie extends Plugin
                     'formId' => 'The form ID of the submissions to resave.',
                 ],
             ];
+        });
+    }
+
+    private function _registerTemplateHooks(): void
+    {
+        // Add default captcha integrations
+        Craft::$app->getView()->hook('formie.buttons.before', static function(array $context) {
+            return Formie::$plugin->getForms()->handleBeforeSubmitHook($context);
         });
     }
 }
