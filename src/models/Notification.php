@@ -120,7 +120,7 @@ class Notification extends Model
      * @param $submission
      * @return string
      */
-    public function getToEmail($submission): string
+    public function getToEmail($submission): ?string
     {
         if ($this->recipients === 'email') {
             return $this->to;
@@ -142,7 +142,7 @@ class Notification extends Model
             }
         }
 
-        return '';
+        return null;
     }
 
     /**
