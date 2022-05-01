@@ -260,6 +260,12 @@ class Notifications extends Component
                 unset($notificationData['attachAssetsHtml']);
             }
 
+            if (isset($notificationData['id'])) {
+                if (str_starts_with($notificationData['id'], 'new')) {
+                    $notificationData['id'] = null;
+                }
+            }
+
             $notifications[] = new Notification($notificationData);
         }
 

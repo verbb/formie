@@ -1559,16 +1559,6 @@ class Form extends Element
 
         $record->save(false);
 
-        // Clear caches
-        $this->_fieldLayout = null;
-        $this->_formFieldLayout = null;
-        $this->_fields = null;
-        $this->_rows = null;
-        $this->_pages = null;
-        $this->_template = null;
-        $this->_defaultStatus = null;
-        $this->_notifications = null;
-
         parent::afterSave($isNew);
     }
 
