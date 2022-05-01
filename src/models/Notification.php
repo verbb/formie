@@ -267,8 +267,10 @@ class Notification extends Model
 
     public function getAssetAttachments(): array
     {
-        if ($ids = ArrayHelper::getColumn($this->attachAssets, 'id')) {
-            return Asset::find()->id($ids)->all();
+        if ($this->attachAssets) {
+            if ($ids = ArrayHelper::getColumn($this->attachAssets, 'id')) {
+                return Asset::find()->id($ids)->all();
+            }
         }
 
         return [];
