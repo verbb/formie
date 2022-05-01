@@ -76,7 +76,7 @@ class Tokens extends Component
         }
 
         if ($runValidation && !$token->validate()) {
-            Craft::info('Token not saved due to validation error.', __METHOD__);
+            Formie::log('Token not saved due to validation error.', __METHOD__);
             return false;
         }
 

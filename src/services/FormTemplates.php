@@ -7,6 +7,8 @@ use verbb\formie\models\FormTemplate;
 use verbb\formie\records\FormTemplate as TemplateRecord;
 
 use Craft;
+use craft\base\Component;
+use craft\base\MemoizableArray;
 use craft\db\Query;
 use craft\events\ConfigEvent;
 use craft\helpers\ArrayHelper;
@@ -14,11 +16,11 @@ use craft\helpers\Db;
 use craft\helpers\StringHelper;
 use craft\models\FieldLayout;
 
-use yii\base\Component;
 use yii\base\ErrorException;
 use yii\base\Exception;
 use yii\base\NotSupportedException;
 use yii\web\ServerErrorHttpException;
+
 use Throwable;
 
 class FormTemplates extends Component
@@ -37,10 +39,7 @@ class FormTemplates extends Component
     // Private Properties
     // =========================================================================
 
-    /**
-     * @var FormTemplate[]
-     */
-    private ?array $_templates = null;
+    private ?MemoizableArray $_templates = null;
 
 
     // Public Methods
@@ -49,24 +48,11 @@ class FormTemplates extends Component
     /**
      * Returns all templates.
      *
-     * @param bool $withTrashed
      * @return FormTemplate[]
      */
     public function getAllTemplates(bool $withTrashed = false): array
     {
-        // Get the caches items if we have them cached, and the request is for non-trashed items
-        if ($this->_templates !== null) {
-            return $this->_templates;
-        }
-
-        $results = $this->_createTemplatesQuery($withTrashed)->all();
-        $templates = [];
-
-        foreach ($results as $row) {
-            $templates[] = new FormTemplate($row);
-        }
-
-        return $templates;
+        return $this->_templates()->all();
     }
 
     /**
@@ -77,7 +63,7 @@ class FormTemplates extends Component
      */
     public function getTemplateById(int $id): ?FormTemplate
     {
-        return ArrayHelper::firstWhere($this->getAllTemplates(), 'id', $id);
+        return $this->_templates()->firstWhere('id', $id);
     }
 
     /**
@@ -88,7 +74,7 @@ class FormTemplates extends Component
      */
     public function getTemplateByHandle(string $handle): ?FormTemplate
     {
-        return ArrayHelper::firstWhere($this->getAllTemplates(), 'handle', $handle, false);
+        return $this->_templates()->firstWhere('handle', $handle, true);
     }
 
     /**
@@ -99,7 +85,7 @@ class FormTemplates extends Component
      */
     public function getTemplateByUid(string $uid): ?FormTemplate
     {
-        return ArrayHelper::firstWhere($this->getAllTemplates(), 'uid', $uid, false);
+        return $this->_templates()->firstWhere('uid', $uid, true);
     }
 
     /**
@@ -152,15 +138,19 @@ class FormTemplates extends Component
         }
 
         if ($runValidation && !$template->validate()) {
-            Craft::info('Template not saved due to validation error.', __METHOD__);
+            Formie::log('Template not saved due to validation error.', __METHOD__);
 
             return false;
         }
 
         if ($isNewTemplate) {
-            $templateUid = StringHelper::UUID();
-        } else {
-            $templateUid = Db::uidById('{{%formie_formtemplates}}', $template->id);
+            $template->uid = StringHelper::UUID();
+
+            $template->sortOrder = (new Query())
+                ->from(['{{%formie_formtemplates}}'])
+                ->max('[[sortOrder]]') + 1;
+        } else if (!$template->uid) {
+            $template->uid = Db::uidById('{{%formie_formtemplates}}', $template->id);
         }
 
         // Make sure no templates that are not archived share the handle
@@ -171,47 +161,11 @@ class FormTemplates extends Component
             return false;
         }
 
-        $projectConfig = Craft::$app->getProjectConfig();
-
-        if ($template->dateDeleted) {
-            $configData = null;
-        } else {
-            $configData = [
-                'name' => $template->name,
-                'handle' => $template->handle,
-                'template' => $template->template,
-                'useCustomTemplates' => $template->useCustomTemplates,
-                'outputCssTheme' => $template->outputCssTheme,
-                'outputCssLayout' => $template->outputCssLayout,
-                'outputJsBase' => $template->outputJsBase,
-                'outputJsTheme' => $template->outputJsTheme,
-                'outputCssLocation' => $template->outputCssLocation,
-                'outputJsLocation' => $template->outputJsLocation,
-                'sortOrder' => $template->sortOrder ?? 99,
-            ];
-
-            $fieldLayout = $template->getFieldLayout();
-            $fieldLayoutConfig = $fieldLayout->getConfig();
-
-            if ($fieldLayoutConfig) {
-                if (empty($fieldLayout->id)) {
-                    $layoutUid = StringHelper::UUID();
-                    $fieldLayout->uid = $layoutUid;
-                } else {
-                    $layoutUid = Db::uidById('{{%fieldlayouts}}', $fieldLayout->id);
-                }
-
-                $configData['fieldLayouts'] = [$layoutUid => $fieldLayoutConfig];
-            } else {
-                $configData['fieldLayouts'] = [];
-            }
-        }
-
-        $configPath = self::CONFIG_TEMPLATES_KEY . '.' . $templateUid;
-        $projectConfig->set($configPath, $configData);
+        $configPath = self::CONFIG_TEMPLATES_KEY . '.' . $template->uid;
+        Craft::$app->getProjectConfig()->set($configPath, $template->getConfig(), "Save the “{$template->handle}” form template");
 
         if ($isNewTemplate) {
-            $template->id = Db::idByUid('{{%formie_formtemplates}}', $templateUid);
+            $template->id = Db::idByUid('{{%formie_formtemplates}}', $template->uid);
         }
 
         return true;
@@ -234,7 +188,7 @@ class FormTemplates extends Component
 
         $transaction = Craft::$app->getDb()->beginTransaction();
         try {
-            $templateRecord = $this->_getTemplateRecord($templateUid);
+            $templateRecord = $this->_getTemplateRecord($templateUid, true);
             $isNewTemplate = $templateRecord->getIsNewRecord();
 
             $templateRecord->name = $data['name'];
@@ -247,32 +201,39 @@ class FormTemplates extends Component
             $templateRecord->outputJsTheme = $data['outputJsTheme'];
             $templateRecord->outputCssLocation = $data['outputCssLocation'];
             $templateRecord->outputJsLocation = $data['outputJsLocation'];
-            $templateRecord->sortOrder = $data['sortOrder'] ?? 99;
+            $templateRecord->sortOrder = $data['sortOrder'];
             $templateRecord->uid = $templateUid;
 
-            $fieldsService = Craft::$app->getFields();
-
-            if (!empty($data['fieldLayouts']) && !empty($config = reset($data['fieldLayouts']))) {
-                // Save the main field layout
-                $layout = FieldLayout::createFromConfig($config);
+            if (!empty($data['fieldLayouts'])) {
+                // Save the field layout
+                $layout = FieldLayout::createFromConfig(reset($data['fieldLayouts']));
                 $layout->id = $templateRecord->fieldLayoutId;
                 $layout->type = Form::class;
                 $layout->uid = key($data['fieldLayouts']);
-                $fieldsService->saveLayout($layout);
+                
+                Craft::$app->getFields()->saveLayout($layout, false);
+                
                 $templateRecord->fieldLayoutId = $layout->id;
             } else if ($templateRecord->fieldLayoutId) {
                 // Delete the main field layout
-                $fieldsService->deleteLayoutById($templateRecord->fieldLayoutId);
+                Craft::$app->getFields()->deleteLayoutById($templateRecord->fieldLayoutId);
                 $templateRecord->fieldLayoutId = null;
             }
 
-            // Save the volume
-            $templateRecord->save(false);
+            if ($wasTrashed = (bool)$templateRecord->dateDeleted) {
+                $templateRecord->restore();
+            } else {
+                $templateRecord->save(false);
+            }
+
             $transaction->commit();
         } catch (Throwable $e) {
             $transaction->rollBack();
             throw $e;
         }
+
+        // Clear caches
+        $this->_templates = null;
 
         // Fire an 'afterSaveFormTemplate' event
         if ($this->hasEventHandlers(self::EVENT_AFTER_SAVE_FORM_TEMPLATE)) {
@@ -316,7 +277,7 @@ class FormTemplates extends Component
             ]));
         }
 
-        Craft::$app->getProjectConfig()->remove(self::CONFIG_TEMPLATES_KEY . '.' . $template->uid);
+        Craft::$app->getProjectConfig()->remove(self::CONFIG_TEMPLATES_KEY . '.' . $template->uid, "Delete form template “{$template->handle}”");
         return true;
     }
 
@@ -329,8 +290,13 @@ class FormTemplates extends Component
     public function handleDeletedTemplate(ConfigEvent $event): void
     {
         $uid = $event->tokenMatches[0];
+        $templateRecord = $this->_getTemplateRecord($uid);
 
-        $template = $this->getTemplateByUid($uid);
+        if ($templateRecord->getIsNewRecord()) {
+            return;
+        }
+
+        $template = $this->getTemplateById($templateRecord->id);
 
         // Fire a 'beforeApplyFormTemplateDelete' event
         if ($this->hasEventHandlers(self::EVENT_BEFORE_APPLY_FORM_TEMPLATE_DELETE)) {
@@ -341,16 +307,18 @@ class FormTemplates extends Component
 
         $transaction = Craft::$app->getDb()->beginTransaction();
         try {
-            $templateRecord = $this->_getTemplateRecord($uid);
-
-            // Save the template
-            $templateRecord->softDelete();
+            Craft::$app->getDb()->createCommand()
+                ->softDelete('{{%formie_formtemplates}}', ['id' => $templateRecord->id])
+                ->execute();
 
             $transaction->commit();
         } catch (Throwable $e) {
             $transaction->rollBack();
             throw $e;
         }
+
+        // Clear caches
+        $this->_templates = null;
 
         // Fire an 'afterDeleteFormTemplate' event
         if ($this->hasEventHandlers(self::EVENT_AFTER_DELETE_FORM_TEMPLATE)) {
@@ -363,6 +331,26 @@ class FormTemplates extends Component
 
     // Private Methods
     // =========================================================================
+    
+    /**
+     * Returns a memoizable array of all templates.
+     *
+     * @return MemoizableArray<EmailTemplate>
+     */
+    private function _templates(): MemoizableArray
+    {
+        if (!isset($this->_templates)) {
+            $templates = [];
+
+            foreach ($this->_createTemplatesQuery()->all() as $result) {
+                $templates[] = new FormTemplate($result);
+            }
+
+            $this->_templates = new MemoizableArray($templates);
+        }
+
+        return $this->_templates;
+    }
 
     /**
      * Returns a Query object prepped for retrieving templates.
@@ -370,7 +358,7 @@ class FormTemplates extends Component
      * @param bool $withTrashed
      * @return Query
      */
-    private function _createTemplatesQuery(bool $withTrashed = false): Query
+    private function _createTemplatesQuery(): Query
     {
         $query = (new Query())
             ->select([
@@ -390,29 +378,25 @@ class FormTemplates extends Component
                 'dateDeleted',
                 'uid',
             ])
-            ->orderBy('sortOrder')
-            ->from(['{{%formie_formtemplates}}']);
-
-        if (!$withTrashed) {
-            $query->where(['dateDeleted' => null]);
-        }
+            ->from(['{{%formie_formtemplates}}'])
+            ->where(['dateDeleted' => null])
+            ->orderBy(['sortOrder' => SORT_ASC]);
 
         return $query;
     }
 
     /**
-     * Gets a template record by uid.
+     * Gets a template's record by uid.
      *
      * @param string $uid
+     * @param bool $withTrashed Whether to include trashed templates in search
      * @return TemplateRecord
      */
-    private function _getTemplateRecord(string $uid): TemplateRecord
+    private function _getTemplateRecord(string $uid, bool $withTrashed = false): TemplateRecord
     {
-        /** @var TemplateRecord $template */
-        if ($template = TemplateRecord::findWithTrashed()->where(['uid' => $uid])->one()) {
-            return $template;
-        }
+        $query = $withTrashed ? TemplateRecord::findWithTrashed() : TemplateRecord::find();
+        $query->andWhere(['uid' => $uid]);
 
-        return new TemplateRecord();
+        return $query->one() ?? new TemplateRecord();
     }
 }

@@ -11,6 +11,8 @@ use verbb\formie\models\Settings;
 use verbb\formie\records\PdfTemplate as TemplateRecord;
 
 use Craft;
+use craft\base\Component;
+use craft\base\MemoizableArray;
 use craft\db\Query;
 use craft\events\ConfigEvent;
 use craft\helpers\ArrayHelper;
@@ -22,7 +24,6 @@ use craft\helpers\Template;
 use Dompdf\Dompdf;
 use Dompdf\Options;
 
-use yii\base\Component;
 use yii\base\ErrorException;
 use yii\base\Exception;
 use yii\base\NotSupportedException;
@@ -51,10 +52,7 @@ class PdfTemplates extends Component
     // Private Properties
     // =========================================================================
 
-    /**
-     * @var PdfTemplate[]
-     */
-    private ?array $_templates = null;
+    private ?MemoizableArray $_templates = null;
 
 
     // Public Methods
@@ -63,24 +61,11 @@ class PdfTemplates extends Component
     /**
      * Returns all templates.
      *
-     * @param bool $withTrashed
      * @return PdfTemplate[]
      */
     public function getAllTemplates(bool $withTrashed = false): array
     {
-        // Get the caches items if we have them cached, and the request is for non-trashed items
-        if ($this->_templates !== null) {
-            return $this->_templates;
-        }
-
-        $results = $this->_createTemplatesQuery($withTrashed)->all();
-        $templates = [];
-
-        foreach ($results as $row) {
-            $templates[] = new PdfTemplate($row);
-        }
-
-        return $templates;
+        return $this->_templates()->all();
     }
 
     /**
@@ -91,7 +76,7 @@ class PdfTemplates extends Component
      */
     public function getTemplateById(int $id): ?PdfTemplate
     {
-        return ArrayHelper::firstWhere($this->getAllTemplates(), 'id', $id);
+        return $this->_templates()->firstWhere('id', $id);
     }
 
     /**
@@ -102,7 +87,7 @@ class PdfTemplates extends Component
      */
     public function getTemplateByHandle(string $handle): ?PdfTemplate
     {
-        return ArrayHelper::firstWhere($this->getAllTemplates(), 'handle', $handle, false);
+        return $this->_templates()->firstWhere('handle', $handle, true);
     }
 
     /**
@@ -113,7 +98,7 @@ class PdfTemplates extends Component
      */
     public function getTemplateByUid(string $uid): ?PdfTemplate
     {
-        return ArrayHelper::firstWhere($this->getAllTemplates(), 'uid', $uid, false);
+        return $this->_templates()->firstWhere('uid', $uid, true);
     }
 
     /**
@@ -166,15 +151,19 @@ class PdfTemplates extends Component
         }
 
         if ($runValidation && !$template->validate()) {
-            Craft::info('Template not saved due to validation error.', __METHOD__);
+            Formie::log('Template not saved due to validation error.', __METHOD__);
 
             return false;
         }
 
         if ($isNewTemplate) {
-            $templateUid = StringHelper::UUID();
-        } else {
-            $templateUid = Db::uidById('{{%formie_pdftemplates}}', $template->id);
+            $template->uid = StringHelper::UUID();
+
+            $template->sortOrder = (new Query())
+                ->from(['{{%formie_pdftemplates}}'])
+                ->max('[[sortOrder]]') + 1;
+        } else if (!$template->uid) {
+            $template->uid = Db::uidById('{{%formie_pdftemplates}}', $template->id);
         }
 
         // Make sure no templates that are not archived share the handle
@@ -185,25 +174,11 @@ class PdfTemplates extends Component
             return false;
         }
 
-        $projectConfig = Craft::$app->getProjectConfig();
-
-        if ($template->dateDeleted) {
-            $configData = null;
-        } else {
-            $configData = [
-                'name' => $template->name,
-                'handle' => $template->handle,
-                'template' => $template->template,
-                'filenameFormat' => $template->filenameFormat,
-                'sortOrder' => $template->sortOrder ?? 99,
-            ];
-        }
-
-        $configPath = self::CONFIG_TEMPLATES_KEY . '.' . $templateUid;
-        $projectConfig->set($configPath, $configData);
+        $configPath = self::CONFIG_TEMPLATES_KEY . '.' . $template->uid;
+        Craft::$app->getProjectConfig()->set($configPath, $template->getConfig(), "Save the “{$template->handle}” PDF template");
 
         if ($isNewTemplate) {
-            $template->id = Db::idByUid('{{%formie_pdftemplates}}', $templateUid);
+            $template->id = Db::idByUid('{{%formie_pdftemplates}}', $template->uid);
         }
 
         return true;
@@ -222,23 +197,30 @@ class PdfTemplates extends Component
 
         $transaction = Craft::$app->getDb()->beginTransaction();
         try {
-            $templateRecord = $this->_getTemplateRecord($templateUid);
+            $templateRecord = $this->_getTemplateRecord($templateUid, true);
             $isNewTemplate = $templateRecord->getIsNewRecord();
 
             $templateRecord->name = $data['name'];
             $templateRecord->handle = $data['handle'];
             $templateRecord->template = $data['template'];
             $templateRecord->filenameFormat = $data['filenameFormat'];
-            $templateRecord->sortOrder = $data['sortOrder'] ?? 99;
+            $templateRecord->sortOrder = $data['sortOrder'];
             $templateRecord->uid = $templateUid;
 
-            // Save the volume
-            $templateRecord->save(false);
+            if ($wasTrashed = (bool)$templateRecord->dateDeleted) {
+                $templateRecord->restore();
+            } else {
+                $templateRecord->save(false);
+            }
+
             $transaction->commit();
         } catch (Throwable $e) {
             $transaction->rollBack();
             throw $e;
         }
+
+        // Clear caches
+        $this->_templates = null;
 
         // Fire an 'afterSavePdfTemplate' event
         if ($this->hasEventHandlers(self::EVENT_AFTER_SAVE_PDF_TEMPLATE)) {
@@ -282,7 +264,7 @@ class PdfTemplates extends Component
             ]));
         }
 
-        Craft::$app->getProjectConfig()->remove(self::CONFIG_TEMPLATES_KEY . '.' . $template->uid);
+        Craft::$app->getProjectConfig()->remove(self::CONFIG_TEMPLATES_KEY . '.' . $template->uid, "Delete PDF template “{$template->handle}”");
         return true;
     }
 
@@ -295,8 +277,13 @@ class PdfTemplates extends Component
     public function handleDeletedTemplate(ConfigEvent $event): void
     {
         $uid = $event->tokenMatches[0];
+        $templateRecord = $this->_getTemplateRecord($uid);
 
-        $template = $this->getTemplateByUid($uid);
+        if ($templateRecord->getIsNewRecord()) {
+            return;
+        }
+
+        $template = $this->getTemplateById($templateRecord->id);
 
         // Fire a 'beforeApplyPdfTemplateDelete' event
         if ($this->hasEventHandlers(self::EVENT_BEFORE_APPLY_PDF_TEMPLATE_DELETE)) {
@@ -307,10 +294,9 @@ class PdfTemplates extends Component
 
         $transaction = Craft::$app->getDb()->beginTransaction();
         try {
-            $templateRecord = $this->_getTemplateRecord($uid);
-
-            // Save the template
-            $templateRecord->softDelete();
+            Craft::$app->getDb()->createCommand()
+                ->softDelete('{{%formie_pdftemplates}}', ['id' => $templateRecord->id])
+                ->execute();
 
             $transaction->commit();
         } catch (Throwable $e) {
@@ -452,12 +438,32 @@ class PdfTemplates extends Component
     // =========================================================================
 
     /**
+     * Returns a memoizable array of all templates.
+     *
+     * @return MemoizableArray<EmailTemplate>
+     */
+    private function _templates(): MemoizableArray
+    {
+        if (!isset($this->_templates)) {
+            $templates = [];
+
+            foreach ($this->_createTemplatesQuery()->all() as $result) {
+                $templates[] = new PdfTemplate($result);
+            }
+
+            $this->_templates = new MemoizableArray($templates);
+        }
+
+        return $this->_templates;
+    }
+
+    /**
      * Returns a Query object prepped for retrieving templates.
      *
      * @param bool $withTrashed
      * @return Query
      */
-    private function _createTemplatesQuery(bool $withTrashed = false): Query
+    private function _createTemplatesQuery(): Query
     {
         $query = (new Query())
             ->select([
@@ -469,29 +475,25 @@ class PdfTemplates extends Component
                 'dateDeleted',
                 'uid',
             ])
-            ->orderBy('sortOrder')
-            ->from(['{{%formie_pdftemplates}}']);
-
-        if (!$withTrashed) {
-            $query->where(['dateDeleted' => null]);
-        }
+            ->from(['{{%formie_pdftemplates}}'])
+            ->where(['dateDeleted' => null])
+            ->orderBy(['sortOrder' => SORT_ASC]);
 
         return $query;
     }
 
     /**
-     * Gets a template record by uid.
+     * Gets a template's record by uid.
      *
      * @param string $uid
+     * @param bool $withTrashed Whether to include trashed templates in search
      * @return TemplateRecord
      */
-    private function _getTemplateRecord(string $uid): TemplateRecord
+    private function _getTemplateRecord(string $uid, bool $withTrashed = false): TemplateRecord
     {
-        /** @var TemplateRecord $template */
-        if ($template = TemplateRecord::findWithTrashed()->where(['uid' => $uid])->one()) {
-            return $template;
-        }
+        $query = $withTrashed ? TemplateRecord::findWithTrashed() : TemplateRecord::find();
+        $query->andWhere(['uid' => $uid]);
 
-        return new TemplateRecord();
+        return $query->one() ?? new TemplateRecord();
     }
 }

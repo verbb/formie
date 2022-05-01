@@ -22,6 +22,7 @@ use verbb\formie\models\Settings;
 use verbb\formie\records\Integration as IntegrationRecord;
 
 use Craft;
+use craft\base\MemoizableArray;
 use craft\db\Query;
 use craft\errors\MissingComponentException;
 use craft\events\ConfigEvent;
@@ -58,7 +59,7 @@ class Integrations extends Component
     // Properties
     // =========================================================================
 
-    private ?array $_integrations = null;
+    private ?MemoizableArray $_integrations = null;
     private ?array $_integrationsByType = null;
 
 
@@ -208,20 +209,7 @@ class Integrations extends Component
      */
     public function getAllIntegrations(): array
     {
-        if ($this->_integrations !== null) {
-            return $this->_integrations;
-        }
-
-        $this->_integrations = [];
-
-        $results = $this->_createIntegrationQuery()
-            ->all();
-
-        foreach ($results as $result) {
-            $this->_integrations[] = $this->createIntegration($result);
-        }
-
-        return $this->_integrations;
+        return $this->_integrations()->all();
     }
 
     public function getAllIntegrationsForType($type): array
@@ -341,12 +329,13 @@ class Integrations extends Component
         }
 
         if ($runValidation && !$integration->validate()) {
-            Craft::info('Integration not saved due to validation error.', __METHOD__);
+            Formie::log('Integration not saved due to validation error.', __METHOD__);
             return false;
         }
 
         if ($isNewIntegration) {
             $integration->uid = StringHelper::UUID();
+            
             $integration->sortOrder = (new Query())
                     ->from(['{{%formie_integrations}}'])
                     ->max('[[sortOrder]]') + 1;
@@ -806,6 +795,26 @@ class Integrations extends Component
     // =========================================================================
 
     /**
+     * Returns a memoizable array of all integrations.
+     *
+     * @return MemoizableArray<Integration>
+     */
+    private function _integrations(): MemoizableArray
+    {
+        if (!isset($this->_integrations)) {
+            $integrations = [];
+
+            foreach ($this->_createIntegrationQuery()->all() as $result) {
+                $integrations[] = $this->createIntegration($result);
+            }
+
+            $this->_integrations = new MemoizableArray($integrations);
+        }
+
+        return $this->_integrations;
+    }
+
+    /**
      * Returns a DbCommand object prepped for retrieving integrations.
      *
      * @return Query
@@ -837,12 +846,13 @@ class Integrations extends Component
      *
      * @param string $uid
      * @param bool $withTrashed Whether to include trashed integrations in search
-     * @return ActiveRecord|array
+     * @return IntegrationRecord
      */
-    private function _getIntegrationRecord(string $uid, bool $withTrashed = false): ActiveRecord|array
+    private function _getIntegrationRecord(string $uid, bool $withTrashed = false): IntegrationRecord
     {
         $query = $withTrashed ? IntegrationRecord::findWithTrashed() : IntegrationRecord::find();
         $query->andWhere(['uid' => $uid]);
+
         return $query->one() ?? new IntegrationRecord();
     }
 

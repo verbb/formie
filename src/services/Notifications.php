@@ -14,14 +14,18 @@ use verbb\formie\models\Stencil;
 use verbb\formie\records\Notification as NotificationRecord;
 
 use Craft;
+use craft\base\MemoizableArray;
 use craft\db\Query;
 use craft\elements\Asset;
 use craft\helpers\ArrayHelper;
+use craft\helpers\Db;
 use craft\helpers\Json;
 
 use yii\base\Component;
-use Throwable;
 use yii\db\Exception;
+
+use Throwable;
+
 use Twig\Error\SyntaxError;
 use Twig\Error\RuntimeError;
 use Twig\Error\LoaderError;
@@ -37,6 +41,7 @@ class Notifications extends Component
     public const EVENT_AFTER_DELETE_NOTIFICATION = 'afterDeleteNotification';
     public const EVENT_MODIFY_EXISTING_NOTIFICATIONS = 'modifyExistingNotifications';
 
+    private ?MemoizableArray $_notifications = null;
     private ?array $_existingNotifications = null;
 
 
@@ -50,15 +55,7 @@ class Notifications extends Component
      */
     public function getAllNotifications(): array
     {
-        $results = $this->_createNotificationsQuery()->all();
-
-        $notifications = [];
-
-        foreach ($results as $row) {
-            $notifications[] = new Notification($row);
-        }
-
-        return $notifications;
+        return $this->_notifications()->all();
     }
 
     /**
@@ -69,17 +66,7 @@ class Notifications extends Component
      */
     public function getFormNotifications(Form $form): array
     {
-        $results = $this->_createNotificationsQuery()
-            ->where(['formId' => $form->id])
-            ->all();
-
-        $notifications = [];
-
-        foreach ($results as $row) {
-            $notifications[] = new Notification($row);
-        }
-
-        return $notifications;
+        return $this->_notifications()->where('formId', $form->id);
     }
 
     /**
@@ -90,15 +77,7 @@ class Notifications extends Component
      */
     public function getNotificationById(int $id): ?Notification
     {
-        $row = $this->_createNotificationsQuery()
-            ->where(['id' => $id])
-            ->one();
-
-        if ($row) {
-            return new Notification($row);
-        }
-
-        return null;
+        return $this->_notifications()->firstWhere('id', $id);
     }
 
     /**
@@ -208,9 +187,9 @@ class Notifications extends Component
             ]));
         }
 
-        Craft::$app->getDb()->createCommand()
-            ->delete('{{%formie_notifications}}', ['uid' => $notification->uid])
-            ->execute();
+        Db::delete('{{%formie_notifications}}', [
+            'uid' => $notification->uid,
+        ]);
 
         // Fire a 'afterDeleteNotification' event
         if ($this->hasEventHandlers(self::EVENT_AFTER_DELETE_NOTIFICATION)) {
@@ -732,6 +711,26 @@ class Notifications extends Component
 
     // Private Methods
     // =========================================================================
+
+    /**
+     * Returns a memoizable array of all notifications.
+     *
+     * @return MemoizableArray<Notification>
+     */
+    private function _notifications(): MemoizableArray
+    {
+        if (!isset($this->_notifications)) {
+            $notifications = [];
+
+            foreach ($this->_createNotificationsQuery()->all() as $result) {
+                $notifications[] = new Notification($result);
+            }
+
+            $this->_notifications = new MemoizableArray($notifications);
+        }
+
+        return $this->_notifications;
+    }
 
     /**
      * Returns a query prepped for querying notifications.

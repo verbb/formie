@@ -53,6 +53,21 @@ class EmailTemplate extends BaseTemplate
         return !$notification;
     }
 
+    /**
+     * Returns the template’s config.
+     *
+     * @return array
+     */
+    public function getConfig(): array
+    {
+        return [
+            'name' => $this->name,
+            'handle' => $this->handle,
+            'template' => $this->template,
+            'sortOrder' => $this->sortOrder,
+        ];
+    }
+
     protected function getRecordClass(): string
     {
         return EmailTemplateRecord::class;

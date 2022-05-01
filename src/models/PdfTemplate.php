@@ -54,6 +54,22 @@ class PdfTemplate extends BaseTemplate
         return !$notification;
     }
 
+    /**
+     * Returns the template’s config.
+     *
+     * @return array
+     */
+    public function getConfig(): array
+    {
+        return [
+            'name' => $this->name,
+            'handle' => $this->handle,
+            'template' => $this->template,
+            'filenameFormat' => $this->filenameFormat,
+            'sortOrder' => $this->sortOrder,
+        ];
+    }
+
     protected function getRecordClass(): string
     {
         return PdfTemplateRecord::class;

@@ -7,6 +7,7 @@ use verbb\formie\models\Status;
 use verbb\formie\records\Status as StatusRecord;
 
 use Craft;
+use craft\base\MemoizableArray;
 use craft\db\Query;
 use craft\db\Table as CraftTable;
 use craft\events\ConfigEvent;
@@ -38,10 +39,7 @@ class Statuses extends Component
     // Private Properties
     // =========================================================================
 
-    /**
-     * @var Status[]
-     */
-    private ?array $_statuses = null;
+    private ?MemoizableArray $_statuses = null;
 
 
     // Public Methods
@@ -50,24 +48,11 @@ class Statuses extends Component
     /**
      * Returns all submission statuses.
      *
-     * @param bool $withTrashed
      * @return Status[]
      */
-    public function getAllStatuses(bool $withTrashed = false): array
+    public function getAllStatuses(): array
     {
-        // Get the caches items if we have them cached, and the request is for non-trashed items
-        if ($this->_statuses !== null) {
-            return $this->_statuses;
-        }
-
-        $results = $this->_createStatusesQuery($withTrashed)->all();
-        $statuses = [];
-
-        foreach ($results as $row) {
-            $statuses[] = new Status($row);
-        }
-
-        return $this->_statuses = $statuses;
+        return $this->_statuses()->all();
     }
 
     /**
@@ -97,7 +82,7 @@ class Statuses extends Component
      */
     public function getStatusById(int $id): ?Status
     {
-        return ArrayHelper::firstWhere($this->getAllStatuses(), 'id', $id);
+        return $this->_statuses()->firstWhere('id', $id);
     }
 
     /**
@@ -108,7 +93,7 @@ class Statuses extends Component
      */
     public function getStatusByHandle(string $handle): ?Status
     {
-        return ArrayHelper::firstWhere($this->getAllStatuses(), 'handle', $handle, false);
+        return $this->_statuses()->firstWhere('handle', $handle, true);
     }
 
     /**
@@ -119,7 +104,7 @@ class Statuses extends Component
      */
     public function getStatusByUid(string $uid): ?Status
     {
-        return ArrayHelper::firstWhere($this->getAllStatuses(), 'uid', $uid, false);
+        return $this->_statuses()->firstWhere('uid', $uid, true);
     }
 
     /**
@@ -129,7 +114,7 @@ class Statuses extends Component
      */
     public function getDefaultStatus(): ?Status
     {
-        return ArrayHelper::firstWhere($this->getAllStatuses(), 'isDefault', true);
+        return $this->_statuses()->firstWhere('isDefault', true);
     }
 
     /**
@@ -203,7 +188,7 @@ class Statuses extends Component
      */
     public function saveStatus(Status $status, bool $runValidation = true): bool
     {
-        $isNewStatus = !$status->id;
+        $isNewStatus = !(bool)$status->id;
 
         // Fire a 'beforeSaveStatus' event
         if ($this->hasEventHandlers(self::EVENT_BEFORE_SAVE_STATUS)) {
@@ -220,9 +205,13 @@ class Statuses extends Component
         }
 
         if ($isNewStatus) {
-            $statusUid = StringHelper::UUID();
-        } else {
-            $statusUid = Db::uidById('{{%formie_statuses}}', $status->id);
+            $status->uid = StringHelper::UUID();
+
+            $status->sortOrder = (new Query())
+                ->from(['{{%formie_statuses}}'])
+                ->max('[[sortOrder]]') + 1;
+        } else if (!$status->uid) {
+            $status->uid = Db::uidById('{{%formie_statuses}}', $status->id);
         }
 
         // Make sure no statuses that are not archived share the handle
@@ -233,26 +222,11 @@ class Statuses extends Component
             return false;
         }
 
-        $projectConfig = Craft::$app->getProjectConfig();
-
-        if ($status->dateDeleted) {
-            $configData = null;
-        } else {
-            $configData = [
-                'name' => $status->name,
-                'handle' => $status->handle,
-                'color' => $status->color,
-                'description' => $status->description,
-                'sortOrder' => $status->sortOrder ?? 99,
-                'isDefault' => (bool)$status->isDefault,
-            ];
-        }
-
-        $configPath = self::CONFIG_STATUSES_KEY . '.' . $statusUid;
-        $projectConfig->set($configPath, $configData);
+        $configPath = self::CONFIG_STATUSES_KEY . '.' . $status->uid;
+        Craft::$app->getProjectConfig()->set($configPath, $status->getConfig(), "Save the “{$status->handle}” status");
 
         if ($isNewStatus) {
-            $status->id = Db::idByUid('{{%formie_statuses}}', $statusUid);
+            $status->id = Db::idByUid('{{%formie_statuses}}', $status->uid);
         }
 
         return true;
@@ -271,24 +245,31 @@ class Statuses extends Component
 
         $transaction = Craft::$app->getDb()->beginTransaction();
         try {
-            $statusRecord = $this->_getStatusRecord($statusUid);
+            $statusRecord = $this->_getStatusRecord($statusUid, true);
             $isNewStatus = $statusRecord->getIsNewRecord();
 
             $statusRecord->name = $data['name'];
             $statusRecord->handle = $data['handle'];
             $statusRecord->color = $data['color'];
             $statusRecord->description = $data['description'] ?? null;
-            $statusRecord->sortOrder = $data['sortOrder'] ?? 99;
+            $statusRecord->sortOrder = $data['sortOrder'];
             $statusRecord->isDefault = $data['isDefault'] ?? false;
             $statusRecord->uid = $statusUid;
 
-            // Save the status
-            $statusRecord->save(false);
+            if ($wasTrashed = (bool)$statusRecord->dateDeleted) {
+                $statusRecord->restore();
+            } else {
+                $statusRecord->save(false);
+            }
+
             $transaction->commit();
         } catch (Throwable $e) {
             $transaction->rollBack();
             throw $e;
         }
+
+        // Clear caches
+        $this->_statuses = null;
 
         // Fire an 'afterSaveStatus' event
         if ($this->hasEventHandlers(self::EVENT_AFTER_SAVE_STATUS)) {
@@ -337,7 +318,7 @@ class Statuses extends Component
             ]));
         }
 
-        Craft::$app->getProjectConfig()->remove(self::CONFIG_STATUSES_KEY . '.' . $status->uid);
+        Craft::$app->getProjectConfig()->remove(self::CONFIG_STATUSES_KEY . '.' . $status->uid, "Delete status “{$status->handle}”");
 
         return true;
     }
@@ -350,9 +331,14 @@ class Statuses extends Component
      */
     public function handleDeletedStatus(ConfigEvent $event): void
     {
-        $statusUid = $event->tokenMatches[0];
+        $uid = $event->tokenMatches[0];
+        $statusRecord = $this->_getStatusRecord($uid);
 
-        $status = $this->getStatusByUid($statusUid);
+        if ($statusRecord->getIsNewRecord()) {
+            return;
+        }
+
+        $status = $this->getStatusById($statusRecord->id);
 
         // Fire a 'beforeApplyStatusDelete' event
         if ($this->hasEventHandlers(self::EVENT_BEFORE_APPLY_STATUS_DELETE)) {
@@ -363,10 +349,9 @@ class Statuses extends Component
 
         $transaction = Craft::$app->getDb()->beginTransaction();
         try {
-            $statusRecord = $this->_getStatusRecord($statusUid);
-
-            // Save the status
-            $statusRecord->softDelete();
+            Craft::$app->getDb()->createCommand()
+                ->softDelete('{{%formie_statuses}}', ['id' => $statusRecord->id])
+                ->execute();
 
             $transaction->commit();
         } catch (Throwable $e) {
@@ -387,12 +372,31 @@ class Statuses extends Component
     // =========================================================================
 
     /**
+     * Returns a memoizable array of all statuses.
+     *
+     * @return MemoizableArray<Status>
+     */
+    private function _statuses(): MemoizableArray
+    {
+        if (!isset($this->_statuses)) {
+            $statuses = [];
+
+            foreach ($this->_createStatusesQuery()->all() as $result) {
+                $statuses[] = new Status($result);
+            }
+
+            $this->_statuses = new MemoizableArray($statuses);
+        }
+
+        return $this->_statuses;
+    }
+
+    /**
      * Returns a Query object prepped for retrieving statuses.
      *
-     * @param bool $withTrashed
      * @return Query
      */
-    private function _createStatusesQuery(bool $withTrashed = false): Query
+    private function _createStatusesQuery(): Query
     {
         $query = (new Query())
             ->select([
@@ -406,12 +410,9 @@ class Statuses extends Component
                 'dateDeleted',
                 'uid',
             ])
-            ->orderBy('sortOrder')
-            ->from(['{{%formie_statuses}}']);
-
-        if (!$withTrashed) {
-            $query->where(['dateDeleted' => null]);
-        }
+            ->from(['{{%formie_statuses}}'])
+            ->where(['dateDeleted' => null])
+            ->orderBy(['sortOrder' => SORT_ASC]);
 
         return $query;
     }
@@ -420,15 +421,14 @@ class Statuses extends Component
      * Gets a status record by uid.
      *
      * @param string $uid
+     * @param bool $withTrashed Whether to include trashed statuses in search
      * @return StatusRecord
      */
-    private function _getStatusRecord(string $uid): StatusRecord
+    private function _getStatusRecord(string $uid, bool $withTrashed = false): StatusRecord
     {
-        /** @var StatusRecord $status */
-        if ($status = StatusRecord::findWithTrashed()->where(['uid' => $uid])->one()) {
-            return $status;
-        }
+        $query = $withTrashed ? StatusRecord::findWithTrashed() : StatusRecord::find();
+        $query->andWhere(['uid' => $uid]);
 
-        return new StatusRecord();
+        return $query->one() ?? new StatusRecord();
     }
 }

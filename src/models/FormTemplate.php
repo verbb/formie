@@ -104,6 +104,36 @@ class FormTemplate extends BaseTemplate
     }
 
     /**
+     * Returns the template’s config.
+     *
+     * @return array
+     */
+    public function getConfig(): array
+    {
+        $config = [
+            'name' => $this->name,
+            'handle' => $this->handle,
+            'template' => $this->template,
+            'useCustomTemplates' => $this->useCustomTemplates,
+            'outputCssTheme' => $this->outputCssTheme,
+            'outputCssLayout' => $this->outputCssLayout,
+            'outputJsBase' => $this->outputJsBase,
+            'outputJsTheme' => $this->outputJsTheme,
+            'outputCssLocation' => $this->outputCssLocation,
+            'outputJsLocation' => $this->outputJsLocation,
+            'sortOrder' => $this->sortOrder,
+        ];
+
+        if (($fieldLayout = $this->getFieldLayout()) && ($fieldLayoutConfig = $fieldLayout->getConfig())) {
+            $config['fieldLayouts'] = [
+                $fieldLayout->uid => $fieldLayoutConfig,
+            ];
+        }
+
+        return $config;
+    }
+
+    /**
      * @inheritDoc
      */
     protected function getRecordClass(): string

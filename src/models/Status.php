@@ -118,4 +118,21 @@ class Status extends Model
     {
         return !$this->isDefault && !Submission::find()->trashed(null)->status($this)->one();
     }
+
+    /**
+     * Returns the template’s config.
+     *
+     * @return array
+     */
+    public function getConfig(): array
+    {
+        return [
+            'name' => $this->name,
+            'handle' => $this->handle,
+            'color' => $this->color,
+            'description' => $this->description,
+            'sortOrder' => $this->sortOrder,
+            'isDefault' => (bool)$this->isDefault,
+        ];
+    }
 }
