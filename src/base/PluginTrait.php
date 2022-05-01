@@ -43,13 +43,17 @@ trait PluginTrait
     // Static Methods
     // =========================================================================
 
-    public static function log($message): void
+    public static function log(string $message, array $params = []): void
     {
+        $message = Craft::t('formie', $message, $params);
+
         Craft::getLogger()->log($message, Logger::LEVEL_INFO, 'formie');
     }
 
-    public static function error($message): void
+    public static function error(string $message, array $params = []): void
     {
+        $message = Craft::t('formie', $message, $params);
+
         Craft::getLogger()->log($message, Logger::LEVEL_ERROR, 'formie');
     }
 
@@ -166,7 +170,7 @@ trait PluginTrait
     // Private Methods
     // =========================================================================
 
-    private function _setPluginComponents(): void
+    private function _registerComponents(): void
     {
         $this->setComponents([
             'emails' => Emails::class,
@@ -195,7 +199,7 @@ trait PluginTrait
         BaseHelper::registerModule();
     }
 
-    private function _setLogging(): void
+    private function _registerLogTarget(): void
     {
         BaseHelper::setFileLogging('formie');
     }
