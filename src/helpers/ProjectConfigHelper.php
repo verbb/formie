@@ -13,53 +13,31 @@ class ProjectConfigHelper
 
     public static function rebuildProjectConfig(): array
     {
-        $output = [];
+        $configData = [];
 
-        $output['statuses'] = self::_getStatusData();
-        $output['stencils'] = self::_getStencilsData();
-        $output['formTemplates'] = self::_getFormTemplatesData();
-        $output['emailTemplates'] = self::_getEmailTemplatesData();
-        $output['pdfTemplates'] = self::_getPdfTemplatesData();
-        $output['integrations'] = self::_getIntegrationsData();
+        $configData['statuses'] = self::_getStatusData();
+        $configData['stencils'] = self::_getStencilsData();
+        $configData['formTemplates'] = self::_getFormTemplatesData();
+        $configData['emailTemplates'] = self::_getEmailTemplatesData();
+        $configData['pdfTemplates'] = self::_getPdfTemplatesData();
+        $configData['integrations'] = self::_getIntegrationsData();
 
-        return array_filter($output);
+        return array_filter($configData);
     }
 
-
+    
     // Private Methods
     // =========================================================================
 
     private static function _getStatusData(): array
     {
-        $statusData = [];
+        $data = [];
 
-        $statusRows = (new Query())
-            ->select([
-                'id',
-                'uid',
-                'name',
-                'handle',
-                'color',
-                'description',
-                'sortOrder',
-                'isDefault',
-            ])
-            ->indexBy('id')
-            ->orderBy('sortOrder')
-            ->from(['{{%formie_statuses}}'])
-            ->all();
-
-        foreach ($statusRows as &$statusRow) {
-            $statusUid = $statusRow['uid'];
-            unset($statusRow['id'], $statusRow['uid']);
-
-            $statusRow['sortOrder'] = (int)$statusRow['sortOrder'];
-            $statusRow['isDefault'] = (bool)$statusRow['isDefault'];
-
-            $statusData[$statusUid] = $statusRow;
+        foreach (Formie::$plugin->getStatuses()->getAllStatuses() as $status) {
+            $data[$status->uid] = $status->getConfig();
         }
 
-        return $statusData;
+        return $data;
     }
 
     private static function _getStencilsData(): array
@@ -75,114 +53,35 @@ class ProjectConfigHelper
 
     private static function _getFormTemplatesData(): array
     {
-        $templatesData = [];
+        $data = [];
 
-        $templateRows = (new Query())
-            ->select([
-                'id',
-                'uid',
-                'name',
-                'handle',
-                'template',
-                'useCustomTemplates',
-                'outputCssLayout',
-                'outputCssTheme',
-                'outputJsBase',
-                'outputJsTheme',
-                'outputCssLocation',
-                'outputJsLocation',
-                'sortOrder',
-                'fieldLayoutId',
-            ])
-            ->indexBy('id')
-            ->orderBy('sortOrder')
-            ->from(['{{%formie_formtemplates}}'])
-            ->all();
-
-        foreach ($templateRows as &$templateRow) {
-            if (!empty($templateRow['fieldLayoutId'])) {
-                $layout = Craft::$app->getFields()->getLayoutById($templateRow['fieldLayoutId']);
-
-                if ($layout) {
-                    $templateRow['fieldLayouts'] = [$layout->uid => $layout->getConfig()];
-                }
-            }
-
-            $templateUid = $templateRow['uid'];
-            unset($templateRow['id'], $templateRow['uid'], $templateRow['fieldLayoutId']);
-
-            $templateRow['sortOrder'] = (int)$templateRow['sortOrder'];
-            $templateRow['useCustomTemplates'] = (bool)$templateRow['useCustomTemplates'];
-            $templateRow['outputCssTheme'] = (bool)$templateRow['outputCssTheme'];
-            $templateRow['outputCssLayout'] = (bool)$templateRow['outputCssLayout'];
-            $templateRow['outputJsBase'] = (bool)$templateRow['outputJsBase'];
-            $templateRow['outputJsTheme'] = (bool)$templateRow['outputJsTheme'];
-
-            $templatesData[$templateUid] = $templateRow;
+        foreach (Formie::$plugin->getFormTemplates()->getAllTemplates() as $template) {
+            $data[$template->uid] = $template->getConfig();
         }
 
-        return $templatesData;
+        return $data;
     }
 
     private static function _getEmailTemplatesData(): array
     {
-        $templatesData = [];
+        $data = [];
 
-        $templateRows = (new Query())
-            ->select([
-                'id',
-                'uid',
-                'name',
-                'handle',
-                'template',
-                'sortOrder',
-            ])
-            ->indexBy('id')
-            ->orderBy('sortOrder')
-            ->from(['{{%formie_emailtemplates}}'])
-            ->all();
-
-        foreach ($templateRows as &$templateRow) {
-            $templateUid = $templateRow['uid'];
-            unset($templateRow['id'], $templateRow['uid']);
-
-            $templateRow['sortOrder'] = (int)$templateRow['sortOrder'];
-
-            $templatesData[$templateUid] = $templateRow;
+        foreach (Formie::$plugin->getEmailTemplates()->getAllTemplates() as $template) {
+            $data[$template->uid] = $template->getConfig();
         }
 
-        return $templatesData;
+        return $data;
     }
 
     private static function _getPdfTemplatesData(): array
     {
-        $templatesData = [];
+        $data = [];
 
-        $templateRows = (new Query())
-            ->select([
-                'id',
-                'uid',
-                'name',
-                'handle',
-                'template',
-                'filenameFormat',
-                'sortOrder',
-            ])
-            ->indexBy('id')
-            ->orderBy('sortOrder')
-            ->from(['{{%formie_pdftemplates}}'])
-            ->all();
-
-        foreach ($templateRows as &$templateRow) {
-            $templateUid = $templateRow['uid'];
-            unset($templateRow['id'], $templateRow['uid']);
-
-            $templateRow['sortOrder'] = (int)$templateRow['sortOrder'];
-
-            $templatesData[$templateUid] = $templateRow;
+        foreach (Formie::$plugin->getPdfTemplates()->getAllTemplates() as $template) {
+            $data[$template->uid] = $template->getConfig();
         }
 
-        return $templatesData;
+        return $data;
     }
 
     private static function _getIntegrationsData(): array
