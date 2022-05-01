@@ -19,7 +19,7 @@ class Submission extends Element
     public static string $class = SubmissionElement::class;
     public static string $name = 'Submission';
 
-    public ?ElementInterface $element = null;
+    public $element = null;
 
 
     // Templates
