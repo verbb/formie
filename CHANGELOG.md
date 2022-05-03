@@ -1,5 +1,27 @@
 # Changelog
 
+## 2.0.0-beta.4 - 2022-05-03
+
+### Added
+- Add `archiveTableIfExists()` to install migration.
+- Add checks for registering events for performance.
+
+### Changed
+- Rename base plugin methods.
+- Memoize all services for performance.
+
+### Fixed
+- Fix `project-config/rebuild` support.
+- Fix an error when trying to preview email notifications.
+- Fix saving new notifications not working.
+- Fix an error when trying to preview a new email notification.
+- Fix Feed Me support.
+
+### Removed
+- Removed `Field::limit`, `Field::limitType`, `Field::limitAmount` on all fields except element fields and single/multi-text fields.
+- Removed `Field::columnWidth`.
+- Removed `formie/csrf/*` actions.
+
 ## 2.0.0-beta.3 - 2022-04-30
 
 ### Added
