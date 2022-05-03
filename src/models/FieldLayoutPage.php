@@ -188,16 +188,18 @@ class FieldLayoutPage extends CraftFieldLayoutTab
         return null;
     }
 
-    public function getFieldErrors(Submission $submission): array
+    public function getFieldErrors(?Submission $submission): array
     {
         $errors = [];
 
-        // Find all errors that match field handles in this page
-        $fieldHandles = ArrayHelper::getColumn($this->getCustomFields(), 'handle');
+        if ($submission) {
+            // Find all errors that match field handles in this page
+            $fieldHandles = ArrayHelper::getColumn($this->getCustomFields(), 'handle');
 
-        foreach ($submission->getErrors() as $fieldHandle => $submissionError) {
-            if (in_array($fieldHandle, $fieldHandles)) {
-                $errors[$fieldHandle] = $submissionError;
+            foreach ($submission->getErrors() as $fieldHandle => $submissionError) {
+                if (in_array($fieldHandle, $fieldHandles)) {
+                    $errors[$fieldHandle] = $submissionError;
+                }
             }
         }
 
