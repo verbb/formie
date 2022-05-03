@@ -66,7 +66,7 @@ class Notifications extends Component
      */
     public function getFormNotifications(Form $form): array
     {
-        return $this->_notifications()->where('formId', $form->id);
+        return $this->_notifications()->where('formId', $form->id)->all();
     }
 
     /**
