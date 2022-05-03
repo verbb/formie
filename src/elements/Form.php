@@ -1334,17 +1334,17 @@ class Form extends Element
         if (!Craft::$app->getRequest()->getIsCpRequest()) {
             foreach ($captchas as $captcha) {
                 if ($js = $captcha->getFrontEndJsVariables($this)) {
-                    $registeredJs[] = $js;
+                    $registeredJs[] = [$js];
                 }
             }
         }
 
         // See if we have any condition's setup for the form. No need to include otherwise
         if ($this->hasConditions()) {
-            $registeredJs[] = [
+            $registeredJs[] = [[
                 'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/fields/conditions.js', true),
                 'module' => 'FormieConditions',
-            ];
+            ]];
         }
 
         // For performance, merge after building
