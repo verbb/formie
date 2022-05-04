@@ -154,6 +154,10 @@ class RecentSubmissions extends Widget
             'widget' => $this,
         ];
 
+        if ($this->formIds === ['*']) {
+            $this->formIds = Form::find()->ids();
+        }
+
         if ($this->displayType === 'list') {
             $variables['submissions'] = Submission::find()->limit($this->limit)->formId($this->formIds)->all();
         }
@@ -231,7 +235,7 @@ class RecentSubmissions extends Widget
     // Private Methods
     // =========================================================================
 
-    private function getQuery($form): Query
+    private function getQuery(Form $form): Query
     {
         $startDate = null;
         $endDate = null;
@@ -261,7 +265,7 @@ class RecentSubmissions extends Widget
         return $query;
     }
 
-    private function _getStartDate(string $dateRange): DateTime|bool|null
+    private function _getStartDate(?string $dateRange): DateTime|bool|null
     {
         $date = new DateTime();
 
@@ -304,7 +308,7 @@ class RecentSubmissions extends Widget
         return $date;
     }
 
-    private function _getEndDate(string $dateRange): DateTime|bool
+    private function _getEndDate(?string $dateRange): DateTime|bool
     {
         $date = new DateTime();
 
