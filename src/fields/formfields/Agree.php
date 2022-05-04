@@ -42,7 +42,7 @@ class Agree extends FormField implements PreviewableFieldInterface
     // Properties
     // =========================================================================
 
-    public ?string $description = null;
+    public ?array $description = null;
     public ?string $checkedValue = null;
     public ?string $uncheckedValue = null;
 
