@@ -289,7 +289,8 @@ class Mailchimp extends EmailMarketing
             return $matches[1] ?? '';
         }
 
-        return true;
+        return false;
+
     }
 
     private function _convertFieldType($fieldType)
