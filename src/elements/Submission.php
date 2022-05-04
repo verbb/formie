@@ -20,20 +20,26 @@ use verbb\formie\records\Submission as SubmissionRecord;
 
 use Craft;
 use craft\base\Element;
+use craft\base\FieldInterface;
 use craft\elements\actions\Delete;
 use craft\elements\actions\Restore;
 use craft\elements\User;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Cp;
+use craft\helpers\Db;
 use craft\helpers\Html;
 use craft\helpers\Json;
 use craft\helpers\Template;
 use craft\helpers\UrlHelper;
 use craft\models\FieldLayout;
 use craft\validators\SiteIdValidator;
+use craft\validators\StringValidator;
 
 use yii\base\Exception;
 use yii\base\InvalidConfigException;
+use yii\validators\NumberValidator;
+use yii\validators\RequiredValidator;
+use yii\validators\Validator;
 
 use Throwable;
 
@@ -394,6 +400,83 @@ class Submission extends Element
         }
 
         return $validates;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function afterValidate(): void
+    {
+        // Unfortunately, we need to totally override `Element::afterValidate()` because we need finer control
+        if (Craft::$app->getIsInstalled() && $fieldLayout = $this->getFieldLayout()) {
+            $scenario = $this->getScenario();
+
+            $fields = $fieldLayout->getVisibleCustomFields($this);
+
+            // Craft::dd($element->getScenario());
+            // Check when we're doing a submission from the front-end, and we choose to validate the current page only
+            // Remove any custom fields that aren't in the current page. These are added by default
+            if ($this->validateCurrentPageOnly) {
+                $currentPageFields = $this->form->getCurrentPage()->getCustomFields();
+
+                // Organise fields, so they're easier to check against
+                $currentPageFieldHandles = ArrayHelper::getColumn($currentPageFields, 'handle');
+
+                foreach ($fields as $key => $field) {
+                    if (!in_array($field->handle, $currentPageFieldHandles)) {
+                        unset($fields[$key]);
+                    }
+                }
+            }
+
+            // Evaluate field conditions. What if this is a required field, but conditionally hidden?
+            foreach ($fields as $key => $field) {
+                // If this field is conditionally hidden, remove it from validation
+                if ($field->isConditionallyHidden($this)) {
+                    unset($fields[$key]);
+                }
+            }
+            
+            foreach ($fields as $field) {
+                $attribute = "field:$field->handle";
+                $isEmpty = fn() => $field->isValueEmpty($this->getFieldValue($field->handle), $this);
+
+                if ($scenario === self::SCENARIO_LIVE && $field->required) {
+                    // Add custom error messages to fields with custom message set.
+                    $errorMessage = $field->errorMessage ?: null;
+
+                    (new RequiredValidator(['isEmpty' => $isEmpty, 'message' => $errorMessage]))
+                        ->validateAttribute($this, $attribute);
+                }
+
+                // Perform the rest of Craft'a native `afterValidate()`
+                foreach ($field->getElementValidationRules() as $rule) {
+                    $validator = $this->_normalizeFieldValidator($attribute, $rule, $field, $isEmpty);
+                    if (
+                        in_array($scenario, $validator->on) ||
+                        (empty($validator->on) && !in_array($scenario, $validator->except))
+                    ) {
+                        $validator->validateAttributes($this);
+                    }
+                }
+
+                if ($field::hasContentColumn()) {
+                    $columnType = $field->getContentColumnType();
+                    $value = $field->serializeValue($this->getFieldValue($field->handle), $this);
+
+                    if (is_array($columnType)) {
+                        foreach ($columnType as $key => $type) {
+                            $this->_validateCustomFieldContentSizeInternal($attribute, $field, $type, $value[$key] ?? null);
+                        }
+                    } else {
+                        $this->_validateCustomFieldContentSizeInternal($attribute, $field, $columnType, $value);
+                    }
+                }
+            }
+        }
+
+        // Don't call `parent::afterValidate()` which will fire the rules again, but ensure we trigger the event from Yii
+        $this->trigger(self::EVENT_AFTER_VALIDATE);
     }
 
     /**
@@ -927,7 +1010,7 @@ class Submission extends Element
     // =========================================================================
 
     /**
-     * @inheritDoc
+     * @inheritdoc
      */
     protected function defineRules(): array
     {
@@ -943,72 +1026,6 @@ class Submission extends Element
             }
         }
 
-        $fieldsByHandle = [];
-
-        if ($fieldLayout = $this->getFieldLayout()) {
-            // Check when we're doing a submission from the front-end, and we choose to validate the current page only
-            // Remove any custom fields that aren't in the current page. These are added by default
-            if ($this->validateCurrentPageOnly) {
-                $currentPageFields = $this->form->getCurrentPage()->getCustomFields();
-
-                // Organise fields, so they're easier to check against
-                $currentPageFieldHandles = ArrayHelper::getColumn($currentPageFields, 'handle');
-
-                foreach ($rules as $key => $rule) {
-                    [$attribute, $validator] = $rule;
-                    $attribute = is_array($attribute) ? $attribute[0] : $attribute;
-
-                    if (str_contains($attribute, 'field:')) {
-                        $handle = str_replace('field:', '', $attribute);
-
-                        if (!in_array($handle, $currentPageFieldHandles)) {
-                            unset($rules[$key]);
-                        }
-                    }
-                }
-            }
-
-            $fields = $this->getFieldLayout()->getCustomFields();
-
-            $fieldsByHandle = ArrayHelper::getColumn($fields, 'handle');
-
-            // Evaluate field conditions. What if this is a required field, but conditionally hidden?
-            foreach ($rules as $key => $rule) {
-                foreach ($fields as $field) {
-                    [$attribute, $validator] = $rule;
-                    $attribute = is_array($attribute) ? $attribute[0] : $attribute;
-
-                    if ($attribute === "field:{$field->handle}") {
-                        // If this field is conditionally hidden, remove it from validation
-                        if ($field->isConditionallyHidden($this)) {
-                            unset($rules[$key]);
-                        }
-                    }
-                }
-            }
-
-            // Add custom error messages to fields with custom message set.
-            foreach ($rules as $key => $rule) {
-                /* @var FormField|FormFieldTrait $field */
-                foreach ($fields as $field) {
-                    if (!$field->errorMessage) {
-                        continue;
-                    }
-
-                    [$attribute, $validator] = $rule;
-                    $attribute = is_array($attribute) ? $attribute[0] : $attribute;
-
-                    if ($attribute === "field:{$field->handle}") {
-                        $rules[$key]['message'] = $field->errorMessage;
-                        break;
-                    }
-                }
-            }
-        }
-
-        // Reset keys just in case
-        $rules = array_values($rules);
-
         $rules[] = [['title'], 'required'];
         $rules[] = [['title'], 'string', 'max' => 255];
         $rules[] = [['formId'], 'number', 'integerOnly' => true];
@@ -1020,24 +1037,9 @@ class Submission extends Element
         ]);
         $this->trigger(self::EVENT_DEFINE_RULES, $event);
 
-        // Ensure that any rules defined in events actually exists and are valid for this submission/form.
-        // Otherwise, fatal errors will occur trying to validate a field that doesn't exist in this context.
-        foreach ($event->rules as $key => $rule) {
-            [$attribute, $validator] = $rule;
-            $attr = is_array($attribute) ? $attribute[0] : $attribute;
-
-            if (str_contains($attr, 'field:')) {
-                $fieldHandle = str_replace('field:', '', $attr);
-
-                // Remove any rules for fields not defined in this form for safety.
-                if (!in_array($fieldHandle, $fieldsByHandle)) {
-                    unset($event->rules[$key]);
-                }
-            }
-        }
-
-        return $event->rules;
+        return $rules;
     }
+
 
     /**
      * @inheritDoc
@@ -1080,6 +1082,51 @@ class Submission extends Element
                 return '';
             default:
                 return parent::tableAttributeHtml($attribute);
+        }
+    }
+
+
+    // Private methods
+    // =========================================================================
+
+    /**
+     * @param string $attribute
+     * @param FieldInterface $field
+     * @param string $columnType
+     * @param mixed $value
+     */
+    private function _validateCustomFieldContentSizeInternal(string $attribute, FieldInterface $field, string $columnType, mixed $value): void
+    {
+        $simpleColumnType = Db::getSimplifiedColumnType($columnType);
+
+        if (!in_array($simpleColumnType, [Db::SIMPLE_TYPE_NUMERIC, Db::SIMPLE_TYPE_TEXTUAL], true)) {
+            return;
+        }
+
+        $value = Db::prepareValueForDb($value);
+
+        // Ignore empty values
+        if ($value === null || $value === '') {
+            return;
+        }
+
+        if ($simpleColumnType === Db::SIMPLE_TYPE_NUMERIC) {
+            $validator = new NumberValidator([
+                'min' => Db::getMinAllowedValueForNumericColumn($columnType) ?: null,
+                'max' => Db::getMaxAllowedValueForNumericColumn($columnType) ?: null,
+            ]);
+        } else {
+            $validator = new StringValidator([
+                // Don't count multibyte characters as a single char
+                'encoding' => '8bit',
+                'max' => Db::getTextualColumnStorageCapacity($columnType) ?: null,
+                'disallowMb4' => true,
+            ]);
+        }
+
+        if (!$validator->validate($value, $error)) {
+            $error = str_replace(Craft::t('yii', 'the input value'), Craft::t('site', $field->name), $error);
+            $this->addError($attribute, $error);
         }
     }
 }
