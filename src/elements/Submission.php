@@ -1128,4 +1128,63 @@ class Submission extends Element
             $this->addError($attribute, $error);
         }
     }
+
+    /**
+     * Normalizes a field’s validation rule.
+     *
+     * @param string $attribute
+     * @param mixed $rule
+     * @param FieldInterface $field
+     * @param callable $isEmpty
+     * @return Validator
+     * @throws InvalidConfigException
+     */
+    private function _normalizeFieldValidator(string $attribute, mixed $rule, FieldInterface $field, callable $isEmpty): Validator
+    {
+        if ($rule instanceof Validator) {
+            return $rule;
+        }
+
+        if (is_string($rule)) {
+            // "Validator" syntax
+            $rule = [$attribute, $rule, 'on' => [self::SCENARIO_DEFAULT, self::SCENARIO_LIVE]];
+        }
+
+        if (!is_array($rule) || !isset($rule[0])) {
+            throw new InvalidConfigException('Invalid validation rule for custom field "' . $field->handle . '".');
+        }
+
+        if (isset($rule[1])) {
+            // Make sure the attribute name starts with 'field:'
+            if ($rule[0] === $field->handle) {
+                $rule[0] = $attribute;
+            }
+        } else {
+            // ["Validator"] syntax
+            array_unshift($rule, $attribute);
+        }
+
+        if (is_callable($rule[1]) || $field->hasMethod($rule[1])) {
+            // InlineValidator assumes that the closure is on the model being validated
+            // so it won’t pass a reference to the element
+            $rule['params'] = [
+                $field,
+                $rule[1],
+                $rule['params'] ?? null,
+            ];
+            $rule[1] = 'validateCustomFieldAttribute';
+        }
+
+        // Set 'isEmpty' to the field's isEmpty() method by default
+        if (!array_key_exists('isEmpty', $rule)) {
+            $rule['isEmpty'] = $isEmpty;
+        }
+
+        // Set 'on' to the main scenarios by default
+        if (!array_key_exists('on', $rule)) {
+            $rule['on'] = [self::SCENARIO_DEFAULT, self::SCENARIO_LIVE];
+        }
+
+        return Validator::createValidator($rule[1], $this, (array)$rule[0], array_slice($rule, 2));
+    }
 }
