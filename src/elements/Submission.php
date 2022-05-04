@@ -413,7 +413,6 @@ class Submission extends Element
 
             $fields = $fieldLayout->getVisibleCustomFields($this);
 
-            // Craft::dd($element->getScenario());
             // Check when we're doing a submission from the front-end, and we choose to validate the current page only
             // Remove any custom fields that aren't in the current page. These are added by default
             if ($this->validateCurrentPageOnly) {
