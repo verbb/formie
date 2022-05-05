@@ -14,7 +14,7 @@
         "collapsable": false,
         "children": [
             "feature-tour/forms",
-            "feature-tour/multi-page",
+            "feature-tour/multi-page-forms",
             "feature-tour/fields",
             "feature-tour/conditions",
             "feature-tour/synced-fields",
