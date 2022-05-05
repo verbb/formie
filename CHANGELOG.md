@@ -1,5 +1,17 @@
 # Changelog
 
+## 2.0.0-beta.5 - 2022-05-05
+
+### Fixed
+- Fix an error with submissions.
+- Fix a type error with Agree fields.
+- Fix an error when showing dashboard widgets.
+- Fix response for Mailchimp data center check.
+- Fix an error when validation fails for some models and logging the error.
+- Fix custom field validation behaviour.
+- Fix an error with `getFieldErrors()`.
+- Fix captchas and conditions JS not firing for front-end forms.
+
 ## 2.0.0-beta.4 - 2022-05-03
 
 ### Added
