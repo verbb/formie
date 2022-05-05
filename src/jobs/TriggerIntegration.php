@@ -8,6 +8,7 @@ use verbb\formie\models\IntegrationResponse;
 
 use Craft;
 use craft\helpers\Json;
+
 use Exception;
 
 class TriggerIntegration extends BaseJob

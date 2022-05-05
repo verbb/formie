@@ -21,6 +21,7 @@ use craft\helpers\ArrayHelper;
 use craft\helpers\DateTimeHelper;
 use craft\helpers\Json;
 use craft\helpers\StringHelper;
+use craft\queue\JobInterface;
 use craft\validators\HandleValidator;
 use craft\validators\UniqueValidator;
 use craft\web\Response;
@@ -188,7 +189,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     protected ?Client $_client = null;
 
     // Keep track of whether run in the context of a queue job
-    private ?bool $_queueJob = null;
+    private ?JobInterface $_queueJob = null;
 
 
     // Public Methods
@@ -240,7 +241,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         return true;
     }
 
-    public function getQueueJob(): ?bool
+    public function getQueueJob(): ?JobInterface
     {
         return $this->_queueJob;
     }
