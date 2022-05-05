@@ -1,33 +1,40 @@
 # Changelog
 
+## 2.0.0-beta.6 - 2022-05-06
+
+### Fixed
+- Fixed a type error when integrations are being run through the queue.
+- Fixed an error when generating array-compatible field settings in GraphQL.
+- Fixed a type error for Entry element integrations.
+
 ## 2.0.0-beta.5 - 2022-05-05
 
 ### Fixed
-- Fix an error with submissions.
-- Fix a type error with Agree fields.
-- Fix an error when showing dashboard widgets.
-- Fix response for Mailchimp data center check.
-- Fix an error when validation fails for some models and logging the error.
-- Fix custom field validation behaviour.
-- Fix an error with `getFieldErrors()`.
-- Fix captchas and conditions JS not firing for front-end forms.
+- Fixed an error with submissions.
+- Fixed a type error with Agree fields.
+- Fixed an error when showing dashboard widgets.
+- Fixed response for Mailchimp data center check.
+- Fixed an error when validation fails for some models and logging the error.
+- Fixed custom field validation behaviour.
+- Fixed an error with `getFieldErrors()`.
+- Fixed captchas and conditions JS not firing for front-end forms.
 
 ## 2.0.0-beta.4 - 2022-05-03
 
 ### Added
-- Add `archiveTableIfExists()` to install migration.
-- Add checks for registering events for performance.
+- Added `archiveTableIfExists()` to install migration.
+- Added checks for registering events for performance.
 
 ### Changed
 - Rename base plugin methods.
 - Memoize all services for performance.
 
 ### Fixed
-- Fix `project-config/rebuild` support.
-- Fix an error when trying to preview email notifications.
-- Fix saving new notifications not working.
-- Fix an error when trying to preview a new email notification.
-- Fix Feed Me support.
+- Fixed `project-config/rebuild` support.
+- Fixed an error when trying to preview email notifications.
+- Fixed saving new notifications not working.
+- Fixed an error when trying to preview a new email notification.
+- Fixed Feed Me support.
 
 ### Removed
 - Removed `Field::limit`, `Field::limitType`, `Field::limitAmount` on all fields except element fields and single/multi-text fields.
