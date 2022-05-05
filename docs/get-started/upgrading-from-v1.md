@@ -7,15 +7,6 @@ We've removed `enableGatsbyCompatibility` as it is no longer required.
 ## Removed Controller
 The `formie/csrf/*` actions have been removed. If you relied on these to refresh the CSRF token for your forms, refer to the [docs](https://verbb.io/craft-plugins/formie/docs/template-guides/cached-forms) for the updated controller and code.
 
-Old | What to do instead
---- | ---
-| `Comment::trashUrl` | Use [form](https://verbb.io/craft-plugins/comments/docs/developers/comment) instead
-| `Comment::flagUrl` | Use [form](https://verbb.io/craft-plugins/comments/docs/developers/comment) instead
-| `Comment::downvoteUrl` | Use [form](https://verbb.io/craft-plugins/comments/docs/developers/comment) instead
-| `Comment::upvoteUrl` | Use [form](https://verbb.io/craft-plugins/comments/docs/developers/comment) instead
-| `craft.comments.all()` | Use `craft.comments.fetch()` instead.
-| `craft.comments.form()` | Use `craft.comments.render()` instead.
-
 ## GraphQL
 
 ### Queries
