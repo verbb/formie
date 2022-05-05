@@ -37,7 +37,7 @@ class Entry extends Element
     // =========================================================================
 
     public ?int $entryTypeId = null;
-    public ?int $defaultAuthorId = null;
+    public int|array|null $defaultAuthorId = null;
     public ?bool $createDraft = null;
 
 
