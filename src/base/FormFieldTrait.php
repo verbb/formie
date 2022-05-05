@@ -1029,7 +1029,7 @@ trait FormFieldTrait
                     $types[$propertyName] = [
                         'name' => $propertyName,
                         'type' => Type::string(),
-                        'resolve' => function($field) use ($property) {
+                        'resolve' => function($field) use ($propertyName) {
                             $value = $field->{$propertyName};
 
                             return is_array($value) ? Json::encode($value) : $value;
