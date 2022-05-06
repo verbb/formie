@@ -116,9 +116,15 @@ class Submissions extends Component
                 'submission' => $submission,
                 'success' => $success,
             ]);
+
+            // Default handled state, only for backward compatibility to return early
+            $event->handled = true;
+
             $this->trigger(self::EVENT_AFTER_INCOMPLETE_SUBMISSION, $event);
 
-            return;
+            if ($event->handled) {
+                return;
+            }
         }
 
         // Check if the submission is spam
