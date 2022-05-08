@@ -61,7 +61,7 @@
 </template>
 
 <script>
-import Vue from 'vue';
+// import Vue from 'vue';
 import { mapState } from 'vuex';
 
 import Modal from './Modal.vue';
@@ -149,12 +149,13 @@ export default {
             set(fieldSettings) {
                 if (!this.fieldRef.submitButton) {
                     // We still use label/handle at the top level, so copy those over
-                    Vue.set(this.field, 'label', fieldSettings.label);
-                    Vue.set(this.field, 'handle', fieldSettings.handle);
+                    this.field.label = fieldSettings.label;
+                    this.field.handle = fieldSettings.handle;
 
                 }
+
                 // Update the field settings as 'normal'
-                Vue.set(this.field, 'settings', fieldSettings);
+                this.field.settings = fieldSettings;
             },
         },
     },
@@ -164,8 +165,8 @@ export default {
         this.originalField = clone(this.field);
 
         // We need to copy label/handle so Formulate can handle things
-        Vue.set(this.fieldSettings, 'label', this.field.label);
-        Vue.set(this.fieldSettings, 'handle', this.field.handle);
+        this.fieldSettings.label = this.field.label;
+        this.fieldSettings.handle = this.field.handle;
 
         // Add this to the global Vue instance so we can access it inside fields
         // Could possibly swap this out with Vuex. Currently not a way to inject
@@ -259,12 +260,12 @@ export default {
         },
 
         onCancel() {
-            this.$events.$emit('fieldEdit.beforeCancel', this.field);
+            this.$events.emit('fieldEdit.beforeCancel', this.field);
 
             // Restore original state and exit
             Object.assign(this.field, this.originalField);
 
-            this.$events.$emit('fieldEdit.afterCancel', this.field);
+            this.$events.emit('fieldEdit.afterCancel', this.field);
 
             this.$emit('cancel');
 

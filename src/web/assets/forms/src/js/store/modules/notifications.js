@@ -1,5 +1,5 @@
-import Vue from 'vue';
-import findIndex from 'lodash/findIndex';
+// import Vue from 'vue';
+import { findIndex } from 'lodash-es';
 
 // State is simply an object that contains the properties that need to be shared within the application:
 // The state must return a function to make the module reusable.
@@ -12,7 +12,7 @@ const state = [];
 const mutations = {
     SET_NOTIFICATIONS(state, config) {
         for (var prop in config) {
-            Vue.set(state, prop, config[prop]);
+            state[prop] = config[prop];
         }
     },
 
@@ -33,7 +33,7 @@ const mutations = {
         var { id, prop, value } = payload;
         var index = findIndex(state, { id });
 
-        Vue.set(state[index], prop, value);
+        state[index][prop] = value;
     },
 };
 

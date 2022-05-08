@@ -41,7 +41,7 @@ abstract class Element extends Integration
     {
         $handle = StringHelper::toKebabCase(static::displayName());
 
-        return Craft::$app->getAssetManager()->getPublishedUrl("@verbb/formie/web/assets/elements/dist/img/{$handle}.svg", true);
+        return Craft::$app->getAssetManager()->getPublishedUrl("@verbb/formie/web/assets/cp/dist/img/elements/{$handle}.svg", true);
     }
 
     /**

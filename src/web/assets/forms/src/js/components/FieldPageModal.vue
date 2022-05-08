@@ -150,7 +150,7 @@ export default {
 
         onModalCancel() {
             // Restore original state and exit
-            Vue.set(this.$store.state.form, 'pages', this.originalPages);
+            this.$store.state.form.pages = this.originalPages;
 
             this.$emit('close');
         },

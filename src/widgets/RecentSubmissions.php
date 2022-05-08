@@ -3,7 +3,7 @@ namespace verbb\formie\widgets;
 
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
-use verbb\formie\web\assets\widgets\WidgetsAsset;
+use verbb\formie\web\assets\cp\WidgetsAsset;
 
 use Craft;
 use craft\base\Widget;

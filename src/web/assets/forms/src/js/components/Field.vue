@@ -261,8 +261,8 @@ export default {
     },
 
     created() {
-        this.$events.$on('formie:dragging-active', this.draggingActive);
-        this.$events.$on('formie:dragging-inactive', this.draggingInactive);
+        this.$events.on('formie:dragging-active', this.draggingActive);
+        this.$events.on('formie:dragging-inactive', this.draggingInactive);
 
         // Open the modal immediately for brand new fields
         if (this.brandNewField) {
@@ -282,8 +282,8 @@ export default {
     },
 
     beforeDestroy() {
-        this.$events.$off('formie:dragging-active', this.draggingActive);
-        this.$events.$off('formie:dragging-inactive', this.draggingInactive);
+        this.$events.off('formie:dragging-active', this.draggingActive);
+        this.$events.off('formie:dragging-inactive', this.draggingInactive);
     },
 
     methods: {
@@ -425,7 +425,7 @@ export default {
             // Give it a second so that the z-index has a chance to bring the row dropzones into the forefront
             setTimeout(() => {
                 // Emit event for dropzones
-                this.$events.$emit('formie:dragging-active', data, event);
+                this.$events.emit('formie:dragging-active', data, event);
             }, 50);
 
             this.dragActive = true;
@@ -433,7 +433,7 @@ export default {
 
         dragEnd(data, event) {
             // Emit event for dropzones
-            this.$events.$emit('formie:dragging-inactive', data, event);
+            this.$events.emit('formie:dragging-inactive', data, event);
         },
 
         dragEnter(data, event) {
@@ -451,7 +451,7 @@ export default {
             }
 
             // Reset the state
-            this.$events.$emit('formie:dragging-inactive');
+            this.$events.emit('formie:dragging-inactive');
 
             // Is this a pill? If so, we need to insert
             const isPill = (data.trigger === 'pill');

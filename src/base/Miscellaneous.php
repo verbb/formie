@@ -33,7 +33,7 @@ abstract class Miscellaneous extends Integration
     {
         $handle = StringHelper::toKebabCase(static::displayName());
 
-        return Craft::$app->getAssetManager()->getPublishedUrl("@verbb/formie/web/assets/miscellaneous/dist/img/{$handle}.svg", true);
+        return Craft::$app->getAssetManager()->getPublishedUrl("@verbb/formie/web/assets/cp/dist/img/miscellaneous/{$handle}.svg", true);
     }
 
     /**

@@ -32,7 +32,7 @@ abstract class Crm extends Integration
     {
         $handle = StringHelper::toKebabCase(static::displayName());
 
-        return Craft::$app->getAssetManager()->getPublishedUrl("@verbb/formie/web/assets/crm/dist/img/{$handle}.svg", true);
+        return Craft::$app->getAssetManager()->getPublishedUrl("@verbb/formie/web/assets/cp/dist/img/crm/{$handle}.svg", true);
     }
 
     /**

@@ -105,7 +105,7 @@ export default {
         selectTab(event) {
             this.$emit('selected', this.hash);
 
-            this.$events.$emit('formie:page-selected', this.pageIndex);
+            this.$events.emit('formie:page-selected', this.pageIndex);
         },
 
         dragEnter(data, event) {
@@ -130,7 +130,7 @@ export default {
             }
 
             // Reset the state
-            this.$events.$emit('formie:dragging-inactive');
+            this.$events.emit('formie:dragging-inactive');
             this.dropzoneHover = false;
 
             const pageIndex = event.target.getAttribute('data-page');

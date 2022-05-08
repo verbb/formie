@@ -23,11 +23,14 @@ use verbb\formie\services\Stencils;
 use verbb\formie\services\Submissions;
 use verbb\formie\services\Syncs;
 use verbb\formie\services\Tokens;
+use verbb\formie\web\assets\cp\CpAsset as FormieCpAsset;
 use verbb\base\BaseHelper;
 
 use Craft;
 
 use yii\log\Logger;
+
+use nystudio107\pluginvite\services\VitePluginService;
 
 trait PluginTrait
 {
@@ -166,6 +169,11 @@ trait PluginTrait
         return $this->get('tokens');
     }
 
+    public function getVite(): VitePluginService
+    {
+        return $this->get('vite');
+    }
+
 
     // Private Methods
     // =========================================================================
@@ -194,6 +202,17 @@ trait PluginTrait
             'submissions' => Submissions::class,
             'syncs' => Syncs::class,
             'tokens' => Tokens::class,
+            'vite' => [
+                'class' => VitePluginService::class,
+                'assetClass' => FormieCpAsset::class,
+                'useDevServer' => true,
+                'devServerPublic' => 'http://localhost:4000/',
+                'errorEntry' => 'js/main.js',
+                'cacheKeySuffix' => '',
+                'devServerInternal' => 'http://localhost:4000/',
+                'checkDevServer' => true,
+                'includeReactRefreshShim' => false,
+            ],
         ]);
 
         BaseHelper::registerModule();

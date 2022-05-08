@@ -5,8 +5,11 @@
 
 // ==========================================================================
 
-require('./submission-index.js');
-require('./sent-notifications.js');
+// CSS needs to be imported here as it's treated as a module
+import '../scss/formie-cp.scss';
+
+import './includes/submission-index';
+import './includes/sent-notifications';
 
 if (typeof Craft.Formie === typeof undefined) {
     Craft.Formie = {};

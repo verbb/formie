@@ -53,12 +53,12 @@ export default {
     methods: {
         dragStart(data, event) {
             // Emit event for dropzones
-            this.$events.$emit('formie:dragging-active', data, event);
+            this.$events.emit('formie:dragging-active', data, event);
         },
 
         dragEnd(data, event) {
             // Emit event for dropzones
-            this.$events.$emit('formie:dragging-inactive');
+            this.$events.emit('formie:dragging-inactive');
         },
     },
 };

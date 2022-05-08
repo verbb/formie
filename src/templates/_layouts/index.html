@@ -1,7 +1,5 @@
 {% extends parentLayout ?? '_layouts/cp' %}
 
-{% do view.registerAssetBundle('verbb\\formie\\web\\assets\\forms\\FormsAsset') %}
-
 {% if title is not defined %}
     {% set title = craft.formie.getPluginName() %}
 {% endif %}

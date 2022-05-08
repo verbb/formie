@@ -241,7 +241,7 @@ export default {
 </style>
 
 <style lang="scss">
-@import '~craftcms-sass/mixins';
+@import 'craftcms-sass/mixins';
 
 .fui-tags-list {
     // Override tiptap

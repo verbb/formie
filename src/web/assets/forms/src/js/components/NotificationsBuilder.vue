@@ -55,7 +55,7 @@
 </template>
 
 <script>
-import Vue from 'vue';
+// import Vue from 'vue';
 import { mapState } from 'vuex';
 
 import Notification from './Notification.vue';

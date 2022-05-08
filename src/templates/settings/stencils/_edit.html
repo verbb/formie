@@ -2,8 +2,6 @@
 {% import '_includes/forms' as forms %}
 {% import 'verbb-base/_macros' as macros %}
 
-{% do view.registerAssetBundle('verbb\\formie\\web\\assets\\forms\\FormsAsset') %}
-
 {% set crumbs = [
     { label: craft.formie.getPluginName() | t('formie'), url: url('formie') },
     { label: 'Settings' | t('app'), url: url('formie/settings') },

@@ -47,13 +47,13 @@ export default {
     },
 
     created() {
-        this.$events.$on('formie:dragging-active', this.draggingActive);
-        this.$events.$on('formie:dragging-inactive', this.draggingInactive);
+        this.$events.on('formie:dragging-active', this.draggingActive);
+        this.$events.on('formie:dragging-inactive', this.draggingInactive);
     },
 
     beforeDestroy() {
-        this.$events.$off('formie:dragging-active', this.draggingActive);
-        this.$events.$off('formie:dragging-inactive', this.draggingInactive);
+        this.$events.off('formie:dragging-active', this.draggingActive);
+        this.$events.off('formie:dragging-inactive', this.draggingInactive);
     },
 
     methods: {
@@ -92,7 +92,7 @@ export default {
             }
 
             // Reset the state
-            this.$events.$emit('formie:dragging-inactive');
+            this.$events.emit('formie:dragging-inactive');
 
             if (!this.canDrag(data)) {
                 return;

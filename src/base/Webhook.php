@@ -34,7 +34,7 @@ abstract class Webhook extends Integration
     {
         $handle = StringHelper::toKebabCase(static::displayName());
 
-        return Craft::$app->getAssetManager()->getPublishedUrl("@verbb/formie/web/assets/webhooks/dist/img/{$handle}.svg", true);
+        return Craft::$app->getAssetManager()->getPublishedUrl("@verbb/formie/web/assets/cp/dist/img/webhooks/{$handle}.svg", true);
     }
 
     /**

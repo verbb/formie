@@ -4,6 +4,7 @@ namespace verbb\formie\controllers;
 use verbb\formie\Formie;
 use verbb\formie\base\Integration;
 use verbb\formie\base\IntegrationInterface;
+use verbb\formie\helpers\Plugin;
 use verbb\formie\models\MissingIntegration;
 
 use Craft;
@@ -261,6 +262,8 @@ class IntegrationSettingsController extends Controller
 
         $baseUrl = "formie/settings/$typeKebab";
         $continueEditingUrl = "formie/settings/$typeKebab/edit/{id}";
+
+        Plugin::registerAsset('src/js/formie-integration-settings.js');
 
         return $this->renderTemplate('formie/settings/integrations/_edit', [
             'integration' => $integration,

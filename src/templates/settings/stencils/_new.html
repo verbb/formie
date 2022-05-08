@@ -2,8 +2,6 @@
 {% import '_includes/forms' as forms %}
 {% import 'verbb-base/_macros' as macros %}
 
-{% do view.registerAssetBundle('verbb\\formie\\web\\assets\\forms\\FormsAsset') %}
-
 {% set crumbs = [
     { label: craft.formie.getPluginName() | t('formie'), url: url('formie') },
     { label: 'Settings' | t('app'), url: url('formie/settings') },
@@ -15,67 +13,73 @@
 
 {% block main %}
 
-<form id="fui-new-form" method="post" accept-charset="UTF-8" class="fui-start content-pane">
-    {{ actionInput('formie/stencils/save') }}
-    {{ redirectInput('formie/settings/stencils/edit/{id}') }}
-    {{ csrfInput() }}
+<div id="fui-new-form" class="fui-start content-pane">
+    <form method="post" accept-charset="UTF-8">
+        {{ actionInput('formie/stencils/save') }}
+        {{ redirectInput('formie/settings/stencils/edit/{id}') }}
+        {{ csrfInput() }}
 
-    <div class="fui-start-wrap">
-        <div class="intro">
-            <h1>{{ 'Create your stencil' | t('formie') }}</h1>
-            <p class="instructions">{{ 'Before you get started, you’ll need a name for your stencil.' | t('formie') }}</p>
-        </div>
+        <div class="fui-start-wrap">
+            <div class="intro">
+                <h1>{{ 'Create your stencil' | t('formie') }}</h1>
+                <p class="instructions">{{ 'Before you get started, you’ll need a name for your stencil.' | t('formie') }}</p>
+            </div>
 
-        {# Would be great to use v-model, but Craft's fields add `inputAttributes` to the outer div element #}
-        {{ forms.textField({
-            first: true,
-            label: 'Name' | t('app'),
-            instructions: 'What this stencil will be called in the control panel.' | t('formie'),
-            id: 'title',
-            name: 'title',
-            autofocus: true,
-            required: true,
-            value: stencil.name ?? '',
-            inputAttributes: {
-                ':value': 'name',
-                '@input': 'name = $event.target.value',
-            },
-        }) }}
-
-        <a class="fieldtoggle" data-target="advanced">{{ 'Advanced' | t('app') }}</a>
-
-        <div id="advanced" class="hidden">
+            {# Would be great to use v-model, but Craft's fields add `inputAttributes` to the outer div element #}
             {{ forms.textField({
-                label: 'Handle' | t('app'),
-                instructions: 'How you’ll refer to this form in the templates.' | t('formie'),
-                id: 'handle',
-                name: 'handle',
-                class: 'code',
-                autocorrect: false,
-                autocapitalize: false,
+                first: true,
+                label: 'Name' | t('app'),
+                instructions: 'What this stencil will be called in the control panel.' | t('formie'),
+                id: 'title',
+                name: 'title',
+                autofocus: true,
                 required: true,
-                value: form.handle ?? '',
                 inputAttributes: {
-                    ':value': 'handle',
-                    '@input': 'handle = $event.target.value',
+                    ':value': 'name',
+                    '@input': 'name = $event.target.value',
                 },
             }) }}
-        </div>
 
-        <hr>
+            <a class="fieldtoggle" data-target="advanced">{{ 'Advanced' | t('app') }}</a>
 
-        <div class="buttons">
-            <a href="{{ url('formie/settings/stencils') }}" class="btn big fui-btn">{{ 'Cancel' | t('formie') }}</a>
-            <button type="submit" class="btn big submit">{{ 'Next' | t('formie') }}</button>
+            <div id="advanced" class="hidden">
+                {{ forms.textField({
+                    label: 'Handle' | t('app'),
+                    instructions: 'How you’ll refer to this form in the templates.' | t('formie'),
+                    id: 'handle',
+                    name: 'handle',
+                    class: 'code',
+                    autocorrect: false,
+                    autocapitalize: false,
+                    required: true,
+                    inputAttributes: {
+                        ':value': 'handle',
+                        '@input': 'handle = $event.target.value',
+                    },
+                }) }}
+            </div>
+
+            <hr>
+
+            <div class="buttons">
+                <a href="{{ url('formie/settings/stencils') }}" class="btn big fui-btn">{{ 'Cancel' | t('formie') }}</a>
+                <button type="submit" class="btn big submit">{{ 'Next' | t('formie') }}</button>
+            </div>
         </div>
-    </div>
-</form>
+    </form>
+</div>
 
 {% endblock %}
 
 {% js %}
-    new Craft.Formie.NewForm({
-        formHandles: {{ stencilHandles | json_encode | raw }},
-        maxFormHandleLength: {{ maxFormHandleLength | json_encode | raw }},
+    document.addEventListener('vite-script-loaded', function(e) {
+        if (e.detail.path === 'src/js/formie-form-new.js') {
+            new Craft.Formie.NewForm({
+                name: '{{ stencil.name ?? '' }}',
+                handle: '{{ form.handle ?? '' }}',
+                formHandles: {{ stencilHandles | json_encode | raw }},
+                maxFormHandleLength: {{ maxFormHandleLength | json_encode | raw }},
+            });
+        }
     });
 {% endjs %}

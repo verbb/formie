@@ -12,7 +12,6 @@
     margin: 0;
     appearance: none;
     user-select: none;
-    color-adjust: exact;
 
     &:not(:last-child) {
         margin-bottom: var(--fui-check-margin-bottom);

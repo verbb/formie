@@ -1,4 +1,4 @@
-import Vue from 'vue';
+// import Vue from 'vue';
 
 // State is simply an object that contains the properties that need to be shared within the application:
 // The state must return a function to make the module reusable.
@@ -11,7 +11,7 @@ const state = [];
 const mutations = {
     SET_FIELD_GROUPS(state, config) {
         for (var prop in config) {
-            Vue.set(state, prop, config[prop]);
+            state[prop] = config[prop];
         }
     },
 };

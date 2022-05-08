@@ -338,7 +338,7 @@ export default {
 </style>
 
 <style lang="scss">
-@import '~craftcms-sass/mixins';
+@import 'craftcms-sass/mixins';
 
 .fui-rich-text {
     position: relative;

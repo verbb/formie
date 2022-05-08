@@ -1,5 +1,4 @@
-import Vue from 'vue';
-import findIndex from 'lodash/findIndex';
+import { findIndex } from 'lodash-es';
 
 // State is simply an object that contains the properties that need to be shared within the application:
 // The state must return a function to make the module reusable.
@@ -29,7 +28,7 @@ const mutations = {
     SET_RESERVED_HANDLES(state, config) {
         for (const prop in config) {
             if (Object.hasOwnProperty.call(config, prop)) {
-                Vue.set(state.reservedHandles, prop, config[prop]);
+                state.reservedHandles[prop] = config[prop];
             }
         }
     },
@@ -37,7 +36,7 @@ const mutations = {
     SET_EMAIL_TEMPLATES(state, config) {
         for (const prop in config) {
             if (Object.hasOwnProperty.call(config, prop)) {
-                Vue.set(state.emailTemplates, prop, config[prop]);
+                state.emailTemplates[prop] = config[prop];
             }
         }
     },
@@ -45,7 +44,7 @@ const mutations = {
     SET_EXISTING_FIELDS(state, config) {
         for (const prop in config) {
             if (Object.hasOwnProperty.call(config, prop)) {
-                Vue.set(state.existingFields, prop, config[prop]);
+                state.existingFields[prop] = config[prop];
             }
         }
     },
@@ -53,7 +52,7 @@ const mutations = {
     SET_EXISTING_NOTIFICATIONS(state, config) {
         for (const prop in config) {
             if (Object.hasOwnProperty.call(config, prop)) {
-                Vue.set(state.existingNotifications, prop, config[prop]);
+                state.existingNotifications[prop] = config[prop];
             }
         }
     },
@@ -61,7 +60,7 @@ const mutations = {
     SET_STATUSES(state, config) {
         for (const prop in config) {
             if (Object.hasOwnProperty.call(config, prop)) {
-                Vue.set(state.statuses, prop, config[prop]);
+                state.statuses[prop] = config[prop];
             }
         }
     },

@@ -4,6 +4,7 @@ namespace verbb\formie\controllers;
 use verbb\formie\Formie;
 use verbb\formie\elements\Form;
 use verbb\formie\helpers\HandleHelper;
+use verbb\formie\helpers\Plugin;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\Stencil;
 use verbb\formie\models\StencilData;
@@ -71,6 +72,8 @@ class FormsController extends Controller
         $variables['reservedHandles'] = Formie::$plugin->getFields()->getReservedHandles();
         $variables['maxFormHandleLength'] = HandleHelper::getMaxFormHandle();
 
+        Plugin::registerAsset('src/js/formie-form-new.js');
+
         return $this->renderTemplate('formie/forms/_new', $variables);
     }
 
@@ -121,6 +124,8 @@ class FormsController extends Controller
         // Set the "Continue Editing" URL
         $variables['continueEditingUrl'] = $variables['baseCpEditUrl'] .
             (Craft::$app->getIsMultiSite() && Craft::$app->getSites()->currentSite->id !== $variables['site']->id ? '/' . $variables['site']->handle : '');
+
+        Plugin::registerAsset('src/js/formie-form.js');
 
         return $this->renderTemplate('formie/forms/_edit', $variables);
     }

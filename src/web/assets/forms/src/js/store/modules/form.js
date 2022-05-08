@@ -1,12 +1,9 @@
-import Vue from 'vue';
-import find from 'lodash/find';
-import flatMap from 'lodash/flatMap';
-import forEach from 'lodash/forEach';
-import filter from 'lodash/filter';
-import omitBy from 'lodash/omitBy';
+// import Vue from 'vue';
+import { find, flatMap, forEach, filter, omitBy } from 'lodash-es';
 import md5Hex from 'md5-hex';
-import { toBoolean } from '../../utils/bool';
-import { newId } from '../../utils/string';
+
+import { toBoolean } from '@utils/bool';
+import { newId } from '@utils/string';
 
 // State is simply an object that contains the properties that need to be shared within the application:
 // The state must return a function to make the module reusable.
@@ -20,13 +17,13 @@ const getRows = payload => {
         const field = getters.field(state)(payload.fieldId);
 
         if (typeof field.rows === 'undefined') {
-            Vue.set(field, 'rows', []);
+            field.rows = [];
         }
 
         return field.rows;
     } else {
         if (typeof state.pages[payload.pageIndex].rows === 'undefined') {
-            Vue.set(state.pages[payload.pageIndex], 'rows', []);
+            state.pages[payload.pageIndex].rows = [];
         }
 
         return state.pages[payload.pageIndex].rows;
@@ -76,7 +73,7 @@ const mutations = {
 
         for (const prop in config) {
             if (Object.hasOwnProperty.call(config, prop)) {
-                Vue.set(state, prop, config[prop]);
+                state[prop] = config[prop];
             }
         }
     },
@@ -92,7 +89,7 @@ const mutations = {
 
         for (const prop in data) {
             if (Object.hasOwnProperty.call(data, prop)) {
-                Vue.set(state.pages[pageIndex], prop, data[prop]);
+                state.pages[pageIndex][prop] = data[prop];
             }
         }
     },
@@ -106,7 +103,7 @@ const mutations = {
     ADD_PAGE_SETTINGS(state, payload) {
         const { pageIndex, data } = payload;
 
-        Vue.set(state.pages[pageIndex], 'settings', data);
+        state.pages[pageIndex].settings = data;
     },
 
     APPEND_ROW(state, payload) {
@@ -124,7 +121,7 @@ const mutations = {
         const { sourcePageIndex, sourceRowIndex, sourceColumnIndex, pageIndex, data } = payload;
 
         if (state.pages[pageIndex].rows === undefined) {
-            Vue.set(state.pages[pageIndex], 'rows', []);
+            state.pages[pageIndex].rows = [];
         }
 
         // Remove the old column - but also insert it to our new field/row data
@@ -280,18 +277,18 @@ const mutations = {
         const rows = getRows(payload);
 
         // Make sure to use Vue.set - the prop might not exist
-        Vue.set(rows[rowIndex].fields[columnIndex].settings, prop, value);
+        rows[rowIndex].fields[columnIndex].settings[prop] = value;
     },
 
     SET_FIELD_PROP(state, payload) {
         const { rowIndex, columnIndex, prop, value } = payload;
         const rows = getRows(payload);
 
-        Vue.set(rows[rowIndex].fields[columnIndex], prop, value);
+        rows[rowIndex].fields[columnIndex][prop] = value;
     },
 
     SET_VARIABLES(state, config) {
-        Vue.set(state, 'variables', config);
+        state.variables = config;
     },
 };
 

@@ -1,73 +1,81 @@
-import Vue from 'vue';
-import Axios from 'axios';
-import { stringify } from 'qs';
+import { createApp } from 'vue';
+import mitt from 'mitt';
 
-import * as Plugins from './plugins';
-import * as Filters from './filters';
+// Vue plugins
+import VTooltip from 'floating-vue';
+import { vfmPlugin } from 'vue-final-modal';
+import VueUniqueId from '@/js/vendor/vue-unique-id';
 
-const globals = require('./utils/globals');
-const sanitizeHtml = require('sanitize-html');
+import store from '@/js/store';
 
-//
-// Create a config object to pass back to Vue.js when setting up for the first time
-//
+// Allows us to create a Vue app with global properties and loading plugins
+export const createVueApp = (props) => {
+    const app = createApp({
+        // Set the delimeters to not mess around with Twig
+        delimiters: ['${', '}'],
 
-const Config = {
-    install(Vue) {
-        // Used to keep track of a currently edited field' component.
-        Vue.prototype.$editingField = null;
+        // Add in any props defined for _this_ instance of the app, like components
+        // data, methods, etc.
+        ...props,
+    });
 
-        // Used to keep track of a currently edited notification' component.
-        Vue.prototype.$editingNotification = null;
+    // Fix Vue warnings
+    app.config.unwrapInjectedRef = true;
 
-        // Global events can be accessed via `this.$events`
-        Vue.prototype.$events = new Vue();
+    //
+    // Plugins
+    // Include any globally-available plugins for the app.
+    // Be careful about adding too much here. You can always include them per-app.
+    //
 
-        // Provide sanitization for HTML
-        Vue.prototype.$sanitize = sanitizeHtml;
+    // Vue Final Modal
+    // https://v3.vue-final-modal.org/
+    app.use(vfmPlugin);
 
-        //
-        // Setup Globals
-        //
+    // Vue Unique ID
+    // Custom - waiting for https://github.com/berniegp/vue-unique-id
+    app.use(VueUniqueId);
 
-        // Attach Axios instance to Vue, so we can use `this.$axios.get('/')`
-        Vue.prototype.$axios = Axios.create({
-            transformRequest: [
-                function(data, headers) {
-                    const craftHeaders = Craft._actionHeaders();
-                    headers['X-Requested-With'] = 'XMLHttpRequest';
-                    for (const k in craftHeaders) {
-                        if (Object.prototype.hasOwnProperty.call(craftHeaders, k)) {
-                            headers[k] = craftHeaders[k];
-                        }
-                    }
-
-                    // If this is FormData, no need to serialize
-                    if (data instanceof FormData) {
-                        return data;
-                    }
-
-                    return stringify(data);
+    // Vue Tooltips
+    // https://github.com/Akryum/floating-vue
+    app.use(VTooltip, {
+        themes: {
+            'fui-tooltip': {
+                $extend: 'tooltip',
+                delay: {
+                    show: 0,
+                    hide: 0,
                 },
-            ],
-        });
+            },
+        },
+    });
 
-        //
-        // Setup Plugins
-        //
+    // Vuex for state management
+    // https://vuex.vuejs.org
+    app.use(store);
 
-        Object.values(Plugins).forEach((Plugin) => {
-            Vue.use(Plugin);
-        });
+    //
+    // Global properties
+    // Create global properties here, shared across multiple Vue apps.
+    //
 
-        //
-        // Setup Filters
-        //
+    // Provide `t()` for Craft's translations in SFCs.
+    app.config.globalProperties.t = Craft.t;
 
-        Object.values(Filters).forEach((Filter) => {
-            Vue.use(Filter);
-        });
+    // Global function to easily clone an object
+    app.config.globalProperties.clone = function(value) {
+        if (value === undefined) {
+            return undefined;
+        }
+
+        return JSON.parse(JSON.stringify(value));
     },
-};
 
-export default Config;
+    // Global events. Accessible via `this.$events` in SFCs.
+    app.config.globalProperties.$events = mitt();
+
+    // TODO: Try and figure out .env variables that aren't compiled
+    app.config.globalProperties.$isDebug = !process.env.NODE_ENV || process.env.NODE_ENV === 'development';
+
+    return app;
+};

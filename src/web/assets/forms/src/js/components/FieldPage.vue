@@ -71,11 +71,11 @@ export default {
     },
 
     created() {
-        this.$events.$on('formie:dragging-active', () => {
+        this.$events.on('formie:dragging-active', () => {
             this.dropzonesActive = true;
         });
 
-        this.$events.$on('formie:dragging-inactive', () => {
+        this.$events.on('formie:dragging-inactive', () => {
             this.dropzonesActive = false;
         });
 

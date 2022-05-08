@@ -3,6 +3,7 @@ namespace verbb\formie\controllers;
 
 use verbb\formie\Formie;
 use verbb\formie\helpers\HandleHelper;
+use verbb\formie\helpers\Plugin;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\Stencil;
 use verbb\formie\models\StencilData;
@@ -53,6 +54,8 @@ class StencilsController extends Controller
         }
 
         $variables['maxFormHandleLength'] = HandleHelper::getMaxFormHandle();
+
+        Plugin::registerAsset('src/js/formie-form-new.js');
 
         return $this->renderTemplate('formie/settings/stencils/_new', $variables);
     }
@@ -114,6 +117,8 @@ class StencilsController extends Controller
 
         $variables['maxFormHandleLength'] = HandleHelper::getMaxFormHandle();
         $variables['maxFieldHandleLength'] = HandleHelper::getMaxFieldHandle();
+
+        Plugin::registerAsset('src/js/formie-form.js');
 
         return $this->renderTemplate('formie/settings/stencils/_edit', $variables);
     }

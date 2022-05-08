@@ -15,7 +15,7 @@ $tag-invalid-bg: rgba($tag-remove, .5) !default;
 $tag-inset-shadow-size: 1.1em !default;
 $placeholder-color: $tag-text-color !default;
 
-@import '~@yaireo/tagify/src/tagify';
+@import '@yaireo/tagify/src/tagify';
 
 .fui-input.tagify {
     display: flex;
