@@ -44,7 +44,7 @@ Renders a single field, taking into account custom [Form Templates](docs:feature
 ```twig
 {% set form = craft.formie.forms({ handle: 'contactForm' }).one() %}
 
-{% for field in form.getFields() %}
+{% for field in form.getCustomFields() %}
     {{ craft.formie.renderField(form, field) }}
 {% endif %}
 ```

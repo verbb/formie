@@ -774,7 +774,7 @@ foreach ($sections as $section) {
     foreach ($section->getEntryTypes() as $entryType) {
         $fields = [];
 
-        foreach ($entryType->getFieldLayout()->getFields() as $field) {
+        foreach ($entryType->getFieldLayout()->getCustomFields() as $field) {
             $fields[] = new IntegrationField([
                 'handle' => $field->handle,
                 'name' => $field->name,

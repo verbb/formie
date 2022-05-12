@@ -36,7 +36,7 @@ This guide serves as a starter. There are several aspects of templating that sho
         {{ redirectInput(form.getRedirectUrl()) }}
     {% endif %}
 
-    {% for field in form.getFields() %}
+    {% for field in form.getCustomFields() %}
         {% namespace field.namespace %}
             {% set value = field.defaultValue ?? null %}
             {% set id = (form.handle | kebab) ~ '-' ~ (field.handle | kebab) %}
@@ -112,7 +112,7 @@ Then, we want to add information about the submission. This is important if the 
         {% endfor %}
     {% endif %}
 
-    {% for field in form.getFields() %}
+    {% for field in form.getCustomFields() %}
         {% namespace field.namespace %}
             {% set id = (form.handle | kebab) ~ '-' ~ (field.handle | kebab) %}
             {% set labelId = "#{id}-label" %}
@@ -234,7 +234,7 @@ That should provide us with a working example to continue building. Here's the t
     {% endif %}
 
     {# Render each field, according to its field template #}
-    {% for field in form.getFields() %}
+    {% for field in form.getCustomFields() %}
         {% namespace field.namespace %}
             {% set id = (form.handle | kebab) ~ '-' ~ (field.handle | kebab) %}
             {% set labelId = "#{id}-label" %}

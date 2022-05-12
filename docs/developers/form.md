@@ -38,7 +38,7 @@ Method | Description
 `isFirstPage()` | For multi-page forms, whether the current page is the first page.
 `getCurrentSubmission()` | Returns the current submission, particularly useful for multi-page forms.
 `resetCurrentSubmission()` | Resets the current submission. Usually used when the form is completed.
-`getFields()` | Returns all [Field](docs:developers/field) objects for this form.
+`getCustomFields()` | Returns all [Field](docs:developers/field) objects for this form.
 `getFieldByHandle()` | Returns the [Field](docs:developers/field) object for a provided handle.
 `getNotifications()` | Returns all [Notification](docs:developers/notification) objects for this form.
 `getEnabledNotifications()` | Returns all enabled [Notification](docs:developers/notification) objects for this form.

@@ -472,7 +472,7 @@ If you have a lot of forms, or would rather not conditionally check _every_ form
 ```php
 Event::on(Submission::class, Submission::EVENT_DEFINE_RULES, function(SubmissionRulesEvent $event) {
     if ($fieldLayout = $event->submission->getFieldLayout()) {
-        foreach ($fieldLayout->getFields() as $field) {
+        foreach ($fieldLayout->getCustomFields() as $field) {
             // Check against the handle of the field
             if ($field->handle === 'emailAddress') {
                 $event->rules[] = [['field:emailAddress'], 'required'];

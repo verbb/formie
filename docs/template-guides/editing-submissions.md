@@ -53,7 +53,7 @@ You can also take complete control over the form's HTML if you wish.
     {{ hiddenInput('siteId', submission.siteId) }}
     {{ csrfInput() }}
 
-    {% for field in submission.form.getFields() %}
+    {% for field in submission.form.getCustomFields() %}
         {{ craft.formie.renderField(submission.form, field) }}
     {% endfor %}
 
