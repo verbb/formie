@@ -193,7 +193,11 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
             return $value;
         }
 
-        return new AddressModel($value);
+        if ($value) {
+            return new AddressModel($value);
+        }
+
+        return new AddressModel();
     }
 
     /**
