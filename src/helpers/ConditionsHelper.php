@@ -4,6 +4,7 @@ namespace verbb\formie\helpers;
 use verbb\formie\Formie;
 use verbb\formie\fields\formfields\Group;
 use verbb\formie\fields\formfields\Password;
+use verbb\formie\fields\formfields\Recipients;
 use verbb\formie\helpers\ArrayHelper;
 
 use Craft;
@@ -215,6 +216,9 @@ class ConditionsHelper
                     $rows = array_values($field->serializeValue($value, $submission))[0] ?? [];
 
                     $value = ['rows' => ['new1' => $rows]];
+                } else if ($field instanceof Recipients) {
+                    // Recipients fields should use encoded values, because they can't be exposed in HTML source
+                    $value = $field->getValueAsString($field->getFakeValue($value), $submission);
                 } else if (method_exists($field, 'serializeValueForIntegration')) {
                     $value = $field->serializeValueForIntegration($value, $submission);
                 } else {
