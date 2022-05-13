@@ -238,6 +238,9 @@ export default {
                     testField = field.subfield;
                 }
 
+                // Important to make sure we don't edit the original options, so make un-reactive
+                options = clone(options);
+
                 // Special case for agree fields
                 if (testField.type === 'verbb\\formie\\fields\\formfields\\Agree') {
                     return [
@@ -263,7 +266,7 @@ export default {
 
             // Handle submission options which have statically defined options
             if (field && field.valueOptions) {
-                return field.valueOptions;
+                return clone(field.valueOptions);
             }
 
             return [];
