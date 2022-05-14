@@ -280,7 +280,7 @@ class Integrations extends Component
      */
     public function getIntegrationByTokenId($tokenId): ?IntegrationInterface
     {
-        return ArrayHelper::firstWhere($this->getAllIntegrations(), 'tokenId', $tokenId, true);
+        return ArrayHelper::firstWhere($this->getAllIntegrations(), 'tokenId', $tokenId);
     }
 
     /**
