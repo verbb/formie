@@ -294,11 +294,11 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
 
     public function getIsConnected(): bool
     {
-        if (self::supportsOauthConnection()) {
+        if (static::supportsOauthConnection()) {
             return (bool)$this->getToken(false);
         }
 
-        if (self::supportsConnection()) {
+        if (static::supportsConnection()) {
             return $this->getCache('connection') === self::CONNECT_SUCCESS;
         }
 
