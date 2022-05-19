@@ -212,12 +212,8 @@ class Categories extends CraftCategories implements FormFieldInterface
 
             // Reset the level based off the root category. Otherwise the level will start from the root
             // category's level, not "flush" (ie, "---- Category" instead of "- Category")
-            if ($this->rootCategory) {
-                if ($rootCategoryId = ArrayHelper::getColumn($this->rootCategory, 'id')) {
-                    if ($rootCategory = Category::find()->id($rootCategoryId)->one()) {
-                        $level = $level - $rootCategory->level;
-                    }
-                }
+            if ($rootCategory = $this->getRootCategoryElement()) {
+                $level = $level - $rootCategory->level;
             }
 
             // Important to cast as a string, otherwise Twig will struggle to compare
@@ -225,6 +221,22 @@ class Categories extends CraftCategories implements FormFieldInterface
         }
 
         return $options;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getRootCategoryElement()
+    {
+        if ($this->rootCategory) {
+            if ($rootCategoryId = ArrayHelper::getColumn($this->rootCategory, 'id')) {
+                if ($rootCategory = Category::find()->id($rootCategoryId)->one()) {
+                    return $rootCategory;
+                }
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -363,6 +375,15 @@ class Categories extends CraftCategories implements FormFieldInterface
                 'args' => CategoryArguments::getArguments(),
                 'resolve' => function($class) {
                     return $class->getElementsQuery()->all();
+                },
+            ],
+            'rootCategory' => [
+                'name' => 'rootCategory',
+                'type' => CategoryInterface::getType(),
+                'resolve' => CategoryResolver::class.'::resolve',
+                'args' => CategoryArguments::getArguments(),
+                'resolve' => function($class) {
+                    return $class->getRootCategoryElement();
                 },
             ],
         ]);
