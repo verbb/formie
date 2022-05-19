@@ -21,12 +21,12 @@ class SubmissionsController extends Controller
     /**
      * @var int|null The form ID(s) to delete submissions from. Can be set to multiple comma-separated IDs.
      */
-    public ?int $formId;
+    public ?int $formId = null;
 
     /**
      * @var string|null The form handle(s) to delete submissions from. Can be set to multiple comma-separated handles.
      */
-    public ?string $formHandle;
+    public ?string $formHandle = null;
 
     /**
      * @var bool Whether to delete only spam submissions.
