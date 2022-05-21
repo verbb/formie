@@ -32,8 +32,10 @@
                                     </td>
                                 {% case 'select' %}
                                     <td style="{{ cellStyle }}">
-                                        {% for option in col.options if option.value == cellValue %}
-                                            {{ option.label | t }}
+                                        {% for option in col.options %}
+                                            {% if option.value == cellValue %}
+                                                {{ option.label | t }}
+                                            {% endif %}
                                         {% endfor %}
                                     </td>
                                 {% case 'heading' %}

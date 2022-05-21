@@ -7,6 +7,40 @@ We've removed `enableGatsbyCompatibility` as it is no longer required.
 ## Removed Controller
 The `formie/csrf/*` actions have been removed (previously deprecated). If you relied on these to refresh the CSRF token for your forms, refer to the [docs](https://verbb.io/craft-plugins/formie/docs/template-guides/cached-forms) for the updated controller and code.
 
+## Templates
+There have been a number of template changes, some which have been inherited from Craft 4 changes.
+
+### `getFields()`
+Any references to `getFields()` should be changed to `getCustomFields()`. This is inline with Craft 4 element field layout changes.
+
+## Form
+The following changes have been made to the [Form](docs:developers/form) object.
+
+Old | What to do instead
+--- | ---
+| `getFields()` | `getCustomFields()`
+
+## Page
+The following changes have been made to the [Page](docs:developers/page) object.
+
+Old | What to do instead
+--- | ---
+| `getFields()` | `getCustomFields()`
+
+## Row
+The following changes have been made to the [Row](docs:developers/row) object.
+
+Old | What to do instead
+--- | ---
+| `getFields()` | `getCustomFields()`
+
+## Submission
+The following changes have been made to the [Submission](docs:developers/submission) object.
+
+Old | What to do instead
+--- | ---
+| `getFields()` | `getCustomFields()`
+
 ## GraphQL
 
 ### Queries

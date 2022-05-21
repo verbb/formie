@@ -119,7 +119,7 @@ class GoogleSheets extends Miscellaneous
     {
         // Allow an .env var to override the proxy state. Due to it being a lightswitch
         // we can't set an override any other way.
-        $proxyRedirect = App::parseEnv('$FORMIE_INTEGRATION_PROXY_REDIRECT');
+        $proxyRedirect = App::parseBooleanEnv('$FORMIE_INTEGRATION_PROXY_REDIRECT');
 
         if (!is_null($proxyRedirect)) {
             $this->proxyRedirect = $proxyRedirect;

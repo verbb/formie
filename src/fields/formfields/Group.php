@@ -9,6 +9,7 @@ use verbb\formie\helpers\SchemaHelper;
 
 use Craft;
 use craft\base\EagerLoadingFieldInterface;
+use craft\base\Element;
 use craft\base\ElementInterface;
 use craft\gql\GqlEntityRegistry;
 use craft\helpers\Gql;
@@ -61,7 +62,12 @@ class Group extends FormField implements NestedFieldInterface, EagerLoadingField
     public function getElementValidationRules(): array
     {
         $rules = parent::getElementValidationRules();
-        $rules[] = ['validateRows'];
+
+        $rules[] = [
+            'validateRows',
+            'on' => [Element::SCENARIO_ESSENTIALS, Element::SCENARIO_DEFAULT, Element::SCENARIO_LIVE],
+            'skipOnEmpty' => false,
+        ];
 
         return $rules;
     }

@@ -33,7 +33,7 @@ Follow the below steps to connect to the Google Sheets API.
 1. Next, go to the **APIs & Services** → **Credentials** section.
 1. Click **Create Credentials** → **OAuth client ID**.
     1. On the following page, select the **Application Type** as **Web application**.
-    1. Provide a suitable **Name** to you can identify it in your Google account. This is not required by Formie.
+    1. Provide a suitable **Name** so you can identify it in your Google account. This is not required by Formie.
     1. Under the **Authorized JavaScript origins**, click **Add URI** and enter your project's Site URL.
     1. Under the **Authorized redirect URIs**, click **Add URI** and enter the value from the **Redirect URI** field in Formie.
     1. Then click the **Create** button.

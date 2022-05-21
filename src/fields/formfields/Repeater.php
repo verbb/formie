@@ -30,6 +30,7 @@ class Repeater extends FormField implements NestedFieldInterface, EagerLoadingFi
     // =========================================================================
 
     use NestedFieldTrait {
+        validateRows as traitValidateRows;
         getFrontEndJsModules as traitGetFrontEndJsModules;
     }
 
@@ -78,19 +79,46 @@ class Repeater extends FormField implements NestedFieldInterface, EagerLoadingFi
      */
     public function getElementValidationRules(): array
     {
-        return [
+        $rules = parent::getElementValidationRules();
+
+        $rules[] = [
             'validateRows',
-            [
-                ArrayValidator::class,
+            'on' => [Element::SCENARIO_ESSENTIALS, Element::SCENARIO_DEFAULT, Element::SCENARIO_LIVE],
+            'skipOnEmpty' => false,
+        ];
+
+        return $rules;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function validateRows(ElementInterface $element): void
+    {
+        $this->traitValidateRows($element);
+
+        if ($element->getScenario() === Element::SCENARIO_LIVE && ($this->minRows || $this->maxRows)) {
+            $arrayValidator = new ArrayValidator([
                 'min' => $this->minRows ?: null,
                 'max' => $this->maxRows ?: null,
-                'tooFew' => Craft::t('formie', '{attribute} should contain at least {min, number} {min, plural, one{row} other{rows}}.'),
-                'tooMany' => Craft::t('formie', '{attribute} should contain at most {max, number} {max, plural, one{row} other{rows}}.'),
-                'message' => Craft::t('formie', '{attribute} must have one item.'),
-                'skipOnEmpty' => !($this->minRows || $this->maxRows),
-                'on' => Element::SCENARIO_LIVE,
-            ],
-        ];
+                'tooFew' => $this->minRows ? Craft::t('app', '{attribute} should contain at least {min, number} {min, plural, one{block} other{blocks}}.', [
+                    'attribute' => Craft::t('site', $this->name),
+                    'min' => $this->minRows, // Need to pass this in now
+                ]) : null,
+                'tooMany' => $this->maxRows ? Craft::t('app', '{attribute} should contain at most {max, number} {max, plural, one{block} other{blocks}}.', [
+                    'attribute' => Craft::t('site', $this->name),
+                    'max' => $this->maxRows, // Need to pass this in now
+                ]) : null,
+                'skipOnEmpty' => false,
+            ]);
+
+            $value = $element->getFieldValue($this->handle);
+            $blocks = $value->all();
+
+            if (!$arrayValidator->validate($blocks, $error)) {
+                $element->addError($this->handle, $error);
+            }
+        }
     }
 
     /**
