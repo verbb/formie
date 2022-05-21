@@ -1,13 +1,13 @@
 <template>
-    <drop class="dropzone-new-field" :class="{ 'is-active': dropzonesActive, 'is-hover': dropzoneHover }" @drop="dragDrop" @dragenter="dragEnter" @dragleave="dragLeave">
-        <span>{{ 'Drag and drop a field here' | t('formie') }}</span>
+    <drop class="dropzone-new-field" :class="{ 'is-active': dropzonesActive, 'is-hover': dropzoneHover }" @on-drop="dragDrop" @on-dragenter="dragEnter" @on-dragleave="dragLeave">
+        <span>{{ t('formie', 'Drag and drop a field here') }}</span>
     </drop>
 </template>
 
 <script>
-import { newId } from '../utils/string';
-import { canDrag } from '../utils/drag-drop';
-import { Drop } from 'vue-drag-drop';
+import { newId } from '@utils/string';
+import { canDrag } from '@utils/drag-drop';
+import { Drop } from '@vendor/vue-drag-drop';
 
 export default {
     name: 'DropzoneNewField',
@@ -70,7 +70,7 @@ export default {
             this.dropzoneHover = false;
         },
 
-        dragEnter(data) {
+        dragEnter(data, event) {
             // Protect against anything being dragged in
             if (!data) {
                 return;
@@ -85,7 +85,7 @@ export default {
             this.dropzoneHover = false;
         },
 
-        dragDrop(data) {
+        dragDrop(data, event) {
             // Protect against anything being dragged in
             if (!data) {
                 return;

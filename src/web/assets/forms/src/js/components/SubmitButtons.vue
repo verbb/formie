@@ -1,5 +1,5 @@
 <template>
-    <div class="fui-field-block fui-submit-block" :class="{ 'has-errors': false }" @click.prevent="editField">
+    <div class="fui-field-block fui-submit-block" :class="{ 'has-errors': false }" @click.prevent="openModal">
         <div class="fui-edit-overlay" @click.prevent="editField"></div>
 
         <div class="flex" :style="{ 'justify-content': cssAlignment }">
@@ -11,17 +11,15 @@
         </div>
 
         <field-edit-modal
-            v-if="modalActive"
-            ref="editFieldModal"
-            :visible="modalVisible"
+            v-if="showModal"
+            v-model:showModal="showModal"
+            v-model:field="field"
             :field-ref="this"
-            :field="field"
-            :can-delete="false"
             :fields-schema="fieldsSchema"
             :tabs-schema="tabsSchema"
+            :can-delete="false"
             :show-field-type="false"
-            @close="onModalClose"
-            @cancel="onModalCancel"
+            @closed="onModalClosed"
         />
     </div>
 </template>
@@ -29,7 +27,7 @@
 <script>
 import { mapState } from 'vuex';
 
-import FieldEditModal from './FieldEditModal.vue';
+import FieldEditModal from '@components/FieldEditModal.vue';
 
 export default {
     name: 'SubmitButtons',
@@ -53,8 +51,7 @@ export default {
     data() {
         return {
             id: Math.random(),
-            modalActive: false,
-            modalVisible: false,
+            showModal: false,
             originalField: null,
             submitButton: true,
         };
@@ -66,13 +63,24 @@ export default {
             form: state => state.form,
         }),
 
-        field() {
-            // Create a mock field to make editing easier
-            return this.pages[this.pageIndex];
+        field: {
+            get() {
+                // Create a mock field to make editing easier
+                return this.pages[this.pageIndex];
+            },
+
+            set(newValue) {
+                const payload = {
+                    pageIndex: this.pageIndex,
+                    data: newValue.settings,
+                };
+
+                this.$store.dispatch('form/addPageSettings', payload);
+            },
         },
 
         settings() {
-            return this.$store.getters['form/pageSettings'](this.pageId);
+            return this.field.settings;
         },
 
         isFirstButton() {
@@ -82,7 +90,7 @@ export default {
         tabsSchema() {
             return [
                 {
-                    label: this.$options.filters.t('General', 'formie'),
+                    label: Craft.t('formie', 'General'),
                     fields: [
                         'submitButtonLabel',
                         'showBackButton',
@@ -90,21 +98,21 @@ export default {
                     ],
                 },
                 {
-                    label: this.$options.filters.t('Appearance', 'formie'),
+                    label: Craft.t('formie', 'Appearance'),
                     fields: [
                         'buttonsPosition',
                         'cssClasses',
                     ],
                 },
                 {
-                    label: this.$options.filters.t('Conditions', 'formie'),
+                    label: Craft.t('formie', 'Conditions'),
                     fields: [
                         'enableConditions',
                         'conditions',
                     ],
                 },
                 {
-                    label: this.$options.filters.t('Advanced', 'formie'),
+                    label: Craft.t('formie', 'Advanced'),
                     fields: [
                         'enableJsEvents',
                         'jsEvents',
@@ -119,76 +127,79 @@ export default {
             if (!this.isFirstButton) {
                 fields = [
                     {
-                        type: 'lightswitch',
-                        label: this.$options.filters.t('Show Back Button', 'formie'),
-                        help: this.$options.filters.t('Whether to show the back button, to go back to a previous page.', 'formie'),
+                        $formkit: 'lightswitch',
+                        label: Craft.t('formie', 'Show Back Button'),
+                        help: Craft.t('formie', 'Whether to show the back button, to go back to a previous page.'),
                         name: 'showBackButton',
+                        id: 'showBackButton',
                     },
                     {
-                        component: 'toggle-group',
-                        conditional: 'settings.showBackButton',
-                        children: [
-                            {
-                                type: 'text',
-                                class: 'text fullwidth',
-                                autocomplete: 'off',
-                                label: this.$options.filters.t('Back Button Label', 'formie'),
-                                help: this.$options.filters.t('The label for the back submit button.', 'formie'),
-                                name: 'backButtonLabel',
-                                validation: 'requiredIf:showBackButton',
-                                validationName: this.$options.filters.t('Back Button Label', 'formie'),
-                                required: true,
-                            },
-                        ],
+                        $formkit: 'text',
+                        inputClass: 'text fullwidth',
+                        autocomplete: 'off',
+                        label: Craft.t('formie', 'Back Button Label'),
+                        help: Craft.t('formie', 'The label for the back submit button.'),
+                        name: 'backButtonLabel',
+                        id: 'backButtonLabel',
+                        if: '$get(showBackButton).value',
+                        validation: 'required',
+                        required: true,
                     },
                 ];
             }
 
             var fieldsSchema = [
                 {
-                    component: 'tab-panel',
-                    'data-tab-panel': 'General',
+                    $cmp: 'TabPanel',
+                    attrs: {
+                        'data-tab-panel': 'General',
+                    },
                     children: [
                         {
-                            type: 'text',
-                            class: 'text fullwidth',
+                            $formkit: 'text',
+                            inputClass: 'text fullwidth',
                             autocomplete: 'off',
-                            label: this.$options.filters.t('Button Label', 'formie'),
-                            help: this.$options.filters.t('The label for the submit button.', 'formie'),
+                            label: Craft.t('formie', 'Button Label'),
+                            help: Craft.t('formie', 'The label for the submit button.'),
                             name: 'submitButtonLabel',
+                            id: 'submitButtonLabel',
                             validation: 'required',
-                            validationName: this.$options.filters.t('Button Label', 'formie'),
                             required: true,
                         },
                         ...fields,
                     ],
                 },
                 {
-                    component: 'tab-panel',
-                    'data-tab-panel': 'General',
+                    $cmp: 'TabPanel',
+                    attrs: {
+                        'data-tab-panel': 'General',
+                    },
                     children: [
                         {
-                            type: 'select',
-                            label: this.$options.filters.t('Button Positions', 'formie'),
-                            help: this.$options.filters.t('How the buttons should be positioned.', 'formie'),
+                            $formkit: 'select',
+                            label: Craft.t('formie', 'Button Positions'),
+                            help: Craft.t('formie', 'How the buttons should be positioned.'),
                             name: 'buttonsPosition',
+                            id: 'buttonsPosition',
                             options: this.buttonsPosition,
                         },
                         {
-                            type: 'text',
-                            class: 'text fullwidth',
+                            $formkit: 'text',
+                            inputClass: 'text fullwidth',
                             autocomplete: 'off',
-                            label: this.$options.filters.t('CSS Classes', 'formie'),
-                            help: this.$options.filters.t('Add classes that will be output on submit button container.', 'formie'),
+                            label: Craft.t('formie', 'CSS Classes'),
+                            help: Craft.t('formie', 'Add classes that will be output on submit button container.'),
                             name: 'cssClasses',
+                            id: 'cssClasses',
                         },
                         {
-                            component: 'table-block',
-                            label: this.$options.filters.t('Container Attributes', 'formie'),
-                            help: this.$options.filters.t('Add attributes to be outputted on this submit button’s container.', 'formie'),
+                            $formkit: 'table',
+                            label: Craft.t('formie', 'Container Attributes'),
+                            help: Craft.t('formie', 'Add attributes to be outputted on this submit button’s container.'),
                             validation: 'min:0',
                             generateValue: false,
                             name: 'containerAttributes',
+                            id: 'containerAttributes',
                             newRowDefaults: {
                                 label: '',
                                 value: '',
@@ -207,12 +218,13 @@ export default {
                             ],
                         },
                         {
-                            component: 'table-block',
-                            label: this.$options.filters.t('Input Attributes', 'formie'),
-                            help: this.$options.filters.t('Add attributes to be outputted on this submit button’s input.', 'formie'),
+                            $formkit: 'table',
+                            label: Craft.t('formie', 'Input Attributes'),
+                            help: Craft.t('formie', 'Add attributes to be outputted on this submit button’s input.'),
                             validation: 'min:0',
                             generateValue: false,
                             name: 'inputAttributes',
+                            id: 'inputAttributes',
                             newRowDefaults: {
                                 label: '',
                                 value: '',
@@ -233,80 +245,78 @@ export default {
                     ],
                 },
                 {
-                    component: 'tab-panel',
-                    'data-tab-panel': 'General',
+                    $cmp: 'TabPanel',
+                    attrs: {
+                        'data-tab-panel': 'General',
+                    },
                     children: [
                         {
-                            type: 'lightswitch',
+                            $formkit: 'lightswitch',
                             labelPosition: 'before',
-                            label: this.$options.filters.t('Enable Conditions', 'formie'),
-                            help: this.$options.filters.t('Whether to enable conditional logic to control how the next button is shown.', 'formie'),
+                            label: Craft.t('formie', 'Enable Conditions'),
+                            help: Craft.t('formie', 'Whether to enable conditional logic to control how the next button is shown.'),
                             name: 'enableNextButtonConditions',
+                            id: 'enableNextButtonConditions',
                         },
                         {
-                            component: 'toggle-group',
-                            conditional: 'settings.enableNextButtonConditions',
-                            children: [
-                                {
-                                    type: 'fieldConditions',
-                                    name: 'nextButtonConditions',
-                                    descriptionText: 'the next button if',
-                                },
-                            ],
+                            $formkit: 'fieldConditions',
+                            name: 'nextButtonConditions',
+                            id: 'nextButtonConditions',
+                            descriptionText: 'the next button if',
+                            if: '$get(enableNextButtonConditions).value',
                         },
                     ],
                 },
                 {
-                    component: 'tab-panel',
-                    'data-tab-panel': 'General',
+                    $cmp: 'TabPanel',
+                    attrs: {
+                        'data-tab-panel': 'General',
+                    },
                     children: [
                         {
-                            type: 'lightswitch',
+                            $formkit: 'lightswitch',
                             labelPosition: 'before',
-                            label: this.$options.filters.t('Enable JavaScript Events', 'formie'),
-                            help: this.$options.filters.t('Whether to enable management of JavaScript events when this button is pressed.', 'formie'),
+                            label: Craft.t('formie', 'Enable JavaScript Events'),
+                            help: Craft.t('formie', 'Whether to enable management of JavaScript events when this button is pressed.'),
                             name: 'enableJsEvents',
+                            id: 'enableJsEvents',
                         },
                         {
-                            component: 'toggle-group',
-                            conditional: 'settings.enableJsEvents',
-                            children: [
+                            $formkit: 'table',
+                            label: Craft.t('formie', 'Google Tag Manager Event Data'),
+                            help: Craft.t('formie', 'Add event data to be sent to Google Tag Manager.'),
+                            validation: 'min:0',
+                            generateValue: false,
+                            name: 'jsGtmEventOptions',
+                            id: 'jsGtmEventOptions',
+                            if: '$get(enableJsEvents).value',
+                            newRowDefaults: {
+                                label: '',
+                                value: '',
+                            },
+                            initialValue: [{
+                                label: 'event',
+                                value: 'formPageSubmission',
+                            },{
+                                label: 'formId',
+                                value: this.form.handle,
+                            },{
+                                label: 'pageId',
+                                value: this.pageId,
+                            },{
+                                label: 'pageIndex',
+                                value: this.pageIndex,
+                            }],
+                            columns: [
                                 {
-                                    component: 'table-block',
-                                    label: this.$options.filters.t('Google Tag Manager Event Data', 'formie'),
-                                    help: this.$options.filters.t('Add event data to be sent to Google Tag Manager.', 'formie'),
-                                    validation: 'min:0',
-                                    generateValue: false,
-                                    name: 'jsGtmEventOptions',
-                                    newRowDefaults: {
-                                        label: '',
-                                        value: '',
-                                    },
-                                    value: [{
-                                        label: 'event',
-                                        value: 'formPageSubmission',
-                                    },{
-                                        label: 'formId',
-                                        value: this.form.handle,
-                                    },{
-                                        label: 'pageId',
-                                        value: this.pageId,
-                                    },{
-                                        label: 'pageIndex',
-                                        value: this.pageIndex,
-                                    }],
-                                    columns: [
-                                        {
-                                            type: 'label',
-                                            label: 'Option',
-                                            class: 'singleline-cell textual',
-                                        },
-                                        {
-                                            type: 'value',
-                                            label: 'Value',
-                                            class: 'singleline-cell textual',
-                                        },
-                                    ],
+                                    type: 'label',
+                                    label: 'Option',
+                                    class: 'singleline-cell textual',
+                                },
+                                {
+                                    type: 'value',
+                                    label: 'Value',
+                                    class: 'singleline-cell textual',
                                 },
                             ],
                         },
@@ -315,8 +325,10 @@ export default {
             ];
 
             return [{
-                component: 'tab-panels',
-                class: 'fui-modal-content',
+                $cmp: 'TabPanels',
+                attrs: {
+                    class: 'fui-modal-content',
+                },
                 children: fieldsSchema,
             }];
         },
@@ -354,27 +366,20 @@ export default {
 
     created() {
         // Store this so we can cancel changes.
-        this.originalField = clone(this.settings);
+        this.originalField = this.clone(this.settings);
     },
 
     methods: {
-        editField() {
-            this.modalActive = true;
-            this.modalVisible = true;
+        openModal() {
+            this.showModal = true;
         },
 
-        onModalClose() {
-            this.modalActive = false;
-            this.modalVisible = false;
+        onModalClosed() {
+            this.showModal = false;
         },
 
         markAsSaved() {
             // Required for save callback in FieldEditModal
-        },
-
-        onModalCancel() {
-            // Restore original state and exit
-            Object.assign(this.settings, this.originalField);
         },
     },
 

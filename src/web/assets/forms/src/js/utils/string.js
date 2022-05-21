@@ -79,6 +79,25 @@ export const newId = function() {
     return 'new' + Math.floor(9999 * Math.random()) + '-' + Math.floor(9999 * Math.random());
 };
 
+export const getId = function(prefix = '') {
+    return prefix + Craft.randomString(10);
+};
+
+export const token = function(length = 13) {
+  return Math.random().toString(36).substring(2, length + 2)
+}
+
+export const has  = function(ctx, prop) {
+  return Object.prototype.hasOwnProperty.call(ctx, prop)
+}
+
+export const setId = function(o, id) {
+  if (!has(o, '__id') || id) {
+    return Object.defineProperty(o, '__id', Object.assign(Object.create(null), { value: id || token(9) }))
+  }
+  return o
+}
+
 export const getDisplayName = function(type) {
     const parts = type.split('\\');
     return parts[parts.length - 1];

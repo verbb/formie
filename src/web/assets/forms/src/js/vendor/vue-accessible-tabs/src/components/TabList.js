@@ -1,27 +1,26 @@
+import { h } from 'vue';
 import { cleanChildren } from '../utils/vnode';
 
 const TabList = {
     name: 'TabList',
-    render(createElement) {
-    // Add magic indexes to each <Tab> component
-        cleanChildren(this.$slots.default).forEach((node, index) => {
+    render() {
+        // Add magic indexes to each <Tab> component
+        cleanChildren(this.$slots.default()).forEach((node, index) => {
             node.componentOptions.propsData.index = index;
         });
 
-        return createElement(
+        return h(
             'div',
             {
-                attrs: {
-                    role: 'tablist',
-                    'aria-orientation': this.tabOrientation,
-                },
+                role: 'tablist',
+                'aria-orientation': this.tabOrientation,
             },
-            this.$slots.default
+            this.$slots.default()
         );
     },
     computed: {
         tabCount() {
-            const tabs = cleanChildren(this.$slots.default);
+            const tabs = cleanChildren(this.$slots.default());
             return tabs.length;
         },
         isOnLastTab() {

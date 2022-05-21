@@ -33,7 +33,7 @@ export default {
 
     methods: {
         click(event) {
-            this.$emit('click', this.action);
+            this.$emit('clicked', this.action);
         },
     },
 };

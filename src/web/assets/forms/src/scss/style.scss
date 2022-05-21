@@ -10,7 +10,7 @@
 @import "fui-tooltips";
 @import "font-awesome";
 @import "loading";
-@import "formulate";
+@import "formkit";
 
 .sr-only {
     border: 0;
@@ -46,6 +46,9 @@
 
 // Existing Field/Notifications
 @import "existing-modal";
+
+// Integrations
+@import "integrations";
 
 
 

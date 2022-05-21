@@ -4,6 +4,8 @@ import { findIndex } from 'lodash-es';
 // The state must return a function to make the module reusable.
 // See: https://vuex.vuejs.org/en/modules.html#module-reuse
 const state = {
+    editingField: null,
+    editingNotification: null,
     maxFieldHandleLength: 64,
     maxFormHandleLength: 64,
     reservedHandles: [],
@@ -17,6 +19,14 @@ const state = {
 // In Vuex, mutations always have access to state as the first argument.
 // In addition, Actions may or may not pass in a payload as the second argument:
 const mutations = {
+    SET_EDITING_FIELD(state, config) {
+        state.editingField = config;
+    },
+
+    SET_EDITING_NOTIFICATION(state, config) {
+        state.editingNotification = config;
+    },
+
     SET_MAX_FIELD_HANDLE_LENGTH(state, config) {
         state.maxFieldHandleLength = config;
     },
@@ -71,6 +81,14 @@ const mutations = {
 // Actions have access to a context object that provides access to state (with context.state),
 // to getters (with context.getters), and to the commit function (with context.commit).
 const actions = {
+    setEditingField(context, config) {
+        context.commit('SET_EDITING_FIELD', config);
+    },
+
+    setEditingNotification(context, config) {
+        context.commit('SET_EDITING_NOTIFICATION', config);
+    },
+
     setMaxFieldHandleLength(context, config) {
         context.commit('SET_MAX_FIELD_HANDLE_LENGTH', config);
     },

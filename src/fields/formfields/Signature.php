@@ -36,7 +36,7 @@ class Signature extends FormField implements PreviewableFieldInterface
     // Properties
     // =========================================================================
 
-    public string $backgroundColor = 'transparent';
+    public string $backgroundColor = '#ffffff';
     public string $penColor = '#000000';
     public string $penWeight = '2';
 
@@ -89,7 +89,7 @@ class Signature extends FormField implements PreviewableFieldInterface
     public function getFieldDefaults(): array
     {
         return [
-            'backgroundColor' => 'transparent',
+            'backgroundColor' => '#ffffff',
             'penColor' => '#000000',
             'penWeight' => '2',
         ];
@@ -103,25 +103,32 @@ class Signature extends FormField implements PreviewableFieldInterface
         return [
             SchemaHelper::labelField(),
             SchemaHelper::textField([
+                '$formkit' => 'color',
                 'label' => Craft::t('formie', 'Background Color'),
                 'help' => Craft::t('formie', 'Set the background color.'),
                 'name' => 'backgroundColor',
                 'size' => '4',
-                'type' => 'color',
-                'class' => 'text fui-color-field',
+                'inputClass' => 'text fui-color-field',
             ]),
             SchemaHelper::textField([
+                '$formkit' => 'color',
                 'label' => Craft::t('formie', 'Pen Color'),
                 'help' => Craft::t('formie', 'Set the pen color.'),
                 'name' => 'penColor',
                 'size' => '4',
-                'type' => 'color',
-                'class' => 'text fui-color-field',
+                'inputClass' => 'text fui-color-field',
             ]),
-            SchemaHelper::textField([
+            SchemaHelper::numberField([
                 'label' => Craft::t('formie', 'Pen Weight'),
                 'help' => Craft::t('formie', 'Set the line thickness (weight) for the pen.'),
                 'name' => 'penWeight',
+                'sections-schema' => [
+                    'suffix' => [
+                        '$el' => 'span',
+                        'attrs' => ['class' => 'hint-text'],
+                        'children' => Craft::t('formie', 'px'),
+                    ],
+                ],
             ]),
         ];
     }
@@ -137,12 +144,11 @@ class Signature extends FormField implements PreviewableFieldInterface
                 'help' => Craft::t('formie', 'Whether this field should be required when filling out the form.'),
                 'name' => 'required',
             ]),
-            SchemaHelper::toggleContainer('settings.required', [
-                SchemaHelper::textField([
-                    'label' => Craft::t('formie', 'Error Message'),
-                    'help' => Craft::t('formie', 'When validating the form, show this message if an error occurs. Leave empty to retain the default message.'),
-                    'name' => 'errorMessage',
-                ]),
+            SchemaHelper::textField([
+                'label' => Craft::t('formie', 'Error Message'),
+                'help' => Craft::t('formie', 'When validating the form, show this message if an error occurs. Leave empty to retain the default message.'),
+                'name' => 'errorMessage',
+                'if' => '$get(required).value',
             ]),
         ];
     }

@@ -1,4 +1,4 @@
-// import Vue from 'vue';
+import { ref } from "vue";
 import { find, flatMap, forEach, filter, omitBy } from 'lodash-es';
 import md5Hex from 'md5-hex';
 
@@ -20,13 +20,13 @@ const getRows = payload => {
             field.rows = [];
         }
 
-        return field.rows;
+        return ref(field.rows);
     } else {
         if (typeof state.pages[payload.pageIndex].rows === 'undefined') {
             state.pages[payload.pageIndex].rows = [];
         }
 
-        return state.pages[payload.pageIndex].rows;
+        return ref(state.pages[payload.pageIndex].rows);
     }
 };
 
@@ -108,7 +108,7 @@ const mutations = {
 
     APPEND_ROW(state, payload) {
         const { rowIndex, data } = payload;
-        const rows = getRows(payload);
+        const rows = getRows(payload).value;
 
         if (rowIndex) {
             rows.splice(rowIndex, 0, data);
@@ -139,14 +139,14 @@ const mutations = {
 
     ADD_ROW(state, payload) {
         const { rowIndex, data } = payload;
-        const rows = getRows(payload);
+        const rows = getRows(payload).value;
 
         rows.splice(rowIndex, 0, data);
     },
 
     MOVE_ROW(state, payload) {
         let { sourceRowIndex, sourceColumnIndex, rowIndex, data } = payload;
-        const rows = getRows(payload);
+        const rows = getRows(payload).value;
 
         // Just guard against not actually moving rows - but only if its a full-width field
         if (sourceRowIndex === rowIndex || sourceRowIndex === (rowIndex - 1)) {
@@ -178,7 +178,7 @@ const mutations = {
 
     ADD_COLUMN(state, payload) {
         const { rowIndex, columnIndex, data } = payload;
-        const rows = getRows(payload);
+        const rows = getRows(payload).value;
 
         rows[rowIndex].fields.splice(columnIndex, 0, data);
     },
@@ -196,7 +196,7 @@ const mutations = {
             return;
         }
 
-        const rows = getRows(payload);
+        const rows = getRows(payload).value;
 
         // noinspection EqualityComparisonWithCoercionJS
         if (sourceRowIndex == rowIndex && rows[sourceRowIndex].fields.length === 1) {
@@ -274,7 +274,7 @@ const mutations = {
 
     UPDATE_FIELD_SETTINGS(state, payload) {
         const { rowIndex, columnIndex, prop, value } = payload;
-        const rows = getRows(payload);
+        const rows = getRows(payload).value;
 
         // Make sure to use Vue.set - the prop might not exist
         rows[rowIndex].fields[columnIndex].settings[prop] = value;
@@ -282,7 +282,7 @@ const mutations = {
 
     SET_FIELD_PROP(state, payload) {
         const { rowIndex, columnIndex, prop, value } = payload;
-        const rows = getRows(payload);
+        const rows = getRows(payload).value;
 
         rows[rowIndex].fields[columnIndex][prop] = value;
     },

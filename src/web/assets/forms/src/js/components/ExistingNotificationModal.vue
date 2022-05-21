@@ -1,12 +1,14 @@
 <template>
-    <modal ref="modal" to="notification-modals" :modal-class="['fui-edit-notification-modal', 'fui-existing-item-modal']">
-        <template slot="header">
-            <h3 class="fui-modal-title">{{ 'Add Existing Notification' | t('formie') }}</h3>
+    <a href="#" @click.prevent="openModal">{{ t('formie', 'Select existing notification') }}</a>
 
-            <div class="fui-dialog-close" @click.prevent="hideModal"></div>
+    <modal ref="modal" v-model="showModal" :modal-class="['fui-edit-notification-modal', 'fui-existing-item-modal']" @click-outside="closeModal">
+        <template v-slot:header>
+            <h3 class="fui-modal-title">{{ t('formie', 'Add Existing Notification') }}</h3>
+
+            <div class="fui-dialog-close" @click.prevent="closeModal"></div>
         </template>
 
-        <template slot="body">
+        <template v-slot:body>
             <div v-if="existingNotifications.length" class="fui-modal-content-wrap">
                 <div class="fui-modal-sidebar sidebar">
                     <nav v-if="filteredExistingNotifications.length">
@@ -48,22 +50,22 @@
                     </div>
 
                     <div v-else>
-                        <p>{{ 'No notifications found.' | t('formie') }}</p>
+                        <p>{{ t('formie', 'No notifications found.') }}</p>
                     </div>
                 </div>
             </div>
 
             <div v-else class="fui-modal-content-wrap">
                 <div class="fui-modal-content">
-                    <p>{{ 'No existing notifications to select.' | t('formie') }}</p>
+                    <p>{{ t('formie', 'No existing notifications to select.') }}</p>
                 </div>
             </div>
         </template>
 
-        <template slot="footer">
+        <template v-slot:footer>
             <div class="buttons left">
                 <div class="spinner hidden"></div>
-                <div class="btn" role="button" @click.prevent="hideModal">{{ 'Cancel' | t('app') }}</div>
+                <div class="btn" role="button" @click.prevent="closeModal">{{ t('app', 'Cancel') }}</div>
             </div>
 
             <div v-if="filteredExistingNotifications.length" class="buttons right">
@@ -84,11 +86,11 @@
 
 <script>
 import { mapState } from 'vuex';
-import findIndex from 'lodash/findIndex';
-import { newId } from '../utils/string';
+import { findIndex } from 'lodash-es';
+import { newId } from '@utils/string';
 
-import Modal from './Modal.vue';
-import ExistingNotification from './ExistingNotification.vue';
+import Modal from '@components/Modal.vue';
+import ExistingNotification from '@components/ExistingNotification.vue';
 
 export default {
     name: 'ExistingNotificationModal',
@@ -100,6 +102,7 @@ export default {
 
     data() {
         return {
+            showModal: false,
             search: '',
             selectedKey: '',
             selectedNotifications: [],
@@ -130,11 +133,11 @@ export default {
 
         submitText() {
             if (this.totalSelected > 1) {
-                return this.$options.filters.t('Add {num} notifications', 'formie', { num: this.totalSelected });
+                return Craft.t('formie', 'Add {num} notifications', { num: this.totalSelected });
             } else if (this.totalSelected > 0) {
-                return this.$options.filters.t('Add {num} notification', 'formie', { num: this.totalSelected });
+                return Craft.t('formie', 'Add {num} notification', { num: this.totalSelected });
             } else {
-                return this.$options.filters.t('Add notification', 'formie');
+                return Craft.t('formie', 'Add notification');
             }
         },
     },
@@ -146,13 +149,14 @@ export default {
     },
 
     methods: {
-        showModal() {
-            this.$refs.modal.showModal();
+        openModal() {
+            this.showModal = true;
         },
 
-        hideModal() {
+        closeModal() {
             this.selectedNotifications = [];
-            this.$refs.modal.hideModal();
+
+            this.showModal = false;
         },
 
         selectTab(key) {
@@ -177,7 +181,7 @@ export default {
 
         addNotifications() {
             for (const element of this.selectedNotifications) {
-                const newNotification = clone(element.notification);
+                const newNotification = this.clone(element.notification);
                 newNotification['id'] = newId();
                 
                 delete newNotification['errors'];
@@ -189,7 +193,7 @@ export default {
                 });
             }
 
-            this.hideModal();
+            this.closeModal();
         },
     },
 };

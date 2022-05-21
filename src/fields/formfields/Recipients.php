@@ -286,35 +286,34 @@ class Recipients extends FormField
                     ['label' => Craft::t('formie', 'Radio Buttons'), 'value' => 'radio'],
                 ],
             ]),
-            SchemaHelper::toggleContainer('!settings.displayType=hidden', [
-                SchemaHelper::tableField([
-                    'label' => Craft::t('formie', 'Options'),
-                    'help' => Craft::t('formie', 'Define the available options for users to select from.'),
-                    'name' => 'options',
-                    'validation' => 'requiredIfNotEqual:displayType=hidden|uniqueLabels|requiredLabels',
-                    'newRowDefaults' => [
-                        'label' => '',
-                        'value' => '',
-                        'isDefault' => false,
+            SchemaHelper::tableField([
+                'label' => Craft::t('formie', 'Options'),
+                'help' => Craft::t('formie', 'Define the available options for users to select from.'),
+                'name' => 'options',
+                'validation' => 'required|uniqueTableCellLabel|requiredTableCellLabel',
+                'if' => '$get(displayType).value != hidden',
+                'newRowDefaults' => [
+                    'label' => '',
+                    'value' => '',
+                    'isDefault' => false,
+                ],
+                'columns' => [
+                    [
+                        'type' => 'label',
+                        'label' => Craft::t('formie', 'Option Label'),
+                        'class' => 'singleline-cell textual',
                     ],
-                    'columns' => [
-                        [
-                            'type' => 'label',
-                            'label' => Craft::t('formie', 'Option Label'),
-                            'class' => 'singleline-cell textual',
-                        ],
-                        [
-                            'type' => 'value',
-                            'label' => Craft::t('formie', 'Email'),
-                            'class' => 'singleline-cell textual',
-                        ],
-                        [
-                            'type' => 'default',
-                            'label' => Craft::t('formie', 'Default?'),
-                            'class' => 'thin checkbox-cell',
-                        ],
+                    [
+                        'type' => 'value',
+                        'label' => Craft::t('formie', 'Email'),
+                        'class' => 'singleline-cell textual',
                     ],
-                ]),
+                    [
+                        'type' => 'default',
+                        'label' => Craft::t('formie', 'Default?'),
+                        'class' => 'thin checkbox-cell',
+                    ],
+                ],
             ]),
         ];
     }
@@ -330,12 +329,11 @@ class Recipients extends FormField
                 'help' => Craft::t('formie', 'Whether this field should be required when filling out the form.'),
                 'name' => 'required',
             ]),
-            SchemaHelper::toggleContainer('settings.required', [
-                SchemaHelper::textField([
-                    'label' => Craft::t('formie', 'Error Message'),
-                    'help' => Craft::t('formie', 'When validating the form, show this message if an error occurs. Leave empty to retain the default message.'),
-                    'name' => 'errorMessage',
-                ]),
+            SchemaHelper::textField([
+                'label' => Craft::t('formie', 'Error Message'),
+                'help' => Craft::t('formie', 'When validating the form, show this message if an error occurs. Leave empty to retain the default message.'),
+                'name' => 'errorMessage',
+                'if' => '$get(required).value',
             ]),
             SchemaHelper::prePopulate(),
         ];

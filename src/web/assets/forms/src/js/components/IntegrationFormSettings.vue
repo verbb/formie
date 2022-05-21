@@ -1,6 +1,9 @@
+<template>
+    <slot v-bind="$data" :input="input" :get-source-fields="getSourceFields" :get="get" :is-empty="isEmpty" :refresh="refresh"></slot>
+</template>
+
 <script>
-import get from 'lodash/get';
-import isEmpty from 'lodash/isEmpty';
+import { get, set, isEmpty } from 'lodash-es';
 
 export default {
     name: 'IntegrationFormSettings',
@@ -53,7 +56,7 @@ export default {
         // Create dynamic data variables based on whatever variables we pass in
         if (this.values) {
             Object.keys(this.values).forEach(prop => {
-                this.$set(this.model, prop, this.values[prop]);
+                this.model[prop] = this.values[prop];
             });
         }
     },
@@ -65,6 +68,10 @@ export default {
 
         isEmpty(object) {
             return isEmpty(object);
+        },
+
+        input(prop, value) {
+            set(this, prop, value);
         },
 
         getSourceFields(key) {
@@ -104,20 +111,20 @@ export default {
             this.errorMessage = '';
             this.loading = true;
 
-            const payload = {
+            const data = {
                 formId: this.form.id,
                 integration: this.handle,
                 ...this.globalParams,
                 ...payloadParams,
             };
 
-            this.$axios.post(Craft.getActionUrl('formie/integrations/form-settings'), payload).then((response) => {
+            Craft.sendActionRequest('POST', 'formie/integrations/form-settings', { data }).then((response) => {
                 this.loading = false;
 
                 if (response.data.error) {
                     this.error = true;
 
-                    this.errorMessage = this.$options.filters.t('An error occurred.', 'formie');
+                    this.errorMessage = Craft.t('formie', 'An error occurred.');
                 
                     if (response.data.error) {
                         this.errorMessage += '<br><code>' + response.data.error + '</code>';
@@ -140,7 +147,6 @@ export default {
             });
         },
     },
-
 };
 
 </script>

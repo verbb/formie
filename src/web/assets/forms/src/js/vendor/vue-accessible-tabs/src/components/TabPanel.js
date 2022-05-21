@@ -1,3 +1,5 @@
+import { h } from 'vue';
+
 const TabPanel = {
     name: 'TabPanel',
     props: {
@@ -18,21 +20,19 @@ const TabPanel = {
             }
         },
     },
-    render(createElement) {
-        return createElement(
+    render() {
+        return h(
             'div',
             {
-                attrs: {
-                    role: 'tabpanel',
-                    'aria-labeledby': `tabs--${this.tabState._id}--tab--${this.index}`,
-                    id: `tabs--${this.tabState._id}--panel--${this.index}`,
+                role: 'tabpanel',
+                'aria-labeledby': `tabs--${this.tabState._id}--tab--${this.index}`,
+                id: `tabs--${this.tabState._id}--panel--${this.index}`,
 
-                    // CHANGE: Remove this for now, causes weird focus on all children
-                    // tabindex: '-1',
-                    hidden: !this.isActive,
-                },
+                // CHANGE: Remove this for now, causes weird focus on all children
+                // tabindex: '-1',
+                hidden: !this.isActive,
             },
-            this.$slots.default
+            this.$slots.default()
         );
     },
     inject: ['tabState', 'setActivePanelRef'],

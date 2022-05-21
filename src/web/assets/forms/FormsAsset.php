@@ -13,26 +13,12 @@ class FormsAsset extends AssetBundle
 
     public function init(): void
     {
-        $this->sourcePath = '@verbb/formie/web/assets/cp/dist';
+        $this->sourcePath = '@verbb/formie/web/assets/forms/dist';
 
         $this->depends = [
             VerbbCpAsset::class,
             CraftCpAsset::class,
         ];
-
-        // $this->depends = [
-        //     VerbbCpAsset::class,
-        //     CpAsset::class,
-        //     VueAsset::class,
-        // ];
-
-        // $this->js = [
-        //     'js/main.js',
-        // ];
-
-        // $this->css = [
-        //     'css/style.css',
-        // ];
 
         parent::init();
     }

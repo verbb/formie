@@ -174,12 +174,11 @@ class Checkboxes extends BaseOptionsField implements FormFieldInterface
                 'help' => Craft::t('formie', 'Whether this field should be required when filling out the form.'),
                 'name' => 'required',
             ]),
-            SchemaHelper::toggleContainer('settings.required', [
-                SchemaHelper::textField([
-                    'label' => Craft::t('formie', 'Error Message'),
-                    'help' => Craft::t('formie', 'When validating the form, show this message if an error occurs. Leave empty to retain the default message.'),
-                    'name' => 'errorMessage',
-                ]),
+            SchemaHelper::textField([
+                'label' => Craft::t('formie', 'Error Message'),
+                'help' => Craft::t('formie', 'When validating the form, show this message if an error occurs. Leave empty to retain the default message.'),
+                'name' => 'errorMessage',
+                'if' => '$get(required).value',
             ]),
             SchemaHelper::prePopulate(),
             SchemaHelper::selectField([
@@ -192,12 +191,11 @@ class Checkboxes extends BaseOptionsField implements FormFieldInterface
                     ['label' => Craft::t('formie', 'Bottom of List'), 'value' => 'bottom'],
                 ],
             ]),
-            SchemaHelper::toggleContainer('settings.toggleCheckbox', [
-                SchemaHelper::textField([
-                    'label' => Craft::t('formie', 'Toggle Checkbox Label'),
-                    'help' => Craft::t('formie', 'Enter the label for the toggle checkbox field.'),
-                    'name' => 'toggleCheckboxLabel',
-                ]),
+            SchemaHelper::textField([
+                'label' => Craft::t('formie', 'Toggle Checkbox Label'),
+                'help' => Craft::t('formie', 'Enter the label for the toggle checkbox field.'),
+                'name' => 'toggleCheckboxLabel',
+                'if' => '$get(toggleCheckbox).value',
             ]),
         ];
     }

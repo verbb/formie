@@ -23,7 +23,7 @@ use verbb\formie\services\Stencils;
 use verbb\formie\services\Submissions;
 use verbb\formie\services\Syncs;
 use verbb\formie\services\Tokens;
-use verbb\formie\web\assets\cp\CpAsset as FormieCpAsset;
+use verbb\formie\web\assets\forms\FormsAsset;
 use verbb\base\BaseHelper;
 
 use Craft;
@@ -204,7 +204,7 @@ trait PluginTrait
             'tokens' => Tokens::class,
             'vite' => [
                 'class' => VitePluginService::class,
-                'assetClass' => FormieCpAsset::class,
+                'assetClass' => FormsAsset::class,
                 'useDevServer' => true,
                 'devServerPublic' => 'http://localhost:4000/',
                 'errorEntry' => 'js/main.js',

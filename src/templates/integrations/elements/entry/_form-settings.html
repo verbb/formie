@@ -4,8 +4,8 @@
 {% set formSettings = integration.getFormSettings().getSettings() %}
 {% set entryTypeId = form.settings.integrations[handle].entryTypeId ?? '' %}
 
-<integration-form-settings handle="{{ handle }}" :form-settings="{{ formSettings | json_encode }}" source="{{ entryTypeId }}" inline-template>
-    <div>
+<integration-form-settings handle="{{ handle }}" :form-settings="{{ formSettings | json_encode }}" source="{{ entryTypeId }}">
+    <template v-slot="{ get, isEmpty, input, settings, sourceId, loading, refresh, error, errorMessage, getSourceFields }">
         <div class="field">
             <div class="heading">
                 <label id="sourceId-label" for="sourceId" class="required">{{ 'Entry Type' | t('formie') }}</label>
@@ -17,7 +17,7 @@
 
             <div class="input ltr">
                 <div class="select">
-                    <select v-model="sourceId" name="entryTypeId" required>
+                    <select :value="sourceId" @input="input('sourceId', $event.target.value)" name="entryTypeId" required>
                         <option value="">{{ 'Select an option' | t('formie') }}</option>
 
                         <optgroup v-for="(section, sectionIndex) in get(settings, 'elements')" :key="sectionIndex" :label="sectionIndex">
@@ -76,7 +76,7 @@
                 ${ error }
             </li>
         </ul>
-    </div>
+    </template>
 </integration-form-settings>
 
 {% set createDraft = form.settings.integrations[handle].createDraft ?? false %}

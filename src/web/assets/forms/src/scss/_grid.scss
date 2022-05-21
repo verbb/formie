@@ -14,18 +14,18 @@ $grid-gutter-width: 20px;
 .fui-row {
     display: flex;
     flex-wrap: wrap;
-    margin-right: ($grid-gutter-width / -2);
-    margin-left: ($grid-gutter-width / -2);
+    margin-right: calc($grid-gutter-width / -2);
+    margin-left: calc($grid-gutter-width / -2);
 
     &.small-padding,
     &.small-gutters {
-        margin-right: ($grid-gutter-width / -4);
-        margin-left: ($grid-gutter-width / -4);
+        margin-right: calc($grid-gutter-width / -4);
+        margin-left: calc($grid-gutter-width / -4);
 
         > .fui-col,
         > [class^="fui-col-"] {
-            padding-right: ($grid-gutter-width / 4);
-            padding-left: ($grid-gutter-width / 4);
+            padding-right: calc($grid-gutter-width / 4);
+            padding-left: calc($grid-gutter-width / 4);
         }
     }
 
@@ -47,15 +47,15 @@ $grid-gutter-width: 20px;
     position: relative;
     width: 100%;
     min-height: 1px; // Prevent columns from collapsing when empty
-    padding-right: ($grid-gutter-width / 2);
-    padding-left: ($grid-gutter-width / 2);
+    padding-right: calc($grid-gutter-width / 2);
+    padding-left: calc($grid-gutter-width / 2);
 }
 
 // Allow columns to stretch full width below their breakpoints
 @for $i from 1 through $columns {
     .fui-col-#{$i} {
-        flex: 0 0 percentage($i / $columns);
-        max-width: percentage($i / $columns);
+        flex: 0 0 percentage(calc($i / $columns));
+        max-width: percentage(calc($i / $columns));
     }
 }
 

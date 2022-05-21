@@ -1,5 +1,6 @@
-import find from 'lodash/find';
-import { newId } from '../../utils/string';
+import { find } from 'lodash-es';
+import { newId } from '@utils/string';
+import { clone } from '@utils/object';
 
 // State is simply an object that contains the properties that need to be shared within the application:
 // The state must return a function to make the module reusable.

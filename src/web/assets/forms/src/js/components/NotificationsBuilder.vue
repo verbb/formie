@@ -1,7 +1,5 @@
 <template>
     <div>
-        <existing-notification-modal ref="existingNotification" />
-
         <notification ref="newNotification" class="hidden" :schema="schema" :notification="newNotificationModel" />
 
         <div :class="{ 'zilch': !notifications.length }">
@@ -11,8 +9,8 @@
                         <table class="vuetable data fullwidth">
                             <thead>
                                 <tr>
-                                    <th>{{ 'Name' | t('formie') }}</th>
-                                    <th>{{ 'Subject' | t('formie') }}</th>
+                                    <th>{{ t('formie', 'Name') }}</th>
+                                    <th>{{ t('formie', 'Subject') }}</th>
                                     <th class="thin"></th>
                                     <th class="thin"></th>
                                 </tr>
@@ -29,22 +27,20 @@
             </template>
 
             <template v-else>
-                <p>{{ 'No notifications created.' | t('formie') }}</p>
+                <p>{{ t('formie', 'No notifications created.') }}</p>
             </template>
 
             <div class="fui-new-notification-buttons">
                 <div class="btngroup submit first">
                     <a href="#" class="btn submit add icon" @click.prevent="newNotification">
-                        {{ 'New Notification' | t('formie') }}
+                        {{ t('formie', 'New Notification') }}
                     </a>
 
                     <div class="btn submit menubtn"></div>
                     <div class="menu">
                         <ul>
                             <li>
-                                <a href="#" @click.prevent="existingNotification">
-                                    {{ 'Select existing notification' | t('formie') }}
-                                </a>
+                                <existing-notification-modal />
                             </li>
                         </ul>
                     </div>
@@ -55,11 +51,10 @@
 </template>
 
 <script>
-// import Vue from 'vue';
 import { mapState } from 'vuex';
 
-import Notification from './Notification.vue';
-import ExistingNotificationModal from './ExistingNotificationModal.vue';
+import Notification from '@components/Notification.vue';
+import ExistingNotificationModal from '@components/ExistingNotificationModal.vue';
 
 export default {
     name: 'NotificationsBuilder',
@@ -96,11 +91,7 @@ export default {
                 templateId: this.form.settings.defaultEmailTemplateId,
             };
 
-            this.$refs.newNotification.editNotification();
-        },
-
-        existingNotification() {
-            this.$refs.existingNotification.showModal();
+            this.$refs.newNotification.openModal();
         },
     },
 

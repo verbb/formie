@@ -645,12 +645,11 @@ trait FormFieldTrait
 
                 $fieldSchema = $this->$methodName();
 
-                // Formulate uses the name instead of the label for the validation error, so change that
-                SchemaHelper::setFieldValidationName($fieldSchema);
-
                 $fields[] = [
-                    'component' => 'tab-panel',
-                    'data-tab-panel' => $tabLabel,
+                    '$cmp' => 'TabPanel',
+                    'attrs' => [
+                        'data-tab-panel' => $tabLabel,
+                    ],
                     'children' => $fieldSchema,
                 ];
 
@@ -666,8 +665,10 @@ trait FormFieldTrait
             'tabs' => $tabs,
             'fields' => [
                 [
-                    'component' => 'tab-panels',
-                    'class' => 'fui-modal-content',
+                    '$cmp' => 'TabPanels',
+                    'attrs' => [
+                        'class' => 'fui-modal-content',
+                    ],
                     'children' => $fields,
                 ],
             ],

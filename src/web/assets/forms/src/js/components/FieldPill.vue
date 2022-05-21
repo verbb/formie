@@ -3,14 +3,14 @@
         class="fui-field-pill"
         :hide-image-html="!isSafari"
         :transfer-data="{ trigger: 'pill', supportsNested: fieldtype.supportsNested, type }"
-        @dragstart="dragStart"
-        @dragend="dragEnd"
+        @on-dragstart="dragStart"
+        @on-dragend="dragEnd"
     >
         <span class="fui-field-pill-icon" v-html="fieldtype.icon"></span>
         <span class="fui-field-pill-name">{{ fieldtype.label }}</span>
         <span class="fui-field-pill-drag"></span>
 
-        <template v-if="!isSafari" slot="image" style="position: absolute">
+        <template v-if="!isSafari" v-slot:image style="position: absolute">
             <div class="fui-field-pill" style="width: 148px;">
                 <span class="fui-field-pill-icon" v-html="fieldtype.icon"></span>
                 <span class="fui-field-pill-name">{{ fieldtype.label }}</span>
@@ -21,8 +21,8 @@
 </template>
 
 <script>
-import { Drag } from 'vue-drag-drop';
-import { isSafari } from '../utils/browser';
+import { Drag } from '@vendor/vue-drag-drop';
+import { isSafari } from '@utils/browser';
 
 export default {
     name: 'FieldPill',

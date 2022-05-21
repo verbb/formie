@@ -1,70 +1,74 @@
 <template>
-    <component :is="'div'">
-        <modal ref="modal" to="notification-modals" modal-class="fui-edit-notification-modal" :is-visible="visible" @close="onCancel">
-            <template slot="header">
-                <h3 class="fui-modal-title">{{ 'Edit Notification' | t('formie') }}</h3>
+        <modal ref="modal" v-model="showModal" modal-class="fui-edit-notification-modal" @click-outside="onCancelModal">
+            <template v-slot:header>
+                <h3 class="fui-modal-title">{{ t('formie', 'Edit Notification') }}</h3>
 
-                <div class="fui-dialog-close" @click.prevent="onCancel"></div>
+                <div class="fui-dialog-close" @click.prevent="onCancelModal"></div>
             </template>
 
-            <template slot="body">
+            <template v-slot:body>
                 <tabs>
                     <div class="fui-tabs fui-field-tabs fui-field-tab-list">
                         <tab-list class="fui-pages-menu">
-                            <tab v-for="(tab, index) in tabsSchema" :key="index" :class="[ 'fui-tab-item', tabErrorClass(tab.label) ]">
+                            <tab v-for="(tab, index) in tabsSchema" :key="index" :index="index" :class="[ 'fui-tab-item', tabErrorClass(tab.label) ]">
                                 {{ tab.label }}
                             </tab>
                         </tab-list>
                     </div>
 
-                    <FormulateForm
-                        ref="fieldForm"
-                        v-model="proxy"
-                        :notification="proxy"
-                        :schema="fieldsSchema"
-                        @submit="submitHandler"
-                        @validation="validateForm"
-                    />
+                    <div v-if="getFirstError" class="fui-notice-wrap">
+                        <div class="fui-notice error">
+                            <span class="error with-icon"></span>
+                            {{ getFirstError }}
+                        </div>
+                    </div>
+
+                    <div class="fui-modal-content" :style="{ height: (!mounted) ? '80%' : '' }">
+                        <div v-if="!mounted" class="fui-loading fui-loading-lg" style="height: 100%;"></div>
+
+                        <FormKitForm ref="fieldForm" v-if="mounted" v-model="notification" @submit="submitHandler">
+                            <FormKitSchema :schema="fieldsSchema" />
+                        </FormKitForm>
+                    </div>
                 </tabs>
             </template>
 
-            <template slot="footer">
+            <template v-slot:footer>
                 <div v-if="!notificationRef.isNew" class="buttons left">
-                    <div class="spinner" :class="{ hidden: !deleteLoading }"></div>
-                    <div class="btn delete" role="button" @click.prevent="deleteNotification">{{ 'Delete' | t('app') }}</div>
+                    <div class="btn delete" role="button" @click.prevent="deleteNotification">{{ t('app', 'Delete') }}</div>
                 </div>
 
                 <div class="buttons right">
-                    <div class="btn" role="button" @click.prevent="onCancel">{{ 'Cancel' | t('app') }}</div>
-                    <div class="btn submit" role="button" @click.prevent="onSave">{{ 'Apply' | t('app') }}</div>
-                    <div class="spinner" :class="{ hidden: !saveLoading }"></div>
+                    <div class="btn" role="button" @click.prevent="onCancelModal">{{ t('app', 'Cancel') }}</div>
+                    <div class="btn submit" role="button" @click.prevent="onSave">{{ t('app', 'Apply') }}</div>
                 </div>
             </template>
         </modal>
-    </component>
 </template>
 
 <script>
-import cloneDeep from 'lodash/cloneDeep';
+import { isEmpty } from 'lodash-es';
+import { Tabs, Tab, TabList, TabPanels, TabPanel } from '@vendor/vue-accessible-tabs';
 
-import Modal from './Modal.vue';
+import Modal from '@components/Modal.vue';
 
 export default {
     name: 'NotificationEditModal',
 
     components: {
         Modal,
+        Tabs, Tab, TabList, TabPanels, TabPanel,
     },
 
     props: {
-        visible: {
-            type: Boolean,
-            default: false,
+        notificationRef: {
+            type: Object,
+            default: () => {},
         },
 
-        label: {
-            type: String,
-            default: '',
+        showModal: {
+            type: Boolean,
+            default: () => {},
         },
 
         notification: {
@@ -85,48 +89,60 @@ export default {
 
     data() {
         return {
-            saveLoading: false,
-            deleteLoading: false,
             originalNotification: null,
-            submitClicked: false,
+            mounted: false,
             tabsWithErrors: [],
         };
     },
 
     computed: {
-        proxy: {
-            get() {
-                return this.notification;
-            },
-
-            set(notification) {
-                Object.assign(this.notification, notification);
-            },
+        notificationErrors() {
+            return this.notification.errors;
         },
 
-        notificationRef() {
-            return this.$parent;
-        },
-    },
+        getFirstError() {
+            if (!isEmpty(this.notificationErrors)) {
+                return this.notificationErrors[Object.keys(this.notificationErrors)[0]][0] || '';
+            }
 
-    watch: {
-        proxy: {
-            deep: true,
-            handler(newVal) {
-                this.$emit('input', newVal);
-            },
+            return null;
         },
-    },
-
-    beforeCreate() {
-        this.pages = this.$parent.$parent.tabs;
     },
 
     created() {
         // Store this so we can cancel changes.
-        this.originalNotification = cloneDeep(this.notification);
+        this.originalNotification = this.clone(this.notification);
 
-        Vue.prototype.$editingNotification = this.notificationRef;
+        // Add this to the global Vue instance so we can access it inside fields
+        this.$store.dispatch('formie/setEditingNotification', this.notificationRef);
+    },
+
+    mounted() {
+        // Set a small delay to show the modal, then try to render the form, which can take a little bit
+        // for complex settings setups.
+        setTimeout(() => {
+            this.mounted = true;
+
+            this.$nextTick().then(() => {
+                // const $firstText = this.$refs.fieldForm.$el.parentNode.querySelector('input[type="text"]');
+
+                // if ($firstText) {
+                //     setTimeout(() => {
+                //         $firstText.focus();
+                //     }, 200)
+                // }
+
+                // Set any errors on the form, if they exist
+                if (!isEmpty(this.fieldErrors)) {
+                    this.$refs.fieldForm.setErrors(this.fieldErrors);
+
+                    // Wait until FormKit has settled
+                    setTimeout(() => {
+                        this.updateTabs();
+                    }, 50)
+                }
+            });
+        }, 50)
     },
 
     destroy() {
@@ -135,11 +151,15 @@ export default {
 
     methods: {
         destroy() {
-            Vue.prototype.$editingNotification = null;
+            // Wait a little for the transition
+            setTimeout(() => {
+                this.$store.dispatch('formie/setEditingNotification', null);
+            }, 200)
         },
         
-        hideModal() {
-            this.$emit('close');
+        closeModal() {
+            // Close the modal programatically, which will fire `@closed`
+            this.$refs.modal.close();
 
             this.destroy();
         },
@@ -154,71 +174,44 @@ export default {
             return (this.tabsWithErrors.includes(tab)) ? 'error' : false;
         },
 
-        eachInput(children, callback) {
-            children.forEach(child => {
-                if (child.$options.name === 'FormulateInput') {
-                    callback(child);
-                }
-
-                if (child.$children.length) {
-                    this.eachInput(child.$children, callback);
-                }
-            });
-        },
-
-        validateForm(error) {
-            // Don't show the errors on tabs until we've hit submit
-            if (!this.submitClicked) {
-                return;
-            }
-
-            // Update any tabs with errors as soon as a field is invalid
-            this.tabsSchema.forEach(tab => {
-                if (tab.fields.includes(error.name)) {
-                    if (error.hasErrors) {
-                        if (!this.tabsWithErrors.includes(tab.label)) {
-                            this.tabsWithErrors.push(tab.label);
-                        }
-                    } else {
-                        const index = this.tabsWithErrors.indexOf(tab.label);
-
-                        if (index > -1) {
-                            this.tabsWithErrors.splice(index, 1);
-                        }
-                    }
-                }
-            });
-        },
-
         submitHandler() {
             // Validation has already cleared the form
 
             this.notificationRef.addNotification();
 
             // Hide the modal
-            this.hideModal();
+            this.closeModal();
         },
 
-        onCancel() {
+        onCancelModal() {
             // Restore original state and exit
-            Object.assign(this.proxy, this.originalNotification);
+            this.$emit('update:notification', this.originalNotification);
 
-            return this.hideModal();
+            this.closeModal();
+        },
+
+        updateTabs() {
+            const errors = this.$refs.fieldForm.getErrors();
+
+            // Reset errors
+            this.tabsWithErrors = [];
+
+            // Update any tabs with errors. Just done on submit to prevent too much activity
+            this.tabsSchema.forEach(tab => {
+                // Search for an array against an array
+                const isInTab = tab.fields.some(v => errors.includes(v));
+
+                if (isInTab) {
+                    this.tabsWithErrors.push(tab.label);
+                }
+            });
         },
 
         onSave() {
-            this.submitClicked = true;
+            this.updateTabs();
 
-            // There's checks in Formulate not to fire the `validation` event unless the messages
-            // have changed. But, in our case, we always want to fire this when the submit button is pressed
-            // so we have to dive into every input and reset the errors. This will then trigger the `@validation`
-            // event on the form, and we can show updated error status.
-            this.eachInput(this.$refs.fieldForm.$children, (child) => {
-                child.validationErrors = [];
-            });
-            
             // Validate the form - this will prevent firing `submitHandler()` if it fails
-            this.$refs.fieldForm.formSubmitted();
+            this.$refs.fieldForm.submit();
         },
     },
 };

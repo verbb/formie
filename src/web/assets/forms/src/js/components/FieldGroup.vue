@@ -22,8 +22,8 @@
 </template>
 
 <script>
-import FieldRow from './FieldRow.vue';
-import DropzoneNewField from './DropzoneNewField.vue';
+import FieldRow from '@components/FieldRow.vue';
+import DropzoneNewField from '@components/DropzoneNewField.vue';
 
 export default {
     name: 'FieldGroup',

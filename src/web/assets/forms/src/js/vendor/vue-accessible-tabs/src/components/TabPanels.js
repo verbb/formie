@@ -1,14 +1,18 @@
-import { cleanChildren } from '../utils/vnode';
+import { h } from 'vue';
 
 const TabPanels = {
     name: 'TabPanels',
-    render(createElement) {
-    // Add magic indexes to each <TabPanel> component
-        cleanChildren(this.$slots.default).forEach((node, index) => {
-            node.componentOptions.propsData.index = index;
+    render() {
+        // Add magic indexes to each <TabPanel> component
+        const panels = [];
+
+        this.$slots.default().forEach((node, index) => {
+            node.props.index = index;
+
+            panels.push(node);
         });
 
-        return createElement('div', this.$slots.default);
+        return h('div', panels);
     },
 };
 

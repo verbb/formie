@@ -7,7 +7,7 @@
                 :ref="'tab-' + index"
                 :page-index="index"
                 :label="page.label"
-                :active="value"
+                :active="modelValue"
                 :errors="page.errors"
                 @selected="selectTab"
             />
@@ -15,15 +15,15 @@
 
         <button class="btn fui-tab-btn" role="button" type="button" @click.prevent="editPages"></button>
 
-        <field-page-modal v-if="modalActive" :visible="modalVisible" @close="onModalClose" />
+        <field-page-modal v-if="showModal" v-model:showModal="showModal" @closed="onModalClosed" />
     </nav>
 </template>
 
 <script>
 import { mapState } from 'vuex';
 
-import FieldPageTab from './FieldPageTab.vue';
-import FieldPageModal from './FieldPageModal.vue';
+import FieldPageTab from '@components/FieldPageTab.vue';
+import FieldPageModal from '@components/FieldPageModal.vue';
 
 export default {
     name: 'FieldPageTabs',
@@ -34,7 +34,7 @@ export default {
     },
 
     props: {
-        value: {
+        modelValue: {
             type: String,
             default: '',
         },
@@ -42,8 +42,7 @@ export default {
 
     data() {
         return {
-            modalActive: false,
-            modalVisible: false,
+            showModal: false,
             tabs: [],
         };
     },
@@ -69,13 +68,11 @@ export default {
 
     methods: {
         editPages() {
-            this.modalActive = true;
-            this.modalVisible = true;
+            this.showModal = true;
         },
 
-        onModalClose() {
-            this.modalActive = false;
-            this.modalVisible = false;
+        onModalClosed() {
+            this.showModal = false;
         },
 
         selectTab(hash) {
@@ -101,7 +98,7 @@ export default {
             }
             */
 
-            this.$emit('input', hash);
+            this.$emit('update:modelValue', hash);
 
             // Update history state
             if (typeof history !== 'undefined') {

@@ -288,14 +288,13 @@ class Variants extends CommerceVariants implements FormFieldInterface
 
         return [
             SchemaHelper::labelField(),
-            SchemaHelper::toggleContainer('settings.displayType=dropdown', [
-                SchemaHelper::textField([
-                    'label' => Craft::t('formie', 'Placeholder'),
-                    'help' => Craft::t('formie', 'The option shown initially, when no option is selected.'),
-                    'name' => 'placeholder',
-                    'validation' => 'required',
-                    'required' => true,
-                ]),
+            SchemaHelper::textField([
+                'label' => Craft::t('formie', 'Placeholder'),
+                'help' => Craft::t('formie', 'The option shown initially, when no option is selected.'),
+                'name' => 'placeholder',
+                'validation' => 'required',
+                'required' => true,
+                'if' => '$get(displayType).value == dropdown',
             ]),
             SchemaHelper::selectField([
                 'label' => Craft::t('formie', 'Source'),
@@ -333,29 +332,22 @@ class Variants extends CommerceVariants implements FormFieldInterface
                 'help' => Craft::t('formie', 'Whether this field should be required when filling out the form.'),
                 'name' => 'required',
             ]),
-            SchemaHelper::toggleContainer('settings.required', [
-                SchemaHelper::textField([
-                    'label' => Craft::t('formie', 'Error Message'),
-                    'help' => Craft::t('formie', 'When validating the form, show this message if an error occurs. Leave empty to retain the default message.'),
-                    'name' => 'errorMessage',
-                ]),
+            SchemaHelper::textField([
+                'label' => Craft::t('formie', 'Error Message'),
+                'help' => Craft::t('formie', 'When validating the form, show this message if an error occurs. Leave empty to retain the default message.'),
+                'name' => 'errorMessage',
+                'if' => '$get(required).value',
             ]),
             SchemaHelper::prePopulate(),
-            SchemaHelper::textField([
+            SchemaHelper::numberField([
                 'label' => Craft::t('formie', 'Limit'),
                 'help' => Craft::t('formie', 'Limit the number of selectable variants.'),
                 'name' => 'limit',
-                'size' => '3',
-                'class' => 'text',
-                'validation' => 'optional|number|min:0',
             ]),
-            SchemaHelper::textField([
+            SchemaHelper::numberField([
                 'label' => Craft::t('formie', 'Limit Options'),
                 'help' => Craft::t('formie', 'Limit the number of available variants.'),
                 'name' => 'limitOptions',
-                'size' => '3',
-                'class' => 'text',
-                'validation' => 'optional|number|min:0',
             ]),
             SchemaHelper::selectField([
                 'label' => Craft::t('formie', 'Label Source'),
@@ -389,12 +381,11 @@ class Variants extends CommerceVariants implements FormFieldInterface
                     ['label' => Craft::t('formie', 'Radio Buttons'), 'value' => 'radio'],
                 ],
             ]),
-            SchemaHelper::toggleContainer('settings.displayType=dropdown', [
-                SchemaHelper::lightswitchField([
-                    'label' => Craft::t('formie', 'Allow Multiple'),
-                    'help' => Craft::t('formie', 'Whether this field should allow multiple options to be selected.'),
-                    'name' => 'multiple',
-                ]),
+            SchemaHelper::lightswitchField([
+                'label' => Craft::t('formie', 'Allow Multiple'),
+                'help' => Craft::t('formie', 'Whether this field should allow multiple options to be selected.'),
+                'name' => 'multiple',
+                'if' => '$get(displayType).value == dropdown',
             ]),
             SchemaHelper::labelPosition($this),
             SchemaHelper::instructions(),

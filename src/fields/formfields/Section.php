@@ -46,7 +46,7 @@ class Section extends FormField
 
     public ?string $borderStyle = 'solid';
     public ?int $borderWidth = 1;
-    public ?string $borderColor = '#ccc';
+    public ?string $borderColor = '#cccccc';
 
 
     // Public Methods
@@ -81,7 +81,7 @@ class Section extends FormField
         return [
             'borderStyle' => 'solid',
             'borderWidth' => 1,
-            'borderColor' => '#ccc',
+            'borderColor' => '#cccccc',
         ];
     }
 
@@ -141,24 +141,27 @@ class Section extends FormField
                     [['label' => Craft::t('formie', 'Dashed'), 'value' => 'dashed']]
                 ),
             ]),
-            SchemaHelper::toggleContainer('settings.borderStyle', [
-                SchemaHelper::textField([
-                    'label' => Craft::t('formie', 'Border Width'),
-                    'help' => Craft::t('formie', 'Set the border width (in pixels).'),
-                    'name' => 'borderWidth',
-                    'size' => '3',
-                    'class' => 'text',
-                    'type' => 'textWithSuffix',
-                    'suffix' => Craft::t('formie', 'px'),
-                ]),
-                SchemaHelper::textField([
-                    'label' => Craft::t('formie', 'Border Color'),
-                    'help' => Craft::t('formie', 'Set the border color.'),
-                    'name' => 'borderColor',
-                    'size' => '4',
-                    'type' => 'color',
-                    'class' => 'text fui-color-field',
-                ]),
+            SchemaHelper::numberField([
+                'label' => Craft::t('formie', 'Border Width'),
+                'help' => Craft::t('formie', 'Set the border width (in pixels).'),
+                'name' => 'borderWidth',
+                'if' => '$get(borderStyle).value',
+                'sections-schema' => [
+                    'suffix' => [
+                        '$el' => 'span',
+                        'attrs' => ['class' => 'hint-text'],
+                        'children' => Craft::t('formie', 'px'),
+                    ],
+                ],
+            ]),
+            SchemaHelper::textField([
+                '$formkit' => 'color',
+                'label' => Craft::t('formie', 'Border Color'),
+                'help' => Craft::t('formie', 'Set the border color.'),
+                'name' => 'borderColor',
+                'size' => '4',
+                'inputClass' => 'text fui-color-field',
+                'if' => '$get(borderStyle).value',
             ]),
         ];
     }

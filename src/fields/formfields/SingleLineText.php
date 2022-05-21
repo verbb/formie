@@ -201,46 +201,44 @@ class SingleLineText extends FormField implements PreviewableFieldInterface
                 'help' => Craft::t('formie', 'Whether this field should be required when filling out the form.'),
                 'name' => 'required',
             ]),
-            SchemaHelper::toggleContainer('settings.required', [
-                SchemaHelper::textField([
-                    'label' => Craft::t('formie', 'Error Message'),
-                    'help' => Craft::t('formie', 'When validating the form, show this message if an error occurs. Leave empty to retain the default message.'),
-                    'name' => 'errorMessage',
-                ]),
+            SchemaHelper::textField([
+                'label' => Craft::t('formie', 'Error Message'),
+                'help' => Craft::t('formie', 'When validating the form, show this message if an error occurs. Leave empty to retain the default message.'),
+                'name' => 'errorMessage',
+                'if' => '$get(required).value',
             ]),
             SchemaHelper::lightswitchField([
                 'label' => Craft::t('formie', 'Limit Field Content'),
                 'help' => Craft::t('formie', 'Whether to limit the content of this field.'),
                 'name' => 'limit',
             ]),
-            SchemaHelper::toggleContainer('settings.limit', [
-                [
-                    'label' => Craft::t('formie', 'Limit'),
-                    'help' => Craft::t('formie', 'Enter the number of characters or words to limit this field by.'),
-                    'type' => 'fieldWrap',
-                    'children' => [
-                        [
-                            'component' => 'div',
+            [
+                '$formkit' => 'fieldWrap',
+                'label' => Craft::t('formie', 'Limit'),
+                'help' => Craft::t('formie', 'Enter the number of characters or words to limit this field by.'),
+                'if' => '$get(limit).value',
+                'children' => [
+                    [
+                        '$el' => 'div',
+                        'attrs' => [
                             'class' => 'flex',
-                            'children' => [
-                                SchemaHelper::textField([
-                                    'name' => 'limitAmount',
-                                    'class' => 'text flex-grow',
-                                    'size' => '3',
-                                    'validation' => 'optional|number|min:0',
-                                ]),
-                                SchemaHelper::selectField([
-                                    'name' => 'limitType',
-                                    'options' => [
-                                        ['label' => Craft::t('formie', 'Characters'), 'value' => 'characters'],
-                                        ['label' => Craft::t('formie', 'Words'), 'value' => 'words'],
-                                    ],
-                                ]),
-                            ],
+                        ],
+                        'children' => [
+                            SchemaHelper::numberField([
+                                'name' => 'limitAmount',
+                                'inputClass' => 'text flex-grow',
+                            ]),
+                            SchemaHelper::selectField([
+                                'name' => 'limitType',
+                                'options' => [
+                                    ['label' => Craft::t('formie', 'Characters'), 'value' => 'characters'],
+                                    ['label' => Craft::t('formie', 'Words'), 'value' => 'words'],
+                                ],
+                            ]),
                         ],
                     ],
                 ],
-            ]),
+            ],
             SchemaHelper::matchField([
                 'fieldTypes' => [self::class],
             ]),

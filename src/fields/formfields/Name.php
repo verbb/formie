@@ -356,18 +356,18 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
                 'help' => Craft::t('formie', 'Whether this field should use multiple fields for users to enter their details.'),
                 'name' => 'useMultipleFields',
             ]),
-            SchemaHelper::toggleContainer('!settings.useMultipleFields', [
-                SchemaHelper::textField([
-                    'label' => Craft::t('formie', 'Placeholder'),
-                    'help' => Craft::t('formie', 'The text that will be shown if the field doesn’t have a value.'),
-                    'name' => 'placeholder',
-                ]),
-                SchemaHelper::variableTextField([
-                    'label' => Craft::t('formie', 'Default Value'),
-                    'help' => Craft::t('formie', 'Entering a default value will place the value in the field when it loads.'),
-                    'name' => 'defaultValue',
-                    'variables' => 'userVariables',
-                ]),
+            SchemaHelper::textField([
+                'label' => Craft::t('formie', 'Placeholder'),
+                'help' => Craft::t('formie', 'The text that will be shown if the field doesn’t have a value.'),
+                'name' => 'placeholder',
+                'if' => '$get(useMultipleFields).value != true',
+            ]),
+            SchemaHelper::variableTextField([
+                'label' => Craft::t('formie', 'Default Value'),
+                'help' => Craft::t('formie', 'Entering a default value will place the value in the field when it loads.'),
+                'name' => 'defaultValue',
+                'variables' => 'userVariables',
+                'if' => '$get(useMultipleFields).value != true',
             ]),
         ];
 
@@ -409,17 +409,19 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
                 ]);
             }
 
-            $toggleBlocks[] = SchemaHelper::toggleBlock([
+            $toggleBlock = SchemaHelper::toggleBlock([
                 'blockLabel' => $nestedField['label'],
                 'blockHandle' => $nestedField['handle'],
             ], $subfields);
+
+            $toggleBlock['if'] = '$get(useMultipleFields).value';
+
+            $toggleBlocks[] = $toggleBlock;
         }
 
-        $fields[] = SchemaHelper::toggleContainer('settings.useMultipleFields', [
-            SchemaHelper::toggleBlocks([
-                'subfields' => $this->getSubfieldOptions(),
-            ], $toggleBlocks),
-        ]);
+        $fields[] = SchemaHelper::toggleBlocks([
+            'subfields' => $this->getSubfieldOptions(),
+        ], $toggleBlocks);
 
         return $fields;
     }
@@ -429,6 +431,24 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
      */
     public function defineSettingsSchema(): array
     {
+        $fields = [
+            SchemaHelper::lightswitchField([
+                'label' => Craft::t('formie', 'Required Field'),
+                'help' => Craft::t('formie', 'Whether this field should be required when filling out the form.'),
+                'name' => 'required',
+                'if' => '$get(useMultipleFields).value != true',
+            ]),
+            SchemaHelper::textField([
+                'label' => Craft::t('formie', 'Error Message'),
+                'help' => Craft::t('formie', 'When validating the form, show this message if an error occurs. Leave empty to retain the default message.'),
+                'name' => 'errorMessage',
+                'if' => '$get(required).value && $get(useMultipleFields).value != true',
+            ]),
+            SchemaHelper::prePopulate([
+                'if' => '$get(useMultipleFields).value != true',
+            ]),
+        ];
+
         foreach ($this->getSubfieldOptions() as $key => $nestedField) {
             $subfields = [
                 SchemaHelper::lightswitchField([
@@ -436,44 +456,28 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
                     'help' => Craft::t('formie', 'Whether this field should be required when filling out the form.'),
                     'name' => $nestedField['handle'] . 'Required',
                 ]),
-                SchemaHelper::toggleContainer('settings.' . $nestedField['handle'] . 'Required', [
-                    SchemaHelper::textField([
-                        'label' => Craft::t('formie', 'Error Message'),
-                        'help' => Craft::t('formie', 'When validating the form, show this message if an error occurs. Leave empty to retain the default message.'),
-                        'name' => $nestedField['handle'] . 'ErrorMessage',
-                    ]),
+                SchemaHelper::textField([
+                    'label' => Craft::t('formie', 'Error Message'),
+                    'help' => Craft::t('formie', 'When validating the form, show this message if an error occurs. Leave empty to retain the default message.'),
+                    'name' => $nestedField['handle'] . 'ErrorMessage',
+                    'if' => '$get(' . $nestedField['handle'] . 'Required).value',
                 ]),
                 SchemaHelper::prePopulate([
                     'name' => $nestedField['handle'] . 'PrePopulate',
                 ]),
             ];
 
-            $fields[] = SchemaHelper::toggleContainer('settings.useMultipleFields', [
-                SchemaHelper::toggleBlock([
-                    'blockLabel' => $nestedField['label'],
-                    'blockHandle' => $nestedField['handle'],
-                    'showToggle' => false,
-                    'showEnabled' => false,
-                    'showOnlyIfEnabled' => true,
-                ], $subfields),
-            ]);
-        }
+            $toggleBlock = SchemaHelper::toggleBlock([
+                'blockLabel' => $nestedField['label'],
+                'blockHandle' => $nestedField['handle'],
+                'showToggle' => false,
+                'showEnabled' => false,
+            ], $subfields);
 
-        $fields[] = SchemaHelper::toggleContainer('!settings.useMultipleFields', [
-            SchemaHelper::lightswitchField([
-                'label' => Craft::t('formie', 'Required Field'),
-                'help' => Craft::t('formie', 'Whether this field should be required when filling out the form.'),
-                'name' => 'required',
-            ]),
-            SchemaHelper::toggleContainer('settings.required', [
-                SchemaHelper::textField([
-                    'label' => Craft::t('formie', 'Error Message'),
-                    'help' => Craft::t('formie', 'When validating the form, show this message if an error occurs. Leave empty to retain the default message.'),
-                    'name' => 'errorMessage',
-                ]),
-            ]),
-            SchemaHelper::prePopulate(),
-        ]);
+            $toggleBlock['if'] = '$get(' . $nestedField['handle'] . 'Enabled).value && $get(useMultipleFields).value';
+
+            $fields[] = $toggleBlock;
+        }
 
         return $fields;
     }
@@ -486,8 +490,8 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
         return [
             SchemaHelper::visibility(),
             SchemaHelper::labelPosition($this),
-            SchemaHelper::toggleContainer('settings.useMultipleFields', [
-                SchemaHelper::subfieldLabelPosition(),
+            SchemaHelper::subfieldLabelPosition([
+                'if' => '$get(useMultipleFields).value',
             ]),
             SchemaHelper::instructions(),
             SchemaHelper::instructionsPosition($this),

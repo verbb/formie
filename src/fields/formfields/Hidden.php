@@ -243,27 +243,24 @@ class Hidden extends FormField implements PreviewableFieldInterface
                     ['label' => Craft::t('formie', 'Custom Value'), 'value' => 'custom'],
                 ],
             ]),
-            SchemaHelper::toggleContainer('settings.defaultOption=custom', [
-                SchemaHelper::variableTextField([
-                    'label' => Craft::t('formie', 'Default Value'),
-                    'help' => Craft::t('formie', 'Entering a default value will place the value in the field when it loads.'),
-                    'name' => 'defaultValue',
-                    'variables' => 'plainTextVariables',
-                ]),
+            SchemaHelper::variableTextField([
+                'label' => Craft::t('formie', 'Default Value'),
+                'help' => Craft::t('formie', 'Entering a default value will place the value in the field when it loads.'),
+                'name' => 'defaultValue',
+                'variables' => 'plainTextVariables',
+                'if' => '$get(defaultOption).value == custom',
             ]),
-            SchemaHelper::toggleContainer('settings.defaultOption=query', [
-                SchemaHelper::textField([
-                    'label' => Craft::t('formie', 'Query Parameter'),
-                    'help' => Craft::t('formie', 'Entering the query parameter to populate the value of the field when it loads.'),
-                    'name' => 'queryParameter',
-                ]),
+            SchemaHelper::textField([
+                'label' => Craft::t('formie', 'Query Parameter'),
+                'help' => Craft::t('formie', 'Entering the query parameter to populate the value of the field when it loads.'),
+                'name' => 'queryParameter',
+                'if' => '$get(defaultOption).value == query',
             ]),
-            SchemaHelper::toggleContainer('settings.defaultOption=cookie', [
-                SchemaHelper::textField([
-                    'label' => Craft::t('formie', 'Cookie Name'),
-                    'help' => Craft::t('formie', 'Enter the name of the cookie to use as the value of this field.'),
-                    'name' => 'cookieName',
-                ]),
+            SchemaHelper::textField([
+                'label' => Craft::t('formie', 'Cookie Name'),
+                'help' => Craft::t('formie', 'Enter the name of the cookie to use as the value of this field.'),
+                'name' => 'cookieName',
+                'if' => '$get(defaultOption).value == cookie',
             ]),
         ];
     }

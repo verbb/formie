@@ -14,8 +14,9 @@ class SchemaHelper
     public static function textField($config = []): array
     {
         return array_merge([
-            'type' => 'text',
-            'class' => 'text fullwidth',
+            '$formkit' => 'text',
+            'id' => $config['name'] ?? '',
+            'inputClass' => 'text fullwidth',
             'autocomplete' => 'off',
         ], $config);
     }
@@ -23,30 +24,45 @@ class SchemaHelper
     public static function textareaField($config = []): array
     {
         return array_merge([
-            'type' => 'textarea',
-            'class' => 'text fullwidth',
+            '$formkit' => 'textarea',
+            'id' => $config['name'] ?? '',
+            'inputClass' => 'text fullwidth',
         ], $config);
     }
 
     public static function selectField($config = []): array
     {
         return array_merge([
-            'type' => 'select',
+            '$formkit' => 'select',
+            'id' => $config['name'] ?? '',
         ], $config);
     }
 
     public static function multiSelectField($config = []): array
     {
         return array_merge([
-            'type' => 'multiSelect',
+            '$formkit' => 'multiSelect',
+            'id' => $config['name'] ?? '',
+        ], $config);
+    }
+
+    public static function numberField($config = []): array
+    {
+        return array_merge([
+            '$formkit' => 'number',
+            'id' => $config['name'] ?? '',
+            'size' => '3',
+            'inputClass' => 'text',
+            'validation' => 'number|min:0',
         ], $config);
     }
 
     public static function dateField($config = []): array
     {
         return array_merge([
-            'type' => 'date',
-            'class' => 'text fullwidth',
+            '$formkit' => 'date',
+            'id' => $config['name'] ?? '',
+            'inputClass' => 'text fullwidth',
         ], $config);
     }
 
@@ -60,7 +76,8 @@ class SchemaHelper
         }
 
         return array_merge([
-            'type' => 'checkboxSelect',
+            '$formkit' => 'checkboxSelect',
+            'id' => $config['name'] ?? '',
         ], $config);
     }
 
@@ -74,31 +91,25 @@ class SchemaHelper
         }
 
         return array_merge([
-            'type' => 'checkbox',
+            '$formkit' => 'checkbox',
+            'id' => $config['name'] ?? '',
         ], $config);
     }
 
     public static function lightswitchField($config = []): array
     {
         return array_merge([
-            'type' => 'lightswitch',
+            '$formkit' => 'lightswitch',
+            'id' => $config['name'] ?? '',
             'labelPosition' => 'before',
         ], $config);
-    }
-
-    public static function toggleContainer($toggleAttribute, $config = []): array
-    {
-        return [
-            'component' => 'toggle-group',
-            'conditional' => $toggleAttribute,
-            'children' => $config,
-        ];
     }
 
     public static function toggleBlocks($config, $children = []): array
     {
         return array_merge([
-            'type' => 'toggleBlocks',
+            '$formkit' => 'toggleBlocks',
+            'id' => $config['name'] ?? '',
             'validation' => 'minBlock:2',
             'children' => $children,
         ], $config);
@@ -106,38 +117,42 @@ class SchemaHelper
 
     public static function toggleBlock($config, $children = []): array
     {
-        return array_merge([
-            'type' => 'toggleBlock',
+        return [
+            '$cmp' => 'ToggleBlock',
+            'props' => $config,
             'children' => $children,
-        ], $config);
+        ];
     }
 
     public static function tableField($config = []): array
     {
         return array_merge([
-            'component' => 'table-block',
-            'validation' => 'min:1,length|uniqueLabels|uniqueValues|requiredLabels',
+            '$formkit' => 'table',
+            'validation' => '+min:1|uniqueTableCellLabel|uniqueTableCellValue|requiredTableCellLabel',
         ], $config);
     }
 
     public static function variableTextField($config = []): array
     {
         return array_merge([
-            'type' => 'variableText',
+            '$formkit' => 'variableText',
+            'id' => $config['name'] ?? '',
         ], $config);
     }
 
     public static function richTextField($config = []): array
     {
         return array_merge([
-            'type' => 'richText',
+            '$formkit' => 'richText',
+            'id' => $config['name'] ?? '',
         ], $config);
     }
 
     public static function elementSelectField($config = []): array
     {
         return array_merge([
-            'type' => 'elementSelect',
+            '$formkit' => 'elementSelect',
+            'id' => $config['name'] ?? '',
         ], $config);
     }
 
@@ -147,22 +162,23 @@ class SchemaHelper
 
     public static function labelField($config = []): array
     {
-        return array_merge(self::textField([
+        return self::textField(array_merge([
             'label' => Craft::t('formie', 'Label'),
             'help' => Craft::t('formie', 'The label that describes this field.'),
             'name' => 'label',
             'validation' => 'required',
             'required' => true,
-        ]), $config);
+        ], $config));
     }
 
     public static function handleField($config = []): array
     {
         return array_merge([
+            '$formkit' => 'handle',
+            'id' => $config['name'] ?? '',
             'label' => Craft::t('formie', 'Handle'),
             'help' => Craft::t('formie', 'How you’ll refer to this field in your templates. Use the refresh icon to re-generate this from your field label.'),
             'warning' => Craft::t('formie', 'Changing this may result in your field not working as expected.'),
-            'type' => 'handle',
             'name' => 'handle',
             'validation' => 'required|uniqueHandle',
             'required' => true,
@@ -172,7 +188,7 @@ class SchemaHelper
 
     public static function labelPosition(FormFieldInterface $field, $config = []): array
     {
-        return array_merge(self::selectField([
+        return self::selectField(array_merge([
             'label' => Craft::t('formie', 'Label Position'),
             'help' => Craft::t('formie', 'How the label for the field should be positioned.'),
             'name' => 'labelPosition',
@@ -180,57 +196,61 @@ class SchemaHelper
                 [['label' => Craft::t('formie', 'Form Default'), 'value' => '']],
                 Formie::$plugin->getFields()->getLabelPositionsArray($field)
             ),
-        ]), $config);
+        ], $config));
     }
 
     public static function subfieldLabelPosition($config = []): array
     {
-        return array_merge(self::selectField([
+        return self::selectField(array_merge([
             'label' => Craft::t('formie', 'Subfield Label Position'),
             'help' => Craft::t('formie', 'How the label for the subfields should be positioned.'),
             'name' => 'subfieldLabelPosition',
             'options' => array_merge(
                 [['label' => Craft::t('formie', 'Form Default'), 'value' => '']],
-                Formie::$plugin->getFields()->getLabelPositionsArray()
+                // Formie::$plugin->getFields()->getLabelPositionsArray()
             ),
-        ]), $config);
+        ], $config));
     }
 
     public static function instructions($config = []): array
     {
-        return array_merge(self::textareaField([
+        return self::textareaField(array_merge([
             'label' => Craft::t('formie', 'Instructions'),
             'help' => Craft::t('formie', 'Instructions to guide the user when filling out this form.'),
             'name' => 'instructions',
+            // 'id' => 'instructions',
+            // 'key' => 'instructions',
             'rows' => '4',
-        ]), $config);
+        ], $config));
     }
 
     public static function instructionsPosition(FormFieldInterface $field, $config = []): array
     {
-        return array_merge(self::selectField([
+        return self::selectField(array_merge([
             'label' => Craft::t('formie', 'Instructions Position'),
             'help' => Craft::t('formie', 'How the instructions for the field should be positioned.'),
             'name' => 'instructionsPosition',
+            // 'id' => 'instructionsPosition',
+            // 'key' => 'instructionsPosition',
             'options' => array_merge(
                 [['label' => Craft::t('formie', 'Form Default'), 'value' => '']],
-                Formie::$plugin->getFields()->getInstructionsPositionsArray($field)
+                // Formie::$plugin->getFields()->getInstructionsPositionsArray($field)
             ),
-        ]), $config);
+        ], $config));
     }
 
     public static function cssClasses($config = []): array
     {
-        return array_merge(self::textField([
+        return self::textField(array_merge([
             'label' => Craft::t('formie', 'CSS Classes'),
             'help' => Craft::t('formie', 'Add classes to be outputted on this field’s container.'),
             'name' => 'cssClasses',
-        ]), $config);
+        ], $config));
     }
 
     public static function containerAttributesField($config = []): array
     {
-        return array_merge(self::tableField([
+        return self::tableField(array_merge([
             'label' => Craft::t('formie', 'Container Attributes'),
             'help' => Craft::t('formie', 'Add attributes to be outputted on this field’s container.'),
             'validation' => 'min:0',
@@ -252,12 +272,12 @@ class SchemaHelper
                 ],
             ],
             'name' => 'containerAttributes',
-        ]), $config);
+        ], $config));
     }
 
     public static function inputAttributesField($config = []): array
     {
-        return array_merge(self::tableField([
+        return self::tableField(array_merge([
             'label' => Craft::t('formie', 'Input Attributes'),
             'help' => Craft::t('formie', 'Add attributes to be outputted on this field’s input.'),
             'validation' => 'min:0',
@@ -279,16 +299,16 @@ class SchemaHelper
                 ],
             ],
             'name' => 'inputAttributes',
-        ]), $config);
+        ], $config));
     }
 
     public static function prePopulate($config = []): array
     {
-        return array_merge(self::textField([
+        return self::textField(array_merge([
             'label' => Craft::t('formie', 'Pre-Populate Value'),
             'help' => Craft::t('formie', 'Specify a query parameter to pre-populate the value of this field.'),
             'name' => 'prePopulate',
-        ]), $config);
+        ], $config));
     }
 
     public static function enableConditionsField($config = []): array
@@ -302,12 +322,11 @@ class SchemaHelper
 
     public static function conditionsField($config = []): array
     {
-        return self::toggleContainer('settings.enableConditions', array_merge([
-            [
-                'type' => 'fieldConditions',
-                'name' => 'conditions',
-            ],
-        ], $config));
+        return array_merge([
+            '$formkit' => 'fieldConditions',
+            'name' => 'conditions',
+            'if' => '$get(enableConditions).value',
+        ], $config);
     }
 
     public static function enableContentEncryptionField($config = []): array
@@ -321,7 +340,7 @@ class SchemaHelper
 
     public static function visibility($config = []): array
     {
-        return array_merge(self::selectField([
+        return self::selectField(array_merge([
             'label' => Craft::t('formie', 'Visibility'),
             'help' => Craft::t('formie', 'The visibility of the field on the front-end.'),
             'info' => Craft::t('formie', 'A “Hidden” field will be hidden from view, but still rendered. A “Disabled” field will not be rendered on the page at all.'),
@@ -331,12 +350,12 @@ class SchemaHelper
                 ['label' => Craft::t('formie', 'Hidden'), 'value' => 'hidden'],
                 ['label' => Craft::t('formie', 'Disabled'), 'value' => 'disabled'],
             ],
-        ]), $config);
+        ], $config));
     }
 
     public static function columnTypeField($config = []): array
     {
-        return array_merge(self::selectField([
+        return self::selectField(array_merge([
             'label' => Craft::t('formie', 'Column Type'),
             'help' => Craft::t('formie', 'The type of column this field should get in the database.'),
             'warning' => Craft::t('formie', 'Changing this may result in data loss.'),
@@ -347,7 +366,7 @@ class SchemaHelper
                 ['label' => Craft::t('formie', 'text (~64KB)'), 'value' => 'text'],
                 ['label' => Craft::t('formie', 'mediumtext (~16MB)'), 'value' => 'mediumtext'],
             ],
-        ]), $config);
+        ], $config));
     }
 
     public static function matchField($config = []): array
@@ -355,7 +374,7 @@ class SchemaHelper
         return array_merge([
             'label' => Craft::t('formie', 'Match Field'),
             'help' => Craft::t('formie', 'Select a field of the same type where its content must match this field.'),
-            'type' => 'fieldSelect',
+            '$formkit' => 'fieldSelect',
             'name' => 'matchField',
             'excludeSelf' => true,
         ], $config);
@@ -374,33 +393,5 @@ class SchemaHelper
         }
 
         return $names;
-    }
-
-    public static function extractFieldInfoFromSchema($fieldSchema, &$names = []): array
-    {
-        foreach ($fieldSchema as $field) {
-            if (isset($field['name'])) {
-                $names[$field['name']] = $field;
-            }
-
-            if (isset($field['children'])) {
-                self::extractFieldInfoFromSchema($field['children'], $names);
-            }
-        }
-
-        return $names;
-    }
-
-    public static function setFieldValidationName(&$fieldSchema): void
-    {
-        foreach ($fieldSchema as &$field) {
-            if (isset($field['name'], $field['label'])) {
-                $field['validationName'] = $field['label'] ?? '';
-            }
-
-            if (isset($field['children'])) {
-                self::setFieldValidationName($field['children']);
-            }
-        }
     }
 }

@@ -23,11 +23,6 @@ export default ({ command }) => ({
                 'formie-form-new': 'src/js/formie-form-new.js',
                 'formie-form': 'src/js/formie-form.js',
             },
-            // output: {
-            //     entryFileNames: 'js/[name].js',
-            //     chunkFileNames: 'js/[name].js',
-            //     assetFileNames: 'css/[name].[ext]',
-            // },
         },
     },
 
@@ -36,9 +31,6 @@ export default ({ command }) => ({
     },
 
     plugins: [
-        // Custom plugins (for the moment)
-        // ImageminCopy,
-
         // Keep JS looking good with eslint
         // https://github.com/gxmari007/vite-plugin-eslint
         // EslintPlugin({
@@ -63,11 +55,11 @@ export default ({ command }) => ({
 
         // Ensure Vite can find the modules it needs
         // https://github.com/rollup/plugins/tree/master/packages/node-resolve
-        // nodeResolve({
-        //     moduleDirectories: [
-        //         path.resolve('../../../../node_modules'),
-        //     ],
-        // }),
+        nodeResolve({
+            moduleDirectories: [
+                path.resolve('../../../../node_modules'),
+            ],
+        }),
     ],
 
     resolve: {
@@ -80,6 +72,12 @@ export default ({ command }) => ({
 
             // Allow us to use `@components/` in Vue components.
             '@components': path.resolve('./src/js/components'),
+
+            // Allow us to use `@formkit/` in Vue components.
+            '@formkit-components': path.resolve('./src/js/formkit'),
+
+            // Allow us to use `@vendor/` in Vue components.
+            '@vendor': path.resolve('./src/js/vendor'),
 
             // Vue 3 doesn't support the template compiler out of the box
             'vue': 'vue/dist/vue.esm-bundler.js',

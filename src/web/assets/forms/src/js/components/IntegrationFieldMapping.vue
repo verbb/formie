@@ -26,8 +26,8 @@
             <table :id="id" class="editable fullwidth">
                 <thead>
                     <tr>
-                        <th scope="col" class="singleline-cell textual">{{ '{name} Field' | t('formie', { name: nameLabel }) }}</th>
-                        <th scope="col" class="select-cell">{{ 'Form Field' | t('formie') }}</th>
+                        <th scope="col" class="singleline-cell textual">{{ t('formie', '{name} Field', { name: nameLabel }) }}</th>
+                        <th scope="col" class="select-cell">{{ t('formie', 'Form Field') }}</th>
                     </tr>
                 </thead> 
 
@@ -35,7 +35,7 @@
                     <tr v-if="rows.length === 0">
                         <td colspan="2">
                             <div class="zilch">
-                                {{ 'No fields available.' | t('formie') }}
+                                {{ t('formie', 'No fields available.') }}
                             </div>
                         </td>
                     </tr>
@@ -48,7 +48,7 @@
                             <div class="flex flex-nowrap">
                                 <div class="select small">
                                     <select v-model="proxyValue[row.handle]" :name="name + '[' + row.handle + ']'">
-                                        <option value="">{{ 'Don’t Include' | t('formie') }}</option>
+                                        <option value="">{{ t('formie', 'Don’t Include') }}</option>
 
                                         <optgroup v-for="(optgroup, i) in getFieldOptions(row.options)" :key="i" :label="optgroup.label">
                                             <option v-for="(option, j) in optgroup.options" :key="j" :value="option.value">
@@ -67,9 +67,8 @@
 </template>
 
 <script>
-import truncate from 'lodash/truncate';
-import isEmpty from 'lodash/isEmpty';
-import { toBoolean } from '../utils/bool';
+import { truncate, isEmpty } from 'lodash-es';
+import { toBoolean } from '@utils/bool';
 
 export default {
     name: 'IntegrationFieldMapping',
@@ -105,7 +104,7 @@ export default {
             default: () => [],
         },
 
-        value: {
+        modelValue: {
             type: [Object, String],
             default: () => {
                 return {};
@@ -131,7 +130,7 @@ export default {
     },
 
     created() {
-        this.proxyValue = this.value;
+        this.proxyValue = this.modelValue;
 
         if (!this.proxyValue) {
             this.proxyValue = {};

@@ -11,8 +11,8 @@
     cardDescription: form.settings.integrations[handle].cardDescription ?? '',
 } | json_encode %}
 
-<integration-form-settings handle="{{ handle }}" :form-settings="{{ formSettings | json_encode }}" :values="{{ values }}" inline-template>
-    <div>
+<integration-form-settings handle="{{ handle }}" :form-settings="{{ formSettings | json_encode }}" :values="{{ values }}">
+    <template v-slot="{ get, isEmpty, input, settings, sourceId, loading, refresh, error, errorMessage, getSourceFields, model }">
         <div class="field">
             <div class="heading">
                 <label id="boardId-label" for="boardId" class="required">{{ 'Board' | t('formie') }}</label>
@@ -24,7 +24,7 @@
 
             <div class="input ltr">
                 <div class="select">
-                    <select v-model="model.boardId" name="boardId" required>
+                    <select :value="model.boardId" @input="input('model.boardId', $event.target.value)" name="boardId" required>
                         <option value="">{{ 'Select an option' | t('formie') }}</option>
 
                         <option v-for="(option, index) in get(settings, 'boards')" :key="index" :value="option.id">${ option.name }</option>
@@ -52,7 +52,7 @@
 
             <div class="input ltr">
                 <div class="select">
-                    <select v-model="model.listId" name="listId" required>
+                    <select :value="model.listId" @input="input('model.listId', $event.target.value)" name="listId" required>
                         <option value="">{{ 'Select an option' | t('formie') }}</option>
 
                         <option v-for="(option, index) in get(settings, 'boards.' + model.boardId + '.lists')" :key="index" :value="option.id">${ option.name }</option>
@@ -83,15 +83,15 @@
             </li>
         </ul>
 
-        <formulate-input
+        <form-kit
             type="richText"
             label="{{ 'Card Description' | t('formie') }}"
             help="{{ 'This text will be sent to {name}.' | t('formie', { name: integration.displayName() }) }}"
-            v-model="model.cardDescription"
+            v-model="model.cardDescription" 
             :required="true"
             variables="plainTextVariables"
             :buttons="['bold', 'italic', 'variableTag']"
-        ></formulate-input>
+        ></form-kit>
 
         <input type="hidden" name="cardDescription" :value="model.cardDescription" />
 
@@ -100,5 +100,5 @@
                 ${ error }
             </li>
         </ul>
-    </div>
+    </template>
 </integration-form-settings>

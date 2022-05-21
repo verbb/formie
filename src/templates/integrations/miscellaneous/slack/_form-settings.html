@@ -11,8 +11,8 @@
     message: form.settings.integrations[handle].message ?? '',
 } | json_encode %}
 
-<integration-form-settings handle="{{ handle }}" :form-settings="{{ formSettings | json_encode }}" :values="{{ values }}" inline-template>
-    <div>
+<integration-form-settings handle="{{ handle }}" :form-settings="{{ formSettings | json_encode }}" :values="{{ values }}">
+    <template v-slot="{ get, isEmpty, input, settings, sourceId, loading, refresh, error, errorMessage, getSourceFields, model }">
         {{ forms.selectField({
             label: 'Channel Type' | t('formie'),
             instructions: 'Select what type of channel {name} will send the message to.' | t('formie', { name: integration.displayName() }),
@@ -47,7 +47,7 @@
 
                 <div class="input ltr">
                     <div class="select">
-                        <select v-model="model.channelId" name="channelId" required>
+                        <select :value="model.channelId" @input="input('model.channelId', $event.target.value)" name="channelId" required>
                             <option value="">{{ 'Select an option' | t('formie') }}</option>
 
                             <option v-for="(option, index) in get(settings, 'channels')" :key="index" :value="option.id">${ option.name }</option>
@@ -77,7 +77,7 @@
 
                 <div class="input ltr">
                     <div class="select">
-                        <select v-model="model.userId" name="userId" required>
+                        <select :value="model.userId" @input="input('model.userId', $event.target.value)" name="userId" required>
                             <option value="">{{ 'Select an option' | t('formie') }}</option>
 
                             <option v-for="(option, index) in get(settings, 'members')" :key="index" :value="option.id">${ option.name }</option>
@@ -105,7 +105,7 @@
             }) }}
         </div>
 
-        <formulate-input
+        <form-kit
             type="richText"
             label="{{ 'Message' | t('formie') }}"
             help="{{ 'This text will be sent to {name}.' | t('formie', { name: integration.displayName() }) }}"
@@ -113,8 +113,8 @@
             :required="true"
             variables="plainTextVariables"
             :buttons="['bold', 'italic', 'variableTag']"
-        ></formulate-input>
+        ></form-kit>
 
         <input type="hidden" name="message" :value="model.message" />
-    </div>
+    </template>
 </integration-form-settings>

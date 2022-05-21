@@ -558,7 +558,7 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
                     'label' => Craft::t('formie', 'Label'),
                     'help' => Craft::t('formie', 'The label that describes this field.'),
                     'name' => $nestedField['handle'] . 'Label',
-                    'validation' => 'requiredIfNotEqual:displayType=calendar',
+                    'validation' => 'required',
                     'required' => true,
                 ]),
                 SchemaHelper::textField([
@@ -568,15 +568,18 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
                 ]),
             ];
 
-            $condition = in_array($nestedField['handle'], ['year', 'month', 'day']) ? 'settings.includeDate' : 'settings.includeTime';
+            $condition = in_array($nestedField['handle'], ['year', 'month', 'day']) ? '$get(includeDate).value' : '$get(includeTime).value';
+            $conditions = array_filter(['$get(displayType).value != calendar', $condition]);
 
-            $toggleBlocks[] = SchemaHelper::toggleContainer($condition, [
-                SchemaHelper::toggleBlock([
-                    'blockLabel' => $nestedField['label'],
-                    'blockHandle' => $nestedField['handle'],
-                    'showEnabled' => false,
-                ], $subfields),
-            ]);
+            $toggleBlock = SchemaHelper::toggleBlock([
+                'blockLabel' => $nestedField['label'],
+                'blockHandle' => $nestedField['handle'],
+                'showEnabled' => false,
+            ], $subfields);
+
+            $toggleBlock['if'] = implode(' && ', $conditions);
+
+            $toggleBlocks[] = $toggleBlock;
         }
 
         return [
@@ -591,12 +594,11 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
                 'help' => Craft::t('formie', 'Whether this field should include the time.'),
                 'name' => 'includeTime',
             ]),
-            SchemaHelper::toggleContainer('settings.includeTime', [
-                SchemaHelper::textField([
-                    'label' => Craft::t('formie', 'Time Label'),
-                    'help' => Craft::t('formie', 'The label shown for the time field.'),
-                    'name' => 'timeLabel',
-                ]),
+            SchemaHelper::textField([
+                'label' => Craft::t('formie', 'Time Label'),
+                'help' => Craft::t('formie', 'The label shown for the time field.'),
+                'name' => 'timeLabel',
+                'if' => '$get(includeTime).value',
             ]),
             SchemaHelper::selectField([
                 'label' => Craft::t('formie', 'Default Value'),
@@ -608,12 +610,11 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
                     ['label' => Craft::t('formie', 'Specific Date/Time'), 'value' => 'date'],
                 ],
             ]),
-            SchemaHelper::toggleContainer('settings.defaultOption=date', [
-                SchemaHelper::dateField([
-                    'label' => Craft::t('formie', 'Default Date/Time'),
-                    'help' => Craft::t('formie', 'Entering a default value will place the value in the field when it loads.'),
-                    'name' => 'defaultValue',
-                ]),
+            SchemaHelper::dateField([
+                'label' => Craft::t('formie', 'Default Date/Time'),
+                'help' => Craft::t('formie', 'Entering a default value will place the value in the field when it loads.'),
+                'name' => 'defaultValue',
+                'if' => '$get(defaultOption).value == date',
             ]),
             SchemaHelper::selectField([
                 'label' => Craft::t('formie', 'Display Type'),
@@ -625,7 +626,9 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
                     ['label' => Craft::t('formie', 'Text Inputs'), 'value' => 'inputs'],
                 ],
             ]),
-            SchemaHelper::toggleContainer('!settings.displayType=calendar', $toggleBlocks),
+            SchemaHelper::toggleBlocks([
+                'subfields' => $this->getSubfieldOptions(),
+            ], $toggleBlocks),
         ];
     }
 
@@ -640,25 +643,24 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
                 'help' => Craft::t('formie', 'Whether this field should be required when filling out the form.'),
                 'name' => 'required',
             ]),
-            SchemaHelper::toggleContainer('settings.required', [
-                SchemaHelper::textField([
-                    'label' => Craft::t('formie', 'Error Message'),
-                    'help' => Craft::t('formie', 'When validating the form, show this message if an error occurs. Leave empty to retain the default message.'),
-                    'name' => 'errorMessage',
-                ]),
+            SchemaHelper::textField([
+                'label' => Craft::t('formie', 'Error Message'),
+                'help' => Craft::t('formie', 'When validating the form, show this message if an error occurs. Leave empty to retain the default message.'),
+                'name' => 'errorMessage',
+                'if' => '$get(required).value',
             ]),
             SchemaHelper::prePopulate(),
-            SchemaHelper::toggleContainer('settings.displayType=calendar', [
-                SchemaHelper::dateField([
-                    'label' => Craft::t('formie', 'Min Date'),
-                    'help' => Craft::t('formie', 'Set a minimum date for dates to be picked from.'),
-                    'name' => 'minDate',
-                ]),
-                SchemaHelper::dateField([
-                    'label' => Craft::t('formie', 'Max Date'),
-                    'help' => Craft::t('formie', 'Set a maximum date for dates to be picked up to.'),
-                    'name' => 'maxDate',
-                ]),
+            SchemaHelper::dateField([
+                'label' => Craft::t('formie', 'Min Date'),
+                'help' => Craft::t('formie', 'Set a minimum date for dates to be picked from.'),
+                'name' => 'minDate',
+                'if' => '$get(displayType).value == calendar',
+            ]),
+            SchemaHelper::dateField([
+                'label' => Craft::t('formie', 'Max Date'),
+                'help' => Craft::t('formie', 'Set a maximum date for dates to be picked up to.'),
+                'name' => 'maxDate',
+                'if' => '$get(displayType).value == calendar',
             ]),
         ];
     }
@@ -671,74 +673,70 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
         return [
             SchemaHelper::visibility(),
             SchemaHelper::labelPosition($this),
-            SchemaHelper::toggleContainer('!settings.displayType=calendar', [
-                SchemaHelper::subfieldLabelPosition(),
+            SchemaHelper::subfieldLabelPosition([
+                'if' => '$get(displayType).value != calendar',
             ]),
-            SchemaHelper::toggleContainer('settings.includeDate', [
-                SchemaHelper::selectField([
-                    'label' => Craft::t('formie', 'Date Format'),
-                    'help' => Craft::t('formie', 'Select what format to present dates as.'),
-                    'name' => 'dateFormat',
-                    'options' => [
-                        ['label' => 'YYYY-MM-DD', 'value' => 'Y-m-d'],
-                        ['label' => 'MM-DD-YYYY', 'value' => 'm-d-Y'],
-                        ['label' => 'DD-MM-YYYY', 'value' => 'd-m-Y'],
-                        ['label' => 'YYYY/MM/DD', 'value' => 'Y/m/d'],
-                        ['label' => 'MM/DD/YYYY', 'value' => 'm/d/Y'],
-                        ['label' => 'DD/MM/YYYY', 'value' => 'd/m/Y'],
-                        ['label' => 'YYYY.MM.DD', 'value' => 'Y.m.d'],
-                        ['label' => 'MM.DD.YYYY', 'value' => 'm.d.Y'],
-                        ['label' => 'DD.MM.YYYY', 'value' => 'd.m.Y'],
-                    ],
-                ]),
+            SchemaHelper::selectField([
+                'label' => Craft::t('formie', 'Date Format'),
+                'help' => Craft::t('formie', 'Select what format to present dates as.'),
+                'name' => 'dateFormat',
+                'if' => '$get(includeDate).value',
+                'options' => [
+                    ['label' => 'YYYY-MM-DD', 'value' => 'Y-m-d'],
+                    ['label' => 'MM-DD-YYYY', 'value' => 'm-d-Y'],
+                    ['label' => 'DD-MM-YYYY', 'value' => 'd-m-Y'],
+                    ['label' => 'YYYY/MM/DD', 'value' => 'Y/m/d'],
+                    ['label' => 'MM/DD/YYYY', 'value' => 'm/d/Y'],
+                    ['label' => 'DD/MM/YYYY', 'value' => 'd/m/Y'],
+                    ['label' => 'YYYY.MM.DD', 'value' => 'Y.m.d'],
+                    ['label' => 'MM.DD.YYYY', 'value' => 'm.d.Y'],
+                    ['label' => 'DD.MM.YYYY', 'value' => 'd.m.Y'],
+                ],
             ]),
-            SchemaHelper::toggleContainer('settings.includeTime', [
-                SchemaHelper::selectField([
-                    'label' => Craft::t('formie', 'Time Format'),
-                    'help' => Craft::t('formie', 'Select what format to present dates as.'),
-                    'name' => 'timeFormat',
-                    'options' => [
-                        ['label' => '23:59:59 (HH:M:S)', 'value' => 'H:i:s'],
-                        ['label' => '03:59:59 PM (H:M:S AM/PM)', 'value' => 'H:i:s A'],
-                        ['label' => '23:59 (HH:M)', 'value' => 'H:i'],
-                        ['label' => '03:59 PM (H:M AM/PM)', 'value' => 'H:i A'],
-                        ['label' => '59:59 (M:S)', 'value' => 'i:s'],
-                    ],
-                ]),
+            SchemaHelper::selectField([
+                'label' => Craft::t('formie', 'Time Format'),
+                'help' => Craft::t('formie', 'Select what format to present dates as.'),
+                'name' => 'timeFormat',
+                'if' => '$get(includeTime).value',
+                'options' => [
+                    ['label' => '23:59:59 (HH:M:S)', 'value' => 'H:i:s'],
+                    ['label' => '03:59:59 PM (H:M:S AM/PM)', 'value' => 'H:i:s A'],
+                    ['label' => '23:59 (HH:M)', 'value' => 'H:i'],
+                    ['label' => '03:59 PM (H:M AM/PM)', 'value' => 'H:i A'],
+                    ['label' => '59:59 (M:S)', 'value' => 'i:s'],
+                ],
             ]),
             SchemaHelper::instructions(),
             SchemaHelper::instructionsPosition($this),
-            SchemaHelper::toggleContainer('settings.displayType=calendar', [
-                SchemaHelper::lightswitchField([
-                    'label' => Craft::t('formie', 'Use Date Picker'),
-                    'help' => Craft::t('formie', 'Whether this field should use the bundled cross-browser date picker ([Flatpickr.js docs](https://flatpickr.js.org)) when rendering this field.'),
-                    'name' => 'useDatePicker',
-                ]),
-                SchemaHelper::toggleContainer('settings.useDatePicker', [
-                    SchemaHelper::tableField([
-                        'label' => Craft::t('formie', 'Date Picker Options'),
-                        'help' => Craft::t('formie', 'Add any additional options for the date picker to use. For available options, refer to the [Flatpickr.js docs](https://flatpickr.js.org/options/).'),
-                        'validation' => 'min:0',
-                        'newRowDefaults' => [
-                            'label' => '',
-                            'value' => '',
-                        ],
-                        'generateValue' => false,
-                        'columns' => [
-                            [
-                                'type' => 'label',
-                                'label' => 'Option',
-                                'class' => 'singleline-cell textual',
-                            ],
-                            [
-                                'type' => 'value',
-                                'label' => 'Value',
-                                'class' => 'singleline-cell textual',
-                            ],
-                        ],
-                        'name' => 'datePickerOptions',
-                    ]),
-                ]),
+            SchemaHelper::lightswitchField([
+                'label' => Craft::t('formie', 'Use Date Picker'),
+                'help' => Craft::t('formie', 'Whether this field should use the bundled cross-browser date picker ([Flatpickr.js docs](https://flatpickr.js.org)) when rendering this field.'),
+                'name' => 'useDatePicker',
+                'if' => '$get(displayType).value == calendar',
+            ]),
+            SchemaHelper::tableField([
+                'label' => Craft::t('formie', 'Date Picker Options'),
+                'help' => Craft::t('formie', 'Add any additional options for the date picker to use. For available options, refer to the [Flatpickr.js docs](https://flatpickr.js.org/options/).'),
+                'validation' => 'min:0',
+                'if' => '$get(displayType).value == calendar && $get(useDatePicker).value',
+                'newRowDefaults' => [
+                    'label' => '',
+                    'value' => '',
+                ],
+                'generateValue' => false,
+                'columns' => [
+                    [
+                        'type' => 'label',
+                        'label' => 'Option',
+                        'class' => 'singleline-cell textual',
+                    ],
+                    [
+                        'type' => 'value',
+                        'label' => 'Value',
+                        'class' => 'singleline-cell textual',
+                    ],
+                ],
+                'name' => 'datePickerOptions',
             ]),
         ];
     }
@@ -752,8 +750,8 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
             SchemaHelper::handleField(),
             SchemaHelper::cssClasses(),
             SchemaHelper::containerAttributesField(),
-            SchemaHelper::toggleContainer('settings.displayType=calendar', [
-                SchemaHelper::inputAttributesField(),
+            SchemaHelper::inputAttributesField([
+                'if' => '$get(displayType).value == calendar',
             ]),
         ];
     }

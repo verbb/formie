@@ -2,15 +2,15 @@
     <div class="fui-notification-preview">
         <div class="field field-wrapper flex">
             <div class="heading">
-                <label class="">{{ 'Email Preview' | t('formie') }}</label>
+                <label class="">{{ t('formie', 'Email Preview') }}</label>
 
                 <div class="instructions">
-                    <p>{{ 'The example below shows a preview of this email notification.' | t('formie') }}</p>
+                    <p>{{ t('formie', 'The example below shows a preview of this email notification.') }}</p>
                 </div>
             </div>
 
             <div class="">
-                <a href="#" class="btn submit fui-refresh-btn" :class="{ 'fui-loading fui-loading-sm': loading }" @click.prevent="updatePreview">{{ 'Refresh' | t('formie') }}</a>
+                <a href="#" class="btn submit fui-refresh-btn" :class="{ 'fui-loading fui-loading-sm': loading }" @click.prevent="updatePreview">{{ t('formie', 'Refresh') }}</a>
             </div>
         </div>
 
@@ -18,32 +18,32 @@
             <div class="fui-email-header"></div>
 
             <div class="fui-email-meta">
-                <div class="fui-email-meta-label">{{ 'To:' | t('formie') }}</div>
+                <div class="fui-email-meta-label">{{ t('formie', 'To:') }}</div>
                 <div class="fui-email-meta-value">{{ emailAddress(email.to) }}</div>
             </div>
 
             <div v-if="email.cc" class="fui-email-meta">
-                <div class="fui-email-meta-label">{{ 'Cc:' | t('formie') }}</div>
+                <div class="fui-email-meta-label">{{ t('formie', 'Cc:') }}</div>
                 <div class="fui-email-meta-value">{{ emailAddress(email.cc) }}</div>
             </div>
 
             <div v-if="email.bcc" class="fui-email-meta">
-                <div class="fui-email-meta-label">{{ 'Bcc:' | t('formie') }}</div>
+                <div class="fui-email-meta-label">{{ t('formie', 'Bcc:') }}</div>
                 <div class="fui-email-meta-value">{{ emailAddress(email.bcc) }}</div>
             </div>
 
             <div class="fui-email-meta">
-                <div class="fui-email-meta-label">{{ 'Subject:' | t('formie') }}</div>
+                <div class="fui-email-meta-label">{{ t('formie', 'Subject:') }}</div>
                 <div class="fui-email-meta-value">{{ email.subject }}</div>
             </div>
 
             <div v-if="email.replyTo" class="fui-email-meta">
-                <div class="fui-email-meta-label">{{ 'Reply To:' | t('formie') }}</div>
+                <div class="fui-email-meta-label">{{ t('formie', 'Reply To:') }}</div>
                 <div class="fui-email-meta-value">{{ emailAddress(email.replyTo) }}</div>
             </div>
 
             <div class="fui-email-meta">
-                <div class="fui-email-meta-label">{{ 'From:' | t('formie') }}</div>
+                <div class="fui-email-meta-label">{{ t('formie', 'From:') }}</div>
                 <div class="fui-email-meta-value">{{ emailAddress(email.from) }}</div>
             </div>
 
@@ -57,7 +57,7 @@
                     style="height: 100vh; width: 100%;"
                 ></iframe>
 
-                <div v-else class="warning with-icon">{{ 'No email content.' | t('formie') }}</div>
+                <div v-else class="warning with-icon">{{ t('formie', 'No email content.') }}</div>
             </div>
 
             <div class="fui-email-footer"></div>
@@ -129,19 +129,19 @@ export default {
             this.errorMessage = '';
             this.loading = true;
 
-            const payload = {
+            const data = {
                 formId: this.form.id,
                 handle: this.form.handle,
                 notification: this.notification,
             };
 
-            this.$axios.post(Craft.getActionUrl('formie/email/preview'), payload).then((response) => {
+            Craft.sendActionRequest('POST', 'formie/email/preview', { data }).then((response) => {
                 this.loading = false;
 
                 if (response.data.error) {
                     this.error = true;
 
-                    this.errorMessage = this.$options.filters.t('An error occurred.', 'formie');
+                    this.errorMessage = Craft.t('formie', 'An error occurred.');
                 
                     if (response.data.error) {
                         this.errorMessage += '<br><br><code>' + response.data.error + '</code>';

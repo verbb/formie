@@ -176,11 +176,10 @@ class Number extends FormField implements PreviewableFieldInterface
                 'help' => Craft::t('formie', 'The text that will be shown if the field doesn’t have a value.'),
                 'name' => 'placeholder',
             ]),
-            SchemaHelper::textField([
+            SchemaHelper::numberField([
                 'label' => Craft::t('formie', 'Default Value'),
                 'help' => Craft::t('formie', 'Entering a default value will place the value in the field when it loads.'),
                 'name' => 'defaultValue',
-                'validation' => 'optional|number',
             ]),
         ];
     }
@@ -196,55 +195,56 @@ class Number extends FormField implements PreviewableFieldInterface
                 'help' => Craft::t('formie', 'Whether this field should be required when filling out the form.'),
                 'name' => 'required',
             ]),
-            SchemaHelper::toggleContainer('settings.required', [
-                SchemaHelper::textField([
-                    'label' => Craft::t('formie', 'Error Message'),
-                    'help' => Craft::t('formie', 'When validating the form, show this message if an error occurs. Leave empty to retain the default message.'),
-                    'name' => 'errorMessage',
-                ]),
+            SchemaHelper::textField([
+                'label' => Craft::t('formie', 'Error Message'),
+                'help' => Craft::t('formie', 'When validating the form, show this message if an error occurs. Leave empty to retain the default message.'),
+                'name' => 'errorMessage',
+                'if' => '$get(required).value',
             ]),
             SchemaHelper::lightswitchField([
                 'label' => Craft::t('formie', 'Limit Numbers'),
                 'help' => Craft::t('formie', 'Whether to limit the numbers for this field.'),
                 'name' => 'limit',
             ]),
-            SchemaHelper::toggleContainer('settings.limit', [
-                [
-                    'component' => 'div',
+            [
+                '$el' => 'div',
+                'attrs' => [
                     'class' => 'fui-row',
-                    'children' => [
-                        [
-                            'component' => 'div',
+                ],
+                'if' => '$get(limit).value',
+                'children' => [
+                    [
+                        '$el' => 'div',
+                        'attrs' => [
                             'class' => 'fui-col-6',
-                            'children' => [
-                                SchemaHelper::textField([
-                                    'label' => Craft::t('formie', 'Min Value'),
-                                    'help' => Craft::t('formie', 'Set a minimum value that users must enter.'),
-                                    'name' => 'min',
-                                    'validation' => 'optional|number',
-                                ]),
-                            ],
                         ],
-                        [
-                            'component' => 'div',
+                        'children' => [
+                            SchemaHelper::numberField([
+                                'label' => Craft::t('formie', 'Min Value'),
+                                'help' => Craft::t('formie', 'Set a minimum value that users must enter.'),
+                                'name' => 'min',
+                            ]),
+                        ],
+                    ],
+                    [
+                        '$el' => 'div',
+                        'attrs' => [
                             'class' => 'fui-col-6',
-                            'children' => [
-                                SchemaHelper::textField([
-                                    'label' => Craft::t('formie', 'Max Value'),
-                                    'help' => Craft::t('formie', 'Set a maximum value that users must enter.'),
-                                    'name' => 'max',
-                                    'validation' => 'optional|number',
-                                ]),
-                            ],
+                        ],
+                        'children' => [
+                            SchemaHelper::numberField([
+                                'label' => Craft::t('formie', 'Max Value'),
+                                'help' => Craft::t('formie', 'Set a maximum value that users must enter.'),
+                                'name' => 'max',
+                            ]),
                         ],
                     ],
                 ],
-            ]),
-            SchemaHelper::textField([
+            ],
+            SchemaHelper::numberField([
                 'label' => Craft::t('formie', 'Decimal Points'),
                 'help' => Craft::t('formie', 'Set the number of decimal points to format the field value.'),
                 'name' => 'decimals',
-                'validation' => 'optional|number|min:0',
             ]),
             SchemaHelper::matchField([
                 'fieldTypes' => [self::class],

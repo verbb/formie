@@ -17,16 +17,16 @@
 
         <div v-if="rows.length" class="fui-row no-padding">
             <div class="fui-col-12">
-                <SubmitButtons :page-index="pageIndex" :page-id="id" />
+                <submit-buttons :page-index="pageIndex" :page-id="id" />
             </div>
         </div>
     </div>
 </template>
 
 <script>
-import FieldRow from './FieldRow.vue';
-import DropzoneNewField from './DropzoneNewField.vue';
-import SubmitButtons from './SubmitButtons.vue';
+import FieldRow from '@components/FieldRow.vue';
+import DropzoneNewField from '@components/DropzoneNewField.vue';
+import SubmitButtons from '@components/SubmitButtons.vue';
 
 export default {
     name: 'FieldPage',

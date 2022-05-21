@@ -1,3 +1,4 @@
+import { h } from 'vue';
 import { useId, useCustomId } from '../utils/ids';
 import { cleanChildren } from '../utils/vnode';
 
@@ -65,8 +66,8 @@ const Tabs = {
             tabActivationMode: this.tabActivationMode,
         };
     },
-    render(createElement) {
-        return createElement('div', this.$slots.default);
+    render() {
+        return h('div', this.$slots.default());
     },
 };
 

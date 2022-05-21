@@ -16,7 +16,7 @@
 </template>
 
 <script>
-import FieldEditTab from './FieldEditTab.vue';
+import FieldEditTab from '@components/FieldEditTab.vue';
 
 export default {
     name: 'FieldEditTabs',

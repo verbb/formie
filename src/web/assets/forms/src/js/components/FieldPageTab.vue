@@ -2,9 +2,9 @@
     <drop
         tag="li"
         :data-page="pageIndex"
-        @drop="dragDrop"
-        @dragenter="dragEnter"
-        @dragleave="dragLeave"
+        @on-drop="dragDrop"
+        @on-dragenter="dragEnter"
+        @on-dragleave="dragLeave"
     >
         <a
             class="fui-tab-item"
@@ -20,12 +20,10 @@
 
 <script>
 import { mapState } from 'vuex';
-import { Drop } from 'vue-drag-drop';
+import { Drop } from '@vendor/vue-drag-drop';
+import { flattenDeep, isEmpty } from 'lodash-es';
 
-import flattenDeep from 'lodash/flattenDeep';
-import isEmpty from 'lodash/isEmpty';
-
-import { newId } from '../utils/string';
+import { newId } from '@utils/string';
 
 export default {
     name: 'FieldPageTab',

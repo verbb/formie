@@ -8,9 +8,9 @@
         <div class="input ltr">
             <button class="btn small" :class="{ 'fui-loading fui-loading-tiny': loading }" :title="t('formie', 'Refresh')" @click.prevent="refresh">{{ t('formie', 'Refresh') }}</button>
 
-            <modal ref="modal" to="integrations-modals" :show-header="false" :show-footer="false" modal-class="fui-integration-error-modal">
+            <modal ref="modal" v-model="showModal" :show-header="false" :show-footer="false" modal-class="fui-integration-error-modal" @click-outside="closeModal">
                 <template v-slot:body>
-                    <div class="fui-dialog-close" @click.prevent="hideModal"></div>
+                    <div class="fui-dialog-close" @click.prevent="closeModal"></div>
 
                     <div class="fui-error-pane error">
                         <div class="fui-error-content">
@@ -44,6 +44,7 @@ export default {
     data() {
         return {
             statusText: '',
+            showModal: false,
             error: false,
             errorMessage: '',
             loading: false,
@@ -100,6 +101,7 @@ export default {
         },
 
         refresh() {
+            this.showModal = false;
             this.error = false;
             this.errorMessage = '';
             this.loading = true;
@@ -107,40 +109,39 @@ export default {
 
             const data = this.serializeForm();
 
-            Craft.sendActionRequest('POST', 'formie/integrations/check-connection', { data })
-                .then((response) => {
-                    this.loading = false;
+            Craft.sendActionRequest('POST', 'formie/integrations/check-connection', { data }).then((response) => {
+                this.loading = false;
 
-                    if (response.data.message) {
-                        this.error = true;
-                        this.$refs.modal.showModal();
-
-                        this.errorMessage = this.$options.filters.t('An error occurred.', 'formie');
-                        this.errorMessage += '<br><br><code>' + response.data.message + '</code>';
-
-                        this.statusText = 'Error';
-
-                        return;
-                    }
-
-                    this.statusText = 'Connected';
-                }).catch(error => {
-                    this.loading = false;
+                if (response.data.message) {
                     this.error = true;
-                    this.$refs.modal.showModal();
+                    this.showModal = true;
 
-                    this.errorMessage = error;
-
-                    if (error.response.data.message) {
-                        this.errorMessage += '<br><br><code>' + error.response.data.message + '</code>';
-                    }
+                    this.errorMessage = Craft.t('formie', 'An error occurred.');
+                    this.errorMessage += '<br><br><code>' + response.data.message + '</code>';
 
                     this.statusText = 'Error';
-                });
+
+                    return;
+                }
+
+                this.statusText = 'Connected';
+            }).catch(error => {
+                this.loading = false;
+                this.error = true;
+                this.showModal = true;
+
+                this.errorMessage = error;
+
+                if (error.response.data.message) {
+                    this.errorMessage += '<br><br><code>' + error.response.data.message + '</code>';
+                }
+
+                this.statusText = 'Error';
+            });
         },
 
-        hideModal() {
-            this.$refs.modal.hideModal();
+        closeModal() {
+            this.showModal = false;
         },
     },
 

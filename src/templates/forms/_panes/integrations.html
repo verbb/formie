@@ -1,8 +1,6 @@
 {% import '_includes/forms' as forms %}
 {% import 'verbb-base/_macros' as macros %}
 
-{% do view.registerAssetBundle('verbb\\formie\\web\\assets\\cp\\CpAsset') -%}
-
 {% if groupedIntegrations %}
     <div class="fui-integrations-pane">
         <div class="fui-integrations-sidebar-wrapper">
@@ -85,7 +83,7 @@
 
 $('[data-vui-tabs] a:first').addClass('sel');
 
-$('[data-vui-tabs] a').on('click', function(e) {
+$(document).on('click', '[data-vui-tabs] a', function(e) {
     e.preventDefault();
 
     var href = $(this).attr('href');

@@ -306,11 +306,13 @@ class FileUpload extends CraftAssets implements FormFieldInterface
             [
                 'label' => Craft::t('formie', 'Upload Location'),
                 'help' => Craft::t('formie', 'Note that the subfolder path can contain variables like {myFieldHandle}.'),
-                'type' => 'fieldWrap',
+                '$formkit' => 'fieldWrap',
                 'children' => [
                     [
-                        'component' => 'div',
-                        'class' => 'flex',
+                        '$el' => 'div',
+                        'attrs' => [
+                            'class' => 'flex',
+                        ],
                         'children' => [
                             SchemaHelper::selectField([
                                 'name' => 'uploadLocationSource',
@@ -343,51 +345,50 @@ class FileUpload extends CraftAssets implements FormFieldInterface
                 'help' => Craft::t('formie', 'Whether this field should be required when filling out the form.'),
                 'name' => 'required',
             ]),
-            SchemaHelper::toggleContainer('settings.required', [
-                SchemaHelper::textField([
-                    'label' => Craft::t('formie', 'Error Message'),
-                    'help' => Craft::t('formie', 'When validating the form, show this message if an error occurs. Leave empty to retain the default message.'),
-                    'name' => 'errorMessage',
-                ]),
-            ]),
             SchemaHelper::textField([
+                'label' => Craft::t('formie', 'Error Message'),
+                'help' => Craft::t('formie', 'When validating the form, show this message if an error occurs. Leave empty to retain the default message.'),
+                'name' => 'errorMessage',
+                'if' => '$get(required).value',
+            ]),
+            SchemaHelper::numberField([
                 'label' => Craft::t('formie', 'Limit Number of Files'),
                 'help' => Craft::t('formie', 'Limit the number of files a user can upload.'),
                 'name' => 'limitFiles',
-                'size' => '3',
-                'class' => 'text',
-                'validation' => 'optional|number|min:0',
             ]),
-            SchemaHelper::textField([
+            SchemaHelper::numberField([
                 'label' => Craft::t('formie', 'Min File Size'),
                 'help' => Craft::t('formie', 'Set the minimum size of the files a user can upload.'),
                 'name' => 'sizeMinLimit',
-                'size' => '3',
-                'class' => 'text',
-                'type' => 'textWithSuffix',
-                'suffix' => Craft::t('formie', 'MB'),
-                'validation' => 'optional|number|min:0',
+                'sections-schema' => [
+                    'suffix' => [
+                        '$el' => 'span',
+                        'attrs' => ['class' => 'hint-text'],
+                        'children' => Craft::t('formie', 'MB'),
+                    ],
+                ],
             ]),
-            SchemaHelper::textField([
+            SchemaHelper::numberField([
                 'label' => Craft::t('formie', 'Max File Size'),
                 'help' => Craft::t('formie', 'Set the maximum size of the files a user can upload.'),
                 'name' => 'sizeLimit',
-                'size' => '3',
-                'class' => 'text',
-                'type' => 'textWithSuffix',
-                'suffix' => Craft::t('formie', 'MB'),
-                'validation' => 'optional|number|min:0',
                 'warning' => Craft::t('formie', 'Maximum allowed upload size is {size}.', ['size' => $maxUpload]),
+                'sections-schema' => [
+                    'suffix' => [
+                        '$el' => 'span',
+                        'attrs' => ['class' => 'hint-text'],
+                        'children' => Craft::t('formie', 'MB'),
+                    ],
+                ],
             ]),
             SchemaHelper::checkboxField([
                 'label' => Craft::t('formie', 'Restrict allowed file types?'),
                 'name' => 'restrictFiles',
             ]),
-            SchemaHelper::toggleContainer('settings.restrictFiles', [
-                SchemaHelper::checkboxField([
-                    'name' => 'allowedKinds',
-                    'options' => $this->getFileKindOptions(),
-                ]),
+            SchemaHelper::checkboxField([
+                'name' => 'allowedKinds',
+                'options' => $this->getFileKindOptions(),
+                'if' => '$get(restrictFiles).value',
             ]),
         ];
     }

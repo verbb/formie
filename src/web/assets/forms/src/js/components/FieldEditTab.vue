@@ -12,7 +12,7 @@
 </template>
 
 <script>
-import kebabCase from 'lodash/kebabCase';
+import { kebabCase } from 'lodash-es';
 
 export default {
     name: 'FieldEditTab',

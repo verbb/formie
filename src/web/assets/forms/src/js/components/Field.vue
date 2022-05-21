@@ -7,9 +7,9 @@
                     class="form-field-dropzone form-field-dropzone-vertical"
                     :data-column="columnIndex"
                     :data-row="rowIndex"
-                    @drop="dragDrop"
-                    @dragenter="dragEnter"
-                    @dragleave="dragLeave"
+                    @on-drop="dragDrop"
+                    @on-dragenter="dragEnter"
+                    @on-dragleave="dragLeave"
                 />
 
                 <div class="dashed-dropzone dashed-dropzone-vertical"></div>
@@ -29,28 +29,27 @@
                 columnIndex,
             }"
             :hide-image-html="!isSafari"
-            @click.prevent="editField"
-            @dragstart="dragStart"
-            @dragend="dragEnd"
+            @on-dragstart="dragStart"
+            @on-dragend="dragEnd"
         >
-            <div v-if="!fieldtype.supportsNested" class="fui-edit-overlay" @click.prevent="editField"></div>
+            <div v-if="!fieldtype.supportsNested" class="fui-edit-overlay" @click.prevent="openModal"></div>
 
             <div class="fui-field-info">
                 <label v-if="fieldtype.hasLabel" class="fui-field-label">
                     <span v-if="field.label && field.label.length">{{ field.label }}</span>
                     <span v-else>{{ fieldtype.label }}</span>
 
-                    <span v-if="field.settings.required" class="error">*</span>
+                    <span v-if="field.settings.required" class="error"> *</span>
                 </label>
 
                 <span v-if="field.isSynced" class="fui-field-synced">
                     <svg aria-hidden="true" focusable="false" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentColor" d="M440.65 12.57l4 82.77A247.16 247.16 0 0 0 255.83 8C134.73 8 33.91 94.92 12.29 209.82A12 12 0 0 0 24.09 224h49.05a12 12 0 0 0 11.67-9.26 175.91 175.91 0 0 1 317-56.94l-101.46-4.86a12 12 0 0 0-12.57 12v47.41a12 12 0 0 0 12 12H500a12 12 0 0 0 12-12V12a12 12 0 0 0-12-12h-47.37a12 12 0 0 0-11.98 12.57zM255.83 432a175.61 175.61 0 0 1-146-77.8l101.8 4.87a12 12 0 0 0 12.57-12v-47.4a12 12 0 0 0-12-12H12a12 12 0 0 0-12 12V500a12 12 0 0 0 12 12h47.35a12 12 0 0 0 12-12.6l-4.15-82.57A247.17 247.17 0 0 0 255.83 504c121.11 0 221.93-86.92 243.55-201.82a12 12 0 0 0-11.8-14.18h-49.05a12 12 0 0 0-11.67 9.26A175.86 175.86 0 0 1 255.83 432z" /></svg>
-                    {{ 'Synced' | t('formie') }}
+                    {{ t('formie', 'Synced') }}
                 </span>
 
                 <span v-if="field.hasConditions" class="fui-field-conditions">
                     <svg aria-hidden="true" focusable="false" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><path fill="currentColor" d="M288 144a110.94 110.94 0 0 0-31.24 5 55.4 55.4 0 0 1 7.24 27 56 56 0 0 1-56 56 55.4 55.4 0 0 1-27-7.24A111.71 111.71 0 1 0 288 144zm284.52 97.4C518.29 135.59 410.93 64 288 64S57.68 135.64 3.48 241.41a32.35 32.35 0 0 0 0 29.19C57.71 376.41 165.07 448 288 448s230.32-71.64 284.52-177.41a32.35 32.35 0 0 0 0-29.19zM288 400c-98.65 0-189.09-55-237.93-144C98.91 167 189.34 112 288 112s189.09 55 237.93 144C477.1 345 386.66 400 288 400z" /></svg>
-                    {{ 'Conditions' | t('formie') }}
+                    {{ t('formie', 'Conditions') }}
                 </span>
 
                 <code class="fui-field-handle">{{ field.handle }}</code>
@@ -61,7 +60,7 @@
                 <field-dropdown
                     :is-required="field.settings.required"
                     :can-require="fieldCanRequire"
-                    @edit="editField"
+                    @edit="openModal"
                     @require="requireField"
                     @unrequire="unrequireField"
                     @clone="cloneField"
@@ -71,22 +70,20 @@
 
             <field-preview :id="field.vid" class="fui-field-preview" :class="`fui-type-${nameKebab}`" :expected-type="expectedType" />
 
-            <vue-simple-markdown v-if="fieldtype.data.warning" class="warning with-icon" :source="fieldtype.data.warning" />
+            <markdown v-if="fieldtype.data.warning" class="warning with-icon" :source="fieldtype.data.warning" />
 
             <field-edit-modal
-                v-if="modalActive"
-                ref="editFieldModal"
-                :visible="modalVisible"
+                v-if="showModal"
+                v-model:showModal="showModal"
+                v-model:field="field"
                 :field-ref="this"
-                :field="field"
                 :fields-schema="fieldsSchema"
                 :tabs-schema="tabsSchema"
                 @delete="deleteField"
-                @close="onModalClose"
-                @cancel="onModalCancel"
+                @closed="onModalClosed"
             />
 
-            <template v-if="!isSafari" slot="image">
+            <template v-if="!isSafari" v-slot:image>
                 <div class="fui-field-pill" style="width: 148px;">
                     <span class="fui-field-pill-icon" v-html="fieldtype.icon"></span>
 
@@ -103,9 +100,9 @@
                     class="form-field-dropzone form-field-dropzone-vertical"
                     :data-column="columnIndex + 1"
                     :data-row="rowIndex"
-                    @drop="dragDrop"
-                    @dragenter="dragEnter"
-                    @dragleave="dragLeave"
+                    @on-drop="dragDrop"
+                    @on-dragenter="dragEnter"
+                    @on-dragleave="dragLeave"
                 />
 
                 <div class="dashed-dropzone dashed-dropzone-vertical"></div>
@@ -115,17 +112,18 @@
 </template>
 
 <script>
-import { Drag, Drop } from 'vue-drag-drop';
-import cloneDeep from 'lodash/cloneDeep';
+import Markdown from 'vue3-markdown-it';
+import { Drag, Drop } from '@vendor/vue-drag-drop';
+import { cloneDeep } from 'lodash-es';
 
 // eslint-disable-next-line
 import { generateHandle, getNextAvailableHandle, generateKebab, getDisplayName, newId } from '@utils/string';
-import { isSafari } from '../utils/browser';
-import { canDrag } from '../utils/drag-drop';
+import { isSafari } from '@utils/browser';
+import { canDrag } from '@utils/drag-drop';
 
-import FieldEditModal from './FieldEditModal.vue';
-import FieldPreview from './FieldPreview.vue';
-import FieldDropdown from './FieldDropdown.vue';
+import FieldEditModal from '@components/FieldEditModal.vue';
+import FieldPreview from '@components/FieldPreview.vue';
+import FieldDropdown from '@components/FieldDropdown.vue';
 
 export default {
     name: 'Field',
@@ -136,6 +134,7 @@ export default {
         FieldDropdown,
         Drag,
         Drop,
+        Markdown,
     },
 
     props: {
@@ -186,8 +185,7 @@ export default {
             dropzoneLeftHover: false,
             dropzoneRightHover: false,
             dragActive: false,
-            modalActive: false,
-            modalVisible: false,
+            showModal: false,
             submitButton: false,
             isSafari: isSafari(),
         };
@@ -266,7 +264,7 @@ export default {
 
         // Open the modal immediately for brand new fields
         if (this.brandNewField) {
-            this.editField();
+            this.openModal();
 
             // Testing
             // this.field.label = this.fieldtype.label;
@@ -277,7 +275,7 @@ export default {
     mounted() {
         // Testing
         if (this.$parent.$parent.pageIndex == 0 && this.$parent.rowIndex == 0 && this.columnIndex == 0) {
-            // this.editField();
+            // this.openModal();
         }
     },
 
@@ -302,17 +300,13 @@ export default {
             this.dropzonesActive = false;
         },
 
-        editField() {
-            this.modalActive = true;
-            this.modalVisible = true;
+        openModal() {
+            this.showModal = true;
         },
 
-        onModalClose() {
-            this.modalActive = false;
-            this.modalVisible = false;
-        },
+        onModalClosed() {
+            this.showModal = false;
 
-        onModalCancel() {
             if (this.brandNewField) {
                 this.$store.dispatch('form/deleteField', { id: this.field.vid });
             }

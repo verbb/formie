@@ -2,17 +2,17 @@
     <div class="fui-notification-test">
         <div class="field field-wrapper">
             <div class="heading">
-                <label class="">{{ 'Send Test Email' | t('formie') }}</label>
+                <label class="">{{ t('formie', 'Send Test Email') }}</label>
 
                 <div class="instructions">
-                    <p>{{ 'Use the form below to send a test email to the nominated email address.' | t('formie') }}</p>
+                    <p>{{ t('formie', 'Use the form below to send a test email to the nominated email address.') }}</p>
                 </div>
             </div>
 
             <div class="fui-test-input">
                 <input v-model="to" class="text fullwidth" type="text">
 
-                <a href="#" class="btn submit fui-refresh-btn" :class="{ 'fui-loading fui-loading-sm': loading }" @click.prevent="sendTestEmail">{{ 'Send Test Email' | t('formie') }}</a>
+                <a href="#" class="btn submit fui-refresh-btn" :class="{ 'fui-loading fui-loading-sm': loading }" @click.prevent="sendTestEmail">{{ t('formie', 'Send Test Email') }}</a>
             </div>
         </div>
 
@@ -67,25 +67,25 @@ export default {
             this.loading = true;
             this.message = '';
 
-            const payload = {
+            const data = {
                 formId: this.form.id,
                 notification: this.notification,
                 to: this.to,
             };
 
-            this.$axios.post(Craft.getActionUrl('formie/email/send-test-email'), payload).then((response) => {
+            Craft.sendActionRequest('POST', 'formie/email/send-test-email', { data }).then((response) => {
                 this.loading = false;
 
                 if (response.data.success) {
                     this.success = true;
 
-                    this.message = this.$options.filters.t('Email sent successfully. Please check your email.', 'formie');
+                    this.message = Craft.t('formie', 'Email sent successfully. Please check your email.');
                 }
 
                 if (response.data.error) {
                     this.error = true;
 
-                    this.message = this.$options.filters.t('Error sending test email.', 'formie');
+                    this.message = Craft.t('formie', 'Error sending test email.');
                 
                     if (response.data.error) {
                         this.message += '<br><br><code>' + response.data.error + '</code>';

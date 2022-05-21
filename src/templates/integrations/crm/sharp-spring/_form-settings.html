@@ -16,8 +16,8 @@
 
 <hr>
 
-<integration-form-settings handle="{{ handle }}" :form-settings="{{ formSettings | json_encode }}" inline-template>
-    <div>
+<integration-form-settings handle="{{ handle }}" :form-settings="{{ formSettings | json_encode }}">
+    <template v-slot="{ get, isEmpty, input, settings, sourceId, loading, refresh, error, errorMessage, getSourceFields, globalParams }">
         <div class="field">
             <button class="btn" :class="{ 'fui-loading fui-loading-sm': loading }" data-icon="refresh" @click.prevent="refresh">{{ 'Refresh Integration' | t('formie') }}</button>
         </div>
@@ -81,7 +81,7 @@
                 </div>
 
                 <div class="input ltr">
-                    <input type="text" id="endpoint" name="endpoint" autocomplete="off" aria-required="true" class="text fullwidth" v-model="globalParams.endpoint" :run="!globalParams.endpoint ? globalParams.endpoint = '{{ endpoint }}' : true">
+                    <input type="text" id="endpoint" name="endpoint" autocomplete="off" aria-required="true" class="text fullwidth" :value="globalParams.endpoint" @input="input('globalParams.endpoint', $event.target.value)" :run="!globalParams.endpoint ? globalParams.endpoint = '{{ endpoint }}' : true">
                 </div>
             </div>
 
@@ -107,5 +107,5 @@
                 </div>
             </div>
         </div>
-    </div>
+    </template>
 </integration-form-settings>

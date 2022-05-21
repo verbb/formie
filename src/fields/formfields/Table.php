@@ -404,33 +404,28 @@ class Table extends CraftTable implements FormFieldInterface
                 'help' => Craft::t('formie', 'Whether this field should be required when filling out the form.'),
                 'name' => 'required',
             ]),
-            SchemaHelper::toggleContainer('settings.required', [
-                SchemaHelper::textField([
-                    'label' => Craft::t('formie', 'Error Message'),
-                    'help' => Craft::t('formie', 'When validating the form, show this message if an error occurs. Leave empty to retain the default message.'),
-                    'name' => 'errorMessage',
-                ]),
+            SchemaHelper::textField([
+                'label' => Craft::t('formie', 'Error Message'),
+                'help' => Craft::t('formie', 'When validating the form, show this message if an error occurs. Leave empty to retain the default message.'),
+                'name' => 'errorMessage',
+                'if' => '$get(required).value',
             ]),
             SchemaHelper::lightswitchField([
                 'label' => Craft::t('formie', 'Static'),
                 'help' => Craft::t('formie', 'Whether this field should disallow adding more rows, showing only the default rows.'),
                 'name' => 'static',
             ]),
-            SchemaHelper::toggleContainer('!settings.static', [
-                SchemaHelper::textField([
-                    'label' => Craft::t('formie', 'Minimum instances'),
-                    'help' => Craft::t('formie', 'The minimum required number of rows in this table that must be completed.'),
-                    'type' => 'number',
-                    'name' => 'minRows',
-                    'validation' => 'optional|number|min:0',
-                ]),
-                SchemaHelper::textField([
-                    'label' => Craft::t('formie', 'Maximum instances'),
-                    'help' => Craft::t('formie', 'The maximum required number of rows in this table that must be completed.'),
-                    'type' => 'number',
-                    'name' => 'maxRows',
-                    'validation' => 'optional|number|min:0',
-                ]),
+            SchemaHelper::numberField([
+                'label' => Craft::t('formie', 'Minimum instances'),
+                'help' => Craft::t('formie', 'The minimum required number of rows in this table that must be completed.'),
+                'name' => 'minRows',
+                'if' => '$get(static).value != true',
+            ]),
+            SchemaHelper::numberField([
+                'label' => Craft::t('formie', 'Maximum instances'),
+                'help' => Craft::t('formie', 'The maximum required number of rows in this table that must be completed.'),
+                'name' => 'maxRows',
+                'if' => '$get(static).value != true',
             ]),
         ];
     }

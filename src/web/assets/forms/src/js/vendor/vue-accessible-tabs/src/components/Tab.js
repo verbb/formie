@@ -1,3 +1,5 @@
+import { h } from 'vue';
+
 const Tab = {
     name: 'Tab',
     props: {
@@ -84,25 +86,21 @@ const Tab = {
             }
         },
     },
-    render(createElement) {
-        return createElement(
+    render() {
+        return h(
             'button',
             {
-                attrs: {
-                    role: 'tab',
-                    'aria-disabled': this.disabled ? 'true' : 'false',
-                    'aria-selected': this.isActive ? 'true' : 'false',
-                    'aria-controls': `tabs--${this.tabState._id}--panel--${this.index}`,
-                    id: `tabs--${this.tabState._id}--tab--${this.index}`,
-                    tabindex: this.isActive ? null : '-1',
-                },
+                role: 'tab',
+                'aria-disabled': this.disabled ? 'true' : 'false',
+                'aria-selected': this.isActive ? 'true' : 'false',
+                'aria-controls': `tabs--${this.tabState._id}--panel--${this.index}`,
+                id: `tabs--${this.tabState._id}--tab--${this.index}`,
+                tabindex: this.isActive ? null : '-1',
                 class: [this.isActive ? this.activeClass : this.inactiveClass],
-                on: {
-                    click: this.handleClick,
-                    keydown: this.handleKeydown,
-                },
+                onClick: this.handleClick,
+                onKeydown: this.handleKeydown,
             },
-            this.$slots.default
+            this.$slots.default()
         );
     },
     inject: [

@@ -5,8 +5,16 @@ import mitt from 'mitt';
 import VTooltip from 'floating-vue';
 import { vfmPlugin } from 'vue-final-modal';
 import VueUniqueId from '@/js/vendor/vue-unique-id';
+import { plugin as formkitPlugin} from '@formkit/vue';
+import formkitConfig from './config.formkit';
 
 import store from '@/js/store';
+import { clone } from '@utils/object';
+import { t } from '@utils/translations';
+
+// Create the event emitter here, so it's created once, but accessible across multiple
+// Vue app instances.
+const events = mitt();
 
 // Allows us to create a Vue app with global properties and loading plugins
 export const createVueApp = (props) => {
@@ -47,6 +55,13 @@ export const createVueApp = (props) => {
                     hide: 0,
                 },
             },
+            'fui-editor-tooltip': {
+                $extend: 'tooltip',
+                delay: {
+                    show: 0,
+                    hide: 0,
+                },
+            },
         },
     });
 
@@ -54,25 +69,23 @@ export const createVueApp = (props) => {
     // https://vuex.vuejs.org
     app.use(store);
 
+    // FormKit
+    // https://formkit.com
+    app.use(formkitPlugin, formkitConfig);
+
     //
     // Global properties
     // Create global properties here, shared across multiple Vue apps.
     //
 
-    // Provide `t()` for Craft's translations in SFCs.
-    app.config.globalProperties.t = Craft.t;
+    // Provide `this.t()` for translations in SFCs.
+    app.config.globalProperties.t = t;
 
-    // Global function to easily clone an object
-    app.config.globalProperties.clone = function(value) {
-        if (value === undefined) {
-            return undefined;
-        }
-
-        return JSON.parse(JSON.stringify(value));
-    },
+    // Provide `this.clone()` for easy object cloning in SFCs.
+    app.config.globalProperties.clone = clone,
 
     // Global events. Accessible via `this.$events` in SFCs.
-    app.config.globalProperties.$events = mitt();
+    app.config.globalProperties.$events = events;
 
     // TODO: Try and figure out .env variables that aren't compiled
     app.config.globalProperties.$isDebug = !process.env.NODE_ENV || process.env.NODE_ENV === 'development';

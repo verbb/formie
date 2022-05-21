@@ -5,7 +5,7 @@ While the [changelog](https://github.com/verbb/formie/blob/craft-4/CHANGELOG.md)
 We've removed `enableGatsbyCompatibility` as it is no longer required.
 
 ## Removed Controller
-The `formie/csrf/*` actions have been removed. If you relied on these to refresh the CSRF token for your forms, refer to the [docs](https://verbb.io/craft-plugins/formie/docs/template-guides/cached-forms) for the updated controller and code.
+The `formie/csrf/*` actions have been removed (previously deprecated). If you relied on these to refresh the CSRF token for your forms, refer to the [docs](https://verbb.io/craft-plugins/formie/docs/template-guides/cached-forms) for the updated controller and code.
 
 ## GraphQL
 
@@ -90,3 +90,39 @@ Old | What to do instead
 --- | ---
 | `multiple` | `multi`
 
+
+## Integrations
+For custom integrations, there are some required changes.
+
+### Form Settings Template
+Due to Vue 3 no longer supporting `inline-template` for server-side-rendered templates, we've had to make the change to using slots. If you have a custom integration, and your own template for configuring form settings for the integration, you'll need to switch to using slots.
+
+```twig
+{# Formie v1 #}
+<integration-form-settings handle="{{ handle }}" :form-settings="{{ formSettings | json_encode }}">
+    <div>
+        ...
+    </div>
+</integration-form-settings>
+
+{# Formie v2 #}
+<integration-form-settings handle="{{ handle }}" :form-settings="{{ formSettings | json_encode }}">
+    <template v-slot="{ get, isEmpty, input, settings, sourceId, loading, refresh, error, errorMessage, getSourceFields }">
+        ...
+    </template>
+</integration-form-settings>
+```
+
+As you can see, the only major change is the use of switching the `<div>` tag for the `<template>` tag, which is used for the default slot for the component. In order to access a data prop from the `IntegrationFormSettings` Vue component, you'll need to include it in the `v-slot` param. The above show the inclusion of most common props, but you can modify the props as required.
+
+You'll also want to change references to `v-model` which no longer work, due to our change to slots.
+
+```twig
+{# Formie v1 #}
+<select v-model="sourceId">
+
+{# Formie v2 #}
+<select :value="sourceId" @input="input('sourceId', $event.target.value)">
+```
+
+As `v-model` won't work when passed through a slot, we'll use `:value` an `input()` to manually handle state changes (essentially, the non-shorthand of `v-model`).

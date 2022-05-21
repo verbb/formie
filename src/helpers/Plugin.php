@@ -13,14 +13,20 @@ class Plugin
     {
         $viteService = Formie::$plugin->getVite();
 
-        $options = [
+        $scriptOptions = [
             'depends' => [
                 FormsAsset::class,
             ],
-            'onload' => "e=new CustomEvent('vite-script-loaded', {detail:{path: '$path'}});document.dispatchEvent(e);",
+            'onload' => "document.dispatchEvent(new CustomEvent('vite-script-loaded',{detail:{path:'$path'}}));",
         ];
 
-        $viteService->register($path, false, $options, $options);
+        $styleOptions = [
+            'depends' => [
+                FormsAsset::class,
+            ],
+        ];
+
+        $viteService->register($path, false, $scriptOptions, $styleOptions);
 
         // Provide nice build errors - only in dev
         if ($viteService->devServerRunning()) {

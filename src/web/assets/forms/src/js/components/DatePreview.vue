@@ -67,7 +67,7 @@
 
 <script>
 
-import { parseDate } from '../utils/string';
+import { parseDate } from '@utils/string';
 
 export default {
     name: 'DatePreview',

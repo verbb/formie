@@ -6,9 +6,9 @@
                     ref="dropzoneTop"
                     class="form-field-dropzone form-field-dropzone-horizontal"
                     :data-row="rowIndex"
-                    @drop="dragDrop"
-                    @dragenter="dragEnter"
-                    @dragleave="dragLeave"
+                    @on-drop="dragDrop"
+                    @on-dragenter="dragEnter"
+                    @on-dragleave="dragLeave"
                 />
 
                 <div class="dashed-dropzone dashed-dropzone-horizontal"></div>
@@ -36,9 +36,9 @@
                     ref="dropzoneBottom"
                     class="form-field-dropzone form-field-dropzone-horizontal"
                     :data-row="rowIndex + 1"
-                    @drop="dragDrop"
-                    @dragenter="dragEnter"
-                    @dragleave="dragLeave"
+                    @on-drop="dragDrop"
+                    @on-dragenter="dragEnter"
+                    @on-dragleave="dragLeave"
                 />
 
                 <div class="dashed-dropzone dashed-dropzone-horizontal"></div>
@@ -48,11 +48,11 @@
 </template>
 
 <script>
-import { newId } from '../utils/string';
-import { canDrag } from '../utils/drag-drop';
+import { newId } from '@utils/string';
+import { canDrag } from '@utils/drag-drop';
 
-import Field from './Field.vue';
-import { Drop } from 'vue-drag-drop';
+import Field from '@components/Field.vue';
+import { Drop } from '@vendor/vue-drag-drop';
 
 export default {
     name: 'FieldRow',
@@ -140,11 +140,7 @@ export default {
 
         dragEnter(data, event) {
             // Protect against anything being dragged in
-            if (!data) {
-                return;
-            }
-
-            if (!this.canDrag(data)) {
+            if (!data || !this.canDrag(data)) {
                 return;
             }
 
@@ -157,11 +153,7 @@ export default {
 
         dragDrop(data, event) {
             // Protect against anything being dragged in
-            if (!data) {
-                return;
-            }
-
-            if (!this.canDrag(data)) {
+            if (!data || !this.canDrag(data)) {
                 return;
             }
 

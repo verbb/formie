@@ -1,122 +1,120 @@
 <template>
-    <component :is="'div'">
-        <div class="btn add icon dashed" @click="showModal">{{ 'Add existing fields' | t('formie') }}</div>
+    <div class="btn add icon dashed" @click="openModal">{{ t('formie', 'Add existing fields') }}</div>
 
-        <modal ref="modal" :modal-class="['fui-edit-field-modal', 'fui-existing-item-modal']">
-            <template slot="header">
-                <h3 class="fui-modal-title">{{ 'Add Existing Field' | t('formie') }}</h3>
+    <modal ref="modal" v-model="showModal" :modal-class="['fui-edit-field-modal', 'fui-existing-item-modal']" @click-outside="closeModal">
+        <template v-slot:header>
+            <h3 class="fui-modal-title">{{ t('formie', 'Add Existing Field') }}</h3>
 
-                <div class="fui-dialog-close" @click.prevent="hideModal"></div>
-            </template>
+            <div class="fui-dialog-close" @click.prevent="closeModal"></div>
+        </template>
 
-            <template slot="body">
-                <div v-if="existingFields.length" class="fui-modal-content-wrap">
-                    <div class="fui-modal-sidebar sidebar">
-                        <nav v-if="filteredExistingFields.length">
-                            <ul>
-                                <li v-if="existingFields.length">
-                                    <a :class="{ 'sel': selectedKey === existingFields[0].key }" @click.prevent="selectTab(existingFields[0].key)">
-                                        <span class="label">{{ existingFields[0].label }}</span>
-                                    </a>
-                                </li>
-
-                                <li class="heading"><span>{{ 'Forms' | t('formie') }}</span></li>
-
-                                <li v-for="(form, index) in existingFields" :key="index">
-                                    <a v-if="index > 0" :class="{ 'sel': selectedKey === form.key }" @click.prevent="selectTab(form.key)">
-                                        <span class="label">{{ form.label }}</span>
-                                    </a>
-                                </li>
-                            </ul>
-                        </nav>
-                    </div>
-
-                    <div class="fui-modal-content">
-                        <div class="toolbar flex flex-nowrap">
-                            <div class="flex-grow texticon search icon clearable">
-                                <input v-model="search" class="text fullwidth" type="text" autocomplete="off" placeholder="Search">
-                                <div class="clear hidden" title="Clear"></div>
-                            </div>
-                        </div>
-
-                        <div v-if="filteredExistingFields.length">
-                            <div v-for="(form, formIndex) in filteredExistingFields" :key="formIndex" :class="{ hidden: selectedKey !== form.key }">
-                                <div v-for="(page, pIndex) in form.pages" :key="pIndex">
-                                    <div class="fui-existing-item-heading-wrap">
-                                        <div class="fui-existing-item-heading">{{ page.label }}</div>
-                                    </div>
-
-                                    <div class="fui-row small-padding">
-                                        <existing-field
-                                            v-for="(field, fieldIndex) in page.fields"
-                                            :key="fieldIndex"
-                                            :selected="isFieldSelected(field)"
-                                            v-bind="field"
-                                            @selected="fieldSelected"
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div v-else>
-                            <p>{{ 'No fields found.' | t('formie') }}</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div v-else class="fui-modal-content-wrap">
-                    <div class="fui-modal-content">
-                        <p>{{ 'No existing fields to select.' | t('formie') }}</p>
-                    </div>
-                </div>
-            </template>
-
-            <template slot="footer">
-                <div class="buttons left">
-                    <div class="spinner hidden"></div>
-                    <div class="btn" role="button" @click.prevent="hideModal">{{ 'Cancel' | t('app') }}</div>
-                </div>
-
-                <div v-if="filteredExistingFields.length" class="buttons right">
-                    <span class="hidden">{{ '"Add as a new field" to make a new field from a copy the original field. Or, "Add as a synced field" to keep the field synchronized to the original field, reflecting any changes to that field.' | t('formie') }}</span>
-
-                    <menu-btn :disabled="totalSelected === 0">
-                        <template #primary="{ disabled }">
-                            <input
-                                type="submit"
-                                :value="submitText"
-                                :disabled="disabled"
-                                class="btn submit"
-                                :class="{ 'disabled': disabled }"
-                                @click.prevent="addFields"
-                            >
-                        </template>
-
+        <template v-slot:body>
+            <div v-if="existingFields.length" class="fui-modal-content-wrap">
+                <div class="fui-modal-sidebar sidebar">
+                    <nav v-if="filteredExistingFields.length">
                         <ul>
-                            <li>
-                                <a @click.prevent="addSynced">
-                                    {{ syncedText }}
+                            <li v-if="existingFields.length">
+                                <a :class="{ 'sel': selectedKey === existingFields[0].key }" @click.prevent="selectTab(existingFields[0].key)">
+                                    <span class="label">{{ existingFields[0].label }}</span>
+                                </a>
+                            </li>
+
+                            <li class="heading"><span>{{ t('formie', 'Forms') }}</span></li>
+
+                            <li v-for="(form, index) in existingFields" :key="index">
+                                <a v-if="index > 0" :class="{ 'sel': selectedKey === form.key }" @click.prevent="selectTab(form.key)">
+                                    <span class="label">{{ form.label }}</span>
                                 </a>
                             </li>
                         </ul>
-                    </menu-btn>
-
-                    <div class="spinner hidden"></div>
+                    </nav>
                 </div>
-            </template>
-        </modal>
-    </component>
+
+                <div class="fui-modal-content">
+                    <div class="toolbar flex flex-nowrap">
+                        <div class="flex-grow texticon search icon clearable">
+                            <input v-model="search" class="text fullwidth" type="text" autocomplete="off" placeholder="Search">
+                            <div class="clear hidden" title="Clear"></div>
+                        </div>
+                    </div>
+
+                    <div v-if="filteredExistingFields.length">
+                        <div v-for="(form, formIndex) in filteredExistingFields" :key="formIndex" :class="{ hidden: selectedKey !== form.key }">
+                            <div v-for="(page, pIndex) in form.pages" :key="pIndex">
+                                <div class="fui-existing-item-heading-wrap">
+                                    <div class="fui-existing-item-heading">{{ page.label }}</div>
+                                </div>
+
+                                <div class="fui-row small-padding">
+                                    <existing-field
+                                        v-for="(field, fieldIndex) in page.fields"
+                                        :key="fieldIndex"
+                                        :selected="isFieldSelected(field)"
+                                        v-bind="field"
+                                        @selected="fieldSelected"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div v-else>
+                        <p>{{ t('formie', 'No fields found.') }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div v-else class="fui-modal-content-wrap">
+                <div class="fui-modal-content">
+                    <p>{{ t('formie', 'No existing fields to select.') }}</p>
+                </div>
+            </div>
+        </template>
+
+        <template v-slot:footer>
+            <div class="buttons left">
+                <div class="spinner hidden"></div>
+                <div class="btn" role="button" @click.prevent="closeModal">{{ t('app', 'Cancel') }}</div>
+            </div>
+
+            <div v-if="filteredExistingFields.length" class="buttons right">
+                <span class="hidden">{{ t('formie', '"Add as a new field" to make a new field from a copy the original field. Or, "Add as a synced field" to keep the field synchronized to the original field, reflecting any changes to that field.') }}</span>
+
+                <menu-btn :disabled="totalSelected === 0">
+                    <template #primary="{ disabled }">
+                        <input
+                            type="submit"
+                            :value="submitText"
+                            :disabled="disabled"
+                            class="btn submit"
+                            :class="{ 'disabled': disabled }"
+                            @click.prevent="addFields"
+                        >
+                    </template>
+
+                    <ul>
+                        <li>
+                            <a @click.prevent="addSynced">
+                                {{ syncedText }}
+                            </a>
+                        </li>
+                    </ul>
+                </menu-btn>
+
+                <div class="spinner hidden"></div>
+            </div>
+        </template>
+    </modal>
 </template>
 
 <script>
 import { mapState } from 'vuex';
-import findIndex from 'lodash/findIndex';
-import { newId } from '../utils/string';
+import { findIndex } from 'lodash-es';
+import { newId } from '@utils/string';
 
-import Modal from './Modal.vue';
-import MenuBtn from './MenuBtn.vue';
-import ExistingField from './ExistingField.vue';
+import Modal from '@components/Modal.vue';
+import MenuBtn from '@components/MenuBtn.vue';
+import ExistingField from '@components/ExistingField.vue';
 
 export default {
     name: 'ExistingFieldModal',
@@ -129,6 +127,7 @@ export default {
 
     data() {
         return {
+            showModal: false,
             pageIndex: 0,
             search: '',
             selectedKey: '',
@@ -165,21 +164,21 @@ export default {
 
         submitText() {
             if (this.totalSelected > 1) {
-                return this.$options.filters.t('Add {num} as new fields', 'formie', { num: this.totalSelected });
+                return Craft.t('formie', 'Add {num} as new fields', { num: this.totalSelected });
             } else if (this.totalSelected > 0) {
-                return this.$options.filters.t('Add {num} as new field', 'formie', { num: this.totalSelected });
+                return Craft.t('formie', 'Add {num} as new field', { num: this.totalSelected });
             } else {
-                return this.$options.filters.t('Add as new field', 'formie');
+                return Craft.t('formie', 'Add as new field');
             }
         },
 
         syncedText() {
             if (this.totalSelected > 1) {
-                return this.$options.filters.t('Add {num} as synced fields', 'formie', { num: this.totalSelected });
+                return Craft.t('formie', 'Add {num} as synced fields', { num: this.totalSelected });
             } else if (this.totalSelected > 0) {
-                return this.$options.filters.t('Add {num} as synced field', 'formie', { num: this.totalSelected });
+                return Craft.t('formie', 'Add {num} as synced field', { num: this.totalSelected });
             } else {
-                return this.$options.filters.t('Add as synced field', 'formie');
+                return Craft.t('formie', 'Add as synced field');
             }
         },
     },
@@ -195,13 +194,14 @@ export default {
     },
 
     methods: {
-        showModal() {
-            this.$refs.modal.showModal();
+        openModal() {
+            this.showModal = true;
         },
 
-        hideModal() {
+        closeModal() {
             this.selectedFields = [];
-            this.$refs.modal.hideModal();
+
+            this.showModal = false;
         },
 
         selectTab(key) {
@@ -249,7 +249,7 @@ export default {
                 this.$store.dispatch('form/appendRow', payload);
             }
 
-            this.hideModal();
+            this.closeModal();
         },
 
         addSynced() {
@@ -279,7 +279,7 @@ export default {
                 this.$store.dispatch('form/appendRow', payload);
             }
 
-            this.hideModal();
+            this.closeModal();
         },
     },
 };

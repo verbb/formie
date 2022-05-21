@@ -1,10 +1,58 @@
+<template>
+    <div class="fui-fields-pane">
+        <div class="fui-fields-wrapper">
+             <div class="fui-tabs fui-field-tabs fui-editor-tabs">
+                <field-page-tabs v-model="activePage" />
+            </div>
+
+            <div class="fui-fields-inner-wrapper">
+                <div class="fui-fields-scroll">
+                    <div
+                        v-for="(page, index) in pages"
+                        :id="'tab-fields-page-' + page.id"
+                        :key="page.id"
+                        class="fui-tab-page"
+                        :class="{ 'hidden': activePage != '#tab-fields-page-' + (index + 1) }"
+                    >
+                        <field-page ref="pages" :page-index="index" v-bind="page" />
+                    </div>
+                </div>
+            </div> 
+        </div>
+
+        <div class="fui-sidebar-wrapper">
+            <div class="fui-sidebar-scroll">
+                <div v-if="existingFields && existingFields.length">
+                    <h6 class="sidebar-title">{{ t('formie', 'Existing fields') }}</h6>
+
+                    <existing-field-modal></existing-field-modal>
+
+                    <hr>
+                </div>
+
+                <div v-for="(group, index) in enabledFieldGroups" :key="index">
+                    <h6 class="sidebar-title">{{ group.label }}</h6>
+
+                    <div class="fui-row small-padding">
+                        <div v-for="(field, i) in group.fields" :key="i" class="fui-col-6">
+                            <field-pill :type="field.type" />
+                        </div>
+                    </div>
+
+                    <hr v-if="index != Object.keys(enabledFieldGroups).length - 1">
+                </div>
+            </div>
+        </div>
+    </div>
+</template>
+
 <script>
 import { mapState } from 'vuex';
 
-import FieldPage from './FieldPage.vue';
-import FieldPageTabs from './FieldPageTabs.vue';
-import FieldPill from './FieldPill.vue';
-import ExistingFieldModal from './ExistingFieldModal.vue';
+import FieldPage from '@components/FieldPage.vue';
+import FieldPageTabs from '@components/FieldPageTabs.vue';
+import FieldPill from '@components/FieldPill.vue';
+import ExistingFieldModal from '@components/ExistingFieldModal.vue';
 
 // Touch support for drag/drop
 import { polyfill } from 'mobile-drag-drop';
@@ -87,3 +135,12 @@ export default {
 };
 
 </script>
+
+<style lang="scss">
+
+// Fix height scrolling weirdness from Craft
+#main-content:not(.has-sidebar):not(.has-details) #content-container {
+    min-height: auto !important;
+}
+
+</style>

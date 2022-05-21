@@ -1,10 +1,10 @@
 // CSS needs to be imported here as it's treated as a module
 import '../scss/formie-widgets.scss';
 
-import './vendor/chart-js/Chart.bundle.min.js';
-import './vendor/moment/moment-with-locales.min.js';
-import './vendor/chartjs-adapter-moment/chartjs-adapter-moment.min.js';
-import './vendor/deepmerge/umd.js';
+// import './vendor/chart-js/Chart.bundle.min.js';
+// import './vendor/moment/moment-with-locales.min.js';
+// import './vendor/chartjs-adapter-moment/chartjs-adapter-moment.min.js';
+// import './vendor/deepmerge/umd.js';
 
 if (typeof Craft.Formie === typeof undefined) {
     Craft.Formie = {};

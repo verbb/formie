@@ -1,48 +1,33 @@
 <template>
-    <portal :to="to">
-        <transition name="fui-modal-fade">
-            <div v-if="created" class="modal-shade fui-modal-shade" :class="{ hidden: !visible }">
-                <div class="fui-modal-shade-close" @click.prevent="hideModal"></div>
+    <vue-final-modal :name="id" :ssr="false" v-slot="{ params, close }" v-bind="$attrs" :z-index-auto="true" z-index-base="100" :esc-to-close="true" attach="body" :classes="['fui-modal', modalClass]" content-class="fui-modal-wrap" overlay-class="fui-modal-overlay" transition="fui-modal" overlay-transition="fui-modal">
+        <header v-if="showHeader" id="modalTitle" class="fui-modal-header">
+            <slot name="header"></slot>
+        </header>
 
-                <div class="modal fui-modal" :class="[modalClass, { 'has-header': showHeader, 'has-footer': showFooter }]" role="dialog" aria-labelledby="modalTitle" aria-describedby="modalDescription">
-                    <header v-if="showHeader" id="modalTitle" class="fui-modal-header">
-                        <slot name="header"></slot>
-                    </header>
+        <section id="modalDescription" class="fui-modal-body">
+            <slot name="body"></slot>
+        </section>
 
-                    <section id="modalDescription" class="fui-modal-body">
-                        <slot name="body"></slot>
-                    </section>
-
-                    <footer v-if="showFooter" class="footer fui-modal-footer">
-                        <slot name="footer"></slot>
-                    </footer>
-
-                    <div class="resizehandle"></div>
-                </div>
-            </div>
-        </transition>
-    </portal>
+        <footer v-if="showFooter" class="fui-modal-footer">
+            <slot name="footer"></slot>
+        </footer>
+    </vue-final-modal>
 </template>
 
 <script>
+import { VueFinalModal, $vfm } from 'vue-final-modal';
 
 export default {
     name: 'Modal',
 
-    props: {
-        to: {
-            type: String,
-            default: 'modals',
-        },
+    components: {
+        VueFinalModal,
+      },
 
+    props: {
         modalClass: {
             type: [String, Array],
             default: '',
-        },
-
-        isVisible: {
-            type: Boolean,
-            default: false,
         },
 
         showHeader: {
@@ -58,49 +43,24 @@ export default {
 
     data() {
         return {
-            created: false,
-            visible: false,
+            id: this.$id('modal'),
         };
-    },
-
-    mounted() {
-        // Allow props to set the state immediately
-        if (this.isVisible) {
-            this.visible = true;
-            this.created = true;
-        }
     },
 
     methods: {
         showModal() {
-            this.visible = true;
-            this.created = true;
+            setTimeout(() => {
+                $vfm.show(this.id)
+            }, 10)
         },
 
-        hideModal() {
-            this.created = false;
-            this.visible = false;
-
-            this.$emit('close');
-        },
-
-        createModal() {
-            // Control the rendered state of this modal. We sometimes want to trigger the rendering of content
-            // for things like form validation, which won't work if the contents are hidden with v-if.
-            // This method is usually called before validation.
-            this.created = true;
-
-            // Return a promise for the next DOM update, now that created has been set. This will take a little
-            // bit of effort the first time, for larger fields, but will be much faster the next round.
-            // We can listen on the callback to know when we're done with the render.
-            return this.$nextTick();
-        },
-
-        destroyModal() {
-            this.created = false;
-            this.visible = false;
-
-            this.$emit('destroy');
+        close() {
+            // Programatically close the modal, so that we can update the `v-model` *after* the transition has occurred.
+            // This is because we often use `v-if` for performance above this high-order component, but that won't work well with transitions.
+            // Also give it a sec to be ready.
+            setTimeout(() => {
+                $vfm.hide(this.id)
+            }, 10)
         },
     },
 };
@@ -109,40 +69,51 @@ export default {
 
 <style lang="scss">
 
-.fui-modal-fade-enter,
-.fui-modal-fade-leave-active {
-    opacity: 0;
+.vfm {
+    position: fixed !important;
 }
 
-.fui-modal-fade-enter-active,
-.fui-modal-fade-leave-active {
-    transition: opacity 0.3s ease;
+.fui-modal-overlay {
+    background-color: rgba(123, 135, 147, 0.35) !important;
 }
 
-.fui-modal-shade {
+.fui-modal {
     display: flex;
     justify-content: center;
     align-items: center;
+
+    // Fix some colour-banding issues with modal box-shadow which only happens
+    // with `position: absolute`.
+    position: fixed !important;
 }
 
-.fui-modal-shade-close {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
+.fui-modal-wrap {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    margin: 1rem;
+    max-height: 100%;
+    border-radius: 5px;
+    background-color: #fff;
+    box-shadow: 0 25px 100px rgba(31, 41, 51, 0.5);
+    z-index: 100;
+    overflow: hidden;
+
+    width: 66%;
+    height: 66%;
+    min-width: 600px;
+    min-height: 400px;
 }
 
 .fui-modal-header {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
+    width: 100%;
     background-color: #f3f7fc;
     box-shadow: inset 0 -1px 0 rgba(51, 64, 77, 0.1);
     padding: 10px 24px;
     display: flex;
     align-items: center;
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
 }
 
 .fui-modal-title {
@@ -175,25 +146,35 @@ export default {
     overflow: auto;
 }
 
-.has-header .fui-modal-body {
-    top: 50px;
-    height: calc(100% - 62px);
-}
-
-.has-header.has-footer .fui-modal-body {
-    height: calc(100% - 112px);
-}
-
 .fui-modal-content {
     padding: 24px;
 }
 
 .fui-modal-footer {
-    bottom: 0;
-    left: 0;
-    margin: 0;
-    position: absolute;
     width: 100%;
+    background-color: #e4edf6;
+    box-shadow: inset 0 1px 0 rgba(51, 64, 77, 0.1);
+    padding: 10px 24px;
+    border-bottom-left-radius: 5px;
+    border-bottom-right-radius: 5px;
+
+    & > .buttons {
+        margin: 0;
+    }
+}
+
+//
+// Transitions
+//
+
+.fui-modal-enter-active,
+.fui-modal-leave-active {
+    transition: opacity 0.2s ease;
+}
+
+.fui-modal-enter-from,
+.fui-modal-leave-to {
+    opacity: 0;
 }
 
 </style>

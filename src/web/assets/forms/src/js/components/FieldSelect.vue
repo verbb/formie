@@ -11,7 +11,7 @@
         <div class="fui-element-mapping input ltr">
             <div class="select">
                 <select v-model="proxyValue" :name="name">
-                    <option value="">{{ 'Always Opt-in' | t('formie') }}</option>
+                    <option value="">{{ t('formie', 'Always Opt-in') }}</option>
 
                     <option v-for="(option, j) in getFieldOptions()" :key="j" :value="option.value">
                         {{ option.label }}
@@ -23,9 +23,9 @@
 </template>
 
 <script>
-import truncate from 'lodash/truncate';
+import { truncate } from 'lodash-es';
 
-import { toBoolean } from '../utils/bool';
+import { toBoolean } from '@utils/bool';
 
 export default {
     name: 'FieldSelect',
@@ -51,7 +51,7 @@ export default {
             default: '',
         },
 
-        value: {
+        modelValue: {
             type: String,
             default: '',
         },
@@ -67,7 +67,7 @@ export default {
     },
 
     created() {
-        this.proxyValue = this.value || '';
+        this.proxyValue = this.modelValue || '';
     },
 
     methods: {

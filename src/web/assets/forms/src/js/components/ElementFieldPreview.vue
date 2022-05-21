@@ -16,7 +16,7 @@
                 <label>{{ option.label }}</label>
             </div>
 
-            <div v-if="total > options.length" class="fui-field-instructions">... {{ total - options.length }} {{ 'more' | t('formie') }}</div>
+            <div v-if="total > options.length" class="fui-field-instructions">... {{ total - options.length }} {{ t('formie', 'more') }}</div>
         </div>
 
         <div v-if="field.settings.displayType == 'radio'">
@@ -25,14 +25,14 @@
                 <label>{{ option.label }}</label>
             </div>
 
-            <div v-if="total > options.length" class="fui-field-instructions">... {{ total - options.length }} {{ 'more' | t('formie') }}</div>
+            <div v-if="total > options.length" class="fui-field-instructions">... {{ total - options.length }} {{ t('formie', 'more') }}</div>
         </div>
     </div>
 </template>
 
 <script>
 
-import debounce from 'lodash/debounce';
+import { debounce } from 'lodash-es';
 
 export default {
     name: 'ElementFieldPreview',
@@ -107,7 +107,9 @@ export default {
                 return;
             }
 
-            this.$axios.post(Craft.getActionUrl('formie/fields/get-element-select-options'), { field: this.field }).then((response) => {
+            var data = { field: this.field };
+
+            Craft.sendActionRequest('POST', 'formie/fields/get-element-select-options', { data }).then((response) => {
                 this.options = response.data.options;
                 this.total = response.data.total;
             });

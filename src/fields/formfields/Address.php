@@ -548,7 +548,7 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
                     'label' => Craft::t('formie', 'Auto-Complete Integration'),
                     'help' => Craft::t('formie', 'Select which address provider this field should use.'),
                     'name' => 'autocompleteIntegration',
-                    'validation' => 'requiredIf:autocompleteEnabled',
+                    'validation' => 'requiredIf:' . $nestedField['handle'] . 'Enabled',
                     'required' => true,
                     'options' => array_merge(
                         [['label' => Craft::t('formie', 'Select an option'), 'value' => '']],
@@ -616,12 +616,11 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
                     'help' => Craft::t('formie', 'Whether this field should be required when filling out the form.'),
                     'name' => $nestedField['handle'] . 'Required',
                 ]),
-                SchemaHelper::toggleContainer('settings.' . $nestedField['handle'] . 'Required', [
-                    SchemaHelper::textField([
-                        'label' => Craft::t('formie', 'Error Message'),
-                        'help' => Craft::t('formie', 'When validating the form, show this message if an error occurs. Leave empty to retain the default message.'),
-                        'name' => $nestedField['handle'] . 'ErrorMessage',
-                    ]),
+                SchemaHelper::textField([
+                    'label' => Craft::t('formie', 'Error Message'),
+                    'help' => Craft::t('formie', 'When validating the form, show this message if an error occurs. Leave empty to retain the default message.'),
+                    'name' => $nestedField['handle'] . 'ErrorMessage',
+                    'if' => '$get(' . $nestedField['handle'] . 'Required).value',
                 ]),
             ];
 
@@ -632,12 +631,11 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
                     'name' => $nestedField['handle'] . 'Hidden',
                 ]);
             } else {
-                $subfields[] = SchemaHelper::toggleContainer('settings.autocompleteIntegration=googlePlaces', [
-                    SchemaHelper::lightswitchField([
-                        'label' => Craft::t('formie', 'Show Current Location Button'),
-                        'help' => Craft::t('formie', 'Whether this field should show a "Use my location" button.'),
-                        'name' => $nestedField['handle'] . 'CurrentLocation',
-                    ]),
+                $subfields[] = SchemaHelper::lightswitchField([
+                    'label' => Craft::t('formie', 'Show Current Location Button'),
+                    'help' => Craft::t('formie', 'Whether this field should show a "Use my location" button.'),
+                    'name' => $nestedField['handle'] . 'CurrentLocation',
+                    'if' => '$get(autocompleteIntegration).value == googlePlaces',
                 ]);
             }
 
@@ -645,13 +643,16 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
                 'name' => $nestedField['handle'] . 'PrePopulate',
             ]);
 
-            $fields[] = SchemaHelper::toggleBlock([
+            $toggleBlock = SchemaHelper::toggleBlock([
                 'blockLabel' => $nestedField['label'],
                 'blockHandle' => $nestedField['handle'],
                 'showToggle' => false,
                 'showEnabled' => false,
-                'showOnlyIfEnabled' => true,
             ], $subfields);
+
+            $toggleBlock['if'] = '$get(' . $nestedField['handle'] . 'Enabled).value';
+
+            $fields[] = $toggleBlock;
         }
 
         return $fields;

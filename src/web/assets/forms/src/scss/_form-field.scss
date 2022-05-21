@@ -216,6 +216,7 @@
         width: 16px;
         height: 16px;
         fill: #9da5af;
+        margin: auto;
     }
 
     &:after {
@@ -223,7 +224,7 @@
     }
 
     &:hover svg {
-        fill: #333;
+        fill: #33475b;
     }
 
     &:hover {
@@ -476,6 +477,7 @@
     border: 1px solid rgba(51, 64, 77, 0.1);
     background-color: #f3f7fc;
     outline: none;
+    overflow: hidden;
 
     &.has-errors {
         border-color: #EF4E4E;
@@ -487,7 +489,7 @@
     display: flex;
     align-items: center;
     padding: 10px;
-    border-bottom: 1px solid rgba(51, 64, 77, 0.1);
+    box-shadow: 0 1px 0 rgba(51, 64, 77, 0.1);
     
     .has-errors & {
         background-color: rgba(207, 17, 36, 0.1);

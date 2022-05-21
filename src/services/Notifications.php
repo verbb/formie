@@ -20,6 +20,7 @@ use craft\elements\Asset;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Db;
 use craft\helpers\Json;
+use craft\helpers\StringHelper;
 
 use yii\base\Component;
 use yii\db\Exception;
@@ -348,6 +349,11 @@ class Notifications extends Component
         $formNotifications = array_merge(...$formNotifications);
         $stencilNotifications = array_merge(...$stencilNotifications);
 
+        // Stencils will always have no ID, so generate one
+        foreach ($stencilNotifications as $key => $stencilNotification) {
+            $stencilNotifications[$key]['id'] = StringHelper::appendRandomString('new', 16);
+        }
+
         $existingNotifications[] = [
             'key' => '*',
             'label' => Craft::t('formie', 'All notifications'),
@@ -466,12 +472,11 @@ class Notifications extends Component
 
                 $fieldSchema = $this->$methodName();
 
-                // Formulate uses the name instead of the label for the validation error, so change that
-                SchemaHelper::setFieldValidationName($fieldSchema);
-
                 $fields[] = [
-                    'component' => 'tab-panel',
-                    'data-tab-panel' => $tabLabel,
+                    '$cmp' => 'TabPanel',
+                    'attrs' => [
+                        'data-tab-panel' => $tabLabel,
+                    ],
                     'children' => $fieldSchema,
                 ];
 
@@ -487,8 +492,10 @@ class Notifications extends Component
             'tabsSchema' => $tabs,
             'fieldsSchema' => [
                 [
-                    'component' => 'tab-panels',
-                    'class' => 'fui-modal-content',
+                    '$cmp' => 'TabPanels',
+                    'attrs' => [
+                        'class' => 'fui-modal-content',
+                    ],
                     'children' => $fields,
                 ],
             ],
@@ -527,24 +534,23 @@ class Notifications extends Component
                     ['label' => Craft::t('formie', 'Conditions'), 'value' => 'conditions'],
                 ],
             ]),
-            SchemaHelper::toggleContainer('recipients=email', [
-                SchemaHelper::variableTextField([
-                    'label' => Craft::t('formie', 'Recipient Emails'),
-                    'help' => Craft::t('formie', 'Email addresses who receive this email notification. Separate multiple emails with a comma.'),
-                    'name' => 'to',
-                    'validation' => 'requiredIfEqual:recipients=email',
-                    'required' => true,
-                    'variables' => 'emailVariables',
-                ]),
+            SchemaHelper::variableTextField([
+                'label' => Craft::t('formie', 'Recipient Emails'),
+                'help' => Craft::t('formie', 'Email addresses who receive this email notification. Separate multiple emails with a comma.'),
+                'name' => 'to',
+                'validation' => 'required',
+                'required' => true,
+                'variables' => 'emailVariables',
+                'if' => '$get(recipients).value == email',
             ]),
-            SchemaHelper::toggleContainer('recipients=conditions', [
-                [
-                    'label' => Craft::t('formie', 'Recipient Conditions'),
-                    'help' => Craft::t('formie', 'Add conditional logic to determine which email addresses receive this email notification.'),
-                    'type' => 'notificationRecipientConditions',
-                    'name' => 'toConditions',
-                ],
-            ]),
+            [
+                '$formkit' => 'notificationRecipients',
+                'label' => Craft::t('formie', 'Recipient Conditions'),
+                'help' => Craft::t('formie', 'Add conditional logic to determine which email addresses receive this email notification.'),
+                'name' => 'toConditions',
+                'id' => 'toConditions',
+                'if' => '$get(recipients).value == conditions',
+            ],
             SchemaHelper::variableTextField([
                 'label' => Craft::t('formie', 'Subject'),
                 'help' => Craft::t('formie', 'The subject of the email notification.'),
@@ -582,14 +588,14 @@ class Notifications extends Component
                 'label' => Craft::t('formie', 'From Email'),
                 'help' => Craft::t('formie', 'The email address the notification email will be sent from. Leave empty to use the default email address'),
                 'name' => 'from',
-                'validation' => 'optional|emailOrVariable',
+                'validation' => '?emailOrVariable',
                 'variables' => 'emailVariables',
             ]),
             SchemaHelper::variableTextField([
                 'label' => Craft::t('formie', 'Reply-To Email'),
                 'help' => Craft::t('formie', 'The email address to be used as the reply to address for the notification email.'),
                 'name' => 'replyTo',
-                'validation' => 'optional|emailOrVariable',
+                'validation' => '?emailOrVariable',
                 'variables' => 'emailVariables',
             ]),
             SchemaHelper::variableTextField([
@@ -654,13 +660,12 @@ class Notifications extends Component
                 'help' => Craft::t('formie', 'Whether to attach a PDF template to this email notification.'),
                 'name' => 'attachPdf',
             ]),
-            SchemaHelper::toggleContainer('attachPdf', [
-                SchemaHelper::selectField([
-                    'label' => Craft::t('formie', 'PDF Template'),
-                    'help' => Craft::t('formie', 'Select a template to use for the PDF, or leave empty to use Formie‘s default.'),
-                    'name' => 'pdfTemplateId',
-                    'options' => $pdfTemplates,
-                ]),
+            SchemaHelper::selectField([
+                'label' => Craft::t('formie', 'PDF Template'),
+                'help' => Craft::t('formie', 'Select a template to use for the PDF, or leave empty to use Formie‘s default.'),
+                'name' => 'pdfTemplateId',
+                'options' => $pdfTemplates,
+                'if' => '$get(attachPdf).value',
             ]),
         ];
     }
@@ -674,14 +679,16 @@ class Notifications extends Component
     {
         return [
             [
-                'component' => 'notification-preview',
+                '$cmp' => 'NotificationPreview',
             ],
             [
-                'component' => 'hr',
+                '$el' => 'hr',
             ],
             [
-                'component' => 'notification-test',
-                'user-email' => Craft::$app->getUser()->getIdentity()->email ?? '',
+                '$cmp' => 'NotificationTest',
+                'props' => [
+                    'userEmail' => Craft::$app->getUser()->getIdentity()->email ?? '',
+                ],
             ],
         ];
     }
@@ -699,12 +706,11 @@ class Notifications extends Component
                 'help' => Craft::t('formie', 'Whether to enable conditional logic to control how this email notification is sent.'),
                 'name' => 'enableConditions',
             ]),
-            SchemaHelper::toggleContainer('enableConditions', [
-                [
-                    'type' => 'notificationConditions',
-                    'name' => 'conditions',
-                ],
-            ]),
+            [
+                '$formkit' => 'notificationConditions',
+                'name' => 'conditions',
+                'if' => '$get(enableConditions).value',
+            ],
         ];
     }
 

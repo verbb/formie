@@ -6,7 +6,7 @@
                 <strong>{{ notification.name }}</strong>
             </a>
             
-            <span v-if="isUnsaved" class="fui-unsaved-pill">{{ 'Unsaved' | t('formie') }}</span>
+            <span v-if="isUnsaved" class="fui-unsaved-pill">{{ t('formie', 'Unsaved') }}</span>
         </td>
 
         <td class="">
@@ -14,7 +14,7 @@
         </td>
 
         <td>
-            <a :title="$options.filters.t('Duplicate', 'formie')" role="button" href="#" class="fui-icon" @click.prevent="duplicateNotification">
+            <a :title="t('formie', 'Duplicate')" role="button" href="#" class="fui-icon" @click.prevent="duplicateNotification">
                 <svg
                     aria-hidden="true" focusable="false" data-prefix="fas" data-icon="clone" class="svg-inline--fa fa-clone fa-w-16"
                     role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"
@@ -23,26 +23,26 @@
         </td>
 
         <td>
-            <a :title="$options.filters.t('Delete', 'formie')" role="button" href="#" class="delete icon" @click.prevent="deleteNotification"></a>
+            <a :title="t('formie', 'Delete')" role="button" href="#" class="delete icon" @click.prevent="deleteNotification"></a>
         </td>
 
         <notification-edit-modal
-            v-if="modalActive"
-            ref="editNotificationModal"
-            :visible="modalVisible"
-            :notification="notification"
+            v-if="showModal"
+            v-model:showModal="showModal"
+            v-model:notification="notification"
+            :notification-ref="this"
             :fields-schema="schema.fieldsSchema"
             :tabs-schema="schema.tabsSchema"
-            @close="onModalClose"
             @delete="deleteNotification"
+            @closed="onModalClosed"
         />
     </tr>
 </template>
 
 <script>
-import { newId } from '../utils/string';
+import { newId } from '@utils/string';
 
-import NotificationEditModal from './NotificationEditModal.vue';
+import NotificationEditModal from '@components/NotificationEditModal.vue';
 
 export default {
     name: 'Notification',
@@ -65,8 +65,7 @@ export default {
 
     data() {
         return {
-            modalActive: false,
-            modalVisible: false,
+            showModal: false,
         };
     },
 
@@ -85,16 +84,18 @@ export default {
     },
 
     mounted() {
-        // noinspection EqualityComparisonWithCoercionJS
         if (this.notification.id == 1) {
             // this.editNotification();
         }
     },
 
     methods: {
-        editNotification() {
-            this.modalActive = true;
-            this.modalVisible = true;
+        openModal() {
+            this.showModal = true;
+        },
+
+        onModalClosed() {
+            this.showModal = false;
         },
 
         addNotification() {
@@ -107,7 +108,7 @@ export default {
             }
 
             // Update the form state to trigger content-change warnings
-            this.$set(this.$store.state.form.pages[0], 'notificationFlag', true);
+            this.$store.state.form.pages[0].notificationFlag = true;
         },
 
         deleteNotification() {
@@ -122,12 +123,12 @@ export default {
                 this.$store.dispatch('notifications/deleteNotification', payload);
 
                 // Update the form state to trigger content-change warnings
-                this.$set(this.$store.state.form.pages[0], 'notificationFlag', true);
+                this.$store.state.form.pages[0].notificationFlag = true;
             }
         },
 
         duplicateNotification() {
-            const newNotification = clone(this.notification);
+            const newNotification = this.clone(this.notification);
             newNotification['id'] = newId();
             
             delete newNotification['errors'];
@@ -139,12 +140,7 @@ export default {
             });
 
             // Update the form state to trigger content-change warnings
-            this.$set(this.$store.state.form.pages[0], 'notificationFlag', true);
-        },
-
-        onModalClose() {
-            this.modalActive = false;
-            this.modalVisible = false;
+            this.$store.state.form.pages[0].notificationFlag = true;
         },
     },
 
