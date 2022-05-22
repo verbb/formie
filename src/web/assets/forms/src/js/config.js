@@ -5,7 +5,7 @@ import mitt from 'mitt';
 import VTooltip from 'floating-vue';
 import { vfmPlugin } from 'vue-final-modal';
 import VueUniqueId from '@/js/vendor/vue-unique-id';
-import { plugin as formkitPlugin} from '@formkit/vue';
+import { plugin as formkitPlugin } from '@formkit/vue';
 import formkitConfig from './config.formkit';
 
 import store from '@/js/store';

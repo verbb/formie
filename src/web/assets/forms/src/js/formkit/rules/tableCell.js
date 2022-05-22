@@ -6,21 +6,21 @@ const checkDuplicates = function(options, field) {
         return counter;
     }, {});
 
-    return Object.keys(occurrences).filter(item => {
+    return Object.keys(occurrences).filter((item) => {
         return occurrences[item] > 1 ? item : false;
     });
 };
 
 const required = function(node, prop) {
-    const options = node.at(`$root.${node.name}`)?.value
-    const columns = node.context.attrs?.columns
+    const options = node.at(`$root.${node.name}`)?.value;
+    const columns = node.context.attrs?.columns;
 
     if (!Array.isArray(options) || !Array.isArray(columns)) {
         return true;
     }
 
-    const emptyFields = options.filter(row => {
-        const valueKey = columns.find(o => o.type === prop).name || prop;
+    const emptyFields = options.filter((row) => {
+        const valueKey = columns.find((o) => { return o.type === prop; }).name || prop;
 
         // Opt-groups cancel out values
         if (prop === 'value' && row.isOptgroup) {
@@ -42,8 +42,8 @@ const required = function(node, prop) {
 };
 
 const unique = function(node, prop) {
-    let options = node.at(`$root.${node.name}`)?.value
-    const columns = node.context.attrs?.columns
+    let options = node.at(`$root.${node.name}`)?.value;
+    const columns = node.context.attrs?.columns;
 
     if (prop === 'label') {
         node.config.labelsWithError = [];
@@ -55,15 +55,15 @@ const unique = function(node, prop) {
         return true;
     }
 
-    const value = columns.find(o => o.type === prop).name || prop;
+    const value = columns.find((o) => { return o.type === prop; }).name || prop;
 
     if (prop === 'value') {
-        options = options.filter(option => !option.isOptgroup);
+        options = options.filter((option) => { return !option.isOptgroup; });
     }
 
     const duplicates = checkDuplicates(options, value);
 
-    duplicates.forEach(duplicate => {
+    duplicates.forEach((duplicate) => {
         if (prop === 'value') {
             node.config.valuesWithError.push(duplicate);
         } else if (prop === 'label') {
@@ -75,19 +75,21 @@ const unique = function(node, prop) {
 };
 
 const requiredTableCellLabel = (node) => {
-    return required(node, 'label')
+    return required(node, 'label');
 };
 
 const requiredTableCellValue = (node) => {
-    return required(node, 'value')
+    return required(node, 'value');
 };
 
 const uniqueTableCellLabel = (node) => {
-    return unique(node, 'label')
+    return unique(node, 'label');
 };
 
 const uniqueTableCellValue = (node) => {
-    return unique(node, 'value')
+    return unique(node, 'value');
 };
 
-export { requiredTableCellLabel, requiredTableCellValue, uniqueTableCellLabel, uniqueTableCellValue };
+export {
+    requiredTableCellLabel, requiredTableCellValue, uniqueTableCellLabel, uniqueTableCellValue,
+};

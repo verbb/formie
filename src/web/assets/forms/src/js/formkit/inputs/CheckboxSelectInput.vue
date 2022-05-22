@@ -46,7 +46,7 @@ export default {
 
             // Check if we need to normalise
             if (this.context.attrs.options[0] && !this.context.attrs.options[0].label) {
-                this.context.attrs.options.forEach(value => {
+                this.context.attrs.options.forEach((value) => {
                     options.push({
                         label: value,
                         value,
@@ -82,7 +82,7 @@ export default {
         },
 
         onInput(e) {
-            let { checked, value } = e.target;
+            const { checked, value } = e.target;
 
             if (value === '*') {
                 if (checked) {

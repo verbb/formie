@@ -20,15 +20,15 @@ import { get } from 'lodash-es';
 import Multiselect from 'vue-multiselect';
 
 export default {
+    components: {
+        Multiselect,
+    },
+
     props: {
         context: {
             type: Object,
             default: () => {},
         },
-    },
-
-    components: {
-        Multiselect,
     },
 
     computed: {

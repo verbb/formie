@@ -55,7 +55,7 @@ export default {
 
         // Create dynamic data variables based on whatever variables we pass in
         if (this.values) {
-            Object.keys(this.values).forEach(prop => {
+            Object.keys(this.values).forEach((prop) => {
                 this.model[prop] = this.values[prop];
             });
         }
@@ -75,23 +75,23 @@ export default {
         },
 
         getSourceFields(key) {
-            var fields = [];
+            let fields = [];
 
             if (this.sourceId) {
-                var sources = get(this.settings, key, []);
+                const sources = get(this.settings, key, []);
 
                 // Check for nested array - some integrations use optgroups
                 if (Array.isArray(sources)) {
-                    sources.forEach(item => {
+                    sources.forEach((item) => {
                         if (item.id === this.sourceId) {
                             // eslint-disable-next-line
                             fields = item.fields;
                         }
                     });
                 } else {
-                    Object.keys(sources).forEach(key => {
+                    Object.keys(sources).forEach((key) => {
                         if (Array.isArray(sources[key])) {
-                            sources[key].forEach(item => {
+                            sources[key].forEach((item) => {
                                 if (item.id === this.sourceId) {
                                     // eslint-disable-next-line
                                     fields = item.fields;
@@ -104,7 +104,7 @@ export default {
 
             return fields;
         },
-                      
+
         refresh(payloadParams = {}) {
             this.success = false;
             this.error = false;
@@ -125,9 +125,9 @@ export default {
                     this.error = true;
 
                     this.errorMessage = Craft.t('formie', 'An error occurred.');
-                
+
                     if (response.data.error) {
-                        this.errorMessage += '<br><code>' + response.data.error + '</code>';
+                        this.errorMessage += `<br><code>${response.data.error}</code>`;
                     }
 
                     return;
@@ -135,14 +135,14 @@ export default {
 
                 this.settings = response.data;
                 this.success = true;
-            }).catch(error => {
+            }).catch((error) => {
                 this.loading = false;
                 this.error = true;
 
                 this.errorMessage = error;
-                
+
                 if (error.response.data.error) {
-                    this.errorMessage += '<br><code>' + error.response.data.error + '</code>';
+                    this.errorMessage += `<br><code>${error.response.data.error}</code>`;
                 }
             });
         },

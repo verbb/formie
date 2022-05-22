@@ -25,6 +25,8 @@ export default {
         FieldEditTab,
     },
 
+    emits: ['selected'],
+
     props: {
         pages: {
             type: Array,

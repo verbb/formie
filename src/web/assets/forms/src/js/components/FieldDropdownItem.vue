@@ -31,6 +31,8 @@ export default {
         },
     },
 
+    emits: ['clicked'],
+
     methods: {
         click(event) {
             this.$emit('clicked', this.action);

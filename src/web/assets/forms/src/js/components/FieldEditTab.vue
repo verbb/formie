@@ -17,6 +17,8 @@ import { kebabCase } from 'lodash-es';
 export default {
     name: 'FieldEditTab',
 
+    emits: ['selected'],
+
     props: {
         pageIndex: {
             type: Number,
@@ -59,7 +61,6 @@ export default {
 
     methods: {
         selectTab(event) {
-            // this.$emit('selected', this.hash);
             this.$emit('selected', this.handle);
         },
     },

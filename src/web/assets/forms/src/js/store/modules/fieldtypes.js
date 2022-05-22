@@ -42,43 +42,47 @@ const actions = {
 // Getters are primarily used to perform some calculation/manipulation to store state
 // before having that information accessible to components.
 const getters = {
-    fieldtype: (state) => (type) => {
-        let fieldtype = find(state, { type });
+    fieldtype: (state) => {
+        return (type) => {
+            let fieldtype = find(state, { type });
 
-        if (!fieldtype) {
-            fieldtype = find(state, { type: 'verbb\\formie\\fields\\formfields\\MissingField' });
-        }
+            if (!fieldtype) {
+                fieldtype = find(state, { type: 'verbb\\formie\\fields\\formfields\\MissingField' });
+            }
 
-        return fieldtype;
+            return fieldtype;
+        };
     },
 
-    newField: (state) => (type, settings) => {
-        let field = find(state, { type });
+    newField: (state) => {
+        return (type, settings) => {
+            let field = find(state, { type });
 
-        // Just in case
-        if (!field) {
-            field = find(state, { type: 'verbb\\formie\\fields\\formfields\\MissingField' });
-        }
+            // Just in case
+            if (!field) {
+                field = find(state, { type: 'verbb\\formie\\fields\\formfields\\MissingField' });
+            }
 
-        const newField = {
-            vid: newId(),
-            type,
-            columnWidth: 12,
-            hasLabel: field.hasLabel,
-            settings: Object.assign({}, clone(field.defaults)),
+            const newField = {
+                vid: newId(),
+                type,
+                columnWidth: 12,
+                hasLabel: field.hasLabel,
+                settings: { ...clone(field.defaults) },
+            };
+
+            if (field.supportsNested) {
+                newField.rows = clone(field.rows);
+                newField.supportsNested = true;
+            }
+
+            // Allow other settings to be overridden
+            if (settings) {
+                Object.assign(newField, settings);
+            }
+
+            return newField;
         };
-
-        if (field.supportsNested) {
-            newField.rows = clone(field.rows);
-            newField.supportsNested = true;
-        }
-
-        // Allow other settings to be overridden
-        if (settings) {
-            Object.assign(newField, settings);
-        }
-
-        return newField;
     },
 };
 

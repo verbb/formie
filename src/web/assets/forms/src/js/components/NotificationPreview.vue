@@ -94,7 +94,7 @@ export default {
 
     computed: {
         ...mapState({
-            form: state => state.form,
+            form: (state) => { return state.form; },
         }),
 
         notification() {
@@ -110,14 +110,14 @@ export default {
     methods: {
         updateiFrame() {
             this.$nextTick().then(() => {
-                var $iframe = this.$el.querySelector('#email-iframe');
+                const $iframe = this.$el.querySelector('#email-iframe');
 
                 if ($iframe && this.email.body) {
-                    var doc = $iframe.contentWindow.document;
+                    const doc = $iframe.contentWindow.document;
 
                     if (doc) {
                         doc.open();
-                        doc.write('<html><head><title></title></head><body>' + this.email.body + '</body></html>');
+                        doc.write(`<html><head><title></title></head><body>${this.email.body}</body></html>`);
                         doc.close();
                     }
                 }
@@ -142,9 +142,9 @@ export default {
                     this.error = true;
 
                     this.errorMessage = Craft.t('formie', 'An error occurred.');
-                
+
                     if (response.data.error) {
-                        this.errorMessage += '<br><br><code>' + response.data.error + '</code>';
+                        this.errorMessage += `<br><br><code>${response.data.error}</code>`;
                     }
 
                     return;
@@ -153,14 +153,14 @@ export default {
                 this.email = response.data;
 
                 this.updateiFrame();
-            }).catch(error => {
+            }).catch((error) => {
                 this.loading = false;
                 this.error = true;
 
                 this.errorMessage = error;
-                
+
                 if (error.response.data.error) {
-                    this.errorMessage += '<br><br><code>' + error.response.data.error + '</code>';
+                    this.errorMessage += `<br><br><code>${error.response.data.error}</code>`;
                 }
             });
         },
@@ -170,10 +170,10 @@ export default {
                 return '';
             }
 
-            let [email] = Object.keys(object);
+            const [email] = Object.keys(object);
 
             if (object[email]) {
-                return object[email] + ' <' + email + '>';
+                return `${object[email]} <${email}>`;
             }
 
             return email;

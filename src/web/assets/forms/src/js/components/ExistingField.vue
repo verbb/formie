@@ -75,9 +75,11 @@ export default {
 
         rows: {
             type: Array,
-            default: () => ([]),
+            default: () => { return ([]); },
         },
     },
+
+    emits: ['selected'],
 
     computed: {
         fieldHandles() {
@@ -101,4 +103,3 @@ export default {
 };
 
 </script>
-

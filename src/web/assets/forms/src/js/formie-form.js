@@ -87,7 +87,7 @@ Craft.Formie.EditForm = Garnish.Base.extend({
             },
 
             watch: {
-                'form.templateId'(newValue, oldValue) {
+                'form.templateId': function(newValue, oldValue) {
                     // Prevent reloading tabs when empty string != null.
                     if (!newValue && !oldValue) {
                         return;
@@ -149,12 +149,12 @@ Craft.Formie.EditForm = Garnish.Base.extend({
 
                     // Filter out some unwanted data
                     if (pageData) {
-                        pageData.forEach(page => {
+                        pageData.forEach((page) => {
                             delete page.errors;
                             delete page.hasError;
 
-                            page.rows.forEach(row => {
-                                row.fields.forEach(field => {
+                            page.rows.forEach((row) => {
+                                row.fields.forEach((field) => {
                                     delete field.icon;
                                     delete field.errors;
                                     delete field.hasError;
@@ -168,7 +168,7 @@ Craft.Formie.EditForm = Garnish.Base.extend({
 
                     // Filter out some unwanted data
                     if (notificationsData) {
-                        notificationsData.forEach(notification => {
+                        notificationsData.forEach((notification) => {
                             delete notification.errors;
                             delete notification.hasError;
                         });
@@ -177,7 +177,7 @@ Craft.Formie.EditForm = Garnish.Base.extend({
                     data.append('pages', JSON.stringify(pageData));
                     data.append('notifications', JSON.stringify(notificationsData));
 
-                    Object.keys(options).forEach(option => {
+                    Object.keys(options).forEach((option) => {
                         data.append(option, options[option]);
                     });
 
@@ -185,13 +185,13 @@ Craft.Formie.EditForm = Garnish.Base.extend({
                 },
 
                 onSave(options = {}) {
-                    let isValid = true;
-                    let fieldsValid = true;
-                    let notificationsValid = true;
+                    const isValid = true;
+                    const fieldsValid = true;
+                    const notificationsValid = true;
 
-                    let $fieldsTab = document.querySelector('a[href="#tab-fields"]');
-                    let $notificationsTab = document.querySelector('a[href="#tab-notifications"]');
-                    let $integrationsTab = document.querySelector('a[href="#tab-integrations"]');
+                    const $fieldsTab = document.querySelector('a[href="#tab-fields"]');
+                    const $notificationsTab = document.querySelector('a[href="#tab-notifications"]');
+                    const $integrationsTab = document.querySelector('a[href="#tab-integrations"]');
 
                     if ($fieldsTab) {
                         $fieldsTab.classList.remove('error');
@@ -226,12 +226,12 @@ Craft.Formie.EditForm = Garnish.Base.extend({
                                 // stripped out. This is because we _have_ to strip them out as they need to be `null` to be saved properly.
                                 // But on failed validation, they're stripped out and we end up with all sorts of issues. This is the same for
                                 // rows. So - always ensure pages and rows have an ID.
-                                response.data.config.pages.forEach(page => {
+                                response.data.config.pages.forEach((page) => {
                                     if (!page.id) {
                                         page.id = newId();
                                     }
 
-                                    page.rows.forEach(row => {
+                                    page.rows.forEach((row) => {
                                         if (!row.id) {
                                             row.id = newId();
                                         }
@@ -248,7 +248,7 @@ Craft.Formie.EditForm = Garnish.Base.extend({
                                 this.onError(response.data);
                             }
                         }
-                    }).catch(error => {
+                    }).catch((error) => {
                         console.error(error);
 
                         this.onError(error);
@@ -265,7 +265,7 @@ Craft.Formie.EditForm = Garnish.Base.extend({
                         Craft.cp.displayNotice(Craft.t('formie', data.redirectMessage));
 
                         return window.location = data.redirect;
-                    } else if (!settings.isStencil) {
+                    } if (!settings.isStencil) {
                         history.replaceState({}, '', Craft.getUrl(`formie/forms/edit/${data.id}${location.hash}`));
 
                         this.addInput('formId', data.id);
@@ -284,21 +284,21 @@ Craft.Formie.EditForm = Garnish.Base.extend({
                     let message = 'Unable to save form.';
 
                     if (data.errors && (data.errors.length || data.errors)) {
-                        message = 'Unable to save form: ' + JSON.stringify(data.errors) + '.';
+                        message = `Unable to save form: ${JSON.stringify(data.errors)}.`;
                     }
 
                     Craft.cp.displayError(Craft.t('formie', message));
                     this.$events.emit('formie:save-form-loading', false);
 
                     // TODO: Clean this up...
-                    let $fieldsTab = document.querySelector('a[href="#tab-fields"]');
-                    let $notificationsTab = document.querySelector('a[href="#tab-notifications"]');
-                    let $integrationsTab = document.querySelector('a[href="#tab-integrations"]');
+                    const $fieldsTab = document.querySelector('a[href="#tab-fields"]');
+                    const $notificationsTab = document.querySelector('a[href="#tab-notifications"]');
+                    const $integrationsTab = document.querySelector('a[href="#tab-integrations"]');
 
                     if (data && data.config) {
-                        data.config.pages.forEach(page => {
-                            page.rows.forEach(row => {
-                                row.fields.forEach(field => {
+                        data.config.pages.forEach((page) => {
+                            page.rows.forEach((row) => {
+                                row.fields.forEach((field) => {
                                     if ($fieldsTab && field.hasError) {
                                         $fieldsTab.classList.add('error');
                                     }
@@ -308,8 +308,8 @@ Craft.Formie.EditForm = Garnish.Base.extend({
 
                         // Check for integration errors
                         if (data.config.settings.integrations) {
-                            Object.keys(data.config.settings.integrations).forEach(handle => {
-                                let integration = data.config.settings.integrations[handle];
+                            Object.keys(data.config.settings.integrations).forEach((handle) => {
+                                const integration = data.config.settings.integrations[handle];
 
                                 if ($integrationsTab && integration.errors) {
                                     $integrationsTab.classList.add('error');
@@ -319,7 +319,7 @@ Craft.Formie.EditForm = Garnish.Base.extend({
                     }
 
                     if (data && data.notifications) {
-                        data.notifications.forEach(notification => {
+                        data.notifications.forEach((notification) => {
                             if ($notificationsTab && notification.hasError) {
                                 $notificationsTab.classList.add('error');
                             }
@@ -364,7 +364,7 @@ Craft.Formie.EditForm = Garnish.Base.extend({
                         Craft.cp.initTabs();
 
                         this.formTemplateLoading = false;
-                    }).catch(error => {
+                    }).catch((error) => {
                         console.error(error);
 
                         this.formTemplateLoading = false;
@@ -372,20 +372,20 @@ Craft.Formie.EditForm = Garnish.Base.extend({
                 },
 
                 onDelete(e) {
-                    var formElem = this.getFormElement();
+                    const formElem = this.getFormElement();
 
-                    var data = {
+                    const data = {
                         redirect: e.target.getAttribute('data-redirect'),
                         formId: formElem.querySelector('[name="formId"]').value,
                     };
 
                     Craft.sendActionRequest('POST', 'formie/forms/delete-form', { data }).then((response) => {
                         window.location = response.data.redirect;
-                    }).catch(() => this.onError());
+                    }).catch(() => { return this.onError(); });
                 },
             },
         });
-        
+
         // Define global components
         app.component('FormKitForm', FormKitForm);
         app.component('ToggleBlock', ToggleBlock);
@@ -423,7 +423,7 @@ Craft.Formie.PageTitle = Garnish.Base.extend({
         });
 
         app.mount('#fui-page-title');
-    }
+    },
 });
 
 Craft.Formie.SaveButton = Garnish.Base.extend({
@@ -440,7 +440,7 @@ Craft.Formie.SaveButton = Garnish.Base.extend({
             },
 
             created() {
-                this.$events.on('formie:save-form-loading', state => {
+                this.$events.on('formie:save-form-loading', (state) => {
                     this.loading = state;
                 });
             },
@@ -489,6 +489,5 @@ Craft.Formie.SaveButton = Garnish.Base.extend({
         });
 
         app.mount('#fui-save-form-button');
-    }
+    },
 });
-

@@ -1,47 +1,47 @@
 <template>
-        <modal ref="modal" v-model="showModal" modal-class="fui-edit-table-modal" :show-header="false">
-            <template v-slot:header></template>
+    <modal ref="modal" v-model="showModal" modal-class="fui-edit-table-modal" :show-header="false">
+        <template #header></template>
 
-            <template v-slot:body>
-                <div class="fui-modal-content">
-                    <FormKitForm ref="fieldForm" v-model="formValues" @submit="submitHandler">
-                        <FormKit
-                            type="table"
-                            name="options"
-                            :label="t('formie', 'Dropdown Options')"
-                            :help="t('formie', 'Define the available options.')"
-                            validation="+min:1|uniqueTableCellLabel|uniqueTableCellValue|requiredTableCellLabel|requiredTableCellValue"
-                            :new-row-defaults="{
-                                label: '',
-                                value: '',
-                                isOptgroup: false,
-                                isDefault: false,
-                            }"
-                            :columns="[{
-                                type: 'label',
-                                label: t('formie', 'Option Label'),
-                                class: 'singleline-cell textual',
-                            }, {
-                                type: 'value',
-                                label: t('formie', 'Value'),
-                                class: 'code singleline-cell textual',
-                            }, {
-                                type: 'default',
-                                name: 'default',
-                                label: t('formie', 'Default?'),
-                                class: 'thin checkbox-cell',
-                            }]"
-                        />
-                    </FormKitForm>
-                </div>
-            </template>
+        <template #body>
+            <div class="fui-modal-content">
+                <FormKitForm ref="fieldForm" v-model="formValues" @submit="submitHandler">
+                    <FormKit
+                        type="table"
+                        name="options"
+                        :label="t('formie', 'Dropdown Options')"
+                        :help="t('formie', 'Define the available options.')"
+                        validation="+min:1|uniqueTableCellLabel|uniqueTableCellValue|requiredTableCellLabel|requiredTableCellValue"
+                        :new-row-defaults="{
+                            label: '',
+                            value: '',
+                            isOptgroup: false,
+                            isDefault: false,
+                        }"
+                        :columns="[{
+                            type: 'label',
+                            label: t('formie', 'Option Label'),
+                            class: 'singleline-cell textual',
+                        }, {
+                            type: 'value',
+                            label: t('formie', 'Value'),
+                            class: 'code singleline-cell textual',
+                        }, {
+                            type: 'default',
+                            name: 'default',
+                            label: t('formie', 'Default?'),
+                            class: 'thin checkbox-cell',
+                        }]"
+                    />
+                </FormKitForm>
+            </div>
+        </template>
 
-            <template v-slot:footer>
-                <div class="buttons right">
-                    <div class="btn submit" role="button" @click.prevent="onSave">{{ t('app', 'Done') }}</div>
-                </div>
-            </template>
-        </modal>
+        <template #footer>
+            <div class="buttons right">
+                <div class="btn submit" role="button" @click.prevent="onSave">{{ t('app', 'Done') }}</div>
+            </div>
+        </template>
+    </modal>
 </template>
 
 <script>
@@ -87,7 +87,7 @@ export default {
         onCancelModal() {
             // Restore original state and exit
             this.$parent.model.options = this.originalValues.options || [];
-            
+
             this.closeModal();
         },
 

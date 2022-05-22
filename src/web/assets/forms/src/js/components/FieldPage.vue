@@ -55,7 +55,7 @@ export default {
 
         rows: {
             type: Array,
-            default: () => [],
+            default: () => { return []; },
         },
 
         settings: {
@@ -86,7 +86,7 @@ export default {
                 data: {
                     submitButtonLabel: Craft.t('formie', 'Submit'),
                     showBackButton: this.pageIndex !== 0,
-                    backButtonLabel:  Craft.t('formie', 'Back'),
+                    backButtonLabel: Craft.t('formie', 'Back'),
                     buttonsPosition: 'left',
                 },
             };

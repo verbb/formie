@@ -83,7 +83,7 @@
                 @closed="onModalClosed"
             />
 
-            <template v-if="!isSafari" v-slot:image>
+            <template v-if="!isSafari" #image>
                 <div class="fui-field-pill" style="width: 148px;">
                     <span class="fui-field-pill-icon" v-html="fieldtype.icon"></span>
 
@@ -232,7 +232,7 @@ export default {
                 'verbb\\formie\\fields\\formfields\\Html': false,
                 'verbb\\formie\\fields\\formfields\\Repeater': false,
                 'verbb\\formie\\fields\\formfields\\Section': false,
-                'verbb\\formie\\fields\\formfields\\Name': field => {
+                'verbb\\formie\\fields\\formfields\\Name': (field) => {
                     return !field.settings.useMultipleFields;
                 },
             };
@@ -241,7 +241,7 @@ export default {
             const disallowedField = disallowedFields[this.field.type];
             if (typeof disallowedField === 'boolean') {
                 return disallowedField;
-            } else if (typeof disallowedField === 'function') {
+            } if (typeof disallowedField === 'function') {
                 const field = this.$store.getters['form/field'](this.field.vid);
                 return disallowedField(field);
             }
@@ -279,7 +279,7 @@ export default {
         }
     },
 
-    beforeDestroy() {
+    beforeUnmount() {
         this.$events.off('formie:dragging-active', this.draggingActive);
         this.$events.off('formie:dragging-inactive', this.draggingInactive);
     },
@@ -359,9 +359,9 @@ export default {
             // Generate a unique handle, and ensure it's under the 64 char db limit (factoring in `field_`
             // and the field suffix)
             const value = getNextAvailableHandle(handles, generatedHandle, 0);
-            
+
             const maxHandleLength = this.$store.getters['formie/maxFieldHandleLength']();
-            let newHandle = value.substr(0, maxHandleLength);
+            const newHandle = value.substr(0, maxHandleLength);
 
             const newField = this.$store.getters['fieldtypes/newField'](this.field.type, {
                 label: this.field.label,
@@ -372,10 +372,10 @@ export default {
             // Clone the old field rows.
             if (this.field.supportsNested) {
                 newField.rows = cloneDeep(this.field.rows);
-                newField.rows.forEach(row => {
+                newField.rows.forEach((row) => {
                     row.id = newId();
 
-                    row.fields.forEach(field => {
+                    row.fields.forEach((field) => {
                         field.vid = newId();
                     });
                 });

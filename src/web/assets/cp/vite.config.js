@@ -37,12 +37,12 @@ export default ({ command }) => ({
 
         // Keep JS looking good with eslint
         // https://github.com/gxmari007/vite-plugin-eslint
-        // EslintPlugin({
-        //     cache: false,
-        //     fix: true,
-        //     include: './src/web/assets/**/*.{js,vue}',
-        //     exclude: './src/web/assets/field/src/js/vendor/**/*.{js,vue}',
-        // }),
+        EslintPlugin({
+            cache: false,
+            fix: true,
+            include: './src/web/assets/**/*.{js,vue}',
+            exclude: './src/web/assets/field/src/js/vendor/**/*.{js,vue}',
+        }),
 
         // Vue 3 support
         // https://github.com/vitejs/vite/tree/main/packages/plugin-vue

@@ -28,10 +28,12 @@ export default {
 
         variables: {
             type: Array,
-            default: () => [],
+            default: () => { return []; },
         },
     },
-    
+
+    emits: ['updated'],
+
     methods: {
         truncate(string, options) {
             return truncate(string, options);

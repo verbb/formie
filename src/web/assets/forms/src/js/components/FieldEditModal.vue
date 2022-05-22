@@ -1,62 +1,64 @@
 <template>
-        <modal ref="modal" v-model="showModal" modal-class="fui-edit-field-modal" @click-outside="onCancelModal">
-            <template v-slot:header>
-                <h3 class="fui-modal-title">{{ t('formie', 'Edit Field') }}</h3>
-                <div v-if="showFieldType" class="fui-modal-fieldtype">{{ fieldtype.label }}</div>
+    <modal ref="modal" v-model="showModal" modal-class="fui-edit-field-modal" @click-outside="onCancelModal">
+        <template #header>
+            <h3 class="fui-modal-title">{{ t('formie', 'Edit Field') }}</h3>
+            <div v-if="showFieldType" class="fui-modal-fieldtype">{{ fieldtype.label }}</div>
 
-                <div class="fui-dialog-close" @click.prevent="onCancelModal"></div>
-            </template>
+            <div class="fui-dialog-close" @click.prevent="onCancelModal"></div>
+        </template>
 
-            <template v-slot:body>
-                <div v-if="field.isSynced" class="fui-notice-wrap">
-                    <div class="fui-notice warning">
-                        <span class="warning with-icon"></span>
-                        {{ t('formie', 'Warning: Currently editing synced field. Changes to this field will be applied to all instances of this field.') }}
+        <template #body>
+            <div v-if="field.isSynced" class="fui-notice-wrap">
+                <div class="fui-notice warning">
+                    <span class="warning with-icon"></span>
+                    {{ t('formie', 'Warning: Currently editing synced field. Changes to this field will be applied to all instances of this field.') }}
+                </div>
+            </div>
+
+            <tabs style="height: 100%;">
+                <div class="fui-tabs fui-field-tabs fui-field-tab-list">
+                    <tab-list class="fui-pages-menu">
+                        <tab v-for="(tab, index) in tabsSchema" :key="index" :index="index" :class="[ 'fui-tab-item', tabErrorClass(tab.label) ]">
+                            {{ tab.label }}
+                        </tab>
+                    </tab-list>
+                </div>
+
+                <div v-if="getFirstError" class="fui-notice-wrap">
+                    <div class="fui-notice error">
+                        <span class="error with-icon"></span>
+                        {{ getFirstError }}
                     </div>
                 </div>
 
-                <tabs style="height: 100%;">
-                    <div class="fui-tabs fui-field-tabs fui-field-tab-list">
-                        <tab-list class="fui-pages-menu">
-                            <tab v-for="(tab, index) in tabsSchema" :key="index" :index="index" :class="[ 'fui-tab-item', tabErrorClass(tab.label) ]">
-                                {{ tab.label }}
-                            </tab>
-                        </tab-list>
-                    </div>
+                <div class="fui-modal-content" :style="{ height: (!mounted) ? '80%' : '' }">
+                    <div v-if="!mounted" class="fui-loading fui-loading-lg" style="height: 100%;"></div>
 
-                    <div v-if="getFirstError" class="fui-notice-wrap">
-                        <div class="fui-notice error">
-                            <span class="error with-icon"></span>
-                            {{ getFirstError }}
-                        </div>
-                    </div>
-
-                    <div class="fui-modal-content" :style="{ height: (!mounted) ? '80%' : '' }">
-                        <div v-if="!mounted" class="fui-loading fui-loading-lg" style="height: 100%;"></div>
-
-                        <FormKitForm ref="fieldForm" v-if="mounted" v-model="fieldSettings" @submit="submitHandler">
-                            <FormKitSchema :schema="fieldsSchema" />
-                        </FormKitForm>
-                    </div>
-                </tabs>
-            </template>
-
-            <template v-slot:footer>
-                <div v-if="canDelete" class="buttons left">
-                    <div class="btn delete" role="button" @click.prevent="deleteField">{{ t('app', 'Delete') }}</div>
+                    <FormKitForm v-if="mounted" ref="fieldForm" v-model="fieldSettings" @submit="submitHandler">
+                        <FormKitSchema :schema="fieldsSchema" />
+                    </FormKitForm>
                 </div>
+            </tabs>
+        </template>
 
-                <div class="buttons right">
-                    <div class="btn" role="button" @click.prevent="onCancelModal">{{ t('app', 'Cancel') }}</div>
-                    <div class="btn submit" role="button" @click.prevent="onSave">{{ t('app', 'Apply') }}</div>
-                </div>
-            </template>
-        </modal>
+        <template #footer>
+            <div v-if="canDelete" class="buttons left">
+                <div class="btn delete" role="button" @click.prevent="deleteField">{{ t('app', 'Delete') }}</div>
+            </div>
+
+            <div class="buttons right">
+                <div class="btn" role="button" @click.prevent="onCancelModal">{{ t('app', 'Cancel') }}</div>
+                <div class="btn submit" role="button" @click.prevent="onSave">{{ t('app', 'Apply') }}</div>
+            </div>
+        </template>
+    </modal>
 </template>
 
 <script>
 import { isEmpty } from 'lodash-es';
 import { mapState } from 'vuex';
+
+// eslint-disable-next-line
 import { Tabs, Tab, TabList, TabPanels, TabPanel } from '@vendor/vue-accessible-tabs';
 
 import Modal from '@components/Modal.vue';
@@ -66,7 +68,11 @@ export default {
 
     components: {
         Modal,
-        Tabs, Tab, TabList, TabPanels, TabPanel,
+        Tabs,
+        Tab,
+        TabList,
+        TabPanels,
+        TabPanel,
     },
 
     props: {
@@ -97,14 +103,16 @@ export default {
 
         tabsSchema: {
             type: Array,
-            default: () => [],
+            default: () => { return []; },
         },
 
         fieldsSchema: {
             type: Array,
-            default: () => [],
+            default: () => { return []; },
         },
     },
+
+    emits: ['delete', 'update:field'],
 
     data() {
         return {
@@ -183,10 +191,10 @@ export default {
                     // Wait until FormKit has settled
                     setTimeout(() => {
                         this.updateTabs();
-                    }, 50)
+                    }, 50);
                 }
             });
-        }, 50)
+        }, 50);
     },
 
     destroy() {
@@ -198,7 +206,7 @@ export default {
             // Wait a little for the transition
             setTimeout(() => {
                 this.$store.dispatch('formie/setEditingField', null);
-            }, 200)
+            }, 200);
         },
 
         closeModal() {
@@ -246,9 +254,9 @@ export default {
             this.tabsWithErrors = [];
 
             // Update any tabs with errors. Just done on submit to prevent too much activity
-            this.tabsSchema.forEach(tab => {
+            this.tabsSchema.forEach((tab) => {
                 // Search for an array against an array
-                const isInTab = tab.fields.some(v => errors.includes(v));
+                const isInTab = tab.fields.some((v) => { return errors.includes(v); });
 
                 if (isInTab) {
                     this.tabsWithErrors.push(tab.label);

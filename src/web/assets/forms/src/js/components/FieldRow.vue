@@ -85,7 +85,7 @@ export default {
 
         fields: {
             type: Array,
-            default: () => [],
+            default: () => { return []; },
         },
 
         parentFieldId: {
@@ -118,7 +118,7 @@ export default {
         this.$events.on('formie:dragging-inactive', this.draggingInactive);
     },
 
-    beforeDestroy() {
+    beforeUnmount() {
         this.$events.off('formie:dragging-active', this.draggingActive);
         this.$events.off('formie:dragging-inactive', this.draggingInactive);
     },

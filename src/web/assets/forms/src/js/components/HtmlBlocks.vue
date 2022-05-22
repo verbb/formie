@@ -71,7 +71,7 @@ export default {
         });
     },
 
-    beforeDestroy() {
+    beforeUnmount() {
         this.editor.destroy();
     },
 
@@ -95,7 +95,7 @@ export default {
         },
 
         getExtensions() {
-            var extensions = [
+            const extensions = [
                 // Core Extensions
                 Document,
                 Dropcursor,

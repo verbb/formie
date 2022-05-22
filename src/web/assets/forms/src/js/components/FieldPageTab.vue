@@ -54,6 +54,8 @@ export default {
         },
     },
 
+    emits: ['selected'],
+
     data() {
         return {
             dropzoneHover: false,
@@ -62,11 +64,11 @@ export default {
 
     computed: {
         ...mapState({
-            pages: state => state.form.pages,
+            pages: (state) => { return state.form.pages; },
         }),
 
         hash() {
-            return '#tab-fields-page-' + (this.pageIndex + 1);
+            return `#tab-fields-page-${this.pageIndex + 1}`;
         },
 
         isActive() {
@@ -74,15 +76,15 @@ export default {
         },
 
         hasError() {
-            var hasError = false;
+            let hasError = false;
 
-            var fields = this.$store.getters['form/fieldsForPage'](this.pageIndex);
+            const fields = this.$store.getters['form/fieldsForPage'](this.pageIndex);
 
             if (!isEmpty(this.errors)) {
                 hasError = true;
             }
 
-            fields.forEach(field => {
+            fields.forEach((field) => {
                 if (field.hasError) {
                     hasError = true;
                 }

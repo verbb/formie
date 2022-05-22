@@ -107,7 +107,7 @@ export default {
                 return;
             }
 
-            var data = { field: this.field };
+            const data = { field: this.field };
 
             Craft.sendActionRequest('POST', 'formie/fields/get-element-select-options', { data }).then((response) => {
                 this.options = response.data.options;

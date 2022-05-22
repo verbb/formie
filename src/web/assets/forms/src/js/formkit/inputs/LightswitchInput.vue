@@ -94,7 +94,7 @@ export default {
         });
     },
 
-    beforeDestroy() {
+    beforeUnmount() {
         if (this.dragger) {
             this.dragger.destroy();
         }
@@ -150,8 +150,7 @@ export default {
             case Garnish.RIGHT_KEY: {
                 if (Craft.orientation === 'ltr') {
                     this.turnOn();
-                }
-                else {
+                } else {
                     this.turnOff();
                 }
 
@@ -161,8 +160,7 @@ export default {
             case Garnish.LEFT_KEY: {
                 if (Craft.orientation === 'ltr') {
                     this.turnOff();
-                }
-                else {
+                } else {
                     this.turnOn();
                 }
 
@@ -225,4 +223,3 @@ export default {
 };
 
 </script>
-

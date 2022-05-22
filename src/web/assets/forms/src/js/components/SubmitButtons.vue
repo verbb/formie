@@ -59,8 +59,8 @@ export default {
 
     computed: {
         ...mapState({
-            pages: state => state.form.pages,
-            form: state => state.form,
+            pages: (state) => { return state.form.pages; },
+            form: (state) => { return state.form; },
         }),
 
         field: {
@@ -122,7 +122,7 @@ export default {
         },
 
         fieldsSchema() {
-            var fields = [];
+            let fields = [];
 
             if (!this.isFirstButton) {
                 fields = [
@@ -148,7 +148,7 @@ export default {
                 ];
             }
 
-            var fieldsSchema = [
+            const fieldsSchema = [
                 {
                     $cmp: 'TabPanel',
                     attrs: {
@@ -297,13 +297,13 @@ export default {
                             initialValue: [{
                                 label: 'event',
                                 value: 'formPageSubmission',
-                            },{
+                            }, {
                                 label: 'formId',
                                 value: this.form.handle,
-                            },{
+                            }, {
                                 label: 'pageId',
                                 value: this.pageId,
-                            },{
+                            }, {
                                 label: 'pageIndex',
                                 value: this.pageIndex,
                             }],
@@ -334,7 +334,7 @@ export default {
         },
 
         buttonsPosition() {
-            var positions = [
+            const positions = [
                 { label: Craft.t('formie', 'Left'), value: 'left' },
                 { label: Craft.t('formie', 'Right'), value: 'right' },
                 { label: Craft.t('formie', 'Center'), value: 'center' },

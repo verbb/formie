@@ -69,14 +69,14 @@ export const generateKebab = function(sourceValue) {
     kebab = Craft.asciiString(kebab);
 
     // Get the "words"
-    let words = Craft.filterArray(kebab.split(/[^a-z0-9]+/));
+    const words = Craft.filterArray(kebab.split(/[^a-z0-9]+/));
     kebab = words.join('-');
 
     return kebab;
 };
 
 export const newId = function() {
-    return 'new' + Math.floor(9999 * Math.random()) + '-' + Math.floor(9999 * Math.random());
+    return `new${Math.floor(9999 * Math.random())}-${Math.floor(9999 * Math.random())}`;
 };
 
 export const getId = function(prefix = '') {
@@ -84,19 +84,19 @@ export const getId = function(prefix = '') {
 };
 
 export const token = function(length = 13) {
-  return Math.random().toString(36).substring(2, length + 2)
-}
+    return Math.random().toString(36).substring(2, length + 2);
+};
 
-export const has  = function(ctx, prop) {
-  return Object.prototype.hasOwnProperty.call(ctx, prop)
-}
+export const has = function(ctx, prop) {
+    return Object.prototype.hasOwnProperty.call(ctx, prop);
+};
 
 export const setId = function(o, id) {
-  if (!has(o, '__id') || id) {
-    return Object.defineProperty(o, '__id', Object.assign(Object.create(null), { value: id || token(9) }))
-  }
-  return o
-}
+    if (!has(o, '__id') || id) {
+        return Object.defineProperty(o, '__id', Object.assign(Object.create(null), { value: id || token(9) }));
+    }
+    return o;
+};
 
 export const getDisplayName = function(type) {
     const parts = type.split('\\');

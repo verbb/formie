@@ -13,13 +13,11 @@
         "frontend-build": "cd ./src/web/assets/frontend && npx mix"
     },
     "devDependencies": {
-        "@babel/eslint-parser": "^7.17.0",
         "@pixelandtonic/craftui": "~0.3.8",
         "@rollup/plugin-node-resolve": "^13.3.0",
         "@vitejs/plugin-legacy": "^1.8.2",
         "@vitejs/plugin-vue": "^2.3.3",
         "autoprefixer": "^10.4.7",
-        "babel-eslint": "^10.1.0",
         "clean-webpack-plugin": "^4.0.0",
         "craftcms-sass": "^3.5.7",
         "eslint": "^8.16.0",

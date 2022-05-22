@@ -10,7 +10,7 @@
         <span class="fui-field-pill-name">{{ fieldtype.label }}</span>
         <span class="fui-field-pill-drag"></span>
 
-        <template v-if="!isSafari" v-slot:image style="position: absolute">
+        <template v-if="!isSafari" #image>
             <div class="fui-field-pill" style="width: 148px;">
                 <span class="fui-field-pill-icon" v-html="fieldtype.icon"></span>
                 <span class="fui-field-pill-name">{{ fieldtype.label }}</span>

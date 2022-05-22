@@ -15,127 +15,127 @@ import 'tippy.js/themes/light.css';
 // 5. Add a `required` attribute to the label, if required.
 //
 
-export default function moveLabelPlugin (node) {
-  node.on('created', () => {
-    const inputDefinition = clone(node.props.definition);
+export default function moveLabelPlugin(node) {
+    node.on('created', () => {
+        const inputDefinition = clone(node.props.definition);
 
-    if (!node.props.label) {
-        return;
-    }
-
-    if (['radio', 'checkbox'].includes(node.props.type)) return
-        
-    const originalSchema = inputDefinition.schema;
-
-    const markdown = new MarkdownIt();
-
-    const higherOrderSchema = (extensions) => {
-        const required = node.props.attrs.required;
-        let warningText = node.props.attrs.warning;
-        let helpText = node.context.help;
-        let infoText = node.props.attrs.info;
-
-        let helpElement = {};
-        let tabElement = {};
-        let infoElement = {};
-
-        if (node.props.attrs.tab) {
-            tabElement = {
-                $el: 'span',
-                  children: node.props.attrs.tab,
-              };
+        if (!node.props.label) {
+            return;
         }
 
-        if (infoText) {
-            infoElement = {
-                $el: 'span',
-                attrs: {
-                    'data-tippy-content': markdown.renderInline(infoText),
-                    'data-icon': 'info',
-                },
-              };
+        if (['radio', 'checkbox'].includes(node.props.type)) { return; }
 
-              setTimeout(function() {
-                  const tipppy = tippy('[data-tippy-content]', {
-                    theme: 'light fui-field-instructions-tooltip',
-                    trigger: 'click',
-                    interactive: true,
-                    allowHTML: true,
-                    appendTo: document.body,
-                });
-              }, 500);
-        }
+        const originalSchema = inputDefinition.schema;
 
+        const markdown = new MarkdownIt();
 
-        let labelElement = {
-            $el: 'label',
-              if: '$label',
-              attrs: {
-                id: `$: "label-" + ${'$id'}`,
-                for: '$id',
-                class: `$: ${'$classes.label'} + ' ' + ${(required ? 'required' : null)}`,
-              },
-              children: [
-                '$label',
-                infoElement,
-            ],
-          };
+        const higherOrderSchema = (extensions) => {
+            const { required } = node.props.attrs;
+            let warningText = node.props.attrs.warning;
+            const helpText = node.context.help;
+            const infoText = node.props.attrs.info;
 
-          if (helpText) {
-              helpElement = {
-                $el: 'div',
-                  attrs: {
-                    id: `$: "help-" + ${'$id'}`,
-                    class: '$classes.help',
-                    innerHTML: markdown.render(helpText),
-                  },
-              };
-          }
+            let helpElement = {};
+            let tabElement = {};
+            let infoElement = {};
 
-      extensions.label = {
-        $el: 'div',
-        attrs: {
-            class: 'heading',
-            for: null,
-        },
-        children: [
-          labelElement,
-          tabElement,
-          helpElement,
-        ],
-    };
-
-    // Very special case for some fields...
-    if (node.name === 'required') {
-        // A bit gross, but get the Vuex store used by our app attached to the form element
-        const $store = node.parent.props.attrs['formie-store'];
-
-        if ($store && $store.state && $store.state.formie) {
-            const editingField = $store.state.formie.editingField;
-
-            if (editingField && editingField.field && editingField.field.isSynced) {
-                warningText = Craft.t('formie', 'The required attribute will not be synced across field instances.');
+            if (node.props.attrs.tab) {
+                tabElement = {
+                    $el: 'span',
+                    children: node.props.attrs.tab,
+                };
             }
-        }
-    }
 
-    if (warningText) {
-        extensions.help = {
-            $el: 'div',
-            attrs: {
-                class: 'warning with-icon',
-                innerHTML: markdown.renderInline(warningText),
-            },
-            children: null,
+            if (infoText) {
+                infoElement = {
+                    $el: 'span',
+                    attrs: {
+                        'data-tippy-content': markdown.renderInline(infoText),
+                        'data-icon': 'info',
+                    },
+                };
+
+                setTimeout(() => {
+                    const tipppy = tippy('[data-tippy-content]', {
+                        theme: 'light fui-field-instructions-tooltip',
+                        trigger: 'click',
+                        interactive: true,
+                        allowHTML: true,
+                        appendTo: document.body,
+                    });
+                }, 500);
+            }
+
+
+            const labelElement = {
+                $el: 'label',
+                if: '$label',
+                attrs: {
+                    id: `$: "label-" + ${'$id'}`,
+                    for: '$id',
+                    class: `$: ${'$classes.label'} + ' ' + ${(required ? 'required' : null)}`,
+                },
+                children: [
+                    '$label',
+                    infoElement,
+                ],
+            };
+
+            if (helpText) {
+                helpElement = {
+                    $el: 'div',
+                    attrs: {
+                        id: `$: "help-" + ${'$id'}`,
+                        class: '$classes.help',
+                        innerHTML: markdown.render(helpText),
+                    },
+                };
+            }
+
+            extensions.label = {
+                $el: 'div',
+                attrs: {
+                    class: 'heading',
+                    for: null,
+                },
+                children: [
+                    labelElement,
+                    tabElement,
+                    helpElement,
+                ],
+            };
+
+            // Very special case for some fields...
+            if (node.name === 'required') {
+                // A bit gross, but get the Vuex store used by our app attached to the form element
+                const $store = node.parent.props.attrs['formie-store'];
+
+                if ($store && $store.state && $store.state.formie) {
+                    const { editingField } = $store.state.formie;
+
+                    if (editingField && editingField.field && editingField.field.isSynced) {
+                        warningText = Craft.t('formie', 'The required attribute will not be synced across field instances.');
+                    }
+                }
+            }
+
+            if (warningText) {
+                extensions.help = {
+                    $el: 'div',
+                    attrs: {
+                        class: 'warning with-icon',
+                        innerHTML: markdown.renderInline(warningText),
+                    },
+                    children: null,
+                };
+            } else {
+                extensions.help = { $el: null, children: null };
+            }
+
+            return originalSchema(extensions);
         };
-    } else {
-         extensions.help = { $el: null, children: null };
-    }
 
-      return originalSchema(extensions)
-    }
-    
-    inputDefinition.schema = higherOrderSchema
-    node.props.definition = inputDefinition
-  })
+        inputDefinition.schema = higherOrderSchema;
+        node.props.definition = inputDefinition;
+    });
 }

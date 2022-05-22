@@ -30,7 +30,7 @@ export default {
 
     computed: {
         ...mapState({
-            editingField: state => state.formie.editingField,
+            editingField: (state) => { return state.formie.editingField; },
         }),
 
         field() {
@@ -45,20 +45,20 @@ export default {
     methods: {
         isSelected(node, option) {
             // Here we trick reactivity (if at play) to watch this function.
-          node.context && node.context.value
-          return Array.isArray(node._value)
-            ? node._value.includes(option)
-            : (node.value === undefined && !option) || node._value == option
+            node.context && node.context.value;
+            return Array.isArray(node._value)
+                ? node._value.includes(option)
+                : (node.value === undefined && !option) || node._value == option;
         },
 
         getFieldOptions() {
-            var fields = [];
-            var allFields = this.$store.getters['form/fields'];
+            const fields = [];
+            const allFields = this.$store.getters['form/fields'];
 
-            var excludeSelf = this.context.attrs.excludeSelf || false;
-            var fieldTypes = this.context.attrs.fieldTypes || [];
+            const excludeSelf = this.context.attrs.excludeSelf || false;
+            const fieldTypes = this.context.attrs.fieldTypes || [];
 
-            allFields.forEach(field => {
+            allFields.forEach((field) => {
                 if (fieldTypes.length && !fieldTypes.includes(field.type)) {
                     return;
                 }
@@ -67,7 +67,7 @@ export default {
                     return;
                 }
 
-                fields.push({ label: field.label, value: '{' + field.handle + '}' });
+                fields.push({ label: field.label, value: `{${field.handle}}` });
             });
 
             return fields;

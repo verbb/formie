@@ -2,13 +2,13 @@
     <a href="#" @click.prevent="openModal">{{ t('formie', 'Select existing notification') }}</a>
 
     <modal ref="modal" v-model="showModal" :modal-class="['fui-edit-notification-modal', 'fui-existing-item-modal']" @click-outside="closeModal">
-        <template v-slot:header>
+        <template #header>
             <h3 class="fui-modal-title">{{ t('formie', 'Add Existing Notification') }}</h3>
 
             <div class="fui-dialog-close" @click.prevent="closeModal"></div>
         </template>
 
-        <template v-slot:body>
+        <template #body>
             <div v-if="existingNotifications.length" class="fui-modal-content-wrap">
                 <div class="fui-modal-sidebar sidebar">
                     <nav v-if="filteredExistingNotifications.length">
@@ -62,7 +62,7 @@
             </div>
         </template>
 
-        <template v-slot:footer>
+        <template #footer>
             <div class="buttons left">
                 <div class="spinner hidden"></div>
                 <div class="btn" role="button" @click.prevent="closeModal">{{ t('app', 'Cancel') }}</div>
@@ -77,7 +77,7 @@
                     :class="{ 'disabled': totalSelected === 0 }"
                     @click.prevent="addNotifications"
                 >
-                        
+
                 <div class="spinner hidden"></div>
             </div>
         </template>
@@ -111,8 +111,8 @@ export default {
 
     computed: {
         ...mapState({
-            existingNotifications: state => state.formie.existingNotifications,
-            form: state => state.form,
+            existingNotifications: (state) => { return state.formie.existingNotifications; },
+            form: (state) => { return state.form; },
         }),
 
         totalSelected() {
@@ -121,24 +121,24 @@ export default {
 
         filteredExistingNotifications() {
             return this.existingNotifications.reduce((acc, form) => {
-                const notifications = form.notifications.filter(notification => {
+                const notifications = form.notifications.filter((notification) => {
                     const inLabel = notification.name.toLowerCase().includes(this.search.toLowerCase());
 
                     return inLabel;
                 });
 
-                return !notifications.length ? acc : acc.concat(Object.assign({}, form, { notifications }));
+                return !notifications.length ? acc : acc.concat({ ...form, notifications });
             }, []);
         },
 
         submitText() {
             if (this.totalSelected > 1) {
                 return Craft.t('formie', 'Add {num} notifications', { num: this.totalSelected });
-            } else if (this.totalSelected > 0) {
+            } if (this.totalSelected > 0) {
                 return Craft.t('formie', 'Add {num} notification', { num: this.totalSelected });
-            } else {
-                return Craft.t('formie', 'Add notification');
             }
+            return Craft.t('formie', 'Add notification');
+
         },
     },
 
@@ -182,11 +182,11 @@ export default {
         addNotifications() {
             for (const element of this.selectedNotifications) {
                 const newNotification = this.clone(element.notification);
-                newNotification['id'] = newId();
-                
-                delete newNotification['errors'];
-                delete newNotification['hasError'];
-                delete newNotification['uid'];
+                newNotification.id = newId();
+
+                delete newNotification.errors;
+                delete newNotification.hasError;
+                delete newNotification.uid;
 
                 this.$store.dispatch('notifications/addNotification', {
                     data: newNotification,

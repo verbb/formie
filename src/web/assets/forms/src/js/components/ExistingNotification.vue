@@ -45,6 +45,8 @@ export default {
         },
     },
 
+    emits: ['selected'],
+
     computed: {
         notificationIds() {
             return this.$store.getters['form/notificationIds'];

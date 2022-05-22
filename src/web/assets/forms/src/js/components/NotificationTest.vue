@@ -44,7 +44,7 @@ export default {
 
     computed: {
         ...mapState({
-            form: state => state.form,
+            form: (state) => { return state.form; },
         }),
 
         notification() {
@@ -86,21 +86,21 @@ export default {
                     this.error = true;
 
                     this.message = Craft.t('formie', 'Error sending test email.');
-                
+
                     if (response.data.error) {
-                        this.message += '<br><br><code>' + response.data.error + '</code>';
+                        this.message += `<br><br><code>${response.data.error}</code>`;
                     }
 
-                    return;
+
                 }
-            }).catch(error => {
+            }).catch((error) => {
                 this.loading = false;
                 this.error = true;
 
                 this.message = error;
-                
+
                 if (error.response.data.error) {
-                    this.message += '<br><br><code>' + error.response.data.error + '</code>';
+                    this.message += `<br><br><code>${error.response.data.error}</code>`;
                 }
             });
         },

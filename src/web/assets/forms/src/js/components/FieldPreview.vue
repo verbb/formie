@@ -60,12 +60,12 @@ export default {
             sanitize(html) {
                 return sanitizeHtml(html);
             },
-        }
+        };
 
         // Can't figure out a way to use custom delimiters, otherwise becomes annoying to use Twig
         preview = preview.replace(/\${/g, '{{').replace(/}/g, '}}');
 
-        return h(compile('<div>' + preview + '</div>'), props);
+        return h(compile(`<div>${preview}</div>`), props);
     },
 };
 

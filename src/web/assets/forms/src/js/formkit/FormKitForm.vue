@@ -1,11 +1,20 @@
 <template>
-    <FormKit v-bind="$attrs" ref="form" type="form" :actions="false" :preserve="true" :incomplete-message="false" :formie-store="$store" :plugins="[errorPlugin]">
+    <FormKit
+        v-bind="$attrs"
+        ref="form"
+        type="form"
+        :actions="false"
+        :preserve="true"
+        :incomplete-message="false"
+        :formie-store="$store"
+        :plugins="[errorPlugin]"
+    >
         <slot></slot>
     </FormKit>
 </template>
 
 <script>
-import errorCollection from '@formkit-components/plugins/errorCollection.js'
+import errorCollection from '@formkit-components/plugins/errorCollection.js';
 
 const { errorMap, errorPlugin } = errorCollection();
 
@@ -39,9 +48,9 @@ export default {
             const errors = [];
 
             for (const [key, value] of Object.entries(this.errorMap)) {
-              if (value.blockingCount || value.errorCount) {
-                errors.push(key);
-              }
+                if (value.blockingCount || value.errorCount) {
+                    errors.push(key);
+                }
             }
 
             return errors;

@@ -12,7 +12,7 @@
         <div class="fui-menu menu" data-align="right">
             <ul class="padded">
                 <field-dropdown-item icon="edit" action="edit" label="Edit" @clicked="selectOption" />
-                
+
                 <field-dropdown-item v-if="!isRequired && canRequire" icon="asterisk" action="require" label="Make required" @clicked="selectOption" />
                 <field-dropdown-item v-else-if="canRequire" icon="asterisk" action="unrequire" label="Make not required" @clicked="selectOption" />
 
@@ -21,7 +21,7 @@
                 <li>
                     <hr class="padded">
                 </li>
-                
+
                 <field-dropdown-item icon="remove" action="delete" label="Delete" classes="error" @clicked="selectOption" />
             </ul>
         </div>
@@ -49,6 +49,8 @@ export default {
             default: true,
         },
     },
+
+    emits: ['edit', 'require', 'unrequire', 'clone', 'delete'],
 
     mounted() {
         Craft.initUiElements();

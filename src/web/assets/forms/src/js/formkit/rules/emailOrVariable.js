@@ -1,5 +1,5 @@
-import { has } from 'lodash-es'
-import { empty } from '@formkit/utils'
+import { has } from 'lodash-es';
+import { empty } from '@formkit/utils';
 
 const emailOrVariable = (node, address) => {
     const variableRegex = /({.*?})/;
@@ -12,4 +12,4 @@ const emailOrVariable = (node, address) => {
     return emailRegex.test(node.value);
 };
 
-export default emailOrVariable
+export default emailOrVariable;

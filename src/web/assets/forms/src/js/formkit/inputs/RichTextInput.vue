@@ -6,7 +6,7 @@
         </div>
 
         <div v-if="$isDebug" class="input text" style="margin-top: 20px;">{{ jsonContent }}</div>
-        <input type="hidden" v-model="context._value">
+        <input v-model="context._value" type="hidden">
     </div>
 </template>
 
@@ -141,7 +141,7 @@ export default {
 
         // For the moment, we have to hard-code these variable lists in the component
         // Not overly flexibly, but well think of something a bit later...
-        var variablesAttribute = this.context.attrs.variables || '';
+        const variablesAttribute = this.context.attrs.variables || '';
 
         if (variablesAttribute && this[variablesAttribute]) {
             this.variables = this[variablesAttribute];

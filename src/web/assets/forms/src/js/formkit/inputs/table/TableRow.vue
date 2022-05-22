@@ -63,8 +63,8 @@
                     <a class="settings light" :class="{ 'hidden': model.type !== 'select' }" role="button" data-icon="settings" @click.prevent="openModal"></a>
 
                     <table-dropdown
-                        ref="editFieldModal"
                         v-if="showModal"
+                        ref="editFieldModal"
                         v-model:showModal="showModal"
                         v-model:values="model"
                         @closed="onModalClosed"
@@ -206,6 +206,8 @@ export default {
         },
     },
 
+    emits: ['remove'],
+
     data() {
         return {
             showModal: false,
@@ -216,7 +218,7 @@ export default {
 
     computed: {
         ...mapState({
-            editingField: state => state.formie.editingField,
+            editingField: (state) => { return state.formie.editingField; },
         }),
 
         columns() {
@@ -326,10 +328,10 @@ export default {
             handler(newVal) {
                 // Ensure that any updated to row data correctly update the model.
                 // This ensures that things like validation are triggered properly.
-                var values = this.context.value;
+                const values = this.context.value;
                 values[this.index] = newVal;
 
-                this.context.node.input(values)
+                this.context.node.input(values);
             },
         },
 
@@ -340,7 +342,7 @@ export default {
                 if (!newValue && oldValue) {
                     let first = true;
 
-                    this.context.value.forEach(row => {
+                    this.context.value.forEach((row) => {
                         if (row[this.defaultName]) {
                             if (!first) {
                                 row[this.defaultName] = false;
@@ -364,7 +366,7 @@ export default {
         },
 
         _getName(type, fallback) {
-            const name = this.columns.find(o => o.type === type);
+            const name = this.columns.find((o) => { return o.type === type; });
 
             if (name && name.name) {
                 return name.name;
@@ -374,12 +376,12 @@ export default {
         },
 
         getError(field, value) {
-            var labelsWithError = this.context.node.config.labelsWithError || [];
-            var valuesWithError = this.context.node.config.valuesWithError || [];
+            const labelsWithError = this.context.node.config.labelsWithError || [];
+            const valuesWithError = this.context.node.config.valuesWithError || [];
 
             if (field === 'label' && this.labelBlur) {
                 return labelsWithError.includes(value);
-            } else if (field === 'value' && this.valueBlur) {
+            } if (field === 'value' && this.valueBlur) {
                 return labelsWithError.includes(value);
             }
 

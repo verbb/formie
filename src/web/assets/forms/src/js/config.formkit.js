@@ -31,6 +31,7 @@ import requiredIf from '@formkit-components/rules/requiredIf';
 import uniqueHandle from '@formkit-components/rules/uniqueHandle';
 
 // FormKit can't handle multiple same-name vaidators, otherwise we could do `requiredTableCell:label`
+// eslint-disable-next-line
 import { requiredTableCellLabel, requiredTableCellValue, uniqueTableCellLabel, uniqueTableCellValue } from '@formkit-components/rules/tableCell';
 
 export default defaultConfig({
@@ -55,7 +56,7 @@ export default defaultConfig({
                 },
 
                 requiredTableCellLabel(options) {
-                    var column = options.node.context.attrs.columns.find((item) => {
+                    const column = options.node.context.attrs.columns.find((item) => {
                         return item.type === 'label';
                     });
 
@@ -63,7 +64,7 @@ export default defaultConfig({
                 },
 
                 requiredTableCellValue(options) {
-                    var column = options.node.context.attrs.columns.find((item) => {
+                    const column = options.node.context.attrs.columns.find((item) => {
                         return item.type === 'value';
                     });
 
@@ -79,7 +80,7 @@ export default defaultConfig({
                 },
 
                 uniqueTableCellLabel(options) {
-                    var column = options.node.context.attrs.columns.find((item) => {
+                    const column = options.node.context.attrs.columns.find((item) => {
                         return item.type === 'label';
                     });
 
@@ -87,7 +88,7 @@ export default defaultConfig({
                 },
 
                 uniqueTableCellValue(options) {
-                    var column = options.node.context.attrs.columns.find((item) => {
+                    const column = options.node.context.attrs.columns.find((item) => {
                         return item.type === 'value';
                     });
 
@@ -133,7 +134,7 @@ export default defaultConfig({
                 // so we can highlight individual ones
                 labelsWithError: [],
                 valuesWithError: [],
-            }
+            },
         }),
         variableText: createInput(VariableTextInput),
 
@@ -151,4 +152,4 @@ export default defaultConfig({
         }),
         toggleBlock: createInput(ToggleBlock),
     },
-})
+});

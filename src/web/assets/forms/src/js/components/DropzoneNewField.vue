@@ -51,7 +51,7 @@ export default {
         this.$events.on('formie:dragging-inactive', this.draggingInactive);
     },
 
-    beforeDestroy() {
+    beforeUnmount() {
         this.$events.off('formie:dragging-active', this.draggingActive);
         this.$events.off('formie:dragging-inactive', this.draggingInactive);
     },

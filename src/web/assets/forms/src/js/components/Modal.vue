@@ -1,5 +1,18 @@
 <template>
-    <vue-final-modal :name="id" :ssr="false" v-slot="{ params, close }" v-bind="$attrs" :z-index-auto="true" z-index-base="100" :esc-to-close="true" attach="body" :classes="['fui-modal', modalClass]" content-class="fui-modal-wrap" overlay-class="fui-modal-overlay" transition="fui-modal" overlay-transition="fui-modal">
+    <vue-final-modal
+        :name="id"
+        :ssr="false"
+        v-bind="$attrs"
+        :z-index-auto="true"
+        z-index-base="100"
+        :esc-to-close="true"
+        attach="body"
+        :classes="['fui-modal', modalClass]"
+        content-class="fui-modal-wrap"
+        overlay-class="fui-modal-overlay"
+        transition="fui-modal"
+        overlay-transition="fui-modal"
+    >
         <header v-if="showHeader" id="modalTitle" class="fui-modal-header">
             <slot name="header"></slot>
         </header>
@@ -22,7 +35,7 @@ export default {
 
     components: {
         VueFinalModal,
-      },
+    },
 
     props: {
         modalClass: {
@@ -50,8 +63,8 @@ export default {
     methods: {
         showModal() {
             setTimeout(() => {
-                $vfm.show(this.id)
-            }, 10)
+                $vfm.show(this.id);
+            }, 10);
         },
 
         close() {
@@ -59,8 +72,8 @@ export default {
             // This is because we often use `v-if` for performance above this high-order component, but that won't work well with transitions.
             // Also give it a sec to be ready.
             setTimeout(() => {
-                $vfm.hide(this.id)
-            }, 10)
+                $vfm.hide(this.id);
+            }, 10);
         },
     },
 };

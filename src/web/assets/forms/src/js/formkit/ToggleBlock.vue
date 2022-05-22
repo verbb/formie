@@ -1,11 +1,11 @@
 <template>
-     <div class="fui-toggle-block" :class="{ 'has-errors': hasErrors }">
+    <div class="fui-toggle-block" :class="{ 'has-errors': hasErrors }">
         <div class="fui-tb-header">
             <FormKit
                 v-if="showEnabled"
-                type="lightswitch"
-                :extraSmall="true"
                 :id="enabledHandle"
+                type="lightswitch"
+                :extra-small="true"
                 :name="enabledHandle"
             />
 
@@ -13,8 +13,8 @@
 
             <FormKit
                 v-if="showToggle"
-                type="collapse"
                 :id="collapsedHandle"
+                type="collapse"
                 :name="collapsedHandle"
             />
         </div>
@@ -48,15 +48,15 @@ export default {
 
     computed: {
         ...mapState({
-            editingField: state => state.formie.editingField,
+            editingField: (state) => { return state.formie.editingField; },
         }),
 
         enabledHandle() {
-            return this.$attrs.blockHandle + 'Enabled';
+            return `${this.$attrs.blockHandle}Enabled`;
         },
 
         collapsedHandle() {
-            return this.$attrs.blockHandle + 'Collapsed';
+            return `${this.$attrs.blockHandle}Collapsed`;
         },
 
         isEnabled() {

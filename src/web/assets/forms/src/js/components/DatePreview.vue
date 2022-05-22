@@ -19,7 +19,7 @@
 
             <div v-if="field.settings.includeTime" class="fui-col-auto">
                 <label v-if="field.settings.timeLabel && field.settings.includeDate" class="fui-field-label">{{ field.settings.timeLabel }}</label>
-                    
+
                 <div class="fui-field-preview">
                     <input
                         v-if="field.settings.includeTime"
@@ -83,14 +83,14 @@ export default {
         date() {
             let { defaultValue } = this.field.settings;
             defaultValue = new Date(parseDate(defaultValue));
-            
+
             if (!(defaultValue instanceof Date) || isNaN(defaultValue)) {
                 return null;
             }
 
             let day = defaultValue.getDate();
             let month = defaultValue.getMonth() + 1;
-            let year = defaultValue.getFullYear();
+            const year = defaultValue.getFullYear();
 
             month = (month < 10 ? '0' : '') + month;
             day = (day < 10 ? '0' : '') + day;
@@ -107,8 +107,8 @@ export default {
             }
 
             let hour = defaultValue.getHours();
-            let min  = defaultValue.getMinutes();
-            let sec  = defaultValue.getSeconds();
+            let min = defaultValue.getMinutes();
+            let sec = defaultValue.getSeconds();
 
             hour = (hour < 10 ? '0' : '') + hour;
             min = (min < 10 ? '0' : '') + min;

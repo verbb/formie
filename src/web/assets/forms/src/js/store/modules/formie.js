@@ -122,32 +122,46 @@ const actions = {
 // Getters are primarily used to perform some calculation/manipulation to store state
 // before having that information accessible to components.
 const getters = {
-    maxFieldHandleLength: (state) => () => {
-        return state.maxFieldHandleLength;
+    maxFieldHandleLength: (state) => {
+        return () => {
+            return state.maxFieldHandleLength;
+        };
     },
 
-    maxFormHandleLength: (state) => () => {
-        return state.maxFormHandleLength;
+    maxFormHandleLength: (state) => {
+        return () => {
+            return state.maxFormHandleLength;
+        };
     },
 
-    reservedHandles: (state) => () => {
-        return state.reservedHandles;
+    reservedHandles: (state) => {
+        return () => {
+            return state.reservedHandles;
+        };
     },
 
-    emailTemplates: (state) => () => {
-        return state.emailTemplates;
+    emailTemplates: (state) => {
+        return () => {
+            return state.emailTemplates;
+        };
     },
 
-    existingFields: (state) => () => {
-        return state.existingFields;
+    existingFields: (state) => {
+        return () => {
+            return state.existingFields;
+        };
     },
 
-    existingNotifications: (state) => () => {
-        return state.existingNotifications;
+    existingNotifications: (state) => {
+        return () => {
+            return state.existingNotifications;
+        };
     },
 
-    statuses: (state) => () => {
-        return state.statuses;
+    statuses: (state) => {
+        return () => {
+            return state.statuses;
+        };
     },
 };
 

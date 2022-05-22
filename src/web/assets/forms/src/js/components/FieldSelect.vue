@@ -72,11 +72,11 @@ export default {
 
     methods: {
         getFieldOptions() {
-            var fields = this.$store.getters['form/fields'];
+            const fields = this.$store.getters['form/fields'];
 
-            var customFields = [];
+            const customFields = [];
 
-            fields.forEach(field => {
+            fields.forEach((field) => {
                 // Exclude cosmetic fields (with no value)
                 if (field.isCosmetic) {
                     return;
@@ -85,31 +85,31 @@ export default {
                 // If this field is nested itself, don't show. The outer field takes care of that below
                 if (!toBoolean(field.isNested)) {
                     // Don't show a nested field on its own
-                    customFields.push({ label: truncate(field.label, { length: 42 }), value: '{' + field.handle + '}' });
+                    customFields.push({ label: truncate(field.label, { length: 42 }), value: `{${field.handle}}` });
 
                     if (field.subfieldOptions && field.hasSubfields) {
-                        field.subfieldOptions.forEach(subfield => {
+                        field.subfieldOptions.forEach((subfield) => {
                             customFields.push({
-                                label: truncate(field.label, { length: 42 }) + ': ' + truncate(subfield.label, { length: 42 }),
-                                value: '{' + field.handle + '[' + subfield.handle + ']}',
+                                label: `${truncate(field.label, { length: 42 })}: ${truncate(subfield.label, { length: 42 })}`,
+                                value: `{${field.handle}[${subfield.handle}]}`,
                             });
                         });
                     }
 
                     // Is this a repeater or field that supports nesting?
                     if (toBoolean(field.supportsNested) && field.rows) {
-                        field.rows.forEach(row => {
-                            row.fields.forEach(subfield => {
+                        field.rows.forEach((row) => {
+                            row.fields.forEach((subfield) => {
                                 customFields.push({
-                                    label: truncate(field.label, { length: 42 }) + ': ' + truncate(subfield.label, { length: 42 }),
-                                    value: '{' + field.handle + '[' + subfield.handle + ']}',
+                                    label: `${truncate(field.label, { length: 42 })}: ${truncate(subfield.label, { length: 42 })}`,
+                                    value: `{${field.handle}[${subfield.handle}]}`,
                                 });
 
                                 if (subfield.subfieldOptions && subfield.hasSubfields) {
-                                    subfield.subfieldOptions.forEach(subsubfield => {
+                                    subfield.subfieldOptions.forEach((subsubfield) => {
                                         customFields.push({
-                                            label: truncate(field.label, { length: 42 }) + ': ' + truncate(subfield.label, { length: 42 }) + ': ' + truncate(subsubfield.label, { length: 42 }),
-                                            value: '{' + field.handle + '[' + subfield.handle + '[' + subsubfield.handle + ']]}',
+                                            label: `${truncate(field.label, { length: 42 })}: ${truncate(subfield.label, { length: 42 })}: ${truncate(subsubfield.label, { length: 42 })}`,
+                                            value: `{${field.handle}[${subfield.handle}[${subsubfield.handle}]]}`,
                                         });
                                     });
                                 }

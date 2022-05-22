@@ -9,7 +9,7 @@
             <button class="btn small" :class="{ 'fui-loading fui-loading-tiny': loading }" :title="t('formie', 'Refresh')" @click.prevent="refresh">{{ t('formie', 'Refresh') }}</button>
 
             <modal ref="modal" v-model="showModal" :show-header="false" :show-footer="false" modal-class="fui-integration-error-modal" @click-outside="closeModal">
-                <template v-slot:body>
+                <template #body>
                     <div class="fui-dialog-close" @click.prevent="closeModal"></div>
 
                     <div class="fui-error-pane error">
@@ -71,10 +71,10 @@ export default {
 
     methods: {
         getFormInputs() {
-            var inputs = [];
+            let inputs = [];
 
             // Serialize the integration pane
-            var $form = document.getElementById('main-form');
+            let $form = document.getElementById('main-form');
 
             // Check for when `allowAdminChanges = false` on production - no form
             if (!$form) {
@@ -89,10 +89,10 @@ export default {
         },
 
         serializeForm() {
-            var values = {};
+            const values = {};
 
-            this.getFormInputs().forEach($inputElement => {
-                var attribute = $inputElement.getAttribute('name');
+            this.getFormInputs().forEach(($inputElement) => {
+                const attribute = $inputElement.getAttribute('name');
 
                 values[attribute] = $inputElement.value;
             });
@@ -117,7 +117,7 @@ export default {
                     this.showModal = true;
 
                     this.errorMessage = Craft.t('formie', 'An error occurred.');
-                    this.errorMessage += '<br><br><code>' + response.data.message + '</code>';
+                    this.errorMessage += `<br><br><code>${response.data.message}</code>`;
 
                     this.statusText = 'Error';
 
@@ -125,7 +125,7 @@ export default {
                 }
 
                 this.statusText = 'Connected';
-            }).catch(error => {
+            }).catch((error) => {
                 this.loading = false;
                 this.error = true;
                 this.showModal = true;
@@ -133,7 +133,7 @@ export default {
                 this.errorMessage = error;
 
                 if (error.response.data.message) {
-                    this.errorMessage += '<br><br><code>' + error.response.data.message + '</code>';
+                    this.errorMessage += `<br><br><code>${error.response.data.message}</code>`;
                 }
 
                 this.statusText = 'Error';

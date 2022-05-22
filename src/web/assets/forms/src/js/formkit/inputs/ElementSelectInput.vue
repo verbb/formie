@@ -22,15 +22,15 @@ export default {
 
     data() {
         return {
-            id: 'element-' + Craft.randomString(10),
+            id: `element-${Craft.randomString(10)}`,
             modal: null,
         };
     },
 
     computed: {
         ...mapState({
-            editingField: state => state.formie.editingField,
-            editingNotification: state => state.formie.editingNotification,
+            editingField: (state) => { return state.formie.editingField; },
+            editingNotification: (state) => { return state.formie.editingNotification; },
         }),
 
         selectionLabel() {
@@ -103,7 +103,7 @@ export default {
 
     methods: {
         createModal() {
-            var { config } = this.context.node;
+            const { config } = this.context.node;
 
             if (config) {
                 config.id = this.id;
@@ -148,7 +148,7 @@ export default {
         },
 
         domToModel() {
-            var elements = [];
+            const elements = [];
 
             this.modal.$elements.each((index, $element) => {
                 elements.push({ id: $element.dataset.id, siteId: $element.dataset.siteId });

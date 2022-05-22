@@ -40,6 +40,8 @@ export default {
         },
     },
 
+    emits: ['update:modelValue'],
+
     data() {
         return {
             showModal: false,
@@ -49,7 +51,7 @@ export default {
 
     computed: {
         ...mapState({
-            pages: state => state.form.pages,
+            pages: (state) => { return state.form.pages; },
         }),
     },
 

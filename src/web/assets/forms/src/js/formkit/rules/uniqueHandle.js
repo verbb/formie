@@ -1,11 +1,10 @@
-import { empty } from '@formkit/utils'
+import { empty } from '@formkit/utils';
 
 const uniqueHandle = (node, args) => {
-    return true;
     const $store = node.config.rootConfig.formieConfig;
 
     if ($store) {
-        const editingField = $store.state.formie.editingField;
+        const { editingField } = $store.state.formie;
 
         if (editingField) {
             return editingField.fieldHandles.indexOf(node.value) === -1;
@@ -15,6 +14,6 @@ const uniqueHandle = (node, args) => {
     return true;
 };
 
-uniqueHandle.skipEmpty = false
+uniqueHandle.skipEmpty = false;
 
-export default uniqueHandle
+export default uniqueHandle;

@@ -13,7 +13,7 @@
             @closed="onModalClosed"
         />
 
-        <table v-show="this.columns.length" ref="table" class="editable fullwidth">
+        <table v-show="columns.length" ref="table" class="editable fullwidth">
             <thead v-if="showHeader">
                 <tr>
                     <th v-for="(col, index) in columns" :key="index" scope="col" :class="col.class">
@@ -32,17 +32,17 @@
                 handle=".move.icon"
                 animation="150"
                 ghost-class="vue-admin-table-drag"
+                item-key="__id"
                 @start="dragging = true"
                 @end="dragging = false"
-                item-key="__id"
             >
                 <template #item="{ element, index }">
-                    <TableRow :index="index" :model="element" :context="context" @remove="removeItem"></TableRow>
+                    <TableRow :index="index" :model="element" :context="context" @remove="removeItem" />
                 </template>
             </draggable>
         </table>
 
-        <div v-if="canAddMore" class="btn add icon" :class="{ 'fui-table-btn-disabled': !this.columns.length }" tabindex="0" @click.prevent="addItem" @keydown.space.prevent="addItem">
+        <div v-if="canAddMore" class="btn add icon" :class="{ 'fui-table-btn-disabled': !columns.length }" tabindex="0" @click.prevent="addItem" @keydown.space.prevent="addItem">
             {{ t('formie', newRowLabel) }}
         </div>
     </div>
@@ -74,6 +74,8 @@ export default {
         },
     },
 
+    emits: ['remove'],
+
     data() {
         return {
             dragging: false,
@@ -84,7 +86,7 @@ export default {
 
     computed: {
         ...mapState({
-            editingField: state => state.formie.editingField,
+            editingField: (state) => { return state.formie.editingField; },
         }),
 
         totalItems() {
@@ -168,6 +170,7 @@ export default {
         // Set the total columns now, so we can keep track of all added/deleted cols
         // But make sure to find the largest column, becuase they can be deleted, we can't
         // rely on the length of the array
+        // eslint-disable-next-line
         this.totalColumns = Math.max(Math.max.apply(Math, this.clone(this.context._value).map((o) => {
             if (o.id) { return o.id.toString().replace('col', ''); }
         })), this.context._value.length) || 0;
@@ -181,7 +184,7 @@ export default {
             }
 
             // Add each item properly
-            items.forEach(item => {
+            items.forEach((item) => {
                 this.addItem(null, item);
             });
         },
@@ -209,7 +212,7 @@ export default {
 
             // Always increment the total cols. We don't want to reuse deleted cols
             if (this.useColumnIds) {
-                newRow.id = 'col' + ++this.totalColumns;
+                newRow.id = `col${++this.totalColumns}`;
             }
 
             // Always ensure that the value for the model is an array

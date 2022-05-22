@@ -45,7 +45,7 @@ export default {
 
     computed: {
         ...mapState({
-            editingField: state => state.formie.editingField,
+            editingField: (state) => { return state.formie.editingField; },
         }),
 
         includeTime() {
@@ -70,7 +70,7 @@ export default {
             this.$datePicker = $(dateInput).datepicker($.extend({
                 altFormat: 'yy-mm-dd',
                 onSelect: (dateText, inst) => {
-                    var dateFormatted = inst.selectedYear + '-' + (inst.selectedMonth + 1) + '-' + inst.selectedDay;
+                    const dateFormatted = `${inst.selectedYear}-${inst.selectedMonth + 1}-${inst.selectedDay}`;
 
                     this.context.node.input({
                         date: dateText,

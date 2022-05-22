@@ -5,7 +5,7 @@
                 <span class="status" :class="{ 'on': !!+notification.enabled }"></span>
                 <strong>{{ notification.name }}</strong>
             </a>
-            
+
             <span v-if="isUnsaved" class="fui-unsaved-pill">{{ t('formie', 'Unsaved') }}</span>
         </td>
 
@@ -129,11 +129,11 @@ export default {
 
         duplicateNotification() {
             const newNotification = this.clone(this.notification);
-            newNotification['id'] = newId();
-            
-            delete newNotification['errors'];
-            delete newNotification['hasError'];
-            delete newNotification['uid'];
+            newNotification.id = newId();
+
+            delete newNotification.errors;
+            delete newNotification.hasError;
+            delete newNotification.uid;
 
             this.$store.dispatch('notifications/addNotification', {
                 data: newNotification,

@@ -1,7 +1,7 @@
 <template>
     <div class="fui-fields-pane">
         <div class="fui-fields-wrapper">
-             <div class="fui-tabs fui-field-tabs fui-editor-tabs">
+            <div class="fui-tabs fui-field-tabs fui-editor-tabs">
                 <field-page-tabs v-model="activePage" />
             </div>
 
@@ -17,7 +17,7 @@
                         <field-page ref="pages" :page-index="index" v-bind="page" />
                     </div>
                 </div>
-            </div> 
+            </div>
         </div>
 
         <div class="fui-sidebar-wrapper">
@@ -25,7 +25,7 @@
                 <div v-if="existingFields && existingFields.length">
                     <h6 class="sidebar-title">{{ t('formie', 'Existing fields') }}</h6>
 
-                    <existing-field-modal></existing-field-modal>
+                    <existing-field-modal />
 
                     <hr>
                 </div>
@@ -64,7 +64,7 @@ polyfill({
 });
 
 // Required listeners for polyfill behaviour
-window.addEventListener('dragenter', event => {
+window.addEventListener('dragenter', (event) => {
     event.preventDefault();
 });
 
@@ -94,10 +94,10 @@ export default {
 
     computed: {
         ...mapState({
-            existingFields: state => state.formie.existingFields,
-            fieldGroups: state => state.fieldGroups,
-            pages: state => state.form.pages,
-            form: state => state.form,
+            existingFields: (state) => { return state.formie.existingFields; },
+            fieldGroups: (state) => { return state.fieldGroups; },
+            pages: (state) => { return state.form.pages; },
+            form: (state) => { return state.form; },
         }),
 
         formHash() {
@@ -106,9 +106,7 @@ export default {
 
         enabledFieldGroups() {
             return this.fieldGroups.filter((group) => {
-                if (group.label !== 'Internal') {
-                    return group;
-                }
+                return (group.label !== 'Internal') ? group : false;
             });
         },
     },

@@ -14,9 +14,9 @@ export const parse = function(attribute, obj) {
     let compare = '';
 
     if (attribute.includes('||')) {
-        var attributes = attribute.split('||');
-        
-        var results = attributes.map(attr => {
+        const attributes = attribute.split('||');
+
+        const results = attributes.map((attr) => {
             return parse(attr, obj);
         });
 
@@ -29,23 +29,23 @@ export const parse = function(attribute, obj) {
     }
 
     if (attribute.includes('=')) {
-        [ attribute, compare ] = attribute.split('=');
+        [attribute, compare] = attribute.split('=');
     }
 
     if (attribute) {
         if (compare) {
             if (negative) {
                 return get(obj, attribute) !== compare;
-            } else {
-                return get(obj, attribute) === compare;
             }
-        } else {
-            if (negative) {
-                return !get(obj, attribute);
-            } else {
-                return get(obj, attribute);
-            }
+            return get(obj, attribute) === compare;
+
         }
+        if (negative) {
+            return !get(obj, attribute);
+        }
+        return get(obj, attribute);
+
+
     }
 
     return null;

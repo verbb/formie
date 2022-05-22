@@ -24,7 +24,7 @@ import { find } from 'lodash-es';
 import tippy from 'tippy.js';
 import 'tippy.js/themes/light-border.css';
 
-import { Node } from "@tiptap/core";
+import { Node } from '@tiptap/core';
 import { Editor, EditorContent } from '@tiptap/vue-3';
 
 // TipTap - Nodes
@@ -37,9 +37,9 @@ import VariableTag from './richtext/variable-tag/VariableTag';
 import VariableList from './richtext/variable-tag/VariableList.vue';
 
 const OneLiner = Node.create({
-    name: "oneLiner",
+    name: 'oneLiner',
     topNode: true,
-    content: "block",
+    content: 'block',
 });
 
 export default {
@@ -100,7 +100,7 @@ export default {
     created() {
         // For the moment, we have to hard-code these variable lists in the component
         // Not overly flexibly, but well think of something a bit later...
-        var variablesAttribute = this.context.attrs.variables || '';
+        const variablesAttribute = this.context.attrs.variables || '';
 
         if (variablesAttribute && this[variablesAttribute]) {
             this.variables = this[variablesAttribute];
@@ -154,7 +154,7 @@ export default {
         });
     },
 
-    beforeDestroy() {
+    beforeUnmount() {
         this.editor.destroy();
     },
 
@@ -178,12 +178,12 @@ export default {
             // Split the value into an array, like `['some text', '{var}', 'more text']` to make it easier to deal with
             // Then, replace `{var}` with `<variable-tag>{ label: 'Some label', value: 'some-value' }</variable-tag>`
             // The variable content is plucked from the `variables` prop. Join in all back and that's our content
-            return value.split(/({.*?})/).map(param => {
+            return value.split(/({.*?})/).map((param) => {
                 if (param.includes('{')) {
-                    var variable = find(this.variables, { value: param });
+                    const variable = find(this.variables, { value: param });
 
                     if (variable) {
-                        return '<variable-tag>' + JSON.stringify(variable) + '</variable-tag>';
+                        return `<variable-tag>${JSON.stringify(variable)}</variable-tag>`;
                     }
                 }
 
@@ -196,18 +196,22 @@ export default {
                 return '';
             }
 
+            let newContent = '';
+
             // Join the returned JSON object into a single string ready to save
-            return content.map(node => {
+            content.forEach((node) => {
                 if (node.type === 'paragraph' && node.content) {
-                    return node.content.map(param => {
+                    node.content.forEach((param) => {
                         if (param.type === 'text') {
-                            return param.text;
-                        } else if (param.type === 'variableTag') {
-                            return param.attrs.value;
+                            newContent += param.text;
+                        } if (param.type === 'variableTag') {
+                            newContent += param.attrs.value;
                         }
-                    }).join('');
+                    });
                 }
-            }).join('');
+            });
+
+            return newContent;
         },
 
         addVariable(e) {

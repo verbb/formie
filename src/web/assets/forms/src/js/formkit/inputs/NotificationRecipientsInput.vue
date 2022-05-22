@@ -38,11 +38,11 @@
                         </select>
                     </div>
                 </td>
-                
+
                 <td v-if="row.valueType === 'text'" class="singleline-cell textual">
                     <textarea v-model="row.value" rows="1" style="min-height: 36px;"></textarea>
                 </td>
-                
+
                 <td v-if="row.valueType === 'select'" class="select-cell" style="text-align: left;">
                     <div class="select small">
                         <select v-model="row.value">
@@ -124,7 +124,7 @@ export default {
 
     methods: {
         unserializeContent(value) {
-            var parsedValue = null;
+            let parsedValue = null;
 
             if (!value) {
                 return this.defaultSettings;
@@ -143,9 +143,9 @@ export default {
 
             if (parsedValue && parsedValue.toRecipients) {
                 // Prep rows with their correct value types
-                parsedValue.toRecipients.forEach(row => {
-                    var field = this.getField(row.field);
-            
+                parsedValue.toRecipients.forEach((row) => {
+                    const field = this.getField(row.field);
+
                     row.valueType = this.getValueType(field, row.condition);
                     row.valueOptions = this.getValueOptions(field, row.condition);
                 });
@@ -157,12 +157,12 @@ export default {
         },
 
         serializeContent(content) {
-            var value = this.clone(content);
+            const value = this.clone(content);
 
             // Remove value types, they're generated dynamically
-            value.toRecipients.forEach(row => {
-                delete row['valueType'];
-                delete row['valueOptions'];
+            value.toRecipients.forEach((row) => {
+                delete row.valueType;
+                delete row.valueOptions;
             });
 
             return JSON.stringify(value);
@@ -187,8 +187,8 @@ export default {
         getValueType(field, condition) {
             // Check if there are any specific options
             if (field && field.field && field.field.settings) {
-                var testField = field;
-                var options = field.field.settings.options || [];
+                let testField = field;
+                let options = field.field.settings.options || [];
 
                 // Check for group/repeater fields
                 if (field.field.supportsNested) {
@@ -221,9 +221,9 @@ export default {
         getValueOptions(field, condition) {
             // Check if there are any specific options
             if (field && field.field && field.field.settings) {
-                var testField = field;
-                var options = field.field.settings.options || [];
-                
+                let testField = field;
+                let options = field.field.settings.options || [];
+
                 // Check for group/repeater fields
                 if (field.field.supportsNested) {
                     options = field.subfield.settings.options || [];
@@ -240,16 +240,16 @@ export default {
 
                 // Special handling for recipients, should use placeholders
                 if (testField.type === 'verbb\\formie\\fields\\formfields\\Recipients') {
-                    for (var i = 0; i < options.length; i++) {
-                        options[i].value = 'id:' + i;
+                    for (let i = 0; i < options.length; i++) {
+                        options[i].value = `id:${i}`;
                     }
                 }
 
                 // Filter out any optgroups
-                options = options.filter(option => {
+                options = options.filter((option) => {
                     return !option.isOptgroup;
                 });
-            
+
                 return options;
             }
 
@@ -262,7 +262,7 @@ export default {
         },
 
         changeDropdown(row) {
-            var field = this.getField(row.field);
+            const field = this.getField(row.field);
 
             row.valueType = this.getValueType(field, row.condition);
             row.valueOptions = this.getValueOptions(field, row.condition);
@@ -277,10 +277,10 @@ export default {
         },
 
         getField(handle) {
-            var field = null;
+            let field = null;
 
-            this.fieldOptions.forEach(optgroup => {
-                optgroup.options.forEach(f => {
+            this.fieldOptions.forEach((optgroup) => {
+                optgroup.options.forEach((f) => {
                     if (f.value === handle) {
                         field = f;
                     }
@@ -291,10 +291,10 @@ export default {
         },
 
         getFieldOptions() {
-            var options = [];
+            const options = [];
 
-            var allStatuses = this.$store.getters['formie/statuses']();
-            var statuses = allStatuses.map(status => {
+            const allStatuses = this.$store.getters['formie/statuses']();
+            const statuses = allStatuses.map((status) => {
                 return { label: status.name, value: status.handle };
             });
 
@@ -316,49 +316,49 @@ export default {
                 ],
             });
 
-            var fields = this.$store.getters['form/fields'];
-            var customFields = [];
+            const fields = this.$store.getters['form/fields'];
+            const customFields = [];
 
-            fields.forEach(field => {
+            fields.forEach((field) => {
                 // If this field is nested itself, don't show. The outer field takes care of that below
                 if (!toBoolean(field.isNested)) {
                     if (field.subfieldOptions && field.hasSubfields) {
-                        field.subfieldOptions.forEach(subfield => {
+                        field.subfieldOptions.forEach((subfield) => {
                             customFields.push({
                                 field,
                                 subfield,
                                 type: field.type,
-                                label: truncate(field.label, { length: 42 }) + ': ' + truncate(subfield.label, { length: 42 }),
-                                value: '{' + field.handle + '.' + subfield.handle + '}',
+                                label: `${truncate(field.label, { length: 42 })}: ${truncate(subfield.label, { length: 42 })}`,
+                                value: `{${field.handle}.${subfield.handle}}`,
                             });
                         });
                     } else if (field.type === 'verbb\\formie\\fields\\formfields\\Group' && field.rows) {
                         // Is this a group field that supports nesting?
-                        field.rows.forEach(row => {
-                            row.fields.forEach(subfield => {
+                        field.rows.forEach((row) => {
+                            row.fields.forEach((subfield) => {
                                 customFields.push({
                                     field,
                                     subfield,
                                     type: field.type,
-                                    label: truncate(field.label, { length: 42 }) + ': ' + truncate(subfield.label, { length: 42 }),
-                                    value: '{' + field.handle + '.rows.new1.fields.' + subfield.handle + '}',
+                                    label: `${truncate(field.label, { length: 42 })}: ${truncate(subfield.label, { length: 42 })}`,
+                                    value: `{${field.handle}.rows.new1.fields.${subfield.handle}}`,
                                 });
                             });
                         });
                     } else if (field.type === 'verbb\\formie\\fields\\formfields\\Date') {
                         // Special handling for date fields for now
-                        customFields.push({ 
+                        customFields.push({
                             field,
                             type: field.type,
-                            label: truncate(field.label, { length: 42 }), 
-                            value: '{' + field.handle + '.date}',
-                        });                        
+                            label: truncate(field.label, { length: 42 }),
+                            value: `{${field.handle}.date}`,
+                        });
                     } else {
-                        customFields.push({ 
+                        customFields.push({
                             field,
                             type: field.type,
-                            label: truncate(field.label, { length: 42 }), 
-                            value: '{' + field.handle + '}',
+                            label: truncate(field.label, { length: 42 }),
+                            value: `{${field.handle}}`,
                         });
                     }
                 }

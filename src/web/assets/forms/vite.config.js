@@ -2,7 +2,7 @@ import path from 'path';
 
 // Vite Plugins
 import VuePlugin from '@vitejs/plugin-vue';
-// import EslintPlugin from 'vite-plugin-eslint';
+import EslintPlugin from 'vite-plugin-eslint';
 
 // Rollup Plugins
 import { nodeResolve } from '@rollup/plugin-node-resolve';
@@ -33,12 +33,12 @@ export default ({ command }) => ({
     plugins: [
         // Keep JS looking good with eslint
         // https://github.com/gxmari007/vite-plugin-eslint
-        // EslintPlugin({
-        //     cache: false,
-        //     fix: true,
-        //     include: './src/**/*.{js,vue}',
-        //     exclude: './src/js/vendor/**/*.{js,vue}',
-        // }),
+        EslintPlugin({
+            cache: false,
+            fix: true,
+            include: './src/**/*.{js,vue}',
+            exclude: './src/js/vendor/**/*.{js,vue}',
+        }),
 
         // Vue 3 support
         // https://github.com/vitejs/vite/tree/main/packages/plugin-vue

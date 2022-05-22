@@ -1,6 +1,8 @@
-import { ref } from "vue";
-import { find, flatMap, forEach, filter, omitBy } from 'lodash-es';
 import md5Hex from 'md5-hex';
+import { ref } from 'vue';
+
+// eslint-disable-next-line
+import { find, flatMap, forEach, filter, omitBy } from 'lodash-es';
 
 import { toBoolean } from '@utils/bool';
 import { newId } from '@utils/string';
@@ -12,8 +14,9 @@ const state = {
     pages: [],
 };
 
-const getRows = payload => {
+const getRows = (payload) => {
     if (payload.fieldId) {
+        // eslint-disable-next-line
         const field = getters.field(state)(payload.fieldId);
 
         if (typeof field.rows === 'undefined') {
@@ -21,13 +24,12 @@ const getRows = payload => {
         }
 
         return ref(field.rows);
-    } else {
-        if (typeof state.pages[payload.pageIndex].rows === 'undefined') {
-            state.pages[payload.pageIndex].rows = [];
-        }
-
-        return ref(state.pages[payload.pageIndex].rows);
     }
+    if (typeof state.pages[payload.pageIndex].rows === 'undefined') {
+        state.pages[payload.pageIndex].rows = [];
+    }
+
+    return ref(state.pages[payload.pageIndex].rows);
 };
 
 // Mutations are functions responsible in directly mutating store state.
@@ -43,19 +45,19 @@ const mutations = {
         // this wreaks havoc in Vue, as fields have lost their IDs.
         // Maybe a better way to prep this instead of the massive nesting below??
         if (config.pages && Array.isArray(config.pages)) {
-            config.pages.forEach(page => {
+            config.pages.forEach((page) => {
                 if (page.rows && Array.isArray(page.rows)) {
-                    page.rows.forEach(row => {
+                    page.rows.forEach((row) => {
                         if (row.fields && Array.isArray(row.fields)) {
-                            row.fields.forEach(field => {
+                            row.fields.forEach((field) => {
                                 if (!field.vid) {
                                     field.vid = newId();
 
                                     // For nested fields - more rows/fields!
                                     if (field.rows && Array.isArray(field.rows)) {
-                                        field.rows.forEach(nestedRow => {
+                                        field.rows.forEach((nestedRow) => {
                                             if (nestedRow.fields && Array.isArray(nestedRow.fields)) {
-                                                nestedRow.fields.forEach(nestedField => {
+                                                nestedRow.fields.forEach((nestedField) => {
                                                     if (!nestedField.vid) {
                                                         nestedField.vid = newId();
                                                     }
@@ -118,6 +120,7 @@ const mutations = {
     },
 
     APPEND_ROW_TO_PAGE(state, payload) {
+        // eslint-disable-next-line
         const { sourcePageIndex, sourceRowIndex, sourceColumnIndex, pageIndex, data } = payload;
 
         if (state.pages[pageIndex].rows === undefined) {
@@ -145,7 +148,9 @@ const mutations = {
     },
 
     MOVE_ROW(state, payload) {
+        // eslint-disable-next-line
         let { sourceRowIndex, sourceColumnIndex, rowIndex, data } = payload;
+
         const rows = getRows(payload).value;
 
         // Just guard against not actually moving rows - but only if its a full-width field
@@ -184,6 +189,7 @@ const mutations = {
     },
 
     MOVE_COLUMN(state, payload) {
+        // eslint-disable-next-line
         let { sourceRowIndex, sourceColumnIndex, rowIndex, columnIndex } = payload;
 
         // Just guard against not actually moving columns
@@ -205,7 +211,7 @@ const mutations = {
         }
 
         // Remove the old column
-        const [ fieldData ] = rows[sourceRowIndex].fields.splice(sourceColumnIndex, 1);
+        const [fieldData] = rows[sourceRowIndex].fields.splice(sourceColumnIndex, 1);
 
         // Check to see if there are no more fields - delete the row too
         if (rows[sourceRowIndex].fields.length === 0) {
@@ -229,7 +235,6 @@ const mutations = {
             forEach(page.rows, (row) => {
                 forEach(row.fields, (field, key) => {
 
-                    // noinspection EqualityComparisonWithCoercionJS
                     if (field && field.vid == id) {
                         row.fields.splice(key, 1);
                         return false;
@@ -238,7 +243,6 @@ const mutations = {
                     if (field.supportsNested) {
                         forEach(field.rows, (repeaterRow) => {
                             forEach(repeaterRow.fields, (repeaterField, repeaterKey) => {
-                                // noinspection EqualityComparisonWithCoercionJS
                                 if (repeaterField && repeaterField.vid == id) {
                                     repeaterRow.fields.splice(repeaterKey, 1);
                                     return false;
@@ -273,6 +277,7 @@ const mutations = {
     },
 
     UPDATE_FIELD_SETTINGS(state, payload) {
+        // eslint-disable-next-line
         const { rowIndex, columnIndex, prop, value } = payload;
         const rows = getRows(payload).value;
 
@@ -281,6 +286,7 @@ const mutations = {
     },
 
     SET_FIELD_PROP(state, payload) {
+        // eslint-disable-next-line
         const { rowIndex, columnIndex, prop, value } = payload;
         const rows = getRows(payload).value;
 
@@ -370,27 +376,31 @@ const getters = {
         return md5Hex(JSON.stringify(state.pages));
     },
 
-    pageSettings: (state) => (pageId) => {
-        const page = find(state.pages, { id: pageId });
+    pageSettings: (state) => {
+        return (pageId) => {
+            const page = find(state.pages, { id: pageId });
 
-        if (page) {
-            return page.settings;
-        }
+            if (page) {
+                return page.settings;
+            }
 
-        return {};
+            return {};
+        };
     },
 
-    field: (state) => (vid) => {
-        const allFields = getters.fields(state);
+    field: (state) => {
+        return (vid) => {
+            const allFields = getters.fields(state);
 
-        return find(allFields, { vid });
+            return find(allFields, { vid });
+        };
     },
 
     fields: (state) => {
         const allRows = flatMap(state.pages, 'rows');
         let allFields = flatMap(allRows, 'fields');
 
-        const repeaterFields = filter(allFields, field => !!field.rows);
+        const repeaterFields = filter(allFields, (field) => { return !!field.rows; });
         const repeaterRows = flatMap(repeaterFields, 'rows');
 
         allFields = [
@@ -402,7 +412,7 @@ const getters = {
         return allFields.filter(Boolean);
     },
 
-    generalFields: state => {
+    generalFields: (state) => {
         let fields = [];
 
         for (const key in state.variables) {
@@ -417,216 +427,222 @@ const getters = {
         return fields;
     },
 
-    userFields: state => {
+    userFields: (state) => {
         return state.variables.users;
     },
 
-    emailFields: (state, getters) => (includeGeneral = false) => {
-        // TODO refactor this, probably server-side
-        const allowedTypes = [
-            'verbb\\formie\\fields\\formfields\\Email',
-            'verbb\\formie\\fields\\formfields\\Hidden',
-            'verbb\\formie\\fields\\formfields\\Recipients',
-        ];
+    emailFields: (state, getters) => {
+        return (includeGeneral = false) => {
+            // TODO refactor this, probably server-side
+            const allowedTypes = [
+                'verbb\\formie\\fields\\formfields\\Email',
+                'verbb\\formie\\fields\\formfields\\Hidden',
+                'verbb\\formie\\fields\\formfields\\Recipients',
+            ];
 
-        let fields = [
-            { label: Craft.t('formie', 'Fields'), heading: true },
-        ];
+            let fields = [
+                { label: Craft.t('formie', 'Fields'), heading: true },
+            ];
 
-        getters.fields.forEach(field => {
+            getters.fields.forEach((field) => {
             // If this field is nested itself, don't show. The outer field takes care of that below
-            if (!toBoolean(field.isNested)) {
-                if (field.type === 'verbb\\formie\\fields\\formfields\\Group' && field.rows) {
+                if (!toBoolean(field.isNested)) {
+                    if (field.type === 'verbb\\formie\\fields\\formfields\\Group' && field.rows) {
                     // Is this a group field that supports nesting?
-                    field.rows.forEach(row => {
-                        row.fields.forEach(subfield => {
-                            if (allowedTypes.includes(subfield.type)) {
-                                fields.push({
-                                    label: field.label + ': ' + subfield.label,
-                                    value: '{field.' + field.handle + '.' + subfield.handle + '}',
-                                });
-                            }
-                        });
-                    });
-                } else {
-                    if (allowedTypes.includes(field.type)) {
-                        fields.push({
-                            label: field.label,
-                            value: '{field.' + field.handle + '}',
-                        });
-                    }
-                }
-            }
-        });
-
-        // Check if there's only a heading
-        if (fields.length === 1) {
-            fields = [];
-        }
-
-        if (includeGeneral) {
-            fields = fields.concat(getters.generalFields);
-        } else {
-            fields = fields.concat(state.variables.email);
-        }
-
-        return fields;
-    },
-
-    plainTextFields: (state, getters) => (includeGeneral = false) => {
-        // TODO refactor this, probably server-side
-        const allowedTypes = [
-            'verbb\\formie\\fields\\formfields\\Date',
-            'verbb\\formie\\fields\\formfields\\Dropdown',
-            'verbb\\formie\\fields\\formfields\\Email',
-            'verbb\\formie\\fields\\formfields\\Hidden',
-            'verbb\\formie\\fields\\formfields\\Html',
-            'verbb\\formie\\fields\\formfields\\Number',
-            'verbb\\formie\\fields\\formfields\\Phone',
-            'verbb\\formie\\fields\\formfields\\Radio',
-            'verbb\\formie\\fields\\formfields\\SingleLineText',
-
-            // Some fields that's values have __toString implemented.
-            'verbb\\formie\\fields\\formfields\\Name',
-        ];
-
-        let fields = [
-            { label: Craft.t('formie', 'Fields'), heading: true },
-        ];
-
-        getters.fields.forEach(field => {
-            // If this field is nested itself, don't show. The outer field takes care of that below
-            if (!toBoolean(field.isNested)) {
-                if (field.subfieldOptions && field.hasSubfields) {
-                    field.subfieldOptions.forEach(subfield => {
-                        fields.push({
-                            label: field.label + ': ' + subfield.label,
-                            value: '{field.' + field.handle + '.' + subfield.handle + '}',
-                        });
-                    });
-                } else if (field.type === 'verbb\\formie\\fields\\formfields\\Group' && field.rows) {
-                    // Is this a group field that supports nesting?
-                    field.rows.forEach(row => {
-                        row.fields.forEach(groupfield => {
-                            if (groupfield.subfieldOptions && groupfield.hasSubfields) {
-                                groupfield.subfieldOptions.forEach(subfield => {
+                        field.rows.forEach((row) => {
+                            row.fields.forEach((subfield) => {
+                                if (allowedTypes.includes(subfield.type)) {
                                     fields.push({
-                                        label: field.label + ': ' + groupfield.label + ': ' + subfield.label,
-                                        value: '{field.' + field.handle + '.' + groupfield.handle + '.' + subfield.handle + '}',
+                                        label: `${field.label}: ${subfield.label}`,
+                                        value: `{field.${field.handle}.${subfield.handle}}`,
                                     });
-                                });
-                            } else if (allowedTypes.includes(groupfield.type)) {
-                                fields.push({
-                                    label: field.label + ': ' + groupfield.label,
-                                    value: '{field.' + field.handle + '.' + groupfield.handle + '}',
-                                });
-                            }
+                                }
+                            });
                         });
-                    });
-                } else {
-                    if (allowedTypes.includes(field.type)) {
+                    } else if (allowedTypes.includes(field.type)) {
                         fields.push({
                             label: field.label,
-                            value: '{field.' + field.handle + '}',
+                            value: `{field.${field.handle}}`,
                         });
                     }
                 }
+            });
+
+            // Check if there's only a heading
+            if (fields.length === 1) {
+                fields = [];
             }
-        });
 
-        // Check if there's only a heading
-        if (fields.length === 1) {
-            fields = [];
-        }
+            if (includeGeneral) {
+                fields = fields.concat(getters.generalFields);
+            } else {
+                fields = fields.concat(state.variables.email);
+            }
 
-        if (includeGeneral) {
-            fields = fields.concat(getters.generalFields);
-        }
-
-        return fields;
+            return fields;
+        };
     },
 
-    allFields: (state, getters) => (includeGeneral = false) => {
-        let fields = [
-            { label: Craft.t('formie', 'Fields'), heading: true },
-        ];
+    plainTextFields: (state, getters) => {
+        return (includeGeneral = false) => {
+            // TODO refactor this, probably server-side
+            const allowedTypes = [
+                'verbb\\formie\\fields\\formfields\\Date',
+                'verbb\\formie\\fields\\formfields\\Dropdown',
+                'verbb\\formie\\fields\\formfields\\Email',
+                'verbb\\formie\\fields\\formfields\\Hidden',
+                'verbb\\formie\\fields\\formfields\\Html',
+                'verbb\\formie\\fields\\formfields\\Number',
+                'verbb\\formie\\fields\\formfields\\Phone',
+                'verbb\\formie\\fields\\formfields\\Radio',
+                'verbb\\formie\\fields\\formfields\\SingleLineText',
 
-        getters.fields.forEach(field => {
-            // If this field is nested itself, don't show. The outer field takes care of that below
-            if (!toBoolean(field.isNested)) {
-                if (field.subfieldOptions && field.hasSubfields) {
-                    field.subfieldOptions.forEach(subfield => {
-                        fields.push({
-                            id: field.id,
-                            vid: field.vid,
-                            type: field.type,
-                            label: field.label + ': ' + subfield.label,
-                            value: '{field.' + field.handle + '.' + subfield.handle + '}',
+                // Some fields that's values have __toString implemented.
+                'verbb\\formie\\fields\\formfields\\Name',
+            ];
+
+            let fields = [
+                { label: Craft.t('formie', 'Fields'), heading: true },
+            ];
+
+            getters.fields.forEach((field) => {
+                // If this field is nested itself, don't show. The outer field takes care of that below
+                if (!toBoolean(field.isNested)) {
+                    if (field.subfieldOptions && field.hasSubfields) {
+                        field.subfieldOptions.forEach((subfield) => {
+                            fields.push({
+                                label: `${field.label}: ${subfield.label}`,
+                                value: `{field.${field.handle}.${subfield.handle}}`,
+                            });
                         });
-                    });
-                } else if (field.type === 'verbb\\formie\\fields\\formfields\\Group' && field.rows) {
-                    // Is this a group field that supports nesting?
-                    field.rows.forEach(row => {
-                        row.fields.forEach(groupfield => {
-                            if (groupfield.subfieldOptions && groupfield.hasSubfields) {
-                                groupfield.subfieldOptions.forEach(subfield => {
+                    } else if (field.type === 'verbb\\formie\\fields\\formfields\\Group' && field.rows) {
+                        // Is this a group field that supports nesting?
+                        field.rows.forEach((row) => {
+                            row.fields.forEach((groupfield) => {
+                                if (groupfield.subfieldOptions && groupfield.hasSubfields) {
+                                    groupfield.subfieldOptions.forEach((subfield) => {
+                                        fields.push({
+                                            label: `${field.label}: ${groupfield.label}: ${subfield.label}`,
+                                            value: `{field.${field.handle}.${groupfield.handle}.${subfield.handle}}`,
+                                        });
+                                    });
+                                } else if (allowedTypes.includes(groupfield.type)) {
+                                    fields.push({
+                                        label: `${field.label}: ${groupfield.label}`,
+                                        value: `{field.${field.handle}.${groupfield.handle}}`,
+                                    });
+                                }
+                            });
+                        });
+                    } else if (allowedTypes.includes(field.type)) {
+                        fields.push({
+                            label: field.label,
+                            value: `{field.${field.handle}}`,
+                        });
+                    }
+                }
+            });
+
+            // Check if there's only a heading
+            if (fields.length === 1) {
+                fields = [];
+            }
+
+            if (includeGeneral) {
+                fields = fields.concat(getters.generalFields);
+            }
+
+            return fields;
+        };
+    },
+
+    allFields: (state, getters) => {
+        return (includeGeneral = false) => {
+            let fields = [
+                { label: Craft.t('formie', 'Fields'), heading: true },
+            ];
+
+            getters.fields.forEach((field) => {
+                // If this field is nested itself, don't show. The outer field takes care of that below
+                if (!toBoolean(field.isNested)) {
+                    if (field.subfieldOptions && field.hasSubfields) {
+                        field.subfieldOptions.forEach((subfield) => {
+                            fields.push({
+                                id: field.id,
+                                vid: field.vid,
+                                type: field.type,
+                                label: `${field.label}: ${subfield.label}`,
+                                value: `{field.${field.handle}.${subfield.handle}}`,
+                            });
+                        });
+                    } else if (field.type === 'verbb\\formie\\fields\\formfields\\Group' && field.rows) {
+                        // Is this a group field that supports nesting?
+                        field.rows.forEach((row) => {
+                            row.fields.forEach((groupfield) => {
+                                if (groupfield.subfieldOptions && groupfield.hasSubfields) {
+                                    groupfield.subfieldOptions.forEach((subfield) => {
+                                        fields.push({
+                                            id: field.id,
+                                            vid: field.vid,
+                                            type: field.type,
+                                            label: `${field.label}: ${groupfield.label}: ${subfield.label}`,
+                                            value: `{field.${field.handle}.${groupfield.handle}.${subfield.handle}}`,
+                                        });
+                                    });
+                                } else {
                                     fields.push({
                                         id: field.id,
                                         vid: field.vid,
                                         type: field.type,
-                                        label: field.label + ': ' + groupfield.label + ': ' + subfield.label,
-                                        value: '{field.' + field.handle + '.' + groupfield.handle + '.' + subfield.handle + '}',
+                                        label: `${field.label}: ${groupfield.label}`,
+                                        value: `{field.${field.handle}.${groupfield.handle}}`,
                                     });
-                                });
-                            } else {
-                                fields.push({
-                                    id: field.id,
-                                    vid: field.vid,
-                                    type: field.type,
-                                    label: field.label + ': ' + groupfield.label,
-                                    value: '{field.' + field.handle + '.' + groupfield.handle + '}',
-                                });
-                            }
+                                }
+                            });
                         });
-                    });
-                } else {
-                    fields.push({ 
-                        id: field.id,
-                        vid: field.vid,
-                        type: field.type,
-                        label: field.label, 
-                        value: '{field.' + field.handle + '}',
-                    });
+                    } else {
+                        fields.push({
+                            id: field.id,
+                            vid: field.vid,
+                            type: field.type,
+                            label: field.label,
+                            value: `{field.${field.handle}}`,
+                        });
+                    }
                 }
+            });
+
+            // Check if there's only a heading
+            if (fields.length === 1) {
+                fields = [];
             }
-        });
 
-        // Check if there's only a heading
-        if (fields.length === 1) {
-            fields = [];
-        }
+            if (includeGeneral) {
+                fields = fields.concat(getters.generalFields);
+            }
 
-        if (includeGeneral) {
-            fields = fields.concat(getters.generalFields);
-        }
-
-        return fields;
+            return fields;
+        };
     },
 
-    fieldsForType: (state, getters) => (type) => {
-        let fields = [];
-        
-        fields = fields.concat(getters.fields.filter(field => {
-            return field.type === type;
-        }).map(field => {
-            return { label: field.label, value: '{' + field.handle + '}' };
-        }));
+    fieldsForType: (state, getters) => {
+        return (type) => {
+            let fields = [];
 
-        return fields;
+            fields = fields.concat(getters.fields.filter((field) => {
+                return field.type === type;
+            }).map((field) => {
+                return { label: field.label, value: `{${field.handle}}` };
+            }));
+
+            return fields;
+        };
     },
 
-    fieldsForPage: (state) => (pageIndex) => {
-        return flatMap(state.pages[pageIndex].rows, 'fields');
+    fieldsForPage: (state) => {
+        return (pageIndex) => {
+            return flatMap(state.pages[pageIndex].rows, 'fields');
+        };
     },
 
     fieldHandles: (state) => {
@@ -635,13 +651,45 @@ const getters = {
         return flatMap(allFields, 'handle');
     },
 
-    fieldHandlesForField: (state, getters, rootState, rootGetters) => (vid) => {
-        const field = getters.fields.find(field => {
-            return field.vid === vid;
-        });
+    fieldHandlesForField: (state, getters, rootState, rootGetters) => {
+        return (vid) => {
+            const field = getters.fields.find((field) => {
+                return field.vid === vid;
+            });
 
-        if (field) {
-            const allFields = flatMap(field.rows, 'fields');
+            if (field) {
+                const allFields = flatMap(field.rows, 'fields');
+
+                let fieldHandles = flatMap(allFields, 'handle');
+
+                // Fetch all reserved handles
+                const reservedHandles = rootGetters['formie/reservedHandles']();
+                fieldHandles = fieldHandles.concat(reservedHandles);
+
+                return fieldHandles;
+            }
+
+            return [];
+        };
+    },
+
+    fieldHandlesExcluding: (state, getters, rootState, rootGetters) => {
+        return (vid, parentId) => {
+            const allRows = flatMap(state.pages, 'rows');
+            let allFields = flatMap(allRows, 'fields');
+
+            // When supplying a parent field, limit handles to children of the parent
+            if (parentId) {
+                const field = getters.fields.find((field) => {
+                    return field.vid === parentId;
+                });
+
+                if (field) {
+                    allFields = flatMap(field.rows, 'fields');
+                }
+            }
+
+            allFields = omitBy(allFields, { vid });
 
             let fieldHandles = flatMap(allFields, 'handle');
 
@@ -650,35 +698,7 @@ const getters = {
             fieldHandles = fieldHandles.concat(reservedHandles);
 
             return fieldHandles;
-        }
-
-        return [];
-    },
-
-    fieldHandlesExcluding: (state, getters, rootState, rootGetters) => (vid, parentId) => {
-        const allRows = flatMap(state.pages, 'rows');
-        let allFields = flatMap(allRows, 'fields');
-
-        // When supplying a parent field, limit handles to children of the parent
-        if (parentId) {
-            const field = getters.fields.find(field => {
-                return field.vid === parentId;
-            });
-
-            if (field) {
-                allFields = flatMap(field.rows, 'fields');
-            }
-        }
-
-        allFields = omitBy(allFields, { vid });
-
-        let fieldHandles = flatMap(allFields, 'handle');
-
-        // Fetch all reserved handles
-        const reservedHandles = rootGetters['formie/reservedHandles']();
-        fieldHandles = fieldHandles.concat(reservedHandles);
-
-        return fieldHandles;
+        };
     },
 
     notificationIds: (state) => {

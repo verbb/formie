@@ -1,4 +1,4 @@
-import { empty } from '@formkit/utils'
+import { empty } from '@formkit/utils';
 
 const requiredIf = (node, address) => {
     const foreignValue = node.at(address)?.value;
@@ -6,6 +6,6 @@ const requiredIf = (node, address) => {
     return foreignValue ? !empty(node.value) : true;
 };
 
-requiredIf.skipEmpty = false
+requiredIf.skipEmpty = false;
 
-export default requiredIf
+export default requiredIf;

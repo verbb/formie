@@ -2,13 +2,13 @@
     <div class="btn add icon dashed" @click="openModal">{{ t('formie', 'Add existing fields') }}</div>
 
     <modal ref="modal" v-model="showModal" :modal-class="['fui-edit-field-modal', 'fui-existing-item-modal']" @click-outside="closeModal">
-        <template v-slot:header>
+        <template #header>
             <h3 class="fui-modal-title">{{ t('formie', 'Add Existing Field') }}</h3>
 
             <div class="fui-dialog-close" @click.prevent="closeModal"></div>
         </template>
 
-        <template v-slot:body>
+        <template #body>
             <div v-if="existingFields.length" class="fui-modal-content-wrap">
                 <div class="fui-modal-sidebar sidebar">
                     <nav v-if="filteredExistingFields.length">
@@ -71,7 +71,7 @@
             </div>
         </template>
 
-        <template v-slot:footer>
+        <template #footer>
             <div class="buttons left">
                 <div class="spinner hidden"></div>
                 <div class="btn" role="button" @click.prevent="closeModal">{{ t('app', 'Cancel') }}</div>
@@ -137,8 +137,8 @@ export default {
 
     computed: {
         ...mapState({
-            existingFields: state => state.formie.existingFields,
-            form: state => state.form,
+            existingFields: (state) => { return state.formie.existingFields; },
+            form: (state) => { return state.form; },
         }),
 
         totalSelected() {
@@ -148,38 +148,38 @@ export default {
         filteredExistingFields() {
             return this.existingFields.reduce((acc, form) => {
                 const pages = form.pages.reduce((acc, page) => {
-                    const fields = page.fields.filter(field => {
+                    const fields = page.fields.filter((field) => {
                         const inLabel = field.label.toLowerCase().includes(this.search.toLowerCase());
                         const inHandle = field.handle.toLowerCase().includes(this.search.toLowerCase());
 
                         return inLabel || inHandle;
                     });
 
-                    return !fields.length ? acc : acc.concat(Object.assign({}, page, { fields }));
+                    return !fields.length ? acc : acc.concat({ ...page, fields });
                 }, []);
 
-                return !pages.length ? acc : acc.concat(Object.assign({}, form, { pages }));
+                return !pages.length ? acc : acc.concat({ ...form, pages });
             }, []);
         },
 
         submitText() {
             if (this.totalSelected > 1) {
                 return Craft.t('formie', 'Add {num} as new fields', { num: this.totalSelected });
-            } else if (this.totalSelected > 0) {
+            } if (this.totalSelected > 0) {
                 return Craft.t('formie', 'Add {num} as new field', { num: this.totalSelected });
-            } else {
-                return Craft.t('formie', 'Add as new field');
             }
+            return Craft.t('formie', 'Add as new field');
+
         },
 
         syncedText() {
             if (this.totalSelected > 1) {
                 return Craft.t('formie', 'Add {num} as synced fields', { num: this.totalSelected });
-            } else if (this.totalSelected > 0) {
+            } if (this.totalSelected > 0) {
                 return Craft.t('formie', 'Add {num} as synced field', { num: this.totalSelected });
-            } else {
-                return Craft.t('formie', 'Add as synced field');
             }
+            return Craft.t('formie', 'Add as synced field');
+
         },
     },
 
@@ -188,7 +188,7 @@ export default {
             this.selectedKey = this.existingFields[0].key;
         }
 
-        this.$events.on('formie:page-selected', pageIndex => {
+        this.$events.on('formie:page-selected', (pageIndex) => {
             this.pageIndex = pageIndex;
         });
     },
