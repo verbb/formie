@@ -2,6 +2,9 @@
 
 ## 2.0.0-beta.7 - 2022-05-23
 
+### Changed
+- Migrate to Vite and Vue 3 for performance.
+
 ### Fixed
 - Fixed a type error for `ModifyEmailFieldUniqueQueryEvent`.
 - Fixed a type error when using `formie/submissions` console commands.
