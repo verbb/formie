@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.0.0-beta.9 - 2022-05-24
+
+### Fixed
+- Fixed `nystudio107/craft-plugin-vite` dependancy error.
+
 ## 2.0.0-beta.8 - 2022-05-24
 
 ### Fixed
