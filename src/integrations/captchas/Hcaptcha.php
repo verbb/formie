@@ -79,7 +79,7 @@ class Hcaptcha extends Captcha
             'hasMultiplePages' => $form->hasMultiplePages() ?? false,
         ];
 
-        $src = Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/captchas/dist/js/hcaptcha.js', true);
+        $src = Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/captchas/hcaptcha.js', true);
 
         return [
             'src' => $src,

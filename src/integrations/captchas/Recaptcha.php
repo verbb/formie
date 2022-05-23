@@ -112,7 +112,7 @@ class Recaptcha extends Captcha
         ];
 
         if ($this->type === self::RECAPTCHA_TYPE_ENTERPRISE) {
-            $src = Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/captchas/dist/js/recaptcha-enterprise.js', true);
+            $src = Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/captchas/recaptcha-enterprise.js', true);
 
             return [
                 'src' => $src,
@@ -122,7 +122,7 @@ class Recaptcha extends Captcha
         }
 
         if ($this->type === self::RECAPTCHA_TYPE_V3) {
-            $src = Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/captchas/dist/js/recaptcha-v3.js', true);
+            $src = Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/captchas/recaptcha-v3.js', true);
 
             return [
                 'src' => $src,
@@ -132,7 +132,7 @@ class Recaptcha extends Captcha
         }
 
         if ($this->type === self::RECAPTCHA_TYPE_V2_CHECKBOX) {
-            $src = Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/captchas/dist/js/recaptcha-v2-checkbox.js', true);
+            $src = Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/captchas/recaptcha-v2-checkbox.js', true);
 
             return [
                 'src' => $src,
@@ -142,7 +142,7 @@ class Recaptcha extends Captcha
         }
 
         if ($this->type === self::RECAPTCHA_TYPE_V2_INVISIBLE) {
-            $src = Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/captchas/dist/js/recaptcha-v2-invisible.js', true);
+            $src = Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/captchas/recaptcha-v2-invisible.js', true);
 
             return [
                 'src' => $src,

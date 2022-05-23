@@ -80,7 +80,7 @@ class Javascript extends Captcha
             'value' => $value,
         ];
 
-        $src = Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/captchas/dist/js/javascript.js', true);
+        $src = Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/captchas/javascript.js', true);
 
         // Add the JS value separately, so it's not cached in the form as settings
         $js = 'window.Formie' . $sessionKey . '=' . Json::encode($value) . ';';

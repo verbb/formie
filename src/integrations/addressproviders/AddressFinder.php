@@ -104,7 +104,7 @@ class AddressFinder extends AddressProvider
         ];
 
         return [
-            'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/addressproviders/dist/js/address-finder.js', true),
+            'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/address-providers/address-finder.js', true),
             'module' => 'FormieAddressFinder',
             'settings' => $settings,
         ];

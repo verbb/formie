@@ -109,7 +109,7 @@ class Google extends AddressProvider
         ];
 
         return [
-            'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/addressproviders/dist/js/google-address.js', true),
+            'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/address-providers/google-address.js', true),
             'module' => 'FormieGoogleAddress',
             'settings' => $settings,
         ];

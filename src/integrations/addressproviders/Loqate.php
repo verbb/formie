@@ -104,7 +104,7 @@ class Loqate extends AddressProvider
         ];
 
         return [
-            'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/addressproviders/dist/js/loqate.js', true),
+            'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/address-providers/loqate.js', true),
             'module' => 'FormieLoqate',
             'settings' => $settings,
         ];

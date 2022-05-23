@@ -105,7 +105,7 @@ class Algolia extends AddressProvider
         ];
 
         return [
-            'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/addressproviders/dist/js/algolia-places.js', true),
+            'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/address-providers/algolia-places.js', true),
             'module' => 'FormieAlgoliaPlaces',
             'settings' => $settings,
         ];
