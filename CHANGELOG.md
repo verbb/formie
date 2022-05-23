@@ -1,5 +1,19 @@
 # Changelog
 
+## 2.0.0-beta.7 - 2022-05-23
+
+### Fixed
+- Fixed a type error for `ModifyEmailFieldUniqueQueryEvent`.
+- Fixed a type error when using `formie/submissions` console commands.
+- Fixed OAuth-based integrations not being able to refresh their tokens correctly.
+- Fixed OAuth-based integrations not showing their correct connection status.
+- Fixed Google Sheets integration “Proxy Redirect URI” being always forced on.
+- Fixed a Twig error for Table fields in email notifications.
+- Fixed Repeater field min/max row validation triggering incorrectly.
+- `getFields()` to `getCustomFields()`.
+- Fixed an error when submitting empty data for an Address field.
+- Fixed an error with the submissions widget.
+
 ## 2.0.0-beta.6 - 2022-05-06
 
 ### Fixed
