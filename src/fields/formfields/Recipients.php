@@ -91,8 +91,8 @@ class Recipients extends FormField
         }
 
         // Ensure we're always dealing with real values. Fake values are used on front-end render.
-        // Fake values will exist here if validation for the element fails.
-        $value = $this->_getRealValue($value);
+        // Fake values will exists here if validation for the element fails.
+        $value = $this->getRealValue($value);
 
         // For non-hidden fields, ensure we cast to option field data
         if ($this->displayType !== 'hidden') {
@@ -240,7 +240,7 @@ class Recipients extends FormField
         $inputOptions = parent::getFrontEndInputOptions($form, $value, $options);
 
         // When rendering the value **always** swap out the real values with obscured ones
-        $inputOptions['value'] = $this->_getFakeValue($value);
+        $inputOptions['value'] = $this->getFakeValue($value);
 
         return $inputOptions;
     }
@@ -263,6 +263,91 @@ class Recipients extends FormField
             if ($this->displayType !== 'checkboxes') {
                 $value = $value[0] ?? '';
             }
+        }
+
+        return $value;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getRealValue($value)
+    {
+        // This will convert fake values (`id:1`, `['id:2', 'id:3']`) into their real values (`email@`, `[`email@`, `email@`]`)
+        // But will also just return the real value if it's already provided in that format.
+
+        // For any array-compatible field types (and data), recursively iterate each item
+        if (is_array($value)) {
+            return array_map(function($item) {
+                return $this->getRealValue($item);
+            }, $value);
+        }
+
+        // Check if we need to replace the value - for fields that define options in CP
+        if (strpos($value, 'id:') !== false) {
+            // Replace each occurance of the `id:X` placeholder value with their real value
+            $value = preg_replace_callback('/id:(\d+)/m', function(array $match) use ($value): string {
+                $index = $match[1] ?? 0;
+
+                return $this->options()[$index]['value'] ?? $value;
+            }, $value);
+        }
+
+        // For hidden fields, there's no CP defined options, so decode its encoded value
+        if (strpos($value, 'base64:') !== false) {
+            $value = StringHelper::decdec($value);
+
+            // Check if this was an array of data
+            if (is_string($value) && Json::isJsonObject($value)) {
+                $value = implode(',', array_filter(Json::decode($value)));
+            }
+        }
+
+        return $value;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getFakeValue($value)
+    {
+        if (in_array($this->displayType, ['dropdown', 'radio'])) {
+            foreach ($this->options() as $key => $option) {
+                $id =  'id:' . $key;
+
+                if ((string)$option['value'] === (string)$value) {
+                    $value = new SingleOptionFieldData($option['label'], $id, true);
+
+                    break;
+                }
+            }
+        } else if ($this->displayType === 'checkboxes') {
+            // Swap out the values with fake values
+            $selectedValues = [];
+
+            foreach ((array)$value as $val) {
+                $selectedValues[] = (string)$val;
+            }
+
+            $options = [];
+
+            foreach ($this->options() as $key => $option) {
+                $id =  'id:' . $key;
+
+                if (in_array((string)$option['value'], $selectedValues, true)) {
+                    $options[] = new OptionData($option['label'], $id, true);
+                }
+
+            }
+            $value = new MultiOptionsFieldData($options);
+        } else if ($this->displayType === 'hidden') {
+            // For a hidden field, there's no CP defined options, so encode the provided value
+            // Also - support arrays of recipients in a hidden field
+            if (is_array($value)) {
+                $value = Json::encode($value);
+            }
+
+            $value = StringHelper::encenc((string)$value);
         }
 
         return $value;
@@ -465,88 +550,5 @@ class Recipients extends FormField
         }
 
         return $value->label ?? '';
-    }
-
-
-    // Private Methods
-    // =========================================================================
-
-    private function _getRealValue($value)
-    {
-        // This will convert fake values (`id:1`, `['id:2', 'id:3']`) into their real values (`email@`, `[`email@`, `email@`]`)
-        // But will also just return the real value if it's already provided in that format.
-
-        // For any array-compatible field types (and data), recursively iterate each item
-        if (is_array($value)) {
-            return array_map(function($item) {
-                return $this->_getRealValue($item);
-            }, $value);
-        }
-
-        // Check if we need to replace the value - for fields that define options in CP
-        if (str_contains($value, 'id:')) {
-            // Replace each occurance of the `id:X` placeholder value with their real value
-            $value = preg_replace_callback('/id:(\d+)/m', function(array $match) use ($value): string {
-                $index = $match[1] ?? 0;
-
-                return $this->options()[$index]['value'] ?? $value;
-            }, $value);
-        }
-
-        // For hidden fields, there's no CP defined options, so decode its encoded value
-        if (str_contains($value, 'base64:')) {
-            $value = StringHelper::decdec($value);
-
-            // Check if this was an array of data
-            if (Json::isJsonObject($value)) {
-                $value = implode(',', array_filter(Json::decode($value)));
-            }
-        }
-
-        return $value;
-    }
-
-    private function _getFakeValue($value)
-    {
-        if (in_array($this->displayType, ['dropdown', 'radio'])) {
-            foreach ($this->options() as $key => $option) {
-                $id = 'id:' . $key;
-
-                if ((string)$option['value'] === (string)$value) {
-                    $value = new SingleOptionFieldData($option['label'], $id, true);
-
-                    break;
-                }
-            }
-        } else if ($this->displayType === 'checkboxes') {
-            // Swap out the values with fake values
-            $selectedValues = [];
-
-            foreach ((array)$value as $val) {
-                $selectedValues[] = (string)$val;
-            }
-
-            $options = [];
-
-            foreach ($this->options() as $key => $option) {
-                $id = 'id:' . $key;
-
-                if (in_array((string)$option['value'], $selectedValues, true)) {
-                    $options[] = new OptionData($option['label'], $id, true);
-                }
-            }
-
-            $value = new MultiOptionsFieldData($options);
-        } else if ($this->displayType === 'hidden') {
-            // For a hidden field, there's no CP defined options, so encode the provided value
-            // Also - support arrays of recipients in a hidden field
-            if (is_array($value)) {
-                $value = Json::encode($value);
-            }
-
-            $value = StringHelper::encenc((string)$value);
-        }
-
-        return $value;
     }
 }

@@ -39,6 +39,7 @@ class Google extends AddressProvider
     // =========================================================================
 
     public ?string $apiKey = null;
+    public ?string $geocodingApiKey = null;
     public array $options = [];
 
 
@@ -103,6 +104,7 @@ class Google extends AddressProvider
 
         $settings = [
             'apiKey' => App::parseEnv($this->apiKey),
+            'geocodingApiKey' => Craft::parseEnv($this->geocodingApiKey),
             'options' => $this->_getOptions(),
         ];
 

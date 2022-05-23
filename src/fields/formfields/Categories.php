@@ -43,6 +43,7 @@ class Categories extends CraftCategories implements FormFieldInterface
         getEmailHtml as traitGetEmailHtml;
         getSavedFieldConfig as traitGetSavedFieldConfig;
         getSettingGqlTypes as traitGetSettingGqlTypes;
+        getSettingGqlType as traitGetSettingGqlType;
         RelationFieldTrait::defineValueAsString insteadof FormFieldTrait;
         RelationFieldTrait::defineValueAsJson insteadof FormFieldTrait;
         RelationFieldTrait::defineValueForIntegration insteadof FormFieldTrait;
@@ -195,12 +196,8 @@ class Categories extends CraftCategories implements FormFieldInterface
 
             // Reset the level based off the root category. Otherwise, the level will start from the root
             // category's level, not "flush" (ie, "---- Category" instead of "- Category")
-            if ($this->rootCategory) {
-                if ($rootCategoryId = ArrayHelper::getColumn($this->rootCategory, 'id')) {
-                    if ($rootCategory = Category::find()->id($rootCategoryId)->one()) {
-                        $level -= $rootCategory->level;
-                    }
-                }
+            if ($rootCategory = $this->getRootCategoryElement()) {
+                $level = $level - $rootCategory->level;
             }
 
             // Important to cast as a string, otherwise Twig will struggle to compare
@@ -208,6 +205,22 @@ class Categories extends CraftCategories implements FormFieldInterface
         }
 
         return $options;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getRootCategoryElement()
+    {
+        if ($this->rootCategory) {
+            if ($rootCategoryId = ArrayHelper::getColumn($this->rootCategory, 'id')) {
+                if ($rootCategory = Category::find()->id($rootCategoryId)->one()) {
+                    return $rootCategory;
+                }
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -347,6 +360,15 @@ class Categories extends CraftCategories implements FormFieldInterface
                 'args' => CategoryArguments::getArguments(),
                 'resolve' => function($class) {
                     return $class->getElementsQuery()->all();
+                },
+            ],
+            'rootCategory' => [
+                'name' => 'rootCategory',
+                'type' => CategoryInterface::getType(),
+                'resolve' => CategoryResolver::class.'::resolve',
+                'args' => CategoryArguments::getArguments(),
+                'resolve' => function($class) {
+                    return $class->getRootCategoryElement();
                 },
             ],
         ]);
@@ -503,5 +525,31 @@ class Categories extends CraftCategories implements FormFieldInterface
             SchemaHelper::enableConditionsField(),
             SchemaHelper::conditionsField(),
         ];
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
+    /**
+     * @inheritDoc
+     */
+    protected function getSettingGqlType($attribute, $type, $fieldInfo)
+    {
+        // Disable normal `defaultValue` as it is a element, not string. We can't have the same attributes 
+        // return multiple types. Instead, return `defaultCategory` as the attribute name and correct type.
+        if ($attribute === 'defaultValue') {
+            return [
+                'name' => 'defaultCategory',
+                'type' => CategoryInterface::getType(),
+                'resolve' => CategoryResolver::class.'::resolve',
+                'args' => CategoryArguments::getArguments(),
+                'resolve' => function($class) {
+                    return $class->getDefaultValueQuery() ? $class->getDefaultValueQuery()->one() : null;
+                },
+            ];
+        }
+
+        return $this->traitGetSettingGqlType($attribute, $type, $fieldInfo);
     }
 }
