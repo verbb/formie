@@ -94,7 +94,7 @@ class Salesforce extends Crm
     /**
      * @inheritDoc
      */
-    public function oauthCallback()
+    public function oauthCallback(): ?array
     {
         // In some instances (service users) we might want to use the insecure password grant
         if ($this->useCredentials) {
