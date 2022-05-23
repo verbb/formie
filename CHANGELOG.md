@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.0.0-beta.8 - 2022-05-24
+
+### Fixed
+- Fixed captcha and address provider integration JS paths.
+- Fixed `oauthCallback()` typing error.
+- Fixed GraphQL errors due to incorrect merge for default values.
+
 ## 2.0.0-beta.7 - 2022-05-23
 
 ### Changed
