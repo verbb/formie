@@ -43,7 +43,6 @@ class Categories extends CraftCategories implements FormFieldInterface
         getEmailHtml as traitGetEmailHtml;
         getSavedFieldConfig as traitGetSavedFieldConfig;
         getSettingGqlTypes as traitGetSettingGqlTypes;
-        getSettingGqlType as traitGetSettingGqlType;
         RelationFieldTrait::defineValueAsString insteadof FormFieldTrait;
         RelationFieldTrait::defineValueAsJson insteadof FormFieldTrait;
         RelationFieldTrait::defineValueForIntegration insteadof FormFieldTrait;
@@ -354,6 +353,15 @@ class Categories extends CraftCategories implements FormFieldInterface
                     return is_array($value) ? Json::encode($value) : $value;
                 },
             ],
+            'defaultCategory' => [
+                'name' => 'defaultCategory',
+                'type' => CategoryInterface::getType(),
+                'resolve' => CategoryResolver::class.'::resolve',
+                'args' => CategoryArguments::getArguments(),
+                'resolve' => function($class) {
+                    return $class->getDefaultValueQuery() ? $class->getDefaultValueQuery()->one() : null;
+                },
+            ],
             'categories' => [
                 'name' => 'categories',
                 'type' => Type::listOf(CategoryInterface::getType()),
@@ -525,31 +533,5 @@ class Categories extends CraftCategories implements FormFieldInterface
             SchemaHelper::enableConditionsField(),
             SchemaHelper::conditionsField(),
         ];
-    }
-
-
-    // Protected Methods
-    // =========================================================================
-
-    /**
-     * @inheritDoc
-     */
-    protected function getSettingGqlType($attribute, $type, $fieldInfo)
-    {
-        // Disable normal `defaultValue` as it is a element, not string. We can't have the same attributes 
-        // return multiple types. Instead, return `defaultCategory` as the attribute name and correct type.
-        if ($attribute === 'defaultValue') {
-            return [
-                'name' => 'defaultCategory',
-                'type' => CategoryInterface::getType(),
-                'resolve' => CategoryResolver::class.'::resolve',
-                'args' => CategoryArguments::getArguments(),
-                'resolve' => function($class) {
-                    return $class->getDefaultValueQuery() ? $class->getDefaultValueQuery()->one() : null;
-                },
-            ];
-        }
-
-        return $this->traitGetSettingGqlType($attribute, $type, $fieldInfo);
     }
 }

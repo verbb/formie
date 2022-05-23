@@ -42,7 +42,6 @@ class Products extends CommerceProducts implements FormFieldInterface
         getEmailHtml as traitGetEmailHtml;
         getSavedFieldConfig as traitGetSavedFieldConfig;
         getSettingGqlTypes as traitGetSettingGqlTypes;
-        getSettingGqlType as traitGetSettingGqlType;
         RelationFieldTrait::defineValueAsString insteadof FormFieldTrait;
         RelationFieldTrait::defineValueAsJson insteadof FormFieldTrait;
         RelationFieldTrait::defineValueForIntegration insteadof FormFieldTrait;
@@ -263,7 +262,16 @@ class Products extends CommerceProducts implements FormFieldInterface
                     return is_array($value) ? Json::encode($value) : $value;
                 },
             ],
-            'entries' => [
+            'defaultProduct' => [
+                'name' => 'defaultProduct',
+                'type' => ProductInterface::getType(),
+                'resolve' => ProductResolver::class.'::resolve',
+                'args' => ProductArguments::getArguments(),
+                'resolve' => function($class) {
+                    return $class->getDefaultValueQuery() ? $class->getDefaultValueQuery()->one() : null;
+                },
+            ],
+            'products' => [
                 'name' => 'products',
                 'type' => Type::listOf(ProductInterface::getType()),
                 'args' => ProductArguments::getArguments(),
@@ -407,31 +415,5 @@ class Products extends CommerceProducts implements FormFieldInterface
             SchemaHelper::enableConditionsField(),
             SchemaHelper::conditionsField(),
         ];
-    }
-
-
-    // Protected Methods
-    // =========================================================================
-
-    /**
-     * @inheritDoc
-     */
-    protected function getSettingGqlType($attribute, $type, $fieldInfo)
-    {
-        // Disable normal `defaultValue` as it is a element, not string. We can't have the same attributes 
-        // return multiple types. Instead, return `defaultProduct` as the attribute name and correct type.
-        if ($attribute === 'defaultValue') {
-            return [
-                'name' => 'defaultProduct',
-                'type' => ProductInterface::getType(),
-                'resolve' => ProductResolver::class.'::resolve',
-                'args' => ProductArguments::getArguments(),
-                'resolve' => function($class) {
-                    return $class->getDefaultValueQuery() ? $class->getDefaultValueQuery()->one() : null;
-                },
-            ];
-        }
-
-        return $this->traitGetSettingGqlType($attribute, $type, $fieldInfo);
     }
 }

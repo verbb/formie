@@ -45,7 +45,6 @@ class Variants extends CommerceVariants implements FormFieldInterface
         getEmailHtml as traitGetEmailHtml;
         getSavedFieldConfig as traitGetSavedFieldConfig;
         getSettingGqlTypes as traitGetSettingGqlTypes;
-        getSettingGqlType as traitGetSettingGqlType;
         RelationFieldTrait::defineValueAsString insteadof FormFieldTrait;
         RelationFieldTrait::defineValueAsJson insteadof FormFieldTrait;
         RelationFieldTrait::defineValueForIntegration insteadof FormFieldTrait;
@@ -269,7 +268,16 @@ class Variants extends CommerceVariants implements FormFieldInterface
                     return is_array($value) ? Json::encode($value) : $value;
                 },
             ],
-            'entries' => [
+            'defaultVariant' => [
+                'name' => 'defaultVariant',
+                'type' => VariantInterface::getType(),
+                'resolve' => VariantResolver::class.'::resolve',
+                'args' => VariantArguments::getArguments(),
+                'resolve' => function($class) {
+                    return $class->getDefaultValueQuery() ? $class->getDefaultValueQuery()->one() : null;
+                },
+            ],
+            'variants' => [
                 'name' => 'variants',
                 'type' => Type::listOf(VariantInterface::getType()),
                 'args' => VariantArguments::getArguments(),
@@ -413,32 +421,6 @@ class Variants extends CommerceVariants implements FormFieldInterface
             SchemaHelper::enableConditionsField(),
             SchemaHelper::conditionsField(),
         ];
-    }
-
-
-    // Protected Methods
-    // =========================================================================
-
-    /**
-     * @inheritDoc
-     */
-    protected function getSettingGqlType($attribute, $type, $fieldInfo)
-    {
-        // Disable normal `defaultValue` as it is a element, not string. We can't have the same attributes 
-        // return multiple types. Instead, return `defaultVariant` as the attribute name and correct type.
-        if ($attribute === 'defaultValue') {
-            return [
-                'name' => 'defaultVariant',
-                'type' => VariantInterface::getType(),
-                'resolve' => VariantResolver::class.'::resolve',
-                'args' => VariantArguments::getArguments(),
-                'resolve' => function($class) {
-                    return $class->getDefaultValueQuery() ? $class->getDefaultValueQuery()->one() : null;
-                },
-            ];
-        }
-
-        return $this->traitGetSettingGqlType($attribute, $type, $fieldInfo);
     }
 
 

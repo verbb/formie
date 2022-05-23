@@ -45,7 +45,6 @@ class Tags extends CraftTags implements FormFieldInterface
         getEmailHtml as traitGetEmailHtml;
         getSavedFieldConfig as traitGetSavedFieldConfig;
         getSettingGqlTypes as traitGetSettingGqlTypes;
-        getSettingGqlType as traitGetSettingGqlType;
         getDisplayTypeValue as traitGetDisplayTypeValue;
         RelationFieldTrait::defineValueAsString insteadof FormFieldTrait;
         RelationFieldTrait::defineValueAsJson insteadof FormFieldTrait;
@@ -352,6 +351,15 @@ class Tags extends CraftTags implements FormFieldInterface
                     return is_array($value) ? Json::encode($value) : $value;
                 },
             ],
+            'defaultTag' => [
+                'name' => 'defaultTag',
+                'type' => TagInterface::getType(),
+                'resolve' => TagResolver::class.'::resolve',
+                'args' => TagArguments::getArguments(),
+                'resolve' => function($class) {
+                    return $class->getDefaultValueQuery() ? $class->getDefaultValueQuery()->one() : null;
+                },
+            ],
             'tags' => [
                 'name' => 'tags',
                 'type' => Type::listOf(TagInterface::getType()),
@@ -484,32 +492,6 @@ class Tags extends CraftTags implements FormFieldInterface
             SchemaHelper::enableConditionsField(),
             SchemaHelper::conditionsField(),
         ];
-    }
-
-
-    // Protected Methods
-    // =========================================================================
-
-    /**
-     * @inheritDoc
-     */
-    protected function getSettingGqlType($attribute, $type, $fieldInfo)
-    {
-        // Disable normal `defaultValue` as it is a element, not string. We can't have the same attributes 
-        // return multiple types. Instead, return `defaultTag` as the attribute name and correct type.
-        if ($attribute === 'defaultValue') {
-            return [
-                'name' => 'defaultTag',
-                'type' => TagInterface::getType(),
-                'resolve' => TagResolver::class.'::resolve',
-                'args' => TagArguments::getArguments(),
-                'resolve' => function($class) {
-                    return $class->getDefaultValueQuery() ? $class->getDefaultValueQuery()->one() : null;
-                },
-            ];
-        }
-
-        return $this->traitGetSettingGqlType($attribute, $type, $fieldInfo);
     }
 
 
