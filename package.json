@@ -45,7 +45,7 @@
     },
     "dependencies": {
         "@braid/vue-formulate": "^2.4.3",
-        "@yaireo/tagify": "^3.14.3",
+        "@yaireo/tagify": "^4.9.8",
         "axios": "^0.21.2",
         "core-js": "^3.6.5",
         "expression-language": "^1.1.4",
