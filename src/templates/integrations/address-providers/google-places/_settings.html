@@ -17,12 +17,23 @@
 
 {{ forms.autosuggestField({
     label: 'API Key' | t('formie'),
+    instructions: 'Enter your {name} API Key here.' | t('formie', { name: integration.displayName() }),
     name: 'apiKey',
     required: true,
     suggestEnvVars: true,
     value: integration.settings.apiKey ?? '',
     warning: macros.configWarning('apiKey', 'formie'),
     errors: integration.getErrors('apiKey'),
+}) }}
+
+{{ forms.autosuggestField({
+    label: 'Geocoding API Key' | t('formie'),
+    instructions: 'Enter your {name} Geocoding API Key here, if different to your API Key.' | t('formie', { name: integration.displayName() }),
+    name: 'geocodingApiKey',
+    suggestEnvVars: true,
+    value: integration.settings.geocodingApiKey ?? '',
+    warning: macros.configWarning('geocodingApiKey', 'formie'),
+    errors: integration.getErrors('geocodingApiKey'),
 }) }}
 
 {{ forms.editableTableField({
