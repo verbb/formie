@@ -414,9 +414,14 @@ class Freshdesk extends Crm
                     // Directly modify the field values first
                     $ticketFields = $this->_prepCustomFields($ticketValues);
 
-                    $ticketPayload = array_merge($ticketValues, [
-                        'custom_fields' => $ticketFields,
-                    ]);
+                    // Only add custom fields if array not empty to prevent validation error
+                    if ($ticketFields) {
+                        $ticketPayload = array_merge($ticketValues, [
+                            'custom_fields' => $ticketFields,
+                        ]);
+                    } else {
+                        $ticketPayload = $ticketValues;
+                    }
 
                     // Extra payload prep - some fields are finicky
                     if (isset($ticketPayload['status'])) {

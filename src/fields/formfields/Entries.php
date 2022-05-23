@@ -41,6 +41,7 @@ class Entries extends CraftEntries implements FormFieldInterface
         getEmailHtml as traitGetEmailHtml;
         getSavedFieldConfig as traitGetSavedFieldConfig;
         getSettingGqlTypes as traitGetSettingGqlTypes;
+        getSettingGqlType as traitGetSettingGqlType;
         RelationFieldTrait::defineValueAsString insteadof FormFieldTrait;
         RelationFieldTrait::defineValueAsJson insteadof FormFieldTrait;
         RelationFieldTrait::defineValueForIntegration insteadof FormFieldTrait;
@@ -469,5 +470,31 @@ class Entries extends CraftEntries implements FormFieldInterface
             SchemaHelper::enableConditionsField(),
             SchemaHelper::conditionsField(),
         ];
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
+    /**
+     * @inheritDoc
+     */
+    protected function getSettingGqlType($attribute, $type, $fieldInfo)
+    {
+        // Disable normal `defaultValue` as it is a element, not string. We can't have the same attributes 
+        // return multiple types. Instead, return `defaultEntry` as the attribute name and correct type.
+        if ($attribute === 'defaultValue') {
+            return [
+                'name' => 'defaultEntry',
+                'type' => EntryInterface::getType(),
+                'resolve' => EntryResolver::class.'::resolve',
+                'args' => EntryArguments::getArguments(),
+                'resolve' => function($class) {
+                    return $class->getDefaultValueQuery() ? $class->getDefaultValueQuery()->one() : null;
+                },
+            ];
+        }
+
+        return $this->traitGetSettingGqlType($attribute, $type, $fieldInfo);
     }
 }

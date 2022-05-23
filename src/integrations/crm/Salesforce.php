@@ -47,6 +47,9 @@ class Salesforce extends Crm
     public ?string $apiDomain = null;
     public ?string $matchLead = null;
     public bool $useSandbox = false;
+    public bool $useCredentials = false;
+    public ?string $username = null;
+    public ?string $password = null;
     public bool $mapToContact = false;
     public bool $mapToLead = false;
     public bool $mapToOpportunity = false;
@@ -86,6 +89,36 @@ class Salesforce extends Crm
     public function getClientSecret(): string
     {
         return App::parseEnv($this->clientSecret);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function oauthCallback()
+    {
+        // In some instances (service users) we might want to use the insecure password grant
+        if ($this->useCredentials) {
+            $provider = $this->getOauthProvider();
+
+            $this->beforeFetchAccessToken($provider);
+
+            // Get a password grant, which is different from normal
+            $token = $provider->getAccessToken('password', [
+                'client_id' => $this->getClientId(),
+                'client_secret' => $this->getClientSecret(),
+                'username' => Craft::parseEnv($this->username),
+                'password' => Craft::parseEnv($this->password),
+            ]);
+
+            $this->afterFetchAccessToken($token);
+
+            return [
+                'success' => true,
+                'token' => $token,
+            ];
+        } else {
+            return parent::oauthCallback();
+        }
     }
 
     public function afterFetchAccessToken($token): void

@@ -70,8 +70,11 @@ class HubSpot extends Crm
 
             // Special handling for arrays for checkboxes
             if ($event->integrationField->getType() === IntegrationField::TYPE_ARRAY) {
-                $event->value = array_filter((array)$event->value);
-                $event->value = ArrayHelper::recursiveImplode(';', $event->value);
+                if (is_array($event->value)) {
+                    $event->value = array_filter($event->value);
+                    $event->value = ArrayHelper::recursiveImplode(';', $event->value);
+                    $event->value = str_replace('&nbsp;', ' ', $event->value);
+                }
             }
         });
     }

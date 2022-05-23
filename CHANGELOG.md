@@ -125,6 +125,23 @@
 - Now requires PHP `^8.0.2`.
 - Now requires Craft `^4.0.0-beta.1`.
 
+## 1.5.17 - 2022-05-23
+
+### Added
+- Added “Geocoding API Key” for Google Places address provider integration.
+- Added “Use Credentials” option for Salesforce CRM integration.
+- Added `defaultCategory`,  `defaultEntry`, `defaultProduct`, `defaultTag`, `defaultUser`, and `defaultVariant` to element field GraphQL queries.
+- Added ability to prevent returning early from `Submission::EVENT_AFTER_INCOMPLETE_SUBMISSION` with `$event->handled = false`.
+
+### Fixed
+- Fixed an error in Postgres when saving a synced field.
+- Fixed a possible type error in HubSpot CRM integration with some array fields.
+- Fixed a reactivity error when editing a notification with conditions that used a Recipients fields, where options were overwritten in the form builder.
+- Fixed `rootCategory` not being typecasted as a category element for GraphQL queries on Category fields.
+- Fixed an error for Freshdesk CRM integration for tickets when no custom fields were used. (thanks @Filipvds).
+The fix was already present for Contacts.
+- Fixed Recipients field not working correctly when used as the source for field/page/notification conditions.
+
 ## 1.5.16 - 2022-04-29
 
 ### Fixed

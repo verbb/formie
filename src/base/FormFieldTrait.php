@@ -1051,6 +1051,27 @@ trait FormFieldTrait
         return 'Field_' . $end;
     }
 
+    public function validate($attributeNames = null, $clearErrors = true)
+    {
+        $refId = null;
+
+        // Watch out for synced field IDs for Postgres because it will fails to match `sync:123` against an int
+        // But probably a good idea to check against this anyway, in general.
+        if ($this->getIsRef()) {
+            $refId = $this->id;
+            $this->id = Formie::$plugin->getSyncs()->parseSyncId($this->id)->id ?? null;
+        }
+
+        $validates = parent::validate($attributeNames, $clearErrors);
+
+        // Add it back
+        if ($refId) {
+            $this->id = $refId;
+        }
+
+        return $validates;
+    }
+
 
     // Protected Methods
     // =========================================================================

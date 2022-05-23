@@ -12,6 +12,7 @@ export class FormieGoogleAddress extends FormieAddressProvider {
 
         this.appId = settings.appId;
         this.apiKey = settings.apiKey;
+        this.geocodingApiKey = settings.geocodingApiKey || settings.apiKey;
         this.options = settings.options;
 
         // Keep track of how many times we try to load.
@@ -147,7 +148,7 @@ export class FormieGoogleAddress extends FormieAddressProvider {
         const formData = new FormData();
         formData.append('action', 'formie/address/google-places-geocode');
         formData.append('latlng', latitude + ',' + longitude);
-        formData.append('key', this.apiKey);
+        formData.append('key', this.geocodingApiKey);
 
         xhr.send(formData);
     }
