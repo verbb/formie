@@ -117,6 +117,7 @@ abstract class Element extends Integration implements IntegrationInterface
             fields\Lightswitch::class => IntegrationField::TYPE_BOOLEAN,
             fields\MultiSelect::class => IntegrationField::TYPE_ARRAY,
             fields\Number::class => IntegrationField::TYPE_FLOAT,
+            fields\Table::class => IntegrationField::TYPE_ARRAY,
             fields\Tags::class => IntegrationField::TYPE_ARRAY,
             fields\Users::class => IntegrationField::TYPE_ARRAY,
         ];
