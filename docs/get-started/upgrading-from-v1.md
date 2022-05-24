@@ -160,3 +160,44 @@ You'll also want to change references to `v-model` which no longer work, due to 
 ```
 
 As `v-model` won't work when passed through a slot, we'll use `:value` an `input()` to manually handle state changes (essentially, the non-shorthand of `v-model`).
+
+### Schema
+We've migrate from [Vue Formulate](https://vueformulate.com/) to [FormKit](https://formkit.com/), which gives us a lot more power and flexibility for our field settings schema. However, there are some breaking changes.
+
+#### `toggleContainer`
+The `SchemaHelper::toggleContainer` helper has been removed, and can be replaced by [conditionals](https://formkit.com/advanced/schema#conditionals) which are much more powerful.
+
+For example, you might have the following:
+
+```php
+SchemaHelper::lightswitchField([
+    'label' => Craft::t('formie', 'Required Field'),
+    'help' => Craft::t('formie', 'Whether this field should be required when filling out the form.'),
+    'name' => 'required',
+]),
+SchemaHelper::toggleContainer('settings.required', [
+    SchemaHelper::textField([
+        'label' => Craft::t('formie', 'Error Message'),
+        'help' => Craft::t('formie', 'When validating the form, show this message if an error occurs. Leave empty to retain the default message.'),
+        'name' => 'errorMessage',
+    ]),
+]),
+```
+
+Where the "Error Message" field should be shown only if "Required Field" is truthy. In Formie v2, this can be expressed with:
+
+```php
+SchemaHelper::lightswitchField([
+    'label' => Craft::t('formie', 'Required Field'),
+    'help' => Craft::t('formie', 'Whether this field should be required when filling out the form.'),
+    'name' => 'required',
+]),
+SchemaHelper::textField([
+    'label' => Craft::t('formie', 'Error Message'),
+    'help' => Craft::t('formie', 'When validating the form, show this message if an error occurs. Leave empty to retain the default message.'),
+    'name' => 'errorMessage',
+    'if' => '$get(required).value',
+]),
+```
+
+Continue reading about all the possibilities with [conditionals](https://formkit.com/advanced/schema#accessing-other-inputs).
