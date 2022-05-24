@@ -1036,7 +1036,7 @@ class Submission extends Element
         ]);
         $this->trigger(self::EVENT_DEFINE_RULES, $event);
 
-        return $rules;
+        return $event->rules;
     }
 
 
