@@ -201,3 +201,17 @@ SchemaHelper::textField([
 ```
 
 Continue reading about all the possibilities with [conditionals](https://formkit.com/advanced/schema#accessing-other-inputs).
+
+### Asset Paths
+Asset paths have changed, which won't affect your site, unless you're referring to the old asset URL.
+
+Old | What to do instead
+--- | ---
+| `@verbb/formie/web/assets/addressproviders/dist/img/{$handle}.svg` | `@verbb/formie/web/assets/cp/dist/img/addressproviders/{$handle}.svg`
+| `@verbb/formie/web/assets/captchas/dist/img/{$handle}.svg` | `@verbb/formie/web/assets/cp/dist/img/captchas/{$handle}.svg`
+| `@verbb/formie/web/assets/crm/dist/img/{$handle}.svg` | `@verbb/formie/web/assets/cp/dist/img/crm/{$handle}.svg`
+| `@verbb/formie/web/assets/elements/dist/img/{$handle}.svg` | `@verbb/formie/web/assets/cp/dist/img/elements/{$handle}.svg`
+| `@verbb/formie/web/assets/emailmarketing/dist/img/{$handle}.svg` | `@verbb/formie/web/assets/cp/dist/img/emailmarketing/{$handle}.svg`
+| `@verbb/formie/web/assets/miscellaneous/dist/img/{$handle}.svg` | `@verbb/formie/web/assets/cp/dist/img/miscellaneous/{$handle}.svg`
+| `@verbb/formie/web/assets/webhooks/dist/img/{$handle}.svg` | `@verbb/formie/web/assets/cp/dist/img/webhooks/{$handle}.svg`
+
