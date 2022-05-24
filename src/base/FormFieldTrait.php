@@ -645,6 +645,9 @@ trait FormFieldTrait
 
                 $fieldSchema = $this->$methodName();
 
+                // Add `name` and `id` attributes automatically for every FormKit input
+                SchemaHelper::setFieldAttributes($fieldSchema);
+
                 $fields[] = [
                     '$cmp' => 'TabPanel',
                     'attrs' => [
