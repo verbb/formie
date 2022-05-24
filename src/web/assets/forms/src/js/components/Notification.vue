@@ -1,7 +1,7 @@
 <template>
     <tr class="fui-notification-row">
         <td class="">
-            <a href="#" :class="{ 'error': false }" @click.prevent="editNotification">
+            <a href="#" :class="{ 'error': false }" @click.prevent="openModal">
                 <span class="status" :class="{ 'on': !!+notification.enabled }"></span>
                 <strong>{{ notification.name }}</strong>
             </a>
@@ -85,7 +85,7 @@ export default {
 
     mounted() {
         if (this.notification.id == 1) {
-            // this.editNotification();
+            // this.openModal();
         }
     },
 
