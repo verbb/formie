@@ -111,7 +111,7 @@ export default {
         // Setup config for editor, from field config
         this.editor = new Editor({
             extensions: this.getExtensions(),
-            content: this.valueToContent(this.clone(this.value)),
+            content: this.valueToContent(this.clone(this.context._value)),
             autofocus: false,
             onUpdate: () => {
                 this.json = this.editor.getJSON().content;
