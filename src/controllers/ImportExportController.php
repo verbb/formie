@@ -91,20 +91,26 @@ class ImportExportController extends Controller
         $pageCount = Craft::t('app', '{num, number} {num, plural, =1{page} other{pages}}', ['num' => count($json['pages'])]);
         $this->stdout("    > Form contains {$pageCount}.", Console::FG_GREEN);
 
-        $fields = [];
+        $formFields = [];
 
-        foreach ($json['pages'] as $page) {
-            foreach ($page['rows'] as $row) {
-                foreach ($row['fields'] as $field) {
-                    $fields[] = $field;
+        $pages = $json['pages'] ?? [];
+
+        foreach ($pages as $page) {
+            $rows = $page['rows'] ?? [];
+
+            foreach ($rows as $row) {
+                $fields = $row['fields'] ?? [];
+
+                foreach ($fields as $field) {
+                    $formFields[] = $field;
                 }
             }
         }
 
-        $fieldCount = Craft::t('app', '{num, number} {num, plural, =1{field} other{fields}}', ['num' => count($fields)]);
+        $fieldCount = Craft::t('app', '{num, number} {num, plural, =1{field} other{fields}}', ['num' => count($formFields)]);
         $this->stdout("    > Form contains {$fieldCount}.", Console::FG_GREEN);
 
-        foreach ($fields as $field) {
+        foreach ($formFields as $field) {
             $type = explode('\\', $field['type']);
             $type = array_pop($type);
 
