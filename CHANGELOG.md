@@ -1,5 +1,22 @@
 # Changelog
 
+## 2.0.0-beta.10 - 2022-05-28
+
+### Added
+- Auto-add `key` and `id` attributes to field settings schema for FormKit.
+- Add `chunkLoadingGlobal` to front-end JS to avoid conflicts with user-provided JS in Webpack.
+
+### Changed
+- Remove ajax-loading when switching form templates in the form builder. This should prevent strange UI glitches and simplify some things.
+
+### Fixed
+- Fix form integrations settings not populating correctly.
+- Fix variable text inputs not having their values loaded in properly.
+- Fix Email fields when marked as unique, not validating correctly when editing a submission.
+- Fix `SubmissionRulesEvent` custom rules not applying correctly.
+- Fix an error when previewing email notifications.
+- Fix being unable to edit a notification in the form builder.
+
 ## 2.0.0-beta.9 - 2022-05-24
 
 ### Fixed
