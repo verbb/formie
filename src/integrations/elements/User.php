@@ -311,7 +311,7 @@ class User extends Element
             }
 
             // Maybe login the user after activation
-            if ($autoLogin && $generalConfig->autoLoginAfterAccountActivation) {
+            if ($autoLogin && $generalConfig->autoLoginAfterAccountActivation && Craft::$app->getUser()->getIsGuest()) {
                 // When run from the queue, this will fail due to session being unavailable
                 if (!$this->getQueueJob()) {
                     Craft::$app->getUser()->login($user, $generalConfig->userSessionDuration);
