@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.5.18 - 2022-05-28
+
+### Added
+- Added `formie/fields/cleanup-field-layouts` console command to help with cleaning up orphaned field layouts.
+
+### Fixed
+- Fixed an error when importing a form with an empty page.
+- Fixed element integration not supporting Table fields properly.
+- Fixed User element integration auto-logging in non-guests.
+
 ## 1.5.17 - 2022-05-23
 
 ### Added
