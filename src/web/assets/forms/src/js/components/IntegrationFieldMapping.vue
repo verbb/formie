@@ -39,6 +39,7 @@
                             </div>
                         </td>
                     </tr>
+
                     <tr v-for="(row, index) in rows" v-else :key="index" data-id="0">
                         <td class="singleline-cell textual" style="width: 50%;">
                             <span class="fui-table-label" :class="{ 'required': row.required }">{{ row.name }}</span>
@@ -104,7 +105,7 @@ export default {
             default: () => { return []; },
         },
 
-        modelValue: {
+        value: {
             type: [Object, String],
             default: () => {
                 return {};
@@ -130,7 +131,7 @@ export default {
     },
 
     created() {
-        this.proxyValue = this.modelValue;
+        this.proxyValue = this.value;
 
         if (!this.proxyValue) {
             this.proxyValue = {};
