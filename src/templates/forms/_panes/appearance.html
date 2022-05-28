@@ -81,10 +81,8 @@
     },
 }) }}
 
-<div v-cloak :class="{ 'hidden': !formTemplateLoading }">
-    <div class="fui-form-template-spinner">
-        <span class="spinner"></span> {{ 'Loading template' | t('formie') }}
-    </div>
+<div v-cloak style="margin: -12px 0 24px;" :class="{ 'hidden': !templateReloadNotice }">
+    <p class="warning with-icon">{{ 'Save this form and reload the page to see your form template fields.' | t('formie') }}</p>
 </div>
 
 {% include 'formie/forms/_panes/_positions' %}
