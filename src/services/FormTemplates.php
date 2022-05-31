@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\services;
 
+use verbb\formie\Formie;
 use verbb\formie\elements\Form;
 use verbb\formie\events\FormTemplateEvent;
 use verbb\formie\models\FormTemplate;
