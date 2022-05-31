@@ -112,7 +112,11 @@ export class FormieFormTheme {
 
         // After we clear any error, validate the fielset again. Mostly so we can remove global errors
         this.form.addEventListener(this.$form, 'bouncerRemoveError', (e) => {
-            this.validate(false);
+            // Prevent an infinite loop (check behaviour with an Agree field)
+            // https://github.com/verbb/formie/issues/905
+            if (!this.submitDebounce) {
+                this.validate(false);
+            }
         });
 
         // Override error messages defined in DOM - Bouncer only uses these as a last resort
@@ -297,6 +301,14 @@ export class FormieFormTheme {
         if (invalidFields.length === 0) {
             this.removeFormAlert();
         }
+
+        // Set the debounce after a little bit, to prevent an infinite loop, as this method
+        // is called on `bouncerRemoveError`.
+        this.submitDebounce = true;
+
+        setTimeout(() => {
+            this.submitDebounce = false;
+        }, 500);
 
         return !invalidFields.length;
     }
