@@ -9,6 +9,7 @@ use verbb\formie\gql\interfaces\FormInterface;
 use verbb\formie\gql\types\FormType;
 
 use Craft;
+use craft\errors\GqlException;
 use craft\gql\base\Generator;
 use craft\gql\base\GeneratorInterface;
 use craft\gql\base\ObjectType;
@@ -51,19 +52,49 @@ class FormGenerator extends Generator implements GeneratorInterface, SingleGener
     public static function generateType($context): ObjectType
     {
         $typeName = Form::gqlTypeNameByContext($context);
-
-        if ($createdType = GqlEntityRegistry::getEntity($typeName)) {
-            return $createdType;
-        }
-
         $contentFieldGqlTypes = self::getContentFields($context);
+
         $formFields = TypeManager::prepareFieldDefinitions(array_merge(FormInterface::getFieldDefinitions(), $contentFieldGqlTypes), $typeName);
 
-        return GqlEntityRegistry::createEntity($typeName, new FormType([
+        return GqlEntityRegistry::getEntity($typeName) ?: GqlEntityRegistry::createEntity($typeName, new FormType([
             'name' => $typeName,
             'fields' => function() use ($formFields) {
                 return $formFields;
             },
         ]));
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
+    /**
+     * Get content fields for a given context.
+     *
+     * @param mixed $context
+     * @return array
+     */
+    protected static function getContentFields($context): array
+    {
+        try {
+            $schema = Craft::$app->getGql()->getActiveSchema();
+        } catch (GqlException $e) {
+            Craft::warning("Could not get the active GraphQL schema: {$e->getMessage()}", __METHOD__);
+            Craft::$app->getErrorHandler()->logException($e);
+            return [];
+        }
+
+        $contentFieldGqlTypes = [];
+
+        if ($fieldLayout = $context->getFieldLayout()) {
+            /** @var Field $contentField */
+            foreach ($fieldLayout->getFields() as $contentField) {
+                if ($contentField->includeInGqlSchema($schema)) {
+                    $contentFieldGqlTypes[$contentField->handle] = $contentField->getContentGqlType();
+                }
+            }
+        }
+
+        return $contentFieldGqlTypes;
     }
 }
