@@ -164,7 +164,6 @@ class Phone extends FormField implements SubfieldInterface, PreviewableFieldInte
             'countryCollapsed' => true,
             'countryShowDialCode' => true,
             'countryDefaultValue' => '',
-            'countryRestrict' => false,
             'countryAllowed' => [],
         ];
     }
