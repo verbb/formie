@@ -37,17 +37,17 @@ export class FormieFormBase {
 
             // Add a little delay for UX
             setTimeout(() => {
+                // Call the validation hooks
+                if (!this.validate() || !this.afterValidate()) {
+                    return;
+                }
+                
                 // Create an event for before validation. This is mostly for captchas
                 const captchaValidateEvent = this.eventObject('onFormieCaptchaValidate', {
                     submitHandler: this,
                 });
 
                 if (!this.$form.dispatchEvent(captchaValidateEvent)) {
-                    return;
-                }
-
-                // Call the validation hooks
-                if (!this.validate() || !this.afterValidate()) {
                     return;
                 }
 
