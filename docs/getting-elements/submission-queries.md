@@ -81,14 +81,14 @@ Submission queries support the following parameters:
 Clears out the [status()](https://docs.craftcms.com/api/v3/craft-elements-db-elementquery.html#method-status) and [enabledForSite()](https://docs.craftcms.com/api/v3/craft-elements-db-elementquery.html#method-enabledforsite) parameters.
 
 ::: code
-```twig
+```twig Twig
 {# Fetch all submissions, regardless of status #}
 {% set submissions = craft.formie.submissions()
     .anyStatus()
     .all() %}
 ```
 
-```php
+```php PHP
 // Fetch all submissions, regardless of status
 $submissions = \verbb\formie\elements\Submission::find()
     ->anyStatus()
@@ -103,14 +103,14 @@ $submissions = \verbb\formie\elements\Submission::find()
 Causes the query to return matching submissions as arrays of data, rather than [Submission](docs:developers/submission) objects.
 
 ::: code
-```twig
+```twig Twig
 {# Fetch submissions as arrays #}
 {% set submissions = craft.formie.submissions()
     .asArray()
     .all() %}
 ```
 
-```php
+```php PHP
 // Fetch submissions as arrays
 $submissions = \verbb\formie\elements\Submission::find()
     ->asArray()
@@ -133,7 +133,7 @@ Possible values include:
 | `['and', '>= 2018-04-04', '< 2018-05-01']` | that were created between 2018-04-01 and 2018-05-01.
 
 ::: code
-```twig
+```twig Twig
 {# Fetch submissions created last month #}
 {% set start = date('first day of last month') | atom %}
 {% set end = date('first day of this month') | atom %}
@@ -143,7 +143,7 @@ Possible values include:
     .all() %}
 ```
 
-```php
+```php PHP
 // Fetch submissions created last month
 $start = new \DateTime('first day of next month')->format(\DateTime::ATOM);
 $end = new \DateTime('first day of this month')->format(\DateTime::ATOM);
@@ -169,7 +169,7 @@ Possible values include:
 | `['and', '>= 2018-04-04', '< 2018-05-01']` | that were updated between 2018-04-01 and 2018-05-01.
 
 ::: code
-```twig
+```twig Twig
 {# Fetch submissions updated in the last week #}
 {% set lastWeek = date('1 week ago')|atom %}
 
@@ -178,7 +178,7 @@ Possible values include:
     .all() %}
 ```
 
-```php
+```php PHP
 // Fetch submissions updated in the last week
 $lastWeek = new \DateTime('1 week ago')->format(\DateTime::ATOM);
 
@@ -195,7 +195,7 @@ $submissions = \verbb\formie\elements\Submission::find()
 Causes the query results to be returned in the order specified by [id](#id).
 
 ::: code
-```twig
+```twig Twig
 {# Fetch submissions in a specific order #}
 {% set submissions = craft.formie.submissions()
     .id([1, 2, 3, 4, 5])
@@ -203,7 +203,7 @@ Causes the query results to be returned in the order specified by [id](#id).
     .all() %}
 ```
 
-```php
+```php PHP
 // Fetch submissions in a specific order
 $submissions = \verbb\formie\elements\Submission::find()
     ->id([1, 2, 3, 4, 5])
@@ -229,14 +229,14 @@ Possible values include:
 | a [Form](docs:developers/form) object | for a form represented by the object.
 
 ::: code
-```twig
+```twig Twig
 {# Fetch submissions from a Foo form #}
 {% set submissions = craft.formie.submissions()
     .form('foo')
     .all() %}
 ```
 
-```php
+```php PHP
 // Fetch submissions from a Foo form
 $submissions = \verbb\formie\elements\Submission::find()
     ->form('foo')
@@ -260,14 +260,14 @@ Possible values include:
 | `['not', 1, 2]` | not for a form with an ID of 1 or 2.
 
 ::: code
-```twig
+```twig Twig
 {# Fetch submissions for the form with an ID of 1 #}
 {% set submissions = craft.formie.submissions()
     .formId(1)
     .all() %}
 ```
 
-```php
+```php PHP
 // Fetch submissions for the form with an ID of 1
 $submissions = \verbb\formie\elements\Submission::find()
     ->formId(1)
@@ -292,14 +292,14 @@ Possible values include:
 | `['not', 1, 2]` | not with an ID of 1 or 2.
 
 ::: code
-```twig
+```twig Twig
 {# Fetch the submission by its ID #}
 {% set submission = craft.formie.submissions()
     .id(1)
     .one() %}
 ```
 
-```php
+```php PHP
 // Fetch the submission by its ID
 $submission = \verbb\formie\elements\Submission::find()
     ->id(1)
@@ -317,14 +317,14 @@ This can be combined with [fixedOrder](#fixedorder) if you want the results to b
 Causes the query results to be returned in reverse order.
 
 ::: code
-```twig
+```twig Twig
 {# Fetch submissions in reverse #}
 {% set submissions = craft.formie.submissions()
     .inReverse()
     .all() %}
 ```
 
-```php
+```php PHP
 // Fetch submissions in reverse
 $submissions = \verbb\formie\elements\Submission::find()
     ->inReverse()
@@ -346,14 +346,14 @@ Possible values include:
 | `null` | that are either incomplete or not incomplete.
 
 ::: code
-```twig
+```twig Twig
 {# Fetch submissions that are incomplete #}
 {% set submissions = craft.formie.submissions()
     .isIncomplete()
     .all() %}
 ```
 
-```php
+```php PHP
 // Fetch submissions that are incomplete
 $submissions = \verbb\formie\elements\Submission::find()
     ->isIncomplete()
@@ -375,14 +375,14 @@ Possible values include:
 | `null` | that are either marked as spam or not marked as spam.
 
 ::: code
-```twig
+```twig Twig
 {# Fetch submissions that is spam #}
 {% set submissions = craft.formie.submissions()
     .isSpam()
     .all() %}
 ```
 
-```php
+```php PHP
 // Fetch submissions that is spam
 $submissions = \verbb\formie\elements\Submission::find()
     ->isSpam()
@@ -397,14 +397,14 @@ $submissions = \verbb\formie\elements\Submission::find()
 Determines the number of submissions that should be returned.
 
 ::: code
-```twig
+```twig Twig
 {# Fetch up to 10 submissions  #}
 {% set submissions = craft.formie.submissions()
     .limit(10)
     .all() %}
 ```
 
-```php
+```php PHP
 // Fetch up to 10 submissions
 $submissions = \verbb\formie\elements\Submission::find()
     ->limit(10)
@@ -419,14 +419,14 @@ $submissions = \verbb\formie\elements\Submission::find()
 Determines how many submissions should be skipped in the results.
 
 ::: code
-```twig
+```twig Twig
 {# Fetch all submissions except for the first 3 #}
 {% set submissions = craft.formie.submissions()
     .offset(3)
     .all() %}
 ```
 
-```php
+```php PHP
 // Fetch all submissions except for the first 3
 $submissions = \verbb\formie\elements\Submission::find()
     ->offset(3)
@@ -441,14 +441,14 @@ $submissions = \verbb\formie\elements\Submission::find()
 Determines the order that the submissions should be returned in.
 
 ::: code
-```twig
+```twig Twig
 {# Fetch all submissions in order of date created #}
 {% set submissions = craft.formie.submissions()
     .orderBy('elements.dateCreated asc')
     .all() %}
 ```
 
-```php
+```php PHP
 // Fetch all submissions in order of date created
 $submissions = \verbb\formie\elements\Submission::find()
     ->orderBy('elements.dateCreated asc')
@@ -465,14 +465,14 @@ Narrows the query results to only submissions that are related to certain other 
 See [Relations](https://docs.craftcms.com/v3/relations.html) for a full explanation of how to work with this parameter.
 
 ::: code
-```twig
+```twig Twig
 {# Fetch all submissions that are related to myCategory #}
 {% set submissions = craft.formie.submissions()
     .relatedTo(myCategory)
     .all() %}
 ```
 
-```php
+```php PHP
 // Fetch all submissions that are related to $myCategory
 $submissions = \verbb\formie\elements\Submission::find()
     ->relatedTo($myCategory)
@@ -497,14 +497,14 @@ Possible values include:
 | `['live', 'pending']` | that are live or pending.
 
 ::: code
-```twig
+```twig Twig
 {# Fetch disabled submissions #}
 {% set submissions = craft.formie.submissions()
     .status('disabled')
     .all() %}
 ```
 
-```php
+```php PHP
 // Fetch disabled submissions
 $submissions = \verbb\formie\elements\Submission::find()
     ->status('disabled')
@@ -528,14 +528,14 @@ Possible values include:
 | `['not', 1, 2]` | not with a status with an ID of 1 or 2.
 
 ::: code
-```twig
+```twig Twig
 {# Fetch submissions with a status with an ID of 1 #}
 {% set submissions = craft.formie.submissions()
     .statusId(1)
     .all() %}
 ```
 
-```php
+```php PHP
 // Fetch submissions with a status with an ID of 1
 $submissions = \verbb\formie\elements\Submission::find()
     ->statusId(1)
@@ -563,14 +563,14 @@ Possible values include:
 | `['not', '*Foo*', '*Bar*']` | with a title that doesn’t contain `Foo` or `Bar`.
 
 ::: code
-```twig
+```twig Twig
 {# Fetch submissions with a title that contains "Foo" #}
 {% set submissions = craft.formie.submissions()
     .title('*Foo*')
     .all() %}
 ```
 
-```php
+```php PHP
 // Fetch submissions with a title that contains "Foo"
 $submissions = \verbb\formie\elements\Submission::find()
     ->title('*Foo*')
@@ -585,14 +585,14 @@ $submissions = \verbb\formie\elements\Submission::find()
 Narrows the query results to only submissions that have been soft-deleted.
 
 ::: code
-```twig
+```twig Twig
 {# Fetch trashed submissions #}
 {% set entries = craft.formie.submissions()
     .trashed()
     .all() %}
 ```
 
-```php
+```php PHP
 // Fetch trashed submissions
 $submissions = \verbb\formie\elements\Submission::find()
     ->trashed()
@@ -607,14 +607,14 @@ $submissions = \verbb\formie\elements\Submission::find()
 Narrows the query results based on the submissions’ UIDs.
 
 ::: code
-```twig
+```twig Twig
 {# Fetch the submission by its UID #}
 {% set submission = craft.formie.submissions()
     .uid('xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx')
     .one() %}
 ```
 
-```php
+```php PHP
 // Fetch the submission by its UID
 $submission = \verbb\formie\elements\Submission::find()
     ->uid('xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx')
@@ -629,14 +629,14 @@ $submission = \verbb\formie\elements\Submission::find()
 Narrows the query results based on the submission owner user.
 
 ::: code
-```twig
+```twig Twig
 {# Fetch submissions for the current user #}
 {% set submissions = craft.formie.submissions()
     .user(currentUser)
     .all() %}
 ```
 
-```php
+```php PHP
 // Fetch submissions for the current user
 $submissions = \verbb\formie\elements\Submission::find()
     ->user($currentUser)
@@ -660,14 +660,14 @@ Possible values include:
 | `['not', 1, 2]` | not with a user ID of 1 or 2.
 
 ::: code
-```twig
+```twig Twig
 {# Fetch submissions with a user ID of 1 #}
 {% set submissions = craft.formie.submissions()
     .userId(1)
     .all() %}
 ```
 
-```php
+```php PHP
 // Fetch submissions with a user ID of 1
 $submissions = \verbb\formie\elements\Submission::find()
     ->userId(1)
