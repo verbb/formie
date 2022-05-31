@@ -188,6 +188,14 @@ class Entries extends CraftEntries implements FormFieldInterface
                     // This is a custom source, so use the custom criteria
                     $elementSource = ArrayHelper::firstWhere($this->availableSources(), 'key', $source);
                     $criteria[] = $elementSource['criteria'] ?? [];
+
+                    // Handle conditions by parsing the rules and applying to query
+                    $conditionRules = $elementSource['condition']['conditionRules'] ?? [];
+
+                    foreach ($conditionRules as $conditionRule) {
+                        $rule = Craft::createObject($conditionRule);
+                        $rule->modifyQuery($query);
+                    }
                 }
             }
 
