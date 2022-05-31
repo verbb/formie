@@ -99,7 +99,7 @@ export default {
 
         notification() {
             // Not amazing, but provide/inject won't work
-            return this.$parent.$parent.$parent.$attrs.notification;
+            return this.$parent.$parent.$parent.$parent.$parent.node._value;
         },
     },
 
