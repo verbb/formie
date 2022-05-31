@@ -13,7 +13,7 @@
         </div>
 
         <div class="hidden">
-            <br><input v-model="context._value" class="input text fullwidth">
+            <br><input v-model="context._value" :name="context.node.name" class="input text fullwidth">
         </div>
     </div>
 </template>
