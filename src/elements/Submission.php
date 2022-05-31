@@ -385,6 +385,14 @@ class Submission extends Element
     }
 
     /**
+     * @inheritdoc
+     */
+    public function canDelete(User $user): bool
+    {
+        return true;
+    }
+
+    /**
      * @inheritDoc
      */
     public function validate($attributeNames = null, $clearErrors = true): bool
