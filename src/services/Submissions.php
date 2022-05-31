@@ -139,15 +139,17 @@ class Submissions extends Component
         ]);
         $this->trigger(self::EVENT_AFTER_SUBMISSION, $event);
 
-        if ($event->success) {
-            // Send off some emails, if all good!
-            $this->sendNotifications($event->submission);
+        if (!$submission->isIncomplete) {
+            if ($event->success) {
+                // Send off some emails, if all good!
+                $this->sendNotifications($event->submission);
 
-            // Trigger any integrations
-            $this->triggerIntegrations($event->submission);
-        } else if ($submission->isSpam && $settings->spamEmailNotifications) {
-            // Special-case for wanting to send emails for spam
-            $this->sendNotifications($event->submission);
+                // Trigger any integrations
+                $this->triggerIntegrations($event->submission);
+            } else if ($submission->isSpam && $settings->spamEmailNotifications) {
+                // Special-case for wanting to send emails for spam
+                $this->sendNotifications($event->submission);
+            }
         }
     }
 
