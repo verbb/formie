@@ -39,7 +39,7 @@ class SubmissionQuery extends ElementQuery
      * @param string|Form|null $value The property value
      * @return static self reference
      */
-    public function form(Form|string|null $value): static
+    public function form(Form|array|string|null $value): static
     {
         if ($value instanceof Form) {
             $this->formId = $value->id;
