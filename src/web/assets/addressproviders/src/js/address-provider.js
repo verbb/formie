@@ -18,22 +18,38 @@ export class FormieAddressProvider {
         this.form.addEventListener(this.$locationBtn, eventKey('click'), (e) => {
             e.preventDefault();
 
+            this.onStartFetchLocation();
+
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition((position) => {
                     this.onCurrentLocation(position);
                 }, (error) => {
                     console.log('Unable to fetch location ' + error.code + '.');
+
+                    this.onEndFetchLocation();
                 }, {
                     enableHighAccuracy: true,
                 });
             } else {
                 console.log('Browser does not support geolocation.');
+
+                this.onEndFetchLocation();
             }
         });
     }
 
     onCurrentLocation(position) {
-        
+        this.onEndFetchLocation();
+    }
+
+    onStartFetchLocation() {
+        this.$locationBtn.classList.add('fui-loading');
+        this.$locationBtn.setAttribute('aria-disabled', true);
+    }
+
+    onEndFetchLocation() {
+        this.$locationBtn.classList.remove('fui-loading');
+        this.$locationBtn.setAttribute('aria-disabled', false);
     }
 }
 
