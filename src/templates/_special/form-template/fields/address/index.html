@@ -3,7 +3,7 @@
 
     {{ formieInclude('_includes/instructions', { position: 'fieldset-start' }) }}
 
-    <div class="fui-field-rows">
+    <div class="fui-field-rows" {% if field.hasCurrentLocation() or field.getAddressProviderIntegration() %}aria-live="polite"{% endif %}>
         {% for row in field.getFrontEndSubfields() %}
             {% set visibleFields = field.getVisibleFrontEndSubfields(row) %}
 
