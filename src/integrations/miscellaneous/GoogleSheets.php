@@ -220,6 +220,8 @@ class GoogleSheets extends Miscellaneous
 
             // Statically set the first column to determine where to start our range. Google will sometimes set the
             // 'table' of content to be incorrect, if there are gaps in columns. Here, we account for that.
+            //
+            // This does require column `A` to not be hidden, otherwise it won't append values.
             $range = "'{$this->sheetId}'!A1";
 
             $response = $this->deliverPayload($submission, "values/{$range}:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS", $payload);
