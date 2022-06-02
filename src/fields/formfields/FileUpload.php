@@ -8,6 +8,7 @@ use verbb\formie\base\FormFieldTrait;
 use verbb\formie\base\RelationFieldTrait;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
+use verbb\formie\gql\types\input\FileUploadInputType;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\IntegrationField;
 
@@ -581,6 +582,14 @@ class FileUpload extends CraftAssets implements FormFieldInterface
                 },
             ],
         ]);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getContentGqlMutationArgumentType()
+    {
+        return FileUploadInputType::getType($this);
     }
 
 

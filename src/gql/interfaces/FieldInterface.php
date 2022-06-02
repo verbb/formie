@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\gql\interfaces;
 
+use verbb\formie\fields\formfields\FileUpload;
 use verbb\formie\fields\formfields\Table;
 use verbb\formie\gql\interfaces\FieldSettingsInterface;
 use verbb\formie\gql\types\SettingType;
@@ -114,6 +115,11 @@ class FieldInterface extends BaseInterfaceType
 
                     // Table fields don't seem to resolve correctly?
                     if ($field instanceof Table) {
+                        return '[' . $inputType->name . ']';
+                    }
+
+                    // FileUpload fields don't seem to resolve correctly?
+                    if ($field instanceof FileUpload) {
                         return '[' . $inputType->name . ']';
                     }
 
