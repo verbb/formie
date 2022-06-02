@@ -159,8 +159,22 @@ Button | Description
 `italic` | Allow text to be italic.
 `underline` | Allow text to be underlined.
 `strikethrough` | Allow text to have a strikethrough.
-`unorderedlist` | Allow the use of `<ul>` elements for an unordered list.
-`orderedlist` | Allow the use of `<ol>` elements for an unordered list.
-`quote` | Allow text to be shown as a quote.
+`subscript` | Allow text to be subscript.
+`superscript` | Allow text to be superscript.
+`unordered-list` | Allow the use of `<ul>` elements for an unordered list.
+`ordered-list` | Allow the use of `<ol>` elements for an unordered list.
+`blockquote` | Allow text to be shown as a blockquote.
+`highlight` | Allow text to be highlighted.
+`code` | Allow text to be shown as inline code.
+`code-block` | Allow text to be shown as a code blocks.
+`hr` | Allow the use of a `<hr>` element for a horizontal rule.
+`line-break` | Allow the use of a `<br>` element for a horizontal rule.
+`align-left` | Allow text to be left-aligned.
+`align-center` | Allow text to be center-aligned.
+`align-right` | Allow text to be right-aligned.
+`align-justify` | Allow text to be justify.
+`clear-format` | Allow all formatting to be cleared.
+`undo` | Allow undo functionality.
+`redo` | Allow redo functionality.
 `link` | Allow text to be shown as a link.
 `variableTag` | Allow the use of Variable Tags, to pick variables from form items or global variables.
