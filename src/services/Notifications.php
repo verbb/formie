@@ -418,7 +418,7 @@ class Notifications extends Component
     public function evaluateConditions($notification, Submission $submission): bool
     {
         if ($notification->enableConditions) {
-            $conditionSettings = Json::decode($notification->conditions) ?? [];
+            $conditionSettings = $notification->conditions ?? [];
             $conditions = $conditionSettings['conditions'] ?? [];
 
             if ($conditionSettings && $conditions) {
