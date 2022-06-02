@@ -70,7 +70,7 @@ class SubmissionResolver extends ElementMutationResolver
             throw new Error('Impossible to change the form of an existing submission');
         }
 
-        $submission = $this->populateElementWithData($submission, $arguments);
+        $submission = $this->populateElementWithData($submission, $arguments, $resolveInfo);
 
         // TODO: refactor by combining this from the submit controller...
 
