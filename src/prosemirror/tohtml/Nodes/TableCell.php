@@ -4,7 +4,7 @@ namespace verbb\formie\prosemirror\tohtml\Nodes;
 
 class TableCell extends Node
 {
-    protected ?string $nodeType = 'table_cell';
+    protected ?string $nodeType = 'tableCell';
     protected string|null|array $tagName = 'td';
 
     public function tag(): array

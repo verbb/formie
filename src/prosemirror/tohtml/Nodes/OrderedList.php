@@ -4,7 +4,7 @@ namespace verbb\formie\prosemirror\tohtml\Nodes;
 
 class OrderedList extends Node
 {
-    protected ?string $nodeType = 'ordered_list';
+    protected ?string $nodeType = 'orderedList';
     protected string|null|array $tagName = 'ol';
 
     public function tag(): array
