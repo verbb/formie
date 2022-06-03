@@ -1,5 +1,29 @@
 # Changelog
 
+## 2.0.0-beta.11 - 2022-06-04
+
+### Added
+- Added ability to query submissions across multiple forms via GraphQL.
+
+### Fixed
+- Fixed sent notifications throwing an error for `CC` and `BCC` values.
+- Fixed email preview not showing “From Name”.
+- Fixed some rich text nodes not displaying correctly.
+- Fixed signature field not saving values correctly.
+- Fixed an error with email notifications that contain conditions.
+- Fixed typings on some field-level events to allow NestedRow and FakeElement elements, not just Submission elements.
+- Fixed an error when querying submissions via GraphQL.
+- Fixed element select fields not working on the form builder settings.
+- Fixed conditional custom sources not working for element fields.
+- Fixed being unable to delete forms or submissions in the control panel.
+- Fixed an error when saving email/form templates.
+- Fixed email notifications preview and test-sending not working correctly.
+- Fixed entries field and custom sources not working correctly.
+- Fixed some fields (handle) not being persisted correctly in the form builder.
+- Fixed field preview for `type=“number”` fields in the form builder.
+- Fixed missing PostCSS config for forms.
+- Fixed an error setting `countryRestrict` on Phone fields.
+
 ## 2.0.0-beta.10 - 2022-05-28
 
 ### Added
