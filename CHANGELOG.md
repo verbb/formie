@@ -1,5 +1,21 @@
 # Changelog
 
+## 1.5.19 - 2022-06-04
+
+### Added
+- Added support for uploading files via GraphQL mutations for File Upload files (with `base64` encoded values).
+- Added `aria-disabled`, `aria-autocomplete` and `aria-live` for address fields when using an address provider integration.
+- Added loading spinner to “Use my location” for address fields when using an address provider integration.
+
+### Changed
+- Changed `onFormieCaptchaValidate` JS event to only trigger are client-side validation passes.
+
+### Fixed
+- Fixed querying form template fields on a form via GraphQL not working.
+- Fixed a JS error when validating Agree fields.
+- Fixed email notifications and integrations firing on each page submission when using `EVENT_AFTER_INCOMPLETE_SUBMISSION` and setting `$event->handled = false`.
+- Fixed GraphQL field normalization not always being triggered.
+
 ## 1.5.18 - 2022-05-28
 
 ### Added
