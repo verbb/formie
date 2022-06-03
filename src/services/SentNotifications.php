@@ -78,11 +78,11 @@ class SentNotifications extends Component
         $sentNotification->message = $error;
 
         if ($cc = $email->getCc()) {
-            $sentNotification->cc = $cc;
+            $sentNotification->cc = implode(',', array_keys($cc));
         }
 
         if ($bcc = $email->getBcc()) {
-            $sentNotification->bcc = $bcc;
+            $sentNotification->bcc = implode(',', array_keys($bcc));
         }
 
         $body = $email->getSwiftMessage()->getBody();
