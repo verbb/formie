@@ -99,11 +99,11 @@ class Form extends Element
     }
 
     /**
-     * @inheritDoc
+     * @inheritdoc
      */
     public static function gqlTypeNameByContext(mixed $context): string
     {
-        return 'Form';
+        return $context->handle . '_Form';
     }
 
     /**
