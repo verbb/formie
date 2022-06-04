@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.0.0-beta.12 - 2022-06-04
+
+### Fixed
+- Fixed a type error for `FileUpload::getContentGqlMutationArgumentType()`.
+
 ## 2.0.0-beta.11 - 2022-06-04
 
 ### Added

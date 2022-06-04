@@ -569,7 +569,7 @@ class FileUpload extends CraftAssets implements FormFieldInterface
     /**
      * @inheritdoc
      */
-    public function getContentGqlMutationArgumentType()
+    public function getContentGqlMutationArgumentType(): array|Type
     {
         return FileUploadInputType::getType($this);
     }
