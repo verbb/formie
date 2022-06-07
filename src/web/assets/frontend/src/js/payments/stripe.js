@@ -25,6 +25,33 @@ export class FormieStripe {
             return;
         }
 
+        // Only initialize the field if it's visible. Use `IntersectionObserver` to check when visible
+        // and also when hidden (navigating to other pages) to destroy it. Otherwise, Stripe elements
+        // will listen to page submit events and validate, preventing from going back a page.
+        var observer = new IntersectionObserver((entries) => {
+            if (entries[0]['intersectionRatio'] == 0) {
+                // Field is hidden, do reset everything
+                if (this.cardElement) {
+                    // Kill off Stripe items
+                    this.cardElement.destroy();
+                    this.cardElement = null;
+                    this.stripe = null;
+
+                    // Remove unique event listeners
+                    this.form.removeEventListener(eventKey('onFormiePaymentValidate', 'stripe'));
+                    this.form.removeEventListener(eventKey('onAfterFormieSubmit', 'stripe'));
+                    this.form.removeEventListener(eventKey('FormiePaymentStripe3DS', 'stripe'));
+                }
+            } else {
+                this.initCardField();
+            }
+        }, { root: this.$form });
+
+        // Watch for when the input is visible/hidden, in the context of the form
+        observer.observe(this.$input);
+    }
+
+    initCardField() {
         // Fetch and attach the script only once - this is in case there are multiple forms on the page.
         // They all go to a single callback which resolves its loaded state
         if (!document.getElementById(this.stripeScriptId)) {
@@ -36,19 +63,21 @@ export class FormieStripe {
 
             // Wait until Stripe.js has loaded, then initialize
             $script.onload = () => {
-                this.initCardField()
+                this.mountCard()
             };
 
             document.body.appendChild($script);
+        } else {
+            this.mountCard()
         }
 
-        // Attach a custom event listener on the form
-        this.$form.addEventListener('onFormiePaymentValidate', this.onValidate.bind(this));
-        this.$form.addEventListener('onAfterFormieSubmit', this.onAfterSubmit.bind(this));
-        this.$form.addEventListener('FormiePaymentStripe3DS', this.onValidate3DS.bind(this));
+        // Attach custom event listeners on the form
+        this.form.addEventListener(this.$form, eventKey('onFormiePaymentValidate', 'stripe'), this.onValidate.bind(this));
+        this.form.addEventListener(this.$form, eventKey('onAfterFormieSubmit', 'stripe'), this.onAfterSubmit.bind(this));
+        this.form.addEventListener(this.$form, eventKey('FormiePaymentStripe3DS', 'stripe'), this.onValidate3DS.bind(this));
     }
 
-    initCardField() {
+    mountCard() {
         this.stripe = Stripe(this.publishableKey);
 
         var elements = this.stripe.elements();
@@ -81,12 +110,8 @@ export class FormieStripe {
 
     onValidate(e) {
         // Don't validate if we're going back in the form
-        if (this.$form.goBack) {
-            return;
-        }
-
         // Check if the form has an invalid flag set, don't bother going further
-        if (e.detail.invalid) {
+        if (this.$form.goBack || e.detail.invalid) {
             return;
         }
         
