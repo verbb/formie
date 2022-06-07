@@ -1,4 +1,5 @@
 import { recaptcha } from './inc/recaptcha';
+import { eventKey } from '../utils/utils';
 
 export class FormieRecaptchaV2Invisible {
     constructor(settings = {}) {
@@ -31,6 +32,9 @@ export class FormieRecaptchaV2Invisible {
             return;
         }
 
+        // Get the instance of Formie's base JS
+        this.form = this.$form.form;
+
         // We can have multiple captchas per form, so store them and render only when we need
         this.$placeholders = this.$form.querySelectorAll('.formie-recaptcha-placeholder');
 
@@ -44,8 +48,8 @@ export class FormieRecaptchaV2Invisible {
         this.renderCaptcha();
 
         // Attach a custom event listener on the form
-        this.$form.addEventListener('onFormieCaptchaValidate', this.onValidate.bind(this));
-        this.$form.addEventListener('onAfterFormieSubmit', this.onAfterSubmit.bind(this));
+        this.form.addEventListener(this.$form, eventKey('onFormieCaptchaValidate', 'RecaptchaV2Invisible'), this.onValidate.bind(this));
+        this.form.addEventListener(this.$form, eventKey('onAfterFormieSubmit', 'RecaptchaV2Invisible'), this.onAfterSubmit.bind(this));
     }
 
     renderCaptcha() {
@@ -141,13 +145,10 @@ export class FormieRecaptchaV2Invisible {
     onVerify(token) {
         // Submit the form - we've hijacked it up until now
         if (this.submitHandler) {
-            // Call the form validation hooks first
-            if (!this.submitHandler.validate() || !this.submitHandler.afterValidate()) {
-                return;
-            }
-
             // Run the next submit action for the form. TODO: make this better!
-            this.submitHandler.validatePayment();
+            if (this.submitHandler.validatePayment()) {
+                this.submitHandler.submitForm()
+            }
         }
     }
 

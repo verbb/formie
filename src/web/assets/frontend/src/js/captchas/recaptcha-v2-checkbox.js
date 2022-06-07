@@ -1,4 +1,5 @@
 import { recaptcha } from './inc/recaptcha';
+import { eventKey } from '../utils/utils';
 
 export class FormieRecaptchaV2Checkbox {
     constructor(settings = {}) {
@@ -32,6 +33,9 @@ export class FormieRecaptchaV2Checkbox {
             return;
         }
 
+        // Get the instance of Formie's base JS
+        this.form = this.$form.form;
+
         // We can have multiple captchas per form, so store them and render only when we need
         this.$placeholders = this.$form.querySelectorAll('.formie-recaptcha-placeholder');
 
@@ -45,9 +49,9 @@ export class FormieRecaptchaV2Checkbox {
         this.renderCaptcha();
 
         // Attach a custom event listener on the form
-        this.$form.addEventListener('onBeforeFormieSubmit', this.onBeforeSubmit.bind(this));
-        this.$form.addEventListener('onFormieCaptchaValidate', this.onValidate.bind(this));
-        this.$form.addEventListener('onAfterFormieSubmit', this.onAfterSubmit.bind(this));
+        this.form.addEventListener(this.$form, eventKey('onBeforeFormieSubmit', 'RecaptchaV2'), this.onBeforeSubmit.bind(this));
+        this.form.addEventListener(this.$form, eventKey('onFormieCaptchaValidate', 'RecaptchaV2'), this.onValidate.bind(this));
+        this.form.addEventListener(this.$form, eventKey('onAfterFormieSubmit', 'RecaptchaV2'), this.onAfterSubmit.bind(this));
     }
 
     renderCaptcha() {
