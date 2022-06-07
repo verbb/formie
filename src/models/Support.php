@@ -32,7 +32,6 @@ class Support extends Model
             [['fromEmail', 'formId', 'message'], 'required'],
             [['fromEmail'], 'email'],
             [['fromEmail'], 'string', 'min' => 5, 'max' => 255],
-            [['attachments'], 'file', 'maxSize' => 3145728],
         ];
     }
 

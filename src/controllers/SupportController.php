@@ -65,7 +65,7 @@ class SupportController extends Controller
         $support->fromEmail = $request->getParam('fromEmail');
         $support->formId = $request->getParam('formId');
         $support->message = trim($request->getParam('message'));
-        $support->attachments = UploadedFile::getInstanceByName('attachments');
+        $support->attachments = UploadedFile::getInstancesByName('attachments');
 
         if (!$support->validate()) {
             Craft::$app->getSession()->setError(Craft::t('app', 'An error occurred.'));
@@ -213,11 +213,9 @@ class SupportController extends Controller
             // Attachments
             //
 
-            if ($support->attachments) {
+            if ($support->attachments && is_array($support->attachments)) {
                 foreach ($support->attachments as $attachment) {
-                    if ($attachment instanceof UploadedFile) {
-                        $zip->addFile($attachment->tempName, $attachment->name);
-                    }
+                    $zip->addFile($attachment->tempName, $attachment->name);
                 }
             }
 
