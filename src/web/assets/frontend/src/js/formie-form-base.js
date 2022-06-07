@@ -86,7 +86,6 @@ export class FormieFormBase {
     }
 
     validatePayment() {
-        console.log('validatePayment')
         // Create an event for payments, separate to validation
         const validateEvent = this.eventObject('onFormiePaymentValidate', {
             submitHandler: this,
