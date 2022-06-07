@@ -83,19 +83,6 @@ abstract class Payment extends Integration
     /**
      * @inheritDoc
      */
-    public function init(): void
-    {
-        // Throw an error if we're in `devMode` to help with local development - even if opting not to
-        // which is the default for payment integrations, because unlike other integrations, these don't
-        // run via the queue, but for non-devMode, we of course don't want to throw errors inline.
-        if (Craft::$app->getConfig()->getGeneral()->devMode) {
-            $this->throwApiError = true;
-        }
-    }
-
-    /**
-     * @inheritDoc
-     */
     public function getIconUrl(): string
     {
         $handle = StringHelper::toKebabCase(static::displayName());
