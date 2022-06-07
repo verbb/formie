@@ -3,7 +3,7 @@
         <strong>{{ field.name | t }}</strong><br>
     {% endif %}
 
-    {% if field.settings.useMultipleFields %}
+    {% if value and field.settings.useMultipleFields %}
         {% if field.prefixEnabled %}
             <strong>{{ field.prefixLabel | t }}: </strong>{{ value.prefix ?: ('No response.' | t('formie')) }}<br>
         {% endif %}
