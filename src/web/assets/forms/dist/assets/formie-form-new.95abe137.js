@@ -1,0 +1,2 @@
+import{e as n,g as t,f as r}from"./config.3919d202.js";typeof Craft.Formie=="undefined"&&(Craft.Formie={});Craft.Formie.NewForm=Garnish.Base.extend({init(e){n({data(){return{name:e.name,handle:e.handle,handles:[]}},watch:{name(l){const a=e.maxFormHandleLength;this.handle=t(this.handles,r(this.name),0).substr(0,a)}},created(){this.handles=e.formHandles.concat(e.reservedHandles)},mounted(){this.$el.querySelector('[name="title"]').focus()}}).mount("#fui-new-form")}});
+//# sourceMappingURL=formie-form-new.95abe137.js.map

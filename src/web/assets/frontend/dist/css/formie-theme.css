@@ -881,8 +881,9 @@
   transition-duration: 0.15s;
   transition-duration: var(--fui-input-transition-duration);
 }
-.fui-input:focus,
-.fui-select:focus {
+.fui-input:focus, .fui-input.fui-focus,
+.fui-select:focus,
+.fui-select.fui-focus {
   outline: 0;
   border-color: #a4cafe;
   border-color: var(--fui-input-border-color-focus, var(--fui-focus-border-color));
@@ -896,8 +897,9 @@
   border-color: #f8b4b4;
   border-color: var(--fui-input-error-border-color);
 }
-.fui-input.fui-error:focus,
-.fui-select.fui-error:focus {
+.fui-input.fui-error:focus, .fui-input.fui-error.fui-focus,
+.fui-select.fui-error:focus,
+.fui-select.fui-error.fui-focus {
   box-shadow: 0 0 0 3px rgba(248, 180, 180, 0.45);
   box-shadow: var(--fui-input-error-box-shadow-focus);
 }

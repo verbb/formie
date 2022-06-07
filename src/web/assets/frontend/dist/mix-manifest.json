@@ -24,6 +24,7 @@
     "/js/captchas/recaptcha-enterprise.js": "/js/captchas/recaptcha-enterprise.js",
     "/js/captchas/javascript.js": "/js/captchas/javascript.js",
     "/js/captchas/hcaptcha.js": "/js/captchas/hcaptcha.js",
+    "/js/payments/stripe.js": "/js/payments/stripe.js",
     "/css/fields/phone-country.css": "/css/fields/phone-country.css",
     "/css/fields/tags.css": "/css/fields/tags.css",
     "/css/formie-theme.css": "/css/formie-theme.css",
