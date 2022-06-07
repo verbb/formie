@@ -1,0 +1,37 @@
+{% set payments = submission.getPayments() %}
+{% set subscriptions = submission.getSubscriptions() %}
+
+<p>
+    {% if not (options.hideName ?? false) %}
+        <strong>{{ field.name | t }}</strong><br>
+    {% endif %}
+
+    <strong>{{ 'Provider' | t }}: </strong>{{ integration.displayName() }}<br>
+
+    {# Get the payment, or subscription #}
+    {% if payments %}
+        {% set payment = payments[0] %}
+
+        <strong>{{ 'Type' | t }}: </strong>{{ 'Single' | t }}<br>
+        <strong>{{ 'Status' | t }}: </strong>{{ payment.status | title | t }}<br>
+        <strong>{{ 'Amount' | t }}: </strong>{{ payment.amount | currency(payment.currency) }} {{ payment.currency | upper }}<br>
+        <strong>{{ 'Transaction Reference' | t }}: </strong>{{ payment.reference }}<br>
+        <strong>{{ 'Transaction URL' | t }}: </strong>https://dashboard.stripe.com/payments/{{ payment.reference }}<br>
+    {% endif %}
+
+    {% if subscriptions %}
+        {% set subscription = subscriptions[0] %}
+
+        <strong>{{ 'Type' | t }}: </strong>{{ 'Subscription' | t }}<br>
+        <strong>{{ 'Status' | t }}: </strong>{{ subscription.getStatus() | title | t }}<br>
+
+        {% set currency = subscription.getPlan().planData.currency %}
+        {% set amount = integration.fromStripeAmount(subscription.getPlan().planData.amount, currency) %}
+        <strong>{{ 'Amount' | t }}: </strong>{{ amount | currency(currency) }} {{ currency | upper }}<br>
+
+        <strong>{{ 'Frequency' | t }}: </strong>{{ subscription.getPlan().getFrequencySummary() | t }}<br>
+        <strong>{{ 'Next Payment' | t }}: </strong>{{ subscription.nextPaymentDate | datetime('short') }}<br>
+        <strong>{{ 'Transaction Reference' | t }}: </strong>{{ subscription.reference }}<br>
+        <strong>{{ 'Transaction URL' | t }}: </strong>https://dashboard.stripe.com/subscriptions/{{ subscription.reference }}<br>
+    {% endif %}
+</p>

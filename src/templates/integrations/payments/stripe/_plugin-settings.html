@@ -1,0 +1,81 @@
+{% import '_includes/forms' as forms %}
+{% import 'verbb-base/_macros' as macros %}
+
+{% set instructions %}
+### Step 1. Connect to the {name} API
+1. Go to your <a href="https://dashboard.stripe.com/account/apikeys" target="_blank">Stripe API Keys</a> page in your {name} dashboard.
+1. On the top-right of your screen, ensure the **Test Mode** lightswitch is in the **off** position if you wish to use Live details, or **on** if you wish to use Test details.
+1. On the top-right of your screen, click **Developers**.
+1. On the left-hand sidebar, click **API Keys**.
+1. Copy the **Publishable Key** from {name} and paste in the **Publishable Key** field below.
+1. Copy the **Secret Key** from {name} and paste in the **Secret Key** field below.
+1. We **strongly recommend** you use `.env` variables to store these keys.
+
+### Step 2. Test Connection
+1. Save this integration.
+1. Click on the **Refresh** button in the right-hand sidebar.
+
+### Step 3. Configure Webhooks (for subscriptions)
+1. In order for subscriptions to work, you must populate some settings for webhooks.
+1. In Stripe, on the top-right of your screen, click **Developers**.
+1. On the left-hand sidebar, click **Webhooks**.
+1. Click the **Add an endpoint** button.
+1. Copy the **Redirect URI** from below and paste in the **Endpoint URL** in Stripe.
+1. Click the **Select Events** button under the "Select events to listen to" heading.
+1. We recommend emitting all possible events, but the required events are:
+    - `customer.subscription.created`
+    - `customer.subscription.deleted`
+    - `customer.subscription.updated`
+    - `invoice.created`
+    - `invoice.payment_failed`
+    - `invoice.payment_succeeded`
+    - `plan.deleted`
+    - `plan.updated`
+1. Once created look for the **Signing secret** item and click **Reveal Secret**.
+1. Copy the **Signing secret** from {name} and paste in the **Webhook Signing Secret** field below.
+{% endset %}
+
+<div class="fui-settings-block">
+    {{ instructions | t('formie', { name: integration.displayName() }) | md }}
+</div>
+
+{% if integration.handle %}
+    {{ forms.textField({
+        readonly: true,
+        label: 'Redirect URI' | t('formie'),
+        instructions: 'Use this URI when setting up your {name} webhook.' | t('formie', { name: integration.displayName() }),
+        value: integration.getRedirectUri(),
+    }) }}
+{% endif %}
+
+{{ forms.autosuggestField({
+    label: 'Publishable Key' | t('formie'),
+    instructions: 'Enter your {name} Publishable Key here.' | t('formie', { name: integration.displayName() }),
+    name: 'publishableKey',
+    required: true,
+    suggestEnvVars: true,
+    value: integration.settings.publishableKey ?? '',
+    warning: macros.configWarning('publishableKey', 'formie'),
+    errors: integration.getErrors('publishableKey'),
+}) }}
+
+{{ forms.autosuggestField({
+    label: 'Secret Key' | t('formie'),
+    instructions: 'Enter your {name} Secret Key here.' | t('formie', { name: integration.displayName() }),
+    name: 'secretKey',
+    required: true,
+    suggestEnvVars: true,
+    value: integration.settings.secretKey ?? '',
+    warning: macros.configWarning('secretKey', 'formie'),
+    errors: integration.getErrors('secretKey'),
+}) }}
+
+{{ forms.autosuggestField({
+    label: 'Webhook Signing Secret' | t('formie'),
+    instructions: 'Enter your {name} Webhook Signing Secret here.' | t('formie', { name: integration.displayName() }),
+    name: 'webhookSecretKey',
+    suggestEnvVars: true,
+    value: integration.settings.webhookSecretKey ?? '',
+    warning: macros.configWarning('webhookSecretKey', 'formie'),
+    errors: integration.getErrors('webhookSecretKey'),
+}) }}

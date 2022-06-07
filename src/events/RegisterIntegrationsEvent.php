@@ -13,6 +13,7 @@ class RegisterIntegrationsEvent extends Event
     public ?array $elements = [];
     public ?array $emailMarketing = [];
     public ?array $crm = [];
+    public ?array $payments = [];
     public ?array $webhooks = [];
     public ?array $miscellaneous = [];
     

@@ -914,8 +914,8 @@ trait FormFieldTrait
     {
         $inputOptions = $this->getEmailOptions($submission, $notification, $value, $options);
         $html = $notification->renderTemplate(static::getEmailTemplatePath(), $inputOptions);
-        return Template::raw($html);
 
+        return Template::raw($html);
     }
 
     /**

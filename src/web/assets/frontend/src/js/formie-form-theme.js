@@ -504,6 +504,18 @@ export class FormieFormTheme {
         this.removeBackInput();
 
         this.updateSubmissionInput(data);
+
+        // Check if there's any events in the response back, and fire them
+        if (data.events && Array.isArray(data.events)) {
+            data.events.forEach(eventData => {
+                this.$form.dispatchEvent(new CustomEvent(eventData.event, {
+                    bubbles: true,
+                    detail: {
+                        data: eventData.data,
+                    },
+                }));
+            })
+        }
     }
 
     onAjaxError(errorMessage, data = {}) {
@@ -538,7 +550,7 @@ export class FormieFormTheme {
         });
 
         // Go to the first page with an error, for good UX
-        this.togglePage(data);
+        this.togglePage(data, false);
     }
 
     onAjaxSuccess(data) {
@@ -663,7 +675,7 @@ export class FormieFormTheme {
         }
     }
 
-    togglePage(data) {
+    togglePage(data, scrollToTop = true) {
         // Trigger an event when a page is toggled
         this.$form.dispatchEvent(new CustomEvent('onFormiePageToggle', {
             bubbles: true,
@@ -675,14 +687,16 @@ export class FormieFormTheme {
         // Hide all pages
         var $allPages = this.$form.querySelectorAll('.fui-page');
 
-        $allPages.forEach($page => {
-            // Show the current page
-            if ($page.id === `${this.getPageId(data.nextPageId)}`) {
-                $page.classList.remove('fui-hidden');
-            } else {
-                $page.classList.add('fui-hidden');
-            }
-        });
+        if (data.nextPageId) {
+            $allPages.forEach($page => {
+                // Show the current page
+                if ($page.id === `${this.getPageId(data.nextPageId)}`) {
+                    $page.classList.remove('fui-hidden');
+                } else {
+                    $page.classList.add('fui-hidden');
+                }
+            });
+        }
 
         // Update tabs and progress bar if we're using them
         var $progress = this.$form.querySelector('.fui-progress-bar');
@@ -698,20 +712,22 @@ export class FormieFormTheme {
 
         var $tabs = this.$form.querySelectorAll('.fui-tab');
 
-        $tabs.forEach($tab => {
-            // Show the current page
-            if ($tab.id === 'fui-tab-' + data.nextPageId) {
-                $tab.classList.add('fui-tab-active');
-            } else {
-                $tab.classList.remove('fui-tab-active');
-            }
-        });
+        if (data.nextPageId) {
+            $tabs.forEach($tab => {
+                // Show the current page
+                if ($tab.id === 'fui-tab-' + data.nextPageId) {
+                    $tab.classList.add('fui-tab-active');
+                } else {
+                    $tab.classList.remove('fui-tab-active');
+                }
+            });
 
-        // Update the current page
-        this.setCurrentPage(data.nextPageId);
+            // Update the current page
+            this.setCurrentPage(data.nextPageId);
+        }
 
         // Smooth-scroll to the top of the form.
-        if (this.settings.scrollToTop) {
+        if (scrollToTop && this.settings.scrollToTop) {
             window.scrollTo({
                 top: this.$form.getBoundingClientRect().top + window.pageYOffset - 100,
                 behavior: 'smooth',

@@ -50,7 +50,7 @@
 
 <script>
 import { mapState } from 'vuex';
-import { get, isEmpty } from 'lodash-es';
+import { get, isEmpty, defaultsDeep } from 'lodash-es';
 import Draggable from 'vuedraggable';
 
 import { newId, setId } from '@utils/string';
@@ -163,8 +163,11 @@ export default {
         }
 
         // Populate an initial value. For some reason, using `value` doesn't work!
-        if (!this.context._value.length && this.initialValue) {
-            this.context.node.input(this.initialValue);
+        if (isEmpty(this.context._value) && !isEmpty(this.initialValue)) {
+            // Ensure FormKit has settled
+            setTimeout(() => {
+                this.context.node.input(this.initialValue);
+            }, 20);
         }
 
         // Set the total columns now, so we can keep track of all added/deleted cols

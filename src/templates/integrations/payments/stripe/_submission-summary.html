@@ -1,0 +1,97 @@
+<div class="meta read-only">
+    <div class="data" style="align-items: center;">
+        <h5 class="heading">{{ 'Provider' | t('formie') }}</h5>
+
+        <div class="value">
+            <img src="{{ integration.getIconUrl() }}" style="width: 20px; height: 20px; margin-right: 8px;"> {{ integration.displayName() }}
+        </div>
+    </div>
+
+    {% if payments %}
+        {% set payment = payments[0] %}
+
+        <div class="data">
+            <h5 class="heading">{{ 'Type' | t('formie') }}</h5>
+            <div class="value">{{ 'Single' | t('formie') }}</div>
+        </div>
+
+        <div class="data">
+            <h5 class="heading">{{ 'Status' | t('formie') }}</h5>
+
+            <div class="value">
+                <span class="status {{ payment.status | kebab }}"></span>
+                {{ payment.status | title | t('formie') }}
+            </div>
+        </div>
+
+        <div class="data">
+            <h5 class="heading">{{ 'Amount' | t('formie') }}</h5>
+            <div class="value">{{ payment.amount | currency(payment.currency) }} {{ payment.currency | upper }}</div>
+        </div>
+
+        <div class="data">
+            <h5 class="heading"></h5>
+
+            <div class="value">
+                <a href="https://dashboard.stripe.com/payments/{{ payment.reference }}" class="external" target="_blank" rel="noopener">
+                    View in Stripe
+                </a>
+            </div>
+        </div>
+    {% endif %}
+
+    {% if subscriptions %}
+        {% set subscription = subscriptions[0] %}
+
+        <div class="data">
+            <h5 class="heading">{{ 'Type' | t('formie') }}</h5>
+            <div class="value">{{ 'Subscription' | t('formie') }}</div>
+        </div>
+
+        <div class="data">
+            <h5 class="heading">{{ 'Status' | t('formie') }}</h5>
+
+            <div class="value">
+                <span class="status {{ subscription.getStatus() | kebab }}"></span>
+                {{ subscription.getStatus() | title | t('formie') }}
+
+                {% if not subscription.isCanceled and not subscription.isExpired %}
+                    {% set params = {
+                        id: subscription.id,
+                        hash: craft.app.security.hashData(subscription.reference),
+                    } %}
+
+                    <a class="btn small formsubmit" data-form="x" data-action="formie/payment-subscriptions/cancel" data-params="{{ params | json_encode }}" data-confirm="{{ 'Are you sure you want to cancel this subscription?' | t('formie') }}" style="margin-left: 0.5rem;">{{ 'Cancel' | t('formie') }}</a>
+                {% endif %}
+            </div>
+        </div>
+
+        {% set currency = subscription.getPlan().planData.currency %}
+        {% set amount = integration.fromStripeAmount(subscription.getPlan().planData.amount, currency) %}
+
+        <div class="data">
+            <h5 class="heading">{{ 'Amount' | t('formie') }}</h5>
+            <div class="value">{{ amount | currency(currency) }} {{ currency | upper }}</div>
+        </div>
+
+        <div class="data">
+            <h5 class="heading">{{ 'Frequency' | t('formie') }}</h5>
+            <div class="value">{{ subscription.getPlan().getFrequencySummary() | t('formie') }}</div>
+        </div>
+
+        <div class="data">
+            <h5 class="heading">{{ 'Next Payment' | t('formie') }}</h5>
+            <div id="date-created-value" class="value">{{ subscription.nextPaymentDate | datetime('short') }}</div>
+        </div>
+
+        <div class="data">
+            <h5 class="heading"></h5>
+
+            <div class="value">
+                <a href="https://dashboard.stripe.com/subscriptions/{{ subscription.reference }}" class="external" target="_blank" rel="noopener">
+                    View in Stripe
+                </a>
+            </div>
+        </div>
+    {% endif %}
+</div>

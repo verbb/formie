@@ -154,6 +154,30 @@ class IntegrationSettingsController extends Controller
     /**
      * @return Response
      */
+    public function actionPaymentIndex(): Response
+    {
+        $integrations = Formie::$plugin->getIntegrations()->getAllIntegrationsForType(Integration::TYPE_PAYMENT);
+        $typeName = 'Payments';
+
+        return $this->renderTemplate('formie/settings/integrations', compact('integrations', 'typeName'));
+    }
+
+    /**
+     * Edit an integration.
+     *
+     * @param int|null $integrationId The integrations’ ID, if editing an existing integration.
+     * @param IntegrationInterface|null $integration The integration being edited, if there were any validation errors.
+     * @return Response
+     * @throws NotFoundHttpException if the requested integration cannot be found
+     */
+    public function actionEditPayment(int $integrationId = null, IntegrationInterface $integration = null): Response
+    {
+        return $this->_editIntegration($integrationId, $integration, 'Payments', Integration::TYPE_PAYMENT);
+    }
+
+    /**
+     * @return Response
+     */
     public function actionWebhookIndex(): Response
     {
         $integrations = Formie::$plugin->getIntegrations()->getAllIntegrationsForType(Integration::TYPE_WEBHOOK);

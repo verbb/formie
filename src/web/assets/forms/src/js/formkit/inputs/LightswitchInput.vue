@@ -59,7 +59,7 @@ export default {
         localClasses() {
             const classes = [];
 
-            if (this.context.attrs.extraSmall) {
+            if (this.context.attrs.extraSmall || this.context.attrs['extra-small']) {
                 classes.push('extra-small');
             }
 

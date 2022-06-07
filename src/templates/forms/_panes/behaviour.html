@@ -6,23 +6,47 @@
 {% set submitMethod = form.settings.submitMethod ?? 'page-reload' %}
 {% set submitAction = form.settings.submitAction ?? 'message' %}
 
-{{ forms.selectField({
-    label: 'Submission Method' | t('formie'),
-    instructions: 'Whether to reload the page when this form is submitted, or use Ajax to send this form without reloading the page.' | t('formie'),
-    id: 'submitMethod',
-    name: 'settings[submitMethod]',
-    options: [{
-        label: 'Page Reload (Server-side)' | t('formie'),
-        value: 'page-reload',
-    },
-    {
-        label: 'Ajax (Client-side)' | t('formie'),
-        value: 'ajax',
-    }],
-    toggle: true,
-    targetPrefix: 'submit-method-',
-    value: submitMethod,
-}) }}
+{# Force Ajax if the form contains a Stripe field, due to 3DS requirements #}
+<div v-if="containsStripeField()">
+    {{ forms.selectField({
+        label: 'Submission Method' | t('formie'),
+        instructions: 'Whether to reload the page when this form is submitted, or use Ajax to send this form without reloading the page.' | t('formie'),
+        id: 'submitMethod',
+        name: 'settings[submitMethod]',
+        options: [{
+            label: 'Ajax (Client-side)' | t('formie'),
+            value: 'ajax',
+        }],
+        value: submitMethod,
+        warning: 'You must use Ajax submissions when using the Stripe payment integration in your form.' | t('formie'),
+    }) }}
+
+    {# Spacing fix #}
+    <div class="field"></div>
+</div>
+
+<div v-else>
+    {{ forms.selectField({
+        label: 'Submission Method' | t('formie'),
+        instructions: 'Whether to reload the page when this form is submitted, or use Ajax to send this form without reloading the page.' | t('formie'),
+        id: 'submitMethod',
+        name: 'settings[submitMethod]',
+        options: [{
+            label: 'Page Reload (Server-side)' | t('formie'),
+            value: 'page-reload',
+        },
+        {
+            label: 'Ajax (Client-side)' | t('formie'),
+            value: 'ajax',
+        }],
+        toggle: true,
+        targetPrefix: 'submit-method-',
+        value: submitMethod,
+    }) }}
+
+    {# Spacing fix #}
+    <div class="field"></div>
+</div>
 
 <div class="fui-settings-wrap">
     <div id="submit-method-page-reload" class="{{ submitMethod != 'page-reload' ? 'hidden' }}">

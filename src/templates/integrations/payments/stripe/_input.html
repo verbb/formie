@@ -1,0 +1,15 @@
+{% set attributes = {
+    id: options.id,
+    class: ['fui-input'],
+    data: {
+        'fui-stripe-elements': true,
+    },
+} %}
+
+<div {{ attr(attributes) }}></div>
+
+{# Include so that error messages are shown with `formie-theme.js` for server-side errors (3DS) #}
+<input type="hidden" name="{{ field.handle }}">
+<input type="hidden" name="{{ 'stripePaymentId' | namespaceInputName(field.handle) }}">
+<input type="hidden" name="{{ 'stripePaymentIntentId' | namespaceInputName(field.handle) }}">
+<input type="hidden" name="{{ 'stripeSubscriptionId' | namespaceInputName(field.handle) }}">

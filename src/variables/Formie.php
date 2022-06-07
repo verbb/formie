@@ -301,6 +301,7 @@ class Formie
                 'elements' => ['title' => Craft::t('formie', 'Elements')],
                 'email-marketing' => ['title' => Craft::t('formie', 'Email Marketing')],
                 'crm' => ['title' => Craft::t('formie', 'CRM')],
+                'payments' => ['title' => Craft::t('formie', 'Payments')],
                 'webhooks' => ['title' => Craft::t('formie', 'Webhooks')],
                 'miscellaneous' => ['title' => Craft::t('formie', 'Miscellaneous')],
             ];
@@ -313,6 +314,7 @@ class Formie
                 'elements' => ['title' => Craft::t('formie', 'Elements')],
                 'email-marketing' => ['title' => Craft::t('formie', 'Email Marketing')],
                 'crm' => ['title' => Craft::t('formie', 'CRM')],
+                'payments' => ['title' => Craft::t('formie', 'Payments')],
                 'webhooks' => ['title' => Craft::t('formie', 'Webhooks')],
                 'miscellaneous' => ['title' => Craft::t('formie', 'Miscellaneous')],
             ];

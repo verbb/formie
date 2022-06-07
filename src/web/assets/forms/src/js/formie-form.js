@@ -140,6 +140,17 @@ Craft.Formie.EditForm = Garnish.Base.extend({
                     return this.$el.parentNode;
                 },
 
+                containsStripeField() {
+                    // Stripe requires Ajax to cater for 3DS payments for some cards.
+                    const allFields = this.$store.getters['form/fields'];
+
+                    const stripeFields = allFields.filter((field) => {
+                        return field.type === 'verbb\\formie\\fields\\formfields\\Payment' && field.settings.paymentIntegration === 'stripe';
+                    });
+
+                    return stripeFields.length;
+                },
+
                 getFormData(options = {}) {
                     const formElem = this.getFormElement();
                     const data = new FormData(formElem);

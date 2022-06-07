@@ -557,7 +557,7 @@ class SubmissionsController extends Controller
             }
         }
 
-        if (!$success) {
+        if (!$success || $submission->getErrors()) {
             $errors = $submission->getErrors();
 
             Formie::error(Craft::t('app', 'Couldn’t save submission due to errors - {e}.', ['e' => Json::encode($errors)]));
@@ -957,6 +957,7 @@ class SubmissionsController extends Controller
             'totalPages' => is_countable($form->getPages()) ? count($form->getPages()) : 0,
             'redirectUrl' => $redirectUrl,
             'submitActionMessage' => $form->settings->getSubmitActionMessage($submission),
+            'events' => $form->getFrontEndJsEvents(),
         ], $extras);
 
         return $this->asJson($params);

@@ -12,6 +12,7 @@ use verbb\formie\elements\db\SubmissionQuery;
 use verbb\formie\events\SubmissionMarkedAsSpamEvent;
 use verbb\formie\events\SubmissionRulesEvent;
 use verbb\formie\fields\formfields\FileUpload;
+use verbb\formie\fields\formfields\Payment;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\FieldLayoutPage;
 use verbb\formie\models\Settings;
@@ -42,6 +43,8 @@ use yii\validators\RequiredValidator;
 use yii\validators\Validator;
 
 use Throwable;
+
+use Twig\Markup;
 
 class Submission extends Element
 {
@@ -713,6 +716,55 @@ class Submission extends Element
     {
         $this->_user = $user;
         $this->userId = $user->id;
+    }
+
+    /**
+     * Returns any payments integration HTML, shown when editing a submission in the control panel.
+     *
+     * @return array
+     */
+    public function getPaymentSummaryHtml(): ?Markup
+    {
+        $html = '';
+
+        if ($fieldLayout = $this->getFieldLayout()) {
+            foreach ($fieldLayout->getCustomFields() as $field) {
+                if ($field instanceof Payment && ($paymentIntegration = $field->getPaymentIntegration())) {
+                    // Set the payment field on the integration, for ease-of-use
+                    $paymentIntegration->setField($field);
+
+                    if ($summaryHtml = $paymentIntegration->getSubmissionSummaryHtml($this, $field)) {
+                        $html .= $summaryHtml;
+                    }
+                }
+            }
+        }
+
+        if (!$html) {
+            return null;
+        }
+
+        return Template::raw($html);
+    }
+
+    /**
+     * Returns any payments made for the submission.
+     *
+     * @return array
+     */
+    public function getPayments(): ?array
+    {
+        return Formie::$plugin->getPayments()->getSubmissionPayments($this);
+    }
+
+    /**
+     * Returns any subscriptions made for the submission.
+     *
+     * @return array
+     */
+    public function getSubscriptions(): ?array
+    {
+        return Formie::$plugin->getSubscriptions()->getSubmissionSubscriptions($this);
     }
 
     /**

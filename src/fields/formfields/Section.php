@@ -149,7 +149,7 @@ class Section extends FormField
                 'sections-schema' => [
                     'suffix' => [
                         '$el' => 'span',
-                        'attrs' => ['class' => 'hint-text'],
+                        'attrs' => ['class' => 'fui-suffix-text'],
                         'children' => Craft::t('formie', 'px'),
                     ],
                 ],

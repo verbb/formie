@@ -2,12 +2,13 @@
 namespace verbb\formie\models;
 
 use verbb\formie\Formie;
+use verbb\formie\base\IntegrationInterface;
 
 use craft\base\Model;
 
 use League\OAuth1\Client\Credentials\TokenCredentials;
 use League\OAuth2\Client\Token\AccessToken;
-use verbb\formie\base\IntegrationInterface;
+
 use DateTime;
 
 class Token extends Model

@@ -15,6 +15,7 @@ import LightswitchInput from '@formkit-components/inputs/LightswitchInput.vue';
 import MultiSelectInput from '@formkit-components/inputs/MultiSelectInput.vue';
 import NotificationRecipientsInput from '@formkit-components/inputs/NotificationRecipientsInput.vue';
 import RichTextInput from '@formkit-components/inputs/RichTextInput.vue';
+import StaticTableInput from '@formkit-components/inputs/StaticTableInput.vue';
 import TableInput from '@formkit-components/inputs/TableInput.vue';
 import VariableTextInput from '@formkit-components/inputs/VariableTextInput.vue';
 
@@ -128,6 +129,7 @@ export default defaultConfig({
         multiSelect: createInput(MultiSelectInput),
         notificationRecipients: createInput(NotificationRecipientsInput),
         richText: createInput(RichTextInput),
+        staticTable: createInput(StaticTableInput),
         table: createInput(TableInput, {
             config: {
                 // Allows us to store which labels/value cells have errors

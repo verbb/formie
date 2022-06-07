@@ -86,6 +86,10 @@ export default {
             return this.$store.getters['form/emailFields']();
         },
 
+        numberVariables() {
+            return this.$store.getters['form/numberFields']();
+        },
+
         plainTextVariables() {
             return this.$store.getters['form/allFields'](true);
         },

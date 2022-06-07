@@ -199,6 +199,77 @@ class Install extends Migration
             'uid' => $this->uid(),
         ]);
 
+        $this->archiveTableIfExists('{{%formie_pagesettings}}');
+        $this->createTable('{{%formie_pagesettings}}', [
+            'id' => $this->primaryKey(),
+            'fieldLayoutId' => $this->integer()->notNull(),
+            'fieldLayoutTabId' => $this->integer()->notNull(),
+            'settings' => $this->text(),
+            'dateCreated' => $this->dateTime()->notNull(),
+            'dateUpdated' => $this->dateTime()->notNull(),
+            'uid' => $this->uid(),
+        ]);
+
+        $this->archiveTableIfExists('{{%formie_payments}}');
+        $this->createTable('{{%formie_payments}}', [
+            'id' => $this->primaryKey(),
+            'integrationId' => $this->integer()->notNull(),
+            'submissionId' => $this->integer()->notNull(),
+            'fieldId' => $this->integer()->notNull(),
+            'subscriptionId' => $this->integer(),
+            'amount' => $this->decimal(14, 4),
+            'currency' => $this->string(),
+            'status' => $this->enum('status', ['pending', 'redirect', 'success', 'failed', 'processing'])->notNull(),
+            'reference' => $this->string(),
+            'code' => $this->string(),
+            'message' => $this->text(),
+            'note' => $this->mediumText(),
+            'response' => $this->text(),
+            'dateCreated' => $this->dateTime()->notNull(),
+            'dateUpdated' => $this->dateTime()->notNull(),
+            'uid' => $this->uid(),
+        ]);
+
+        $this->archiveTableIfExists('{{%formie_payments_plans}}');
+        $this->createTable('{{%formie_payments_plans}}', [
+            'id' => $this->primaryKey(),
+            'integrationId' => $this->integer()->notNull(),
+            'name' => $this->string(),
+            'handle' => $this->string(),
+            'reference' => $this->string()->notNull(),
+            'enabled' => $this->boolean()->notNull(),
+            'planData' => $this->text(),
+            'isArchived' => $this->boolean()->notNull(),
+            'dateArchived' => $this->dateTime(),
+            'sortOrder' => $this->integer(),
+            'dateCreated' => $this->dateTime()->notNull(),
+            'dateUpdated' => $this->dateTime()->notNull(),
+            'uid' => $this->uid(),
+        ]);
+
+        $this->archiveTableIfExists('{{%formie_payments_subscriptions}}');
+        $this->createTable('{{%formie_payments_subscriptions}}', [
+            'id' => $this->primaryKey(),
+            'integrationId' => $this->integer(),
+            'submissionId' => $this->integer(),
+            'fieldId' => $this->integer(),
+            'planId' => $this->integer(),
+            'reference' => $this->string()->notNull(),
+            'subscriptionData' => $this->text(),
+            'trialDays' => $this->integer()->notNull(),
+            'nextPaymentDate' => $this->dateTime(),
+            'hasStarted' => $this->boolean()->notNull()->defaultValue(true),
+            'isSuspended' => $this->boolean()->notNull()->defaultValue(false),
+            'dateSuspended' => $this->dateTime(),
+            'isCanceled' => $this->boolean()->notNull(),
+            'dateCanceled' => $this->dateTime(),
+            'isExpired' => $this->boolean()->notNull(),
+            'dateExpired' => $this->dateTime(),
+            'dateCreated' => $this->dateTime()->notNull(),
+            'dateUpdated' => $this->dateTime()->notNull(),
+            'uid' => $this->uid(),
+        ]);
+
         $this->archiveTableIfExists('{{%formie_pdftemplates}}');
         $this->createTable('{{%formie_pdftemplates}}', [
             'id' => $this->primaryKey(),
@@ -208,17 +279,6 @@ class Install extends Migration
             'filenameFormat' => $this->string()->notNull(),
             'sortOrder' => $this->smallInteger()->unsigned(),
             'dateDeleted' => $this->dateTime(),
-            'dateCreated' => $this->dateTime()->notNull(),
-            'dateUpdated' => $this->dateTime()->notNull(),
-            'uid' => $this->uid(),
-        ]);
-
-        $this->archiveTableIfExists('{{%formie_pagesettings}}');
-        $this->createTable('{{%formie_pagesettings}}', [
-            'id' => $this->primaryKey(),
-            'fieldLayoutId' => $this->integer()->notNull(),
-            'fieldLayoutTabId' => $this->integer()->notNull(),
-            'settings' => $this->text(),
             'dateCreated' => $this->dateTime()->notNull(),
             'dateUpdated' => $this->dateTime()->notNull(),
             'uid' => $this->uid(),
@@ -369,6 +429,20 @@ class Install extends Migration
         $this->createIndex(null, '{{%formie_notifications}}', 'templateId', false);
         $this->createIndex(null, '{{%formie_pagesettings}}', 'fieldLayoutId', false);
         $this->createIndex(null, '{{%formie_pagesettings}}', 'fieldLayoutTabId', true);
+        $this->createIndex(null, '{{%formie_payments}}', 'integrationId', false);
+        $this->createIndex(null, '{{%formie_payments}}', 'fieldId', false);
+        $this->createIndex(null, '{{%formie_payments}}', 'reference', false);
+        $this->createIndex(null, '{{%formie_payments_plans}}', 'integrationId', false);
+        $this->createIndex(null, '{{%formie_payments_plans}}', 'handle', true);
+        $this->createIndex(null, '{{%formie_payments_plans}}', 'reference', false);
+        $this->createIndex(null, '{{%formie_payments_subscriptions}}', 'integrationId', false);
+        $this->createIndex(null, '{{%formie_payments_subscriptions}}', 'submissionId', false);
+        $this->createIndex(null, '{{%formie_payments_subscriptions}}', 'fieldId', false);
+        $this->createIndex(null, '{{%formie_payments_subscriptions}}', 'planId', false);
+        $this->createIndex(null, '{{%formie_payments_subscriptions}}', 'reference', false);
+        $this->createIndex(null, '{{%formie_payments_subscriptions}}', 'nextPaymentDate', false);
+        $this->createIndex(null, '{{%formie_payments_subscriptions}}', 'dateExpired', false);
+        $this->createIndex(null, '{{%formie_payments_subscriptions}}', 'dateExpired', false);
         $this->createIndex(null, '{{%formie_relations}}', ['sourceId', 'sourceSiteId', 'targetId'], true);
         $this->createIndex(null, '{{%formie_relations}}', ['sourceId'], false);
         $this->createIndex(null, '{{%formie_relations}}', ['targetId'], false);
@@ -401,6 +475,15 @@ class Install extends Migration
         $this->addForeignKey(null, '{{%formie_notifications}}', ['pdfTemplateId'], '{{%formie_pdftemplates}}', ['id'], 'SET NULL', null);
         $this->addForeignKey(null, '{{%formie_pagesettings}}', ['fieldLayoutId'], '{{%fieldlayouts}}', ['id'], 'CASCADE', null);
         $this->addForeignKey(null, '{{%formie_pagesettings}}', ['fieldLayoutTabId'], '{{%fieldlayouttabs}}', ['id'], 'CASCADE', null);
+        $this->addForeignKey(null, '{{%formie_payments}}', ['submissionId'], '{{%formie_submissions}}', ['id'], 'CASCADE', null);
+        $this->addForeignKey(null, '{{%formie_payments}}', ['subscriptionId'], '{{%formie_payments_subscriptions}}', ['id'], 'CASCADE', null);
+        $this->addForeignKey(null, '{{%formie_payments}}', ['fieldId'], '{{%fields}}', ['id'], 'CASCADE', null);
+        $this->addForeignKey(null, '{{%formie_payments}}', ['integrationId'], '{{%formie_integrations}}', ['id'], 'CASCADE', null);
+        $this->addForeignKey(null, '{{%formie_payments_plans}}', ['integrationId'], '{{%formie_integrations}}', ['id'], 'CASCADE', null);
+        $this->addForeignKey(null, '{{%formie_payments_subscriptions}}', ['integrationId'], '{{%formie_integrations}}', ['id'], 'RESTRICT', null);
+        $this->addForeignKey(null, '{{%formie_payments_subscriptions}}', ['submissionId'], '{{%formie_submissions}}', ['id'], 'RESTRICT', null);
+        $this->addForeignKey(null, '{{%formie_payments_subscriptions}}', ['fieldId'], '{{%fields}}', ['id'], 'RESTRICT', null);
+        $this->addForeignKey(null, '{{%formie_payments_subscriptions}}', ['planId'], '{{%formie_payments_plans}}', ['id'], 'RESTRICT', null);
         $this->addForeignKey(null, '{{%formie_relations}}', ['sourceId'], '{{%elements}}', ['id'], 'CASCADE', null);
         $this->addForeignKey(null, '{{%formie_relations}}', ['sourceSiteId'], '{{%sites}}', ['id'], 'CASCADE', 'CASCADE');
         $this->addForeignKey(null, '{{%formie_relations}}', ['targetId'], '{{%elements}}', ['id'], 'CASCADE', null);
@@ -430,8 +513,11 @@ class Install extends Migration
             'formie_nested',
             'formie_nestedfieldrows',
             'formie_notifications',
-            'formie_pdftemplates',
             'formie_pagesettings',
+            'formie_payments',
+            'formie_payments_plans',
+            'formie_payments_subscriptions',
+            'formie_pdftemplates',
             'formie_relations',
             'formie_rows',
             'formie_sentnotifications',
@@ -513,8 +599,11 @@ class Install extends Migration
             'formie_nested',
             'formie_nestedfieldrows',
             'formie_notifications',
-            'formie_pdftemplates',
             'formie_pagesettings',
+            'formie_payments',
+            'formie_payments_plans',
+            'formie_payments_subscriptions',
+            'formie_pdftemplates',
             'formie_relations',
             'formie_rows',
             'formie_sentnotifications',

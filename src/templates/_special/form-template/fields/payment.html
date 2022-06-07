@@ -1,0 +1,17 @@
+{% set handle = field.handle %}
+{% set inputId = handle | namespaceInputId(options.id) %}
+{% set inputDataId = handle | namespaceInputId(options.dataId) %}
+
+{% set data = {
+    'fui-id': inputDataId,
+    'fui-message': field.errorMessage | t,
+    (handle): '',
+} %}
+
+{{ field.getPaymentHtml({
+    field: field,
+    value: value,
+    data: data,
+    id: inputId,
+    formId: form.id,
+}) | raw }}

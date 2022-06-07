@@ -207,7 +207,7 @@ class SchemaHelper
             'name' => 'subfieldLabelPosition',
             'options' => array_merge(
                 [['label' => Craft::t('formie', 'Form Default'), 'value' => '']],
-                // Formie::$plugin->getFields()->getLabelPositionsArray()
+                Formie::$plugin->getFields()->getLabelPositionsArray()
             ),
         ], $config));
     }
@@ -218,8 +218,8 @@ class SchemaHelper
             'label' => Craft::t('formie', 'Instructions'),
             'help' => Craft::t('formie', 'Instructions to guide the user when filling out this form.'),
             'name' => 'instructions',
-            // 'id' => 'instructions',
-            // 'key' => 'instructions',
+            'id' => 'instructions',
+            'key' => 'instructions',
             'rows' => '4',
         ], $config));
     }
@@ -230,11 +230,11 @@ class SchemaHelper
             'label' => Craft::t('formie', 'Instructions Position'),
             'help' => Craft::t('formie', 'How the instructions for the field should be positioned.'),
             'name' => 'instructionsPosition',
-            // 'id' => 'instructionsPosition',
-            // 'key' => 'instructionsPosition',
+            'id' => 'instructionsPosition',
+            'key' => 'instructionsPosition',
             'options' => array_merge(
                 [['label' => Craft::t('formie', 'Form Default'), 'value' => '']],
-                // Formie::$plugin->getFields()->getInstructionsPositionsArray($field)
+                Formie::$plugin->getFields()->getInstructionsPositionsArray($field)
             ),
         ], $config));
     }
@@ -369,12 +369,20 @@ class SchemaHelper
         ], $config));
     }
 
+    public static function fieldSelectField($config = []): array
+    {
+        return array_merge([
+            '$formkit' => 'fieldSelect',
+            'excludeSelf' => true,
+        ], $config);
+    }
+
     public static function matchField($config = []): array
     {
         return array_merge([
+            '$formkit' => 'fieldSelect',
             'label' => Craft::t('formie', 'Match Field'),
             'help' => Craft::t('formie', 'Select a field of the same type where its content must match this field.'),
-            '$formkit' => 'fieldSelect',
             'name' => 'matchField',
             'excludeSelf' => true,
         ], $config);

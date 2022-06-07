@@ -10,8 +10,10 @@ use verbb\formie\services\FormTemplates;
 use verbb\formie\services\Integrations;
 use verbb\formie\services\NestedFields;
 use verbb\formie\services\Notifications;
+use verbb\formie\services\Payments;
 use verbb\formie\services\PdfTemplates;
 use verbb\formie\services\Phone;
+use verbb\formie\services\Plans;
 use verbb\formie\services\PredefinedOptions;
 use verbb\formie\services\Relations;
 use verbb\formie\services\RenderCache;
@@ -21,6 +23,7 @@ use verbb\formie\services\Service;
 use verbb\formie\services\Statuses;
 use verbb\formie\services\Stencils;
 use verbb\formie\services\Submissions;
+use verbb\formie\services\Subscriptions;
 use verbb\formie\services\Syncs;
 use verbb\formie\services\Tokens;
 use verbb\formie\web\assets\forms\FormsAsset;
@@ -104,6 +107,11 @@ trait PluginTrait
         return $this->get('notifications');
     }
 
+    public function getPayments(): Payments
+    {
+        return $this->get('payments');
+    }
+
     public function getPdfTemplates(): PdfTemplates
     {
         return $this->get('pdfTemplates');
@@ -112,6 +120,11 @@ trait PluginTrait
     public function getPhone(): Phone
     {
         return $this->get('phone');
+    }
+
+    public function getPlans(): Plans
+    {
+        return $this->get('plans');
     }
 
     public function getPredefinedOptions(): PredefinedOptions
@@ -159,6 +172,11 @@ trait PluginTrait
         return $this->get('submissions');
     }
 
+    public function getSubscriptions(): Subscriptions
+    {
+        return $this->get('subscriptions');
+    }
+
     public function getSyncs(): Syncs
     {
         return $this->get('syncs');
@@ -189,8 +207,10 @@ trait PluginTrait
             'integrations' => Integrations::class,
             'nestedFields' => NestedFields::class,
             'notifications' => Notifications::class,
+            'payments' => Payments::class,
             'pdfTemplates' => PdfTemplates::class,
             'phone' => Phone::class,
+            'plans' => Plans::class,
             'predefinedOptions' => PredefinedOptions::class,
             'relations' => Relations::class,
             'renderCache' => RenderCache::class,
@@ -200,6 +220,7 @@ trait PluginTrait
             'statuses' => Statuses::class,
             'stencils' => Stencils::class,
             'submissions' => Submissions::class,
+            'subscriptions' => Subscriptions::class,
             'syncs' => Syncs::class,
             'tokens' => Tokens::class,
             'vite' => [

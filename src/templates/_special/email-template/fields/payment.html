@@ -1,0 +1,8 @@
+{# Because templates will likely depend on their linked integration, offload to that, but a template here allows others #}
+{# to override this template for their needs. Refer to `/templates/integrations/payments/*/email.html` for examples #}
+
+{% set integration = field.getPaymentIntegration() %}
+
+{% if integration %}
+    {{ integration.getEmailHtml(submission, notification, value, field, options) }}
+{% endif %}

@@ -121,28 +121,6 @@
 {% block details %}
 
 <div id="settings" class="meta">
-    {% if not isNew %}
-        <div class="field">
-            <div class="heading">
-                <label class="">{{ 'Submission ID' | t('formie') }}</label>
-            </div>
-
-            <div class="input ltr">
-                {{ submission.id }}
-            </div>
-        </div>
-    {% endif %}
-
-    <div class="field">
-        <div class="heading">
-            <label class="">{{ 'Form Name' | t('formie') }}</label>
-        </div>
-
-        <div class="input ltr">
-            <a href="{{ submission.form.cpEditUrl }}">{{ submission.form }}</a>
-        </div>
-    </div>
-
     {{ forms.textField({
         label: 'Title' | t('formie'),
         id: 'title',
@@ -150,6 +128,16 @@
         value: submission.title,
         placeholder: 'Enter title' | t('formie'),
     }) }}
+
+    <div class="field">
+        <div class="heading">
+            <label class="">{{ 'Form' | t('formie') }}</label>
+        </div>
+
+        <div class="input ltr">
+            <a href="{{ submission.form.cpEditUrl }}">{{ submission.form }}</a>
+        </div>
+    </div>
 
     {% if submission.hasStatuses() %}
         {% set statuses = craft.formie.plugin.statuses.getAllStatuses() %}
@@ -283,9 +271,26 @@
     </div>
 {% endif %}
 
+{% set paymentSummary = submission.getPaymentSummaryHtml() %}
+
+{% if paymentSummary %}
+    <fieldset class="payments-meta">
+        <legend class="h6">{{ 'Payments' | t('formie') }}</legend>
+
+        {{ paymentSummary | raw }}
+    </fieldset>
+{% endif %}
+
 {% if not isNew %}
     <div id="meta-details" class="meta read-only">
         {% block meta %}
+            {% if not isNew %}
+                <div class="data">
+                    <div class="heading">{{ 'Submission ID' | t('formie') }}</div>
+                    <div class="value">{{ submission.id }}</div>
+                </div>
+            {% endif %}
+
             {% if submission.isIncomplete %}
                 <div class="data">
                     <h5 class="heading">{{ 'Status' | t('app') }}</h5>

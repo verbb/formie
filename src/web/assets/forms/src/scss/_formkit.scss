@@ -72,10 +72,15 @@
 
 
 //
-// Input - Suffixes
+// Input - Prefix/Suffix
 //
 
-.hint-text {
+.fui-prefix-text {
+    color: #7b8793;
+    padding-right: 5px;
+}
+
+.fui-suffix-text {
     color: #7b8793;
     padding-left: 5px;
 }

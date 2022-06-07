@@ -363,7 +363,7 @@ class FileUpload extends CraftAssets implements FormFieldInterface
                 'sections-schema' => [
                     'suffix' => [
                         '$el' => 'span',
-                        'attrs' => ['class' => 'hint-text'],
+                        'attrs' => ['class' => 'fui-suffix-text'],
                         'children' => Craft::t('formie', 'MB'),
                     ],
                 ],
@@ -376,7 +376,7 @@ class FileUpload extends CraftAssets implements FormFieldInterface
                 'sections-schema' => [
                     'suffix' => [
                         '$el' => 'span',
-                        'attrs' => ['class' => 'hint-text'],
+                        'attrs' => ['class' => 'fui-suffix-text'],
                         'children' => Craft::t('formie', 'MB'),
                     ],
                 ],

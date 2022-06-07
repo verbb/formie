@@ -15,6 +15,7 @@ use verbb\formie\integrations\crm;
 use verbb\formie\integrations\elements;
 use verbb\formie\integrations\emailmarketing;
 use verbb\formie\integrations\miscellaneous;
+use verbb\formie\integrations\payments;
 use verbb\formie\integrations\webhooks;
 use verbb\formie\models\FieldLayoutPage;
 use verbb\formie\models\MissingIntegration;
@@ -159,6 +160,10 @@ class Integrations extends Component
             crm\Zoho::class,
         ];
 
+        $payments = [
+            payments\Stripe::class,
+        ];
+
         $webhooks = [
             webhooks\Webhook::class,
             webhooks\Zapier::class,
@@ -178,6 +183,7 @@ class Integrations extends Component
             'elements' => $elements,
             'emailMarketing' => $emailMarketing,
             'crm' => $crm,
+            'payments' => $payments,
             'webhooks' => $webhooks,
             'miscellaneous' => $miscellaneous,
         ]);
@@ -190,6 +196,7 @@ class Integrations extends Component
             Integration::TYPE_ELEMENT => $event->elements,
             Integration::TYPE_EMAIL_MARKETING => $event->emailMarketing,
             Integration::TYPE_CRM => $event->crm,
+            Integration::TYPE_PAYMENT => $event->payments,
             Integration::TYPE_WEBHOOK => $event->webhooks,
             Integration::TYPE_MISC => $event->miscellaneous,
         ];

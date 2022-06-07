@@ -89,6 +89,10 @@ export default {
         userVariables() {
             return this.$store.getters['form/userFields'];
         },
+
+        numberVariables() {
+            return this.$store.getters['form/numberFields']();
+        },
     },
 
     watch: {

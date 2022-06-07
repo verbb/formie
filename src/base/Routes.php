@@ -10,7 +10,7 @@ trait Routes
 {
     // Private Methods
     // =========================================================================
-
+    
     /**
      * Control Panel routes.
      *
@@ -77,6 +77,9 @@ trait Routes
             $event->rules['formie/settings/crm'] = 'formie/integration-settings/crm-index';
             $event->rules['formie/settings/crm/new'] = 'formie/integration-settings/edit-crm';
             $event->rules['formie/settings/crm/edit/<integrationId:\d+>'] = 'formie/integration-settings/edit-crm';
+            $event->rules['formie/settings/payments'] = 'formie/integration-settings/payment-index';
+            $event->rules['formie/settings/payments/new'] = 'formie/integration-settings/edit-payment';
+            $event->rules['formie/settings/payments/edit/<integrationId:\d+>'] = 'formie/integration-settings/edit-payment';
             $event->rules['formie/settings/webhooks'] = 'formie/integration-settings/webhook-index';
             $event->rules['formie/settings/webhooks/new'] = 'formie/integration-settings/edit-webhook';
             $event->rules['formie/settings/webhooks/edit/<integrationId:\d+>'] = 'formie/integration-settings/edit-webhook';

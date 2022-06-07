@@ -134,6 +134,11 @@ class Submissions extends Component
             $success = false;
         }
 
+        // Trigger any payment integrations - but note these can fail
+        if (!$this->processPayments($submission)) {
+            $success = false;
+        }
+
         // Fire an 'afterSubmission' event
         $event = new SubmissionEvent([
             'submission' => $submission,
@@ -265,6 +270,35 @@ class Submissions extends Component
         }
 
         return $integration->sendPayLoad($event->submission);
+    }
+
+    /**
+     * Processes any payment fields for a submission.
+     *
+     * @param Submission $submission
+     */
+    public function processPayments(Submission $submission): bool
+    {
+        foreach ($submission->getFieldLayout()->getCustomFields() as $field) {
+            if ($field instanceof formfields\Payment) {
+                if ($paymentIntegration = $field->getPaymentIntegration()) {
+                    // Set the payment field on the integration, for ease-of-use
+                    $paymentIntegration->setField($field);
+
+                    if (!$paymentIntegration->processPayment($submission)) {
+                        // Because payment processing happens after a submission has been completed, and an error has occurred,
+                        // switch the submission back to incomplete and re-save to prevent it from completing normally.
+                        $submission->isIncomplete = true;
+
+                        Craft::$app->getElements()->saveElement($submission, false);
+
+                        return false;
+                    }
+                }
+            }
+        }
+
+        return true;
     }
 
     /**

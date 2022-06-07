@@ -5,8 +5,8 @@
             :id="context.id"
             :name="context.node.name"
             :aria-describedby="context.describedBy"
-            @input="context.handlers.selectInput"
-            @blur="context.handlers.blur"
+            :value="context._value"
+            @input="selectInput"
         >
             <option value disabled hidden :selected="!context._value">{{ t('formie', 'Select an option') }}</option>
 
@@ -46,9 +46,14 @@ export default {
         isSelected(node, option) {
             // Here we trick reactivity (if at play) to watch this function.
             node.context && node.context.value;
+
             return Array.isArray(node._value)
                 ? node._value.includes(option)
                 : (node.value === undefined && !option) || node._value == option;
+        },
+
+        selectInput(e) {
+            this.context.node.input(e.target.value);
         },
 
         getFieldOptions() {

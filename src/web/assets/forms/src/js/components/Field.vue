@@ -274,7 +274,7 @@ export default {
 
     mounted() {
         // Testing
-        if (this.$parent.$parent.pageIndex == 0 && this.$parent.rowIndex == 0 && this.columnIndex == 0) {
+        if (this.$parent.$parent.pageIndex == 0 && this.$parent.rowIndex == 5 && this.columnIndex == 0) {
             // this.openModal();
         }
     },

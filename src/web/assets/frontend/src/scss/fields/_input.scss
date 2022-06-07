@@ -21,7 +21,8 @@
     transition-timing-function: var(--fui-input-transition-timing-function);
     transition-duration: var(--fui-input-transition-duration);
 
-    &:focus {
+    &:focus,
+    &.fui-focus {
         outline: 0;
         border-color: var(--fui-input-border-color-focus, var(--fui-focus-border-color));
         box-shadow: var(--fui-input-box-shadow-focus, var(--fui-focus-shadow));
@@ -32,7 +33,8 @@
         border-color: var(--fui-input-error-border-color);
     }
 
-    &.fui-error:focus {
+    &.fui-error:focus,
+    &.fui-error.fui-focus {
         box-shadow: var(--fui-input-error-box-shadow-focus);
     }
 

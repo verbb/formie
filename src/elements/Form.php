@@ -318,6 +318,7 @@ class Form extends Element
     private bool $_appliedFormSettings = false;
     private ?array $_relations = [];
     private ?array $_populatedFieldValues = [];
+    private ?array $_frontEndJsEvents = [];
 
     private static ?array $_layoutsByType = null;
 
@@ -1360,6 +1361,16 @@ class Form extends Element
             'registeredJs' => $registeredJs,
             'settings' => $settings,
         ];
+    }
+
+    public function getFrontEndJsEvents(): ?array
+    {
+        return $this->_frontEndJsEvents;
+    }
+
+    public function addFrontEndJsEvents($value): void
+    {
+        $this->_frontEndJsEvents[] = $value;
     }
 
     public function getFrontEndTemplateOption($option): bool
