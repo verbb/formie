@@ -49,14 +49,15 @@ export default {
 
         notification() {
             // Not amazing, but provide/inject won't work
-            return this.$parent.$parent.$parent.$attrs.notification;
+            return this.$parent.$parent.$parent.$parent.$parent.node._value;
         },
     },
 
     created() {
+        console.log(this.$attrs);
         // Populate the current email
-        if (this.$attrs['user-email']) {
-            this.to = this.$attrs['user-email'];
+        if (this.$attrs.userEmail) {
+            this.to = this.$attrs.userEmail;
         }
     },
 

@@ -70,14 +70,14 @@ Form queries support the following parameters:
 Causes the query to return matching forms as arrays of data, rather than [Form](docs:developers/form) objects.
 
 ::: code
-```twig
+```twig Twig
 {# Fetch forms as arrays #}
 {% set forms = craft.formie.forms()
     .asArray()
     .all() %}
 ```
 
-```php
+```php PHP
 // Fetch forms as arrays
 $forms = \verbb\formie\elements\Form::find()
     ->asArray()
@@ -100,7 +100,7 @@ Possible values include:
 | `['and', '>= 2018-04-04', '< 2018-05-01']` | that were created between 2018-04-01 and 2018-05-01.
 
 ::: code
-```twig
+```twig Twig
 {# Fetch forms created last month #}
 {% set start = date('first day of last month') | atom %}
 {% set end = date('first day of this month') | atom %}
@@ -110,7 +110,7 @@ Possible values include:
     .all() %}
 ```
 
-```php
+```php PHP
 // Fetch forms created last month
 $start = new \DateTime('first day of next month')->format(\DateTime::ATOM);
 $end = new \DateTime('first day of this month')->format(\DateTime::ATOM);
@@ -136,7 +136,7 @@ Possible values include:
 | `['and', '>= 2018-04-04', '< 2018-05-01']` | that were updated between 2018-04-01 and 2018-05-01.
 
 ::: code
-```twig
+```twig Twig
 {# Fetch forms updated in the last week #}
 {% set lastWeek = date('1 week ago')|atom %}
 
@@ -145,7 +145,7 @@ Possible values include:
     .all() %}
 ```
 
-```php
+```php PHP
 // Fetch forms updated in the last week
 $lastWeek = new \DateTime('1 week ago')->format(\DateTime::ATOM);
 
@@ -162,7 +162,7 @@ $forms = \verbb\formie\elements\Form::find()
 Causes the query results to be returned in the order specified by [id](#id).
 
 ::: code
-```twig
+```twig Twig
 {# Fetch forms in a specific order #}
 {% set forms = craft.formie.forms()
     .id([1, 2, 3, 4, 5])
@@ -170,7 +170,7 @@ Causes the query results to be returned in the order specified by [id](#id).
     .all() %}
 ```
 
-```php
+```php PHP
 // Fetch forms in a specific order
 $forms = \verbb\formie\elements\Form::find()
     ->id([1, 2, 3, 4, 5])
@@ -195,14 +195,14 @@ Possible values include:
 | `['not', 1, 2]` | not with an ID of 1 or 2.
 
 ::: code
-```twig
+```twig Twig
 {# Fetch the form by its ID #}
 {% set form = craft.formie.forms()
     .id(1)
     .one() %}
 ```
 
-```php
+```php PHP
 // Fetch the form by its ID
 $form = \verbb\formie\elements\Form::find()
     ->id(1)
@@ -221,14 +221,14 @@ This can be combined with [fixedOrder](#fixedorder) if you want the results to b
 Causes the query results to be returned in reverse order.
 
 ::: code
-```twig
+```twig Twig
 {# Fetch forms in reverse #}
 {% set forms = craft.formie.forms()
     .inReverse()
     .all() %}
 ```
 
-```php
+```php PHP
 // Fetch forms in reverse
 $forms = \verbb\formie\elements\Form::find()
     ->inReverse()
@@ -243,14 +243,14 @@ $forms = \verbb\formie\elements\Form::find()
 Determines the number of forms that should be returned.
 
 ::: code
-```twig
+```twig Twig
 {# Fetch up to 10 forms  #}
 {% set forms = craft.formie.forms()
     .limit(10)
     .all() %}
 ```
 
-```php
+```php PHP
 // Fetch up to 10 forms
 $forms = \verbb\formie\elements\Form::find()
     ->limit(10)
@@ -265,14 +265,14 @@ $forms = \verbb\formie\elements\Form::find()
 Determines how many forms should be skipped in the results.
 
 ::: code
-```twig
+```twig Twig
 {# Fetch all forms except for the first 3 #}
 {% set forms = craft.formie.forms()
     .offset(3)
     .all() %}
 ```
 
-```php
+```php PHP
 // Fetch all forms except for the first 3
 $forms = \verbb\formie\elements\Form::find()
     ->offset(3)
@@ -287,14 +287,14 @@ $forms = \verbb\formie\elements\Form::find()
 Determines the order that the forms should be returned in.
 
 ::: code
-```twig
+```twig Twig
 {# Fetch all forms in order of date created #}
 {% set forms = craft.formie.forms()
     .orderBy('elements.dateCreated asc')
     .all() %}
 ```
 
-```php
+```php PHP
 // Fetch all forms in order of date created
 $forms = \verbb\formie\elements\Form::find()
     ->orderBy('elements.dateCreated asc')
@@ -311,14 +311,14 @@ Narrows the query results to only forms that are related to certain other elemen
 See [Relations](https://docs.craftcms.com/v3/relations.html) for a full explanation of how to work with this parameter.
 
 ::: code
-```twig
+```twig Twig
 {# Fetch all forms that are related to myCategory #}
 {% set forms = craft.formie.forms()
     .relatedTo(myCategory)
     .all() %}
 ```
 
-```php
+```php PHP
 // Fetch all forms that are related to $myCategory
 $forms = \verbb\formie\elements\Form::find()
     ->relatedTo($myCategory)
@@ -343,14 +343,14 @@ Possible values include:
 | a Form Template object | of a template represented by the object.
 
 ::: code
-```twig
+```twig Twig
 {# Fetch forms with a Foo form template #}
 {% set forms = craft.formie.forms()
     .template('foo')
     .all() %}
 ```
 
-```php
+```php PHP
 // Fetch forms with a Foo form template
 $forms = \verbb\formie\elements\Form::find()
     ->template('foo')
@@ -374,14 +374,14 @@ Possible values include:
 | `['not', 1, 2]` | not of a template with an ID of 1 or 2.
 
 ::: code
-```twig
+```twig Twig
 {# Fetch forms of the form template with an ID of 1 #}
 {% set forms = craft.formie.forms()
     .templateId(1)
     .all() %}
 ```
 
-```php
+```php PHP
 // Fetch forms of the form template with an ID of 1
 $forms = \verbb\formie\elements\Form::find()
     ->templateId(1)
@@ -407,14 +407,14 @@ Possible values include:
 | `['not', '*Foo*', '*Bar*']` | with a title that doesn’t contain `Foo` or `Bar`.
 
 ::: code
-```twig
+```twig Twig
 {# Fetch forms with a title that contains "Foo" #}
 {% set forms = craft.formie.forms()
     .title('*Foo*')
     .all() %}
 ```
 
-```php
+```php PHP
 // Fetch forms with a title that contains "Foo"
 $forms = \verbb\formie\elements\Form::find()
     ->title('*Foo*')
@@ -429,14 +429,14 @@ $forms = \verbb\formie\elements\Form::find()
 Narrows the query results to only forms that have been soft-deleted.
 
 ::: code
-```twig
+```twig Twig
 {# Fetch trashed forms #}
 {% set entries = craft.formie.forms()
     .trashed()
     .all() %}
 ```
 
-```php
+```php PHP
 // Fetch trashed forms
 $forms = \verbb\formie\elements\Form::find()
     ->trashed()
@@ -451,14 +451,14 @@ $forms = \verbb\formie\elements\Form::find()
 Narrows the query results based on the forms’ UIDs.
 
 ::: code
-```twig
+```twig Twig
 {# Fetch the form by its UID #}
 {% set form = craft.formie.forms()
     .uid('xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx')
     .one() %}
 ```
 
-```php
+```php PHP
 // Fetch the form by its UID
 $form = \verbb\formie\elements\Form::find()
     ->uid('xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx')

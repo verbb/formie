@@ -1,6 +1,7 @@
 <template>
     <input
         v-model="context._value"
+        :name="context.node.name"
         type="text"
         class="text fullwidth code"
         @input="context.handlers.DOMInput"

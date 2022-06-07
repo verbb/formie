@@ -15,7 +15,6 @@ class SchemaHelper
     {
         return array_merge([
             '$formkit' => 'text',
-            'id' => $config['name'] ?? '',
             'inputClass' => 'text fullwidth',
             'autocomplete' => 'off',
         ], $config);
@@ -25,7 +24,6 @@ class SchemaHelper
     {
         return array_merge([
             '$formkit' => 'textarea',
-            'id' => $config['name'] ?? '',
             'inputClass' => 'text fullwidth',
         ], $config);
     }
@@ -34,7 +32,6 @@ class SchemaHelper
     {
         return array_merge([
             '$formkit' => 'select',
-            'id' => $config['name'] ?? '',
         ], $config);
     }
 
@@ -42,7 +39,6 @@ class SchemaHelper
     {
         return array_merge([
             '$formkit' => 'multiSelect',
-            'id' => $config['name'] ?? '',
         ], $config);
     }
 
@@ -50,7 +46,6 @@ class SchemaHelper
     {
         return array_merge([
             '$formkit' => 'number',
-            'id' => $config['name'] ?? '',
             'size' => '3',
             'inputClass' => 'text',
             'validation' => 'number|min:0',
@@ -61,7 +56,6 @@ class SchemaHelper
     {
         return array_merge([
             '$formkit' => 'date',
-            'id' => $config['name'] ?? '',
             'inputClass' => 'text fullwidth',
         ], $config);
     }
@@ -77,7 +71,6 @@ class SchemaHelper
 
         return array_merge([
             '$formkit' => 'checkboxSelect',
-            'id' => $config['name'] ?? '',
         ], $config);
     }
 
@@ -92,7 +85,6 @@ class SchemaHelper
 
         return array_merge([
             '$formkit' => 'checkbox',
-            'id' => $config['name'] ?? '',
         ], $config);
     }
 
@@ -100,7 +92,6 @@ class SchemaHelper
     {
         return array_merge([
             '$formkit' => 'lightswitch',
-            'id' => $config['name'] ?? '',
             'labelPosition' => 'before',
         ], $config);
     }
@@ -109,7 +100,6 @@ class SchemaHelper
     {
         return array_merge([
             '$formkit' => 'toggleBlocks',
-            'id' => $config['name'] ?? '',
             'validation' => 'minBlock:2',
             'children' => $children,
         ], $config);
@@ -136,7 +126,6 @@ class SchemaHelper
     {
         return array_merge([
             '$formkit' => 'variableText',
-            'id' => $config['name'] ?? '',
         ], $config);
     }
 
@@ -144,7 +133,6 @@ class SchemaHelper
     {
         return array_merge([
             '$formkit' => 'richText',
-            'id' => $config['name'] ?? '',
         ], $config);
     }
 
@@ -152,7 +140,6 @@ class SchemaHelper
     {
         return array_merge([
             '$formkit' => 'elementSelect',
-            'id' => $config['name'] ?? '',
         ], $config);
     }
 
@@ -175,7 +162,6 @@ class SchemaHelper
     {
         return array_merge([
             '$formkit' => 'handle',
-            'id' => $config['name'] ?? '',
             'label' => Craft::t('formie', 'Handle'),
             'help' => Craft::t('formie', 'How you’ll refer to this field in your templates. Use the refresh icon to re-generate this from your field label.'),
             'warning' => Craft::t('formie', 'Changing this may result in your field not working as expected.'),
@@ -218,8 +204,6 @@ class SchemaHelper
             'label' => Craft::t('formie', 'Instructions'),
             'help' => Craft::t('formie', 'Instructions to guide the user when filling out this form.'),
             'name' => 'instructions',
-            'id' => 'instructions',
-            'key' => 'instructions',
             'rows' => '4',
         ], $config));
     }
@@ -230,8 +214,6 @@ class SchemaHelper
             'label' => Craft::t('formie', 'Instructions Position'),
             'help' => Craft::t('formie', 'How the instructions for the field should be positioned.'),
             'name' => 'instructionsPosition',
-            'id' => 'instructionsPosition',
-            'key' => 'instructionsPosition',
             'options' => array_merge(
                 [['label' => Craft::t('formie', 'Form Default'), 'value' => '']],
                 Formie::$plugin->getFields()->getInstructionsPositionsArray($field)
@@ -401,5 +383,27 @@ class SchemaHelper
         }
 
         return $names;
+    }
+
+    public static function setFieldAttributes(&$fieldSchema)
+    {
+        // Automaticallty set the `id` and `key` attributes for fields, which FormKit needs
+        foreach ($fieldSchema as &$field) {
+            $name = $field['name'] ?? null;
+            $id = $field['id'] ?? null;
+            $key = $field['key'] ?? null;
+
+            if ($name && !$id) {
+                $field['id'] = $name;
+            }
+
+            if ($name && !$key) {
+                $field['key'] = $name;
+            }
+
+            if (isset($field['children'])) {
+                self::setFieldAttributes($field['children']);
+            }
+        }
     }
 }

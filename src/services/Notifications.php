@@ -418,7 +418,7 @@ class Notifications extends Component
     public function evaluateConditions($notification, Submission $submission): bool
     {
         if ($notification->enableConditions) {
-            $conditionSettings = Json::decode($notification->conditions) ?? [];
+            $conditionSettings = $notification->conditions ?? [];
             $conditions = $conditionSettings['conditions'] ?? [];
 
             if ($conditionSettings && $conditions) {
@@ -471,6 +471,9 @@ class Notifications extends Component
                 $tabLabel = Craft::t('formie', $definedTab);
 
                 $fieldSchema = $this->$methodName();
+
+                // Add `name` and `id` attributes automatically for every FormKit input
+                SchemaHelper::setFieldAttributes($fieldSchema);
 
                 $fields[] = [
                     '$cmp' => 'TabPanel',

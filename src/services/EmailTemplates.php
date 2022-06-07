@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\services;
 
+use verbb\formie\Formie;
 use verbb\formie\events\EmailTemplateEvent;
 use verbb\formie\models\EmailTemplate;
 use verbb\formie\records\EmailTemplate as TemplateRecord;

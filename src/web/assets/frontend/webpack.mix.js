@@ -74,6 +74,9 @@ mix.webpackConfig({
     stats: {
         children: true
     },
+    output: {
+        chunkLoadingGlobal: 'formieConfigChunkLoadingGlobal',
+    },
 });
 
 if (mix.inProduction()) {

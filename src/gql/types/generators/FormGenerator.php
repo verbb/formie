@@ -7,6 +7,7 @@ use verbb\formie\gql\interfaces\FormInterface;
 use verbb\formie\gql\types\FormType;
 
 use Craft;
+use craft\errors\GqlException;
 use craft\gql\base\Generator;
 use craft\gql\base\GeneratorInterface;
 use craft\gql\base\SingleGeneratorInterface;
@@ -60,5 +61,39 @@ class FormGenerator extends Generator implements GeneratorInterface, SingleGener
                 return $formFields;
             },
         ]));
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
+    /**
+     * Get content fields for a given context.
+     *
+     * @param mixed $context
+     * @return array
+     */
+    protected static function getContentFields($context): array
+    {
+        try {
+            $schema = Craft::$app->getGql()->getActiveSchema();
+        } catch (GqlException $e) {
+            Craft::warning("Could not get the active GraphQL schema: {$e->getMessage()}", __METHOD__);
+            Craft::$app->getErrorHandler()->logException($e);
+            return [];
+        }
+
+        $contentFieldGqlTypes = [];
+
+        if ($fieldLayout = $context->getFieldLayout()) {
+            /** @var Field $contentField */
+            foreach ($fieldLayout->getFields() as $contentField) {
+                if ($contentField->includeInGqlSchema($schema)) {
+                    $contentFieldGqlTypes[$contentField->handle] = $contentField->getContentGqlType();
+                }
+            }
+        }
+
+        return $contentFieldGqlTypes;
     }
 }

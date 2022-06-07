@@ -388,6 +388,14 @@ class Submission extends Element
     }
 
     /**
+     * @inheritdoc
+     */
+    public function canDelete(User $user): bool
+    {
+        return true;
+    }
+
+    /**
      * @inheritDoc
      */
     public function validate($attributeNames = null, $clearErrors = true): bool
@@ -1088,7 +1096,7 @@ class Submission extends Element
         ]);
         $this->trigger(self::EVENT_DEFINE_RULES, $event);
 
-        return $rules;
+        return $event->rules;
     }
 
 

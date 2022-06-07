@@ -179,6 +179,14 @@ class Variants extends CommerceVariants implements FormFieldInterface
 
             // Apply the criteria on our query
             Craft::configure($query, $criteria);
+
+            // Handle conditions by parsing the rules and applying to query
+            $conditionRules = $elementSource['condition']['conditionRules'] ?? [];
+
+            foreach ($conditionRules as $conditionRule) {
+                $rule = Craft::createObject($conditionRule);
+                $rule->modifyQuery($query);
+            }
         }
 
         // Restrict elements to be on the current site, for multi-sites

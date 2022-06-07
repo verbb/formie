@@ -37,10 +37,17 @@
     {% endif %}
 
     {% if sentNotification.from %}
-        <div class="fui-email-meta">
-            <div class="fui-email-meta-label">{{ 'From:' | t('formie') }}</div>
-            <div class="fui-email-meta-value">{{ sentNotification.from }}</div>
-        </div>
+        {% if sentNotification.fromName %}
+            <div class="fui-email-meta">
+                <div class="fui-email-meta-label">{{ 'From:' | t('formie') }}</div>
+                <div class="fui-email-meta-value">{{ sentNotification.fromName }} &lt;{{ sentNotification.from }}&gt;</div>
+            </div>
+        {% else %}
+            <div class="fui-email-meta">
+                <div class="fui-email-meta-label">{{ 'From:' | t('formie') }}</div>
+                <div class="fui-email-meta-value">{{ sentNotification.from }}</div>
+            </div>
+        {% endif %}
     {% endif %}
 
     <div class="fui-email-body">

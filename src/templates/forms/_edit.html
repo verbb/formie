@@ -66,6 +66,8 @@
 
 {% block content %}
 
+{% do craft.app.view.startJsBuffer() %}
+
 <form id="fui-forms" ref="formElem">
     {% if form.id %}
         <input type="hidden" name="formId" value="{{ form.id }}" />
@@ -85,5 +87,17 @@
         </div>
     {% endfor %}
 </form>
+
+{# We must initialize any JS only after Vue has been loaded, and when Vite has loaded our script #}
+{# This handles both our Vue-based scripts, and any Craft jQuery-based scripts like elementSelect fields #}
+{% set jsBuffer = craft.app.view.clearJsBuffer(false) %}
+
+{% js %}
+    document.addEventListener('vite-script-loaded', function(e) {
+        if (e.detail.path === 'src/js/formie-form.js') {
+            {{ jsBuffer | raw }}
+        }
+    });
+{% endjs %}
 
 {% endblock %}

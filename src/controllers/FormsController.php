@@ -331,61 +331,6 @@ class FormsController extends Controller
     }
 
     /**
-     * Returns tabs and fields HTML when the form template is switched.
-     *
-     * @throws Throwable
-     */
-    public function actionSwitchTemplate(): Response
-    {
-        $this->requirePostRequest();
-        $this->requireAcceptsJson();
-
-        $form = Formie::$plugin->getForms()->buildFormFromPost();
-
-        $variables = [];
-        $variables['form'] = $form;
-        $variables['templateId'] = $form->templateId;
-
-        $this->_prepareVariableArray($variables);
-
-        $view = Craft::$app->getView();
-
-        $fieldsHtml = [];
-
-        if ($fieldLayout = $form->getFieldLayout()) {
-            foreach ($fieldLayout->getTabs() as $tab) {
-                $tabSlug = StringHelper::toKebabCase($tab->name);
-
-                $fieldsHtml[] = [
-                    'id' => "tab-form-fields-$tabSlug",
-                    'html' => $view->renderTemplate('_includes/fields', [
-                        'element' => $form,
-                        'fields' => $tab->getCustomFields(),
-                    ]),
-                ];
-            }
-        }
-
-        // Ensure the appearance tab is selected
-        $variables['selectedTab'] = '1';
-        $variables['containerAttributes']['id'] = 'tabs';
-
-        $tabsHtml = $view->renderTemplate('_includes/tabs', $variables);
-        $positionsHtml = $view->renderTemplate('formie/forms/_panes/_positions', $variables);
-
-        $headHtml = $view->getHeadHtml();
-        $bodyHtml = $view->getBodyHtml();
-
-        return $this->asJson(compact(
-            'tabsHtml',
-            'fieldsHtml',
-            'positionsHtml',
-            'headHtml',
-            'bodyHtml'
-        ));
-    }
-
-    /**
      * @throws Throwable
      */
     public function actionDeleteForm(): ?Response

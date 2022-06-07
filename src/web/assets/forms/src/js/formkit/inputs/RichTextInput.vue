@@ -6,7 +6,7 @@
         </div>
 
         <div v-if="$isDebug" class="input text" style="margin-top: 20px;">{{ jsonContent }}</div>
-        <input v-model="context._value" type="hidden">
+        <input v-model="context._value" :name="context.node.name" type="hidden">
     </div>
 </template>
 

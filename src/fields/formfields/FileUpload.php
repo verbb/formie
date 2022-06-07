@@ -6,6 +6,9 @@ use verbb\formie\base\Element;
 use verbb\formie\base\FormFieldInterface;
 use verbb\formie\base\FormFieldTrait;
 use verbb\formie\base\RelationFieldTrait;
+use verbb\formie\elements\Form;
+use verbb\formie\elements\Submission;
+use verbb\formie\gql\types\input\FileUploadInputType;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\Settings;
@@ -288,6 +291,24 @@ class FileUpload extends CraftAssets implements FormFieldInterface
         return implode(', ', $extensions);
     }
 
+    /**
+     * @inheritdoc
+     */
+    public function getVolumeOptions()
+    {
+        $volumes = [];
+
+        /* @var Volume $volume */
+        foreach (Craft::$app->getVolumes()->getAllVolumes() as $volume) {
+            $volumes[] = [
+                'label' => $volume->name,
+                'value' => 'folder:' . $volume->uid,
+            ];
+        }
+
+        return $volumes;
+    }
+
     public function getFrontEndJsModules(): ?array
     {
         return [
@@ -543,6 +564,14 @@ class FileUpload extends CraftAssets implements FormFieldInterface
         }
 
         return Template::raw($html);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getContentGqlMutationArgumentType(): array|Type
+    {
+        return FileUploadInputType::getType($this);
     }
 
 

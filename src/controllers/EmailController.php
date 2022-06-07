@@ -93,7 +93,9 @@ class EmailController extends Controller
         $handle = $request->getParam('handle');
 
         // Create a new Notification model from this - it'll be a serialized array from Vue
-        $notification->setAttributes($request->getParam('notification'), false);
+        if ($notificationParams = $request->getParam('notification')) {
+            $notification->setAttributes($notificationParams, false);
+        }
 
         // Ensure some settings are type-cast
         $notification->enabled = StringHelper::toBoolean((string)$notification->enabled);

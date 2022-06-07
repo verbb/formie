@@ -23,6 +23,7 @@ use craft\base\Element;
 use craft\db\Query;
 use craft\db\Table;
 use craft\elements\Entry;
+use craft\elements\User;
 use craft\elements\actions\Delete;
 use craft\elements\actions\Restore;
 use craft\errors\MissingComponentException;
@@ -98,11 +99,11 @@ class Form extends Element
     }
 
     /**
-     * @inheritDoc
+     * @inheritdoc
      */
     public static function gqlTypeNameByContext(mixed $context): string
     {
-        return 'Form';
+        return $context->handle . '_Form';
     }
 
     /**
@@ -377,6 +378,18 @@ class Form extends Element
         ];
 
         return $behaviors;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function canDelete(User $user): bool
+    {
+        if (parent::canDelete($user)) {
+            return true;
+        }
+
+        return $user->can('formie-deleteForms');
     }
 
     /**

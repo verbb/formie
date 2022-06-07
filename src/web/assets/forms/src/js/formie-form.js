@@ -67,7 +67,7 @@ Craft.Formie.EditForm = Garnish.Base.extend({
 
             data() {
                 return {
-                    formTemplateLoading: false,
+                    templateReloadNotice: false,
                     formHandles: settings.formHandles,
                 };
             },
@@ -88,13 +88,13 @@ Craft.Formie.EditForm = Garnish.Base.extend({
 
             watch: {
                 'form.templateId': function(newValue, oldValue) {
-                    // Prevent reloading tabs when empty string != null.
-                    if (!newValue && !oldValue) {
+                    // Prevent reloading tabs when empty values.
+                    if (!newValue || !oldValue) {
                         return;
                     }
 
                     if (!settings.isStencil) {
-                        this.reloadTabs();
+                        this.templateReloadNotice = true;
                     }
                 },
             },
@@ -120,6 +120,12 @@ Craft.Formie.EditForm = Garnish.Base.extend({
 
                 this.$events.on('formie:delete-form', (e) => {
                     this.onDelete(e);
+                });
+            },
+
+            mounted() {
+                this.$nextTick().then(() => {
+                    Craft.initUiElements();
                 });
             },
 
@@ -351,35 +357,6 @@ Craft.Formie.EditForm = Garnish.Base.extend({
                     } else {
                         input.setAttribute('value', value);
                     }
-                },
-
-                reloadTabs() {
-                    this.formTemplateLoading = true;
-
-                    const formElem = this.getFormElement();
-                    const data = this.getFormData();
-
-                    Craft.sendActionRequest('POST', 'formie/forms/switch-template', { data }).then((response) => {
-                        $('#tabs').replaceWith(response.data.tabsHtml);
-                        $('#appearance-positions').replaceWith(response.data.positionsHtml);
-                        $('.tab-form-fields', formElem).remove();
-                        const $content = $(formElem);
-
-                        for (const tab of response.data.fieldsHtml) {
-                            const $tab = $content.append(`<div id="${tab.id}" class="tab-form-fields hidden">${tab.html}</div>`);
-                            Craft.initUiElements($tab);
-                        }
-
-                        Craft.appendHeadHtml(response.data.headHtml);
-                        Craft.appendBodyHtml(response.data.bodyHtml);
-                        Craft.cp.initTabs();
-
-                        this.formTemplateLoading = false;
-                    }).catch((error) => {
-                        console.error(error);
-
-                        this.formTemplateLoading = false;
-                    });
                 },
 
                 onDelete(e) {

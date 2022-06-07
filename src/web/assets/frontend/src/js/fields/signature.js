@@ -29,10 +29,11 @@ export class FormieSignature {
             dotSize: this.penWeight,
             minWidth: this.penWeight,
             maxWidth: this.penWeight,
-            onEnd: () => {
-                // Save the data-url image for the server
-                this.$input.value = this.signaturePad.toDataURL();
-            },
+        });
+
+        this.signaturePad.addEventListener('endStroke', (e) => {
+            // Save the data-url image for the server
+            this.$input.value = this.signaturePad.toDataURL();
         });
 
         // Clear the canvas

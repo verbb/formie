@@ -174,6 +174,14 @@ class Products extends CommerceProducts implements FormFieldInterface
             foreach ($this->sources as $source) {
                 $elementSource = ArrayHelper::firstWhere($this->availableSources(), 'key', $source);
                 $criteria[] = $elementSource['criteria'] ?? [];
+
+                // Handle conditions by parsing the rules and applying to query
+                $conditionRules = $elementSource['condition']['conditionRules'] ?? [];
+
+                foreach ($conditionRules as $conditionRule) {
+                    $rule = Craft::createObject($conditionRule);
+                    $rule->modifyQuery($query);
+                }
             }
 
             // For performance

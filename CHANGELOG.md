@@ -1,5 +1,51 @@
 # Changelog
 
+## 2.0.0-beta.12 - 2022-06-04
+
+### Fixed
+- Fixed a type error for `FileUpload::getContentGqlMutationArgumentType()`.
+
+## 2.0.0-beta.11 - 2022-06-04
+
+### Added
+- Added ability to query submissions across multiple forms via GraphQL.
+
+### Fixed
+- Fixed sent notifications throwing an error for `CC` and `BCC` values.
+- Fixed email preview not showing “From Name”.
+- Fixed some rich text nodes not displaying correctly.
+- Fixed signature field not saving values correctly.
+- Fixed an error with email notifications that contain conditions.
+- Fixed typings on some field-level events to allow NestedRow and FakeElement elements, not just Submission elements.
+- Fixed an error when querying submissions via GraphQL.
+- Fixed element select fields not working on the form builder settings.
+- Fixed conditional custom sources not working for element fields.
+- Fixed being unable to delete forms or submissions in the control panel.
+- Fixed an error when saving email/form templates.
+- Fixed email notifications preview and test-sending not working correctly.
+- Fixed entries field and custom sources not working correctly.
+- Fixed some fields (handle) not being persisted correctly in the form builder.
+- Fixed field preview for `type=“number”` fields in the form builder.
+- Fixed missing PostCSS config for forms.
+- Fixed an error setting `countryRestrict` on Phone fields.
+
+## 2.0.0-beta.10 - 2022-05-28
+
+### Added
+- Auto-add `key` and `id` attributes to field settings schema for FormKit.
+- Add `chunkLoadingGlobal` to front-end JS to avoid conflicts with user-provided JS in Webpack.
+
+### Changed
+- Remove ajax-loading when switching form templates in the form builder. This should prevent strange UI glitches and simplify some things.
+
+### Fixed
+- Fix form integrations settings not populating correctly.
+- Fix variable text inputs not having their values loaded in properly.
+- Fix Email fields when marked as unique, not validating correctly when editing a submission.
+- Fix `SubmissionRulesEvent` custom rules not applying correctly.
+- Fix an error when previewing email notifications.
+- Fix being unable to edit a notification in the form builder.
+
 ## 2.0.0-beta.9 - 2022-05-24
 
 ### Fixed
@@ -139,6 +185,32 @@
 ### Changed
 - Now requires PHP `^8.0.2`.
 - Now requires Craft `^4.0.0-beta.1`.
+
+## 1.5.19 - 2022-06-04
+
+### Added
+- Added support for uploading files via GraphQL mutations for File Upload files (with `base64` encoded values).
+- Added `aria-disabled`, `aria-autocomplete` and `aria-live` for address fields when using an address provider integration.
+- Added loading spinner to “Use my location” for address fields when using an address provider integration.
+
+### Changed
+- Changed `onFormieCaptchaValidate` JS event to only trigger are client-side validation passes.
+
+### Fixed
+- Fixed querying form template fields on a form via GraphQL not working.
+- Fixed a JS error when validating Agree fields.
+- Fixed email notifications and integrations firing on each page submission when using `EVENT_AFTER_INCOMPLETE_SUBMISSION` and setting `$event->handled = false`.
+- Fixed GraphQL field normalization not always being triggered.
+
+## 1.5.18 - 2022-05-28
+
+### Added
+- Added `formie/fields/cleanup-field-layouts` console command to help with cleaning up orphaned field layouts.
+
+### Fixed
+- Fixed an error when importing a form with an empty page.
+- Fixed element integration not supporting Table fields properly.
+- Fixed User element integration auto-logging in non-guests.
 
 ## 1.5.17 - 2022-05-23
 

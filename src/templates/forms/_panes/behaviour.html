@@ -134,12 +134,6 @@
             variables="plainTextVariables"
         ></form-kit>
 
-        <input
-            type="hidden"
-            name="settings[submitActionMessage]"
-            :value="form.settings.submitActionMessage"
-        />
-
         {{ forms.textField({
             label: 'Submission Message Timeout' | t('formie'),
             instructions: 'The number of seconds to automatically hide the message. Leave empty to disable hiding.' | t('formie'),
@@ -301,12 +295,6 @@
     v-model="form.settings.errorMessage"
     v-bind="{{ getRichTextConfig('forms.errorMessage') | json_encode }}"
 ></form-kit>
-
-<input
-    type="hidden"
-    name="settings[errorMessage]"
-    :value="form.settings.errorMessage"
-/>
 
 {{ forms.selectField({
     label: 'Error Message Position' | t('formie'),

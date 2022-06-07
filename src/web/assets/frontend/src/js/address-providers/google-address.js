@@ -125,6 +125,8 @@ export class FormieGoogleAddress extends FormieAddressProvider {
         };
 
         xhr.onload = () => {
+            this.onEndFetchLocation();
+            
             if (xhr.status >= 200 && xhr.status < 300) {
                 try {
                     const response = JSON.parse(xhr.responseText);
