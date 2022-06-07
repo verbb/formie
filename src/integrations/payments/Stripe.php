@@ -201,7 +201,7 @@ class Stripe extends Payment
      */
     public function hasValidSettings(): bool
     {
-        return $this->publishableKey && $this->secretKey;
+        return App::parseEnv($this->publishableKey) && App::parseEnv($this->secretKey);
     }
 
     /**
@@ -604,7 +604,7 @@ class Stripe extends Payment
         $response = Craft::$app->getResponse();
         $response->format = Response::FORMAT_RAW;
 
-        $secret = Craft::parseEnv($this->webhookSecretKey);
+        $secret = App::parseEnv($this->webhookSecretKey);
         $stripeSignature = $_SERVER['HTTP_STRIPE_SIGNATURE'] ?? '';
 
         if (!$secret || !$stripeSignature) {

@@ -104,7 +104,7 @@ class Google extends AddressProvider
 
         $settings = [
             'apiKey' => App::parseEnv($this->apiKey),
-            'geocodingApiKey' => Craft::parseEnv($this->geocodingApiKey),
+            'geocodingApiKey' => App::parseEnv($this->geocodingApiKey),
             'options' => $this->_getOptions(),
         ];
 

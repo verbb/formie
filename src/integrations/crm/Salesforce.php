@@ -106,8 +106,8 @@ class Salesforce extends Crm
             $token = $provider->getAccessToken('password', [
                 'client_id' => $this->getClientId(),
                 'client_secret' => $this->getClientSecret(),
-                'username' => Craft::parseEnv($this->username),
-                'password' => Craft::parseEnv($this->password),
+                'username' => App::parseEnv($this->username),
+                'password' => App::parseEnv($this->password),
             ]);
 
             $this->afterFetchAccessToken($token);
