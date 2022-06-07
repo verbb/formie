@@ -146,7 +146,8 @@ export class FormieRecaptchaV2Invisible {
                 return;
             }
 
-            this.submitHandler.submitForm();
+            // Run the next submit action for the form. TODO: make this better!
+            this.submitHandler.validatePayment();
         }
     }
 

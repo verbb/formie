@@ -42,21 +42,13 @@ export class FormieFormBase {
                     return;
                 }
 
-                // Create an event for captchas, separate to validation
-                const captchaValidateEvent = this.eventObject('onFormieCaptchaValidate', {
-                    submitHandler: this,
-                });
-
-                if (!this.$form.dispatchEvent(captchaValidateEvent)) {
+                // Trigger Captchas
+                if (!this.validateCaptchas()) {
                     return;
                 }
 
-                // Create an event for payments, separate to validation
-                const paymentValidateEvent = this.eventObject('onFormiePaymentValidate', {
-                    submitHandler: this,
-                });
-
-                if (!this.$form.dispatchEvent(paymentValidateEvent)) {
+                // Trigger Payment Integrations
+                if (!this.validatePayment()) {
                     return;
                 }
 
@@ -82,6 +74,25 @@ export class FormieFormBase {
         });
 
         return this.$form.dispatchEvent(afterValidateEvent);
+    }
+
+    validateCaptchas() {
+        // Create an event for captchas, separate to validation
+        const validateEvent = this.eventObject('onFormieCaptchaValidate', {
+            submitHandler: this,
+        });
+
+        return this.$form.dispatchEvent(validateEvent);
+    }
+
+    validatePayment() {
+        console.log('validatePayment')
+        // Create an event for payments, separate to validation
+        const validateEvent = this.eventObject('onFormiePaymentValidate', {
+            submitHandler: this,
+        });
+
+        return this.$form.dispatchEvent(validateEvent);
     }
 
     submitForm() {
