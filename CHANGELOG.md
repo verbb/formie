@@ -1,5 +1,14 @@
 # Changelog
 
+## 2.0.0-beta.13 - 2022-06-08
+
+### Added
+- Add support for Stripe payment integration (single and subscriptions).
+
+### Fixed
+- Fix captcha JS events not binding correctly.
+- Fix an error when rendering multi-name fields in email notifications.
+
 ## 2.0.0-beta.12 - 2022-06-04
 
 ### Fixed
