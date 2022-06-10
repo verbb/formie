@@ -9,8 +9,11 @@ use verbb\formie\models\IntegrationField;
 use Craft;
 use craft\fields;
 use craft\helpers\ArrayHelper;
+use craft\helpers\Html;
 use craft\helpers\StringHelper;
 use craft\helpers\UrlHelper;
+
+use yii\helpers\Markdown;
 
 abstract class Element extends Integration implements IntegrationInterface
 {
@@ -62,6 +65,14 @@ abstract class Element extends Integration implements IntegrationInterface
     public function getSettingsHtml(): string
     {
         $handle = StringHelper::toKebabCase($this->displayName());
+
+        // Don't display anything if we can't edit anything
+        if (!Craft::$app->getConfig()->getGeneral()->allowAdminChanges) {
+            $text = Craft::t('formie', 'Integration settings can only be editable on an environment with `allowAdminChanges` enabled.');
+            $text = Markdown::processParagraph($text);
+
+            return Html::tag('span', $text, ['class' => 'warning with-icon']);
+        }
 
         return Craft::$app->getView()->renderTemplate("formie/integrations/elements/{$handle}/_plugin-settings", [
             'integration' => $this,
