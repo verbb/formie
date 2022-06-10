@@ -147,7 +147,7 @@ export class FormiePhoneCountry {
                         }
 
                         // Save the country code to the hidden input
-                        if (field.$countryInput) {
+                        if (field.$countryInput && selectedCountryCode) {
                             field.$countryInput.value = selectedCountryCode.toUpperCase();
                         }
                     } else {
