@@ -232,9 +232,7 @@ class Entry extends Element
             $attributeValues = $this->getFieldMappingValues($submission, $this->attributeMapping, $this->getElementAttributes());
             
             // Filter null values
-            $attributeValues = array_filter($attributeValues, function($var) {
-                return $var !== null;
-            });
+            $attributeValues = $this->filterNullValues($attributeValues);
 
             foreach ($attributeValues as $entryFieldHandle => $fieldValue) {
                 if ($entryFieldHandle === 'author') {
@@ -250,9 +248,7 @@ class Entry extends Element
             $fieldValues = $this->getFieldMappingValues($submission, $this->fieldMapping, $fields);
             
             // Filter null values
-            $fieldValues = array_filter($fieldValues, function($var) {
-                return $var !== null;
-            });
+            $fieldValues = $this->filterNullValues($fieldValues);
 
             $entry->setFieldValues($fieldValues);
             $entry->updateTitle();

@@ -194,4 +194,22 @@ abstract class Element extends Integration implements IntegrationInterface
 
         return $element;
     }
+
+    /**
+     * @inheritDoc
+     */
+    protected function filterNullValues($values)
+    {
+        foreach ($values as $key => $value) {
+            if (is_array($value)) {
+                $values[$key] = $this->filterNullValues($values[$key]);
+            }
+
+            if ($values[$key] === null) {
+                unset($values[$key]);
+            }
+        }
+
+        return $values;
+    }
 }
