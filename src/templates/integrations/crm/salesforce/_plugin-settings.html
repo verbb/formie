@@ -63,22 +63,24 @@
     errors: integration.getErrors('clientSecret'),
 }) }}
 
-{{ forms.lightswitchField({
+{{ forms.booleanMenuField({
     label: 'Use Sandbox' | t('formie'),
     instructions: 'Whether to use the {name} sandbox.' | t('formie', { name: integration.displayName() }),
     name: 'useSandbox',
-    on: integration.settings.useSandbox ?? '',
+    includeEnvVars: true,
+    value: integration.settings.useSandbox ?? false,
     warning: macros.configWarning('useSandbox', 'formie'),
     errors: integration.getErrors('useSandbox'),
 }) }}
 
-{% set useCredentials = integration.settings.useCredentials ?? '' %}
+{% set useCredentials = integration.settings.useCredentials ?? false %}
 
-{{ forms.lightswitchField({
+{{ forms.booleanMenuField({
     label: 'Use Credentials' | t('formie'),
     instructions: 'Whether to use the {name} username/password credentials.' | t('formie', { name: integration.displayName() }),
     name: 'useCredentials',
-    on: useCredentials,
+    value: useCredentials,
+    includeEnvVars: true,
     warning: macros.configWarning('useCredentials', 'formie'),
     errors: integration.getErrors('useCredentials'),
     toggle: 'credentials',

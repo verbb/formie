@@ -75,11 +75,12 @@
     errors: integration.getErrors('businessUnitId'),
 }) }}
 
-{{ forms.lightswitchField({
+{{ forms.booleanMenuField({
     label: 'Use Sandbox' | t('formie'),
     instructions: 'Whether to use the {name} sandbox.' | t('formie', { name: integration.displayName() }),
     name: 'useSandbox',
-    on: integration.settings.useSandbox ?? '',
+    includeEnvVars: true,
+    value: integration.settings.useSandbox ?? false,
     warning: macros.configWarning('useSandbox', 'formie'),
     errors: integration.getErrors('useSandbox'),
 }) }}
