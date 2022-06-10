@@ -40,13 +40,14 @@
     errors: integration.getErrors('apiToken'),
 }) }}
 
-{% set useUat = integration.settings.useUat ?? '' %}
+{% set useUat = integration.settings.useUat ?? false %}
 
-{{ forms.lightswitchField({
+{{ forms.booleanMenuField({
     label: 'Use UAT' | t('formie'),
     instructions: 'Whether to use the {name} UAT for testing.' | t('formie', { name: integration.displayName() }),
     name: 'useUat',
-    on: useUat,
+    includeEnvVars: true,
+    value: useUat,
     warning: macros.configWarning('useUat', 'formie'),
     errors: integration.getErrors('useUat'),
     toggle: 'uat',

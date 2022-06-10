@@ -197,8 +197,14 @@
 
 // Add event listeners to all form inputs, to detect a change. Show a message to save when changed.
 $(document).ready(function() {
+    var html = '<div class="heading"><span class="warning with-icon">{{ 'Save this integration to connect.' | t('formie') }}</span></div>';
+    
     $('#main-form').find('input, select, textarea').on('input', function() {
-        $('.fui-connect').html('<div class="heading"><span class="warning with-icon">{{ 'Save this integration to connect.' | t('formie') }}</span></div>');
+        $('.fui-connect').html(html);
+    });
+
+    $('#main-form').find('.lightswitch').on('change', function() {
+        $('.fui-connect').html(html);
     });
 });
 

@@ -72,7 +72,7 @@
             {{ forms.fileField({
                 label: 'Attachments' | t('formie'),
                 instructions: 'Add any attachments such as screenshots that would be helpful for support.' | t('formie'),
-                name: 'attachments',
+                name: 'attachments[]',
                 value: support.attachments ?? '',
                 errors: support.getErrors('attachments') ?? '',
                 inputAttributes: {

@@ -49,11 +49,12 @@
     errors: integration.getErrors('clientSecret'),
 }) }}
 
-{{ forms.lightswitchField({
+{{ forms.booleanMenuField({
     label: 'Use Developer API' | t('formie'),
     instructions: 'Whether to use the {name} developer API. Only use this for specific {name} developer accounts.' | t('formie', { name: integration.displayName() }),
     name: 'useDeveloper',
-    on: integration.settings.useDeveloper ?? '',
+    includeEnvVars: true,
+    value: integration.settings.useDeveloper ?? false,
     warning: macros.configWarning('useDeveloper', 'formie'),
     errors: integration.getErrors('useDeveloper'),
 }) }}
