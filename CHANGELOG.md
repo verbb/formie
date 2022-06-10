@@ -3,7 +3,7 @@
 ## 1.6.0 - 2022-06-11
 
 ### Added
-- Add note to integrations when `allowAdminChanges` is disabled.
+- Added note to integrations when `allowAdminChanges` is disabled.
 
 ### Changed
 - Now requires Craft `3.7.22+`.
@@ -11,12 +11,12 @@
 - Update 12-hour time format for Date fields.
 
 ### Fixed
-- Fix element integrations and mapped (empty) table fields not working correctly.
-- Fix an error with Phone fields and client-side validation.
-- Fix connection warning notice for integration settings not appearing when toggling lightswitch fields.
-- Fix File Upload fields not validating correctly in multi-page forms.
-- Fix incorrect output of `fui-row-empty` class.
-- Fix attachments in support requests not being attached correctly.
+- Fixed element integrations and mapped (empty) table fields not working correctly.
+- Fixed an error with Phone fields and client-side validation.
+- Fixed connection warning notice for integration settings not appearing when toggling lightswitch fields.
+- Fixed File Upload fields not validating correctly in multi-page forms.
+- Fixed incorrect output of `fui-row-empty` class.
+- Fixed attachments in support requests not being attached correctly.
 
 ## 1.5.19 - 2022-06-04
 
