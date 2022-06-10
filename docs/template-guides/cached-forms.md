@@ -156,20 +156,20 @@ Which we can use in our callback to find the hidden `<input>` elements, and upda
         fetch('/actions/formie/forms/refresh-tokens?form={{ form.handle }}')
             .then(result => { return result.json(); })
             .then(result => {
-                // JavaScript captcha
-                let jsCaptcha = result.captchas.javascript;
-
                 // Find the JavaScript captcha hidden input, so we can update it
-                if (jsCaptcha) {
-                    $form.querySelector('input[name="' + jsCaptcha.sessionKey + '"]').value = jsCaptcha.value;
+                if (result.captchas && result.captchas.javascript) {
+                    // JavaScript captcha
+                    let jsCaptcha = result.captchas.javascript.value;
+
+                    $form.querySelector('input[name="' + jsCaptcha.sessionKey + '"]').value = jsCaptcha;
                 }
 
-                // Duplicate captcha
-                let duplicateCaptcha = result.captchas.duplicate;
-
                 // Find the Duplicate captcha hidden input, so we can update it
-                if (duplicateCaptcha) {
-                    $form.querySelector('input[name="' + duplicateCaptcha.sessionKey + '"]').value = duplicateCaptcha.value;
+                if (result.captchas && result.captchas.duplicate) {
+                    // Duplicate captcha
+                    let duplicateCaptcha = result.captchas.duplicate.value;
+
+                    $form.querySelector('input[name="' + duplicateCaptcha.sessionKey + '"]').value = duplicateCaptcha;
                 }
             });
     });
