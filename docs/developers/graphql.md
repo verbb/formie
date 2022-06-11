@@ -789,6 +789,32 @@ mutation saveSubmission($yourAddress:contactForm_yourAddress_FormieAddressInput)
 }
 ```
 
+### File Upload Field
+When uploading a file, you must provide an array of upload data with a `base64` encoded data, so that Formie can create the asset element. Provide this as `fileData`, and you can also supply an optional `filename` variable to name the asset correctly. If you do not supply this, a filename will be generated for you.
+
+```graphql
+// Query
+mutation saveSubmission($fileUploadField:[FileUploadInput]) {
+    save_contactForm_Submission(fileUploadField: $fileUploadField) {
+        title
+    }
+}
+
+// Query Variables
+{
+    "fileUploadField": [
+        {
+            "fileData": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAQUA...",
+            "filename": "testing.png"
+        },
+        {
+            "fileData": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAQUA..."
+        }
+    ]
+}
+```
+
+
 #### Group Field
 ```graphql
 // Query
