@@ -6,8 +6,12 @@ use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
 use craft\fields;
+use craft\helpers\ArrayHelper;
+use craft\helpers\Html;
 use craft\helpers\StringHelper;
 use craft\helpers\UrlHelper;
+
+use yii\helpers\Markdown;
 
 abstract class Element extends Integration
 {
@@ -50,6 +54,14 @@ abstract class Element extends Integration
     public function getSettingsHtml(): ?string
     {
         $handle = StringHelper::toKebabCase(static::displayName());
+
+        // Don't display anything if we can't edit anything
+        if (!Craft::$app->getConfig()->getGeneral()->allowAdminChanges) {
+            $text = Craft::t('formie', 'Integration settings can only be editable on an environment with `allowAdminChanges` enabled.');
+            $text = Markdown::processParagraph($text);
+
+            return Html::tag('span', $text, ['class' => 'warning with-icon']);
+        }
 
         return Craft::$app->getView()->renderTemplate("formie/integrations/elements/{$handle}/_plugin-settings", [
             'integration' => $this,
@@ -152,5 +164,23 @@ abstract class Element extends Integration
         }
 
         return $element;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected function filterNullValues($values)
+    {
+        foreach ($values as $key => $value) {
+            if (is_array($value)) {
+                $values[$key] = $this->filterNullValues($values[$key]);
+            }
+
+            if ($values[$key] === null) {
+                unset($values[$key]);
+            }
+        }
+
+        return $values;
     }
 }

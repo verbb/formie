@@ -6,7 +6,7 @@
 {# multi-page, page reload form with already uploaded assets. As such, we'll get an validation #}
 {# error when going back to a previous page and submitting again, as the field will be empty #}
 {# despite files being uploaded. Here, force the field to be non-required if a value exists. #}
-{% set required = value ? false : field.required %}
+{% set required = value and value.all() ? false : field.required %}
 
 {% set attributes = {
     type: 'file',

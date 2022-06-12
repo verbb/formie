@@ -1,5 +1,14 @@
 # Changelog
 
+## 2.0.0-beta.13 - 2022-06-08
+
+### Added
+- Add support for Stripe payment integration (single and subscriptions).
+
+### Fixed
+- Fix captcha JS events not binding correctly.
+- Fix an error when rendering multi-name fields in email notifications.
+
 ## 2.0.0-beta.12 - 2022-06-04
 
 ### Fixed
@@ -185,6 +194,24 @@
 ### Changed
 - Now requires PHP `^8.0.2`.
 - Now requires Craft `^4.0.0-beta.1`.
+
+## 1.6.0 - 2022-06-11
+
+### Added
+- Added note to integrations when `allowAdminChanges` is disabled.
+
+### Changed
+- Now requires Craft `3.7.22+`.
+- Switch all lightswitch integration settings to use `booleanMenuField` to support .env variables.
+- Update 12-hour time format for Date fields.
+
+### Fixed
+- Fixed element integrations and mapped (empty) table fields not working correctly.
+- Fixed an error with Phone fields and client-side validation.
+- Fixed connection warning notice for integration settings not appearing when toggling lightswitch fields.
+- Fixed File Upload fields not validating correctly in multi-page forms.
+- Fixed incorrect output of `fui-row-empty` class.
+- Fixed attachments in support requests not being attached correctly.
 
 ## 1.5.19 - 2022-06-04
 
