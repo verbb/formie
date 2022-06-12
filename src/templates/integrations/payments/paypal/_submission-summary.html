@@ -1,0 +1,37 @@
+<div class="meta read-only">
+    <div class="data" style="align-items: center;">
+        <h5 class="heading">{{ 'Provider' | t('formie') }}</h5>
+
+        <div class="value">
+            <img src="{{ integration.getIconUrl() }}" style="width: 20px; height: 20px; margin-right: 8px;"> {{ integration.displayName() }}
+        </div>
+    </div>
+
+    {% if payments %}
+        {% set payment = payments[0] %}
+
+        <div class="data">
+            <h5 class="heading">{{ 'Status' | t('formie') }}</h5>
+
+            <div class="value">
+                <span class="status {{ payment.status | kebab }}"></span>
+                {{ payment.status | title | t('formie') }}
+            </div>
+        </div>
+
+        <div class="data">
+            <h5 class="heading">{{ 'Amount' | t('formie') }}</h5>
+            <div class="value">{{ payment.amount | currency(payment.currency) }} {{ payment.currency | upper }}</div>
+        </div>
+
+        <div class="data">
+            <h5 class="heading"></h5>
+
+            <div class="value">
+                <a href="https://www.paypal.com/activity/payment/{{ payment.reference }}" class="external" target="_blank" rel="noopener">
+                    View in PayPal
+                </a>
+            </div>
+        </div>
+    {% endif %}
+</div>

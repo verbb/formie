@@ -41,6 +41,7 @@ class Payment extends FormField
     // =========================================================================
 
     public ?string $paymentIntegration = null;
+    public ?string $paymentIntegrationType = null;
     public ?array $providerSettings = [];
 
 
@@ -125,6 +126,22 @@ class Payment extends FormField
         }
 
         return Formie::$plugin->getIntegrations()->getIntegrationByHandle($this->paymentIntegration);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function beforeSave(bool $isNew): bool
+    {
+        if (!parent::beforeSave($isNew)) {
+            return false;
+        }
+
+        if ($this->getPaymentIntegration()) {
+            $this->paymentIntegrationType = get_class($this->getPaymentIntegration());
+        }
+        
+        return true;
     }
 
     /**

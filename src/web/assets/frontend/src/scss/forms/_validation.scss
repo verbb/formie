@@ -13,3 +13,10 @@
     display: block;
     margin-top: var(--fui-error-margin-top);
 }
+
+.fui-success-message {
+    color: var(--fui-success-color, var(--fui-success));
+    font-size: var(--fui-error-font-size);
+    display: block;
+    margin-top: var(--fui-error-margin-top);
+}

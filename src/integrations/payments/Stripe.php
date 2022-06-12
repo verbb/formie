@@ -6,7 +6,6 @@ use verbb\formie\base\FormField;
 use verbb\formie\base\Integration;
 use verbb\formie\base\Payment;
 use verbb\formie\elements\Submission;
-use verbb\formie\events\ModifyPaymentCurrencyOptionsEvent;
 use verbb\formie\events\ModifyPaymentPayloadEvent;
 use verbb\formie\events\PaymentReceiveWebhookEvent;
 use verbb\formie\fields\formfields\Hidden;
@@ -39,14 +38,11 @@ use Stripe\PaymentIntent;
 use Stripe\Subscription as StripeSubscription;
 use Stripe\Webhook as StripeWebhook;
 
-use Money\Currencies\ISOCurrencies;
-
 class Stripe extends Payment
 {
     // Constants
     // =========================================================================
 
-    public const EVENT_MODIFY_CURRENCY_OPTIONS = 'modifyCurrencyOptions';
     public const EVENT_MODIFY_SUBSCRIPTION_PAYLOAD = 'modifySubscriptionPayload';
     public const EVENT_MODIFY_SINGLE_PAYLOAD = 'modifySinglePayload';
     public const EVENT_MODIFY_PLAN_PAYLOAD = 'modifyPlanPayload';
@@ -69,45 +65,11 @@ class Stripe extends Payment
     }
 
     /**
-     * @inheritDoc
-     */
-    public static function hasFormSettings(): bool
-    {
-        return false;
-    }
-
-    /**
      * @inheritdoc
      */
     public function supportsWebhooks(): bool
     {
         return true;
-    }
-
-    /**
-     * Returns an array of currencies.
-     *
-     * @return array
-     */
-    public static function getCurrencyOptions(): array
-    {
-        $currencies = [];
-
-        foreach (new ISOCurrencies() as $currency) {
-            $currencies[] = ['label' => $currency->getCode(), 'value' => $currency->getCode()];
-        }
-
-        usort($currencies, function($a, $b) {
-            return $a['label'] <=> $b['label'];
-        });
-
-        // Raise a `modifyCurrencyOptions` event
-        $event = new ModifyPaymentCurrencyOptionsEvent([
-            'currencies' => $currencies,
-        ]);
-        Event::trigger(static::class, self::EVENT_MODIFY_CURRENCY_OPTIONS, $event);
-
-        return $event->currencies;
     }
     
     public static function toStripeAmount($amount, $currency)
@@ -148,23 +110,6 @@ class Stripe extends Payment
     public function getDescription(): string
     {
         return Craft::t('formie', 'Provide payment capabilities for your forms with Stripe.');
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getFrontEndHtml($field, $options): string
-    {
-        if (!$this->hasValidSettings()) {
-            return '';
-        }
-
-        $this->setField($field);
-
-        return Craft::$app->getView()->renderTemplate('formie/integrations/payments/stripe/_input', [
-            'field' => $field,
-            'options' => $options,
-        ]);
     }
 
     /**
@@ -221,37 +166,8 @@ class Stripe extends Payment
      */
     public function getAmount($submission)
     {
-        $currency = $this->getCurrency($submission);
-
-        $amountType = $this->getFieldSetting('amountType');
-        $amountFixed = $this->getFieldSetting('amountFixed');
-        $amountVariable = $this->getFieldSetting('amountVariable');
-
-        if ($amountType === Payment::VALUE_TYPE_FIXED) {
-            return self::toStripeAmount($amountFixed, $currency);
-        } else if ($amountType === Payment::VALUE_TYPE_DYNAMIC) {
-            return self::toStripeAmount(Variables::getParsedValue($amountVariable, $submission, $submission->getForm()), $currency);
-        }
-
-        return null;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getCurrency($submission)
-    {
-        $currencyType = $this->getFieldSetting('currencyType');
-        $currencyFixed = $this->getFieldSetting('currencyFixed');
-        $currencyVariable = $this->getFieldSetting('currencyVariable');
-
-        if ($currencyType === Payment::VALUE_TYPE_FIXED) {
-            return $currencyFixed;
-        } else if ($currencyType === Payment::VALUE_TYPE_DYNAMIC) {
-            return Variables::getParsedValue($currencyVariable, $submission, $submission->getForm());
-        }
-
-        return null;
+        // Ensure the amount is converted to Stripe for zero-decimal currencies
+        return self::toStripeAmount(parent::getAmount($submission), $this->getCurrency($submission));
     }
 
     /**
@@ -259,7 +175,7 @@ class Stripe extends Payment
      */
     public function processPayment(Submission $submission): bool
     {
-        $result = null;
+        $result = false;
 
         $type = $this->getFieldSetting('type');
 
@@ -805,7 +721,7 @@ class Stripe extends Payment
                                 'if' => '$get(currencyType).value == ' . Payment::VALUE_TYPE_FIXED,
                                 'options' => array_merge(
                                     [['label' => Craft::t('formie', 'Select an option'), 'value' => '']],
-                                    self::getCurrencyOptions()
+                                    static::getCurrencyOptions()
                                 ),
                             ]),
                             SchemaHelper::fieldSelectField([
@@ -833,12 +749,12 @@ class Stripe extends Payment
                                 'required' => true,
                                 'validation' => 'required',
                                 'sections-schema' => [
-                                'prefix' => [
-                                    '$el' => 'span',
-                                    'attrs' => ['class' => 'fui-prefix-text'],
-                                    'children' => Craft::t('formie', 'Bill every'),
+                                    'prefix' => [
+                                        '$el' => 'span',
+                                        'attrs' => ['class' => 'fui-prefix-text'],
+                                        'children' => Craft::t('formie', 'Bill every'),
+                                    ],
                                 ],
-                            ],
                             ]),
                             SchemaHelper::selectField([
                                 'name' => 'frequencyType',
