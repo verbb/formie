@@ -598,7 +598,8 @@ class Form extends Element
             return $this->_formId;
         }
 
-        return $this->_formId = StringHelper::appendRandomString("formie-form-{$this->id}", 16);
+        // Provide a unique ID for this field, used as a namespace for IDs of elements in the form
+        return $this->_formId = 'fui-' . StringHelper::toKebabCase($this->handle) . '-' . StringHelper::randomString(8);
     }
 
     public function setFormId($value): void
