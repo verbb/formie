@@ -10,6 +10,7 @@ use verbb\formie\events\ModifyFieldEmailValueEvent;
 use verbb\formie\events\ModifyFieldIntegrationValueEvent;
 use verbb\formie\events\ParseMappedFieldValueEvent;
 use verbb\formie\fields\formfields\BaseOptionsField;
+use verbb\formie\fields\formfields\Hidden;
 use verbb\formie\helpers\ConditionsHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\Variables;
@@ -703,7 +704,11 @@ trait FormFieldTrait
 
             // Parse the default value for variables
             if (!is_array($defaultValue) && !is_object($defaultValue)) {
-                $defaultValue = Variables::getParsedValue($defaultValue);
+                // Don't do this for a hidden field, as we want to retain variable until the form it submitted,
+                // to evaluate there. As such, the default value is more or less the value of the field.
+                if (!($this instanceof Hidden)) {
+                    $defaultValue = Variables::getParsedValue($defaultValue);
+                }
             }
         }
 
