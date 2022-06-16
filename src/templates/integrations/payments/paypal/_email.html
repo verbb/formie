@@ -1,0 +1,18 @@
+{% set payments = submission.getPayments() %}
+
+<p>
+    {% if not (options.hideName ?? false) %}
+        <strong>{{ field.name | t }}</strong><br>
+    {% endif %}
+
+    <strong>{{ 'Provider' | t }}: </strong>{{ integration.displayName() }}<br>
+
+    {% if payments %}
+        {% set payment = payments[0] %}
+
+        <strong>{{ 'Status' | t }}: </strong>{{ payment.status | title | t }}<br>
+        <strong>{{ 'Amount' | t }}: </strong>{{ payment.amount | currency(payment.currency) }} {{ payment.currency | upper }}<br>
+        <strong>{{ 'Transaction Reference' | t }}: </strong>{{ payment.reference }}<br>
+        <strong>{{ 'Transaction URL' | t }}: </strong>https://www.paypal.com/activity/payment/{{ payment.reference }}<br>
+    {% endif %}
+</p>

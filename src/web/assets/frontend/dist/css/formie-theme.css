@@ -5,6 +5,7 @@
   --fui-primary-color: #516fea;
   --fui-primary-color-hover: #2349e5;
   --fui-error: #f56565;
+  --fui-success: #00ae2a;
   --fui-gray-100: #F3F4F6;
   --fui-gray-200: #E5E7EB;
   --fui-gray-300: #D1D5DB;
@@ -729,6 +730,16 @@
 .fui-error-message {
   color: #f56565;
   color: var(--fui-error-color, var(--fui-error));
+  font-size: 0.875rem;
+  font-size: var(--fui-error-font-size);
+  display: block;
+  margin-top: 0.5rem;
+  margin-top: var(--fui-error-margin-top);
+}
+
+.fui-success-message {
+  color: #00ae2a;
+  color: var(--fui-success-color, var(--fui-success));
   font-size: 0.875rem;
   font-size: var(--fui-error-font-size);
   display: block;

@@ -3,6 +3,7 @@ namespace verbb\formie\base;
 
 use verbb\formie\base\Integration;
 use verbb\formie\elements\Submission;
+use verbb\formie\events\ModifyPaymentCurrencyOptionsEvent;
 use verbb\formie\events\PaymentIntegrationProcessEvent;
 use verbb\formie\events\PaymentWebhookEvent;
 use verbb\formie\fields\formfields\Payment as PaymentField;
@@ -17,12 +18,15 @@ use craft\helpers\StringHelper;
 use craft\helpers\Template;
 use craft\helpers\UrlHelper;
 
+use yii\base\Event;
 use yii\web\BadRequestHttpException;
 use yii\web\Response;
 
 use Throwable;
 
 use Twig\Markup;
+
+use Money\Currencies\ISOCurrencies;
 
 abstract class Payment extends Integration
 {
@@ -33,6 +37,7 @@ abstract class Payment extends Integration
     public const EVENT_AFTER_PROCESS_PAYMENT = 'afterProcessPayment';
     public const EVENT_BEFORE_PROCESS_WEBHOOK = 'beforeProcessWebhook';
     public const EVENT_AFTER_PROCESS_WEBHOOK = 'afterProcessWebhook';
+    public const EVENT_MODIFY_CURRENCY_OPTIONS = 'modifyCurrencyOptions';
 
     public const PAYMENT_TYPE_SINGLE = 'single';
     public const PAYMENT_TYPE_SUBSCRIPTION = 'subscription';
@@ -61,11 +66,45 @@ abstract class Payment extends Integration
     }
 
     /**
+     * @inheritDoc
+     */
+    public static function hasFormSettings(): bool
+    {
+        return false;
+    }
+
+    /**
      * @inheritdoc
      */
     public function supportsWebhooks(): bool
     {
         return false;
+    }
+
+    /**
+     * Returns an array of currencies.
+     *
+     * @return array
+     */
+    public static function getCurrencyOptions(): array
+    {
+        $currencies = [];
+
+        foreach (new ISOCurrencies() as $currency) {
+            $currencies[] = ['label' => $currency->getCode(), 'value' => $currency->getCode()];
+        }
+
+        usort($currencies, function($a, $b) {
+            return $a['label'] <=> $b['label'];
+        });
+
+        // Raise a `modifyCurrencyOptions` event
+        $event = new ModifyPaymentCurrencyOptionsEvent([
+            'currencies' => $currencies,
+        ]);
+        Event::trigger(static::class, self::EVENT_MODIFY_CURRENCY_OPTIONS, $event);
+
+        return $event->currencies;
     }
 
 
@@ -85,7 +124,7 @@ abstract class Payment extends Integration
      */
     public function getIconUrl(): string
     {
-        $handle = StringHelper::toKebabCase(static::displayName());
+        $handle = $this->getIntegrationHandle();
 
         return Craft::$app->getAssetManager()->getPublishedUrl("@verbb/formie/web/assets/cp/dist/img/payments/{$handle}.svg", true);
     }
@@ -95,7 +134,7 @@ abstract class Payment extends Integration
      */
     public function getSettingsHtml(): ?string
     {
-        $handle = StringHelper::toKebabCase(static::displayName());
+        $handle = $this->getIntegrationHandle();
 
         return Craft::$app->getView()->renderTemplate("formie/integrations/payments/{$handle}/_plugin-settings", [
             'integration' => $this,
@@ -107,7 +146,7 @@ abstract class Payment extends Integration
      */
     public function getEmailHtml(Submission $submission, Notification $notification, mixed $value, PaymentField $field, array $options = null): Markup
     {
-        $handle = StringHelper::toKebabCase(static::displayName());
+        $handle = $this->getIntegrationHandle();
 
         $inputOptions = array_merge($field->getEmailOptions($submission, $notification, $value, $options), [
             'field' => $field,
@@ -122,7 +161,7 @@ abstract class Payment extends Integration
      */
     public function getSubmissionSummaryHtml($submission): ?string
     {
-        $handle = StringHelper::toKebabCase(static::displayName());
+        $handle = $this->getIntegrationHandle();
 
         // Only show if there's payments for a submission
         $payments = $submission->getPayments();
@@ -137,6 +176,25 @@ abstract class Payment extends Integration
             'form' => $submission,
             'payments' => $payments,
             'subscriptions' => $subscriptions,
+        ]);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getFrontEndHtml($field, $options): string
+    {
+        $handle = $this->getIntegrationHandle();
+        
+        if (!$this->hasValidSettings()) {
+            return '';
+        }
+
+        $this->setField($field);
+
+        return Craft::$app->getView()->renderTemplate('formie/integrations/payments/{$handle}/_input', [
+            'field' => $field,
+            'options' => $options,
         ]);
     }
 
@@ -161,6 +219,42 @@ abstract class Payment extends Integration
     public function getGqlHandle(): string
     {
         return StringHelper::toCamelCase($this->handle . 'Payment');
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getAmount($submission)
+    {
+        $amountType = $this->getFieldSetting('amountType');
+        $amountFixed = $this->getFieldSetting('amountFixed');
+        $amountVariable = $this->getFieldSetting('amountVariable');
+
+        if ($amountType === Payment::VALUE_TYPE_FIXED) {
+            return $amountFixed;
+        } else if ($amountType === Payment::VALUE_TYPE_DYNAMIC) {
+            return Variables::getParsedValue($amountVariable, $submission, $submission->getForm());
+        }
+
+        return null;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getCurrency($submission)
+    {
+        $currencyType = $this->getFieldSetting('currencyType');
+        $currencyFixed = $this->getFieldSetting('currencyFixed');
+        $currencyVariable = $this->getFieldSetting('currencyVariable');
+
+        if ($currencyType === Payment::VALUE_TYPE_FIXED) {
+            return $currencyFixed;
+        } else if ($currencyType === Payment::VALUE_TYPE_DYNAMIC) {
+            return Variables::getParsedValue($currencyVariable, $submission, $submission->getForm());
+        }
+
+        return null;
     }
 
     /**
@@ -239,6 +333,14 @@ abstract class Payment extends Integration
 
     // Protected Methods
     // =========================================================================
+    
+    /**
+     * @inheritDoc
+     */
+    protected function getIntegrationHandle(): string
+    {
+        return StringHelper::toKebabCase(static::displayName());
+    }
 
     /**
      * @inheritDoc

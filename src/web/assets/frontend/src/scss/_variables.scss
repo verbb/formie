@@ -14,6 +14,7 @@ $primary-color-hover: #2349e5 !default;
 $error: #f56565 !default;
 $error-light: #f8b4b4 !default;
 $error-dark: #771d1d !default;
+$success: #00ae2a !default;
 $gray-100: #F3F4F6 !default;
 $gray-200: #E5E7EB !default;
 $gray-300: #D1D5DB !default;
@@ -36,6 +37,7 @@ $focus-shadow: 0 0 0 3px rgba(164, 202, 254, 0.45) !default;
     --fui-primary-color: #{$primary-color};
     --fui-primary-color-hover: #{$primary-color-hover};
     --fui-error: #{$error};
+    --fui-success: #{$success};
     --fui-gray-100: #{$gray-100};
     --fui-gray-200: #{$gray-200};
     --fui-gray-300: #{$gray-300};
@@ -165,6 +167,7 @@ $focus-shadow: 0 0 0 3px rgba(164, 202, 254, 0.45) !default;
     --fui-error-margin-top: 0.5rem;
     // --fui-error-color
     // --fui-required-color
+    // --fui-success-color
 
     // Field Labels
     --fui-label-font-size: 0.875rem;

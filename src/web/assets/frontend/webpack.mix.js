@@ -40,6 +40,7 @@ mix.js('./src/js/captchas/recaptcha-enterprise.js', 'js/captchas');
 mix.js('./src/js/captchas/javascript.js', 'js/captchas');
 mix.js('./src/js/captchas/hcaptcha.js', 'js/captchas');
 mix.js('./src/js/payments/stripe.js', 'js/payments');
+mix.js('./src/js/payments/paypal.js', 'js/payments');
 
 // Setup additional CSS-related options including Tailwind and any other PostCSS items
 mix.options({
