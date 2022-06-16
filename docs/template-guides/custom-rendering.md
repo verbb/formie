@@ -41,10 +41,12 @@ This guide serves as a starter. There are several aspects of templating that sho
             {% set value = field.defaultValue ?? null %}
             {% set id = (form.handle | kebab) ~ '-' ~ (field.handle | kebab) %}
             {% set labelId = "#{id}-label" %}
+            {% set dataId = field.getHtmlDataId(form) %}
 
             {% set inputOptions = {
                 id: id,
                 labelId: labelId,
+                dataId: dataId,
             } %}
             
             {{ field.getFrontEndInputHtml(form, value, inputOptions) }}
@@ -116,10 +118,12 @@ Then, we want to add information about the submission. This is important if the 
         {% namespace field.namespace %}
             {% set id = (form.handle | kebab) ~ '-' ~ (field.handle | kebab) %}
             {% set labelId = "#{id}-label" %}
+            {% set dataId = field.getHtmlDataId(form) %}
 
             {% set inputOptions = {
                 id: id,
                 labelId: labelId,
+                dataId: dataId,
             } %}
 
             {% set value = attribute(submission, field.handle) ?? field.defaultValue ?? null %}
@@ -238,11 +242,13 @@ That should provide us with a working example to continue building. Here's the t
         {% namespace field.namespace %}
             {% set id = (form.handle | kebab) ~ '-' ~ (field.handle | kebab) %}
             {% set labelId = "#{id}-label" %}
+            {% set dataId = field.getHtmlDataId(form) %}
 
             {# Set required attributes for the field #}
             {% set inputOptions = {
                 id: id,
                 labelId: labelId,
+                dataId: dataId,
             } %}
 
             {# Fetch the value if one exists, or use the default #}
