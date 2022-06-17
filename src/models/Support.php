@@ -13,7 +13,7 @@ class Support extends Model
     public ?string $fromEmail = null;
     public ?int $formId = null;
     public ?string $message = null;
-    public ?UploadedFile $attachments = null;
+    public ?array $attachments = null;
 
 
     // Public Methods
