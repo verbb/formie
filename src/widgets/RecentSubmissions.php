@@ -152,6 +152,10 @@ class RecentSubmissions extends Widget
         $variables = [
             'namespaceId' => $namespaceId,
             'widget' => $this,
+            'labels' => [],
+            'datasets' => [],
+            'totalSubmissions' => [],
+            'submissions' => [],
         ];
 
         if ($this->formIds === ['*']) {
