@@ -374,6 +374,7 @@ class Submission extends Element
     private ?string $_fieldContext = null;
     private ?string $_contentTable = null;
     private ?array $_pagesForField = null;
+    private ?array $_assetsToDelete = null;
 
 
     // Public Methods
@@ -1032,6 +1033,19 @@ class Submission extends Element
             }
         }
 
+        // Check if we should hard-delete any file uploads - note once an asset is soft-deleted
+        // it's file is hard-deleted gone, so we cannot restore a file upload. I'm aware of `keepFileOnDelete`, but there's
+        // no way to remove that file on hard-delete, so that won't work.
+        // See https://github.com/craftcms/cms/issues/5074
+        if ($form && $form->fileUploadsAction === 'delete') {
+            foreach ($form->getFields() as $field) {
+                if ($field instanceof FileUpload) {
+                    // Store them now while we still have access to them, to delete in `afterDelete()`
+                    $this->_assetsToDelete = $this->getFieldValue($field->handle)->all();
+                }
+            }
+        }
+
         return parent::beforeDelete();
     }
 
@@ -1040,23 +1054,13 @@ class Submission extends Element
      */
     public function afterDelete(): void
     {
-        $form = $this->getForm();
         $elementsService = Craft::$app->getElements();
 
-        // Check if we should hard-delete any file uploads - note once an asset is soft-deleted
-        // it's file is hard-deleted gone, so we cannot restore a file upload. I'm aware of `keepFileOnDelete`, but there's
-        // no way to remove that file on hard-delete, so that won't work.
-        // See https://github.com/craftcms/cms/issues/5074
-        if ($form && $form->fileUploadsAction === 'delete') {
+        // Check if we have any assets to delete
+        if (isset($this->_assetsToDelete)) {
             foreach ($form->getCustomFields() as $field) {
-                if ($field instanceof FileUpload) {
-                    $assets = $this->getFieldValue($field->handle)->all();
-
-                    foreach ($assets as $asset) {
-                        if (!$elementsService->deleteElement($asset)) {
-                            Formie::error("Unable to delete file ”{$asset->id}” for submission ”{$this->id}”: " . Json::encode($asset->getErrors()) . ".");
-                        }
-                    }
+                if (!$elementsService->deleteElement($asset)) {
+                    Formie::error("Unable to delete file ”{$asset->id}” for submission ”{$this->id}”: " . Json::encode($asset->getErrors()) . ".");
                 }
             }
         }

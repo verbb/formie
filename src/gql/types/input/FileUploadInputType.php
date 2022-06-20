@@ -27,7 +27,7 @@ class FileUploadInputType extends InputObjectType
         $typeName = 'FileUploadInput';
 
         if ($argumentType = GqlEntityRegistry::getEntity($typeName)) {
-            return $argumentType;
+            return Type::listOf($argumentType);
         }
 
         $argumentType = GqlEntityRegistry::createEntity($typeName, new InputObjectType([

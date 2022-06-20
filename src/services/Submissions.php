@@ -321,7 +321,8 @@ class Submissions extends Component
 
         $submissions = Submission::find()
             ->isIncomplete(true)
-            ->dateUpdated('< ' . Db::prepareDateForDb($date))
+            // Don't use `Db::prepareDateForDb()` because the `dateCreated` param will already do that
+            ->dateUpdated('< ' . $date->format('Y-m-d H:i:s'))
             ->all();
 
         foreach ($submissions as $submission) {
@@ -374,7 +375,7 @@ class Submissions extends Component
     {
         // Find all the forms with data retention settings
         $forms = (new Query())
-            ->select(['id', 'dataRetention', 'dataRetentionValue'])
+            ->select(['id', 'handle', 'dataRetention', 'dataRetentionValue'])
             ->from(['{{%formie_forms}}'])
             ->where(['not', ['dataRetention' => 'forever']])
             ->all();
@@ -382,6 +383,14 @@ class Submissions extends Component
         foreach ($forms as $form) {
             $dataRetention = $form['dataRetention'] ?? '';
             $dataRetentionValue = (int)$form['dataRetentionValue'];
+
+            if ($consoleInstance) {
+                $consoleInstance->stdout(Craft::t('formie', 'Starting data retention checks for form “{f}”: {d} {c}.', [
+                    'f' => $form['handle'],
+                    'c' => $dataRetention,
+                    'd' => $dataRetentionValue,
+                ]) . PHP_EOL, Console::FG_YELLOW);
+            }
 
             // Setup intervals, depending on the setting
             $intervalLookup = ['minutes' => 'MIN', 'hours' => 'H', 'days' => 'D', 'weeks' => 'W', 'months' => 'M', 'years' => 'Y'];
@@ -408,12 +417,22 @@ class Submissions extends Component
             $date->sub($interval);
 
             $submissions = Submission::find()
-                ->dateCreated('< ' . Db::prepareDateForDb($date))
+                // Don't use `Db::prepareDateForDb()` because the `dateCreated` param will already do that
+                ->dateCreated('< ' . $date->format('Y-m-d H:i:s'))
                 ->formId($form['id'])
                 ->all();
 
-            if ($submissions && $consoleInstance) {
-                $consoleInstance->stdout('Preparing to prune ' . count($submissions) . ' submissions.' . PHP_EOL, Console::FG_YELLOW);
+            if ($consoleInstance) {
+                if ($submissions) {
+                    $consoleInstance->stdout(Craft::t('formie', 'Preparing to prune {c} submissions older than {d}.', [
+                        'c' => count($submissions),
+                        'd' => Db::prepareDateForDb($date),
+                    ]) . PHP_EOL, Console::FG_YELLOW);
+                } else {
+                    $consoleInstance->stdout(Craft::t('formie', 'No submissions found to prune older than {d}.', [
+                        'd' => Db::prepareDateForDb($date),
+                    ]) . PHP_EOL, Console::FG_GREEN);
+                }
             }
 
             foreach ($submissions as $submission) {

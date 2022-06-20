@@ -195,6 +195,17 @@
 - Now requires PHP `^8.0.2`.
 - Now requires Craft `^4.0.0-beta.1`.
 
+## 1.6.1 - 2022-06-20
+
+### Changed
+- Slack integration channels now sort channels alphabetically.
+
+### Fixed
+- Fix file uploads not respecting data retention settings when run via the `formie/gc/prune-data-retention-submissions` console command.
+- Fix pruning incomplete submissions and data retention processes not working correctly.
+- Fix hidden field values with custom default value containing variables not evaluating values correctly.
+- Fix incorrect mutation input type for File Upload fields for GraphQL.
+
 ## 1.6.0 - 2022-06-11
 
 ### Added
