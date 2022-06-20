@@ -1,5 +1,16 @@
 # Changelog
 
+## 2.0.0-beta.14 - 2022-06-20
+
+### Added
+- Add PayPal payment integration.
+
+### Fixed
+- Fix an error when querying forms via GraphQL.
+- Fix an error when viewing widgets, in some cases.
+- Fix an error for support requests.
+- Fix installed-plugin checks when the plugin files don’t exist, but it’s listed an installed and enabled in project config.
+
 ## 2.0.0-beta.13 - 2022-06-08
 
 ### Added

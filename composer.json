@@ -2,7 +2,7 @@
     "name": "verbb/formie",
     "description": "The most user-friendly forms plugin for Craft.",
     "type": "craft-plugin",
-    "version": "2.0.0-beta.13",
+    "version": "2.0.0-beta.14",
     "keywords": [
         "craft",
         "cms",
