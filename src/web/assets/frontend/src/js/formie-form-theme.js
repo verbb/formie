@@ -633,10 +633,7 @@ export class FormieFormTheme {
 
             // Smooth-scroll to the top of the form.
             if (this.settings.scrollToTop) {
-                window.scrollTo({
-                    top: this.$form.getBoundingClientRect().top + window.pageYOffset - 100,
-                    behavior: 'smooth',
-                });
+                this.scrollToForm();
             }
         }
 
@@ -729,10 +726,7 @@ export class FormieFormTheme {
 
         // Smooth-scroll to the top of the form.
         if (this.settings.scrollToTop) {
-            window.scrollTo({
-                top: this.$form.getBoundingClientRect().top + window.pageYOffset - 100,
-                behavior: 'smooth',
-            });
+            this.scrollToForm();
         }
     }
 
@@ -743,6 +737,17 @@ export class FormieFormTheme {
 
     getPageId(pageId) {
         return `${this.config.formHashId}-p-${pageId}`;
+    }
+
+    scrollToForm() {
+        // Check for scroll-padding-top or `scroll-margin-top`
+        const extraPadding = (document.documentElement.style['scroll-padding-top'] || '0px').replace('px', '');
+        const extraMargin = (document.documentElement.style['scroll-margin-top'] || '0px').replace('px', '');
+                
+        window.scrollTo({
+            top: this.$form.getBoundingClientRect().top + window.pageYOffset - 100 - extraPadding - extraMargin,
+            behavior: 'smooth',
+        });
     }
 
     triggerJsEvents() {
