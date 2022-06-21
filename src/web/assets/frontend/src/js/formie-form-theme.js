@@ -537,7 +537,12 @@ export class FormieFormTheme {
         // Show server-side errors for each field
         Object.keys(errors).forEach((handle, index) => {
             const [ error ] = errors[handle];
-            const $field = document.querySelector(`[name="fields[${handle}]"]`);
+            let $field = document.querySelector(`[name="fields[${handle}]"]`);
+
+            // Check for multiple fields
+            if (!$field) {
+                $field = document.querySelector(`[name="fields[${handle}][]"]`);
+            }
 
             if ($field) {
                 this.validator.showError($field, { serverMessage: error });
