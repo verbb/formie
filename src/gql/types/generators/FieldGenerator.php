@@ -68,7 +68,7 @@ class FieldGenerator implements GeneratorInterface
                 'name' => $typeName,
                 'fields' => function() use ($fieldFields) {
                     return $fieldFields;
-                }
+                },
             ]));
         }
 

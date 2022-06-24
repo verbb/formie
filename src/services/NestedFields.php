@@ -360,7 +360,7 @@ class NestedFields extends Component
     private function _createContentTable(string $tableName)
     {
         $migration = new CreateFormContentTable([
-            'tableName' => $tableName
+            'tableName' => $tableName,
         ]);
 
         ob_start();

@@ -8,7 +8,7 @@ class Hidden extends DefaultField
 
     use BaseFieldTrait;
 
-    
+
     // Properties
     // =========================================================================
 

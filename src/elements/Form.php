@@ -154,14 +154,14 @@ class Form extends Element
     public static function defineSources(string $context = null): array
     {
         $ids = self::_getAvailableFormIds();
-        
+
         $sources = [
             [
                 'key' => '*',
                 'label' => 'All forms',
                 'defaultSort' => ['title', 'desc'],
                 'criteria' => ['id' => $ids],
-            ]
+            ],
         ];
 
         $templates = Formie::$plugin->getFormTemplates()->getAllTemplates();
@@ -192,7 +192,7 @@ class Form extends Element
         if (self::$_layoutsByType !== null) {
             return self::$_layoutsByType;
         }
-        
+
         return self::$_layoutsByType = Craft::$app->getFields()->getLayoutsByType(static::class);
     }
 
@@ -235,31 +235,33 @@ class Form extends Element
         $rules[] = [['title', 'handle'], 'required'];
         $rules[] = [['title'], 'string', 'max' => 255];
         $rules[] = [['templateId', 'submitActionEntryId', 'defaultStatusId', 'fieldLayoutId'], 'number', 'integerOnly' => true];
-        
+
         // Make sure the column name is under the database’s maximum allowed column length
         $rules[] = [['handle'], 'string', 'max' => HandleHelper::getMaxFormHandle()];
-        
+
         $rules[] = [
             ['handle'],
             HandleValidator::class,
-            'reservedWords' => ['id', 'dateCreated', 'dateUpdated', 'uid', 'title']
+            'reservedWords' => ['id', 'dateCreated', 'dateUpdated', 'uid', 'title'],
         ];
 
-        $rules[] = ['handle', function($attribute, $params, Validator $validator) {
-            $query = static::find()->handle($this->$attribute);
-            if ($this->id) {
-                $query = $query->id("not {$this->id}");
-            }
+        $rules[] = [
+            'handle', function($attribute, $params, Validator $validator) {
+                $query = static::find()->handle($this->$attribute);
+                if ($this->id) {
+                    $query = $query->id("not {$this->id}");
+                }
 
-            if ($query->exists()) {
-                $error = Craft::t('formie', '{attribute} "{value}" has already been taken.', [
-                    'attribute' => $attribute,
-                    'value' => $this->$attribute,
-                ]);
+                if ($query->exists()) {
+                    $error = Craft::t('formie', '{attribute} "{value}" has already been taken.', [
+                        'attribute' => $attribute,
+                        'value' => $this->$attribute,
+                    ]);
 
-                $validator->addError($this, $attribute, $error);
-            }
-        }];
+                    $validator->addError($this, $attribute, $error);
+                }
+            },
+        ];
 
         return $rules;
     }
@@ -320,7 +322,7 @@ class Form extends Element
 
         /* @var FieldLayoutBehavior $behavior */
         $behavior = $this->getBehavior('fieldLayout');
-        
+
         return $this->_formFieldLayout = $behavior->getFieldLayout();
     }
 
@@ -331,7 +333,7 @@ class Form extends Element
     {
         /* @var FieldLayoutBehavior $behavior */
         $behavior = $this->getBehavior('fieldLayout');
-        
+
         return $this->_formFieldLayout = $behavior->setFieldLayout($fieldLayout);
     }
 
@@ -447,7 +449,7 @@ class Form extends Element
                         'handle' => 'new',
                         'color' => 'green',
                         'sortOrder' => 1,
-                        'isDefault' => 1
+                        'isDefault' => 1,
                     ]);
 
                     Formie::getInstance()->getStatuses()->saveStatus($this->_defaultStatus);
@@ -530,7 +532,7 @@ class Form extends Element
         if ($this->_formId) {
             return $this->_formId;
         }
-        
+
         return $this->_formId = uniqid("formie-form-{$this->id}");
     }
 
@@ -647,7 +649,7 @@ class Form extends Element
                 return true;
             }
         }
-        
+
         return false;
     }
 
@@ -663,7 +665,7 @@ class Form extends Element
                 return true;
             }
         }
-        
+
         return false;
     }
 
@@ -1247,7 +1249,7 @@ class Form extends Element
     public function renderTemplate($components, $variables = []): string
     {
         $view = Craft::$app->getView();
-        
+
         // Normalise the components to allow for a single component
         if (!is_array($components)) {
             $components = [$components];
@@ -1293,7 +1295,7 @@ class Form extends Element
      * @inheritdoc
      */
     public function getFrontEndJsVariables(): array
-    {   
+    {
         $pluginSettings = Formie::$plugin->getSettings();
 
         // Only provide what we need, both for security/privacy but also DOM size
@@ -1542,7 +1544,8 @@ class Form extends Element
                     }
                 }
             }
-        } catch (Throwable $e) {}
+        } catch (Throwable $e) {
+        }
 
         return $hasErrors;
     }
@@ -1697,7 +1700,7 @@ class Form extends Element
             'handle' => ['label' => Craft::t('app', 'Handle')],
             'template' => ['label' => Craft::t('app', 'Template')],
             'usageCount' => ['label' => Craft::t('formie', 'Usage Count')],
-            'dateCreated' => ['label' =>Craft::t('app', 'Date Created')],
+            'dateCreated' => ['label' => Craft::t('app', 'Date Created')],
             'dateUpdated' => ['label' => Craft::t('app', 'Date Updated')],
         ];
     }
@@ -1736,12 +1739,12 @@ class Form extends Element
             [
                 'label' => Craft::t('app', 'Date Created'),
                 'orderBy' => 'elements.dateCreated',
-                'attribute' => 'dateCreated'
+                'attribute' => 'dateCreated',
             ],
             [
                 'label' => Craft::t('app', 'Date Updated'),
                 'orderBy' => 'elements.dateUpdated',
-                'attribute' => 'dateUpdated'
+                'attribute' => 'dateUpdated',
             ],
             [
                 'label' => Craft::t('app', 'ID'),

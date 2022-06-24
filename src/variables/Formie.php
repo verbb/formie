@@ -259,7 +259,7 @@ class Formie
                 'import-export' => ['title' => Craft::t('formie', 'Import/Export')],
                 'forms' => ['title' => Craft::t('formie', 'Forms')],
                 'fields' => ['title' => Craft::t('formie', 'Fields')],
-                
+
                 'behavior-heading' => ['heading' => Craft::t('formie', 'Behavior')],
                 'notifications' => ['title' => Craft::t('formie', 'Email Notifications')],
                 'sent-notifications' => ['title' => Craft::t('formie', 'Sent Notifications')],
@@ -268,13 +268,13 @@ class Formie
                 'spam' => ['title' => Craft::t('formie', 'Spam')],
                 // 'security' => ['title' => Craft::t('formie', 'Security')],
                 // 'privacy' => ['title' => Craft::t('formie', 'Privacy & Data')],
-                
+
                 'appearance-heading' => ['heading' => Craft::t('formie', 'Appearance')],
                 'stencils' => ['title' => Craft::t('formie', 'Stencils')],
                 'form-templates' => ['title' => Craft::t('formie', 'Form Templates')],
                 'email-templates' => ['title' => Craft::t('formie', 'Email Templates')],
                 'pdf-templates' => ['title' => Craft::t('formie', 'PDF Templates')],
-                
+
                 'integrations-heading' => ['heading' => Craft::t('formie', 'Integrations')],
                 'captchas' => ['title' => Craft::t('formie', 'Captchas')],
                 'address-providers' => ['title' => Craft::t('formie', 'Address Providers')],
@@ -287,7 +287,7 @@ class Formie
         } else {
             $navItems = [
                 'import-export' => ['title' => Craft::t('formie', 'Import/Export')],
-            
+
                 'integrations-heading' => ['heading' => Craft::t('formie', 'Integrations')],
                 'address-providers' => ['title' => Craft::t('formie', 'Address Providers')],
                 'elements' => ['title' => Craft::t('formie', 'Elements')],

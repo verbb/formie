@@ -31,7 +31,7 @@ class m201108_000000_sent_notifications extends Migration
                 'info' => $this->text(),
                 'dateCreated' => $this->dateTime(),
                 'dateUpdated' => $this->dateTime(),
-                'uid' => $this->uid()
+                'uid' => $this->uid(),
             ]);
 
             $this->addForeignKey(null, '{{%formie_sentnotifications}}', ['id'], '{{%elements}}', ['id'], 'CASCADE', null);

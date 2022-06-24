@@ -154,7 +154,7 @@ trait NestedFieldTrait
                     // type).
                     $error = Craft::t('formie', '{attribute} "{value}" has already been taken.', [
                         'attribute' => Craft::t('formie', 'Handle'),
-                        'value' => $field->handle
+                        'value' => $field->handle,
                     ]);
 
                     $field->addError('handle', $error);
@@ -216,7 +216,7 @@ trait NestedFieldTrait
             [
                 'label' => 'Fields',
                 'rows' => $rows,
-            ]
+            ],
         ], static::class, $duplicate);
 
         if ($oldFieldLayout = $this->getFieldLayout()) {
@@ -638,7 +638,7 @@ trait NestedFieldTrait
             'map' => $map,
             'criteria' => [
                 'fieldId' => $this->id,
-            ]
+            ],
         ];
     }
 

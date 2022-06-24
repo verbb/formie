@@ -105,7 +105,7 @@ class MigrateSproutForms extends Migration
     private function _migrateForm()
     {
         $settings = Formie::$plugin->getSettings();
-        $transaction = Craft::$app->db->beginTransaction();
+        $transaction = Craft::$app->getDb()->beginTransaction();
         $sproutFormsForm = $this->_sproutForm;
 
         $this->stdout("Form: Preparing to migrate form “{$sproutFormsForm->handle}”.");

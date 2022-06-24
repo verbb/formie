@@ -9,5 +9,5 @@ class SyncedFieldEvent extends Event
     // =========================================================================
 
     public $field;
-    
+
 }

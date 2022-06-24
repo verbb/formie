@@ -9,5 +9,5 @@ class SubmissionSpamCheckEvent extends Event
     // =========================================================================
 
     public $submission;
-    
+
 }

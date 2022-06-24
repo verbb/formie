@@ -27,7 +27,7 @@ class IntegrationSettingsController extends Controller
     public function actionCaptchaIndex(): Response
     {
         $groupedIntegrations = Formie::$plugin->getIntegrations()->getAllGroupedCaptchas();
-        
+
         return $this->renderTemplate('formie/settings/captchas', compact('groupedIntegrations'));
     }
 
@@ -50,13 +50,13 @@ class IntegrationSettingsController extends Controller
                 $errors[] = true;
             }
         }
-        
+
         if ($errors) {
             Craft::$app->getSession()->setError(Craft::t('formie', 'Couldn’t save integration settings.'));
 
             return null;
         }
-    
+
         Craft::$app->getSession()->setNotice(Craft::t('formie', 'Integration settings saved.'));
 
         return $this->redirectToPostedUrl();

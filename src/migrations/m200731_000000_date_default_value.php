@@ -32,7 +32,7 @@ class m200731_000000_date_default_value extends Migration
             $settings['defaultOption'] = 'date';
 
             $this->update(Table::FIELDS, [
-                'settings' => Json::encode($settings)
+                'settings' => Json::encode($settings),
             ], ['id' => $field['id']], [], false);
         }
     }

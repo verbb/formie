@@ -28,7 +28,7 @@ abstract class BaseTemplate extends Model
     public $sortOrder;
     public $dateDeleted;
     public $uid;
-    
+
     public $copyTemplates = false;
     public $hasSingleTemplate = false;
 
@@ -51,8 +51,7 @@ abstract class BaseTemplate extends Model
      */
     public function getDisplayName(): string
     {
-        if ($this->dateDeleted !== null)
-        {
+        if ($this->dateDeleted !== null) {
             return $this->name . Craft::t('formie', ' (Trashed)');
         }
 
@@ -78,16 +77,29 @@ abstract class BaseTemplate extends Model
             UniqueValidator::class,
             'targetClass' => $this->getRecordClass(),
         ];
-        $rules[] = ['template', function($attribute, $params, Validator $validator) {
-            $templatesPath = Craft::$app->getPath()->getSiteTemplatesPath();
+        $rules[] = [
+            'template', function($attribute, $params, Validator $validator) {
+                $templatesPath = Craft::$app->getPath()->getSiteTemplatesPath();
 
-            $view = Craft::$app->getView();
-            $oldTemplatesPath = $view->getTemplatesPath();
-            $view->setTemplatesPath($templatesPath);
+                $view = Craft::$app->getView();
+                $oldTemplatesPath = $view->getTemplatesPath();
+                $view->setTemplatesPath($templatesPath);
 
-            // Check how to validate templates
-            if ($this->hasSingleTemplate) {
-                if (!$view->doesTemplateExist($this->$attribute)) {
+                // Check how to validate templates
+                if ($this->hasSingleTemplate) {
+                    if (!$view->doesTemplateExist($this->$attribute)) {
+                        $path = Craft::$app->getPath()->getSiteTemplatesPath() . DIRECTORY_SEPARATOR . $this->$attribute;
+                        $path = FileHelper::normalizePath($path);
+
+                        if (!is_dir($path)) {
+                            $validator->addError(
+                                $this,
+                                $attribute,
+                                Craft::t('formie', 'The template does not exist.')
+                            );
+                        }
+                    }
+                } else {
                     $path = Craft::$app->getPath()->getSiteTemplatesPath() . DIRECTORY_SEPARATOR . $this->$attribute;
                     $path = FileHelper::normalizePath($path);
 
@@ -95,25 +107,14 @@ abstract class BaseTemplate extends Model
                         $validator->addError(
                             $this,
                             $attribute,
-                            Craft::t('formie', 'The template does not exist.')
+                            Craft::t('formie', 'The template directory does not exist.')
                         );
                     }
                 }
-            } else {
-                $path = Craft::$app->getPath()->getSiteTemplatesPath() . DIRECTORY_SEPARATOR . $this->$attribute;
-                $path = FileHelper::normalizePath($path);
 
-                if (!is_dir($path)) {
-                    $validator->addError(
-                        $this,
-                        $attribute,
-                        Craft::t('formie', 'The template directory does not exist.')
-                    );
-                }
-            }
-
-            $view->setTemplatesPath($oldTemplatesPath);
-        }];
+                $view->setTemplatesPath($oldTemplatesPath);
+            },
+        ];
 
         return $rules;
     }
@@ -134,7 +135,7 @@ abstract class BaseTemplate extends Model
                 'template' => AttributeTypecastBehavior::TYPE_STRING,
                 'sortOrder' => AttributeTypecastBehavior::TYPE_INTEGER,
                 'uid' => AttributeTypecastBehavior::TYPE_STRING,
-            ]
+            ],
         ];
 
         return $behaviors;

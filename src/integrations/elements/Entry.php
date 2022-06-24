@@ -217,7 +217,7 @@ class Entry extends Element
     {
         if (!$this->entryTypeId) {
             Integration::error($this, Craft::t('formie', 'Unable to save element integration. No `entryTypeId`.'), true);
-            
+
             return false;
         }
 
@@ -230,7 +230,7 @@ class Entry extends Element
             $entry->sectionId = $entryType->sectionId;
 
             $attributeValues = $this->getFieldMappingValues($submission, $this->attributeMapping, $this->getElementAttributes());
-            
+
             // Filter null values
             $attributeValues = $this->filterNullValues($attributeValues);
 
@@ -246,7 +246,7 @@ class Entry extends Element
 
             $fields = $this->_getEntryTypeSettings()->fields ?? [];
             $fieldValues = $this->getFieldMappingValues($submission, $this->fieldMapping, $fields);
-            
+
             // Filter null values
             $fieldValues = $this->filterNullValues($fieldValues);
 
@@ -269,13 +269,13 @@ class Entry extends Element
                 // Is this a brand-new entry?
                 if (!$entry->id) {
                     $entry->setScenario(CraftElement::SCENARIO_ESSENTIALS);
-                    
+
                     if (!Craft::$app->getDrafts()->saveElementAsDraft($entry, $authorId)) {
                         Integration::error($this, Craft::t('formie', 'Unable to save “{type}” draft element integration. Error: {error}.', [
                             'type' => $this->handle,
                             'error' => Json::encode($entry->getErrors()),
                         ]), true);
-                        
+
                         return false;
                     }
                 } else {
@@ -300,7 +300,7 @@ class Entry extends Element
                     'type' => $this->handle,
                     'error' => Json::encode($entry->getErrors()),
                 ]), true);
-                
+
                 return false;
             }
 

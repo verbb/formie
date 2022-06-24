@@ -389,7 +389,7 @@ class Agile extends Crm
 
                     if ($tags) {
                         $tagsPayload = ['id' => $existingContact, 'tags' => $tags];
-                        
+
                         $response = $this->deliverPayload($submission, 'contacts/edit/tags', $tagsPayload, 'PUT');
                     }
                 } else {

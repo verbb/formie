@@ -74,7 +74,7 @@ class Adestra extends EmailMarketing
                 $listFields[] = new IntegrationField([
                     'handle' => $field['name'],
                     'name' => $field['name'],
-                    'type' => IntegrationField::TYPE_STRING
+                    'type' => IntegrationField::TYPE_STRING,
                 ]);
             }
 
@@ -119,7 +119,7 @@ class Adestra extends EmailMarketing
                 'table_id' => (int)Craft::parseEnv($this->coreTableId),
                 'dedupe_field' => 'email',
                 'options' => [
-                    'list_id' => (int)$this->listId
+                    'list_id' => (int)$this->listId,
                 ],
                 'contact_data' => $contactData,
             ];
@@ -172,7 +172,7 @@ class Adestra extends EmailMarketing
         return $this->_client = Craft::createGuzzleClient([
             'base_uri' => 'https://app.adestra.com/api/rest/1/',
             'headers' => [
-                'Authorization' => 'TOKEN ' . Craft::parseEnv($this->apiKey)
+                'Authorization' => 'TOKEN ' . Craft::parseEnv($this->apiKey),
             ],
         ]);
     }

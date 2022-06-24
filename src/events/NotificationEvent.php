@@ -10,5 +10,5 @@ class NotificationEvent extends Event
 
     public $notification;
     public $isNew = false;
-    
+
 }

@@ -10,5 +10,5 @@ class SubmissionRulesEvent extends Event
 
     public $submission;
     public $rules;
-    
+
 }

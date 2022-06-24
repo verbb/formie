@@ -38,7 +38,7 @@ class FormIntegrationsType extends ObjectType
                 'settings' => [
                     'name' => 'settings',
                     'type' => Type::string(),
-                    'resolve' => function ($source, $arguments) {
+                    'resolve' => function($source, $arguments) {
                         $json = Json::decode(Json::encode($source));
 
                         // Cleanup some settings that don't need to be included

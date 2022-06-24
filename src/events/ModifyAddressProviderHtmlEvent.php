@@ -10,5 +10,5 @@ class ModifyAddressProviderHtmlEvent extends Event
 
     public $html;
     public $js;
-    
+
 }

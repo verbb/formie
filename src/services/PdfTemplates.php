@@ -483,7 +483,7 @@ class PdfTemplates extends Component
                 'template',
                 'sortOrder',
                 'dateDeleted',
-                'uid'
+                'uid',
             ])
             ->orderBy('sortOrder')
             ->from(['{{%formie_pdftemplates}}']);

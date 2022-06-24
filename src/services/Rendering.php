@@ -366,7 +366,7 @@ class Rendering extends Component
         // We allow a submission or a form to be passed in here. Handle and get both.
         if ($element instanceof Form || is_string($element)) {
             $form = $element;
-            
+
             if (is_string($form)) {
                 $form = Form::find()->handle($form)->one();
             }
@@ -374,10 +374,10 @@ class Rendering extends Component
             if (!$form) {
                 return null;
             }
-            
+
             // Fetch the existing submission, if there is one, in case we're force-applying
             $submission = $form->getCurrentSubmission();
-        } 
+        }
 
         if ($element instanceof Submission) {
             $submission = $element;
@@ -387,7 +387,7 @@ class Rendering extends Component
                 return null;
             }
         }
-        
+
         $disabledValues = [];
 
         // Try to populate fields with their default value

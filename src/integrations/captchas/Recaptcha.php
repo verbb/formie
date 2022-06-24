@@ -209,7 +209,7 @@ class Recaptcha extends Captcha
             'form_params' => [
                 'secret' => $secretKey,
                 'response' => $response,
-                'remoteip' => Craft::$app->request->getRemoteIP(),
+                'remoteip' => Craft::$app->getRequest()->getRemoteIP(),
             ],
         ]);
 

@@ -409,8 +409,8 @@ class Fields extends Component
                 [
                     'label' => Craft::t('formie', 'All fields'),
                     'fields' => $allFields,
-                ]
-            ]
+                ],
+            ],
         ];
 
         foreach ($forms as $form) {
@@ -477,7 +477,7 @@ class Fields extends Component
     public function getElementFieldsForType($element, $type)
     {
         $fields = [];
-        
+
         foreach ($element->getFieldLayout()->getFields() as $field) {
             if (get_class($field) === $type) {
                 $fields[] = $field;
@@ -565,7 +565,7 @@ class Fields extends Component
         // Nested fields have rows of their own.
         if ($config['supportsNested'] = $field instanceof NestedFieldInterface) {
             $config['isElementField'] = true;
-            
+
             /* @var NestedFieldInterface|NestedFieldTrait $field */
             $config['rows'] = $field->getRows();
         }
@@ -824,13 +824,13 @@ class Fields extends Component
             ->orderBy([
                 'flt.sortOrder' => SORT_ASC,
                 'rows.row' => SORT_ASC,
-                'flf.sortOrder' => SORT_ASC
+                'flf.sortOrder' => SORT_ASC,
             ])
             ->all();
 
         foreach ($results as $result) {
             $field = Formie::$plugin->getFields()->createField($result);
-            
+
             $fields[] = $field;
         }
 
@@ -1058,7 +1058,7 @@ class Fields extends Component
             $class = new ReflectionClass(Field::class);
             $method = $class->getMethod('defineRules');
             $method->setAccessible(true);
-            $rule = ArrayHelper::firstWhere($method->invoke(new formfields\SingleLineText()), function ($rule) {
+            $rule = ArrayHelper::firstWhere($method->invoke(new formfields\SingleLineText()), function($rule) {
                 return $rule[1];
             }, HandleValidator::class);
 
@@ -1106,7 +1106,7 @@ class Fields extends Component
 
         // TODO: remove schema version condition after next beakpoint
         $schemaVersion = Craft::$app->getInstalledSchemaVersion();
-        
+
         if (version_compare($schemaVersion, '3.7.0', '>=')) {
             $query->addSelect(['fields.columnSuffix']);
         }
@@ -1125,7 +1125,7 @@ class Fields extends Component
             ->select([
                 'id',
                 'type',
-                'uid'
+                'uid',
             ])
             ->from([CraftTable::FIELDLAYOUTS])
             ->where(['dateDeleted' => null]);
@@ -1144,7 +1144,7 @@ class Fields extends Component
                 'fieldlayouttabs.layoutId',
                 'fieldlayouttabs.name',
                 'fieldlayouttabs.sortOrder',
-                'fieldlayouttabs.uid'
+                'fieldlayouttabs.uid',
             ])
             ->from([CraftTable::FIELDLAYOUTTABS . ' fieldlayouttabs'])
             ->orderBy(['sortOrder' => SORT_ASC]);

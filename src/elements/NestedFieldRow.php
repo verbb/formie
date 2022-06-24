@@ -206,7 +206,7 @@ class NestedFieldRow extends Element implements BlockElementInterface
             // Evaulate field conditions. What if this is a required field, but conditionally hidden?
             foreach ($rules as $key => $rule) {
                 foreach ($fields as $field) {
-                    list($attribute, $validator) = $rule;
+                    [$attribute, $validator] = $rule;
                     $attribute = is_array($attribute) ? $attribute[0] : $attribute;
 
                     if ($attribute === "field:{$field->handle}") {
@@ -252,7 +252,7 @@ class NestedFieldRow extends Element implements BlockElementInterface
                 throw new InvalidConfigException('Nested field row is missing its owner ID');
             }
 
-            if (($this->_owner = Craft::$app->getElements()->getElementById($this->ownerId, null, $this->siteId, [ 'isIncomplete' => null ])) === null) {
+            if (($this->_owner = Craft::$app->getElements()->getElementById($this->ownerId, null, $this->siteId, ['isIncomplete' => null])) === null) {
                 throw new InvalidConfigException('Invalid owner ID: ' . $this->ownerId);
             }
         }

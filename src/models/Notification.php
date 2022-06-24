@@ -107,7 +107,7 @@ class Notification extends Model
                 'enableConditions' => AttributeTypecastBehavior::TYPE_BOOLEAN,
                 'conditions' => AttributeTypecastBehavior::TYPE_STRING,
                 'uid' => AttributeTypecastBehavior::TYPE_STRING,
-            ]
+            ],
         ];
 
         return $behaviors;
@@ -162,7 +162,7 @@ class Notification extends Model
 
         if ($this->recipients === 'conditions') {
             $conditionSettings = Json::decode($this->toConditions) ?? [];
-            
+
             if ($conditionSettings) {
                 $toRecipients = $conditionSettings['toRecipients'] ?? [];
 
@@ -191,7 +191,7 @@ class Notification extends Model
     public function renderTemplate($components, $variables = []): string
     {
         $view = Craft::$app->getView();
-        
+
         // Normalise the components to allow for a single component
         if (!is_array($components)) {
             $components = [$components];

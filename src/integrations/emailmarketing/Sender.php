@@ -192,7 +192,7 @@ class Sender extends EmailMarketing
                 'method' => 'POST',
                 'header' => 'Content-Type: application/x-www-form-urlencoded',
                 'content' => http_build_query(['data' => Json::encode($data)]),
-            ]
+            ],
         ];
 
         $context = stream_context_create($options);

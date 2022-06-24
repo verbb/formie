@@ -342,12 +342,12 @@ class Mailchimp extends EmailMarketing
         foreach ($fields as $key => $field) {
             // // Only allow supported types
             if (!in_array($field['type'], $supportedFields)) {
-                 continue;
+                continue;
             }
 
             // Exclude any names
             if (in_array($field['name'], $excludeNames)) {
-                 continue;
+                continue;
             }
 
             $customFields[] = new IntegrationField([

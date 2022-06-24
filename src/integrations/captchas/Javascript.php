@@ -105,7 +105,7 @@ class Javascript extends Captcha
     public function getRefreshJsVariables(Form $form, $page = null)
     {
         $sessionKey = $this->getSessionKey($form, $page);
-        
+
         // Get or create the generated input value so we can validate it properly. Also make it per-form
         $value = $this->getOrSet($sessionKey, function() {
             return uniqid();
@@ -133,7 +133,7 @@ class Javascript extends Captcha
 
         // Protect against invalid data being sent. No need to log, likely malicious
         if (!is_string($jsset)) {
-            return false;            
+            return false;
         }
 
         // Compare the two - in case someone is being sneaky and just providing _any_ value for the captcha

@@ -10,7 +10,7 @@ class Agree extends FeedMeLightswitch
 
     use BaseFieldTrait;
 
-    
+
     // Properties
     // =========================================================================
 

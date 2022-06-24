@@ -25,7 +25,7 @@ class KeyValueGenerator implements GeneratorInterface
             'name' => $typeName,
             'fields' => function() use ($contentFields) {
                 return $contentFields;
-            }
+            },
         ]));
 
         return [$type];

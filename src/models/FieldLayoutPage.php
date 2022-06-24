@@ -121,7 +121,7 @@ class FieldLayoutPage extends CraftFieldLayoutTab
         $this->_fields = $fields;
 
         $this->elements = [];
-        
+
         foreach ($this->_fields as $field) {
             $this->elements[] = Craft::createObject([
                 'class' => CustomField::class,

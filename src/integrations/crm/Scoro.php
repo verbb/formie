@@ -257,7 +257,7 @@ class Scoro extends Crm
 
         return $fieldTypes[$fieldType] ?? IntegrationField::TYPE_STRING;
     }
-    
+
     /**
      * @inheritDoc
      */

@@ -224,7 +224,7 @@ class Trello extends Miscellaneous
         $this->_client = Craft::createGuzzleClient([
             'base_uri' => 'https://api.trello.com/1/',
             'handler' => $stack,
-            'auth' => 'oauth'
+            'auth' => 'oauth',
         ]);
 
         return $this->_client;

@@ -99,7 +99,7 @@ class FormTemplatesController extends Controller
         $template->outputJsTheme = $request->getBodyParam('outputJsTheme');
         $template->outputCssLocation = $request->getBodyParam('outputCssLocation');
         $template->outputJsLocation = $request->getBodyParam('outputJsLocation');
-        
+
         // Set the form field layout
         $fieldLayout = Craft::$app->getFields()->assembleLayoutFromPost();
         $fieldLayout->type = Form::class;

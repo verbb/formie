@@ -250,7 +250,7 @@ class Copper extends Crm
             $lossReasonOptions = [];
             $pipelineOptions = [];
             $stageOptions = [];
-            
+
             $customerSources = $this->request('GET', 'customer_sources');
             $lossReasons = $this->request('GET', 'loss_reasons');
             $pipelines = $this->request('GET', 'pipelines');
@@ -720,31 +720,39 @@ class Copper extends Crm
             }
 
             if ($key === 'emails') {
-                $fields[$key] = [[
-                    'category' => 'work',
-                    'email' => $value,
-                ]];
+                $fields[$key] = [
+                    [
+                        'category' => 'work',
+                        'email' => $value,
+                    ],
+                ];
             }
 
             if ($key === 'phone_numbers') {
-                $fields[$key] = [[
-                    'category' => 'work',
-                    'number' => $value,
-                ]];
+                $fields[$key] = [
+                    [
+                        'category' => 'work',
+                        'number' => $value,
+                    ],
+                ];
             }
 
             if ($key === 'socials') {
-                $fields[$key] = [[
-                    'category' => '',
-                    'url' => $value,
-                ]];
+                $fields[$key] = [
+                    [
+                        'category' => '',
+                        'url' => $value,
+                    ],
+                ];
             }
 
             if ($key === 'websites') {
-                $fields[$key] = [[
-                    'category' => 'work',
-                    'url' => $value,
-                ]];
+                $fields[$key] = [
+                    [
+                        'category' => 'work',
+                        'url' => $value,
+                    ],
+                ];
             }
         }
 

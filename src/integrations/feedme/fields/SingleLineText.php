@@ -8,7 +8,7 @@ class SingleLineText extends DefaultField
 
     use BaseFieldTrait;
 
-    
+
     // Properties
     // =========================================================================
 

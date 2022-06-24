@@ -61,32 +61,32 @@ class GetResponse extends EmailMarketing
     public function fetchFormSettings()
     {
         $settings = [];
-            $lists = $this->request('GET', 'campaigns');
-            
-            // While we're at it, fetch the fields for the list
-            $fields = $this->request('GET', 'custom-fields');
+        $lists = $this->request('GET', 'campaigns');
 
-            foreach ($lists as $list) {
-                $listFields = array_merge([
-                    new IntegrationField([
-                        'handle' => 'email',
-                        'name' => Craft::t('formie', 'Email'),
-                        'required' => true,
-                    ]),
-                    new IntegrationField([
-                        'handle' => 'name',
-                        'name' => Craft::t('formie', 'Name'),
-                    ]),
-                ], $this->_getCustomFields($fields));
-            
-                $settings['lists'][] = new IntegrationCollection([
-                    'id' => $list['campaignId'],
-                    'name' => $list['name'],
-                    'fields' => $listFields,
-                ]);
-            }
+        // While we're at it, fetch the fields for the list
+        $fields = $this->request('GET', 'custom-fields');
+
+        foreach ($lists as $list) {
+            $listFields = array_merge([
+                new IntegrationField([
+                    'handle' => 'email',
+                    'name' => Craft::t('formie', 'Email'),
+                    'required' => true,
+                ]),
+                new IntegrationField([
+                    'handle' => 'name',
+                    'name' => Craft::t('formie', 'Name'),
+                ]),
+            ], $this->_getCustomFields($fields));
+
+            $settings['lists'][] = new IntegrationCollection([
+                'id' => $list['campaignId'],
+                'name' => $list['name'],
+                'fields' => $listFields,
+            ]);
+        }
         try {
-            
+
         } catch (\Throwable $e) {
             Integration::apiError($this, $e);
         }
@@ -161,7 +161,6 @@ class GetResponse extends EmailMarketing
                 Integration::error($this, 'Unable to find “{accountId}” in response.', true);
                 return false;
             }
-
         } catch (\Throwable $e) {
             Integration::apiError($this, $e);
 
@@ -215,7 +214,7 @@ class GetResponse extends EmailMarketing
         foreach ($fields as $key => $field) {
             // Exclude any names
             if (in_array($field['name'], $excludeNames)) {
-                 continue;
+                continue;
             }
 
             $customFields[] = new IntegrationField([

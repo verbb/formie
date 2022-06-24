@@ -10,5 +10,5 @@ class ModifyElementFieldQueryEvent extends Event
 
     public $query;
     public $field;
-    
+
 }

@@ -457,7 +457,7 @@ class SugarCrm extends Crm
 
             // Only allow supported types
             if (!in_array($type, $supportedFields)) {
-                 continue;
+                continue;
             }
 
             $customFields[] = new IntegrationField([

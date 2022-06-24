@@ -212,7 +212,7 @@ class Table extends CraftTable implements FormFieldInterface
     public function getPreviewInputHtml(): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/table/preview', [
-            'field' => $this
+            'field' => $this,
         ]);
     }
 

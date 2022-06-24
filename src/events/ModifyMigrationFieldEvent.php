@@ -12,5 +12,5 @@ class ModifyMigrationFieldEvent extends CancelableEvent
     public $originForm;
     public $field;
     public $newField;
-    
+
 }

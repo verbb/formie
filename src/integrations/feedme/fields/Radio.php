@@ -10,7 +10,7 @@ class Radio extends FeedMeRadioButtons
 
     use BaseFieldTrait;
 
-    
+
     // Properties
     // =========================================================================
 

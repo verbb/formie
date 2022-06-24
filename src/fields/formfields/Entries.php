@@ -114,7 +114,7 @@ class Entries extends CraftEntries implements FormFieldInterface
 
         return [
             'sourceOptions' => $options,
-            'warning' => count($options) < 2 ? Craft::t('formie', 'No sections available. View [section settings]({link}).', ['link' => UrlHelper::cpUrl('settings/sections') ]) : false,
+            'warning' => count($options) < 2 ? Craft::t('formie', 'No sections available. View [section settings]({link}).', ['link' => UrlHelper::cpUrl('settings/sections')]) : false,
         ];
     }
 
@@ -149,7 +149,7 @@ class Entries extends CraftEntries implements FormFieldInterface
     public function getPreviewInputHtml(): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/entries/preview', [
-            'field' => $this
+            'field' => $this,
         ]);
     }
 
@@ -227,7 +227,7 @@ class Entries extends CraftEntries implements FormFieldInterface
             } else {
                 $ids = ArrayHelper::getColumn($this->defaultValue, 'id');
             }
-            
+
             if ($ids) {
                 $query->id($ids);
             }
@@ -265,7 +265,7 @@ class Entries extends CraftEntries implements FormFieldInterface
             if (!isset($source['heading'])) {
                 $options[] = [
                     'label' => $source['label'],
-                    'value' => $source['key']
+                    'value' => $source['key'],
                 ];
 
                 $optionNames[] = $source['label'];
@@ -278,7 +278,7 @@ class Entries extends CraftEntries implements FormFieldInterface
                     foreach ($entryTypes as $entryType) {
                         $options[] = [
                             'label' => $source['label'] . ': ' . $entryType['name'],
-                            'value' => 'type:' . $entryType['uid']
+                            'value' => 'type:' . $entryType['uid'],
                         ];
 
                         $optionNames[] = $source['label'] . ': ' . $entryType['name'];
@@ -334,7 +334,7 @@ class Entries extends CraftEntries implements FormFieldInterface
             'entries' => [
                 'name' => 'entries',
                 'type' => Type::listOf(EntryInterface::getType()),
-                'resolve' => EntryResolver::class.'::resolve',
+                'resolve' => EntryResolver::class . '::resolve',
                 'args' => EntryArguments::getArguments(),
                 'resolve' => function($class) {
                     return $class->getElementsQuery()->all();
@@ -370,7 +370,7 @@ class Entries extends CraftEntries implements FormFieldInterface
                 'required' => true,
                 'showAllOption' => true,
                 'element-class' => count($options) < 2 ? 'hidden' : false,
-                'warning' => count($options) < 2 ? Craft::t('formie', 'No sections available. View [section settings]({link}).', ['link' => UrlHelper::cpUrl('settings/sections') ]) : false,
+                'warning' => count($options) < 2 ? Craft::t('formie', 'No sections available. View [section settings]({link}).', ['link' => UrlHelper::cpUrl('settings/sections')]) : false,
             ]),
             SchemaHelper::elementSelectField([
                 'label' => Craft::t('formie', 'Default Value'),
@@ -449,9 +449,9 @@ class Entries extends CraftEntries implements FormFieldInterface
                 'help' => Craft::t('formie', 'Set different display layouts for this field.'),
                 'name' => 'displayType',
                 'options' => [
-                    [ 'label' => Craft::t('formie', 'Dropdown'), 'value' => 'dropdown' ],
-                    [ 'label' => Craft::t('formie', 'Checkboxes'), 'value' => 'checkboxes' ],
-                    [ 'label' => Craft::t('formie', 'Radio Buttons'), 'value' => 'radio' ],
+                    ['label' => Craft::t('formie', 'Dropdown'), 'value' => 'dropdown'],
+                    ['label' => Craft::t('formie', 'Checkboxes'), 'value' => 'checkboxes'],
+                    ['label' => Craft::t('formie', 'Radio Buttons'), 'value' => 'radio'],
                 ],
             ]),
             SchemaHelper::toggleContainer('settings.displayType=dropdown', [
@@ -506,7 +506,7 @@ class Entries extends CraftEntries implements FormFieldInterface
             return [
                 'name' => 'defaultEntry',
                 'type' => EntryInterface::getType(),
-                'resolve' => EntryResolver::class.'::resolve',
+                'resolve' => EntryResolver::class . '::resolve',
                 'args' => EntryArguments::getArguments(),
                 'resolve' => function($class) {
                     return $class->getDefaultValueQuery() ? $class->getDefaultValueQuery()->one() : null;

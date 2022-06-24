@@ -38,7 +38,7 @@ class SubmissionMutation extends Mutation
             $canCreateAll = Gql::canSchema('formieSubmissions.all', 'create');
             $canSaveAll = Gql::canSchema('formieSubmissions.all', 'save');
             $canDeleteAll = Gql::canSchema('formieSubmissions.all', 'delete');
-            
+
             $canCreate = Gql::canSchema($scope, 'create');
             $canSave = Gql::canSchema($scope, 'save');
             $canDelete = Gql::canSchema($scope, 'delete');

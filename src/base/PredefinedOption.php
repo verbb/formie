@@ -15,7 +15,7 @@ abstract class PredefinedOption extends Component implements PredefinedOptionInt
 
     // Public Method
     // =========================================================================
-    
+
     /**
      * @inheritDoc
      */

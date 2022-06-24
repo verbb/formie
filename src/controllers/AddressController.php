@@ -17,7 +17,7 @@ class AddressController extends Controller
 
     protected $allowAnonymous = ['google-places-geocode'];
 
-    
+
     // Public Methods
     // =========================================================================
 

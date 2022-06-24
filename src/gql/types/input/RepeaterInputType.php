@@ -82,7 +82,7 @@ class RepeaterInputType extends InputObjectType
                     $key = 'new' . $rowCounter++;
                     $sortOrder[] = $key;
                     $preparedRows[$key] = [
-                        'fields' => $row
+                        'fields' => $row,
                     ];
                 }
             }
@@ -90,7 +90,7 @@ class RepeaterInputType extends InputObjectType
 
         return [
             'rows' => $preparedRows,
-            'sortOrder' => $sortOrder
+            'sortOrder' => $sortOrder,
         ];
     }
 }

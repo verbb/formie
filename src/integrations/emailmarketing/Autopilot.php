@@ -165,7 +165,7 @@ class Autopilot extends EmailMarketing
                         'name' => Craft::t('formie', 'Unsubscribed'),
                     ]),
                 ], $this->_getCustomFields($fields));
-            
+
                 $settings['lists'][] = new IntegrationCollection([
                     'id' => $list['list_id'],
                     'name' => $list['title'],
@@ -332,7 +332,7 @@ class Autopilot extends EmailMarketing
         foreach ($fields as $key => $field) {
             // Exclude any names
             if (in_array($field['name'], $excludeNames)) {
-                 continue;
+                continue;
             }
 
             $customFields[] = new IntegrationField([

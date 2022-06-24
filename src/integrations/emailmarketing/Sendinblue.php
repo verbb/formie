@@ -175,7 +175,7 @@ class Sendinblue extends EmailMarketing
             'query' => [
                 'limit' => $limit,
                 'offset' => $offset,
-            ]
+            ],
         ]);
 
         $newItems = $response[$param] ?? [];

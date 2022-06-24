@@ -70,7 +70,7 @@ class Tokens extends Component
         if ($this->hasEventHandlers(self::EVENT_BEFORE_SAVE_TOKEN)) {
             $this->trigger(self::EVENT_BEFORE_SAVE_TOKEN, new TokenEvent([
                 'token' => $token,
-                'isNew' => $isNewToken
+                'isNew' => $isNewToken,
             ]));
         }
 
@@ -96,7 +96,7 @@ class Tokens extends Component
         if ($this->hasEventHandlers(self::EVENT_AFTER_SAVE_TOKEN)) {
             $this->trigger(self::EVENT_AFTER_SAVE_TOKEN, new TokenEvent([
                 'token' => $token,
-                'isNew' => $isNewToken
+                'isNew' => $isNewToken,
             ]));
         }
 
@@ -119,7 +119,7 @@ class Tokens extends Component
         // Fire a 'beforeDeleteToken' event
         if ($this->hasEventHandlers(self::EVENT_BEFORE_DELETE_TOKEN)) {
             $this->trigger(self::EVENT_BEFORE_DELETE_TOKEN, new TokenEvent([
-                'token' => $token
+                'token' => $token,
             ]));
         }
 
@@ -130,7 +130,7 @@ class Tokens extends Component
         // Fire an 'afterDeleteToken' event
         if ($this->hasEventHandlers(self::EVENT_AFTER_DELETE_TOKEN)) {
             $this->trigger(self::EVENT_AFTER_DELETE_TOKEN, new TokenEvent([
-                'token' => $token
+                'token' => $token,
             ]));
         }
 

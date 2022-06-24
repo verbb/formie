@@ -10,5 +10,5 @@ class FieldRowEvent extends Event
 
     public $row;
     public $isNew = false;
-    
+
 }

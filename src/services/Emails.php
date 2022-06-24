@@ -161,7 +161,7 @@ class Emails extends Component
                     'value' => $notification->cc,
                     'message' => $e->getMessage(),
                     'file' => $e->getFile(),
-                    'line' => $e->getLine()
+                    'line' => $e->getLine(),
                 ]);
 
                 return ['error' => $error, 'email' => $newEmail, 'exception' => $e];
@@ -182,7 +182,7 @@ class Emails extends Component
                     'value' => $notification->replyTo,
                     'message' => $e->getMessage(),
                     'file' => $e->getFile(),
-                    'line' => $e->getLine()
+                    'line' => $e->getLine(),
                 ]);
 
                 return ['error' => $error, 'email' => $newEmail, 'exception' => $e];
@@ -198,7 +198,7 @@ class Emails extends Component
                 'value' => $notification->subject,
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
-                'line' => $e->getLine()
+                'line' => $e->getLine(),
             ]);
 
             return ['error' => $error, 'email' => $newEmail, 'exception' => $e];
@@ -274,7 +274,7 @@ class Emails extends Component
                 'value' => $templatePath,
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
-                'line' => $e->getLine()
+                'line' => $e->getLine(),
             ]);
 
             return ['error' => $error, 'email' => $newEmail, 'exception' => $e];
@@ -302,7 +302,7 @@ class Emails extends Component
         $emailRender = $this->renderEmail($notification, $submission);
 
         $newEmail = $emailRender['email'] ?? '';
-        
+
         // Check if there were any errors. It's split this was so calling `render()` can return errors for previews
         // But in our case, we want to log the errors and bail.
         if (isset($emailRender['error']) && $emailRender['error']) {
@@ -536,7 +536,7 @@ class Emails extends Component
     private function _getAssetsForSubmission($element)
     {
         $assets = [];
-        
+
         foreach ($element->getFieldLayout()->getFields() as $field) {
             if (get_class($field) === FileUpload::class) {
                 $value = $element->getFieldValue($field->handle);

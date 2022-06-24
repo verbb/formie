@@ -8,7 +8,7 @@ class MultiLineText extends DefaultField
 
     use BaseFieldTrait;
 
-    
+
     // Properties
     // =========================================================================
 

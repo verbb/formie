@@ -184,7 +184,7 @@ class Email extends FormField implements PreviewableFieldInterface
     public function getPreviewInputHtml(): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/email/preview', [
-            'field' => $this
+            'field' => $this,
         ]);
     }
 

@@ -11,5 +11,5 @@ class TriggerIntegrationEvent extends CancelableEvent
     public $submission;
     public $type;
     public $integration;
-    
+
 }

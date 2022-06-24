@@ -185,7 +185,7 @@ class RecentSubmissions extends Widget
 
             // Normalise the chart data for multiple forms
             $normalisedData = [];
-            
+
             foreach ($combinedChartData as $date => $chartData) {
                 $variables['labels'][] = $date;
 

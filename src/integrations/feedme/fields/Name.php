@@ -14,7 +14,7 @@ class Name extends Field implements FieldInterface
 
     use BaseFieldTrait;
 
-    
+
     // Properties
     // =========================================================================
 

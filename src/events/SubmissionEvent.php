@@ -10,5 +10,5 @@ class SubmissionEvent extends CancelableEvent
 
     public $submission;
     public $success;
-    
+
 }

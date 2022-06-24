@@ -116,7 +116,7 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
                     $this->defaultValue = $defaultValue;
                 }
             }
-        } elseif ($this->defaultOption === 'today') {
+        } else if ($this->defaultOption === 'today') {
             $this->defaultValue = self::toDateTime(new DateTime());
         } else {
             $this->defaultValue = '';
@@ -143,7 +143,7 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
         if ($this->displayType !== 'calendar') {
             return true;
         }
-        
+
         return false;
     }
 
@@ -489,7 +489,7 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
     public function getPreviewInputHtml(): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/date/preview', [
-            'field' => $this
+            'field' => $this,
         ]);
     }
 
@@ -605,7 +605,7 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
                     'blockLabel' => $nestedField['label'],
                     'blockHandle' => $nestedField['handle'],
                     'showEnabled' => false,
-                ], $subfields)
+                ], $subfields),
             ]);
         }
 
@@ -633,9 +633,9 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
                 'help' => Craft::t('formie', 'Select a default value for this field.'),
                 'name' => 'defaultOption',
                 'options' => [
-                    [ 'label' => Craft::t('formie', 'None'), 'value' => '' ],
-                    [ 'label' => Craft::t('formie', 'Today‘s Date/Time'), 'value' => 'today' ],
-                    [ 'label' => Craft::t('formie', 'Specific Date/Time'), 'value' => 'date' ],
+                    ['label' => Craft::t('formie', 'None'), 'value' => ''],
+                    ['label' => Craft::t('formie', 'Today‘s Date/Time'), 'value' => 'today'],
+                    ['label' => Craft::t('formie', 'Specific Date/Time'), 'value' => 'date'],
                 ],
             ]),
             SchemaHelper::toggleContainer('settings.defaultOption=date', [
@@ -650,9 +650,9 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
                 'help' => Craft::t('formie', 'Set different display layouts for this field.'),
                 'name' => 'displayType',
                 'options' => [
-                    [ 'label' => Craft::t('formie', 'Calendar'), 'value' => 'calendar' ],
-                    [ 'label' => Craft::t('formie', 'Dropdowns'), 'value' => 'dropdowns' ],
-                    [ 'label' => Craft::t('formie', 'Text Inputs'), 'value' => 'inputs' ],
+                    ['label' => Craft::t('formie', 'Calendar'), 'value' => 'calendar'],
+                    ['label' => Craft::t('formie', 'Dropdowns'), 'value' => 'dropdowns'],
+                    ['label' => Craft::t('formie', 'Text Inputs'), 'value' => 'inputs'],
                 ],
             ]),
             SchemaHelper::toggleContainer('!settings.displayType=calendar', $toggleBlocks),
@@ -710,15 +710,15 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
                     'help' => Craft::t('formie', 'Select what format to present dates as.'),
                     'name' => 'dateFormat',
                     'options' => [
-                        [ 'label' => 'YYYY-MM-DD', 'value' => 'Y-m-d' ],
-                        [ 'label' => 'MM-DD-YYYY', 'value' => 'm-d-Y' ],
-                        [ 'label' => 'DD-MM-YYYY', 'value' => 'd-m-Y' ],
-                        [ 'label' => 'YYYY/MM/DD', 'value' => 'Y/m/d' ],
-                        [ 'label' => 'MM/DD/YYYY', 'value' => 'm/d/Y' ],
-                        [ 'label' => 'DD/MM/YYYY', 'value' => 'd/m/Y' ],
-                        [ 'label' => 'YYYY.MM.DD', 'value' => 'Y.m.d' ],
-                        [ 'label' => 'MM.DD.YYYY', 'value' => 'm.d.Y' ],
-                        [ 'label' => 'DD.MM.YYYY', 'value' => 'd.m.Y' ],
+                        ['label' => 'YYYY-MM-DD', 'value' => 'Y-m-d'],
+                        ['label' => 'MM-DD-YYYY', 'value' => 'm-d-Y'],
+                        ['label' => 'DD-MM-YYYY', 'value' => 'd-m-Y'],
+                        ['label' => 'YYYY/MM/DD', 'value' => 'Y/m/d'],
+                        ['label' => 'MM/DD/YYYY', 'value' => 'm/d/Y'],
+                        ['label' => 'DD/MM/YYYY', 'value' => 'd/m/Y'],
+                        ['label' => 'YYYY.MM.DD', 'value' => 'Y.m.d'],
+                        ['label' => 'MM.DD.YYYY', 'value' => 'm.d.Y'],
+                        ['label' => 'DD.MM.YYYY', 'value' => 'd.m.Y'],
                     ],
                 ]),
             ]),
@@ -728,11 +728,11 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
                     'help' => Craft::t('formie', 'Select what format to present dates as.'),
                     'name' => 'timeFormat',
                     'options' => [
-                        [ 'label' => '23:59:59 (H:M:S)', 'value' => 'H:i:s' ],
-                        [ 'label' => '03:59:59 PM (h:M:S AM/PM)', 'value' => 'h:i:s A' ],
-                        [ 'label' => '23:59 (H:M)', 'value' => 'H:i' ],
-                        [ 'label' => '03:59 PM (h:M AM/PM)', 'value' => 'h:i A' ],
-                        [ 'label' => '59:59 (M:S)', 'value' => 'i:s' ],
+                        ['label' => '23:59:59 (H:M:S)', 'value' => 'H:i:s'],
+                        ['label' => '03:59:59 PM (h:M:S AM/PM)', 'value' => 'h:i:s A'],
+                        ['label' => '23:59 (H:M)', 'value' => 'H:i'],
+                        ['label' => '03:59 PM (h:M AM/PM)', 'value' => 'h:i A'],
+                        ['label' => '59:59 (M:S)', 'value' => 'i:s'],
                     ],
                 ]),
             ]),
@@ -764,7 +764,7 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
                                 'type' => 'value',
                                 'label' => 'Value',
                                 'class' => 'singleline-cell textual',
-                            ]
+                            ],
                         ],
                         'name' => 'datePickerOptions',
                     ]),
@@ -840,7 +840,7 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
             if ($this->getIsDate()) {
                 $format = $this->getDateFormat();
             }
-            
+
             return $value->format($format);
         }
 

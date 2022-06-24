@@ -10,7 +10,7 @@ class Dropdown extends FeedMeDropdown
 
     use BaseFieldTrait;
 
-    
+
     // Properties
     // =========================================================================
 

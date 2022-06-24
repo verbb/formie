@@ -125,7 +125,7 @@ class GoogleSheets extends Miscellaneous
     {
         return new GoogleProvider($this->getOauthProviderConfig());
     }
-    
+
 
     // Public Methods
     // =========================================================================

@@ -75,7 +75,7 @@ class EmailOctopus extends EmailMarketing
 
             foreach ($lists as $list) {
                 $listFields = $this->_getCustomFields($list['fields']);
-            
+
                 $settings['lists'][] = new IntegrationCollection([
                     'id' => $list['id'],
                     'name' => $list['name'],

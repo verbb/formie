@@ -64,7 +64,7 @@ class MailerLite extends EmailMarketing
 
         try {
             $lists = $this->request('GET', 'groups');
-            
+
             // While we're at it, fetch the fields for the list
             $fields = $this->request('GET', 'fields');
 
@@ -192,7 +192,7 @@ class MailerLite extends EmailMarketing
         foreach ($fields as $key => $field) {
             // Exclude any names
             if (in_array($field['title'], $excludeNames)) {
-                 continue;
+                continue;
             }
 
             $customFields[] = new IntegrationField([

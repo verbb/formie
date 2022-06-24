@@ -10,5 +10,5 @@ class ModifyEmailFieldUniqueQueryEvent extends Event
 
     public $query;
     public $field;
-    
+
 }

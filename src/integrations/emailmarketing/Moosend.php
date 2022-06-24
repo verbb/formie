@@ -80,7 +80,7 @@ class Moosend extends EmailMarketing
                         'name' => Craft::t('formie', 'Name'),
                     ]),
                 ];
-        
+
                 $fields = $list['CustomFieldsDefinition'] ?? [];
 
                 foreach ($fields as $field) {

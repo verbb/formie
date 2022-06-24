@@ -289,11 +289,11 @@ class IContact extends EmailMarketing
         foreach ($fields as $key => $field) {
             // Exclude any names
             if (in_array($field['publicName'], $excludeNames)) {
-                 continue;
+                continue;
             }
 
             $customFields[] = new IntegrationField([
-                'handle' => $field['customFieldId'] ,
+                'handle' => $field['customFieldId'],
                 'name' => $field['publicName'],
                 'type' => $this->_convertFieldType($field['fieldType']),
             ]);

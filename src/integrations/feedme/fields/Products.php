@@ -10,7 +10,7 @@ class Products extends FeedMeProducts
 
     use BaseFieldTrait;
 
-    
+
     // Properties
     // =========================================================================
 

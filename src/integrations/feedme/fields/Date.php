@@ -10,7 +10,7 @@ class Date extends FeedMeDate
 
     use BaseFieldTrait;
 
-    
+
     // Properties
     // =========================================================================
 

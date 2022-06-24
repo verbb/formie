@@ -345,10 +345,10 @@ class Submissions extends Component
 
             if ($consoleInstance) {
                 $consoleInstance->stdout(Craft::t('formie', 'Starting data retention checks for form “{f}”: {d} {c}.', [
-                    'f' => $form['handle'],
-                    'c' => $dataRetention,
-                    'd' => $dataRetentionValue,
-                ]) . PHP_EOL, Console::FG_YELLOW);
+                        'f' => $form['handle'],
+                        'c' => $dataRetention,
+                        'd' => $dataRetentionValue,
+                    ]) . PHP_EOL, Console::FG_YELLOW);
             }
 
             // Setup intervals, depending on the setting
@@ -384,13 +384,13 @@ class Submissions extends Component
             if ($consoleInstance) {
                 if ($submissions) {
                     $consoleInstance->stdout(Craft::t('formie', 'Preparing to prune {c} submissions older than {d}.', [
-                        'c' => count($submissions),
-                        'd' => Db::prepareDateForDb($date),
-                    ]) . PHP_EOL, Console::FG_YELLOW);
+                            'c' => count($submissions),
+                            'd' => Db::prepareDateForDb($date),
+                        ]) . PHP_EOL, Console::FG_YELLOW);
                 } else {
                     $consoleInstance->stdout(Craft::t('formie', 'No submissions found to prune older than {d}.', [
-                        'd' => Db::prepareDateForDb($date),
-                    ]) . PHP_EOL, Console::FG_GREEN);
+                            'd' => Db::prepareDateForDb($date),
+                        ]) . PHP_EOL, Console::FG_GREEN);
                 }
             }
 
@@ -458,7 +458,6 @@ class Submissions extends Component
             Craft::$app->getDb()->createCommand()
                 ->update('{{%formie_submissions}}', ['userId' => $inheritorOnDelete->id], ['userId' => $user->id])
                 ->execute();
-
         } else {
             // We just want to delete each submission - bye!
             foreach ($submissions as $submission) {
@@ -486,7 +485,7 @@ class Submissions extends Component
             ->anyStatus()
             ->trashed(true)
             ->all();
-        
+
         foreach ($submissions as $submission) {
             try {
                 Craft::$app->getElements()->restoreElement($submission);
@@ -672,7 +671,7 @@ class Submissions extends Component
                 case formfields\Variants::class:
                     $fieldContent[$field->handle] = $field->getElementsQuery();
 
-                    break;                    
+                    break;
                 case formfields\Address::class:
                     $fieldContent[$field->handle] = new \verbb\formie\models\Address([
                         'address1' => $faker->address,

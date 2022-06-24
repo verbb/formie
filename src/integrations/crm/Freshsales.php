@@ -705,16 +705,16 @@ class Freshsales extends Crm
 
             // Only allow supported types
             if (!in_array($field['type'], $supportedFields)) {
-                 continue;
+                continue;
             }
 
             // Exclude any names
             if (in_array($field['name'], $excludeNames)) {
-                 continue;
+                continue;
             }
 
             if (!StringHelper::startsWith($field['name'], 'cf_')) {
-                 continue;
+                continue;
             }
 
             $customFields[] = new IntegrationField([

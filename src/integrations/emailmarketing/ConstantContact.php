@@ -44,7 +44,7 @@ class ConstantContact extends EmailMarketing
     public function getAuthorizeUrl(): string
     {
         $useNewEndpoint = Craft::parseEnv('$FORMIE_INTEGRATION_CC_NEW_ENDPOINT');
-        
+
         // Check for deprecated endpoint
         if (!DateTimeHelper::isInThePast('2022-04-01 00:00:00') && $useNewEndpoint !== true) {
             return 'https://api.cc.email/v3/idfed';
@@ -309,7 +309,7 @@ class ConstantContact extends EmailMarketing
         foreach ($fields as $key => $field) {
             // Exclude any names
             if (in_array($field['label'], $excludeNames)) {
-                 continue;
+                continue;
             }
 
             $customFields[] = new IntegrationField([

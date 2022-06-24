@@ -30,7 +30,7 @@ class PageSettings extends Model
 
     // Public Methods
     // =========================================================================
-    
+
     /**
      * @inheritDoc
      */
@@ -59,8 +59,8 @@ class PageSettings extends Model
                     'showBackButton' => AttributeTypecastBehavior::TYPE_BOOLEAN,
                     'buttonsPosition' => AttributeTypecastBehavior::TYPE_STRING,
                     'cssClasses' => AttributeTypecastBehavior::TYPE_STRING,
-                ]
-            ]
+                ],
+            ],
         ];
     }
 

@@ -10,5 +10,5 @@ class IntegrationFormSettingsEvent extends CancelableEvent
 
     public $integration;
     public $settings;
-    
+
 }

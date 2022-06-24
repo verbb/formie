@@ -388,7 +388,7 @@ class Freshdesk extends Crm
                                     $contactPayload,
                                     'PUT'
                                 );
-    
+
                                 if ($updateResponse === false) {
                                     return true;
                                 }
@@ -403,7 +403,7 @@ class Freshdesk extends Crm
             // Send Ticket payload
             if ($this->mapToTicket) {
                 $requiresMultipart = $this->_requiresMultipart($this->ticketFieldMapping, $submission);
-                
+
                 $ticketValues = $this->getFieldMappingValues($submission, $this->ticketFieldMapping, 'ticket', $requiresMultipart);
 
                 if ($requiresMultipart) {
@@ -536,12 +536,12 @@ class Freshdesk extends Crm
                 // Handle attachments differently to get file contents
                 if ($tag === 'attachments') {
                     $name .= '[]';
-                    
+
                     foreach ($this->_attachments as $attachment) {
                         $fieldValues[] = [
                             'name' => $name,
                             'contents' => Utils::tryFopen($attachment->getImageTransformSourcePath(), 'r'),
-                            'filename' => $attachment->filename
+                            'filename' => $attachment->filename,
                         ];
                     }
                 } else {
@@ -554,13 +554,13 @@ class Freshdesk extends Crm
                         foreach ($value as $key => $contents) {
                             $fieldValues[] = [
                                 'name' => is_string($key) ? "{$name}[{$key}]" : "{$name}[]",
-                                'contents' => $contents
+                                'contents' => $contents,
                             ];
                         }
-                    } elseif ($value !== '' && $value !== null) {
+                    } else if ($value !== '' && $value !== null) {
                         $fieldValues[] = [
                             'name' => $name,
-                            'contents' => $value
+                            'contents' => $value,
                         ];
                     }
                 }
@@ -568,7 +568,7 @@ class Freshdesk extends Crm
                 // Otherwise, might have passed in a direct, static value
                 $fieldValues[] = [
                     'name' => $name,
-                    'contents' => $fieldKey
+                    'contents' => $fieldKey,
                 ];
             }
         }
@@ -628,12 +628,12 @@ class Freshdesk extends Crm
 
             // Only allow supported types
             if (!in_array($field['type'], $supportedFields)) {
-                 continue;
+                continue;
             }
 
             // Exclude any names
             if (in_array($field['name'], $excludeNames)) {
-                 continue;
+                continue;
             }
 
             $customFields[] = new IntegrationField([
@@ -706,7 +706,7 @@ class Freshdesk extends Crm
             if (gettype($value) === 'object' && get_class($value) === 'craft\elements\db\AssetQuery') {
                 $assets = $value->all();
 
-                if (!empty($assets)){
+                if (!empty($assets)) {
                     // Cache attachments for future use
                     $this->_attachments = $assets;
                     return true;

@@ -77,7 +77,7 @@ class PageInterface extends BaseInterfaceType
                 'description' => 'The page’s settings.',
             ],
         ]);
-        
+
         return TypeManager::prepareFieldDefinitions($fields, self::getName());
     }
 }

@@ -10,7 +10,7 @@ class FileUpload extends FeedMeAssets
 
     use BaseFieldTrait;
 
-    
+
     // Properties
     // =========================================================================
 

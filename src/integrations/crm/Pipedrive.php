@@ -173,7 +173,7 @@ class Pipedrive extends Crm
                     'name' => Craft::t('formie', 'Note'),
                 ]),
             ]);
-            
+
             // Get Note fields
             $response = $this->request('GET', 'noteFields');
             $fields = $response['data'] ?? [];
@@ -522,7 +522,7 @@ class Pipedrive extends Crm
 
             // Exclude any names
             if (in_array($field['key'], $excludeNames)) {
-                 continue;
+                continue;
             }
 
             $required = $field['mandatory_flag'] ?? false;

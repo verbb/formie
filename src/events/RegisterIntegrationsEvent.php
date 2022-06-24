@@ -15,5 +15,5 @@ class RegisterIntegrationsEvent extends Event
     public $crm = [];
     public $webhooks = [];
     public $miscellaneous = [];
-    
+
 }

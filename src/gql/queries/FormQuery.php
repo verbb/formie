@@ -20,7 +20,7 @@ class FormQuery extends Query
         if ($checkToken && !GqlHelper::canQueryForms()) {
             return [];
         }
-        
+
         return [
             'formieForms' => [
                 'type' => Type::listOf(FormInterface::getType()),

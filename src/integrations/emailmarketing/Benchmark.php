@@ -87,7 +87,7 @@ class Benchmark extends EmailMarketing
                         'name' => $listAttributes['LastnameLabel'] ?? Craft::t('formie', 'Last Name'),
                     ]),
                 ];
-            
+
                 foreach ($listAttributes as $listKey => $listAttribute) {
                     if (strstr($listKey, 'Field') && strstr($listKey, 'Name')) {
                         $listFields[] = new IntegrationField([
@@ -146,7 +146,6 @@ class Benchmark extends EmailMarketing
                 $response = $this->request('PATCH', "Contact/{$this->listId}/ContactDetails/{$existingContact['ID']}", [
                     'json' => $payload,
                 ]);
-
             } else {
                 $response = $this->request('POST', "Contact/{$this->listId}/ContactDetails", [
                     'json' => $payload,

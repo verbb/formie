@@ -31,7 +31,7 @@ class IntegrationsController extends Controller
     // =========================================================================
 
     protected $allowAnonymous = ['callback'];
-    
+
     private $originUrl;
 
 
@@ -295,7 +295,7 @@ class IntegrationsController extends Controller
 
         if ($request->getAcceptsJson()) {
             return $this->asJson([
-                'success' => true
+                'success' => true,
             ]);
         }
 
@@ -379,7 +379,7 @@ class IntegrationsController extends Controller
 
             Formie::error($error);
             $session->setError($error);
-        
+
             return null;
         }
 
@@ -409,7 +409,7 @@ class IntegrationsController extends Controller
     private function _deleteToken($integration)
     {
         $session = Craft::$app->getSession();
-        
+
         if (!Formie::$plugin->getTokens()->deleteTokenById($integration->tokenId)) {
             $error = Craft::t('formie', 'Unable to delete token - {errors}.', [
                 'errors' => Json::encode($integration->getErrors()),
@@ -417,7 +417,7 @@ class IntegrationsController extends Controller
 
             Formie::error($error);
             $session->setError($error);
-        
+
             return null;
         }
 
@@ -428,7 +428,7 @@ class IntegrationsController extends Controller
 
             Formie::error($error);
             $session->setError($error);
-        
+
             return null;
         }
     }

@@ -39,7 +39,7 @@ class SubmissionResolver extends ElementMutationResolver
 
         $canCreateAll = Gql::canSchema('formieSubmissions.all', 'create');
         $canSaveAll = Gql::canSchema('formieSubmissions.all', 'save');
-        
+
         $scope = 'formieSubmissions.' . $form->uid;
         $canCreate = Gql::canSchema($scope, 'create');
         $canSave = Gql::canSchema($scope, 'save');

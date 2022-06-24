@@ -10,5 +10,5 @@ class PdfTemplateEvent extends Event
 
     public $template;
     public $isNew = false;
-    
+
 }

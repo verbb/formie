@@ -114,7 +114,7 @@ class FormInterface extends Element
                         'type' => Type::string(),
                     ],
                 ],
-                'resolve' => function ($source, $arguments) {
+                'resolve' => function($source, $arguments) {
                     $options = Json::decodeIfJson($arguments['options'] ?? null);
                     $populateFormValues = Json::decodeIfJson($arguments['populateFormValues'] ?? null);
 
@@ -129,7 +129,7 @@ class FormInterface extends Element
                 'name' => 'csrfToken',
                 'type' => CsrfTokenType::getType(),
                 'description' => 'A CSRF token (name and value)',
-                'resolve' => function () {
+                'resolve' => function() {
                     if (!Craft::$app->getConfig()->general->enableCsrfProtection) {
                         return null;
                     }
@@ -144,7 +144,7 @@ class FormInterface extends Element
                 'name' => 'captchas',
                 'type' => Type::listOf(CaptchaValueType::getType()),
                 'description' => 'A list of captcha values (name and value) to assist with spam protection',
-                'resolve' => function ($source, $arguments) {
+                'resolve' => function($source, $arguments) {
                     $values = [];
 
                     $captchas = Formie::$plugin->getIntegrations()->getAllEnabledCaptchasForForm($source);

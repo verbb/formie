@@ -12,5 +12,5 @@ class ModifyFieldEmailValueEvent extends Event
     public $field;
     public $submission;
     public $notification;
-    
+
 }

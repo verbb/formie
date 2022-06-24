@@ -24,7 +24,7 @@ abstract class Miscellaneous extends Integration implements IntegrationInterface
 
     // Static Methods
     // =========================================================================
-    
+
     /**
      * @inheritDoc
      */

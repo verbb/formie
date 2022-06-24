@@ -189,7 +189,7 @@ class Submission extends Element
         // This is otherwise only enabled during element propagation, which doesn't happen for submissions.
         if (version_compare(Craft::$app->getInfo()->version, '3.7.32', '>=')) {
             foreach ($rules as $key => $rule) {
-                list($attribute, $validator) = $rule;
+                [$attribute, $validator] = $rule;
 
                 if ($validator === SiteIdValidator::class) {
                     $rules[$key]['allowDisabled'] = true;
@@ -198,7 +198,7 @@ class Submission extends Element
         }
 
         $fieldsByHandle = [];
-        
+
         if ($fieldLayout = $this->getFieldLayout()) {
             // Check when we're doing a submission from the front-end, and we choose to validate the current page only
             // Remove any custom fields that aren't in the current page. These are added by default
@@ -209,7 +209,7 @@ class Submission extends Element
                 $currentPageFieldHandles = ArrayHelper::getColumn($currentPageFields, 'handle');
 
                 foreach ($rules as $key => $rule) {
-                    list($attribute, $validator) = $rule;
+                    [$attribute, $validator] = $rule;
                     $attribute = is_array($attribute) ? $attribute[0] : $attribute;
 
                     if (strpos($attribute, 'field:') !== false) {
@@ -229,7 +229,7 @@ class Submission extends Element
             // Evaulate field conditions. What if this is a required field, but conditionally hidden?
             foreach ($rules as $key => $rule) {
                 foreach ($fields as $field) {
-                    list($attribute, $validator) = $rule;
+                    [$attribute, $validator] = $rule;
                     $attribute = is_array($attribute) ? $attribute[0] : $attribute;
 
                     if ($attribute === "field:{$field->handle}") {
@@ -249,7 +249,7 @@ class Submission extends Element
                         continue;
                     }
 
-                    list($attribute, $validator) = $rule;
+                    [$attribute, $validator] = $rule;
                     $attribute = is_array($attribute) ? $attribute[0] : $attribute;
 
                     if ($attribute === "field:{$field->handle}") {
@@ -277,7 +277,7 @@ class Submission extends Element
         // Ensure that any rules defined in events actually exists and are valid for this submission/form.
         // Otherwise fatal errors will occur trying to validate a field that doesn't exist in this context.
         foreach ($event->rules as $key => $rule) {
-            list($attribute, $validator) = $rule;
+            [$attribute, $validator] = $rule;
             $attr = is_array($attribute) ? $attribute[0] : $attribute;
 
             if (strpos($attr, 'field:') !== false) {
@@ -307,8 +307,8 @@ class Submission extends Element
                 'key' => '*',
                 'label' => Craft::t('formie', 'All forms'),
                 'criteria' => ['formId' => $ids],
-                'defaultSort' => ['formie_submissions.title', 'desc']
-            ]
+                'defaultSort' => ['formie_submissions.title', 'desc'],
+            ],
         ];
 
         $sources[] = ['heading' => Craft::t('formie', 'Forms')];
@@ -433,7 +433,7 @@ class Submission extends Element
                 'id' => AttributeTypecastBehavior::TYPE_INTEGER,
                 'formId' => AttributeTypecastBehavior::TYPE_STRING,
                 'statusId' => AttributeTypecastBehavior::TYPE_INTEGER,
-            ]
+            ],
         ];
 
         return $behaviors;
@@ -1105,14 +1105,14 @@ class Submission extends Element
             case 'status':
                 $statusHandle = $this->getStatus();
                 $status = self::statuses()[$statusHandle] ?? null;
-                
+
                 return Html::tag('span', Html::tag('span', '', [
-                    'class' => array_filter([
-                        'status',
-                        $statusHandle,
-                        ($status ? $status['color'] : null)
-                    ]),
-                ]) . ($status ? $status['label'] : null), [
+                        'class' => array_filter([
+                            'status',
+                            $statusHandle,
+                            ($status ? $status['color'] : null),
+                        ]),
+                    ]) . ($status ? $status['label'] : null), [
                     'style' => [
                         'display' => 'flex',
                         'align-items' => 'center',
@@ -1152,17 +1152,17 @@ class Submission extends Element
             [
                 'label' => Craft::t('app', 'Title'),
                 'orderBy' => 'formie_submissions.title',
-                'attribute' => 'title'
+                'attribute' => 'title',
             ],
             [
                 'label' => Craft::t('app', 'Date Created'),
                 'orderBy' => 'elements.dateCreated',
-                'attribute' => 'dateCreated'
+                'attribute' => 'dateCreated',
             ],
             [
                 'label' => Craft::t('app', 'Date Updated'),
                 'orderBy' => 'elements.dateUpdated',
-                'attribute' => 'dateUpdated'
+                'attribute' => 'dateUpdated',
             ],
         ];
     }

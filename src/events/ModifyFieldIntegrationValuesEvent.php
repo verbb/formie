@@ -13,5 +13,5 @@ class ModifyFieldIntegrationValuesEvent extends Event
     public $fieldMapping;
     public $fieldSettings;
     public $integration;
-    
+
 }

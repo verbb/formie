@@ -81,13 +81,13 @@ class SubmissionsController extends Controller
 
         if (!$this->formId && !$this->formHandle) {
             $this->stderr('You must provide either a --form-id or --form-handle option.' . PHP_EOL, Console::FG_RED);
-            
+
             return ExitCode::UNSPECIFIED_ERROR;
         }
 
         if (!$formIds) {
             $this->stderr('Unable to find any matching forms.' . PHP_EOL, Console::FG_RED);
-            
+
             return ExitCode::UNSPECIFIED_ERROR;
         }
 
@@ -112,7 +112,7 @@ class SubmissionsController extends Controller
 
             if ($count === 0) {
                 $this->stdout('No submissions exist for that criteria.' . PHP_EOL, Console::FG_YELLOW);
-                
+
                 continue;
             }
 

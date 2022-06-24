@@ -152,11 +152,11 @@ class FormSettings extends Model
                     'defaultLabelPosition' => AttributeTypecastBehavior::TYPE_STRING,
                     'defaultInstructionsPosition' => AttributeTypecastBehavior::TYPE_STRING,
                     'progressPosition' => AttributeTypecastBehavior::TYPE_STRING,
-                ]
-            ]
+                ],
+            ],
         ];
     }
-    
+
     /**
      * @inheritDoc
      */
@@ -164,7 +164,7 @@ class FormSettings extends Model
     {
         return $this->_form;
     }
-    
+
     /**
      * @inheritDoc
      */
@@ -256,7 +256,7 @@ class FormSettings extends Model
 
     // Private Methods
     // =========================================================================
-    
+
     /**
      * @inheritDoc
      */

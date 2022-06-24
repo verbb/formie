@@ -10,5 +10,5 @@ class IntegrationEvent extends Event
 
     public $integration;
     public $isNew;
-    
+
 }

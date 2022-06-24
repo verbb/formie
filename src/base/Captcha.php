@@ -124,7 +124,7 @@ abstract class Captcha extends Integration implements IntegrationInterface
 
     // Protected Methods
     // =========================================================================
-    
+
     /**
      * @inheritDoc
      */

@@ -37,7 +37,7 @@ class SubmissionGenerator extends Generator implements GeneratorInterface, Singl
             if (!GqlHelper::isSchemaAwareOf($requiredContexts) && !GqlHelper::isSchemaAwareOf('formieSubmissions.all')) {
                 continue;
             }
-            
+
             $type = static::generateType($form);
             $gqlTypes[$type->name] = $type;
         }

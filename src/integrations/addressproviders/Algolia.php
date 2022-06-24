@@ -97,7 +97,7 @@ class Algolia extends AddressProvider
         if (!$this->hasValidSettings()) {
             return null;
         }
-        
+
         // These are reversed on purpose!
         $settings = [
             'appId' => Craft::parseEnv($this->apiKey),

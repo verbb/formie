@@ -83,7 +83,7 @@ class ConvertKit extends EmailMarketing
                         'name' => Craft::t('formie', 'First Name'),
                     ]),
                 ];
-            
+
                 foreach ($fields as $field) {
                     $listFields[] = new IntegrationField([
                         'handle' => $field['key'],

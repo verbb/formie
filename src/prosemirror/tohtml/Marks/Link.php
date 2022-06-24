@@ -41,7 +41,7 @@ class Link extends Mark
     private static function parseRefTags($value)
     {
         $value = preg_replace_callback('/([^\'"\?#]*)(\?[^\'"\?#]+)?(#[^\'"\?#]+)?(?:#|%23)([\w]+)\:(\d+)(?:@(\d+))?(\:(?:transform\:)?' . HandleValidator::$handlePattern . ')?/', function($matches) {
-            list(, $url, $query, $hash, $elementType, $ref, $siteId, $transform) = array_pad($matches, 10, null);
+            [, $url, $query, $hash, $elementType, $ref, $siteId, $transform] = array_pad($matches, 10, null);
 
             // Create the ref tag, and make sure :url is in there
             $ref = $elementType . ':' . $ref . ($siteId ? "@$siteId" : '') . ($transform ?: ':url');
@@ -51,7 +51,7 @@ class Link extends Mark
                 // - someone's Entry URL Format could include "?slug={slug}" or "#{slug}", etc.
                 // - assets could include ?mtime=X&focal=none, etc.
                 $parsed = Craft::$app->getElements()->parseRefs("{{$ref}}");
-                
+
                 if ($query) {
                     // Decode any HTML entities, e.g. &amp;
                     $query = Html::decode($query);

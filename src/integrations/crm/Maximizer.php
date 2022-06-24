@@ -213,7 +213,7 @@ class Maximizer extends Crm
     {
         try {
             $response = $this->request('POST', 'AbEntryRead', [
-               'json' => [
+                'json' => [
                     'AbEntry' => [
                         'Criteria' => [
                             'SearchQuery' => [

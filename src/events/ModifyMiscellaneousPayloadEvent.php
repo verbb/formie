@@ -10,5 +10,5 @@ class ModifyMiscellaneousPayloadEvent extends Event
 
     public $submission;
     public $payload;
-    
+
 }

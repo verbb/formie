@@ -27,7 +27,7 @@ abstract class Crm extends Integration implements IntegrationInterface
 
     // Static Methods
     // =========================================================================
-    
+
     /**
      * @inheritDoc
      */

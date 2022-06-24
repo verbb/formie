@@ -121,7 +121,7 @@ class PageSettingsInterface extends BaseInterfaceType
                 },
             ],
         ]);
-        
+
         return TypeManager::prepareFieldDefinitions($fields, self::getName());
     }
 }

@@ -20,7 +20,7 @@ class SubmissionQuery extends Query
         if ($checkToken && !GqlHelper::canQuerySubmissions()) {
             return [];
         }
-        
+
         return [
             'formieSubmissions' => [
                 'type' => Type::listOf(SubmissionInterface::getType()),

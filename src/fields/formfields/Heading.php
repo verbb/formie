@@ -114,7 +114,7 @@ class Heading extends FormField
     public function getPreviewInputHtml(): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/heading/preview', [
-            'field' => $this
+            'field' => $this,
         ]);
     }
 
@@ -133,11 +133,11 @@ class Heading extends FormField
                 'help' => Craft::t('formie', 'Choose the size for the heading.'),
                 'name' => 'headingSize',
                 'options' => [
-                    [ 'label' => Craft::t('formie', 'H2'), 'value' => 'h2' ],
-                    [ 'label' => Craft::t('formie', 'H3'), 'value' => 'h3' ],
-                    [ 'label' => Craft::t('formie', 'H4'), 'value' => 'h4' ],
-                    [ 'label' => Craft::t('formie', 'H5'), 'value' => 'h5' ],
-                    [ 'label' => Craft::t('formie', 'H6'), 'value' => 'h6' ],
+                    ['label' => Craft::t('formie', 'H2'), 'value' => 'h2'],
+                    ['label' => Craft::t('formie', 'H3'), 'value' => 'h3'],
+                    ['label' => Craft::t('formie', 'H4'), 'value' => 'h4'],
+                    ['label' => Craft::t('formie', 'H5'), 'value' => 'h5'],
+                    ['label' => Craft::t('formie', 'H6'), 'value' => 'h6'],
                 ],
             ]),
         ];

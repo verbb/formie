@@ -10,7 +10,7 @@ class Checkboxes extends FeedMeCheckboxes
 
     use BaseFieldTrait;
 
-    
+
     // Properties
     // =========================================================================
 

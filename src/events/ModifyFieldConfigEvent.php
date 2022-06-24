@@ -9,5 +9,5 @@ class ModifyFieldConfigEvent extends Event
     // =========================================================================
 
     public $config;
-    
+
 }

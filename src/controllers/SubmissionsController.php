@@ -70,7 +70,7 @@ class SubmissionsController extends Controller
     {
         $settings = Formie::$plugin->getSettings();
 
-        if ($action->id === 'submit' && Craft::$app->user->isGuest && !$settings->enableCsrfValidationForGuests) {
+        if ($action->id === 'submit' && Craft::$app->getUser()->isGuest && !$settings->enableCsrfValidationForGuests) {
             $this->enableCsrfValidation = false;
         }
 

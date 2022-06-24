@@ -43,7 +43,7 @@ class FieldLayoutBehavior extends CraftFieldLayoutBehavior
                     'type' => $this->elementType,
                 ]);
             }
-            
+
             throw new InvalidConfigException('Invalid field layout ID: ' . $id);
         }
 

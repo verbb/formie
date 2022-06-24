@@ -9,5 +9,5 @@ class ModifyPurifierConfigEvent extends Event
     // =========================================================================
 
     public $config;
-    
+
 }

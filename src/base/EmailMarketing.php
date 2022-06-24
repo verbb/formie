@@ -26,10 +26,10 @@ abstract class EmailMarketing extends Integration implements IntegrationInterfac
     public $optInField;
     public $fieldMapping;
 
-    
+
     // Static Methods
     // =========================================================================
-    
+
     /**
      * @inheritDoc
      */
@@ -37,7 +37,7 @@ abstract class EmailMarketing extends Integration implements IntegrationInterfac
     {
         return Craft::t('formie', 'Email Marketing');
     }
-    
+
 
     // Public Methods
     // =========================================================================
@@ -105,9 +105,11 @@ abstract class EmailMarketing extends Integration implements IntegrationInterfac
 
         $fields = $this->_getListSettings()->fields ?? [];
 
-        $rules[] = [['fieldMapping'], 'validateFieldMapping', 'params' => $fields, 'when' => function($model) {
-            return $model->enabled;
-        }, 'on' => [Integration::SCENARIO_FORM]];
+        $rules[] = [
+            ['fieldMapping'], 'validateFieldMapping', 'params' => $fields, 'when' => function($model) {
+                return $model->enabled;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
 
         return $rules;
     }

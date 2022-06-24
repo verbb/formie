@@ -30,13 +30,13 @@ class Tag extends CraftTag
         return [
             'title' => Craft::t('app', 'Title'),
             [
-                'label'     => Craft::t('app', 'Date Created'),
-                'orderBy'   => 'elements.dateCreated',
+                'label' => Craft::t('app', 'Date Created'),
+                'orderBy' => 'elements.dateCreated',
                 'attribute' => 'dateCreated',
             ],
             [
-                'label'     => Craft::t('app', 'Date Updated'),
-                'orderBy'   => 'elements.dateUpdated',
+                'label' => Craft::t('app', 'Date Updated'),
+                'orderBy' => 'elements.dateUpdated',
                 'attribute' => 'dateUpdated',
             ],
         ];

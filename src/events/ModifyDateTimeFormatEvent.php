@@ -11,5 +11,5 @@ class ModifyDateTimeFormatEvent extends Event
     public $field;
     public $dateFormat;
     public $timeFormat;
-    
+
 }

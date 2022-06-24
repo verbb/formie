@@ -213,7 +213,7 @@ class FileUpload extends CraftAssets implements FormFieldInterface
 
         // Get any uploaded filenames
         $uploadedFiles = $this->_getUploadedFiles($element);
-        
+
         $sizeMinLimit = $this->sizeMinLimit * 1000000;
 
         foreach ($uploadedFiles as $file) {
@@ -240,7 +240,7 @@ class FileUpload extends CraftAssets implements FormFieldInterface
 
         // Get any uploaded filenames
         $uploadedFiles = $this->_getUploadedFiles($element);
-        
+
         $sizeLimit = $this->sizeLimit * 1000000;
 
         foreach ($uploadedFiles as $file) {
@@ -605,7 +605,7 @@ class FileUpload extends CraftAssets implements FormFieldInterface
 
         if ($sourceKey && is_string($sourceKey) && strpos($sourceKey, 'folder:') === 0) {
             $parts = explode(':', $sourceKey);
-            
+
             return Craft::$app->getVolumes()->getVolumeByUid($parts[1]);
         }
 
@@ -617,8 +617,9 @@ class FileUpload extends CraftAssets implements FormFieldInterface
      */
     private function humanFilesize($size, $precision = 2)
     {
-        for ($i = 0; ($size / 1024) > 0.9; $i++, $size /= 1024) {}
-        return round($size, $precision).['B','kB','MB','GB','TB','PB','EB','ZB','YB'][$i];
+        for ($i = 0; ($size / 1024) > 0.9; $i++, $size /= 1024) {
+        }
+        return round($size, $precision) . ['B', 'kB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'][$i];
     }
 
     /**

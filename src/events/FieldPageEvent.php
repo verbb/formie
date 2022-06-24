@@ -10,5 +10,5 @@ class FieldPageEvent extends Event
 
     public $page;
     public $isNew = false;
-    
+
 }

@@ -14,7 +14,7 @@ class Phone extends Field implements FieldInterface
 
     use BaseFieldTrait;
 
-    
+
     // Properties
     // =========================================================================
 
@@ -50,7 +50,7 @@ class Phone extends Field implements FieldInterface
     public function parseField()
     {
         $this->beforeParseField();
-        
+
         $preppedData = [];
 
         $fields = Hash::get($this->fieldInfo, 'fields');

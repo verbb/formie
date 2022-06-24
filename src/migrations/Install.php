@@ -524,7 +524,7 @@ class Install extends Migration
                 'handle' => 'new',
                 'color' => 'green',
                 'sortOrder' => 1,
-                'isDefault' => 1
+                'isDefault' => 1,
             ],
         ];
 
@@ -541,7 +541,7 @@ class Install extends Migration
                 'name' => Craft::t('formie', 'Contact Form'),
                 'handle' => 'contactForm',
                 'file' => Craft::getAlias('@verbb/formie/migrations/stencils/contact-form.json'),
-            ]
+            ],
         ];
 
         foreach ($stencils as $stencilInfo) {
@@ -554,6 +554,5 @@ class Install extends Migration
 
             Formie::$plugin->getStencils()->saveStencil($stencil);
         }
-
     }
 }

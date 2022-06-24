@@ -149,7 +149,7 @@ class Repeater extends FormField implements NestedFieldInterface, EagerLoadingFi
     public function getPreviewInputHtml(): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/repeater/preview', [
-            'field' => $this
+            'field' => $this,
         ]);
     }
 
@@ -205,7 +205,7 @@ class Repeater extends FormField implements NestedFieldInterface, EagerLoadingFi
     public function getFrontEndJsModules()
     {
         $modules = [];
-        
+
         $modules[] = [
             'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/fields/repeater.js', true),
             'module' => 'FormieRepeater',
@@ -304,7 +304,7 @@ class Repeater extends FormField implements NestedFieldInterface, EagerLoadingFi
             SchemaHelper::conditionsField(),
         ];
     }
-    
+
     /**
      * @inheritDoc
      */
@@ -344,11 +344,11 @@ class Repeater extends FormField implements NestedFieldInterface, EagerLoadingFi
                 'rows' => [
                     'name' => 'rows',
                     'type' => Type::listOf($rowType),
-                    'resolve' => function ($rootValue) {
+                    'resolve' => function($rootValue) {
                         return $rootValue;
-                    }
-                ]
-            ]
+                    },
+                ],
+            ],
         ]));
     }
 }

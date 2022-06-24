@@ -9,5 +9,5 @@ class ModifyExistingNotificationsEvent extends Event
     // =========================================================================
 
     public $notifications;
-    
+
 }

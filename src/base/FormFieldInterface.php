@@ -27,7 +27,7 @@ interface FormFieldInterface extends ComponentInterface
     const EVENT_MODIFY_VALUE_FOR_SUMMARY = 'modifyValueForSummary';
     const EVENT_MODIFY_VALUE_FOR_EMAIL = 'modifyValueForEmail';
 
-    
+
     // Public Methods
     // =========================================================================
 
@@ -85,16 +85,16 @@ interface FormFieldInterface extends ComponentInterface
     /**
      * Returns all the default settings for a field.
      *
-     * @see FormFieldTrait::getFieldDefaults() to add aditional settings.
      * @return array
+     * @see FormFieldTrait::getFieldDefaults() to add aditional settings.
      */
     public function getAllFieldDefaults(): array;
 
     /**
      * Defines the schema for the edit field modal.
      *
-     * @see FormFieldTrait::getFieldSchema()
      * @return array
+     * @see FormFieldTrait::getFieldSchema()
      */
     public function getFieldSchema(): array;
 

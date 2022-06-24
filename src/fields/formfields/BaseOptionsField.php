@@ -63,7 +63,7 @@ abstract class BaseOptionsField extends CraftBaseOptionsField
 
         if ($value instanceof SingleOptionFieldData) {
             return $value->value;
-        } elseif ($value instanceof MultiOptionsFieldData) {
+        } else if ($value instanceof MultiOptionsFieldData) {
             $values = [];
             foreach ($value as $selectedValue) {
                 /** @var OptionData $selectedValue */
@@ -256,7 +256,7 @@ abstract class BaseOptionsField extends CraftBaseOptionsField
 
         return $value->label ?? '';
     }
-    
+
     /**
      * @inheritDoc
      */

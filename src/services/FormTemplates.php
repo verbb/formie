@@ -392,7 +392,7 @@ class FormTemplates extends Component
                 'sortOrder',
                 'fieldLayoutId',
                 'dateDeleted',
-                'uid'
+                'uid',
             ])
             ->orderBy('sortOrder')
             ->from(['{{%formie_formtemplates}}']);

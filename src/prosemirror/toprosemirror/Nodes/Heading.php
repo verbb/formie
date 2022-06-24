@@ -13,7 +13,7 @@ class Heading extends Node
 
     public function matching()
     {
-        return (boolean) $this->getLevel($this->DOMNode->nodeName);
+        return (boolean)$this->getLevel($this->DOMNode->nodeName);
     }
 
     public function data()

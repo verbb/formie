@@ -247,7 +247,7 @@ class Agree extends FormField implements PreviewableFieldInterface
     {
         return ($value) ? $this->checkedValue : $this->uncheckedValue;
     }
-      
+
     /**
      * @inheritDoc
      */
@@ -268,7 +268,7 @@ class Agree extends FormField implements PreviewableFieldInterface
 
     // Private Methods
     // =========================================================================
-    
+
     /**
      * @inheritDoc
      */

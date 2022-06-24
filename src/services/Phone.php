@@ -48,7 +48,7 @@ class Phone extends Component
                 }
             }
 
-            usort($countries, function ($a, $b) {
+            usort($countries, function($a, $b) {
                 return strcmp($a['label'], $b['label']);
             });
 

@@ -57,7 +57,7 @@ class Renderer
     {
         if (is_string($value)) {
             $value = json_decode($value);
-        } elseif (is_array($value)) {
+        } else if (is_array($value)) {
             $value = json_decode(json_encode($value));
         }
 
@@ -95,9 +95,9 @@ class Renderer
             foreach ($node->content as $nestedNode) {
                 $html[] = $this->renderNode($nestedNode);
             }
-        } elseif (isset($node->text)) {
+        } else if (isset($node->text)) {
             $html[] = $node->text;
-        } elseif ($text = $renderClass->text()) {
+        } else if ($text = $renderClass->text()) {
             $html[] = $text;
         }
 
@@ -130,13 +130,13 @@ class Renderer
 
     private function renderOpeningTag($tags)
     {
-        $tags = (array) $tags;
+        $tags = (array)$tags;
 
         if (!$tags || !count($tags)) {
             return null;
         }
 
-        return join('', array_map(function ($item) {
+        return join('', array_map(function($item) {
             if (is_string($item)) {
                 return "<{$item}>";
             }
@@ -154,14 +154,14 @@ class Renderer
 
     private function renderClosingTag($tags)
     {
-        $tags = (array) $tags;
+        $tags = (array)$tags;
         $tags = array_reverse($tags);
 
         if (!$tags || !count($tags)) {
             return null;
         }
 
-        return join('', array_map(function ($item) {
+        return join('', array_map(function($item) {
             if (is_string($item)) {
                 return "</{$item}>";
             }

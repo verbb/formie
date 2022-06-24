@@ -86,7 +86,7 @@ class Summary extends FormField
     public function getPreviewInputHtml(): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/summary/preview', [
-            'field' => $this
+            'field' => $this,
         ]);
     }
 

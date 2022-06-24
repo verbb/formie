@@ -9,5 +9,5 @@ class ModifyPhoneCountriesEvent extends Event
     // =========================================================================
 
     public $countries;
-    
+
 }

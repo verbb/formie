@@ -24,7 +24,7 @@ abstract class Webhook extends Integration implements IntegrationInterface
 
     // Static Methods
     // =========================================================================
-    
+
     /**
      * @inheritDoc
      */

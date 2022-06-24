@@ -68,7 +68,7 @@ class Html extends FormField
     {
         return true;
     }
-    
+
     /**
      * @inheritDoc
      */
@@ -115,7 +115,7 @@ class Html extends FormField
     public function getPreviewInputHtml(): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/html/preview', [
-            'field' => $this
+            'field' => $this,
         ]);
     }
 
@@ -233,7 +233,7 @@ class Html extends FormField
                 // Try again with Default
                 return $this->_getConfig($dir);
             }
-            
+
             return false;
         }
 

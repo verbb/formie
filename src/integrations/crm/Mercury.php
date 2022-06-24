@@ -423,7 +423,6 @@ class Mercury extends Crm
                     }
                 }
             }
-
         } catch (\Throwable $e) {
             Integration::apiError($this, $e);
 
@@ -497,7 +496,7 @@ class Mercury extends Crm
                 [
                     'contactMethod' => 'Email 1',
                     'content' => $fields['email'],
-                ]
+                ],
             ]);
         }
 
@@ -508,7 +507,7 @@ class Mercury extends Crm
                 [
                     'contactMethod' => 'Mobile',
                     'content' => $fields['mobile_phone_number'],
-                ]
+                ],
             ]);
         }
 

@@ -10,7 +10,7 @@ class Tags extends FeedMeTags
 
     use BaseFieldTrait;
 
-    
+
     // Properties
     // =========================================================================
 

@@ -10,5 +10,5 @@ class ModifyFrontEndSubfieldsEvent extends Event
 
     public $field;
     public $rows;
-    
+
 }

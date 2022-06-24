@@ -63,7 +63,7 @@ class Creatio extends Crm
         $allLists = [];
 
         try {
-            
+
         } catch (\Throwable $e) {
             Integration::apiError($this, $e);
         }
@@ -77,7 +77,7 @@ class Creatio extends Crm
     public function sendPayload(Submission $submission): bool
     {
         try {
-            
+
         } catch (\Throwable $e) {
             Integration::apiError($this, $e);
 
@@ -93,7 +93,7 @@ class Creatio extends Crm
     public function fetchConnection(): bool
     {
         try {
-            
+
         } catch (\Throwable $e) {
             Integration::apiError($this, $e);
 

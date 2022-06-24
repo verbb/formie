@@ -9,5 +9,5 @@ class ModifyExistingFieldsEvent extends Event
     // =========================================================================
 
     public $fields;
-    
+
 }

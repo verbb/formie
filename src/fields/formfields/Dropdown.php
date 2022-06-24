@@ -58,12 +58,14 @@ class Dropdown extends BaseOptionsField implements FormFieldInterface
     public function getFieldDefaults(): array
     {
         return [
-            'options' => [[
-                'label' => Craft::t('formie', 'Select an option'),
-                'value' => '',
-                'isOptgroup' => false,
-                'isDefault' => true,
-            ]],
+            'options' => [
+                [
+                    'label' => Craft::t('formie', 'Select an option'),
+                    'value' => '',
+                    'isOptgroup' => false,
+                    'isDefault' => true,
+                ],
+            ],
         ];
     }
 
@@ -94,7 +96,7 @@ class Dropdown extends BaseOptionsField implements FormFieldInterface
     public function getPreviewInputHtml(): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/dropdown/preview', [
-            'field' => $this
+            'field' => $this,
         ]);
     }
 

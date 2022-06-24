@@ -41,7 +41,7 @@ class FieldAttributeGenerator implements GeneratorInterface, SingleGeneratorInte
             'name' => $typeName,
             'fields' => function() use ($contentFields) {
                 return $contentFields;
-            }
+            },
         ]));
     }
 }

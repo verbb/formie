@@ -31,7 +31,7 @@ class GroupInputType extends InputObjectType
         foreach ($fields as $field) {
             $field->isNested = true;
             $field->setContainer($context);
-            
+
             $fieldInput = $field->getContentGqlMutationArgumentType();
             $groupFields[$field->handle] = $fieldInput;
         }
@@ -58,10 +58,10 @@ class GroupInputType extends InputObjectType
         return [
             'rows' => [
                 'new1' => [
-                    'fields' => $value
-                ]
+                    'fields' => $value,
+                ],
             ],
-            'sortOrder' => ['new1']
+            'sortOrder' => ['new1'],
         ];
     }
 }

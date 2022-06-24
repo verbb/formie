@@ -10,7 +10,7 @@ class Number extends FeedMeNumber
 
     use BaseFieldTrait;
 
-    
+
     // Properties
     // =========================================================================
 

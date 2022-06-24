@@ -101,7 +101,7 @@ class RichTextHelper
         // Prosemirror will use `htmlentities` for special characters, but doesn't play nice
         // with static translations. Convert them back.
         $html = html_entity_decode($html);
-        
+
         return $html;
     }
 
@@ -134,7 +134,7 @@ class RichTextHelper
                 'elementType' => Entry::class,
                 'refHandle' => Entry::refHandle(),
                 'sources' => $sectionSources,
-                'criteria' => ['uri' => ':notempty:']
+                'criteria' => ['uri' => ':notempty:'],
             ];
         }
 

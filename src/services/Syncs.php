@@ -179,7 +179,7 @@ class Syncs extends Component
             $attributes = $field->getAttributes([
                 'name',
                 'handle',
-                'instructions'
+                'instructions',
             ]);
             Craft::configure($otherField, $attributes);
 

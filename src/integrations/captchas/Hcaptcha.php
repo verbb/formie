@@ -114,7 +114,7 @@ class Hcaptcha extends Captcha
             'form_params' => [
                 'secret' => Craft::parseEnv($this->secretKey),
                 'response' => $response,
-                'remoteip' => Craft::$app->request->getRemoteIP(),
+                'remoteip' => Craft::$app->getRequest()->getRemoteIP(),
             ],
         ]);
 

@@ -10,7 +10,7 @@ class Categories extends FeedMeCategories
 
     use BaseFieldTrait;
 
-    
+
     // Properties
     // =========================================================================
 

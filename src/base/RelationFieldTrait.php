@@ -485,7 +485,7 @@ trait RelationFieldTrait
 
         foreach ($fields as $field) {
             if (in_array(get_class($field), $excludedFields)) {
-                 continue;
+                continue;
             }
 
             $options[] = ['label' => $field->name, 'value' => $field->handle];
@@ -542,7 +542,7 @@ trait RelationFieldTrait
         foreach ($element as $key => $value) {
             if ($value instanceof ElementQuery) {
                 $elements = [];
-                
+
                 foreach ($value->all() as $nestedElement) {
                     $elements = $this->_elementToArray($nestedElement);
                 }

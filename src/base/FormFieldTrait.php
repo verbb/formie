@@ -434,6 +434,7 @@ trait FormFieldTrait
 
     /**
      * Set the container for a nested field.
+     *
      * @param NestedFieldInterface $container
      */
     public function setContainer(NestedFieldInterface $container)
@@ -443,6 +444,7 @@ trait FormFieldTrait
 
     /**
      * Return the container if this is a nested field.
+     *
      * @param NestedFieldInterface $container
      */
     public function getContainer()
@@ -459,7 +461,7 @@ trait FormFieldTrait
             // Try and fetch the form via the UID from the context
             if ($form = Form::find()->uid($this->getContextUid())->one()) {
                 $this->formId = $form->id;
-                
+
                 return $this->_form = $form;
             }
 
@@ -520,7 +522,7 @@ trait FormFieldTrait
     {
         return str_replace('formie:', '', $this->context);
     }
-    
+
     /**
      * @inheritDoc
      */
@@ -610,7 +612,7 @@ trait FormFieldTrait
 
         // TODO: remove schema version condition after next beakpoint
         $schemaVersion = Craft::$app->getInstalledSchemaVersion();
-        
+
         if (version_compare($schemaVersion, '3.7.0', '>=')) {
             $config = array_merge($config, $this->getAttributes(['columnSuffix']));
         }
@@ -913,7 +915,7 @@ trait FormFieldTrait
         // fields to output their config, so it's reliable and works for on-demand HTML (repeater)
         $modules = $this->getFrontEndJsModules();
 
-         // Normalise to handle multiple module registrations
+        // Normalise to handle multiple module registrations
         if (!isset($modules[0])) {
             $modules = [$modules];
         }
@@ -966,7 +968,7 @@ trait FormFieldTrait
 
                 // Dot-notation to name input syntax
                 $condition['field'] = $namespace . '[' . str_replace(['{', '}', '.'], ['', '', ']['], $condition['field']) . ']';
-                
+
                 // A little extra work for Group/Repeater fields, which conditions would be set with `new1`.
                 // When going back to a previous page this will be replaced with the blockId and the condition won't work.
                 if ($element instanceof NestedFieldRow && $element->id) {
@@ -1172,10 +1174,12 @@ trait FormFieldTrait
             'reservedWords' => self::_getReservedWords(),
         ];
 
-        $rules[] = [['limitType'], 'in', 'range' => [
-            'characters',
-            'words',
-        ]];
+        $rules[] = [
+            ['limitType'], 'in', 'range' => [
+                'characters',
+                'words',
+            ],
+        ];
 
         $rules[] = [
             ['labelPosition'],
@@ -1360,7 +1364,7 @@ trait FormFieldTrait
             $reservedWords[] = array_map(function($prop) {
                 return $prop->name;
             }, $reflection->getProperties(ReflectionProperty::IS_PUBLIC));
-            
+
             // Add public properties from form class
             $reflection = new ReflectionClass(Form::class);
             $reservedWords[] = array_map(function($prop) {

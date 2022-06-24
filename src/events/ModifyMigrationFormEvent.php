@@ -10,5 +10,5 @@ class ModifyMigrationFormEvent extends CancelableEvent
 
     public $form;
     public $newForm;
-    
+
 }

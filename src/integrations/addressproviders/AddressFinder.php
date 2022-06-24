@@ -97,7 +97,7 @@ class AddressFinder extends AddressProvider
         if (!$this->hasValidSettings()) {
             return null;
         }
-        
+
         $settings = [
             'apiKey' => Craft::parseEnv($this->apiKey),
             'countryCode' => $this->countryCode,

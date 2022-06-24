@@ -44,7 +44,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     const EVENT_AFTER_FETCH_FORM_SETTINGS = 'afterFetchFormSettings';
     const EVENT_MODIFY_FIELD_MAPPING_VALUES = 'modifyFieldMappingValues';
     const EVENT_MODIFY_FIELD_MAPPING_VALUE = 'modifyFieldMappingValue';
-    
+
     const TYPE_ADDRESS_PROVIDER = 'addressProvider';
     const TYPE_CAPTCHA = 'captcha';
     const TYPE_ELEMENT = 'element';
@@ -261,7 +261,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
                 'dateUpdated',
                 'uid',
                 'title',
-            ]
+            ],
         ];
 
         return $rules;
@@ -402,7 +402,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         // If using the cache (the default), don't fetch it automatically. Just save API requests a tad.
         if ($useCache) {
             $settings = $this->getCache('settings') ?: [];
-            
+
             // De-serialize it from the cache back into full, nested class objects
             $formSettings = new IntegrationFormSettings();
             $formSettings->unserialize($settings);
@@ -434,7 +434,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
 
         // Save a serialised version to the cache, that retains classes
         $this->setCache(['settings' => $settings->serialize()]);
-        
+
         // Always deal with a `IntegrationFormSettings` model
         return $settings;
     }
@@ -670,7 +670,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
 
         return [
             'success' => true,
-            'token' => $token
+            'token' => $token,
         ];
     }
 

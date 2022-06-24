@@ -182,7 +182,7 @@ class Slack extends Miscellaneous
             $members = $response['members'] ?? [];
 
             // Sort the results alphabetically
-            $sort = function (array $a, array $b): int {
+            $sort = function(array $a, array $b): int {
                 return strtolower($a['name']) <=> strtolower($b['name']);
             };
             usort($channels, $sort);

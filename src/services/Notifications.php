@@ -67,7 +67,7 @@ class Notifications extends Component
     public function getFormNotifications(Form $form): array
     {
         $results = $this->_createNotificationsQuery()
-            ->where([ 'formId' => $form->id ])
+            ->where(['formId' => $form->id])
             ->all();
 
         $notifications = [];
@@ -88,7 +88,7 @@ class Notifications extends Component
     public function getNotificationById($id)
     {
         $row = $this->_createNotificationsQuery()
-            ->where([ 'id' => $id ])
+            ->where(['id' => $id])
             ->one();
 
         if ($row) {
@@ -635,16 +635,16 @@ class Notifications extends Component
      */
     public function defineTemplatesSchema(): array
     {
-        $emailTemplates = [[ 'label' => Craft::t('formie', 'Select an option'), 'value' => '' ]];
+        $emailTemplates = [['label' => Craft::t('formie', 'Select an option'), 'value' => '']];
 
         foreach (Formie::$plugin->getEmailTemplates()->getAllTemplates() as $template) {
-            $emailTemplates[] = [ 'label' => $template->name, 'value' => $template->id ];
+            $emailTemplates[] = ['label' => $template->name, 'value' => $template->id];
         }
 
-        $pdfTemplates = [[ 'label' => Craft::t('formie', 'Select an option'), 'value' => '' ]];
+        $pdfTemplates = [['label' => Craft::t('formie', 'Select an option'), 'value' => '']];
 
         foreach (Formie::$plugin->getPdfTemplates()->getAllTemplates() as $template) {
-            $pdfTemplates[] = [ 'label' => $template->name, 'value' => $template->id ];
+            $pdfTemplates[] = ['label' => $template->name, 'value' => $template->id];
         }
 
         return [
@@ -748,7 +748,7 @@ class Notifications extends Component
                 'attachAssets',
                 'enableConditions',
                 'conditions',
-                'uid'
+                'uid',
             ])
             ->orderBy('dateCreated')
             ->from(['{{%formie_notifications}}']);

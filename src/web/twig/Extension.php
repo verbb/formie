@@ -46,7 +46,8 @@ class Extension extends Twig_Extension
         return Inflector::camel2words($string);
     }
 
-    public function formieInclude(Twig_Environment $env, $context, $template, $variables = [], $withContext = true, $ignoreMissing = false, $sandboxed = false) {
+    public function formieInclude(Twig_Environment $env, $context, $template, $variables = [], $withContext = true, $ignoreMissing = false, $sandboxed = false)
+    {
         // Get the form from the context
         $form = $context['form'] ?? null;
 
@@ -54,7 +55,7 @@ class Extension extends Twig_Extension
             // Render the provided include depending on form template overrides
             return $form->renderTemplate($template, array_merge($context, $variables));
         }
-        
+
         return twig_include($env, $context, $template, $variables, $withContext, $ignoreMissing, $sandboxed);
     }
 

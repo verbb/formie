@@ -309,25 +309,25 @@ class Monday extends Miscellaneous
                     'email' => $value,
                     'text' => $value,
                 ];
-            } elseif ($type === 'link') {
+            } else if ($type === 'link') {
                 $newColumns[$handle] = [
                     'url' => $value,
                     'text' => $value,
                 ];
-            } elseif ($type === 'phone') {
+            } else if ($type === 'phone') {
                 $newColumns[$handle] = [
                     'phone' => $value,
                     'countryShortName' => '',
                 ];
-            } elseif ($type === 'color') {
+            } else if ($type === 'color') {
                 $newColumns[$handle] = [
                     'index' => (int)$value,
                 ];
-            } elseif ($type === 'lookup') {
+            } else if ($type === 'lookup') {
                 // No supported in API
-            } elseif ($type === 'board-relation') {
+            } else if ($type === 'board-relation') {
                 // No supported in API
-            } elseif ($type === 'date') {
+            } else if ($type === 'date') {
                 $date = DateTimeHelper::toDateTime($value);
 
                 if ($date) {

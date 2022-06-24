@@ -14,5 +14,5 @@ class SendIntegrationPayloadEvent extends CancelableEvent
     public $response;
     public $endpoint;
     public $method;
-    
+
 }

@@ -125,7 +125,7 @@ class Categories extends CraftCategories implements FormFieldInterface
 
         return [
             'sourceOptions' => $options,
-            'warning' => count($options) === 1 ? Craft::t('formie', 'No category groups available. View [category settings]({link}).', ['link' => UrlHelper::cpUrl('settings/categories') ]) : false,
+            'warning' => count($options) === 1 ? Craft::t('formie', 'No category groups available. View [category settings]({link}).', ['link' => UrlHelper::cpUrl('settings/categories')]) : false,
         ];
     }
 
@@ -167,7 +167,7 @@ class Categories extends CraftCategories implements FormFieldInterface
     public function getPreviewInputHtml(): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/categories/preview', [
-            'field' => $this
+            'field' => $this,
         ]);
     }
 
@@ -273,7 +273,7 @@ class Categories extends CraftCategories implements FormFieldInterface
             } else {
                 $ids = ArrayHelper::getColumn($this->defaultValue, 'id');
             }
-            
+
             if ($ids) {
                 $query->id($ids);
             }
@@ -289,7 +289,7 @@ class Categories extends CraftCategories implements FormFieldInterface
             } else {
                 $ids = ArrayHelper::getColumn($this->rootCategory, 'id');
             }
-            
+
             if ($ids) {
                 $query->descendantOf($ids);
             }
@@ -318,7 +318,7 @@ class Categories extends CraftCategories implements FormFieldInterface
         // $query = $this->getElementsQuery();
 
         // return $query->hasDescendants()->exists();
-        
+
         return false;
     }
 
@@ -371,7 +371,7 @@ class Categories extends CraftCategories implements FormFieldInterface
             'categories' => [
                 'name' => 'categories',
                 'type' => Type::listOf(CategoryInterface::getType()),
-                'resolve' => CategoryResolver::class.'::resolve',
+                'resolve' => CategoryResolver::class . '::resolve',
                 'args' => CategoryArguments::getArguments(),
                 'resolve' => function($class) {
                     return $class->getElementsQuery()->all();
@@ -380,7 +380,7 @@ class Categories extends CraftCategories implements FormFieldInterface
             'rootCategory' => [
                 'name' => 'rootCategory',
                 'type' => CategoryInterface::getType(),
-                'resolve' => CategoryResolver::class.'::resolve',
+                'resolve' => CategoryResolver::class . '::resolve',
                 'args' => CategoryArguments::getArguments(),
                 'resolve' => function($class) {
                     return $class->getRootCategoryElement();
@@ -415,7 +415,7 @@ class Categories extends CraftCategories implements FormFieldInterface
                 'validation' => 'required',
                 'required' => true,
                 'element-class' => count($options) === 1 ? 'hidden' : false,
-                'warning' => count($options) === 1 ? Craft::t('formie', 'No category groups available. View [category settings]({link}).', ['link' => UrlHelper::cpUrl('settings/categories') ]) : false,
+                'warning' => count($options) === 1 ? Craft::t('formie', 'No category groups available. View [category settings]({link}).', ['link' => UrlHelper::cpUrl('settings/categories')]) : false,
             ]),
             SchemaHelper::elementSelectField([
                 'label' => Craft::t('formie', 'Default Value'),
@@ -507,9 +507,9 @@ class Categories extends CraftCategories implements FormFieldInterface
                 'help' => Craft::t('formie', 'Set different display layouts for this field.'),
                 'name' => 'displayType',
                 'options' => [
-                    [ 'label' => Craft::t('formie', 'Dropdown'), 'value' => 'dropdown' ],
-                    [ 'label' => Craft::t('formie', 'Checkboxes'), 'value' => 'checkboxes' ],
-                    [ 'label' => Craft::t('formie', 'Radio Buttons'), 'value' => 'radio' ],
+                    ['label' => Craft::t('formie', 'Dropdown'), 'value' => 'dropdown'],
+                    ['label' => Craft::t('formie', 'Checkboxes'), 'value' => 'checkboxes'],
+                    ['label' => Craft::t('formie', 'Radio Buttons'), 'value' => 'radio'],
                 ],
             ]),
             SchemaHelper::toggleContainer('settings.displayType=dropdown', [
@@ -568,7 +568,7 @@ class Categories extends CraftCategories implements FormFieldInterface
             return [
                 'name' => 'defaultCategory',
                 'type' => CategoryInterface::getType(),
-                'resolve' => CategoryResolver::class.'::resolve',
+                'resolve' => CategoryResolver::class . '::resolve',
                 'args' => CategoryArguments::getArguments(),
                 'resolve' => function($class) {
                     return $class->getDefaultValueQuery() ? $class->getDefaultValueQuery()->one() : null;

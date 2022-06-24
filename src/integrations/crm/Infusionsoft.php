@@ -356,12 +356,12 @@ class Infusionsoft extends Crm
         foreach ($fields as $key => $field) {
             // Only allow supported types
             if (!in_array($field['field_type'], $supportedFields)) {
-                 continue;
+                continue;
             }
 
             // Exclude any names
             if (in_array($field['field_type'], $excludeNames)) {
-                 continue;
+                continue;
             }
 
             $customFields[] = new IntegrationField([

@@ -107,7 +107,7 @@ class Products extends CommerceProducts implements FormFieldInterface
 
         return [
             'sourceOptions' => $options,
-            'warning' => count($options) < 2 ? Craft::t('formie', 'No product types available. View [product type settings]({link}).', ['link' => UrlHelper::cpUrl('commerce/settings/producttypes') ]) : false,
+            'warning' => count($options) < 2 ? Craft::t('formie', 'No product types available. View [product type settings]({link}).', ['link' => UrlHelper::cpUrl('commerce/settings/producttypes')]) : false,
         ];
     }
 
@@ -142,7 +142,7 @@ class Products extends CommerceProducts implements FormFieldInterface
     public function getPreviewInputHtml(): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/products/preview', [
-            'field' => $this
+            'field' => $this,
         ]);
     }
 
@@ -208,7 +208,7 @@ class Products extends CommerceProducts implements FormFieldInterface
             } else {
                 $ids = ArrayHelper::getColumn($this->defaultValue, 'id');
             }
-            
+
             if ($ids) {
                 $query->id($ids);
             }
@@ -270,7 +270,7 @@ class Products extends CommerceProducts implements FormFieldInterface
             'entries' => [
                 'name' => 'products',
                 'type' => Type::listOf(ProductInterface::getType()),
-                'resolve' => ProductResolver::class.'::resolve',
+                'resolve' => ProductResolver::class . '::resolve',
                 'args' => ProductArguments::getArguments(),
                 'resolve' => function($class) {
                     return $class->getElementsQuery()->all();
@@ -306,7 +306,7 @@ class Products extends CommerceProducts implements FormFieldInterface
                 'validation' => 'required',
                 'required' => true,
                 'element-class' => count($options) < 2 ? 'hidden' : false,
-                'warning' => count($options) < 2 ? Craft::t('formie', 'No product types available. View [product type settings]({link}).', ['link' => UrlHelper::cpUrl('commerce/settings/producttypes') ]) : false,
+                'warning' => count($options) < 2 ? Craft::t('formie', 'No product types available. View [product type settings]({link}).', ['link' => UrlHelper::cpUrl('commerce/settings/producttypes')]) : false,
             ]),
             SchemaHelper::elementSelectField([
                 'label' => Craft::t('formie', 'Default Value'),
@@ -327,7 +327,7 @@ class Products extends CommerceProducts implements FormFieldInterface
     public function defineSettingsSchema(): array
     {
         $labelSourceOptions = $this->getLabelSourceOptions();
-        
+
         return [
             SchemaHelper::lightswitchField([
                 'label' => Craft::t('formie', 'Required Field'),
@@ -385,9 +385,9 @@ class Products extends CommerceProducts implements FormFieldInterface
                 'help' => Craft::t('formie', 'Set different display layouts for this field.'),
                 'name' => 'displayType',
                 'options' => [
-                    [ 'label' => Craft::t('formie', 'Dropdown'), 'value' => 'dropdown' ],
-                    [ 'label' => Craft::t('formie', 'Checkboxes'), 'value' => 'checkboxes' ],
-                    [ 'label' => Craft::t('formie', 'Radio Buttons'), 'value' => 'radio' ],
+                    ['label' => Craft::t('formie', 'Dropdown'), 'value' => 'dropdown'],
+                    ['label' => Craft::t('formie', 'Checkboxes'), 'value' => 'checkboxes'],
+                    ['label' => Craft::t('formie', 'Radio Buttons'), 'value' => 'radio'],
                 ],
             ]),
             SchemaHelper::toggleContainer('settings.displayType=dropdown', [
@@ -441,7 +441,7 @@ class Products extends CommerceProducts implements FormFieldInterface
             return [
                 'name' => 'defaultProduct',
                 'type' => ProductInterface::getType(),
-                'resolve' => ProductResolver::class.'::resolve',
+                'resolve' => ProductResolver::class . '::resolve',
                 'args' => ProductArguments::getArguments(),
                 'resolve' => function($class) {
                     return $class->getDefaultValueQuery() ? $class->getDefaultValueQuery()->one() : null;

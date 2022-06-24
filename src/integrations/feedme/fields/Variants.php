@@ -10,7 +10,7 @@ class Variants extends FeedMeVariants
 
     use BaseFieldTrait;
 
-    
+
     // Properties
     // =========================================================================
 

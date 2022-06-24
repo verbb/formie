@@ -132,7 +132,7 @@ class Capsule extends Crm
             // Get Opportunity fields
             $milestoneOptions = [];
             $lostReasonOptions = [];
-            
+
             $milestones = $this->request('GET', 'milestones')['milestones'] ?? [];
             $lostReasons = $this->request('GET', 'lostreasons')['lostReasons'] ?? [];
 
@@ -240,7 +240,7 @@ class Capsule extends Crm
 
             // Get Task fields
             $categoryOptions = [];
-            
+
             $categories = $this->request('GET', 'categories')['categories'] ?? [];
 
             foreach ($categories as $category) {
@@ -512,24 +512,30 @@ class Capsule extends Crm
             }
 
             if ($key === 'emailAddresses') {
-                $fields[$key] = [[
-                    'type' => 'Work',
-                    'address' => $value,
-                ]];
+                $fields[$key] = [
+                    [
+                        'type' => 'Work',
+                        'address' => $value,
+                    ],
+                ];
             }
 
             if ($key === 'phoneNumbers') {
-                $fields[$key] = [[
-                    'type' => 'Work',
-                    'number' => $value,
-                ]];
+                $fields[$key] = [
+                    [
+                        'type' => 'Work',
+                        'number' => $value,
+                    ],
+                ];
             }
 
             if ($key === 'websites') {
-                $fields[$key] = [[
-                    'service' => 'URL',
-                    'address' => $value,
-                ]];
+                $fields[$key] = [
+                    [
+                        'service' => 'URL',
+                        'address' => $value,
+                    ],
+                ];
             }
 
             if ($key === 'milestone') {

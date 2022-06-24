@@ -145,7 +145,7 @@ class FormSettingsType extends ObjectType
                     'name' => 'integrations',
                     'type' => Type::listOf(FormIntegrationsType::getType()),
                     'description' => 'The form’s integrations.',
-                    'resolve' => function ($source, $arguments) {
+                    'resolve' => function($source, $arguments) {
                         return $source->getEnabledIntegrations();
                     },
                 ],

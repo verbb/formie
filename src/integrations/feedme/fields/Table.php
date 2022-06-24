@@ -10,7 +10,7 @@ class Table extends FeedMeTable
 
     use BaseFieldTrait;
 
-    
+
     // Properties
     // =========================================================================
 

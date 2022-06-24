@@ -10,24 +10,24 @@ class ArrayHelper extends CraftArrayHelper
 
     /**
      * Recursively implodes an array with optional key inclusion
-     * 
+     *
      * Example of $include_keys output: key, value, key, value, key, value
-     * 
+     *
      * @access  public
-     * @param   array   $array         multi-dimensional array to recursively implode
-     * @param   string  $glue          value that glues elements together   
-     * @param   bool    $include_keys  include keys before their values
-     * @param   bool    $trim_all      trim ALL whitespace from string
+     * @param array $array multi-dimensional array to recursively implode
+     * @param string $glue value that glues elements together
+     * @param bool $include_keys include keys before their values
+     * @param bool $trim_all trim ALL whitespace from string
      * @return  string  imploded array
-     */ 
+     */
     public static function recursiveImplode($glue = ',', array $array, $include_keys = false, $trim_all = false)
     {
         $glued_string = '';
 
         // Recursively iterates array and adds key/value to glued string
         array_walk_recursive($array, function($value, $key) use ($glue, $include_keys, &$glued_string) {
-            $include_keys && $glued_string .= $key.$glue;
-            $glued_string .= $value.$glue;
+            $include_keys && $glued_string .= $key . $glue;
+            $glued_string .= $value . $glue;
         });
 
         // Removes last $glue from string
@@ -142,7 +142,7 @@ class ArrayHelper extends CraftArrayHelper
                     ) {
                         // Recurse into the current merge data as it is an array.
                         $stack[] = [&$val, &$curMerge[1][$key]];
-                    } elseif ((int)$key === $key && isset($curMerge[1][$key])) {
+                    } else if ((int)$key === $key && isset($curMerge[1][$key])) {
                         $curMerge[1][] = $val;
                     } else {
                         $curMerge[1][$key] = $val;

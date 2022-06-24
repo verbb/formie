@@ -9,5 +9,5 @@ class ModifyIntegrationsEvent extends Event
     // =========================================================================
 
     public $integrations;
-    
+
 }

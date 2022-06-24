@@ -507,12 +507,12 @@ class ActiveCampaign extends Crm
 
             // // Only allow supported types
             if (!in_array($fieldType, $supportedFields)) {
-                 continue;
+                continue;
             }
 
             // Exclude any names
             if (in_array($fieldName, $excludeNames)) {
-                 continue;
+                continue;
             }
 
             $customFields[] = new IntegrationField([
@@ -572,7 +572,7 @@ class ActiveCampaign extends Crm
             'query' => [
                 'limit' => $limit,
                 'offset' => $offset,
-            ]
+            ],
         ]);
 
         $newItems = $response[$endpoint] ?? [];

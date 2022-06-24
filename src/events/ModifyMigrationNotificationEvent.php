@@ -11,5 +11,5 @@ class ModifyMigrationNotificationEvent extends CancelableEvent
     public $form;
     public $notification;
     public $newNotification;
-    
+
 }

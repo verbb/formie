@@ -97,7 +97,7 @@ class Loqate extends AddressProvider
         if (!$this->hasValidSettings()) {
             return null;
         }
-        
+
         $settings = [
             'apiKey' => Craft::parseEnv($this->apiKey),
             'namespace' => $field ? Formie::$plugin->getService()->getFieldNamespaceForScript($field) : '',

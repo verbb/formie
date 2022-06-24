@@ -385,12 +385,12 @@ class Insightly extends Crm
 
             // Only allow supported types
             if (!in_array($field['FIELD_TYPE'], $supportedFields)) {
-                 continue;
+                continue;
             }
 
             // Exclude any names
             if (in_array($field['FIELD_NAME'], $excludeNames)) {
-                 continue;
+                continue;
             }
 
             $customFields[] = new IntegrationField([

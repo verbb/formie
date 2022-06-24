@@ -105,7 +105,7 @@ class Number extends FormField implements PreviewableFieldInterface
             ['max'],
             'compare',
             'compareAttribute' => 'min',
-            'operator' => '>='
+            'operator' => '>=',
         ];
 
         if (!$this->decimals) {
@@ -192,7 +192,7 @@ class Number extends FormField implements PreviewableFieldInterface
     public function getPreviewInputHtml(): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/number/preview', [
-            'field' => $this
+            'field' => $this,
         ]);
     }
 

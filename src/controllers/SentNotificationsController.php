@@ -18,7 +18,7 @@ class SentNotificationsController extends Controller
 {
     // Public Methods
     // =========================================================================
-    
+
     /**
      * @inheritDoc
      */
@@ -28,7 +28,7 @@ class SentNotificationsController extends Controller
 
         return $this->renderTemplate('formie/sent-notifications/index', []);
     }
-    
+
     /**
      * @inheritDoc
      */
@@ -38,7 +38,7 @@ class SentNotificationsController extends Controller
 
         return $this->renderTemplate('formie/settings/sent-notifications', compact('settings'));
     }
-    
+
     /**
      * @inheritDoc
      */
@@ -64,7 +64,7 @@ class SentNotificationsController extends Controller
 
         return $this->renderTemplate('formie/sent-notifications/_edit', $variables);
     }
-    
+
     /**
      * @inheritDoc
      */
@@ -90,7 +90,7 @@ class SentNotificationsController extends Controller
             'footHtml' => $view->getBodyHtml(),
         ]);
     }
-    
+
     /**
      * @inheritDoc
      */
@@ -153,14 +153,14 @@ class SentNotificationsController extends Controller
         Formie::$plugin->getSentNotifications()->saveSentNotification($sentNotification->submission, $sentNotification->notification, $newEmail);
 
         $message = Craft::t('formie', 'Notification email was resent successfully.');
-        
+
         Craft::$app->getSession()->setNotice($message);
 
         return $this->asJson([
             'success' => true,
         ]);
     }
-    
+
     /**
      * @inheritDoc
      */
@@ -240,14 +240,14 @@ class SentNotificationsController extends Controller
         }
 
         $message = Craft::t('formie', '{count} notification emails resent successfully.', ['count' => count($ids)]);
-        
+
         Craft::$app->getSession()->setNotice($message);
 
         return $this->asJson([
             'success' => true,
         ]);
     }
-    
+
     /**
      * @inheritDoc
      */
@@ -292,7 +292,7 @@ class SentNotificationsController extends Controller
 
     // Private Methods
     // =========================================================================
-    
+
     /**
      * @inheritDoc
      */

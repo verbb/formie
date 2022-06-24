@@ -54,7 +54,7 @@ class ImportExportController extends Controller
 
         $filename = 'formie-import-' . gmdate('ymd_His') . '.json';
         $fileLocation = Craft::$app->getPath()->getTempPath() . DIRECTORY_SEPARATOR . $filename;
-            
+
         move_uploaded_file($uploadedFile->tempName, $fileLocation);
 
         return $this->redirectToPostedUrl(['filename' => $filename]);
@@ -118,7 +118,7 @@ class ImportExportController extends Controller
         }
 
         $notificationCount = Craft::t('app', '{num, number} {num, plural, =1{notification} other{notifications}}', ['num' => count($json['notifications'])]);
-        
+
         if (count($json['notifications'])) {
             $this->stdout("Notifications: Preparing to import {$notificationCount}.");
 
@@ -220,7 +220,7 @@ class ImportExportController extends Controller
             ]);
 
             return null;
-        }        
+        }
 
         $formElement = Formie::$plugin->getForms()->getFormById($formId);
 
@@ -228,7 +228,7 @@ class ImportExportController extends Controller
         $json = Json::encode($data, JSON_PRETTY_PRINT | JSON_NUMERIC_CHECK);
 
         Craft::$app->getResponse()->sendContentAsFile($json, 'formie-' . $formElement->handle . '-' . StringHelper::UUID() . '.json');
-        
+
         return Craft::$app->end();
     }
 

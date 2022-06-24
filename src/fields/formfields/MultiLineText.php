@@ -82,7 +82,7 @@ class MultiLineText extends FormField implements PreviewableFieldInterface
     public function getPreviewInputHtml(): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/multi-line-text/preview', [
-            'field' => $this
+            'field' => $this,
         ]);
     }
 
@@ -92,7 +92,7 @@ class MultiLineText extends FormField implements PreviewableFieldInterface
     public function getFrontEndJsModules()
     {
         $modules = [];
-        
+
         if ($this->limit) {
             $modules[] = [
                 'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/fields/text-limit.js', true),
@@ -186,14 +186,14 @@ class MultiLineText extends FormField implements PreviewableFieldInterface
                                 SchemaHelper::selectField([
                                     'name' => 'limitType',
                                     'options' => [
-                                        [ 'label' => Craft::t('formie', 'Characters'), 'value' => 'characters' ],
-                                        [ 'label' => Craft::t('formie', 'Words'), 'value' => 'words' ],
+                                        ['label' => Craft::t('formie', 'Characters'), 'value' => 'characters'],
+                                        ['label' => Craft::t('formie', 'Words'), 'value' => 'words'],
                                     ],
                                 ]),
                             ],
                         ],
                     ],
-                ]
+                ],
             ]),
             SchemaHelper::matchField([
                 'fieldTypes' => [self::class],

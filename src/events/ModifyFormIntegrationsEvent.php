@@ -10,5 +10,5 @@ class ModifyFormIntegrationsEvent extends Event
 
     public $integrations;
     public $type;
-    
+
 }

@@ -424,7 +424,7 @@ class Stencils extends Component
                 'templateId',
                 'defaultStatusId',
                 'dateDeleted',
-                'uid'
+                'uid',
             ])
             ->orderBy('name ASC')
             ->from(['{{%formie_stencils}}']);
@@ -435,7 +435,7 @@ class Stencils extends Component
 
         $projectConfig = Craft::$app->getProjectConfig();
         $schemaVersion = $projectConfig->get('plugins.formie.schemaVersion', true);
-        
+
         if (version_compare($schemaVersion, '1.2.8', '>=')) {
             $query->addSelect(['submitActionEntryId']);
         }

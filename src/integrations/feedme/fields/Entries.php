@@ -10,7 +10,7 @@ class Entries extends FeedMeEntries
 
     use BaseFieldTrait;
 
-    
+
     // Properties
     // =========================================================================
 

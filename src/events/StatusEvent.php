@@ -10,5 +10,5 @@ class StatusEvent extends Event
 
     public $status;
     public $isNew = false;
-    
+
 }

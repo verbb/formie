@@ -40,7 +40,7 @@ class HubSpot extends Crm
 
     // Public Methods
     // =========================================================================
-    
+
     /**
      * @inheritDoc
      */
@@ -346,7 +346,7 @@ class HubSpot extends Crm
                 $formPayload['context']['ipAddress'] = $this->ipAddress;
                 $formPayload['context']['pageUri'] = $this->referrer;
 
-                list($portalId, $formGuid) = explode('__', $this->formId);
+                [$portalId, $formGuid] = explode('__', $this->formId);
 
                 // Bloody HubSpot have old APIs, so they require a separate endpoint
                 $endpoint = "submissions/v3/integration/submit/${portalId}/${formGuid}";
@@ -470,12 +470,12 @@ class HubSpot extends Crm
 
             // Only allow supported types
             if (!in_array($field['type'], $supportedFields)) {
-                 continue;
+                continue;
             }
 
             // Exclude any names
             if (in_array($field['name'], $excludeNames)) {
-                 continue;
+                continue;
             }
 
             // Add in any options for some fields
@@ -513,7 +513,7 @@ class HubSpot extends Crm
     private function _getFormFields($form)
     {
         $fields = [];
-        
+
         $extraFields = [
             new IntegrationField([
                 'handle' => 'trackingID',

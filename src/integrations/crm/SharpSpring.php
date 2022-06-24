@@ -96,7 +96,7 @@ class SharpSpring extends Crm
                     $submission = new Submission();
                     $submission->setForm($form);
                     $fieldContent = Formie::$plugin->getSubmissions()->populateFakeSubmission($submission);
-                    
+
                     $response = $this->_sendFormSubmission($endpoint, $submission);
 
                     // HTML/JS is returned from the response, so handle that.

@@ -447,7 +447,7 @@ class Zoho extends Crm
 
             // Exclude any names
             if (in_array($field['api_name'], $excludeNames)) {
-                 continue;
+                continue;
             }
 
             $options = [];

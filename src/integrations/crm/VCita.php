@@ -151,10 +151,12 @@ class VCita extends Crm
             $clientPayload = $clientValues;
 
             // Can't handle update and create, so check first
-            $response = $this->request('GET', 'clients', ['query' => [
-                'search_by' => 'email',
-                'search_term' => $clientPayload['email'] ?? '',
-            ]]);
+            $response = $this->request('GET', 'clients', [
+                'query' => [
+                    'search_by' => 'email',
+                    'search_term' => $clientPayload['email'] ?? '',
+                ],
+            ]);
             $existingClient = $response['data']['clients'][0]['id'] ?? '';
 
             if ($existingClient) {
@@ -262,7 +264,7 @@ class VCita extends Crm
         foreach ($fields as $key => $field) {
             // Only allow supported types
             if (in_array($field['type'], $unsupportedFields) || in_array($field['label'], $unsupportedFields)) {
-                 continue;
+                continue;
             }
 
             $customFields[] = new IntegrationField([

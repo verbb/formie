@@ -28,7 +28,7 @@ class PageSettingsGenerator implements GeneratorInterface
             'name' => $typeName,
             'fields' => function() use ($fieldFields) {
                 return $fieldFields;
-            }
+            },
         ]));
 
         return $gqlTypes;

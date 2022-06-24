@@ -10,7 +10,7 @@ class Users extends FeedMeUsers
 
     use BaseFieldTrait;
 
-    
+
     // Properties
     // =========================================================================
 

@@ -180,7 +180,7 @@ class Tags extends CraftTags implements FormFieldInterface
 
         return [
             'sourceOptions' => $options,
-            'warning' => count($options) === 1 ? Craft::t('formie', 'No tag groups available. View [tag settings]({link}).', ['link' => UrlHelper::cpUrl('settings/tags') ]) : false,
+            'warning' => count($options) === 1 ? Craft::t('formie', 'No tag groups available. View [tag settings]({link}).', ['link' => UrlHelper::cpUrl('settings/tags')]) : false,
         ];
     }
 
@@ -220,7 +220,7 @@ class Tags extends CraftTags implements FormFieldInterface
     public function getPreviewInputHtml(): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/tags/preview', [
-            'field' => $this
+            'field' => $this,
         ]);
     }
 
@@ -312,7 +312,7 @@ class Tags extends CraftTags implements FormFieldInterface
             } else {
                 $ids = ArrayHelper::getColumn($this->defaultValue, 'id');
             }
-            
+
             if ($ids) {
                 $query->id($ids);
             }
@@ -381,7 +381,7 @@ class Tags extends CraftTags implements FormFieldInterface
             'tags' => [
                 'name' => 'tags',
                 'type' => Type::listOf(TagInterface::getType()),
-                'resolve' => TagResolver::class.'::resolve',
+                'resolve' => TagResolver::class . '::resolve',
                 'args' => TagArguments::getArguments(),
                 'resolve' => function($class) {
                     return $class->getElementsQuery()->all();
@@ -416,7 +416,7 @@ class Tags extends CraftTags implements FormFieldInterface
                 'validation' => 'required',
                 'required' => true,
                 'element-class' => count($options) === 1 ? 'hidden' : false,
-                'warning' => count($options) === 1 ? Craft::t('formie', 'No tag groups available. View [tag settings]({link}).', ['link' => UrlHelper::cpUrl('settings/tags') ]) : false,
+                'warning' => count($options) === 1 ? Craft::t('formie', 'No tag groups available. View [tag settings]({link}).', ['link' => UrlHelper::cpUrl('settings/tags')]) : false,
             ]),
             SchemaHelper::elementSelectField([
                 'label' => Craft::t('formie', 'Default Value'),
@@ -437,7 +437,7 @@ class Tags extends CraftTags implements FormFieldInterface
     public function defineSettingsSchema(): array
     {
         $labelSourceOptions = $this->getLabelSourceOptions();
-        
+
         return [
             SchemaHelper::lightswitchField([
                 'label' => Craft::t('formie', 'Required Field'),
@@ -489,9 +489,9 @@ class Tags extends CraftTags implements FormFieldInterface
                 'help' => Craft::t('formie', 'Set different display layouts for this field.'),
                 'name' => 'displayType',
                 'options' => [
-                    [ 'label' => Craft::t('formie', 'Dropdown'), 'value' => 'dropdown' ],
-                    [ 'label' => Craft::t('formie', 'Checkboxes'), 'value' => 'checkboxes' ],
-                    [ 'label' => Craft::t('formie', 'Radio Buttons'), 'value' => 'radio' ],
+                    ['label' => Craft::t('formie', 'Dropdown'), 'value' => 'dropdown'],
+                    ['label' => Craft::t('formie', 'Checkboxes'), 'value' => 'checkboxes'],
+                    ['label' => Craft::t('formie', 'Radio Buttons'), 'value' => 'radio'],
                 ],
             ]),
             SchemaHelper::labelPosition($this),
@@ -539,7 +539,7 @@ class Tags extends CraftTags implements FormFieldInterface
             return [
                 'name' => 'defaultTag',
                 'type' => TagInterface::getType(),
-                'resolve' => TagResolver::class.'::resolve',
+                'resolve' => TagResolver::class . '::resolve',
                 'args' => TagArguments::getArguments(),
                 'resolve' => function($class) {
                     return $class->getDefaultValueQuery() ? $class->getDefaultValueQuery()->one() : null;

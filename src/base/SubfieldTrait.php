@@ -58,7 +58,7 @@ trait SubfieldTrait
                 $element->addError(
                     $this->handle,
                     Craft::t('formie', '"{label}" cannot be blank.', [
-                        'label' => $this->$labelProp
+                        'label' => $this->$labelProp,
                     ])
                 );
             }

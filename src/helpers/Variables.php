@@ -36,13 +36,13 @@ class Variables
     public static function getFormVariables(): array
     {
         return [
-            [ 'label' => Craft::t('formie', 'Form'), 'heading' => true ],
-            [ 'label' => Craft::t('formie', 'All Form Fields'), 'value' => '{allFields}' ],
-            [ 'label' => Craft::t('formie', 'All Non Empty Fields'), 'value' => '{allContentFields}' ],
-            [ 'label' => Craft::t('formie', 'All Visible Fields'), 'value' => '{allVisibleFields}' ],
-            [ 'label' => Craft::t('formie', 'Form Name'), 'value' => '{formName}' ],
-            [ 'label' => Craft::t('formie', 'Submission CP URL'), 'value' => '{submissionUrl}' ],
-            [ 'label' => Craft::t('formie', 'Submission ID'), 'value' => '{submissionId}' ],
+            ['label' => Craft::t('formie', 'Form'), 'heading' => true],
+            ['label' => Craft::t('formie', 'All Form Fields'), 'value' => '{allFields}'],
+            ['label' => Craft::t('formie', 'All Non Empty Fields'), 'value' => '{allContentFields}'],
+            ['label' => Craft::t('formie', 'All Visible Fields'), 'value' => '{allVisibleFields}'],
+            ['label' => Craft::t('formie', 'Form Name'), 'value' => '{formName}'],
+            ['label' => Craft::t('formie', 'Submission CP URL'), 'value' => '{submissionUrl}'],
+            ['label' => Craft::t('formie', 'Submission ID'), 'value' => '{submissionId}'],
         ];
     }
 
@@ -54,9 +54,9 @@ class Variables
     public static function getEmailVariables(): array
     {
         return [
-            [ 'label' => Craft::t('formie', 'Email'), 'heading' => true ],
-            [ 'label' => Craft::t('formie', 'System Email'), 'value' => '{systemEmail}' ],
-            [ 'label' => Craft::t('formie', 'System Reply-To'), 'value' => '{systemReplyTo}' ],
+            ['label' => Craft::t('formie', 'Email'), 'heading' => true],
+            ['label' => Craft::t('formie', 'System Email'), 'value' => '{systemEmail}'],
+            ['label' => Craft::t('formie', 'System Reply-To'), 'value' => '{systemReplyTo}'],
         ];
     }
 
@@ -68,14 +68,14 @@ class Variables
     public static function getGeneralVariables(): array
     {
         return [
-            [ 'label' => Craft::t('formie', 'General'), 'heading' => true ],
-            [ 'label' => Craft::t('formie', 'System Name'), 'value' => '{systemName}' ],
-            [ 'label' => Craft::t('formie', 'Site Name'), 'value' => '{siteName}' ],
-            [ 'label' => Craft::t('formie', 'Timestamp'), 'value' => '{timestamp}' ],
-            [ 'label' => Craft::t('formie', 'Date (mm/dd/yyyy)'), 'value' => '{dateUs}' ],
-            [ 'label' => Craft::t('formie', 'Date (dd/mm/yyyy)'), 'value' => '{dateInt}' ],
-            [ 'label' => Craft::t('formie', 'Time (12h)'), 'value' => '{time12}' ],
-            [ 'label' => Craft::t('formie', 'Time (24h)'), 'value' => '{time24}' ],
+            ['label' => Craft::t('formie', 'General'), 'heading' => true],
+            ['label' => Craft::t('formie', 'System Name'), 'value' => '{systemName}'],
+            ['label' => Craft::t('formie', 'Site Name'), 'value' => '{siteName}'],
+            ['label' => Craft::t('formie', 'Timestamp'), 'value' => '{timestamp}'],
+            ['label' => Craft::t('formie', 'Date (mm/dd/yyyy)'), 'value' => '{dateUs}'],
+            ['label' => Craft::t('formie', 'Date (dd/mm/yyyy)'), 'value' => '{dateInt}'],
+            ['label' => Craft::t('formie', 'Time (12h)'), 'value' => '{time12}'],
+            ['label' => Craft::t('formie', 'Time (24h)'), 'value' => '{time24}'],
         ];
     }
 
@@ -87,14 +87,14 @@ class Variables
     public static function getUsersVariables(): array
     {
         return [
-            [ 'label' => Craft::t('formie', 'Users'), 'heading' => true ],
-            [ 'label' => Craft::t('formie', 'User IP Address'), 'value' => '{userIp}' ],
-            [ 'label' => Craft::t('formie', 'User ID'), 'value' => '{userId}' ],
-            [ 'label' => Craft::t('formie', 'User Email'), 'value' => '{userEmail}' ],
-            [ 'label' => Craft::t('formie', 'Username'), 'value' => '{username}' ],
-            [ 'label' => Craft::t('formie', 'User Full Name'), 'value' => '{userFullName}' ],
-            [ 'label' => Craft::t('formie', 'User First Name'), 'value' => '{userFirstName}' ],
-            [ 'label' => Craft::t('formie', 'User Last Name'), 'value' => '{userLastName}' ],
+            ['label' => Craft::t('formie', 'Users'), 'heading' => true],
+            ['label' => Craft::t('formie', 'User IP Address'), 'value' => '{userIp}'],
+            ['label' => Craft::t('formie', 'User ID'), 'value' => '{userId}'],
+            ['label' => Craft::t('formie', 'User Email'), 'value' => '{userEmail}'],
+            ['label' => Craft::t('formie', 'Username'), 'value' => '{username}'],
+            ['label' => Craft::t('formie', 'User Full Name'), 'value' => '{userFullName}'],
+            ['label' => Craft::t('formie', 'User First Name'), 'value' => '{userFirstName}'],
+            ['label' => Craft::t('formie', 'User Last Name'), 'value' => '{userLastName}'],
         ];
     }
 
@@ -226,7 +226,7 @@ class Variables
             // Add support for all global sets
             foreach (Craft::$app->getGlobals()->getAllSets() as $globalSet) {
                 Formie::$plugin->getRenderCache()->setGlobalVariables($cacheKey, [
-                    $globalSet->handle => $globalSet
+                    $globalSet->handle => $globalSet,
                 ]);
             }
         }
@@ -297,7 +297,7 @@ class Variables
                 continue;
             }
 
-            if ($excludeHidden && $field->getIsHidden()) { 
+            if ($excludeHidden && $field->getIsHidden()) {
                 continue;
             }
 
@@ -328,7 +328,7 @@ class Variables
 
     // Public Static Methods
     // =========================================================================
-   
+
     /**
      * @inheritdoc
      */
@@ -433,7 +433,7 @@ class Variables
         } else if ($field instanceof SubFieldInterface && $field->hasSubfields()) {
             foreach ($field->getSubFieldOptions() as $subfield) {
                 $handle = "{$prefix}{$field->handle}.{$subfield['handle']}";
-                
+
                 $values[$handle] = $submissionValue[$subfield['handle']] ?? '';
             }
         } else if ($field instanceof Group) {

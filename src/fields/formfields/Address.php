@@ -338,7 +338,7 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
                 $element->addError(
                     $this->handle,
                     Craft::t('formie', '"{label}" cannot be blank.', [
-                        'label' => $this->$labelProp
+                        'label' => $this->$labelProp,
                     ])
                 );
             }
@@ -414,7 +414,7 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
 
         return $subFields;
     }
-    
+
     /**
      * @inheritDoc
      */
@@ -489,7 +489,7 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
     public function getPreviewInputHtml(): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/address/preview', [
-            'field' => $this
+            'field' => $this,
         ]);
     }
 
@@ -540,7 +540,7 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
     {
         $integration = $this->getAddressProviderIntegration();
 
-        if ($integration && $integration->supportsCurrentLocation() ) {
+        if ($integration && $integration->supportsCurrentLocation()) {
             return true;
         }
 
@@ -590,7 +590,7 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
                     'validation' => 'requiredIf:autocompleteEnabled',
                     'required' => true,
                     'options' => array_merge(
-                        [[ 'label' => Craft::t('formie', 'Select an option'), 'value' => '' ]],
+                        [['label' => Craft::t('formie', 'Select an option'), 'value' => '']],
                         $addressProviderOptions
                     ),
                 ]);
@@ -616,7 +616,7 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
                     'help' => Craft::t('formie', 'Entering a default value will place the value in the field when it loads.'),
                     'name' => $nestedField['handle'] . 'DefaultValue',
                     'options' => array_merge(
-                        [[ 'label' => Craft::t('formie', 'Select an option'), 'value' => '' ]],
+                        [['label' => Craft::t('formie', 'Select an option'), 'value' => '']],
                         static::getCountryOptions()
                     ),
                 ]);
@@ -776,7 +776,7 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
 
         foreach ($addressProviders as $addressProvider) {
             if ($addressProvider->enabled) {
-                $addressProviderOptions[] = [ 'label' => $addressProvider->getName(), 'value' => $addressProvider->getHandle() ];
+                $addressProviderOptions[] = ['label' => $addressProvider->getName(), 'value' => $addressProvider->getHandle()];
             }
         }
 

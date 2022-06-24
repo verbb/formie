@@ -13,7 +13,7 @@ class Relations extends Component
 {
     // Public Methods
     // =========================================================================
-    
+
     /**
      * @inheritdoc
      */

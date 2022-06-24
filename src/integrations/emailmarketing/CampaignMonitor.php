@@ -135,7 +135,7 @@ class CampaignMonitor extends EmailMarketing
                 'RestartSubscriptionBasedAutoresponders' => true,
                 'ConsentToTrack' => 'Yes',
             ];
-            
+
             $response = $this->deliverPayload($submission, "subscribers/{$this->listId}.json", $payload);
 
             if ($response === false) {
@@ -222,7 +222,7 @@ class CampaignMonitor extends EmailMarketing
         foreach ($fields as $key => $field) {
             // Exclude any names
             if (in_array($field['FieldName'], $excludeNames)) {
-                 continue;
+                continue;
             }
 
             $customFields[] = new IntegrationField([

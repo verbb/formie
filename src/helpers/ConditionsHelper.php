@@ -57,7 +57,7 @@ class ConditionsHelper
      * @inheritDoc
      */
     public static function getCondition($condition)
-    {   
+    {
         // Handle some settings defined in JS, so they're compatible with the evaluator we're using.
         // FYI, mostly for backward compatibility with `hoa/ruler` conditions.
         if ($condition === '=') {
