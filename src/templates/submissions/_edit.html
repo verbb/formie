@@ -17,11 +17,11 @@
 
 {% if currentUser.can('formie-editSubmissions') or currentUser.can('formie-manageSubmission:' ~ form.uid) %}
     {% set fullPageForm = true %}
-    {% set saveShortcutRedirect = continueEditingUrl %}
 {% endif %}
 
 {% set bodyClass = 'fui-body fui-submission' %}
 {% set selectedSubnavItem = 'submissions' %}
+{% set saveShortcutRedirect = '{cpEditUrl}' %}
 
 {% hook 'formie.cp.submissions.edit' %}
 
@@ -36,14 +36,14 @@
             <div class="menu">
                 <ul>
                     <li>
-                        <a class="formsubmit" data-redirect="{{ continueEditingUrl | hash }}">
+                        <a class="formsubmit" data-redirect="{{ saveShortcutRedirect | hash }}">
                             {{ "Save and continue editing" | t('app') }}
                             <span class="shortcut">⌘S</span>
                         </a>
                     </li>
 
                     <li>
-                        <a class="formsubmit" data-param="saveAction" data-value="draft" data-redirect="{{ continueEditingUrl | hash }}">
+                        <a class="formsubmit" data-param="saveAction" data-value="draft" data-redirect="{{ saveShortcutRedirect | hash }}">
                             {{ "Save as draft" | t('app') }}
                         </a>
                     </li>

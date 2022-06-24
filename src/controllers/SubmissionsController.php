@@ -191,12 +191,6 @@ class SubmissionsController extends Controller
             $variables['title'] = Craft::t('formie', 'Create a new submission');
         }
 
-        // Can't just use the submissions getCpEditUrl() because that might include the site handle when we don't want it
-        $variables['baseCpEditUrl'] = "formie/submissions/$formHandle/{id}";
-
-        // Set the "Continue Editing" URL
-        $variables['continueEditingUrl'] = $variables['baseCpEditUrl'] . (Craft::$app->getIsMultiSite() && Craft::$app->getSites()->currentSite->id !== $variables['site']->id ? '/' . $variables['site']->handle : '');
-
         $formConfigJson = $variables['submission']->getForm()->getFrontEndJsVariables();
 
         // Add some settings just for submission editing
