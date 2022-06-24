@@ -101,7 +101,7 @@ class ExampleCaptcha extends Captcha
     public function validateSubmission(Submission $submission): bool
     {
         // Check the provided value
-        $value = Craft::$app->request->post('example-captcha');
+        $value = Craft::$app->getRequest()->post('example-captcha');
 
         if ($value !== 'Testing captcha') {   
             return false;            

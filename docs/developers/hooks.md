@@ -17,7 +17,7 @@ Hook | Description
 ### Example
 
 ```php
-Craft::$app->view->hook('formie.form.start', function(array &$context) {
+Craft::$app->getView()->hook('formie.form.start', function(array &$context) {
     // Add a variable to be accessible in the context object.
     $context['foo'] = 'bar';
 
@@ -39,7 +39,7 @@ Hook | Description
 ### Example
 
 ```php
-Craft::$app->view->hook('formie.page.start', function(array &$context) {
+Craft::$app->getView()->hook('formie.page.start', function(array &$context) {
     // Add a variable to be accessible in the context object.
     $context['foo'] = 'bar';
 
@@ -67,7 +67,7 @@ Hook | Description
 ### Example
 
 ```php
-Craft::$app->view->hook('formie.buttons.before', function(array &$context) {
+Craft::$app->getView()->hook('formie.buttons.before', function(array &$context) {
     // Add a variable to be accessible in the context object.
     $context['foo'] = 'bar';
 
@@ -100,7 +100,7 @@ Hook | Description
 ### Example
 
 ```php
-Craft::$app->view->hook('formie.field.field-before', function(array &$context) {
+Craft::$app->getView()->hook('formie.field.field-before', function(array &$context) {
     // Add a variable to be accessible in the context object.
     $context['foo'] = 'bar';
 
@@ -123,7 +123,7 @@ Hook | Description
 ### Example
 
 ```php
-Craft::$app->view->hook('formie.cp.submissions.edit.content', function(array &$context) {
+Craft::$app->getView()->hook('formie.cp.submissions.edit.content', function(array &$context) {
     // Add a variable to be accessible in the context object.
     $context['foo'] = 'bar';
 
@@ -146,7 +146,7 @@ Hook | Description
 ### Example
 
 ```php
-Craft::$app->view->hook('formie.cp.sentNotifications.edit.content', function(array &$context) {
+Craft::$app->getView()->hook('formie.cp.sentNotifications.edit.content', function(array &$context) {
     // Add a variable to be accessible in the context object.
     $context['foo'] = 'bar';
 
