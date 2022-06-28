@@ -143,7 +143,7 @@ class ImportExportHelper
             // Handle any nested fields from Group/Repeater. Save them as `repeaterHandle_fields`.
             foreach ($existingFormFields as $existingFormField) {
                 if ($existingFormField instanceof NestedFieldInterface) {
-                    $existingFormFields[$existingFormField->handle . '_fields'] = ArrayHelper::index($existingFormField->getFields(), 'handle');
+                    $existingFormFields[$existingFormField->handle . '_fields'] = ArrayHelper::index($existingFormField->getCustomFields(), 'handle');
                 }
             }
         }
