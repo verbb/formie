@@ -63,7 +63,7 @@ class Salesforce extends Crm
      */
     public function getAuthorizeUrl(): string
     {
-        $prefix = $this->useSandbox ? 'test' : 'login';
+        $prefix = $this->getUseSandbox() ? 'test' : 'login';
 
         return "https://{$prefix}.salesforce.com/services/oauth2/authorize";
     }
@@ -73,7 +73,7 @@ class Salesforce extends Crm
      */
     public function getAccessTokenUrl(): string
     {
-        $prefix = $this->useSandbox ? 'test' : 'login';
+        $prefix = $this->getUseSandbox() ? 'test' : 'login';
 
         return "https://{$prefix}.salesforce.com/services/oauth2/token";
     }
@@ -97,10 +97,26 @@ class Salesforce extends Crm
     /**
      * @inheritDoc
      */
+    public function getUseSandbox(): string
+    {
+        return Craft::parseEnv($this->useSandbox);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getUseCredentials(): string
+    {
+        return Craft::parseEnv($this->useCredentials);
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function oauthCallback()
     {
         // In some instances (service users) we might want to use the insecure password grant
-        if ($this->useCredentials) {
+        if ($this->getUseCredentials()) {
             $provider = $this->getOauthProvider();
 
             $this->beforeFetchAccessToken($provider);

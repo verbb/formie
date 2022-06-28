@@ -88,6 +88,14 @@ class Zoho extends Crm
     /**
      * @inheritDoc
      */
+    public function getUseDeveloper(): string
+    {
+        return Craft::parseEnv($this->useDeveloper);
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function getOauthScope(): array
     {
         return [
@@ -367,7 +375,7 @@ class Zoho extends Crm
         $url = $this->apiDomain ?? 'https://www.zohoapis.com';
         $url = rtrim($url, '/');
 
-        if ($this->useDeveloper) {
+        if ($this->getUseDeveloper()) {
             $url = 'https://developer.zohoapis.com';
         }
 

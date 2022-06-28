@@ -100,7 +100,7 @@ class GoogleSheets extends Miscellaneous
         $uri = parent::getRedirectUri();
 
         // Allow a proxy to our server to forward on the request - just for local dev ease
-        if ($this->proxyRedirect) {
+        if (Craft::parseEnv($this->proxyRedirect)) {
             return "https://formie.verbb.io?return=$uri";
         }
 
