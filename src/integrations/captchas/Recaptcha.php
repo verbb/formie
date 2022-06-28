@@ -216,12 +216,12 @@ class Recaptcha extends Captcha
         $result = Json::decode((string)$response->getBody(), true);
         $success = $result['success'] ?? false;
 
-        if (!$success) {
-            $this->spamReason = Json::encode($result);
+        if ($success && isset($result['score'])) {
+            $success = (bool)($result['score'] >= $this->minScore);
         }
 
-        if (isset($result['score'])) {
-            return ($result['score'] >= $this->minScore);
+        if (!$success) {
+            $this->spamReason = Json::encode($result);
         }
 
         return $success;
