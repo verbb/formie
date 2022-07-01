@@ -291,7 +291,7 @@ class Categories extends CraftCategories implements FormFieldInterface
             }
 
             if ($ids) {
-                $query->descendantOf($ids);
+                $query->id($ids);
             }
         }
 
