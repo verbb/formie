@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.0.0-beta.16 - 2022-07-01
+
+### Fixed
+- Fix an incorrect merge.
+
 ## 2.0.0-beta.15 - 2022-07-01
 
 ### Fixed
