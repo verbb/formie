@@ -1,24 +1,29 @@
 # Changelog
 
+## 2.0.0-beta.15 - 2022-07-01
+
+### Fixed
+- Fixed an error when importing a form containing a Group or Repeater field.
+
 ## 2.0.0-beta.14 - 2022-06-20
 
 ### Added
-- Add PayPal payment integration.
+- Added PayPal payment integration.
 
 ### Fixed
-- Fix an error when querying forms via GraphQL.
-- Fix an error when viewing widgets, in some cases.
-- Fix an error for support requests.
-- Fix installed-plugin checks when the plugin files don’t exist, but it’s listed an installed and enabled in project config.
+- Fixed an error when querying forms via GraphQL.
+- Fixed an error when viewing widgets, in some cases.
+- Fixed an error for support requests.
+- Fixed installed-plugin checks when the plugin files don’t exist, but it’s listed an installed and enabled in project config.
 
 ## 2.0.0-beta.13 - 2022-06-08
 
 ### Added
-- Add support for Stripe payment integration (single and subscriptions).
+- Added support for Stripe payment integration (single and subscriptions).
 
 ### Fixed
-- Fix captcha JS events not binding correctly.
-- Fix an error when rendering multi-name fields in email notifications.
+- Fixed captcha JS events not binding correctly.
+- Fixed an error when rendering multi-name fields in email notifications.
 
 ## 2.0.0-beta.12 - 2022-06-04
 
