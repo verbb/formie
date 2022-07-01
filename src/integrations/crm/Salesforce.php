@@ -319,9 +319,11 @@ class Salesforce extends Crm
                 $contactPayload = $this->_prepPayload($contactValues);
 
                 // Doesn't support upsert, so try to find the record first
-                $response = $this->request('GET', 'query', [
-                    'query' => ['q' => "SELECT ID,OwnerId FROM Contact WHERE Email = '{$contactPayload['Email']}' LIMIT 1"],
-                ]);
+                if (isset($contactPayload['Email'])) {
+                    $response = $this->request('GET', 'query', [
+                        'query' => ['q' => "SELECT ID,OwnerId FROM Contact WHERE Email = '{$contactPayload['Email']}' LIMIT 1"],
+                    ]);
+                }
 
                 $contactId = $response['records'][0]['Id'] ?? '';
                 $contactOwnerId = $response['records'][0]['OwnerId'] ?? '';
