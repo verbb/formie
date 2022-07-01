@@ -1,5 +1,23 @@
 # Changelog
 
+## 1.6.2 - 2022-07-01
+
+### Changed
+- Table field preview in the form builder now always showing at least one row of cells.
+
+### Fixed
+- Fixed an error with Categories fields
+- Fixed an error with Salesforce CRM integration, when submitting a contact with an email. (thanks @JeroenOnstuimig).
+- Fixed IP Address of a submission being overwritten when editing a submission in the control panel.
+- Fixed reCAPTCHA integrations not reporting back the spam reason when failing due to score threshold.
+- Fixed Flatpickr 12-hour time formats not being set correctly.
+- Fixed some integrations not respecting `.env` variable for boolean-like settings.
+- Fixed redirect issue when editing a submission in the control panel on a non-primary site.
+- Fixed an incorrect validation for Table fields, when “Maximum instances” was set.
+- Fixed scroll-to-alert behaviour not working correctly when also hiding the form after success.
+- Fixed JS scroll-to-alert factors in `scroll-margin` and `scroll-padding`.
+- Fixed server-side validation errors not appearing for Ajax-enabled forms for some fields (multiple file upload, elements).
+
 ## 1.6.1 - 2022-06-20
 
 ### Changed
