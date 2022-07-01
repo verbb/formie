@@ -72,24 +72,9 @@ class Pardot extends Crm
         return App::parseEnv($this->clientSecret);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getUseSandbox(): string
     {
         return App::parseEnv($this->useSandbox);
-    }
-
-
-    // Public Methods
-    // =========================================================================
-
-    /**
-     * @inheritDoc
-     */
-    public static function displayName(): string
-    {
-        return App::parseEnv($this->clientSecret);
     }
 
     public function getDescription(): string
