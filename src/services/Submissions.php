@@ -386,10 +386,10 @@ class Submissions extends Component
 
             if ($consoleInstance) {
                 $consoleInstance->stdout(Craft::t('formie', 'Starting data retention checks for form “{f}”: {d} {c}.', [
-                    'f' => $form['handle'],
-                    'c' => $dataRetention,
-                    'd' => $dataRetentionValue,
-                ]) . PHP_EOL, Console::FG_YELLOW);
+                        'f' => $form['handle'],
+                        'c' => $dataRetention,
+                        'd' => $dataRetentionValue,
+                    ]) . PHP_EOL, Console::FG_YELLOW);
             }
 
             // Setup intervals, depending on the setting
@@ -425,13 +425,13 @@ class Submissions extends Component
             if ($consoleInstance) {
                 if ($submissions) {
                     $consoleInstance->stdout(Craft::t('formie', 'Preparing to prune {c} submissions older than {d}.', [
-                        'c' => count($submissions),
-                        'd' => Db::prepareDateForDb($date),
-                    ]) . PHP_EOL, Console::FG_YELLOW);
+                            'c' => count($submissions),
+                            'd' => Db::prepareDateForDb($date),
+                        ]) . PHP_EOL, Console::FG_YELLOW);
                 } else {
                     $consoleInstance->stdout(Craft::t('formie', 'No submissions found to prune older than {d}.', [
-                        'd' => Db::prepareDateForDb($date),
-                    ]) . PHP_EOL, Console::FG_GREEN);
+                            'd' => Db::prepareDateForDb($date),
+                        ]) . PHP_EOL, Console::FG_GREEN);
                 }
             }
 

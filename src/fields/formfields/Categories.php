@@ -279,7 +279,7 @@ class Categories extends CraftCategories implements FormFieldInterface
             }
 
             if ($ids) {
-                $query->descendantOf($ids);
+                $query->id($ids);
             }
         }
 
@@ -381,7 +381,7 @@ class Categories extends CraftCategories implements FormFieldInterface
             'rootCategory' => [
                 'name' => 'rootCategory',
                 'type' => CategoryInterface::getType(),
-                'resolve' => CategoryResolver::class.'::resolve',
+                'resolve' => CategoryResolver::class . '::resolve',
                 'args' => CategoryArguments::getArguments(),
                 'resolve' => function($class) {
                     return $class->getRootCategoryElement();

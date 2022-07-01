@@ -69,14 +69,14 @@ class Salesforce extends Crm
 
     public function getAuthorizeUrl(): string
     {
-        $prefix = $this->useSandbox ? 'test' : 'login';
+        $prefix = $this->getUseSandbox() ? 'test' : 'login';
 
         return "https://{$prefix}.salesforce.com/services/oauth2/authorize";
     }
 
     public function getAccessTokenUrl(): string
     {
-        $prefix = $this->useSandbox ? 'test' : 'login';
+        $prefix = $this->getUseSandbox() ? 'test' : 'login';
 
         return "https://{$prefix}.salesforce.com/services/oauth2/token";
     }
@@ -94,10 +94,26 @@ class Salesforce extends Crm
     /**
      * @inheritDoc
      */
+    public function getUseSandbox(): string
+    {
+        return App::parseEnv($this->useSandbox);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getUseCredentials(): string
+    {
+        return App::parseEnv($this->useCredentials);
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function oauthCallback(): ?array
     {
         // In some instances (service users) we might want to use the insecure password grant
-        if ($this->useCredentials) {
+        if ($this->getUseCredentials()) {
             $provider = $this->getOauthProvider();
 
             $this->beforeFetchAccessToken($provider);
@@ -281,9 +297,11 @@ class Salesforce extends Crm
                 $contactPayload = $this->_prepPayload($contactValues);
 
                 // Doesn't support upsert, so try to find the record first
-                $response = $this->request('GET', 'query', [
-                    'query' => ['q' => "SELECT ID,OwnerId FROM Contact WHERE Email = '{$contactPayload['Email']}' LIMIT 1"],
-                ]);
+                if (isset($contactPayload['Email'])) {
+                    $response = $this->request('GET', 'query', [
+                        'query' => ['q' => "SELECT ID,OwnerId FROM Contact WHERE Email = '{$contactPayload['Email']}' LIMIT 1"],
+                    ]);
+                }
 
                 $contactId = $response['records'][0]['Id'] ?? '';
                 $contactOwnerId = $response['records'][0]['OwnerId'] ?? '';

@@ -313,7 +313,7 @@ class Recipients extends FormField
     {
         if (in_array($this->displayType, ['dropdown', 'radio'])) {
             foreach ($this->options() as $key => $option) {
-                $id =  'id:' . $key;
+                $id = 'id:' . $key;
 
                 if ((string)$option['value'] === (string)$value) {
                     $value = new SingleOptionFieldData($option['label'], $id, true);
@@ -332,7 +332,7 @@ class Recipients extends FormField
             $options = [];
 
             foreach ($this->options() as $key => $option) {
-                $id =  'id:' . $key;
+                $id = 'id:' . $key;
 
                 if (in_array((string)$option['value'], $selectedValues, true)) {
                     $options[] = new OptionData($option['label'], $id, true);

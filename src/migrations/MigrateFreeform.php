@@ -89,7 +89,7 @@ class MigrateFreeform extends Migration
     {
         /* @var Settings $settings */
         $settings = Formie::$plugin->getSettings();
-        $transaction = Craft::$app->db->beginTransaction();
+        $transaction = Craft::$app->getDb()->beginTransaction();
         $freeformForm = $this->_freeformForm;
 
         $this->stdout("Form: Preparing to migrate form “{$freeformForm->handle}”.");

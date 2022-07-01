@@ -129,7 +129,7 @@ class Table extends CraftTable implements FormFieldInterface
                 'tooFew' => Craft::t('formie', '{attribute} should contain at least {min, number} {min, plural, one{row} other{rows}}.'),
                 'tooMany' => Craft::t('formie', '{attribute} should contain at most {max, number} {max, plural, one{row} other{rows}}.'),
                 'message' => Craft::t('formie', '{attribute} must have one item.'),
-                'skipOnEmpty' => !($this->minRows || $this->maxRows),
+                'skipOnEmpty' => !$this->minRows,
             ];
         }
 

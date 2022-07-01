@@ -82,6 +82,17 @@ class Zoho extends Crm
         return App::parseEnv($this->clientSecret);
     }
 
+    /**
+     * @inheritDoc
+     */
+    public function getUseDeveloper(): string
+    {
+        return App::parseEnv($this->useDeveloper);
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function getOauthScope(): array
     {
         return [

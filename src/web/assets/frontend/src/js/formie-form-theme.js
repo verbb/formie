@@ -549,7 +549,12 @@ export class FormieFormTheme {
         // Show server-side errors for each field
         Object.keys(errors).forEach((handle, index) => {
             const [ error ] = errors[handle];
-            const $field = document.querySelector(`[name="fields[${handle}]"]`);
+            let $field = document.querySelector(`[name="fields[${handle}]"]`);
+
+            // Check for multiple fields
+            if (!$field) {
+                $field = document.querySelector(`[name="fields[${handle}][]"]`);
+            }
 
             if ($field) {
                 this.validator.showError($field, { serverMessage: error });
@@ -640,10 +645,7 @@ export class FormieFormTheme {
 
             // Smooth-scroll to the top of the form.
             if (this.settings.scrollToTop) {
-                window.scrollTo({
-                    top: this.$form.getBoundingClientRect().top + window.pageYOffset - 100,
-                    behavior: 'smooth',
-                });
+                this.scrollToForm();
             }
         }
 
@@ -739,11 +741,8 @@ export class FormieFormTheme {
         }
 
         // Smooth-scroll to the top of the form.
-        if (scrollToTop && this.settings.scrollToTop) {
-            window.scrollTo({
-                top: this.$form.getBoundingClientRect().top + window.pageYOffset - 100,
-                behavior: 'smooth',
-            });
+        if (this.settings.scrollToTop) {
+            this.scrollToForm();
         }
     }
 
@@ -754,6 +753,18 @@ export class FormieFormTheme {
 
     getPageId(pageId) {
         return `${this.config.formHashId}-p-${pageId}`;
+    }
+
+    scrollToForm() {
+        // Check for scroll-padding-top or `scroll-margin-top`
+        const extraPadding = (document.documentElement.style['scroll-padding-top'] || '0px').replace('px', '');
+        const extraMargin = (document.documentElement.style['scroll-margin-top'] || '0px').replace('px', '');
+        
+        // Because the form can be hidden, use the parent wrapper
+        window.scrollTo({
+            top: this.$form.parentNode.getBoundingClientRect().top + window.pageYOffset - 100 - extraPadding - extraMargin,
+            behavior: 'smooth',
+        });
     }
 
     triggerJsEvents() {

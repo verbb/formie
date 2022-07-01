@@ -51,7 +51,16 @@ class Mercury extends Crm
     }
 
     /**
-     * @inheritDoc     */
+     * @inheritDoc
+     */
+    public function getUseUat(): string
+    {
+        return App::parseEnv($this->useUat);
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function defineRules(): array
     {
         $rules = parent::defineRules();
@@ -59,7 +68,7 @@ class Mercury extends Crm
         $rules[] = [['apiKey', 'apiToken'], 'required'];
 
         // Require URLs for public Volumes.
-        if ($this->useUat) {
+        if ($this->getUseUat()) {
             $rules[] = [['uatKey', 'uatToken'], 'required'];
         }
 
@@ -454,7 +463,7 @@ class Mercury extends Crm
         $apiToken = App::parseEnv($this->apiToken);
         $apiKey = App::parseEnv($this->apiKey);
 
-        if ($this->useUat) {
+        if ($this->getUseUat()) {
             $url = 'https://uatapis.connective.com.au/mercury-v1';
             $apiToken = App::parseEnv($this->uatToken);
             $apiKey = App::parseEnv($this->uatKey);

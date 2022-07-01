@@ -72,6 +72,26 @@ class Pardot extends Crm
         return App::parseEnv($this->clientSecret);
     }
 
+    /**
+     * @inheritDoc
+     */
+    public function getUseSandbox(): string
+    {
+        return App::parseEnv($this->useSandbox);
+    }
+
+
+    // Public Methods
+    // =========================================================================
+
+    /**
+     * @inheritDoc
+     */
+    public static function displayName(): string
+    {
+        return App::parseEnv($this->clientSecret);
+    }
+
     public function getDescription(): string
     {
         return Craft::t('formie', 'Manage your Pardot customers by providing important information on their conversion on your site.');
@@ -451,6 +471,8 @@ class Pardot extends Crm
         }
 
         $token = $this->getToken();
+        $baseUrl = $this->getUseSandbox() ? 'https://pi.demo.pardot.com/api/' : 'https://pi.pardot.com/api/';
+        $businessUnitId = App::parseEnv($this->businessUnitId);
 
         if (!$token) {
             Integration::apiError($this, 'Token not found for integration.', true);

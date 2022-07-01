@@ -1231,7 +1231,7 @@ trait FormFieldTrait
             $reservedWords[] = array_map(function($prop) {
                 return $prop->name;
             }, $reflection->getProperties(ReflectionProperty::IS_PUBLIC));
-            
+
             // Add public properties from form class
             $reflection = new ReflectionClass(Form::class);
             $reservedWords[] = array_map(function($prop) {

@@ -496,7 +496,7 @@ class HubSpot extends Crm
     private function _getFormFields($form): array
     {
         $fields = [];
-        
+
         $extraFields = [
             new IntegrationField([
                 'handle' => 'trackingID',

@@ -40,7 +40,7 @@ export class FormieDatePicker {
             disableMobile: true,
             allowInput: true,
             altInput: true,
-            altFormat: this.dateTimeFormat,
+            altFormat: this.prepareFormat(),
             dateFormat: 'Y-m-d H:i:S',
             hourIncrement: 1,
             minuteIncrement: 1,
@@ -132,6 +132,12 @@ export class FormieDatePicker {
         });
 
         return opts;
+    }
+
+    prepareFormat() {
+        // Convert date format from PHP to Flatpickr
+        // https://flatpickr.js.org/formatting/
+        return this.dateTimeFormat.replace('A', 'K').replace('a', 'K').replace('s', 'S').replace('g', 'h').replace('h', 'G');
     }
 }
 

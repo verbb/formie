@@ -387,7 +387,7 @@ class Freshdesk extends Crm
                                     $contactPayload,
                                     'PUT'
                                 );
-    
+
                                 if ($updateResponse === false) {
                                     return true;
                                 }
