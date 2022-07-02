@@ -1434,7 +1434,20 @@ class Form extends Element
 
     public function setFieldSettings($handle, $settings, $updateSnapshot = true): void
     {
-        $field = $this->getFieldByHandle($handle);
+        $field = null;
+        
+        // Check for nested fields so we can use `group.dropdown` or `dropdown`.
+        $handles = explode('.', $handle);
+
+        if (count($handles) > 1) {
+            $parentField = $this->getFieldByHandle($handles[0]);
+
+            if ($parentField) {
+                $field = $parentField->getFieldByHandle($handles[1]);
+            }
+        } else {
+            $field = $this->getFieldByHandle($handles[0]);
+        }
 
         if ($field) {
             $field->setAttributes($settings, false);

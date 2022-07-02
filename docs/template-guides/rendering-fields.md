@@ -131,4 +131,12 @@ Or, you could override the options available for a Dropdown field.
 **Be warned** of the implications of this. When adding new options dynamically to fields with options, such as Dropdown, Radio Buttons and Checkboxes, you'll allow values to be changed on an inconsistent basis. Because you're changing the options for users to be able to pick from on a per-submission basis, not every submission will have the same values, as defined by the options when you create the field. This data inconsistency across submissions is something to be aware of.
 :::
 
+If fields are contained within a complex field like a Group or Repeater, you'll need to include both field handles to provide context.
+
+```twig
+{% do form.setFieldSettings('groupField.plainText', {
+    name: 'Overridden Label',
+}) %}
+```
+
 See the [Field Settings](docs:developers/field#field-settings) docs for a full list of available settings to override.
