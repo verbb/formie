@@ -887,11 +887,14 @@ class Submission extends Element
 
             // If an array, we merge it in. This is because some fields provide content
             // for multiple "columns" in the export, expressed through `field_subhandle`.
-            $values[$field->handle][] = $valueForExport;
+            if (is_array($valueForExport)) {
+                $values = array_merge($values, $valueForExport);
+            } else {
+                $values[$field->handle] = $valueForExport;
+            }
         }
 
-        // For performance
-        return array_merge(...$values);
+        return $values;
     }
 
     public function getValuesForSummary(): array
