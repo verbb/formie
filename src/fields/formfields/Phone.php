@@ -175,26 +175,7 @@ class Phone extends FormField implements SubfieldInterface, PreviewableFieldInte
      */
     public function getFrontEndSubfields($context): array
     {
-        $row = [];
-
-        if ($this->countryEnabled) {
-            $row['country'] = 'tel-country-code';
-        }
-
-        $row['number'] = 'tel-national';
-
-        $rows = [
-            $row,
-        ];
-
-        $event = new ModifyFrontEndSubfieldsEvent([
-            'field' => $this,
-            'rows' => array_filter($rows),
-        ]);
-
-        Event::trigger(static::class, self::EVENT_MODIFY_FRONT_END_SUBFIELDS, $event);
-
-        return $event->rows;
+        return [];
     }
 
     /**
@@ -391,16 +372,19 @@ class Phone extends FormField implements SubfieldInterface, PreviewableFieldInte
         $form = $context['form'] ?? null;
 
         if ($key === 'fieldInput') {
+            $id = $this->getHtmlId($form, 'number');
+            $dataId = $this->getHtmlDataId($form, 'number');
+
             return new HtmlTag('input', array_merge([
                 'type' => 'tel',
-                'id' => $this->getHtmlId($form, 'number'),
+                'id' => $id,
                 'class' => 'fui-input',
                 'name' => $this->getHtmlName('number'),
                 'placeholder' => Craft::t('site', $this->placeholder) ?: null,
                 'autocomplete' => 'tel-national',
                 'required' => $this->required ? true : null,
                 'data' => [
-                    'fui-id' => $this->getHtmlDataId($form, 'number'),
+                    'fui-id' => $dataId,
                     'fui-message' => Craft::t('site', $this->errorMessage) ?: null,
                 ],
                 'aria-describedby' => $this->instructions ? "{$id}-instructions" : null,
