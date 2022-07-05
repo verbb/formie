@@ -1417,7 +1417,7 @@ class Form extends Element
         if ($key === 'pageTab') {
             $submission = $context['submission'] ?? null;
             $currentPage = $context['currentPage'] ?? null;
-            $page = $context['p'] ?? null;
+            $page = $context['page'] ?? null;
 
             return new HtmlTag('div', [
                 'id' => 'fui-tab-' . $page->id,
@@ -1433,7 +1433,7 @@ class Form extends Element
 
         if ($key === 'pageTabLink') {
             $params = $context['params'] ?? null;
-            $page = $context['p'] ?? null;
+            $page = $context['page'] ?? null;
             $pageIndex = $context['pageIndex'] ?? null;
 
             return new HtmlTag('a', [

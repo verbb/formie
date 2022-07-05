@@ -1,16 +1,16 @@
 {% if form.hasMultiplePages and form.settings.displayPageTabs %}
     {% formtag 'pageTabs' %}
-        {% for p in form.pages %}
+        {% for page in form.pages %}
             {% formtag 'pageTab' %}
                 {%- set pageIndex = loop.index0 -%}
-                {%- set params = { handle: form.handle, pageId: p.id } -%}
+                {%- set params = { handle: form.handle, pageId: page.id } -%}
 
                 {%- if submission and submission.id and form.isEditingSubmission() -%}
                     {%- set params = params | merge({ submissionId: submission.id }) -%}
                 {%- endif -%}
 
                 {{ formtag('pageTabLink', {
-                    text: p.name | t,
+                    text: page.name | t,
                 }) }}
             {% endformtag %}
         {% endfor %}

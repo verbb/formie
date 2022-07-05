@@ -6,7 +6,7 @@
         {% formtag 'progress' %}
             {% formtag 'progressContainer' %}
                 {{ formtag('progressValue', {
-                    text: progress | round,
+                    text: progress | round ~ '%',
                 }) }}
             {% endformtag %}
         {% endformtag %}

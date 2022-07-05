@@ -1,3 +1,6 @@
+{# Variable to provide `formtag` context #}
+{% set currentPage = form.getCurrentPage() %}
+
 {% formtag 'page' %}
     {% formtag 'pageContainer' %}
         {% hook 'formie.page.start' %}
