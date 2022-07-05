@@ -4,9 +4,9 @@
     {% fieldtag 'fieldTableHeader' %}
         {% fieldtag 'fieldTableHeaderRow' %}
             {% for colId, col in field.columns %}
-                {% fieldtag 'fieldTableHeaderColumn' %}
-                    {{ col.heading | t | md | striptags('<em><strong>') | raw }}
-                {% endfieldtag %}
+                {{ fieldtag('fieldTableHeaderColumn', {
+                    text: col.heading | t | md(inlineOnly=true) | nl2br,
+                }) }}
             {% endfor %}
         {% endfieldtag %}
     {% endfieldtag %}

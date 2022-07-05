@@ -1,7 +1,7 @@
 {% set instructionsPosition = (instructionsPosition ?? craft.formie.getInstructionsPosition(field, form)) %}
 
 {% if field.instructions and instructionsPosition.shouldDisplay(position) %}
-    {% fieldtag 'fieldInstructions' %}
-        {{ field.instructions | t | md }}
-    {% endfieldtag %}
+    {{ fieldtag('fieldInstructions', {
+        text: field.instructions | t | md(inlineOnly=true) | nl2br,
+    }) }}
 {% endif %}
