@@ -2,8 +2,10 @@
     value: value ?? false,
 }) }}
 
-<canvas>{{ 'Your browser does not support the Signature field' | t('formie') }}</canvas>
+{{ fieldtag('fieldCanvas', {
+    text: 'Your browser does not support the Signature field' | t('formie'),
+}) }}
 
-{{ fieldtag('fieldClearButton', {
+{{ fieldtag('fieldRemoveButton', {
     text: 'Clear' | t('formie'),
 }) }}

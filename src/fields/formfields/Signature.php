@@ -196,7 +196,11 @@ class Signature extends FormField implements PreviewableFieldInterface
             ], $this->getInputAttributes()));
         }
 
-        if ($key === 'fieldClearButton') {
+        if ($key === 'fieldCanvas') {
+            return new HtmlTag('canvas');
+        }
+
+        if ($key === 'fieldRemoveButton') {
             return new HtmlTag('button', [
                 'class' => 'fui-btn fui-signature-clear-btn',
                 'type' => 'button',
