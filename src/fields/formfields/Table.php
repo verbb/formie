@@ -503,6 +503,7 @@ class Table extends CraftTable implements FormFieldInterface
         if ($key === 'fieldTableBodyRow') {
             return new HtmlTag('tr', [
                 'class' => 'fui-table-row',
+                'data-table-row' => true,
             ]);
         }
 
