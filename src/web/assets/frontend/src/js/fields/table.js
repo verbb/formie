@@ -5,6 +5,7 @@ export class FormieTable {
         this.$form = settings.$form;
         this.form = this.$form.form;
         this.$field = settings.$field;
+        this.disabledClass = 'fui-disabled';
 
         this.static = settings.static;
 
@@ -128,10 +129,10 @@ export class FormieTable {
     updateButton() {
         if (this.$addButton) {
             if (this.getNumRows() >= this.maxRows) {
-                this.$addButton.classList.add = 'fui-disabled';
+                this.$addButton.classList.add = this.disabledClass;
                 this.$addButton.setAttribute('disabled', 'disabled');
             } else {
-                this.$addButton.classList.remove = 'fui-disabled';
+                this.$addButton.classList.remove = this.disabledClass;
                 this.$addButton.removeAttribute('disabled');
             }
         }

@@ -6,6 +6,7 @@ export class FormieSummary {
         this.form = this.$form.form;
         this.$field = settings.$field;
         this.fieldId = settings.fieldId;
+        this.loadingClass = 'fui-loading';
 
         // For ajax forms, we want to refresh the field when the page is toggled
         if (this.form.settings.submitMethod === 'ajax') {
@@ -51,7 +52,7 @@ export class FormieSummary {
                 return;
             }
 
-            $container.classList.add('fui-loading');
+            $container.classList.add(this.loadingClass);
 
             const xhr = new XMLHttpRequest();
             xhr.open('POST', window.location.href, true);
@@ -60,7 +61,7 @@ export class FormieSummary {
             xhr.setRequestHeader('Cache-Control', 'no-cache');
 
             xhr.onload = () => {
-                $container.classList.remove('fui-loading');
+                $container.classList.remove(this.loadingClass);
 
                 if (xhr.status >= 200 && xhr.status < 300) {
                     // Replace the HTML for the field

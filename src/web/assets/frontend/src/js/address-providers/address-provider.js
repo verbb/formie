@@ -6,6 +6,7 @@ export class FormieAddressProvider {
         this.form = this.$form.form;
         this.$field = settings.$field;
         this.$locationBtn = this.$field.querySelector('[data-fui-address-location-btn]');
+        this.loadingClass = 'fui-loading';
         
         this.initLocationBtn();
     }
@@ -43,12 +44,12 @@ export class FormieAddressProvider {
     }
 
     onStartFetchLocation() {
-        this.$locationBtn.classList.add('fui-loading');
+        this.$locationBtn.classList.add(this.loadingClass);
         this.$locationBtn.setAttribute('aria-disabled', true);
     }
 
     onEndFetchLocation() {
-        this.$locationBtn.classList.remove('fui-loading');
+        this.$locationBtn.classList.remove(this.loadingClass);
         this.$locationBtn.setAttribute('aria-disabled', false);
     }
 }

@@ -8,6 +8,16 @@ export class FormieFormTheme {
         this.settings = config.settings;
         this.validationOnSubmit = !!this.settings.validationOnSubmit;
         this.validationOnFocus = !!this.settings.validationOnFocus;
+        this.loadingClass = 'fui-loading';
+        this.tabErrorClass = 'fui-tab-error';
+        this.tabActiveClass = 'fui-tab-active';
+        this.hiddenClass = 'fui-hidden';
+        this.errorMessageClass = 'fui-error-message';
+        this.successMessageClass = 'fui-alert-success';
+        this.alertClass = 'fui-alert';
+        this.pageClass = 'fui-page';
+        this.progressClass = 'fui-progress-bar';
+        this.tabClass = 'fui-tab';
 
         this.setCurrentPage(this.settings.currentPageId);
 
@@ -133,7 +143,7 @@ export class FormieFormTheme {
 
             // Check if we need to move the error out of the .fui-input-container node.
             // Only the input itself should be in here.
-            var $errorToMove = $field.parentNode.querySelector('.fui-error-message');
+            var $errorToMove = $field.parentNode.querySelector('.' + this.errorMessageClass);
 
             if ($errorToMove && $errorToMove.parentNode.parentNode) {
                 $errorToMove.parentNode.parentNode.appendChild($errorToMove);
@@ -141,7 +151,7 @@ export class FormieFormTheme {
 
             // The error has been moved, find it again
             if ($fieldContainer) {
-                var $error = $fieldContainer.querySelector('.fui-error-message');
+                var $error = $fieldContainer.querySelector('.' + this.errorMessageClass);
 
                 if ($error && message) {
                     $error.textContent = message;
@@ -314,7 +324,7 @@ export class FormieFormTheme {
     }
 
     hideSuccess() {
-        var $successMessage = this.$form.parentNode.querySelector('.fui-alert-success');
+        var $successMessage = this.$form.parentNode.querySelector('.' + this.successMessageClass);
 
         if ($successMessage && this.settings.submitActionMessageTimeout) {
             var timeout = parseInt(this.settings.submitActionMessageTimeout, 10) * 1000;
@@ -331,7 +341,7 @@ export class FormieFormTheme {
             this.$submitBtn.setAttribute('disabled', true);
 
             if (this.settings.loadingIndicator === 'spinner') {
-                this.$submitBtn.classList.add('fui-loading');
+                this.$submitBtn.classList.add(this.loadingClass);
             }
 
             if (this.settings.loadingIndicator === 'text') {
@@ -346,7 +356,7 @@ export class FormieFormTheme {
             this.$submitBtn.removeAttribute('disabled');
 
             if (this.settings.loadingIndicator === 'spinner') {
-                this.$submitBtn.classList.remove('fui-loading');
+                this.$submitBtn.classList.remove(this.loadingClass);
             }
 
             if (this.settings.loadingIndicator === 'text') {
@@ -366,7 +376,7 @@ export class FormieFormTheme {
     }
 
     showFormAlert(text, type) {
-        var $alert = this.$form.parentNode.querySelector('.fui-alert');
+        var $alert = this.$form.parentNode.querySelector('.' + this.alertClass);
 
         // Strip <p> tags
         text = text.replace(/<p[^>]*>/g, '').replace(/<\/p>/g, '');
@@ -378,13 +388,13 @@ export class FormieFormTheme {
             }
         } else {
             $alert = document.createElement('div');
-            $alert.className = 'fui-alert fui-alert-' + type;
+            $alert.className = this.alertClass + ' ' + this.alertClass + '-' + type;
             $alert.setAttribute('role' , 'alert');
             $alert.innerHTML = text;
 
             // For error notices, we have potential special handling on position
             if (type == 'error') {
-                $alert.className += ' fui-alert-' + this.settings.errorMessagePosition;
+                $alert.className += ' ' + this.alertClass + '-' + this.settings.errorMessagePosition;
 
                 if (this.settings.errorMessagePosition == 'bottom-form') {
                     this.$submitBtn.parentNode.parentNode.insertBefore($alert, this.$submitBtn.parentNode);
@@ -392,7 +402,7 @@ export class FormieFormTheme {
                     this.$form.parentNode.insertBefore($alert, this.$form);
                 }
             } else {
-                $alert.className += ' fui-alert-' + this.settings.submitActionMessagePosition;
+                $alert.className += ' ' + this.alertClass + '-' + this.settings.submitActionMessagePosition;
                 
                 if (this.settings.submitActionMessagePosition == 'bottom-form') {
                     // An even further special case when hiding the form!
@@ -418,7 +428,7 @@ export class FormieFormTheme {
             var $tab = this.$form.parentNode.querySelector('[data-fui-page-id="' + pageId + '"]');
 
             if ($tab) {
-                $tab.parentNode.classList.add('fui-tab-error');
+                $tab.parentNode.classList.add(this.tabErrorClass);
             }
         });
     }
@@ -430,7 +440,7 @@ export class FormieFormTheme {
     }
 
     removeFormAlert() {
-        var $alert = this.$form.parentNode.querySelector('.fui-alert');
+        var $alert = this.$form.parentNode.querySelector('.' + this.alertClass);
 
         if ($alert) {
             $alert.remove();
@@ -441,7 +451,7 @@ export class FormieFormTheme {
         var $tabs = this.$form.parentNode.querySelectorAll('[data-fui-page-tab]');
 
         $tabs.forEach($tab => {
-            $tab.classList.remove('fui-tab-error');
+            $tab.classList.remove(this.tabErrorClass);
         });
     }
 
@@ -697,21 +707,21 @@ export class FormieFormTheme {
         }));
 
         // Hide all pages
-        var $allPages = this.$form.querySelectorAll('.fui-page');
+        var $allPages = this.$form.querySelectorAll('.' + this.pageClass);
 
         if (data.nextPageId) {
             $allPages.forEach($page => {
                 // Show the current page
                 if ($page.id === `${this.getPageId(data.nextPageId)}`) {
-                    $page.classList.remove('fui-hidden');
+                    $page.classList.remove(this.hiddenClass);
                 } else {
-                    $page.classList.add('fui-hidden');
+                    $page.classList.add(this.hiddenClass);
                 }
             });
         }
 
         // Update tabs and progress bar if we're using them
-        var $progress = this.$form.querySelector('.fui-progress-bar');
+        var $progress = this.$form.querySelector('.' + this.progressClass);
 
         if ($progress) {
             var pageIndex = parseInt(data.nextPageIndex, 10) + 1;
@@ -722,15 +732,15 @@ export class FormieFormTheme {
             $progress.textContent = progress + '%';
         }
 
-        var $tabs = this.$form.querySelectorAll('.fui-tab');
+        var $tabs = this.$form.querySelectorAll('.' + this.tabClass);
 
         if (data.nextPageId) {
             $tabs.forEach($tab => {
                 // Show the current page
-                if ($tab.id === 'fui-tab-' + data.nextPageId) {
-                    $tab.classList.add('fui-tab-active');
+                if ($tab.id === this.tabClass + '-' + data.nextPageId) {
+                    $tab.classList.add(this.tabActiveClass);
                 } else {
-                    $tab.classList.remove('fui-tab-active');
+                    $tab.classList.remove(this.tabActiveClass);
                 }
             });
 

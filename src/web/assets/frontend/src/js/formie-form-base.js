@@ -134,10 +134,10 @@ export class FormieFormBase {
     }
 
     registerFieldEvents($element) {
-        const $wrappers = $element.querySelectorAll('.fui-field');
+        const $wrappers = $element.querySelectorAll('[data-field-type]');
 
         $wrappers.forEach($wrapper => {
-            const $input = $wrapper.querySelector('.fui-input, .fui-select');
+            const $input = $wrapper.querySelector('input, select');
 
             if ($input) {
                 this.addEventListener($input, 'input', event => {
