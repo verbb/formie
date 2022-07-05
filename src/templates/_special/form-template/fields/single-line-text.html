@@ -11,7 +11,6 @@
 {% if maxlength or wordlimit %}
     {% if maxlength %}
         {% fieldtag 'fieldLimit' with {
-            class: 'fui-limit-text',
             'data-max-limit': true,
             'data-max-chars': maxlength,
         } %}
@@ -21,7 +20,6 @@
 
     {% if wordlimit %}
         {% fieldtag 'fieldLimit' with {
-            class: 'fui-limit-text',
             'data-max-limit': true,
             'data-max-words': wordlimit,
         } %}
