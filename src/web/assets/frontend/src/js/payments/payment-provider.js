@@ -17,10 +17,10 @@ export class FormiePaymentProvider {
     addSuccess(message) {
         this.$field.classList.add('fui-success');
 
-        var $fieldContainer = this.$field.querySelector('.fui-field-container');
+        var $fieldContainer = this.$field.querySelector('[data-field-type] > div');
 
         if (!$fieldContainer) {
-            return console.error('Unable to find `.fui-field-container` to add success message.');
+            return console.error('Unable to find `[data-field-type] > div` to add success message.');
         }
 
         var $success = document.createElement('div');
@@ -43,10 +43,10 @@ export class FormiePaymentProvider {
     addError(message) {
         this.$field.classList.add('fui-error');
 
-        var $fieldContainer = this.$field.querySelector('.fui-field-container');
+        var $fieldContainer = this.$field.querySelector('[data-field-type] > div');
 
         if (!$fieldContainer) {
-            return console.error('Unable to find `.fui-field-container` to add error message.');
+            return console.error('Unable to find `[data-field-type] > div` to add error message.');
         }
 
         var $error = document.createElement('div');

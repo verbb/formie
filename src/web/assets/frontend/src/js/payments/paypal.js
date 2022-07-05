@@ -11,7 +11,7 @@ export class FormiePayPal extends FormiePaymentProvider {
         this.$input = this.$field.querySelector('[data-fui-paypal-button]');
 
         if (!this.$input) {
-            console.error('Unable to find Stripe Elements placeholder for #' + this.formId + ' [data-fui-stripe-elements]');
+            console.error('Unable to find Stripe Elements placeholder for #' + this.formId + ' [data-fui-paypal-button]');
 
             return;
         }
