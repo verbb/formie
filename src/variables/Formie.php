@@ -11,16 +11,20 @@ use verbb\formie\elements\db\SubmissionQuery;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\FieldLayoutPage;
 use verbb\formie\models\Notification;
+use verbb\formie\positions\AboveInput;
 
 use Craft;
 use craft\errors\MissingComponentException;
 
+use yii\base\InvalidConfigException;
+
 use Twig\Markup;
-use Exception;
 use Twig\Error\SyntaxError;
 use Twig\Error\RuntimeError;
 use Twig\Error\LoaderError;
-use yii\base\InvalidConfigException;
+
+use Exception;
+use Throwable;
 
 class Formie
 {
@@ -208,15 +212,20 @@ class Formie
      */
     public function getLabelPosition(FormFieldInterface $field, Form $form, bool $subfield = false): PositionInterface
     {
-        /* @var PositionInterface $position */
-        $position = $subfield && $field->hasSubfields() ? $field->subfieldLabelPosition : $field->labelPosition;
-        $position = $position ?: $form->settings->defaultLabelPosition;
+        // A hard error will be thrown if the position class doesn't exist
+        try {
+            /* @var PositionInterface $position */
+            $position = $subfield && $field->hasSubfields() ? $field->subfieldLabelPosition : $field->labelPosition;
+            $position = $position ?: $form->settings->defaultLabelPosition;
 
-        if (!$position::supports($field) && $fallback = $position::fallback($field)) {
-            return new $fallback();
+            if (!$position::supports($field) && $fallback = $position::fallback($field)) {
+                return new $fallback();
+            }
+
+            return new $position();
+        } catch (Throwable $e) {
+            return new AboveInput();
         }
-
-        return new $position();
     }
 
     /**
@@ -228,8 +237,14 @@ class Formie
      */
     public function getInstructionsPosition(FormFieldInterface $field, Form $form): PositionInterface
     {
-        $position = $field->instructionsPosition ?: $form->settings->defaultInstructionsPosition;
-        return new $position();
+        // A hard error will be thrown if the position class doesn't exist
+        try {
+            $position = $field->instructionsPosition ?: $form->settings->defaultInstructionsPosition;
+
+            return new $position();
+        } catch (Throwable $e) {
+            return new AboveInput();
+        }
     }
 
     /**
