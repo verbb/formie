@@ -185,7 +185,7 @@ export class FormieConditions {
 
         // But *do* setup conditions on the first run, when initialising all the fields
         if (isNested && !isInit) {
-            var $parentField = $field.closest('.fui-type-group, .fui-type-repeater');
+            var $parentField = $field.closest('[data-field-type="group"], [data-field-type="repeater"]');
 
             if ($parentField) {
                 // Is the parent field conditionally hidden? Force the evaluation to be true (this field is
