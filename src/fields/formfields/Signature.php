@@ -203,6 +203,7 @@ class Signature extends FormField implements PreviewableFieldInterface
         if ($key === 'fieldRemoveButton') {
             return new HtmlTag('button', [
                 'class' => 'fui-btn fui-signature-clear-btn',
+                'data-signature-clear' => true,
                 'type' => 'button',
             ]);
         }
