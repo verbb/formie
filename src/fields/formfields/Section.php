@@ -185,7 +185,7 @@ class Section extends FormField
         $id = $this->getHtmlId($form);
         $dataId = $this->getHtmlDataId($form);
 
-        if ($key === 'fieldInput') {
+        if ($key === 'fieldSection') {
             return new HtmlTag('hr', array_merge([
                 'class' => 'fui-hr',
                 'style' => [

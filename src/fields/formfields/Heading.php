@@ -139,12 +139,9 @@ class Heading extends FormField
 
     public function defineHtmlTag(string $key, array $context = []): ?HtmlTag
     {
-        if ($key === 'fieldInput') {
+        if ($key === 'fieldHeading') {
             return new HtmlTag($this->headingSize, array_merge([
-                'class' => [
-                    'fui-heading',
-                    "fui-heading-{$this->headingSize}",
-                ],
+                'class' => "fui-heading fui-heading-{$this->headingSize}",
             ], $this->getInputAttributes()));
         }
 
