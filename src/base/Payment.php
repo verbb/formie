@@ -144,11 +144,11 @@ abstract class Payment extends Integration
     /**
      * @inheritDoc
      */
-    public function getEmailHtml(Submission $submission, Notification $notification, mixed $value, PaymentField $field, array $options = null): Markup
+    public function getEmailHtml(Submission $submission, Notification $notification, mixed $value, PaymentField $field, array $renderOptions = null): Markup
     {
         $handle = $this->getIntegrationHandle();
 
-        $inputOptions = array_merge($field->getEmailOptions($submission, $notification, $value, $options), [
+        $inputOptions = array_merge($field->getEmailOptions($submission, $notification, $value, $renderOptions), [
             'field' => $field,
             'integration' => $this,
         ]);
@@ -182,7 +182,7 @@ abstract class Payment extends Integration
     /**
      * @inheritDoc
      */
-    public function getFrontEndHtml($field, $options): string
+    public function getFrontEndHtml($field, $renderOptions): string
     {
         $handle = $this->getIntegrationHandle();
         
@@ -192,9 +192,9 @@ abstract class Payment extends Integration
 
         $this->setField($field);
 
-        return Craft::$app->getView()->renderTemplate('formie/integrations/payments/{$handle}/_input', [
+        return Craft::$app->getView()->renderTemplate("formie/integrations/payments/{$handle}/_input", [
             'field' => $field,
-            'options' => $options,
+            'renderOptions' => $renderOptions,
         ]);
     }
 

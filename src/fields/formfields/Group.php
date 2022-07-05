@@ -6,6 +6,7 @@ use verbb\formie\base\NestedFieldInterface;
 use verbb\formie\base\NestedFieldTrait;
 use verbb\formie\gql\types\input\GroupInputType;
 use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\models\HtmlTag;
 
 use Craft;
 use craft\base\EagerLoadingFieldInterface;
@@ -70,14 +71,6 @@ class Group extends FormField implements NestedFieldInterface, EagerLoadingField
         ];
 
         return $rules;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getIsFieldset(): bool
-    {
-        return true;
     }
 
     /**
@@ -214,5 +207,33 @@ class Group extends FormField implements NestedFieldInterface, EagerLoadingField
                 return $source[0][$fieldName] ?? null;
             },
         ]));
+    }
+
+    public function defineHtmlTag(string $key, array $context = []): ?HtmlTag
+    {
+        $form = $context['form'] ?? null;
+
+        $id = $this->getHtmlId($form);
+
+        if ($key === 'fieldContainer') {
+            return new HtmlTag('fieldset', [
+                'class' => 'fui-fieldset',
+                'aria-describedby' => $this->instructions ? "{$id}-instructions" : null,
+            ]);
+        }
+
+        if ($key === 'fieldLabel') {
+            return new HtmlTag('legend', [
+                'class' => 'fui-legend',
+            ]);
+        }
+
+        if ($key === 'nestedFieldContainer') {
+            return new HtmlTag('div', [
+                'class' => 'fui-group',
+            ]);
+        }
+
+        return parent::defineHtmlTag($key, $context);
     }
 }

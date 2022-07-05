@@ -1,0 +1,7 @@
+{% fieldtag 'fieldErrors' %}
+    {% for error in errors %}
+        {{ fieldtag('fieldError', {
+            text: error | t,
+        }) }}
+    {% endfor %}
+{% endfieldtag %}

@@ -1,38 +1,29 @@
-{% set value = field.getDisplayTypeValue(value) %}
+{% set originalField = field %}
 
-{% if field.displayType == 'dropdown' %}
-    {% set valueJson = value ? value.all() | map(tag => {
-        value: tag.title,
-        id: tag.id,
+{# Override the `field` with the correct display type, populated from the Recipients field #}
+{% set field = originalField.getDisplayTypeField() %}
+
+{# Get the value for the field, depending on the display type #}
+{% set value = originalField.getDisplayTypeValue(value) %}
+
+{% if originalField.displayType == 'dropdown' %}
+    {% set valueJson = value ? value | map(option => {
+        value: option.label,
+        id: option.value,
     }) : [] %}
 
-    {% set attributes = {
-        id: options.id,
-        class: [ 'fui-input' ],
-        name: field.handle,
-        required: field.required ? true : false,
+    {{ formieInclude('fields/hidden', {
         value: valueJson ? valueJson | json_encode : '',
-        autocomplete: 'off',
-        data: {
-            'fui-id': options.dataId,
-            'formie-tags': tags,
-            'fui-message': field.settings.errorMessage | t,
-        },
-        aria: {
-            required: field.required ? 'true' : 'false',
-        },
-    } | merge(field.getInputAttributes()) %}
-
-    <input {{ attr(attributes) }} />
+    }) }}
 
     {% set cssFile = view.getAssetManager().getPublishedUrl('@verbb/formie/web/assets/frontend/dist/css/fields/tags.css', true) %}
     {% do view.registerCssFile(cssFile) %}
 {% endif %}
 
-{% if field.displayType == 'checkboxes' %}
-    {{ formieInclude('fields/_includes/element-checkboxes') }}
+{% if originalField.displayType == 'checkboxes' %}
+    {{ formieInclude('fields/checkboxes') }}
 {% endif %}
 
-{% if field.displayType == 'radio' %}
-    {{ formieInclude('fields/radio', { fieldName: field.handle ~ '[]' }) }}
+{% if originalField.displayType == 'radio' %}
+    {{ formieInclude('fields/radio') }}
 {% endif %}

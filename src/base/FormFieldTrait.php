@@ -8,13 +8,17 @@ use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyFieldValueEvent;
 use verbb\formie\events\ModifyFieldEmailValueEvent;
 use verbb\formie\events\ModifyFieldIntegrationValueEvent;
+use verbb\formie\events\ModifyFieldHtmlTagEvent;
 use verbb\formie\fields\formfields;
 use verbb\formie\fields\formfields\BaseOptionsField;
 use verbb\formie\helpers\ConditionsHelper;
+use verbb\formie\helpers\Html;
 use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\Notification;
+use verbb\formie\models\HtmlTag;
 
 use Craft;
 use craft\base\ElementInterface;
@@ -22,7 +26,6 @@ use craft\gql\types\DateTime as DateTimeType;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 use craft\helpers\Template;
-use craft\helpers\StringHelper;
 use craft\validators\HandleValidator;
 
 use GraphQL\Type\Definition\Type;
@@ -106,7 +109,8 @@ trait FormFieldTrait
 
     private ?Form $_form = null;
     private ?NestedFieldInterface $_container = null;
-
+    private array $_themeConfig = [];
+    private ?FormFieldInterface $_parentField = null;
     private string $_namespace = 'fields';
 
 
@@ -420,35 +424,36 @@ trait FormFieldTrait
         return $this->_form = Form::find()->id($this->formId)->one();
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function hasLabel(): bool
+    public function setForm($value): void
     {
-        return true;
+        $this->_form = $value;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function renderLabel(): bool
+    public function getHtmlId(Form $form, ?string $extra = null): string
     {
-        return $this->hasLabel();
+        // Return the `id` attribute for the field, including parent fields
+        // `fui-contactForm-xpvgyvsp-singleName` or `fui-contactForm-xpvgyvsp-multiName-firstName`
+        $ids = [$form->getFormId(), ...$this->_getFullNamespace(), $this->handle, $extra];
+
+        return Html::getInputIdAttribute(array_filter($ids));
     }
 
-    public function getHtmlId(Form $form): string
+    public function getHtmlDataId(Form $form, ?string $extra = null): string
     {
-        return StringHelper::toKebabCase($form->formId . ' ' . $this->handle);
+        // Return the `data-id` attribute for the field, including parent fields
+        // `contactForm-singleName` or `contactForm-multiName-firstName`
+        $ids = [$form->handle, ...$this->_getFullHandle(), $extra];
+
+        return implode('-', array_filter($ids));
     }
 
-    public function getHtmlDataId(Form $form): string
+    public function getHtmlName(?string $extra = null): string
     {
-        return StringHelper::toKebabCase($form->handle . ' ' . $this->handle);
-    }
+        // Return the `name` attribute for the field, including parent fields
+        // `fields[singleName]` or `fields[multiName][firstName]`
+        $names = [...$this->_getFullNamespace(), $this->handle, $extra];
 
-    public function getHtmlWrapperId(Form $form): string
-    {
-        return StringHelper::toKebabCase($this->namespace . ' ' . $this->getHtmlId($form) . ' wrap');
+        return Html::getInputNameAttribute(array_filter($names));
     }
 
     public function getContextUid(): array|string|null
@@ -464,25 +469,9 @@ trait FormFieldTrait
     /**
      * @inheritDoc
      */
-    public function getIsTextInput(): bool
+    public function hasLabel(): bool
     {
-        return false;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getIsSelect(): bool
-    {
-        return false;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getIsFieldset(): bool
-    {
-        return false;
+        return true;
     }
 
     public function hasSubfields(): bool
@@ -678,6 +667,149 @@ trait FormFieldTrait
         ];
     }
 
+    public function renderHtmlTag(string $key, array $context = []): ?HtmlTag
+    {
+        // Get the HtmlTag definition
+        $tag = $this->defineHtmlTag($key, $context);
+
+        // The render options are stored on the form for efficiency, so they're only parsed once
+        // even if passing in options via `craft.formie.renderField()`.
+        $form = $context['form'] ?? $this->getForm();
+        
+        // Find if there's a config option for this key, either in plugin config or template render options
+        $templateConfig = $form->getThemeConfigItem($key);
+
+        // Check if this is a class-specific key (e.g. `singleLineText`) which will take precedence over
+        // more general config, and merge them.
+        $classTemplateConfig = $form->getThemeConfigItem(Html::getFieldClassKey($this) . '.' . $key);
+        $config = Html::mergeHtmlConfigs([$key => $templateConfig], [$key => $classTemplateConfig])[$key] ?? [];
+
+        if ($tag) {
+            // Are we resetting classes globally?
+            if ($form->resetClasses) {
+                $config['resetClass'] = true;
+            }
+
+            $tag->setFromConfig($config);
+        }
+
+        $event = new ModifyFieldHtmlTagEvent([
+            'field' => $this,
+            'tag' => $tag,
+            'key' => $key,
+            'context' => $context,
+        ]);
+
+        $this->trigger(static::EVENT_MODIFY_HTML_TAG, $event);
+
+        return $event->tag;
+    }
+
+    public function defineHtmlTag(string $key, array $context = []): ?HtmlTag
+    {
+        $form = $context['form'] ?? null;
+        $submission = $context['element'] ?? null;
+        $errors = $context['errors'] ?? null;
+
+        $id = $this->getHtmlId($form);
+        $dataId = $this->getHtmlDataId($form);
+
+        if ($key === 'field') {
+            $labelPosition = $context['labelPosition'] ?? null;
+            $subfieldLabelPosition = $context['subfieldLabelPosition'] ?? null;
+            $instructionsPosition = $context['instructionsPosition'] ?? null;
+
+            return new HtmlTag('div', [
+                'class' => [
+                    'fui-field',
+                    'fui-type-' . StringHelper::toKebabCase($this->displayName()),
+                    'fui-label-' . $labelPosition,
+                    'fui-subfield-label-' . $subfieldLabelPosition,
+                    'fui-instructions-' . $instructionsPosition,
+                    $errors ? 'fui-field-error' : null,
+                    $this->required ? 'fui-field-required' : null,
+                    $this->cssClasses ?? null,
+                    $this->getIsHidden() ? 'fui-hidden' : null,
+                    $this->getParentField() ? 'fui-' . StringHelper::toKebabCase($this->getParentField()->displayName() . ' ' . $this->handle) : 'fui-page-field',
+                ],
+                'data' => [
+                    'field-handle' => $this->handle,
+                    'field-type' => StringHelper::toKebabCase($this->displayName()),
+                    'field-config' => $this->getConfigJson(),
+                    'field-conditions' => $this->getConditionsJson($submission),
+                ],
+            ]);
+        }
+
+        if ($key === 'fieldContainer') {
+            return new HtmlTag('div', [
+                'class' => 'fui-field-container',
+            ]);
+        }
+
+        if ($key === 'fieldLabel') {
+            if (!$this->hasLabel()) {
+                return null;
+            }
+
+            return new HtmlTag('label', [
+                'class' => 'fui-label',
+                'for' => $id,
+            ]);
+        }
+
+        if ($key === 'fieldInstructions') {
+            return new HtmlTag('div', [
+                'id' => "{$id}-instructions",
+                'class' => 'fui-instructions',
+            ]);
+        }
+
+        if ($key === 'fieldInputContainer') {
+            return new HtmlTag('div', [
+                'class' => 'fui-input-container',
+            ]);
+        }
+
+        if ($key === 'fieldErrors') {
+            return new HtmlTag('ul', [
+                'class' => 'fui-errors',
+            ]);
+        }
+
+        if ($key === 'fieldError') {
+            return new HtmlTag('li', [
+                'class' => 'fui-error-message',
+            ]);
+        }
+
+        if ($key === 'subFieldRows') {
+            return new HtmlTag('div', [
+                'class' => 'fui-field-rows',
+            ]);
+        }
+
+        if ($key === 'subFieldRow') {
+            return new HtmlTag('div', [
+                'class' => 'fui-row',
+            ]);
+        }
+
+        if ($key === 'nestedFieldRows') {
+            return new HtmlTag('div', [
+                'class' => 'fui-field-rows',
+            ]);
+        }
+
+        if ($key === 'nestedFieldRow') {
+            return new HtmlTag('div', [
+                'class' => 'fui-row',
+            ]);
+        }
+
+        return null;
+    }
+
     /**
      * @inheritDoc
      */
@@ -751,13 +883,36 @@ trait FormFieldTrait
     /**
      * @inheritDoc
      */
-    public function getFrontEndInputHtml(Form $form, mixed $value, array $options = null): Markup
+    public function getParentField(): ?FormFieldInterface
+    {
+        return $this->_parentField;
+    }
+
+    public function setParentField($value, $namespace = ''): void
+    {
+        $this->_parentField = $value;
+
+        // Also, set the namespace (on the parent field), commonly just the field handle
+        // But allows it to be added to (think Repeater).
+        // Be sure to create a valid name attribute, from `fieldHandle` and `some[more][attrs]`
+        // to `fieldHandle[some][some][attrs]`.
+        if ($namespace) {
+            $this->setNamespace(Html::namespaceInputName($namespace, $value->handle));
+        } else {
+            $this->setNamespace($value->handle);
+        }
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getFrontEndInputHtml(Form $form, mixed $value, array $renderOptions = []): Markup
     {
         if (!static::getFrontEndInputTemplatePath()) {
             return Template::raw('');
         }
 
-        $inputOptions = $this->getFrontEndInputOptions($form, $value, $options);
+        $inputOptions = $this->getFrontEndInputOptions($form, $value, $renderOptions);
         $html = $form->renderTemplate(static::getFrontEndInputTemplatePath(), $inputOptions);
 
         return Template::raw($html);
@@ -766,28 +921,36 @@ trait FormFieldTrait
     /**
      * @inheritDoc
      */
-    public function getFrontEndInputOptions(Form $form, mixed $value, array $options = null): array
+    public function getFrontEndInputOptions(Form $form, mixed $value, array $renderOptions = []): array
     {
         // Check to see if we're overriding the field
-        $field = $options['field'] ?? $this;
+        $field = $renderOptions['field'] ?? $this;
 
         return [
             'form' => $form,
             'name' => $this->handle,
             'value' => $value,
             'field' => $field,
-            'options' => $options,
+            'renderOptions' => $renderOptions,
         ];
     }
 
-    public function applyRenderOptions(array $options = null): void
+    public function applyRenderOptions(Form $form, array $renderOptions = []): void
     {
-        // Expand this as we allow more field options in render functions
-        $fieldNamespace = $options['fieldNamespace'] ?? null;
+        /* @var Settings $pluginSettings */
+        $pluginSettings = Formie::$plugin->getSettings();
+
+        $fieldNamespace = $renderOptions['fieldNamespace'] ?? null;
 
         // Allow the use of falsey namespaces
         if ($fieldNamespace !== null) {
             $this->setNamespace($fieldNamespace);
+        }
+
+        $templateConfig = $renderOptions['themeConfig'] ?? [];
+
+        if ($templateConfig) {
+            $form->setThemeConfig($templateConfig);
         }
     }
 
@@ -913,9 +1076,9 @@ trait FormFieldTrait
     /**
      * @inheritDoc
      */
-    public function getEmailHtml(Submission $submission, Notification $notification, mixed $value, array $options = null): string|null|bool
+    public function getEmailHtml(Submission $submission, Notification $notification, mixed $value, array $renderOptions = []): string|null|bool
     {
-        $inputOptions = $this->getEmailOptions($submission, $notification, $value, $options);
+        $inputOptions = $this->getEmailOptions($submission, $notification, $value, $renderOptions);
         $html = $notification->renderTemplate(static::getEmailTemplatePath(), $inputOptions);
 
         return Template::raw($html);
@@ -924,7 +1087,7 @@ trait FormFieldTrait
     /**
      * @inheritDoc
      */
-    public function getEmailOptions(Submission $submission, Notification $notification, mixed $value, array $options = null): array
+    public function getEmailOptions(Submission $submission, Notification $notification, mixed $value, array $renderOptions = []): array
     {
         return [
             'notification' => $notification,
@@ -932,7 +1095,7 @@ trait FormFieldTrait
             'name' => $this->handle,
             'value' => $value,
             'field' => $this,
-            'options' => $options,
+            'renderOptions' => $renderOptions,
         ];
     }
 
@@ -1237,5 +1400,39 @@ trait FormFieldTrait
         }
 
         return array_values(array_unique(array_merge(...$reservedWords)));
+    }
+
+    private function _getFullHandle()
+    {
+        $handles = [];
+
+        // Get the namespace for each field, including parent fields
+        $field = $this;
+
+        while ($field) {
+            // Be sure to prepend parent fields, as we're going deepest outward
+            array_unshift($handles, $field->handle);
+
+            $field = $field->getParentField();
+        }
+
+        return $handles;
+    }
+
+    private function _getFullNamespace()
+    {
+        $names = [];
+
+        // Get the namespace for each field, including parent fields
+        $field = $this;
+
+        while ($field) {
+            // Be sure to prepend parent fields, as we're going deepest outward
+            array_unshift($names, $field->getNamespace());
+
+            $field = $field->getParentField();
+        }
+
+        return $names;
     }
 }

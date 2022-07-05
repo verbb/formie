@@ -32,10 +32,8 @@ class Settings extends Model
     public bool $enableUnloadWarning = true;
     public int $ajaxTimeout = 10;
 
-    // Fields
-    public array $disabledFields = [];
-
     // General Fields
+    public array $disabledFields = [];
     public string $defaultLabelPosition = AboveInput::class;
     public string $defaultInstructionsPosition = AboveInput::class;
 
@@ -45,13 +43,15 @@ class Settings extends Model
     public string $defaultDateValueOption = '';
     public ?DateTime $defaultDateTime = null;
 
-    public int $maxIncompleteSubmissionAge = 30;
-    public int $maxSentNotificationsAge = 30;
-
     // Submissions
+    public int $maxIncompleteSubmissionAge = 30;
     public bool $enableCsrfValidationForGuests = true;
     public bool $useQueueForNotifications = true;
     public bool $useQueueForIntegrations = true;
+
+    // Sent Notifications
+    public bool $sentNotifications = true;
+    public int $maxSentNotificationsAge = 30;
 
     // Spam
     public bool $saveSpam = true;
@@ -61,15 +61,18 @@ class Settings extends Model
     public string $spamKeywords = '';
     public string $spamBehaviourMessage = '';
 
-    // Notifications
+    // Alerts
     public bool $sendEmailAlerts = false;
-    public bool $sentNotifications = true;
     public ?array $alertEmails = null;
 
     // PDFs
     public string $pdfPaperSize = 'letter';
     public string $pdfPaperOrientation = 'portrait';
 
+    // Theme
+    public array $themeConfig = [];
+
+    // Captcha settings are stored in Project Config, but otherwise private
     public array $captchas = [];
 
 

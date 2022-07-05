@@ -10,6 +10,12 @@ export class FormieAlgoliaPlaces extends FormieAddressProvider {
         this.$field = settings.$field;
         this.$input = this.$field.querySelector('[data-autocomplete]');
 
+        if (!this.$input) {
+            console.error('Unable to find input `[data-autocomplete]`.');
+
+            return;
+        }
+
         this.appId = settings.appId;
         this.apiKey = settings.apiKey;
         this.reconfigurableOptions = settings.reconfigurableOptions;

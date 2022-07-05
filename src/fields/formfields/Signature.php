@@ -3,6 +3,7 @@ namespace verbb\formie\fields\formfields;
 
 use verbb\formie\base\FormField;
 use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\models\HtmlTag;
 
 use Craft;
 use craft\base\ElementInterface;
@@ -184,6 +185,25 @@ class Signature extends FormField implements PreviewableFieldInterface
             SchemaHelper::enableConditionsField(),
             SchemaHelper::conditionsField(),
         ];
+    }
+
+    public function defineHtmlTag(string $key, array $context = []): ?HtmlTag
+    {
+        if ($key === 'fieldInput') {
+            return new HtmlTag('input', array_merge([
+                'type' => 'hidden',
+                'name' => $this->getHtmlName(),
+            ], $this->getInputAttributes()));
+        }
+
+        if ($key === 'fieldClearButton') {
+            return new HtmlTag('button', [
+                'class' => 'fui-btn fui-signature-clear-btn',
+                'type' => 'button',
+            ]);
+        }
+
+        return parent::defineHtmlTag($key, $context);
     }
 
 

@@ -4,7 +4,7 @@
     {% set title = craft.formie.getPluginName() %}
 {% endif %}
 
-{% set content %}
+{% block content %}
     {% block blockContent %}
 
     {% endblock %}
@@ -32,4 +32,4 @@
             </a>
         </div>
     </div>
-{% endset %}
+{% endblock %}

@@ -4,44 +4,30 @@
 {% set maxlength = limit and limitType == 'characters' ? limitAmount %}
 {% set wordlimit = limit and limitType == 'words' ? limitAmount %}
 
-{% set attributes = {
-    id: options.id,
-    class: [ 'fui-input' ],
-    name: field.handle,
-    placeholder: field.placeholder | t,
-    required: field.required ? true : false,
-    maxlength: maxlength ?: false,
-    data: {
-        'fui-id': options.dataId,
-        'fui-message': field.settings.errorMessage | t,
-        wordlimit: wordlimit ?: false,
-    },
-    aria: {
-        required: field.required ? 'true' : 'false',
-    },
-} | merge(field.getInputAttributes()) %}
-
 {% if field.useRichText %}
-    <div class="fui-rich-text" data-rich-text></div>
+    {{ fieldtag('fieldRichText') }}
 
     <div style="display: none !important;">
-        <textarea {{ attr(attributes) }}>{{ value }}</textarea>
+        {{ fieldtag('fieldInput', {
+            text: value,
+        }) }}
     </div>
 {% else %}
-    <textarea {{ attr(attributes) }}>{{ value }}</textarea>
+    {{ fieldtag('fieldInput', {
+        text: value,
+    }) }}
 {% endif %}
 
 {% if maxlength or wordlimit %}
     {% if maxlength %}
-        <div class="fui-instructions fui-limit" data-max-limit data-max-chars="{{ maxlength }}">
-            {{ '{num} characters left' | t('formie', { num: maxlength }) | raw }}
-        </div>
+        {% fieldtag 'fieldLimit' with { 'data-max-chars': maxlength } %}
+            {{- '{num} characters left' | t('formie', { num: maxlength }) | raw -}}
+        {% endfieldtag %}
     {% endif %}
 
     {% if wordlimit %}
-        <div class="fui-instructions fui-limit" data-max-limit data-max-words="{{ wordlimit }}">
-            {{ '{num} words left' | t('formie', { num: wordlimit }) | raw }}
-        </div>
+        {% fieldtag 'fieldLimit' with { 'data-max-words': wordlimit } %}
+            {{- '{num} words left' | t('formie', { num: wordlimit }) | raw -}}
+        {% endfieldtag %}
     {% endif %}
-
 {% endif %}

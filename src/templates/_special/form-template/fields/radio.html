@@ -1,46 +1,19 @@
-<fieldset class="fui-fieldset fui-layout-{{ field.settings.layout ?? 'vertical' }}" id="{{ options.id }}">
-    {{ formieInclude('_includes/legend', { position: 'above' }) }}
+{# Allow passing in a set list of options #}
+{% set fieldOptions = fieldOptions ?? field.getFieldOptions() %}
 
-    {# For this field, they're the same #}
-    {{ formieInclude('_includes/instructions', { position: 'above' }) }}
-    {{ formieInclude('_includes/instructions', { position: 'fieldset-start' }) }}
+{% fieldtag 'fieldOptions' %}
+    {% for option in fieldOptions %}
+        {% set selected = option.value is defined and option.value == value %}
 
-    <div class="fui-layout-wrap">
-        {% for option in fieldOptions ?? field.getFieldOptions() %}
-            {% set optionId = options.id ~ '-' ~ option.value | kebab %}
-            {% set optionDataId = options.dataId ~ '-' ~ option.value | kebab %}
-            {% set selected = option.value is defined and option.value == value %}
+        {% fieldtag 'fieldOption' %}
+            {{ fieldtag('fieldInput', {
+                value: option.value ?? false,
+                checked: selected,
+            }) }}
 
-            <div class="fui-radio">
-                {% set attributes = {
-                    id: optionId,
-                    class: [
-                        'fui-input',
-                        'fui-radio-input',
-                    ],
-                    type: 'radio',
-                    name: fieldName ?? field.handle,
-                    required: field.required ? true : false,
-                    value: option.value,
-                    checked: selected,
-                    data: {
-                        'fui-id': optionDataId,
-                        'fui-message': field.settings.errorMessage | t,
-                    },
-                    aria: {
-                        required: field.required ? 'true' : 'false',
-                    },
-                } | merge(field.getInputAttributes()) %}
-
-                <input {{ attr(attributes) }} />
-                <label for="{{ optionId }}" class="fui-radio-label">{{ option.label | t }}</label>
-            </div>
-        {% endfor %}
-    </div>
-
-    {# For this field, they're the same #}
-    {{ formieInclude('_includes/instructions', { position: 'below' }) }}
-    {{ formieInclude('_includes/instructions', { position: 'fieldset-end' }) }}
-
-    {{ formieInclude('_includes/legend', { position: 'below' }) }}
-</fieldset>
+            {% fieldtag 'fieldOptionLabel' %}
+                {{- option.label | t -}}
+            {% endfieldtag %}
+        {% endfieldtag %}
+    {% endfor %}
+{% endfieldtag %}

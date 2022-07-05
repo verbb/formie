@@ -43,6 +43,13 @@ abstract class BaseOptionsField extends CraftBaseOptionsField
      */
     public ?string $layout = null;
 
+    /**
+     * @var bool Whether this field should use multiple values. Note this only effects
+     * the `name` attribute when rendering, forcing to use `handle[]` instead of `handle`.
+     * This is currently only enforced by element fields which need array data.
+     */
+    public bool $hasMultiNamespace = false;
+
 
     // Public Methods
     // =========================================================================

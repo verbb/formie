@@ -67,10 +67,10 @@ abstract class AddressProvider extends Integration
      * Returns the frontend HTML.
      *
      * @param $field
-     * @param $options
+     * @param $renderOptions
      * @return string
      */
-    public function getFrontEndHtml($field, $options): string
+    public function getFrontEndHtml($field, array $renderOptions = []): string
     {
         return '';
     }

@@ -8,6 +8,7 @@ use verbb\formie\elements\NestedFieldRow;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\Variables;
 use verbb\formie\positions\Hidden as HiddenPosition;
+use verbb\formie\models\HtmlTag;
 
 use Craft;
 use craft\base\ElementInterface;
@@ -101,14 +102,6 @@ class Hidden extends FormField implements PreviewableFieldInterface
         return parent::getContentColumnType();
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function renderLabel(): bool
-    {
-        return false;
-    }
-
     public function getIsHidden(): bool
     {
         return true;
@@ -190,9 +183,9 @@ class Hidden extends FormField implements PreviewableFieldInterface
     /**
      * @inheritDoc
      */
-    public function getFrontEndInputOptions(Form $form, mixed $value, array $options = null): array
+    public function getFrontEndInputOptions(Form $form, mixed $value, array $renderOptions = []): array
     {
-        $inputOptions = parent::getFrontEndInputOptions($form, $value, $options);
+        $inputOptions = parent::getFrontEndInputOptions($form, $value, $renderOptions);
 
         try {
             $defaultValue = Craft::$app->getView()->renderString(
@@ -292,5 +285,26 @@ class Hidden extends FormField implements PreviewableFieldInterface
             SchemaHelper::enableContentEncryptionField(),
             SchemaHelper::columnTypeField(),
         ];
+    }
+
+    public function defineHtmlTag(string $key, array $context = []): ?HtmlTag
+    {
+        $form = $context['form'] ?? null;
+
+        $id = $this->getHtmlId($form);
+        $dataId = $this->getHtmlDataId($form);
+
+        if ($key === 'fieldInput') {
+            return new HtmlTag('input', array_merge([
+                'type' => 'hidden',
+                'id' => $id,
+                'name' => $this->getHtmlName(),
+                'data' => [
+                    'fui-id' => $dataId,
+                ],
+            ], $this->getInputAttributes()));
+        }
+
+        return parent::defineHtmlTag($key, $context);
     }
 }

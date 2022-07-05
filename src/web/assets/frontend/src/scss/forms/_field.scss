@@ -58,16 +58,20 @@
     color: var(--fui-required-color, var(--fui-error));
 }
 
-.fui-instructions {
+.fui-instructions,
+.fui-limit-text,
+.fui-file-summary {
     color: var(--fui-instructions-color, var(--fui-gray-400));
     font-size: var(--fui-instructions-font-size);
     line-height: var(--fui-instructions-line-height);
     display: block;
 
-    p {
+    p, ul {
         margin: 0;
     }
+}
 
+.fui-instructions {
     .fui-instructions-above-input &,
     .fui-instructions-fieldset-start & {
         margin-bottom: var(--fui-instructions-margin);
@@ -79,16 +83,11 @@
     }
 }
 
+.fui-limit-text {
+    margin-top: var(--fui-instructions-margin);
+}
+
 .fui-file-summary {
-    color: var(--fui-instructions-color, var(--fui-gray-400));
-    font-size: var(--fui-instructions-font-size);
-    line-height: var(--fui-instructions-line-height);
-    display: block;
-
-    p, ul {
-        margin: 0;
-    }
-
     & > p {
         margin-top: var(--fui-instructions-margin);
         margin-bottom: var(--fui-instructions-margin);

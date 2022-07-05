@@ -1,21 +1,6 @@
-{% set attributes = {
-    id: options.id,
-    class: [ 'fui-select' ],
-    name: fieldName ?? (field.handle ~ (field.multiple ? '[]')),
-    multiple: field.multiple ? true : false,
-    required: field.required ? true : false,
-    data: {
-        'fui-id': options.dataId,
-        'fui-message': field.settings.errorMessage | t,
-    },
-    aria: {
-        required: field.required ? 'true' : 'false',
-    },
-} | merge(field.getInputAttributes()) %}
-
 {% set hasOptgroups = false %}
 
-<select {{ attr(attributes) }}>
+{% fieldtag 'fieldInput' %}
     {% for option in field.getFieldOptions() %}
         {% if option.optgroup is defined %}
             {% if hasOptgroups %}
@@ -26,17 +11,24 @@
 
             <optgroup label="{{ option.optgroup | t }}">
         {% else %}
+            {% set disabled = option.disabled ?? false %}
+
             {% if field.multiple %}
                 {% set selected = option.value is defined and option.value in value %}
             {% else %}
                 {% set selected = option.value is defined and option.value == value %}
             {% endif %}
 
-            <option value="{{ option.value }}" {{ selected ? 'selected' }}>{{ option.label | t }}</option>
+            {{ tag('option', {
+                value: option.value,
+                selected: selected ?? false,
+                disabled: disabled ?? false,
+                text: option.label | t,
+            }) }}
         {% endif %}
     {% endfor %}
 
     {% if hasOptgroups %}
         </optgroup>
     {% endif %}
-</select>
+{% endfieldtag %}

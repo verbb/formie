@@ -1,24 +1,7 @@
-{% namespace field.handle %}
-    <div class="fui-group">
-        <fieldset class="fui-fieldset">
-            {{ formieInclude('_includes/legend', { position: 'above' }) }}
+{% fieldtag 'nestedFieldContainer' %}
+    {% set block = value.one() ?? null %}
 
-            {{ formieInclude('_includes/instructions', { position: 'fieldset-start' }) }}
-
-            {% set block = value.one() ?? null %}
-            {% if block and block.id %}
-                {{ formieInclude('fields/group/_row', {
-                    id: block.id ?? 'new1',
-                }) }}
-            {% else %}
-                {{ formieInclude('fields/group/_row', {
-                    id: 'new1',
-                }) }}
-            {% endif %}
-
-            {{ formieInclude('_includes/instructions', { position: 'fieldset-end' }) }}
-
-            {{ formieInclude('_includes/legend', { position: 'below' }) }}
-        </fieldset>
-    </div>
-{% endnamespace %}
+    {{ formieInclude('fields/group/_row', {
+        id: block.id ?? 'new1',
+    }) }}
+{% endfieldtag %}

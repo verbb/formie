@@ -3,6 +3,7 @@ namespace verbb\formie\fields\formfields;
 
 use verbb\formie\base\FormField;
 use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\models\HtmlTag;
 
 use Craft;
 use craft\base\ElementInterface;
@@ -135,6 +136,24 @@ class Heading extends FormField
             SchemaHelper::conditionsField(),
         ];
     }
+
+    public function defineHtmlTag(string $key, array $context = []): ?HtmlTag
+    {
+        if ($key === 'fieldInput') {
+            return new HtmlTag($this->headingSize, array_merge([
+                'class' => [
+                    'fui-heading',
+                    "fui-heading-{$this->headingSize}",
+                ],
+            ], $this->getInputAttributes()));
+        }
+
+        return parent::defineHtmlTag($key, $context);
+    }
+
+
+    // Protected Methods
+    // =========================================================================
 
     /**
      * @inheritDoc

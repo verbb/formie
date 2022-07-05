@@ -1,9 +1,13 @@
 <?php
 namespace verbb\formie\web\twig;
 
+use verbb\formie\helpers\Html;
 use verbb\formie\helpers\RichTextHelper;
+use verbb\formie\web\twig\tokenparsers\FieldTagTokenParser;
+use verbb\formie\web\twig\tokenparsers\FormTagTokenParser;
 
 use Craft;
+use craft\helpers\ArrayHelper;
 
 use Twig\Extension\AbstractExtension;
 use Twig\TwigFunction;
@@ -29,6 +33,16 @@ class Extension extends AbstractExtension
             new TwigFunction('formieInclude', [$this, 'formieInclude'], ['needs_environment' => true, 'needs_context' => true, 'is_safe' => ['all']]),
             new TwigFunction('formieSiteInclude', [$this, 'formieSiteInclude'], ['needs_environment' => true, 'needs_context' => true, 'is_safe' => ['all']]),
             new TwigFunction('formiePluginInclude', [$this, 'formiePluginInclude'], ['needs_environment' => true, 'needs_context' => true, 'is_safe' => ['all']]),
+            new TwigFunction('formtag', [$this, 'FormTagFunction'], ['needs_context' => true, 'is_safe' => ['html']]),
+            new TwigFunction('fieldtag', [$this, 'fieldTagFunction'], ['needs_context' => true, 'is_safe' => ['html']]),
+        ];
+    }
+
+    public function getTokenParsers(): array
+    {
+        return [
+            new FieldTagTokenParser(),
+            new FormTagTokenParser(),
         ];
     }
 
@@ -85,5 +99,53 @@ class Extension extends AbstractExtension
         $view->setTemplatesPath($oldTemplatesPath);
 
         return $result;
+    }
+
+    public function formTagFunction($context, $key, $options = []): ?string
+    {
+        $form = $context['form'] ?? null;
+
+        if ($form) {
+            $htmlTag = $form->renderHtmlTag($key, $context);
+
+            if ($htmlTag) {
+                if ($options) {
+                    $attributes = Html::mergeAttributes($htmlTag->attributes, $options);
+                } else {
+                    $attributes = $htmlTag->attributes;
+                }
+
+                // Grab a `text` attribute to use
+                $text = ArrayHelper::remove($attributes, 'text');
+
+                return Html::tag($htmlTag->tag, $text, $attributes);
+            }
+        }
+
+        return null;
+    }
+
+    public function fieldTagFunction($context, $key, $options = []): ?string
+    {
+        $field = $context['field'] ?? null;
+
+        if ($field) {
+            $htmlTag = $field->renderHtmlTag($key, $context);
+
+            if ($htmlTag) {
+                if ($options) {
+                    $attributes = Html::mergeAttributes($htmlTag->attributes, $options);
+                } else {
+                    $attributes = $htmlTag->attributes;
+                }
+
+                // Grab a `text` attribute to use
+                $text = ArrayHelper::remove($attributes, 'text');
+
+                return Html::tag($htmlTag->tag, $text, $attributes);
+            }
+        }
+
+        return null;
     }
 }

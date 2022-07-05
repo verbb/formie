@@ -58,19 +58,15 @@ class Rendering extends Component
      * Renders and returns a form's HTML.
      *
      * @param Form|string|null $form
-     * @param array|null $options
+     * @param array $renderOptions
      * @return Markup|null
      * @throws Exception
      * @throws InvalidConfigException
      * @throws LoaderError
      * @throws MissingComponentException
      */
-    public function renderForm(Form|string|null $form, array $options = null): ?Markup
+    public function renderForm(Form|string $form, array $renderOptions = []): ?Markup
     {
-        if (!$form) {
-            return null;
-        }
-
         if (is_string($form)) {
             $form = Form::find()->handle($form)->one();
         }
@@ -78,10 +74,13 @@ class Rendering extends Component
         // Fire a 'modifyFormRenderOptions' event
         $event = new ModifyFormRenderOptionsEvent([
             'form' => $form,
-            'options' => $options,
+            'renderOptions' => $renderOptions,
         ]);
         $this->trigger(self::EVENT_MODIFY_FORM_RENDER_OPTIONS, $event);
-        $options = $event->options;
+        $renderOptions = $event->renderOptions;
+
+        // Allow the form to handle how to apply render variables
+        $form->applyRenderOptions($renderOptions);
 
         // Get the active submission.
         $submission = $form->getCurrentSubmission();
@@ -89,7 +88,7 @@ class Rendering extends Component
 
         $html = $form->renderTemplate('form', [
             'form' => $form,
-            'options' => $options,
+            'renderOptions' => $renderOptions,
             'submission' => $submission,
             'jsVariables' => $jsVariables,
         ]);
@@ -103,8 +102,8 @@ class Rendering extends Component
         $output = $event->html;
 
         // We might want to explicitly disable JS/CSS for just this render call
-        $renderCss = $options['renderCss'] ?? true;
-        $renderJs = $options['renderJs'] ?? true;
+        $renderCss = $renderOptions['renderCss'] ?? true;
+        $renderJs = $renderOptions['renderJs'] ?? true;
 
         // We might need to output CSS and JS inline, or at the head/footer. `renderFormAssets`
         // will sort this out, but we don't want to do anything if rendering manually
@@ -134,18 +133,14 @@ class Rendering extends Component
      *
      * @param Form|string|null $form
      * @param FieldLayoutPage|null $page
-     * @param array|null $options
+     * @param array $renderOptions
      * @return Markup|null
      * @throws Exception
      * @throws LoaderError
      * @throws MissingComponentException
      */
-    public function renderPage(Form|string|null $form, FieldLayoutPage $page = null, array $options = null): ?Markup
+    public function renderPage(Form|string $form, FieldLayoutPage $page = null, array $renderOptions = []): ?Markup
     {
-        if (!$form) {
-            return null;
-        }
-
         if (is_string($form)) {
             $form = Form::find()->handle($form)->one();
         }
@@ -160,7 +155,7 @@ class Rendering extends Component
         $html = $form->renderTemplate('page', [
             'form' => $form,
             'page' => $page,
-            'options' => $options,
+            'renderOptions' => $renderOptions,
             'submission' => $submission,
         ]);
 
@@ -176,7 +171,7 @@ class Rendering extends Component
     /**
      * @param Form|string|null $form
      * @param FormFieldInterface|string $field
-     * @param array|null $options
+     * @param array $renderOptions
      * @return Markup|null
      * @throws Exception
      * @throws LoaderError
@@ -184,12 +179,8 @@ class Rendering extends Component
      * @throws RuntimeError
      * @throws SyntaxError
      */
-    public function renderField(Form|string|null $form, FormFieldInterface|string $field, array $options = null): ?Markup
+    public function renderField(Form|string $form, FormFieldInterface|string $field, array $renderOptions = []): ?Markup
     {
-        if (!$form) {
-            return null;
-        }
-
         if (is_string($form)) {
             $form = Form::find()->handle($form)->one();
         }
@@ -205,19 +196,17 @@ class Rendering extends Component
         }
 
         // Allow fields to apply any render options in their own way
-        if ($options) {
-            $field->applyRenderOptions($options);
-        }
+        $field->applyRenderOptions($form, $renderOptions);
 
         // Get the active submission.
-        $element = $options['element'] ?? $form->getCurrentSubmission();
+        $element = $renderOptions['element'] ?? $form->getCurrentSubmission();
 
         /* @var FormField $field */
         $html = $form->renderTemplate('field', [
             'form' => $form,
             'field' => $field,
             'handle' => $field->handle,
-            'options' => $options,
+            'renderOptions' => $renderOptions,
             'element' => $element,
         ]);
 
@@ -236,7 +225,7 @@ class Rendering extends Component
      * when inside a cache tag. See `renderFormJs` and `renderFormCss` for more controlled output.
      *
      * @param string|Form $form
-     * @param array|null $options
+     * @param array $renderOptions
      * @return void
      * @throws Exception
      * @throws InvalidConfigException
@@ -245,12 +234,12 @@ class Rendering extends Component
      * @throws RuntimeError
      * @throws SyntaxError
      */
-    public function registerAssets(Form|string $form, array $options = null): void
+    public function registerAssets(Form|string $form, array $renderOptions = []): void
     {
         // So we can easily re-use code, we just call the `renderForm` function
         // This will register any assets, and should be included outside of cached areas.
         // It should be called like `{% do craft.formie.registerAssets(handle) %}`
-        $this->renderForm($form, $options);
+        $this->renderForm($form, $renderOptions);
     }
 
     /**
@@ -532,7 +521,7 @@ class Rendering extends Component
      * This is also done in a single function to capture both CSS/JS files which are only registered once per request
      *
      * @param string|Form $form
-     * @param array|null $options
+     * @param array $renderOptions
      * @return void
      * @throws Exception
      * @throws InvalidConfigException
@@ -541,7 +530,7 @@ class Rendering extends Component
      * @throws RuntimeError
      * @throws SyntaxError
      */
-    public function renderFormCssJs(Form|string $form, array $options = null): void
+    public function renderFormCssJs(Form|string $form, array $renderOptions = []): void
     {
         // Don't re-render the form multiple times if it's already rendered
         if ($this->_jsFiles || $this->_cssFiles) {
@@ -559,7 +548,7 @@ class Rendering extends Component
 
         // Render the form, and capture any CSS being output to the asset manager. Grab that and output it directly.
         // This helps when targeting head/body/inline and ensure we output it **here**
-        $this->renderForm($form, $options);
+        $this->renderForm($form, $renderOptions);
 
         $this->_cssFiles = $this->clearFileBuffer('cssFiles', $view);
         $this->_cssFiles = array_merge($this->_cssFiles, [$view->clearCssBuffer()]);
@@ -575,12 +564,12 @@ class Rendering extends Component
      * Returns the CSS for the rendering of a form. This will include buffering any CSS files
      *
      * @param string|Form $form
-     * @param array|null $options
+     * @param array $renderOptions
      * @return Markup
      */
-    public function renderFormCss(Form|string $form, array $options = null): Markup
+    public function renderFormCss(Form|string $form, array $renderOptions = []): Markup
     {
-        $this->renderFormCssJs($form, $options);
+        $this->renderFormCssJs($form, $renderOptions);
 
         return TemplateHelper::raw(implode("\n", $this->_cssFiles));
     }
@@ -589,12 +578,12 @@ class Rendering extends Component
      * Returns the JS for the rendering of a form. This will include buffering any JS files
      *
      * @param string|Form $form
-     * @param array|null $options
+     * @param array $renderOptions
      * @return Markup
      */
-    public function renderFormJs(Form|string $form, array $options = null): Markup
+    public function renderFormJs(Form|string $form, array $renderOptions = []): Markup
     {
-        $this->renderFormCssJs($form, $options);
+        $this->renderFormCssJs($form, $renderOptions);
 
         $allJsFiles = [];
 

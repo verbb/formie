@@ -1,81 +1,41 @@
-{% macro toggleCheckbox(options, field) %}
-    {% set optionId = options.id ~ '-toggle' %}
-    {% set optionDataId = options.dataId ~ '-toggle' %}
+{% set toggleCheckbox %}
+    {% fieldtag 'fieldOption' %}
+        {{ fieldtag('fieldInput', {
+            'data-checkbox-toggle': true,
+        }) }}
 
-    <div class="fui-checkbox">
-        {% set attributes = {
-            id: optionId,
-            class: [
-                'fui-input',
-                'fui-checkbox-input',
-            ],
-            type: 'checkbox',
-            data: {
-                'checkbox-toggle': true,
-                'fui-id': optionDataId,
-            },
-        } | merge(field.getInputAttributes()) %}
+        {% fieldtag 'fieldOptionLabel' %}
+            {{- field.toggleCheckboxLabel | t -}}
+        {% endfieldtag %}
+    {% endfieldtag %}
+{% endset %}
 
-        <input {{ attr(attributes) }} />
-        <label for="{{ optionId }}" class="fui-checkbox-label">{{ field.toggleCheckboxLabel | t }}</label>
-    </div>
-{% endmacro %}
+{{ hiddenInput(field.getHtmlName(), '') }}
 
-{% from _self import toggleCheckbox %}
+{# Allow passing in a set list of options #}
+{% set fieldOptions = fieldOptions ?? field.getFieldOptions() %}
 
-<fieldset class="fui-fieldset fui-layout-{{ field.settings.layout ?? 'vertical' }}" id="{{ options.id }}" data-fui-id="{{ options.dataId }}">
-    {{ formieInclude('_includes/legend', { position: 'above' }) }}
+{% fieldtag 'fieldOptions' %}
+    {% if field.toggleCheckbox == 'top' and field.toggleCheckboxLabel %}
+        {{ toggleCheckbox }}
+    {% endif %}
 
-    {# For this field, they're the same #}
-    {{ formieInclude('_includes/instructions', { position: 'above' }) }}
-    {{ formieInclude('_includes/instructions', { position: 'fieldset-start' }) }}
+    {% for option in fieldOptions %}
+        {% set selected = option.value is defined and option.value in value %}
 
-    <input type="hidden" name="{{ field.handle }}" value="">
+        {% fieldtag 'fieldOption' %}
+            {{ fieldtag('fieldInput', {
+                value: option.value ?? false,
+                checked: selected,
+            }) }}
 
-    <div class="fui-layout-wrap">
-        {% if field.toggleCheckbox == 'top' and field.toggleCheckboxLabel %}
-            {{ toggleCheckbox(options, field) }}
-        {% endif %}
+            {% fieldtag 'fieldOptionLabel' %}
+                {{- option.label | t -}}
+            {% endfieldtag %}
+        {% endfieldtag %}
+    {% endfor %}
 
-        {% for option in fieldOptions ?? field.getFieldOptions() %}
-            {% set optionId = options.id ~ '-' ~ option.value | kebab %}
-            {% set optionDataId = options.dataId ~ '-' ~ option.value | kebab %}
-            {% set selected = option.value is defined and option.value in value %}
-
-            <div class="fui-checkbox">
-                {% set attributes = {
-                    id: optionId,
-                    class: [
-                        'fui-input',
-                        'fui-checkbox-input',
-                    ],
-                    type: 'checkbox',
-                    name: field.handle ~ '[]',
-                    required: field.required ? true : false,
-                    value: option.value,
-                    checked: selected,
-                    data: {
-                        'fui-id': optionDataId,
-                        'fui-message': field.settings.errorMessage | t,
-                    },
-                    aria: {
-                        required: field.required ? 'true' : 'false',
-                    },
-                } | merge(field.getInputAttributes()) %}
-
-                <input {{ attr(attributes) }} />
-                <label for="{{ optionId }}" class="fui-checkbox-label">{{ option.label | t }}</label>
-            </div>
-        {% endfor %}
-
-        {% if field.toggleCheckbox == 'bottom' and field.toggleCheckboxLabel %}
-            {{ toggleCheckbox(options, field) }}
-        {% endif %}
-    </div>
-
-    {# For this field, they're the same #}
-    {{ formieInclude('_includes/instructions', { position: 'below' }) }}
-    {{ formieInclude('_includes/instructions', { position: 'fieldset-end' }) }}
-
-    {{ formieInclude('_includes/legend', { position: 'below' }) }}
-</fieldset>
+    {% if field.toggleCheckbox == 'bottom' and field.toggleCheckboxLabel %}
+        {{ toggleCheckbox }}
+    {% endif %}
+{% endfieldtag %}

@@ -1,94 +1,20 @@
-<div class="fui-field-rows">
-    <div class="fui-row">
-        {% if field.includeDate %}
-            <div class="fui-field">
-                {% hook 'formie.subfield.field-start' %}
-
-                {% hook 'formie.subfield.input-before' %}
-
-                {% if field.isDateTime() %}
-                    {{ formieInclude('_includes/label', {
-                        field: null,
-                        id: 'date',
-                        required: field.required ? true : false,
-                        fieldName: field.name,
-                        labelPosition: craft.formie.getLabelPosition(field, form, true),
-                        position: 'above',
-                    }) }}
+{% fieldtag 'subFieldRows' %}
+    {% for row in field.getFrontEndSubfields(_context) %}
+        {% fieldtag 'subFieldRow' %}
+            {% for subField in row %}
+                {% set dateValue = null %}
+                
+                {% if subField.handle == 'date' %}
+                    {% set dateValue = value ? (value | date('Y-m-d', false)) : null %}
+                {% elseif subField.handle == 'time' %}
+                    {% set dateValue = value ? (value | date('H:i', false)) : null %}
                 {% endif %}
 
-                <div class="fui-input-container">
-                    {% hook 'formie.subfield.input-start' %}
-
-                    <input {{ attr({
-                        type: 'date',
-                        id: options.id,
-                        class: [ 'fui-input' ],
-                        name: 'date' | namespaceInputName(field.handle),
-                        required: field.required ? true : false,
-                        value: value ? (value | date('Y-m-d', false)) : null,
-                        autocomplete: 'off',
-                        data: {
-                            'fui-id': options.dataId,
-                            'fui-message': field.settings.errorMessage | t,
-                        },
-                        aria: {
-                            required: field.required ? 'true' : 'false',
-                        },
-                    } | merge(field.getInputAttributes())) }} />
-
-                    {% hook 'formie.subfield.input-end' %}
-                </div>
-
-                {% hook 'formie.subfield.input-after' %}
-
-                {% hook 'formie.subfield.field-end' %}
-            </div>
-        {% endif %}
-
-        {% if field.includeTime %}
-            <div class="fui-field">
-                {% hook 'formie.subfield.field-start' %}
-
-                {% hook 'formie.subfield.input-before' %}
-
-                {% if field.isDateTime() %}
-                    {{ formieInclude('_includes/label', {
-                        field: null,
-                        id: 'date-time',
-                        required: field.required ? true : false,
-                        fieldName: field.settings.timeLabel ?: '&nbsp;',
-                        labelPosition: craft.formie.getLabelPosition(field, form, true),
-                        position: 'above',
-                    }) }}
-                {% endif %}
-
-                <div class="fui-input-container">
-                    {% hook 'formie.subfield.input-start' %}
-
-                    <input {{ attr({
-                        type: 'time',
-                        id: options.id,
-                        class: [ 'fui-input' ],
-                        name: 'time' | namespaceInputName(field.handle),
-                        required: field.required ? true : false,
-                        value: value ? (value | date('H:i', false)) : null,
-                        data: {
-                            'fui-id': options.dataId,
-                            'fui-message': field.settings.errorMessage | t,
-                        },
-                        aria: {
-                            required: field.required ? 'true' : 'false',
-                        },
-                    } | merge(field.getInputAttributes())) }} />
-
-                    {% hook 'formie.subfield.input-end' %}
-                </div>
-
-                {% hook 'formie.subfield.input-after' %}
-
-                {% hook 'formie.subfield.field-end' %}
-            </div>
-        {% endif %}
-    </div>
-</div>
+                {{ craft.formie.renderField(form, subField, {
+                    element: element ?? null,
+                    value: dateValue ?? null,
+                }) }}
+            {% endfor %}
+        {% endfieldtag %}
+    {% endfor %}
+{% endfieldtag %}

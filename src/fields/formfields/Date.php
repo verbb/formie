@@ -3,6 +3,7 @@ namespace verbb\formie\fields\formfields;
 
 use verbb\formie\Formie;
 use verbb\formie\base\FormField;
+use verbb\formie\base\FormFieldInterface;
 use verbb\formie\base\SubfieldInterface;
 use verbb\formie\base\SubfieldTrait;
 use verbb\formie\events\ModifyDateTimeFormatEvent;
@@ -10,12 +11,14 @@ use verbb\formie\events\ModifyFrontEndSubfieldsEvent;
 use verbb\formie\gql\types\generators\FieldAttributeGenerator;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\IntegrationField;
+use verbb\formie\models\HtmlTag;
 use verbb\formie\models\Settings;
 
 use Craft;
 use craft\base\ElementInterface;
 use craft\base\PreviewableFieldInterface;
 use craft\gql\types\DateTime as DateTimeType;
+use craft\helpers\Component;
 use craft\helpers\DateTimeHelper;
 use craft\helpers\Json;
 use craft\helpers\StringHelper;
@@ -285,82 +288,218 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
     /**
      * @inheritDoc
      */
-    public function getFrontEndSubfields(): array
+    public function getFrontEndSubfields($context): array
     {
-        $defaultValue = $this->defaultValue ?: new DateTime();
-        $year = (int)$defaultValue->format('Y');
-        $minYear = $year - 100;
-        $maxYear = $year + 100;
+        $subFields = [];
+        $rowConfigs = [];
 
-        $yearOptions = [];
+        if (!$this->useDatePicker && $this->displayType == 'calendar') {
+            if ($this->includeDate) {
+                $rowConfigs[0][] = [
+                    'type' => SingleLineText::class,
+                    'name' => $this->name,
+                    'handle' => 'date',
+                    'required' => $this->required,
+                    'inputAttributes' => [
+                        [
+                            'label' => 'type',
+                            'value' => 'date',
+                        ],
+                        [
+                            'label' => 'autocomplete',
+                            'value' => 'off',
+                        ],
+                    ],
+                ];
+            }
 
-        for ($y = $minYear; $y < $maxYear; $y++) {
-            $yearOptions[] = ['value' => $y, 'label' => $y];
+            if ($this->includeTime) {
+                $rowConfigs[0][] = [
+                    'type' => SingleLineText::class,
+                    'name' => $this->timeLabel,
+                    'handle' => 'time',
+                    'required' => $this->required,
+                    'inputAttributes' => [
+                        [
+                            'label' => 'type',
+                            'value' => 'time',
+                        ],
+                        [
+                            'label' => 'autocomplete',
+                            'value' => 'off',
+                        ],
+                    ],
+                ];
+            }
         }
 
-        $available = [
-            'Y' => [
-                'handle' => 'year',
-                'options' => $yearOptions,
-                'min' => $minYear,
-                'max' => $maxYear,
-            ],
-            'm' => [
-                'handle' => 'month',
-                'options' => $this->getMonths(),
-                'min' => 1,
-                'max' => 12,
-            ],
-            'd' => [
-                'handle' => 'day',
-                'min' => 1,
-                'max' => 31,
-            ],
-            'H' => [
-                'handle' => 'hour',
-                'min' => 0,
-                'max' => 23,
-            ],
-            'h' => [
-                'handle' => 'hour',
-                'min' => 1,
-                'max' => 12,
-            ],
-            'i' => [
-                'handle' => 'minute',
-                'min' => 0,
-                'max' => 59,
-            ],
-            's' => [
-                'handle' => 'second',
-                'min' => 0,
-                'max' => 59,
-            ],
-            'A' => [
-                'handle' => 'ampm',
-                'options' => [
-                    ['value' => 'AM', 'label' => 'AM'],
-                    ['value' => 'PM', 'label' => 'PM'],
+        if ($this->displayType == 'inputs' || $this->displayType == 'dropdowns') {
+            // Split the format into an array, so we can only show the fields we need to for dropdowns/inputs
+            $format = ($this->includeDate ? $this->getDateFormat() : '') . ($this->includeTime ? $this->getTimeFormat() : '');
+            $format = preg_replace('/[.\-:\/ ]/', '', $format);
+            $formattingMap = str_split($format);
+
+            $minYear = $this->_getYearOptions()[1]['value'];
+            $maxYear = $this->_getYearOptions()[count($this->_getYearOptions()) - 1]['value'];
+
+            // Setup definitions for each portion of the date-formatted string `Y-m-d H/h:i:s A`.
+            $inputConfigs = [
+                'Y' => [
+                    'type' => Number::class,
+                    'name' => $this->yearLabel,
+                    'handle' => 'year',
+                    'placeholder' => $this->yearPlaceholder,
+                    'min' => $minYear,
+                    'max' => $maxYear,
                 ],
-                'maxlength' => 2,
-            ],
-        ];
+                'm' => [
+                    'type' => Number::class,
+                    'name' => $this->monthLabel,
+                    'handle' => 'month',
+                    'placeholder' => $this->monthPlaceholder,
+                    'min' => 1,
+                    'max' => 12,
+                ],
+                'd' => [
+                    'type' => Number::class,
+                    'name' => $this->dayLabel,
+                    'handle' => 'day',
+                    'placeholder' => $this->dayPlaceholder,
+                    'min' => 1,
+                    'max' => 31,
+                ],
+                'H' => [
+                    'type' => Number::class,
+                    'name' => $this->hourLabel,
+                    'handle' => 'hour',
+                    'placeholder' => $this->hourPlaceholder,
+                    'min' => 0,
+                    'max' => 23,
+                ],
+                'h' => [
+                    'type' => Number::class,
+                    'name' => $this->hourLabel,
+                    'handle' => 'hour',
+                    'placeholder' => $this->hourPlaceholder,
+                    'min' => 0,
+                    'max' => 12,
+                ],
+                'i' => [
+                    'type' => Number::class,
+                    'name' => $this->minuteLabel,
+                    'handle' => 'minute',
+                    'placeholder' => $this->minutePlaceholder,
+                    'min' => 0,
+                    'max' => 59,
+                ],
+                's' => [
+                    'type' => Number::class,
+                    'name' => $this->secondLabel,
+                    'handle' => 'second',
+                    'placeholder' => $this->secondPlaceholder,
+                    'min' => 0,
+                    'max' => 59,
+                ],
+                'A' => [
+                    'type' => Dropdown::class,
+                    'name' => $this->ampmLabel,
+                    'handle' => 'ampm',
+                    'placeholder' => $this->ampmPlaceholder,
+                    'options' => [
+                        ['value' => 'AM', 'label' => Craft::t('formie', 'AM')],
+                        ['value' => 'PM', 'label' => Craft::t('formie', 'PM')],
+                    ],
+                ],
+            ];
 
-        $format = ($this->includeDate ? $this->getDateFormat() : '') . ($this->includeTime ? $this->getTimeFormat() : '');
-        $format = preg_replace('/[.\-:\/ ]/', '', $format);
+            $dropdownConfigs = [
+                'Y' => [
+                    'type' => Dropdown::class,
+                    'name' => $this->yearLabel,
+                    'handle' => 'year',
+                    'placeholder' => $this->yearPlaceholder,
+                    'options' => $this->_getYearOptions(),
+                ],
+                'm' => [
+                    'type' => Dropdown::class,
+                    'name' => $this->monthLabel,
+                    'handle' => 'month',
+                    'placeholder' => $this->monthPlaceholder,
+                    'options' => $this->_getMonthOptions(),
+                ],
+                'd' => [
+                    'type' => Dropdown::class,
+                    'name' => $this->dayLabel,
+                    'handle' => 'day',
+                    'placeholder' => $this->dayPlaceholder,
+                    'options' => $this->_generateOptions(1, 31),
+                ],
+                'H' => [
+                    'type' => Dropdown::class,
+                    'name' => $this->hourLabel,
+                    'handle' => 'hour',
+                    'placeholder' => $this->hourPlaceholder,
+                    'options' => $this->_generateOptions(0, 23),
+                ],
+                'h' => [
+                    'type' => Dropdown::class,
+                    'name' => $this->hourLabel,
+                    'handle' => 'hour',
+                    'placeholder' => $this->hourPlaceholder,
+                    'options' => $this->_generateOptions(0, 12),
+                ],
+                'i' => [
+                    'type' => Dropdown::class,
+                    'name' => $this->minuteLabel,
+                    'handle' => 'minute',
+                    'placeholder' => $this->minutePlaceholder,
+                    'options' => $this->_generateOptions(1, 59),
+                ],
+                's' => [
+                    'type' => Dropdown::class,
+                    'name' => $this->secondLabel,
+                    'handle' => 'second',
+                    'placeholder' => $this->secondPlaceholder,
+                    'options' => $this->_generateOptions(1, 59),
+                ],
+                'A' => [
+                    'type' => Dropdown::class,
+                    'name' => $this->ampmLabel,
+                    'handle' => 'ampm',
+                    'placeholder' => $this->ampmPlaceholder,
+                    'options' => [
+                        ['value' => 'AM', 'label' => Craft::t('formie', 'AM')],
+                        ['value' => 'PM', 'label' => Craft::t('formie', 'PM')],
+                    ],
+                ],
+            ];
 
-        $row = [];
-        foreach (str_split($format) as $char) {
-            $row[$char] = $available[$char];
+            // For each part of the datetime format string, apply the correct config
+            foreach ($formattingMap as $char) {
+                if ($this->displayType == 'inputs') {
+                    $rowConfigs[0][] = $inputConfigs[$char] ?? null;
+                }
+
+                if ($this->displayType == 'dropdowns') {
+                    $rowConfigs[0][] = $dropdownConfigs[$char] ?? null;
+                }
+            }
         }
 
-        $rows = [
-            $row,
-        ];
+        foreach ($rowConfigs as $key => $rowConfig) {
+            foreach ($rowConfig as $config) {
+                $subField = Component::createComponent($config, FormFieldInterface::class);
+
+                // Ensure we set the parent field instance to handle the nested nature of subfields
+                $subField->setParentField($this);
+
+                $subFields[$key][] = $subField;
+            }
+        }
 
         $event = new ModifyFrontEndSubfieldsEvent([
             'field' => $this,
-            'rows' => $rows,
+            'rows' => $subFields,
         ]);
 
         Event::trigger(static::class, self::EVENT_MODIFY_FRONT_END_SUBFIELDS, $event);
@@ -414,22 +553,6 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
         return parent::getElementValidationRules();
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getIsTextInput(): bool
-    {
-        return $this->displayType === 'calendar';
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getIsFieldset(): bool
-    {
-        return $this->displayType !== 'calendar';
-    }
-
     public function getIsDate(): bool
     {
         return !$this->includeTime && $this->includeDate;
@@ -465,22 +588,6 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
         return Craft::$app->getView()->renderTemplate('formie/_formfields/date/preview', [
             'field' => $this,
         ]);
-    }
-
-    /**
-     * Returns an array of month names.
-     *
-     * @return array
-     */
-    public function getMonths(): array
-    {
-        $months = [];
-
-        foreach (Craft::$app->getLocale()->getMonthNames() as $index => $monthName) {
-            $months[] = ['value' => $index + 1, 'label' => $monthName];
-        }
-
-        return $months;
     }
 
     public function getDefaultDate(): ?string
@@ -699,11 +806,11 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
                 'name' => 'timeFormat',
                 'if' => '$get(includeTime).value',
                 'options' => [
-                    ['label' => '23:59:59 (H:M:S)', 'value' => 'H:i:s'],
-                    ['label' => '03:59:59 PM (h:M:S AM/PM)', 'value' => 'h:i:s A'],
-                    ['label' => '23:59 (H:M)', 'value' => 'H:i'],
-                    ['label' => '03:59 PM (h:M AM/PM)', 'value' => 'h:i A'],
-                    ['label' => '59:59 (M:S)', 'value' => 'i:s'],
+                    ['label' => '23:59:59 (HH:MM:SS)', 'value' => 'H:i:s'],
+                    ['label' => '03:59:59 PM (H:MM:SS AM/PM)', 'value' => 'h:i:s A'],
+                    ['label' => '23:59 (HH:MM)', 'value' => 'H:i'],
+                    ['label' => '03:59 PM (H:MM AM/PM)', 'value' => 'h:i A'],
+                    ['label' => '59:59 (MM:SS)', 'value' => 'i:s'],
                 ],
             ]),
             SchemaHelper::instructions(),
@@ -815,6 +922,53 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
         ]);
     }
 
+    public function defineHtmlTag(string $key, array $context = []): ?HtmlTag
+    {
+        $form = $context['form'] ?? null;
+
+        $id = $this->getHtmlId($form);
+        $dataId = $this->getHtmlDataId($form);
+
+        // If using multiple fields, switch to fieldset. Basically anything other than a datepicker
+        if (!$this->useDatePicker) {
+            if ($key === 'fieldContainer') {
+                return new HtmlTag('fieldset', [
+                    'class' => 'fui-fieldset fui-subfield-fieldset',
+                ]);
+            }
+
+            if ($key === 'fieldLabel') {
+                // Don't show the label for calendars, they take care of themselves
+                if ($this->displayType == 'calendar') {
+                    return null;
+                }
+
+                return new HtmlTag('legend', [
+                    'class' => 'fui-legend',
+                ]);
+            }
+        }
+
+        if ($key === 'fieldInput' && $this->useDatePicker && $this->displayType == 'calendar') {
+            return new HtmlTag('input', array_merge([
+                'type' => 'date',
+                'id' => $id,
+                'class' => 'fui-input',
+                'name' => $this->getHtmlName('datetime'),
+                'placeholder' => Craft::t('site', $this->placeholder) ?: null,
+                'required' => $this->required ? true : null,
+                'autocomplete' => 'off',
+                'data' => [
+                    'fui-id' => $dataId,
+                    'fui-message' => Craft::t('site', $this->errorMessage) ?: null,
+                ],
+                'aria-describedby' => $this->instructions ? "{$id}-instructions" : null,
+            ], $this->getInputAttributes()));
+        }
+
+        return parent::defineHtmlTag($key, $context);
+    }
+
 
     // Protected Methods
     // =========================================================================
@@ -858,5 +1012,62 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
 
         // Fetch the default handling
         return parent::defineValueForIntegration($value, $integrationField, $integration, $element);
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    /**
+     * Returns an array of numbers between a provided start and end number.
+     *
+     * @return array
+     */
+    private function _generateOptions($start, $end)
+    {
+        $options = [['value' => '', 'label' => '', 'disabled' => true]];
+
+        for ($i = $start; $i <= $end; $i++) { 
+            $options[] = ['label' => $i, 'value' => $i];
+        }
+
+        return $options;
+    }
+
+    /**
+     * Returns an array of month names.
+     *
+     * @return array
+     */
+    private function _getMonthOptions(): array
+    {
+        $options = [['value' => '', 'label' => '', 'disabled' => true]];
+
+        foreach (Craft::$app->getLocale()->getMonthNames() as $index => $monthName) {
+            $options[] = ['value' => $index + 1, 'label' => $monthName];
+        }
+
+        return $options;
+    }
+
+    /**
+     * Returns an array of years relative to the current year.
+     *
+     * @return array
+     */
+    private function _getYearOptions(): array
+    {
+        $defaultValue = $this->defaultValue ?: new DateTime();
+        $year = (int)$defaultValue->format('Y');
+        $minYear = $year - 100;
+        $maxYear = $year + 100;
+
+        $options = [['value' => '', 'label' => '', 'disabled' => true]];
+
+        for ($y = $minYear; $y < $maxYear; $y++) {
+            $options[] = ['value' => $y, 'label' => $y];
+        }
+
+        return $options;
     }
 }

@@ -1,11 +1,3 @@
-{% set attributes = {
-    type: 'hidden',
-    id: options.id,
-    name: field.handle,
-    value: value,
-    data: {
-        'fui-id': options.dataId,
-    },
-} | merge(field.getInputAttributes()) %}
-
-<input {{ attr(attributes) }} />
+{{ fieldtag('fieldInput', {
+    value: value ?? false,
+}) }}

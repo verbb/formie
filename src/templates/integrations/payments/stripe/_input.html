@@ -1,12 +1,7 @@
-{% set attributes = {
-    id: options.id,
-    class: ['fui-input'],
-    data: {
-        'fui-stripe-elements': true,
-    },
-} %}
-
-<div {{ attr(attributes) }}></div>
+{{ tag('div', {
+    class: 'fui-input',
+    'data-fui-stripe-elements': true,
+}) }}
 
 {# Include so that error messages are shown with `formie-theme.js` for server-side errors (3DS) #}
 <input type="hidden" name="{{ field.handle }}">

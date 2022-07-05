@@ -16,6 +16,7 @@ interface FormFieldInterface extends ComponentInterface
     // =========================================================================
 
     public const EVENT_MODIFY_DEFAULT_VALUE = 'modifyDefaultValue';
+    public const EVENT_MODIFY_HTML_TAG = 'modifyHtmlTag';
     public const EVENT_MODIFY_VALUE_AS_STRING = 'modifyValueAsString';
     public const EVENT_MODIFY_VALUE_AS_JSON = 'modifyValueAsJson';
     public const EVENT_MODIFY_VALUE_FOR_EXPORT = 'modifyValueForExport';
@@ -102,33 +103,32 @@ interface FormFieldInterface extends ComponentInterface
     public function hasLabel(): bool;
 
     /**
-     * Returns true if the field should render the label in the form.
+     * Returns true if the field contains any sub-fields (Name, Address, etc).
      *
      * @return bool
      */
-    public function renderLabel(): bool;
+    public function hasSubfields(): bool;
 
     /**
-     * Returns true if the field appears as a text input, i.e. text, password
-     * and email inputs.
+     * Returns true if the field contains any nested fields (Group, Repeater, etc).
      *
      * @return bool
      */
-    public function getIsTextInput(): bool;
+    public function hasNestedFields(): bool;
 
     /**
-     * Returns true if the field appears as a dropdown select box (not multiple).
+     * Returns true if the field is considering cosmetic, and has no value (heading, section, etc).
      *
      * @return bool
      */
-    public function getIsSelect(): bool;
+    public function getIsCosmetic(): bool;
 
     /**
-     * Returns true if the field consists of multiple inputs.
+     * Returns true if the field is considering hidden through visibility settings.
      *
      * @return bool
      */
-    public function getIsFieldset(): bool;
+    public function getIsHidden(): bool;
 
     /**
      * Returns any extra config items to be added to the
@@ -179,20 +179,20 @@ interface FormFieldInterface extends ComponentInterface
      *
      * @param Form $form
      * @param mixed $value
-     * @param array|null $options
+     * @param array|null $renderOptions
      * @return array
      */
-    public function getFrontEndInputOptions(Form $form, mixed $value, array $options = null): array;
+    public function getFrontEndInputOptions(Form $form, mixed $value, array $renderOptions = []): array;
 
     /**
      * Returns the frontend input HTML.
      *
      * @param Form $form
      * @param mixed $value
-     * @param array|null $options
+     * @param array|null $renderOptions
      * @return Markup
      */
-    public function getFrontEndInputHtml(Form $form, mixed $value, array $options = null): Markup;
+    public function getFrontEndInputHtml(Form $form, mixed $value, array $renderOptions = []): Markup;
 
     /**
      * Returns an array of options that will be passed into the render function.
@@ -200,10 +200,10 @@ interface FormFieldInterface extends ComponentInterface
      * @param Submission $submission
      * @param Notification $notification
      * @param mixed $value
-     * @param array|null $options
+     * @param array $renderOptions
      * @return array
      */
-    public function getEmailOptions(Submission $submission, Notification $notification, mixed $value, array $options = null): array;
+    public function getEmailOptions(Submission $submission, Notification $notification, mixed $value, array $renderOptions = []): array;
 
     /**
      * Gets the email HTML for this field.
@@ -211,10 +211,10 @@ interface FormFieldInterface extends ComponentInterface
      * @param Submission $submission
      * @param Notification $notification
      * @param mixed $value
-     * @param array|null $options
+     * @param array|null $renderOptions
      * @return string|bool|null
      */
-    public function getEmailHtml(Submission $submission, Notification $notification, mixed $value, array $options = null): string|null|bool;
+    public function getEmailHtml(Submission $submission, Notification $notification, mixed $value, array $renderOptions = []): string|null|bool;
 
     /**
      * Returns the namespace for this field.

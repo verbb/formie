@@ -6,6 +6,7 @@ use verbb\formie\base\Integration;
 use verbb\formie\base\Element;
 use verbb\formie\elements\Submission;
 use verbb\formie\fields\formfields\Password;
+use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
@@ -14,7 +15,6 @@ use verbb\formie\models\IntegrationResponse;
 use Craft;
 use craft\db\Table;
 use craft\elements\User as UserElement;
-use craft\helpers\ArrayHelper;
 use craft\helpers\Db;
 use craft\helpers\Json;
 
@@ -208,7 +208,7 @@ class User extends Element
             $attributeValues = $this->getFieldMappingValues($submission, $this->attributeMapping, $this->getElementAttributes());
 
             // Filter null values
-            $attributeValues = $this->filterNullValues($attributeValues);
+            $attributeValues = ArrayHelper::filterNullValues($attributeValues);
 
             // Check if the password was mapped, as if the source field was a Password field.
             // The value will already be hashed, and we need to do a manual DB-level update
@@ -226,7 +226,7 @@ class User extends Element
             $fieldValues = $this->getFieldMappingValues($submission, $this->fieldMapping, $fields);
 
             // Filter null values
-            $fieldValues = $this->filterNullValues($fieldValues);
+            $fieldValues = ArrayHelper::filterNullValues($fieldValues);
 
             $user->setFieldValues($fieldValues);
 

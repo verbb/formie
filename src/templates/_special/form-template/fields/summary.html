@@ -1,14 +1,19 @@
 {% set submission = submission ?? form.getCurrentSubmission() %}
 
-<div class="fui-summary-blocks">
+{% fieldtag 'fieldSummaryBlocks' %}
     {% if submission %}
-        <h3 class="fui-heading-h3">{{ 'Your submission is being prepared. Please review below before proceeding.' | t('formie') }}</h3><br>
+        {{ fieldtag('fieldSummaryHeading') }}<br>
 
         {% for info in submission.getValuesForSummary() %}
-            <div class="fui-summary-block">
-                <strong>{{ info.field.name }}</strong><br>
-                {{ info.html }}<br>
-            </div>
+            {% fieldtag 'fieldSummaryBlock' %}
+                {{ fieldtag('fieldSummaryLabel', {
+                    text: info.field.name,
+                }) }}<br>
+
+                {{ fieldtag('fieldSummaryValue', {
+                    text: info.html,
+                }) }}<br>
+            {% endfieldtag %}
         {% endfor %}
     {% endif %}
-</div>
+{% endfieldtag %}

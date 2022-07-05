@@ -1,21 +1,24 @@
-{% namespace "rows[#{id}]" %}
-    {% set renderOptions = (options.renderOptions ?? {}) | merge({
-        element: block ?? null,
-    }) %}
+{# Keep track of the outer repeater field #}
+{% set groupField = field %}
 
-    {# There will only ever be 1 page. #}
-    {% set page = field.fieldLayout.pages[0] ?? null %}
-    {% if page %}
-        <div class="fui-field-rows">
-            {% for row in page.rows %}
-                <div class="fui-row fui-page-row">
-                    {% for field in row.fields %}
-                        {{ craft.formie.renderField(form, field, renderOptions) }}
-                    {% endfor %}
-                </div>
-            {% endfor %}
-        </div>
-    {% endif %}
-{% endnamespace %}
+{# There will only ever be 1 page. #}
+{% set page = field.fieldLayout.pages[0] ?? null %}
 
-{{ hiddenInput('sortOrder[]', id) }}
+{% if page %}
+    {% fieldtag 'nestedFieldRows' %}
+        {% for row in page.rows %}
+            {% fieldtag 'nestedFieldRow' %}
+                {% for field in row.fields %}
+                    {# Tell child fields about this parent, so that namespacing works #}
+                    {% do field.setParentField(groupField, "rows[#{id}][fields]") %}
+                
+                    {{ craft.formie.renderField(form, field, {
+                        element: block ?? null,
+                    }) }}
+                {% endfor %}
+            {% endfieldtag %}
+        {% endfor %}
+    {% endfieldtag %}
+{% endif %}
+
+{{ hiddenInput(field.getHtmlName('sortOrder[]'), id) }}

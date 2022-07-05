@@ -1,40 +1,19 @@
-{% set value = field.getDisplayTypeValue(value) %}
+{% set originalField = field %}
 
-{% if field.displayType == 'dropdown' %}
-    {% set attributes = {
-        id: options.id,
-        class: [ 'fui-select' ],
-        name: field.handle ~ '[]',
-        multiple: field.multiple ? true : false,
-        required: field.required ? true : false,
-        data: {
-            'fui-id': options.dataId,
-            'fui-message': field.settings.errorMessage | t,
-        },
-        aria: {
-            required: field.required ? 'true' : 'false',
-        },
-    } | merge(field.getInputAttributes()) %}
+{# Override the `field` with the correct display type, populated from the Recipients field #}
+{% set field = originalField.getDisplayTypeField() %}
 
-    <select {{ attr(attributes) }}>
-        {% for option in field.getFieldOptions() %}
-            {% if field.multiple %}
-                {% set selected = option.value is defined and option.value in value %}
-            {% else %}
-                {% set selected = option.value is defined and option.value == value %}
-            {% endif %}
+{# Get the value for the field, depending on the display type #}
+{% set value = originalField.getDisplayTypeValue(value) %}
 
-            {% set level = option.level ?? null %}
-
-            <option value="{{ option.value }}" {{ selected ? 'selected' }}>{% if field.settings.showStructure and level %}{% for i in 1..level %}-{% endfor %} {% endif %}{{ option.label | t }}</option>
-        {% endfor %}
-    </select>
+{% if originalField.displayType == 'dropdown' %}
+    {{ formieInclude('fields/dropdown') }}
 {% endif %}
 
-{% if field.displayType == 'checkboxes' %}
-    {{ formieInclude('fields/_includes/element-checkboxes') }}
+{% if originalField.displayType == 'checkboxes' %}
+    {{ formieInclude('fields/checkboxes') }}
 {% endif %}
 
-{% if field.displayType == 'radio' %}
-    {{ formieInclude('fields/radio', { fieldName: field.handle ~ '[]' }) }}
+{% if originalField.displayType == 'radio' %}
+    {{ formieInclude('fields/radio') }}
 {% endif %}

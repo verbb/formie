@@ -1,61 +1,35 @@
-{#
-    Default Formie Template
-
-    Any templates for forms, pages and fields contained in this directory will
-    be used instead of the default formie template. You can delete any template
-    file not prefixed by an underscore, and the default template for that component
-    will be used instead.
-
-    Warning: By overriding template files, you will no longer receive bug fixes
-    and improvements. If breaking changes are introduced, you will need to update
-    your own templates For more information on how to customize templates without
-    overriding template files, please refer to the Formie documentation:
-    https://verbb.io/craft-plugins/formie/docs/developers/hooks
-#}
-
 {% apply spaceless %}
-    {% set defaultLabelPosition = create(form.settings.defaultLabelPosition) %}
+    {#
+        Default Formie Template
 
-    {% set attributes = {
-        id: form.formId,
-        class: [
-            'fui-form',
-            "fui-labels-#{defaultLabelPosition}",
-            form.settings.displayPageProgress ? "fui-progress-#{form.settings.progressPosition}",
-            form.settings.validationOnFocus ? 'fui-validate-on-focus',
-        ] | merge(options.formClasses ?? []),
-        method: 'post',
-        enctype: 'multipart/form-data',
-        'accept-charset': 'utf-8',
-        data: {
-            'submit-method': form.settings.submitMethod ?: false,
-            'submit-action': form.settings.submitAction ?: false,
-            'loading-indicator': form.settings.loadingIndicator ?: false,
-            'loading-text': form.settings.loadingIndicatorText ?: false,
-            'redirect': form.getRedirectUrl() ?: false,
-            'config': form.configJson,
-        } | merge(options.formDataAttributes ?? {}),
-    } | merge(options.formAttributes ?? {}) %}
+        Any templates for forms, pages and fields contained in this directory will
+        be used instead of the default formie template. You can delete any template
+        file not prefixed by an underscore, and the default template for that component
+        will be used instead.
 
-    <div class="fui-i">
+        Warning: By overriding template files, you will no longer receive bug fixes
+        and improvements. If breaking changes are introduced, you will need to update
+        your own templates. For more information on how to customize templates without
+        overriding template files, please refer to the Formie documentation:
+        https://verbb.io/craft-plugins/formie/docs/template-guides/theming
+    #}
+
+    {% formtag 'formWrapper' %}
         {% set showForm = true %}
         {% set currentPage = form.getCurrentPage() %}
+        {% set errors = submission.getErrors('form') ?? null %}
+
         {% set submitted = craft.formie.plugin.service.getFlash(form.id, 'submitted') %}
+        {% set flashNotice = craft.formie.plugin.service.getFlash(form.id, 'notice') %}
+        {% set flashError = craft.formie.plugin.service.getFlash(form.id, 'error') %}
 
         {% if submission is defined and form.settings.submitAction == 'message' %}
-            {% set flashNotice = craft.formie.plugin.service.getFlash(form.id, 'notice') %}
-            {% set flashError = craft.formie.plugin.service.getFlash(form.id, 'error') %}
-
             {% if flashNotice and form.settings.submitActionMessagePosition == 'top-form' %}
-                <div class="fui-alert fui-alert-success fui-alert-{{ form.settings.submitActionMessagePosition }}" role="alert">
-                    {{ flashNotice | t | raw }}
-                </div>
+                {{ formieInclude('_includes/alert-success') }}
             {% endif %}
 
             {% if flashError and form.settings.errorMessagePosition == 'top-form' %}
-                <div class="fui-alert fui-alert-error fui-alert-{{ form.settings.errorMessagePosition }}" role="alert">
-                    {{ flashError | t | raw }}
-                </div>
+                {{ formieInclude('_includes/alert-error') }}
             {% endif %}
         {% endif %}
 
@@ -64,7 +38,7 @@
         {% endif %}
 
         {% if showForm %}
-            <form {{ attr(attributes) }}>
+            {% formtag 'form' %}
                 {{ csrfInput({ autocomplete: 'off' }) }}
                 {{ actionInput(form.getActionUrl()) }}
                 {{ hiddenInput('handle', form.handle) }}
@@ -86,26 +60,25 @@
                     {{ redirectInput(form.getRedirectUrl()) }}
                 {% endif %}
 
-                <div class="fui-form-container">
+                {% formtag 'formContainer' %}
                     {% hook 'formie.form.start' %}
 
                     {% if form.settings.displayFormTitle %}
-                        <h2 class="fui-title">{{ form.title | t }}</h2>
+                        {{ formieInclude('_includes/form-title') }}
                     {% endif %}
 
                     {% if form.settings.progressPosition == 'start' %}
                         {{ formieInclude('_includes/progress') }}
                     {% endif %}
 
-                    {% set errors = submission.getErrors('form') ?? null %}
                     {% if errors %}
-                        {{ formieInclude('_includes/errors') }}
+                        {{ formieInclude('_includes/form-errors') }}
                     {% endif %}
 
                     {{ formieInclude('_includes/page-tabs') }}
 
                     {% for page in form.pages %}
-                        {{ craft.formie.renderPage(form, page, options) }}
+                        {{ craft.formie.renderPage(form, page, renderOptions) }}
                     {% endfor %}
 
                     {% if form.settings.progressPosition == 'end' %}
@@ -113,19 +86,15 @@
                     {% endif %}
 
                     {% hook 'formie.form.end' %}
-                </div>
-            </form>
+                {% endformtag %}
+            {% endformtag %}
         {% endif %}
 
         {# When the position of success message is set to bottom, but the form is hidden... #}
         {% if submission is defined and form.settings.submitAction == 'message' and form.settings.submitActionFormHide %}
-            {% set flashNotice = craft.formie.plugin.service.getFlash(form.id, 'notice') %}
-
             {% if flashNotice and form.settings.submitActionMessagePosition == 'bottom-form' %}
-                <div class="fui-alert fui-alert-success fui-alert-{{ form.settings.submitActionMessagePosition }}" role="alert">
-                    {{ flashNotice | t | raw }}
-                </div>
+                {{ formieInclude('_includes/alert-success') }}
             {% endif %}
         {% endif %}
-    </div>
+    {% endformtag %}
 {% endapply %}

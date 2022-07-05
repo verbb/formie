@@ -19,6 +19,12 @@ export class FormieAddressFinder extends FormieAddressProvider {
         this.maxRetryTimes = 150;
         this.waitTimeout = 200;
 
+        if (!this.$input) {
+            console.error('Unable to find input `[data-autocomplete]`.');
+
+            return;
+        }
+
         this.initScript();
     }
 

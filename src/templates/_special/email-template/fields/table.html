@@ -1,6 +1,6 @@
 {% if value | length %}
     <div style="margin: 1em 0;">
-        {% if not (options.hideName ?? false) %}
+        {% if not (renderOptions.hideName ?? false) %}
             <strong>{{ field.name | t }}</strong>
         {% endif %}
 

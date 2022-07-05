@@ -15,8 +15,11 @@ use verbb\formie\models\Notification;
 use Craft;
 use craft\base\ElementInterface;
 use craft\elements\Tag;
-use craft\fields\Tags as CraftTags;
 use craft\elements\db\ElementQueryInterface;
+use craft\fields\Tags as CraftTags;
+use craft\fields\data\MultiOptionsFieldData;
+use craft\fields\data\OptionData;
+use craft\fields\data\SingleOptionFieldData;
 use craft\gql\arguments\elements\Tag as TagArguments;
 use craft\gql\interfaces\elements\Tag as TagInterface;
 use craft\helpers\ArrayHelper;
@@ -46,12 +49,11 @@ class Tags extends CraftTags implements FormFieldInterface
         getSavedFieldConfig as traitGetSavedFieldConfig;
         getSettingGqlTypes as traitGetSettingGqlTypes;
         getDisplayTypeValue as traitGetDisplayTypeValue;
+        getDisplayTypeField as traitGetDisplayTypeField;
         RelationFieldTrait::defineValueAsString insteadof FormFieldTrait;
         RelationFieldTrait::defineValueAsJson insteadof FormFieldTrait;
         RelationFieldTrait::defineValueForIntegration insteadof FormFieldTrait;
-        RelationFieldTrait::getIsFieldset insteadof FormFieldTrait;
         RelationFieldTrait::populateValue insteadof FormFieldTrait;
-        RelationFieldTrait::renderLabel insteadof FormFieldTrait;
     }
 
 
@@ -87,6 +89,19 @@ class Tags extends CraftTags implements FormFieldInterface
 
     // Public Methods
     // =========================================================================
+
+    /**
+     * @inheritDoc
+     */
+    public function __construct(array $config = [])
+    {
+        // Config normalization
+        self::normalizeConfig($config);
+
+        parent::__construct($config);
+
+        $this->labelSource = 'title';
+    }
 
     public function getSavedFieldConfig(): array
     {
@@ -211,9 +226,9 @@ class Tags extends CraftTags implements FormFieldInterface
     /**
      * @inheritDoc
      */
-    public function getFrontEndInputOptions(Form $form, mixed $value, array $options = null): array
+    public function getFrontEndInputOptions(Form $form, mixed $value, array $renderOptions = []): array
     {
-        $inputOptions = $this->traitGetFrontendInputOptions($form, $value, $options);
+        $inputOptions = $this->traitGetFrontendInputOptions($form, $value, $renderOptions);
         $inputOptions['tags'] = $this->getTags();
 
         return $inputOptions;
@@ -222,12 +237,54 @@ class Tags extends CraftTags implements FormFieldInterface
     /**
      * @inheritDoc
      */
-    public function getEmailHtml(Submission $submission, Notification $notification, mixed $value, array $options = null): string|null|bool
+    public function getDisplayTypeField(): FormFieldInterface
+    {
+        $config = $this->getDisplayTypeFieldConfig();
+
+        $config['inputAttributes'][] = [
+            'label' => 'data-formie-tags',
+            'value' => Json::encode($this->getTags()),
+        ];
+
+        $config['inputAttributes'][] = [
+            'label' => 'class',
+            'value' => 'fui-input',
+        ];
+
+        // Special-case for Tag fields - not really a dropdown
+        if ($this->displayType === 'dropdown') {
+            return new Hidden($config);
+        }
+
+        return $this->traitGetDisplayTypeField();
+    }
+
+    public function getDisplayTypeValue($value): MultiOptionsFieldData|SingleOptionFieldData|null
+    {
+        if ($this->displayType === 'dropdown') {
+            $options = [];
+
+            if ($value) {
+                foreach ($value->all() as $element) {
+                    $options[] = new OptionData($element->title, $element->id, true);
+                }
+            }
+
+            return new MultiOptionsFieldData($options);
+        }
+
+        return $this->traitGetDisplayTypeValue();
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getEmailHtml(Submission $submission, Notification $notification, mixed $value, array $renderOptions = []): string|null|bool
     {
         // Ensure we return the correct, prepped query for emails. Just as we would be submissions.
         $value = $this->_all($value, $submission);
 
-        return $this->traitGetEmailHtml($submission, $notification, $value, $options);
+        return $this->traitGetEmailHtml($submission, $notification, $value, $renderOptions);
     }
 
     public function getFrontEndJsModules(): ?array
@@ -521,14 +578,14 @@ class Tags extends CraftTags implements FormFieldInterface
     /**
      * Returns the tag group ID this field is associated with.
      *
-     * @return int|null
+     * @return string|int|null
      */
-    private function _getTagGroupId(): ?int
+    private function _getTagGroupId(): string|int|null
     {
         if (!preg_match('/^taggroup:(([0-9a-f\-]+))$/', $this->source, $matches)) {
             return null;
         }
 
-        return (int)$matches[1];
+        return $matches[1];
     }
 }

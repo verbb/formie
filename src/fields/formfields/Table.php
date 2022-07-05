@@ -5,6 +5,7 @@ use verbb\formie\base\FormFieldInterface;
 use verbb\formie\base\FormFieldTrait;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\gql\types\generators\KeyValueGenerator;
+use verbb\formie\models\HtmlTag;
 
 use Craft;
 use craft\base\Element;
@@ -12,6 +13,7 @@ use craft\base\ElementInterface;
 use craft\fields\data\ColorData;
 use craft\fields\Table as CraftTable;
 use craft\helpers\ArrayHelper;
+use craft\helpers\Component;
 use craft\helpers\DateTimeHelper;
 use craft\helpers\Html;
 use craft\helpers\Template;
@@ -31,6 +33,7 @@ class Table extends CraftTable implements FormFieldInterface
 
     use FormFieldTrait {
         getSettingGqlTypes as traitGetSettingGqlTypes;
+        defineHtmlTag as traitDefineHtmlTag;
     }
 
 
@@ -96,22 +99,6 @@ class Table extends CraftTable implements FormFieldInterface
         return [
             'addRowLabel' => Craft::t('formie', 'Add row'),
         ];
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getIsFieldset(): bool
-    {
-        return true;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function renderLabel(): bool
-    {
-        return !$this->getIsFieldset();
     }
 
     /**
@@ -463,6 +450,114 @@ class Table extends CraftTable implements FormFieldInterface
         ];
     }
 
+    public function defineHtmlTag(string $key, array $context = []): ?HtmlTag
+    {
+        $form = $context['form'] ?? null;
+
+        $id = $this->getHtmlId($form);
+
+        if ($key === 'fieldContainer') {
+            return new HtmlTag('fieldset', [
+                'class' => 'fui-fieldset',
+                'aria-describedby' => $this->instructions ? "{$id}-instructions" : null,
+            ]);
+        }
+
+        if ($key === 'fieldLabel') {
+            return new HtmlTag('legend', [
+                'class' => 'fui-legend',
+            ]);
+        }
+
+        if ($key === 'fieldTable') {
+            return new HtmlTag('table', [
+                'class' => 'fui-table',
+            ]);
+        }
+
+        if ($key === 'fieldTableHeader') {
+            return new HtmlTag('thead');
+        }
+
+        if ($key === 'fieldTableHeaderRow') {
+            return new HtmlTag('tr');
+        }
+
+        if ($key === 'fieldTableHeaderColumn') {
+            $col = $context['col'] ?? [];
+            $width = $col['width'] ?? false;
+
+            return new HtmlTag('th', [
+                'data-handle' => $col['handle'],
+                'data-type' => $col['type'],
+                'width' => $width,
+            ]);
+        }
+
+        if ($key === 'fieldTableBody') {
+            return new HtmlTag('tbody', [
+                'class' => 'fui-table-rows',
+            ]);
+        }
+
+        if ($key === 'fieldTableBodyRow') {
+            return new HtmlTag('tr', [
+                'class' => 'fui-table-row',
+            ]);
+        }
+
+        if ($key === 'fieldTableBodyColumn') {
+            return new HtmlTag('td', [
+                'data-col' => $context['colId'] ?? false,
+            ]);
+        }
+
+        if ($key === 'fieldAddButton') {
+            $isStatic = false;
+
+            // Disable the button straight away if we're making it static
+            if ($this->minRows && $this->maxRows && $this->minRows == $this->maxRows) {
+                $isStatic = true;
+            }
+
+            if ($this->static) {
+                return null;
+            }
+
+            return new HtmlTag('button', [
+                'class' => [
+                    'fui-btn fui-table-add-btn',
+                    $isStatic ? 'fui-disabled' : false,
+                ],
+                'type' => 'button',
+                'text' => Craft::t('site', $this->addRowLabel),
+                'disabled' => $isStatic,
+                'data' => [
+                    'min-rows' => $this->minRows,
+                    'max-rows' => $this->maxRows,
+                    'add-table-row' => $this->handle,
+                ],
+            ]);
+        }
+
+        if ($key === 'fieldRemoveButton') {
+            return new HtmlTag('button', [
+                'class' => 'fui-btn fui-table-remove-btn',
+                'type' => 'button',
+                'text' => Craft::t('formie', 'Remove'),
+                'data' => [
+                    'remove-table-row' => $this->handle,
+                ],
+            ]);
+        }
+
+        return $this->traitDefineHtmlTag($key, $context);
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
     /**
      * @inheritdoc
      */
@@ -472,10 +567,6 @@ class Table extends CraftTable implements FormFieldInterface
         $rules[] = [['minRows', 'maxRows'], 'integer', 'min' => 0];
         return $rules;
     }
-
-
-    // Protected Methods
-    // =========================================================================
 
     protected function defineValueAsString($value, ElementInterface $element = null): string
     {

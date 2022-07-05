@@ -1,28 +1,18 @@
 {% if form.hasMultiplePages and form.settings.displayPageTabs %}
-    <div class="fui-tabs" data-fui-page-tabs>
+    {% formtag 'pageTabs' %}
         {% for p in form.pages %}
-            {% set attributes = {
-                id: 'fui-tab-' ~ p.id,
-                class: [
-                    'fui-tab',
-                    (p.id == currentPage.id) ? 'fui-tab-active',
-                    p.getFieldErrors(submission) ? 'fui-tab-error',
-                ] | filter,
-                'data-fui-page-tab': true,
-                'data-field-conditions': p.getConditionsJson(),
-            } %}
-
-            <div {{ attr(attributes) }}>
+            {% formtag 'pageTab' %}
+                {%- set pageIndex = loop.index0 -%}
                 {%- set params = { handle: form.handle, pageId: p.id } -%}
 
                 {%- if submission and submission.id and form.isEditingSubmission() -%}
                     {%- set params = params | merge({ submissionId: submission.id }) -%}
                 {%- endif -%}
 
-                <a href="{{ actionUrl('formie/submissions/set-page', params) }}" data-fui-page-tab-anchor data-fui-page-index="{{ loop.index0 }}" data-fui-page-id="{{ p.id }}">
-                    {{ p.name | t }}
-                </a>
-            </div>
+                {{ formtag('pageTabLink', {
+                    text: p.name | t,
+                }) }}
+            {% endformtag %}
         {% endfor %}
-    </div>
+    {% endformtag %}
 {% endif %}

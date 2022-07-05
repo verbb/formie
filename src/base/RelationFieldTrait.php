@@ -2,21 +2,18 @@
 namespace verbb\formie\base;
 
 use verbb\formie\models\IntegrationField;
+use verbb\formie\fields\formfields\Dropdown;
+use verbb\formie\fields\formfields\Checkboxes;
+use verbb\formie\fields\formfields\Radio;
+use verbb\formie\fields\formfields\SingleLineText;
+use verbb\formie\fields\formfields\Tags;
 
 use Craft;
 use craft\base\Element;
 use craft\base\ElementInterface;
 use craft\elements\db\ElementQuery;
 use craft\elements\db\ElementQueryInterface;
-use craft\fields\Assets;
-use craft\fields\Categories;
-use craft\fields\Checkboxes;
-use craft\fields\Entries;
-use craft\fields\Matrix;
-use craft\fields\MultiSelect;
-use craft\fields\Table;
-use craft\fields\Tags;
-use craft\fields\Users;
+use craft\fields as CraftFields;
 use craft\fields\data\MultiOptionsFieldData;
 use craft\fields\data\OptionData;
 use craft\fields\data\SingleOptionFieldData;
@@ -25,6 +22,8 @@ use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 use craft\helpers\Template as TemplateHelper;
 
+use ReflectionClass;
+use ReflectionProperty;
 use Throwable;
 
 use Twig\Markup;
@@ -46,33 +45,9 @@ trait RelationFieldTrait
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
-    public function getIsFieldset(): bool
-    {
-        if ($this->displayType === 'checkboxes') {
-            return true;
-        }
-
-        if ($this->displayType === 'radio') {
-            return true;
-        }
-
-        return false;
-    }
-
     public function getIsMultiDropdown(): bool
     {
         return ($this->displayType === 'dropdown' && $this->multiple);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function renderLabel(): bool
-    {
-        return !$this->getIsFieldset();
     }
 
     public function getPreviewElements(): array
@@ -215,6 +190,49 @@ trait RelationFieldTrait
         return $options;
     }
 
+    /**
+     * @inheritDoc
+     */
+    public function getDisplayTypeFieldConfig(): array
+    {
+        // Use all the same settings from this field, but remove any invalid ones
+        $class = new ReflectionClass($this);
+
+        $config = [
+            'options' => $this->getFieldOptions(),
+            'hasMultiNamespace' => true,
+        ];
+
+        // Remove any properties from the `BaseRelationField` class
+        foreach ($class->getProperties(ReflectionProperty::IS_PUBLIC) as $property) {
+            if (!$property->isStatic() && $property->getDeclaringClass()->isAbstract() && $property->class !== CraftFields\BaseRelationField::class) {
+                $config[$property->getName()] = $this->{$property->getName()};
+            }
+        }
+
+        return $config;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getDisplayTypeField(): FormFieldInterface
+    {
+        $config = $this->getDisplayTypeFieldConfig();
+
+        if ($this->displayType === 'dropdown') {
+            return new Dropdown($config);
+        }
+
+        if ($this->displayType === 'radio') {
+            return new Radio($config);
+        }
+
+        if ($this->displayType === 'checkboxes') {
+            return new Checkboxes($config);
+        }
+    }
+
     public function getDisplayTypeValue($value): MultiOptionsFieldData|SingleOptionFieldData|null
     {
         if ($this->displayType === 'checkboxes' || $this->getIsMultiDropdown()) {
@@ -336,15 +354,15 @@ trait RelationFieldTrait
 
         // Better to opt-out fields, so we can always allow third-party ones which are impossible to check
         $excludedFields = [
-            Assets::class,
-            Categories::class,
-            Checkboxes::class,
-            Entries::class,
-            Matrix::class,
-            MultiSelect::class,
-            Table::class,
-            Tags::class,
-            Users::class,
+            CraftFields\Assets::class,
+            CraftFields\Categories::class,
+            CraftFields\Checkboxes::class,
+            CraftFields\Entries::class,
+            CraftFields\Matrix::class,
+            CraftFields\MultiSelect::class,
+            CraftFields\Table::class,
+            CraftFields\Tags::class,
+            CraftFields\Users::class,
         ];
 
         foreach ($fields as $field) {

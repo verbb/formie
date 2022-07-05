@@ -1,109 +1,67 @@
-{{ hiddenInput(field.handle, '') }}
+{{ hiddenInput(field.getHtmlName(), '') }}
 
-{% namespace field.handle %}
-    <fieldset class="fui-fieldset">
-        {{ formieInclude('_includes/legend', { position: 'above' }) }}
+{% fieldtag 'fieldTable' %}
+    {% fieldtag 'fieldTableHeader' %}
+        {% fieldtag 'fieldTableHeaderRow' %}
+            {% for colId, col in field.columns %}
+                {% fieldtag 'fieldTableHeaderColumn' %}
+                    {{ col.heading | t | md | striptags('<em><strong>') | raw }}
+                {% endfieldtag %}
+            {% endfor %}
+        {% endfieldtag %}
+    {% endfieldtag %}
 
-        {{ formieInclude('_includes/instructions', { position: 'above' }) }}
-
-        <table class="fui-table">
-            <thead>
-                <tr>
-                    {% for colId, col in field.columns %}
-                        <th
-                            data-handle="{{ col.handle }}"
-                            data-type="{{ col.type }}"
-                            {% if col.width is defined and col.width %}width="{{ col.width }}"{% endif %}
-                        >{{ col.heading | t | md | striptags('<em><strong>') | raw }}</th>
-                    {% endfor %}
-                </tr>
-            </thead>
-
-            <tbody class="fui-table-rows">
-                {% if value %}
-                    {% for rowId, row in value %}
-                        <tr class="fui-table-row">
-                            {{ formieInclude('fields/table/_row', {
-                                index: rowId,
-                                row: row,
-                            }) }}
-                        </tr>
-                    {% endfor %}
-                {% elseif field.defaults %}
-                    {% for default in field.defaults %}
-                        <tr class="fui-table-row">
-                            {{ formieInclude('fields/table/_row', {
-                                index: loop.index0,
-                                row: default,
-                            }) }}
-                        </tr>
-                    {% endfor %}
-                {% elseif field.minRows > 0 %}
-                    {% for i in 1..field.minRows %}
-                        <tr class="fui-table-row">
-                            {{ formieInclude('fields/table/_row', {
-                                index: loop.index0,
-                                row: [],
-                            }) }}
-                        </tr>
-                    {% endfor %}
-                {% endif %}
-            </tbody>
-        </table>
-
-        {% set buttonAttributes = {
-            class: 'fui-btn fui-table-add-btn',
-            type: 'button',
-            data: {
-                'min-rows': field.minRows,
-                'max-rows': field.maxRows,
-                'add-table-row': field.handle,
-            }
-        } %}
-
-        {# Disable the button straight away if we're making it static #}
-        {% if field.minRows != '' and field.maxRows != '' %}
-            {% if field.minRows == field.maxRows %}
-                {% set buttonAttributes = buttonAttributes | merge({
-                    class: buttonAttributes.class ~ ' fui-disabled',
-                    disabled: true,
-                }) %}
-            {% endif %}
+    {% fieldtag 'fieldTableBody' %}
+        {% if value %}
+            {% for rowId, row in value %}
+                {% fieldtag 'fieldTableBodyRow' %}
+                    {{ formieInclude('fields/table/_row', {
+                        index: rowId,
+                        row: row,
+                    }) }}
+                {% endfieldtag %}
+            {% endfor %}
+        {% elseif field.defaults %}
+            {% for default in field.defaults %}
+                {% fieldtag 'fieldTableBodyRow' %}
+                    {{ formieInclude('fields/table/_row', {
+                        index: loop.index0,
+                        row: default,
+                    }) }}
+                {% endfieldtag %}
+            {% endfor %}
+        {% elseif field.minRows > 0 %}
+            {% for i in 1..field.minRows %}
+                {% fieldtag 'fieldTableBodyRow' %}
+                    {{ formieInclude('fields/table/_row', {
+                        index: loop.index0,
+                        row: [],
+                    }) }}
+                {% endfieldtag %}
+            {% endfor %}
         {% endif %}
+    {% endfieldtag %}
+{% endfieldtag %}
 
-        {% if not field.static %}
-            <button {{ attr(buttonAttributes) }}>{{ field.addRowLabel }}</button>
-        {% endif %}
+{{ fieldtag('fieldAddButton') }}
 
-        {{ formieInclude('_includes/instructions', { position: 'below' }) }}
-
-        {{ formieInclude('_includes/legend', { position: 'below' }) }}
-    </fieldset>
-{% endnamespace %}
-
-{% set includeScriptsInline = options.renderOptions.includeScriptsInline ?? false %}
+{% set includeScriptsInline = renderOptions.includeScriptsInline ?? false %}
 
 {% if includeScriptsInline %}
-    {% namespace field.handle %}
-        {# For GraphQL requests we need to render this inline #}
-        <script type="text/x-template" data-table-template="{{ field.handle }}">
-            {{ formieInclude('fields/table/_row', {
-                index: '__ROW__',
-                row: [],
-            }) }}
-        </script>
-    {% endnamespace %}
+    {# For GraphQL requests we need to render this inline #}
+    <script type="text/x-template" data-table-template="{{ field.handle }}">
+        {{ formieInclude('fields/table/_row', {
+            index: '__ROW__',
+            row: [],
+        }) }}
+    </script>
 {% else %}
     {# Have to use the `script` tag here to place the script outside of a Vue3 wrapper #}
     {# as Vue3 will strip out inline `script` tags (all other scenarios would be fine) #}
     {% script with { type: 'text/x-template', 'data-table-template': field.handle } %}
-        {# `namespace` won't work outside `script` tag, so extra work here, particularly #}
-        {# to deal with higher-level namespaces like the default `fields`. #}
-        {% namespace craft.formie.getFieldNamespaceForScript(field) %}
-            {{ formieInclude('fields/table/_row', {
-                index: '__ROW__',
-                row: [],
-            }) }}
-        {% endnamespace %}
+        {{ formieInclude('fields/table/_row', {
+            index: '__ROW__',
+            row: [],
+        }) }}
     {% endscript %}
 {% endif %}

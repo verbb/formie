@@ -545,7 +545,6 @@ class Fields extends Component
         $config['hasLabel'] = $field->hasLabel();
         $config['hasError'] = (bool)$field->getErrors();
         $config['settings'] = $field->getSavedSettings();
-        $config['isTextInput'] = $field->getIsTextInput();
         $config['isCosmetic'] = $field->getIsCosmetic();
 
         // Indicates whether the field is currently synced to another field.

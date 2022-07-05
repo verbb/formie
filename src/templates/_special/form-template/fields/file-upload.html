@@ -1,51 +1,31 @@
-{% set sizeMaxLimit = field.sizeLimit ?? 0 %}
-{% set sizeMinLimit = field.sizeMinLimit ?? 0 %}
-{% set limitFiles = field.limitFiles ?? 0 %}
-
 {# Because of browser limitations, we can't populate a `<input type="file">` field if we are on a #}
 {# multi-page, page reload form with already uploaded assets. As such, we'll get an validation #}
 {# error when going back to a previous page and submitting again, as the field will be empty #}
 {# despite files being uploaded. Here, force the field to be non-required if a value exists. #}
 {% set required = value and value.all() ? false : field.required %}
 
-{% set attributes = {
-    type: 'file',
-    class: [ 'fui-input' ],
-    id: options.id,
-    name: field.handle ~ '[]',
+{{ fieldtag('fieldInput', {
     required: required ? true : false,
-    multiple: limitFiles != 1,
-    accept: field.accept,
-    data: {
-        'fui-id': options.dataId,
-        'size-min-limit': sizeMinLimit,
-        'size-max-limit': sizeMaxLimit,
-        'file-limit': limitFiles,
-        'fui-message': field.settings.errorMessage | t,
-    },
-    aria: {
-        required: required ? 'true' : 'false',
-    },
-} | merge(field.getInputAttributes()) %}
-
-<input {{ attr(attributes) }} />
+}) }}
 
 {% if value %}
     {% set elements = value.all() %}
 
     {% if elements %}
-        <div class="fui-file-summary">
+        {% fieldtag 'fieldSummary' %}
             {% if elements | length == 1 %}
                 <p>{{ '{num} file uploaded.' | t('formie', { num: elements | length }) }}</p>
             {% else %}
                 <p>{{ '{num} files uploaded.' | t('formie', { num: elements | length }) }}</p>
             {% endif %}
 
-            <ul>
+            {% fieldtag 'fieldSummaryContainer' %}
                 {% for element in elements %}
-                    <li>{{ element.filename }}</li>
+                    {% fieldtag 'fieldSummaryItem' %}
+                        {{ element.filename }}
+                    {% endfieldtag %}
                 {% endfor %}
-            </ul>
-        </div>
+            {% endfieldtag %}
+        {% endfieldtag %}
     {% endif %}
 {% endif %}
