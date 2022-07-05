@@ -13,7 +13,7 @@ use verbb\formie\gql\types\generators\FieldAttributeGenerator;
 use verbb\formie\gql\types\input\AddressInputType;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\Address as AddressModel;
-use verbb\formie\positions\FieldsetStart;
+use verbb\formie\positions\AboveInput;
 use verbb\formie\models\HtmlTag;
 
 use Craft;
@@ -280,7 +280,7 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
             'countryDefaultValue' => '',
             'countryPrePopulate' => '',
 
-            'instructionsPosition' => FieldsetStart::class,
+            'instructionsPosition' => AboveInput::class,
         ];
     }
 

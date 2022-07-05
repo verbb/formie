@@ -13,7 +13,7 @@ use verbb\formie\gql\types\input\NameInputType;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\HtmlTag;
 use verbb\formie\models\Name as NameModel;
-use verbb\formie\positions\FieldsetStart;
+use verbb\formie\positions\AboveInput;
 
 use Craft;
 use craft\base\ElementInterface;
@@ -223,7 +223,7 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
             'lastNameDefaultValue' => '',
             'lastNamePrePopulate' => '',
 
-            'instructionsPosition' => FieldsetStart::class,
+            'instructionsPosition' => AboveInput::class,
         ];
     }
 

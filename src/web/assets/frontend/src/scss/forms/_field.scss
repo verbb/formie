@@ -72,13 +72,11 @@
 }
 
 .fui-instructions {
-    .fui-instructions-above-input &,
-    .fui-instructions-fieldset-start & {
+    .fui-instructions-above-input & {
         margin-bottom: var(--fui-instructions-margin);
     }
 
-    .fui-instructions-below-input &,
-    .fui-instructions-fieldset-end & {
+    .fui-instructions-below-input & {
         margin-top: var(--fui-instructions-margin);
     }
 }

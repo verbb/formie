@@ -685,11 +685,11 @@
   margin: 0;
 }
 
-.fui-instructions-above-input .fui-instructions, .fui-instructions-fieldset-start .fui-instructions {
+.fui-instructions-above-input .fui-instructions {
   margin-bottom: 0.5rem;
   margin-bottom: var(--fui-instructions-margin);
 }
-.fui-instructions-below-input .fui-instructions, .fui-instructions-fieldset-end .fui-instructions {
+.fui-instructions-below-input .fui-instructions {
   margin-top: 0.5rem;
   margin-top: var(--fui-instructions-margin);
 }

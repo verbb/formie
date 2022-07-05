@@ -2,6 +2,6 @@
 
 {% if field.instructions and instructionsPosition.shouldDisplay(position) %}
     {{ fieldtag('fieldInstructions', {
-        text: field.instructions | t | md(inlineOnly=true) | nl2br,
+        text: field.instructions | t | trim | md(inlineOnly=true) | nl2br,
     }) }}
 {% endif %}
