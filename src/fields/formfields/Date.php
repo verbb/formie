@@ -300,6 +300,7 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
                     'name' => $this->name,
                     'handle' => 'date',
                     'required' => $this->required,
+                    'labelPosition' => $this->subfieldLabelPosition,
                     'inputAttributes' => [
                         [
                             'label' => 'type',
@@ -319,6 +320,7 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
                     'name' => $this->timeLabel,
                     'handle' => 'time',
                     'required' => $this->required,
+                    'labelPosition' => $this->subfieldLabelPosition,
                     'inputAttributes' => [
                         [
                             'label' => 'type',
@@ -349,6 +351,7 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
                     'name' => $this->yearLabel,
                     'handle' => 'year',
                     'placeholder' => $this->yearPlaceholder,
+                    'labelPosition' => $this->subfieldLabelPosition,
                     'min' => $minYear,
                     'max' => $maxYear,
                 ],
@@ -357,6 +360,7 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
                     'name' => $this->monthLabel,
                     'handle' => 'month',
                     'placeholder' => $this->monthPlaceholder,
+                    'labelPosition' => $this->subfieldLabelPosition,
                     'min' => 1,
                     'max' => 12,
                 ],
@@ -365,6 +369,7 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
                     'name' => $this->dayLabel,
                     'handle' => 'day',
                     'placeholder' => $this->dayPlaceholder,
+                    'labelPosition' => $this->subfieldLabelPosition,
                     'min' => 1,
                     'max' => 31,
                 ],
@@ -373,6 +378,7 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
                     'name' => $this->hourLabel,
                     'handle' => 'hour',
                     'placeholder' => $this->hourPlaceholder,
+                    'labelPosition' => $this->subfieldLabelPosition,
                     'min' => 0,
                     'max' => 23,
                 ],
@@ -381,6 +387,7 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
                     'name' => $this->hourLabel,
                     'handle' => 'hour',
                     'placeholder' => $this->hourPlaceholder,
+                    'labelPosition' => $this->subfieldLabelPosition,
                     'min' => 0,
                     'max' => 12,
                 ],
@@ -389,6 +396,7 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
                     'name' => $this->minuteLabel,
                     'handle' => 'minute',
                     'placeholder' => $this->minutePlaceholder,
+                    'labelPosition' => $this->subfieldLabelPosition,
                     'min' => 0,
                     'max' => 59,
                 ],
@@ -397,6 +405,7 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
                     'name' => $this->secondLabel,
                     'handle' => 'second',
                     'placeholder' => $this->secondPlaceholder,
+                    'labelPosition' => $this->subfieldLabelPosition,
                     'min' => 0,
                     'max' => 59,
                 ],
@@ -405,6 +414,7 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
                     'name' => $this->ampmLabel,
                     'handle' => 'ampm',
                     'placeholder' => $this->ampmPlaceholder,
+                    'labelPosition' => $this->subfieldLabelPosition,
                     'options' => [
                         ['value' => 'AM', 'label' => Craft::t('formie', 'AM')],
                         ['value' => 'PM', 'label' => Craft::t('formie', 'PM')],
@@ -418,6 +428,7 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
                     'name' => $this->yearLabel,
                     'handle' => 'year',
                     'placeholder' => $this->yearPlaceholder,
+                    'labelPosition' => $this->subfieldLabelPosition,
                     'options' => $this->_getYearOptions(),
                 ],
                 'm' => [
@@ -425,6 +436,7 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
                     'name' => $this->monthLabel,
                     'handle' => 'month',
                     'placeholder' => $this->monthPlaceholder,
+                    'labelPosition' => $this->subfieldLabelPosition,
                     'options' => $this->_getMonthOptions(),
                 ],
                 'd' => [
@@ -432,6 +444,7 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
                     'name' => $this->dayLabel,
                     'handle' => 'day',
                     'placeholder' => $this->dayPlaceholder,
+                    'labelPosition' => $this->subfieldLabelPosition,
                     'options' => $this->_generateOptions(1, 31),
                 ],
                 'H' => [
@@ -439,6 +452,7 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
                     'name' => $this->hourLabel,
                     'handle' => 'hour',
                     'placeholder' => $this->hourPlaceholder,
+                    'labelPosition' => $this->subfieldLabelPosition,
                     'options' => $this->_generateOptions(0, 23),
                 ],
                 'h' => [
@@ -446,6 +460,7 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
                     'name' => $this->hourLabel,
                     'handle' => 'hour',
                     'placeholder' => $this->hourPlaceholder,
+                    'labelPosition' => $this->subfieldLabelPosition,
                     'options' => $this->_generateOptions(0, 12),
                 ],
                 'i' => [
@@ -453,6 +468,7 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
                     'name' => $this->minuteLabel,
                     'handle' => 'minute',
                     'placeholder' => $this->minutePlaceholder,
+                    'labelPosition' => $this->subfieldLabelPosition,
                     'options' => $this->_generateOptions(1, 59),
                 ],
                 's' => [
@@ -460,6 +476,7 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
                     'name' => $this->secondLabel,
                     'handle' => 'second',
                     'placeholder' => $this->secondPlaceholder,
+                    'labelPosition' => $this->subfieldLabelPosition,
                     'options' => $this->_generateOptions(1, 59),
                 ],
                 'A' => [
@@ -467,6 +484,7 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
                     'name' => $this->ampmLabel,
                     'handle' => 'ampm',
                     'placeholder' => $this->ampmPlaceholder,
+                    'labelPosition' => $this->subfieldLabelPosition,
                     'options' => [
                         ['value' => 'AM', 'label' => Craft::t('formie', 'AM')],
                         ['value' => 'PM', 'label' => Craft::t('formie', 'PM')],

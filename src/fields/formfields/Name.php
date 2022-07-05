@@ -244,6 +244,7 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
                     'placeholder' => $this->prefixPlaceholder,
                     'errorMessage' => $this->prefixErrorMessage,
                     'defaultValue' => $this->prefixDefaultValue,
+                    'labelPosition' => $this->subfieldLabelPosition,
                     'options' => $this->prefixOptions,
                     'inputAttributes' => [
                         [
@@ -260,6 +261,7 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
                     'placeholder' => $this->firstNamePlaceholder,
                     'errorMessage' => $this->firstNameErrorMessage,
                     'defaultValue' => $this->firstNameDefaultValue,
+                    'labelPosition' => $this->subfieldLabelPosition,
                     'inputAttributes' => [
                         [
                             'label' => 'autocomplete',
@@ -275,6 +277,7 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
                     'placeholder' => $this->middleNamePlaceholder,
                     'errorMessage' => $this->middleNameErrorMessage,
                     'defaultValue' => $this->middleNameDefaultValue,
+                    'labelPosition' => $this->subfieldLabelPosition,
                     'inputAttributes' => [
                         [
                             'label' => 'autocomplete',
@@ -290,6 +293,7 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
                     'placeholder' => $this->lastNamePlaceholder,
                     'errorMessage' => $this->lastNameErrorMessage,
                     'defaultValue' => $this->lastNameDefaultValue,
+                    'labelPosition' => $this->subfieldLabelPosition,
                     'inputAttributes' => [
                         [
                             'label' => 'autocomplete',

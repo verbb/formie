@@ -351,6 +351,7 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
                     'placeholder' => $this->address1Placeholder,
                     'errorMessage' => $this->address1ErrorMessage,
                     'defaultValue' => $this->address1DefaultValue,
+                    'labelPosition' => $this->subfieldLabelPosition,
                     'inputAttributes' => [
                         [
                             'label' => 'autocomplete',
@@ -372,6 +373,7 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
                     'placeholder' => $this->address2Placeholder,
                     'errorMessage' => $this->address2ErrorMessage,
                     'defaultValue' => $this->address2DefaultValue,
+                    'labelPosition' => $this->subfieldLabelPosition,
                     'inputAttributes' => [
                         [
                             'label' => 'autocomplete',
@@ -393,6 +395,7 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
                     'placeholder' => $this->address3Placeholder,
                     'errorMessage' => $this->address3ErrorMessage,
                     'defaultValue' => $this->address3DefaultValue,
+                    'labelPosition' => $this->subfieldLabelPosition,
                     'inputAttributes' => [
                         [
                             'label' => 'autocomplete',
@@ -414,6 +417,7 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
                     'placeholder' => $this->cityPlaceholder,
                     'errorMessage' => $this->cityErrorMessage,
                     'defaultValue' => $this->cityDefaultValue,
+                    'labelPosition' => $this->subfieldLabelPosition,
                     'inputAttributes' => [
                         [
                             'label' => 'autocomplete',
@@ -433,6 +437,7 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
                     'placeholder' => $this->zipPlaceholder,
                     'errorMessage' => $this->zipErrorMessage,
                     'defaultValue' => $this->zipDefaultValue,
+                    'labelPosition' => $this->subfieldLabelPosition,
                     'inputAttributes' => [
                         [
                             'label' => 'autocomplete',
@@ -454,6 +459,7 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
                     'placeholder' => $this->statePlaceholder,
                     'errorMessage' => $this->stateErrorMessage,
                     'defaultValue' => $this->stateDefaultValue,
+                    'labelPosition' => $this->subfieldLabelPosition,
                     'inputAttributes' => [
                         [
                             'label' => 'autocomplete',
@@ -473,6 +479,7 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
                     'placeholder' => $this->countryPlaceholder,
                     'errorMessage' => $this->countryErrorMessage,
                     'defaultValue' => $this->countryDefaultValue,
+                    'labelPosition' => $this->subfieldLabelPosition,
                     'options' => $this->countryOptions,
                     'inputAttributes' => [
                         [
@@ -498,6 +505,7 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
                     'placeholder' => $this->autocompletePlaceholder,
                     'errorMessage' => $this->autocompleteErrorMessage,
                     'defaultValue' => $this->autocompleteDefaultValue,
+                    'labelPosition' => $this->subfieldLabelPosition,
                     'inputAttributes' => [
                         [
                             'label' => 'autocomplete',
