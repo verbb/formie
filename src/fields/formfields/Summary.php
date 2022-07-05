@@ -136,6 +136,7 @@ class Summary extends FormField
         if ($key === 'fieldSummaryBlocks') {
             return new HtmlTag('div', [
                 'class' => 'fui-summary-blocks',
+                'data-summary-blocks' => true,
             ]);
         }
 

@@ -34,7 +34,7 @@ export class FormieSummary {
             var $summaryField = null;
 
             if (this.form.formTheme && this.form.formTheme.$currentPage) {
-                $summaryField = this.form.formTheme.$currentPage.querySelector('.fui-type-summary');
+                $summaryField = this.form.formTheme.$currentPage.querySelector('[data-field-type="summary"]');
             }
 
             if (!$summaryField) {
@@ -43,7 +43,7 @@ export class FormieSummary {
                 return;
             }
 
-            var $container = $summaryField.querySelector('.fui-summary-blocks');
+            var $container = $summaryField.querySelector('[data-summary-blocks]');
 
             if (!$container) {
                 console.error('Summary field: Unable to find `container`');
