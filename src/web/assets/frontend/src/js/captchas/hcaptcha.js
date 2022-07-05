@@ -36,7 +36,7 @@ export class FormieHcaptcha {
         this.form = this.$form.form;
 
         // We can have multiple captchas per form, so store them and render only when we need
-        this.$placeholders = this.$form.querySelectorAll('.formie-hcaptcha-placeholder');
+        this.$placeholders = this.$form.querySelectorAll('[data-hcaptcha-placeholder]');
 
         if (!this.$placeholders) {
             console.error('Unable to find any hCaptcha placeholders for #' + this.formId);

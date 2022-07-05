@@ -37,7 +37,7 @@ export class FormieRecaptchaV2Checkbox {
         this.form = this.$form.form;
 
         // We can have multiple captchas per form, so store them and render only when we need
-        this.$placeholders = this.$form.querySelectorAll('.formie-recaptcha-placeholder');
+        this.$placeholders = this.$form.querySelectorAll('[data-recaptcha-placeholder]');
 
         if (!this.$placeholders.length) {
             console.error('Unable to find any ReCAPTCHA placeholders for #' + this.formId);

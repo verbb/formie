@@ -8,6 +8,7 @@ use verbb\formie\elements\Submission;
 use Craft;
 use craft\helpers\App;
 use craft\helpers\ArrayHelper;
+use craft\helpers\Html;
 use craft\helpers\Json;
 
 class Recaptcha extends Captcha
@@ -73,26 +74,10 @@ class Recaptcha extends Captcha
      */
     public function getFrontEndHtml(Form $form, $page = null): string
     {
-        if ($this->type === self::RECAPTCHA_TYPE_ENTERPRISE) {
-            return '<div class="formie-recaptcha-placeholder"></div>';
-        }
-
-        if ($this->type === self::RECAPTCHA_TYPE_V3) {
-            // We don't technically need this for V3, but we use it to control whether we should validate
-            // based on the specific page they're on, and if the user wants a captcha on each page.
-            // We're doing this for V2, so we might as well copy that.
-            return '<div class="formie-recaptcha-placeholder"></div>';
-        }
-
-        if ($this->type === self::RECAPTCHA_TYPE_V2_CHECKBOX) {
-            return '<div class="formie-recaptcha-placeholder"></div>';
-        }
-
-        if ($this->type === self::RECAPTCHA_TYPE_V2_INVISIBLE) {
-            return '<div class="formie-recaptcha-placeholder"></div>';
-        }
-
-        return '';
+        return Html::tag('div', [
+            'class' => 'formie-recaptcha-placeholder',
+            'data-recaptcha-placeholder' => true,
+        ]);
     }
 
     /**
