@@ -1327,7 +1327,7 @@ class Form extends Element
                 $config['resetClass'] = true;
             }
 
-            $tag->setFromConfig($config);
+            $tag->setFromConfig($config, $context);
         }
 
         $event = new ModifyFormHtmlTagEvent([

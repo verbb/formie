@@ -690,7 +690,7 @@ trait FormFieldTrait
                 $config['resetClass'] = true;
             }
 
-            $tag->setFromConfig($config);
+            $tag->setFromConfig($config, $context);
         }
 
         $event = new ModifyFieldHtmlTagEvent([
@@ -738,7 +738,7 @@ trait FormFieldTrait
                     'field-config' => $this->getConfigJson(),
                     'field-conditions' => $this->getConditionsJson($submission),
                 ],
-            ]);
+            ], $context);
         }
 
         if ($key === 'fieldContainer') {
