@@ -243,6 +243,10 @@
   flex-wrap: wrap;
 }
 
+[data-fui-page-hidden] {
+  display: none;
+}
+
 .fui-btn-container {
   display: flex;
   justify-content: flex-start;

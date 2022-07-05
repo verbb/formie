@@ -11,7 +11,6 @@ export class FormieFormTheme {
         this.loadingClass = 'fui-loading';
         this.tabErrorClass = 'fui-tab-error';
         this.tabActiveClass = 'fui-tab-active';
-        this.hiddenClass = 'fui-hidden';
         this.errorMessageClass = 'fui-error-message';
         this.successMessageClass = 'fui-alert-success';
         this.alertClass = 'fui-alert';
@@ -713,9 +712,9 @@ export class FormieFormTheme {
             $allPages.forEach($page => {
                 // Show the current page
                 if ($page.id === `${this.getPageId(data.nextPageId)}`) {
-                    $page.classList.remove(this.hiddenClass);
+                    $page.removeAttribute('data-fui-page-hidden');
                 } else {
-                    $page.classList.add(this.hiddenClass);
+                    $page.setAttribute('data-fui-page-hidden', true);
                 }
             });
         }

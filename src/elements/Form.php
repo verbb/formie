@@ -1450,13 +1450,11 @@ class Form extends Element
 
             return new HtmlTag('div', [
                 'id' => "{$this->getFormId()}-p-{$page->id}",
-                'class' => [
-                    'fui-page',
-                    $this->hasMultiplePages() && $page->id != $currentPage->id ? 'fui-hidden' : false,
-                ],
+                'class' => 'fui-page',
                 'data' => [
                     'index' => $page->sortOrder,
                     'id' => $page->id,
+                    'fui-page-hidden' => $this->hasMultiplePages() && $page->id != $currentPage->id ? true : false,
                 ],
             ]);
         }
