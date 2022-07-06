@@ -183,7 +183,7 @@ For a full list of available tags, refer to the below:
 - `submitButton`
 - `previousButton`
 
-### General Field Tags
+## Field Tags
 - `field`
 - `fieldContainer`
 - `fieldLabel`
