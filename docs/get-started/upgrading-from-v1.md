@@ -15,11 +15,6 @@ The `formie/csrf/*` actions have been removed (previously deprecated). If you re
 
 ## Models
 
-### `{% cache %}` tag
-In Craft 4, external JavaScript and CSS resources are now included in cached data. In [Craft 3](https://verbb.io/craft-plugins/formie/docs/v1/template-guides/cached-forms), you would have been required to use `craft.formie.registerAssets()` outside of your `{% cache %}` tags.
-
-You now no longer need to do this, and any JavaScript and CSS will be captured in `{% cache %}` tags.
-
 ### Form
 The following changes have been made to the [Form](docs:developers/form) object.
 
@@ -67,6 +62,11 @@ Formie v2 features a revamp of front-end templates, and as such, there are likel
 - [Custom Templates](docs:theming/template-overrides)
 
 Any current custom templates, or template overrides will continue to work, despite the new template architecture.
+
+### `{% cache %}` tag
+In Craft 4, external JavaScript and CSS resources are now included in cached data. In [Craft 3](https://verbb.io/craft-plugins/formie/docs/v1/template-guides/cached-forms), you would have been required to use `craft.formie.registerAssets()` outside of your `{% cache %}` tags.
+
+You now no longer need to do this, and any JavaScript and CSS will be captured in `{% cache %}` tags.
 
 ### `getFields()`
 Any references to `getFields()` should be changed to `getCustomFields()`. This is inline with Craft 4 element field layout changes.
