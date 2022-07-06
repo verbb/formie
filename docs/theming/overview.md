@@ -1,5 +1,5 @@
 # Overview
-While Formie aims to provide a very simple and hands-off approach to rendering your forms, it's also vitally important to be able to customise it, make it your own, and fit within the overall style of the reset of your site.
+While Formie aims to provide a very simple and hands-off approach to rendering your forms, it's also vitally important to be able to customise it, make it your own, and fit within the overall style of the rest of your site.
 
 Formie provides several mechanisms for you to customise the rendering output of forms, pages and fields. This overarching term is something we call "theming" your form, and there are several ways to approach this.
 
