@@ -1,5 +1,68 @@
 # Changelog
 
+## 2.0.0-beta.14 - Unreleased
+
+### Added
+- Added `Field::EVENT_MODIFY_HTML_TAG` event.
+- Added `Form::EVENT_MODIFY_HTML_TAG` event.
+- Added `aria-describedby` attribute to `<fieldset>` tags referencing instructions when they are used for fields.
+- Added `_includes/alert-error` and `_includes/alert-success` template partials to make it easier to override alert HTML.
+- Added `_includes/field-errors` and `_includes/form-errors` template partials to make it easier to override form and field errors HTML.
+- Added `_includes/form-title` template partials to make it easier to override form title HTML.
+- Added `{{ formtag(key) }}` Twig function to render a form theme component. Supports the same functionality as [tag](https://craftcms.com/docs/4.x/dev/functions.html#tag).
+- Added `{{ fieldtag(key) }}` Twig function to render a field theme component. Supports the same functionality as [tag](https://craftcms.com/docs/4.x/dev/functions.html#tag).
+- Added `{% fieldtag %}` Twig tag to render a field theme component. Supports the same functionality as [tag](https://craftcms.com/docs/4.x/dev/tags.html#tag).
+- Added `{% formtag %}` Twig tag to render a form theme component. Supports the same functionality as [tag](https://craftcms.com/docs/4.x/dev/tags.html#tag).
+- Add support for Group and Repeater-nested fields when using `setFieldSettings()` in templates.
+
+### Changed
+- Re-architected front-end templates to be more maintainable, easier to override, easier to manipulate and better organised. Makes it possible to use Tailwind and Bootstrap classes without writing templates from scratch and maintaining them as overrides. Read up on the [changes](https://verbb.io/craft-plugins/formie/docs/theming).
+- Changed `Field::getFrontEndInputOptions()` `$options = null` parameter to `$renderOptions = []`.
+- Changed `Field::getFrontEndInputHtml()` `$options = null` parameter to `$renderOptions = []`.
+- Changed `Field::getEmailOptions()` `$options = null` parameter to `$renderOptions = []`.
+- Changed `Field::getEmailHtml()` `$options = null` parameter to `$renderOptions = []`.
+- Changed `AddressProvider::getFrontEndHtml()` `$options = null` parameter to `$renderOptions = []`.
+- Changed `Form::getFormId()` to respect the form handle casing. For example, previously output `fui-contact-us` now, `fui-contactUs`.
+- Changed `ModifyFormRenderOptionsEvent::options` to `ModifyFormRenderOptionsEvent::renderOptions`.
+- Changed `ModifyFrontEndSubfieldsEvent::rows` to now receive an array of `HtmlTag` objects instead of plain arrays. 
+- Changed `options` variable to `renderOptions` in Email templates.
+- Changed `options` variable to `renderOptions` in Form templates.
+- Changed Formie JS initializer to no longer rely on `id^="formie-form-"`. Now a `[data-fui-form]` attribute must exist.
+- Sub-field (Address, Date, Name) and nested-field (Repeater, Group) now output proper field templating for their sub fields, consistent with their outer-field counterparts. For example, the "First Name" sub-field for a Name field now renders a Single-Line Text field instance.
+- Date fields now show correct time formatting visual aid. For example, previously output `23:59:59 (H:M:S)`, now `23:59:59 (HH:MM:SS)` to better show digit count.
+- Repeater fields' front-end templates no longer requires `.fui-repeater-rows` and `.fui-repeater-row` classes.
+- Repeater fields' front-end templates now requires `data-repeater-rows` and `data-repeater-row` attributes.
+- Signature fields' front-end templates no longer requires `.fui-signature-clear-btn` class for the clear button.
+- Signature fields' front-end templates now requires `data-signature-clear` attribute for the clear button.
+- Summary fields' front-end templates no longer requires `.fui-type-summary` and `.fui-summary-blocks` classes.
+- Summary fields' front-end templates now requires `data-summary-blocks` attribute.
+- Table fields' front-end templates no longer requires `.fui-table-row` class.
+- Table fields' front-end templates now requires `data-table-row` attribute.
+- hCaptcha front-end templates no longer requires `.formie-hcaptcha-placeholder` class.
+- reCAPTCHA front-end templates no longer requires `.formie-recaptcha-placeholder` class.
+- JS Captcha front-end templates no longer requires `.formie-jscaptcha-placeholder` class.
+- hCaptcha front-end templates now requires `data-hcaptcha-placeholder` attribute.
+- reCAPTCHA front-end templates now requires `data-recaptcha-placeholder` attribute.
+- JS Captcha front-end templates now requires `data-jscaptcha-placeholder` attribute.
+- Field instructions no longer produce a `<p>` paragraph element.
+
+### Fixed
+- Fix hard-error being thrown when positions chosen for labels/instructions no longer exist.
+- Fix markdown output of field instructions.
+- Fix an error when exporting submissions.
+- Fix an error when exporting element fields.
+
+### Removed
+- Removed `AddressProvider::EVENT_MODIFY_ADDRESS_PROVIDER_HTML` event.
+- Removed `Field::renderLabel()`.
+- Removed `Field::getIsTextInput()`.
+- Removed `Field::getIsSelect()`.
+- Removed `Field::getIsFieldset()`.
+- Removed `_includes/legend` template partial.
+- Removed `_includes/errors` template partial.
+- Removed “Top of Fieldset” and “Bottom of Fieldset” positions to prevent confusion. These are replaced by Above Input” and Below Input” respectively.
+- Removed all class-binding references in JS files.
+
 ## 2.0.0-beta.13 - 2022-06-08
 
 ### Added

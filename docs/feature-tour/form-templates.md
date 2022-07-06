@@ -3,7 +3,7 @@ Form templates allow you to create custom templates for the rendering the form, 
 
 <img src="https://verbb.io/uploads/plugins/formie/formie-templates.png" />
 
-By default, Formie comes with a set of front-end templates for your form, which also include CSS and JS. This is designed for the vast majority of cases where a functionality and visually appealing form needs to be outputted on the page. For any form template, you can enable or disable the following:
+By default, Formie comes with a set of front-end templates for your form, which also include CSS and JS. This is designed for the vast majority of cases where a functional and visually appealing form needs to be rendered on the page. For any form template, you can enable or disable the following:
 
 - Base-level CSS for layout
 - Theme-level CSS for opinionated styles
@@ -19,7 +19,7 @@ You can provide your own custom templates to control every aspect of the form's 
 Create a new form template, and assign the "HTML Template" field to the template directory your custom templates sit. For example, if your templates exist in `templates/_forms`, you would enter `_forms`.
 
 :::tip
-You can't modify Formie's default Form Templates. Instead, you'll want to create a new Form Template, and ensure your forms use that.
+You can't modify Formie's default Form Templates. Instead, you create a new Form Template, and ensure your forms use that.
 :::
 
 You can choose to use Formie's provided CSS and JS, or provide your own.
@@ -28,5 +28,5 @@ You can choose to use Formie's provided CSS and JS, or provide your own.
 You'll notice there's a "Copy Templates" field. You can use this to copy the default template into the provided folder to get off to an even quicker start to customize the template.
 :::
 
-For more information about the actual templating for form templates, head to our [Form Templates](docs:template-guides/form-templates) templating guide.
+With your Form Templates and Custom Templates setup and ready to go, continue reading the in-depth [Custom Templates](docs:theming/template-overrides) templating guide.
 

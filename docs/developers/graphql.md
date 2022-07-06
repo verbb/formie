@@ -1,5 +1,5 @@
 # GraphQL
-Formie supports accessing [Form](docs:developers/form) and [Submission](docs:developers/submission) objects via GraphQL. Be sure to read about [Craft's GraphQL support](https://docs.craftcms.com/v3/graphql.html).
+Formie supports accessing [Form](docs:developers/form) and [Submission](docs:developers/submission) objects via GraphQL. Be sure to read about [Craft's GraphQL support](https://docs.craftcms.com/v4/graphql.html).
 
 :::tip
 Have a look at our [headless Formie demo](https://formie-headless.verbb.io/?form=contactForm) to get a feel for what's possible with GraphQL.

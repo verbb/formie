@@ -18,7 +18,7 @@ This may be particularly useful if you want control over the `<form>` element of
 ```twig
 {% set form = craft.formie.forms({ handle: 'contactForm' }).one() %}
 
-<form id="{{ form.formId }}" method="post" data-config="{{ form.configJson }}">
+<form method="post" data-fui-form="{{ form.configJson }}">
     {{ csrfInput() }}
     {{ actionInput('formie/submissions/submit') }}
     {{ hiddenInput('handle', form.handle) }}
@@ -33,25 +33,25 @@ This may be particularly useful if you want control over the `<form>` element of
 
 Let's run through a few things of note:
 
-- The `id` attribute is required, and Formie's JavaScript relies on this to initialise this form.
-- The `data-config` attribute is required, and Formie's JavaScript relies on this to initialise this form.
+- The `data-fui-form` attribute are required, and Formie's JavaScript relies on this to initialise the form.
 - Some additional Twig content in the `<form>` element, such as `csrfInput()`, `actionInput()`. This is to ensure Formie can process the content of the form and create a submission from it.
 
 :::tip
-Make sure to use `{{ form.formId }}` for the `id` attribute, and `{{ form.configJson }}` for the `data-config` attribute. These are the only two things Formie needs to hook up the JavaScript used to handle forms, and are required if you're writing the `<form>` element in your templates.
+Make sure to include the `data-fui-form` attribute with JSON configuration from the form. Without this attribute, Formie's JavaScript will fail to initialise, meaning client-side validation, captchas and more will not work.
 :::
 
-If you are using custom templates, you can also pass in a number of options to the rendering function. These don't have any effect on the default templates, but provide a means to pass additional data to your templates.
+## Render Options
+A second argument to `renderPage()` allows you to pass in variables used as [Render Options](docs:theming/render-options).
 
 ```twig
-{% set options = {
+{% set renderOptions = {
     someOption: 'someValue',
 } %}
 
 {% set form = craft.formie.forms({ handle: 'contactForm' }).one() %}
 
 {% for page in form.getPages() %}
-    {{ craft.formie.renderPage(form, page, options) }}
+    {{ craft.formie.renderPage(form, page, renderOptions) }}
 {% endfor %}
 ```
 
@@ -61,7 +61,7 @@ You can render rows for a page, rather than relying on the render function to ou
 ```twig
 {% set form = craft.formie.forms({ handle: 'contactForm' }).one() %}
 
-<form id="{{ form.formId }}" method="post" data-config="{{ form.configJson }}">
+<form method="post" data-fui-form="{{ form.configJson }}">
     {{ csrfInput() }}
     {{ actionInput('formie/submissions/submit') }}
     {{ hiddenInput('handle', form.handle) }}

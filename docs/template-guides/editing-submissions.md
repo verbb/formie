@@ -46,7 +46,7 @@ You can also take complete control over the form's HTML if you wish.
 {# Register any CSS/JS for the form, as we aren't using `renderForm()` #}
 {% do craft.formie.registerAssets(submission.form) %}
 
-<form id="{{ submission.form.formId }}" method="post" data-config="{{ submission.form.configJson }}">
+<form method="post" data-fui-form="{{ submission.form.configJson }}">
     {{ hiddenInput('action', 'formie/submissions/save-submission') }}
     {{ hiddenInput('handle', submission.form.handle) }}
     {{ hiddenInput('submissionId', submission.id) }}

@@ -13,4 +13,4 @@ Attribute | Description
 
 Method | Description
 --- | ---
-`getFields()` | Returns an array of [Field](docs:developers/field) objects for this row.
+`getCustomFields()` | Returns an array of [Field](docs:developers/field) objects for this row.

@@ -9,4 +9,4 @@ You can also create your own stencils, or edit existing ones. Navigate to Formie
 
 After creating your Stencil, they'll be available to select when creating a new form, as a quick-start to building your forms.
 
-Under the hood, Stencils are stored in the [Project Config](https://docs.craftcms.com/v3/project-config.html), and if your project is using the `project.yaml` schema, stencils can be created and used for multiple environments, or used across projects.
+Under the hood, Stencils are stored in the [Project Config](https://docs.craftcms.com/v4/project-config.html), and if your project is using the `project.yaml` schema, stencils can be created and used for multiple environments, or used across projects.

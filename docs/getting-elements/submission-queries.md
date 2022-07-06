@@ -17,7 +17,7 @@ $myQuery = \verbb\formie\elements\Submission::find();
 Once you’ve created a submission query, you can set parameters on it to narrow down the results, and then execute it by calling `.all()`. An array of [Submission](docs:developers/submission) objects will be returned.
 
 :::tip
-See Introduction to [Element Queries](https://docs.craftcms.com/v3/dev/element-queries/) in the Craft docs to learn about how element queries work.
+See Introduction to [Element Queries](https://docs.craftcms.com/v4/dev/element-queries/) in the Craft docs to learn about how element queries work.
 :::
 
 ## Example
@@ -462,7 +462,7 @@ $submissions = \verbb\formie\elements\Submission::find()
 
 Narrows the query results to only submissions that are related to certain other elements.
 
-See [Relations](https://docs.craftcms.com/v3/relations.html) for a full explanation of how to work with this parameter.
+See [Relations](https://docs.craftcms.com/v4/relations.html) for a full explanation of how to work with this parameter.
 
 ::: code
 ```twig Twig
