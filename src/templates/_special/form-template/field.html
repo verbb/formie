@@ -19,7 +19,9 @@
         {% fieldtag 'fieldInputContainer' %}
             {% hook 'formie.field.input-start' %}
 
-            {{ field.getFrontEndInputHtml(form, value) }}
+            {{ field.getFrontEndInputHtml(form, value, {
+                errors: errors,
+            }) }}
 
             {% hook 'formie.field.input-end' %}
         {% endfieldtag %}

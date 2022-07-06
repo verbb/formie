@@ -183,6 +183,7 @@ class Password extends FormField implements PreviewableFieldInterface
     public function defineHtmlTag(string $key, array $context = []): ?HtmlTag
     {
         $form = $context['form'] ?? null;
+        $errors = $context['errors'] ?? null;
 
         $id = $this->getHtmlId($form);
         $dataId = $this->getHtmlDataId($form);
@@ -191,7 +192,10 @@ class Password extends FormField implements PreviewableFieldInterface
             return new HtmlTag('input', array_merge([
                 'type' => 'password',
                 'id' => $id,
-                'class' => 'fui-input',
+                'class' => [
+                    'fui-input',
+                    $errors ? 'fui-error' : false,
+                ],
                 'name' => $this->getHtmlName(),
                 'placeholder' => Craft::t('site', $this->placeholder) ?: null,
                 'autocomplete' => 'email',

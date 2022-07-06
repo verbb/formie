@@ -726,7 +726,7 @@ trait FormFieldTrait
                     'fui-label-' . $labelPosition,
                     'fui-subfield-label-' . $subfieldLabelPosition,
                     'fui-instructions-' . $instructionsPosition,
-                    $errors ? 'fui-field-error' : null,
+                    $errors ? 'fui-field-error fui-error' : null,
                     $this->required ? 'fui-field-required' : null,
                     $this->cssClasses ?? null,
                     $this->getIsHidden() ? 'fui-hidden' : null,
@@ -926,11 +926,15 @@ trait FormFieldTrait
         // Check to see if we're overriding the field
         $field = $renderOptions['field'] ?? $this;
 
+        // Remove errors from render options
+        $errors = ArrayHelper::remove($renderOptions, 'errors');
+
         return [
             'form' => $form,
             'name' => $this->handle,
             'value' => $value,
             'field' => $field,
+            'errors' => $errors,
             'renderOptions' => $renderOptions,
         ];
     }

@@ -247,6 +247,7 @@ class Dropdown extends BaseOptionsField implements FormFieldInterface
     public function defineHtmlTag(string $key, array $context = []): ?HtmlTag
     {
         $form = $context['form'] ?? null;
+        $errors = $context['errors'] ?? null;
 
         if ($key === 'fieldInput') {
             $optionValue = $context['option']['value'] ?? '';
@@ -255,7 +256,10 @@ class Dropdown extends BaseOptionsField implements FormFieldInterface
 
             return new HtmlTag('select', array_merge([
                 'id' => $id,
-                'class' => 'fui-select',
+                'class' => [
+                    'fui-select',
+                    $errors ? 'fui-error' : false,
+                ],
                 'name' => $this->getHtmlName(($this->multi || $this->hasMultiNamespace ? '[]' : null)),
                 'multiple' => $this->multiple ? true : null,
                 'required' => $this->required ? true : null,

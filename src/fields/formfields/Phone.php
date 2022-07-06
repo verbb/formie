@@ -370,6 +370,7 @@ class Phone extends FormField implements SubfieldInterface, PreviewableFieldInte
     public function defineHtmlTag(string $key, array $context = []): ?HtmlTag
     {
         $form = $context['form'] ?? null;
+        $errors = $context['errors'] ?? null;
 
         if ($key === 'fieldInput') {
             $id = $this->getHtmlId($form, 'number');
@@ -378,7 +379,10 @@ class Phone extends FormField implements SubfieldInterface, PreviewableFieldInte
             return new HtmlTag('input', array_merge([
                 'type' => 'tel',
                 'id' => $id,
-                'class' => 'fui-input',
+                'class' => [
+                    'fui-input',
+                    $errors ? 'fui-error' : false,
+                ],
                 'name' => $this->getHtmlName('number'),
                 'placeholder' => Craft::t('site', $this->placeholder) ?: null,
                 'autocomplete' => 'tel-national',

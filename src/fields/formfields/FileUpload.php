@@ -510,6 +510,7 @@ class FileUpload extends CraftAssets implements FormFieldInterface
     public function defineHtmlTag(string $key, array $context = []): ?HtmlTag
     {
         $form = $context['form'] ?? null;
+        $errors = $context['errors'] ?? null;
 
         $id = $this->getHtmlId($form);
         $dataId = $this->getHtmlDataId($form);
@@ -522,7 +523,10 @@ class FileUpload extends CraftAssets implements FormFieldInterface
             return new HtmlTag('input', array_merge([
                 'type' => 'file',
                 'id' => $id,
-                'class' => 'fui-input',
+                'class' => [
+                    'fui-input',
+                    $errors ? 'fui-error' : false,
+                ],
                 'name' => $this->getHtmlName('[]'),
                 'multiple' => $limitFiles != 1,
                 'accept' => $this->accept,

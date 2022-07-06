@@ -277,6 +277,7 @@ class MultiLineText extends FormField implements PreviewableFieldInterface
     public function defineHtmlTag(string $key, array $context = []): ?HtmlTag
     {
         $form = $context['form'] ?? null;
+        $errors = $context['errors'] ?? null;
 
         $id = $this->getHtmlId($form);
         $dataId = $this->getHtmlDataId($form);
@@ -290,7 +291,10 @@ class MultiLineText extends FormField implements PreviewableFieldInterface
 
             return new HtmlTag('textarea', array_merge([
                 'id' => $id,
-                'class' => 'fui-input',
+                'class' => [
+                    'fui-input',
+                    $errors ? 'fui-error' : false,
+                ],
                 'name' => $this->getHtmlName(),
                 'placeholder' => Craft::t('site', $this->placeholder) ?: null,
                 'required' => $this->required ? true : null,
