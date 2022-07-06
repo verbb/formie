@@ -103,11 +103,11 @@ class Repeater extends FormField implements NestedFieldInterface, EagerLoadingFi
                 'min' => $this->minRows ?: null,
                 'max' => $this->maxRows ?: null,
                 'tooFew' => $this->minRows ? Craft::t('app', '{attribute} should contain at least {min, number} {min, plural, one{block} other{blocks}}.', [
-                    'attribute' => Craft::t('site', $this->name),
+                    'attribute' => Craft::t('formie', $this->name),
                     'min' => $this->minRows, // Need to pass this in now
                 ]) : null,
                 'tooMany' => $this->maxRows ? Craft::t('app', '{attribute} should contain at most {max, number} {max, plural, one{block} other{blocks}}.', [
-                    'attribute' => Craft::t('site', $this->name),
+                    'attribute' => Craft::t('formie', $this->name),
                     'max' => $this->maxRows, // Need to pass this in now
                 ]) : null,
                 'skipOnEmpty' => false,
@@ -385,7 +385,7 @@ class Repeater extends FormField implements NestedFieldInterface, EagerLoadingFi
                     $isStatic ? 'fui-disabled' : false,
                 ],
                 'type' => 'button',
-                'text' => Craft::t('site', $this->addLabel),
+                'text' => Craft::t('formie', $this->addLabel),
                 'disabled' => $isStatic,
                 'data' => [
                     'min-rows' => $this->minRows,

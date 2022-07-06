@@ -136,7 +136,7 @@ class Table extends CraftTable implements FormFieldInterface
         // Translate the column headings
         foreach ($this->columns as &$column) {
             if (!empty($column['heading'])) {
-                $column['heading'] = Craft::t('site', $column['heading']);
+                $column['heading'] = Craft::t('formie', $column['heading']);
             }
         }
         unset($column);
@@ -178,7 +178,7 @@ class Table extends CraftTable implements FormFieldInterface
             'minRows' => $this->minRows,
             'maxRows' => $this->maxRows,
             'static' => $this->static,
-            'addRowLabel' => Craft::t('site', $this->addRowLabel),
+            'addRowLabel' => Craft::t('formie', $this->addRowLabel),
         ]);
     }
 
@@ -531,7 +531,7 @@ class Table extends CraftTable implements FormFieldInterface
                     $isStatic ? 'fui-disabled' : false,
                 ],
                 'type' => 'button',
-                'text' => Craft::t('site', $this->addRowLabel),
+                'text' => Craft::t('formie', $this->addRowLabel),
                 'disabled' => $isStatic,
                 'data' => [
                     'min-rows' => $this->minRows,

@@ -18,7 +18,7 @@
                     }) }}
 
                     <label for="{{ rowId }}" class="fui-checkbox-label">
-                        &nbsp;<span class="fui-sr-only">{{ col.heading | t }}</span>
+                        &nbsp;<span class="fui-sr-only">{{ col.heading | t('formie') }}</span>
                     </label>
                 </div>
             {% case 'color' %}
@@ -44,7 +44,7 @@
                 } %}
                     {% for option in col.options %}
                         <option value="{{ option.value }}" {{ option.value == (row[colId] ?? '') ? 'selected' }}>
-                            {{ option.label | t }}
+                            {{ option.label | t('formie') }}
                         </option>
                     {% endfor %}
                 {% endtag %}

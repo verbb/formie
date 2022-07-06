@@ -46,7 +46,7 @@ class StencilData extends Model
             $this->pages = [
                 [
                     'id' => 'new' . mt_rand(),
-                    'label' => Craft::t('site', 'Page 1'),
+                    'label' => Craft::t('formie', 'Page 1'),
                     'sortOrder' => 0,
                     'rows' => [],
                 ],

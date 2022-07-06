@@ -11,7 +11,7 @@
     {% formtag 'submitButton' %}
         {%- hook 'formie.buttons.submit-start' -%}
 
-        {{ page.settings.submitButtonLabel | t }}
+        {{ page.settings.submitButtonLabel | t('formie') }}
 
         {%- hook 'formie.buttons.submit-end' -%}
     {% endformtag %}
@@ -20,7 +20,7 @@
         {% formtag 'previousButton' %}
             {%- hook 'formie.buttons.prev-start' -%}
 
-            {{ page.settings.backButtonLabel | t }}
+            {{ page.settings.backButtonLabel | t('formie') }}
 
             {%- hook 'formie.buttons.prev-end' -%}
         {% endformtag %}

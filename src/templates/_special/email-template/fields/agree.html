@@ -1,6 +1,6 @@
 <p>
     {% if not (renderOptions.hideName ?? false) %}
-        <strong>{{ field.name | t }}</strong><br>
+        <strong>{{ field.name | t('formie') }}</strong><br>
     {% endif %}
 
     {{ value ? field.checkedValue : field.uncheckedValue }}

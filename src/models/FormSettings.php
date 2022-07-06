@@ -147,7 +147,7 @@ class FormSettings extends Model
 
     public function getSubmitActionMessage($submission = null): string
     {
-        return Craft::t('site', $this->_getHtmlContent($this->submitActionMessage, $submission));
+        return Craft::t('formie', $this->_getHtmlContent($this->submitActionMessage, $submission));
     }
 
     public function getSubmitActionMessageHtml(): string
@@ -157,7 +157,7 @@ class FormSettings extends Model
 
     public function getErrorMessage(): string
     {
-        return Craft::t('site', $this->_getHtmlContent($this->errorMessage));
+        return Craft::t('formie', $this->_getHtmlContent($this->errorMessage));
     }
 
     public function getErrorMessageHtml(): string

@@ -47,6 +47,7 @@
 - reCAPTCHA front-end templates now requires `data-recaptcha-placeholder` attribute.
 - JS Captcha front-end templates now requires `data-jscaptcha-placeholder` attribute.
 - Field instructions no longer produce a `<p>` paragraph element.
+- All front-end static translations now use **only** the `formie` category. If you're using static translation to translate any text for front-end forms, ensure you move any of these translations in your `site.php` or `app.php` files into `formie.php`.
 
 ### Fixed
 - Fix hard-error being thrown when positions chosen for labels/instructions no longer exist.

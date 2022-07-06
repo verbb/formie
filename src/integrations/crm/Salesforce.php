@@ -580,12 +580,12 @@ class Salesforce extends Crm
             // Any Boolean fields should have a true/false option to pick from
             if ($field['type'] === 'boolean') {
                 $options[] = [
-                    'label' => Craft::t('site', 'True'),
+                    'label' => Craft::t('formie', 'True'),
                     'value' => 'true',
                 ];
 
                 $options[] = [
-                    'label' => Craft::t('site', 'False'),
+                    'label' => Craft::t('formie', 'False'),
                     'value' => 'false',
                 ];
             }

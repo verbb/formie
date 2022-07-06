@@ -12,7 +12,7 @@
             }) }}
 
             {% fieldtag 'fieldOptionLabel' %}
-                {{- option.label | t -}}
+                {{- option.label | t('formie') -}}
             {% endfieldtag %}
         {% endfieldtag %}
     {% endfor %}

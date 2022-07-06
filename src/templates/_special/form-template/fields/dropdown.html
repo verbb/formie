@@ -9,7 +9,7 @@
                 {% set hasOptgroups = true %}
             {% endif %}
 
-            <optgroup label="{{ option.optgroup | t }}">
+            <optgroup label="{{ option.optgroup | t('formie') }}">
         {% else %}
             {% set disabled = option.disabled ?? false %}
 

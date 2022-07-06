@@ -5,7 +5,7 @@
         {% fieldtag 'fieldTableHeaderRow' %}
             {% for colId, col in field.columns %}
                 {{ fieldtag('fieldTableHeaderColumn', {
-                    text: col.heading | t | md(inlineOnly=true) | nl2br,
+                    text: col.heading | t('formie') | md(inlineOnly=true) | nl2br,
                 }) }}
             {% endfor %}
         {% endfieldtag %}

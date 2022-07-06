@@ -977,12 +977,12 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
                     $errors ? 'fui-error' : false,
                 ],
                 'name' => $this->getHtmlName('datetime'),
-                'placeholder' => Craft::t('site', $this->placeholder) ?: null,
+                'placeholder' => Craft::t('formie', $this->placeholder) ?: null,
                 'required' => $this->required ? true : null,
                 'autocomplete' => 'off',
                 'data' => [
                     'fui-id' => $dataId,
-                    'fui-message' => Craft::t('site', $this->errorMessage) ?: null,
+                    'fui-message' => Craft::t('formie', $this->errorMessage) ?: null,
                 ],
                 'aria-describedby' => $this->instructions ? "{$id}-instructions" : null,
             ], $this->getInputAttributes()));

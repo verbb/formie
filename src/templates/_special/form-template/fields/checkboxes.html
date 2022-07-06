@@ -5,7 +5,7 @@
         }) }}
 
         {% fieldtag 'fieldOptionLabel' %}
-            {{- field.toggleCheckboxLabel | t -}}
+            {{- field.toggleCheckboxLabel | t('formie') -}}
         {% endfieldtag %}
     {% endfieldtag %}
 {% endset %}
@@ -30,7 +30,7 @@
             }) }}
 
             {% fieldtag 'fieldOptionLabel' %}
-                {{- option.label | t -}}
+                {{- option.label | t('formie') -}}
             {% endfieldtag %}
         {% endfieldtag %}
     {% endfor %}

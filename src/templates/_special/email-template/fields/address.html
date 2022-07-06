@@ -1,38 +1,38 @@
 <p>
     {% if not (renderOptions.hideName ?? false) %}
-        <strong>{{ field.name | t }}</strong><br>
+        <strong>{{ field.name | t('formie') }}</strong><br>
     {% endif %}
 
     {% if field.autocompleteEnabled %}
-        <strong>{{ field.autocompleteLabel | t }}: </strong>{{ value.autocomplete ?: ('No response.' | t('formie')) }}<br>
+        <strong>{{ field.autocompleteLabel | t('formie') }}: </strong>{{ value.autocomplete ?: ('No response.' | t('formie')) }}<br>
     {% endif %}
 
     {% if field.address1Enabled %}
-        <strong>{{ field.address1Label | t }}: </strong>{{ value.address1 ?: ('No response.' | t('formie')) }}<br>
+        <strong>{{ field.address1Label | t('formie') }}: </strong>{{ value.address1 ?: ('No response.' | t('formie')) }}<br>
     {% endif %}
 
     {% if field.address2Enabled %}
-        <strong>{{ field.address2Label | t }}: </strong>{{ value.address2 ?: ('No response.' | t('formie')) }}<br>
+        <strong>{{ field.address2Label | t('formie') }}: </strong>{{ value.address2 ?: ('No response.' | t('formie')) }}<br>
     {% endif %}
 
     {% if field.address3Enabled %}
-        <strong>{{ field.address3Label | t }}: </strong>{{ value.address3 ?: ('No response.' | t('formie')) }}<br>
+        <strong>{{ field.address3Label | t('formie') }}: </strong>{{ value.address3 ?: ('No response.' | t('formie')) }}<br>
     {% endif %}
 
     {% if field.cityEnabled %}
-        <strong>{{ field.cityLabel | t }}: </strong>{{ value.city ?: ('No response.' | t('formie')) }}<br>
+        <strong>{{ field.cityLabel | t('formie') }}: </strong>{{ value.city ?: ('No response.' | t('formie')) }}<br>
     {% endif %}
 
     {% if field.stateEnabled %}
-        <strong>{{ field.stateLabel | t }}: </strong>{{ value.state ?: ('No response.' | t('formie')) }}<br>
+        <strong>{{ field.stateLabel | t('formie') }}: </strong>{{ value.state ?: ('No response.' | t('formie')) }}<br>
     {% endif %}
 
     {% if field.zipEnabled %}
-        <strong>{{ field.zipLabel | t }}: </strong>{{ value.zip ?: ('No response.' | t('formie')) }}<br>
+        <strong>{{ field.zipLabel | t('formie') }}: </strong>{{ value.zip ?: ('No response.' | t('formie')) }}<br>
     {% endif %}
 
     {% if field.countryEnabled %}
-        <strong>{{ field.countryLabel | t }}: </strong>{{ value.country ?: ('No response.' | t('formie')) }}<br>
+        <strong>{{ field.countryLabel | t('formie') }}: </strong>{{ value.country ?: ('No response.' | t('formie')) }}<br>
     {% endif %}
 </p>
 

@@ -340,7 +340,7 @@ class Forms extends Component
             $fieldLayout = new FieldLayout(['type' => Form::class]);
             $fieldLayout->setPages([
                 new FieldLayoutPage([
-                    'name' => Craft::t('site', 'Page 1'),
+                    'name' => Craft::t('formie', 'Page 1'),
                     'sortOrder' => '0',
                 ]),
             ]);

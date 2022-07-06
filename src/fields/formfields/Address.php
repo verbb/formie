@@ -881,7 +881,7 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
             return new HtmlTag('a', [
                 'href' => 'javascript:;',
                 'class' => 'fui-link fui-address-location-link',
-                'text' => Craft::t('site', 'Use my location'),
+                'text' => Craft::t('formie', 'Use my location'),
                 'data-fui-address-location-btn' => true,
             ]);
         }

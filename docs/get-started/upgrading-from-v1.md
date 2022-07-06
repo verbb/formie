@@ -76,6 +76,15 @@ Any references to `getFields()` should be changed to `getCustomFields()`. This i
 ### Render Options
 Any references to `options` should be changed to `renderOptions`. This is to prevent ambiguity with other variables named `options`. The only exception to this is within option-based fields like Dropdown, Checkboxes and Radio Buttons which do in fact have a variable named `options` for the collection of options for that field. This is different to `renderOptions`.
 
+### Translations
+Previously, front-end templates wrapped all text such as field labels, instructions, error messages and more in translation filters. The translation category was a mixture of `app`, `site` and `formie` categories.
+
+In Formie v2, these have been consolidated into the single `formie` translation category.
+
+If you're using static translation to translate any text for front-end forms, ensure you move any of these translations in your `site.php` or `app.php` files into `formie.php`.
+
+Read more about [static translations](https://craftcms.com/docs/4.x/sites.html#static-message-translations).
+
 ### Form ID
 Previously, you were required to have at least the `id` and `data-config` attributes present on a `<form>` element. Furthermore, in order to use Formie's JS, you were required to use `form.getFormId()` or ensure your ID started with `formie-form-*`. This is no longer the case. 
 
@@ -221,7 +230,7 @@ You'll also want to change references to `v-model` which no longer work, due to 
 <select :value="sourceId" @input="input('sourceId', $event.target.value)">
 ```
 
-As `v-model` won't work when passed through a slot, we'll use `:value` an `input()` to manually handle state changes (essentially, the non-shorthand of `v-model`).
+As `v-model` won't work when passed through a slot, we'll use `:value` and `input()` to manually handle state changes (essentially, the non-shorthand of `v-model`).
 
 ### Schema
 We've migrate from [Vue Formulate](https://vueformulate.com/) to [FormKit](https://formkit.com/), which gives us a lot more power and flexibility for our field settings schema. However, there are some breaking changes.
@@ -232,6 +241,7 @@ The `SchemaHelper::toggleContainer` helper has been removed, and can be replaced
 For example, you might have the following:
 
 ```php
+// Formie v1
 SchemaHelper::lightswitchField([
     'label' => Craft::t('formie', 'Required Field'),
     'help' => Craft::t('formie', 'Whether this field should be required when filling out the form.'),
@@ -249,6 +259,7 @@ SchemaHelper::toggleContainer('settings.required', [
 Where the "Error Message" field should be shown only if "Required Field" is truthy. In Formie v2, this can be expressed with:
 
 ```php
+// Formie v2
 SchemaHelper::lightswitchField([
     'label' => Craft::t('formie', 'Required Field'),
     'help' => Craft::t('formie', 'Whether this field should be required when filling out the form.'),

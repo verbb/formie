@@ -1,6 +1,6 @@
 {% if labelPosition.shouldDisplay(position) %}
     {% fieldtag 'fieldLabel' %}
-        {{- field.name | t | raw -}}
+        {{- field.name | t('formie') | raw -}}
 
         {%- if field.required ?? required ?? false -%}
             &nbsp;<span class="fui-required">*</span>

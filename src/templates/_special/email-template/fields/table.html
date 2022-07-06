@@ -1,7 +1,7 @@
 {% if value | length %}
     <div style="margin: 1em 0;">
         {% if not (renderOptions.hideName ?? false) %}
-            <strong>{{ field.name | t }}</strong>
+            <strong>{{ field.name | t('formie') }}</strong>
         {% endif %}
 
         {% set cellStyle = 'text-align: left; font-size: inherit; padding: 4px; border: 1px solid;' %}
@@ -10,7 +10,7 @@
             <thead>
                 <tr>
                     {% for colId, col in field.columns %}
-                        <th style="{{ cellStyle }} background-color: rgba(0, 0, 0, 0.05);">{{ col.heading | t }}</th>
+                        <th style="{{ cellStyle }} background-color: rgba(0, 0, 0, 0.05);">{{ col.heading | t('formie') }}</th>
                     {% endfor %}
                 </tr>
             </thead>
@@ -34,7 +34,7 @@
                                     <td style="{{ cellStyle }}">
                                         {% for option in col.options %}
                                             {% if option.value == cellValue %}
-                                                {{ option.label | t }}
+                                                {{ option.label | t('formie') }}
                                             {% endif %}
                                         {% endfor %}
                                     </td>

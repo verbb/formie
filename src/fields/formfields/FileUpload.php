@@ -535,7 +535,7 @@ class FileUpload extends CraftAssets implements FormFieldInterface
                     'size-min-limit' => $sizeMinLimit,
                     'size-max-limit' => $sizeMaxLimit,
                     'file-limit' => $limitFiles,
-                    'fui-message' => Craft::t('site', $this->errorMessage) ?: null,
+                    'fui-message' => Craft::t('formie', $this->errorMessage) ?: null,
                 ],
                 'aria-describedby' => $this->instructions ? "{$id}-instructions" : null,
             ], $this->getInputAttributes()));

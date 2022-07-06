@@ -590,7 +590,7 @@ class Form extends Element
         if (!$pages) {
             $pages[] = [
                 'id' => StringHelper::appendRandomString('new', 16),
-                'label' => Craft::t('site', 'Page 1'),
+                'label' => Craft::t('formie', 'Page 1'),
                 'rows' => [],
             ];
         }

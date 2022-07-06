@@ -622,7 +622,7 @@ class Notifications extends Component
                 'label' => Craft::t('formie', 'Attach Assets'),
                 'help' => Craft::t('formie', 'Select assets to be attached to this email notification.'),
                 'name' => 'attachAssets',
-                'selectionLabel' => Craft::t('site', 'Add an asset'),
+                'selectionLabel' => Craft::t('formie', 'Add an asset'),
                 'config' => [
                     'jsClass' => 'Craft.AssetSelectInput',
                     'elementType' => Asset::class,

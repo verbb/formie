@@ -222,12 +222,12 @@ class Calculations extends FormField implements PreviewableFieldInterface
                 'id' => $id,
                 'class' => 'fui-input',
                 'name' => $this->getHtmlName(),
-                'placeholder' => Craft::t('site', $this->placeholder) ?: null,
+                'placeholder' => Craft::t('formie', $this->placeholder) ?: null,
                 'required' => $this->required ? true : null,
                 'readonly' => true,
                 'data' => [
                     'fui-id' => $dataId,
-                    'fui-message' => Craft::t('site', $this->errorMessage) ?: null,
+                    'fui-message' => Craft::t('formie', $this->errorMessage) ?: null,
                 ],
                 'aria-describedby' => $this->instructions ? "{$id}-instructions" : null,
             ], $this->getInputAttributes()));

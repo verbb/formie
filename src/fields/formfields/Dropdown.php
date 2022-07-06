@@ -265,7 +265,7 @@ class Dropdown extends BaseOptionsField implements FormFieldInterface
                 'required' => $this->required ? true : null,
                 'data' => [
                     'fui-id' => $dataId,
-                    'fui-message' => Craft::t('site', $this->errorMessage) ?: null,
+                    'fui-message' => Craft::t('formie', $this->errorMessage) ?: null,
                 ],
             ], $this->getInputAttributes()));
         }

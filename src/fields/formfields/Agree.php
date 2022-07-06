@@ -80,7 +80,7 @@ class Agree extends FormField implements PreviewableFieldInterface
     {
         $html = $this->_getHtmlContent($this->description);
 
-        return Template::raw(Craft::t('site', $html));
+        return Template::raw(Craft::t('formie', $html));
     }
 
     public function getDefaultState(): ?string
@@ -259,7 +259,7 @@ class Agree extends FormField implements PreviewableFieldInterface
                 'data' => [
                     'fui-id' => $this->getHtmlDataId($form),
                     'fui-input-type' => 'agree',
-                    'fui-message' => Craft::t('site', $this->errorMessage) ?: null,
+                    'fui-message' => Craft::t('formie', $this->errorMessage) ?: null,
                 ],
             ], $this->getInputAttributes()));
         }

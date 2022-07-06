@@ -1191,7 +1191,7 @@ class Submission extends Element
         }
 
         if (!$validator->validate($value, $error)) {
-            $error = str_replace(Craft::t('yii', 'the input value'), Craft::t('site', $field->name), $error);
+            $error = str_replace(Craft::t('yii', 'the input value'), Craft::t('formie', $field->name), $error);
             $this->addError($attribute, $error);
         }
     }

@@ -1,23 +1,23 @@
 <p>
     {% if not (renderOptions.hideName ?? false) %}
-        <strong>{{ field.name | t }}</strong><br>
+        <strong>{{ field.name | t('formie') }}</strong><br>
     {% endif %}
 
     {% if value and field.settings.useMultipleFields %}
         {% if field.prefixEnabled %}
-            <strong>{{ field.prefixLabel | t }}: </strong>{{ value.prefix ?: ('No response.' | t('formie')) }}<br>
+            <strong>{{ field.prefixLabel | t('formie') }}: </strong>{{ value.prefix ?: ('No response.' | t('formie')) }}<br>
         {% endif %}
 
         {% if field.firstNameEnabled %}
-            <strong>{{ field.firstNameLabel | t }}: </strong>{{ value.firstName ?: ('No response.' | t('formie')) }}<br>
+            <strong>{{ field.firstNameLabel | t('formie') }}: </strong>{{ value.firstName ?: ('No response.' | t('formie')) }}<br>
         {% endif %}
 
         {% if field.middleNameEnabled %}
-            <strong>{{ field.middleNameLabel | t }}: </strong>{{ value.middleName ?: ('No response.' | t('formie')) }}<br>
+            <strong>{{ field.middleNameLabel | t('formie') }}: </strong>{{ value.middleName ?: ('No response.' | t('formie')) }}<br>
         {% endif %}
 
         {% if field.lastNameEnabled %}
-            <strong>{{ field.lastNameLabel | t }}: </strong>{{ value.lastName ?: ('No response.' | t('formie')) }}<br>
+            <strong>{{ field.lastNameLabel | t('formie') }}: </strong>{{ value.lastName ?: ('No response.' | t('formie')) }}<br>
         {% endif %}
     {% else %}
         {{ value ?: ('No response.' | t('formie')) }}

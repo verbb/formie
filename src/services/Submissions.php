@@ -793,7 +793,7 @@ class Submissions extends Component
                 $submissions[] = [
                     'id' => (int)$form->id,
                     'handle' => $form->handle,
-                    'name' => Craft::t('site', $form->title),
+                    'name' => Craft::t('formie', $form->title),
                     'sites' => Craft::$app->getSites()->getAllSiteIds(),
                     'uid' => $form->uid,
                 ];
