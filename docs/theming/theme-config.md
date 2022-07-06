@@ -544,7 +544,7 @@ Event::on(FormField::class, FormField::EVENT_MODIFY_HTML_TAG, function(ModifyFie
         $event->tag = null;
     }
 });
-```
+
 // Single-line-text field-specific config
 Event::on(SingleLineText::class, SingleLineText::EVENT_MODIFY_HTML_TAG, function(ModifyFieldHtmlTagEvent $event) {
     $field = $event->field;
