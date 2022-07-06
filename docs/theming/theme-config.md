@@ -438,7 +438,7 @@ Fortunately, we've included the ability to write Twig in class values.
 }) }}
 ```
 
-Here, we're targeting all Recipients fields, and the `field` theme tag. We're applyin a `hidden-field` class on this tag, but you'll also notice the Twig code surrounded by `"` - `{{ field.getIsHidden() ? 'is-hidden' : false }}`. When you provide a Twig template as a string, Formie will evaluate that Twig code in the context of the current field. 
+Here, we're targeting all Recipients fields, and the `field` theme tag. We're applying a `hidden-field` class on this tag, but you'll also notice the Twig code surrounded by `"` - `{{ field.getIsHidden() ? 'is-hidden' : false }}`. When you provide a Twig template as a string, Formie will evaluate that Twig code in the context of the current field. 
 
 You'll notice we're calling `field.getIsHidden()` which is a [Field](docs:developers/field) method. You could call **any** property or method on this field if your template. We're then using a ternary operator to return `is-hidden` if the `getIsHidden()` function returns true, or `false` if not.
 
