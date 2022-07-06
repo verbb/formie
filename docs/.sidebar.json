@@ -61,7 +61,7 @@
             "theming/template-overrides",
             "theming/custom-rendering",
             "theming/render-options"
-        ],
+        ]
     },
     {
         "title": "Getting Elements",
