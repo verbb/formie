@@ -29,6 +29,8 @@ use Throwable;
 
 use Twig\Markup;
 
+use Illuminate\Support\Collection;
+
 trait RelationFieldTrait
 {
     // Properties
@@ -286,7 +288,12 @@ trait RelationFieldTrait
 
     protected function defineValueAsString($value, ElementInterface $element = null): string
     {
-        $value = $this->_all($value, $element)->all();
+        /** @var ElementQueryInterface|Collection $value */
+        if ($value instanceof Collection) {
+            $value = $value->map(fn(ElementInterface $element) => $element->id)->all();
+        } else {
+            $value = $this->_all($value, $element)->all();
+        }
 
         return implode(', ', array_map(function($item) {
             return $this->_getElementLabel($item);
@@ -295,7 +302,12 @@ trait RelationFieldTrait
 
     protected function defineValueAsJson($value, ElementInterface $element = null): mixed
     {
-        $value = $this->_all($value, $element)->all();
+        /** @var ElementQueryInterface|Collection $value */
+        if ($value instanceof Collection) {
+            $value = $value->map(fn(ElementInterface $element) => $element->id)->all();
+        } else {
+            $value = $this->_all($value, $element)->all();
+        }
 
         return array_map(function($item) {
             return $this->_elementToArray($item);
@@ -369,7 +381,7 @@ trait RelationFieldTrait
      * @param ElementInterface|null $element
      * @return ElementQueryInterface
      */
-    private function _all(ElementQueryInterface $query, ElementInterface $element = null): ElementQueryInterface
+    private function _all(ElementQueryInterface $query, ?ElementInterface $element = null): ElementQueryInterface
     {
         $clone = clone $query;
         $clone
