@@ -926,8 +926,9 @@ trait FormFieldTrait
         // Check to see if we're overriding the field
         $field = $renderOptions['field'] ?? $this;
 
-        // Remove errors from render options
+        // Remove some attributes from render options
         $errors = ArrayHelper::remove($renderOptions, 'errors');
+        $submission = ArrayHelper::remove($renderOptions, 'submission');
 
         return [
             'form' => $form,
@@ -935,6 +936,7 @@ trait FormFieldTrait
             'value' => $value,
             'field' => $field,
             'errors' => $errors,
+            'submission' => $submission,
             'renderOptions' => $renderOptions,
         ];
     }

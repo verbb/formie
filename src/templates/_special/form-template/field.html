@@ -20,6 +20,7 @@
             {% hook 'formie.field.input-start' %}
 
             {{ field.getFrontEndInputHtml(form, value, {
+                submission: element,
                 errors: errors,
             }) }}
 
