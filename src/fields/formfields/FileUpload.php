@@ -10,6 +10,7 @@ use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\gql\types\input\FileUploadInputType;
 use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\models\HtmlTag;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\Settings;
 
@@ -33,13 +34,12 @@ class FileUpload extends CraftAssets implements FormFieldInterface
     use FormFieldTrait, RelationFieldTrait {
         getFrontEndInputOptions as traitGetFrontendInputOptions;
         getSettingGqlTypes as traitGetSettingGqlTypes;
-        FormFieldTrait::getIsFieldset insteadof RelationFieldTrait;
+        defineHtmlTag as traitDefineHtmlTag;
         RelationFieldTrait::defineValueAsString insteadof FormFieldTrait;
         RelationFieldTrait::defineValueAsJson insteadof FormFieldTrait;
         RelationFieldTrait::defineValueForIntegration insteadof FormFieldTrait;
         RelationFieldTrait::defineValueForIntegration as traitDefineValueForIntegration;
         RelationFieldTrait::populateValue insteadof FormFieldTrait;
-        RelationFieldTrait::renderLabel insteadof FormFieldTrait;
     }
 
 
@@ -499,6 +499,65 @@ class FileUpload extends CraftAssets implements FormFieldInterface
         }
     }
 
+    /**
+     * @inheritdoc
+     */
+    public function getContentGqlMutationArgumentType(): array|Type
+    {
+        return FileUploadInputType::getType($this);
+    }
+
+    public function defineHtmlTag(string $key, array $context = []): ?HtmlTag
+    {
+        $form = $context['form'] ?? null;
+        $errors = $context['errors'] ?? null;
+
+        $id = $this->getHtmlId($form);
+        $dataId = $this->getHtmlDataId($form);
+
+        $sizeMaxLimit = $this->sizeLimit ?? 0;
+        $sizeMinLimit = $this->sizeMinLimit ?? 0;
+        $limitFiles = $this->limitFiles ?? 0;
+
+        if ($key === 'fieldInput') {
+            return new HtmlTag('input', array_merge([
+                'type' => 'file',
+                'id' => $id,
+                'class' => [
+                    'fui-input',
+                    $errors ? 'fui-error' : false,
+                ],
+                'name' => $this->getHtmlName('[]'),
+                'multiple' => $limitFiles != 1,
+                'accept' => $this->accept,
+                'data' => [
+                    'fui-id' => $dataId,
+                    'size-min-limit' => $sizeMinLimit,
+                    'size-max-limit' => $sizeMaxLimit,
+                    'file-limit' => $limitFiles,
+                    'fui-message' => Craft::t('site', $this->errorMessage) ?: null,
+                ],
+                'aria-describedby' => $this->instructions ? "{$id}-instructions" : null,
+            ], $this->getInputAttributes()));
+        }
+
+        if ($key === 'fieldSummary') {
+            return new HtmlTag('div', [
+                'class' => 'fui-file-summary',
+            ]);
+        }
+
+        if ($key === 'fieldSummaryContainer') {
+            return new HtmlTag('ul');
+        }
+
+        if ($key === 'fieldSummaryItem') {
+            return new HtmlTag('li');
+        }
+
+        return $this->traitDefineHtmlTag($key, $context);
+    }
+
 
     // Protected Methods
     // =========================================================================
@@ -564,14 +623,6 @@ class FileUpload extends CraftAssets implements FormFieldInterface
         }
 
         return Template::raw($html);
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function getContentGqlMutationArgumentType(): array|Type
-    {
-        return FileUploadInputType::getType($this);
     }
 
 

@@ -1,18 +1,3 @@
-{% set attributes = {
-    type: 'text',
-    id: options.id,
-    class: [ 'fui-input' ],
-    name: field.handle,
-    placeholder: field.placeholder | t,
-    required: field.required ? true : false,
-    value: value,
-    data: {
-        'fui-id': options.dataId,
-        'fui-message': field.settings.errorMessage | t,
-    },
-    aria: {
-        required: field.required ? 'true' : 'false',
-    },
-} %}
-
-<input {{ attr(attributes) }} />
+{{ fieldtag('fieldInput', {
+    value: value ?? false,
+}) }}

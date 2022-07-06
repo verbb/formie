@@ -41,9 +41,6 @@
             "template-guides/rendering-forms",
             "template-guides/rendering-pages",
             "template-guides/rendering-fields",
-            "template-guides/rendering-options",
-            "template-guides/custom-rendering",
-            "template-guides/form-templates",
             "template-guides/email-templates",
             "template-guides/pdf-templates",
             "template-guides/cached-forms",
@@ -54,6 +51,17 @@
             "template-guides/google-tag-manager",
             "template-guides/craft-forms"
         ]
+    },
+    {
+        "title": "Theming",
+        "collapsable": false,
+        "children": [
+            "theming/overview",
+            "theming/theme-config",
+            "theming/template-overrides",
+            "theming/custom-rendering",
+            "theming/render-options"
+        ],
     },
     {
         "title": "Getting Elements",

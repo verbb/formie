@@ -9,13 +9,12 @@ export class Formie {
     }
 
     initForms() {
-        // TODO: Change this to not be an ID for greater flexibility at the next breakpoint
-        this.$forms = document.querySelectorAll('form[id^="formie-form-"]') || [];
+        this.$forms = document.querySelectorAll('form[data-fui-form]') || [];
 
         // We use this in the CP, where it's a bit tricky to add a form ID. So check just in case.
         // Might also be handy for front-end too!
         if (!this.$forms.length) {
-            this.$forms = document.querySelectorAll('div[id^="formie-form-"]') || [];
+            this.$forms = document.querySelectorAll('div[data-fui-form]') || [];
         }
 
         this.$forms.forEach($form => {
@@ -33,12 +32,12 @@ export class Formie {
 
     initForm($form, formConfig = {}) {
         if (isEmpty(formConfig)) {
-            // Initialize the form class with the `data-config` param on the form
-            formConfig = JSON.parse($form.getAttribute('data-config'));
+            // Initialize the form class with the `data-fui-form` param on the form
+            formConfig = JSON.parse($form.getAttribute('data-fui-form'));
         }
 
         if (isEmpty(formConfig)) {
-            console.error('Unable to parse `data-config` form attribute for config. Ensure this attribute exists on your form and contains valid JSON.');
+            console.error('Unable to parse `data-fui-form` form attribute for config. Ensure this attribute exists on your form and contains valid JSON.');
 
             return;
         }

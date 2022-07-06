@@ -8,6 +8,7 @@ use verbb\formie\elements\Submission;
 use Craft;
 use craft\helpers\App;
 use craft\helpers\ArrayHelper;
+use craft\helpers\Html;
 use craft\helpers\Json;
 
 class Hcaptcha extends Captcha
@@ -61,7 +62,10 @@ class Hcaptcha extends Captcha
      */
     public function getFrontEndHtml(Form $form, $page = null): string
     {
-        return '<div class="formie-hcaptcha-placeholder"></div>';
+        return Html::tag('div', [
+            'class' => 'formie-hcaptcha-placeholder',
+            'data-hcaptcha-placeholder' => true,
+        ]);
     }
 
     /**

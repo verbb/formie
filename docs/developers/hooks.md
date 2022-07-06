@@ -1,13 +1,10 @@
 # Hooks
-Rather than maintaining a full form template, we recommend using Formie's default form template along with your own style using the existing classes and structure.
+Hooks give you the means to insert your own Twig template code into Formie's templates without having to overwrite templates. This allows you to add HTML, Twig variables or even JavaScript as various points of the form's rendering.
 
-We provide many [template hooks](https://docs.craftcms.com/v3/extend/template-hooks.html) in the form template so that if needed, you can add additional functionality to the form while receiving bug fixes and improvements.
-
-For a full list of available hooks, please refer to the list below.
+Hooks are purely for inserting new content, and cannot be used to prevent something already existing in the Formie template from rendering. To do this, read our [theming](docs:theming) guide.
 
 ## Form
-
-[View this template](https://github.com/verbb/formie/blob/craft-3/src/templates/_special/form-template/form.html).
+[View this template](https://github.com/verbb/formie/blob/craft-4/src/templates/_special/form-template/form.html).
 
 Hook | Description
 --- | ---
@@ -28,8 +25,7 @@ Craft::$app->getView()->hook('formie.form.start', function(array &$context) {
 
 
 ## Page
-
-[View this template](https://github.com/verbb/formie/blob/craft-3/src/templates/_special/form-template/page.html#L09-L41).
+[View this template](https://github.com/verbb/formie/blob/craft-4/src/templates/_special/form-template/page.html#L09-L41).
 
 Hook | Description
 --- | ---
@@ -50,8 +46,7 @@ Craft::$app->getView()->hook('formie.page.start', function(array &$context) {
 
 
 ## Buttons
-
-[View this template](https://github.com/verbb/formie/blob/craft-3/src/templates/_special/form-template/page.html#L38-L92).
+[View this template](https://github.com/verbb/formie/blob/craft-4/src/templates/_special/form-template/page.html#L38-L92).
 
 Hook | Description
 --- | ---
@@ -78,8 +73,7 @@ Craft::$app->getView()->hook('formie.buttons.before', function(array &$context) 
 
 
 ## Field
-
-[View this template](https://github.com/verbb/formie/blob/craft-3/src/templates/_special/form-template/field.html).
+[View this template](https://github.com/verbb/formie/blob/craft-4/src/templates/_special/form-template/field.html).
 
 Hook | Description
 --- | ---
@@ -90,12 +84,6 @@ Hook | Description
 `formie.field.input-after` | After the input container.
 `formie.field.input-start` | The start of the input container.
 `formie.field.input-end` | The end of the input container.
-`formie.subfield.field-start` | The start of the subfield field container.
-`formie.subfield.field-end` | The end of the subfield field container.
-`formie.subfield.input-before` | Before the subfield input container.
-`formie.subfield.input-after` | After the subfield input container.
-`formie.subfield.input-start` | The start of the subfield input container.
-`formie.subfield.input-end` | The end of the subfield input container.
 
 ### Example
 
@@ -109,7 +97,6 @@ Craft::$app->getView()->hook('formie.field.field-before', function(array &$conte
 });
 ```
 
-
 ## Control Panel - Edit Submission
 When editing a submissions in the control panel, you'll have access to the following hooks.
 
@@ -118,7 +105,6 @@ Hook | Description
 `formie.cp.submissions.edit` | Before submission detail view’s template blocks.
 `formie.cp.submissions.edit.content` | After submission detail view’s main content.
 `formie.cp.submissions.edit.details` | After submission detail view’s existing right sidebar details column.
-
 
 ### Example
 

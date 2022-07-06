@@ -5,6 +5,7 @@ use verbb\formie\base\FormField;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyPurifierConfigEvent;
 use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\models\HtmlTag;
 use verbb\formie\models\Notification;
 use verbb\formie\positions\Hidden as HiddenPosition;
 
@@ -115,7 +116,7 @@ class Html extends FormField
     /**
      * @inheritDoc
      */
-    public function getEmailHtml(Submission $submission, Notification $notification, mixed $value, array $options = null): string|null|bool
+    public function getEmailHtml(Submission $submission, Notification $notification, mixed $value, array $renderOptions = []): string|null|bool
     {
         return false;
     }

@@ -74,7 +74,7 @@ class MissingField extends FormField implements MissingComponentInterface
     /**
      * @inheritDoc
      */
-    public function getEmailHtml(Submission $submission, Notification $notification, mixed $value, array $options = null): string|null|bool
+    public function getEmailHtml(Submission $submission, Notification $notification, mixed $value, array $renderOptions = []): string|null|bool
     {
         return false;
     }

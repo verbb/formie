@@ -1,34 +1,11 @@
-{% set attributes = {
-    type: 'tel',
-    id: options.id,
-    class: [ 'fui-input' ],
-    name: 'number' | namespaceInputName(field.handle),
-    placeholder: field.placeholder | t,
-    required: field.required ? true : false,
-    autocomplete: 'tel-national',
+{{ fieldtag('fieldInput', {
     value: value.number ?? null,
-    data: {
-        'fui-id': options.dataId,
-        'fui-message': field.settings.errorMessage | t,
-    },
-    aria: {
-        required: field.required ? 'true' : 'false',
-    },
-} | merge(field.getInputAttributes()) %}
-
-<input {{ attr(attributes) }} />
+}) }}
 
 {% if field.countryEnabled %}
-    <input {{ attr({
-        id: options.id ~ '-country',
-        name: 'country' | namespaceInputName(field.handle),
+    {{ fieldtag('fieldCountryInput', {
         value: value.country ?? null,
-        type: 'hidden',
-        data: {
-            'fui-id': options.dataId ~ '-country',
-            country: '',
-        }
-    }) }} />
+    }) }}
 
     {% do view.registerCssFile(view.getAssetManager().getPublishedUrl('@verbb/formie/web/assets/frontend/dist/css/fields/phone-country.css', true)) %}
 {% endif %}

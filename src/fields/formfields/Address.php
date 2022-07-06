@@ -3,6 +3,7 @@ namespace verbb\formie\fields\formfields;
 
 use verbb\formie\Formie;
 use verbb\formie\base\FormField;
+use verbb\formie\base\FormFieldInterface;
 use verbb\formie\base\Integration;
 use verbb\formie\base\IntegrationInterface;
 use verbb\formie\base\SubfieldInterface;
@@ -12,12 +13,14 @@ use verbb\formie\gql\types\generators\FieldAttributeGenerator;
 use verbb\formie\gql\types\input\AddressInputType;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\Address as AddressModel;
-use verbb\formie\positions\FieldsetStart;
+use verbb\formie\positions\AboveInput;
+use verbb\formie\models\HtmlTag;
 
 use Craft;
 use craft\base\ElementInterface;
 use craft\base\PreviewableFieldInterface;
 use craft\errors\InvalidFieldException;
+use craft\helpers\Component;
 use craft\helpers\Json;
 use craft\helpers\StringHelper;
 
@@ -277,7 +280,7 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
             'countryDefaultValue' => '',
             'countryPrePopulate' => '',
 
-            'instructionsPosition' => FieldsetStart::class,
+            'instructionsPosition' => AboveInput::class,
         ];
     }
 
@@ -324,12 +327,9 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
             $fieldValue = $value->$subField ?? '';
 
             if ($this->$enabledProp && ($this->required || $this->$requiredProp) && StringHelper::isBlank($fieldValue)) {
-                $element->addError(
-                    $this->handle,
-                    Craft::t('formie', '"{label}" cannot be blank.', [
-                        'label' => $this->$labelProp,
-                    ])
-                );
+                $element->addError($this->handle, Craft::t('formie', '"{label}" cannot be blank.', [
+                    'label' => $this->$labelProp,
+                ]));
             }
         }
     }
@@ -337,43 +337,221 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
     /**
      * @inheritDoc
      */
-    public function getFrontEndSubfields(): array
+    public function getFrontEndSubfields($context): array
     {
         $subFields = [];
 
-        $rows = [];
+        $rowConfigs = [
+            [
+                [
+                    'type' => SingleLineText::class,
+                    'name' => $this->address1Label,
+                    'handle' => 'address1',
+                    'required' => $this->address1Required,
+                    'placeholder' => $this->address1Placeholder,
+                    'errorMessage' => $this->address1ErrorMessage,
+                    'defaultValue' => $this->address1DefaultValue,
+                    'labelPosition' => $this->subfieldLabelPosition,
+                    'inputAttributes' => [
+                        [
+                            'label' => 'autocomplete',
+                            'value' => 'address-line1',
+                        ],
+                        [
+                            'label' => 'data-address1',
+                            'value' => true,
+                        ],
+                    ],
+                ],
+            ],
+            [
+                [
+                    'type' => SingleLineText::class,
+                    'name' => $this->address2Label,
+                    'handle' => 'address2',
+                    'required' => $this->address2Required,
+                    'placeholder' => $this->address2Placeholder,
+                    'errorMessage' => $this->address2ErrorMessage,
+                    'defaultValue' => $this->address2DefaultValue,
+                    'labelPosition' => $this->subfieldLabelPosition,
+                    'inputAttributes' => [
+                        [
+                            'label' => 'autocomplete',
+                            'value' => 'address-line2',
+                        ],
+                        [
+                            'label' => 'data-address2',
+                            'value' => true,
+                        ],
+                    ],
+                ],
+            ],
+            [
+                [
+                    'type' => SingleLineText::class,
+                    'name' => $this->address3Label,
+                    'handle' => 'address3',
+                    'required' => $this->address3Required,
+                    'placeholder' => $this->address3Placeholder,
+                    'errorMessage' => $this->address3ErrorMessage,
+                    'defaultValue' => $this->address3DefaultValue,
+                    'labelPosition' => $this->subfieldLabelPosition,
+                    'inputAttributes' => [
+                        [
+                            'label' => 'autocomplete',
+                            'value' => 'address-line3',
+                        ],
+                        [
+                            'label' => 'data-address3',
+                            'value' => true,
+                        ],
+                    ],
+                ],
+            ],
+            [
+                [
+                    'type' => SingleLineText::class,
+                    'name' => $this->cityLabel,
+                    'handle' => 'city',
+                    'required' => $this->cityRequired,
+                    'placeholder' => $this->cityPlaceholder,
+                    'errorMessage' => $this->cityErrorMessage,
+                    'defaultValue' => $this->cityDefaultValue,
+                    'labelPosition' => $this->subfieldLabelPosition,
+                    'inputAttributes' => [
+                        [
+                            'label' => 'autocomplete',
+                            'value' => 'address-level2',
+                        ],
+                        [
+                            'label' => 'data-city',
+                            'value' => true,
+                        ],
+                    ],
+                ],
+                [
+                    'type' => SingleLineText::class,
+                    'name' => $this->zipLabel,
+                    'handle' => 'zip',
+                    'required' => $this->zipRequired,
+                    'placeholder' => $this->zipPlaceholder,
+                    'errorMessage' => $this->zipErrorMessage,
+                    'defaultValue' => $this->zipDefaultValue,
+                    'labelPosition' => $this->subfieldLabelPosition,
+                    'inputAttributes' => [
+                        [
+                            'label' => 'autocomplete',
+                            'value' => 'postal-code',
+                        ],
+                        [
+                            'label' => 'data-zip',
+                            'value' => true,
+                        ],
+                    ],
+                ],
+            ],
+            [
+                [
+                    'type' => SingleLineText::class,
+                    'name' => $this->stateLabel,
+                    'handle' => 'state',
+                    'required' => $this->stateRequired,
+                    'placeholder' => $this->statePlaceholder,
+                    'errorMessage' => $this->stateErrorMessage,
+                    'defaultValue' => $this->stateDefaultValue,
+                    'labelPosition' => $this->subfieldLabelPosition,
+                    'inputAttributes' => [
+                        [
+                            'label' => 'autocomplete',
+                            'value' => 'address-level1',
+                        ],
+                        [
+                            'label' => 'data-state',
+                            'value' => true,
+                        ],
+                    ],
+                ],
+                [
+                    'type' => Dropdown::class,
+                    'name' => $this->countryLabel,
+                    'handle' => 'country',
+                    'required' => $this->countryRequired,
+                    'placeholder' => $this->countryPlaceholder,
+                    'errorMessage' => $this->countryErrorMessage,
+                    'defaultValue' => $this->countryDefaultValue,
+                    'labelPosition' => $this->subfieldLabelPosition,
+                    'options' => $this->countryOptions,
+                    'inputAttributes' => [
+                        [
+                            'label' => 'autocomplete',
+                            'value' => 'country',
+                        ],
+                        [
+                            'label' => 'data-country',
+                            'value' => true,
+                        ],
+                    ],
+                ],
+            ],
+        ];
 
         if ($this->autocompleteEnabled) {
-            $rows[] = ['autocomplete' => 'autocomplete'];
+            array_unshift($rowConfigs, [
+                [
+                    'type' => SingleLineText::class,
+                    'name' => $this->autocompleteLabel,
+                    'handle' => 'autocomplete',
+                    'required' => $this->autocompleteRequired,
+                    'placeholder' => $this->autocompletePlaceholder,
+                    'errorMessage' => $this->autocompleteErrorMessage,
+                    'defaultValue' => $this->autocompleteDefaultValue,
+                    'labelPosition' => $this->subfieldLabelPosition,
+                    'inputAttributes' => [
+                        [
+                            'label' => 'autocomplete',
+                            'value' => 'autocomplete',
+                        ],
+                        [
+                            'label' => 'data-autocomplete',
+                            'value' => true,
+                        ],
+                        [
+                            'label' => 'type',
+                            'value' => 'search',
+                        ],
+                        [
+                            'label' => 'aria-autocomplete',
+                            'value' => 'list',
+                        ],
+                    ],
+                ]
+            ]);
         }
 
-        $rows = array_merge($rows, [
-            ['address1' => 'address-line1'],
-            ['address2' => 'address-line2'],
-            ['address3' => 'address-line3'],
-            [
-                'city' => 'address-level2',
-                'zip' => 'postal-code',
-            ],
-            [
-                'state' => 'address-level1',
-                'country' => 'country',
-            ],
-        ]);
-
-        foreach ($rows as $key => $row) {
-            foreach ($row as $handle => $autocomplete) {
+        foreach ($rowConfigs as $key => $rowConfig) {
+            foreach ($rowConfig as $config) {
+                $handle = $config['handle'];
                 $enabledProp = "{$handle}Enabled";
+                $hiddenProp = "{$handle}Hidden";
+
+                if ($handle !== 'autocomplete' && $this->$hiddenProp) {
+                    continue;
+                }
 
                 if ($this->$enabledProp) {
-                    $subFields[$key][$handle] = $autocomplete;
+                    $subField = Component::createComponent($config, FormFieldInterface::class);
+
+                    // Ensure we set the parent field instance to handle the nested nature of subfields
+                    $subField->setParentField($this);
+
+                    $subFields[$key][] = $subField;
                 }
             }
         }
-        $event = new ModifyFrontEndSubfieldsEvent([
 
+        $event = new ModifyFrontEndSubfieldsEvent([
             'field' => $this,
-            'rows' => array_filter($subFields),
+            'rows' => $subFields,
         ]);
 
         Event::trigger(static::class, self::EVENT_MODIFY_FRONT_END_SUBFIELDS, $event);
@@ -451,14 +629,6 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
     /**
      * @inheritDoc
      */
-    public function getIsFieldset(): bool
-    {
-        return true;
-    }
-
-    /**
-     * @inheritDoc
-     */
     public function getInputHtml(mixed $value, ?ElementInterface $element = null): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/address/input', [
@@ -479,7 +649,7 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
         ]);
     }
 
-    public function getAutocompleteHtml($options): string
+    public function getAutocompleteHtml(array $renderOptions = []): string
     {
         $integration = $this->getAddressProviderIntegration();
 
@@ -487,7 +657,7 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
             return '';
         }
 
-        return $integration->getFrontEndHtml($this, $options);
+        return $integration->getFrontEndHtml($this, $renderOptions);
     }
 
     public function getFrontEndJsModules(): ?array
@@ -703,6 +873,20 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
     public function getContentGqlMutationArgumentType(): array|Type
     {
         return AddressInputType::getType($this);
+    }
+
+    public function defineHtmlTag(string $key, array $context = []): ?HtmlTag
+    {
+        if ($key === 'locationLink') {
+            return new HtmlTag('a', [
+                'href' => 'javascript:;',
+                'class' => 'fui-link fui-address-location-link',
+                'text' => Craft::t('site', 'Use my location'),
+                'data-fui-address-location-btn' => true,
+            ]);
+        }
+
+        return parent::defineHtmlTag($key, $context);
     }
 
 

@@ -6,6 +6,7 @@ use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 
 use Craft;
+use craft\helpers\Html;
 use craft\helpers\Json;
 use craft\web\View;
 
@@ -59,7 +60,10 @@ class Javascript extends Captcha
             Craft::$app->getSession()->set($sessionKey . '_init', time());
         }
 
-        return '<div class="formie-jscaptcha-placeholder"></div>';
+        return Html::tag('div', [
+            'class' => 'formie-jscaptcha-placeholder',
+            'data-jscaptcha-placeholder' => true,
+        ]);
     }
 
     /**

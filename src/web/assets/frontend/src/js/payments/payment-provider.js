@@ -2,12 +2,16 @@ import { eventKey } from '../utils/utils';
 
 export class FormiePaymentProvider {
     constructor(settings = {}) {
+        this.successClass = 'fui-success';
+        this.successMessageClass = 'fui-success-message';
+        this.errorClass = 'fui-error';
+        this.errorMessageClass = 'fui-error-message';
     }
 
     removeSuccess() {
-        this.$field.classList.remove('fui-success');
+        this.$field.classList.remove(this.successClass);
 
-        var $success = this.$field.querySelector('.fui-success-message');
+        var $success = this.$field.querySelector('.' + this.successMessageClass);
 
         if ($success) {
             $success.remove();
@@ -15,25 +19,25 @@ export class FormiePaymentProvider {
     }
 
     addSuccess(message) {
-        this.$field.classList.add('fui-success');
+        this.$field.classList.add(this.successClass);
 
-        var $fieldContainer = this.$field.querySelector('.fui-field-container');
+        var $fieldContainer = this.$field.querySelector('[data-field-type] > div');
 
         if (!$fieldContainer) {
-            return console.error('Unable to find `.fui-field-container` to add success message.');
+            return console.error('Unable to find `[data-field-type] > div` to add success message.');
         }
 
         var $success = document.createElement('div');
-        $success.className = 'fui-success-message';
+        $success.className = this.successMessageClass;
         $success.textContent = message;
 
         $fieldContainer.appendChild($success);
     }
 
     removeError() {
-        this.$field.classList.remove('fui-error');
+        this.$field.classList.remove(this.errorClass);
 
-        var $error = this.$field.querySelector('.fui-error-message');
+        var $error = this.$field.querySelector('.' + this.errorMessageClass);
 
         if ($error) {
             $error.remove();
@@ -41,16 +45,16 @@ export class FormiePaymentProvider {
     }
 
     addError(message) {
-        this.$field.classList.add('fui-error');
+        this.$field.classList.add(this.errorClass);
 
-        var $fieldContainer = this.$field.querySelector('.fui-field-container');
+        var $fieldContainer = this.$field.querySelector('[data-field-type] > div');
 
         if (!$fieldContainer) {
-            return console.error('Unable to find `.fui-field-container` to add error message.');
+            return console.error('Unable to find `[data-field-type] > div` to add error message.');
         }
 
         var $error = document.createElement('div');
-        $error.className = 'fui-error-message';
+        $error.className = this.errorMessageClass;
         $error.textContent = message;
 
         $fieldContainer.appendChild($error);

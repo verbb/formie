@@ -1,50 +1,105 @@
 # Upgrading from v1
 While the [changelog](https://github.com/verbb/formie/blob/craft-4/CHANGELOG.md) is the most comprehensive list of changes, this guide provides high-level overview and organizes changes by category.
 
+
 ## Plugin Settings
-We've removed `enableGatsbyCompatibility` as it is no longer required.
+Some plugin settings have been removed.
+
+Old | What to do instead
+--- | ---
+| `enableGatsbyCompatibility` | No longer required
 
 ## Removed Controller
 The `formie/csrf/*` actions have been removed (previously deprecated). If you relied on these to refresh the CSRF token for your forms, refer to the [docs](https://verbb.io/craft-plugins/formie/docs/template-guides/cached-forms) for the updated controller and code.
 
-## Templates
-There have been a number of template changes, some which have been inherited from Craft 4 changes.
 
-### `getFields()`
-Any references to `getFields()` should be changed to `getCustomFields()`. This is inline with Craft 4 element field layout changes.
+## Models
 
 ### `{% cache %}` tag
 In Craft 4, external JavaScript and CSS resources are now included in cached data. In [Craft 3](https://verbb.io/craft-plugins/formie/docs/v1/template-guides/cached-forms), you would have been required to use `craft.formie.registerAssets()` outside of your `{% cache %}` tags.
 
 You now no longer need to do this, and any JavaScript and CSS will be captured in `{% cache %}` tags.
 
-## Form
+### Form
 The following changes have been made to the [Form](docs:developers/form) object.
 
 Old | What to do instead
 --- | ---
 | `getFields()` | `getCustomFields()`
 
-## Page
+### Page
 The following changes have been made to the [Page](docs:developers/page) object.
 
 Old | What to do instead
 --- | ---
 | `getFields()` | `getCustomFields()`
 
-## Row
+### Row
 The following changes have been made to the [Row](docs:developers/row) object.
 
 Old | What to do instead
 --- | ---
 | `getFields()` | `getCustomFields()`
+### Field
 
-## Submission
+The following changes have been made to the [Field](docs:developers/field) object.
+
+Old | What to do instead
+--- | ---
+| `renderLabel()` | No longer required
+| `getIsTextInput()` | No longer required
+| `getIsSelect()` | No longer required
+| `getIsFieldset()` | No longer required
+
+### Submission
 The following changes have been made to the [Submission](docs:developers/submission) object.
 
 Old | What to do instead
 --- | ---
 | `getFields()` | `getCustomFields()`
+
+
+## Templates
+Formie v2 features a revamp of front-end templates, and as such, there are likely to be many breaking changes. If you use custom templates, or template overrides carefully read the below, and consult the following updated docs:
+
+- [Theming](docs:template-guides/theming)
+- [Custom Rendering](docs:theming/custom-rendering)
+- [Custom Templates](docs:theming/template-overrides)
+
+Any current custom templates, or template overrides will continue to work, despite the new template architecture.
+
+### `getFields()`
+Any references to `getFields()` should be changed to `getCustomFields()`. This is inline with Craft 4 element field layout changes.
+
+### Render Options
+Any references to `options` should be changed to `renderOptions`. This is to prevent ambiguity with other variables named `options`. The only exception to this is within option-based fields like Dropdown, Checkboxes and Radio Buttons which do in fact have a variable named `options` for the collection of options for that field. This is different to `renderOptions`.
+
+### Form ID
+Previously, you were required to have at least the `id` and `data-config` attributes present on a `<form>` element. Furthermore, in order to use Formie's JS, you were required to use `form.getFormId()` or ensure your ID started with `formie-form-*`. This is no longer the case. 
+
+You are now required to only have a `data-fui-form` attribute which combines the two.
+
+```twig
+{# Formie v1 #}
+{% set attributes = {
+    id: form.formId,
+    method: 'post',
+    data: {
+        config: form.configJson,
+    },
+} %}
+
+<form {{ attr(attributes) }}>
+
+{# Formie v2 #}
+{{ tag('form', {
+    method: 'post',
+    'data-fui-form': form.configJson,
+}) }}
+```
+
+Without the `data-fui-form` and `data-config`, the Formie JS will fail to initialise.
+
 
 ## GraphQL
 
@@ -219,4 +274,24 @@ Old | What to do instead
 | `@verbb/formie/web/assets/emailmarketing/dist/img/{$handle}.svg` | `@verbb/formie/web/assets/cp/dist/img/emailmarketing/{$handle}.svg`
 | `@verbb/formie/web/assets/miscellaneous/dist/img/{$handle}.svg` | `@verbb/formie/web/assets/cp/dist/img/miscellaneous/{$handle}.svg`
 | `@verbb/formie/web/assets/webhooks/dist/img/{$handle}.svg` | `@verbb/formie/web/assets/cp/dist/img/webhooks/{$handle}.svg`
+
+
+## Custom Fields
+For custom fields, there are some required changes.
+
+Old | What to do instead
+--- | ---
+| `getFrontEndInputOptions(Form $form, mixed $value, array $options = null)` | `getFrontEndInputOptions(Form $form, mixed $value, array $options = [])`
+| `getFrontEndInputHtml(Form $form, mixed $value, array $options = null)` | `getFrontEndInputHtml(Form $form, mixed $value, array $options = [])`
+
+
+### Hooks
+The following hooks have been removed:
+
+- `formie.subfield.field-start`
+- `formie.subfield.field-end`
+- `formie.subfield.input-before`
+- `formie.subfield.input-after`
+- `formie.subfield.input-start`
+- `formie.subfield.input-end`
 

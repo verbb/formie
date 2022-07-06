@@ -1,27 +1,14 @@
-{% set attributes = {
-    type: 'checkbox',
-    id: options.id,
-    class: [
-        'fui-input',
-        'fui-checkbox-input',
-    ],
-    name: field.handle,
-    required: field.required ? true : false,
-    value: '1',
-    checked: value ? true : false,
-    data: {
-        'fui-id': options.dataId,
-        'fui-input-type': 'agree',
-        'fui-message': field.settings.errorMessage | t,
-    },
-    aria: {
-        required: field.required ? 'true' : 'false',
-    },
-} | merge(field.getInputAttributes()) %}
+{{ hiddenInput(field.getHtmlName(), '', {
+    'data-fui-input-type': 'agree',
+}) }}
 
-<input type="hidden" name="{{ field.handle }}" value="" data-fui-input-type="agree">
+{% fieldtag 'fieldOption' %}
+    {{ fieldtag('fieldInput', {
+        value: '1',
+        checked: value ? true : false,
+    }) }}
 
-<div class="fui-checkbox">
-    <input {{ attr(attributes) }} />
-    <label for="{{ options.id }}" class="fui-checkbox-label">{{ field.getDescriptionHtml() }}</label>
-</div>
+    {% fieldtag 'fieldOptionLabel' %}
+        {{- field.getDescriptionHtml() -}}
+    {% endfieldtag %}
+{% endfieldtag %}

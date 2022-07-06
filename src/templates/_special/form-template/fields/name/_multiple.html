@@ -1,19 +1,12 @@
-<fieldset class="fui-fieldset fui-subfield-fieldset" aria-labelledby="{{ options.labelId }}">
-    {{ formieInclude('_includes/legend', { position: 'above', labelId: options.labelId }) }}
-
-    {{ formieInclude('_includes/instructions', { position: 'fieldset-start' }) }}
-
-    <div class="fui-field-rows">
-        {% for row in field.getFrontEndSubfields() %}
-            <div class="fui-row">
-                {% for handle, autocomplete in row %}
-                    {{ formieInclude('fields/name/_field') }}
-                {% endfor %}
-            </div>
-        {% endfor %}
-    </div>
-
-    {{ formieInclude('_includes/instructions', { position: 'fieldset-end' }) }}
-
-    {{ formieInclude('_includes/legend', { position: 'below', labelId: options.labelId }) }}
-</fieldset>
+{% fieldtag 'subFieldRows' %}
+    {% for row in field.getFrontEndSubfields(_context) %}
+        {% fieldtag 'subFieldRow' %}
+            {% for subField in row %}
+                {{ craft.formie.renderField(form, subField, {
+                    element: element ?? null,
+                    value: value[subField.handle] ?? null,
+                }) }}
+            {% endfor %}
+        {% endfieldtag %}
+    {% endfor %}
+{% endfieldtag %}

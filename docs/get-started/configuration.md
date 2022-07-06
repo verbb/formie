@@ -18,6 +18,7 @@ return [
         'ajaxTimeout' => 10,
 
         // General Fields
+        'disabledFields' => [],
         'defaultLabelPosition' => 'above-input',
         'defaultInstructionsPosition' => 'below-input',
 
@@ -34,6 +35,7 @@ return [
         'useQueueForIntegrations' => true,
 
         // Sent Notifications
+        'sentNotifications' => true,
         'maxSentNotificationsAge' => 30,
 
         // Spam
@@ -47,6 +49,13 @@ return [
         // Alerts
         'sendEmailAlerts' => false,
         'alertEmails' => [],
+
+        // PDFs
+        'pdfPaperSize' => 'letter',
+        'pdfPaperOrientation' => 'portrait',
+
+        // Theme
+        'themeConfig' = [],
     ]
 ];
 ```
@@ -62,6 +71,7 @@ return [
 - `ajaxTimeout` - Set the timeout in seconds for Ajax/XHR requests when using the front-end JS. Default to 10 seconds.
 
 ### General Fields
+- `disabledFields` - An array of field classes that should be disabled, and un-selectable in the form builder.
 - `defaultLabelPosition` - The default label position for new forms and fields.
 - `defaultInstructionsPosition` - The default instruction position for new forms and fields.
 
@@ -78,6 +88,7 @@ return [
 - `useQueueForIntegrations` - Whether to use Craft‘s queue system to trigger integrations. This is highly, **highly** recommended, to prevent slow submissions for your users. This may be useful to disable for local development.
 
 ### Sent Notifications
+- `sentNotifications` - Whether to enable Sent Notifications functionality.
 - `maxSentNotificationsAge` - The number of days to keep sent notifications before they are deleted permanently. Set to 0 to disable automatic deletion.
 
 ### Spam
@@ -92,6 +103,13 @@ return [
 - `sendEmailAlerts` - Whether an email alert should be sent to a nominated email when an email notification fails to send.
 - `alertEmails` - A collection of emails that alerts should be sent to. See below for an example.
 
+### PDFs
+- `pdfPaperSize` - Sets the paper size for the PDF used in Email Notifications.
+- `pdfPaperOrientation` - Sets the paper orientation for the PDF used in Email Notifications.
+
+### Theme
+- `themeConfig` - Sets the configuration for theming your form and fields. See below for an example.
+
 ## Control Panel
 
 You can also manage configuration settings through the Control Panel by visiting Settings → Formie.
@@ -105,6 +123,22 @@ Supply a nested array for the name and email of each contact to receive alert no
     ['Secondary Admin Name', 'admin-alt@site.com'],
 ],
 ```
+
+### Theme Configuration
+Supply a nested array for the configuration form and fields should use when rendering.
+
+```php
+'themeConfig' => [
+    'form' => [
+        'class' => 'border border-red-500',
+    ],
+    'field' => [
+        'class' => 'uppercase',
+    ],
+],
+```
+
+Continue reading the [theming](docs:theming) docs for more.
 
 ## Rich Text Configuration
 Formie uses a Rich Text field for numerous settings for forms, notifications and more. This field is powered by [TipTap](https://tiptap.scrumpy.io/). You have control over the configuration of these Rich Text fields, by providing a `.json` file with its configurations, very similar to how the [Redactor](https://plugins.craftcms.com/redactor) plugin works.

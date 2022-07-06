@@ -153,4 +153,41 @@ class ArrayHelper extends CraftArrayHelper
             unset($curMerge);
         }
     }
+
+    /**
+     * @inheritDoc
+     */
+    public static function filterNullValues($values)
+    {
+        foreach ($values as $key => $value) {
+            if (is_array($value)) {
+                $values[$key] = self::filterNullValues($values[$key]);
+            }
+
+            if ($values[$key] === null) {
+                unset($values[$key]);
+            }
+        }
+
+        return $values;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public static function filterEmptyValues($values)
+    {
+        foreach ($values as $key => $value) {
+            if (is_array($value)) {
+                $values[$key] = self::filterEmptyValues($values[$key]);
+            }
+
+            if ($values[$key] === null || $values[$key] === false || $values[$key] === '') {
+                unset($values[$key]);
+            }
+        }
+
+        return $values;
+    }
+
 }

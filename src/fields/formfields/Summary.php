@@ -4,6 +4,7 @@ namespace verbb\formie\fields\formfields;
 use verbb\formie\base\FormField;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\models\HtmlTag;
 use verbb\formie\models\Notification;
 
 use Craft;
@@ -51,14 +52,6 @@ class Summary extends FormField
     /**
      * @inheritDoc
      */
-    public function renderLabel(): bool
-    {
-        return false;
-    }
-
-    /**
-     * @inheritDoc
-     */
     public function hasLabel(): bool
     {
         return false;
@@ -89,7 +82,7 @@ class Summary extends FormField
     /**
      * @inheritDoc
      */
-    public function getEmailHtml(Submission $submission, Notification $notification, mixed $value, array $options = null): string|null|bool
+    public function getEmailHtml(Submission $submission, Notification $notification, mixed $value, array $renderOptions = []): string|null|bool
     {
         return false;
     }
@@ -131,5 +124,43 @@ class Summary extends FormField
             SchemaHelper::enableConditionsField(),
             SchemaHelper::conditionsField(),
         ];
+    }
+
+    public function defineHtmlTag(string $key, array $context = []): ?HtmlTag
+    {
+        $form = $context['form'] ?? null;
+
+        $id = $this->getHtmlId($form);
+        $dataId = $this->getHtmlDataId($form);
+
+        if ($key === 'fieldSummaryBlocks') {
+            return new HtmlTag('div', [
+                'class' => 'fui-summary-blocks',
+                'data-summary-blocks' => true,
+            ]);
+        }
+
+        if ($key === 'fieldSummaryHeading') {
+            return new HtmlTag('h3', [
+                'class' => 'fui-heading-h3',
+                'text' => Craft::t('formie', 'Your submission is being prepared. Please review below before proceeding.'),
+            ]);
+        }
+
+        if ($key === 'fieldSummaryBlock') {
+            return new HtmlTag('div', [
+                'class' => 'fui-summary-block',
+            ]);
+        }
+
+        if ($key === 'fieldSummaryLabel') {
+            return new HtmlTag('strong');
+        }
+
+        if ($key === 'fieldSummaryValue') {
+            return new HtmlTag('span');
+        }
+
+        return parent::defineHtmlTag($key, $context);
     }
 }

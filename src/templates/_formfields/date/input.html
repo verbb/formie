@@ -13,7 +13,7 @@
 {% if field.displayType == 'dropdowns' %}
     {% namespace field.handle %}
         <div class="fui-row">
-            {% for char, attrs in field.getFrontEndSubfields()[0] %}
+            {% for char, attrs in field.getFrontEndSubfields(_context)[0] %}
                 <div class="fui-col-auto" style="flex: 0;">
                     {% set options = [{
                         label: attribute(field, attrs.handle ~ 'Placeholder'),
@@ -47,7 +47,7 @@
 {% if field.displayType == 'inputs' %}
     {% namespace field.handle %}
         <div class="fui-row">
-            {% for char, attrs in field.getFrontEndSubfields()[0] %}
+            {% for char, attrs in field.getFrontEndSubfields(_context)[0] %}
                 {% switch attrs.handle %}
                     {% case 'ampm' %}
                         <div class="fui-col-auto">

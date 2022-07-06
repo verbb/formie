@@ -7,6 +7,7 @@ use verbb\formie\base\Integration;
 use verbb\formie\base\IntegrationInterface;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\models\HtmlTag;
 use verbb\formie\models\Notification;
 use verbb\formie\options\Currencies;
 
@@ -14,6 +15,9 @@ use Craft;
 use craft\base\ElementInterface;
 use craft\helpers\Html;
 use craft\helpers\StringHelper;
+use craft\helpers\Template;
+
+use Twig\Markup;
 
 class Payment extends FormField
 {
@@ -91,7 +95,7 @@ class Payment extends FormField
     /**
      * @inheritDoc
      */
-    public function getPaymentHtml($options): string
+    public function getPaymentHtml(array $renderOptions = []): Markup
     {
         $integration = $this->getPaymentIntegration();
 
@@ -99,7 +103,7 @@ class Payment extends FormField
             return '';
         }
 
-        return $integration->getFrontEndHtml($this, $options);
+        return Template::raw($integration->getFrontEndHtml($this, $renderOptions));
     }
 
     /**

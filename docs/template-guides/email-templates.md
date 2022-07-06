@@ -75,7 +75,7 @@ Don't forget, Formie will automatically generate a plain-text version of your HT
 In addition to providing a template for the overall email, you can customise the content for each field.
 
 :::tip
-Be sure to check out [Overriding Field Templates](docs:template-guides/form-templates) which is largely the same process, and applies to overriding email field templates.
+Be sure to check out [Custom Templates](docs:theming/template-overrides) which is largely the same process, and applies to overriding email field templates.
 :::
 
 Keeping with the same example, we can create templates for individual fields in a `fields` folder. So our template folder would look like:

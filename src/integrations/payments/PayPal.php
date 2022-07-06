@@ -74,7 +74,7 @@ class PayPal extends Payment
     /**
      * @inheritDoc
      */
-    public function getFrontEndHtml($field, $options): string
+    public function getFrontEndHtml($field, $renderOptions): string
     {
         if (!$this->hasValidSettings()) {
             return '';
@@ -84,7 +84,7 @@ class PayPal extends Payment
 
         return Craft::$app->getView()->renderTemplate('formie/integrations/payments/paypal/_input', [
             'field' => $field,
-            'options' => $options,
+            'renderOptions' => $renderOptions,
         ]);
     }
 

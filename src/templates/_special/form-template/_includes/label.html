@@ -1,24 +1,16 @@
-{% set isFieldset = field.isFieldset ?? false %}
-{% set label = field.name ?? fieldName %}
+{% if labelPosition.shouldDisplay(position) %}
+    {% fieldtag 'fieldLabel' %}
+        {{- field.name | t | raw -}}
 
-{% if not isFieldset and labelPosition.shouldDisplay(position) %}
-    {% set attributes = {
-        for: not isFieldset ? id,
-        id: labelId ?? null,
-        class: [ 'fui-label' ],
-    } | filter %}
+        {%- if field.required ?? required ?? false -%}
+            &nbsp;<span class="fui-required">*</span>
+        {%- endif -%}
 
-    {% if label %}
-        <label {{- attr(attributes) -}}>
-            {{- label | t | raw -}}
+        {# Allow extra content to be passed in #}
+        {%- set labelExtraContent = labelExtraContent ?? renderOptions.labelExtraContent ?? null -%}
 
-            {%- if field.required ?? required ?? false -%}
-                &nbsp;<span class="fui-required">*</span>
-            {%- endif -%}
-
-            {% if extraContent is defined %}
-                {{ extraContent | raw }}
-            {%- endif -%}
-        </label>
-    {% endif %}
+        {%- if labelExtraContent -%}
+            {{ labelExtraContent | raw }}
+        {%- endif -%}
+    {% endfieldtag %}
 {% endif %}

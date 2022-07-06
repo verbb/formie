@@ -3,6 +3,7 @@ namespace verbb\formie\fields\formfields;
 
 use verbb\formie\Formie;
 use verbb\formie\base\FormField;
+use verbb\formie\base\FormFieldInterface;
 use verbb\formie\base\SubfieldInterface;
 use verbb\formie\base\SubfieldTrait;
 use verbb\formie\events\ModifyFrontEndSubfieldsEvent;
@@ -10,12 +11,16 @@ use verbb\formie\events\ModifyNamePrefixOptionsEvent;
 use verbb\formie\gql\types\generators\FieldAttributeGenerator;
 use verbb\formie\gql\types\input\NameInputType;
 use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\models\HtmlTag;
 use verbb\formie\models\Name as NameModel;
-use verbb\formie\positions\FieldsetStart;
+use verbb\formie\positions\AboveInput;
 
 use Craft;
 use craft\base\ElementInterface;
 use craft\base\PreviewableFieldInterface;
+use craft\helpers\ArrayHelper;
+use craft\helpers\Component;
+use craft\helpers\Html;
 use craft\helpers\Json;
 
 use yii\base\Event;
@@ -218,39 +223,106 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
             'lastNameDefaultValue' => '',
             'lastNamePrePopulate' => '',
 
-            'instructionsPosition' => FieldsetStart::class,
+            'instructionsPosition' => AboveInput::class,
         ];
     }
 
     /**
      * @inheritDoc
      */
-    public function getFrontEndSubfields(): array
+    public function getFrontEndSubfields($context): array
     {
         $subFields = [];
 
-        $rows = [
+        $rowConfigs = [
             [
-                'prefix' => 'honorific-prefix',
-                'firstName' => 'given-name',
-                'middleName' => 'additional-name',
-                'lastName' => 'family-name',
+                [
+                    'type' => Dropdown::class,
+                    'name' => $this->prefixLabel,
+                    'handle' => 'prefix',
+                    'required' => $this->prefixRequired,
+                    'placeholder' => $this->prefixPlaceholder,
+                    'errorMessage' => $this->prefixErrorMessage,
+                    'defaultValue' => $this->prefixDefaultValue,
+                    'labelPosition' => $this->subfieldLabelPosition,
+                    'options' => $this->prefixOptions,
+                    'inputAttributes' => [
+                        [
+                            'label' => 'autocomplete',
+                            'value' => 'honorific-prefix',
+                        ],
+                    ],
+                ],
+                [
+                    'type' => SingleLineText::class,
+                    'name' => $this->firstNameLabel,
+                    'handle' => 'firstName',
+                    'required' => $this->firstNameRequired,
+                    'placeholder' => $this->firstNamePlaceholder,
+                    'errorMessage' => $this->firstNameErrorMessage,
+                    'defaultValue' => $this->firstNameDefaultValue,
+                    'labelPosition' => $this->subfieldLabelPosition,
+                    'inputAttributes' => [
+                        [
+                            'label' => 'autocomplete',
+                            'value' => 'given-name',
+                        ],
+                    ],
+                ],
+                [
+                    'type' => SingleLineText::class,
+                    'name' => $this->middleNameLabel,
+                    'handle' => 'middleName',
+                    'required' => $this->middleNameRequired,
+                    'placeholder' => $this->middleNamePlaceholder,
+                    'errorMessage' => $this->middleNameErrorMessage,
+                    'defaultValue' => $this->middleNameDefaultValue,
+                    'labelPosition' => $this->subfieldLabelPosition,
+                    'inputAttributes' => [
+                        [
+                            'label' => 'autocomplete',
+                            'value' => 'additional-name',
+                        ],
+                    ],
+                ],
+                [
+                    'type' => SingleLineText::class,
+                    'name' => $this->lastNameLabel,
+                    'handle' => 'lastName',
+                    'required' => $this->lastNameRequired,
+                    'placeholder' => $this->lastNamePlaceholder,
+                    'errorMessage' => $this->lastNameErrorMessage,
+                    'defaultValue' => $this->lastNameDefaultValue,
+                    'labelPosition' => $this->subfieldLabelPosition,
+                    'inputAttributes' => [
+                        [
+                            'label' => 'autocomplete',
+                            'value' => 'family-name',
+                        ],
+                    ],
+                ],
             ],
         ];
 
-        foreach ($rows as $key => $row) {
-            foreach ($row as $handle => $autocomplete) {
+        foreach ($rowConfigs as $key => $rowConfig) {
+            foreach ($rowConfig as $config) {
+                $handle = $config['handle'];
                 $enabledProp = "{$handle}Enabled";
 
                 if ($this->$enabledProp) {
-                    $subFields[$key][$handle] = $autocomplete;
+                    $subField = Component::createComponent($config, FormFieldInterface::class);
+
+                    // Ensure we set the parent field instance to handle the nested nature of subfields
+                    $subField->setParentField($this);
+
+                    $subFields[$key][] = $subField;
                 }
             }
         }
 
         $event = new ModifyFrontEndSubfieldsEvent([
             'field' => $this,
-            'rows' => array_filter($subFields),
+            'rows' => $subFields,
         ]);
 
         Event::trigger(static::class, self::EVENT_MODIFY_FRONT_END_SUBFIELDS, $event);
@@ -293,22 +365,6 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
         }
 
         $this->subfieldValidateRequiredFields($element);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getIsTextInput(): bool
-    {
-        return !$this->useMultipleFields;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getIsFieldset(): bool
-    {
-        return $this->useMultipleFields;
     }
 
     /**
@@ -531,6 +587,54 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
         return Type::string();
     }
 
+    public function defineHtmlTag(string $key, array $context = []): ?HtmlTag
+    {
+        $form = $context['form'] ?? null;
+        $errors = $context['errors'] ?? null;
+
+        $id = $this->getHtmlId($form);
+        $dataId = $this->getHtmlDataId($form);
+
+        if ($this->useMultipleFields) {
+            if ($key === 'fieldContainer') {
+                return new HtmlTag('fieldset', [
+                    'class' => 'fui-fieldset fui-subfield-fieldset',
+                ]);
+            }
+
+            if ($key === 'fieldLabel') {
+                return new HtmlTag('legend', [
+                    'class' => 'fui-legend',
+                ]);
+            }
+        }
+
+        if ($key === 'fieldInput') {
+            return new HtmlTag('input', array_merge([
+                'type' => 'text',
+                'id' => $id,
+                'class' => [
+                    'fui-input',
+                    $errors ? 'fui-error' : false,
+                ],
+                'name' => $this->getHtmlName(),
+                'placeholder' => Craft::t('site', $this->placeholder) ?: null,
+                'required' => $this->required ? true : null,
+                'data' => [
+                    'fui-id' => $dataId,
+                    'fui-message' => Craft::t('site', $this->errorMessage) ?: null,
+                ],
+                'aria-describedby' => $this->instructions ? "{$id}-instructions" : null,
+            ], $this->getInputAttributes()));
+        }
+
+        return parent::defineHtmlTag($key, $context);
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
     /**
      * @inheritDoc
      */
@@ -546,10 +650,6 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
 
         return $rules;
     }
-
-
-    // Protected Methods
-    // =========================================================================
 
     protected function defineValueForExport($value, ElementInterface $element = null): mixed
     {

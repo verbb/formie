@@ -1,62 +1,39 @@
+{# Variable to provide `formtag` context #}
 {% set currentPage = form.getCurrentPage() %}
 
-{% set attributes = {
-    id: "#{form.formId}-p-#{page.id}",
-    class: [
-        'fui-page',
-        form.hasMultiplePages and page.id != currentPage.id ? 'fui-hidden',
-    ] | filter,
-    data: {
-        index: page.sortOrder,
-        id: page.id,
-    },
-} %}
-
-<div {{- attr(attributes) -}}>
-    {% set html %}
+{% formtag 'page' %}
+    {% formtag 'pageContainer' %}
         {% hook 'formie.page.start' %}
 
-        {% set displayCurrentPageTitle = form.settings.displayCurrentPageTitle %}
-
-        {% if displayCurrentPageTitle %}
-            <legend class="fui-page-title">{{ page.name | t }}</legend>
+        {% if form.settings.displayCurrentPageTitle %}
+            {{ formtag('pageTitle', {
+                text: page.name | t,
+            }) }}
         {% endif %}
 
         {% for row in page.getRows(false) %}
-            <div class="fui-row fui-page-row {{- not craft.formie.getVisibleFields(row) ? ' fui-row-empty' -}}">
+            {% formtag 'row' %}
                 {% for field in row.fields %}
-                    {{ craft.formie.renderField(form, field, options) }}
+                    {{ craft.formie.renderField(form, field, renderOptions) }}
                 {% endfor %}
-            </div>
+            {% endformtag %}
         {% endfor %}
 
         {% hook 'formie.page.end' %}
-    {% endset %}
-
-    {{ tag(displayCurrentPageTitle ? 'fieldset' : 'div', {
-        class: [
-            'fui-page-container',
-            displayCurrentPageTitle ? 'fui-fieldset',
-        ] | filter,
-        html: html,
-    }) }}
+    {% endformtag %}
 
     {% if submission is defined %}
         {% set flashNotice = craft.formie.plugin.service.getFlash(form.id, 'notice') %}
         {% set flashError = craft.formie.plugin.service.getFlash(form.id, 'error') %}
 
         {% if flashNotice and form.settings.submitActionMessagePosition == 'bottom-form' %}
-            <div class="fui-alert fui-alert-success fui-alert-{{ form.settings.submitActionMessagePosition }}" role="alert">
-                {{ flashNotice | t | raw }}
-            </div>
+            {{ formieInclude('_includes/alert-success') }}
         {% endif %}
 
         {% if flashError and form.settings.errorMessagePosition == 'bottom-form' %}
-            <div class="fui-alert fui-alert-error fui-alert-{{ form.settings.errorMessagePosition }}" role="alert">
-                {{ flashError | t | raw }}
-            </div>
+            {{ formieInclude('_includes/alert-error') }}
         {% endif %}
     {% endif %}
 
     {{ formieInclude('_includes/submit') }}
-</div>
+{% endformtag %}

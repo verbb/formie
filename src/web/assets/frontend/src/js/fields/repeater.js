@@ -5,6 +5,7 @@ export class FormieRepeater {
         this.$form = settings.$form;
         this.form = this.$form.form;
         this.$field = settings.$field;
+        this.disabledClass = 'fui-disabled';
 
         this.initRepeater();
     }
@@ -97,7 +98,7 @@ export class FormieRepeater {
             $newRow.innerHTML = html.trim();
             $newRow = $newRow.querySelector('div:first-of-type');
 
-            this.$field.querySelector('.fui-repeater-rows').appendChild($newRow);
+            this.$field.querySelector('[data-repeater-rows]').appendChild($newRow);
 
             setTimeout(() => {
                 this.updateButton();
@@ -118,7 +119,7 @@ export class FormieRepeater {
 
     removeRow(e) {
         const button = e.target;
-        const $row = button.closest('.fui-repeater-row');
+        const $row = button.closest('[data-repeater-row]');
 
         if ($row) {
             const numRows = this.getNumRows();
@@ -134,7 +135,7 @@ export class FormieRepeater {
     }
 
     getRows() {
-        return this.$field.querySelectorAll('.fui-repeater-row');
+        return this.$field.querySelectorAll('[data-repeater-row]');
     }
 
     getNumRows() {
@@ -143,10 +144,10 @@ export class FormieRepeater {
 
     updateButton() {
         if (this.getNumRows() >= this.maxRows) {
-            this.$addButton.classList.add = 'fui-disabled';
+            this.$addButton.classList.add = this.disabledClass;
             this.$addButton.setAttribute('disabled', 'disabled');
         } else {
-            this.$addButton.classList.remove = 'fui-disabled';
+            this.$addButton.classList.remove = this.disabledClass;
             this.$addButton.removeAttribute('disabled');
         }
     }

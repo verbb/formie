@@ -4,6 +4,7 @@ namespace verbb\formie\fields\formfields;
 use verbb\formie\base\FormField;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\models\HtmlTag;
 use verbb\formie\models\Notification;
 
 use Craft;
@@ -61,14 +62,6 @@ class Password extends FormField implements PreviewableFieldInterface
     /**
      * @inheritDoc
      */
-    public function getIsTextInput(): bool
-    {
-        return true;
-    }
-
-    /**
-     * @inheritDoc
-     */
     public function serializeValue(mixed $value, ?ElementInterface $element = null): mixed
     {
         // Only save the password as a hash
@@ -108,7 +101,7 @@ class Password extends FormField implements PreviewableFieldInterface
     /**
      * @inheritDoc
      */
-    public function getEmailHtml(Submission $submission, Notification $notification, mixed $value, array $options = null): string|null|bool
+    public function getEmailHtml(Submission $submission, Notification $notification, mixed $value, array $renderOptions = []): string|null|bool
     {
         return false;
     }
@@ -185,6 +178,37 @@ class Password extends FormField implements PreviewableFieldInterface
             SchemaHelper::enableConditionsField(),
             SchemaHelper::conditionsField(),
         ];
+    }
+
+    public function defineHtmlTag(string $key, array $context = []): ?HtmlTag
+    {
+        $form = $context['form'] ?? null;
+        $errors = $context['errors'] ?? null;
+
+        $id = $this->getHtmlId($form);
+        $dataId = $this->getHtmlDataId($form);
+
+        if ($key === 'fieldInput') {
+            return new HtmlTag('input', array_merge([
+                'type' => 'password',
+                'id' => $id,
+                'class' => [
+                    'fui-input',
+                    $errors ? 'fui-error' : false,
+                ],
+                'name' => $this->getHtmlName(),
+                'placeholder' => Craft::t('site', $this->placeholder) ?: null,
+                'autocomplete' => 'email',
+                'required' => $this->required ? true : null,
+                'data' => [
+                    'fui-id' => $dataId,
+                    'fui-message' => Craft::t('site', $this->errorMessage) ?: null,
+                ],
+                'aria-describedby' => $this->instructions ? "{$id}-instructions" : null,
+            ], $this->getInputAttributes()));
+        }
+
+        return parent::defineHtmlTag($key, $context);
     }
 
 

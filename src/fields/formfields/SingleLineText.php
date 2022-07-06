@@ -1,13 +1,16 @@
 <?php
 namespace verbb\formie\fields\formfields;
 
+use verbb\formie\Formie;
 use verbb\formie\base\FormField;
 use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\models\HtmlTag;
 
 use Craft;
 use craft\base\ElementInterface;
 use craft\base\PreviewableFieldInterface;
 use craft\errors\InvalidFieldException;
+use craft\helpers\StringHelper;
 
 class SingleLineText extends FormField implements PreviewableFieldInterface
 {
@@ -115,14 +118,6 @@ class SingleLineText extends FormField implements PreviewableFieldInterface
                 ])
             );
         }
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getIsTextInput(): bool
-    {
-        return true;
     }
 
     /**
@@ -280,6 +275,52 @@ class SingleLineText extends FormField implements PreviewableFieldInterface
             SchemaHelper::conditionsField(),
         ];
     }
+
+    public function defineHtmlTag(string $key, array $context = []): ?HtmlTag
+    {
+        $form = $context['form'] ?? null;
+        $errors = $context['errors'] ?? null;
+
+        $id = $this->getHtmlId($form);
+        $dataId = $this->getHtmlDataId($form);
+
+        if ($key === 'fieldInput') {
+            $limitType = $this->limitType ?? '';
+            $limitAmount = $this->limitAmount ?? null;
+            $limit = ($this->limit ?? null) && $limitAmount;
+            $maxLength = ($limit && $limitType === 'characters') ? $limitAmount : null;
+            $wordLimit = ($limit && $limitType === 'words') ? $limitAmount : null;
+
+            return new HtmlTag('input', array_merge([
+                'type' => 'text',
+                'id' => $id,
+                'class' => [
+                    'fui-input',
+                    $errors ? 'fui-error' : false,
+                ],
+                'name' => $this->getHtmlName(),
+                'placeholder' => Craft::t('site', $this->placeholder) ?: null,
+                'required' => $this->required ? true : null,
+                'maxlength' => $maxLength ?: null,
+                'data' => [
+                    'fui-id' => $dataId,
+                    'fui-message' => Craft::t('site', $this->errorMessage) ?: null,
+                    'wordlimit' => $wordLimit ?: null,
+                ],
+                'aria-describedby' => $this->instructions ? "{$id}-instructions" : null,
+            ], $this->getInputAttributes()));
+        }
+
+        if ($key === 'fieldLimit') {
+            return new HtmlTag('div', [
+                'class' => 'fui-limit-text',
+                'data-max-limit' => true,
+            ]);
+        }
+
+        return parent::defineHtmlTag($key, $context);
+    }
+
 
     // Protected Methods
     // =========================================================================

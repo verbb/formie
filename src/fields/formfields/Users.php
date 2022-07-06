@@ -8,6 +8,7 @@ use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyElementFieldQueryEvent;
 use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\models\HtmlTag;
 use verbb\formie\models\Notification;
 
 use Craft;
@@ -41,12 +42,11 @@ class Users extends CraftUsers implements FormFieldInterface
         getEmailHtml as traitGetEmailHtml;
         getSavedFieldConfig as traitGetSavedFieldConfig;
         getSettingGqlTypes as traitGetSettingGqlTypes;
+        defineHtmlTag as traitDefineHtmlTag;
         RelationFieldTrait::defineValueAsString insteadof FormFieldTrait;
         RelationFieldTrait::defineValueAsJson insteadof FormFieldTrait;
         RelationFieldTrait::defineValueForIntegration insteadof FormFieldTrait;
-        RelationFieldTrait::getIsFieldset insteadof FormFieldTrait;
         RelationFieldTrait::populateValue insteadof FormFieldTrait;
-        RelationFieldTrait::renderLabel insteadof FormFieldTrait;
     }
 
 
@@ -151,9 +151,9 @@ class Users extends CraftUsers implements FormFieldInterface
     /**
      * @inheritDoc
      */
-    public function getFrontEndInputOptions(Form $form, mixed $value, array $options = null): array
+    public function getFrontEndInputOptions(Form $form, mixed $value, array $renderOptions = []): array
     {
-        $inputOptions = $this->traitGetFrontendInputOptions($form, $value, $options);
+        $inputOptions = $this->traitGetFrontendInputOptions($form, $value, $renderOptions);
         $inputOptions['usersQuery'] = $this->getElementsQuery();
 
         return $inputOptions;
@@ -162,12 +162,12 @@ class Users extends CraftUsers implements FormFieldInterface
     /**
      * @inheritDoc
      */
-    public function getEmailHtml(Submission $submission, Notification $notification, mixed $value, array $options = null): string|null|bool
+    public function getEmailHtml(Submission $submission, Notification $notification, mixed $value, array $renderOptions = []): string|null|bool
     {
         // Ensure we return the correct, prepped query for emails. Just as we would be submissions.
         $value = $this->_all($value, $submission);
 
-        return $this->traitGetEmailHtml($submission, $notification, $value, $options);
+        return $this->traitGetEmailHtml($submission, $notification, $value, $renderOptions);
     }
 
     /**
@@ -417,5 +417,29 @@ class Users extends CraftUsers implements FormFieldInterface
             SchemaHelper::enableConditionsField(),
             SchemaHelper::conditionsField(),
         ];
+    }
+
+    public function defineHtmlTag(string $key, array $context = []): ?HtmlTag
+    {
+        $form = $context['form'] ?? null;
+
+        $id = $this->getHtmlId($form);
+
+        if (in_array($this->displayType, ['checkboxes', 'radio'])) {
+            if ($key === 'fieldContainer') {
+                return new HtmlTag('fieldset', [
+                    'class' => 'fui-fieldset',
+                    'aria-describedby' => $this->instructions ? "{$id}-instructions" : null,
+                ]);
+            }
+
+            if ($key === 'fieldLabel') {
+                return new HtmlTag('legend', [
+                    'class' => 'fui-legend',
+                ]);
+            }
+        }
+
+        return $this->traitDefineHtmlTag($key, $context);
     }
 }

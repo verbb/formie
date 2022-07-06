@@ -3,6 +3,7 @@ namespace verbb\formie\fields\formfields;
 
 use verbb\formie\base\FormField;
 use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\models\HtmlTag;
 
 use Craft;
 use craft\base\ElementInterface;
@@ -122,14 +123,6 @@ class Number extends FormField implements PreviewableFieldInterface
         }
 
         return $value;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getIsTextInput(): bool
-    {
-        return true;
     }
 
     /**
@@ -306,6 +299,42 @@ class Number extends FormField implements PreviewableFieldInterface
             'description' => $this->instructions,
         ];
     }
+
+    public function defineHtmlTag(string $key, array $context = []): ?HtmlTag
+    {
+        $form = $context['form'] ?? null;
+        $errors = $context['errors'] ?? null;
+
+        $id = $this->getHtmlId($form);
+        $dataId = $this->getHtmlDataId($form);
+
+        if ($key === 'fieldInput') {
+            return new HtmlTag('input', array_merge([
+                'type' => 'number',
+                'id' => $id,
+                'class' => [
+                    'fui-input',
+                    $errors ? 'fui-error' : false,
+                ],
+                'name' => $this->getHtmlName(),
+                'placeholder' => Craft::t('site', $this->placeholder) ?: null,
+                'required' => $this->required ? true : null,
+                'min' => $this->limit ? $this->min : false,
+                'max' => $this->limit ? $this->max : false,
+                'data' => [
+                    'fui-id' => $dataId,
+                    'fui-message' => Craft::t('site', $this->errorMessage) ?: null,
+                ],
+                'aria-describedby' => $this->instructions ? "{$id}-instructions" : null,
+            ], $this->getInputAttributes()));
+        }
+
+        return parent::defineHtmlTag($key, $context);
+    }
+
+
+    // Protected Methods
+    // =========================================================================
 
     /**
      * @inheritDoc

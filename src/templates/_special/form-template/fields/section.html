@@ -1,10 +1,1 @@
-{% set attributes = {
-    class: 'fui-hr',
-    style: [
-        field.borderStyle ? "border-top-style: #{field.borderStyle}",
-        field.borderWidth ? "border-top-width: #{field.borderWidth}px",
-        field.borderColor ? "border-top-color: #{field.borderColor}",
-    ] | filter | join('; ')
-} | merge(field.getInputAttributes()) %}
-
-<hr {{ attr(attributes) }} />
+{{ fieldtag('fieldSection') }}

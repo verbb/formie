@@ -1,8 +1,8 @@
 # Front-end JS
 
-The default [Form Template](docs:template-guides/form-templates) used by Formie uses custom JS when rendering the form. This is to provide out-of-the-box functionality for forms, so you don't need to worry about things like validation, multi-page setup and Ajax submissions.
+The default [Form Template](docs:feature-tour/form-templates) used by Formie uses custom JS when rendering the form. This is to provide out-of-the-box functionality for forms, so you don't need to worry about things like validation, multi-page setup and Ajax submissions.
 
-The default JavaScript is split into two files, and can be disabled in your [Form Templates](docs:template-guides/form-templates) should you wish to implement your own JavaScript for functionality. Both files are bundled in a single JS file. The gzipped size of this file is roughly 20kb, and comes with all required polyfills to support [90% browser coverage](https://browserl.ist/?q=defaults).
+The default JavaScript is split into two files, and can be disabled in your [Form Templates](docs:feature-tour/form-templates) should you wish to implement your own JavaScript for functionality. Both files are bundled in a single JS file. The gzipped size of this file is roughly 20kb, and comes with all required polyfills to support [90% browser coverage](https://browserl.ist/?q=defaults).
 
 It is also loaded using `defer` to ensure loading doesn't block the page render.
 
@@ -42,7 +42,7 @@ This helper provides functionality to create tags for a Tag field. It uses [Tagi
 For Single-line Text and Multi-line text fields, and if the `Limit` options are set, this will display a counter for either characters or words to limit the text for these fields. It will also prevent typing past these limits.
 
 ## Form Templates
-Your [Form Templates](docs:template-guides/form-templates) can control where and how the JS for a form is rendered. You can also disable the "Form Base" or "Form Theme" JavaScript, if you wish to write your own JS.
+Your [Form Templates](docs:feature-tour/form-templates) can control where and how the JS for a form is rendered. You can also disable the "Form Base" or "Form Theme" JavaScript, if you wish to write your own JS.
 
 :::warning
 Be aware that if disabling the "Form Base" you will lose Formie's submit-handler binding on the form. This will mean reCAPTCHA will not work on your forms, as it relies on interrupting the submission of a form to validate. You will need to manage reCAPTCHA yourself.

@@ -3,64 +3,30 @@
 {% set nextPage = form.getNextPage(page) %}
 {% set prevPage = form.getPreviousPage(page) %}
 
-{% set containerAttributes = page.settings.getContainerAttributes() ?? {} %}
-{% set inputAttributes = page.settings.getInputAttributes() ?? {} %}
-
-{% set attributes = {
-    class: [
-        'fui-btn-container',
-        "fui-btn-#{page.settings.buttonsPosition}",
-        page.settings.cssClasses,
-    ] | filter,
-} | merge(containerAttributes) %}
-
-<div {{ attr(attributes) }}>
+{% formtag 'buttonWrapper' %}
     {% hook 'formie.buttons.start' %}
 
-    {#
-        Next button goes first.
-        https://stackoverflow.com/a/1963285
-    #}
+    {# Next button goes first. https://stackoverflow.com/a/1963285 #}
 
-    {% set submitAttributes = {
-        class: [
-            'fui-btn',
-            'fui-submit',
-            nextPage ? 'fui-next',
-        ] | filter,
-        type: 'submit',
-        'data-field-conditions': page.settings.getConditionsJson(),
-    } | merge(options.buttons.submit ?? {}) | merge(inputAttributes) %}
-
-    <button {{- attr(submitAttributes) -}}>
+    {% formtag 'submitButton' %}
         {%- hook 'formie.buttons.submit-start' -%}
 
         {{ page.settings.submitButtonLabel | t }}
 
         {%- hook 'formie.buttons.submit-end' -%}
-    </button>
+    {% endformtag %}
 
     {% if page.settings.showBackButton and prevPage %}
-        {% set prevAttributes = {
-            class: [
-                'fui-btn',
-                'fui-prev',
-            ],
-            type: 'submit',
-            name: 'goingBack',
-            onclick: 'this.form.goBack = true;',
-        } | merge(options.buttons.prev ?? {}) | merge(inputAttributes) %}
-
-        <button {{- attr(prevAttributes) -}}>
+        {% formtag 'previousButton' %}
             {%- hook 'formie.buttons.prev-start' -%}
 
             {{ page.settings.backButtonLabel | t }}
 
             {%- hook 'formie.buttons.prev-end' -%}
-        </button>
+        {% endformtag %}
     {% endif %}
 
     {% hook 'formie.buttons.end' %}
-</div>
+{% endformtag %}
 
 {% hook 'formie.buttons.after' %}

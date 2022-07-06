@@ -4,6 +4,7 @@ namespace verbb\formie\fields\formfields;
 use verbb\formie\base\FormField;
 use verbb\formie\helpers\RichTextHelper;
 use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\models\HtmlTag;
 use verbb\formie\positions\Hidden as HiddenPosition;
 
 use Craft;
@@ -234,6 +235,43 @@ class Agree extends FormField implements PreviewableFieldInterface
             SchemaHelper::enableConditionsField(),
             SchemaHelper::conditionsField(),
         ];
+    }
+
+    public function defineHtmlTag(string $key, array $context = []): ?HtmlTag
+    {
+        $form = $context['form'] ?? null;
+
+        $id = $this->getHtmlId($form);
+
+        if ($key === 'fieldOption') {
+            return new HtmlTag('div', [
+                'class' => 'fui-checkbox',
+            ]);
+        }
+
+        if ($key === 'fieldInput') {
+            return new HtmlTag('input', array_merge([
+                'type' => 'checkbox',
+                'id' => $id,
+                'class' => 'fui-input fui-checkbox-input',
+                'name' => $this->getHtmlName(),
+                'required' => $this->required ? true : null,
+                'data' => [
+                    'fui-id' => $this->getHtmlDataId($form),
+                    'fui-input-type' => 'agree',
+                    'fui-message' => Craft::t('site', $this->errorMessage) ?: null,
+                ],
+            ], $this->getInputAttributes()));
+        }
+
+        if ($key === 'fieldOptionLabel') {
+            return new HtmlTag('label', [
+                'class' => 'fui-checkbox-label',
+                'for' => $id,
+            ]);
+        }
+
+        return parent::defineHtmlTag($key, $context);
     }
 
 

@@ -243,6 +243,10 @@
   flex-wrap: wrap;
 }
 
+[data-fui-page-hidden] {
+  display: none;
+}
+
 .fui-btn-container {
   display: flex;
   justify-content: flex-start;
@@ -666,27 +670,8 @@
   color: var(--fui-required-color, var(--fui-error));
 }
 
-.fui-instructions {
-  color: #9CA3AF;
-  color: var(--fui-instructions-color, var(--fui-gray-400));
-  font-size: 0.875rem;
-  font-size: var(--fui-instructions-font-size);
-  line-height: 1.25;
-  line-height: var(--fui-instructions-line-height);
-  display: block;
-}
-.fui-instructions p {
-  margin: 0;
-}
-.fui-instructions-above-input .fui-instructions, .fui-instructions-fieldset-start .fui-instructions {
-  margin-bottom: 0.5rem;
-  margin-bottom: var(--fui-instructions-margin);
-}
-.fui-instructions-below-input .fui-instructions, .fui-instructions-fieldset-end .fui-instructions {
-  margin-top: 0.5rem;
-  margin-top: var(--fui-instructions-margin);
-}
-
+.fui-instructions,
+.fui-limit-text,
 .fui-file-summary {
   color: #9CA3AF;
   color: var(--fui-instructions-color, var(--fui-gray-400));
@@ -696,9 +681,28 @@
   line-height: var(--fui-instructions-line-height);
   display: block;
 }
-.fui-file-summary p, .fui-file-summary ul {
+.fui-instructions p, .fui-instructions ul,
+.fui-limit-text p,
+.fui-limit-text ul,
+.fui-file-summary p,
+.fui-file-summary ul {
   margin: 0;
 }
+
+.fui-instructions-above-input .fui-instructions {
+  margin-bottom: 0.5rem;
+  margin-bottom: var(--fui-instructions-margin);
+}
+.fui-instructions-below-input .fui-instructions {
+  margin-top: 0.5rem;
+  margin-top: var(--fui-instructions-margin);
+}
+
+.fui-limit-text {
+  margin-top: 0.5rem;
+  margin-top: var(--fui-instructions-margin);
+}
+
 .fui-file-summary > p {
   margin-top: 0.5rem;
   margin-top: var(--fui-instructions-margin);

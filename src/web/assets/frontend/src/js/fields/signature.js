@@ -9,7 +9,7 @@ export class FormieSignature {
         this.$field = settings.$field;
         this.$input = this.$field.querySelector('input');
         this.$canvas = this.$field.querySelector('canvas');
-        this.$clearBtn = this.$field.querySelector('.fui-signature-clear-btn');
+        this.$clearBtn = this.$field.querySelector('[data-signature-clear]');
 
         this.backgroundColor = settings.backgroundColor;
         this.penColor = settings.penColor;

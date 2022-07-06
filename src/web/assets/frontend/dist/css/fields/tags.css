@@ -6,14 +6,14 @@
 
 .tagify {
   --tags-disabled-bg: #F1F1F1;
-  --tags-border-color: #DADADA;
+  --tags-border-color: #DDD;
   --tags-hover-border-color: #CCC;
   --tags-focus-border-color: #3595f6;
   --tag-bg: #E5E5E5;
   --tag-hover: #D3E2E2;
   --tag-text-color: black;
   --tag-text-color--edit: black;
-  --tag-pad: 0 0.5em;
+  --tag-pad: 0.3em 0.5em;
   --tag-inset-shadow-size: 1.1em;
   --tag-invalid-color: #D39494;
   --tag-invalid-bg: rgba(211, 148, 148, 0.5);
@@ -25,14 +25,14 @@
   --tag--min-width: 1ch;
   --tag--max-width: auto;
   --tag-hide-transition: 0.3s;
-  --placeholder-color: black;
+  --placeholder-color: rgba(0, 0, 0, 0.4);
   --placeholder-color-focus: rgba(0, 0, 0, 0.25);
   --loader-size: .8em;
   --readonly-striped: 1;
   display: flex;
   align-items: flex-start;
   flex-wrap: wrap;
-  border: 1px solid #DADADA;
+  border: 1px solid #DDD;
   border: 1px solid var(--tags-border-color);
   padding: 0;
   line-height: 0;
@@ -89,7 +89,7 @@
   margin: 5px 0;
 }
 .tagify[readonly]:not(.tagify--mix):not(.tagify--select) .tagify__tag > div, .tagify[disabled]:not(.tagify--mix):not(.tagify--select) .tagify__tag > div {
-  padding: 0 0.5em;
+  padding: 0.3em 0.5em;
   padding: var(--tag-pad);
 }
 .tagify[readonly]:not(.tagify--mix):not(.tagify--select) .tagify__tag > div::before, .tagify[disabled]:not(.tagify--mix):not(.tagify--select) .tagify__tag > div::before {
@@ -159,9 +159,9 @@
   vertical-align: top;
   box-sizing: border-box;
   max-width: 100%;
-  padding: 0 0.5em;
-  padding: 0 0.5em;
-  padding: var(--tag-pad, 0 0.5em);
+  padding: 0.3em 0.5em;
+  padding: 0.3em 0.5em;
+  padding: var(--tag-pad, 0.3em 0.5em);
   color: black;
   color: black;
   color: var(--tag-text-color, black);
@@ -364,9 +364,9 @@
   display: inline-block;
   min-width: 110px;
   margin: 5px;
-  padding: 0 0.5em;
-  padding: 0 0.5em;
-  padding: var(--tag-pad, 0 0.5em);
+  padding: 0.3em 0.5em;
+  padding: 0.3em 0.5em;
+  padding: var(--tag-pad, 0.3em 0.5em);
   line-height: normal;
   position: relative;
   white-space: pre-wrap;
@@ -417,7 +417,7 @@
   line-height: 1em;
   margin: auto 0;
   z-index: 1;
-  color: black;
+  color: rgba(0, 0, 0, 0.4);
   color: var(--placeholder-color);
   white-space: nowrap;
   pointer-events: none;
@@ -540,7 +540,7 @@
 .tagify__dropdown__footer {
   display: inline-block;
   margin-top: 0.5em;
-  padding: 0 0.5em;
+  padding: 0.3em 0.5em;
   font-size: 0.7em;
   font-style: italic;
   opacity: 0.5;
@@ -557,7 +557,7 @@
 }
 .tagify__dropdown__item {
   box-sizing: inherit;
-  padding: 0 0.5em;
+  padding: 0.3em 0.5em;
   margin: 1px;
   cursor: pointer;
   border-radius: 2px;
@@ -579,7 +579,6 @@
   padding: 0;
 }
 
-.tagify__input::before {
-  height: auto;
-  line-height: inherit;
+.tagify--empty .tagify__input {
+  height: 25px;
 }

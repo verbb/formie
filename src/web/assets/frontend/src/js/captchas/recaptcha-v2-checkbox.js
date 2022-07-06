@@ -9,6 +9,7 @@ export class FormieRecaptchaV2Checkbox {
         this.size = settings.size;
         this.language = settings.language;
         this.recaptchaScriptId = 'FORMIE_RECAPTCHA_SCRIPT';
+        this.errorMessageClass = 'fui-error-message';
 
         // Fetch and attach the script only once - this is in case there are multiple forms on the page.
         // They all go to a single callback which resolves its loaded state
@@ -37,7 +38,7 @@ export class FormieRecaptchaV2Checkbox {
         this.form = this.$form.form;
 
         // We can have multiple captchas per form, so store them and render only when we need
-        this.$placeholders = this.$form.querySelectorAll('.formie-recaptcha-placeholder');
+        this.$placeholders = this.$form.querySelectorAll('[data-recaptcha-placeholder]');
 
         if (!this.$placeholders.length) {
             console.error('Unable to find any ReCAPTCHA placeholders for #' + this.formId);
@@ -177,7 +178,7 @@ export class FormieRecaptchaV2Checkbox {
             return;
         }
 
-        var $error = this.$placeholder.querySelector('.fui-error-message');
+        var $error = this.$placeholder.querySelector('.' + this.errorMessageClass);
 
         if ($error) {
             $error.remove();

@@ -14,7 +14,7 @@ interface SubfieldInterface extends ComponentInterface
      *
      * @return array
      */
-    public function getFrontEndSubfields(): array;
+    public function getFrontEndSubfields($context): array;
 
     /**
      * Returns the subfield options (label and handle).

@@ -25,7 +25,7 @@ Next, we'll begin templating. Fetch the form first:
 And then instead of using `craft.formie.renderForm()`, we'll want to modify this to render just the first page of forms, containing our fields, but set the action input to the Craft `users/login` action endpoint
 
 ```twig
-<form method="post" accept-charset="UTF-8" id="{{ form.formId }}" data-config="{{ form.configJson }}">
+<form method="post" accept-charset="UTF-8" data-fui-form="{{ form.configJson }}">
     {{ actionInput('users/login') }}
     {{ csrfInput() }}
 
@@ -37,7 +37,7 @@ And then instead of using `craft.formie.renderForm()`, we'll want to modify this
 
 There's a few important things to note here. Firstly, we're using the `users/login` action endpoint, instead of `formie/submissions/submit`. This is because we don't want to submit the form to Formie and save a submission each time this form is filled out - like you would any other form. Instead, we want to log in users. In this way, we're purely using Formie for content management of the form fields, and some settings.
 
-Secondly, we're not rendering the entire form, but calling `craft.formie.renderPage()` which will render just the first page and all its fields. You'll notice we're passing in the `fieldNamespace` [render option](docs:template-guides/rendering-options#base-options) with an empty string. This is because Formie will namespace the fields with `fields` by default, but for the login form, we don't want that.
+Secondly, we're not rendering the entire form, but calling `craft.formie.renderPage()` which will render just the first page and all its fields. You'll notice we're passing in the `fieldNamespace` [render option](docs:theming/render-options#base-options) with an empty string. This is because Formie will namespace the fields with `fields` by default, but for the login form, we don't want that.
 
 To illustrate, rendering the form without this setting would produce:
 
@@ -58,7 +58,7 @@ The finalised form, with some error-handling and redirects would look something 
 
 {% do craft.formie.registerAssets(form) %}
 
-<form method="post" accept-charset="UTF-8" id="{{ form.formId }}" data-config="{{ form.configJson }}">
+<form method="post" accept-charset="UTF-8" data-fui-form="{{ form.configJson }}">
     {{ actionInput('users/login') }}
     {{ csrfInput() }}
 
@@ -100,7 +100,7 @@ The form should be pretty simple to put together, which renders the page of fiel
 
 {% do craft.formie.registerAssets(form) %}
 
-<form method="post" accept-charset="UTF-8" id="{{ form.formId }}" data-config="{{ form.configJson }}">
+<form method="post" accept-charset="UTF-8" data-fui-form="{{ form.configJson }}">
     {{ actionInput('users/save-user') }}
     {{ csrfInput() }}
 
@@ -151,7 +151,7 @@ The form should be pretty simple to put together, which renders the page of fiel
     lastName: user.lastName,
 }) %}
 
-<form method="post" accept-charset="UTF-8" enctype="multipart/form-data" id="{{ form.formId }}" data-config="{{ form.configJson }}">
+<form method="post" accept-charset="UTF-8" enctype="multipart/form-data" data-fui-form="{{ form.configJson }}">
     {{ actionInput('users/save-user') }}
     {{ hiddenInput('userId', user.id) }}
     {{ csrfInput() }}

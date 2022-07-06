@@ -1,0 +1,7 @@
+{% formtag 'errors' %}
+    {% for error in errors %}
+        {{ formtag('error', {
+            text: error | t,
+        }) }}
+    {% endfor %}
+{% endformtag %}

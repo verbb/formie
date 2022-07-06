@@ -21,8 +21,6 @@ use verbb\formie\models\FieldLayout;
 use verbb\formie\models\FieldLayoutPage;
 use verbb\formie\positions\AboveInput;
 use verbb\formie\positions\BelowInput;
-use verbb\formie\positions\FieldsetEnd;
-use verbb\formie\positions\FieldsetStart;
 use verbb\formie\positions\LeftInput;
 use verbb\formie\positions\RightInput;
 use verbb\formie\positions\Hidden as HiddenPosition;
@@ -545,7 +543,6 @@ class Fields extends Component
         $config['hasLabel'] = $field->hasLabel();
         $config['hasError'] = (bool)$field->getErrors();
         $config['settings'] = $field->getSavedSettings();
-        $config['isTextInput'] = $field->getIsTextInput();
         $config['isCosmetic'] = $field->getIsCosmetic();
 
         // Indicates whether the field is currently synced to another field.
@@ -689,8 +686,6 @@ class Fields extends Component
         $instructionsPositions = [
             AboveInput::class,
             BelowInput::class,
-            FieldsetStart::class,
-            FieldsetEnd::class,
         ];
 
         $event = new RegisterFieldOptionsEvent([

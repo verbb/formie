@@ -4,5 +4,5 @@
 {% set integration = field.getPaymentIntegration() %}
 
 {% if integration %}
-    {{ integration.getEmailHtml(submission, notification, value, field, options) }}
+    {{ integration.getEmailHtml(submission, notification, value, field, renderOptions) }}
 {% endif %}

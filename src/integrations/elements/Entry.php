@@ -5,6 +5,7 @@ use verbb\formie\Formie;
 use verbb\formie\base\Integration;
 use verbb\formie\base\Element;
 use verbb\formie\elements\Submission;
+use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
@@ -14,7 +15,6 @@ use Craft;
 use craft\base\Element as CraftElement;
 use craft\elements\Entry as EntryElement;
 use craft\elements\User;
-use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 
 use Throwable;
@@ -221,7 +221,7 @@ class Entry extends Element
             $attributeValues = $this->getFieldMappingValues($submission, $this->attributeMapping, $this->getElementAttributes());
 
             // Filter null values
-            $attributeValues = $this->filterNullValues($attributeValues);
+            $attributeValues = ArrayHelper::filterNullValues($attributeValues);
 
             foreach ($attributeValues as $entryFieldHandle => $fieldValue) {
                 if ($entryFieldHandle === 'author') {
@@ -237,7 +237,7 @@ class Entry extends Element
             $fieldValues = $this->getFieldMappingValues($submission, $this->fieldMapping, $fields);
 
             // Filter null values
-            $fieldValues = $this->filterNullValues($fieldValues);
+            $fieldValues = ArrayHelper::filterNullValues($fieldValues);
 
             $entry->setFieldValues($fieldValues);
             $entry->updateTitle();

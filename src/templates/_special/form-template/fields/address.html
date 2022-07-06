@@ -1,0 +1,19 @@
+{% fieldtag 'subFieldRows' %}
+    {% for row in field.getFrontEndSubfields(_context) %}
+        {% fieldtag 'subFieldRow' %}
+            {% for subField in row %}
+                {% set labelExtraContent = null %}
+
+                {% if field.hasCurrentLocation() and subField.handle == 'autocomplete' %}
+                    {% set labelExtraContent = fieldtag('locationLink') %}
+                {% endif %}
+
+                {{ craft.formie.renderField(form, subField, {
+                    element: element ?? null,
+                    value: value[subField.handle] ?? null,
+                    labelExtraContent: labelExtraContent,
+                }) }}
+            {% endfor %}
+        {% endfieldtag %}
+    {% endfor %}
+{% endfieldtag %}

@@ -2,137 +2,112 @@
     {% set index = index ?? 0 %}
     {% set rowId = "row-#{index}-#{colId}" %}
 
-    {% switch col.type %}
-        {% case 'checkbox' %}
-            <td data-col="{{ colId }}">
-                <input type="hidden" name="{{ "#{index}[#{colId}]" }}" value="">
+    {% fieldtag 'fieldTableBodyColumn' %}
+        {% switch col.type %}
+            {% case 'checkbox' %}
+                {{ hiddenInput(field.getHtmlName("#{index}[#{colId}]"), '') }}
 
                 <div class="fui-checkbox">
-                    <input {{ attr({
+                    {{ tag('input', {
                         id: rowId,
                         type: 'checkbox',
-                        class: [
-                            'fui-input',
-                            'fui-checkbox-input',
-                        ],
+                        class: 'fui-input fui-checkbox-input',
                         value: '1',
                         checked: (row[colId] ?? false) ? true : false,
-                        name: "#{index}[#{colId}]",
-                    }) }}>
+                        name: field.getHtmlName("#{index}[#{colId}]"),
+                    }) }}
 
                     <label for="{{ rowId }}" class="fui-checkbox-label">
                         &nbsp;<span class="fui-sr-only">{{ col.heading | t }}</span>
                     </label>
                 </div>
-            </td>
-        {% case 'color' %}
-            <td data-col="{{ colId }}">
-                <input {{ attr({
+            {% case 'color' %}
+                {{ tag('input', {
                     id: rowId,
                     type: 'color',
                     class: 'fui-input',
                     value: row[colId] ?? '',
-                    name: "#{index}[#{colId}]",
-                }) }}>
-            </td>
-        {% case 'date' %}
-            <td data-col="{{ colId }}">
-                <input {{ attr({
+                    name: field.getHtmlName("#{index}[#{colId}]"),
+                }) }}
+            {% case 'date' %}
+                {{ tag('input', {
                     id: rowId,
                     type: 'date',
                     class: 'fui-input',
                     value: row[colId].format('Y-m-d') ?? '',
-                    name: "#{index}[#{colId}][date]",
-                }) }} />
-            </td>
-        {% case 'select' %}
-            <td data-col="{{ colId }}">
-                <select class="fui-select" name="{{ "#{index}[#{colId}]" }}">
+                    name: field.getHtmlName("#{index}[#{colId}][date]"),
+                }) }}
+            {% case 'select' %}
+                {% tag 'select' with {
+                    class: 'fui-select',
+                    name: field.getHtmlName("#{index}[#{colId}]"),
+                } %}
                     {% for option in col.options %}
                         <option value="{{ option.value }}" {{ option.value == (row[colId] ?? '') ? 'selected' }}>
                             {{ option.label | t }}
                         </option>
                     {% endfor %}
-                </select>
-            </td>
-        {% case 'email' %}
-            <td data-col="{{ colId }}">
-                <input {{ attr({
+                {% endtag %}
+            {% case 'email' %}
+                {{ tag('input', {
                     id: rowId,
                     type: 'email',
                     class: 'fui-input',
                     value: row[colId] ?? '',
-                    name: "#{index}[#{colId}]",
-                }) }}>
-            </td>
-        {% case 'heading' %}
-            <th data-col="{{ colId }}">
-                <input type="hidden" name="{{ "#{index}[#{colId}]" }}" value="{{ row[colId] ?? '' }}">
+                    name: field.getHtmlName("#{index}[#{colId}]"),
+                }) }}
+            {% case 'heading' %}
+                {{ tag('input', {
+                    type: 'hidden',
+                    name: field.getHtmlName("#{index}[#{colId}]"),
+                    value: row[colId] ?? '',
+                }) }}
                 {{ row[colId] ?? '' }}
-            </th>
-        {% case 'multiline' %}
-            <td data-col="{{ colId }}">
-                <textarea {{ attr({
+            {% case 'multiline' %}
+                {{ tag('textarea', {
                     id: rowId,
                     class: 'fui-input',
-                    name: "#{index}[#{colId}]",
-                }) }}>{{ row[colId] ?? '' }}</textarea>
-            </td>
-        {% case 'number' %}
-            <td data-col="{{ colId }}">
-                <input {{ attr({
+                    name: field.getHtmlName("#{index}[#{colId}]"),
+                    text: row[colId] ?? '',
+                }) }}
+            {% case 'number' %}
+                {{ tag('input', {
                     id: rowId,
                     type: 'number',
                     class: 'fui-input',
                     value: row[colId] ?? '',
-                    name: "#{index}[#{colId}]",
-                }) }}>
-            </td>
-        {% case 'time' %}
-            <td data-col="{{ colId }}">
-                <input {{ attr({
+                    name: field.getHtmlName("#{index}[#{colId}]"),
+                }) }}
+            {% case 'time' %}
+                {{ tag('input', {
                     id: rowId,
                     type: 'time',
                     class: 'fui-input',
                     value: row[colId].format('H:i') ?? '',
-                    name: "#{index}[#{colId}][time]",
-                }) }}>
-            </td>
-        {% case 'url' %}
-            <td data-col="{{ colId }}">
-                <input {{ attr({
+                    name: field.getHtmlName("#{index}[#{colId}][time]"),
+                }) }}
+            {% case 'url' %}
+                {{ tag('input', {
                     id: rowId,
                     type: 'url',
                     class: 'fui-input',
                     value: row[colId] ?? '',
-                    name: "#{index}[#{colId}]",
-                }) }}>
-            </td>
-        {% default %}
-            <td data-col="{{ colId }}">
-                <input {{ attr({
+                    name: field.getHtmlName("#{index}[#{colId}]"),
+                }) }}
+            {% default %}
+                {{ tag('input', {
                     id: rowId,
                     type: 'text',
                     class: 'fui-input',
                     value: row[colId] ?? '',
-                    name: "#{index}[#{colId}]",
-                }) }}>
-            </td>
-    {% endswitch %}
+                    name: field.getHtmlName("#{index}[#{colId}]"),
+                }) }}
+        {% endswitch %}
+    {% endfieldtag %}
 {% endfor %}
 
 {% if not field.static %}
-    {% set buttonAttributes = {
-        class: 'fui-btn fui-table-remove-btn',
-        type: 'button',
-        data: {
-            'remove-table-row': field.handle,
-        }
-    } %}
-
     <td data-col-remove>
-        <button {{ attr(buttonAttributes) }}>
-            {{ 'Remove' | t('formie') }}
-        </button>
+        {{ fieldtag('fieldRemoveButton') }}
     </td>
 {% endif %}

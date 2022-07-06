@@ -1,19 +1,3 @@
-{% set attributes = {
-    type: 'email',
-    class: [ 'fui-input' ],
-    id: options.id,
-    name: field.handle,
-    placeholder: field.placeholder | t,
-    autocomplete: 'email',
-    required: field.required ? true : false,
-    value: value,
-    data: {
-        'fui-id': options.dataId,
-        'fui-message': field.settings.errorMessage | t,
-    },
-    aria: {
-        required: field.required ? 'true' : 'false',
-    },
-} | merge(field.getInputAttributes()) %}
-
-<input {{ attr(attributes) }} />
+{{ fieldtag('fieldInput', {
+    value: value ?? false,
+}) }}

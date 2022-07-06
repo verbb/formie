@@ -3,10 +3,12 @@ namespace verbb\formie\fields\formfields;
 
 use verbb\formie\base\FormFieldInterface;
 use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\models\HtmlTag;
 
 use Craft;
 use craft\base\ElementInterface;
 use craft\fields\data\SingleOptionFieldData;
+use craft\helpers\StringHelper;
 
 class Radio extends BaseOptionsField implements FormFieldInterface
 {
@@ -56,23 +58,6 @@ class Radio extends BaseOptionsField implements FormFieldInterface
             'options' => [],
             'layout' => 'vertical',
         ];
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getIsFieldset(): bool
-    {
-        return true;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function renderLabel(): bool
-    {
-        // We render a `<legend>` within a `<fieldset>` for accessibility
-        return false;
     }
 
     public function getFieldOptions(): array
@@ -215,6 +200,75 @@ class Radio extends BaseOptionsField implements FormFieldInterface
             SchemaHelper::conditionsField(),
         ];
     }
+
+    public function defineHtmlTag(string $key, array $context = []): ?HtmlTag
+    {
+        $form = $context['form'] ?? null;
+
+        if ($key === 'fieldContainer') {
+            $id = $this->getHtmlId($form);
+
+            return new HtmlTag('fieldset', [
+                'class' => [
+                    'fui-fieldset',
+                    'fui-layout-' . $this->layout ?? 'vertical',
+                ],
+                'aria-describedby' => $this->instructions ? "{$id}-instructions" : null,
+            ]);
+        }
+
+        if ($key === 'fieldLabel') {
+            return new HtmlTag('legend', [
+                'class' => 'fui-legend',
+            ]);
+        }
+
+        if ($key === 'fieldOptions') {
+            return new HtmlTag('div', [
+                'class' => 'fui-layout-wrap',
+            ]);
+        }
+
+        if ($key === 'fieldOption') {
+            return new HtmlTag('div', [
+                'class' => 'fui-radio',
+            ]);
+        }
+
+        if ($key === 'fieldInput') {
+            $optionValue = $context['option']['value'] ?? '';
+            $id = $this->getHtmlId($form, StringHelper::toKebabCase($optionValue));
+            $dataId = $this->getHtmlDataId($form, StringHelper::toKebabCase($optionValue));
+
+            return new HtmlTag('input', array_merge([
+                'type' => 'radio',
+                'id' => $id,
+                'class' => 'fui-input fui-radio-input',
+                'name' => $this->getHtmlName(($this->hasMultiNamespace ? '[]' : null)),
+                'required' => $this->required ? true : null,
+                'data' => [
+                    'fui-id' => $dataId,
+                    'fui-message' => Craft::t('site', $this->errorMessage) ?: null,
+                ],
+            ], $this->getInputAttributes()));
+        }
+
+        if ($key === 'fieldOptionLabel') {
+            $optionValue = $context['option']['value'] ?? '';
+            $id = $this->getHtmlId($form, StringHelper::toKebabCase($optionValue));
+
+            return new HtmlTag('label', [
+                'class' => 'fui-radio-label',
+                'for' => $id,
+            ]);
+        }
+
+        return parent::defineHtmlTag($key, $context);
+    }
+
+
+    // Protected Methods
+    // =========================================================================
 
     /**
      * @inheritdoc

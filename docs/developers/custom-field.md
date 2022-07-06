@@ -25,7 +25,7 @@ In both cases, our `FormField` class itself extends from Craft's [Field](docs:de
 Method | Description
 --- | ---
 `displayName()` | Returns the name to be used for the field.
-`getFrontEndInputTemplatePath()` | Returns the path to the front-end template for this field. This path is relative to the path set in your [Form Template](docs:template-guides/form-templates), if you are using a custom template.
+`getFrontEndInputTemplatePath()` | Returns the path to the front-end template for this field. This path is relative to the path set in your [Form Template](docs:feature-tour/form-templates), if you are using a custom template.
 `getSvgIconPath()` | Returns the path to the SVG icon used as the field type in the control panel.
 `getIsTextInput()` | Whether this is a text-based input or not.
 `getFrontEndInputHtml()` | Returns the HTML for a the front-end template for a field.
@@ -234,7 +234,7 @@ Method | Description
 `handle` | A text field that generates a valid handle based on the `label` or `heading`.
 `default` | A checkbox to mark as default. Can be used in combination with `allowMultipleDefault`.
 `width` | A field to define the width of the columns in rows.
-`type` | A select field to select from a column field type.
+`type` | A dropdown field to select from a column field type.
 
 
 ### Field Types

@@ -11,10 +11,10 @@ export class FormieJSCaptcha {
             return;
         }
 
-        this.$placeholder = this.$form.querySelector('.formie-jscaptcha-placeholder');
+        this.$placeholder = this.$form.querySelector('[data-jscaptcha-placeholder]');
 
         if (!this.$placeholder) {
-            console.error('Unable to find JavaScript Captcha placeholder for #' + this.formId + '.formie-jscaptcha-placeholder');
+            console.error('Unable to find JavaScript Captcha placeholder for #' + this.formId);
 
             return;
         }

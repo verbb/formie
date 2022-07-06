@@ -11,6 +11,6 @@ class ModifyFormRenderOptionsEvent extends Event
     // =========================================================================
 
     public ?Form $form = null;
-    public ?array $options = null;
+    public ?array $renderOptions = null;
 
 }

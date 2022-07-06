@@ -1,104 +1,43 @@
-{% set id = field.getHtmlId(form) %}
-{% set dataId = field.getHtmlDataId(form) %}
-{% set labelId = "#{id}-label" %}
+{% hook 'formie.field.field-before' %}
+
+{% set value = value ?? renderOptions.value ?? field.getFieldValue(element) %}
+{% set errors = element.getErrors(field.handle) ?? null %}
+
 {% set labelPosition = craft.formie.getLabelPosition(field, form) %}
 {% set subfieldLabelPosition = craft.formie.getLabelPosition(field, form, true) %}
 {% set instructionsPosition = craft.formie.getInstructionsPosition(field, form) %}
 
-{% set inputOptions = {
-    id: id,
-    dataId: dataId,
-    labelId: labelId,
-    field: field,
-    renderOptions: options,
-} %}
+{% fieldtag 'field' %}
+    {% hook 'formie.field.field-start' %}
 
-{% set value = field.getFieldValue(element) %}
-{% set errors = element.getErrors(field.handle) ?? null %}
+    {% fieldtag 'fieldContainer' %}
+        {% hook 'formie.field.input-before' %}
 
-{% set html %}
-    {% hook 'formie.field.field-before' %}
+        {{ formieInclude('_includes/label', { position: 'above' }) }}
+        {{ formieInclude('_includes/instructions', { position: 'above' }) }}
 
-    <div class="fui-field-container">
-        {% if field.renderLabel %}
-            {% hook 'formie.field.field-start' %}
+        {% fieldtag 'fieldInputContainer' %}
+            {% hook 'formie.field.input-start' %}
 
-            {{ formieInclude('_includes/label', { position: 'above' }) }}
+            {{ field.getFrontEndInputHtml(form, value, {
+                submission: element,
+                errors: errors,
+            }) }}
 
-            {{ formieInclude('_includes/instructions', { position: 'above' }) }}
+            {% hook 'formie.field.input-end' %}
+        {% endfieldtag %}
 
-            {% hook 'formie.field.input-before' %}
+        {{ formieInclude('_includes/label', { position: 'below' }) }}
+        {{ formieInclude('_includes/instructions', { position: 'below' }) }}
 
-            <div class="fui-input-container">
-                {% hook 'formie.field.input-start' %}
+        {% hook 'formie.field.field-end' %}
+    {% endfieldtag %}
 
-                {{ field.getFrontEndInputHtml(form, value, inputOptions) }}
-
-                {% hook 'formie.field.input-end' %}
-            </div>
-
-            {% hook 'formie.field.input-after' %}
-
-            {{ formieInclude('_includes/instructions', { position: 'below' }) }}
-
-            {{ formieInclude('_includes/label', { position: 'below' }) }}
-
-            {% if errors %}
-                {{ formieInclude('_includes/errors') }}
-            {% endif %}
-
-            {% hook 'formie.field.field-end' %}
-        {% else %}
-            {% hook 'formie.field.field-start' %}
-
-            <div class="fui-input-container">
-                {% hook 'formie.field.input-start' %}
-
-                {{ field.getFrontEndInputHtml(form, value, inputOptions) }}
-
-                {% hook 'formie.field.input-end' %}
-            </div>
-
-            {% if errors %}
-                {{ formieInclude('_includes/errors') }}
-            {% endif %}
-
-            {% hook 'formie.field.field-end' %}
-        {% endif %}
-    </div>
+    {% if errors %}
+        {{ formieInclude('_includes/field-errors') }}
+    {% endif %}
 
     {% hook 'formie.field.field-after' %}
-{% endset %}
+{% endfieldtag %}
 
-{% set fieldOptions = craft.formie.getFieldOptions(field, options) %}
-{% set fieldAttributes = fieldOptions.attributes ?? {} %}
-{% set containerAttributes = field.getContainerAttributes() ?? {} %}
-
-{% set attributes = {
-    id: "#{id}-wrap",
-    class: [
-        'fui-field',
-        'fui-page-field',
-        "fui-type-#{field.displayName | kebab}",
-        "fui-label-#{labelPosition}",
-        "fui-subfield-label-#{subfieldLabelPosition}",
-        "fui-instructions-#{instructionsPosition}",
-        errors ? 'fui-field-error',
-        field.required ? 'fui-field-required',
-        field.isSelect ? 'fui-select-field',
-        field.isTextInput ? 'fui-text-input-field',
-        field.cssClasses ?? '',
-        field.isHidden() ? 'fui-hidden',
-    ] | filter,
-    data: {
-        'field-handle': field.handle,
-        'field-type': field.displayName | kebab,
-        'field-config': field.getConfigJson(),
-        'field-conditions': field.getConditionsJson(element),
-    },
-    html: html,
-} | merge(fieldAttributes) | merge(containerAttributes) %}
-
-{% namespace field.namespace %}
-    {{ tag(fieldOptions.fieldTag ?? options.fieldTag ?? 'div', attributes) }}
-{% endnamespace %}
+{% hook 'formie.field.input-after' %}

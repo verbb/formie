@@ -80,7 +80,7 @@
                                 "firstNameRequired":true,
                                 "handle":"yourName",
                                 "instructions":"Please enter your full name.",
-                                "instructionsPosition":"verbb\\formie\\positions\\FieldsetStart",
+                                "instructionsPosition":"verbb\\formie\\positions\\AboveInput",
                                 "label":"Your Name",
                                 "labelPosition":"verbb\\formie\\positions\\Hidden",
                                 "lastNameCollapsed":false,

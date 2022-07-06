@@ -25,14 +25,17 @@ Method | Description
 `getSvgIconPath()` | Returns the path to the SVG icon used for a field type.
 `getIsNew()` | Denotes whether this field is new.
 `hasLabel()` | Whether the field has a label or not. Some fields do not have one.
-`renderLabel()` | An alias to `hasLabel()`.
-`getIsTextInput()` | Whether this field is classified as a text input.
-`getIsSelect()` | Whether this field is classified as a select input.
-`getIsFieldset()` | Whether this field contains a fieldset. Normally, for when fields have sub-fields.
+`getHtmlId()` | Returns a string for the `id` HTML attribute when rendering the field.
+`getHtmlDataId()` | Returns a string as a `data-id` HTML attribute with the field handle.
+`getHtmlName()` | Returns a string for the `name` HTML attribute when rendering the field.
 `getExtraBaseFieldConfig()` | Returns any base-level configuration data for the field.
 `getFieldDefaults()` | Returns any defaults for the field, when it's created.
 `getContainerAttributes()` | Returns an array of options for container attributes.
 `getInputAttributes()` | Returns an array of options for input attributes.
+`renderHtmlTag()` | Returns a HtmlTag object for a provided theming key.
+`defineHtmlTag()` | Allows fields to define what HtmlTag objects it should use.
+`getParentField()` | Returns the parent field, if applicable. Only set for sub-field and nested-field types.
+`setParentField()` | Sets the parent field instance, including applicable namespace.
 `getFrontEndInputHtml()` | Returns the HTML for a the front-end template for a field.
 `getFrontEndInputOptions()` | Returns an object of variables that can be used for front-end fields.
 `getEmailHtml()` | Returns the HTML for an email notification for a field.

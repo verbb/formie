@@ -4,13 +4,14 @@ namespace verbb\formie\fields\formfields;
 use verbb\formie\base\FormField;
 use verbb\formie\base\SubfieldInterface;
 use verbb\formie\gql\types\generators\FieldAttributeGenerator;
+use verbb\formie\helpers\Html;
 use verbb\formie\helpers\RichTextHelper;
 use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\models\HtmlTag;
 
 use Craft;
 use craft\base\ElementInterface;
 use craft\base\PreviewableFieldInterface;
-use craft\helpers\Html;
 use craft\helpers\Json;
 
 use GraphQL\Type\Definition\Type;
@@ -208,6 +209,33 @@ class Calculations extends FormField implements PreviewableFieldInterface
         ];
     }
 
+    public function defineHtmlTag(string $key, array $context = []): ?HtmlTag
+    {
+        $form = $context['form'] ?? null;
+
+        $id = $this->getHtmlId($form);
+        $dataId = $this->getHtmlDataId($form);
+
+        if ($key === 'fieldInput') {
+            return new HtmlTag('input', array_merge([
+                'type' => 'text',
+                'id' => $id,
+                'class' => 'fui-input',
+                'name' => $this->getHtmlName(),
+                'placeholder' => Craft::t('site', $this->placeholder) ?: null,
+                'required' => $this->required ? true : null,
+                'readonly' => true,
+                'data' => [
+                    'fui-id' => $dataId,
+                    'fui-message' => Craft::t('site', $this->errorMessage) ?: null,
+                ],
+                'aria-describedby' => $this->instructions ? "{$id}-instructions" : null,
+            ], $this->getInputAttributes()));
+        }
+        
+        return parent::defineHtmlTag($key, $context);
+    }
+
 
     // Private Methods
     // =========================================================================
@@ -239,8 +267,8 @@ class Calculations extends FormField implements PreviewableFieldInterface
                 $inputNames = array_merge($inputNames, [$fieldHandle, $fieldKey]);
 
                 return [
-                    'handle' => $this->_getInputName($inputNames),
-                    'name' => Html::namespaceInputName($this->_getInputName($inputNames), $field->namespace),
+                    'handle' => Html::getInputNameAttribute($inputNames),
+                    'name' => Html::namespaceInputName(Html::getInputNameAttribute($inputNames), $field->namespace),
                     'type' => get_class($field),
                 ];
             }
@@ -248,23 +276,12 @@ class Calculations extends FormField implements PreviewableFieldInterface
             $inputNames[] = $fieldHandle;
 
             return [
-                'handle' => $this->_getInputName($inputNames),
-                'name' => Html::namespaceInputName($this->_getInputName($inputNames), $field->namespace),
+                'handle' => Html::getInputNameAttribute($inputNames),
+                'name' => Html::namespaceInputName(Html::getInputNameAttribute($inputNames), $field->namespace),
                 'type' => get_class($field),
             ];
         }
 
         return null;
-    }
-
-    private function _getInputName($names)
-    {
-        $first = array_shift($names);
-
-        if ($names) {
-            return $first . '[' . implode('][', $names) . ']';
-        }
-
-        return $first ?? '';
     }
 }

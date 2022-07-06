@@ -3,10 +3,12 @@ namespace verbb\formie\fields\formfields;
 
 use verbb\formie\base\FormFieldInterface;
 use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\models\HtmlTag;
 
 use Craft;
 use craft\base\ElementInterface;
 use craft\helpers\ArrayHelper;
+use craft\helpers\StringHelper;
 
 class Dropdown extends BaseOptionsField implements FormFieldInterface
 {
@@ -114,14 +116,6 @@ class Dropdown extends BaseOptionsField implements FormFieldInterface
         }
 
         return $settings;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getIsSelect(): bool
-    {
-        return !$this->getMultiple();
     }
 
     /**
@@ -249,6 +243,39 @@ class Dropdown extends BaseOptionsField implements FormFieldInterface
             SchemaHelper::conditionsField(),
         ];
     }
+
+    public function defineHtmlTag(string $key, array $context = []): ?HtmlTag
+    {
+        $form = $context['form'] ?? null;
+        $errors = $context['errors'] ?? null;
+
+        if ($key === 'fieldInput') {
+            $optionValue = $context['option']['value'] ?? '';
+            $id = $this->getHtmlId($form, StringHelper::toKebabCase($optionValue));
+            $dataId = $this->getHtmlDataId($form, StringHelper::toKebabCase($optionValue));
+
+            return new HtmlTag('select', array_merge([
+                'id' => $id,
+                'class' => [
+                    'fui-select',
+                    $errors ? 'fui-error' : false,
+                ],
+                'name' => $this->getHtmlName(($this->multi || $this->hasMultiNamespace ? '[]' : null)),
+                'multiple' => $this->multiple ? true : null,
+                'required' => $this->required ? true : null,
+                'data' => [
+                    'fui-id' => $dataId,
+                    'fui-message' => Craft::t('site', $this->errorMessage) ?: null,
+                ],
+            ], $this->getInputAttributes()));
+        }
+
+        return parent::defineHtmlTag($key, $context);
+    }
+
+
+    // Protected Methods
+    // =========================================================================
 
     /**
      * @inheritdoc

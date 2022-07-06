@@ -73,6 +73,30 @@ Event::on(Form::class, Form::EVENT_AFTER_DELETE, function(Event $event) {
 });
 ```
 
+### The `modifyHtmlTag` event
+The event that is triggered when preparing a form's HTML tag for render. Modify the `tag` event property change for a form's HTML is rendered.
+
+For more examples, consult the [theming](docs:template-guides/theming) docs.
+
+```php
+use verbb\formie\elements\Form;
+use verbb\formie\events\ModifyFormHtmlTagEvent;
+use yii\base\Event;
+
+Event::on(Form::class, Form::EVENT_MODIFY_HTML_TAG, function(ModifyFormHtmlTagEvent $event) {
+    $form = $event->form;
+    $tag = $event->tag;
+    $key = $event->key;
+    $context = $event->context;
+
+    // For the field `<form>` element, change the tag and add attributes
+    if ($event->key === 'form') {
+        $event->tag->tag = 'div';
+        $event->tag->attributes['class'][] = 'p-4 w-full mb-4';
+    }
+});
+```
+
 
 
 ## Form Render Events
@@ -561,6 +585,42 @@ Event::on(SingleLineText::class, SingleLineText::EVENT_MODIFY_DEFAULT_VALUE, fun
     
     // Overwrite the value
     $event->value = 'My Custom Value';
+});
+```
+
+### The `modifyHtmlTag` event
+The event that is triggered when preparing a field's HTML tag for render. You can use this on any class that includes the `FormFieldTrait` trait.
+
+Modify the `tag` event property change for a field's HTML is rendered.
+
+For more examples, consult the [theming](docs:template-guides/theming) docs.
+
+```php
+use verbb\formie\fields\formfields\SingleLineText;
+use verbb\formie\events\ModifyFieldHtmlTagEvent;
+use yii\base\Event;
+
+Event::on(SingleLineText::class, SingleLineText::EVENT_MODIFY_HTML_TAG, function(ModifyFieldHtmlTagEvent $event) {
+    $field = $event->field;
+    $tag = $event->tag;
+    $key = $event->key;
+    $context = $event->context;
+
+    // For the main field element, replace the class attribute entirely
+    if ($event->key === 'field') {
+        $event->tag->attributes['class'] = 'p-4 w-full mb-4';
+    }
+
+    // For the inner field wrapper, don't render the element
+    if ($event->key === 'fieldContainer') {
+        $event->tag = null;
+    }
+
+    // For the field `<input>` element, change the tag and add attributes
+    if ($event->key === 'fieldInput') {
+        $event->tag->tag = 'span';
+        $event->tag->attributes['class'][] = 'p-4 w-full mb-4';
+    }
 });
 ```
 
@@ -1421,7 +1481,7 @@ use verbb\formie\services\PdfTemplates;
 use yii\base\Event;
 
 Event::on(PdfTemplates::class, PdfTemplates::EVENT_MODIFY_RENDER_OPTIONS, function(PdfRenderOptionsEvent $event) {
-    $options = $event->options;
+    $renderOptions = $event->renderOptions;
 });
 ```
 

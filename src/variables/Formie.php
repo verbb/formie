@@ -11,16 +11,20 @@ use verbb\formie\elements\db\SubmissionQuery;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\FieldLayoutPage;
 use verbb\formie\models\Notification;
+use verbb\formie\positions\AboveInput;
 
 use Craft;
 use craft\errors\MissingComponentException;
 
+use yii\base\InvalidConfigException;
+
 use Twig\Markup;
-use Exception;
 use Twig\Error\SyntaxError;
 use Twig\Error\RuntimeError;
 use Twig\Error\LoaderError;
-use yii\base\InvalidConfigException;
+
+use Exception;
+use Throwable;
 
 class Formie
 {
@@ -96,7 +100,7 @@ class Formie
      * Renders a form.
      *
      * @param Form|string|null $form
-     * @param array|null $options
+     * @param array $renderOptions
      * @return Markup|null
      * @throws LoaderError
      * @throws MissingComponentException
@@ -105,17 +109,17 @@ class Formie
      * @throws \yii\base\Exception
      * @throws InvalidConfigException
      */
-    public function renderForm(Form|string|null $form, array $options = null): ?Markup
+    public function renderForm(Form|string $form, array $renderOptions = []): ?Markup
     {
-        return FormiePlugin::$plugin->getRendering()->renderForm($form, $options);
+        return FormiePlugin::$plugin->getRendering()->renderForm($form, $renderOptions);
     }
 
     /**
      * Renders a form page.
      *
      * @param Form|string|null $form
-     * @param FieldLayoutPage|null $page
-     * @param array|null $options
+     * @param FieldLayoutPage $page
+     * @param array $renderOptions
      * @return Markup|null
      * @throws LoaderError
      * @throws MissingComponentException
@@ -123,33 +127,33 @@ class Formie
      * @throws SyntaxError
      * @throws \yii\base\Exception
      */
-    public function renderPage(Form|string|null $form, ?FieldLayoutPage $page = null, array $options = null): ?Markup
+    public function renderPage(Form|string $form, FieldLayoutPage $page = null, array $renderOptions = []): ?Markup
     {
-        return FormiePlugin::$plugin->getRendering()->renderPage($form, $page, $options);
+        return FormiePlugin::$plugin->getRendering()->renderPage($form, $page, $renderOptions);
     }
 
     /**
      * Renders a form field.
      *
      * @param Form|string|null $form
-     * @param FormFieldInterface|null $field
-     * @param array|null $options
+     * @param FormFieldInterface|string $field
+     * @param array $renderOptions
      * @return Markup|null
      * @throws LoaderError
      * @throws RuntimeError
      * @throws SyntaxError
      * @throws \yii\base\Exception
      */
-    public function renderField(Form|string|null $form, ?FormFieldInterface $field = null, array $options = null): ?Markup
+    public function renderField(Form|string $form, FormFieldInterface|string $field, array $renderOptions = []): ?Markup
     {
-        return FormiePlugin::$plugin->getRendering()->renderField($form, $field, $options);
+        return FormiePlugin::$plugin->getRendering()->renderField($form, $field, $renderOptions);
     }
 
     /**
      * Registers assets for a form. This will not output anything.
      *
      * @param string|Form $form
-     * @param array|null $options
+     * @param array $renderOptions
      * @return void
      * @throws LoaderError
      * @throws RuntimeError
@@ -157,45 +161,45 @@ class Formie
      * @throws \yii\base\Exception
      * @throws InvalidConfigException
      */
-    public function registerAssets(Form|string $form, array $options = null): void
+    public function registerAssets(Form|string $form, array $renderOptions = []): void
     {
-        FormiePlugin::$plugin->getRendering()->registerAssets($form, $options);
+        FormiePlugin::$plugin->getRendering()->registerAssets($form, $renderOptions);
     }
 
     /**
      * Returns the CSS for the rendering of a form. This will include buffering any CSS files
      *
      * @param string|Form $form
-     * @param array|null $options
+     * @param array $renderOptions
      * @return Markup|null
      */
-    public function renderFormCss(Form|string $form, array $options = null): ?Markup
+    public function renderFormCss(Form|string $form, array $renderOptions = []): ?Markup
     {
-        return FormiePlugin::$plugin->getRendering()->renderFormCss($form, $options);
+        return FormiePlugin::$plugin->getRendering()->renderFormCss($form, $renderOptions);
     }
 
     /**
      * Returns the JS for the rendering of a form. This will include buffering any JS files
      *
      * @param string|Form $form
-     * @param array|null $options
+     * @param array $renderOptions
      * @return Markup|null
      */
-    public function renderFormJs(Form|string $form, array $options = null): ?Markup
+    public function renderFormJs(Form|string $form, array $renderOptions = []): ?Markup
     {
-        return FormiePlugin::$plugin->getRendering()->renderFormJs($form, $options);
+        return FormiePlugin::$plugin->getRendering()->renderFormJs($form, $renderOptions);
     }
 
     /**
      * Gets a field's options from the main options array.
      *
      * @param FormFieldInterface $field
-     * @param array|null $options
+     * @param array $renderOptions
      * @return array
      */
-    public function getFieldOptions(FormFieldInterface $field, array $options = null): array
+    public function getFieldOptions(FormFieldInterface $field, array $renderOptions = []): array
     {
-        return FormiePlugin::$plugin->getFields()->getFieldOptions($field, $options);
+        return FormiePlugin::$plugin->getFields()->getFieldOptions($field, $renderOptions);
     }
 
     /**
@@ -208,15 +212,20 @@ class Formie
      */
     public function getLabelPosition(FormFieldInterface $field, Form $form, bool $subfield = false): PositionInterface
     {
-        /* @var PositionInterface $position */
-        $position = $subfield && $field->hasSubfields() ? $field->subfieldLabelPosition : $field->labelPosition;
-        $position = $position ?: $form->settings->defaultLabelPosition;
+        // A hard error will be thrown if the position class doesn't exist
+        try {
+            /* @var PositionInterface $position */
+            $position = $subfield && $field->hasSubfields() ? $field->subfieldLabelPosition : $field->labelPosition;
+            $position = $position ?: $form->settings->defaultLabelPosition;
 
-        if (!$position::supports($field) && $fallback = $position::fallback($field)) {
-            return new $fallback();
+            if (!$position::supports($field) && $fallback = $position::fallback($field)) {
+                return new $fallback();
+            }
+
+            return new $position();
+        } catch (Throwable $e) {
+            return new AboveInput();
         }
-
-        return new $position();
     }
 
     /**
@@ -228,8 +237,14 @@ class Formie
      */
     public function getInstructionsPosition(FormFieldInterface $field, Form $form): PositionInterface
     {
-        $position = $field->instructionsPosition ?: $form->settings->defaultInstructionsPosition;
-        return new $position();
+        // A hard error will be thrown if the position class doesn't exist
+        try {
+            $position = $field->instructionsPosition ?: $form->settings->defaultInstructionsPosition;
+
+            return new $position();
+        } catch (Throwable $e) {
+            return new AboveInput();
+        }
     }
 
     /**

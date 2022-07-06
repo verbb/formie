@@ -4,6 +4,7 @@ namespace verbb\formie\fields\formfields;
 use verbb\formie\base\FormField;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\models\HtmlTag;
 use verbb\formie\models\Notification;
 
 use Craft;
@@ -60,14 +61,6 @@ class Section extends FormField
     /**
      * @inheritDoc
      */
-    public function renderLabel(): bool
-    {
-        return false;
-    }
-
-    /**
-     * @inheritDoc
-     */
     public function hasLabel(): bool
     {
         return false;
@@ -110,7 +103,7 @@ class Section extends FormField
     /**
      * @inheritDoc
      */
-    public function getEmailHtml(Submission $submission, Notification $notification, mixed $value, array $options = null): string|null|bool
+    public function getEmailHtml(Submission $submission, Notification $notification, mixed $value, array $renderOptions = []): string|null|bool
     {
         return Html::tag('hr');
     }
@@ -183,5 +176,26 @@ class Section extends FormField
             SchemaHelper::enableConditionsField(),
             SchemaHelper::conditionsField(),
         ];
+    }
+
+    public function defineHtmlTag(string $key, array $context = []): ?HtmlTag
+    {
+        $form = $context['form'] ?? null;
+
+        $id = $this->getHtmlId($form);
+        $dataId = $this->getHtmlDataId($form);
+
+        if ($key === 'fieldSection') {
+            return new HtmlTag('hr', array_merge([
+                'class' => 'fui-hr',
+                'style' => [
+                    'border-top-style' => $this->borderStyle ? $this->borderStyle : false,
+                    'border-top-width' => $this->borderWidth ? $this->borderWidth . 'px' : false,
+                    'border-top-color' => $this->borderColor ? $this->borderColor : false,
+                ],
+            ], $this->getInputAttributes()));
+        }
+
+        return parent::defineHtmlTag($key, $context);
     }
 }

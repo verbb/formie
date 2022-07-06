@@ -5,6 +5,7 @@ export class FormieTable {
         this.$form = settings.$form;
         this.form = this.$form.form;
         this.$field = settings.$field;
+        this.disabledClass = 'fui-disabled';
 
         this.static = settings.static;
 
@@ -78,7 +79,7 @@ export class FormieTable {
             const html = template.innerHTML.replace(/__ROW__/g, id);
 
             let $newRow = document.createElement('tr');
-            $newRow.className = 'fui-table-row';
+            $newRow.dataset.tableRow = true;
             $newRow.innerHTML = html;
 
             this.$field.querySelector('tbody').appendChild($newRow);
@@ -102,7 +103,7 @@ export class FormieTable {
 
     removeRow(e) {
         const button = e.target;
-        const $row = button.closest('.fui-table-row');
+        const $row = button.closest('[data-table-row]');
 
         if ($row) {
             const numRows = this.getNumRows();
@@ -118,7 +119,7 @@ export class FormieTable {
     }
 
     getRows() {
-        return this.$field.querySelectorAll('.fui-table-row');
+        return this.$field.querySelectorAll('[data-table-row]');
     }
 
     getNumRows() {
@@ -128,10 +129,10 @@ export class FormieTable {
     updateButton() {
         if (this.$addButton) {
             if (this.getNumRows() >= this.maxRows) {
-                this.$addButton.classList.add = 'fui-disabled';
+                this.$addButton.classList.add = this.disabledClass;
                 this.$addButton.setAttribute('disabled', 'disabled');
             } else {
-                this.$addButton.classList.remove = 'fui-disabled';
+                this.$addButton.classList.remove = this.disabledClass;
                 this.$addButton.removeAttribute('disabled');
             }
         }

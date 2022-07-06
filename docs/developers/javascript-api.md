@@ -84,7 +84,7 @@ let $form = document.getElementById("formie-form-1");
 let form = $form.form;
 ```
 
-Consult the [JS Class](https://github.com/verbb/formie/blob/craft-3/src/web/assets/frontend/src/js/formie-form-base.js) for more on what you have access to.
+Consult the [JS Class](https://github.com/verbb/formie/blob/craft-4/src/web/assets/frontend/src/js/formie-form-base.js) for more on what you have access to.
 
 ### Form Theme
 Accessible from the `FormieFormBase` class, this contains the bulk "business logic" of Formie's JS, including validation, mutli-page handling and more.
@@ -96,7 +96,7 @@ let $form = document.getElementById("formie-form-1");
 let form = $form.form.formTheme;
 ```
 
-Consult the [JS Class](https://github.com/verbb/formie/blob/craft-3/src/web/assets/frontend/src/js/formie-form-theme.js) for more on what you have access to.
+Consult the [JS Class](https://github.com/verbb/formie/blob/craft-4/src/web/assets/frontend/src/js/formie-form-theme.js) for more on what you have access to.
 
 ### Additional JS
 For some forms, they might contain additional fields, like a Repeater, or a captcha like reCAPTCHA. These have critical JavaScript associated with them in order for them to function. Rather than bundle this JS into the `formie.js` code for every form, they are lazy-loaded only if the form contains this module. This can be seen in the `registeredJs` property in the Form Config.

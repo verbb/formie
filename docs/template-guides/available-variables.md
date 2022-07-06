@@ -19,7 +19,7 @@ See [Submission Queries](docs:getting-elements/submission-queries)
 
 
 ### `craft.formie.renderForm(form, options = {})`
-Renders the entire form, taking into account custom [Form Templates](docs:feature-tour/form-templates). The `form` parameter can be a [Form](docs:developers/form) object, or the handle of a form. For details on the options you can pass into the `options` parameter, see [Rendering Options](docs:template-guides/rendering-options).
+Renders the entire form, taking into account custom [Form Templates](docs:feature-tour/form-templates). The `form` parameter can be a [Form](docs:developers/form) object, or the handle of a form. For details on the options you can pass into the `options` parameter, see [Render Options](docs:theming/render-options).
 
 ```twig
 {{ craft.formie.renderForm('contactForm') }}
@@ -51,7 +51,7 @@ Renders a single field, taking into account custom [Form Templates](docs:feature
 
 
 ### `craft.formie.registerAssets(form, options = {})`
-Used to specifically register the CSS and JS for a form. Takes the same arguments as `craft.formie.renderForm`. This is particular useful for [Cached Forms](docs:template-guides/cached-forms) or [Custom Rendering](docs:template-guides/custom-rendering).
+Used to specifically register the CSS and JS for a form. Takes the same arguments as `craft.formie.renderForm`. This is particular useful for [Cached Forms](docs:template-guides/cached-forms) or [Custom Rendering](docs:theming/custom-rendering).
 
 ```twig
 {% do craft.formie.registerAssets('contactForm') %}

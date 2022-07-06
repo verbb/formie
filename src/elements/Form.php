@@ -6,12 +6,15 @@ use verbb\formie\base\FormFieldInterface;
 use verbb\formie\base\NestedFieldInterface;
 use verbb\formie\behaviors\FieldLayoutBehavior;
 use verbb\formie\elements\db\FormQuery;
+use verbb\formie\events\ModifyFormHtmlTagEvent;
 use verbb\formie\gql\interfaces\FieldInterface;
 use verbb\formie\helpers\HandleHelper;
+use verbb\formie\helpers\Html;
 use verbb\formie\models\FieldLayout;
 use verbb\formie\models\FieldLayoutPage;
 use verbb\formie\models\FormSettings;
 use verbb\formie\models\FormTemplate;
+use verbb\formie\models\HtmlTag;
 use verbb\formie\models\Notification;
 use verbb\formie\models\Settings;
 use verbb\formie\models\Status;
@@ -47,6 +50,12 @@ use Twig\Error\LoaderError;
 
 class Form extends Element
 {
+    // Constants
+    // =========================================================================
+
+    public const EVENT_MODIFY_HTML_TAG = 'modifyHtmlTag';
+
+
     // Static Methods
     // =========================================================================
 
@@ -303,6 +312,8 @@ class Form extends Element
     public ?int $fieldLayoutId = null;
     public ?FormSettings $settings = null;
 
+    public bool $resetClasses = false;
+
     private ?CraftFieldLayout $_fieldLayout = null;
     private ?FieldLayout $_formFieldLayout = null;
     private ?array $_fields = null;
@@ -317,9 +328,10 @@ class Form extends Element
     private ?string $_formId = null;
     private bool $_appliedFieldSettings = false;
     private bool $_appliedFormSettings = false;
-    private ?array $_relations = [];
-    private ?array $_populatedFieldValues = [];
-    private ?array $_frontEndJsEvents = [];
+    private array $_relations = [];
+    private array $_populatedFieldValues = [];
+    private array $_frontEndJsEvents = [];
+    private array $_themeConfig = [];
 
     private static ?array $_layoutsByType = null;
 
@@ -598,7 +610,8 @@ class Form extends Element
             return $this->_formId;
         }
 
-        return $this->_formId = StringHelper::appendRandomString("formie-form-{$this->id}", 16);
+        // Provide a unique ID for this field, used as a namespace for IDs of elements in the form
+        return $this->_formId = 'fui-' . $this->handle . '-' . StringHelper::randomString(6);
     }
 
     public function setFormId($value): void
@@ -1298,6 +1311,296 @@ class Form extends Element
         }
 
         return '';
+    }
+
+    public function renderHtmlTag(string $key, array $context = []): ?HtmlTag
+    {
+        // Get the HtmlTag definition
+        $tag = $this->defineHtmlTag($key, $context);
+
+        // Find if there's a config option for this key, either in plugin config or template render options
+        $config = $this->getThemeConfigItem($key);
+
+        if ($tag) {
+            // Are we resetting classes globally?
+            if ($this->resetClasses) {
+                $config['resetClass'] = true;
+            }
+
+            $tag->setFromConfig($config, $context);
+        }
+
+        $event = new ModifyFormHtmlTagEvent([
+            'form' => $this,
+            'tag' => $tag,
+            'key' => $key,
+            'context' => $context,
+        ]);
+
+        $this->trigger(static::EVENT_MODIFY_HTML_TAG, $event);
+
+        return $event->tag;
+    }
+
+    public function defineHtmlTag(string $key, array $context = []): ?HtmlTag
+    {
+        if ($key === 'formWrapper') {
+            return new HtmlTag('div', [
+                'class' => 'fui-i',
+            ]);
+        }
+
+        if ($key === 'form') {
+            $defaultLabelPosition = new $this->settings->defaultLabelPosition;
+
+            return new HtmlTag('form', [
+                'id' => $this->getFormId(),
+                'class' => [
+                    'fui-form',
+                    'fui-labels-' . $defaultLabelPosition,
+                    $this->settings->displayPageProgress ? "fui-progress-{$this->settings->progressPosition}" : false,
+                    $this->settings->validationOnFocus ? 'fui-validate-on-focus' : false,
+                ],
+                'method' => 'post',
+                'enctype' => 'multipart/form-data',
+                'accept-charset' => 'utf-8',
+                'data' => [
+                    'fui-form' => $this->getConfigJson(),
+                    'submit-method' => $this->settings->submitMethod ?: false,
+                    'submit-action' => $this->settings->submitAction ?: false,
+                    'loading-indicator' => $this->settings->loadingIndicator ?: false,
+                    'loading-text' => $this->settings->loadingIndicatorText ?: false,
+                    'redirect' => $this->getRedirectUrl() ?: false,
+                ],
+            ]);
+        }
+
+        if ($key === 'formContainer') {
+            return new HtmlTag('div', [
+                'class' => 'fui-form-container',
+            ]);
+        }
+
+        if ($key === 'alertError') {
+            return new HtmlTag('div', [
+                'class' => [
+                    'fui-alert fui-alert-error',
+                    'fui-alert-' . $this->settings->errorMessagePosition,
+                ],
+                'role' => 'alert',
+            ]);
+        }
+
+        if ($key === 'alertSuccess') {
+            return new HtmlTag('div', [
+                'class' => [
+                    'fui-alert fui-alert-success',
+                    'fui-alert-' . $this->settings->submitActionMessagePosition,
+                ],
+                'role' => 'alert',
+            ]);
+        }
+
+        if ($key === 'formTitle') {
+            return new HtmlTag('h2', [
+                'class' => 'fui-title',
+            ]);
+        }
+
+        if ($key === 'pageTabs') {
+            return new HtmlTag('div', [
+                'class' => 'fui-tabs',
+                'data-fui-page-tabs' => true,
+            ]);
+        }
+
+        if ($key === 'pageTab') {
+            $submission = $context['submission'] ?? null;
+            $currentPage = $context['currentPage'] ?? null;
+            $page = $context['page'] ?? null;
+
+            return new HtmlTag('div', [
+                'id' => 'fui-tab-' . $page->id,
+                'class' => [
+                    'fui-tab',
+                    ($page->id == $currentPage->id) ? 'fui-tab-active' : false,
+                    $page->getFieldErrors($submission) ? 'fui-tab-error' : false,
+                ],
+                'data-fui-page-tab' => true,
+                'data-field-conditions' => $page->getConditionsJson(),
+            ]);
+        }
+
+        if ($key === 'pageTabLink') {
+            $params = $context['params'] ?? null;
+            $page = $context['page'] ?? null;
+            $pageIndex = $context['pageIndex'] ?? null;
+
+            return new HtmlTag('a', [
+                'href' => UrlHelper::actionUrl('formie/submissions/set-page', $params),
+                'data-fui-page-tab-anchor' => true,
+                'data-fui-page-index' => $pageIndex,
+                'data-fui-page-id' => $page->id ?? false,
+            ]);
+        }
+
+        if ($key === 'page') {
+            $page = $context['page'] ?? null;
+            $currentPage = $this->getCurrentPage();
+
+            return new HtmlTag('div', [
+                'id' => "{$this->getFormId()}-p-{$page->id}",
+                'class' => 'fui-page',
+                'data' => [
+                    'index' => $page->sortOrder,
+                    'id' => $page->id,
+                    'fui-page-hidden' => $this->hasMultiplePages() && $page->id != $currentPage->id ? true : false,
+                ],
+            ]);
+        }
+
+        if ($key === 'pageContainer') {
+            $tag = $this->settings->displayCurrentPageTitle ? 'fieldset' : 'div';
+
+            return new HtmlTag($tag, [
+                'class' => [
+                    'fui-page-container',
+                    $this->settings->displayCurrentPageTitle ? 'fui-fieldset' : false,
+                ],
+            ]);
+        }
+
+        if ($key === 'pageTitle') {
+            return new HtmlTag('legend', [
+                'class' => 'fui-page-title',
+            ]);
+        }
+
+        if ($key === 'row') {
+            $row = $context['row'] ?? null;
+
+            $fields = [];
+            $rowFields = $row['fields'] ?? [];
+
+            foreach ($rowFields as $field) {
+                if (!$field->getIsHidden()) {
+                    $fields[] = $field;
+                }
+            }
+
+            return new HtmlTag('div', [
+                'class' => [
+                    'fui-row fui-page-row',
+                    $fields ? false : 'fui-row-empty',
+                ],
+            ]);
+        }
+
+        if ($key === 'buttonWrapper') {
+            $page = $context['page'] ?? null;
+            $containerAttributes = $page->settings->getContainerAttributes() ?? [];
+
+            return new HtmlTag('div', array_merge([
+                'class' => [
+                    'fui-btn-container',
+                    "fui-btn-{$page->settings->buttonsPosition}",
+                    $page->settings->cssClasses,
+                ],
+            ], $containerAttributes));
+        }
+
+        if ($key === 'submitButton') {
+            $page = $context['page'] ?? null;
+            $inputAttributes = $page->settings->getInputAttributes() ?? [];
+            $nextPage = $this->getNextPage($page);
+
+            return new HtmlTag('button', array_merge([
+                'class' => [
+                    'fui-btn fui-submit',
+                    $nextPage ? 'fui-next' : false,
+                ],
+                'type' => 'submit',
+                'data-field-conditions' => $page->settings->getConditionsJson(),
+            ], $inputAttributes));
+        }
+
+        if ($key === 'previousButton') {
+            $page = $context['page'] ?? null;
+            $inputAttributes = $page->settings->getInputAttributes() ?? [];
+
+            return new HtmlTag('button', array_merge([
+                'class' => 'fui-btn fui-prev',
+                'type' => 'submit',
+                'name' => 'goingBack',
+                'onclick' => 'this.form.goBack = true;',
+            ], $inputAttributes));
+        }
+
+        if ($key === 'progressWrapper') {
+            return new HtmlTag('div', [
+                'class' => 'fui-progress-container',
+            ]);
+        }
+
+        if ($key === 'progress') {
+            return new HtmlTag('div', [
+                'class' => 'fui-progress',
+            ]);
+        }
+
+        if ($key === 'progressContainer') {
+            $progress = $context['progress'] ?? null;
+
+            return new HtmlTag('div', [
+                'style' => "width: {$progress}%",
+                'class' => 'fui-progress-bar',
+                'role' => 'progressbar',
+                'aria' => [
+                    'valuenow' => $progress,
+                    'valuemin' => 0,
+                    'valuemax' => 100,
+                ],
+            ]);
+        }
+
+        if ($key === 'progressValue') {
+            return new HtmlTag('span', [
+                'class' => 'fui-progress-value',
+            ]);
+        }
+
+        return null;
+    }
+
+    public function applyRenderOptions(array $renderOptions = []): void
+    {
+        $templateConfig = $renderOptions['themeConfig'] ?? [];
+
+        if ($templateConfig) {
+            $this->setThemeConfig($templateConfig);
+        }
+    }
+
+    public function getThemeConfig(): array
+    {
+        return $this->_themeConfig;
+    }
+
+    public function setThemeConfig(array $value): void
+    {
+        /* @var Settings $pluginSettings */
+        $pluginSettings = Formie::$plugin->getSettings();
+
+        // Merge config and template-level tags - template overrides
+        $this->_themeConfig = Html::mergeHtmlConfigs($pluginSettings->themeConfig, $value);
+
+        // Rip out the `resetClasses`, if set as this is set globally and checked on each tag-render
+        $this->resetClasses = ArrayHelper::remove($this->_themeConfig, 'resetClasses', false);
+    }
+
+    public function getThemeConfigItem(string $key): array
+    {
+        return ArrayHelper::getValue($this->_themeConfig, $key, []);
     }
 
     public function getFrontEndJsVariables(): array

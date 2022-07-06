@@ -8,11 +8,13 @@ use verbb\formie\base\FormField;
 use verbb\formie\events\ModifyFrontEndSubfieldsEvent;
 use verbb\formie\gql\types\generators\FieldAttributeGenerator;
 use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\models\HtmlTag;
 use verbb\formie\models\Phone as PhoneModel;
 
 use Craft;
 use craft\base\ElementInterface;
 use craft\base\PreviewableFieldInterface;
+use craft\helpers\Html;
 use craft\helpers\Json;
 use craft\helpers\StringHelper;
 
@@ -171,28 +173,9 @@ class Phone extends FormField implements SubfieldInterface, PreviewableFieldInte
     /**
      * @inheritDoc
      */
-    public function getFrontEndSubfields(): array
+    public function getFrontEndSubfields($context): array
     {
-        $row = [];
-
-        if ($this->countryEnabled) {
-            $row['country'] = 'tel-country-code';
-        }
-
-        $row['number'] = 'tel-national';
-
-        $rows = [
-            $row,
-        ];
-
-        $event = new ModifyFrontEndSubfieldsEvent([
-            'field' => $this,
-            'rows' => array_filter($rows),
-        ]);
-
-        Event::trigger(static::class, self::EVENT_MODIFY_FRONT_END_SUBFIELDS, $event);
-
-        return $event->rows;
+        return [];
     }
 
     /**
@@ -214,14 +197,6 @@ class Phone extends FormField implements SubfieldInterface, PreviewableFieldInte
                 'handle' => 'number',
             ],
         ];
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getIsTextInput(): bool
-    {
-        return !$this->countryEnabled;
     }
 
     /**
@@ -390,5 +365,48 @@ class Phone extends FormField implements SubfieldInterface, PreviewableFieldInte
             SchemaHelper::enableConditionsField(),
             SchemaHelper::conditionsField(),
         ];
+    }
+
+    public function defineHtmlTag(string $key, array $context = []): ?HtmlTag
+    {
+        $form = $context['form'] ?? null;
+        $errors = $context['errors'] ?? null;
+
+        if ($key === 'fieldInput') {
+            $id = $this->getHtmlId($form, 'number');
+            $dataId = $this->getHtmlDataId($form, 'number');
+
+            return new HtmlTag('input', array_merge([
+                'type' => 'tel',
+                'id' => $id,
+                'class' => [
+                    'fui-input',
+                    $errors ? 'fui-error' : false,
+                ],
+                'name' => $this->getHtmlName('number'),
+                'placeholder' => Craft::t('site', $this->placeholder) ?: null,
+                'autocomplete' => 'tel-national',
+                'required' => $this->required ? true : null,
+                'data' => [
+                    'fui-id' => $dataId,
+                    'fui-message' => Craft::t('site', $this->errorMessage) ?: null,
+                ],
+                'aria-describedby' => $this->instructions ? "{$id}-instructions" : null,
+            ], $this->getInputAttributes()));
+        }
+
+        if ($key === 'fieldCountryInput') {
+            return new HtmlTag('input', array_merge([
+                'type' => 'hidden',
+                'id' => $this->getHtmlId($form, 'country'),
+                'name' => $this->getHtmlName('country'),
+                'data' => [
+                    'fui-id' => $this->getHtmlDataId($form, 'country'),
+                    'country' => true,
+                ],
+            ], $this->getInputAttributes()));
+        }
+        
+        return parent::defineHtmlTag($key, $context);
     }
 }

@@ -2,11 +2,14 @@
 namespace verbb\formie\fields\formfields;
 
 use verbb\formie\base\FormField;
+use verbb\formie\base\FormFieldInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
+use verbb\formie\fields\formfields\Hidden as HiddenField;
 use verbb\formie\gql\types\generators\FieldOptionGenerator;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\IntegrationField;
+use verbb\formie\models\HtmlTag;
 use verbb\formie\models\Notification;
 use verbb\formie\positions\Hidden;
 
@@ -15,8 +18,12 @@ use craft\base\ElementInterface;
 use craft\fields\data\MultiOptionsFieldData;
 use craft\fields\data\OptionData;
 use craft\fields\data\SingleOptionFieldData;
+use craft\helpers\Component;
 use craft\helpers\Json;
 use craft\helpers\StringHelper;
+
+use ReflectionClass;
+use ReflectionProperty;
 
 use GraphQL\Type\Definition\Type;
 
@@ -52,22 +59,6 @@ class Recipients extends FormField
 
     // Public Methods
     // =========================================================================
-
-    /**
-     * @inheritDoc
-     */
-    public function getIsFieldset(): bool
-    {
-        if ($this->displayType === 'checkboxes') {
-            return true;
-        }
-
-        if ($this->displayType === 'radio') {
-            return true;
-        }
-
-        return false;
-    }
 
     public function getIsHidden(): bool
     {
@@ -169,14 +160,6 @@ class Recipients extends FormField
     /**
      * @inheritDoc
      */
-    public function renderLabel(): bool
-    {
-        return !$this->getIsFieldset();
-    }
-
-    /**
-     * @inheritDoc
-     */
     public function getInputHtml(mixed $value, ?ElementInterface $element = null): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/recipients/input', [
@@ -200,7 +183,7 @@ class Recipients extends FormField
     /**
      * @inheritDoc
      */
-    public function getEmailHtml(Submission $submission, Notification $notification, mixed $value, array $options = null): string|null|bool
+    public function getEmailHtml(Submission $submission, Notification $notification, mixed $value, array $renderOptions = []): string|null|bool
     {
         return false;
     }
@@ -235,14 +218,49 @@ class Recipients extends FormField
     /**
      * @inheritDoc
      */
-    public function getFrontEndInputOptions(Form $form, mixed $value, array $options = null): array
+    public function getFrontEndInputOptions(Form $form, mixed $value, array $renderOptions = []): array
     {
-        $inputOptions = parent::getFrontEndInputOptions($form, $value, $options);
+        $inputOptions = parent::getFrontEndInputOptions($form, $value, $renderOptions);
 
         // When rendering the value **always** swap out the real values with obscured ones
         $inputOptions['value'] = $this->getFakeValue($value);
 
         return $inputOptions;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getDisplayTypeField(): FormFieldInterface
+    {
+        // Use all the same settings from this field, but remove any invalid ones
+        $class = new ReflectionClass($this);
+
+        $config = [
+            'options' => $this->getFieldOptions(),
+        ];
+
+        foreach ($class->getProperties(ReflectionProperty::IS_PUBLIC) as $property) {
+            if (!$property->isStatic() && $property->getDeclaringClass()->isAbstract()) {
+                $config[$property->getName()] = $this->{$property->getName()};
+            }
+        }
+
+        if ($this->displayType === 'hidden') {
+            return new HiddenField($config);
+        }
+
+        if ($this->displayType === 'dropdown') {
+            return new Dropdown($config);
+        }
+
+        if ($this->displayType === 'radio') {
+            return new Radio($config);
+        }
+
+        if ($this->displayType === 'checkboxes') {
+            return new Checkboxes($config);
+        }
     }
 
     public function getDefaultValue($attributePrefix = '')
@@ -481,9 +499,28 @@ class Recipients extends FormField
         return Type::string();
     }
 
-    protected function options(): array
+    public function defineHtmlTag(string $key, array $context = []): ?HtmlTag
     {
-        return $this->options ?? [];
+        $form = $context['form'] ?? null;
+
+        $id = $this->getHtmlId($form);
+
+        if (in_array($this->displayType, ['checkboxes', 'radio'])) {
+            if ($key === 'fieldContainer') {
+                return new HtmlTag('fieldset', [
+                    'class' => 'fui-fieldset',
+                    'aria-describedby' => $this->instructions ? "{$id}-instructions" : null,
+                ]);
+            }
+
+            if ($key === 'fieldLabel') {
+                return new HtmlTag('legend', [
+                    'class' => 'fui-legend',
+                ]);
+            }
+        }
+
+        return parent::defineHtmlTag($key, $context);
     }
 
 
@@ -550,5 +587,10 @@ class Recipients extends FormField
         }
 
         return $value->label ?? '';
+    }
+
+    protected function options(): array
+    {
+        return $this->options ?? [];
     }
 }

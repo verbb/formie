@@ -10,6 +10,7 @@ use verbb\formie\gql\interfaces\RowInterface;
 use verbb\formie\gql\types\input\RepeaterInputType;
 use verbb\formie\gql\types\RowType;
 use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\models\HtmlTag;
 
 use Craft;
 use craft\base\EagerLoadingFieldInterface;
@@ -119,14 +120,6 @@ class Repeater extends FormField implements NestedFieldInterface, EagerLoadingFi
                 $element->addError($this->handle, $error);
             }
         }
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getIsFieldset(): bool
-    {
-        return true;
     }
 
     /**
@@ -338,6 +331,87 @@ class Repeater extends FormField implements NestedFieldInterface, EagerLoadingFi
             ],
         ]));
     }
+
+    public function defineHtmlTag(string $key, array $context = []): ?HtmlTag
+    {
+        $form = $context['form'] ?? null;
+
+        $id = $this->getHtmlId($form);
+
+        if ($key === 'fieldContainer') {
+            return new HtmlTag('fieldset', [
+                'class' => 'fui-fieldset',
+                'aria-describedby' => $this->instructions ? "{$id}-instructions" : null,
+            ]);
+        }
+
+        if ($key === 'fieldLabel') {
+            return new HtmlTag('legend', [
+                'class' => 'fui-legend',
+            ]);
+        }
+
+        if ($key === 'nestedFieldContainer') {
+            return new HtmlTag('div', [
+                'class' => 'fui-repeater-rows',
+                'data-repeater-rows' => true,
+            ]);
+        }
+
+        if ($key === 'nestedField') {
+            return new HtmlTag('div', [
+                'class' => 'fui-repeater-row',
+                'data-repeater-row' => true,
+            ]);
+        }
+
+        if ($key === 'nestedFieldWrapper') {
+            return new HtmlTag('fieldset', [
+                'class' => 'fui-fieldset',
+            ]);
+        }
+
+        if ($key === 'fieldAddButton') {
+            $isStatic = false;
+
+            // Disable the button straight away if we're making it static
+            if ($this->minRows && $this->maxRows && $this->minRows == $this->maxRows) {
+                $isStatic = true;
+            }
+
+            return new HtmlTag('button', [
+                'class' => [
+                    'fui-btn fui-repeater-add-btn',
+                    $isStatic ? 'fui-disabled' : false,
+                ],
+                'type' => 'button',
+                'text' => Craft::t('site', $this->addLabel),
+                'disabled' => $isStatic,
+                'data' => [
+                    'min-rows' => $this->minRows,
+                    'max-rows' => $this->maxRows,
+                    'add-repeater-row' => $this->handle,
+                ],
+            ]);
+        }
+
+        if ($key === 'fieldRemoveButton') {
+            return new HtmlTag('button', [
+                'class' => 'fui-btn fui-repeater-remove-btn',
+                'type' => 'button',
+                'text' => Craft::t('formie', 'Remove'),
+                'data' => [
+                    'remove-repeater-row' => $this->handle,
+                ],
+            ]);
+        }
+
+        return parent::defineHtmlTag($key, $context);
+    }
+
+
+    // Protected Methods
+    // =========================================================================
 
     /**
      * @inheritdoc
