@@ -35,6 +35,7 @@ The following changes have been made to the [Row](docs:developers/row) object.
 Old | What to do instead
 --- | ---
 | `getFields()` | `getCustomFields()`
+
 ### Field
 
 The following changes have been made to the [Field](docs:developers/field) object.
