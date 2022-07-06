@@ -100,7 +100,7 @@ You are now required to only have a `data-fui-form` attribute which combines the
 }) }}
 ```
 
-Without the `data-fui-form` and `data-config`, the Formie JS will fail to initialise.
+Without the `data-fui-form` attribute the Formie JS will fail to initialise.
 
 
 ## GraphQL

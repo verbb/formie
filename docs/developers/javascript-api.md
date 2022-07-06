@@ -6,14 +6,14 @@ Be sure to read up on the general [JavaScript docs](docs:developers/front-end-js
 :::
 
 ## Form Config
-All configuration needed to initialise a form is contained within the `data-config` attribute of a `<form>` element. This also contains any per-form fields, captchas or other JavaScript it needs to function. This is a JSON-encoded string.
+All configuration needed to initialise a form is contained within the `data-fui-form` attribute of a `<form>` element. This also contains any per-form fields, captchas or other JavaScript it needs to function. This is a JSON-encoded string.
 
 :::warning
 If you're using custom templates, be sure to keep this attribute on the `<form>` element - otherwise your JavaScript will fail to work.
 :::
 
 ```twig
-<form id="formie-form-1" data-config='{"formId":1,"formHandle":"someForm","registeredJs":[],...'>
+<form data-fui-form='{"formId":1,"formHandle":"someForm","registeredJs":[],...'>
     // ...
 ```
 
@@ -65,7 +65,7 @@ Property | Description
 
 Functions | Description
 --- | ---
-`initForms()` | Will initialise all forms on the page with the id starting with `formie-form-`. This is done automatically when the `formie.js` script is loaded.
+`initForms()` | Will initialise all forms on the page with the attribute `data-fui-form`. This is done automatically when the `formie.js` script is loaded.
 `initForm($form)` | From a provided `<form>` DOM element, initialises the form.
 `getForm($form)` | Returns a registered form, for a provided DOM element.
 `getFormById(id)` | Returns a registered form, for a provided ID.
