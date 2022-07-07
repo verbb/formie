@@ -50,7 +50,7 @@
 import { isEmpty } from 'lodash-es';
 
 // eslint-disable-next-line
-import { Tabs, Tab, TabList, TabPanels, TabPanel } from '@vendor/vue-accessible-tabs';
+import { Tabs, Tab, TabList } from '@vendor/vue-accessible-tabs';
 
 import Modal from '@components/Modal.vue';
 
@@ -62,8 +62,6 @@ export default {
         Tabs,
         Tab,
         TabList,
-        TabPanels,
-        TabPanel,
     },
 
     props: {

@@ -427,8 +427,7 @@
 .tagify__input::after {
   content: attr(data-suggest);
   display: inline-block;
-  white-space: pre;
-  /* allows spaces at the beginning */
+  white-space: pre; /* allows spaces at the beginning */
   color: black;
   opacity: 0.3;
   pointer-events: none;
