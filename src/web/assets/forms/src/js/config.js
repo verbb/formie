@@ -8,13 +8,15 @@ import VueUniqueId from '@/js/vendor/vue-unique-id';
 import { plugin as formkitPlugin } from '@formkit/vue';
 import formkitConfig from './config.formkit';
 
-import store from '@/js/store';
+import vuex from '@/js/store';
 import { clone } from '@utils/object';
 import { t } from '@utils/translations';
 
 // Create the event emitter here, so it's created once, but accessible across multiple
 // Vue app instances.
 const events = mitt();
+
+export const store = vuex;
 
 // Allows us to create a Vue app with global properties and loading plugins
 export const createVueApp = (props) => {
@@ -67,7 +69,7 @@ export const createVueApp = (props) => {
 
     // Vuex for state management
     // https://vuex.vuejs.org
-    app.use(store);
+    app.use(vuex);
 
     // FormKit
     // https://formkit.com

@@ -10,7 +10,7 @@ import { get, isEmpty } from 'lodash-es';
 import { generateHandle, getNextAvailableHandle, newId } from '@utils/string';
 import { clone } from '@utils/object';
 
-import { createVueApp } from './config.js';
+import { createVueApp, store } from './config.js';
 
 //
 // Start Vue Apps
@@ -61,6 +61,18 @@ Craft.Formie.EditForm = Garnish.Base.extend({
         // Add isStencil flag
         settings.config.isStencil = settings.isStencil;
 
+        // Initialise our Vuex stores with data ASAP
+        store.dispatch('form/setFormConfig', settings.config);
+        store.dispatch('form/setVariables', settings.variables);
+        store.dispatch('fieldtypes/setFieldtypes', settings.fields);
+        store.dispatch('fieldGroups/setFieldGroups', settings.fields);
+        store.dispatch('notifications/setNotifications', settings.notifications);
+        store.dispatch('formie/setEmailTemplates', settings.emailTemplates);
+        store.dispatch('formie/setMaxFieldHandleLength', settings.maxFieldHandleLength);
+        store.dispatch('formie/setMaxFormHandleLength', settings.maxFormHandleLength);
+        store.dispatch('formie/setReservedHandles', settings.reservedHandles);
+        store.dispatch('formie/setStatuses', settings.statuses);
+
         // Create some Vue instances for other elements on the page, outside of the form builder
         new Craft.Formie.PageTitle();
         new Craft.Formie.SaveButton();
@@ -106,18 +118,6 @@ Craft.Formie.EditForm = Garnish.Base.extend({
             },
 
             created() {
-                // Initialise our Vuex stores with data
-                this.$store.dispatch('form/setFormConfig', settings.config);
-                this.$store.dispatch('form/setVariables', settings.variables);
-                this.$store.dispatch('fieldtypes/setFieldtypes', settings.fields);
-                this.$store.dispatch('fieldGroups/setFieldGroups', settings.fields);
-                this.$store.dispatch('notifications/setNotifications', settings.notifications);
-                this.$store.dispatch('formie/setEmailTemplates', settings.emailTemplates);
-                this.$store.dispatch('formie/setMaxFieldHandleLength', settings.maxFieldHandleLength);
-                this.$store.dispatch('formie/setMaxFormHandleLength', settings.maxFormHandleLength);
-                this.$store.dispatch('formie/setReservedHandles', settings.reservedHandles);
-                this.$store.dispatch('formie/setStatuses', settings.statuses);
-
                 this.$events.on('formie:save-form', (options) => {
                     this.onSave(options);
                 });
