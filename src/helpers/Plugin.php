@@ -17,7 +17,7 @@ class Plugin
             'depends' => [
                 FormsAsset::class,
             ],
-            'onload' => "document.dispatchEvent(new CustomEvent('vite-script-loaded',{detail:{path:'$path'}}));",
+            'onload' => '',
         ];
 
         $styleOptions = [
