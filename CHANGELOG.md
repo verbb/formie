@@ -54,6 +54,7 @@
 - Fix markdown output of field instructions.
 - Fix an error when exporting submissions.
 - Fix an error when exporting element fields.
+- Fix performance issues for large forms, when loading the form builder.
 
 ### Removed
 - Removed `AddressProvider::EVENT_MODIFY_ADDRESS_PROVIDER_HTML` event.

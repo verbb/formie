@@ -74,7 +74,7 @@ class Recaptcha extends Captcha
      */
     public function getFrontEndHtml(Form $form, $page = null): string
     {
-        return Html::tag('div', [
+        return Html::tag('div', null, [
             'class' => 'formie-recaptcha-placeholder',
             'data-recaptcha-placeholder' => true,
         ]);

@@ -62,7 +62,7 @@ class Hcaptcha extends Captcha
      */
     public function getFrontEndHtml(Form $form, $page = null): string
     {
-        return Html::tag('div', [
+        return Html::tag('div', null, [
             'class' => 'formie-hcaptcha-placeholder',
             'data-hcaptcha-placeholder' => true,
         ]);

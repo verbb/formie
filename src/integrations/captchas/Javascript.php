@@ -60,7 +60,7 @@ class Javascript extends Captcha
             Craft::$app->getSession()->set($sessionKey . '_init', time());
         }
 
-        return Html::tag('div', [
+        return Html::tag('div', null, [
             'class' => 'formie-jscaptcha-placeholder',
             'data-jscaptcha-placeholder' => true,
         ]);
