@@ -112,8 +112,6 @@ Craft.Formie.EditForm = Garnish.Base.extend({
                 this.$store.dispatch('fieldtypes/setFieldtypes', settings.fields);
                 this.$store.dispatch('fieldGroups/setFieldGroups', settings.fields);
                 this.$store.dispatch('notifications/setNotifications', settings.notifications);
-                this.$store.dispatch('formie/setExistingFields', settings.existingFields);
-                this.$store.dispatch('formie/setExistingNotifications', settings.existingNotifications);
                 this.$store.dispatch('formie/setEmailTemplates', settings.emailTemplates);
                 this.$store.dispatch('formie/setMaxFieldHandleLength', settings.maxFieldHandleLength);
                 this.$store.dispatch('formie/setMaxFormHandleLength', settings.maxFormHandleLength);

@@ -403,6 +403,26 @@ class FormsController extends Controller
         return $this->asJson($params);
     }
 
+    public function actionGetExistingFields(): Response
+    {
+        $formId = Craft::$app->getRequest()->getParam('formId');
+
+        $form = Formie::$plugin->getForms()->getFormById($formId);
+        $existingFields = Formie::$plugin->getFields()->getExistingFields($form);
+
+        return $this->asJson($existingFields);
+    }
+
+    public function actionGetExistingNotifications(): Response
+    {
+        $formId = Craft::$app->getRequest()->getParam('formId');
+
+        $form = Formie::$plugin->getForms()->getFormById($formId);
+        $existingNotifications = Formie::$plugin->getNotifications()->getExistingNotifications($form);
+
+        return $this->asJson($existingNotifications);
+    }
+
 
     // Private Methods
     // =========================================================================
@@ -485,8 +505,6 @@ class FormsController extends Controller
         $variables['notifications'] = $notificationsConfig;
         $variables['variables'] = Variables::getVariablesArray();
         $variables['fields'] = Formie::$plugin->getFields()->getRegisteredFieldGroups();
-        $variables['existingFields'] = Formie::$plugin->getFields()->getExistingFields($form);
-        $variables['existingNotifications'] = Formie::$plugin->getNotifications()->getExistingNotifications($form);
         $variables['emailTemplates'] = Formie::$plugin->getEmailTemplates()->getAllTemplates();
         $variables['reservedHandles'] = Formie::$plugin->getFields()->getReservedHandles();
         $variables['groupedIntegrations'] = Formie::$plugin->getIntegrations()->getAllIntegrationsForForm();

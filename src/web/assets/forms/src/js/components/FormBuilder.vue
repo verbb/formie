@@ -22,13 +22,11 @@
 
         <div class="fui-sidebar-wrapper">
             <div class="fui-sidebar-scroll">
-                <div v-if="existingFields && existingFields.length">
-                    <h6 class="sidebar-title">{{ t('formie', 'Existing fields') }}</h6>
+                <h6 class="sidebar-title">{{ t('formie', 'Existing fields') }}</h6>
 
-                    <existing-field-modal />
+                <existing-field-modal />
 
-                    <hr>
-                </div>
+                <hr>
 
                 <div v-for="(group, index) in enabledFieldGroups" :key="index">
                     <h6 class="sidebar-title">{{ group.label }}</h6>
@@ -94,7 +92,6 @@ export default {
 
     computed: {
         ...mapState({
-            existingFields: (state) => { return state.formie.existingFields; },
             fieldGroups: (state) => { return state.fieldGroups; },
             pages: (state) => { return state.form.pages; },
             form: (state) => { return state.form; },
