@@ -981,6 +981,11 @@ class Form extends Element
             /* @var Submission $submission */
             $submission = Submission::find()->id($submissionId)->isIncomplete(true)->one();
 
+            // Ensure that the submission still exists. If it doesn't, reset
+            if (!$submission) {
+                $this->resetCurrentSubmission();
+            }
+
             return $this->_currentSubmission = $submission;
         }
 
