@@ -634,26 +634,26 @@ trait FormFieldTrait
         foreach ($definedTabs as $definedTab) {
             $methodName = 'define' . $definedTab . 'Schema';
 
-            if (method_exists($this, $methodName) && $this->$methodName()) {
-                $tabLabel = Craft::t('formie', $definedTab);
+            if (method_exists($this, $methodName)) {
+                if ($fieldSchema = $this->$methodName()) {
+                    $tabLabel = Craft::t('formie', $definedTab);
 
-                $fieldSchema = $this->$methodName();
+                    // Add `name` and `id` attributes automatically for every FormKit input
+                    SchemaHelper::setFieldAttributes($fieldSchema);
 
-                // Add `name` and `id` attributes automatically for every FormKit input
-                SchemaHelper::setFieldAttributes($fieldSchema);
+                    $fields[] = [
+                        '$cmp' => 'TabPanel',
+                        'attrs' => [
+                            'data-tab-panel' => $tabLabel,
+                        ],
+                        'children' => $fieldSchema,
+                    ];
 
-                $fields[] = [
-                    '$cmp' => 'TabPanel',
-                    'attrs' => [
-                        'data-tab-panel' => $tabLabel,
-                    ],
-                    'children' => $fieldSchema,
-                ];
-
-                $tabs[] = [
-                    'label' => $tabLabel,
-                    'fields' => SchemaHelper::extractFieldsFromSchema($fieldSchema),
-                ];
+                    $tabs[] = [
+                        'label' => $tabLabel,
+                        'fields' => SchemaHelper::extractFieldsFromSchema($fieldSchema),
+                    ];
+                }
             }
         }
 

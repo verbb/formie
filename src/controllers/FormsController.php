@@ -10,6 +10,7 @@ use verbb\formie\models\Stencil;
 use verbb\formie\models\StencilData;
 
 use Craft;
+use craft\db\Query;
 use craft\helpers\ArrayHelper;
 use craft\helpers\DateTimeHelper;
 use craft\helpers\Json;
@@ -508,7 +509,7 @@ class FormsController extends Controller
         $variables['emailTemplates'] = Formie::$plugin->getEmailTemplates()->getAllTemplates();
         $variables['reservedHandles'] = Formie::$plugin->getFields()->getReservedHandles();
         $variables['groupedIntegrations'] = Formie::$plugin->getIntegrations()->getAllIntegrationsForForm();
-        $variables['formHandles'] = ArrayHelper::getColumn(Form::find()->id('not ' . $form->id)->all(), 'handle');
+        $variables['formHandles'] = $this->_getFormHandles($form->id);
 
         $variables['maxFormHandleLength'] = HandleHelper::getMaxFormHandle();
         $variables['maxFieldHandleLength'] = HandleHelper::getMaxFieldHandle();
@@ -562,5 +563,14 @@ class FormsController extends Controller
         }
 
         Craft::$app->getUserPermissions()->saveUserPermissions($currentUser->id, $permissions);
+    }
+
+    private function _getFormHandles($formId)
+    {
+        return (new Query())
+            ->select(['handle'])
+            ->from(['{{%formie_forms}}'])
+            ->where(['not', ['id' => $formId]])
+            ->column();
     }
 }
