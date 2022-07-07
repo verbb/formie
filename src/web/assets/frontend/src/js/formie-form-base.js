@@ -136,11 +136,11 @@ export class FormieFormBase {
     registerFieldEvents($element) {
         const $wrappers = $element.querySelectorAll('[data-field-type]');
 
-        $wrappers.forEach($wrapper => {
+        $wrappers.forEach(($wrapper) => {
             const $input = $wrapper.querySelector('input, select');
 
             if ($input) {
-                this.addEventListener($input, 'input', event => {
+                this.addEventListener($input, 'input', (event) => {
                     $wrapper.dispatchEvent(new CustomEvent('input', {
                         bubbles: false,
                         detail: {
@@ -149,7 +149,7 @@ export class FormieFormBase {
                     }));
                 });
 
-                this.addEventListener($input, 'focus', event => {
+                this.addEventListener($input, 'focus', (event) => {
                     $wrapper.dispatchEvent(new CustomEvent('focus', {
                         bubbles: false,
                         detail: {
@@ -158,7 +158,7 @@ export class FormieFormBase {
                     }));
                 });
 
-                this.addEventListener($input, 'blur', event => {
+                this.addEventListener($input, 'blur', (event) => {
                     $wrapper.dispatchEvent(new CustomEvent('blur', {
                         bubbles: false,
                         detail: {
@@ -184,7 +184,7 @@ export class FormieFormBase {
     }
 
     removeEventListener(event) {
-        let eventInfo = this.listeners[event] || {};
+        const eventInfo = this.listeners[event] || {};
 
         if (eventInfo && eventInfo.element && eventInfo.func) {
             eventInfo.element.removeEventListener(event.split('.')[0], eventInfo.func);

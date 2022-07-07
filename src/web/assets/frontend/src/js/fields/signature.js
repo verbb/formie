@@ -54,7 +54,7 @@ export class FormieSignature {
 
             $img.onload = () => {
                 // Handle retina devices
-                var ratio = Math.max(window.devicePixelRatio || 1, 1);
+                const ratio = Math.max(window.devicePixelRatio || 1, 1);
 
                 this.$canvas.getContext('2d').drawImage($img, 0, 0, this.$canvas.width / ratio, this.$canvas.height / ratio);
             };
@@ -79,7 +79,7 @@ export class FormieSignature {
 
     resizeCanvas() {
         if (this.$canvas) {
-            var ratio = Math.max(window.devicePixelRatio || 1, 1);
+            const ratio = Math.max(window.devicePixelRatio || 1, 1);
 
             this.$canvas.width = this.$canvas.offsetWidth * ratio;
             this.$canvas.height = this.$canvas.offsetHeight * ratio;

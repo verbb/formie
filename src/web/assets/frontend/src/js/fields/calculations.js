@@ -22,12 +22,12 @@ export class FormieCalculations {
         Object.keys(this.variables).forEach((variableKey) => {
             const variable = this.variables[variableKey];
 
-            const $targets = this.$form.querySelectorAll('[name="' + variable.name + '"]');
+            const $targets = this.$form.querySelectorAll(`[name="${variable.name}"]`);
 
             if (!$targets) {
                 return;
             }
-     
+
             // Save the resolved target for later
             this.fieldsStore[variableKey] = {
                 $targets,
@@ -39,7 +39,7 @@ export class FormieCalculations {
                 const eventType = this.getEventType($target);
 
                 // Watch for changes on the target field. When one occurs, fire off a custom event on the source field
-                this.form.addEventListener($target, eventKey(eventType), () => this.$field.dispatchEvent(new Event('FormieEvaluateCalculations', { bubbles: true })));
+                this.form.addEventListener($target, eventKey(eventType), () => { return this.$field.dispatchEvent(new Event('FormieEvaluateCalculations', { bubbles: true })); });
             });
         });
 
@@ -62,11 +62,11 @@ export class FormieCalculations {
         // For each variable, grab the value
         Object.keys(this.fieldsStore).forEach((variableKey) => {
             const { $targets, type } = this.fieldsStore[variableKey];
-            
+
             // Set a sane default
             variables[variableKey] = '';
-            
-            // We pass target DOM elements as a NodeList, but in almost all cases, 
+
+            // We pass target DOM elements as a NodeList, but in almost all cases,
             // they're a list of a single element. Radio fields are special though.
             $targets.forEach(($target) => {
                 // Handle some fields differently and check for type-casting

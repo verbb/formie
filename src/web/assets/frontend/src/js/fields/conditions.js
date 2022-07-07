@@ -25,10 +25,10 @@ export class FormieConditions {
 
             conditionSettings.conditions.forEach((condition) => {
                 // Get the field(s) we're targeting to watch for changes. Note we need to handle multiple fields (checkboxes)
-                let $targets = this.$form.querySelectorAll('[name="' + condition.field + '"]');
+                let $targets = this.$form.querySelectorAll(`[name="${condition.field}"]`);
 
                 // Check if we're dealing with multiple fields, like checkboxes. This overrides the above
-                const $multiFields = this.$form.querySelectorAll('[name="' + condition.field + '[]"]');
+                const $multiFields = this.$form.querySelectorAll(`[name="${condition.field}[]"]`);
 
                 if ($multiFields.length) {
                     $targets = $multiFields;
@@ -60,10 +60,10 @@ export class FormieConditions {
                     // Watch for changes on the target field. When one occurs, fire off a custom event on the source field
                     // We need to do this because target fields can be targetted by multiple conditions, and source
                     // fields can have multiple conditions - we need to check them all for all/any logic.
-                    this.form.addEventListener($target, eventKey(eventType), () => $field.dispatchEvent(new CustomEvent('onFormieEvaluateConditions', { bubbles: true })));
+                    this.form.addEventListener($target, eventKey(eventType), () => { return $field.dispatchEvent(new CustomEvent('onFormieEvaluateConditions', { bubbles: true })); });
                 });
             });
-        
+
             // Save our condition settings and targets against the origin fields. We'll use this to evaluate conditions
             this.conditionsStore.set($field, {
                 showRule: conditionSettings.showRule,
@@ -97,11 +97,15 @@ export class FormieConditions {
             return;
         }
 
-        const { showRule, conditionRule, conditions, isNested } = conditionSettings;
+        const {
+            showRule, conditionRule, conditions, isNested,
+        } = conditionSettings;
         const results = {};
 
         conditions.forEach((condition, i) => {
-            const { condition: logic, value, $targets, field } = condition;
+            const {
+                condition: logic, value, $targets, field,
+            } = condition;
 
             // We're always dealing with a collection of targets, even if the target is a text field
             // The reason being is this normalises behaviour for some fields (checkbox/radio) that
@@ -114,7 +118,7 @@ export class FormieConditions {
 
                 // Create a key for this condition rule that we'll use to store (potentially multiple) results against.
                 // It's not visibly needed for anything, but using the target's field name helps with debugging.
-                const resultKey = field + '_' + i;
+                const resultKey = `${field}_${i}`;
 
                 // Store all results as an array, and we'll normalise afterwards. Group results by their condition rule.
                 // For example: { dropdown_0: [false], radio_1: [true, false] }
@@ -173,7 +177,7 @@ export class FormieConditions {
         if (normalisedResults.length) {
             if (conditionRule === 'all') {
                 // Are _all_ the conditions the same?
-                finalResult = normalisedResults.every((val) => val === true);
+                finalResult = normalisedResults.every((val) => { return val === true; });
             } else {
                 finalResult = normalisedResults.includes(true);
             }
@@ -185,7 +189,7 @@ export class FormieConditions {
 
         // But *do* setup conditions on the first run, when initialising all the fields
         if (isNested && !isInit) {
-            var $parentField = $field.closest('[data-field-type="group"], [data-field-type="repeater"]');
+            const $parentField = $field.closest('[data-field-type="group"], [data-field-type="repeater"]');
 
             if ($parentField) {
                 // Is the parent field conditionally hidden? Force the evaluation to be true (this field is
@@ -225,7 +229,7 @@ export class FormieConditions {
             try {
                 return JSON.parse(json);
             } catch (e) {
-                console.error('Unable to parse JSON conditions: ' + e);
+                console.error(`Unable to parse JSON conditions: ${e}`);
             }
         }
 
@@ -282,7 +286,7 @@ export class FormieConditions {
     querySelectorAllRegex(regex, attributeToSearch) {
         const output = [];
 
-        for (let element of this.$form.querySelectorAll(`[${attributeToSearch}]`)) {
+        for (const element of this.$form.querySelectorAll(`[${attributeToSearch}]`)) {
             if (regex.test(element.getAttribute(attributeToSearch))) {
                 output.push(element);
             }

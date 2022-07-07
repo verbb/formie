@@ -31,11 +31,11 @@ export class FormieTextLimit {
     characterCheck(e) {
         setTimeout(() => {
             // If we're using a rich text editor, treat it a little differently
-            var isRichText = e.target.hasAttribute('contenteditable');
+            const isRichText = e.target.hasAttribute('contenteditable');
 
-            var value = isRichText ? e.target.innerHTML : e.target.value;
+            const value = isRichText ? e.target.innerHTML : e.target.value;
 
-            var charactersLeft = this.maxChars - value.length;
+            let charactersLeft = this.maxChars - value.length;
 
             if (charactersLeft <= 0) {
                 charactersLeft = '0';
@@ -50,18 +50,18 @@ export class FormieTextLimit {
     wordCheck(e) {
         setTimeout(() => {
             // If we're using a rich text editor, treat it a little differently
-            var isRichText = e.target.hasAttribute('contenteditable');
+            const isRichText = e.target.hasAttribute('contenteditable');
 
-            var value = isRichText ? e.target.innerHTML : e.target.value;
-            
-            var wordCount = value.split(/\S+/).length - 1;
-            var regex = new RegExp('^\\s*\\S+(?:\\s+\\S+){0,' + (this.maxWords - 1) + '}');
-            
+            const value = isRichText ? e.target.innerHTML : e.target.value;
+
+            const wordCount = value.split(/\S+/).length - 1;
+            const regex = new RegExp(`^\\s*\\S+(?:\\s+\\S+){0,${this.maxWords - 1}}`);
+
             if (wordCount >= this.maxWords) {
                 e.target.value = value.match(regex);
             }
 
-            var wordsLeft = this.maxWords - wordCount;
+            let wordsLeft = this.maxWords - wordCount;
 
             if (wordsLeft <= 0) {
                 wordsLeft = '0';

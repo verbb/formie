@@ -12,9 +12,9 @@ export class FormieHcaptcha {
         // Fetch and attach the script only once - this is in case there are multiple forms on the page.
         // They all go to a single callback which resolves its loaded state
         if (!document.getElementById(this.hCaptchaScriptId)) {
-            var $script = document.createElement('script');
+            const $script = document.createElement('script');
             $script.id = this.hCaptchaScriptId;
-            $script.src = 'https://js.hcaptcha.com/1/api.js?onload=formieRecaptchaOnLoadCallback&render=explicit&hl=' + this.language;
+            $script.src = `https://js.hcaptcha.com/1/api.js?onload=formieRecaptchaOnLoadCallback&render=explicit&hl=${this.language}`;
             $script.async = true;
             $script.defer = true;
 
@@ -24,10 +24,10 @@ export class FormieHcaptcha {
         // Wait for/ensure hCaptcha script has been loaded
         hcaptcha.checkRecaptchaLoad();
 
-        this.$form = document.querySelector('#' + this.formId);
+        this.$form = document.querySelector(`#${this.formId}`);
 
         if (!this.$form) {
-            console.error('Unable to find form #' + this.formId);
+            console.error(`Unable to find form #${this.formId}`);
 
             return;
         }
@@ -39,7 +39,7 @@ export class FormieHcaptcha {
         this.$placeholders = this.$form.querySelectorAll('[data-hcaptcha-placeholder]');
 
         if (!this.$placeholders) {
-            console.error('Unable to find any hCaptcha placeholders for #' + this.formId);
+            console.error(`Unable to find any hCaptcha placeholders for #${this.formId}`);
 
             return;
         }
@@ -58,7 +58,7 @@ export class FormieHcaptcha {
         this.$placeholder = this.$placeholders[0];
 
         // Get the active page
-        var $currentPage = null;
+        let $currentPage = null;
 
         if (this.$form.form.formTheme) {
             // eslint-disable-next-line
@@ -66,7 +66,7 @@ export class FormieHcaptcha {
         }
 
         // Get the current page's captcha - find the first placeholder that's non-invisible
-        this.$placeholders.forEach($placeholder => {
+        this.$placeholders.forEach(($placeholder) => {
             if ($currentPage && $currentPage.contains($placeholder)) {
                 this.$placeholder = $placeholder;
             }
@@ -75,20 +75,20 @@ export class FormieHcaptcha {
         if (this.$placeholder === null) {
             // This is okay in some instances - notably for multi-page forms where the captcha
             // should only be shown on the last step. But its nice to log this anyway
-            console.log('Unable to find hCaptcha placeholder for #' + this.formId);
+            console.log(`Unable to find hCaptcha placeholder for #${this.formId}`);
 
             return;
         }
 
         // Remove any existing token input
-        var $token = this.$form.querySelector('[name="h-captcha-response"]');
+        const $token = this.$form.querySelector('[name="h-captcha-response"]');
 
         if ($token) {
             $token.remove();
         }
 
         // Check if we actually need to re-render this, or just refresh it...
-        var currentHcaptchaId = this.$placeholder.getAttribute('data-hcaptcha-id');
+        const currentHcaptchaId = this.$placeholder.getAttribute('data-hcaptcha-id');
 
         if (currentHcaptchaId !== null) {
             this.hcaptchaId = currentHcaptchaId;
@@ -107,14 +107,14 @@ export class FormieHcaptcha {
             'chalexpired-callback': this.onChallengeExpired.bind(this),
             'error-callback': this.onError.bind(this),
             'close-callback': this.onClose.bind(this),
-        }, id => {
+        }, (id) => {
             this.hcaptchaId = id;
 
             // Update the placeholder with our ID, in case we need to re-render it
             this.$placeholder.setAttribute('data-hcaptcha-id', id);
 
             // Add a `tabindex` attribute to the iframe to prevent tabbing-to
-            let iframe = this.$placeholder.querySelector('iframe');
+            const iframe = this.$placeholder.querySelector('iframe');
 
             if (iframe) {
                 iframe.setAttribute('tabindex', '-1');
@@ -132,7 +132,7 @@ export class FormieHcaptcha {
         if (e.detail.invalid) {
             return;
         }
-        
+
         e.preventDefault();
 
         // Save for later to trigger real submit
@@ -147,7 +147,7 @@ export class FormieHcaptcha {
         if (this.submitHandler) {
             // Run the next submit action for the form. TODO: make this better!
             if (this.submitHandler.validatePayment()) {
-                this.submitHandler.submitForm()
+                this.submitHandler.submitForm();
             }
         }
     }
@@ -162,19 +162,19 @@ export class FormieHcaptcha {
     }
 
     onExpired() {
-        console.log('hCaptcha has expired for #' + this.formId + ' - reloading.');
+        console.log(`hCaptcha has expired for #${this.formId} - reloading.`);
 
         hcaptcha.reset(this.hcaptchaId);
     }
 
     onChallengeExpired() {
-        console.log('hCaptcha has expired challenge for #' + this.formId + ' - reloading.');
+        console.log(`hCaptcha has expired challenge for #${this.formId} - reloading.`);
 
         hcaptcha.reset(this.hcaptchaId);
     }
 
     onError(error) {
-        console.error('hCaptcha was unable to load for #' + this.formId);
+        console.error(`hCaptcha was unable to load for #${this.formId}`);
     }
 
     onClose() {

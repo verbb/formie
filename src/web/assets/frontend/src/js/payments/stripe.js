@@ -4,14 +4,14 @@ import { FormiePaymentProvider } from './payment-provider';
 export class FormieStripe extends FormiePaymentProvider {
     constructor(settings = {}) {
         super(settings);
-        
+
         this.$form = settings.$form;
         this.form = this.$form.form;
         this.$field = settings.$field;
         this.$input = this.$field.querySelector('[data-fui-stripe-elements]');
 
         if (!this.$input) {
-            console.error('Unable to find Stripe Elements placeholder for #' + this.formId + ' [data-fui-stripe-elements]');
+            console.error(`Unable to find Stripe Elements placeholder for #${this.formId} [data-fui-stripe-elements]`);
 
             return;
         }
@@ -31,8 +31,8 @@ export class FormieStripe extends FormiePaymentProvider {
         // Only initialize the field if it's visible. Use `IntersectionObserver` to check when visible
         // and also when hidden (navigating to other pages) to destroy it. Otherwise, Stripe elements
         // will listen to page submit events and validate, preventing from going back a page.
-        var observer = new IntersectionObserver((entries) => {
-            if (entries[0]['intersectionRatio'] == 0) {
+        const observer = new IntersectionObserver((entries) => {
+            if (entries[0].intersectionRatio == 0) {
                 // Field is hidden, do reset everything
                 if (this.cardElement) {
                     // Kill off Stripe items
@@ -58,7 +58,7 @@ export class FormieStripe extends FormiePaymentProvider {
         // Fetch and attach the script only once - this is in case there are multiple forms on the page.
         // They all go to a single callback which resolves its loaded state
         if (!document.getElementById(this.stripeScriptId)) {
-            var $script = document.createElement('script');
+            const $script = document.createElement('script');
             $script.id = this.stripeScriptId;
             $script.src = 'https://js.stripe.com/v3';
             $script.async = true;
@@ -66,12 +66,12 @@ export class FormieStripe extends FormiePaymentProvider {
 
             // Wait until Stripe.js has loaded, then initialize
             $script.onload = () => {
-                this.mountCard()
+                this.mountCard();
             };
 
             document.body.appendChild($script);
         } else {
-            this.mountCard()
+            this.mountCard();
         }
 
         // Attach custom event listeners on the form
@@ -83,9 +83,9 @@ export class FormieStripe extends FormiePaymentProvider {
     mountCard() {
         this.stripe = Stripe(this.publishableKey);
 
-        var elements = this.stripe.elements();
+        const elements = this.stripe.elements();
 
-        var options = {
+        const options = {
             classes: {
                 focus: 'StripeElement--focus fui-focus',
                 invalid: 'StripeElement--invalid fui-error',
@@ -117,7 +117,7 @@ export class FormieStripe extends FormiePaymentProvider {
         if (this.$form.goBack || e.detail.invalid) {
             return;
         }
-        
+
         e.preventDefault();
 
         // Save for later to trigger real submit
@@ -150,7 +150,7 @@ export class FormieStripe extends FormiePaymentProvider {
     }
 
     onValidate3DS(e) {
-        const data = e.detail.data;
+        const { data } = e.detail;
 
         // Keep the spinner going for 3DS
         this.addLoading();
@@ -173,10 +173,10 @@ export class FormieStripe extends FormiePaymentProvider {
         } else {
             this.stripe.handleCardAction(data.client_secret).then((result) => {
                 this.removeError();
-                
+
                 if (result.error) {
                     this.removeLoading();
-                    
+
                     return this.addError(result.error.message);
                 }
 

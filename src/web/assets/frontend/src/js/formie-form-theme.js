@@ -23,7 +23,7 @@ export class FormieFormTheme {
         if (!this.$form) {
             return;
         }
-        
+
         this.$form.formTheme = this;
         this.form = this.$form.form;
 
@@ -53,7 +53,7 @@ export class FormieFormTheme {
     initValidator() {
         // Kick off validation - use this even if disabling client-side validation
         // so we can use a nice API handle server-side errprs
-        var validatorSettings = {
+        const validatorSettings = {
             fieldClass: 'fui-error',
             errorClass: 'fui-error-message',
             fieldPrefix: 'fui-field-',
@@ -131,9 +131,9 @@ export class FormieFormTheme {
         // Override error messages defined in DOM - Bouncer only uses these as a last resort
         // In future updates, we can probably remove this
         this.form.addEventListener(this.$form, 'bouncerShowError', (e) => {
-            var $field = e.target;
-            var $fieldContainer = $field.closest('.fui-field');
-            var message = $field.getAttribute('data-fui-message');
+            const $field = e.target;
+            const $fieldContainer = $field.closest('.fui-field');
+            let message = $field.getAttribute('data-fui-message');
 
             // If there's a server error, it takes priority.
             if (e.detail && e.detail.errors && e.detail.errors.serverMessage) {
@@ -142,7 +142,7 @@ export class FormieFormTheme {
 
             // Check if we need to move the error out of the .fui-input-container node.
             // Only the input itself should be in here.
-            var $errorToMove = $field.parentNode.querySelector('.' + this.errorMessageClass);
+            const $errorToMove = $field.parentNode.querySelector(`.${this.errorMessageClass}`);
 
             if ($errorToMove && $errorToMove.parentNode.parentNode) {
                 $errorToMove.parentNode.parentNode.appendChild($errorToMove);
@@ -150,7 +150,7 @@ export class FormieFormTheme {
 
             // The error has been moved, find it again
             if ($fieldContainer) {
-                var $error = $fieldContainer.querySelector('.' + this.errorMessageClass);
+                const $error = $fieldContainer.querySelector(`.${this.errorMessageClass}`);
 
                 if ($error && message) {
                     $error.textContent = message;
@@ -160,7 +160,7 @@ export class FormieFormTheme {
     }
 
     addSubmitEventListener() {
-        var $submitBtns = this.$form.querySelectorAll('[type="submit"]');
+        const $submitBtns = this.$form.querySelectorAll('[type="submit"]');
 
         // Forms can have multiple submit buttons, and its easier to assign the currently clicked one
         // than tracking it through the submit handler.
@@ -240,14 +240,14 @@ export class FormieFormTheme {
     }
 
     formTabEventListener() {
-        var $tabs = this.$form.querySelectorAll('[data-fui-page-tab-anchor]');
+        const $tabs = this.$form.querySelectorAll('[data-fui-page-tab-anchor]');
 
         $tabs.forEach(($tab) => {
             this.form.addEventListener($tab, 'click', (e) => {
                 e.preventDefault();
 
-                var pageIndex = e.target.getAttribute('data-fui-page-index');
-                var pageId = e.target.getAttribute('data-fui-page-id');
+                const pageIndex = e.target.getAttribute('data-fui-page-index');
+                const pageId = e.target.getAttribute('data-fui-page-id');
 
                 this.togglePage({
                     nextPageIndex: pageIndex,
@@ -267,13 +267,13 @@ export class FormieFormTheme {
     }
 
     hashForm() {
-        var hash = {};
+        const hash = {};
 
-        var formData = new FormData(this.$form);
-        var excludedItems = ['g-recaptcha-response', 'CRAFT_CSRF_TOKEN', '__JSCHK'];
+        const formData = new FormData(this.$form);
+        const excludedItems = ['g-recaptcha-response', 'CRAFT_CSRF_TOKEN', '__JSCHK'];
 
-        for (var pair of formData.entries()) {
-            var isExcluded = excludedItems.filter(item => pair[0].startsWith(item));
+        for (const pair of formData.entries()) {
+            const isExcluded = excludedItems.filter((item) => { return pair[0].startsWith(item); });
 
             if (!isExcluded.length) {
                 // eslint-disable-next-line
@@ -293,13 +293,13 @@ export class FormieFormTheme {
             return true;
         }
 
-        var $fieldset = this.$form;
+        let $fieldset = this.$form;
 
         if (this.$currentPage) {
             $fieldset = this.$currentPage;
         }
 
-        var invalidFields = this.validator.validateAll($fieldset);
+        const invalidFields = this.validator.validateAll($fieldset);
 
         // If there are errors, focus on the first one
         if (invalidFields.length > 0 && focus) {
@@ -323,10 +323,10 @@ export class FormieFormTheme {
     }
 
     hideSuccess() {
-        var $successMessage = this.$form.parentNode.querySelector('.' + this.successMessageClass);
+        const $successMessage = this.$form.parentNode.querySelector(`.${this.successMessageClass}`);
 
         if ($successMessage && this.settings.submitActionMessageTimeout) {
-            var timeout = parseInt(this.settings.submitActionMessageTimeout, 10) * 1000;
+            const timeout = parseInt(this.settings.submitActionMessageTimeout, 10) * 1000;
 
             setTimeout(() => {
                 $successMessage.remove();
@@ -375,7 +375,7 @@ export class FormieFormTheme {
     }
 
     showFormAlert(text, type) {
-        var $alert = this.$form.parentNode.querySelector('.' + this.alertClass);
+        let $alert = this.$form.parentNode.querySelector(`.${this.alertClass}`);
 
         // Strip <p> tags
         text = text.replace(/<p[^>]*>/g, '').replace(/<\/p>/g, '');
@@ -383,17 +383,17 @@ export class FormieFormTheme {
         if ($alert) {
             // We have to cater for HTML entities - quick-n-dirty
             if ($alert.innerHTML !== this.decodeHtml(text)) {
-                $alert.innerHTML = $alert.innerHTML + '<br>' + text;
+                $alert.innerHTML = `${$alert.innerHTML}<br>${text}`;
             }
         } else {
             $alert = document.createElement('div');
-            $alert.className = this.alertClass + ' ' + this.alertClass + '-' + type;
-            $alert.setAttribute('role' , 'alert');
+            $alert.className = `${this.alertClass} ${this.alertClass}-${type}`;
+            $alert.setAttribute('role', 'alert');
             $alert.innerHTML = text;
 
             // For error notices, we have potential special handling on position
             if (type == 'error') {
-                $alert.className += ' ' + this.alertClass + '-' + this.settings.errorMessagePosition;
+                $alert.className += ` ${this.alertClass}-${this.settings.errorMessagePosition}`;
 
                 if (this.settings.errorMessagePosition == 'bottom-form') {
                     this.$submitBtn.parentNode.parentNode.insertBefore($alert, this.$submitBtn.parentNode);
@@ -401,19 +401,17 @@ export class FormieFormTheme {
                     this.$form.parentNode.insertBefore($alert, this.$form);
                 }
             } else {
-                $alert.className += ' ' + this.alertClass + '-' + this.settings.submitActionMessagePosition;
-                
+                $alert.className += ` ${this.alertClass}-${this.settings.submitActionMessagePosition}`;
+
                 if (this.settings.submitActionMessagePosition == 'bottom-form') {
                     // An even further special case when hiding the form!
                     if (this.settings.submitActionFormHide) {
                         this.$form.parentNode.insertBefore($alert, this.$form);
-                    } else {
+                    } else if (this.$submitBtn.parentNode) {
                         // Check if there's a submit button still. Might've been removed for multi-page, ajax.
-                        if (this.$submitBtn.parentNode) {
-                            this.$submitBtn.parentNode.parentNode.insertBefore($alert, this.$submitBtn.parentNode);
-                        } else {
-                            this.$form.parentNode.insertBefore($alert, this.$form.nextSibling);
-                        }
+                        this.$submitBtn.parentNode.parentNode.insertBefore($alert, this.$submitBtn.parentNode);
+                    } else {
+                        this.$form.parentNode.insertBefore($alert, this.$form.nextSibling);
                     }
                 } else if (this.settings.submitActionMessagePosition == 'top-form') {
                     this.$form.parentNode.insertBefore($alert, this.$form);
@@ -424,7 +422,7 @@ export class FormieFormTheme {
 
     showTabErrors(errors) {
         Object.keys(errors).forEach((pageId, index) => {
-            var $tab = this.$form.parentNode.querySelector('[data-fui-page-id="' + pageId + '"]');
+            const $tab = this.$form.parentNode.querySelector(`[data-fui-page-id="${pageId}"]`);
 
             if ($tab) {
                 $tab.parentNode.classList.add(this.tabErrorClass);
@@ -433,13 +431,13 @@ export class FormieFormTheme {
     }
 
     decodeHtml(html) {
-        var txt = document.createElement('textarea');
+        const txt = document.createElement('textarea');
         txt.innerHTML = html;
         return txt.value;
     }
 
     removeFormAlert() {
-        var $alert = this.$form.parentNode.querySelector('.' + this.alertClass);
+        const $alert = this.$form.parentNode.querySelector(`.${this.alertClass}`);
 
         if ($alert) {
             $alert.remove();
@@ -447,16 +445,16 @@ export class FormieFormTheme {
     }
 
     removeTabErrors() {
-        var $tabs = this.$form.parentNode.querySelectorAll('[data-fui-page-tab]');
+        const $tabs = this.$form.parentNode.querySelectorAll('[data-fui-page-tab]');
 
-        $tabs.forEach($tab => {
+        $tabs.forEach(($tab) => {
             $tab.classList.remove(this.tabErrorClass);
         });
     }
 
     removeBackInput() {
         // Remove the hidden back input sent in any previous step
-        var $backButtonInput = this.$form.querySelector('[name="goingBack"][type="hidden"]');
+        const $backButtonInput = this.$form.querySelector('[name="goingBack"][type="hidden"]');
 
         if ($backButtonInput) {
             $backButtonInput.remove();
@@ -509,11 +507,11 @@ export class FormieFormTheme {
                     } else {
                         this.onAjaxSuccess(response);
                     }
-                } catch(e) {
+                } catch (e) {
                     this.onAjaxError(t('Unable to parse response `{e}`.', { e }));
                 }
             } else {
-                this.onAjaxError(xhr.status + ': ' + xhr.statusText);
+                this.onAjaxError(`${xhr.status}: ${xhr.statusText}`);
             }
         };
 
@@ -528,14 +526,14 @@ export class FormieFormTheme {
 
         // Check if there's any events in the response back, and fire them
         if (data.events && Array.isArray(data.events)) {
-            data.events.forEach(eventData => {
+            data.events.forEach((eventData) => {
                 this.$form.dispatchEvent(new CustomEvent(eventData.event, {
                     bubbles: true,
                     detail: {
                         data: eventData.data,
                     },
                 }));
-            })
+            });
         }
     }
 
@@ -557,7 +555,7 @@ export class FormieFormTheme {
 
         // Show server-side errors for each field
         Object.keys(errors).forEach((handle, index) => {
-            const [ error ] = errors[handle];
+            const [error] = errors[handle];
             let $field = document.querySelector(`[name="fields[${handle}]"]`);
 
             // Check for multiple fields
@@ -582,7 +580,7 @@ export class FormieFormTheme {
     onAjaxSuccess(data) {
         // Fire the event, because we've overridden the handler
         this.submitHandler.formAfterSubmit(data);
-        
+
         // Fire cleanup methods after _any_ ajax call
         this.afterAjaxSubmit(data);
 
@@ -634,9 +632,9 @@ export class FormieFormTheme {
 
                 // Remove the back button - not great UX to go back to a finished form
                 // Remember, its the button and the hidden input
-                var $backButtonInputs = this.$form.querySelectorAll('[name="goingBack"]');
+                const $backButtonInputs = this.$form.querySelectorAll('[name="goingBack"]');
 
-                $backButtonInputs.forEach($backButtonInput => {
+                $backButtonInputs.forEach(($backButtonInput) => {
                     $backButtonInput.remove();
                 });
             }
@@ -678,7 +676,7 @@ export class FormieFormTheme {
     }
 
     updateOrCreateHiddenInput(name, value) {
-        var $input = this.$form.querySelector('[name="' + name + '"][type="hidden"]');
+        let $input = this.$form.querySelector(`[name="${name}"][type="hidden"]`);
 
         if (!$input) {
             $input = document.createElement('input');
@@ -691,7 +689,7 @@ export class FormieFormTheme {
     }
 
     removeHiddenInput(name) {
-        var $input = this.$form.querySelector('[name="' + name + '"][type="hidden"]');
+        const $input = this.$form.querySelector(`[name="${name}"][type="hidden"]`);
 
         if ($input) {
             $input.parentNode.removeChild($input);
@@ -708,10 +706,10 @@ export class FormieFormTheme {
         }));
 
         // Hide all pages
-        var $allPages = this.$form.querySelectorAll('.' + this.pageClass);
+        const $allPages = this.$form.querySelectorAll(`.${this.pageClass}`);
 
         if (data.nextPageId) {
-            $allPages.forEach($page => {
+            $allPages.forEach(($page) => {
                 // Show the current page
                 if ($page.id === `${this.getPageId(data.nextPageId)}`) {
                     $page.removeAttribute('data-fui-page-hidden');
@@ -722,23 +720,23 @@ export class FormieFormTheme {
         }
 
         // Update tabs and progress bar if we're using them
-        var $progress = this.$form.querySelector('.' + this.progressClass);
+        const $progress = this.$form.querySelector(`.${this.progressClass}`);
 
         if ($progress) {
-            var pageIndex = parseInt(data.nextPageIndex, 10) + 1;
-            var progress = Math.round((pageIndex / data.totalPages) * 100);
+            const pageIndex = parseInt(data.nextPageIndex, 10) + 1;
+            const progress = Math.round((pageIndex / data.totalPages) * 100);
 
-            $progress.style.width = progress + '%';
+            $progress.style.width = `${progress}%`;
             $progress.setAttribute('aria-valuenow', progress);
-            $progress.textContent = progress + '%';
+            $progress.textContent = `${progress}%`;
         }
 
-        var $tabs = this.$form.querySelectorAll('.' + this.tabClass);
+        const $tabs = this.$form.querySelectorAll(`.${this.tabClass}`);
 
         if (data.nextPageId) {
-            $tabs.forEach($tab => {
+            $tabs.forEach(($tab) => {
                 // Show the current page
-                if ($tab.id === this.tabClass + '-' + data.nextPageId) {
+                if ($tab.id === `${this.tabClass}-${data.nextPageId}`) {
                     $tab.classList.add(this.tabActiveClass);
                 } else {
                     $tab.classList.remove(this.tabActiveClass);
@@ -768,7 +766,7 @@ export class FormieFormTheme {
         // Check for scroll-padding-top or `scroll-margin-top`
         const extraPadding = (document.documentElement.style['scroll-padding-top'] || '0px').replace('px', '');
         const extraMargin = (document.documentElement.style['scroll-margin-top'] || '0px').replace('px', '');
-        
+
         // Because the form can be hidden, use the parent wrapper
         window.scrollTo({
             top: this.$form.parentNode.getBoundingClientRect().top + window.pageYOffset - 100 - extraPadding - extraMargin,
@@ -777,15 +775,15 @@ export class FormieFormTheme {
     }
 
     triggerJsEvents() {
-        const currentPage = this.settings.pages.find(page => {
+        const currentPage = this.settings.pages.find((page) => {
             return page.id == this.settings.currentPageId;
         });
 
         // Find any JS events for the current page and fire
         if (currentPage && currentPage.settings.enableJsEvents) {
-            var payload = {};
+            const payload = {};
 
-            currentPage.settings.jsGtmEventOptions.forEach(option => {
+            currentPage.settings.jsGtmEventOptions.forEach((option) => {
                 payload[option.label] = option.value;
             });
 

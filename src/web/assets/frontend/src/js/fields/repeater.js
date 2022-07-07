@@ -24,7 +24,7 @@ export class FormieRepeater {
         // Bind the click event to the add button
         if (this.$addButton) {
             // Add the click event, but use a namespace so we can track these dynamically-added items
-            this.form.addEventListener(this.$addButton, eventKey('click'), e => {
+            this.form.addEventListener(this.$addButton, eventKey('click'), (e) => {
                 this.addRow(e);
             });
         }
@@ -55,25 +55,25 @@ export class FormieRepeater {
 
         if ($removeButton) {
             // Add the click event, but use a namespace so we can track these dynamically-added items
-            this.form.addEventListener($removeButton, eventKey('click'), e => {
+            this.form.addEventListener($removeButton, eventKey('click'), (e) => {
                 this.removeRow(e);
             });
         }
 
         // Initialize any new nested fields with JS
         if (isNew) {
-            var fieldConfigs = Formie.parseFieldConfig($row, this.$form);
+            const fieldConfigs = Formie.parseFieldConfig($row, this.$form);
 
-            Object.keys(fieldConfigs).forEach(module => {
-                fieldConfigs[module].forEach(fieldConfig => {
+            Object.keys(fieldConfigs).forEach((module) => {
+                fieldConfigs[module].forEach((fieldConfig) => {
                     this.initFieldClass(module, fieldConfig);
-                }); 
+                });
             });
         }
     }
 
     initFieldClass(className, params) {
-        var moduleClass = window[className];
+        const moduleClass = window[className];
 
         if (moduleClass) {
             new moduleClass(params);

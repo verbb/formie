@@ -7,7 +7,7 @@ export class FormieAddressProvider {
         this.$field = settings.$field;
         this.$locationBtn = this.$field.querySelector('[data-fui-address-location-btn]');
         this.loadingClass = 'fui-loading';
-        
+
         this.initLocationBtn();
     }
 
@@ -25,7 +25,7 @@ export class FormieAddressProvider {
                 navigator.geolocation.getCurrentPosition((position) => {
                     this.onCurrentLocation(position);
                 }, (error) => {
-                    console.log('Unable to fetch location ' + error.code + '.');
+                    console.log(`Unable to fetch location ${error.code}.`);
 
                     this.onEndFetchLocation();
                 }, {

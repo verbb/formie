@@ -18,7 +18,7 @@ export class FormieRichText {
     }
 
     getButtons() {
-        let buttonDefinitions = [
+        const buttonDefinitions = [
             {
                 name: 'bold',
                 icon: '<i class="far fa-bold"></i>',
@@ -79,19 +79,19 @@ export class FormieRichText {
                 name: 'alignleft',
                 icon: '<i class="far fa-align-left"></i>',
                 title: 'Align Left',
-                result: () => exec('justifyLeft', ''),
+                result: () => { return exec('justifyLeft', ''); },
             },
             {
                 name: 'aligncenter',
                 icon: '<i class="far fa-align-center"></i>',
                 title: 'Align Center',
-                result: () => exec('justifyCenter', ''),
+                result: () => { return exec('justifyCenter', ''); },
             },
             {
                 name: 'alignright',
                 icon: '<i class="far fa-align-right"></i>',
                 title: 'Align Right',
-                result: () => exec('justifyRight', ''),
+                result: () => { return exec('justifyRight', ''); },
             },
             {
                 name: 'clear',
@@ -99,7 +99,7 @@ export class FormieRichText {
                 title: 'Clear',
                 result: () => {
                     if (window.getSelection().toString()) {
-                        let linesToDelete = window.getSelection().toString().split('\n').join('<br>');
+                        const linesToDelete = window.getSelection().toString().split('\n').join('<br>');
                         exec('formatBlock', '<p>');
                         document.execCommand('insertHTML', false, linesToDelete);
                     } else {
@@ -113,10 +113,10 @@ export class FormieRichText {
             this.buttons = ['bold', 'italic'];
         }
 
-        let buttons = [];
+        const buttons = [];
 
-        this.buttons.forEach(button => {
-            let found = buttonDefinitions.find(element => element.name === button);
+        this.buttons.forEach((button) => {
+            const found = buttonDefinitions.find((element) => { return element.name === button; });
 
             if (found) {
                 buttons.push(found);
@@ -132,7 +132,7 @@ export class FormieRichText {
 
         // Load in FontAwesome, for better icons. Only load once though
         if (!document.getElementById(this.scriptId)) {
-            var $script = document.createElement('script');
+            const $script = document.createElement('script');
             $script.src = 'https://kit.fontawesome.com/bfee7f35b7.js';
             $script.id = this.scriptId;
             $script.defer = true;
@@ -146,7 +146,7 @@ export class FormieRichText {
             defaultParagraphSeparator: 'p',
             styleWithCSS: true,
             actions: this.getButtons(),
-            onChange: html => {
+            onChange: (html) => {
                 this.$field.textContent = html;
             },
             classes: {

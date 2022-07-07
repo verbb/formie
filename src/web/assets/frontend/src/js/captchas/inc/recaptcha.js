@@ -45,9 +45,9 @@ export function createRecaptcha(enterprise = false) {
             this.assertLoaded();
 
             if (enterprise) {
-                this.wait().then(() => window.grecaptcha.enterprise.reset(widgetId));
+                this.wait().then(() => { return window.grecaptcha.enterprise.reset(widgetId); });
             } else {
-                this.wait().then(() => window.grecaptcha.reset(widgetId));
+                this.wait().then(() => { return window.grecaptcha.reset(widgetId); });
             }
         },
 
@@ -59,9 +59,9 @@ export function createRecaptcha(enterprise = false) {
             this.assertLoaded();
 
             if (enterprise) {
-                this.wait().then(() => window.grecaptcha.enterprise.execute(widgetId));
+                this.wait().then(() => { return window.grecaptcha.enterprise.execute(widgetId); });
             } else {
-                this.wait().then(() => window.grecaptcha.execute(widgetId));
+                this.wait().then(() => { return window.grecaptcha.execute(widgetId); });
             }
         },
 

@@ -17,7 +17,7 @@ export class FormieHidden {
 
     initHiddenField() {
         // Populate the input with the cookie value.
-        let cookieValue = this.getCookie(this.cookieName);
+        const cookieValue = this.getCookie(this.cookieName);
 
         if (cookieValue) {
             this.$input.value = cookieValue;
@@ -30,8 +30,8 @@ export class FormieHidden {
     }
 
     getCookie(name) {
-        var match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
-        
+        const match = document.cookie.match(new RegExp(`(^| )${name}=([^;]+)`));
+
         if (match) {
             return match[2];
         }

@@ -27,7 +27,7 @@ export class FormieTable {
             this.maxRows = parseInt(this.$addButton.getAttribute('data-max-rows'));
 
             // Add the click event, but use a namespace so we can track these dynamically-added items
-            this.form.addEventListener(this.$addButton, eventKey('click'), e => {
+            this.form.addEventListener(this.$addButton, eventKey('click'), (e) => {
                 this.addRow(e);
             });
         }
@@ -58,10 +58,10 @@ export class FormieTable {
 
         if ($removeButton) {
             // Add the click event, but use a namespace so we can track these dynamically-added items
-            this.form.addEventListener($removeButton, eventKey('click'), e => {
+            this.form.addEventListener($removeButton, eventKey('click'), (e) => {
                 this.removeRow(e);
             });
-        }   
+        }
     }
 
     addRow(e) {
@@ -78,7 +78,7 @@ export class FormieTable {
             const id = numRows;
             const html = template.innerHTML.replace(/__ROW__/g, id);
 
-            let $newRow = document.createElement('tr');
+            const $newRow = document.createElement('tr');
             $newRow.dataset.tableRow = true;
             $newRow.innerHTML = html;
 

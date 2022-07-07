@@ -29,7 +29,7 @@ export class FormieDatePicker {
         } else if (this.getIsTime) {
             this.dateTimeFormat = this.timeFormat;
         } else if (this.getIsDateTime) {
-            this.dateTimeFormat = this.dateFormat + ' ' + this.timeFormat;
+            this.dateTimeFormat = `${this.dateFormat} ${this.timeFormat}`;
         }
 
         this.initDatePicker();
@@ -60,7 +60,7 @@ export class FormieDatePicker {
 
         // We have options defined by default, which are overridden by any defined in the CP for the field
         // which are then overridden by any defined in the JS event. So combine the default + field options first.
-        let options = {
+        const options = {
             ...defaultOptions,
             ...this.getDatePickerOptions(),
         };
@@ -102,14 +102,14 @@ export class FormieDatePicker {
         }
 
         if (!this.locales.includes(this.locale)) {
-            var $script = document.createElement('script');
+            const $script = document.createElement('script');
             $script.src = `https://npmcdn.com/flatpickr@4.6.9/dist/l10n/${this.locale}.js`;
             $script.defer = false;
             $script.async = false;
             $script.onload = () => {
                 this.datepicker.set('locale', this.locale);
             };
-            
+
             document.body.appendChild($script);
 
             this.locales.push(this.locale);
@@ -120,7 +120,7 @@ export class FormieDatePicker {
         const opts = {};
 
         // Format options stored in Formie, ready for JS
-        this.datePickerOptions.forEach(object => {
+        this.datePickerOptions.forEach((object) => {
             // Handle parsing boolean, ugh
             if (object.value === 'true') {
                 object.value = true;

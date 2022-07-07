@@ -21,7 +21,7 @@ export class FormieCheckboxRadio {
                 if (e.target.checked) {
                     if (e.target.getAttribute('type') === 'radio') {
                         const inputName = e.target.getAttribute('name');
-                        const $radioButtons = this.$field.querySelectorAll('[name="' + inputName + '"] ');
+                        const $radioButtons = this.$field.querySelectorAll(`[name="${inputName}"] `);
 
                         $radioButtons.forEach(($radioButton) => {
                             $radioButton.removeAttribute('checked');
@@ -57,7 +57,7 @@ export class FormieCheckboxRadio {
 
         $checkboxToggles.forEach(($checkboxToggle) => {
             this.form.addEventListener($checkboxToggle, eventKey('change'), (e) => {
-                var isChecked = e.target.checked;
+                const isChecked = e.target.checked;
 
                 // Toggle all checkboxes in this field
                 $checkboxInputs.forEach(($checkboxInput) => {

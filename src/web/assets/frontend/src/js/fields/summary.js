@@ -19,7 +19,7 @@ export class FormieSummary {
         setTimeout(() => {
             this.submissionId = null;
 
-            var $submission = this.$form.querySelector('[name="submissionId"]');
+            const $submission = this.$form.querySelector('[name="submissionId"]');
 
             if ($submission) {
                 this.submissionId = $submission.value;
@@ -32,7 +32,7 @@ export class FormieSummary {
             }
 
             // Does this page contain a summary field? No need to fetch if we aren't seeing the field
-            var $summaryField = null;
+            let $summaryField = null;
 
             if (this.form.formTheme && this.form.formTheme.$currentPage) {
                 $summaryField = this.form.formTheme.$currentPage.querySelector('[data-field-type="summary"]');
@@ -44,7 +44,7 @@ export class FormieSummary {
                 return;
             }
 
-            var $container = $summaryField.querySelector('[data-summary-blocks]');
+            const $container = $summaryField.querySelector('[data-summary-blocks]');
 
             if (!$container) {
                 console.error('Summary field: Unable to find `container`');
@@ -69,15 +69,15 @@ export class FormieSummary {
                 }
             };
 
-            var params = {
+            const params = {
                 action: 'formie/fields/get-summary-html',
                 submissionId: this.submissionId,
                 fieldId: this.fieldId,
             };
 
-            var formData = new FormData();
+            const formData = new FormData();
 
-            for (var key in params) {
+            for (const key in params) {
                 formData.append(key, params[key]);
             }
 

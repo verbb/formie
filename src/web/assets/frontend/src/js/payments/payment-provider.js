@@ -11,7 +11,7 @@ export class FormiePaymentProvider {
     removeSuccess() {
         this.$field.classList.remove(this.successClass);
 
-        var $success = this.$field.querySelector('.' + this.successMessageClass);
+        const $success = this.$field.querySelector(`.${this.successMessageClass}`);
 
         if ($success) {
             $success.remove();
@@ -21,13 +21,13 @@ export class FormiePaymentProvider {
     addSuccess(message) {
         this.$field.classList.add(this.successClass);
 
-        var $fieldContainer = this.$field.querySelector('[data-field-type] > div');
+        const $fieldContainer = this.$field.querySelector('[data-field-type] > div');
 
         if (!$fieldContainer) {
             return console.error('Unable to find `[data-field-type] > div` to add success message.');
         }
 
-        var $success = document.createElement('div');
+        const $success = document.createElement('div');
         $success.className = this.successMessageClass;
         $success.textContent = message;
 
@@ -37,7 +37,7 @@ export class FormiePaymentProvider {
     removeError() {
         this.$field.classList.remove(this.errorClass);
 
-        var $error = this.$field.querySelector('.' + this.errorMessageClass);
+        const $error = this.$field.querySelector(`.${this.errorMessageClass}`);
 
         if ($error) {
             $error.remove();
@@ -47,13 +47,13 @@ export class FormiePaymentProvider {
     addError(message) {
         this.$field.classList.add(this.errorClass);
 
-        var $fieldContainer = this.$field.querySelector('[data-field-type] > div');
+        const $fieldContainer = this.$field.querySelector('[data-field-type] > div');
 
         if (!$fieldContainer) {
             return console.error('Unable to find `[data-field-type] > div` to add error message.');
         }
 
-        var $error = document.createElement('div');
+        const $error = document.createElement('div');
         $error.className = this.errorMessageClass;
         $error.textContent = message;
 
@@ -65,7 +65,7 @@ export class FormiePaymentProvider {
     }
 
     updateInputs(name, value) {
-        var $input = this.$field.querySelector('[name*="' + name + '"]');
+        const $input = this.$field.querySelector(`[name*="${name}"]`);
 
         if ($input) {
             $input.value = value;
@@ -77,35 +77,36 @@ export class FormiePaymentProvider {
             return {};
         }
 
-        var billing = {};
+        const billing = {};
 
         if (this.billingDetails.billingName) {
-            var value = this.getFieldValue(this.billingDetails.billingName);
+            const billingName = this.getFieldValue(this.billingDetails.billingName);
 
-            if (value) {
-                billing.name = value;
+            if (billingName) {
+                billing.name = billingName;
             }
         }
 
         if (this.billingDetails.billingEmail) {
-            var value = this.getFieldValue(this.billingDetails.billingEmail);
-            
-            if (value) {
-                billing.email = value;
+            const billingEmail = this.getFieldValue(this.billingDetails.billingEmail);
+
+            if (billingEmail) {
+                billing.email = billingEmail;
             }
         }
 
         if (this.billingDetails.billingAddress) {
             billing.address = {};
 
-            var address1 = this.getFieldValue(this.billingDetails.billingAddress + '[address1]');
-            var address2 = this.getFieldValue(this.billingDetails.billingAddress + '[address2]');
-            var address3 = this.getFieldValue(this.billingDetails.billingAddress + '[address3]');
-            var city = this.getFieldValue(this.billingDetails.billingAddress + '[city]');
-            var zip = this.getFieldValue(this.billingDetails.billingAddress + '[zip]');
-            var state = this.getFieldValue(this.billingDetails.billingAddress + '[state]');
-            var country = this.getFieldValue(this.billingDetails.billingAddress + '[country]');
-            
+            const address1 = this.getFieldValue(`${this.billingDetails.billingAddress}[address1]`);
+            const address2 = this.getFieldValue(`${this.billingDetails.billingAddress}[address2]`);
+            const address3 = this.getFieldValue(`${this.billingDetails.billingAddress}[address3]`);
+            const city = this.getFieldValue(`${this.billingDetails.billingAddress}[city]`);
+            const zip = this.getFieldValue(`${this.billingDetails.billingAddress}[zip]`);
+            const state = this.getFieldValue(`${this.billingDetails.billingAddress}[state]`);
+            const country = this.getFieldValue(`${this.billingDetails.billingAddress}[country]`);
+
+            /* eslint-disable camelcase */
             if (address1) {
                 billing.address.line1 = address1;
             }
@@ -133,6 +134,7 @@ export class FormiePaymentProvider {
             if (country) {
                 billing.address.country = country;
             }
+            /* eslint-enable camelcase */
         }
 
         // Emit an "modifyBillingDetails" event. This can directly modify the `billing` param
@@ -144,19 +146,20 @@ export class FormiePaymentProvider {
             },
         });
 
+        // eslint-disable-next-line camelcase
         return { billing_details: billing };
     }
 
     getFieldValue(handle) {
-        var value = '';
+        let value = '';
 
         handle = this.getFieldName(handle);
 
         // We'll always get back multiple inputs to normalise checkbox/radios
-        var $fields = this.getFormField(handle);
+        const $fields = this.getFormField(handle);
 
         if ($fields) {
-            $fields.forEach($field => {
+            $fields.forEach(($field) => {
                 if ($field.type === 'checkbox' || $field.type === 'radio') {
                     if ($field.checked) {
                         return value = $field.value;
@@ -188,7 +191,7 @@ export class FormiePaymentProvider {
         // Normalise the handle first
         handle = handle.replace('{', '').replace('}', '').replace(']', '').split('[').join('][');
 
-        return 'fields[' + handle + ']';
+        return `fields[${handle}]`;
     }
 }
 

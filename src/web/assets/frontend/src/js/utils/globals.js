@@ -18,12 +18,12 @@ global.t = function(string, replacements = {}) {
 
 // CustomEvent()
 (function() {
-    if ( typeof window.CustomEvent === 'function' ) return false;
+    if (typeof window.CustomEvent === 'function') { return false; }
 
-    function CustomEvent( event, params ) {
+    function CustomEvent(event, params) {
         params = params || { bubbles: false, cancelable: false, detail: null };
-        var evt = document.createEvent( 'CustomEvent' );
-        evt.initCustomEvent( event, params.bubbles, params.cancelable, params.detail );
+        const evt = document.createEvent('CustomEvent');
+        evt.initCustomEvent(event, params.bubbles, params.cancelable, params.detail);
         return evt;
     }
 
@@ -40,10 +40,10 @@ if (!Element.prototype.matches) {
 
 if (!Element.prototype.closest) {
     Element.prototype.closest = function(s) {
-        var el = this;
+        let el = this;
 
         do {
-            if (el.matches(s)) return el;
+            if (el.matches(s)) { return el; }
             el = el.parentElement || el.parentNode;
         } while (el !== null && el.nodeType === 1);
         return null;

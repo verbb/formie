@@ -17,7 +17,7 @@ export class Formie {
             this.$forms = document.querySelectorAll('div[data-fui-form]') || [];
         }
 
-        this.$forms.forEach($form => {
+        this.$forms.forEach(($form) => {
             this.initForm($form);
         });
 
@@ -43,13 +43,13 @@ export class Formie {
         }
 
         // See if we need to init additional, conditional JS (field, captchas, etc)
-        var registeredJs = formConfig.registeredJs || [];
+        const registeredJs = formConfig.registeredJs || [];
 
         // Add an instance to this factory to the form config
         formConfig.Formie = this;
 
         // Create the form class, save it to our collection
-        var form = new FormieFormBase(formConfig);
+        const form = new FormieFormBase(formConfig);
 
         this.forms.push(form);
 
@@ -66,7 +66,7 @@ export class Formie {
 
             // Create a `<script>` for each registered JS
             registeredJs.forEach((config) => {
-                var $script = document.createElement('script');
+                const $script = document.createElement('script');
 
                 // Check if we've provided an external script to load. Ensure they're deferred so they don't block
                 // and use the onload call to trigger any actual scripts once its been loaded.
@@ -77,11 +77,11 @@ export class Formie {
                     // Initialize all matching fields - their config is already rendered in templates
                     $script.onload = () => {
                         if (config.module) {
-                            var fieldConfigs = form.fieldConfigs[config.module];
+                            const fieldConfigs = form.fieldConfigs[config.module];
 
                             // Handle multiple fields on a page, creating a new JS class instance for each
                             if (fieldConfigs && Array.isArray(fieldConfigs) && fieldConfigs.length) {
-                                fieldConfigs.forEach(fieldConfig => {
+                                fieldConfigs.forEach((fieldConfig) => {
                                     this.initJsClass(config.module, fieldConfig);
                                 });
                             }
@@ -105,7 +105,7 @@ export class Formie {
     }
 
     initJsClass(className, params) {
-        var moduleClass = window[className];
+        const moduleClass = window[className];
 
         if (moduleClass) {
             new moduleClass(params);
@@ -114,10 +114,10 @@ export class Formie {
 
     // Note the use of $form and $element to handle Repeater
     parseFieldConfig($element, $form) {
-        var config = {};
+        const config = {};
 
         $element.querySelectorAll('[data-field-config]').forEach(($field) => {
-            var fieldConfig = JSON.parse($field.getAttribute('data-field-config'));
+            let fieldConfig = JSON.parse($field.getAttribute('data-field-config'));
 
             // Some fields supply multiple modules, so normalise for ease-of-processing
             if (!Array.isArray(fieldConfig)) {
@@ -149,6 +149,7 @@ export class Formie {
     }
 
     getFormById(id) {
+        // eslint-disable-next-line array-callback-return
         return this.forms.find((form) => {
             if (form.config) {
                 return form.config.formId == id;
@@ -157,6 +158,7 @@ export class Formie {
     }
 
     getFormByHandle(handle) {
+        // eslint-disable-next-line array-callback-return
         return this.forms.find((form) => {
             if (form.config) {
                 return form.config.formHandle == handle;
@@ -165,13 +167,13 @@ export class Formie {
     }
 
     destroyForm($form) {
-        var form = this.getForm($form);
+        const form = this.getForm($form);
 
         if (!form) {
             return;
         }
 
-        var index = this.forms.indexOf(form);
+        const index = this.forms.indexOf(form);
 
         if (index === -1) {
             return;
@@ -184,7 +186,7 @@ export class Formie {
 
         // Remove all event listeners attached to this form
         if (!isEmpty(form.listeners)) {
-            Object.keys(form.listeners).forEach(eventKey => {
+            Object.keys(form.listeners).forEach((eventKey) => {
                 form.removeEventListener(eventKey);
             });
         }

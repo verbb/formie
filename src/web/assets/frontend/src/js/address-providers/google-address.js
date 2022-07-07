@@ -32,8 +32,8 @@ export class FormieGoogleAddress extends FormieAddressProvider {
     initScript() {
         // Prevent the script from loading multiple times (which throw warnings anyway)
         if (!document.getElementById(this.scriptId)) {
-            var script = document.createElement('script');
-            script.src = 'https://maps.googleapis.com/maps/api/js?key=' + this.apiKey + '&libraries=places';
+            const script = document.createElement('script');
+            script.src = `https://maps.googleapis.com/maps/api/js?key=${this.apiKey}&libraries=places`;
             script.defer = true;
             script.async = true;
             script.id = this.scriptId;
@@ -51,13 +51,13 @@ export class FormieGoogleAddress extends FormieAddressProvider {
     waitForLoad() {
         // Prevent running forever
         if (this.retryTimes > this.maxRetryTimes) {
-            console.error('Unable to load Google API after ' + this.retryTimes + ' times.');
+            console.error(`Unable to load Google API after ${this.retryTimes} times.`);
             return;
         }
-        
+
         if (typeof google === 'undefined') {
             this.retryTimes += 1;
-            
+
             setTimeout(this.waitForLoad.bind(this), this.waitTimeout);
         } else {
             this.initAutocomplete();
@@ -65,14 +65,14 @@ export class FormieGoogleAddress extends FormieAddressProvider {
     }
 
     initAutocomplete() {
-        var options = Object.assign({ types: ['geocode'] }, this.options);
+        const options = { types: ['geocode'], ...this.options };
 
-        var autocomplete = new google.maps.places.Autocomplete(this.$input, options);
+        const autocomplete = new google.maps.places.Autocomplete(this.$input, options);
 
         autocomplete.setFields(['address_component']);
 
         autocomplete.addListener('place_changed', () => {
-            var place = autocomplete.getPlace();
+            const place = autocomplete.getPlace();
 
             if (!place.address_components) {
                 // Seem to be having some issues with `address_components` being empty for units...
@@ -88,8 +88,8 @@ export class FormieGoogleAddress extends FormieAddressProvider {
         const componentMap = this.componentMap();
 
         // Sort out the data from Google so its easier to manage
-        for (var i = 0; i < address.length; i++) {
-            var [addressType] = address[i].types;
+        for (let i = 0; i < address.length; i++) {
+            const [addressType] = address[i].types;
 
             if (componentMap[addressType]) {
                 formData[addressType] = address[i][componentMap[addressType]];
@@ -97,10 +97,10 @@ export class FormieGoogleAddress extends FormieAddressProvider {
         }
 
         if (formData.street_number && formData.route) {
-            let street = formData.street_number + ' ' + formData.route;
+            let street = `${formData.street_number} ${formData.route}`;
 
             if (formData.subpremise) {
-                street = formData.subpremise + '/' + street;
+                street = `${formData.subpremise}/${street}`;
             }
 
             this.setFieldValue('[data-address1]', street);
@@ -132,7 +132,7 @@ export class FormieGoogleAddress extends FormieAddressProvider {
 
         xhr.onload = () => {
             this.onEndFetchLocation();
-            
+
             if (xhr.status >= 200 && xhr.status < 300) {
                 try {
                     const response = JSON.parse(xhr.responseText);
@@ -144,18 +144,18 @@ export class FormieGoogleAddress extends FormieAddressProvider {
                     if (response.error_message || response.error) {
                         console.log(response);
                     }
-                } catch(e) {
+                } catch (e) {
                     console.log(e);
                 }
             } else {
-                console.log(xhr.status + ': ' + xhr.statusText);
+                console.log(`${xhr.status}: ${xhr.statusText}`);
             }
         };
 
         // Use our own proxy to get around lack of support from Google Places and restricted API keys
         const formData = new FormData();
         formData.append('action', 'formie/address/google-places-geocode');
-        formData.append('latlng', latitude + ',' + longitude);
+        formData.append('latlng', `${latitude},${longitude}`);
         formData.append('key', this.geocodingApiKey);
 
         xhr.send(formData);

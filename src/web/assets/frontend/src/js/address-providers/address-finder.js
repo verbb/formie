@@ -31,7 +31,7 @@ export class FormieAddressFinder extends FormieAddressProvider {
     initScript() {
         // Prevent the script from loading multiple times (which throw warnings anyway)
         if (!document.getElementById(this.scriptId)) {
-            var script = document.createElement('script');
+            const script = document.createElement('script');
             script.src = 'https://api.addressfinder.io/assets/v3/widget.js';
             script.defer = true;
             script.async = true;
@@ -50,13 +50,13 @@ export class FormieAddressFinder extends FormieAddressProvider {
     waitForLoad() {
         // Prevent running forever
         if (this.retryTimes > this.maxRetryTimes) {
-            console.error('Unable to load AddressFinder API after ' + this.retryTimes + ' times.');
+            console.error(`Unable to load AddressFinder API after ${this.retryTimes} times.`);
             return;
         }
-        
+
         if (typeof AddressFinder === 'undefined') {
             this.retryTimes += 1;
-            
+
             setTimeout(this.waitForLoad.bind(this), this.waitTimeout);
         } else {
             this.initAutocomplete();
@@ -64,8 +64,8 @@ export class FormieAddressFinder extends FormieAddressProvider {
     }
 
     initAutocomplete() {
-        var widget = new AddressFinder.Widget(this.$input, this.apiKey, this.countryCode, this.widgetOptions);
-        
+        const widget = new AddressFinder.Widget(this.$input, this.apiKey, this.countryCode, this.widgetOptions);
+
         widget.on('result:select', (fullAddress, metaData) => {
             // We want to reverse if there's a unit number
             if (metaData.address_line_2) {

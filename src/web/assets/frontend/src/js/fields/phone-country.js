@@ -20,7 +20,7 @@ export class FormiePhoneCountry {
     }
 
     initValidator() {
-        var options = {
+        const options = {
             allowDropdown: true,
             autoHideDialCode: true,
             nationalMode: false,
@@ -33,7 +33,7 @@ export class FormiePhoneCountry {
         };
 
         if (this.countryAllowed && this.countryAllowed.length) {
-            options.onlyCountries = this.countryAllowed.map(item => {
+            options.onlyCountries = this.countryAllowed.map((item) => {
                 return item.value.toLowerCase();
             });
 
@@ -105,8 +105,8 @@ export class FormiePhoneCountry {
     }
 
     countryChange(e) {
-        var countryData = this.validator.getSelectedCountryData();
-        var selectedCountryCode = countryData.iso2;
+        const countryData = this.validator.getSelectedCountryData();
+        const selectedCountryCode = countryData.iso2;
 
         // Save the country code to the hidden input
         if (this.$countryInput && selectedCountryCode) {
@@ -133,8 +133,8 @@ export class FormiePhoneCountry {
             phoneCountry(field) {
                 if (field.value.trim() && field.validator) {
                     if (field.validator.isValidNumber()) {
-                        var countryData = field.validator.getSelectedCountryData();
-                        var selectedCountryCode = countryData.iso2;
+                        const countryData = field.validator.getSelectedCountryData();
+                        const selectedCountryCode = countryData.iso2;
 
                         // The library doesn't provide a method to check if it's a valid number against restricted countries
                         // so we need to do that ourselves.

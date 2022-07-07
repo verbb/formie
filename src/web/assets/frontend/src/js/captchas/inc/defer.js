@@ -3,19 +3,19 @@ const defer = () => {
 
     const callbacks = [];
 
-    const resolve = val => {
+    const resolve = (val) => {
         if (state) {
             return;
         }
 
         state = true;
-        
+
         for (let i = 0, len = callbacks.length; i < len; i++) {
             callbacks[i](val);
         }
     };
 
-    const then = cb => {
+    const then = (cb) => {
         if (!state) {
             callbacks.push(cb);
             return;

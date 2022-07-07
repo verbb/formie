@@ -11,7 +11,7 @@ export class FormiePayPal extends FormiePaymentProvider {
         this.$input = this.$field.querySelector('[data-fui-paypal-button]');
 
         if (!this.$input) {
-            console.error('Unable to find Stripe Elements placeholder for #' + this.formId + ' [data-fui-paypal-button]');
+            console.error(`Unable to find Stripe Elements placeholder for #${this.formId} [data-fui-paypal-button]`);
 
             return;
         }
@@ -42,20 +42,20 @@ export class FormiePayPal extends FormiePaymentProvider {
     }
 
     getScriptUrl() {
-        var url = 'https://www.paypal.com/sdk/js';
-        var params = ['intent=authorize'];
-        
-        params.push('currency=' + this.currency);
-        params.push('client-id=' + this.clientId);
+        const url = 'https://www.paypal.com/sdk/js';
+        const params = ['intent=authorize'];
 
-        return url + '?' + params.join('&');
+        params.push(`currency=${this.currency}`);
+        params.push(`client-id=${this.clientId}`);
+
+        return `${url}?${params.join('&')}`;
     }
 
     initField() {
         // Fetch and attach the script only once - this is in case there are multiple forms on the page.
         // They all go to a single callback which resolves its loaded state
         if (!document.getElementById(this.paypalScriptId)) {
-            var $script = document.createElement('script');
+            const $script = document.createElement('script');
             $script.id = this.paypalScriptId;
             $script.src = this.getScriptUrl();
 
@@ -64,7 +64,7 @@ export class FormiePayPal extends FormiePaymentProvider {
 
             // Wait until Stripe.js has loaded, then initialize
             $script.onload = () => {
-                this.renderButton()
+                this.renderButton();
             };
 
             document.body.appendChild($script);
@@ -77,7 +77,7 @@ export class FormiePayPal extends FormiePaymentProvider {
     }
 
     getStyleSettings() {
-        var settings = {
+        const settings = {
             layout: this.buttonLayout,
             color: this.buttonColor,
             shape: this.buttonShape,
@@ -100,14 +100,15 @@ export class FormiePayPal extends FormiePaymentProvider {
             createOrder: (data, actions) => {
                 this.removeError();
 
-                var amount = 0;
+                let amount = 0;
 
                 if (this.amountType === 'fixed') {
                     amount = this.amountFixed;
-                } else if (this.amountType === 'fixed') {
+                } else if (this.amountType === 'variable') {
                     amount = this.getFieldValue(settings.amountVariable);
                 }
 
+                /* eslint-disable camelcase */
                 return actions.order.create({
                     intent: 'AUTHORIZE',
                     application_context: {
@@ -120,6 +121,7 @@ export class FormiePayPal extends FormiePaymentProvider {
                         },
                     }],
                 });
+                /* eslint-enable camelcase */
             },
 
             onCancel: (data, actions) => {
@@ -133,7 +135,7 @@ export class FormiePayPal extends FormiePaymentProvider {
             onApprove: (data, actions) => {
                 // Authorize the transaction, instead of capturing. This will be done after form submit
                 actions.order.authorize().then((authorization) => {
-                    var authorizationID = authorization.purchase_units[0].payments.authorizations[0].id;
+                    const authorizationID = authorization.purchase_units[0].payments.authorizations[0].id;
 
                     this.updateInputs('paypalOrderId', data.orderID);
                     this.updateInputs('paypalAuthId', authorizationID);

@@ -14,9 +14,9 @@ export class FormieRecaptchaV2Checkbox {
         // Fetch and attach the script only once - this is in case there are multiple forms on the page.
         // They all go to a single callback which resolves its loaded state
         if (!document.getElementById(this.recaptchaScriptId)) {
-            var $script = document.createElement('script');
+            const $script = document.createElement('script');
             $script.id = this.recaptchaScriptId;
-            $script.src = 'https://www.recaptcha.net/recaptcha/api.js?onload=formieRecaptchaOnLoadCallback&render=explicit&hl=' + this.language;
+            $script.src = `https://www.recaptcha.net/recaptcha/api.js?onload=formieRecaptchaOnLoadCallback&render=explicit&hl=${this.language}`;
             $script.async = true;
             $script.defer = true;
 
@@ -26,10 +26,10 @@ export class FormieRecaptchaV2Checkbox {
         // Wait for/ensure recaptcha script has been loaded
         recaptcha.checkRecaptchaLoad();
 
-        this.$form = document.querySelector('#' + this.formId);
+        this.$form = document.querySelector(`#${this.formId}`);
 
         if (!this.$form) {
-            console.error('Unable to find form #' + this.formId);
+            console.error(`Unable to find form #${this.formId}`);
 
             return;
         }
@@ -41,7 +41,7 @@ export class FormieRecaptchaV2Checkbox {
         this.$placeholders = this.$form.querySelectorAll('[data-recaptcha-placeholder]');
 
         if (!this.$placeholders.length) {
-            console.error('Unable to find any ReCAPTCHA placeholders for #' + this.formId);
+            console.error(`Unable to find any ReCAPTCHA placeholders for #${this.formId}`);
 
             return;
         }
@@ -59,17 +59,17 @@ export class FormieRecaptchaV2Checkbox {
         this.$placeholder = null;
 
         // Get the active page
-        var $currentPage = null;
+        let $currentPage = null;
 
         if (this.$form.form.formTheme) {
             // eslint-disable-next-line
             $currentPage = this.$form.form.formTheme.$currentPage;
         }
 
-        var { hasMultiplePages } = this.$form.form.settings;
+        const { hasMultiplePages } = this.$form.form.settings;
 
         // Get the current page's captcha - find the first placeholder that's non-invisible
-        this.$placeholders.forEach($placeholder => {
+        this.$placeholders.forEach(($placeholder) => {
             if ($currentPage && $currentPage.contains($placeholder)) {
                 this.$placeholder = $placeholder;
             }
@@ -84,20 +84,20 @@ export class FormieRecaptchaV2Checkbox {
         if (this.$placeholder === null) {
             // This is okay in some instances - notably for multi-page forms where the captcha
             // should only be shown on the last step. But its nice to log this anyway
-            console.log('Unable to find ReCAPTCHA placeholder for #' + this.formId);
+            console.log(`Unable to find ReCAPTCHA placeholder for #${this.formId}`);
 
             return;
         }
 
         // Remove any existing token input
-        var $token = this.$form.querySelector('[name="g-recaptcha-response"]');
+        const $token = this.$form.querySelector('[name="g-recaptcha-response"]');
 
         if ($token) {
             $token.remove();
         }
 
         // Check if we actually need to re-render this, or just refresh it...
-        var currentRecaptchaId = this.$placeholder.getAttribute('data-recaptcha-id');
+        const currentRecaptchaId = this.$placeholder.getAttribute('data-recaptcha-id');
 
         if (currentRecaptchaId !== null) {
             this.recaptchaId = currentRecaptchaId;
@@ -114,7 +114,7 @@ export class FormieRecaptchaV2Checkbox {
             size: this.size,
             'expired-callback': this.onExpired.bind(this),
             'error-callback': this.onError.bind(this),
-        }, id => {
+        }, (id) => {
             this.recaptchaId = id;
 
             // Update the placeholder with our ID, in case we need to re-render it
@@ -136,12 +136,12 @@ export class FormieRecaptchaV2Checkbox {
             return;
         }
 
-        var $token = this.$form.querySelector('[name="g-recaptcha-response"]');
-        
+        const $token = this.$form.querySelector('[name="g-recaptcha-response"]');
+
         // Check to see if there's a valid token, otherwise, keep preventing the form.
         if (!$token || !$token.value.length) {
             this.addError();
-    
+
             e.preventDefault();
         }
     }
@@ -165,7 +165,7 @@ export class FormieRecaptchaV2Checkbox {
             this.submitHandler.formSubmitError();
         }
 
-        var $error = document.createElement('div');
+        const $error = document.createElement('div');
         $error.className = 'fui-error-message';
         $error.textContent = t('This field is required.');
 
@@ -178,7 +178,7 @@ export class FormieRecaptchaV2Checkbox {
             return;
         }
 
-        var $error = this.$placeholder.querySelector('.' + this.errorMessageClass);
+        const $error = this.$placeholder.querySelector(`.${this.errorMessageClass}`);
 
         if ($error) {
             $error.remove();
@@ -186,13 +186,13 @@ export class FormieRecaptchaV2Checkbox {
     }
 
     onExpired() {
-        console.log('ReCAPTCHA has expired for #' + this.formId + ' - reloading.');
+        console.log(`ReCAPTCHA has expired for #${this.formId} - reloading.`);
 
         recaptcha.reset(this.recaptchaId);
     }
 
     onError(error) {
-        console.error('ReCAPTCHA was unable to load for #' + this.formId);
+        console.error(`ReCAPTCHA was unable to load for #${this.formId}`);
     }
 }
 

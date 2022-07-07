@@ -1,6 +1,6 @@
 const mix = require('laravel-mix');
 const autoprefixer = require('autoprefixer');
-// const eslint = require('laravel-mix-eslint-config');
+const eslint = require('eslint-webpack-plugin');
 const polyfill = require('laravel-mix-polyfill');
 const clean = require('laravel-mix-clean');
 const postcssCustomProperties = require('postcss-custom-properties');
@@ -53,18 +53,6 @@ mix.options({
     ],
 });
 
-// Setup JS-linting
-// mix.eslint({
-//     exclude: [
-//         'node_modules',
-//         path.resolve(__dirname, './forms/src/js/vendor'),
-//     ],
-//     options: {
-//         fix: true,
-//         cache: false,
-//     },
-// });
-
 mix.setPublicPath('dist');
 
 mix.clean();
@@ -75,6 +63,11 @@ mix.webpackConfig({
     stats: {
         children: true
     },
+    plugins: [
+        new eslint({
+            fix: true,
+        }),
+    ],
     output: {
         chunkLoadingGlobal: 'formieConfigChunkLoadingGlobal',
     },
