@@ -738,30 +738,6 @@ class SubmissionsController extends Controller
         return $this->redirectToPostedUrl($submission);
     }
 
-    public function actionLegacyEdit(int $submissionId = null, string $siteHandle = null, Submission $submission = null): Response
-    {
-        if (!$submission) {
-            $submission = Submission::find()
-                ->id($submissionId)
-                ->isIncomplete(null)
-                ->isSpam(null)
-                ->one();
-        }
-
-        if (!$submission) {
-            throw new HttpException(404);
-        }
-
-        $formHandle = $submission->getForm()->handle;
-
-        $variables = [
-            'formHandle' => $formHandle,
-            'submissionId' => $submission->id,
-        ];
-
-        return $this->runAction('edit-submission', $variables);
-    }
-
     public function actionGetSendNotificationModalContent(): Response
     {
         $this->requireAcceptsJson();

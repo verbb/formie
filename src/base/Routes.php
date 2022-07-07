@@ -31,11 +31,6 @@ trait Routes
             $event->rules['formie/submissions/<formHandle:{handle}>/new'] = 'formie/submissions/edit-submission';
             $event->rules['formie/submissions/<formHandle:{handle}>/<submissionId:\d+>'] = 'formie/submissions/edit-submission';
 
-            // Legacy submission edit
-            // TODO: remove at next breakpoint
-            $event->rules['formie/submissions/edit/<submissionId:\d+>'] = 'formie/submissions/legacy-edit';
-            $event->rules['formie/submissions/edit/<submissionId:\d+>/<siteHandle:{handle}>'] = 'formie/submissions/legacy-edit';
-
             $event->rules['formie/sent-notifications'] = 'formie/sent-notifications/index';
             $event->rules['formie/sent-notifications/edit/<sentNotificationId:\d+>'] = 'formie/sent-notifications/edit';
 
