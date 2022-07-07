@@ -1,5 +1,8 @@
 <template>
-    <slot v-bind="$data" :input="input" :get-source-fields="getSourceFields" :get="get" :is-empty="isEmpty" :refresh="refresh"></slot>
+    <slot
+        v-if="mounted" v-bind="$data" :input="input" :get-source-fields="getSourceFields" :get="get" :is-empty="isEmpty"
+        :refresh="refresh"
+    ></slot>
 </template>
 
 <script>
@@ -36,6 +39,7 @@ export default {
             error: false,
             errorMessage: '',
             success: false,
+            mounted: false,
             settings: {},
             sourceId: '',
             model: {},
@@ -59,6 +63,13 @@ export default {
                 this.model[prop] = this.values[prop];
             });
         }
+    },
+
+    mounted() {
+        // Prevent rendering slot components too early, as that can slow down the UI
+        setTimeout(() => {
+            this.mounted = true;
+        }, 50);
     },
 
     methods: {
