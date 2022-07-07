@@ -169,7 +169,8 @@ export default {
 
     mounted() {
         // Set a small delay to show the modal, then try to render the form, which can take a little bit
-        // for complex settings setups.
+        // for complex settings setups. Likely remove when we can integrate with FormKit's native repeater
+        // as the major slowdown is out toggle blocks and tables.
         setTimeout(() => {
             this.mounted = true;
 
@@ -192,7 +193,7 @@ export default {
                     }, 50);
                 }
             });
-        }, 50);
+        }, 100);
     },
 
     destroy() {
