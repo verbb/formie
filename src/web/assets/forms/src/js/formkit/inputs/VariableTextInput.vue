@@ -159,7 +159,9 @@ export default {
     },
 
     beforeUnmount() {
-        this.editor.destroy();
+        if (this.editor) {
+            this.editor.destroy();
+        }
     },
 
     methods: {
