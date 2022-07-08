@@ -558,6 +558,14 @@ See [nested fields](#nested-fields) for how to query the inner fields.
 | `decimals` | `Int!` | Set the number of decimal points to format the field value.
 
 
+#### Payment
+| Field | Type | Description
+| - | - | -
+| `paymentIntegration` | `String!` | The handle of the [Payment Integration](docs:integrations/payments) chosen.
+| `paymentIntegrationType` | `String!` | The class of the [Payment Integration](docs:integrations/payments) chosen.
+| `providerSettings` | `String!` | A JSON string of settings for the payment provider to use.
+
+
 #### Phone
 | Field | Type | Description
 | - | - | -

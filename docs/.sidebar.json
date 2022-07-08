@@ -80,6 +80,7 @@
             "integrations/elements",
             "integrations/email-marketing",
             "integrations/crm",
+            "integrations/payments",
             "integrations/webhooks",
             "integrations/miscellaneous"
         ]

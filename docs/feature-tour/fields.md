@@ -323,6 +323,11 @@ A field to enter a password. This is a `<input type="password">` field. This sto
 
 
 
+### Payment
+A field for allowing payment to be captured from the user. This field's settings will differ depending on the [Payment Integration](docs:integrations/payments) chosen.
+
+
+
 ### Phone
 A field to enter a phone number. This is a `<input type="tel">` field.
 

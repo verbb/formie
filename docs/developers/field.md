@@ -307,6 +307,22 @@ Setting | Description
 `decimals` | Set the number of decimal points to format the field value.
 
 
+### Payment
+This field's settings will differ depending on the [Payment Integration](docs:integrations/payments) chosen.
+
+Setting | Description
+--- | ---
+`paymentIntegration` | The handle of the [Payment Integration](docs:integrations/payments) chosen.
+`paymentIntegrationType` | The class of the [Payment Integration](docs:integrations/payments) chosen.
+`providerSettings` | A collection of settings for the payment provider to use.
+
+Method | Description
+--- | ---
+`getPaymentIntegration()` | Returns the [Payment Integration](docs:integrations/payments) for the field.
+`getPaymentHtml()` | Returns the HTML for the front-end field.
+`getFrontEndJsModules()` | Returns the JavaScript modules for the front-end field.
+
+
 ### Phone
 Setting | Description
 --- | ---

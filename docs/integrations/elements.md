@@ -1,5 +1,5 @@
 # Elements
-Elements are one of the provided integrations with Formie, and are used to populate and create elements when a submission is made. For instance, you might want to create an Entry element when someone submits a form.
+Element integrations are one of the provided integrations with Formie, and are used to populate and create elements when a submission is made. For instance, you might want to create an Entry element when someone submits a form.
 
 Elements have settings at the plugin level, as well as per-form, allowing you to customise their behaviour for particular forms, or globally for all forms.
 
