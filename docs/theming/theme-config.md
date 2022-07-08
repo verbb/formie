@@ -1,7 +1,7 @@
 # Theme Config
 Using a Theme Config to render your form is the recommended approach for quickly customising your form's output HTML. Put simply, it provides you an easy way to control and manipulate each HTML element and attribute that's used to build a form, through its pages, rows, fields, buttons and more. This allows you to change the attributes (commonly class attributes) for components like the submit button, field `<input>` elements, and even the `<form>` element itself.
 
-For this reason, it's well-suited to being used to output opinionated class attributes used by utility CSS frameworks like Tailwind, or other frameworks like Bootstrap.
+For this reason, it's well-suited to being used to output opinionated class attributes used by utility CSS frameworks like [Tailwind](https://tailwindcss.com/), or other frameworks like [Bootstrap](https://getbootstrap.com/).
 
 :::warning
 We recommend reading the [theming overview](docs:theming/overview) docs before getting started, for an explanation of theme config compared to other methods of theming forms.
@@ -181,7 +181,7 @@ For a full list of available tags, refer to the below:
 ## Buttons
 - `buttonWrapper`
 - `submitButton`
-- `previousButton`
+- `backButton`
 
 ## Field Tags
 - `field`

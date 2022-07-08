@@ -21,7 +21,7 @@
         {% endformtag %}
 
         {% if page.settings.showBackButton and prevPage %}
-            {% formtag 'previousButton' %}
+            {% formtag 'backButton' %}
                 {%- hook 'formie.buttons.prev-start' -%}
 
                 {{ page.settings.backButtonLabel | t('formie') }}

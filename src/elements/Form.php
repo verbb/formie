@@ -1562,7 +1562,7 @@ class Form extends Element
             ], $inputAttributes));
         }
 
-        if ($key === 'previousButton') {
+        if ($key === 'backButton') {
             $page = $context['page'] ?? null;
             $inputAttributes = $page->settings->getInputAttributes() ?? [];
 
