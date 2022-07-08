@@ -20,6 +20,8 @@ use verbb\formie\helpers\Variables;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\Notification;
 use verbb\formie\models\HtmlTag;
+use verbb\formie\positions\AboveInput;
+use verbb\formie\positions\BelowInput;
 
 use Craft;
 use craft\base\ElementInterface;
@@ -1371,6 +1373,17 @@ trait FormFieldTrait
         if (array_key_exists('limit', $config)) {
             if (!in_array(static::class, $supportedLimitTypes)) {
                 unset($config['limit']);
+            }
+        }
+
+        // Migrate field positions (particularly if importing from an older system)
+        if (array_key_exists('instructionsPosition', $config)) {
+            if ($config['instructionsPosition'] === 'verbb\\formie\\positions\\FieldsetStart') {
+                $config['instructionsPosition'] = AboveInput::class;
+            }
+
+            if ($config['instructionsPosition'] === 'verbb\\formie\\positions\\FieldsetEnd') {
+                $config['instructionsPosition'] = BelowInput::class;
             }
         }
     }
