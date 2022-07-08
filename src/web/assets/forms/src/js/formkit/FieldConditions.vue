@@ -124,6 +124,7 @@ export default {
     computed: {
         ...mapState({
             editingField: (state) => { return state.formie.editingField; },
+            pages: (state) => { return state.form.pages; },
         }),
 
         field() {
@@ -328,18 +329,46 @@ export default {
 
         getFieldOptions() {
             const options = [];
+            const customFields = [];
+            const excludedFields = [];
 
+            const fields = this.$store.getters['form/fields'];
             const allStatuses = this.$store.getters['formie/statuses']();
+
             const statuses = allStatuses.map((status) => {
                 return { label: status.name, value: status.handle };
             });
 
-            const fields = this.$store.getters['form/fields'];
-            const customFields = [];
+            // Special-case for page conditions, we don't want to include any fields that are on a future page
+            if (this.context.attrs.isPageModal) {
+                // First, collect the handles of all field on this page and previous ones.
+                const currentPageIndex = this.pages.indexOf(this.context.attrs.page);
+
+                if (currentPageIndex > -1) {
+                    this.pages.forEach((page, index) => {
+                        if (index > currentPageIndex) {
+                            if (page.rows && Array.isArray(page.rows)) {
+                                page.rows.forEach((row) => {
+                                    if (row.fields && Array.isArray(row.fields)) {
+                                        row.fields.forEach((field) => {
+                                            excludedFields.push(field.handle);
+                                        });
+                                    }
+                                });
+                            }
+                        }
+                    });
+                }
+            }
 
             fields.forEach((field) => {
                 // Don't allow conditions on _this_ field
                 if (this.field.vid === field.vid) {
+                    return;
+                }
+
+                // Is this an excluded field?
+                if (excludedFields.includes(field.handle)) {
                     return;
                 }
 

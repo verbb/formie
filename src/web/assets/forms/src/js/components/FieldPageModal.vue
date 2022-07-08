@@ -62,7 +62,7 @@
                             />
 
                             <!-- eslint-disable-next-line -->
-                                <FormKit v-if="page.settings.enablePageConditions" v-model="page.settings.pageConditions" type="fieldConditions" descriptionText="this page if" />
+                            <FormKit v-if="page.settings.enablePageConditions" v-model="page.settings.pageConditions" type="fieldConditions" descriptionText="this page if" :isPageModal="true" :page="page" />
 
                             <div v-if="pages.length > 1">
                                 <hr>
