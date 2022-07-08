@@ -112,9 +112,9 @@ export class FormieStripe extends FormiePaymentProvider {
     }
 
     onValidate(e) {
-        // Don't validate if we're going back in the form
+        // Don't validate if we're not submitting (going back, saving)
         // Check if the form has an invalid flag set, don't bother going further
-        if (this.$form.goBack || e.detail.invalid) {
+        if (this.form.submitAction !== 'submit' || e.detail.invalid) {
             return;
         }
 

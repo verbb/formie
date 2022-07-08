@@ -247,24 +247,44 @@
   display: none;
 }
 
+.fui-btn-wrapper,
 .fui-btn-container {
   display: flex;
   justify-content: flex-start;
 }
+.fui-btn-wrapper.fui-btn-right,
 .fui-btn-container.fui-btn-right {
   justify-content: flex-end;
 }
-.fui-btn-container.fui-btn-center {
+.fui-btn-wrapper.fui-btn-center, .fui-btn-wrapper.fui-btn-center-save-right, .fui-btn-wrapper.fui-btn-center-save-left,
+.fui-btn-container.fui-btn-center,
+.fui-btn-container.fui-btn-center-save-right,
+.fui-btn-container.fui-btn-center-save-left {
   justify-content: center;
 }
-.fui-btn-container.fui-btn-left-right {
+.fui-btn-wrapper.fui-btn-left-right, .fui-btn-wrapper.fui-btn-save-right, .fui-btn-wrapper.fui-btn-save-left,
+.fui-btn-container.fui-btn-left-right,
+.fui-btn-container.fui-btn-save-right,
+.fui-btn-container.fui-btn-save-left {
   justify-content: space-between;
 }
+.fui-btn-wrapper.fui-btn-right-save-left,
+.fui-btn-container.fui-btn-right-save-left {
+  justify-content: flex-start;
+}
+.fui-btn-wrapper.fui-btn-save-left, .fui-btn-wrapper.fui-btn-right-save-left, .fui-btn-wrapper.fui-btn-center-save-left,
+.fui-btn-container.fui-btn-save-left,
+.fui-btn-container.fui-btn-right-save-left,
+.fui-btn-container.fui-btn-center-save-left {
+  flex-direction: row-reverse;
+}
+.fui-btn-wrapper .fui-btn[data-conditionally-hidden],
 .fui-btn-container .fui-btn[data-conditionally-hidden] {
   display: none;
 }
 
-.fui-submit {
+.fui-submit,
+.fui-save {
   order: 10;
 }
 
@@ -343,6 +363,16 @@
 }
 .fui-btn:not(:disabled):not(.disabled) {
   cursor: pointer;
+}
+
+.fui-btn-link {
+  color: #516fea;
+  color: var(--fui-submit-btn-bg-color, var(--fui-primary-color));
+  background-color: transparent;
+}
+.fui-btn-link:hover, .fui-btn-link:focus, .fui-btn-link:active {
+  background-color: transparent;
+  text-decoration: underline;
 }
 
 .fui-link {
@@ -453,13 +483,13 @@
   margin-bottom: 0;
 }
 
-.fui-btn-container {
+.fui-btn-wrapper {
   padding: 1rem 0 0 0;
   padding: var(--fui-btn-container-padding);
   margin: 0 -0.5rem 0 -0.5rem;
   margin: var(--fui-btn-container-margin);
 }
-.fui-btn-container .fui-btn {
+.fui-btn-wrapper .fui-btn {
   margin: 0 0.5rem 0 0.5rem;
   margin: var(--fui-btn-margin);
 }

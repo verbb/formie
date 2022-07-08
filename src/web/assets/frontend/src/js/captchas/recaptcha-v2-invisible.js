@@ -122,9 +122,9 @@ export class FormieRecaptchaV2Invisible {
     }
 
     onValidate(e) {
-        // Don't validate if we're going back in the form
+        // Don't validate if we're not submitting (going back, saving)
         // Or, if there's no captcha on this page
-        if (this.$form.goBack || this.$placeholder === null) {
+        if (this.form.submitAction !== 'submit' || this.$placeholder === null) {
             return;
         }
 

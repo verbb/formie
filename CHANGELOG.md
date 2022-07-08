@@ -15,7 +15,9 @@
 - Added `{{ fieldtag(key) }}` Twig function to render a field theme component. Supports the same functionality as [tag](https://craftcms.com/docs/4.x/dev/functions.html#tag).
 - Added `{% fieldtag %}` Twig tag to render a field theme component. Supports the same functionality as [tag](https://craftcms.com/docs/4.x/dev/tags.html#tag).
 - Added `{% formtag %}` Twig tag to render a form theme component. Supports the same functionality as [tag](https://craftcms.com/docs/4.x/dev/tags.html#tag).
-- Add support for Group and Repeater-nested fields when using `setFieldSettings()` in templates.
+- Added support for Group and Repeater-nested fields when using `setFieldSettings()` in templates.
+- Added the ability to include a "Save" button for front-end templates. Buttons can be styled as a button or a link.
+- Added `submitAction` to the `SubmissionEvent` to allow you to act on different submission actions like back, save and submit.
 
 ### Changed
 - Re-architected front-end templates to be more maintainable, easier to override, easier to manipulate and better organised. Makes it possible to use Tailwind and Bootstrap classes without writing templates from scratch and maintaining them as overrides. Read up on the [changes](https://verbb.io/craft-plugins/formie/docs/theming).
@@ -48,6 +50,8 @@
 - JS Captcha front-end templates now requires `data-jscaptcha-placeholder` attribute.
 - Field instructions no longer produce a `<p>` paragraph element.
 - All front-end static translations now use **only** the `formie` category. If you're using static translation to translate any text for front-end forms, ensure you move any of these translations in your `site.php` or `app.php` files into `formie.php`.
+- Front-end templates now include a `submitAction` hidden input to determine what action to do when submitting the form (`back`, `submit` or `save`).
+- Front-end templates now add a `data-submit-action` attribute to all buttons for back, submit and save.
 
 ### Fixed
 - Fix hard-error being thrown when positions chosen for labels/instructions no longer exist.
@@ -66,6 +70,7 @@
 - Removed `_includes/errors` template partial.
 - Removed “Top of Fieldset” and “Bottom of Fieldset” positions to prevent confusion. These are replaced by Above Input” and Below Input” respectively.
 - Removed all class-binding references in JS files.
+- Removed `goingBack` and `form.goBack` from front-end templates. Now uses `submitAction` to control when going back.
 
 ## 2.0.0-beta.16 - 2022-07-01
 

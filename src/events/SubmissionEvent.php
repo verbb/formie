@@ -11,6 +11,7 @@ class SubmissionEvent extends CancelableEvent
     // =========================================================================
 
     public ?Submission $submission;
+    public ?string $submitAction;
     public ?bool $success;
     
 }

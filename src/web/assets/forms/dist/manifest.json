@@ -19,14 +19,14 @@
     ]
   },
   "src/js/formie-form.js": {
-    "file": "assets/formie-form.ba39bf49.js",
+    "file": "assets/formie-form.79dfb528.js",
     "src": "src/js/formie-form.js",
     "isEntry": true,
     "imports": [
       "_config.76379a0c.js"
     ],
     "css": [
-      "assets/formie-form.f637169f.css"
+      "assets/formie-form.3e64e508.css"
     ]
   },
   "_config.76379a0c.js": {

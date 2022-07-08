@@ -170,6 +170,9 @@ export class FormieFormTheme {
 
                 // Store for later if we're using text spinner
                 this.originalButtonText = e.target.textContent.trim();
+
+                // Each submit button can do different things, to store that
+                this.updateSubmitAction(this.$submitBtn.getAttribute('data-submit-action'));
             });
         });
 
@@ -187,8 +190,8 @@ export class FormieFormTheme {
     }
 
     onValidate(e) {
-        // Bypass validation and custom event handling if going back
-        if (!this.$form.goBack && !this.validate()) {
+        // Bypass validation and custom event handling if not submitting
+        if (this.form.submitAction !== 'submit' && !this.validate()) {
             this.onFormError();
 
             // Set a flag on the event, so other listeners can potentially do something
@@ -202,16 +205,6 @@ export class FormieFormTheme {
         // Stop base behaviour of just submitting the form
         e.preventDefault();
 
-        // Check if the submit button has a `name` attribute. If so, we need to append a hidden input
-        // to the form, as JS-submitted forms won't pass on the submit button value as its programatically submitted.
-        if (this.$submitBtn && this.$submitBtn.getAttribute('name')) {
-            const name = this.$submitBtn.getAttribute('name');
-            const value = this.$submitBtn.getAttribute('value');
-
-            // Add a hidden input, if it doesn't exist
-            this.updateOrCreateHiddenInput(name, value);
-        }
-
         // Either staight submit, or use Ajax
         if (this.settings.submitMethod === 'ajax') {
             this.ajaxSubmit();
@@ -220,8 +213,10 @@ export class FormieFormTheme {
             // handler - which technically unloads the page - will trigger the changed alert.
             this.updateFormHash();
 
-            // Triger any JS events for this page, right away before navigating away
-            this.triggerJsEvents();
+            // Triger any JS events for this page, only if submitting (not going back/saving)
+            if (this.form.submitAction === 'submit') {
+                this.triggerJsEvents();
+            }
 
             this.$form.submit();
         }
@@ -268,9 +263,10 @@ export class FormieFormTheme {
 
     hashForm() {
         const hash = {};
-
         const formData = new FormData(this.$form);
-        const excludedItems = ['g-recaptcha-response', 'CRAFT_CSRF_TOKEN', '__JSCHK'];
+
+        // Exlcude some params from the hash, that are programatically changed
+        const excludedItems = ['g-recaptcha-response', 'CRAFT_CSRF_TOKEN', '__JSCHK', 'submitAction'];
 
         for (const pair of formData.entries()) {
             const isExcluded = excludedItems.filter((item) => { return pair[0].startsWith(item); });
@@ -452,18 +448,6 @@ export class FormieFormTheme {
         });
     }
 
-    removeBackInput() {
-        // Remove the hidden back input sent in any previous step
-        const $backButtonInput = this.$form.querySelector('[name="goingBack"][type="hidden"]');
-
-        if ($backButtonInput) {
-            $backButtonInput.remove();
-        }
-
-        // Reset the chosen page
-        this.$form.goBack = null;
-    }
-
     beforeSubmit() {
         // Remove all validation errors
         Array.prototype.filter.call(this.$form.querySelectorAll('input, select, textarea'), (($field) => {
@@ -519,8 +503,8 @@ export class FormieFormTheme {
     }
 
     afterAjaxSubmit(data) {
-        // This will be called regardless of success or error
-        this.removeBackInput();
+        // Reset the submit action, immediately, whether fail or success
+        this.updateSubmitAction('submit');
 
         this.updateSubmissionInput(data);
 
@@ -588,7 +572,9 @@ export class FormieFormTheme {
         this.updateFormHash();
 
         // Triger any JS events for this page, right away before navigating away
-        this.triggerJsEvents();
+        if (this.form.submitAction === 'submit') {
+            this.triggerJsEvents();
+        }
 
         // Check if we need to proceed to the next page
         if (data.nextPageId) {
@@ -632,7 +618,7 @@ export class FormieFormTheme {
 
                 // Remove the back button - not great UX to go back to a finished form
                 // Remember, its the button and the hidden input
-                const $backButtonInputs = this.$form.querySelectorAll('[name="goingBack"]');
+                const $backButtonInputs = this.$form.querySelectorAll('[data-submit-action="back"]');
 
                 $backButtonInputs.forEach(($backButtonInput) => {
                     $backButtonInput.remove();
@@ -664,6 +650,20 @@ export class FormieFormTheme {
 
         // Reset the form hash, as all has been saved
         this.updateFormHash();
+    }
+
+    updateSubmitAction(action) {
+        // All buttons should have a `[data-submit-action]` but just for backward-compatibility
+        // assume when not present, we're submitting
+        if (!action) {
+            action = 'submit';
+        }
+
+        // Update the submit action on the form while we're at it. Store on the `$form`
+        // for each of lookup on event hooks like captchas.
+        this.form.submitAction = action;
+
+        this.updateOrCreateHiddenInput('submitAction', action);
     }
 
     updateSubmissionInput(data) {

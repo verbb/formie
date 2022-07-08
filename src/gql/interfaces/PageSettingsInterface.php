@@ -66,6 +66,16 @@ class PageSettingsInterface extends BaseInterfaceType
                 'type' => Type::boolean(),
                 'description' => 'Whether to show the page’s back button.',
             ],
+            'saveButtonLabel' => [
+                'name' => 'saveButtonLabel',
+                'type' => Type::string(),
+                'description' => 'The page’s draft button label.',
+            ],
+            'showSaveButton' => [
+                'name' => 'showSaveButton',
+                'type' => Type::boolean(),
+                'description' => 'Whether to show the page’s draft button.',
+            ],
             'buttonsPosition' => [
                 'name' => 'buttonsPosition',
                 'type' => Type::string(),

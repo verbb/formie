@@ -88,6 +88,8 @@ export default {
                     showBackButton: this.pageIndex !== 0,
                     backButtonLabel: Craft.t('formie', 'Back'),
                     buttonsPosition: 'left',
+                    saveButtonLabel: Craft.t('formie', 'Save'),
+                    saveButtonStyle: 'link',
                 },
             };
 

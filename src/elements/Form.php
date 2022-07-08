@@ -1510,11 +1510,25 @@ class Form extends Element
 
             return new HtmlTag('div', array_merge([
                 'class' => [
-                    'fui-btn-container',
+                    'fui-btn-wrapper',
                     "fui-btn-{$page->settings->buttonsPosition}",
                     $page->settings->cssClasses,
                 ],
             ], $containerAttributes));
+        }
+
+        if ($key === 'buttonContainer') {
+            $page = $context['page'] ?? null;
+            $showSaveButton = $page->settings->showSaveButton ?? false;
+
+            // Don't output if no save button
+            if (!$showSaveButton) {
+                return null;
+            }
+
+            return new HtmlTag('div', [
+                'class' => 'fui-btn-container',
+            ]);
         }
 
         if ($key === 'submitButton') {
@@ -1528,7 +1542,23 @@ class Form extends Element
                     $nextPage ? 'fui-next' : false,
                 ],
                 'type' => 'submit',
+                'data-submit-action' => 'submit',
                 'data-field-conditions' => $page->settings->getConditionsJson(),
+            ], $inputAttributes));
+        }
+
+        if ($key === 'saveButton') {
+            $page = $context['page'] ?? null;
+            $inputAttributes = $page->settings->getInputAttributes() ?? [];
+            $saveButtonStyle = $page->settings->saveButtonStyle ?? 'link';
+            
+            return new HtmlTag('button', array_merge([
+                'class' => [
+                    'fui-btn fui-save',
+                    $saveButtonStyle === 'button' ? 'fui-submit' : 'fui-btn-link',
+                ],
+                'type' => 'submit',
+                'data-submit-action' => 'save',
             ], $inputAttributes));
         }
 
@@ -1539,8 +1569,7 @@ class Form extends Element
             return new HtmlTag('button', array_merge([
                 'class' => 'fui-btn fui-prev',
                 'type' => 'submit',
-                'name' => 'goingBack',
-                'onclick' => 'this.form.goBack = true;',
+                'data-submit-action' => 'back',
             ], $inputAttributes));
         }
 

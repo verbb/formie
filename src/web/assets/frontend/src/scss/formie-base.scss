@@ -91,6 +91,7 @@
 // Forms - Submit
 // ==========================================================================
 
+.fui-btn-wrapper,
 .fui-btn-container {
     display: flex;
     justify-content: flex-start;
@@ -99,12 +100,26 @@
         justify-content: flex-end;
     }
 
-    &.fui-btn-center {
+    &.fui-btn-center,
+    &.fui-btn-center-save-right,
+    &.fui-btn-center-save-left {
         justify-content: center;
     }
 
-    &.fui-btn-left-right {
+    &.fui-btn-left-right,
+    &.fui-btn-save-right,
+    &.fui-btn-save-left {
         justify-content: space-between;
+    }
+
+    &.fui-btn-right-save-left {
+        justify-content: flex-start;
+    }
+
+    &.fui-btn-save-left,
+    &.fui-btn-right-save-left,
+    &.fui-btn-center-save-left {
+        flex-direction: row-reverse;
     }
 
     .fui-btn {
@@ -116,7 +131,10 @@
     }
 }
 
-.fui-submit {
+// For accessibility when tabbing on the last field, we want to highlight the submit button
+// not the back button which is visually first. https://stackoverflow.com/a/1963285
+.fui-submit,
+.fui-save {
     order: 10;
 }
 

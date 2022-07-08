@@ -41,6 +41,7 @@
             {% formtag 'form' %}
                 {{ csrfInput({ autocomplete: 'off' }) }}
                 {{ actionInput(form.getActionUrl()) }}
+                {{ hiddenInput('submitAction', 'submit') }}
                 {{ hiddenInput('handle', form.handle) }}
                 {{ hiddenInput('siteId', craft.app.sites.currentSite.id) }}
 

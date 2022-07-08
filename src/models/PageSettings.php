@@ -14,6 +14,9 @@ class PageSettings extends Model
     public ?string $submitButtonLabel = null;
     public ?string $backButtonLabel = null;
     public bool $showBackButton = false;
+    public ?string $saveButtonLabel = null;
+    public bool $showSaveButton = false;
+    public string $saveButtonStyle = 'link';
     public string $buttonsPosition = 'left';
     public ?string $cssClasses = null;
     public ?array $containerAttributes = null;
@@ -40,6 +43,10 @@ class PageSettings extends Model
 
         if (!$this->backButtonLabel) {
             $this->backButtonLabel = Craft::t('formie', 'Back');
+        }
+
+        if (!$this->saveButtonLabel) {
+            $this->saveButtonLabel = Craft::t('formie', 'Save');
         }
     }
 

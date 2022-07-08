@@ -65,6 +65,18 @@
     }
 }
 
+.fui-btn-link {
+    color: var(--fui-submit-btn-bg-color, var(--fui-primary-color));
+    background-color: transparent;
+
+    &:hover,
+    &:focus,
+    &:active {
+        background-color: transparent;
+        text-decoration: underline;
+    }
+}
+
 // ==========================================================================
 // Framework - Links
 // ==========================================================================

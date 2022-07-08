@@ -123,8 +123,8 @@ export class FormieHcaptcha {
     }
 
     onValidate(e) {
-        // Don't validate if we're going back in the form
-        if (this.$form.goBack || this.$placeholder === null) {
+        // Don't validate if we're not submitting (going back, saving)
+        if (this.form.submitAction !== 'submit' || this.$placeholder === null) {
             return;
         }
 

@@ -73,6 +73,32 @@ You now no longer need to do this, and any JavaScript and CSS will be captured i
 ### `getFields()`
 Any references to `getFields()` should be changed to `getCustomFields()`. This is inline with Craft 4 element field layout changes.
 
+### Buttons
+With the addition of a "Save" button, we now need to be stricter about defining what each button does. You are now required to supply a `data-submit-action` attribute with the following:
+
+```twig
+{# Submit button #}
+<button type="submit" data-submit-action="submit">Submit</button>
+
+{# Back button #}
+<button type="submit" data-submit-action="back">Back</button>
+
+{# Save button #}
+<button type="submit" data-submit-action="save">Save</button>
+```
+
+### Submit Action
+With the addition of a "Save" button, we need to keep track of what action the form is doing, between saving, going back and submitting.
+
+Ensure you include the `submitAction` hidden input with the default value `submit` in your `<form>` element.
+
+```twig
+<form ...>
+    {{ csrfInput() }}
+    {{ hiddenInput('submitAction', 'submit') }}
+    ...
+```
+
 ### Render Options
 Any references to `options` should be changed to `renderOptions`. This is to prevent ambiguity with other variables named `options`. The only exception to this is within option-based fields like Dropdown, Checkboxes and Radio Buttons which do in fact have a variable named `options` for the collection of options for that field. This is different to `renderOptions`.
 

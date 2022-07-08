@@ -80,12 +80,14 @@ class Submissions extends Component
      * Executed before a submission has been saved.
      *
      * @param Submission $submission
+     * @param string $submitAction
      * @see SubmissionsController::actionSubmit()
      */
-    public function onBeforeSubmission(Submission $submission): void
+    public function onBeforeSubmission(Submission $submission, string $submitAction = 'submit'): void
     {
         $event = new SubmissionEvent([
             'submission' => $submission,
+            'submitAction' => $submitAction,
         ]);
 
         if ($submission->isIncomplete) {
@@ -104,9 +106,10 @@ class Submissions extends Component
      *
      * @param bool $success whether the submission was successful
      * @param Submission $submission
+     * @param string $submitAction
      * @see SubmissionsController::actionSubmit()
      */
-    public function onAfterSubmission(bool $success, Submission $submission): void
+    public function onAfterSubmission(bool $success, Submission $submission, string $submitAction = 'submit'): void
     {
         /* @var Settings $settings */
         $settings = Formie::$plugin->getSettings();
@@ -116,6 +119,7 @@ class Submissions extends Component
             // Fire an 'afterIncompleteSubmission' event
             $event = new SubmissionEvent([
                 'submission' => $submission,
+                'submitAction' => $submitAction,
                 'success' => $success,
             ]);
 
@@ -142,6 +146,7 @@ class Submissions extends Component
         // Fire an 'afterSubmission' event
         $event = new SubmissionEvent([
             'submission' => $submission,
+            'submitAction' => $submitAction,
             'success' => $success,
         ]);
         $this->trigger(self::EVENT_AFTER_SUBMISSION, $event);

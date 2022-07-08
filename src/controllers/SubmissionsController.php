@@ -210,6 +210,7 @@ class SubmissionsController extends Controller
 
         // Ensure we validate some params here to prevent potential malicious-ness
         $formHandle = $this->_getTypedParam('handle', 'string');
+        $submitAction = $this->_getTypedParam('submitAction', 'string');
 
         $form = Form::find()->handle($formHandle)->one();
 
@@ -240,8 +241,6 @@ class SubmissionsController extends Controller
 
         // Check if this is a front-end edit
         if ($request->getIsSiteRequest()) {
-            $goingBack = (bool)$request->getParam('goingBack');
-
             // Ensure we set the current submission on the form. This keeps track of session info for
             // multipage forms, separate to "new" submissions
             $form->setSubmission($submission);
@@ -251,14 +250,13 @@ class SubmissionsController extends Controller
 
             // Or, if we've passed in a specific page to go to
             if ($goToPageId = $request->getParam('goToPageId')) {
-                $goingBack = true;
                 $nextPage = ArrayHelper::firstWhere($form->getPages(), 'id', $goToPageId);
-            } else if ($goingBack) {
+            } else if ($submitAction === 'back') {
                 $nextPage = $form->getPreviousPage(null, $submission);
             }
 
-            // Don't validate when going back
-            if (!$goingBack) {
+            // Only validate when submitting
+            if ($submitAction === 'submit') {
                 // Turn on validation, but set a flag to only validate the current page.
                 $submission->validateCurrentPageOnly = true;
             }
@@ -378,18 +376,18 @@ class SubmissionsController extends Controller
     public function actionSubmit(): ?Response
     {
         $this->requirePostRequest();
+
         $request = Craft::$app->getRequest();
-        $goingBack = false;
 
         /* @var Settings $settings */
         $formieSettings = Formie::$plugin->getSettings();
 
         // Ensure we validate some params here to prevent potential malicious-ness
         $handle = $this->_getTypedParam('handle', 'string');
-        $goingBack = $this->_getTypedParam('goingBack', 'boolean');
         $pageIndex = $this->_getTypedParam('pageIndex', 'int');
         $goToPageId = $this->_getTypedParam('goToPageId', 'id');
         $completeSubmission = $this->_getTypedParam('completeSubmission', 'boolean');
+        $submitAction = $this->_getTypedParam('submitAction', 'string');
 
         Formie::log("Submission triggered for ${handle}.");
 
@@ -430,22 +428,22 @@ class SubmissionsController extends Controller
         // Get the submission, or create a new one
         $submission = $this->_populateSubmission($form);
 
-        // Check for the next page - if there is one
-        $nextPage = $form->getNextPage(null, $submission);
-
-        // Or, if we've passed in a specific page to go to
+        // Determine the next page to navigate to
         if (is_numeric($goToPageId)) {
-            $goingBack = true;
             $nextPage = ArrayHelper::firstWhere($form->getPages(), 'id', $goToPageId);
-        } else if ($goingBack) {
+        } else if ($submitAction === 'back') {
             $nextPage = $form->getPreviousPage(null, $submission);
+        } else if ($submitAction === 'save') {
+            $nextPage = $form->getCurrentPage();
+        } else {
+            $nextPage = $form->getNextPage(null, $submission);
         }
 
         $defaultStatus = $form->getDefaultStatus();
         $errorMessage = $form->settings->getErrorMessage();
 
-        // Don't validate when going back
-        if (!$goingBack) {
+        // Only validate when submitting
+        if ($submitAction === 'submit') {
             // Turn on validation, but set a flag to only validate the current page.
             $submission->setScenario(Element::SCENARIO_LIVE);
             $submission->validateCurrentPageOnly = true;
@@ -463,15 +461,16 @@ class SubmissionsController extends Controller
         // Fire an 'beforeSubmissionRequest' event
         $event = new SubmissionEvent([
             'submission' => $submission,
+            'submitAction' => $submitAction,
         ]);
         $this->trigger(self::EVENT_BEFORE_SUBMISSION_REQUEST, $event);
 
         // Allow the event to modify the submission
         $submission = $event->submission;
 
-        // Don't validate when going back, and if the event has marked it as invalid. If the event adds errors to the submission
+        // Only validate for submitting, and if the event has marked it as invalid. If the event adds errors to the submission
         // model, and `validate()` is run again, it'll clear any errors. Instead, skip straight to regular error handling.
-        if (!$goingBack && $event->isValid) {
+        if ($submitAction === 'submit' && $event->isValid) {
             $submission->validate();
         }
 
@@ -502,28 +501,26 @@ class SubmissionsController extends Controller
             return null;
         }
 
-        // Check against all enabled captchas. Also take into account multi-pages
-        $captchas = Formie::$plugin->getIntegrations()->getAllEnabledCaptchasForForm($form);
+        // Only process captchas if we're submitting
+        if ($submitAction === 'submit') {
+            // Check against all enabled captchas. Also take into account multi-pages
+            $captchas = Formie::$plugin->getIntegrations()->getAllEnabledCaptchasForForm($form);
 
-        foreach ($captchas as $captcha) {
-            // If we're heading back to a previous page, don't validate
-            if ($goingBack) {
-                continue;
+            foreach ($captchas as $captcha) {
+                $valid = $captcha->validateSubmission($submission);
+
+                if (!$valid) {
+                    $submission->isSpam = true;
+                    $submission->spamReason = Craft::t('formie', 'Failed Captcha “{c}”: “{m}”', ['c' => $captcha::displayName(), 'm' => $captcha->spamReason]);
+                }
             }
 
-            $valid = $captcha->validateSubmission($submission);
-
-            if (!$valid) {
-                $submission->isSpam = true;
-                $submission->spamReason = Craft::t('formie', 'Failed Captcha “{c}”: “{m}”', ['c' => $captcha::displayName(), 'm' => $captcha->spamReason]);
-            }
+            // Final spam checks for things like keywords
+            Formie::$plugin->getSubmissions()->spamChecks($submission);
         }
 
-        // Final spam checks for things like keywords
-        Formie::$plugin->getSubmissions()->spamChecks($submission);
-
         // Check events right before our saving
-        Formie::$plugin->getSubmissions()->onBeforeSubmission($submission);
+        Formie::$plugin->getSubmissions()->onBeforeSubmission($submission, $submitAction);
 
         // Save the submission
         $success = Craft::$app->getElements()->saveElement($submission, false);
@@ -535,7 +532,7 @@ class SubmissionsController extends Controller
         }
 
         // Run this regardless of the success state, or incomplete state
-        Formie::$plugin->getSubmissions()->onAfterSubmission($success, $submission);
+        Formie::$plugin->getSubmissions()->onAfterSubmission($success, $submission, $submitAction);
 
         // If this submission is marked as spam, there will be errors - so choose how we treat feedback
         if ($submission->isSpam) {
@@ -598,6 +595,7 @@ class SubmissionsController extends Controller
         // Fire an 'afterSubmissionRequest' event
         $event = new SubmissionEvent([
             'submission' => $submission,
+            'submitAction' => $submitAction,
             'success' => true,
         ]);
         $this->trigger(self::EVENT_AFTER_SUBMISSION_REQUEST, $event);

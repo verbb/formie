@@ -2,10 +2,21 @@
     <div class="fui-field-block fui-submit-block" :class="{ 'has-errors': false }" @click.prevent="openModal">
         <div class="fui-edit-overlay" @click.prevent="editField"></div>
 
-        <div class="flex" :style="{ 'justify-content': cssAlignment }">
-            <div v-if="!isFirstButton && settings.showBackButton">
-                <a href="#" class="btn submit">{{ settings.backButtonLabel }}</a>
+        <div v-if="settings.showSaveButton" class="flex" :style="cssAlignment">
+            <div class="flex">
+                <a v-if="!isFirstButton && settings.showBackButton" href="#" class="btn">{{ settings.backButtonLabel }}</a>
+
+                <a href="#" class="btn submit">{{ settings.submitButtonLabel }}</a>
             </div>
+
+            <div class="flex">
+                <a v-if="settings.saveButtonStyle === 'link'" href="#" class="fui-btn-link">{{ settings.saveButtonLabel }}</a>
+                <a v-else href="#" class="btn submit">{{ settings.saveButtonLabel }}</a>
+            </div>
+        </div>
+
+        <div v-else class="flex" :style="cssAlignment">
+            <a v-if="!isFirstButton && settings.showBackButton" href="#" class="btn">{{ settings.backButtonLabel }}</a>
 
             <a href="#" class="btn submit">{{ settings.submitButtonLabel }}</a>
         </div>
@@ -132,6 +143,7 @@ export default {
                         help: Craft.t('formie', 'Whether to show the back button, to go back to a previous page.'),
                         name: 'showBackButton',
                         id: 'showBackButton',
+                        key: 'showBackButton',
                     },
                     {
                         $formkit: 'text',
@@ -141,6 +153,7 @@ export default {
                         help: Craft.t('formie', 'The label for the back submit button.'),
                         name: 'backButtonLabel',
                         id: 'backButtonLabel',
+                        key: 'backButtonLabel',
                         if: '$get(showBackButton).value',
                         validation: 'required',
                         required: true,
@@ -163,6 +176,28 @@ export default {
                             help: Craft.t('formie', 'The label for the submit button.'),
                             name: 'submitButtonLabel',
                             id: 'submitButtonLabel',
+                            key: 'submitButtonLabel',
+                            validation: 'required',
+                            required: true,
+                        },
+                        {
+                            $formkit: 'lightswitch',
+                            label: Craft.t('formie', 'Show Save Button'),
+                            help: Craft.t('formie', 'Whether to show the save button, allowing users to save progress on a submission to return later.'),
+                            name: 'showSaveButton',
+                            id: 'showSaveButton',
+                            key: 'showSaveButton',
+                        },
+                        {
+                            $formkit: 'text',
+                            inputClass: 'text fullwidth',
+                            autocomplete: 'off',
+                            label: Craft.t('formie', 'Save Button Label'),
+                            help: Craft.t('formie', 'The label for the save submit button.'),
+                            name: 'saveButtonLabel',
+                            id: 'saveButtonLabel',
+                            key: 'saveButtonLabel',
+                            if: '$get(showSaveButton).value',
                             validation: 'required',
                             required: true,
                         },
@@ -177,11 +212,25 @@ export default {
                     children: [
                         {
                             $formkit: 'select',
-                            label: Craft.t('formie', 'Button Positions'),
-                            help: Craft.t('formie', 'How the buttons should be positioned.'),
+                            label: Craft.t('formie', 'Submit Buttons Position'),
+                            help: Craft.t('formie', 'How the submit buttons should be positioned.'),
                             name: 'buttonsPosition',
                             id: 'buttonsPosition',
+                            key: 'buttonsPosition',
                             options: this.buttonsPosition,
+                        },
+                        {
+                            $formkit: 'select',
+                            label: Craft.t('formie', 'Save Button Style'),
+                            help: Craft.t('formie', 'Select the style for the save button.'),
+                            name: 'saveButtonStyle',
+                            id: 'saveButtonStyle',
+                            key: 'saveButtonStyle',
+                            if: '$get(showSaveButton).value',
+                            options: [
+                                { label: Craft.t('formie', 'Link'), value: 'link' },
+                                { label: Craft.t('formie', 'Button'), value: 'button' },
+                            ],
                         },
                         {
                             $formkit: 'text',
@@ -191,6 +240,7 @@ export default {
                             help: Craft.t('formie', 'Add classes that will be output on submit button container.'),
                             name: 'cssClasses',
                             id: 'cssClasses',
+                            key: 'cssClasses',
                         },
                         {
                             $formkit: 'table',
@@ -200,6 +250,7 @@ export default {
                             generateValue: false,
                             name: 'containerAttributes',
                             id: 'containerAttributes',
+                            key: 'containerAttributes',
                             newRowDefaults: {
                                 label: '',
                                 value: '',
@@ -225,6 +276,7 @@ export default {
                             generateValue: false,
                             name: 'inputAttributes',
                             id: 'inputAttributes',
+                            key: 'inputAttributes',
                             newRowDefaults: {
                                 label: '',
                                 value: '',
@@ -257,11 +309,13 @@ export default {
                             help: Craft.t('formie', 'Whether to enable conditional logic to control how the next button is shown.'),
                             name: 'enableNextButtonConditions',
                             id: 'enableNextButtonConditions',
+                            key: 'enableNextButtonConditions',
                         },
                         {
                             $formkit: 'fieldConditions',
                             name: 'nextButtonConditions',
                             id: 'nextButtonConditions',
+                            key: 'nextButtonConditions',
                             descriptionText: 'the next button if',
                             if: '$get(enableNextButtonConditions).value',
                         },
@@ -280,6 +334,7 @@ export default {
                             help: Craft.t('formie', 'Whether to enable management of JavaScript events when this button is pressed.'),
                             name: 'enableJsEvents',
                             id: 'enableJsEvents',
+                            key: 'enableJsEvents',
                         },
                         {
                             $formkit: 'table',
@@ -289,6 +344,7 @@ export default {
                             generateValue: false,
                             name: 'jsGtmEventOptions',
                             id: 'jsGtmEventOptions',
+                            key: 'jsGtmEventOptions',
                             if: '$get(enableJsEvents).value',
                             newRowDefaults: {
                                 label: '',
@@ -337,11 +393,20 @@ export default {
             const positions = [
                 { label: Craft.t('formie', 'Left'), value: 'left' },
                 { label: Craft.t('formie', 'Right'), value: 'right' },
-                { label: Craft.t('formie', 'Center'), value: 'center' },
             ];
 
-            if (this.settings.showBackButton) {
-                positions.push({ label: Craft.t('formie', 'Left & Right'), value: 'left-right' });
+            if (this.settings.showSaveButton) {
+                positions.push({ label: Craft.t('formie', 'Right (Save on Left)'), value: 'right-save-left' });
+                positions.push({ label: Craft.t('formie', 'Center (Save on Left)'), value: 'center-save-left' });
+                positions.push({ label: Craft.t('formie', 'Center (Save on Right)'), value: 'center-save-right' });
+                positions.push({ label: Craft.t('formie', 'Save on Right'), value: 'save-right' });
+                positions.push({ label: Craft.t('formie', 'Save on Left'), value: 'save-left' });
+            } else {
+                positions.push({ label: Craft.t('formie', 'Center'), value: 'center' });
+
+                if (this.settings.showBackButton) {
+                    positions.push({ label: Craft.t('formie', 'Left & Right'), value: 'left-right' });
+                }
             }
 
             return positions;
@@ -349,18 +414,38 @@ export default {
 
         cssAlignment() {
             if (this.settings.buttonsPosition === 'right') {
-                return 'flex-end';
+                return { 'justify-content': 'flex-end' };
             }
 
             if (this.settings.buttonsPosition === 'center') {
-                return 'center';
+                return { 'justify-content': 'center' };
             }
 
             if (this.settings.buttonsPosition === 'left-right') {
-                return 'space-between';
+                return { 'justify-content': 'space-between' };
             }
 
-            return 'normal';
+            if (this.settings.buttonsPosition === 'right-save-left') {
+                return { 'justify-content': 'flex-start', 'flex-direction': 'row-reverse' };
+            }
+
+            if (this.settings.buttonsPosition === 'center-save-left') {
+                return { 'justify-content': 'center', 'flex-direction': 'row-reverse' };
+            }
+
+            if (this.settings.buttonsPosition === 'center-save-right') {
+                return { 'justify-content': 'center' };
+            }
+
+            if (this.settings.buttonsPosition === 'save-right') {
+                return { 'justify-content': 'space-between' };
+            }
+
+            if (this.settings.buttonsPosition === 'save-left') {
+                return { 'justify-content': 'space-between', 'flex-direction': 'row-reverse' };
+            }
+
+            return { 'justify-content': 'normal' };
         },
     },
 
@@ -386,3 +471,12 @@ export default {
 };
 
 </script>
+
+<style lang="scss">
+
+.fui-btn-link {
+    color: #e12d38;
+    padding: 0 0.5rem;
+}
+
+</style>
