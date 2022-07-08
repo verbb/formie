@@ -405,4 +405,17 @@ class Phone extends FormField implements SubfieldInterface, PreviewableFieldInte
             SchemaHelper::conditionsField(),
         ];
     }
+
+
+    // Protected Methods
+    // =========================================================================
+
+    /**
+     * @inheritDoc
+     */
+    protected function setPrePopulatedValue($value)
+    {
+        // Only the number can be applied from pre-population
+        return ['number' => $value];
+    }
 }

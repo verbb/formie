@@ -697,7 +697,7 @@ trait FormFieldTrait
             $queryParam = Craft::$app->getRequest()->getParam($this->$prePopulateAttribute);
 
             if ($queryParam !== null) {
-                $defaultValue = $queryParam;
+                $defaultValue = $this->setPrePopulatedValue($queryParam);
             }
         }
 
@@ -1196,6 +1196,14 @@ trait FormFieldTrait
         ];
 
         return $rules;
+    }
+    
+    /**
+     * @inheritDoc
+     */
+    protected function setPrePopulatedValue($value)
+    {
+        return $value;
     }
 
     /**
