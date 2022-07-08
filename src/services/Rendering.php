@@ -65,8 +65,13 @@ class Rendering extends Component
      * @throws LoaderError
      * @throws MissingComponentException
      */
-    public function renderForm(Form|string $form, array $renderOptions = []): ?Markup
+    public function renderForm(Form|string|null $form, array $renderOptions = []): ?Markup
     {
+        // Allow an empty form to fail silently
+        if (!$form) {
+            return null;
+        }
+
         if (is_string($form)) {
             $form = Form::find()->handle($form)->one();
         }
@@ -139,8 +144,13 @@ class Rendering extends Component
      * @throws LoaderError
      * @throws MissingComponentException
      */
-    public function renderPage(Form|string $form, FieldLayoutPage $page = null, array $renderOptions = []): ?Markup
+    public function renderPage(Form|string|null $form, FieldLayoutPage|null $page = null, array $renderOptions = []): ?Markup
     {
+        // Allow an empty form to fail silently
+        if (!$form) {
+            return null;
+        }
+
         if (is_string($form)) {
             $form = Form::find()->handle($form)->one();
         }
@@ -179,8 +189,13 @@ class Rendering extends Component
      * @throws RuntimeError
      * @throws SyntaxError
      */
-    public function renderField(Form|string $form, FormFieldInterface|string $field, array $renderOptions = []): ?Markup
+    public function renderField(Form|string|null $form, FormFieldInterface|string $field, array $renderOptions = []): ?Markup
     {
+        // Allow an empty form to fail silently
+        if (!$form) {
+            return null;
+        }
+
         if (is_string($form)) {
             $form = Form::find()->handle($form)->one();
         }
@@ -234,7 +249,7 @@ class Rendering extends Component
      * @throws RuntimeError
      * @throws SyntaxError
      */
-    public function registerAssets(Form|string $form, array $renderOptions = []): void
+    public function registerAssets(Form|string|null $form, array $renderOptions = []): void
     {
         // So we can easily re-use code, we just call the `renderForm` function
         // This will register any assets, and should be included outside of cached areas.
@@ -254,14 +269,15 @@ class Rendering extends Component
      * @return Markup|null
      * @throws InvalidConfigException
      */
-    public function renderFormAssets(Form|string $form, string $type = null, bool $forceInline = false, array $attributes = []): ?Markup
+    public function renderFormAssets(Form|string|null $form, string $type = null, bool $forceInline = false, array $attributes = []): ?Markup
     {
-        if (is_string($form)) {
-            $form = Form::find()->handle($form)->one();
-        }
-
+        // Allow an empty form to fail silently
         if (!$form) {
             return null;
+        }
+
+        if (is_string($form)) {
+            $form = Form::find()->handle($form)->one();
         }
 
         $view = Craft::$app->getView();
@@ -520,7 +536,7 @@ class Rendering extends Component
      * Returns the JS/CSS for the rendering of a form. This will include buffering any JS/CSS files
      * This is also done in a single function to capture both CSS/JS files which are only registered once per request
      *
-     * @param string|Form $form
+     * @param string|Form|null $form
      * @param array $renderOptions
      * @return void
      * @throws Exception
@@ -530,7 +546,7 @@ class Rendering extends Component
      * @throws RuntimeError
      * @throws SyntaxError
      */
-    public function renderFormCssJs(Form|string $form, array $renderOptions = []): void
+    public function renderFormCssJs(Form|string|null $form, array $renderOptions = []): void
     {
         // Don't re-render the form multiple times if it's already rendered
         if ($this->_jsFiles || $this->_cssFiles) {
@@ -563,11 +579,11 @@ class Rendering extends Component
     /**
      * Returns the CSS for the rendering of a form. This will include buffering any CSS files
      *
-     * @param string|Form $form
+     * @param string|Form|null $form
      * @param array $renderOptions
      * @return Markup
      */
-    public function renderFormCss(Form|string $form, array $renderOptions = []): Markup
+    public function renderFormCss(Form|string|null $form, array $renderOptions = []): Markup
     {
         $this->renderFormCssJs($form, $renderOptions);
 
@@ -577,11 +593,11 @@ class Rendering extends Component
     /**
      * Returns the JS for the rendering of a form. This will include buffering any JS files
      *
-     * @param string|Form $form
+     * @param string|Form|null $form
      * @param array $renderOptions
      * @return Markup
      */
-    public function renderFormJs(Form|string $form, array $renderOptions = []): Markup
+    public function renderFormJs(Form|string|null $form, array $renderOptions = []): Markup
     {
         $this->renderFormCssJs($form, $renderOptions);
 
