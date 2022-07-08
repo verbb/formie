@@ -190,8 +190,8 @@ export class FormieFormTheme {
     }
 
     onValidate(e) {
-        // Bypass validation and custom event handling if not submitting
-        if (this.form.submitAction !== 'submit' && !this.validate()) {
+        // If invalid, we only want to stop if we're submitting.
+        if (!this.validate()) {
             this.onFormError();
 
             // Set a flag on the event, so other listeners can potentially do something
@@ -286,6 +286,11 @@ export class FormieFormTheme {
 
     validate(focus = true) {
         if (!this.validationOnSubmit) {
+            return true;
+        }
+
+        // Only validate on submit actions
+        if (this.form.submitAction !== 'submit') {
             return true;
         }
 
