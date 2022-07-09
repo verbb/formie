@@ -11,7 +11,7 @@ export class FormieStripe extends FormiePaymentProvider {
         this.$input = this.$field.querySelector('[data-fui-stripe-elements]');
 
         if (!this.$input) {
-            console.error(`Unable to find Stripe Elements placeholder for #${this.formId} [data-fui-stripe-elements]`);
+            console.error('Unable to find Stripe Elements placeholder for [data-fui-stripe-elements]');
 
             return;
         }

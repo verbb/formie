@@ -3,7 +3,8 @@ import { eventKey } from '../utils/utils';
 
 export class FormieHcaptcha {
     constructor(settings = {}) {
-        this.formId = settings.formId;
+        this.$form = settings.$form;
+        this.form = this.$form.form;
         this.siteKey = settings.siteKey;
         this.size = settings.size;
         this.language = settings.language;
@@ -24,22 +25,11 @@ export class FormieHcaptcha {
         // Wait for/ensure hCaptcha script has been loaded
         hcaptcha.checkRecaptchaLoad();
 
-        this.$form = document.querySelector(`#${this.formId}`);
-
-        if (!this.$form) {
-            console.error(`Unable to find form #${this.formId}`);
-
-            return;
-        }
-
-        // Get the instance of Formie's base JS
-        this.form = this.$form.form;
-
         // We can have multiple captchas per form, so store them and render only when we need
         this.$placeholders = this.$form.querySelectorAll('[data-hcaptcha-placeholder]');
 
         if (!this.$placeholders) {
-            console.error(`Unable to find any hCaptcha placeholders for #${this.formId}`);
+            console.error('Unable to find any hCaptcha placeholders for [data-hcaptcha-placeholder]');
 
             return;
         }
@@ -75,7 +65,7 @@ export class FormieHcaptcha {
         if (this.$placeholder === null) {
             // This is okay in some instances - notably for multi-page forms where the captcha
             // should only be shown on the last step. But its nice to log this anyway
-            console.log(`Unable to find hCaptcha placeholder for #${this.formId}`);
+            console.log('Unable to find hCaptcha placeholder for [data-hcaptcha-placeholder]');
 
             return;
         }
@@ -162,19 +152,19 @@ export class FormieHcaptcha {
     }
 
     onExpired() {
-        console.log(`hCaptcha has expired for #${this.formId} - reloading.`);
+        console.log('hCaptcha has expired - reloading.');
 
         hcaptcha.reset(this.hcaptchaId);
     }
 
     onChallengeExpired() {
-        console.log(`hCaptcha has expired challenge for #${this.formId} - reloading.`);
+        console.log('hCaptcha has expired challenge - reloading.');
 
         hcaptcha.reset(this.hcaptchaId);
     }
 
     onError(error) {
-        console.error(`hCaptcha was unable to load for #${this.formId}`);
+        console.error('hCaptcha was unable to load');
     }
 
     onClose() {

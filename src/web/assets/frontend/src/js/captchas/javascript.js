@@ -1,20 +1,13 @@
 export class FormieJSCaptcha {
     constructor(settings = {}) {
-        this.formId = settings.formId;
+        this.$form = settings.$form;
+        this.form = this.$form.form;
         this.sessionKey = settings.sessionKey;
-
-        this.$form = document.querySelector(`#${this.formId}`);
-
-        if (!this.$form) {
-            console.error(`Unable to find form #${this.formId}`);
-
-            return;
-        }
 
         this.$placeholder = this.$form.querySelector('[data-jscaptcha-placeholder]');
 
         if (!this.$placeholder) {
-            console.error(`Unable to find JavaScript Captcha placeholder for #${this.formId}`);
+            console.error('Unable to find JavaScript Captcha placeholder for [data-jscaptcha-placeholder]');
 
             return;
         }

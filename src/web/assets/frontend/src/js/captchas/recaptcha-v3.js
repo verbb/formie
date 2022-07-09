@@ -3,7 +3,8 @@ import { eventKey } from '../utils/utils';
 
 export class FormieRecaptchaV3 {
     constructor(settings = {}) {
-        this.formId = settings.formId;
+        this.$form = settings.$form;
+        this.form = this.$form.form;
         this.siteKey = settings.siteKey;
         this.badge = settings.badge;
         this.language = settings.language;
@@ -24,22 +25,11 @@ export class FormieRecaptchaV3 {
         // Wait for/ensure recaptcha script has been loaded
         recaptcha.checkRecaptchaLoad();
 
-        this.$form = document.querySelector(`#${this.formId}`);
-
-        if (!this.$form) {
-            console.error(`Unable to find form #${this.formId}`);
-
-            return;
-        }
-
-        // Get the instance of Formie's base JS
-        this.form = this.$form.form;
-
         // We can have multiple captchas per form, so store them and render only when we need
         this.$placeholders = this.$form.querySelectorAll('[data-recaptcha-placeholder]');
 
         if (!this.$placeholders.length) {
-            console.error(`Unable to find any ReCAPTCHA placeholders for #${this.formId}`);
+            console.error('Unable to find any ReCAPTCHA placeholders for [data-recaptcha-placeholder]');
 
             return;
         }
@@ -75,7 +65,7 @@ export class FormieRecaptchaV3 {
         if (this.$placeholder === null) {
             // This is okay in some instances - notably for multi-page forms where the captcha
             // should only be shown on the last step. But its nice to log this anyway
-            console.log(`Unable to find ReCAPTCHA placeholder for #${this.formId}`);
+            console.log('Unable to find ReCAPTCHA placeholder for [data-recaptcha-placeholder]');
 
             return;
         }
@@ -161,13 +151,13 @@ export class FormieRecaptchaV3 {
     }
 
     onExpired() {
-        console.log(`ReCAPTCHA has expired for #${this.formId} - reloading.`);
+        console.log('ReCAPTCHA has expired - reloading.');
 
         recaptcha.reset(this.recaptchaId);
     }
 
     onError(error) {
-        console.error(`ReCAPTCHA was unable to load for #${this.formId}`);
+        console.error('ReCAPTCHA was unable to load');
     }
 }
 

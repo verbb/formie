@@ -49,7 +49,7 @@ export class Formie {
         formConfig.Formie = this;
 
         // Create the form class, save it to our collection
-        const form = new FormieFormBase(formConfig);
+        const form = new FormieFormBase($form, formConfig);
 
         this.forms.push(form);
 
@@ -88,7 +88,10 @@ export class Formie {
 
                             // Handle captchas that have global settings, instead of per-field
                             if (config.settings) {
-                                this.initJsClass(config.module, config.settings);
+                                this.initJsClass(config.module, {
+                                    $form,
+                                    ...config.settings,
+                                });
                             }
 
                             // Special handling for some JS modules

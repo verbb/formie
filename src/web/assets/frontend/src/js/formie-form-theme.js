@@ -1,9 +1,8 @@
 import { Bouncer } from './utils/bouncer';
 
 export class FormieFormTheme {
-    constructor(config = {}) {
-        this.formId = `#${config.formHashId}`;
-        this.$form = document.querySelector(this.formId);
+    constructor($form, config = {}) {
+        this.$form = $form;
         this.config = config;
         this.settings = config.settings;
         this.validationOnSubmit = !!this.settings.validationOnSubmit;
@@ -116,7 +115,7 @@ export class FormieFormTheme {
         setTimeout(() => {
             this.$form.dispatchEvent(registerFormieValidation);
 
-            this.validator = new Bouncer(this.formId, registerFormieValidation.detail.validatorSettings);
+            this.validator = new Bouncer(this.$form, registerFormieValidation.detail.validatorSettings);
         }, 500);
 
         // After we clear any error, validate the fielset again. Mostly so we can remove global errors

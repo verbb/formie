@@ -10,10 +10,10 @@
 
 /**
  * The plugin constructor
- * @param {String} selector The selector to use for forms to be validated
+ * @param {DOMElement} formElement The DOM Element to use for forms to be validated
  * @param {Object} options  User settings [optional]
  */
-export const Bouncer = function(selector, options) {
+export const Bouncer = function(formElement, options) {
     //
     // Variables
     //
@@ -143,19 +143,15 @@ export const Bouncer = function(selector, options) {
      * Add the `novalidate` attribute to all forms
      * @param {Boolean} remove  If true, remove the `novalidate` attribute
      */
-    var addNoValidate = function(selector) {
-        forEach(document.querySelectorAll(selector), ((form) => {
-            form.setAttribute('novalidate', true);
-        }));
+    var addNoValidate = function(form) {
+        form.setAttribute('novalidate', true);
     };
 
     /**
      * Remove the `novalidate` attribute to all forms
      */
-    var removeNoValidate = function(selector) {
-        forEach(document.querySelectorAll(selector), ((form) => {
-            form.removeAttribute('novalidate');
-        }));
+    var removeNoValidate = function(form) {
+        form.removeAttribute('novalidate');
     };
 
     /**
@@ -703,11 +699,9 @@ export const Bouncer = function(selector, options) {
      * @param  {String} selector The selector for the form
      * @param  {Object} settings The plugin settings
      */
-    var removeAllErrors = function(selector, settings) {
-        forEach(document.querySelectorAll(selector), ((form) => {
-            forEach(form.querySelectorAll('input, select, textarea'), ((field) => {
-                removeError(field, settings);
-            }));
+    var removeAllErrors = function(form, settings) {
+        forEach(form.querySelectorAll('input, select, textarea'), ((field) => {
+            removeError(field, settings);
         }));
     };
 
@@ -794,7 +788,7 @@ export const Bouncer = function(selector, options) {
     var blurHandler = function(event) {
 
         // Only run if the field is in a form to be validated
-        if (!event.target.form || !event.target.form.matches(selector)) return;
+        if (!event.target.form || !event.target.form.isSameNode(formElement)) return;
 
         // Special-case for file field, blurs as soon as the selector kicks in
         if (event.target.type === 'file') return;
@@ -811,7 +805,7 @@ export const Bouncer = function(selector, options) {
     var changeHandler = function(event) {
 
         // Only run if the field is in a form to be validated
-        if (!event.target.form || !event.target.form.matches(selector)) return;
+        if (!event.target.form || !event.target.form.isSameNode(formElement)) return;
 
         // Only handle change events for some fields
         if (event.target.type !== 'file' && event.target.type !== 'checkbox' && event.target.type !== 'radio') return;
@@ -827,7 +821,7 @@ export const Bouncer = function(selector, options) {
     var inputHandler = function(event) {
 
         // Only run if the field is in a form to be validated
-        if (!event.target.form || !event.target.form.matches(selector)) return;
+        if (!event.target.form || !event.target.form.isSameNode(formElement)) return;
 
         // Only run on fields with errors
         if (!event.target.classList.contains(settings.fieldClass)) return;
@@ -846,7 +840,7 @@ export const Bouncer = function(selector, options) {
     var clickHandler = function(event) {
 
         // Only run if the field is in a form to be validated
-        if (!event.target.form || !event.target.form.matches(selector)) return;
+        if (!event.target.form || !event.target.form.isSameNode(formElement)) return;
 
         // Only run on fields with errors
         if (!event.target.classList.contains(settings.fieldClass)) return;
@@ -865,7 +859,7 @@ export const Bouncer = function(selector, options) {
     var submitHandler = function(event) {
 
         // Only run on matching elements
-        if (!event.target.matches(selector)) return;
+        if (!event.target.isSameNode(formElement)) return;
 
         // Prevent form submission
         event.preventDefault();
@@ -910,10 +904,10 @@ export const Bouncer = function(selector, options) {
         }
 
         // Remove all errors
-        removeAllErrors(selector, settings);
+        removeAllErrors(formElement, settings);
 
         // Remove novalidate attribute
-        removeNoValidate(selector);
+        removeNoValidate(formElement);
 
         // Emit custom event
         if (settings.emitEvents) {
@@ -936,7 +930,7 @@ export const Bouncer = function(selector, options) {
         settings = extend(defaults, options || {});
 
         // Add novalidate attribute
-        addNoValidate(selector);
+        addNoValidate(formElement);
 
         // Event Listeners
         if (settings.validateOnBlur) {
