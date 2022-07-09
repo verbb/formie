@@ -62,6 +62,15 @@
             warning: macros.configWarning('enableUnloadWarning', 'formie'),
         }) }}
 
+        {{ forms.lightswitchField({
+            label: 'Enable Back Submission' | t('formie'),
+            instructions: 'Whether clicking the "Back" button on front-end forms should submit the current page content. Disabling this will show an "unload" warning and discard any un-saved content.' | t('formie'),
+            name: 'enableBackSubmission',
+            on: settings.enableBackSubmission,
+            errors: settings.getErrors('enableBackSubmission'),
+            warning: macros.configWarning('enableBackSubmission', 'formie'),
+        }) }}
+
         {{ forms.textField({
             label: 'Ajax Submission Timeout' | t('formie'),
             instructions: 'Set the number of seconds to set the timeout for Ajax-based forms. This should only be adjusted for forms where a large timeout is expected, such as heavy use of file upload fields. This is also only applicable when using the Theme JS. Default to 10 seconds.' | t('formie'),

@@ -1672,6 +1672,7 @@ class Form extends Element
             'currentPageId' => $this->getCurrentPage()->id ?: '',
             'outputJsTheme' => $this->getFrontEndTemplateOption('outputJsTheme'),
             'enableUnloadWarning' => $pluginSettings->enableUnloadWarning,
+            'enableBackSubmission' => $pluginSettings->enableBackSubmission,
             'ajaxTimeout' => $pluginSettings->ajaxTimeout,
         ];
 

@@ -30,6 +30,7 @@ class Settings extends Model
     public string $defaultFormTemplate = '';
     public string $defaultEmailTemplate = '';
     public bool $enableUnloadWarning = true;
+    public bool $enableBackSubmission = true;
     public int $ajaxTimeout = 10;
 
     // General Fields

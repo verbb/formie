@@ -398,10 +398,27 @@ class SubmissionsController extends Controller
             throw new BadRequestHttpException("No form exists with the handle \"$handle\"");
         }
 
+        // Get the submission, or create a new one
+        $submission = $this->_populateSubmission($form);
+
         $pages = $form->getPages();
         $settings = $form->settings;
         $defaultStatus = $form->getDefaultStatus();
         $errorMessage = $form->settings->getErrorMessage();
+
+        // If we're going back, and want to  navigate without saving
+        if ($submitAction === 'back' && !$formieSettings->enableBackSubmission) {
+            $nextPage = $form->getPreviousPage(null, $submission);
+
+            // Update the current page to reflect the next page
+            $form->setCurrentPage($nextPage);
+
+            if ($request->getAcceptsJson()) {
+                return $this->_returnJsonResponse(true, $submission, $form, $nextPage);
+            }
+
+            return $this->refresh();
+        }
 
         // Set a specific page as the current page. This will override the session-based
         // current page, but is useful for headless setups, or template overrides.
@@ -424,9 +441,6 @@ class SubmissionsController extends Controller
                 $form->setCurrentPage($currentPage);
             }
         }
-
-        // Get the submission, or create a new one
-        $submission = $this->_populateSubmission($form);
 
         // Determine the next page to navigate to
         if (is_numeric($goToPageId)) {

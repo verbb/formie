@@ -15,6 +15,7 @@ return [
         'defaultFormTemplate' => '',
         'defaultEmailTemplate' => '',
         'enableUnloadWarning' => true,
+        'enableBackSubmission' => true,
         'ajaxTimeout' => 10,
 
         // General Fields
@@ -68,6 +69,7 @@ return [
 - `defaultFormTemplate` - The handle for the default form template used for new forms. Formie‘s defaults will be used if not specified.
 - `defaultEmailTemplate` - The handle for the default email template used for new forms. Formie‘s defaults will be used if not specified.
 - `enableUnloadWarning` - Whether front-end forms should trigger an "unload" warning when a form‘s content has changed and the user tries to navigate away without submitting.
+- `enableBackSubmission` - Whether clicking the "Back" button on front-end forms should submit the current page content. Disabling this will show an "unload" warning and discard any un-saved content.
 - `ajaxTimeout` - Set the timeout in seconds for Ajax/XHR requests when using the front-end JS. Default to 10 seconds.
 
 ### General Fields

@@ -211,7 +211,12 @@ export class FormieFormTheme {
         } else {
             // Before a server-side submit, refresh the saved hash immediately. Otherwise, the native submit
             // handler - which technically unloads the page - will trigger the changed alert.
-            this.updateFormHash();
+            // But trigger an alert if we're going back, and back-submission data isn't set
+            if (!this.settings.enableBackSubmission && this.form.submitAction === 'back') {
+                // Don't reset the hash, trigger a warning if content has changed, because we're not submitting
+            } else {
+                this.updateFormHash();
+            }
 
             // Triger any JS events for this page, only if submitting (not going back/saving)
             if (this.form.submitAction === 'submit') {
@@ -229,7 +234,9 @@ export class FormieFormTheme {
     addFormUnloadEventListener() {
         this.form.addEventListener(window, 'beforeunload', (e) => {
             if (this.savedFormHash !== this.hashForm()) {
-                e.returnValue = t('Are you sure you want to leave?');
+                e.preventDefault();
+
+                return e.returnValue = t('Are you sure you want to leave?');
             }
         });
     }
@@ -461,7 +468,14 @@ export class FormieFormTheme {
 
         this.removeFormAlert();
         this.removeTabErrors();
-        this.addLoading();
+
+        // Don't set a loading if we're going back and the unload warning appears, because there's no way to re-enable
+        // the button after the user cancels the unload event
+        if (!this.settings.enableBackSubmission && this.form.submitAction === 'back') {
+            // Do nothing
+        } else {
+            this.addLoading();
+        }
     }
 
     ajaxSubmit() {
