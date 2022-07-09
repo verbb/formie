@@ -174,7 +174,7 @@ class Table extends CraftTable implements FormFieldInterface
             'id' => $id,
             'name' => $this->handle,
             'cols' => $this->columns,
-            'rows' => $value,
+            'rows' => $value ?: [''],
             'minRows' => $this->minRows,
             'maxRows' => $this->maxRows,
             'static' => $this->static,

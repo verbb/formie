@@ -3,7 +3,7 @@
 {% block field %}
 
 {% namespace field.handle %}
-    <div class="fui-repeater-rows">
+    <div class="fui-repeater-rows" data-repeater-rows>
         {% for row in value.all() %}
             {% include 'formie/_formfields/repeater/fields' with {
                 element: row,

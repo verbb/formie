@@ -28,9 +28,7 @@
         {% set buttonAttributes = {
             class: 'btn fui-repeater-remove-btn',
             type: 'button',
-            data: {
-                'remove-repeater-row': field.handle,
-            }
+            'data-remove-repeater-row': field.handle,
         } %}
 
         <button {{ attr(buttonAttributes) }}>
@@ -43,5 +41,6 @@
 
 {{ tag('div', {
     class: 'fui-repeater-row',
+    'data-repeater-row': true,
     html: html,
 }) }}

@@ -66,9 +66,7 @@
 
 {% set attributes = {
     id: form.formId,
-    data: {
-        config: formConfigJson,
-    }
+    'data-fui-form': formConfigJson,
 } %}
 
 <div {{ attr(attributes) }}>
