@@ -1,5 +1,7 @@
 @import '~intl-tel-input/build/css/intlTelInput.css';
 
+// Target both for front-end and CP
+.field[data-type="verbb\\\\formie\\\\fields\\\\formfields\\\\Phone"],
 .fui-type-phone-number {
     .iti {
         display: block;
