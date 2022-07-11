@@ -212,6 +212,15 @@ trait RelationFieldTrait
             }
         }
 
+        // And because this is in a trait, we don't have access to the `FormFieldTrait`, but we include thise
+        $class = new ReflectionClass(FormFieldTrait::class);
+
+        foreach ($class->getProperties(ReflectionProperty::IS_PUBLIC) as $property) {
+            if (!$property->isStatic()) {
+                $config[$property->getName()] = $this->{$property->getName()};
+            }
+        }
+
         return $config;
     }
 
