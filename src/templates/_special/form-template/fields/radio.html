@@ -3,7 +3,8 @@
 
 {% fieldtag 'fieldOptions' %}
     {% for option in fieldOptions %}
-        {% set selected = option.value is defined and option.value == value %}
+        {# Ensure we cast as strings to compare #}
+        {% set selected = option.value is defined and ('' ~ option.value) == ('' ~ value) %}
 
         {% fieldtag 'fieldOption' %}
             {{ fieldtag('fieldInput', {
