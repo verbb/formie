@@ -733,13 +733,26 @@ Event::on(Dropdown::class, Dropdown::EVENT_MODIFY_VALUE_FOR_SUMMARY, function(Mo
 The event that is triggered to modify the front-end subfields for the field.
 
 ```php
+use craft\helpers\ArrayHelper;
 use verbb\formie\events\ModifyFrontEndSubfieldsEvent;
 use verbb\formie\fields\formfields\Address;
 use yii\base\Event;
-use DateTime;
 
 Event::on(Address::class, Address::EVENT_MODIFY_FRONT_END_SUBFIELDS, function(ModifyFrontEndSubfieldsEvent $event) {
-    $event->rows[0]['address1'] = 'address-line1';
+    $address1 = $event->rows[0][0];
+
+    // Modify the `address1` field - a `SingleLineText` field.
+    $address1->name = 'Address Line 1';
+
+    $event->rows[0][0] = $address1;
+
+    // Change the order of fields - remove them first
+    $address2 = ArrayHelper::remove($event->rows[1], 0);
+    $address3 = ArrayHelper::remove($event->rows[2], 0);
+
+    // Add them to the first row
+    $event->rows[0][] = $address2;
+    $event->rows[0][] = $address3;
 });
 ```
 
@@ -886,7 +899,20 @@ use verbb\formie\fields\formfields\Name;
 use yii\base\Event;
 
 Event::on(Name::class, Name::EVENT_MODIFY_FRONT_END_SUBFIELDS, function(ModifyFrontEndSubfieldsEvent $event) {
-    $event->rows[0]['prefix'] = 'honorific-prefix';
+    $lastName = $event->rows[0][3];
+
+    // Modify the `lastName` field - a `SingleLineText` field.
+    $lastName->name = 'Surname';
+
+    $event->rows[0][3] = $lastName;
+
+    // Change the order of fields - remove them first
+    $firstName = ArrayHelper::remove($event->rows[0], 1);
+    $lastName = ArrayHelper::remove($event->rows[0], 3);
+
+    // Reverse the order
+    $event->rows[0][1] = $lastName;
+    $event->rows[0]3 = $firstName;
 });
 ```
 
@@ -904,19 +930,6 @@ use yii\base\Event;
 Event::on(Phone::class, Phone::EVENT_MODIFY_PHONE_COUNTRIES, function(ModifyPhoneCountriesEvent $event) {
     $countries = $event->countries;
     // ...
-});
-```
-
-### The `modifyFrontEndSubfields` event
-The event that is triggered to modify the front-end subfields for the field.
-
-```php
-use verbb\formie\events\ModifyFrontEndSubfieldsEvent;
-use verbb\formie\fields\formfields\Phone;
-use yii\base\Event;
-
-Event::on(Phone::class, Phone::EVENT_MODIFY_FRONT_END_SUBFIELDS, function(ModifyFrontEndSubfieldsEvent $event) {
-    $event->rows[0]['number'] = 'tel-national';
 });
 ```
 

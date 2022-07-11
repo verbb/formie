@@ -5,7 +5,6 @@ use verbb\formie\Formie;
 use verbb\formie\base\SubfieldInterface;
 use verbb\formie\base\SubfieldTrait;
 use verbb\formie\base\FormField;
-use verbb\formie\events\ModifyFrontEndSubfieldsEvent;
 use verbb\formie\gql\types\generators\FieldAttributeGenerator;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\HtmlTag;
@@ -25,12 +24,6 @@ use yii\db\Schema;
 
 class Phone extends FormField implements SubfieldInterface, PreviewableFieldInterface
 {
-    // Constants
-    // =========================================================================
-
-    public const EVENT_MODIFY_FRONT_END_SUBFIELDS = 'modifyFrontEndSubfields';
-
-
     // Traits
     // =========================================================================
 
