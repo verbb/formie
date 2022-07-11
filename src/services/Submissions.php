@@ -2,6 +2,7 @@
 namespace verbb\formie\services;
 
 use verbb\formie\Formie;
+use verbb\formie\base\Integration;
 use verbb\formie\controllers\SubmissionsController;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
@@ -14,8 +15,12 @@ use verbb\formie\fields\formfields;
 use verbb\formie\helpers\Variables;
 use verbb\formie\jobs\SendNotification;
 use verbb\formie\jobs\TriggerIntegration;
+use verbb\formie\models\Address;
 use verbb\formie\models\FakeElement;
 use verbb\formie\models\FakeElementQuery;
+use verbb\formie\models\IntegrationResponse;
+use verbb\formie\models\Name;
+use verbb\formie\models\Notification;
 use verbb\formie\models\Settings;
 
 use Craft;
@@ -36,14 +41,10 @@ use yii\base\Component;
 use DateInterval;
 use DateTime;
 use Throwable;
-use Faker;
-use verbb\formie\models\IntegrationResponse;
-use verbb\formie\models\Notification;
-use verbb\formie\base\Integration;
-use libphonenumber\PhoneNumberUtil;
-use verbb\formie\models\Name;
-use verbb\formie\models\Address;
 use Exception;
+
+use Faker;
+use libphonenumber\PhoneNumberUtil;
 
 class Submissions extends Component
 {

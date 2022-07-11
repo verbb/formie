@@ -422,8 +422,6 @@ class SubmissionsController extends Controller
 
         // Set a specific page as the current page. This will override the session-based
         // current page, but is useful for headless setups, or template overrides.
-        // TODO: make this the default behaviour at the next breakpoint, to not rely
-        // on session-based saving for the current page.
         if (is_numeric($pageIndex)) {
             $currentPage = $pages[$pageIndex] ?? null;
 

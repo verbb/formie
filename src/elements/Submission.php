@@ -663,7 +663,7 @@ class Submission extends Element
     public function getFieldByHandle(string $handle): ?FormFieldInterface
     {
         if ($fieldLayout = $this->getFieldLayout()) {
-            return ArrayHelper::firstWhere($fieldLayout->getFields(), 'handle', $handle);
+            return ArrayHelper::firstWhere($fieldLayout->getCustomFields(), 'handle', $handle);
         }
 
         return null;

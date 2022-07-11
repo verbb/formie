@@ -169,9 +169,6 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
     public ?string $countryErrorMessage = null;
     public bool $countryHidden = false;
 
-    // TODO: Remove at next breakpoint. Will blow up CP unless the migration is done first.
-    public ?bool $enableAutocomplete = null;
-
 
     // Public Methods
     // =========================================================================

@@ -5,11 +5,7 @@ use verbb\formie\Formie;
 use verbb\formie\base\SubFieldInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
-use verbb\formie\fields\formfields\Date;
-use verbb\formie\fields\formfields\Group;
-use verbb\formie\fields\formfields\MultiLineText;
-use verbb\formie\fields\formfields\Repeater;
-use verbb\formie\fields\formfields\Recipients;
+use verbb\formie\fields\formfields;
 use verbb\formie\models\Notification;
 
 use Craft;
@@ -247,10 +243,6 @@ class Variables
             'allVisibleFields' => $fieldVisibleHtml,
         ];
 
-        // Old and deprecated methods. Ensure all fields are prefixed with 'field:', but too tricky to migrate...
-        // TODO: Remove at next breakpoint
-        $fieldVariables = array_merge($fieldVariables, self::_getParsedFieldValuesLegacy($form, $notification, $submission));
-
         // Properly parse field values
         $fieldVariables = array_merge($fieldVariables, self::_getParsedFieldValues($form, $submission, $notification));
 
@@ -353,42 +345,6 @@ class Variables
         return Craft::$app->getSites()->getPrimarySite();
     }
 
-    private static function _getParsedFieldValuesLegacy($form, $notification, $submission): array
-    {
-        $values = [];
-
-        if (!$form || !$submission || !$notification) {
-            return $values;
-        }
-
-        $parsedFieldContent = self::getFormFieldsHtml($form, $notification, $submission, true, true, true);
-
-        // For now, only handle element fields, which need HTML generated
-        if ($submission->getFieldLayout()) {
-            foreach ($submission->getFieldLayout()->getCustomFields() as $field) {
-                // Element fields
-                if ($field instanceof BaseRelationField) {
-                    $parsedContent = $parsedFieldContent[$field->handle] ?? '';
-
-                    if ($parsedContent) {
-                        $values[$field->handle . '_html'] = $parsedContent;
-                    }
-                }
-
-                // Date fields
-                if ($field instanceof Date) {
-                    $parsedContent = $submission[$field->handle] ?? '';
-
-                    if ($parsedContent instanceof DateTime) {
-                        $values[$field->handle] = $parsedContent->format('Y-m-d H:i:s');
-                    }
-                }
-            }
-        }
-
-        return $values;
-    }
-
     private static function _getParsedFieldValues($form, $submission, $notification): array
     {
         $values = [];
@@ -421,31 +377,37 @@ class Variables
 
         $parsedContent = '';
 
+        // If we're specifically trying to get the field value for use in emails, use the field's email template HTML.s
         if ($notification) {
             $parsedContent = (string)$field->getEmailHtml($submission, $notification, $submissionValue, ['hideName' => true]);
         }
 
         $prefix = 'field.';
 
-        if ($field instanceof Date) {
-            if ($submissionValue && $submissionValue instanceof DateTime) {
-                $values["{$prefix}{$field->handle}"] = $field->getValueAsString($submissionValue, $submission);
+        // For pretty much all cases, we want to use the value represented as a string
+        $values["{$prefix}{$field->handle}"] = $field->getValueAsString($submissionValue, $submission);
 
-                // Generate additional values
-                if ($field->displayType !== 'calendar') {
-                    $props = [
-                        'year' => 'Y',
-                        'month' => 'm',
-                        'day' => 'd',
-                        'hour' => 'H',
-                        'minute' => 'i',
-                        'second' => 's',
-                        'ampm' => 'a',
-                    ];
+        if ($field instanceof formfields\Date) {
+            // Generate additional values
+            if ($field->displayType !== 'calendar') {
+                $props = [
+                    'year' => 'Y',
+                    'month' => 'm',
+                    'day' => 'd',
+                    'hour' => 'H',
+                    'minute' => 'i',
+                    'second' => 's',
+                    'ampm' => 'a',
+                ];
 
-                    foreach ($props as $k => $format) {
-                        $values["{$prefix}{$field->handle}.{$k}"] = $submissionValue->format($format);
+                foreach ($props as $k => $format) {
+                    $formattedValue = '';
+
+                    if ($submissionValue && $submissionValue instanceof DateTime) {
+                        $formattedValue = $submissionValue->format($format);
                     }
+
+                    $values["{$prefix}{$field->handle}.{$k}"] = $formattedValue;
                 }
             }
         } else if ($field instanceof SubFieldInterface && $field->hasSubfields()) {
@@ -471,7 +433,9 @@ class Variables
             }
         } else if ($field instanceof BaseRelationField) {
             $values["{$prefix}{$field->handle}"] = $parsedContent;
-        } else if ($field instanceof MultiLineText) {
+        } else if ($field instanceof formfields\Table) {
+            $values["{$prefix}{$field->handle}"] = $parsedContent;
+        } else if ($field instanceof formfields\MultiLineText) {
             if ($field->useRichText) {
                 $values["{$prefix}{$field->handle}"] = $parsedContent;
             } else {
@@ -479,25 +443,6 @@ class Variables
             }
         } else if ($field instanceof Repeater) {
             $values["{$prefix}{$field->handle}"] = $parsedContent;
-        } else if ($field instanceof Recipients && $field->displayType === 'hidden') {
-            // Check for hidden recipients fields, which might have array content
-            // It's arguable that `getValueAsString()` should be the default behaviour but requires more testing
-            $values["{$prefix}{$field->handle}"] = $field->getValueAsString($submissionValue, $submission);
-        } else if ($submissionValue instanceof MultiOptionsFieldData) {
-            // TODO: this should become the single thing we need to use here at the next breakpoint. Requires full testing.
-            $values["{$prefix}{$field->handle}"] = $field->getValueForEmail($submissionValue, $notification, $submission);
-        } else if ($submissionValue instanceof SingleOptionFieldData) {
-            // TODO: this should become the single thing we need to use here at the next breakpoint. Requires full testing.
-            $values["{$prefix}{$field->handle}"] = $field->getValueForEmail($submissionValue, $notification, $submission);
-        } else {
-            // Try to convert as a simple string value, if not, fall back on email template
-            try {
-                $values["{$prefix}{$field->handle}"] = (string)$submissionValue;
-            } catch (Throwable $e) {
-                if ($parsedContent) {
-                    $values["{$prefix}{$field->handle}"] = $parsedContent;
-                }
-            }
         }
 
         return $values;
