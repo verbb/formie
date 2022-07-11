@@ -204,15 +204,15 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
 
                 // Convert array-syntax value into a date string. Ensure we pad it out to fill in gaps.
                 $dateTime['date'] = implode('-', [
-                    StringHelper::padLeft(($value['Y'] ?? '0000'), 4, '0'),
-                    StringHelper::padLeft(($value['m'] ?? '00'), 2, '0'),
-                    StringHelper::padLeft(($value['d'] ?? '00'), 2, '0'),
+                    StringHelper::padLeft(($value['year'] ?? '0000'), 4, '0'),
+                    StringHelper::padLeft(($value['month'] ?? '00'), 2, '0'),
+                    StringHelper::padLeft(($value['day'] ?? '00'), 2, '0'),
                 ]);
 
                 $dateTime['time'] = implode(':', [
-                    StringHelper::padLeft(($value['H'] ?? $value['h'] ?? '00'), 2, '0'),
-                    StringHelper::padLeft(($value['i'] ?? '00'), 2, '0'),
-                    StringHelper::padLeft(($value['s'] ?? '00'), 2, '0'),
+                    StringHelper::padLeft(($value['hour'] ?? '00'), 2, '0'),
+                    StringHelper::padLeft(($value['minute'] ?? '00'), 2, '0'),
+                    StringHelper::padLeft(($value['ssecond'] ?? '00'), 2, '0'),
                 ]);
 
                 // Strip out any invalid dates (time-only field) which will fail to save
