@@ -1,10 +1,15 @@
 # Changelog
 
-## 2.0.0-beta.17 - Unreleased
+## 2.0.0 - 2022-07-11
 
 > {warning} If you are using custom templates, template overrides, or anything to do with front-end template manipulation, please note we have completely revamped our front-end templates. Refer to the [Upgrading from v1](https://verbb.io/craft-plugins/formie/docs/get-started/upgrading-from-v1#templates) guide.
 
 ### Added
+- Added Stripe payment integration (single and subscriptions).
+- Added PayPal payment integration (single).
+- Added the ability to include a "Save" button for front-end templates. Buttons can be styled as a button or a link.
+- Added ability to query submissions across multiple forms via GraphQL.
+- Added `chunkLoadingGlobal` to front-end JS to avoid conflicts with user-provided JS in Webpack.
 - Added `Field::EVENT_MODIFY_HTML_TAG` event.
 - Added `Form::EVENT_MODIFY_HTML_TAG` event.
 - Added `aria-describedby` attribute to `<fieldset>` tags referencing instructions when they are used for fields.
@@ -16,8 +21,17 @@
 - Added `{% fieldtag %}` Twig tag to render a field theme component. Supports the same functionality as [tag](https://craftcms.com/docs/4.x/dev/tags.html#tag).
 - Added `{% formtag %}` Twig tag to render a form theme component. Supports the same functionality as [tag](https://craftcms.com/docs/4.x/dev/tags.html#tag).
 - Added support for Group and Repeater-nested fields when using `setFieldSettings()` in templates.
-- Added the ability to include a "Save" button for front-end templates. Buttons can be styled as a button or a link.
 - Added `submitAction` to the `SubmissionEvent` to allow you to act on different submission actions like back, save and submit.
+- Added `archiveTableIfExists()` to install migration.
+- Added checks for registering events for performance.
+- Added `FormInterface::submissionEndpoint` for GraphQL queries.
+- Added non-namespaced field handle to Calculations formula variables.
+- Added `FieldOption` for checkboxes/radio/dropdown fields.
+- Added correct type for `MultiLineText::richTextButtons` for GraphQL.
+- Added `FormSettings::submitActionMessagePosition` for GraphQL.
+- Added `FormSettings::errorMessagePosition` for GraphQL.
+- Added `FormInterface::submissionMutationName` for GraphQL.
+- Added Feed Me v5 support.
 
 ### Changed
 - Re-architected front-end templates to be more maintainable, easier to override, easier to manipulate and better organised. Makes it possible to use Tailwind and Bootstrap classes without writing templates from scratch and maintaining them as overrides. Read up on the [changes](https://verbb.io/craft-plugins/formie/docs/theming).
@@ -52,6 +66,22 @@
 - All front-end static translations now use **only** the `formie` category. If you're using static translation to translate any text for front-end forms, ensure you move any of these translations in your `site.php` or `app.php` files into `formie.php`.
 - Front-end templates now include a `submitAction` hidden input to determine what action to do when submitting the form (`back`, `submit` or `save`).
 - Front-end templates now add a `data-submit-action` attribute to all buttons for back, submit and save.
+- Removed ajax-loading when switching form templates in the form builder. This should prevent strange UI glitches and simplify some things.
+- Migrate to Vite and Vue 3 for performance for the form builder.
+- Rename base plugin methods.
+- Memoize all services for performance.
+- Updated `league/oauth2-google:^3.0` to `league/oauth2-google:^4.0` to support PHP 8+.
+- Updated `league/oauth2-client:^2.4` to `league/oauth2-client:^2.6` to support PHP 8+.
+- Updated `league/oauth1-client:^1.7` to `league/oauth1-client:^1.9` to support PHP 8+.
+- Updated `commerceguys/addressing:^1.0` to `commerceguys/addressing:^1.2` inline with Craft 4.
+- Querying fields via GraphQL will now only return fields that do not have Visibility = “disabled”. Change this behaviour by using `includeDisabled: true`.
+- Provide better native typing for GraphQL field properties, thanks to PHP 8.
+- Now requires Formie `1.5.15` in order to update from Craft 3.
+- `FormInterface::fields` is now `FormInterface::formFields` for GraphQL queries.
+- `PageInterface::fields` is now `PageInterface::pageFields` for GraphQL queries.
+- `RowInterface::fields` is now `RowInterface::rowFields` for GraphQL queries.
+- Now requires PHP `^8.0.2`.
+- Now requires Craft `^4.0.0-beta.1`.
 
 ### Fixed
 - Fix hard-error being thrown when positions chosen for labels/instructions no longer exist.
@@ -71,222 +101,16 @@
 - Removed “Top of Fieldset” and “Bottom of Fieldset” positions to prevent confusion. These are replaced by Above Input” and Below Input” respectively.
 - Removed all class-binding references in JS files.
 - Removed `goingBack` and `form.goBack` from front-end templates. Now uses `submitAction` to control when going back.
-
-## 2.0.0-beta.16 - 2022-07-01
-
-### Fixed
-- Fix an incorrect merge.
-
-## 2.0.0-beta.15 - 2022-07-01
-
-### Fixed
-- Fixed an error when importing a form containing a Group or Repeater field.
-
-## 2.0.0-beta.14 - 2022-06-20
-
-### Added
-- Added PayPal payment integration.
-
-### Fixed
-- Fixed an error when querying forms via GraphQL.
-- Fixed an error when viewing widgets, in some cases.
-- Fixed an error for support requests.
-- Fixed installed-plugin checks when the plugin files don’t exist, but it’s listed an installed and enabled in project config.
-
-## 2.0.0-beta.13 - 2022-06-08
-
-### Added
-- Added support for Stripe payment integration (single and subscriptions).
-
-### Fixed
-- Fixed captcha JS events not binding correctly.
-- Fixed an error when rendering multi-name fields in email notifications.
-
-## 2.0.0-beta.12 - 2022-06-04
-
-### Fixed
-- Fixed a type error for `FileUpload::getContentGqlMutationArgumentType()`.
-
-## 2.0.0-beta.11 - 2022-06-04
-
-### Added
-- Added ability to query submissions across multiple forms via GraphQL.
-
-### Fixed
-- Fixed sent notifications throwing an error for `CC` and `BCC` values.
-- Fixed email preview not showing “From Name”.
-- Fixed some rich text nodes not displaying correctly.
-- Fixed signature field not saving values correctly.
-- Fixed an error with email notifications that contain conditions.
-- Fixed typings on some field-level events to allow NestedRow and FakeElement elements, not just Submission elements.
-- Fixed an error when querying submissions via GraphQL.
-- Fixed element select fields not working on the form builder settings.
-- Fixed conditional custom sources not working for element fields.
-- Fixed being unable to delete forms or submissions in the control panel.
-- Fixed an error when saving email/form templates.
-- Fixed email notifications preview and test-sending not working correctly.
-- Fixed entries field and custom sources not working correctly.
-- Fixed some fields (handle) not being persisted correctly in the form builder.
-- Fixed field preview for `type=“number”` fields in the form builder.
-- Fixed missing PostCSS config for forms.
-- Fixed an error setting `countryRestrict` on Phone fields.
-
-## 2.0.0-beta.10 - 2022-05-28
-
-### Added
-- Auto-add `key` and `id` attributes to field settings schema for FormKit.
-- Add `chunkLoadingGlobal` to front-end JS to avoid conflicts with user-provided JS in Webpack.
-
-### Changed
-- Remove ajax-loading when switching form templates in the form builder. This should prevent strange UI glitches and simplify some things.
-
-### Fixed
-- Fix form integrations settings not populating correctly.
-- Fix variable text inputs not having their values loaded in properly.
-- Fix Email fields when marked as unique, not validating correctly when editing a submission.
-- Fix `SubmissionRulesEvent` custom rules not applying correctly.
-- Fix an error when previewing email notifications.
-- Fix being unable to edit a notification in the form builder.
-
-## 2.0.0-beta.9 - 2022-05-24
-
-### Fixed
-- Fixed `nystudio107/craft-plugin-vite` dependancy error.
-
-## 2.0.0-beta.8 - 2022-05-24
-
-### Fixed
-- Fixed captcha and address provider integration JS paths.
-- Fixed `oauthCallback()` typing error.
-- Fixed GraphQL errors due to incorrect merge for default values.
-
-## 2.0.0-beta.7 - 2022-05-23
-
-### Changed
-- Migrate to Vite and Vue 3 for performance.
-
-### Fixed
-- Fixed a type error for `ModifyEmailFieldUniqueQueryEvent`.
-- Fixed a type error when using `formie/submissions` console commands.
-- Fixed OAuth-based integrations not being able to refresh their tokens correctly.
-- Fixed OAuth-based integrations not showing their correct connection status.
-- Fixed Google Sheets integration “Proxy Redirect URI” being always forced on.
-- Fixed a Twig error for Table fields in email notifications.
-- Fixed Repeater field min/max row validation triggering incorrectly.
-- `getFields()` to `getCustomFields()`.
-- Fixed an error when submitting empty data for an Address field.
-- Fixed an error with the submissions widget.
-
-## 2.0.0-beta.6 - 2022-05-06
-
-### Fixed
-- Fixed a type error when integrations are being run through the queue.
-- Fixed an error when generating array-compatible field settings in GraphQL.
-- Fixed a type error for Entry element integrations.
-
-## 2.0.0-beta.5 - 2022-05-05
-
-### Fixed
-- Fixed an error with submissions.
-- Fixed a type error with Agree fields.
-- Fixed an error when showing dashboard widgets.
-- Fixed response for Mailchimp data center check.
-- Fixed an error when validation fails for some models and logging the error.
-- Fixed custom field validation behaviour.
-- Fixed an error with `getFieldErrors()`.
-- Fixed captchas and conditions JS not firing for front-end forms.
-
-## 2.0.0-beta.4 - 2022-05-03
-
-### Added
-- Added `archiveTableIfExists()` to install migration.
-- Added checks for registering events for performance.
-
-### Changed
-- Rename base plugin methods.
-- Memoize all services for performance.
-
-### Fixed
-- Fixed `project-config/rebuild` support.
-- Fixed an error when trying to preview email notifications.
-- Fixed saving new notifications not working.
-- Fixed an error when trying to preview a new email notification.
-- Fixed Feed Me support.
-
-### Removed
 - Removed `Field::limit`, `Field::limitType`, `Field::limitAmount` on all fields except element fields and single/multi-text fields.
 - Removed `Field::columnWidth`.
 - Removed `formie/csrf/*` actions.
-
-## 2.0.0-beta.3 - 2022-04-30
-
-### Added
-- Merge changes from Formie `1.5.10` to `1.5.16`.
-- Added `FormInterface::submissionEndpoint` for GraphQL queries.
-- Added non-namespaced field handle to Calculations formula variables.
-- Added `FieldOption` for checkboxes/radio/dropdown fields.
-- Added correct type for `MultiLineText::richTextButtons` for GraphQL.
-- Added `FormSettings::submitActionMessagePosition` for GraphQL.
-- Added `FormSettings::errorMessagePosition` for GraphQL.
-- Added `FormInterface::submissionMutationName` for GraphQL.
-
-### Changed
-- Updated `league/oauth2-google:^3.0` to `league/oauth2-google:^4.0` to support PHP 8+.
-- Updated `league/oauth2-client:^2.4` to `league/oauth2-client:^2.6` to support PHP 8+.
-- Updated `league/oauth1-client:^1.7` to `league/oauth1-client:^1.9` to support PHP 8+.
-- Updated `commerceguys/addressing:^1.0` to `commerceguys/addressing:^1.2` inline with Craft 4.
-- Querying fields via GraphQL will now only return fields that do not have Visibility = “disabled”. Change this behaviour by using `includeDisabled: true`.
-- Provide better native typing for GraphQL field properties, thanks to PHP 8.
-
-### Fixed
-- Fixed duplicated “CSS Classes” setting for Agree fields.
-- Fixed querying `fields` for Repeater and Group fields in GraphQL.
-- Fixed GraphQL types for union types.
-- Fixed typing for Number field min/max settings.
-- Fixed form builder page settings becoming un-reactive when the form is saved once and continued to be edited.
-- Fixed a JS error in the form builder for page conditions.
-- Fixed page settings not saving correctly in the form builder.
-- Fixed `Field::visibility` typing.
-- Fixed Mark typing for rich text content.
-- Fixed `Calculations::formula` for GraphQL queries.
-- Fixed an error with `Form::getRedirectUrl()` when set to redirect to an entry, but left empty.
-- Fixed table-based settings not working for GraphQL.
-- Fixed `FormInterface::loadingIndicator` type not being `string` for GraphQL.
-- Fixed a type error for `submitActionEntryId` for stencils.
-
-### Removed
 - Removed `optgroups` from GraphQL queries for dropdown fields.
 - Removed `multiple` from Dropdown GraphQL queries.
 - Removed `FormSettngsInterface::submitActionUrl` for GraphQL. Use `FormSettngsInterface::redirectUrl`.
-- Remove Craft 3 version checks, no longer needed.
-
-## 2.0.0-beta.2 - 2022-04-23
-
-### Added
-- Added Feed Me v5 support.
-- Merge changes from Formie `1.5.10` to `1.5.15`.
-
-### Changed
-- Now requires Formie `1.5.15` in order to update from Craft 3.
-- `FormInterface::fields` is now `FormInterface::formFields` for GraphQL queries.
-- `PageInterface::fields` is now `PageInterface::pageFields` for GraphQL queries.
-- `RowInterface::fields` is now `RowInterface::rowFields` for GraphQL queries.
-
-### Fixed
-- Fixed compatibilities with Craft 4.
-- Fixed asset volume settings for File Upload fields.
-- Fix `PageSettings::id` and `PageSettings::uid` appearing in the GraphQL explorer.
-
-### Removed
+- Removed Craft 3 version checks, no longer needed.
 - Removed `enableGatsbyCompatibility` plugin setting, as it's no longer needed.
 - Removed `forms`, `form` and `formCount` from GraphQL queries. Please use `formieForms`, `formieForm` and `formieFormCount`.
 - Removed `submissions`, `submission` and `submissionCount` from GraphQL queries. Please use `formieSubmissions`, `formieSubmission` and `formieSubmissionCount`.
-
-## 2.0.0-beta.1 - 2022-03-10
-
-### Changed
-- Now requires PHP `^8.0.2`.
-- Now requires Craft `^4.0.0-beta.1`.
 
 ## 1.6.2 - 2022-07-01
 
