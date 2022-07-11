@@ -13,30 +13,22 @@
 {% if field.displayType == 'dropdowns' %}
     {% namespace field.handle %}
         <div class="fui-row">
-            {% for char, attrs in field.getFrontEndSubfields(_context)[0] %}
+            {% for subField in field.getFrontEndSubfields(_context)[0] %}
                 <div class="fui-col-auto" style="flex: 0;">
-                    {% set options = [{
-                        label: attribute(field, attrs.handle ~ 'Placeholder'),
-                        value: '',
-                    }] %}
+                    {% set dateValue = null %}
+                    {% set char = field.getFormattingChar(subField.handle) %}
 
-                    {% if attrs.options is defined %}
-                        {% set options = options | merge(attrs.options) %}
-                    {% else %}
-                        {% for i in attrs.min..attrs.max %}
-                            {% set options = options | merge([{
-                                label: i,
-                                value: i,
-                            }]) %}
-                        {% endfor %}
+                    {% if subField.handle != 'ampm' %}
+                        {% set dateValue = value ? (value | date(char, false) * 1) : null %}
                     {% endif %}
 
                     {{ forms.selectField({
-                        label: attribute(field, attrs.handle ~ 'Label'),
-                        name: char,
-                        required: field.required ? true : false,
-                        options: options,
-                        value: attrs.handle == 'ampm' ? (value | date(char, false, false)) : (value ? (value | date(char, false, false)) * 1),
+                        label: subField.name,
+                        name: subField.handle,
+                        required: subField.required,
+                        placeholder: subField.placeholder,
+                        options: subField.options,
+                        value: dateValue,
                     }) }}
                 </div>
             {% endfor %}
@@ -47,37 +39,41 @@
 {% if field.displayType == 'inputs' %}
     {% namespace field.handle %}
         <div class="fui-row">
-            {% for char, attrs in field.getFrontEndSubfields(_context)[0] %}
-                {% switch attrs.handle %}
-                    {% case 'ampm' %}
-                        <div class="fui-col-auto">
-                            {{ forms.selectField({
-                                label: attribute(field, attrs.handle ~ 'Label'),
-                                name: char,
-                                required: field.required ? true : false,
-                                options: [{
-                                    label: attribute(field, attrs.handle ~ 'Placeholder'),
-                                    value: '',
-                                }] | merge(attrs.options),
-                                value: attrs.handle == 'ampm' ? (value | date(char, false, false)) : (value ? (value | date(char, false, false)) * 1),
-                            }) }}
-                        </div>
-                    {% default %}
-                        <div class="fui-col-auto">
-                            {{ forms.textField({
-                                label: attribute(field, attrs.handle ~ 'Label'),
-                                name: char,
-                                type: 'number',
-                                min: attrs.min,
-                                max: attrs.max,
-                                step: 1,
-                                pattern: '[0-9]+',
-                                placeholder: attribute(field, attrs.handle ~ 'Placeholder'),
-                                required: field.required ? true : false,
-                                value: value ? (value | date(char, false, false)),
-                            }) }}
-                        </div>
-                {% endswitch %}
+            {% for subField in field.getFrontEndSubfields(_context)[0] %}
+                {% set dateValue = null %}
+                {% set char = field.getFormattingChar(subField.handle) %}
+
+                {% if subField.handle != 'ampm' %}
+                    {% set dateValue = value ? (value | date(char, false) * 1) : null %}
+                {% endif %}
+
+                {% if subField.handle == 'ampm' %}
+                    <div class="fui-col-auto">
+                        {{ forms.selectField({
+                            label: subField.name,
+                            name: subField.handle,
+                            required: subField.required,
+                            placeholder: subField.placeholder,
+                            options: subField.options,
+                            value: dateValue,
+                        }) }}
+                    </div>
+                {% else %}
+                    <div class="fui-col-auto">
+                        {{ forms.textField({
+                            label: subField.name,
+                            name: subField.handle,
+                            required: subField.required,
+                            placeholder: subField.placeholder,
+                            value: dateValue,
+                            type: 'number',
+                            min: subField.min,
+                            max: subField.max,
+                            step: 1,
+                            pattern: '[0-9]+',
+                        }) }}
+                    </div>
+                {% endif %}
             {% endfor %}
         </div>
     {% endnamespace %}

@@ -1,19 +1,9 @@
-{% set formattingMap = {
-    year: 'Y',
-    month: 'm',
-    day: 'd',
-    hour: 'H',
-    minute: 'i',
-    second: 's',
-    ampm: 'A',
-} %}
-
 {% fieldtag 'subFieldRows' %}
     {% for row in field.getFrontEndSubfields(_context) %}
         {% fieldtag 'subFieldRow' %}
             {% for subField in row %}
                 {% set dateValue = null %}
-                {% set char = formattingMap[subField.handle] ?? '' %}
+                {% set char = field.getFormattingChar(subField.handle) %}
 
                 {% if subField.handle != 'ampm' %}
                     {% set dateValue = value ? (value | date(char, false) * 1) : null %}

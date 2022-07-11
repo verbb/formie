@@ -288,6 +288,24 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
     /**
      * @inheritDoc
      */
+    public function getFormattingChar($name): ?string
+    {
+        $formattingMap = [
+            'year' => 'Y',
+            'month' => 'm',
+            'day' => 'd',
+            'hour' => 'H',
+            'minute' => 'i',
+            'second' => 's',
+            'ampm' => 'A',
+        ];
+
+        return $formattingMap[$name] ?? null;
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function getFrontEndSubfields($context): array
     {
         $subFields = [];
