@@ -33,7 +33,7 @@ class SubmissionExport extends ElementExporter
         $eagerLoadableFields = [];
 
         foreach (Craft::$app->getFields()->getAllFields() as $field) {
-            if ($field instanceof EagerLoadingFieldInterface) {
+            if ($field instanceof EagerLoadingFieldInterface && strstr($field->context, 'formie')) {
                 $eagerLoadableFields[] = $field->handle;
             }
         }
