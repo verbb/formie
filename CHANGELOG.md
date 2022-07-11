@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.6.3 - 2022-07-11
+
+### Changed
+- Changed front-end JS to handle already-loaded page events when initializing.
+
+### Fixed
+- Fixed file size calculation mismatch for File Upload fields and server-side validation.
+- Fixed pre-populating a Phone field not working.
+
 ## 1.6.2 - 2022-07-01
 
 ### Changed
