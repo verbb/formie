@@ -72,10 +72,6 @@ class FormSettings extends Model
     // Private (template-only)
     public bool $disableCaptchas = false;
 
-    // TODO: to remove
-    public bool $storeData = true;
-    public ?string $userDeletedAction = null;
-
 
     // Private Properties
     // =========================================================================
@@ -97,6 +93,14 @@ class FormSettings extends Model
             if (!is_array($config['customAttributes'])) {
                 $config['customAttributes'] = [];
             }
+        }
+
+        if (array_key_exists('storeData', $config)) {
+            unset($config['storeData']);
+        }
+
+        if (array_key_exists('userDeletedAction', $config)) {
+            unset($config['userDeletedAction']);
         }
 
         parent::__construct($config);
