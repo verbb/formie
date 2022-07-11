@@ -214,7 +214,7 @@ class FileUpload extends CraftAssets implements FormFieldInterface
         // Get any uploaded filenames
         $uploadedFiles = $this->_getUploadedFiles($element);
 
-        $sizeMinLimit = $this->sizeMinLimit * 1000000;
+        $sizeMinLimit = $this->sizeMinLimit * 1024 * 1024;
 
         foreach ($uploadedFiles as $file) {
             if (file_exists($file['location']) && (filesize($file['location']) < $sizeMinLimit)) {
@@ -241,7 +241,7 @@ class FileUpload extends CraftAssets implements FormFieldInterface
         // Get any uploaded filenames
         $uploadedFiles = $this->_getUploadedFiles($element);
 
-        $sizeLimit = $this->sizeLimit * 1000000;
+        $sizeLimit = $this->sizeLimit * 1024 * 1024;
 
         foreach ($uploadedFiles as $file) {
             if (file_exists($file['location']) && (filesize($file['location']) > $sizeLimit)) {
