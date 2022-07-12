@@ -40,7 +40,7 @@ class Settings extends Model
 
     // Fields
     public string $defaultFileUploadVolume = '';
-    public string $defaultDateDisplayType = '';
+    public string $defaultDateDisplayType = 'calendar';
     public string $defaultDateValueOption = '';
     public ?DateTime $defaultDateTime = null;
 

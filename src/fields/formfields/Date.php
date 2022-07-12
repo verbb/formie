@@ -254,8 +254,8 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
     {
         /* @var Settings $settings */
         $settings = Formie::$plugin->getSettings();
-        $displayType = $settings->defaultDateDisplayType ?? 'calendar';
-        $defaultOption = $settings->defaultDateValue ?? '';
+        $displayType = $settings->defaultDateDisplayType ?: 'calendar';
+        $defaultOption = $settings->defaultDateValueOption ?: '';
         $defaultValue = $settings->getDefaultDateTimeValue();
 
         return [
