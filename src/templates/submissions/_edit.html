@@ -356,16 +356,25 @@ $(function () {
             var label = $(data).data('label');
             var $spinner = $('.integrations-menu-spinner');
 
+            var data = { submissionId: submissionId, integrationId: integrationId };
+
             if (window.confirm(Craft.t('formie', 'Are you sure you want to trigger the {name} integration?', { name: label }))) {
                 $spinner.removeClass('hidden');
 
-                Craft.postActionRequest('formie/submissions/run-integration', { submissionId: submissionId, integrationId: integrationId }, function(response) {
-                    $spinner.addClass('hidden');
-
-                    if (response && response.success) {
+                Craft.sendActionRequest('POST', 'formie/submissions/run-integration', { data })
+                    .then((response) => {
                         window.location.reload();
-                    }
-                });
+                    })
+                    .catch(({response}) => {
+                        if (response && response.data && response.data.message) {
+                            Craft.cp.displayError(response.data.message);
+                        } else {
+                            Craft.cp.displayError();
+                        }
+                    })
+                    .finally(() => {
+                        $spinner.addClass('hidden');
+                    });
             }
         }
     });

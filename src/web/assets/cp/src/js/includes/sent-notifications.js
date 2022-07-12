@@ -28,15 +28,14 @@ Craft.Formie.ResendNotificationModal = Garnish.Modal.extend({
 
         this.base(this.$form);
 
-        Craft.postActionRequest('formie/sent-notifications/get-resend-modal-content', { id }, $.proxy(function(response, textStatus) {
-            if (textStatus === 'success') {
-                if (response.success) {
-                    this.$body.html(response.modalHtml);
-                    Craft.appendHeadHtml(response.headHtml);
-                    Craft.appendBodyHtml(response.footHtml);
-                }
-            }
-        }, this));
+        var data = { id };
+
+        Craft.sendActionRequest('POST', 'formie/sent-notifications/get-resend-modal-content', { data })
+            .then((response) => {
+                this.$body.html(response.data.modalHtml);
+                Craft.appendHeadHtml(response.data.headHtml);
+                Craft.appendBodyHtml(response.data.footHtml);
+            });
     },
 
     onFadeOut() {
@@ -52,15 +51,20 @@ Craft.Formie.ResendNotificationModal = Garnish.Modal.extend({
         var data = this.$form.serialize();
 
         // Save everything through the normal update-cart action, just like we were doing it on the front-end
-        Craft.postActionRequest('formie/sent-notifications/resend', data, $.proxy(function(response) {
-            this.$footerSpinner.addClass('hidden');
-
-            if (response.success) {
+        Craft.sendActionRequest('POST', 'formie/sent-notifications/resend', { data })
+            .then((response) => {
                 location.reload();
-            } else {
-                Craft.cp.displayError(response.error);
-            }
-        }, this));
+            })
+            .catch(({response}) => {
+                if (response && response.data && response.data.message) {
+                    Craft.cp.displayError(response.data.message);
+                } else {
+                    Craft.cp.displayError();
+                }
+            })
+            .finally(() => {
+                this.$footerSpinner.addClass('hidden');
+            });
     },
 });
 
@@ -152,15 +156,20 @@ Craft.Formie.BulkResendModal = Garnish.Modal.extend({
         var data = this.$form.serialize();
 
         // Save everything through the normal update-cart action, just like we were doing it on the front-end
-        Craft.postActionRequest('formie/sent-notifications/bulk-resend', data, $.proxy(function(response) {
-            this.$footerSpinner.addClass('hidden');
-
-            if (response.success) {
+        Craft.sendActionRequest('POST', 'formie/sent-notifications/bulk-resend', { data })
+            .then((response) => {
                 location.reload();
-            } else {
-                Craft.cp.displayError(response.error);
-            }
-        }, this));
+            })
+            .catch(({response}) => {
+                if (response && response.data && response.data.message) {
+                    Craft.cp.displayError(response.data.message);
+                } else {
+                    Craft.cp.displayError();
+                }
+            })
+            .finally(() => {
+                this.$footerSpinner.addClass('hidden');
+            });
     },
 
 });

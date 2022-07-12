@@ -393,19 +393,17 @@ Craft.Formie.SubmissionTableView = Craft.TableElementIndexView.extend({
     },
 
     loadReport() {
-        var requestData = this.settings.params;
+        var data = this.settings.params;
 
-        requestData.startDate = Craft.Formie.SubmissionTableView.getDateValue(this.startDate);
-        requestData.endDate = Craft.Formie.SubmissionTableView.getDateValue(this.endDate);
+        data.startDate = Craft.Formie.SubmissionTableView.getDateValue(this.startDate);
+        data.endDate = Craft.Formie.SubmissionTableView.getDateValue(this.endDate);
 
         this.$spinner.removeClass('hidden');
         this.$error.addClass('hidden');
         this.$chart.removeClass('error');
 
-        Craft.postActionRequest('formie/charts/get-submissions-data', requestData, $.proxy(function(response, textStatus) {
-            this.$spinner.addClass('hidden');
-
-            if (textStatus === 'success' && typeof (response.error) === 'undefined') {
+        Craft.sendActionRequest('POST', 'formie/charts/get-submissions-data', { data })
+            .then((response) => {
                 if (!this.chart) {
                     this.chart = new Craft.charts.Area(this.$chart);
                 }
@@ -422,18 +420,21 @@ Craft.Formie.SubmissionTableView = Craft.TableElementIndexView.extend({
                 this.chart.draw(chartDataTable, chartSettings);
 
                 this.$totalValue.html(response.totalHtml);
-            } else {
+            })
+            .catch(({response}) => {
                 var msg = Craft.t('formie', 'An unknown error occurred.');
 
-                if (typeof (response) !== 'undefined' && response && typeof (response.error) !== 'undefined') {
-                    msg = response.error;
+                if (response && response.data && response.data.message) {
+                    msg = response.data.message;
                 }
 
                 this.$error.html(msg);
                 this.$error.removeClass('hidden');
                 this.$chart.addClass('error');
-            }
-        }, this));
+            })
+            .finally(() => {
+                this.$spinner.addClass('hidden');
+            });
     },
 },
 {
@@ -490,15 +491,14 @@ Craft.Formie.SendNotificationModal = Garnish.Modal.extend({
 
         this.base(this.$form);
 
-        Craft.postActionRequest('formie/submissions/get-send-notification-modal-content', { id }, $.proxy(function(response, textStatus) {
-            if (textStatus === 'success') {
-                if (response.success) {
-                    this.$body.html(response.modalHtml);
-                    Craft.appendHeadHtml(response.headHtml);
-                    Craft.appendBodyHtml(response.footHtml);
-                }
-            }
-        }, this));
+        var data = { id };
+
+        Craft.sendActionRequest('POST', 'formie/submissions/get-send-notification-modal-content', { data })
+            .then((response) => {
+                this.$body.html(response.data.modalHtml);
+                Craft.appendHeadHtml(response.data.headHtml);
+                Craft.appendBodyHtml(response.data.footHtml);
+            });
     },
 
     onFadeOut() {
@@ -514,15 +514,20 @@ Craft.Formie.SendNotificationModal = Garnish.Modal.extend({
         var data = this.$form.serialize();
 
         // Save everything through the normal update-cart action, just like we were doing it on the front-end
-        Craft.postActionRequest('formie/submissions/send-notification', data, $.proxy(function(response) {
-            this.$footerSpinner.addClass('hidden');
-
-            if (response.success) {
+        Craft.sendActionRequest('POST', 'formie/submissions/send-notification', { data })
+            .then((response) => {
                 location.reload();
-            } else {
-                Craft.cp.displayError(response.error);
-            }
-        }, this));
+            })
+            .catch(({response}) => {
+                if (response && response.data && response.data.message) {
+                    Craft.cp.displayError(response.data.message);
+                } else {
+                    Craft.cp.displayError();
+                }
+            })
+            .finally(() => {
+                this.$footerSpinner.addClass('hidden');
+            });
     },
 });
 
