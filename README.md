@@ -10,11 +10,12 @@ Formie is a Craft CMS plugin for creating user-friendly forms that your content 
 
 ## Features
 - Drag-and-drop form builder, with support for columns.
-- Multi-page support for complex forms, or single-page for simple ones
+- Multi-page support for complex forms, or single-page for simple ones.
 - Store submissions in the control panel, in case you want to view the users' submission later.
 - **Stencils** - A quick and easy way to create new forms. Stencils include your form settings, fields and notifications.
 - Multiple options to control how forms submit. Show a success message, redirect to an entry, or stay on the same page.
 - Conditions for pages, fields, buttons and email notifications.
+- Save incomplete submissions for users to come back to later.
 - Switch form submissions to be page-reload (POST), or async (Ajax).
 - Spam protection - Fight spam with our in-built keyword blocking and submission behaviour control.
 - Integrations API - Captchas, Address Providers, Elements, Email Marketing, CRM, Webhooks, Miscellanous.
@@ -57,6 +58,15 @@ Formie is a Craft CMS plugin for creating user-friendly forms that your content 
 - Out-of-the-box templates, including CSS styles and JS functionality. Show great-looking forms that are user-friendly and follow best-practices with a single line of Twig.
 - Custom templates for everything! Take full control over how forms, pages and field render. Even change how fields look in email notifications.
 
+### Theming
+- Easily theme your forms without touching custom templates!
+- Configure each component of a form from the `<form>` element, individual fields, submit buttons and more.
+- Total control over the HTML tags and attributes.
+- Perfect for utility CSS frameworks like [Tailwind](https://tailwindcss.com/) or [Bootstrap](https://getbootstrap.com/).
+- Ready-to-go themes for popular frameworks for you to easily extend and modify:
+    - [Tailwind](https://github.com/verbb/formie-theme-configs/blob/main/tailwind/index.html)
+    - [Bootstrap](https://github.com/verbb/formie-theme-configs/blob/main/bootstrap/index.html)
+
 ### Privacy & Data Retention
 - Set how long to keep submissions stored for (hours, days, weeks, month, years)
 - When deleting a user associated with a submission, you can choose to delete submissions, or transfer them to another user. Just like entries and other Craft elements.
@@ -83,6 +93,8 @@ Formie is a Craft CMS plugin for creating user-friendly forms that your content 
 - Calculations
 - Categories
 - Checkboxes
+- Commerce Products
+- Commerce Variants
 - Date/Time
 - Dropdown
 - Email
@@ -96,8 +108,8 @@ Formie is a Craft CMS plugin for creating user-friendly forms that your content 
 - Name
 - Number
 - Password
+- Payment
 - Phone Number
-- Commerce Products
 - Radio
 - Recipients
 - Repeater
@@ -108,7 +120,6 @@ Formie is a Craft CMS plugin for creating user-friendly forms that your content 
 - Table
 - Tags
 - Users
-- Commerce Variants
 
 ### Integrations
 Extend Formie's behaviour, and integrate with third-party providers. Easily create your own custom Integrations through the Integrations API.
@@ -191,6 +202,12 @@ Build your customer relationship data with ease, mapping form fields to contacts
 - SugarCRM
 - vCita
 - Zoho
+
+#### Payments
+Use your form as a paywall to collect payment from your users.
+
+- Stripe (single and subscription)
+- PayPal (single)
 
 #### Webhooks
 Send form data to URLs or Webhook providers for processing on their end.
