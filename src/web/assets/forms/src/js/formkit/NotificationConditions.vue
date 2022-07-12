@@ -85,7 +85,7 @@
 </template>
 
 <script>
-import { truncate } from 'lodash-es';
+import { truncate, isPlainObject } from 'lodash-es';
 
 import { newId } from '@utils/string';
 import { toBoolean } from '@utils/bool';
@@ -145,7 +145,7 @@ export default {
                 return this.defaultSettings;
             }
 
-            if (!Array.isArray(value)) {
+            if (!Array.isArray(value) && !isPlainObject(value)) {
                 try {
                     parsedValue = JSON.parse(value);
                 } catch (e) {

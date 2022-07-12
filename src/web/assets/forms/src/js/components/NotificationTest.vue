@@ -54,7 +54,6 @@ export default {
     },
 
     created() {
-        console.log(this.$attrs);
         // Populate the current email
         if (this.$attrs.userEmail) {
             this.to = this.$attrs.userEmail;
