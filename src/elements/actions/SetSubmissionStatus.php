@@ -6,10 +6,11 @@ use verbb\formie\elements\Submission;
 
 use Craft;
 use craft\base\ElementAction;
+use craft\elements\actions\SetStatus;
 use craft\elements\db\ElementQueryInterface;
 use craft\helpers\ArrayHelper;
 
-class SetSubmissionStatus extends ElementAction
+class SetSubmissionStatus extends SetStatus
 {
     // Properties
     // =========================================================================
