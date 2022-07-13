@@ -34,6 +34,7 @@ use craft\helpers\ArrayHelper;
 use craft\helpers\Console;
 use craft\helpers\Db;
 use craft\helpers\Json;
+use craft\helpers\Queue;
 
 use yii\base\Event;
 use yii\base\Component;
@@ -187,10 +188,10 @@ class Submissions extends Component
             }
 
             if ($settings->useQueueForNotifications) {
-                Craft::$app->getQueue()->push(new SendNotification([
+                Queue::push(new SendNotification([
                     'submissionId' => $submission->id,
                     'notificationId' => $notification->id,
-                ]));
+                ]), $settings->queuePriority);
             } else {
                 $this->sendNotificationEmail($notification, $submission);
             }
@@ -246,10 +247,10 @@ class Submissions extends Component
             $integration->ipAddress = Craft::$app->getRequest()->getUserIP();
 
             if ($settings->useQueueForIntegrations) {
-                Craft::$app->getQueue()->push(new TriggerIntegration([
+                Queue::push(new TriggerIntegration([
                     'submissionId' => $submission->id,
                     'integration' => $integration,
-                ]));
+                ]), $settings->queuePriority);
             } else {
                 $this->sendIntegrationPayload($integration, $submission);
             }

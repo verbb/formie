@@ -34,6 +34,7 @@ return [
         'enableCsrfValidationForGuests' => true,
         'useQueueForNotifications' => true,
         'useQueueForIntegrations' => true,
+        'queuePriority' => null,
 
         // Sent Notifications
         'sentNotifications' => true,
@@ -88,6 +89,7 @@ return [
 - `enableCsrfValidationForGuests` - Whether to enable Craft‘s CSRF validation checks for anonymous form submissions.
 - `useQueueForNotifications` - Whether to use Craft‘s queue system to trigger emails. This is highly, **highly** recommended, to prevent slow submissions for your users. This may be useful to disable for local development.
 - `useQueueForIntegrations` - Whether to use Craft‘s queue system to trigger integrations. This is highly, **highly** recommended, to prevent slow submissions for your users. This may be useful to disable for local development.
+- `queuePriority` - Set the queue job priority, to determine if it should run with a different priority compared to other jobs. Default to the [Craft default](https://craftcms.com/docs/4.x/extend/queue-jobs.html#specifying-priority) of `1024`.
 
 ### Sent Notifications
 - `sentNotifications` - Whether to enable Sent Notifications functionality.

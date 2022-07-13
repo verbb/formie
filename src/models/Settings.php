@@ -49,6 +49,7 @@ class Settings extends Model
     public bool $enableCsrfValidationForGuests = true;
     public bool $useQueueForNotifications = true;
     public bool $useQueueForIntegrations = true;
+    public ?int $queuePriority = null;
 
     // Sent Notifications
     public bool $sentNotifications = true;
