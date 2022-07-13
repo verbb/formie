@@ -35,7 +35,7 @@ class SendNotification extends BaseJob
      */
     public function execute($queue): void
     {
-        $this->setProgress($queue, 0);
+        $this->setProgress($queue, 0.25);
 
         $notification = Formie::$plugin->getNotifications()->getNotificationById($this->notificationId);
         $submission = Formie::$plugin->getSubmissions()->getSubmissionById($this->submissionId);
@@ -47,6 +47,8 @@ class SendNotification extends BaseJob
         if (!$submission) {
             throw new Exception('Unable to find submission: ' . $this->submissionId . '.');
         }
+
+        $this->setProgress($queue, 0.5);
 
         // Ensure we set the correct language for a potential CLI request
         Craft::$app->language = $submission->getSite()->language;
@@ -68,6 +70,8 @@ class SendNotification extends BaseJob
                 ];
             }
         }
+
+        $this->setProgress($queue, 0.75);
 
         $sentResponse = Formie::$plugin->getSubmissions()->sendNotificationEmail($notification, $submission, $this);
         $success = $sentResponse['success'] ?? false;

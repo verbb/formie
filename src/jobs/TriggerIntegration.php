@@ -37,7 +37,7 @@ class TriggerIntegration extends BaseJob
      */
     public function execute($queue): void
     {
-        $this->setProgress($queue, 0);
+        $this->setProgress($queue, 0.25);
 
         // Allow incomplete submissions
         $submission = Submission::find()
@@ -45,6 +45,8 @@ class TriggerIntegration extends BaseJob
             ->isIncomplete(null)
             ->status(null)
             ->one();
+
+        $this->setProgress($queue, 0.5);
 
         if ($submission) {
             // Pass a reference of this class to the integration, to assist with debugging.
@@ -55,6 +57,8 @@ class TriggerIntegration extends BaseJob
             Craft::$app->language = $submission->getSite()->language;
             Craft::$app->set('locale', Craft::$app->getI18n()->getLocaleById($submission->getSite()->language));
             Craft::$app->getSites()->setCurrentSite($submission->getSite());
+
+            $this->setProgress($queue, 0.75);
 
             $response = Formie::$plugin->getSubmissions()->sendIntegrationPayload($this->integration, $submission);
 
