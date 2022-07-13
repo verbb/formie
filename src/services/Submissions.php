@@ -631,6 +631,10 @@ class Submissions extends Component
         $fieldContent = $this->getFakeFieldContent($fields);
 
         $submission->setFieldValues($fieldContent);
+
+        // Set some submission attributes as well
+        $submission->id = '1234';
+        $submission->dateCreated = new DateTime();
     }
 
 
