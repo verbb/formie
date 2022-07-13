@@ -136,11 +136,25 @@ class Repeater extends FormField implements NestedFieldInterface, EagerLoadingFi
      */
     public function getInputHtml($value, ElementInterface $element = null): string
     {
-        return Craft::$app->getView()->renderTemplate('formie/_formfields/repeater/input', [
+        $view = Craft::$app->getView();
+
+        $view->startJsBuffer();
+
+        // Render it once to get the JS used for inner fields (element fields)
+        $bodyHtml = $view->renderTemplate('formie/_formfields/repeater/input', [
             'name' => $this->handle,
             'value' => $value,
             'field' => $this,
-        ]);
+        ]);;
+
+        $footHtml = $view->clearJsBuffer();
+
+        return $view->renderTemplate('formie/_formfields/repeater/input', [
+            'name' => $this->handle,
+            'value' => $value,
+            'field' => $this,
+            'footHtml' => $footHtml,
+        ]);;
     }
 
     /**
