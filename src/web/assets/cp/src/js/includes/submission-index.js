@@ -408,18 +408,18 @@ Craft.Formie.SubmissionTableView = Craft.TableElementIndexView.extend({
                     this.chart = new Craft.charts.Area(this.$chart);
                 }
 
-                var chartDataTable = new Craft.charts.DataTable(response.dataTable);
+                var chartDataTable = new Craft.charts.DataTable(response.data.dataTable);
 
                 var chartSettings = {
-                    formatLocaleDefinition: response.formatLocaleDefinition,
-                    orientation: response.orientation,
-                    formats: response.formats,
-                    dataScale: response.scale,
+                    formatLocaleDefinition: response.data.formatLocaleDefinition,
+                    orientation: response.data.orientation,
+                    formats: response.data.formats,
+                    dataScale: response.data.scale,
                 };
 
                 this.chart.draw(chartDataTable, chartSettings);
 
-                this.$totalValue.html(response.totalHtml);
+                this.$totalValue.html(response.data.totalHtml);
             })
             .catch(({response}) => {
                 var msg = Craft.t('formie', 'An unknown error occurred.');
