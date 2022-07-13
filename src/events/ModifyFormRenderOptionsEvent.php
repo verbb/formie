@@ -10,7 +10,7 @@ class ModifyFormRenderOptionsEvent extends Event
     // Properties
     // =========================================================================
 
-    public ?Form $form = null;
-    public ?array $renderOptions = null;
+    public Form $form;
+    public array $renderOptions = [];
 
 }
