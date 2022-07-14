@@ -917,8 +917,11 @@ class Fields extends Component
             foreach ($row['fields'] as $fieldIndex => $field) {
                 // Set a flag on any field inside a nested field
                 if ($field instanceof NestedFieldInterface) {
-                    foreach ($field->getCustomFields() as $key => $nestedField) {
-                        $nestedField->isNested = true;
+                    // In some cases, nested fields might not have their fieldlayout setup correctly
+                    if (is_array($field->getCustomFields())) {
+                        foreach ($field->getCustomFields() as $key => $nestedField) {
+                            $nestedField->isNested = true;
+                        }
                     }
                 }
 
