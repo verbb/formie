@@ -447,6 +447,9 @@ Craft.Formie.SaveButton = Garnish.Base.extend({
                 };
 
                 document.addEventListener('keydown', this._keyListener.bind(this));
+
+                // Implement a custom menubtn, because his will be after the VDOM has started
+                $('.menubtn-custom', this.$el).menubtn();
             },
 
             beforeDestroy() {
