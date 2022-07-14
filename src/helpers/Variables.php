@@ -419,7 +419,7 @@ class Variables
 
                 $values[$handle] = $submissionValue[$subfield['handle']] ?? '';
             }
-        } else if ($field instanceof Group) {
+        } else if ($field instanceof formfields\Group) {
             if ($submissionValue && $row = $submissionValue->one()) {
                 if ($fieldLayout = $row->getFieldLayout()) {
                     foreach ($row->getFieldLayout()->getCustomFields() as $nestedField) {
@@ -444,7 +444,7 @@ class Variables
             } else {
                 $values["{$prefix}{$field->handle}"] = nl2br($submissionValue);
             }
-        } else if ($field instanceof Repeater) {
+        } else if ($field instanceof formfields\Repeater) {
             $values["{$prefix}{$field->handle}"] = $parsedContent;
         }
 
