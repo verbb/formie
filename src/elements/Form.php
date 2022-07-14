@@ -1616,9 +1616,14 @@ class Form extends Element
 
         // Theme options
         $templateConfig = $renderOptions['themeConfig'] ?? [];
+        $pluginConfig = Formie::$plugin->getSettings()->themeConfig ?? [];
 
+        // If not set at the template level, check if it's set a the plugin level.
+        // If set for both, `setThemeConfig()` will merge.
         if ($templateConfig) {
             $this->setThemeConfig($templateConfig);
+        } else if ($pluginConfig) {
+            $this->setThemeConfig($pluginConfig);
         }
     }
 
