@@ -4,6 +4,7 @@ namespace verbb\formie\base;
 use verbb\formie\Formie;
 use verbb\formie\elements\NestedFieldRow;
 use verbb\formie\elements\db\NestedFieldRowQuery;
+use verbb\formie\fields\formfields\Group;
 use verbb\formie\models\FieldLayout;
 
 use Craft;
@@ -658,7 +659,19 @@ trait NestedFieldTrait
                 $subValue = $row->getFieldValue($field->handle);
                 $valueForExport = $field->getValueForExport($subValue, $row);
 
-                $values[$this->handle . '_row' . ($rowId + 1) . '_' . $field->handle] = $valueForExport;
+                if ($this instanceof Group) {
+                    $key = $this->handle;
+                } else {
+                    $key = $this->handle . '_row' . ($rowId + 1);
+                }
+
+                if (is_array($valueForExport)) {
+                    foreach ($valueForExport as $i => $j) {
+                        $values[$key . '_' . $i] = $j;
+                    }
+                } else {
+                    $values[$key . '_' . $field->handle] = $valueForExport;
+                }
             }
         }
 
