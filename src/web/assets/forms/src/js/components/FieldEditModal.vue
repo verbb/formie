@@ -175,13 +175,13 @@ export default {
             this.mounted = true;
 
             this.$nextTick().then(() => {
-                // const $firstText = this.$refs.fieldForm.$el.parentNode.querySelector('input[type="text"]');
+                const $firstText = this.$refs.fieldForm.$el.parentNode.querySelector('input[type="text"]');
 
-                // if ($firstText) {
-                //     setTimeout(() => {
-                //         $firstText.focus();
-                //     }, 200)
-                // }
+                if ($firstText && $firstText.value.length === 0) {
+                    setTimeout(() => {
+                        $firstText.focus();
+                    }, 200);
+                }
 
                 // Set any errors on the form, if they exist
                 if (!isEmpty(this.fieldErrors)) {
