@@ -700,7 +700,18 @@ trait NestedFieldTrait
                 $subValue = $row->getFieldValue($field->handle);
                 $valueForExport = $field->getValueForExport($subValue, $row);
 
-                $values[$this->handle . '_row' . ($rowId + 1) . '_' . $field->handle] = $valueForExport;
+                if ($this instanceof Group) {
+                    $key = $this->name;
+                } else {
+                    $key = $this->name . ': ' . ($rowId + 1);
+                }
+
+                if (is_array($valueForExport)) {
+                    foreach ($valueForExport as $i => $j) {
+                        $values[$key . ': ' . $i] = $j;
+                    }
+                } else {
+                    $values[$key . ': ' . $field->name] = $valueForExport;
             }
         }
 

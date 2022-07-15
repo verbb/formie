@@ -856,7 +856,7 @@ class Submission extends Element
             if (is_array($valueForExport)) {
                 $values = array_merge($values, $valueForExport);
             } else {
-                $values[$field->handle] = $valueForExport;
+                $values[$field->name] = $valueForExport;
             }
         }
 
