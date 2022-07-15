@@ -8,7 +8,7 @@
         checked: value ? true : false,
     }) }}
 
-    {% fieldtag 'fieldOptionLabel' %}
-        {{- field.getDescriptionHtml() -}}
-    {% endfieldtag %}
+    {{ fieldtag('fieldOptionLabel', {
+        text: field.getDescriptionHtml(),
+    }) }}
 {% endfieldtag %}

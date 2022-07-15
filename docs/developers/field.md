@@ -129,6 +129,7 @@ Setting | Description
 Setting | Description
 --- | ---
 `description` | The description for the field. This will be shown next to the checkbox.
+`descriptionHtml` | The HTML description for the field.
 `checkedValue `| The value of this field when it is checked.
 `uncheckedValue` | The value of this field when it is unchecked.
 `defaultValue` | The default value for the field when it loads.

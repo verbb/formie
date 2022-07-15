@@ -44,12 +44,21 @@ class Agree extends FormField implements PreviewableFieldInterface
     // =========================================================================
 
     public ?array $description = null;
+    public ?string $descriptionHtml = null;
     public ?string $checkedValue = null;
     public ?string $uncheckedValue = null;
 
 
     // Public Methods
     // =========================================================================
+
+    public function init(): void
+    {
+        parent::init();
+
+        // Set the rendered value of the description rich text
+        $this->descriptionHtml = $this->_getHtmlContent($this->description);
+    }
 
     /**
      * @inheritdoc
@@ -78,9 +87,7 @@ class Agree extends FormField implements PreviewableFieldInterface
 
     public function getDescriptionHtml(): Markup
     {
-        $html = $this->_getHtmlContent($this->description);
-
-        return Template::raw(Craft::t('formie', $html));
+        return Template::raw(Craft::t('formie', (string)$this->descriptionHtml));
     }
 
     public function getDefaultState(): ?string
@@ -139,10 +146,6 @@ class Agree extends FormField implements PreviewableFieldInterface
             'defaultState' => [
                 'name' => 'defaultState',
                 'type' => Type::boolean(),
-            ],
-            'descriptionHtml' => [
-                'name' => 'descriptionHtml',
-                'type' => Type::string(),
             ],
         ]);
     }
@@ -287,8 +290,15 @@ class Agree extends FormField implements PreviewableFieldInterface
     // Private Methods
     // =========================================================================
 
-    private function _getHtmlContent($content): string
+    private function _getHtmlContent($content): ?string
     {
+        // Sanity check for potentially bad settings
+        $nodeType = $content[0]['type'] ?? null;
+
+        if (!$nodeType) {
+            return null;
+        }
+
         return RichTextHelper::getHtmlContent($content);
     }
 }
