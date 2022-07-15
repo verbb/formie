@@ -660,17 +660,17 @@ trait NestedFieldTrait
                 $valueForExport = $field->getValueForExport($subValue, $row);
 
                 if ($this instanceof Group) {
-                    $key = $this->handle;
+                    $key = $this->name;
                 } else {
-                    $key = $this->handle . '_row' . ($rowId + 1);
+                    $key = $this->name . ': ' . ($rowId + 1);
                 }
 
                 if (is_array($valueForExport)) {
                     foreach ($valueForExport as $i => $j) {
-                        $values[$key . '_' . $i] = $j;
+                        $values[$key . ': ' . $i] = $j;
                     }
                 } else {
-                    $values[$key . '_' . $field->handle] = $valueForExport;
+                    $values[$key . ': ' . $field->name] = $valueForExport;
                 }
             }
         }

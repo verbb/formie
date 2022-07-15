@@ -41,19 +41,19 @@ class SubmissionExport extends ElementExporter
         $data = [];
 
         $attributes = [
-            'id',
-            'formId',
-            'status',
-            'userId',
-            'ipAddress',
-            'isIncomplete',
-            'isSpam',
-            'spamReason',
-            'title',
-            'dateCreated',
-            'dateUpdated',
-            'dateDeleted',
-            'trashed',
+            'id' => Craft::t('site', 'ID'),
+            'formId' => Craft::t('site', 'Form ID'),
+            'userId' => Craft::t('site', 'User ID'),
+            'ipAddress' => Craft::t('site', 'IP Address'),
+            'isIncomplete' => Craft::t('site', 'Is Incomplete?'),
+            'isSpam' => Craft::t('site', 'Is Spam?'),
+            'spamReason' => Craft::t('site', 'Spam Reason'),
+            'title' => Craft::t('site', 'Title'),
+            'dateCreated' => Craft::t('site', 'Date Created'),
+            'dateUpdated' => Craft::t('site', 'Date Updated'),
+            'dateDeleted' => Craft::t('site', 'Date Deleted'),
+            'trashed' => Craft::t('site', 'Trashed'),
+            'status' => Craft::t('site', 'Status'),
         ];
 
         /** @var ElementQuery $query */
@@ -61,7 +61,14 @@ class SubmissionExport extends ElementExporter
 
         foreach ($query->each() as $element) {
             // Fetch the attributes for the element
-            $row = $element->toArray($attributes);
+            $values = $element->toArray(array_keys($attributes));
+
+            // Convert values to strings
+            $values = array_map(function($item) {
+                return (string)$item;
+            }, $values);
+
+            $row = array_combine(array_values($attributes), $values);
 
             // Fetch the custom field content, already prepped
             $fieldValues = $element->getValuesForExport();
