@@ -102,6 +102,23 @@ Ensure you include the `submitAction` hidden input with the default value `submi
 ### Render Options
 Any references to `options` should be changed to `renderOptions`. This is to prevent ambiguity with other variables named `options`. The only exception to this is within option-based fields like Dropdown, Checkboxes and Radio Buttons which do in fact have a variable named `options` for the collection of options for that field. This is different to `renderOptions`.
 
+In addition, some attributes that were managed through render options no longer exist, and have been simplified.
+
+Old | What to do instead
+--- | ---
+| `options.id` | `field.getHtmlId(form)`
+| `options.dataId` | `field.getHtmlDataId(form)`
+
+### `name` HTML attribute
+Without a correct `name` attribute on inputs, your content will fail to save. Previously, templates used the `field.handle`, but this can lead to complications when used in nested fields such as a Group. This is compounded in Formie v2 where the same fields are also used in sub-field compatible fields like Address and multi-Name fields (for example, where a Single-Line Text is also used).
+
+Old | What to do instead
+--- | ---
+| `<input name="{{ field.handle }}"` | `<input name="{{ field.getHtmlName() }}"`
+| `<input name="{{ field.handle }}[]"` | `<input name="{{ field.getHtmlName('[]') }}"`
+| `<input name="{{ field.handle }}[nested][value]"` | `<input name="{{ field.getHtmlName('nested[value]') }}"`
+
+
 ### Translations
 Previously, front-end templates wrapped all text such as field labels, instructions, error messages and more in translation filters. The translation category was a mixture of `app`, `site` and `formie` categories.
 
