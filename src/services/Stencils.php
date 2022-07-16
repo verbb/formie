@@ -397,6 +397,10 @@ class Stencils extends Component
                 unset($notificationData['errors']);
             }
 
+            // Ensure we deal with any potentially out-of-date stencil data, as we add new settings
+            // Could also probably add this to a migration to be extra safe.
+            $notificationData['recipients'] = $notificationData['recipients'] ?? 'email';
+
             $notifications[] = new Notification($notificationData);
         }
 
