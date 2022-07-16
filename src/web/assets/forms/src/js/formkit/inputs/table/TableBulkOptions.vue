@@ -12,57 +12,87 @@
                     <p>{{ t('formie', 'Select from predefined options and customize or paste your own to bulk add options.') }}</p>
                 </div>
 
-                <FormKitForm ref="fieldForm" @submit="submitHandler">
-                    <div class="fui-row">
-                        <div class="fui-col-6">
-                            <FormKit
-                                type="select"
-                                :label="t('formie', 'Predefined Options')"
-                                :help="t('formie', 'Select from the available predefined options.')"
-                                :options="predefinedOptions"
-                                @change="onPredefinedChange"
-                            />
+                <div class="fui-row">
+                    <div class="fui-col-6">
+                        <div class="field">
+                            <div class="heading">
+                                <label for="predefined-options">
+                                    {{ t('formie', 'Predefined Options') }}
+                                </label>
 
-                            <div v-if="loading" class="fui-loading-pane">
-                                <div class="fui-loading fui-loading-lg"></div>
-                            </div>
-
-                            <div v-if="error" class="fui-error-pane error">
-                                <div class="fui-error-content">
-                                    <span data-icon="alert"></span>
-
-                                    <span class="error" v-html="errorMessage"></span>
+                                <div id="help-predefined-options" class="instructions">
+                                    <p>{{ t('formie', 'Select from the available predefined options.') }}</p>
                                 </div>
                             </div>
 
-                            <div v-if="!loading">
-                                <FormKit
-                                    v-if="labelOptions.length"
-                                    v-model="labelOption"
-                                    type="select"
-                                    :label="t('formie', 'Option Label')"
-                                    :help="t('formie', 'Select the data to be used as the option label.')"
-                                    :options="labelOptions"
-                                    @change="onLabelChange"
-                                />
-
-                                <FormKit
-                                    v-if="valueOptions.length"
-                                    v-model="valueOption"
-                                    type="select"
-                                    :label="t('formie', 'Option Value')"
-                                    :help="t('formie', 'Select the data to be used as the option value.')"
-                                    :options="valueOptions"
-                                    @change="onValueChange"
-                                />
+                            <div class="select">
+                                <select id="predefined-options" class="select" aria-describedby="help-predefined-options" @change="onPredefinedChange">
+                                    <option v-for="(option, index) in predefinedOptions" :key="index" :value="option.value">
+                                        {{ option.label }}
+                                    </option>
+                                </select>
                             </div>
                         </div>
 
-                        <div class="fui-col-6">
-                            <textarea v-model="preview" class="text fui-table-bulk-preview"></textarea>
+                        <div v-if="loading" class="fui-loading-pane">
+                            <div class="fui-loading fui-loading-lg"></div>
+                        </div>
+
+                        <div v-if="error" class="fui-error-pane error">
+                            <div class="fui-error-content">
+                                <span data-icon="alert"></span>
+
+                                <span class="error" v-html="errorMessage"></span>
+                            </div>
+                        </div>
+
+                        <div v-if="!loading">
+                            <div v-if="labelOptions.length" class="field">
+                                <div class="heading">
+                                    <label for="label-options">
+                                        {{ t('formie', 'Option Label') }}
+                                    </label>
+
+                                    <div id="help-label-options" class="instructions">
+                                        <p>{{ t('formie', 'Select the data to be used as the option label.') }}</p>
+                                    </div>
+                                </div>
+
+                                <div class="select">
+                                    <select id="label-options" v-model="labelOption" class="select" aria-describedby="help-label-options" @change="onLabelChange">
+                                        <option v-for="(option, index) in labelOptions" :key="index" :value="option.value">
+                                            {{ option.label }}
+                                        </option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div v-if="valueOptions.length" class="field">
+                                <div class="heading">
+                                    <label for="value-options">
+                                        {{ t('formie', 'Option Value') }}
+                                    </label>
+
+                                    <div id="help-value-options" class="instructions">
+                                        <p>{{ t('formie', 'Select the data to be used as the option value.') }}</p>
+                                    </div>
+                                </div>
+
+                                <div class="select">
+                                    <select id="value-options" v-model="valueOption" class="select" aria-describedby="help-value-options" @change="onValueChange">
+                                        <option v-for="(option, index) in valueOptions" :key="index" :value="option.value">
+                                            {{ option.label }}
+                                        </option>
+                                    </select>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                </FormKitForm>
+
+                    <div class="fui-col-6">
+                        <textarea v-model="preview" class="text fui-table-bulk-preview"></textarea>
+                    </div>
+                </div>
             </div>
         </template>
 
@@ -146,11 +176,6 @@ export default {
         },
 
         onSave() {
-            // Validate the form - this will prevent firing `submitHandler()` if it fails
-            this.$refs.fieldForm.submit();
-        },
-
-        submitHandler() {
             this.saveLoading = true;
 
             // Give it a sec for large data sets to update UI
