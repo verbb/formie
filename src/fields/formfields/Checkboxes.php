@@ -234,6 +234,8 @@ class Checkboxes extends BaseOptionsField implements FormFieldInterface
     {
         $form = $context['form'] ?? null;
 
+        $id = $this->getHtmlId($form);
+
         if ($key === 'fieldContainer') {
             return new HtmlTag('fieldset', [
                 'class' => [
