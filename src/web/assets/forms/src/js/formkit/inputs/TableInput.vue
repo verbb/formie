@@ -98,11 +98,11 @@ export default {
         },
 
         columns() {
-            const columns = get(this.context.attrs, 'columns', []);
+            let columns = get(this.context.attrs, 'columns', []);
 
             if (typeof columns === 'string') {
                 if (this.editingField) {
-                    return get(this.editingField.field, columns);
+                    columns = get(this.editingField.field, columns);
                 }
             }
 
