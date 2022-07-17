@@ -537,11 +537,11 @@ export class FormieFormTheme {
         // Show server-side errors for each field
         Object.keys(errors).forEach((handle, index) => {
             const [ error ] = errors[handle];
-            let $field = document.querySelector(`[name="fields[${handle}]"]`);
+            let $field = this.$form.querySelector(`[name="fields[${handle}]"]`);
 
             // Check for multiple fields
             if (!$field) {
-                $field = document.querySelector(`[name="fields[${handle}][]"]`);
+                $field = this.$form.querySelector(`[name="fields[${handle}][]"]`);
             }
 
             if ($field) {
@@ -732,7 +732,7 @@ export class FormieFormTheme {
 
     setCurrentPage(pageId) {
         this.settings.currentPageId = pageId;
-        this.$currentPage = document.querySelector(`#${this.getPageId(pageId)}`);
+        this.$currentPage = this.$form.querySelector(`#${this.getPageId(pageId)}`);
     }
 
     getPageId(pageId) {
