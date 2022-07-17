@@ -1,5 +1,32 @@
 # Changelog
 
+## 2.0.2 - 2022-07-18
+
+### Added
+- Added `descriptionHtml` attribute to Agree fields.
+- Added `queuePriority` plugin setting.
+- Added better visual feedback for queue jobs.
+- Added `Submission Date` to variable picker for email notifications.
+
+### Changed
+- Exporting submissions now use each fields’ Name instead of Handle.
+- Updated `ModifyFormRenderOptionsEvent` typings.
+
+### Fixed
+- Fixed some submission attributes not appearing when previewing an email notification.
+- Fixed when `themeConfig` is set only at the plugin config level.
+- Fixed dropdown save button not working in the form builder.
+- Fixed an error when Repeater/Group fields had a corrupted field layout, causing a fatal error.
+- Fixed Repeater/Group fields not working correctly when used as variables for email notifications.
+- Fixed status dropdown when editing submissions.
+- Fixed submissions chart in the control panel.
+- Fixed a front-end error when including instructions with Checkboxes fields.
+- Fixed an error when creating a form from an outdated stencil.
+- Fixed an error when creating new Table fields.
+- Fixed an error when bulk-adding content to Checkboxes/Dropdown/Radio fields.
+- Fixed auto-focusing on the field name setting when editing a field in the form builder.
+- Fixed Group/Repeater nested fields not exporting correctly.
+
 ## 2.0.1 - 2022-07-12
 
 ### Added
