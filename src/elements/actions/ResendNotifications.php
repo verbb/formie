@@ -25,9 +25,7 @@ class ResendNotifications extends ElementAction
     {
         $type = Json::encode(static::class);
 
-        Craft::$app->getView()->registerJs('new Craft.Formie.BulkResendElementAction(' .
-            $type .
-            ');');
+        Craft::$app->getView()->registerJs('new Craft.Formie.BulkResendElementAction(' . $type . ');');
 
         return null;
     }
