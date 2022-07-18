@@ -1,6 +1,8 @@
 <?php
 namespace verbb\formie\elements\exporters;
 
+use verbb\formie\events\ModifySubmissionExportDataEvent;
+
 use Craft;
 use craft\base\EagerLoadingFieldInterface;
 use craft\base\ElementExporter;
@@ -9,6 +11,12 @@ use craft\elements\db\ElementQueryInterface;
 
 class SubmissionExport extends ElementExporter
 {
+    // Constants
+    // =========================================================================
+
+    public const EVENT_MODIFY_EXPORT_DATA = 'modifyExportData';
+    
+
     // Static Methods
     // =========================================================================
 
@@ -135,8 +143,16 @@ class SubmissionExport extends ElementExporter
         //     return $csvData;
         // }
 
-        return array_map(function($item) use ($template) {
+        $exportData = array_map(function($item) use ($template) {
             return array_merge($template, $item);
         }, $data);
+
+        $event = new ModifySubmissionExportDataEvent([
+            'data' => $exportData,
+            'query' => $query,
+        ]);
+        $this->trigger(self::EVENT_MODIFY_EXPORT_DATA, $event);
+
+        return $event->data;
     }
 }

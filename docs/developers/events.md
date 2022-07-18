@@ -359,6 +359,22 @@ Event::on(SubmissionsController::class, SubmissionsController::EVENT_AFTER_SUBMI
 });
 ```
 
+### The `modifyExportData` event
+The event that is triggered when preparing submission(s) to be exported.
+
+Modify the `data` event property to change the export data.
+
+```php
+use verbb\formie\elements\exporters\SubmissionExport;
+use verbb\formie\events\ModifySubmissionExportDataEvent;
+use yii\base\Event;
+
+Event::on(SubmissionExport::class, SubmissionExport::EVENT_MODIFY_EXPORT_DATA, function(ModifySubmissionExportDataEvent $event) {
+    $data = $event->data;
+    $query = $event->query;
+});
+```
+
 
 ## Spam Events
 
