@@ -248,7 +248,7 @@ class User extends Element
                 return false;
             }
 
-            if (!Craft::$app->getElements()->saveElement($user)) {
+            if (!Craft::$app->getElements()->saveElement($user, true, true, $this->updateSearchIndexes)) {
                 Integration::error($this, Craft::t('formie', 'Unable to save “{type}” element integration. Error: {error}.', [
                     'type' => $this->handle,
                     'error' => Json::encode($user->getErrors()),

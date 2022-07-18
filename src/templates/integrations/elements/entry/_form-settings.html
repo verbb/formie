@@ -110,3 +110,13 @@
         :rows="{{ integration.getUpdateAttributes() | json_encode }}"
     ></integration-field-mapping>
 </div>
+
+{% set updateSearchIndexes = form.settings.integrations[handle].updateSearchIndexes ?? true %}
+
+{{ forms.lightswitchField({
+    label: 'Update Search Index' | t('formie'),
+    instructions: 'Whether this integration should update the search indexes to include content for this element. ' | t('formie'),
+    id: 'updateSearchIndexes',
+    name: 'updateSearchIndexes',
+    on: updateSearchIndexes,
+}) }}
