@@ -155,6 +155,10 @@
     }) }}
 </div>
 
+<div id="settings-v3" class="field {% if type != 'v3' %}hidden{% endif %}">
+    <p class="warning with-icon">{{ 'Looking to hide the badge? Refer to the [reCAPTCHA FAQ](https://developers.google.com/recaptcha/docs/faq#id-like-to-hide-the-recaptcha-badge.-what-is-allowed) to achieve this.' | t('formie') | md(inlineOnly=true) }}</p>
+</div>
+
 {{ forms.selectField({
     label: 'Language' | t('formie'),
     instructions: 'Force a specific language when displaying reCAPTCHA. Choose "Auto" for Formie to automatically match your site’s language.' | t('formie'),
