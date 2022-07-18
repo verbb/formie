@@ -287,6 +287,19 @@ Event::on(Submission::class, Submission::EVENT_AFTER_DELETE, function(Event $eve
 });
 ```
 
+### The `afterPruneSubmission` event
+The event that is triggered after a submission is pruned (permanantly deleted) according to the data retention rules for the form.
+
+```php
+use verbb\formie\events\PruneSubmissionEvent;
+use verbb\formie\services\Submissions;
+use yii\base\Event;
+
+Event::on(Submissions::class, Submissions::EVENT_AFTER_PRUNE_SUBMISSION, function(PruneSubmissionEvent $event) {
+    $submission = $event->submission;
+});
+```
+
 ### The `beforeSendNotification` event
 The event that is triggered before an email notification is sent.
 

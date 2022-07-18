@@ -7,6 +7,7 @@ use verbb\formie\controllers\SubmissionsController;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\elements\db\NestedFieldRowQuery;
+use verbb\formie\events\PruneSubmissionEvent;
 use verbb\formie\events\SendNotificationEvent;
 use verbb\formie\events\SubmissionEvent;
 use verbb\formie\events\SubmissionSpamCheckEvent;
@@ -60,6 +61,7 @@ class Submissions extends Component
     public const EVENT_AFTER_SPAM_CHECK = 'afterSpamCheck';
     public const EVENT_BEFORE_SEND_NOTIFICATION = 'beforeSendNotification';
     public const EVENT_BEFORE_TRIGGER_INTEGRATION = 'beforeTriggerIntegration';
+    public const EVENT_AFTER_PRUNE_SUBMISSION = 'afterPruneSubmission';
 
 
     // Public Methods
@@ -445,6 +447,11 @@ class Submissions extends Component
             foreach ($submissions as $submission) {
                 try {
                     Craft::$app->getElements()->deleteElement($submission, true);
+
+                    $event = new PruneSubmissionEvent([
+                        'submission' => $submission,
+                    ]);
+                    $this->trigger(self::EVENT_AFTER_PRUNE_SUBMISSION, $event);
 
                     if ($consoleInstance) {
                         $consoleInstance->stdout("Pruned submission with ID: #{$submission->id}." . PHP_EOL, Console::FG_GREEN);
