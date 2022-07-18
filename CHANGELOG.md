@@ -157,6 +157,15 @@
 - Removed `forms`, `form` and `formCount` from GraphQL queries. Please use `formieForms`, `formieForm` and `formieFormCount`.
 - Removed `submissions`, `submission` and `submissionCount` from GraphQL queries. Please use `formieSubmissions`, `formieSubmission` and `formieSubmissionCount`.
 
+## 1.6.4 - 2022-07-18
+
+### Changed
+- Make “Upload Location” setting full-width for File Upload fields in the control panel.
+
+### Fixed
+- Fix an error when Repeater fields’ JS wasn’t initialized for some fields in the control panel when editing a submission.
+- Fix an error with server-side errors not being placed correctly when rendering multiple forms.
+
 ## 1.6.3 - 2022-07-11
 
 ### Changed

@@ -1,9 +1,11 @@
 {% extends 'formie/_formfields/field' %}
 
+{% set id = 'formie-repeater-' ~ random() %}
+
 {% block field %}
 
 {% namespace field.handle %}
-    <div class="fui-repeater-rows" data-repeater-rows>
+    <div id="{{ id }}" class="fui-repeater-rows" data-repeater-rows>
         {% for row in value.all() %}
             {% include 'formie/_formfields/repeater/fields' with {
                 element: row,
@@ -31,3 +33,26 @@
 {% endnamespace %}
 
 {% endblock %}
+
+{# Ensure we initialize any JS in repeater blocks, like element fields. Only for the CP. #}
+{% if footHtml is defined %}
+    {% js %}
+
+    var $repeaterRows = document.querySelector('#fields-{{ field.handle }}-{{ id }}');
+
+    if ($repeaterRows) {
+        var $repeaterField = $repeaterRows.parentNode;
+
+        if ($repeaterField) {
+            $repeaterField.addEventListener('append', function(e) {
+                var id = 'new' + e.detail.repeater.getNumRows();
+                var js = '{{ footHtml | e('js') }}'.replace(/__ROW__/g, id);
+                
+                Craft.appendFootHtml(js);
+                Craft.initUiElements($repeaterField);
+            });
+        }
+    }
+
+    {% endjs %}
+{% endif %}

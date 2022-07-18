@@ -106,6 +106,7 @@ export class FormieRepeater {
                 const event = new CustomEvent('append', {
                     bubbles: true,
                     detail: {
+                        repeater: this,
                         row: $newRow,
                         form: this.$form,
                     },

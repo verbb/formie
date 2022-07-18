@@ -332,7 +332,7 @@ class FileUpload extends CraftAssets implements FormFieldInterface
                     [
                         '$el' => 'div',
                         'attrs' => [
-                            'class' => 'flex',
+                            'class' => 'flex flex-nowrap',
                         ],
                         'children' => [
                             SchemaHelper::selectField([
@@ -341,7 +341,8 @@ class FileUpload extends CraftAssets implements FormFieldInterface
                             ]),
                             SchemaHelper::textField([
                                 'name' => 'uploadLocationSubpath',
-                                'class' => 'text flex-grow',
+                                'class' => 'text flex-grow fullwidth',
+                                'outerClass' => 'flex-grow',
                                 'placeholder' => 'path/to/subfolder',
                             ]),
                         ],
