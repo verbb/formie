@@ -8,6 +8,7 @@ export class FormieRecaptchaV2Invisible {
         this.siteKey = settings.siteKey;
         this.badge = settings.badge;
         this.language = settings.language;
+        this.loadingMethod = settings.loadingMethod;
         this.recaptchaScriptId = 'FORMIE_RECAPTCHA_SCRIPT';
 
         // Fetch and attach the script only once - this is in case there are multiple forms on the page.
@@ -16,8 +17,14 @@ export class FormieRecaptchaV2Invisible {
             const $script = document.createElement('script');
             $script.id = this.recaptchaScriptId;
             $script.src = `https://www.recaptcha.net/recaptcha/api.js?onload=formieRecaptchaOnLoadCallback&render=explicit&hl=${this.language}`;
-            $script.async = true;
-            $script.defer = true;
+
+            if (this.loadingMethod === 'async' || this.loadingMethod === 'asyncDefer') {
+                $script.async = true;
+            }
+
+            if (this.loadingMethod === 'defer' || this.loadingMethod === 'asyncDefer') {
+                $script.defer = true;
+            }
 
             document.body.appendChild($script);
         }

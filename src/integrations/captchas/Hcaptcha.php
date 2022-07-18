@@ -23,6 +23,7 @@ class Hcaptcha extends Captcha
     public string $theme = 'light';
     public string $language = 'en';
     public float $minScore = 0.5;
+    public string $scriptLoadingMethod = 'asyncDefer';
 
 
     // Public Methods
@@ -81,6 +82,7 @@ class Hcaptcha extends Captcha
             'language' => $this->_getMatchedLanguageId() ?? 'en',
             'submitMethod' => $form->settings->submitMethod ?? 'page-reload',
             'hasMultiplePages' => $form->hasMultiplePages() ?? false,
+            'loadingMethod' => $this->scriptLoadingMethod,
         ];
 
         $src = Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/captchas/hcaptcha.js', true);

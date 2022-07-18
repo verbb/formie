@@ -9,6 +9,7 @@ export class FormieRecaptchaV2Checkbox {
         this.theme = settings.theme;
         this.size = settings.size;
         this.language = settings.language;
+        this.loadingMethod = settings.loadingMethod;
         this.recaptchaScriptId = 'FORMIE_RECAPTCHA_SCRIPT';
         this.errorMessageClass = 'fui-error-message';
 
@@ -18,8 +19,14 @@ export class FormieRecaptchaV2Checkbox {
             const $script = document.createElement('script');
             $script.id = this.recaptchaScriptId;
             $script.src = `https://www.recaptcha.net/recaptcha/api.js?onload=formieRecaptchaOnLoadCallback&render=explicit&hl=${this.language}`;
-            $script.async = true;
-            $script.defer = true;
+
+            if (this.loadingMethod === 'async' || this.loadingMethod === 'asyncDefer') {
+                $script.async = true;
+            }
+
+            if (this.loadingMethod === 'defer' || this.loadingMethod === 'asyncDefer') {
+                $script.defer = true;
+            }
 
             document.body.appendChild($script);
         }

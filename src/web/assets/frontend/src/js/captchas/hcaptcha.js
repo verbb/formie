@@ -8,6 +8,7 @@ export class FormieHcaptcha {
         this.siteKey = settings.siteKey;
         this.size = settings.size;
         this.language = settings.language;
+        this.loadingMethod = settings.loadingMethod;
         this.hCaptchaScriptId = 'FORMIE_HCAPTCHA_SCRIPT';
 
         // Fetch and attach the script only once - this is in case there are multiple forms on the page.
@@ -16,8 +17,14 @@ export class FormieHcaptcha {
             const $script = document.createElement('script');
             $script.id = this.hCaptchaScriptId;
             $script.src = `https://js.hcaptcha.com/1/api.js?onload=formieRecaptchaOnLoadCallback&render=explicit&hl=${this.language}`;
-            $script.async = true;
-            $script.defer = true;
+
+            if (this.loadingMethod === 'async' || this.loadingMethod === 'asyncDefer') {
+                $script.async = true;
+            }
+
+            if (this.loadingMethod === 'defer' || this.loadingMethod === 'asyncDefer') {
+                $script.defer = true;
+            }
 
             document.body.appendChild($script);
         }

@@ -35,6 +35,7 @@ class Recaptcha extends Captcha
     public string $language = 'en';
     public float $minScore = 0.5;
     public ?string $projectId = null;
+    public string $scriptLoadingMethod = 'asyncDefer';
 
 
     // Public Methods
@@ -94,6 +95,7 @@ class Recaptcha extends Captcha
             'language' => $this->_getMatchedLanguageId() ?? 'en',
             'submitMethod' => $form->settings->submitMethod ?? 'page-reload',
             'hasMultiplePages' => $form->hasMultiplePages() ?? false,
+            'loadingMethod' => $this->scriptLoadingMethod,
         ];
 
         if ($this->type === self::RECAPTCHA_TYPE_ENTERPRISE) {
