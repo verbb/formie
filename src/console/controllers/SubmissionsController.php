@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\console\controllers;
 
+use verbb\formie\Formie;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 
@@ -38,6 +39,21 @@ class SubmissionsController extends Controller
      */
     public bool $incompleteOnly = false;
 
+    /**
+     * @var int|null The submission ID(s) to use data for. Can be set to multiple comma-separated IDs.
+     */
+    public ?int $submissionId = null;
+
+    /**
+     * @var string|null The handle of the integration to trigger.
+     */
+    public ?string $integration = null;
+
+    /**
+     * @var int|null The ID of the notification to trigger.
+     */
+    public ?int $notificationId = null;
+
 
     // Public Methods
     // =========================================================================
@@ -54,6 +70,16 @@ class SubmissionsController extends Controller
             $options[] = 'formHandle';
             $options[] = 'spamOnly';
             $options[] = 'incompleteOnly';
+        }
+
+        if ($actionID === 'run-integration') {
+            $options[] = 'submissionId';
+            $options[] = 'integration';
+        }
+
+        if ($actionID === 'send-notification') {
+            $options[] = 'submissionId';
+            $options[] = 'notificationId';
         }
 
         return $options;
@@ -126,6 +152,104 @@ class SubmissionsController extends Controller
 
                 $this->stdout("Deleted submission #{$element->id} ..." . PHP_EOL, Console::FG_GREEN);
             }
+        }
+
+        return ExitCode::OK;
+    }
+
+    /**
+     * Triggers an integration for a submission
+     *
+     * @return int
+     * @throws Throwable
+     */
+    public function actionRunIntegration(): int
+    {
+        if (!$this->submissionId) {
+            $this->stderr('You must provide an --submission-id option.' . PHP_EOL, Console::FG_RED);
+
+            return ExitCode::UNSPECIFIED_ERROR;
+        }
+
+        if (!$this->integration) {
+            $this->stderr('You must provide an --integration option.' . PHP_EOL, Console::FG_RED);
+
+            return ExitCode::UNSPECIFIED_ERROR;
+        }
+
+        $integration = Formie::$plugin->getIntegrations()->getIntegrationByHandle($this->integration);
+
+        if (!$integration) {
+            $this->stderr('Unable to find matching integration.' . PHP_EOL, Console::FG_RED);
+
+            return ExitCode::UNSPECIFIED_ERROR;
+        }
+
+        if (!$integration->supportsPayloadSending()) {
+            $this->stderr('Integration does not support payload sending.' . PHP_EOL, Console::FG_RED);
+
+            return ExitCode::UNSPECIFIED_ERROR;
+        }
+
+        $submissionIds = explode(',', $this->submissionId);
+        $submissions = Submission::find()->id($submissionIds)->all();
+
+        if (!$submissions) {
+            $this->stderr('Unable to find any matching submissions.' . PHP_EOL, Console::FG_RED);
+
+            return ExitCode::UNSPECIFIED_ERROR;
+        }
+
+        foreach ($submissions as $submission) {
+            Formie::$plugin->getSubmissions()->sendIntegrationPayload($integration, $submission);
+
+            $this->stdout("Triggered integration for submission #{$submission->id} ..." . PHP_EOL, Console::FG_GREEN);
+        }
+
+        return ExitCode::OK;
+    }
+
+    /**
+     * Sends a noification for a submission
+     *
+     * @return int
+     * @throws Throwable
+     */
+    public function actionSendNotification(): int
+    {
+        if (!$this->submissionId) {
+            $this->stderr('You must provide an --submission-id option.' . PHP_EOL, Console::FG_RED);
+
+            return ExitCode::UNSPECIFIED_ERROR;
+        }
+
+        if (!$this->notificationId) {
+            $this->stderr('You must provide an --notification option.' . PHP_EOL, Console::FG_RED);
+
+            return ExitCode::UNSPECIFIED_ERROR;
+        }
+
+        $notification = Formie::$plugin->getNotifications()->getNotificationById($this->notificationId);
+
+        if (!$notification) {
+            $this->stderr('Unable to find matching notification.' . PHP_EOL, Console::FG_RED);
+
+            return ExitCode::UNSPECIFIED_ERROR;
+        }
+
+        $submissionIds = explode(',', $this->submissionId);
+        $submissions = Submission::find()->id($submissionIds)->all();
+
+        if (!$submissions) {
+            $this->stderr('Unable to find any matching submissions.' . PHP_EOL, Console::FG_RED);
+
+            return ExitCode::UNSPECIFIED_ERROR;
+        }
+
+        foreach ($submissions as $submission) {
+            Formie::$plugin->getSubmissions()->sendNotificationEmail($notification, $submission);
+
+            $this->stdout("Sent notification for submission #{$submission->id} ..." . PHP_EOL, Console::FG_GREEN);
         }
 
         return ExitCode::OK;
