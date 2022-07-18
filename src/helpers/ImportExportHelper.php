@@ -128,6 +128,14 @@ class ImportExportHelper
 
         $data['pages'] = $pages;
 
+        // Also save any custom fields' content
+        if ($fieldLayout = $formElement->getFieldLayout()) {
+            foreach ($formElement->getFieldLayout()->getCustomFields() as $customField) {
+                $fieldValue = $formElement->getFieldValue($customField->handle);
+                $data['customFields'][$customField->handle] = $customField->serializeValue($fieldValue, $formElement);
+            }
+        }
+
         return $data;
     }
 
@@ -160,6 +168,11 @@ class ImportExportHelper
 
         // Handle base form
         $form->setAttributes($data, false);
+
+        // Handle any custom field
+        $customFields = $data['customFields'] ?? [];
+
+        $form->setFieldValues($customFields);
 
         // Handle form settings
         $form->settings = new FormSettings();
