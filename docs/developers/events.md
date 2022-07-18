@@ -802,6 +802,33 @@ Event::on(Date::class, Date::EVENT_MODIFY_TIME_FORMAT, function(ModifyDateTimeFo
 });
 ```
 
+### The `registerDateFormatOptions` event
+The event that is triggered to register the available options to select for date formatting.
+
+```php
+use verbb\formie\events\RegisterDateTimeFormatOpionsEvent;
+use verbb\formie\fields\formfields\Date;
+use yii\base\Event;
+
+Event::on(Date::class, Date::EVENT_REGISTER_DATE_FORMAT_OPTIONS, function(RegisterDateTimeFormatOpionsEvent $event) {
+    $event->options[] = ['label' => 'Standard Formatting', 'value' => 'Y-m-d'];
+});
+```
+```
+
+### The `registerTimeFormatOptions` event
+The event that is triggered to register the available options to select for time formatting.
+
+```php
+use verbb\formie\events\RegisterDateTimeFormatOpionsEvent;
+use verbb\formie\fields\formfields\Date;
+use yii\base\Event;
+
+Event::on(Date::class, Date::EVENT_REGISTER_TIME_FORMAT_OPTIONS, function(RegisterDateTimeFormatOpionsEvent $event) {
+    $event->options[] = ['label' => 'Standard Formatting', 'value' => 'H:i:s'];
+});
+```
+
 ### The `modifyFrontEndSubfields` event
 The event that is triggered to modify the front-end subfields for the field.
 

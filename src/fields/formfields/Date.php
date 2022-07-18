@@ -7,6 +7,7 @@ use verbb\formie\base\FormFieldInterface;
 use verbb\formie\base\SubfieldInterface;
 use verbb\formie\base\SubfieldTrait;
 use verbb\formie\events\ModifyDateTimeFormatEvent;
+use verbb\formie\events\RegisterDateTimeFormatOpionsEvent;
 use verbb\formie\events\ModifyFrontEndSubfieldsEvent;
 use verbb\formie\gql\types\generators\FieldAttributeGenerator;
 use verbb\formie\helpers\SchemaHelper;
@@ -39,6 +40,8 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
     public const EVENT_MODIFY_FRONT_END_SUBFIELDS = 'modifyFrontEndSubfields';
     public const EVENT_MODIFY_DATE_FORMAT = 'modifyDateFormat';
     public const EVENT_MODIFY_TIME_FORMAT = 'modifyTimeFormat';
+    public const EVENT_REGISTER_DATE_FORMAT_OPTIONS = 'registerDateFormatOptions';
+    public const EVENT_REGISTER_TIME_FORMAT_OPTIONS = 'registerTimeFormatOptions';
 
 
     // Traits
@@ -824,30 +827,14 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
                 'help' => Craft::t('formie', 'Select what format to present dates as.'),
                 'name' => 'dateFormat',
                 'if' => '$get(includeDate).value',
-                'options' => [
-                    ['label' => 'YYYY-MM-DD', 'value' => 'Y-m-d'],
-                    ['label' => 'MM-DD-YYYY', 'value' => 'm-d-Y'],
-                    ['label' => 'DD-MM-YYYY', 'value' => 'd-m-Y'],
-                    ['label' => 'YYYY/MM/DD', 'value' => 'Y/m/d'],
-                    ['label' => 'MM/DD/YYYY', 'value' => 'm/d/Y'],
-                    ['label' => 'DD/MM/YYYY', 'value' => 'd/m/Y'],
-                    ['label' => 'YYYY.MM.DD', 'value' => 'Y.m.d'],
-                    ['label' => 'MM.DD.YYYY', 'value' => 'm.d.Y'],
-                    ['label' => 'DD.MM.YYYY', 'value' => 'd.m.Y'],
-                ],
+                'options' => $this->_getDateFormatOptions(),
             ]),
             SchemaHelper::selectField([
                 'label' => Craft::t('formie', 'Time Format'),
                 'help' => Craft::t('formie', 'Select what format to present dates as.'),
                 'name' => 'timeFormat',
                 'if' => '$get(includeTime).value',
-                'options' => [
-                    ['label' => '23:59:59 (HH:MM:SS)', 'value' => 'H:i:s'],
-                    ['label' => '03:59:59 PM (H:MM:SS AM/PM)', 'value' => 'h:i:s A'],
-                    ['label' => '23:59 (HH:MM)', 'value' => 'H:i'],
-                    ['label' => '03:59 PM (H:MM AM/PM)', 'value' => 'h:i A'],
-                    ['label' => '59:59 (MM:SS)', 'value' => 'i:s'],
-                ],
+                'options' => $this->_getTimeFormatOptions(),
             ]),
             SchemaHelper::instructions(),
             SchemaHelper::instructionsPosition($this),
@@ -1109,5 +1096,47 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
         }
 
         return $options;
+    }
+
+    private function _getDateFormatOptions(): array
+    {
+        $options = [
+            ['label' => 'YYYY-MM-DD', 'value' => 'Y-m-d'],
+            ['label' => 'MM-DD-YYYY', 'value' => 'm-d-Y'],
+            ['label' => 'DD-MM-YYYY', 'value' => 'd-m-Y'],
+            ['label' => 'YYYY/MM/DD', 'value' => 'Y/m/d'],
+            ['label' => 'MM/DD/YYYY', 'value' => 'm/d/Y'],
+            ['label' => 'DD/MM/YYYY', 'value' => 'd/m/Y'],
+            ['label' => 'YYYY.MM.DD', 'value' => 'Y.m.d'],
+            ['label' => 'MM.DD.YYYY', 'value' => 'm.d.Y'],
+            ['label' => 'DD.MM.YYYY', 'value' => 'd.m.Y'],
+        ];
+
+        $event = new RegisterDateTimeFormatOpionsEvent([
+            'field' => $this,
+            'options' => $options,
+        ]);
+        $this->trigger(self::EVENT_REGISTER_DATE_FORMAT_OPTIONS, $event);
+
+        return $event->options;
+    }
+
+    private function _getTimeFormatOptions(): array
+    {
+        $options = [
+            ['label' => '23:59:59 (HH:MM:SS)', 'value' => 'H:i:s'],
+            ['label' => '03:59:59 PM (H:MM:SS AM/PM)', 'value' => 'h:i:s A'],
+            ['label' => '23:59 (HH:MM)', 'value' => 'H:i'],
+            ['label' => '03:59 PM (H:MM AM/PM)', 'value' => 'h:i A'],
+            ['label' => '59:59 (MM:SS)', 'value' => 'i:s'],
+        ];
+
+        $event = new RegisterDateTimeFormatOpionsEvent([
+            'field' => $this,
+            'options' => $options,
+        ]);
+        $this->trigger(self::EVENT_REGISTER_TIME_FORMAT_OPTIONS, $event);
+
+        return $event->options;
     }
 }
