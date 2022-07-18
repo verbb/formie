@@ -5,6 +5,7 @@ use verbb\formie\Formie;
 use verbb\formie\base\FormFieldInterface;
 use verbb\formie\base\NestedFieldInterface;
 use verbb\formie\behaviors\FieldLayoutBehavior;
+use verbb\formie\elements\actions\DuplicateForm;
 use verbb\formie\elements\db\FormQuery;
 use verbb\formie\events\ModifyFormHtmlTagEvent;
 use verbb\formie\gql\interfaces\FieldInterface;
@@ -168,26 +169,26 @@ class Form extends Element
      */
     protected static function defineActions(string $source = null): array
     {
-        $elementsService = Craft::$app->getElements();
-
-        $actions = parent::defineActions($source);
+        $actions = [];
 
         $canDeleteForms = Craft::$app->getUser()->checkPermission('formie-deleteForms');
 
+        $actions[] = DuplicateForm::class;
+
         if ($canDeleteForms) {
-            $actions[] = $elementsService->createAction([
+            $actions[] = [
                 'type' => Delete::class,
                 'confirmationMessage' => Craft::t('formie', 'Are you sure you want to delete the selected forms?'),
                 'successMessage' => Craft::t('formie', 'Forms deleted.'),
-            ]);
+            ];
         }
 
-        $actions[] = Craft::$app->elements->createAction([
+        $actions[] = [
             'type' => Restore::class,
             'successMessage' => Craft::t('formie', 'Forms restored.'),
             'partialSuccessMessage' => Craft::t('formie', 'Some forms restored.'),
             'failMessage' => Craft::t('formie', 'Forms not restored.'),
-        ]);
+        ];
 
         return $actions;
     }
