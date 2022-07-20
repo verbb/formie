@@ -1,5 +1,21 @@
 # Changelog
 
+## 2.0.3 - 2022-07-20
+
+### Added
+- Added “Update Search Index” setting for Element integrations, to control wheher search indexes should be updated. Default to `true`.
+- Added “Duplicate” form action in the control panel.
+- Added `Submissions::EVENT_AFTER_PRUNE_SUBMISSION` event.
+- Added ability to set the `async` and `defer` parameters on `<script>` elements for reCAPTCHA and hCaptcha captchas.
+- Added hidden reCAPTCHA note to settings.
+- Added support for exporting/importing custom field content on forms.
+- Added `formie/submissions/run-integration` and `formie/submissions/send-notification` console commands.
+- Added `Date::EVENT_REGISTER_DATE_FORMAT_OPTIONS` and `Date::EVENT_REGISTER_TIME_FORMAT_OPTIONS` events to modify the available formatting options for Date fields.
+- Added `SubmissionExport::EVENT_MODIFY_EXPORT_DATA` event to modify data used for submission export.
+
+### Fixed
+- Fixed an infinite loop error when Agree fields containing a link with a reference to an element was used in a form.
+
 ## 2.0.2 - 2022-07-18
 
 ### Added
