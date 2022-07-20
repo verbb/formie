@@ -44,20 +44,44 @@ class Agree extends FormField implements PreviewableFieldInterface
     // =========================================================================
 
     public ?array $description = null;
-    public ?string $descriptionHtml = null;
     public ?string $checkedValue = null;
     public ?string $uncheckedValue = null;
+
+    // Private due to parsing done at render-time, not before
+    private ?string $_descriptionHtml = null;
 
 
     // Public Methods
     // =========================================================================
 
-    public function init(): void
+    /**
+     * @inheritDoc
+     */
+    public function __construct(array $config = [])
     {
-        parent::init();
+        // Moved to a private variable in 2.0.3 due to infinite loop issue. TODO: remove at next breakpoint
+        if (isset($config['descriptionHtml'])) {
+            unset($config['descriptionHtml']);
+        }
 
-        // Set the rendered value of the description rich text
-        $this->descriptionHtml = $this->_getHtmlContent($this->description);
+        parent::__construct($config);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function attributes()
+    {
+        $names = parent::attributes();
+        
+        // Define `descriptionHtml` as an extra attribute, rather than a property.
+        // It's not a public property to ensure it's not saved to the field settings. 
+        // Without this, `setDescriptionHtml()` would not be called, and this settings could not be manipulated
+        // from the front-end `setFieldSettings()`. We also cannot set this value in `init()` due to when containing a Link mark
+        // `parseRefTags()` causes an infinite loop.
+        $names[] = 'descriptionHtml';
+
+        return $names;
     }
 
     /**
@@ -87,7 +111,17 @@ class Agree extends FormField implements PreviewableFieldInterface
 
     public function getDescriptionHtml(): Markup
     {
-        return Template::raw(Craft::t('formie', (string)$this->descriptionHtml));
+        // Allow the HTML to be overridden in templates with `setFieldSettings()`.
+        if (!$this->_descriptionHtml) {
+            $this->_descriptionHtml = $this->_getHtmlContent($this->description);
+        }
+
+        return Template::raw(Craft::t('formie', (string)$this->_descriptionHtml));
+    }
+
+    public function setDescriptionHtml($value)
+    {
+        $this->_descriptionHtml = $value;
     }
 
     public function getDefaultState(): ?string
