@@ -3,7 +3,7 @@
 ## 2.0.3 - 2022-07-20
 
 ### Added
-- Added “Update Search Index” setting for Element integrations, to control wheher search indexes should be updated. Default to `true`.
+- Added “Update Search Index” setting for Element integrations, to control whether search indexes should be updated. Default to `true`.
 - Added “Duplicate” form action in the control panel.
 - Added `Submissions::EVENT_AFTER_PRUNE_SUBMISSION` event.
 - Added ability to set the `async` and `defer` parameters on `<script>` elements for reCAPTCHA and hCaptcha captchas.
