@@ -76,7 +76,7 @@
     document.addEventListener('vite-script-loaded', function(e) {
         if (e.detail.path === 'src/js/formie-form.js') {
             new Craft.Formie.EditForm({
-                isStencil: {{ stencil is defined ? 1 : 0 }},
+                isStencil: true,
                 config: {{ formConfig | json_encode | raw }},
                 fields: {{ fields | json_encode | raw }},
                 notifications: {{ notifications | json_encode | raw }},
