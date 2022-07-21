@@ -13,19 +13,3 @@
         </div>
     </div>
 </form-builder>
-
-{% js %}
-    new Craft.Formie.EditForm({
-        isStencil: {{ stencil is defined ? 1 : 0 }},
-        config: {{ formConfig | json_encode | raw }},
-        fields: {{ fields | json_encode | raw }},
-        notifications: {{ notifications | json_encode | raw }},
-        variables: {{ variables | json_encode | raw }},
-        emailTemplates: {{ emailTemplates | json_encode | raw }},
-        reservedHandles: {{ reservedHandles | json_encode | raw }},
-        formHandles: {{ formHandles | json_encode | raw }},
-        statuses: {{ craft.formie.statuses | json_encode | raw }},
-        maxFormHandleLength: {{ maxFormHandleLength | json_encode | raw }},
-        maxFieldHandleLength: {{ maxFieldHandleLength | json_encode | raw }},
-    });
-{% endjs %}

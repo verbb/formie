@@ -175,6 +175,7 @@
             id: 'submitActionTab',
             name: 'settings[submitActionTab]',
             disabled: (submitAction == 'entry') ? false : true,
+            disabled: (submitAction == 'entry' or submitAction == 'url') ? false : true,
             options: [{
                 label: 'Redirect on the same tab' | t('formie'),
                 value: 'same-tab',
@@ -202,6 +203,7 @@
             id: 'submitActionTab',
             name: 'settings[submitActionTab]',
             disabled: (submitAction == 'url') ? false : true,
+            disabled: (submitAction == 'entry' or submitAction == 'url') ? false : true,
             options: [{
                 label: 'Redirect on the same tab' | t('formie'),
                 value: 'same-tab',
