@@ -106,6 +106,8 @@ class Campaign extends EmailMarketing
                     Integration::error($this, Craft::t('formie', 'Unable to save contact: “{errors}”.', [
                         'errors' => Json::encode($contact->getErrors()),
                     ]), true);
+                    
+                    return false;
                 }
             } 
             // TODO: remove this in Formie v3, assuming it requires Craft 5, in which case Campaign v3 will be required.
