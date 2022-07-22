@@ -98,48 +98,61 @@ class Campaign extends EmailMarketing
             // Pull out email, as it needs to be top level
             $email = ArrayHelper::remove($fieldValues, 'email');
 
-            // Get the Campaign contact
-            $contact = CampaignPlugin::$plugin->contacts->getContactByEmail($email);
-
-            if ($contact === null) {
-                $contact = new ContactElement();
-            }
-
-            // Set field values
-            $contact->email = $email;
-            $contact->setFieldValues($fieldValues);
-
-            // If subscribe verification required
-            if ($list->getMailingListType()->subscribeVerificationRequired) {
-                // Create a pending contact
-                $pendingContact = new PendingContactModel();
-                $pendingContact->email = $email;
-                $pendingContact->mailingListId = $list->id;
-                $pendingContact->source = $this->referrer;
-                $pendingContact->fieldData = $contact->getSerializedFieldValues();
-
-                if (!CampaignPlugin::$plugin->pendingContacts->savePendingContact($pendingContact)) {
-                    Integration::error($this, Craft::t('formie', 'Unable to save pending contact: “{errors}”.', [
-                        'errors' => Json::encode($pendingContact->getErrors()),
-                    ]), true);
-
-                    return false;
-                }
-
-                CampaignPlugin::$plugin->forms->sendVerifySubscribeEmail($pendingContact, $list);
-            } else {
-                // Save contact
-                if (!Craft::$app->getElements()->saveElement($contact)) {
+            // The `createAndSubscribeContact` method was added in Campaign v2.1.0.
+            if (method_exists(Campaign::$plugin->forms, 'createAndSubscribeContact')) {
+                $contact = Campaign::$plugin->forms->createAndSubscribeContact($email, $list, 'formie', $this->referrer);
+                
+                if ($contact->hasErrors()) {
                     Integration::error($this, Craft::t('formie', 'Unable to save contact: “{errors}”.', [
                         'errors' => Json::encode($contact->getErrors()),
                     ]), true);
-
-                    return false;
                 }
-
-                // Subscribe them to the mailing list
-                CampaignPlugin::$plugin->forms->subscribeContact($contact, $list, 'formie', $this->referrer, true);
-            }
+            } 
+            // TODO: remove this in Formie v3, assuming it requires Craft 5, in which case Campaign v3 will be required.
+            else {
+                // Get the Campaign contact
+                $contact = CampaignPlugin::$plugin->contacts->getContactByEmail($email);
+    
+                if ($contact === null) {
+                    $contact = new ContactElement();
+                }
+    
+                // Set field values
+                $contact->email = $email;
+                $contact->setFieldValues($fieldValues);
+    
+                // If subscribe verification required
+                if ($list->getMailingListType()->subscribeVerificationRequired) {
+                    // Create a pending contact
+                    $pendingContact = new PendingContactModel();
+                    $pendingContact->email = $email;
+                    $pendingContact->mailingListId = $list->id;
+                    $pendingContact->source = $this->referrer;
+                    $pendingContact->fieldData = $contact->getSerializedFieldValues();
+    
+                    if (!CampaignPlugin::$plugin->pendingContacts->savePendingContact($pendingContact)) {
+                        Integration::error($this, Craft::t('formie', 'Unable to save pending contact: “{errors}”.', [
+                            'errors' => Json::encode($pendingContact->getErrors()),
+                        ]), true);
+    
+                        return false;
+                    }
+    
+                    CampaignPlugin::$plugin->forms->sendVerifySubscribeEmail($pendingContact, $list);
+                } else {
+                    // Save contact
+                    if (!Craft::$app->getElements()->saveElement($contact)) {
+                        Integration::error($this, Craft::t('formie', 'Unable to save contact: “{errors}”.', [
+                            'errors' => Json::encode($contact->getErrors()),
+                        ]), true);
+    
+                        return false;
+                    }
+    
+                    // Subscribe them to the mailing list
+                    CampaignPlugin::$plugin->forms->subscribeContact($contact, $list, 'formie', $this->referrer);
+                }
+            } 
         } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
