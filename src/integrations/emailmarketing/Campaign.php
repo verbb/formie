@@ -100,7 +100,7 @@ class Campaign extends EmailMarketing
 
             // The `createAndSubscribeContact` method was added in Campaign v2.1.0.
             if (method_exists(Campaign::$plugin->forms, 'createAndSubscribeContact')) {
-                $contact = Campaign::$plugin->forms->createAndSubscribeContact($email, $list, 'formie', $this->referrer);
+                $contact = Campaign::$plugin->forms->createAndSubscribeContact($email, $fieldValues, $list, 'formie', $this->referrer);
                 
                 if ($contact->hasErrors()) {
                     Integration::error($this, Craft::t('formie', 'Unable to save contact: “{errors}”.', [
@@ -117,10 +117,10 @@ class Campaign extends EmailMarketing
     
                 if ($contact === null) {
                     $contact = new ContactElement();
+                    $contact->email = $email;
                 }
     
                 // Set field values
-                $contact->email = $email;
                 $contact->setFieldValues($fieldValues);
     
                 // If subscribe verification required
