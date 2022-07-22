@@ -238,6 +238,7 @@ class Recipients extends FormField
 
         $config = [
             'options' => $this->getFieldOptions(),
+            'namespace' => $this->getNamespace(),
         ];
 
         foreach ($class->getProperties(ReflectionProperty::IS_PUBLIC) as $property) {

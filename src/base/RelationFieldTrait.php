@@ -203,6 +203,7 @@ trait RelationFieldTrait
         $config = [
             'options' => $this->getFieldOptions(),
             'hasMultiNamespace' => true,
+            'namespace' => $this->getNamespace(),
         ];
 
         // Remove any properties from the `BaseRelationField` class
