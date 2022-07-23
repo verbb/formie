@@ -69,6 +69,11 @@ export default {
         // Prevent rendering slot components too early, as that can slow down the UI
         setTimeout(() => {
             this.mounted = true;
+
+            // Re-bind any jQuery from Craft, which is slightly different due to scoped slots
+            setTimeout(() => {
+                Craft.initUiElements(this.$el.parentNode);
+            }, 50);
         }, 50);
     },
 
