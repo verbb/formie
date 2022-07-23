@@ -57,14 +57,6 @@ abstract class Crm extends Integration implements IntegrationInterface
     {
         $handle = StringHelper::toKebabCase($this->displayName());
 
-        // Don't display anything if we can't edit anything
-        if (!Craft::$app->getConfig()->getGeneral()->allowAdminChanges) {
-            $text = Craft::t('formie', 'Integration settings can only be editable on an environment with `allowAdminChanges` enabled.');
-            $text = Markdown::processParagraph($text);
-
-            return Html::tag('span', $text, ['class' => 'warning with-icon']);
-        }
-
         return Craft::$app->getView()->renderTemplate("formie/integrations/crm/{$handle}/_plugin-settings", [
             'integration' => $this,
         ]);

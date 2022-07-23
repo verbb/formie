@@ -42,6 +42,12 @@
     value: integration.getRedirectUri(),
 }) }}
 
+{% if not craft.app.config.general.allowAdminChanges %}
+    <span class="warning with-icon">
+        {{ 'Integration settings can only be editable on an environment with `allowAdminChanges` enabled.' | t('formie') | md(inlineOnly=true) }}
+    </span>
+{% endif %}
+
 {{ forms.autosuggestField({
     label: 'Consumer Key' | t('formie'),
     instructions: 'Enter your {name} Consumer Key here.' | t('formie', { name: integration.displayName() }),
