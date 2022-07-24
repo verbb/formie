@@ -1,5 +1,16 @@
 # Changelog
 
+## 2.0.4 - 2022-07-25
+
+### Changed
+- Update Campaign plugin to use new `FormsService::createAndSubscribeContact`. (thanks @bencroker).
+
+### Fixed
+- Fix an error when deleting a submission.
+- Fix some UI elements not working correctly for integration form settings.
+- Fix element and Recipients fields’ not passing through a modified namespace.
+- Fix Entry integration “Default Entry Author” element select field not working.
+
 ## 2.0.3 - 2022-07-20
 
 ### Added
