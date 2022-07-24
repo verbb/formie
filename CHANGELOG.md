@@ -173,6 +173,11 @@
 - Removed `forms`, `form` and `formCount` from GraphQL queries. Please use `formieForms`, `formieForm` and `formieFormCount`.
 - Removed `submissions`, `submission` and `submissionCount` from GraphQL queries. Please use `formieSubmissions`, `formieSubmission` and `formieSubmissionCount`.
 
+## 1.6.5 - 2022-07-25
+
+### Fixed
+- Fix `allowAdminChanges` for integration settings hiding instructions.
+
 ## 1.6.4 - 2022-07-18
 
 ### Changed

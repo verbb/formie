@@ -16,6 +16,12 @@
     {{ instructions | t('formie', { name: integration.displayName() }) | md }}
 </div>
 
+{% if not craft.app.config.general.allowAdminChanges %}
+    <span class="warning with-icon">
+        {{ 'Integration settings can only be editable on an environment with `allowAdminChanges` enabled.' | t('formie') | md(inlineOnly=true) }}
+    </span>
+{% endif %}
+
 {{ forms.autosuggestField({
     label: 'API Key' | t('formie'),
     instructions: 'Enter your {name} API key here.' | t('formie', { name: integration.displayName() }),

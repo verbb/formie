@@ -27,6 +27,12 @@
     value: integration.getRedirectUri(),
 }) }}
 
+{% if not craft.app.config.general.allowAdminChanges %}
+    <span class="warning with-icon">
+        {{ 'Integration settings can only be editable on an environment with `allowAdminChanges` enabled.' | t('formie') | md(inlineOnly=true) }}
+    </span>
+{% endif %}
+
 {{ forms.booleanMenuField({
     label: 'Proxy Redirect URI' | t('formie'),
     instructions: 'Whether to proxy the redirect URI through Verbb‘s servers. This should **only** be used for local testing. See [docs](https://verbb.io/craft-plugins/formie/docs/integrations/miscellaneous-integrations#local-testing-proxy) for more.' | t('formie') | md,
