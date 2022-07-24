@@ -1041,7 +1041,7 @@ class Submission extends Element
         // no way to remove that file on hard-delete, so that won't work.
         // See https://github.com/craftcms/cms/issues/5074
         if ($form && $form->fileUploadsAction === 'delete') {
-            foreach ($form->getFields() as $field) {
+            foreach ($form->getCustomFields() as $field) {
                 if ($field instanceof FileUpload) {
                     // Store them now while we still have access to them, to delete in `afterDelete()`
                     $this->_assetsToDelete = $this->getFieldValue($field->handle)->all();
