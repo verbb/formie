@@ -3,7 +3,7 @@
 ## 2.0.4 - 2022-07-25
 
 ### Changed
-- Update Campaign plugin to use new `FormsService::createAndSubscribeContact`. (thanks @bencroker).
+- Update Campaign plugin integration to use new `FormsService::createAndSubscribeContact`. (thanks @bencroker).
 
 ### Fixed
 - Fix an error when deleting a submission.
