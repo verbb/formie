@@ -224,13 +224,13 @@ trait NestedFieldTrait
      *
      * @return FieldInterface[]|null
      */
-    public function getCustomFields(): ?array
+    public function getCustomFields(): array
     {
         if ($fieldLayout = $this->getFieldLayout()) {
-            return $fieldLayout->getCustomFields();
+            return $fieldLayout->getCustomFields() ?? [];
         }
 
-        return null;
+        return [];
     }
 
     /**

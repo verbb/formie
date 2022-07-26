@@ -1,7 +1,10 @@
 <?php
 namespace verbb\formie\elements\actions;
 
+use verbb\formie\Formie;
+use verbb\formie\elements\Form;
 use verbb\formie\helpers\HandleHelper;
+use verbb\formie\models\FieldLayout;
 
 use Craft;
 use craft\base\ElementAction;
@@ -86,12 +89,45 @@ class DuplicateForm extends ElementAction
             }
 
             try {
-                $attributes = [
-                    'title' => $element->title . ' ' . Craft::t('formie', 'Copy'),
-                    'handle' => HandleHelper::getUniqueHandle($formHandles, $element->handle),
-                ];
+                $form = new Form();
+                $form->setAttributes($element->getAttributes(), true);
 
-                $duplicate = $elementsService->duplicateElement($element, $attributes);
+                $form->id = null;
+                $form->uid = null;
+                $form->fieldLayoutId = null;
+                $form->contentId = null;
+                $form->canonicalId = null;
+                $form->dateCreated = null;
+                $form->dateUpdated = null;
+                $form->title = $element->title . ' ' . Craft::t('formie', 'Copy');
+                $form->handle = HandleHelper::getUniqueHandle($formHandles, $element->handle);
+                $form->settings->setForm($form);
+
+                $pagesData = $element->getFormConfig()['pages'];
+
+                $fieldLayout = Formie::$plugin->getForms()->buildFieldLayout($pagesData, Form::class, true);
+                $fieldLayout->id = null;
+
+                $form->setFormFieldLayout($fieldLayout);
+
+                $notifications = [];
+
+                foreach ($element->getNotifications() as $notification) {
+                    $newNotification = clone $notification;
+                    $newNotification->id = null;
+                    $newNotification->formId = null;
+                    $newNotification->uid = null;
+
+                    $notifications[] = $newNotification;
+                }
+
+                $form->setNotifications($notifications);
+
+                $success = Formie::$plugin->getForms()->saveForm($form);
+
+                if (!$success) {
+                    $failCount++;
+                }
             } catch (Throwable) {
                 // Validation error
                 $failCount++;
