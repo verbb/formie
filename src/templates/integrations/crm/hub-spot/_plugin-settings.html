@@ -5,8 +5,17 @@
 ### Step 1. Connect to the {name} API
 1. Go to <a href="https://www.hubspot.com/" target="_blank">{name}</a> and login to your account.
 1. Click on the settings icon on the top-right of the screen.
-1. In the left-hand sidebar menu, click on **Integrations** → **API key**.
-1. Copy the **API Key** from {name} and paste in the **API Key** field below.
+1. In the left-hand sidebar menu, click on **Integrations** → **Private Apps**.
+1. Click the **Create a private app** button.
+1. Fill out the details, and click the **Scopes** tab. Select the following scopes:
+    - `crm.lists.read`
+    - `crm.objects.companies.read`
+    - `crm.objects.contacts.read`
+    - `crm.objects.deals.read`
+    - `forms`
+1. Click the **Create App** button in the top right.
+1. In the dialog box, review the info about your app's access token, then click **Continue creating**.
+1. Copy the **Access Token** from {name} and paste in the **Access Token** field below.
 
 ### Step 2. Test Connection
 1. Save this integration.
@@ -24,12 +33,13 @@
 {% endif %}
 
 {{ forms.autosuggestField({
-    label: 'API Key' | t('formie'),
-    instructions: 'Enter your {name} API key here.' | t('formie', { name: integration.displayName() }),
-    name: 'apiKey',
+    label: 'Access Token' | t('formie'),
+    instructions: 'Enter your {name} Access Token here.' | t('formie', { name: integration.displayName() }),
+    name: 'accessToken',
     required: true,
     suggestEnvVars: true,
-    value: integration.settings.apiKey ?? '',
-    warning: macros.configWarning('apiKey', 'formie'),
-    errors: integration.getErrors('apiKey'),
+    value: integration.settings.accessToken ?? '',
+    warning: macros.configWarning('accessToken', 'formie'),
+    errors: integration.getErrors('accessToken'),
 }) }}
+

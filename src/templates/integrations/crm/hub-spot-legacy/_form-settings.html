@@ -1,0 +1,177 @@
+{% import '_includes/forms' as forms %}
+
+{% set handle = integration.handle %}
+{% set formSettings = integration.getFormSettings().getSettings() %}
+{% set mapToContact = form.settings.integrations[handle].mapToContact ?? '' %}
+{% set mapToDeal = form.settings.integrations[handle].mapToDeal ?? '' %}
+{% set mapToCompany = form.settings.integrations[handle].mapToCompany ?? '' %}
+{% set mapToForm = form.settings.integrations[handle].mapToForm ?? '' %}
+{% set formId = form.settings.integrations[handle].formId ?? '' %}
+
+<field-select
+    label="{{ 'Opt-In Field' | t('formie') }}"
+    instructions="{{ 'Choose a field to opt-in to {name}. For example, you might only wish to record user data if they provide a value for a field of your choice - commonly, an Agree field.' | t('formie', { name: integration.displayName() }) }}"
+    id="opt-in-field"
+    name="optInField"
+    :value="get(form, 'settings.integrations.{{ handle }}.optInField')"
+></field-select>
+
+<hr>
+
+<integration-form-settings handle="{{ handle }}" :form-settings="{{ formSettings | json_encode }}" source="{{ formId }}">
+    <template v-slot="{ get, isEmpty, input, settings, sourceId, loading, refresh, error, errorMessage, getSourceFields }">
+        <div class="field">
+            <button class="btn" :class="{ 'fui-loading fui-loading-sm': loading }" data-icon="refresh" @click.prevent="refresh">{{ 'Refresh Integration' | t('formie') }}</button>
+        </div>
+
+        <div v-if="error" class="error" style="margin-top: 10px;" v-cloak>
+            <span data-icon="alert"></span>
+            <span v-html="errorMessage"></span>
+        </div>
+
+        {{ forms.lightswitchField({
+            label: 'Map to Contact' | t('formie'),
+            instructions: 'Whether to map form data to {name} Contacts.' | t('formie', { name: integration.displayName() }),
+            id: 'mapToContact',
+            name: 'mapToContact',
+            on: mapToContact,
+            toggle: 'map-to-contact',
+        }) }}
+
+        <div id="map-to-contact" class="{{ not mapToContact ? 'hidden' }}">
+            <integration-field-mapping
+                label="{{ 'Contact Field Mapping' | t('formie') }}"
+                instructions="{{ 'Choose how your form fields should map to your {name} Contact fields.' | t('formie', { name: integration.displayName() }) }}"
+                name-label="{{ integration.displayName() }}"
+                id="contact-field-mapping"
+                name="contactFieldMapping"
+                :value="get(form, 'settings.integrations.{{ handle }}.contactFieldMapping')"
+                :rows="get(settings, 'contact')"
+            ></integration-field-mapping>
+
+            <ul v-if="!isEmpty(get(form, 'settings.integrations.{{ handle }}.errors.contactFieldMapping'))" class="errors" v-cloak>
+                <li v-for="(error, index) in get(form, 'settings.integrations.{{ handle }}.errors.contactFieldMapping')" :key="index">
+                    ${ error }
+                </li>
+            </ul>
+        </div>
+
+        {{ forms.lightswitchField({
+            label: 'Map to Deal' | t('formie'),
+            instructions: 'Whether to map form data to {name} Deals.' | t('formie', { name: integration.displayName() }),
+            id: 'mapToDeal',
+            name: 'mapToDeal',
+            on: mapToDeal,
+            toggle: 'map-to-deal',
+        }) }}
+
+        <div id="map-to-deal" class="{{ not mapToDeal ? 'hidden' }}">
+            <integration-field-mapping
+                label="{{ 'Deal Field Mapping' | t('formie') }}"
+                instructions="{{ 'Choose how your form fields should map to your {name} Deal fields.' | t('formie', { name: integration.displayName() }) }}"
+                name-label="{{ integration.displayName() }}"
+                id="deal-field-mapping"
+                name="dealFieldMapping"
+                :value="get(form, 'settings.integrations.{{ handle }}.dealFieldMapping')"
+                :rows="get(settings, 'deal')"
+            ></integration-field-mapping>
+
+            <ul v-if="!isEmpty(get(form, 'settings.integrations.{{ handle }}.errors.dealFieldMapping'))" class="errors" v-cloak>
+                <li v-for="(error, index) in get(form, 'settings.integrations.{{ handle }}.errors.dealFieldMapping')" :key="index">
+                    ${ error }
+                </li>
+            </ul>
+        </div>
+
+        {{ forms.lightswitchField({
+            label: 'Map to Form' | t('formie'),
+            instructions: 'Whether to map form data to {name} Forms.' | t('formie', { name: integration.displayName() }),
+            id: 'mapToForm',
+            name: 'mapToForm',
+            on: mapToForm,
+            toggle: 'map-to-form',
+        }) }}
+
+        <div id="map-to-form" class="{{ not mapToForm ? 'hidden' }}">
+            <div class="field">
+                <div class="heading">
+                    <label id="sourceId-label" for="sourceId" class="required">{{ 'Form' | t('formie') }}</label>
+
+                    <div class="instructions">
+                        <p>{{ 'Select your {name} form to create submissions on.' | t('formie', { name: integration.displayName() }) }}</p>
+                    </div>
+                </div>
+
+                <div class="input ltr">
+                    <div class="select">
+                        <select :value="sourceId" @input="input('sourceId', $event.target.value)" name="formId" required>
+                            <option value="">{{ 'Select an option' | t('formie') }}</option>
+
+                            <option v-for="(option, index) in get(settings, 'forms')" :key="index" :value="option.id">${ option.name }</option>
+                        </select>
+                    </div>
+
+                    <button class="btn fui-btn-transparent" :class="{ 'fui-loading fui-loading-sm': loading }" data-icon="refresh" @click.prevent="refresh({ refreshForms: true })"></button>
+                </div>
+
+                <ul v-if="!isEmpty(get(form, 'settings.integrations.{{ handle }}.errors.formId'))" class="errors" v-cloak>
+                    <li v-for="(error, index) in get(form, 'settings.integrations.{{ handle }}.errors.formId')" :key="index">
+                        ${ error }
+                    </li>
+                </ul>
+            </div>
+
+            <div v-if="error" class="error" style="margin-top: 10px;" v-cloak>
+                <span data-icon="alert"></span>
+                <span v-html="errorMessage"></span>
+            </div>
+
+            <div>
+                <integration-field-mapping
+                    label="{{ 'Form Field Mapping' | t('formie') }}"
+                    instructions="{{ 'Choose how your form fields should map to your {name} Form fields.' | t('formie', { name: integration.displayName() }) }}"
+                    name-label="{{ integration.displayName() }}"
+                    id="form-field-mapping"
+                    name="formFieldMapping"
+                    :value="get(form, 'settings.integrations.{{ handle }}.formFieldMapping')"
+                    :rows="getSourceFields('forms')"
+                ></integration-field-mapping>
+
+                <ul v-if="!isEmpty(get(form, 'settings.integrations.{{ handle }}.errors.formFieldMapping'))" class="errors" v-cloak>
+                    <li v-for="(error, index) in get(form, 'settings.integrations.{{ handle }}.errors.formFieldMapping')" :key="index">
+                        ${ error }
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        {#
+        {{ forms.lightswitchField({
+            label: 'Map to Company' | t('formie'),
+            instructions: 'Whether to map form data to {name} Companies.' | t('formie', { name: integration.displayName() }),
+            id: 'mapToCompany',
+            name: 'mapToCompany',
+            on: mapToCompany,
+            toggle: 'map-to-company',
+        }) }}
+
+        <div id="map-to-company" class="{{ not mapToCompany ? 'hidden' }}">
+            <integration-field-mapping
+                label="{{ 'Company Field Mapping' | t('formie') }}"
+                instructions="{{ 'Choose how your form fields should map to your {name} Company fields.' | t('formie', { name: integration.displayName() }) }}"
+                name-label="{{ integration.displayName() }}"
+                id="company-field-mapping"
+                name="companyFieldMapping"
+                :value="get(form, 'settings.integrations.{{ handle }}.companyFieldMapping')"
+                :rows="get(settings, 'company')"
+            ></integration-field-mapping>
+
+            <ul v-if="!isEmpty(get(form, 'settings.integrations.{{ handle }}.errors.companyFieldMapping'))" class="errors" v-cloak>
+                <li v-for="(error, index) in get(form, 'settings.integrations.{{ handle }}.errors.companyFieldMapping')" :key="index">
+                    ${ error }
+                </li>
+            </ul>
+        </div>
+        #}
+    </template>
+</integration-form-settings>
