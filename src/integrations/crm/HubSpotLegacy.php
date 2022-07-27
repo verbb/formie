@@ -19,12 +19,12 @@ use craft\web\View;
 
 use yii\base\Event;
 
-class HubSpot extends Crm
+class HubSpotLegacy extends Crm
 {
     // Properties
     // =========================================================================
 
-    public $accessToken;
+    public $apiKey;
     public $mapToContact = false;
     public $mapToDeal = false;
     public $mapToCompany = false;
@@ -40,16 +40,6 @@ class HubSpot extends Crm
 
     // Public Methods
     // =========================================================================
-
-    public function __construct($config = [])
-    {
-        // Config normalization - before the migration runs
-        if (array_key_exists('apiKey', $config)) {
-            unset($config['apiKey']);
-        }
-
-        parent::__construct($config);
-    }
 
     /**
      * @inheritDoc
@@ -81,7 +71,7 @@ class HubSpot extends Crm
      */
     public static function displayName(): string
     {
-        return Craft::t('formie', 'HubSpot');
+        return Craft::t('formie', 'HubSpot (Legacy)');
     }
 
     /**
@@ -99,7 +89,7 @@ class HubSpot extends Crm
     {
         $rules = parent::defineRules();
 
-        $rules[] = [['accessToken'], 'required'];
+        $rules[] = [['apiKey'], 'required'];
 
         $contact = $this->getFormSettingValue('contact');
         $deal = $this->getFormSettingValue('deal');
@@ -413,14 +403,9 @@ class HubSpot extends Crm
             return $this->_client;
         }
 
-        $accessToken = App::parseEnv($this->accessToken);
-
         return $this->_client = Craft::createGuzzleClient([
             'base_uri' => 'https://api.hubapi.com/',
-            'headers' => [
-                'Authorization' => 'Bearer ' . $accessToken,
-                'Content-Type' => 'application/json',
-            ],
+            'query' => ['hapikey' => Craft::parseEnv($this->apiKey)],
         ]);
     }
 

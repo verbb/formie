@@ -1,0 +1,41 @@
+{% import '_includes/forms' as forms %}
+{% import 'verbb-base/_macros' as macros %}
+
+{% set instructions %}
+### Step 1. Connect to the {name} API
+1. Go to <a href="https://www.hubspot.com/" target="_blank">{name}</a> and login to your account.
+1. Click on the settings icon on the top-right of the screen.
+1. In the left-hand sidebar menu, click on **Integrations** → **API key**.
+1. Copy the **API Key** from {name} and paste in the **API Key** field below.
+
+### Step 2. Test Connection
+1. Save this integration.
+1. Click on the **Refresh** button in the right-hand sidebar.
+{% endset %}
+
+<div class="fui-settings-block">
+    {{ instructions | t('formie', { name: integration.displayName() }) | md }}
+</div>
+
+<span class="warning with-icon">
+    Starting November 30, 2022, HubSpot API keys will no longer be able to be used as an authentication method to access HubSpot APIs. In addition, starting July 15, 2022, you'll no longer be able to create new API keys.<br><br>
+
+    Learn more about this <a href="https://developers.hubspot.com/changelog/upcoming-api-key-sunset" target="_blank">change</a> and use the <strong>HubSpot</strong> integration instead.
+</span>
+
+{% if not craft.app.config.general.allowAdminChanges %}
+    <span class="warning with-icon">
+        {{ 'Integration settings can only be editable on an environment with `allowAdminChanges` enabled.' | t('formie') | md(inlineOnly=true) }}
+    </span>
+{% endif %}
+
+{{ forms.autosuggestField({
+    label: 'API Key' | t('formie'),
+    instructions: 'Enter your {name} API key here.' | t('formie', { name: integration.displayName() }),
+    name: 'apiKey',
+    required: true,
+    suggestEnvVars: true,
+    value: integration.settings.apiKey ?? '',
+    warning: macros.configWarning('apiKey', 'formie'),
+    errors: integration.getErrors('apiKey'),
+}) }}

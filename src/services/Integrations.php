@@ -140,6 +140,7 @@ class Integrations extends Component
             crm\Freshdesk::class,
             crm\Freshsales::class,
             crm\HubSpot::class,
+            crm\HubSpotLegacy::class,
             crm\Infusionsoft::class,
             crm\Insightly::class,
             crm\Klaviyo::class,
