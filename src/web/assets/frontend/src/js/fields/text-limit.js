@@ -41,7 +41,7 @@ export class FormieTextLimit {
             // If we're using a rich text editor, treat it a little differently
             var isRichText = e.target.hasAttribute('contenteditable');
             var value = isRichText ? e.target.innerHTML : e.target.value;
-            var charactersLeft = this.maxChars - value.length;
+            var charactersLeft = this.maxChars - this.count(value);
 
             this.$text.innerHTML = t('{num} characters left', {
                 num: String(charactersLeft),
@@ -54,7 +54,7 @@ export class FormieTextLimit {
             // If we're using a rich text editor, treat it a little differently
             var isRichText = e.target.hasAttribute('contenteditable');
             var value = isRichText ? e.target.innerHTML : e.target.value;
-            var wordCount = value.split(/\S+/).length - 1;
+            var wordCount = this.count(value.split(/\S+/));
             var regex = new RegExp('^\\s*\\S+(?:\\s+\\S+){0,' + (this.maxWords - 1) + '}');
             
             if (wordCount >= this.maxWords) {
@@ -67,6 +67,12 @@ export class FormieTextLimit {
                 num: String(wordsLeft),
             });
         }, 1);
+    }
+
+    count(value) {
+        // Handles multi-byte like emoji, where `.length` won't be accurate
+        // https://javascript.tutorialink.com/how-to-count-the-correct-length-of-a-string-with-emojis-in-javascript/
+        return [...value].length;
     }
 }
 
