@@ -42,9 +42,17 @@ export class FormieTextLimit {
             var isRichText = e.target.hasAttribute('contenteditable');
             var value = isRichText ? e.target.innerHTML : e.target.value;
             var charactersLeft = this.maxChars - this.count(value);
+            var extraClasses = ['fui-limit-number'];
+            var type = charactersLeft == 1 || charactersLeft == -1 ? 'character' : 'characters';
 
-            this.$text.innerHTML = t('{num} characters left', {
+            if (charactersLeft < 0) {
+                extraClasses.push('fui-limit-number-error');
+            }
+
+            this.$text.innerHTML = t('{startTag}{num}{endTag} ' + type + ' left', {
                 num: String(charactersLeft),
+                startTag: '<span class="' + extraClasses.join(' ') + '">',
+                endTag: '</span>',
             });
         }, 1);
     }
@@ -55,16 +63,18 @@ export class FormieTextLimit {
             var isRichText = e.target.hasAttribute('contenteditable');
             var value = isRichText ? e.target.innerHTML : e.target.value;
             var wordCount = this.count(value.split(/\S+/));
-            var regex = new RegExp('^\\s*\\S+(?:\\s+\\S+){0,' + (this.maxWords - 1) + '}');
-            
-            if (wordCount >= this.maxWords) {
-                e.target.value = value.match(regex);
+            var wordsLeft = this.maxWords - wordCount;
+            var extraClasses = ['fui-limit-number'];
+            var type = wordsLeft == 1 || wordsLeft == -1 ? 'word' : 'words';
+
+            if (wordsLeft < 0) {
+                extraClasses.push('fui-limit-number-error');
             }
 
-            var wordsLeft = this.maxWords - wordCount;
-
-            this.$text.innerHTML = t('{num} words left', {
+            this.$text.innerHTML = t('{startTag}{num}{endTag} ' + type + ' left', {
                 num: String(wordsLeft),
+                startTag: '<span class="' + extraClasses.join(' ') + '">',
+                endTag: '</span>',
             });
         }, 1);
     }

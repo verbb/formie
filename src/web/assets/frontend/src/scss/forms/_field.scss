@@ -79,6 +79,12 @@
     }
 }
 
+.fui-limit-number {
+    &.fui-limit-number-error {
+        color: var(--fui-required-color, var(--fui-error));
+    }
+}
+
 .fui-file-summary {
     color: var(--fui-instructions-color, var(--fui-gray-400));
     font-size: var(--fui-instructions-font-size);
