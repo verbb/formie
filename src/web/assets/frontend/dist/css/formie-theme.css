@@ -732,6 +732,10 @@
   margin-top: 0.5rem;
   margin-top: var(--fui-instructions-margin);
 }
+.fui-limit-text .fui-limit-number.fui-limit-number-error {
+  color: #f56565;
+  color: var(--fui-required-color, var(--fui-error));
+}
 
 .fui-file-summary > p {
   margin-top: 0.5rem;

@@ -324,10 +324,10 @@ class MultiLineText extends FormField implements PreviewableFieldInterface
                 'name' => $this->getHtmlName(),
                 'placeholder' => Craft::t('formie', $this->placeholder) ?: null,
                 'required' => $this->required ? true : null,
-                'maxlength' => $maxLength ?: null,
                 'data' => [
                     'fui-id' => $dataId,
                     'fui-message' => Craft::t('formie', $this->errorMessage) ?: null,
+                    'maxlength' => $maxLength ?: null,
                     'wordlimit' => $wordLimit ?: null,
                 ],
                 'aria-describedby' => $this->instructions ? "{$id}-instructions" : null,
