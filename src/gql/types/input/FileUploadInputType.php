@@ -43,6 +43,11 @@ class FileUploadInputType extends InputObjectType
                     'type' => Type::string(),
                     'description' => 'The file name to use (including the extension) data with the `fileData` field.',
                 ],
+                'assetId' => [
+                    'name' => 'assetId',
+                    'type' => Type::int(),
+                    'description' => 'The ID of an already-uploaded asset.',
+                ],
             ],
             'normalizeValue' => [self::class, 'normalizeValue'],
         ]));
@@ -95,6 +100,10 @@ class FileUploadInputType extends InputObjectType
                 } else {
                     throw new UserError('Invalid file data provided');
                 }
+            }
+
+            if (!empty($value['assetId'])) {
+                $newValues[] = $value['assetId'];
             }
         }
 
