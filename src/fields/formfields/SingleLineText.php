@@ -111,8 +111,9 @@ class SingleLineText extends FormField implements PreviewableFieldInterface
 
         $value = $element->getFieldValue($this->handle);
 
-        // Use `mb_strlen()` to handle multibyte strings
-        $count = mb_strlen($value, '8bit');
+        // Convert multibyte text to HTML entities, so we can properly check string length
+        // exactly as it'll be saved in the database.
+        $count = strlen(LitEmoji::encodeHtml($value));
 
         if ($count > $limitAmount) {
             $element->addError(
