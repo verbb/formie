@@ -21,10 +21,16 @@ export class FormieTextLimit {
 
         if (this.maxChars) {
             this.form.addEventListener(this.$input, eventKey('keydown'), this.characterCheck.bind(this), false);
+
+            // Fire immediately
+            this.$input.dispatchEvent(new Event('keydown', { bubbles: true }));
         }
 
         if (this.maxWords) {
             this.form.addEventListener(this.$input, eventKey('keydown'), this.wordCheck.bind(this), false);
+
+            // Fire immediately
+            this.$input.dispatchEvent(new Event('keydown', { bubbles: true }));
         }
     }
 
