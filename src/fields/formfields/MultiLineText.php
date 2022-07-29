@@ -58,6 +58,30 @@ class MultiLineText extends FormField implements PreviewableFieldInterface
     }
 
     /**
+     * @inheritdoc
+     */
+    public function normalizeValue($value, ElementInterface $element = null)
+    {
+        if ($value !== null) {
+            $value = LitEmoji::shortcodeToUnicode($value);
+        }
+
+        return $value !== '' ? $value : null;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function serializeValue($value, ElementInterface $element = null)
+    {
+        if ($value !== null) {
+            $value = LitEmoji::unicodeToShortcode($value);
+        }
+
+        return $value;
+    }
+
+    /**
      * @inheritDoc
      */
     public function getInputHtml($value, ElementInterface $element = null): string
@@ -271,5 +295,20 @@ class MultiLineText extends FormField implements PreviewableFieldInterface
             SchemaHelper::enableConditionsField(),
             SchemaHelper::conditionsField(),
         ];
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
+    /**
+     * @inheritdoc
+     */
+    protected function searchKeywords($value, ElementInterface $element): string
+    {
+        $value = (string)$value;
+        $value = LitEmoji::unicodeToShortcode($value);
+        
+        return $value;
     }
 }
