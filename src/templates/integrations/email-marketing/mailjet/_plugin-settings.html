@@ -1,0 +1,41 @@
+{% import '_includes/forms' as forms %}
+{% import 'verbb-base/_macros' as macros %}
+
+{% set instructions %}
+### Step 1. Connect to the {name} API
+1. Go to <a href="https://www.mailjet.com/" target="_blank">{name}</a> and login to your account.
+1. In the top-right corner, click on your profile and select **Account settings**.
+1. Click on **REST API** → **API Key Management**.
+1. Click the **Generate Secret Key** button.
+1. Copy the **API Key** and **Secret Key** from {name} and paste in the **API Key** and **Secret Key** fields below.
+
+### Step 2. Test Connection
+1. Save this integration.
+1. Click on the **Refresh** button in the right-hand sidebar.
+{% endset %}
+
+<div class="fui-settings-block">
+    {{ instructions | t('formie', { name: integration.displayName() }) | md }}
+</div>
+
+{{ forms.autosuggestField({
+    label: 'API Key' | t('formie'),
+    instructions: 'Enter your {name} API key here.' | t('formie', { name: integration.displayName() }),
+    name: 'apiKey',
+    required: true,
+    suggestEnvVars: true,
+    value: integration.settings.apiKey ?? '',
+    warning: macros.configWarning('apiKey', 'formie'),
+    errors: integration.getErrors('apiKey'),
+}) }}
+
+{{ forms.autosuggestField({
+    label: 'Secret Key' | t('formie'),
+    instructions: 'Enter your {name} secret key here.' | t('formie', { name: integration.displayName() }),
+    name: 'secretKey',
+    required: true,
+    suggestEnvVars: true,
+    value: integration.settings.secretKey ?? '',
+    warning: macros.configWarning('secretKey', 'formie'),
+    errors: integration.getErrors('secretKey'),
+}) }}
