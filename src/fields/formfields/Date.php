@@ -1033,7 +1033,11 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
         // If a string value is requested for a date, return the ISO 8601 date string
         if ($integrationField->getType() === IntegrationField::TYPE_STRING) {
             if (!$this->getIsTime()) {
-                return $value->format('c');
+                if ($value instanceof DateTime) {
+                    return $value->format('c');
+                }
+
+                return $value;
             }
         }
 
