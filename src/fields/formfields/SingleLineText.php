@@ -81,7 +81,9 @@ class SingleLineText extends FormField implements PreviewableFieldInterface
         }
 
         $value = $element->getFieldValue($this->handle);
-        $count = strlen($value);
+
+        // Use `count()` to handle multi-byte strings
+        $count = StringHelper::count($value);
 
         if ($count > $limitAmount) {
             $element->addError(
