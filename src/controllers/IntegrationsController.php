@@ -410,17 +410,10 @@ class IntegrationsController extends Controller
     {
         $session = Craft::$app->getSession();
 
-        if (!Formie::$plugin->getTokens()->deleteTokenById($integration->tokenId)) {
-            $error = Craft::t('formie', 'Unable to delete token - {errors}.', [
-                'errors' => Json::encode($integration->getErrors()),
-            ]);
+        // It's okay if this fails. Maybe this token doesn't exist on this environment?
+        Formie::$plugin->getTokens()->deleteTokenById($integration->tokenId);
 
-            Formie::error($error);
-            $session->setError($error);
-
-            return null;
-        }
-
+        // Update the integration settings directly, outside of project config
         if (!Formie::$plugin->getIntegrations()->updateIntegrationToken($integration, null)) {
             $error = Craft::t('formie', 'Unable to update integration - {errors}.', [
                 'errors' => Json::encode($integration->getErrors()),
