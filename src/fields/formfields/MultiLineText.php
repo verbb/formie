@@ -63,7 +63,7 @@ class MultiLineText extends FormField implements PreviewableFieldInterface
     public function normalizeValue($value, ElementInterface $element = null)
     {
         if ($value !== null) {
-            $value = LitEmoji::shortcodeToUnicode($value);
+            $value = LitEmoji::entitiesToUnicode($value);
         }
 
         return $value !== '' ? $value : null;
@@ -75,7 +75,9 @@ class MultiLineText extends FormField implements PreviewableFieldInterface
     public function serializeValue($value, ElementInterface $element = null)
     {
         if ($value !== null) {
-            $value = LitEmoji::unicodeToShortcode($value);
+            // Save as HTML entities (e.g. `&#x1F525;`) so we can use that in JS to determine length.
+            // Saving as a shortcode is too tricky to detemine the same length in JS.
+            $value = LitEmoji::encodeHtml($value);
         }
 
         return $value;
@@ -295,20 +297,5 @@ class MultiLineText extends FormField implements PreviewableFieldInterface
             SchemaHelper::enableConditionsField(),
             SchemaHelper::conditionsField(),
         ];
-    }
-
-
-    // Protected Methods
-    // =========================================================================
-
-    /**
-     * @inheritdoc
-     */
-    protected function searchKeywords($value, ElementInterface $element): string
-    {
-        $value = (string)$value;
-        $value = LitEmoji::unicodeToShortcode($value);
-        
-        return $value;
     }
 }
