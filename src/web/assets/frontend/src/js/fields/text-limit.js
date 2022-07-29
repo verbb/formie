@@ -32,17 +32,11 @@ export class FormieTextLimit {
         setTimeout(() => {
             // If we're using a rich text editor, treat it a little differently
             var isRichText = e.target.hasAttribute('contenteditable');
-
             var value = isRichText ? e.target.innerHTML : e.target.value;
-
             var charactersLeft = this.maxChars - value.length;
 
-            if (charactersLeft <= 0) {
-                charactersLeft = '0';
-            }
-
             this.$text.innerHTML = t('{num} characters left', {
-                num: charactersLeft,
+                num: String(charactersLeft),
             });
         }, 1);
     }
@@ -51,9 +45,7 @@ export class FormieTextLimit {
         setTimeout(() => {
             // If we're using a rich text editor, treat it a little differently
             var isRichText = e.target.hasAttribute('contenteditable');
-
             var value = isRichText ? e.target.innerHTML : e.target.value;
-            
             var wordCount = value.split(/\S+/).length - 1;
             var regex = new RegExp('^\\s*\\S+(?:\\s+\\S+){0,' + (this.maxWords - 1) + '}');
             
@@ -63,12 +55,8 @@ export class FormieTextLimit {
 
             var wordsLeft = this.maxWords - wordCount;
 
-            if (wordsLeft <= 0) {
-                wordsLeft = '0';
-            }
-
             this.$text.innerHTML = t('{num} words left', {
-                num: wordsLeft,
+                num: String(wordsLeft),
             });
         }, 1);
     }
