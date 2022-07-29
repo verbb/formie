@@ -20,6 +20,7 @@ export class FormieTextLimit {
         this.maxWords = this.$text.getAttribute('data-max-words');
 
         if (this.maxChars) {
+            this.form.addEventListener(this.$input, eventKey('paste'), this.characterCheck.bind(this), false);
             this.form.addEventListener(this.$input, eventKey('keydown'), this.characterCheck.bind(this), false);
 
             // Fire immediately
@@ -27,6 +28,7 @@ export class FormieTextLimit {
         }
 
         if (this.maxWords) {
+            this.form.addEventListener(this.$input, eventKey('paste'), this.wordCheck.bind(this), false);
             this.form.addEventListener(this.$input, eventKey('keydown'), this.wordCheck.bind(this), false);
 
             // Fire immediately
