@@ -83,6 +83,12 @@
 
 .fui-limit-text {
     margin-top: var(--fui-instructions-margin);
+
+    .fui-limit-number {
+        &.fui-limit-number-error {
+            color: var(--fui-required-color, var(--fui-error));
+        }
+    }
 }
 
 .fui-file-summary {

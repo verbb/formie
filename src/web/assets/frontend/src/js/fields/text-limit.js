@@ -20,11 +20,19 @@ export class FormieTextLimit {
         this.maxWords = this.$text.getAttribute('data-max-words');
 
         if (this.maxChars) {
+            this.form.addEventListener(this.$input, eventKey('paste'), this.characterCheck.bind(this), false);
             this.form.addEventListener(this.$input, eventKey('keydown'), this.characterCheck.bind(this), false);
+
+            // Fire immediately
+            this.$input.dispatchEvent(new Event('keydown', { bubbles: true }));
         }
 
         if (this.maxWords) {
+            this.form.addEventListener(this.$input, eventKey('paste'), this.wordCheck.bind(this), false);
             this.form.addEventListener(this.$input, eventKey('keydown'), this.wordCheck.bind(this), false);
+
+            // Fire immediately
+            this.$input.dispatchEvent(new Event('keydown', { bubbles: true }));
         }
     }
 
@@ -32,17 +40,19 @@ export class FormieTextLimit {
         setTimeout(() => {
             // If we're using a rich text editor, treat it a little differently
             const isRichText = e.target.hasAttribute('contenteditable');
-
             const value = isRichText ? e.target.innerHTML : e.target.value;
+            const charactersLeft = this.maxChars - this.count(value);
+            const extraClasses = ['fui-limit-number'];
+            const type = charactersLeft == 1 || charactersLeft == -1 ? 'character' : 'characters';
 
-            let charactersLeft = this.maxChars - value.length;
-
-            if (charactersLeft <= 0) {
-                charactersLeft = '0';
+            if (charactersLeft < 0) {
+                extraClasses.push('fui-limit-number-error');
             }
 
-            this.$text.innerHTML = t('{num} characters left', {
-                num: charactersLeft,
+            this.$text.innerHTML = t(`{startTag}{num}{endTag} ${type} left`, {
+                num: String(charactersLeft),
+                startTag: `<span class="${extraClasses.join(' ')}">`,
+                endTag: '</span>',
             });
         }, 1);
     }
@@ -51,26 +61,28 @@ export class FormieTextLimit {
         setTimeout(() => {
             // If we're using a rich text editor, treat it a little differently
             const isRichText = e.target.hasAttribute('contenteditable');
-
             const value = isRichText ? e.target.innerHTML : e.target.value;
+            const wordCount = this.count(value.split(/\S+/));
+            const wordsLeft = this.maxWords - wordCount;
+            const extraClasses = ['fui-limit-number'];
+            const type = wordsLeft == 1 || wordsLeft == -1 ? 'word' : 'words';
 
-            const wordCount = value.split(/\S+/).length - 1;
-            const regex = new RegExp(`^\\s*\\S+(?:\\s+\\S+){0,${this.maxWords - 1}}`);
-
-            if (wordCount >= this.maxWords) {
-                e.target.value = value.match(regex);
+            if (wordsLeft < 0) {
+                extraClasses.push('fui-limit-number-error');
             }
 
-            let wordsLeft = this.maxWords - wordCount;
-
-            if (wordsLeft <= 0) {
-                wordsLeft = '0';
-            }
-
-            this.$text.innerHTML = t('{num} words left', {
-                num: wordsLeft,
+            this.$text.innerHTML = t(`{startTag}{num}{endTag} ${type} left`, {
+                num: String(wordsLeft),
+                startTag: `<span class="${extraClasses.join(' ')}">`,
+                endTag: '</span>',
             });
         }, 1);
+    }
+
+    count(value) {
+        // Handles multi-byte like emoji, where `.length` won't be accurate
+        // https://javascript.tutorialink.com/how-to-count-the-correct-length-of-a-string-with-emojis-in-javascript/
+        return [...value].length;
     }
 }
 

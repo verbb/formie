@@ -12,6 +12,8 @@ use craft\base\PreviewableFieldInterface;
 use craft\errors\InvalidFieldException;
 use craft\helpers\StringHelper;
 
+use LitEmoji\LitEmoji;
+
 class SingleLineText extends FormField implements PreviewableFieldInterface
 {
     // Static Methods
@@ -33,6 +35,7 @@ class SingleLineText extends FormField implements PreviewableFieldInterface
         return 'formie/_formfields/single-line-text/icon.svg';
     }
 
+
     // Properties
     // =========================================================================
 
@@ -43,6 +46,31 @@ class SingleLineText extends FormField implements PreviewableFieldInterface
 
     // Public Methods
     // =========================================================================
+
+    /**
+     * @inheritdoc
+     */
+    public function normalizeValue(mixed $value, ?ElementInterface $element = null): mixed
+    {
+        if ($value !== null) {
+            $value = LitEmoji::shortcodeToUnicode($value);
+            $value = trim(preg_replace('/\R/u', "\n", $value));
+        }
+
+        return $value !== '' ? $value : null;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function serializeValue(mixed $value, ?ElementInterface $element = null): mixed
+    {
+        if ($value !== null) {
+            $value = LitEmoji::unicodeToShortcode($value);
+        }
+
+        return $value;
+    }
 
     /**
      * @inheritDoc
@@ -340,4 +368,14 @@ class SingleLineText extends FormField implements PreviewableFieldInterface
         return $rules;
     }
 
+    /**
+     * @inheritdoc
+     */
+    protected function searchKeywords(mixed $value, ElementInterface $element): string
+    {
+        $value = (string)$value;
+        $value = LitEmoji::unicodeToShortcode($value);
+        
+        return $value;
+    }
 }

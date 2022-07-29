@@ -14,6 +14,8 @@ use GraphQL\Type\Definition\Type;
 
 use yii\db\Schema;
 
+use LitEmoji\LitEmoji;
+
 class MultiLineText extends FormField implements PreviewableFieldInterface
 {
     // Static Methods
@@ -55,6 +57,30 @@ class MultiLineText extends FormField implements PreviewableFieldInterface
     public function getContentColumnType(): array|string
     {
         return Schema::TYPE_TEXT;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function normalizeValue(mixed $value, ?ElementInterface $element = null): mixed
+    {
+        if ($value !== null) {
+            $value = LitEmoji::shortcodeToUnicode($value);
+        }
+
+        return $value !== '' ? $value : null;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function serializeValue(mixed $value, ?ElementInterface $element = null): mixed
+    {
+        if ($value !== null) {
+            $value = LitEmoji::unicodeToShortcode($value);
+        }
+
+        return $value;
     }
 
     /**
@@ -339,5 +365,16 @@ class MultiLineText extends FormField implements PreviewableFieldInterface
         $rules[] = [['limitType'], 'in', 'range' => ['characters', 'words']];
 
         return $rules;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    protected function searchKeywords(mixed $value, ElementInterface $element): string
+    {
+        $value = (string)$value;
+        $value = LitEmoji::unicodeToShortcode($value);
+        
+        return $value;
     }
 }
