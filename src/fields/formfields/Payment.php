@@ -14,6 +14,7 @@ use verbb\formie\options\Currencies;
 use Craft;
 use craft\base\ElementInterface;
 use craft\helpers\Html;
+use craft\helpers\Json;
 use craft\helpers\StringHelper;
 use craft\helpers\Template;
 
@@ -233,6 +234,19 @@ class Payment extends FormField
             SchemaHelper::enableConditionsField(),
             SchemaHelper::conditionsField(),
         ];
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
+    protected function defineValueAsString($value, ElementInterface $element = null): string
+    {
+        if (is_array($value) || is_object($value)) {
+            return Json::encode($value);
+        }
+
+        return (string)$value;
     }
 
 

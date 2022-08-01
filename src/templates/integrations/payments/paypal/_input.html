@@ -1,5 +1,5 @@
 <div data-fui-paypal-button></div>
 
-<input type="hidden" name="{{ field.handle }}">
-<input type="hidden" name="{{ 'paypalOrderId' | namespaceInputName(field.handle) }}">
-<input type="hidden" name="{{ 'paypalAuthId' | namespaceInputName(field.handle) }}">
+<input type="hidden" name="{{ field.getHtmlName() }}">
+<input type="hidden" name="{{ field.getHtmlName('paypalOrderId') }}">
+<input type="hidden" name="{{ field.getHtmlName('paypalAuthId') }}">
