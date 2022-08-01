@@ -12,7 +12,7 @@ Attribute | Description
 `fieldContentTable` | The name of the content table that stores the content for this form's submissions.
 `template` | Returns the [Form Template](docs:feature-tour/form-templates), if provided.
 `templateId` | The [Form Template](docs:feature-tour/form-templates) ID for this form, if applicable.
-`submitActionEntryId` | If chosen to have a entry be the redirect action for a form, this will be the [Entry](https://docs.craftcms.com/api/v3/craft-elements-entry.html) ID.
+`submitActionEntryId` | If chosen to have a entry be the redirect action for a form, this will be the [Entry](https://docs.craftcms.com/api/v4/craft-elements-entry.html) ID.
 `defaultStatus` | The default status for the submission made on this form.
 `defaultStatusId` | The default status ID for the submission made on this form.
 `formId` | A unique identifier for the form, in the format `fui-{id}`.
@@ -43,7 +43,7 @@ Method | Description
 `getNotifications()` | Returns all [Notification](docs:developers/notification) objects for this form.
 `getEnabledNotifications()` | Returns all enabled [Notification](docs:developers/notification) objects for this form.
 `getRedirectUrl()` | Returns the URL for the redirection upon final submission of the form.
-`getRedirectEntry()` | Returns the [Entry](https://docs.craftcms.com/api/v3/craft-elements-entry.html) used for redirection, if applicable.
+`getRedirectEntry()` | Returns the [Entry](https://docs.craftcms.com/api/v4/craft-elements-entry.html) used for redirection, if applicable.
 
 ## Form Settings
 Each form has a collection of settings associated with it.

@@ -308,7 +308,7 @@ $forms = \verbb\formie\elements\Form::find()
 
 Narrows the query results to only forms that are related to certain other elements.
 
-See [Relations](https://docs.craftcms.com/v4/relations.html) for a full explanation of how to work with this parameter.
+See [Relations](https://craftcms.com/docs/4.x/relations.html) for a full explanation of how to work with this parameter.
 
 ::: code
 ```twig Twig

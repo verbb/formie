@@ -78,7 +78,7 @@ Submission queries support the following parameters:
 
 ### `anyStatus`
 
-Clears out the [status()](https://docs.craftcms.com/api/v3/craft-elements-db-elementquery.html#method-status) and [enabledForSite()](https://docs.craftcms.com/api/v3/craft-elements-db-elementquery.html#method-enabledforsite) parameters.
+Clears out the [status()](https://docs.craftcms.com/api/v4/craft-elements-db-elementquery.html#method-status) and [enabledForSite()](https://docs.craftcms.com/api/v4/craft-elements-db-elementquery.html#method-enabledforsite) parameters.
 
 ::: code
 ```twig Twig
@@ -462,7 +462,7 @@ $submissions = \verbb\formie\elements\Submission::find()
 
 Narrows the query results to only submissions that are related to certain other elements.
 
-See [Relations](https://docs.craftcms.com/v4/relations.html) for a full explanation of how to work with this parameter.
+See [Relations](https://craftcms.com/docs/4.x/relations.html) for a full explanation of how to work with this parameter.
 
 ::: code
 ```twig Twig

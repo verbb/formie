@@ -127,7 +127,7 @@ Formie has several of these "theme tags" defined, to allow us to define an API o
 | - | - | -
 | `resetClass` | `Boolean` | Whether to retain or remove any `fui-*` classes for the element.
 | `tag` | `String` | the valid HTML to be used for the HTML element.
-| `attributes` | `Boolean` | A collection of valid HTML attributes for the HTML element. Some items can be arrays like `class`, `data`, `style` or `aria`. This works exactly like Craft's [`attr`](https://craftcms.com/docs/4.x/dev/functions.html#attr) function.
+| `attributes` | `Boolean` | A collection of valid HTML attributes for the HTML element. Some items can be arrays like `class`, `data`, `style` or `aria`. This works exactly like Craft's [`attr`](https://craftcms.com/docs/4.x/functions.html#attr) function.
 
 ```twig
 {{ craft.formie.renderForm('contactForm', {
@@ -615,7 +615,7 @@ You have two choices here; 1. Add your own attributes to the `fieldInput` tag, o
 It might be a good idea to have your custom changes still allow theme config to be used. You can do this by extending the theme config used by the `fieldtag()` Twig function.
 
 :::tip
-The `fieldtag()` Twig function and the `{% fieldtag %}` Twig tag are almost identical to Craft's own [`tag()`](https://craftcms.com/docs/4.x/dev/functions.html#tag) and [`{% tag %}`](https://craftcms.com/docs/4.x/dev/tags.html#tag) functionality.
+The `fieldtag()` Twig function and the `{% fieldtag %}` Twig tag are almost identical to Craft's own [`tag()`](https://craftcms.com/docs/4.x/functions.html#tag) and [`{% tag %}`](https://craftcms.com/docs/4.x/tags.html#tag) functionality.
 :::
 
 ```twig

@@ -88,10 +88,10 @@
 - Added `_includes/alert-error` and `_includes/alert-success` template partials to make it easier to override alert HTML.
 - Added `_includes/field-errors` and `_includes/form-errors` template partials to make it easier to override form and field errors HTML.
 - Added `_includes/form-title` template partials to make it easier to override form title HTML.
-- Added `{{ formtag(key) }}` Twig function to render a form theme component. Supports the same functionality as [tag](https://craftcms.com/docs/4.x/dev/functions.html#tag).
-- Added `{{ fieldtag(key) }}` Twig function to render a field theme component. Supports the same functionality as [tag](https://craftcms.com/docs/4.x/dev/functions.html#tag).
-- Added `{% fieldtag %}` Twig tag to render a field theme component. Supports the same functionality as [tag](https://craftcms.com/docs/4.x/dev/tags.html#tag).
-- Added `{% formtag %}` Twig tag to render a form theme component. Supports the same functionality as [tag](https://craftcms.com/docs/4.x/dev/tags.html#tag).
+- Added `{{ formtag(key) }}` Twig function to render a form theme component. Supports the same functionality as [tag](https://craftcms.com/docs/4.x/functions.html#tag).
+- Added `{{ fieldtag(key) }}` Twig function to render a field theme component. Supports the same functionality as [tag](https://craftcms.com/docs/4.x/functions.html#tag).
+- Added `{% fieldtag %}` Twig tag to render a field theme component. Supports the same functionality as [tag](https://craftcms.com/docs/4.x/tags.html#tag).
+- Added `{% formtag %}` Twig tag to render a form theme component. Supports the same functionality as [tag](https://craftcms.com/docs/4.x/tags.html#tag).
 - Added support for Group and Repeater-nested fields when using `setFieldSettings()` in templates.
 - Added `submitAction` to the `SubmissionEvent` to allow you to act on different submission actions like back, save and submit.
 - Added `archiveTableIfExists()` to install migration.
