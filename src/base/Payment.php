@@ -8,6 +8,7 @@ use verbb\formie\events\PaymentIntegrationProcessEvent;
 use verbb\formie\events\PaymentWebhookEvent;
 use verbb\formie\fields\formfields\Payment as PaymentField;
 use verbb\formie\helpers\UrlHelper as FormieUrlHelper;
+use verbb\formie\helpers\Variables;
 use verbb\formie\models\Notification;
 
 use Craft;
