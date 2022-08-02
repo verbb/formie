@@ -5,6 +5,7 @@ export class FormieRepeater {
         this.$form = settings.$form;
         this.form = this.$form.form;
         this.$field = settings.$field;
+        this.rowCounter = 0;
 
         this.initRepeater();
     }
@@ -69,6 +70,9 @@ export class FormieRepeater {
                 }); 
             });
         }
+
+        // Increment the number of rows "in store"
+        this.rowCounter++;
     }
 
     initFieldClass(className, params) {
@@ -90,7 +94,10 @@ export class FormieRepeater {
                 return;
             }
 
-            const id = `new${numRows + 1}`;
+            // We don't want this real-time. We want to maintain a counter to ensure
+            // there's no collisions of new rows overwriting or jumbling up old rows
+            // when removing them (adding 2, remove 1st, add new - results in issues).
+            const id = `new${this.rowCounter + 1}`;
             const html = template.innerHTML.replace(/__ROW__/g, id);
 
             let $newRow = document.createElement('div');
