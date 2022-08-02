@@ -144,7 +144,10 @@ class Entries extends CraftEntries implements FormFieldInterface
     public function getFrontEndInputOptions(Form $form, mixed $value, array $renderOptions = []): array
     {
         $inputOptions = $this->traitGetFrontendInputOptions($form, $value, $renderOptions);
+
+        // TODO: replace with `elementsQuery` at next breakpoint
         $inputOptions['entriesQuery'] = $this->getElementsQuery();
+        $inputOptions['elementsQuery'] = $this->getElementsQuery();
 
         return $inputOptions;
     }
@@ -168,8 +171,7 @@ class Entries extends CraftEntries implements FormFieldInterface
      */
     public function getElementsQuery(): ElementQueryInterface
     {
-        // Use the currently-set element query, or create a new one.
-        $query = $this->elementsQuery ?? Entry::find();
+        $query = Entry::find();
 
         if ($this->sources !== '*') {
             $criteria = [];
@@ -228,6 +230,11 @@ class Entries extends CraftEntries implements FormFieldInterface
 
         $query->limit($this->limitOptions);
         $query->orderBy($this->orderBy);
+
+        // Allow any template-defined elementQuery to override
+        if ($this->elementsQuery) {
+            Craft::configure($query, $this->elementsQuery);
+        }
 
         // Fire a 'modifyElementFieldQuery' event
         $event = new ModifyElementFieldQueryEvent([

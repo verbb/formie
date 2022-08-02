@@ -145,7 +145,10 @@ class Variants extends CommerceVariants implements FormFieldInterface
     public function getFrontEndInputOptions(Form $form, mixed $value, array $renderOptions = []): array
     {
         $inputOptions = $this->traitGetFrontendInputOptions($form, $value, $renderOptions);
+
+        // TODO: replace with `elementsQuery` at next breakpoint
         $inputOptions['variantsQuery'] = $this->getElementsQuery();
+        $inputOptions['elementsQuery'] = $this->getElementsQuery();
 
         return $inputOptions;
     }
@@ -169,8 +172,7 @@ class Variants extends CommerceVariants implements FormFieldInterface
      */
     public function getElementsQuery(): ElementQueryInterface
     {
-        // Use the currently-set element query, or create a new one.
-        $query = $this->elementsQuery ?? Variant::find();
+        $query = Variant::find();
 
         if ($this->source !== '*') {
             // Try to find the criteria we're restricting by - if any
@@ -212,6 +214,11 @@ class Variants extends CommerceVariants implements FormFieldInterface
 
         $query->limit($this->limitOptions);
         $query->orderBy($this->orderBy);
+
+        // Allow any template-defined elementQuery to override
+        if ($this->elementsQuery) {
+            Craft::configure($query, $this->elementsQuery);
+        }
 
         // Fire a 'modifyElementFieldQuery' event
         $event = new ModifyElementFieldQueryEvent([

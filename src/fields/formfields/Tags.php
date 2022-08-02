@@ -333,8 +333,7 @@ class Tags extends CraftTags implements FormFieldInterface
      */
     public function getElementsQuery(): ElementQueryInterface
     {
-        // Use the currently-set element query, or create a new one.
-        $query = $this->elementsQuery ?? Tag::find();
+        $query = Tag::find();
 
         if ($group = $this->_getTagGroup()) {
             $query->group($group);
@@ -358,6 +357,11 @@ class Tags extends CraftTags implements FormFieldInterface
 
         $query->limit($this->limitOptions);
         $query->orderBy('title ASC');
+
+        // Allow any template-defined elementQuery to override
+        if ($this->elementsQuery) {
+            Craft::configure($query, $this->elementsQuery);
+        }
 
         // Fire a 'modifyElementFieldQuery' event
         $event = new ModifyElementFieldQueryEvent([
