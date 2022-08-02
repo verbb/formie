@@ -292,6 +292,11 @@ class Submissions extends Component
     {
         foreach ($submission->getFieldLayout()->getCustomFields() as $field) {
             if ($field instanceof formfields\Payment) {
+                // No need to proceed further if field is conditionally hidden
+                if ($field->isConditionallyHidden($submission)) {
+                    return true;
+                }
+                
                 if ($paymentIntegration = $field->getPaymentIntegration()) {
                     // Set the payment field on the integration, for ease-of-use
                     $paymentIntegration->setField($field);
