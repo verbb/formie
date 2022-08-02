@@ -39,7 +39,7 @@
         "league/oauth2-client": "^2.4.0",
         "league/oauth2-google": "^3.0",
         "thenetworg/oauth2-azure": "^2.0",
-        "dompdf/dompdf": "^1.0.2",
+        "dompdf/dompdf": "^1.0.2 || ^2.0.0",
         "verbb/base": "^1.0.0"
     },
     "autoload": {
