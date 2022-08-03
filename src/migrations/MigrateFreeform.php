@@ -319,6 +319,7 @@ class MigrateFreeform extends Migration
                 $newNotification->formId = $this->_form->id;
                 $newNotification->name = $notification->name;
                 $newNotification->subject = $notification->getSubject();
+                $newNotification->recipients = 'email';
                 $newNotification->to = str_replace(PHP_EOL, ',', $props->getRecipients());
                 $newNotification->cc = $notification->getCc();
                 $newNotification->bcc = $notification->getBcc();

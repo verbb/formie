@@ -341,6 +341,7 @@ class MigrateSproutForms extends Migration
                     $newNotification->formId = $this->_form->id;
                     $newNotification->name = $notification->title;
                     $newNotification->subject = $notification->subjectLine;
+                    $newNotification->recipients = 'email';
                     $newNotification->to = $notification->recipients;
                     $newNotification->cc = $notification->cc;
                     $newNotification->bcc = $notification->bcc;
