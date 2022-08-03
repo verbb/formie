@@ -2,6 +2,7 @@
 namespace verbb\formie\console\controllers;
 
 use barrelstrength\sproutforms\elements\Form;
+use verbb\formie\migrations\MigrateFreeform;
 use verbb\formie\migrations\MigrateSproutForms;
 
 use Throwable;
@@ -24,6 +25,22 @@ class MigrateController extends Controller
     {
         foreach (Form::find()->all() as $form) {
             $migration = new MigrateSproutForms(['formId' => $form->id]);
+            $migration->up();
+        }
+
+        return ExitCode::OK;
+    }
+
+    /**
+     * Migrates Freeform forms, notifications and submissions.
+     *
+     * @return int
+     * @throws Throwable
+     */
+    public function actionMigrateFreeform(): int
+    {
+        foreach (Form::find()->all() as $form) {
+            $migration = new MigrateFreeform(['formId' => $form->id]);
             $migration->up();
         }
 
