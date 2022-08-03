@@ -59,6 +59,7 @@ class MigrateController extends Controller
             $this->stderr('Migrating Sprout Forms form #' . $formId . PHP_EOL, Console::FG_GREEN);
 
             $migration = new MigrateSproutForms(['formId' => $formId]);
+            $migration->setConsoleRequest($this);
             $migration->up();
         }
 
@@ -89,6 +90,7 @@ class MigrateController extends Controller
             $this->stderr('Migrating Freeform form #' . $formId . PHP_EOL, Console::FG_GREEN);
 
             $migration = new MigrateFreeform(['formId' => $formId]);
+            $migration->setConsoleRequest($this);
             $migration->up();
         }
 

@@ -25,6 +25,8 @@ use craft\helpers\Json;
 
 use ReflectionClass;
 use Throwable;
+
+use yii\console\Controller;
 use yii\helpers\Markdown;
 
 use Solspace\Freeform\Freeform;
@@ -71,6 +73,11 @@ class MigrateFreeform extends Migration
      */
     private $_reservedHandles;
 
+    /**
+     * @var Controller
+     */
+    private $_consoleRequest = null;
+
 
     /**
      * @inheritdoc
@@ -93,6 +100,11 @@ class MigrateFreeform extends Migration
     public function safeDown()
     {
         return false;
+    }
+
+    public function setConsoleRequest($value)
+    {
+        $this->_consoleRequest = $value;
     }
 
     private function _migrateForm()
@@ -908,13 +920,17 @@ class MigrateFreeform extends Migration
 
     private function stdout($string, $color = '')
     {
-        $class = '';
+        if ($this->_consoleRequest) {
+            $this->_consoleRequest->stdout($string . PHP_EOL, $color);
+        } else {
+            $class = '';
 
-        if ($color) {
-            $class = 'color-' . $color;
+            if ($color) {
+                $class = 'color-' . $color;
+            }
+
+            echo '<div class="log-label ' . $class . '">' . Markdown::processParagraph($string) . '</div>';
         }
-
-        echo '<div class="log-label ' . $class . '">' . Markdown::processParagraph($string) . '</div>';
     }
 
     private function getExceptionTraceAsString($exception) {

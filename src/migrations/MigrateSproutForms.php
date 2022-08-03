@@ -29,6 +29,7 @@ use craft\helpers\ArrayHelper;
 use craft\helpers\Console;
 use craft\helpers\Json;
 
+use yii\console\Controller;
 use yii\helpers\Markdown;
 
 use Throwable;
@@ -77,6 +78,11 @@ class MigrateSproutForms extends Migration
      */
     private $_reservedHandles;
 
+    /**
+     * @var Controller
+     */
+    private $_consoleRequest = null;
+
 
     /**
      * @inheritdoc
@@ -100,6 +106,11 @@ class MigrateSproutForms extends Migration
     public function safeDown()
     {
         return false;
+    }
+
+    public function setConsoleRequest($value)
+    {
+        $this->_consoleRequest = $value;
     }
 
     private function _migrateForm()
@@ -840,13 +851,17 @@ class MigrateSproutForms extends Migration
 
     private function stdout($string, $color = '')
     {
-        $class = '';
+        if ($this->_consoleRequest) {
+            $this->_consoleRequest->stdout($string . PHP_EOL, $color);
+        } else {
+            $class = '';
 
-        if ($color) {
-            $class = 'color-' . $color;
+            if ($color) {
+                $class = 'color-' . $color;
+            }
+
+            echo '<div class="log-label ' . $class . '">' . Markdown::processParagraph($string) . '</div>';
         }
-
-        echo '<div class="log-label ' . $class . '">' . Markdown::processParagraph($string) . '</div>';
     }
 
     private function getExceptionTraceAsString($exception) {
