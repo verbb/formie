@@ -51,3 +51,26 @@ Option | Description
 ```
 ./craft formie/submissions/delete --form-handle=form1,anotherForm
 ```
+
+## Migration
+You can run the migrations from either Sprout Forms or Freeform via the command line. This would be an ideal approach if you have a large number of submissions or complex forms to migrate.
+
+### Migrate Sprout Forms
+
+Option | Description
+--- | ---
+`--form-handle` | The Sprout Forms handle(s) to migrate. Can be set to multiple comma-separated handles. Omit to migrate all.
+
+```
+./craft formie/migrate/migrate-sprout-forms --form-handle=form1,anotherForm
+```
+
+### Migrate Freeform
+
+Option | Description
+--- | ---
+`--form-handle` | The Freeform form handle(s) to migrate. Can be set to multiple comma-separated handles. Omit to migrate all.
+
+```
+./craft formie/migrate/migrate-freeform --form-handle=form1,anotherForm
+```
