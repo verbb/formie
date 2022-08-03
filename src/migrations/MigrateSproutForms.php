@@ -702,6 +702,11 @@ class MigrateSproutForms extends Migration
                 $newField->source = $field->source;
                 $newField->sources = $field->sources;
                 break;
+            case sproutfields\Url::class:
+                $newField = new formfields\SingleLineText();
+                $this->_applyFieldDefaults($newField);
+
+                break;
             case sproutfields\Users::class:
                 /* @var BaseRelationField $field */
                 $newField = new formfields\Users();
@@ -713,9 +718,7 @@ class MigrateSproutForms extends Migration
                 $newField->sources = $field->sources;
                 break;
             default:
-                $newField = new formfields\SingleLineText();
-                $this->_applyFieldDefaults($newField);
-                break;
+                return null;
         }
 
         $newField->name = $field->name;
