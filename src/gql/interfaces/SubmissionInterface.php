@@ -69,6 +69,26 @@ class SubmissionInterface extends Element
                 'type' => Type::int(),
                 'description' => 'The submission’s status ID.',
             ],
+            'ipAddress' => [
+                'name' => 'ipAddress',
+                'type' => Type::string(),
+                'description' => 'The submission’s IP Address.',
+            ],
+            'isIncomplete' => [
+                'name' => 'isIncomplete',
+                'type' => Type::boolean(),
+                'description' => 'Whether the submission is incomplete.',
+            ],
+            'isSpam' => [
+                'name' => 'isSpam',
+                'type' => Type::boolean(),
+                'description' => 'Whether the submission is spam.',
+            ],
+            'spamReason' => [
+                'name' => 'spamReason',
+                'type' => Type::string(),
+                'description' => 'The submission’s spam reason.',
+            ],
         ]), self::getName());
     }
 }
