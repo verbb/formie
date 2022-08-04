@@ -432,23 +432,26 @@ class MigrateFreeform extends Migration
 
             foreach ($page->getRows() as $rowIndex => $row) {
                 foreach ($row as $fieldIndex => $field) {
-                    if ($newField = $this->_mapField($field)) {
-                        // Fire a 'modifyField' event
-                        $event = new ModifyMigrationFieldEvent([
-                            'form' => $this->_form,
-                            'originForm' => $form,
-                            'field' => $field,
-                            'newField' => $newField,
-                        ]);
-                        $this->trigger(self::EVENT_MODIFY_FIELD, $event);
+                    $newField = $this->_mapField($field);
 
-                        $newField = $event->newField;
+                    // Fire a 'modifyField' event
+                    $event = new ModifyMigrationFieldEvent([
+                        'form' => $this->_form,
+                        'originForm' => $form,
+                        'field' => $field,
+                        'newField' => $newField,
+                    ]);
+                    $this->trigger(self::EVENT_MODIFY_FIELD, $event);
 
-                        if (!$event->isValid) {
-                            $this->stdout("    > Skipped field “{$newField->handle}” due to event cancellation.", Console::FG_YELLOW);
-                            continue;
-                        }
+                    if (!$event->isValid) {
+                        $this->stdout("    > Skipped field “{$newField->handle}” due to event cancellation.", Console::FG_YELLOW);
+                        continue;
+                    }
 
+                    // Allow events to modify the `newField`
+                    $newField = $event->newField;
+
+                    if ($newField) {
                         $newField->validate();
 
                         if ($newField->hasErrors()) {
