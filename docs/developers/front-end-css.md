@@ -82,10 +82,10 @@ Instead of overriding each one of these elements, you can set the `--fui-primary
 
 ```css
 .fui-i {
-    // Inherit from the site body, like the rest of the site
+    /* Inherit from the site body, like the rest of the site */
     --fui-font: 'Helvetica';
 
-    // Setup colours
+    /* Setup colours */
     --fui-color: #334155;
     --fui-primary-color: #dc3545;
     --fui-primary-color-hover: #bb2d3b;
@@ -99,11 +99,11 @@ Instead of overriding each one of these elements, you can set the `--fui-primary
     --fui-gray-800: #1E293B;
     --fui-gray-900: #0F172A;
 
-    // Borders
+    /* Borders */
     --fui-border-color: #CBD5E1;
     --fui-border-radius: 4;
 
-    // Focus states
+    /* Focus states */
     --fui-focus-border-color: #94A3B8;
     --fui-focus-shadow: 0 0 0 3px #dc3545;
 }
