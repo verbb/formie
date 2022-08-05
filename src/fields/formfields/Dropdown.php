@@ -73,7 +73,14 @@ class Dropdown extends BaseOptionsField implements FormFieldInterface
 
     public function getFieldOptions(): array
     {
-        return $this->options;
+        $options = [];
+
+        // Add a placeholder first, if it exists
+        if ($this->placeholder) {
+            $options[] = ['label' => $this->placeholder, 'value' => ''];
+        }
+
+        return array_merge($options, $this->options);
     }
 
     /**
