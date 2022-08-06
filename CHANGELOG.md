@@ -1,5 +1,36 @@
 # Changelog
 
+## 1.6.6 - 2022-08-07
+
+### Added
+- Added `ipAddress`, `isIncomplete`, `isSpam`, `spamReason` properties to GraphQL queries for submissions.
+- Added `isIncomplete` and `isSpam` arguments to GraphQL queries for submissions.
+- Added console formatting for Sprout Forms and Freeform migrations.
+- Added `form-handle` option to migrate console commands.
+- Added `formie/migrate/migrate-freeform` console command.
+- Added Mailjet Email Marketing integration. (thanks @jmauzyk).
+- Added `assetId` parameter for GraphQL mutations for File Upload data.
+- Added support for Emojis for Single-Line & Multi-Line Text fields.
+
+### Changed
+- Single-Line and Multi-Line Text fields with limits now allow over-typing above limits, showing negative character/words.
+
+### Fixed
+- Fixed migrations not allowing `EVENT_MODIFY_FIELD` event to override fields.
+- Fixed an error when migrating notifications for Sprout Forms and Freeform.
+- Fixed Sprout Forms migration with custom fields.
+- Fixed an error with Repeater/Table fields and row collisions when deleting and adding the same number of rows.
+- Fixed an error where min/max dates for Date fields weren’t being set correctly for Flatpickr.
+- Fixed an error when disconnecting from an OAuth-based integration when the original token didn’t exist.
+- Fixed JS text limits not counting string with emoji’s properly and improve multibyte string checks.
+- Fixed JS text limits not working when pasting in content.
+- Fixed JS text limits not showing the correct values when server-side errors exist.
+- Fixed incorrect string-length calculation when limiting text field values.
+- Fixed `formie/forms/refresh-tokens` endpoint not returning captchas. (thanks @cholawo).
+
+### Removed
+- Removed `maxlength` attribute on Single-Line and Multi-Line Text fields, due to inability to properly count emojis.
+
 ## 1.6.5 - 2022-07-25
 
 ### Fixed
