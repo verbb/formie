@@ -17,7 +17,7 @@ $myQuery = \verbb\formie\elements\Form::find();
 Once you’ve created a form query, you can set parameters on it to narrow down the results, and then execute it by calling `.all()`. An array of [Form](docs:developers/form) objects will be returned.
 
 :::tip
-See Introduction to [Element Queries](https://docs.craftcms.com/v4/dev/element-queries/) in the Craft docs to learn about how element queries work.
+See Introduction to [Element Queries](https://craftcms.com/docs/4.x/element-queries/) in the Craft docs to learn about how element queries work.
 :::
 
 ## Example

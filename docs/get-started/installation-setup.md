@@ -20,4 +20,4 @@ composer require verbb/formie && php craft plugin/install formie
 ## Licensing
 You can try Formie in a development environment for as long as you like. Once your site goes live, you are required to purchase a license for the plugin.
 
-For more information, see [Craft's Commercial Plugin Licensing](https://docs.craftcms.com/v4/plugins.html#commercial-plugin-licensing).
+For more information, see [Craft's Commercial Plugin Licensing](https://craftcms.com/docs/4.x/plugins.html#commercial-plugin-licensing).

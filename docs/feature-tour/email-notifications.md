@@ -62,7 +62,7 @@ Along with all available fields used in your form.
 ## Sending Emails
 Formie uses Craft's Queue system to send out email notifications. The reason for this is performance. Often sending of emails can be slow, particularly for SMTP relays. This slowness can be a detrimental experience for your users, as they wait for the page to load after submitting a form. This is compounded by if multiple email notifications need to be sent out for a form submission. This can lead to user frustration, or even worse - navigating away and not bothering filling in your form.
 
-For this reason, we highly recommend you read the following guides on ensuring your Craft install is [properly configured for email delivery](https://craftcms.com/guides/why-doesnt-craft-send-emails#setting-up-email), and your [runQueueAutomatically](https://docs.craftcms.com/v4/config/config-settings.html#runqueueautomatically) config setting.
+For this reason, we highly recommend you read the following guides on ensuring your Craft install is [properly configured for email delivery](https://craftcms.com/guides/why-doesnt-craft-send-emails#setting-up-email), and your [runQueueAutomatically](https://craftcms.com/docs/4.x/config/config-settings.html#runqueueautomatically) config setting.
 
 For further information about the best-practices with queues, we recommend reading [Robust queue job handling in Craft CMS](https://nystudio107.com/blog/robust-queue-job-handling-in-craft-cms).
 
