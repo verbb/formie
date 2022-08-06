@@ -1,5 +1,21 @@
 # Changelog
 
+## 2.0.5 - 2022-08-07
+
+### Added
+- Add new HubSpot CRM integration due to [API changes](https://developers.hubspot.com/changelog/upcoming-api-key-sunset).
+
+### Fixed
+- Fixed placeholder for Dropdown fields not working correctly.
+- Fixed conditionally-hidden payment fields processing payment.
+- Fixed being unable to modify element queries for element fields.
+- Fixed an error with Payment fields.
+- Fixed an error with Payment fields not submitting values correctly.
+- Fixed an error with empty Date fields for integrations.
+- Fixed `formie/submissions/run-integration` command not prepping the integration settings correctly.
+- Fixed notification recipient conditions not populating correctly.
+- Fixed an error when duplicating a formConfig.
+
 ## 2.0.4 - 2022-07-25
 
 ### Changed
