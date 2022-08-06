@@ -17,7 +17,7 @@ You can't modify Formie's default Form Templates. Instead, you must create a new
 Before we dive in, it's worth taking the time to understand the structure of how templates go together.
 
 :::tip
-We're using the `.html` extension here for clarity. You can use `.twig` or whatever you have set in your [defaultTemplateExtensions](https://docs.craftcms.com/v4/config/config-settings.html#defaulttemplateextensions) for the actual files.
+We're using the `.html` extension here for clarity. You can use `.twig` or whatever you have set in your [defaultTemplateExtensions](https://craftcms.com/docs/4.x/config/config-settings.html#defaulttemplateextensions) for the actual files.
 :::
 
 - `form.html`
