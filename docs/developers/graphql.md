@@ -955,6 +955,28 @@ mutation saveSubmission($fileUploadField:[FileUploadInput]) {
 }
 ```
 
+If you have already uploaded your asset through other means, you can provide an `assetId` in the same fashion.
+
+```graphql
+// Query
+mutation saveSubmission($fileUploadField:[FileUploadInput]) {
+    save_contactForm_Submission(fileUploadField: $fileUploadField) {
+        title
+    }
+}
+
+// Query Variables
+{
+    "fileUploadField": [
+        {
+            "assetId": 1234
+        },
+        {
+            "assetId": 4562
+        }
+    ]
+}
+```
 
 #### Group Field
 ```graphql

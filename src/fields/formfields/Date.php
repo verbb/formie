@@ -655,11 +655,11 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
             $maxDate = null;
 
             if ($minDate = DateTimeHelper::toDateTime($this->minDate)) {
-                $minDate = $minDate->format($this->getDateFormat());
+                $minDate = $minDate->format('Y-m-d');
             }
 
             if ($maxDate = DateTimeHelper::toDateTime($this->maxDate)) {
-                $maxDate = $maxDate->format($this->getDateFormat());
+                $maxDate = $maxDate->format('Y-m-d');
             }
 
             // Ensure date picker option values are parsed for JSON

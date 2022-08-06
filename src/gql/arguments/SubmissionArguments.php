@@ -18,6 +18,16 @@ class SubmissionArguments extends ElementArguments
                 'type' => Type::listOf(Type::string()),
                 'description' => 'Narrows the query results based on the submission’s form handle.',
             ],
+            'isIncomplete' => [
+                'name' => 'isIncomplete',
+                'type' => Type::boolean(),
+                'description' => 'Narrows the query results based on the submission’s incomplete state.',
+            ],
+            'isSpam' => [
+                'name' => 'isSpam',
+                'type' => Type::boolean(),
+                'description' => 'Narrows the query results based on the submission’s spam state.',
+            ],
         ]);
     }
 }

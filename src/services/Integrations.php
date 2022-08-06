@@ -115,6 +115,7 @@ class Integrations extends Component
             emailmarketing\IContact::class,
             emailmarketing\Klaviyo::class,
             emailmarketing\Mailchimp::class,
+            emailmarketing\Mailjet::class,
             emailmarketing\MailerLite::class,
             emailmarketing\Moosend::class,
             emailmarketing\Omnisend::class,

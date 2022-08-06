@@ -6,6 +6,7 @@ export class FormieTable {
         this.form = this.$form.form;
         this.$field = settings.$field;
         this.disabledClass = 'fui-disabled';
+        this.rowCounter = 0;
 
         this.static = settings.static;
 
@@ -62,6 +63,9 @@ export class FormieTable {
                 this.removeRow(e);
             });
         }
+
+        // Increment the number of rows "in store"
+        this.rowCounter++;
     }
 
     addRow(e) {
@@ -75,7 +79,10 @@ export class FormieTable {
                 return;
             }
 
-            const id = numRows;
+            // We don't want this real-time. We want to maintain a counter to ensure
+            // there's no collisions of new rows overwriting or jumbling up old rows
+            // when removing them (adding 2, remove 1st, add new - results in issues).
+            const id = this.rowCounter;
             const html = template.innerHTML.replace(/__ROW__/g, id);
 
             const $newRow = document.createElement('tr');

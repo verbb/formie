@@ -24,6 +24,8 @@ use craft\helpers\Console;
 use craft\helpers\Json;
 
 use Throwable;
+
+use yii\console\Controller;
 use yii\helpers\Markdown;
 
 use Solspace\Freeform\Freeform;
@@ -58,7 +60,11 @@ class MigrateFreeform extends Migration
     private ?FormModel $_freeformForm = null;
     private ?Form $_form = null;
     private ?array $_reservedHandles = null;
+    private ?Controller $_consoleRequest = null;
 
+
+    // Public Methods
+    // =========================================================================
 
     /**
      * @inheritdoc
@@ -83,6 +89,11 @@ class MigrateFreeform extends Migration
     public function safeDown(): bool
     {
         return false;
+    }
+
+    public function setConsoleRequest($value)
+    {
+        $this->_consoleRequest = $value;
     }
 
     private function _migrateForm(): ?Form
@@ -308,6 +319,7 @@ class MigrateFreeform extends Migration
                 $newNotification->formId = $this->_form->id;
                 $newNotification->name = $notification->name;
                 $newNotification->subject = $notification->getSubject();
+                $newNotification->recipients = 'email';
                 $newNotification->to = str_replace(PHP_EOL, ',', $props->getRecipients());
                 $newNotification->cc = $notification->getCc();
                 $newNotification->bcc = $notification->getBcc();
@@ -406,23 +418,26 @@ class MigrateFreeform extends Migration
 
             foreach ($page->getRows() as $rowIndex => $row) {
                 foreach ($row as $fieldIndex => $field) {
-                    if ($newField = $this->_mapField($field)) {
-                        // Fire a 'modifyField' event
-                        $event = new ModifyMigrationFieldEvent([
-                            'form' => $this->_form,
-                            'originForm' => $form,
-                            'field' => $field,
-                            'newField' => $newField,
-                        ]);
-                        $this->trigger(self::EVENT_MODIFY_FIELD, $event);
+                    $newField = $this->_mapField($field);
 
-                        $newField = $event->newField;
+                    // Fire a 'modifyField' event
+                    $event = new ModifyMigrationFieldEvent([
+                        'form' => $this->_form,
+                        'originForm' => $form,
+                        'field' => $field,
+                        'newField' => $newField,
+                    ]);
+                    $this->trigger(self::EVENT_MODIFY_FIELD, $event);
 
-                        if (!$event->isValid) {
-                            $this->stdout("    > Skipped field “{$newField->handle}” due to event cancellation.", Console::FG_YELLOW);
-                            continue;
-                        }
+                    if (!$event->isValid) {
+                        $this->stdout("    > Skipped field “{$newField->handle}” due to event cancellation.", Console::FG_YELLOW);
+                        continue;
+                    }
 
+                    // Allow events to modify the `newField`
+                    $newField = $event->newField;
+
+                    if ($newField) {
                         $newField->validate();
 
                         if ($newField->hasErrors()) {
@@ -899,13 +914,17 @@ class MigrateFreeform extends Migration
 
     private function stdout($string, $color = ''): void
     {
-        $class = '';
+        if ($this->_consoleRequest) {
+            $this->_consoleRequest->stdout($string . PHP_EOL, $color);
+        } else {
+            $class = '';
 
-        if ($color) {
-            $class = 'color-' . $color;
+            if ($color) {
+                $class = 'color-' . $color;
+            }
+
+            echo '<div class="log-label ' . $class . '">' . Markdown::processParagraph($string) . '</div>';
         }
-
-        echo '<div class="log-label ' . $class . '">' . Markdown::processParagraph($string) . '</div>';
     }
 
     private function getExceptionTraceAsString($exception): string
