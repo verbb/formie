@@ -131,7 +131,7 @@ export class FormieFormTheme {
         // In future updates, we can probably remove this
         this.form.addEventListener(this.$form, 'bouncerShowError', (e) => {
             const $field = e.target;
-            const $fieldContainer = $field.closest('.fui-field');
+            const $fieldContainer = $field.closest('[data-field-type]');
             let message = $field.getAttribute('data-fui-message');
 
             // If there's a server error, it takes priority.
