@@ -1,9 +1,8 @@
 import { Bouncer } from './utils/bouncer';
 
 export class FormieFormTheme {
-    constructor(config = {}) {
-        this.formId = `#${config.formHashId}`;
-        this.$form = document.querySelector(this.formId);
+    constructor($form, config = {}) {
+        this.$form = $form;
         this.config = config;
         this.settings = config.settings;
         this.validationOnSubmit = !!this.settings.validationOnSubmit;

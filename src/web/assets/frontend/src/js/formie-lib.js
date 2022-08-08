@@ -50,7 +50,7 @@ export class Formie {
         formConfig.Formie = this;
 
         // Create the form class, save it to our collection
-        var form = new FormieFormBase(formConfig);
+        var form = new FormieFormBase($form, formConfig);
 
         this.forms.push(form);
 

@@ -3,9 +3,8 @@ const globals = require('./utils/globals');
 import { FormieFormTheme } from './formie-form-theme';
 
 export class FormieFormBase {
-    constructor(config = {}) {
-        this.formId = `#${config.formHashId}`;
-        this.$form = document.querySelector(this.formId);
+    constructor($form, config = {}) {
+        this.$form = $form;
         this.config = config;
         this.settings = config.settings;
         this.listeners = {};
@@ -17,7 +16,7 @@ export class FormieFormBase {
         this.$form.form = this;
 
         if (this.settings.outputJsTheme) {
-            this.formTheme = new FormieFormTheme(this.config);
+            this.formTheme = new FormieFormTheme(this.$form, this.config);
         }
 
         // Add helper classes to fields when their inputs are focused, have values etc.
