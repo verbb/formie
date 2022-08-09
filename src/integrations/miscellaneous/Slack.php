@@ -184,7 +184,7 @@ class Slack extends Miscellaneous
             if ($this->channelType === self::TYPE_WEBHOOK) {
                 $payload = [
                     'json' => [
-                        'texts' => $this->_renderMessage($submission),
+                        'text' => $this->_renderMessage($submission),
                     ],
                 ];
 
