@@ -23,7 +23,7 @@
             "fui-labels-#{defaultLabelPosition}",
             form.settings.displayPageProgress ? "fui-progress-#{form.settings.progressPosition}",
             form.settings.validationOnFocus ? 'fui-validate-on-focus',
-        ] | merge(options.formClasses ?? []),
+        ] | merge(options.formClasses ?? []) | filter,
         method: 'post',
         enctype: 'multipart/form-data',
         'accept-charset': 'utf-8',
