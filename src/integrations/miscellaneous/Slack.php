@@ -145,8 +145,8 @@ class Slack extends Miscellaneous
             $response = $this->request('GET', 'conversations.list', [
                 'query' => [
                     'exclude_archived' => true,
-                    'exclude_members' => true,
-                    'limit' => 50,
+                    'types' => 'public_channel',
+                    'limit' => 100,
                 ],
             ]);
 
