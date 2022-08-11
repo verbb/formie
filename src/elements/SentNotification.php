@@ -19,6 +19,8 @@ use craft\helpers\StringHelper;
 use craft\helpers\Template;
 use craft\helpers\UrlHelper;
 
+use LitEmoji\LitEmoji;
+
 class SentNotification extends Element
 {
     // Constants
@@ -299,6 +301,10 @@ class SentNotification extends Element
         $record->message = $this->message;
         $record->dateCreated = $this->dateCreated;
         $record->dateUpdated = $this->dateUpdated;
+
+        // Ensure we take care of any emoji's in content
+        $record->body = LitEmoji::encodeHtml($record->body);
+        $record->htmlBody = LitEmoji::encodeHtml($record->htmlBody);
 
         $record->save(false);
 
