@@ -606,6 +606,9 @@ export class FormieFormTheme {
         // If we're redirecting away, do it immediately for nicer UX
         if (data.redirectUrl) {
             if (this.settings.submitActionTab === 'new-tab') {
+                // Reset values if in a new tab. No need when in the same tab.
+                this.$form.reset();
+
                 window.open(data.redirectUrl, '_blank');
             } else {
                 window.location.href = data.redirectUrl;
