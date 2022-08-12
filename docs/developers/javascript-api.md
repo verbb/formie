@@ -176,7 +176,7 @@ main().then((vm) => {});
 
 In the above, we're creating a Vue component, and binding it to the `#app` DOM element for our page. The trick with this solution is that we're async-loading modules, like Vue (and potentially others), for performance benefits. This is great for overall page speed, however, it leads to a bottleneck with Formie's JS.
 
-Formie's JS will very likely initialise all forms on a page, before this code runs. Even if it happens to load the forms, it's not really guaranteed that a race condition won't appear later on in development. Under the hood, Formie initialised all forms on page just fine, but then Vue will kick in to create its virtual dom. Formie will have the submit event bound to a DOM element that is completely separate to the virtual dom Vue has built.
+Formie's JS will very likely initialise all forms on a page, before this code runs. Even if it happens to load the forms, it's not really guaranteed that a race condition won't appear later on in development. Under the hood, Formie initialised all forms on page just fine, but then Vue will kick in to create its virtual DOM. Formie will have the submit event bound to a DOM element that is completely separate to the virtual DOM Vue has built.
 
 To get around this, we need to initialise the forms on a page _after_ Vue has mounted. To do this, we can include `initForms()` once Vue has been mounted:
 
