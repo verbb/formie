@@ -33,7 +33,7 @@ class Extension extends AbstractExtension
             new TwigFunction('formieInclude', [$this, 'formieInclude'], ['needs_environment' => true, 'needs_context' => true, 'is_safe' => ['all']]),
             new TwigFunction('formieSiteInclude', [$this, 'formieSiteInclude'], ['needs_environment' => true, 'needs_context' => true, 'is_safe' => ['all']]),
             new TwigFunction('formiePluginInclude', [$this, 'formiePluginInclude'], ['needs_environment' => true, 'needs_context' => true, 'is_safe' => ['all']]),
-            new TwigFunction('formtag', [$this, 'FormTagFunction'], ['needs_context' => true, 'is_safe' => ['html']]),
+            new TwigFunction('formtag', [$this, 'formTagFunction'], ['needs_context' => true, 'is_safe' => ['html']]),
             new TwigFunction('fieldtag', [$this, 'fieldTagFunction'], ['needs_context' => true, 'is_safe' => ['html']]),
         ];
     }
