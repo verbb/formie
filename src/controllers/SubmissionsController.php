@@ -473,12 +473,14 @@ class SubmissionsController extends Controller
         // Fire an 'beforeSubmissionRequest' event
         $event = new SubmissionEvent([
             'submission' => $submission,
+            'form' => $form,
             'submitAction' => $submitAction,
         ]);
         $this->trigger(self::EVENT_BEFORE_SUBMISSION_REQUEST, $event);
 
-        // Allow the event to modify the submission
+        // Allow the event to modify the submission and form
         $submission = $event->submission;
+        $form = $event->form;
 
         // Only validate for submitting, and if the event has marked it as invalid. If the event adds errors to the submission
         // model, and `validate()` is run again, it'll clear any errors. Instead, skip straight to regular error handling.
@@ -607,6 +609,7 @@ class SubmissionsController extends Controller
         // Fire an 'afterSubmissionRequest' event
         $event = new SubmissionEvent([
             'submission' => $submission,
+            'form' => $form,
             'submitAction' => $submitAction,
             'success' => true,
         ]);
@@ -614,6 +617,8 @@ class SubmissionsController extends Controller
 
         // Allow the event to modify the submission and form
         $submission = $event->submission;
+        $form = $event->form;
+
         if ($request->getAcceptsJson()) {
             return $this->_returnJsonResponse(true, $submission, $form, $nextPage);
         }
