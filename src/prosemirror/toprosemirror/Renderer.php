@@ -41,6 +41,7 @@ class Renderer
         Nodes\TableWrapper::class,
         Nodes\Text::class,
         Nodes\User::class,
+        Nodes\VariableTag::class,
     ];
 
     public function withMarks($marks = null): static
