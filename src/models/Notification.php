@@ -17,6 +17,13 @@ use Exception;
 
 class Notification extends Model
 {
+    // Constants
+    // =========================================================================
+
+    public const RECIPIENTS_EMAIL = 'email';
+    public const RECIPIENTS_CONDITIONS = 'conditions';
+
+
     // Properties
     // =========================================================================
 
@@ -27,7 +34,7 @@ class Notification extends Model
     public ?string $name = null;
     public ?bool $enabled = null;
     public ?string $subject = null;
-    public ?string $recipients = null;
+    public string $recipients = self::RECIPIENTS_EMAIL;
     public ?string $to = null;
     public ?array $toConditions = null;
     public ?string $cc = null;
@@ -97,7 +104,7 @@ class Notification extends Model
 
         $rules[] = [
             ['to'], 'required', 'when' => function($model) {
-                return $model->recipients === 'email';
+                return $model->recipients === self::RECIPIENTS_EMAIL;
             },
         ];
 
@@ -122,11 +129,11 @@ class Notification extends Model
      */
     public function getToEmail($submission): ?string
     {
-        if ($this->recipients === 'email') {
+        if ($this->recipients === self::RECIPIENTS_EMAIL) {
             return $this->to;
         }
 
-        if ($this->recipients === 'conditions') {
+        if ($this->recipients === self::RECIPIENTS_CONDITIONS) {
             $conditionSettings = $this->toConditions ?? [];
 
             if ($conditionSettings) {
