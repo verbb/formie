@@ -60,7 +60,9 @@ export class FormieConditions {
                     // Watch for changes on the target field. When one occurs, fire off a custom event on the source field
                     // We need to do this because target fields can be targetted by multiple conditions, and source
                     // fields can have multiple conditions - we need to check them all for all/any logic.
-                    this.form.addEventListener($target, eventKey(eventType), () => { return $field.dispatchEvent(new CustomEvent('onFormieEvaluateConditions', { bubbles: true })); });
+                    this.form.addEventListener($target, eventKey(eventType), () => {
+                        return $field.dispatchEvent(new CustomEvent('onFormieEvaluateConditions', { bubbles: true, detail: { conditions: this } }));
+                    });
                 });
             });
 
@@ -77,7 +79,7 @@ export class FormieConditions {
 
             // Also - trigger the event right now to evaluate immediately. Namely if we need to hide
             // field that are set to show if conditions are met. Pass in a param to let fields know if this is "init".
-            $field.dispatchEvent(new CustomEvent('onFormieEvaluateConditions', { bubbles: true, detail: { init: true } }));
+            $field.dispatchEvent(new CustomEvent('onFormieEvaluateConditions', { bubbles: true, detail: { conditions: this, init: true } }));
         });
 
         // Update the form hash, so we don't get change warnings
@@ -219,7 +221,13 @@ export class FormieConditions {
         }
 
         // Fire an event to notify that the field's conditions have been evaluated
-        $field.dispatchEvent(new CustomEvent('onAfterFormieEvaluateConditions', { bubbles: true, detail: { init: isInit } }));
+        $field.dispatchEvent(new CustomEvent('onAfterFormieEvaluateConditions', {
+            bubbles: true,
+            detail: {
+                conditions: this,
+                init: isInit,
+            },
+        }));
     }
 
     parseJsonConditions($field) {
