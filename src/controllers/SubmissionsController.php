@@ -612,6 +612,8 @@ class SubmissionsController extends Controller
         ]);
         $this->trigger(self::EVENT_AFTER_SUBMISSION_REQUEST, $event);
 
+        // Allow the event to modify the submission and form
+        $submission = $event->submission;
         if ($request->getAcceptsJson()) {
             return $this->_returnJsonResponse(true, $submission, $form, $nextPage);
         }
