@@ -16,9 +16,9 @@ Event::on(Fields::class, Fields::EVENT_REGISTER_FIELDS, function(RegisterFieldsE
 
 Fields should extend the `FormField` base class. Where it's not possible to extend a class (your class already extends another one), the `FormFieldTrait` should be used. In both cases, fields should adhere to the `FormFieldInterface` interface,
 
-For more complex fields that have sub-fields, you should implement the `SubfieldInterface` interface and use the `SubfieldTrait` trait.
+For more complex fields that have sub-fields, you should implement the `SubfieldInterface` interface and use the `SubfieldTrait` trait. Similarly, fields that desire nested field behaviour should implement the `NestedFieldInterface` interface and use the `NestedFieldTrait` trait.
 
-In both cases, our `FormField` class itself extends from Craft's [Field](docs:developers/field) class. This means any methods, attributes or functionality used by regular Craft fields, can be used for your custom Formie fields.
+In all cases, our `FormField` class itself extends from Craft's [Field](docs:developers/field) class. This means any methods, attributes or functionality used by regular Craft fields, can be used for your custom Formie fields.
 
 ## Methods
 
@@ -47,8 +47,9 @@ Method | Description
 `defineSettingsSchema()` | Define the schema for the `Settings` tab for field settings.
 `defineAppearanceSchema()` | Define the schema for the `Appearancee` tab for field settings.
 `defineAdvancedSchema()` | Define the schema for the `Advanced` tab for field settings.
+`defineConditionsSchema()` | Define the schema for the `Conditions` tab for field settings.
 
-For those interested in further reading, we use [Vue Formulate](https://vueformulate.com/) to manage the settings for fields. The below is largely applicable to the [Generating forms](https://vueformulate.com/guide/forms/generating-forms/) documentation.
+For those interested in further reading, we use [FormKit](https://formkit.com/) to manage the settings for fields. The below is largely applicable to the [Form generation](https://formkit.com/essentials/generation) documentation.
 
 ### Creating your Schema
 Let's look at an example schema. Here we want to return a text `<input>` to store the placeholder for the field.
@@ -58,11 +59,11 @@ public function defineGeneralSchema(): array
 {
     return [
         [
+            '$formkit' => 'text',
             'label' => Craft::t('formie', 'Placeholder'),
             'help' => Craft::t('formie', 'The text that will be shown if the field doesn’t have a value.'),
             'name' => 'placeholder',
-            'type' => 'text',
-            'class' => 'text fullwidth',
+            'inputClass' => 'text fullwidth',
             'autocomplete' => 'off',
         ],
     ];
@@ -74,7 +75,7 @@ This tells Formie all the information it needs to render the field. In addition,
 ```php
 [
     // ...
-    'class' => 'some-class',
+    'inputClass' => 'some-class',
     'data-value' => 'some-value',
 ]
 ```
@@ -83,20 +84,24 @@ You can also include any arbitrary DOM elements, instead of form elements. Here,
 
 ```php
 [
-    'component' => 'div',
-    'class' => 'some-div',
+    '$el' => 'div',
+    'attrs' => [
+        'class' => 'some-div',
+    ],
     'children' => [
         [
-            'component' => 'img',
-            'src' => 'some/image/path/image.svg',
-            'style => 'width: 50px;',
+            '$el' => 'img',
+            'attrs' => [
+                'src' => 'some/image/path/image.svg',
+                'style => 'width: 50px;',
+            ],
         ],
         [
+            '$formkit' => 'text',
             'label' => Craft::t('formie', 'Placeholder'),
             'help' => Craft::t('formie', 'The text that will be shown if the field doesn’t have a value.'),
             'name' => 'placeholder',
-            'type' => 'text',
-            'class' => 'text fullwidth',
+            'inputClass' => 'text fullwidth',
             'autocomplete' => 'off',
         ],
     ]
@@ -118,10 +123,9 @@ Attribute | Description
 `type` | Define the type for the field. See [Field Types](#field-types).
 `validation` | Any validation required for the field. See [Validation](#validation).
 
-Under the hood, we pass these values to a `<component :is>` dynamic Vue component. For further reading, see [Dynamic Components](https://vuejs.org/v2/guide/components.html#Dynamic-Components)
+Under the hood, we pass these values to a `<component :is>` dynamic Vue component. For further reading, see [Dynamic Components](https://vuejs.org/v3/guide/components.html#Dynamic-Components)
 
 ### Schema Helpers
-
 You can also shorten the above using a number of our schema-helper functions, to take the boilerplate out of this code.
 
 ```php
@@ -157,12 +161,12 @@ Method | Description
 `checkboxSelectField()` | To output a collection of `<input type="checkbox">` elements.
 `checkboxField()` | To output a `<input type="checkbox">` element.
 `lightswitchField()` | To output a `<lightswitch>` component.
-`toggleContainer()` | To output a `<toggle-container>` component for a group of hidden fields. You can also provide logic for show/hiding.
 `toggleBlocks()` | To output a `<toggle-blocks>` Vue component. This should be used to wrap `toggleBlock()` with validation.
 `toggleBlock()` | To output a `<toggle-block>` Vue component. A collapsible, and enable-able group of fields.
 `tableField()` | To output a table field for defining multiple rows of content. See [Table](#table).
 `variableTextField()` | To output a `<input type="text">` element, including a dropdown to pick variables from.
-`richTextField()` | To output a WYSIWYG field using [TipTap](https://tiptap.scrumpy.io/).
+`richTextField()` | To output a WYSIWYG field using [TipTap](https://tiptap.dev).
+`elementSelectField()` | To output an element select field.
 
 Method | Description
 --- | ---
@@ -175,6 +179,14 @@ Method | Description
 `cssClasses()` | To output a field component for the CSS classes.
 `containerAttributesField()` | To output a field component for the container attributes.
 `inputAttributesField()` | To output a field component for the input attributes.
+`prePopulate()` | To output a field component for the pre-populate setting.
+`enableConditionsField()` | To output a field component for the enable conditions setting.
+`conditionsField()` | To output a field component for the conditions settings.
+`enableContentEncryptionField()` | To output a field component for the enable content encryption setting.
+`visibility()` | To output a field component for the visibility setting.
+`columnTypeField()` | To output a field component for the database column type setting.
+`fieldSelectField()` | To output a field component to select another field in the form.
+`matchField()` | To output a field component for the match field setting.
 
 ### Options
 Some fields like a select or radio buttons can provide an `options` attribute.
@@ -238,11 +250,11 @@ Method | Description
 
 
 ### Field Types
-Refer to the [Vue Formulate](https://vueformulate.com/guide/inputs/types/button/) docs on the available input types to select from.
+Refer to the [FormKit](https://formkit.com/essentials/inputs) docs on the available input types to select from.
 
 
 ### Validation
-Refer to the [Vue Formulate](https://vueformulate.com/guide/validation/#available-rules) docs on the available validation rules.
+Refer to the [FormKit](https://formkit.com/essentials/validation) docs on the available validation rules.
 
 ```php
 SchemaHelper::textField([
@@ -301,3 +313,48 @@ public function getInputHtml($value, ElementInterface $element = null): string
 You'll notice special-cases for `getFrontEndInputTemplatePath()` and `getEmailTemplatePath()` where they return a path, instead of HTML. Whilst there are `getFrontEndInputHtml()` and `getEmailHtml()` functions, they should not be overwritten in most cases. This is because Formie will determine where to look for these templates, either in its own default templates, or the folder where custom templates are defined. As such, defining `getFrontEndInputTemplatePath()` and `getEmailTemplatePath()` to the path of Twig files is all that is needed.
 
 In simple terms - if you are creating a third-party field for Formie, for general distribution, do not alter `getFrontEndInputHtml()` or `getEmailHtml()` functions. If you are using a custom field just on your project, it may be a valid case, and is totally fine.
+
+### Theme Config
+You may opt to add support for [Theme Config](docs:theming/theme-config) in your custom field. To do this, you should not include any HTML tags or attributes in your Twig templates, and instead define them in your class. This allows for your config to be overridden.
+
+For example, you could have the following in your Twig template:
+
+```twig
+{{ fieldtag('fieldInput', {
+    value: value ?? false,
+}) }}
+```
+
+Where you could define your attributes and tag in your `Field::defineHtmlTag()` function:
+
+```php
+public function defineHtmlTag(string $key, array $context = []): ?HtmlTag
+{
+    $form = $context['form'] ?? null;
+    $errors = $context['errors'] ?? null;
+
+    $id = $this->getHtmlId($form);
+    $dataId = $this->getHtmlDataId($form);
+
+    if ($key === 'fieldInput') {
+        return new HtmlTag('input', array_merge([
+            'type' => 'text',
+            'id' => $id,
+            'class' => [
+                'fui-input',
+                $errors ? 'fui-error' : false,
+            ],
+            'name' => $this->getHtmlName(),
+            'placeholder' => Craft::t('formie', $this->placeholder) ?: null,
+            'required' => $this->required ? true : null,
+            'data' => [
+                'fui-id' => $dataId,
+                'fui-message' => Craft::t('formie', $this->errorMessage) ?: null,
+            ],
+            'aria-describedby' => $this->instructions ? "{$id}-instructions" : null,
+        ], $this->getInputAttributes()));
+    }
+
+    return parent::defineHtmlTag($key, $context);
+}
+```
