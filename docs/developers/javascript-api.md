@@ -571,9 +571,47 @@ public function getFrontEndJs(Form $form)
 }
 ```
 
+### Calculations Fields
+
+### The `beforeEvaluate` event
+The event that is triggered before evaluating the formula.
+
+```js
+// Fetch the Calculations field we want to format values for, a field with the handle `result`
+const $field = document.querySelector('[data-field-handle="result"]');
+
+// Listen to every time the formula is evaluated
+$field.addEventListener('beforeEvaluate', function(e) {
+    const formula = e.detail.formula;
+    const variables = e.detail.variables;
+
+    // Modify the variables before they're evaluation
+    e.detail.variables.field_myField = 1234;
+});
+```
+
+### The `afterEvaluate` event
+The event that is triggered after evaluating the formula.
+
+```js
+// Fetch the Calculations field we want to format values for, a field with the handle `result`
+const $field = document.querySelector('[data-field-handle="result"]');
+
+// Listen to every time the formula is evaluated
+$field.addEventListener('afterEvaluate', function(e) {
+    const formatter = new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD',
+    });
+    
+    // Modify the result shown in the field
+    e.detail.result = formatter.format(e.detail.result);
+});
+```
+
+
 
 ### Date Fields
-
 When using the Date Picker option for date fields, you can access [Flatpickr](https://flatpickr.js.org/) settings, and modify them through JavaScript.
 
 ### The `beforeInit` event

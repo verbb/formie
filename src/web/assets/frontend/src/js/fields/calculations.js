@@ -39,16 +39,18 @@ export class FormieCalculations {
                 const eventType = this.getEventType($target);
 
                 // Watch for changes on the target field. When one occurs, fire off a custom event on the source field
-                this.form.addEventListener($target, eventKey(eventType), () => this.$field.dispatchEvent(new Event('FormieEvaluateCalculations', { bubbles: true })));
+                this.form.addEventListener($target, eventKey(eventType), () => {
+                    return this.$field.dispatchEvent(new CustomEvent('onFormieEvaluateCalculations', { bubbles: true, detail: { calculations: this } }));
+                });
             });
         });
 
         // Add a custom event listener to fire when the field event listener fires
-        this.form.addEventListener(this.$field, eventKey('FormieEvaluateCalculations'), this.evaluateCalculations.bind(this));
+        this.form.addEventListener(this.$field, eventKey('onFormieEvaluateCalculations'), this.evaluateCalculations.bind(this));
 
         // Also - trigger the event right now to evaluate immediately. Namely if we need to hide
         // field that are set to show if conditions are met.
-        this.$field.dispatchEvent(new Event('FormieEvaluateCalculations', { bubbles: true }));
+        this.$field.dispatchEvent(new CustomEvent('onFormieEvaluateCalculations', { bubbles: true, detail: { calculations: this, init: true } }));
 
         // Update the form hash, so we don't get change warnings
         if (this.form.formTheme) {
@@ -57,7 +59,10 @@ export class FormieCalculations {
     }
 
     evaluateCalculations(e) {
-        const variables = {};
+        const $field = e.target;
+        const isInit = e.detail ? e.detail.init : false;
+        let { formula } = this;
+        let variables = {};
 
         // For each variable, grab the value
         Object.keys(this.fieldsStore).forEach((variableKey) => {
@@ -83,8 +88,42 @@ export class FormieCalculations {
             });
         });
 
+        // Allow events to modify the data before evaluation
+        const beforeEvaluateEvent = new CustomEvent('beforeEvaluate', {
+            bubbles: true,
+            detail: {
+                calculations: this,
+                init: isInit,
+                formula,
+                variables,
+            },
+        });
+
+        $field.dispatchEvent(beforeEvaluateEvent);
+
+        // Events can modify the formula and variables
+        formula = beforeEvaluateEvent.detail.formula;
+        variables = beforeEvaluateEvent.detail.variables;
+
         try {
-            let result = this.expressionLanguage.evaluate(this.formula, variables);
+            let result = this.expressionLanguage.evaluate(formula, variables);
+
+            // Allow events to modify the data after evaluation
+            const afterEvaluateEvent = new CustomEvent('afterEvaluate', {
+                bubbles: true,
+                detail: {
+                    calculations: this,
+                    init: isInit,
+                    formula,
+                    variables,
+                    result,
+                },
+            });
+
+            $field.dispatchEvent(afterEvaluateEvent);
+
+            // Events can modify the result
+            result = afterEvaluateEvent.detail.result;
 
             // Handle null-like results. If they're `NaN`, `false` set as empty, but `0` is valid
             if (typeof result === 'undefined' || Number.isNaN(result)) {
