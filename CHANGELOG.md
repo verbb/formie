@@ -1,5 +1,26 @@
 # Changelog
 
+## 2.0.6 - 2022-08-16
+
+### Added
+- Added `beforeEvaluate` and `afterEvaluate` for Calculations field’s JS.
+- Added `form` property to `SubmissionEvent`.
+- Added support for Variable Tag nodes when rendering HTML to ProseMirror schema.
+
+### Changed
+- When redirecting to a new tab, form values will now be reset.
+- Allow `SubmissionController::EVENT_AFTER_SUBMISSION_REQUEST` to alter the submission.
+
+### Fixed
+- Fixed an error for Stripe payment integrations that would throw an error when catching Stripe API errors.
+- Fixed typings for Payment integration `getAmount()` and `getCurrency()` functions to properly catch errors.
+- Fixed an error when not supplying a `submitAction` for a submission.
+- Fixed email notifications not getting the default `recipients` type set correctly.
+- Fixed error handling on submission exports.
+- Fixed Slack public channels not always showing all channels by increasing limit to 100.
+- Fixed an error with the Slack integration, when posting via Webhooks.
+- Fixed custom error messages not showing for client-side validation.
+
 ## 2.0.5 - 2022-08-07
 
 ### Added
