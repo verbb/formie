@@ -43,7 +43,7 @@ This guide serves as a starter. There are several aspects of templating that sho
 
 Stepping through the above, we prepare an array of HTML attributes, for the `<form>` element, and use Craft's `attr()` Twig function to apply them - it's a little easier than all those attributes!
 
-:::tip
+:::warning
 Make sure to include the `data-fui-form` attribute with JSON configuration from the form. Without this attribute, Formie's JavaScript will fail to initialise, meaning client-side validation, captchas and more will not work.
 :::
 
@@ -231,6 +231,22 @@ That should provide us with a working example to continue building. Here's the t
     <button type="submit" data-submit-action="submit">Submit</button>
 </form>
 ```
+
+### File Uploads
+If your form contains File Upload fields, you'll need to set the `<form>` element to use `multipart/form-data`.
+
+```twig
+{% set attributes = {
+    method: 'post',
+    enctype: 'multipart/form-data',
+    'data-fui-form': form.configJson,
+} %}
+
+<form {{ attr(attributes) }}>
+
+```
+
+Without this, file uploads will not work.
 
 ### What's Not Covered
 Whilst we've covered the basics, there's still plenty of things left to address, such as handling the different forms of submission (redirecting the user away, hiding the form, only showing a message), and multi-page forms. That's beyond the scope of this guide, and we'd encourage you to consult the templates on [Formie's GitHub](https://github.com/verbb/formie/tree/craft-4/src/templates/_special).
