@@ -358,7 +358,10 @@ class Stripe extends Payment
         $field = $this->getField();
         $fieldValue = $submission->getFieldValue($field->handle);
         $paymentMethodId = $fieldValue['stripePaymentId'] ?? null; 
-        $paymentIntentId = $fieldValue['stripePaymentIntentId'] ?? null; 
+        $paymentIntentId = $fieldValue['stripePaymentIntentId'] ?? null;
+
+        $amount = 0;
+        $currency = null;
 
         try {
             // Are we come back from a 3DS verification? Update the payment, skip everything else (already done)
@@ -462,6 +465,8 @@ class Stripe extends Payment
             $payment->integrationId = $this->id;
             $payment->submissionId = $submission->id;
             $payment->fieldId = $field->id;
+            $payment->amount = self::fromStripeAmount($amount, $currency);
+            $payment->currency = $currency;
             $payment->status = PaymentModel::STATUS_FAILED;
             $payment->reference = $body['error']['charge'] ?? null;
             $payment->code = $body['error']['code'] ?? null;
@@ -480,6 +485,8 @@ class Stripe extends Payment
             $payment->integrationId = $this->id;
             $payment->submissionId = $submission->id;
             $payment->fieldId = $field->id;
+            $payment->amount = self::fromStripeAmount($amount, $currency);
+            $payment->currency = $currency;
             $payment->status = PaymentModel::STATUS_FAILED;
             $payment->reference = null;
             $payment->code = $body['error']['code'] ?? $body['error']['type'] ?? $e->getStripeCode();
