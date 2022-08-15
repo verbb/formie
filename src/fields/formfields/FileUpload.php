@@ -478,6 +478,20 @@ class FileUpload extends CraftAssets implements FormFieldInterface
             $this->_assetsToDelete = $value->ids();
         }
 
+        // Check if there are any invalid assets, likely done by bots. This is where the POST
+        // data has come in as ['JrFVNoLBCicUTAOn'] instead of a empty value (for new assets) or an ID.
+        // This is only usually done by malicious actors manipulating POST data.
+        // Note that this is set on the AssetQuery itself.
+        $assetIds = $element->getFieldValue($this->handle)->id ?? false;
+
+        if ($assetIds && is_array($assetIds)) {
+            foreach ($assetIds as $assetId) {
+                if (!is_integer($assetId)) {
+                    return false;
+                }
+            }
+        }
+
         return true;
     }
 
