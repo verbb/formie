@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.6.7 - 2022-08-16
+
+### Added
+- Added `beforeEvaluate` and `afterEvaluate` for Calculations field’s JS.
+
+### Fixed
+- Fixed File Upload fields not handling invalid POST data send by malicious parties.
+- Fixed an error when trying to create a Sent Notification when the body of a notification contained an Emoji.
+- Fixed extra space when using `formClasses` for forms.
+- Fixed front-end JS not initializing correctly when using custom ID attributes for the form element.
+
 ## 1.6.6 - 2022-08-07
 
 ### Added
