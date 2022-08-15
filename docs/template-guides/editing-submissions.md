@@ -57,6 +57,6 @@ You can also take complete control over the form's HTML if you wish.
         {{ craft.formie.renderField(submission.form, field) }}
     {% endfor %}
 
-    <button type="submit">Save</button>
+    <button type="submit" data-submit-action="submit">Save</button>
 </form>
 ```

@@ -37,7 +37,7 @@ This guide serves as a starter. There are several aspects of templating that sho
         {% endnamespace %}
     {% endfor %}
     
-    <button type="submit">Submit</button>
+    <button type="submit" data-submit-action="submit">Submit</button>
 </form>
 ```
 
@@ -113,7 +113,7 @@ Then, we want to add information about the submission. This is important if the 
         {% endnamespace %}
     {% endfor %}
     
-    <button type="submit">Submit</button>
+    <button type="submit" data-submit-action="submit">Submit</button>
 </form>
 ```
 
@@ -228,7 +228,7 @@ That should provide us with a working example to continue building. Here's the t
 
     {% hook 'formie.buttons.before' %}
     
-    <button type="submit">Submit</button>
+    <button type="submit" data-submit-action="submit">Submit</button>
 </form>
 ```
 
