@@ -72,7 +72,7 @@ class Stripe extends Payment
         return true;
     }
     
-    public static function toStripeAmount($amount, $currency)
+    public static function toStripeAmount(float $amount, string $currency): float
     {
         if (in_array(strtoupper($currency), self::ZERO_DECIMAL_CURRENCIES)) {
             return $amount;
@@ -81,7 +81,7 @@ class Stripe extends Payment
         return ceil($amount * 100);
     }
 
-    public static function fromStripeAmount($amount, $currency)
+    public static function fromStripeAmount(float $amount, string $currency): float
     {
         if (in_array(strtoupper($currency), self::ZERO_DECIMAL_CURRENCIES)) {
             return $amount;
@@ -164,7 +164,7 @@ class Stripe extends Payment
     /**
      * @inheritDoc
      */
-    public function getAmount($submission)
+    public function getAmount($submission): float
     {
         // Ensure the amount is converted to Stripe for zero-decimal currencies
         return self::toStripeAmount(parent::getAmount($submission), $this->getCurrency($submission));

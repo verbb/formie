@@ -225,37 +225,37 @@ abstract class Payment extends Integration
     /**
      * @inheritDoc
      */
-    public function getAmount($submission)
+    public function getAmount($submission): float
     {
         $amountType = $this->getFieldSetting('amountType');
         $amountFixed = $this->getFieldSetting('amountFixed');
         $amountVariable = $this->getFieldSetting('amountVariable');
 
         if ($amountType === Payment::VALUE_TYPE_FIXED) {
-            return $amountFixed;
+            return (float)$amountFixed;
         } else if ($amountType === Payment::VALUE_TYPE_DYNAMIC) {
-            return Variables::getParsedValue($amountVariable, $submission, $submission->getForm());
+            return (float)Variables::getParsedValue($amountVariable, $submission, $submission->getForm());
         }
 
-        return null;
+        return 0;
     }
 
     /**
      * @inheritDoc
      */
-    public function getCurrency($submission)
+    public function getCurrency($submission): string
     {
         $currencyType = $this->getFieldSetting('currencyType');
         $currencyFixed = $this->getFieldSetting('currencyFixed');
         $currencyVariable = $this->getFieldSetting('currencyVariable');
 
         if ($currencyType === Payment::VALUE_TYPE_FIXED) {
-            return $currencyFixed;
+            return (string)$currencyFixed;
         } else if ($currencyType === Payment::VALUE_TYPE_DYNAMIC) {
-            return Variables::getParsedValue($currencyVariable, $submission, $submission->getForm());
+            return (string)Variables::getParsedValue($currencyVariable, $submission, $submission->getForm());
         }
 
-        return null;
+        return '';
     }
 
     /**
