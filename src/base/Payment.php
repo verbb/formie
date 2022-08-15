@@ -243,7 +243,7 @@ abstract class Payment extends Integration
     /**
      * @inheritDoc
      */
-    public function getCurrency($submission): string
+    public function getCurrency($submission): ?string
     {
         $currencyType = $this->getFieldSetting('currencyType');
         $currencyFixed = $this->getFieldSetting('currencyFixed');
@@ -255,7 +255,7 @@ abstract class Payment extends Integration
             return (string)Variables::getParsedValue($currencyVariable, $submission, $submission->getForm());
         }
 
-        return '';
+        return null;
     }
 
     /**
