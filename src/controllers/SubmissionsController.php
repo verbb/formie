@@ -210,7 +210,7 @@ class SubmissionsController extends Controller
 
         // Ensure we validate some params here to prevent potential malicious-ness
         $formHandle = $this->_getTypedParam('handle', 'string');
-        $submitAction = $this->_getTypedParam('submitAction', 'string');
+        $submitAction = $this->_getTypedParam('submitAction', 'string', 'submit');
 
         $form = Form::find()->handle($formHandle)->one();
 
@@ -1107,10 +1107,11 @@ class SubmissionsController extends Controller
      *
      * @param string $name The parameter name.
      * @param string $type The parameter type to be enforced.
+     * @param mixed $default The default value to return if invalid.
      * @return mixed The parameter value.
      * @throws BadRequestHttpException if the request is not the valid type
      */
-    private function _getTypedParam(string $name, string $type): mixed
+    private function _getTypedParam(string $name, string $type, mixed $default = null): mixed
     {
         $request = Craft::$app->getRequest();
         $value = $request->getParam($name);
@@ -1136,6 +1137,6 @@ class SubmissionsController extends Controller
             throw new BadRequestHttpException('Request has invalid param ' . $name);
         }
 
-        return null;
+        return $default;
     }
 }
