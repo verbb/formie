@@ -35,7 +35,7 @@
 
 <script>
 import { mapState } from 'vuex';
-import { get, truncate } from 'lodash-es';
+import { get, truncate, isEmpty } from 'lodash-es';
 
 import { toBoolean } from '@utils/bool';
 
@@ -76,7 +76,8 @@ export default {
     },
 
     mounted() {
-        if (!this.context._value) {
+        if (isEmpty(this.context._value)) {
+            // If brand-new and fresh, ensure we set the value to an object so reactivity kicks in
             this.context.node.input({});
 
             // Wait for FormKit to settle
