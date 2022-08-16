@@ -60,7 +60,7 @@ class Agree extends FormField implements PreviewableFieldInterface
     public function __construct(array $config = [])
     {
         // Moved to a private variable in 2.0.3 due to infinite loop issue. TODO: remove at next breakpoint
-        if (isset($config['descriptionHtml'])) {
+        if (array_key_exists('descriptionHtml', $config)) {
             unset($config['descriptionHtml']);
         }
 

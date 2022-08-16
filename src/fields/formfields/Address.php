@@ -176,6 +176,19 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
     /**
      * @inheritDoc
      */
+    public function __construct(array $config = [])
+    {
+        // Config normalization
+        if (array_key_exists('enableAutocomplete', $config)) {
+            unset($config['enableAutocomplete']);
+        }
+
+        parent::__construct($config);
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function getContentColumnType(): array|string
     {
         return Schema::TYPE_TEXT;
