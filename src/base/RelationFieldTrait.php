@@ -180,10 +180,6 @@ trait RelationFieldTrait
     {
         $options = [];
 
-        if ($this->displayType === 'dropdown') {
-            $options[] = ['label' => $this->placeholder, 'value' => ''];
-        }
-
         foreach ($this->getElementsQuery()->all() as $element) {
             // Important to cast as a string, otherwise Twig will struggle to compare
             $options[] = ['label' => $this->_getElementLabel($element), 'value' => (string)$element->id];

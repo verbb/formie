@@ -189,10 +189,6 @@ class Categories extends CraftCategories implements FormFieldInterface
     {
         $options = [];
 
-        if ($this->displayType === 'dropdown') {
-            $options[] = ['label' => $this->placeholder, 'value' => ''];
-        }
-
         foreach ($this->getElementsQuery()->all() as $element) {
             // Negate the first level to start at 0, so no "-" character is shown at first level
             $level = $element->level - 1;
