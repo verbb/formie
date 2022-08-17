@@ -102,7 +102,9 @@ export class FormieCalculations {
         $field.dispatchEvent(beforeEvaluateEvent);
 
         // Events can modify the formula and variables
+        // eslint-disable-next-line
         formula = beforeEvaluateEvent.detail.formula;
+        // eslint-disable-next-line
         variables = beforeEvaluateEvent.detail.variables;
 
         try {
@@ -123,6 +125,7 @@ export class FormieCalculations {
             $field.dispatchEvent(afterEvaluateEvent);
 
             // Events can modify the result
+            // eslint-disable-next-line
             result = afterEvaluateEvent.detail.result;
 
             // Handle null-like results. If they're `NaN`, `false` set as empty, but `0` is valid

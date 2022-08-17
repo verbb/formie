@@ -106,7 +106,7 @@ export class FormieFormTheme {
         setTimeout(() => {
             this.$form.dispatchEvent(registerFormieValidation);
 
-            this.validator = new Bouncer(this.formId, registerFormieValidation.detail.validatorSettings);
+            this.validator = new Bouncer(this.$form, registerFormieValidation.detail.validatorSettings);
         }, 500);
 
         // After we clear any error, validate the fielset again. Mostly so we can remove global errors
