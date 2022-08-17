@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.6.8 - 2022-08-17
+
+### Fixed
+- Fixed an error introduced in 1.6.7 causing client-side validation not to work correctly.
+
 ## 1.6.7 - 2022-08-16
 
 ### Added
