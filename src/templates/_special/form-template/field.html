@@ -30,14 +30,14 @@
         {{ formieInclude('_includes/label', { position: 'below' }) }}
         {{ formieInclude('_includes/instructions', { position: 'below' }) }}
 
-        {% hook 'formie.field.field-end' %}
+        {% hook 'formie.field.input-after' %}
     {% endfieldtag %}
 
     {% if errors %}
         {{ formieInclude('_includes/field-errors') }}
     {% endif %}
 
-    {% hook 'formie.field.field-after' %}
+    {% hook 'formie.field.field-end' %}
 {% endfieldtag %}
 
-{% hook 'formie.field.input-after' %}
+{% hook 'formie.field.field-after' %}
