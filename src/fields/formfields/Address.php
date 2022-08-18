@@ -360,7 +360,7 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
                     'required' => $this->address1Required,
                     'placeholder' => $this->address1Placeholder,
                     'errorMessage' => $this->address1ErrorMessage,
-                    'defaultValue' => $this->address1DefaultValue,
+                    'defaultValue' => $this->getDefaultValue('address1'),
                     'labelPosition' => $this->subfieldLabelPosition,
                     'inputAttributes' => [
                         [
@@ -382,7 +382,7 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
                     'required' => $this->address2Required,
                     'placeholder' => $this->address2Placeholder,
                     'errorMessage' => $this->address2ErrorMessage,
-                    'defaultValue' => $this->address2DefaultValue,
+                    'defaultValue' => $this->getDefaultValue('address2'),
                     'labelPosition' => $this->subfieldLabelPosition,
                     'inputAttributes' => [
                         [
@@ -404,7 +404,7 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
                     'required' => $this->address3Required,
                     'placeholder' => $this->address3Placeholder,
                     'errorMessage' => $this->address3ErrorMessage,
-                    'defaultValue' => $this->address3DefaultValue,
+                    'defaultValue' => $this->getDefaultValue('address3'),
                     'labelPosition' => $this->subfieldLabelPosition,
                     'inputAttributes' => [
                         [
@@ -426,7 +426,7 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
                     'required' => $this->cityRequired,
                     'placeholder' => $this->cityPlaceholder,
                     'errorMessage' => $this->cityErrorMessage,
-                    'defaultValue' => $this->cityDefaultValue,
+                    'defaultValue' => $this->getDefaultValue('city'),
                     'labelPosition' => $this->subfieldLabelPosition,
                     'inputAttributes' => [
                         [
@@ -446,7 +446,7 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
                     'required' => $this->zipRequired,
                     'placeholder' => $this->zipPlaceholder,
                     'errorMessage' => $this->zipErrorMessage,
-                    'defaultValue' => $this->zipDefaultValue,
+                    'defaultValue' => $this->getDefaultValue('zip'),
                     'labelPosition' => $this->subfieldLabelPosition,
                     'inputAttributes' => [
                         [
@@ -468,7 +468,7 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
                     'required' => $this->stateRequired,
                     'placeholder' => $this->statePlaceholder,
                     'errorMessage' => $this->stateErrorMessage,
-                    'defaultValue' => $this->stateDefaultValue,
+                    'defaultValue' => $this->getDefaultValue('state'),
                     'labelPosition' => $this->subfieldLabelPosition,
                     'inputAttributes' => [
                         [
@@ -488,7 +488,7 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
                     'required' => $this->countryRequired,
                     'placeholder' => $this->countryPlaceholder,
                     'errorMessage' => $this->countryErrorMessage,
-                    'defaultValue' => $this->countryDefaultValue,
+                    'defaultValue' => $this->getDefaultValue('country'),
                     'labelPosition' => $this->subfieldLabelPosition,
                     'options' => $this->countryOptions,
                     'inputAttributes' => [
@@ -514,7 +514,7 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
                     'required' => $this->autocompleteRequired,
                     'placeholder' => $this->autocompletePlaceholder,
                     'errorMessage' => $this->autocompleteErrorMessage,
-                    'defaultValue' => $this->autocompleteDefaultValue,
+                    'defaultValue' => $this->getDefaultValue('autocomplete'),
                     'labelPosition' => $this->subfieldLabelPosition,
                     'inputAttributes' => [
                         [

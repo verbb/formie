@@ -243,7 +243,7 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
                     'required' => $this->prefixRequired,
                     'placeholder' => $this->prefixPlaceholder,
                     'errorMessage' => $this->prefixErrorMessage,
-                    'defaultValue' => $this->prefixDefaultValue,
+                    'defaultValue' => $this->getDefaultValue('prefix'),
                     'labelPosition' => $this->subfieldLabelPosition,
                     'options' => $this->prefixOptions,
                     'inputAttributes' => [
@@ -260,7 +260,7 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
                     'required' => $this->firstNameRequired,
                     'placeholder' => $this->firstNamePlaceholder,
                     'errorMessage' => $this->firstNameErrorMessage,
-                    'defaultValue' => $this->firstNameDefaultValue,
+                    'defaultValue' => $this->getDefaultValue('firstName'),
                     'labelPosition' => $this->subfieldLabelPosition,
                     'inputAttributes' => [
                         [
@@ -276,7 +276,7 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
                     'required' => $this->middleNameRequired,
                     'placeholder' => $this->middleNamePlaceholder,
                     'errorMessage' => $this->middleNameErrorMessage,
-                    'defaultValue' => $this->middleNameDefaultValue,
+                    'defaultValue' => $this->getDefaultValue('middleName'),
                     'labelPosition' => $this->subfieldLabelPosition,
                     'inputAttributes' => [
                         [
@@ -292,7 +292,7 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
                     'required' => $this->lastNameRequired,
                     'placeholder' => $this->lastNamePlaceholder,
                     'errorMessage' => $this->lastNameErrorMessage,
-                    'defaultValue' => $this->lastNameDefaultValue,
+                    'defaultValue' => $this->getDefaultValue('lastName'),
                     'labelPosition' => $this->subfieldLabelPosition,
                     'inputAttributes' => [
                         [
