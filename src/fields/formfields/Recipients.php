@@ -238,8 +238,18 @@ class Recipients extends FormField
 
         $config = [
             'options' => $this->getFieldOptions(),
-            'namespace' => $this->getNamespace(),
         ];
+
+        // Set the parent field and namespace, but in a specific way due to nested field handling.
+        if ($this->getParentField()) {
+            // Note the order here is important, due to Repeaters (and other nested fields)
+            // can set the namespace with `setParentFIeld()`, but we want to specifically use the
+            // namespace value we already have, which has already neen set anyway.
+            $config['parentField'] = $this->getParentField();
+            $config['namespace'] = $this->getNamespace();
+        } else {
+            $config['namespace'] = $this->getNamespace();
+        }
 
         foreach ($class->getProperties(ReflectionProperty::IS_PUBLIC) as $property) {
             if (!$property->isStatic() && $property->getDeclaringClass()->isAbstract()) {
