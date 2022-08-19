@@ -21,6 +21,7 @@ use craft\helpers\Cp;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 use craft\helpers\Template as TemplateHelper;
+use craft\services\ElementSources;
 
 use ReflectionClass;
 use ReflectionProperty;
@@ -314,6 +315,20 @@ trait RelationFieldTrait
         }
 
         return $options;
+    }
+
+    /**
+     * Returns the sources that should be available to choose from within the field's settings
+     *
+     * @return array
+     */
+    protected function availableSources(): array
+    {
+        // Include disabled sources, for the moment. We might tighten this up to checking if "All entries" is disabled.
+        return ArrayHelper::where(
+            Craft::$app->getElementSources()->getSources(static::elementType(), 'modal', true),
+            fn($s) => $s['type'] !== ElementSources::TYPE_HEADING
+        );
     }
 
 
