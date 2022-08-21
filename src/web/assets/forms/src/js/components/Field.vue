@@ -376,6 +376,7 @@ export default {
                     row.id = newId();
 
                     row.fields.forEach((field) => {
+                        delete field.id;
                         field.vid = newId();
                     });
                 });

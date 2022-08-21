@@ -379,6 +379,7 @@ class Salesforce extends Crm
                     }
                 } catch (Throwable $e) {
                     // Ignore duplicate warnings and continue, but still log
+                    Integration::error($this, 'Duplicate lead found.', false);
                     Integration::apiError($this, $e, false);
 
                     // Check if we should enable tasks to be created for duplicates
@@ -386,6 +387,8 @@ class Salesforce extends Crm
                     $responseCode = $response[0]['errorCode'] ?? '';
 
                     if ($responseCode === 'DUPLICATES_DETECTED' && $this->duplicateLeadTask) {
+                        Integration::error($this, 'Attempting to create task for duplicate lead.', false);
+
                         $taskPayload = [
                             'Subject' => $this->duplicateLeadTaskSubject,
                             'WhoId' => $contactId,
@@ -402,8 +405,15 @@ class Salesforce extends Crm
                             if ($response === false) {
                                 return true;
                             }
+
+                            Integration::log($this, Craft::t('formie', 'Response from task-creation {response}. Sent payload {payload}', [
+                                'response' => Json::encode($response),
+                                'payload' => Json::encode($taskPayload),
+                            ]));
                         } catch (Throwable $e) {
-                            Integration::apiError($this, $e, false);
+                            Integration::apiError($this, $e);
+
+                            return false;
                         }
                     }
                 }

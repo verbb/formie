@@ -221,6 +221,19 @@
 - Removed `forms`, `form` and `formCount` from GraphQL queries. Please use `formieForms`, `formieForm` and `formieFormCount`.
 - Removed `submissions`, `submission` and `submissionCount` from GraphQL queries. Please use `formieSubmissions`, `formieSubmission` and `formieSubmissionCount`.
 
+## 1.6.9 - 2022-08-22
+
+### Added
+- Added more logging to Salesforce integration with regards to duplicate lead task-creation.
+
+### Fixed
+- Fixed cloning Group/Repeater fields not correctly cloning their inner fields.
+
+## 1.6.8 - 2022-08-17
+
+### Fixed
+- Fixed an error introduced in 1.6.7 causing client-side validation not to work correctly.
+
 ## 1.6.7 - 2022-08-16
 
 ### Added
