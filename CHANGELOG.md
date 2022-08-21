@@ -1,5 +1,16 @@
 # Changelog
 
+## 2.0.7 - 2022-08-22
+
+### Fixed
+- Fixed element fields not showing disabled sources in field settings.
+- Fixed Name and Address sub-fields not pre-populating values from the URL.
+- Fixed incorrect order of `formie.field.*`  ending template hooks.
+- Fixed an error with element fields in Repeater fields not working correctly.
+- Fixed element fields having their placeholder value duplicated when displaying as a dropdown.
+- Fixed an error with Payment fields not retaining the Billing Details when saving.
+- Fixed an error with Address fields not removing outdated `enableAutocomplete` setting.
+
 ## 2.0.6 - 2022-08-16
 
 ### Added
