@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.6.9 - 2022-08-22
+
+### Added
+- Added more logging to Salesforce integration with regards to duplicate lead task-creation.
+
+### Fixed
+- Fixed cloning Group/Repeater fields not correctly cloning their inner fields.
+
 ## 1.6.8 - 2022-08-17
 
 ### Fixed
