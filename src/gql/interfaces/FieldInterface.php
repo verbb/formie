@@ -110,11 +110,6 @@ class FieldInterface extends BaseInterfaceType
                         return '[' . $inputType->name . ']';
                     }
 
-                    // FileUpload fields don't seem to resolve correctly?
-                    if ($field instanceof FileUpload) {
-                        return '[' . $inputType->name . ']';
-                    }
-
                     if (is_string($inputType)) {
                         return $inputType;
                     }
