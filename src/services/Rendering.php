@@ -346,8 +346,8 @@ class Rendering extends Component
             'File must be smaller than {filesize} MB.',
             'File must be larger than {filesize} MB.',
             'Choose up to {files} files.',
-            '{num} characters left',
-            '{num} words left',
+            '{startTag}{num}{endTag} characters left',
+            '{startTag}{num}{endTag} words left',
 
             // Field validation messages
             'This field is required.',
