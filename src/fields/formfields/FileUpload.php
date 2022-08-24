@@ -486,7 +486,7 @@ class FileUpload extends CraftAssets implements FormFieldInterface
 
         if ($assetIds && is_array($assetIds)) {
             foreach ($assetIds as $assetId) {
-                if (!is_integer($assetId)) {
+                if (!(int)$assetId) {
                     return false;
                 }
             }
