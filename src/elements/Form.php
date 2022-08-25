@@ -1327,16 +1327,21 @@ class Form extends Element
         // Get the HtmlTag definition
         $tag = $this->defineHtmlTag($key, $context);
 
-        // Find if there's a config option for this key, either in plugin config or template render options
-        $config = $this->getThemeConfigItem($key);
-
         if ($tag) {
-            // Are we resetting classes globally?
-            if ($this->resetClasses) {
-                $config['resetClass'] = true;
-            }
+            // Find if there's a config option for this key, either in plugin config or template render options
+            $config = $this->getThemeConfigItem($key);
 
-            $tag->setFromConfig($config, $context);
+            // Check if the config is falsey - then don't render
+            if ($config === false || $config === null) {
+                $tag = null;
+            } else {
+                // Are we resetting classes globally?
+                if ($this->resetClasses) {
+                    $config['resetClass'] = true;
+                }
+
+                $tag->setFromConfig($config, $context);
+            }
         }
 
         $event = new ModifyFormHtmlTagEvent([
@@ -1645,7 +1650,7 @@ class Form extends Element
         $this->resetClasses = ArrayHelper::remove($this->_themeConfig, 'resetClasses', false);
     }
 
-    public function getThemeConfigItem(string $key): array
+    public function getThemeConfigItem(string $key): array|bool|null
     {
         return ArrayHelper::getValue($this->_themeConfig, $key, []);
     }

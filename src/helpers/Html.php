@@ -130,11 +130,12 @@ class Html extends CraftHtmlHelper
         }
 
         // Check if there are any items in `$extraConfig` that aren't in `$config` and add them
-        // No need to merge because there's not in `$config`!
+        // No need to merge because there's not in `$config`! Be sure to use a placeholder value
+        // that couldn't possibly be valid, to cater for `[]`, `null` and `false` which are valid values.
         foreach ($extraConfig as $key => $extraKeyConfig) {
-            $keyConfig = $config[$key] ?? [];
+            $keyConfig = $config[$key] ?? '__notfound__';
 
-            if (!$keyConfig) {
+            if ($keyConfig === '__notfound__') {
                 $mergedConfigs[$key] = $extraKeyConfig;
             }
         }

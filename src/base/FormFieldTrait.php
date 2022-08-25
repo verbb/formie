@@ -679,25 +679,30 @@ trait FormFieldTrait
         // Get the HtmlTag definition
         $tag = $this->defineHtmlTag($key, $context);
 
-        // The render options are stored on the form for efficiency, so they're only parsed once
-        // even if passing in options via `craft.formie.renderField()`.
-        $form = $context['form'] ?? $this->getForm();
-        
-        // Find if there's a config option for this key, either in plugin config or template render options
-        $templateConfig = $form->getThemeConfigItem($key);
-
-        // Check if this is a class-specific key (e.g. `singleLineText`) which will take precedence over
-        // more general config, and merge them.
-        $classTemplateConfig = $form->getThemeConfigItem(Html::getFieldClassKey($this) . '.' . $key);
-        $config = Html::mergeHtmlConfigs([$key => $templateConfig], [$key => $classTemplateConfig])[$key] ?? [];
-
         if ($tag) {
-            // Are we resetting classes globally?
-            if ($form->resetClasses) {
-                $config['resetClass'] = true;
-            }
+            // The render options are stored on the form for efficiency, so they're only parsed once
+            // even if passing in options via `craft.formie.renderField()`.
+            $form = $context['form'] ?? $this->getForm();
+            
+            // Find if there's a config option for this key, either in plugin config or template render options
+            $templateConfig = $form->getThemeConfigItem($key);
 
-            $tag->setFromConfig($config, $context);
+            // Check if this is a class-specific key (e.g. `singleLineText`) which will take precedence over
+            // more general config, and merge them.
+            $classTemplateConfig = $form->getThemeConfigItem(Html::getFieldClassKey($this) . '.' . $key);
+            $config = Html::mergeHtmlConfigs([$key => $templateConfig], [$key => $classTemplateConfig])[$key] ?? [];
+
+            // Check if the config is falsey - then don't render
+            if ($config === false || $config === null) {
+                $tag = null;
+            } else {
+                // Are we resetting classes globally?
+                if ($form->resetClasses) {
+                    $config['resetClass'] = true;
+                }
+
+                $tag->setFromConfig($config, $context);
+            }
         }
 
         $event = new ModifyFieldHtmlTagEvent([
