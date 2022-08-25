@@ -130,12 +130,31 @@ class MultiLineText extends FormField implements PreviewableFieldInterface
                 'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/fields/rich-text.js', true),
                 'module' => 'FormieRichText',
                 'settings' => [
-                    'buttons' => $this->richTextButtons,
+                    'buttons' => $this->getRichTextButtons(),
                 ],
             ];
         }
 
         return $modules;
+    }
+
+    public function getRichTextButtons()
+    {
+        $order = array_map(function($item) {
+            return $item['value'];
+        }, $this->getButtonOptions());
+
+        // Return the order of buttons as they were defined in our field
+        if ($this->richTextButtons) {
+            usort($this->richTextButtons, function ($a, $b) use ($order) {
+                $pos_a = array_search($a, $order);
+                $pos_b = array_search($b, $order);
+
+                return $pos_a - $pos_b;
+            });
+        }
+
+        return $this->richTextButtons;
     }
 
     /**
@@ -145,6 +164,30 @@ class MultiLineText extends FormField implements PreviewableFieldInterface
     {
         return [
             'richTextButtons' => ['bold', 'italic'],
+        ];
+    }
+
+    public function getButtonOptions()
+    {
+        return [
+            ['label' => Craft::t('formie', 'Bold'), 'value' => 'bold'],
+            ['label' => Craft::t('formie', 'Italic'), 'value' => 'italic'],
+            ['label' => Craft::t('formie', 'Underline'), 'value' => 'underline'],
+            ['label' => Craft::t('formie', 'Strike-through'), 'value' => 'strikethrough'],
+            ['label' => Craft::t('formie', 'Heading 1'), 'value' => 'heading1'],
+            ['label' => Craft::t('formie', 'Heading 2'), 'value' => 'heading2'],
+            ['label' => Craft::t('formie', 'Paragraph'), 'value' => 'paragraph'],
+            ['label' => Craft::t('formie', 'Quote'), 'value' => 'quote'],
+            ['label' => Craft::t('formie', 'Ordered List'), 'value' => 'olist'],
+            ['label' => Craft::t('formie', 'Unordered List'), 'value' => 'ulist'],
+            ['label' => Craft::t('formie', 'Code'), 'value' => 'code'],
+            ['label' => Craft::t('formie', 'Horizontal Rule'), 'value' => 'line'],
+            ['label' => Craft::t('formie', 'Link'), 'value' => 'link'],
+            ['label' => Craft::t('formie', 'Image'), 'value' => 'image'],
+            ['label' => Craft::t('formie', 'Align Left'), 'value' => 'alignleft'],
+            ['label' => Craft::t('formie', 'Align Center'), 'value' => 'aligncenter'],
+            ['label' => Craft::t('formie', 'Align Right'), 'value' => 'alignright'],
+            ['label' => Craft::t('formie', 'Clear Formatting'), 'value' => 'clear'],
         ];
     }
 
@@ -253,26 +296,7 @@ class MultiLineText extends FormField implements PreviewableFieldInterface
                 'name' => 'richTextButtons',
                 'showAllOption' => false,
                 'if' => '$get(useRichText).value',
-                'options' => [
-                    ['label' => Craft::t('formie', 'Bold'), 'value' => 'bold'],
-                    ['label' => Craft::t('formie', 'Italic'), 'value' => 'italic'],
-                    ['label' => Craft::t('formie', 'Underline'), 'value' => 'underline'],
-                    ['label' => Craft::t('formie', 'Strike-through'), 'value' => 'strikethrough'],
-                    ['label' => Craft::t('formie', 'Heading 1'), 'value' => 'heading1'],
-                    ['label' => Craft::t('formie', 'Heading 2'), 'value' => 'heading2'],
-                    ['label' => Craft::t('formie', 'Paragraph'), 'value' => 'paragraph'],
-                    ['label' => Craft::t('formie', 'Quote'), 'value' => 'quote'],
-                    ['label' => Craft::t('formie', 'Ordered List'), 'value' => 'olist'],
-                    ['label' => Craft::t('formie', 'Unordered List'), 'value' => 'ulist'],
-                    ['label' => Craft::t('formie', 'Code'), 'value' => 'code'],
-                    ['label' => Craft::t('formie', 'Horizontal Rule'), 'value' => 'line'],
-                    ['label' => Craft::t('formie', 'Link'), 'value' => 'link'],
-                    ['label' => Craft::t('formie', 'Image'), 'value' => 'image'],
-                    ['label' => Craft::t('formie', 'Align Left'), 'value' => 'alignleft'],
-                    ['label' => Craft::t('formie', 'Align Center'), 'value' => 'aligncenter'],
-                    ['label' => Craft::t('formie', 'Align Right'), 'value' => 'alignright'],
-                    ['label' => Craft::t('formie', 'Clear Formatting'), 'value' => 'clear'],
-                ],
+                'options' => $this->getButtonOptions(),
             ]),
             SchemaHelper::labelPosition($this),
             SchemaHelper::instructions(),
