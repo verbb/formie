@@ -1,20 +1,22 @@
 # Console Commands
 Formie comes with a number of command line utilities that can be run on-demand, or on a set schedule.
 
-## Submissions
+## Forms
 
-### Delete Submissions
-You can bulk delete submissions with this command.
-
-Option | Description
---- | ---
-`--form-handle` | The form handle(s) to delete submissions from. Can be set to multiple comma-separated handles.
-`--form-id` | The form ID(s) to delete submissions from. Can be set to multiple comma-separated IDs.
-`--incomplete-only` | Whether to delete only incomplete submissions.
-`--spam-only` | Whether to delete only spam submissions.
+### Re-save forms
+Refer to the [Craft docs](https://craftcms.com/docs/4.x/console-commands.html#resave) on available options.
 
 ```shell
-./craft formie/submissions/delete --form-handle=form1,anotherForm
+./craft formie/resave/formie-forms --update-search-index=1
+```
+
+## Submissions
+
+### Re-save submissions
+Refer to the [Craft docs](https://craftcms.com/docs/4.x/console-commands.html#resave) on available options.
+
+```shell
+./craft formie/resave/formie-submissions --form-id=1234 --update-search-index=1
 ```
 
 ### Run Integrations
