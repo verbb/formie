@@ -149,12 +149,12 @@ class SubmissionExport extends ElementExporter
             }, $data);
 
             $event = new ModifySubmissionExportDataEvent([
-                'data' => $exportData,
+                'exportData' => $exportData,
                 'query' => $query,
             ]);
             $this->trigger(self::EVENT_MODIFY_EXPORT_DATA, $event);
 
-            return $event->data;
+            return $event->exportData;
         } catch (Throwable $e) {
             Formie::log(Craft::t('app', '{message} {file}:{line}', [
                 'message' => $e->getMessage(),

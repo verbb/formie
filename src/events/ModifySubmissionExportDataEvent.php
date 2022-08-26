@@ -8,7 +8,7 @@ class ModifySubmissionExportDataEvent extends Event
     // Properties
     // =========================================================================
 
-    public $data;
+    public $exportData;
     public $query;
     
 }
