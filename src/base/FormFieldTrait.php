@@ -1028,7 +1028,7 @@ trait FormFieldTrait
                 ArrayHelper::remove($condition, 'id');
 
                 // Dot-notation to name input syntax
-                $condition['field'] = $namespace . '[' . str_replace(['{', '}', '.'], ['', '', ']['], $condition['field']) . ']';
+                $condition['field'] = 'fields[' . str_replace(['{', '}', '.'], ['', '', ']['], $condition['field']) . ']';
 
                 // A little extra work for Group/Repeater fields, which conditions would be set with `new1`.
                 // When going back to a previous page this will be replaced with the blockId and the condition won't work.
