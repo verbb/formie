@@ -1,7 +1,7 @@
 # Requirements
 
 ## Craft CMS
-Formie requires Craft CMS 3.6 or greater.
+Formie requires Craft CMS 4.0 or greater.
 
 ## PHP
-Formie requires PHP 7.2.5 or greater.
+Formie requires PHP 8.0.2 or greater.
