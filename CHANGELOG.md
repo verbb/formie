@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.6.10 - 2022-08-27
+
+### Added
+- Added new HubSpot CRM integration due to [API changes](https://developers.hubspot.com/changelog/upcoming-api-key-sunset).
+
+### Fixed
+- Fixed check for malicious file upload checks, causing submissions with File Upload fields not to save.
+- Fixed File Upload `inputTypeName` not returning correctly for GraphQL queries.
+
 ## 1.6.9 - 2022-08-22
 
 ### Added
