@@ -1,5 +1,16 @@
 # Changelog
 
+## 2.0.8 - 2022-08-27
+
+### Changed
+- Renamed `ModifySubmissionExportDataEvent::data` to `ModifySubmissionExportDataEvent:exportData` to fix an error when exporting submissions.
+- Changed `{num} characters/words left` translation string to `{startTag}{num}{endTag} characters left`.
+
+### Fixed
+- Fixed Group fields’ inner fields and conditionals referencing other Group inner field’s.
+- Fixed Theme Config not working correctly to remove components when setting to `false` or `null`.
+- Fixed Multi-Line Text field rich text formatting buttons not always in the correct order.
+
 ## 2.0.7 - 2022-08-22
 
 ### Fixed
