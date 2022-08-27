@@ -10,6 +10,8 @@
 - Fixed Group fields’ inner fields and conditionals referencing other Group inner field’s.
 - Fixed Theme Config not working correctly to remove components when setting to `false` or `null`.
 - Fixed Multi-Line Text field rich text formatting buttons not always in the correct order.
+- Fixed check for malicious file upload checks, causing submissions with File Upload fields not to save.
+- Fixed File Upload `inputTypeName` not returning correctly for GraphQL queries.
 
 ## 2.0.7 - 2022-08-22
 
