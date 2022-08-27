@@ -281,11 +281,15 @@ class FileUpload extends CraftAssets implements FormFieldInterface
         $extensions = [];
         $allKinds = Assets::getAllowedFileKinds();
 
+        $allowedFileExtensions = Craft::$app->getConfig()->getGeneral()->allowedFileExtensions;
+
         foreach ($this->allowedKinds as $allowedKind) {
             $kind = $allKinds[$allowedKind];
 
             foreach ($kind['extensions'] as $extension) {
-                $extensions[] = ".$extension";
+                if (in_array($extension, $allowedFileExtensions)) {
+                    $extensions[] = ".$extension";
+                }
             }
         }
 
