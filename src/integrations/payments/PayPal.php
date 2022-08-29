@@ -189,6 +189,8 @@ class PayPal extends Payment
             $payment->integrationId = $this->id;
             $payment->submissionId = $submission->id;
             $payment->fieldId = $field->id;
+            $payment->amount = $amount;
+            $payment->currency = $currency;
             $payment->status = PaymentModel::STATUS_FAILED;
             $payment->reference = null;
             $payment->response = ['message' => $e->getMessage()];
