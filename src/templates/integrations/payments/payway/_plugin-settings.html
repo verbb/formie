@@ -1,0 +1,57 @@
+{% import '_includes/forms' as forms %}
+{% import 'verbb-base/_macros' as macros %}
+
+{% set instructions %}
+### Step 1. Connect to the {name} API
+1. Go to your <a href="https://www.payway.com.au/" target="_blank">PayWay account</a>.
+1. Click on the **Settings** navigation item in the top-right of the main header navigation.
+1. Click the **REST API Keys** link.
+1. Click the **Add** button, and select **Publishable** as the API Key type. Click the **Save** button.
+1. Copy the **API Key** from {name} and paste in the **Publishable Key** field below.
+1. Go back and click the click the **Add** button, and select **Secret** as the API Key type. Click the **Save** button.
+1. Copy the **API Key** from {name} and paste in the **Secret Key** field below.
+1. Click on the **Settings** navigation item in the top-right of the main header navigation.
+1. Click the **Merchants** link.
+1. Copy the **Merchant ID** from {name} and paste in the **Merchant ID** field below.
+
+### Step 2. Test Connection
+1. Save this integration.
+1. Click on the **Refresh** button in the right-hand sidebar.
+{% endset %}
+
+<div class="fui-settings-block">
+    {{ instructions | t('formie', { name: integration.displayName() }) | md }}
+</div>
+
+{{ forms.autosuggestField({
+    label: 'Publishable Key' | t('formie'),
+    instructions: 'Enter your {name} Publishable key here.' | t('formie', { name: integration.displayName() }),
+    name: 'publishableKey',
+    required: true,
+    suggestEnvVars: true,
+    value: integration.settings.publishableKey ?? '',
+    warning: macros.configWarning('publishableKey', 'formie'),
+    errors: integration.getErrors('publishableKey'),
+}) }}
+
+{{ forms.autosuggestField({
+    label: 'Secret Key' | t('formie'),
+    instructions: 'Enter your {name} Secret Key here.' | t('formie', { name: integration.displayName() }),
+    name: 'secretKey',
+    required: true,
+    suggestEnvVars: true,
+    value: integration.settings.secretKey ?? '',
+    warning: macros.configWarning('secretKey', 'formie'),
+    errors: integration.getErrors('secretKey'),
+}) }}
+
+{{ forms.autosuggestField({
+    label: 'Merchant ID' | t('formie'),
+    instructions: 'Enter your {name} Merchant ID here.' | t('formie', { name: integration.displayName() }),
+    name: 'merchantId',
+    required: true,
+    suggestEnvVars: true,
+    value: integration.settings.merchantId ?? '',
+    warning: macros.configWarning('merchantId', 'formie'),
+    errors: integration.getErrors('merchantId'),
+}) }}

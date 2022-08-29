@@ -62,7 +62,7 @@ export class FormiePayPal extends FormiePaymentProvider {
             $script.async = true;
             $script.defer = true;
 
-            // Wait until Stripe.js has loaded, then initialize
+            // Wait until PayPal.js has loaded, then initialize
             $script.onload = () => {
                 this.renderButton();
             };

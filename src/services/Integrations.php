@@ -164,6 +164,7 @@ class Integrations extends Component
 
         $payments = [
             payments\PayPal::class,
+            payments\PayWay::class,
             payments\Stripe::class,
         ];
 
