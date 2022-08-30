@@ -18,8 +18,10 @@ use Craft;
 use craft\base\Component;
 use craft\db\Query;
 use craft\helpers\ArrayHelper;
+use craft\helpers\Console;
 use craft\helpers\Db;
 use craft\helpers\DateTimeHelper;
+use craft\helpers\ElementHelper;
 use craft\helpers\Html;
 use craft\helpers\Json;
 use craft\helpers\MigrationHelper;
@@ -765,6 +767,48 @@ class Forms extends Component
                 $db->createCommand()
                     ->dropTableIfExists($tableName)
                     ->execute();
+            }
+        }
+    }
+
+    /**
+     * Prunes any field columns in content tables for forms. Run via GC.
+     *
+     * @throws \yii\db\Exception
+     */
+    public function pruneContentTableFields($consoleInstance = null)
+    {
+        $db = Craft::$app->getDb();
+
+        $forms = Form::find()->status(null)->all();
+
+        foreach ($forms as $form) {
+            if ($consoleInstance) {
+                $fieldColumns = [];
+
+                foreach ($form->getFields() as $field) {
+                    if ($field::hasContentColumn()) {
+                        $fieldColumns[] = ElementHelper::fieldColumnFromField($field);
+                    }
+                }
+
+                $fieldContentTable = $db->getTableSchema($form->fieldContentTable);
+
+                foreach ($fieldContentTable->getColumnNames() as $columnName) {
+                    if (!strstr($columnName, 'field_')) {
+                        continue;
+                    }
+
+                    if (!in_array($columnName, $fieldColumns)) {
+                        $consoleInstance->stdout($form->handle . ': Found unused field column: ' . $columnName . '.' . PHP_EOL, Console::FG_YELLOW);
+
+                        $db->createCommand()
+                            ->dropColumn($form->fieldContentTable, $columnName)
+                            ->execute();
+
+                        $consoleInstance->stdout($form->handle . ': Removed column ' . $columnName . ' from ' . $form->fieldContentTable . '.' . PHP_EOL, Console::FG_GREEN);
+                    }
+                }
             }
         }
     }
