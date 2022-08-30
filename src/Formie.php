@@ -562,8 +562,8 @@ class Formie extends Plugin
             $e->actions['formie-forms'] = [
                 'action' => function(): int {
                     $controller = Craft::$app->controller;
-                    $query = Form::find();
-                    return $controller->resaveElements($query);
+                    
+                    return $controller->resaveElements(Form::class);
                 },
                 'options' => [],
                 'helpSummary' => 'Re-saves Formie forms.',
@@ -580,9 +580,9 @@ class Formie extends Plugin
                     }
 
                     foreach ($formIds as $formId) {
-                        $query = Submission::find();
-                        $query->formId($formId);
-                        $controller->resaveElements($query);
+                        $criteria = ['formId' => $formId];
+
+                        $controller->resaveElements(Submission::class, $criteria);
                     }
 
                     return true;
