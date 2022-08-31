@@ -1061,7 +1061,7 @@ class Submission extends Element
 
         // Check if we have any assets to delete
         if (isset($this->_assetsToDelete)) {
-            foreach ($form->getCustomFields() as $field) {
+            foreach ($this->_assetsToDelete as $asset) {
                 if (!$elementsService->deleteElement($asset)) {
                     Formie::error("Unable to delete file ”{$asset->id}” for submission ”{$this->id}”: " . Json::encode($asset->getErrors()) . ".");
                 }
