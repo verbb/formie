@@ -9,8 +9,7 @@ use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyPaymentCurrencyOptionsEvent;
 use verbb\formie\events\ModifyPaymentPayloadEvent;
 use verbb\formie\events\PaymentReceiveWebhookEvent;
-use verbb\formie\fields\formfields\Hidden;
-use verbb\formie\fields\formfields\Number;
+use verbb\formie\fields\formfields;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\Variables;
@@ -300,8 +299,12 @@ class PayPal extends Payment
                             SchemaHelper::fieldSelectField([
                                 'name' => 'amountVariable',
                                 'fieldTypes' => [
-                                    Hidden::class,
-                                    Number::class,
+                                    formfields\Calculations::class,
+                                    formfields\Dropdown::class,
+                                    formfields\Hidden::class,
+                                    formfields\Number::class,
+                                    formfields\Radio::class,
+                                    formfields\SingleLineText::class,
                                 ],
                                 'if' => '$get(amountType).value == ' . Payment::VALUE_TYPE_DYNAMIC,
                             ]),
