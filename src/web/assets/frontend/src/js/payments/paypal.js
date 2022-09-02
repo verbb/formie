@@ -104,8 +104,8 @@ export class FormiePayPal extends FormiePaymentProvider {
 
                 if (this.amountType === 'fixed') {
                     amount = this.amountFixed;
-                } else if (this.amountType === 'variable') {
-                    amount = this.getFieldValue(settings.amountVariable);
+                } else if (this.amountType === 'dynamic') {
+                    amount = this.getFieldValue(this.amountVariable);
                 }
 
                 /* eslint-disable camelcase */
