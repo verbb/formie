@@ -164,9 +164,6 @@ class SubmissionsController extends Controller
                 $variables['submission'] = new Submission();
                 $variables['submission']->setForm($form);
 
-                // Set the title to the default
-                $this->_setTitle($variables['submission'], $form);
-
                 // Set the user to the default
                 if ($form->settings->collectUser) {
                     $variables['submission']->setUser(Craft::$app->getUser()->getIdentity());
@@ -229,7 +226,7 @@ class SubmissionsController extends Controller
         // Now populate the rest of it from the post data
         $submission->enabled = true;
         $submission->enabledForSite = true;
-        $submission->title = $request->getParam('title', $submission->title);
+        $submission->title = $request->getParam('title') ?: $submission->title;
         $submission->statusId = $request->getParam('statusId', $submission->statusId);
         $submission->isSpam = (bool)$request->getParam('isSpam', $submission->isSpam);
         $submission->setScenario(Element::SCENARIO_LIVE);
