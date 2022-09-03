@@ -13,8 +13,16 @@
     {{ csrfInput() }}
 
     {% namespace 'settings' %}
-        {{ forms.textField({
+        {{ forms.lightswitchField({
             first: true,
+            label: 'Enable Sent Notifications' | t('formie'),
+            instructions: 'Whether to enable saving email notifications as sent notifications.' | t('formie'),
+            name: 'sentNotifications',
+            on: settings.sentNotifications,
+            warning: macros.configWarning('sentNotifications', 'formie'),
+        }) }}
+
+        {{ forms.textField({
             type: 'number',
             label: 'Maximum Sent Notifications Age' | t('formie'),
             instructions: 'The number of days to keep sent notifications before they are deleted permanently. Set to 0 to disable automatic deletion.' | t('formie'),

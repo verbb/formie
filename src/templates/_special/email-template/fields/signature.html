@@ -8,6 +8,6 @@
             <img style="max-width: 100% !important; height: auto !important;" src="{{ value }}" />
         </div>
     {% else %}
-        {{ 'No response.' | t('formie') }}
+        {{ notification.getPlaceholder() }}
     {% endif %}
 </div>

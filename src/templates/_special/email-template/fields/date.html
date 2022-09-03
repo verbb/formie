@@ -3,5 +3,5 @@
         <strong>{{ field.name | t('formie') }}</strong><br>
     {% endif %}
 
-    {{ field.getValueAsString(value, submission) ?: ('No response.' | t('formie')) }}
+    {{ field.getValueAsString(value, submission) ?: notification.getPlaceholder() }}
 </p>

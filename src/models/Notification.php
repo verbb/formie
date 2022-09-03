@@ -282,4 +282,12 @@ class Notification extends Model
 
         return [];
     }
+
+    public function getPlaceholder(): string
+    {
+        /* @var Settings $settings */
+        $settings = Formie::$plugin->getSettings();
+
+        return Craft::t('formie', $settings->emptyValuePlaceholder);
+    }
 }

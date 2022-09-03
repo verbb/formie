@@ -63,9 +63,10 @@ class Settings extends Model
     public string $spamKeywords = '';
     public string $spamBehaviourMessage = '';
 
-    // Alerts
+    // Email Notifications
     public bool $sendEmailAlerts = false;
     public ?array $alertEmails = null;
+    public string $emptyValuePlaceholder = 'No response.';
 
     // PDFs
     public string $pdfPaperSize = 'letter';

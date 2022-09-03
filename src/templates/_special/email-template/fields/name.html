@@ -5,21 +5,21 @@
 
     {% if value and field.settings.useMultipleFields %}
         {% if field.prefixEnabled %}
-            <strong>{{ field.prefixLabel | t('formie') }}: </strong>{{ value.prefix ?: ('No response.' | t('formie')) }}<br>
+            <strong>{{ field.prefixLabel | t('formie') }}: </strong>{{ value.prefix ?: notification.getPlaceholder() }}<br>
         {% endif %}
 
         {% if field.firstNameEnabled %}
-            <strong>{{ field.firstNameLabel | t('formie') }}: </strong>{{ value.firstName ?: ('No response.' | t('formie')) }}<br>
+            <strong>{{ field.firstNameLabel | t('formie') }}: </strong>{{ value.firstName ?: notification.getPlaceholder() }}<br>
         {% endif %}
 
         {% if field.middleNameEnabled %}
-            <strong>{{ field.middleNameLabel | t('formie') }}: </strong>{{ value.middleName ?: ('No response.' | t('formie')) }}<br>
+            <strong>{{ field.middleNameLabel | t('formie') }}: </strong>{{ value.middleName ?: notification.getPlaceholder() }}<br>
         {% endif %}
 
         {% if field.lastNameEnabled %}
-            <strong>{{ field.lastNameLabel | t('formie') }}: </strong>{{ value.lastName ?: ('No response.' | t('formie')) }}<br>
+            <strong>{{ field.lastNameLabel | t('formie') }}: </strong>{{ value.lastName ?: notification.getPlaceholder() }}<br>
         {% endif %}
     {% else %}
-        {{ value ?: ('No response.' | t('formie')) }}
+        {{ value ?: notification.getPlaceholder() }}
     {% endif %}
 </p>

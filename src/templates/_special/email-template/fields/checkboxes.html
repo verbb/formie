@@ -10,6 +10,6 @@
             {% endfor %}
         </ul>
     {% else %}
-        {{ 'No response.' | t('formie') }}
+        {{ notification.getPlaceholder() }}
     {% endif %}
 </p>

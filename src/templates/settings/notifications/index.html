@@ -13,13 +13,13 @@
     {{ csrfInput() }}
 
     {% namespace 'settings' %}
-        {{ forms.lightswitchField({
+        {{ forms.textField({
             first: true,
-            label: 'Enable Sent Notifications' | t('formie'),
-            instructions: 'Whether to enable logging of all sent notification emails.' | t('formie'),
-            name: 'sentNotifications',
-            on: settings.sentNotifications,
-            warning: macros.configWarning('sentNotifications', 'formie'),
+            label: 'Empty Value Placeholder' | t('formie'),
+            instructions: 'When a field has no value and considered "empty", this text will be shown in email notifications.' | t('formie'),
+            name: 'emptyValuePlaceholder',
+            value: settings.emptyValuePlaceholder,
+            warning: macros.configWarning('emptyValuePlaceholder', 'formie'),
         }) }}
 
         {{ forms.lightswitchField({

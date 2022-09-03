@@ -10,6 +10,6 @@
             {{ value | nl2br }}
         {% endif %}
     {% else %}
-        {{ 'No response.' | t('formie') }}
+        {{ notification.getPlaceholder() }}
     {% endif %}
 </p>
