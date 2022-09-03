@@ -405,9 +405,21 @@ class Submission extends Element
 
         $form = $this->getForm();
 
-        if ($form && $form->requireUser) {
+        if ($form && $form->settings->requireUser) {
             if (!Craft::$app->getUser()->getIdentity()) {
                 $this->addError('form', Craft::t('formie', 'You must be logged in to submit this form.'));
+            }
+        }
+
+        if ($form && $form->settings->scheduleForm) {
+            if (!$form->isScheduleActive()) {
+                $this->addError('form', Craft::t('formie', 'This form is not available.'));
+            }
+        }
+
+        if ($form && $form->settings->limitSubmissions) {
+            if (!$form->isWithinSubmissionsLimit()) {
+                $this->addError('form', Craft::t('formie', 'This form has met the number of allowed submissions.'));
             }
         }
 

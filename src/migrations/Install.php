@@ -84,13 +84,6 @@ class Install extends Migration
             'settings' => $this->mediumText(),
             'templateId' => $this->integer(),
             'submitActionEntryId' => $this->integer(),
-            'requireUser' => $this->boolean(),
-            'availability' => $this->enum('availability', ['always', 'date', 'submissions'])
-                ->defaultValue('always')
-                ->notNull(),
-            'availabilityFrom' => $this->dateTime(),
-            'availabilityTo' => $this->dateTime(),
-            'availabilitySubmissions' => $this->integer(),
             'defaultStatusId' => $this->integer(),
             'dataRetention' => $this->enum('dataRetention', ['forever', 'minutes', 'hours', 'days', 'weeks', 'months', 'years'])
                 ->defaultValue('forever')

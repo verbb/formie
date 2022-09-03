@@ -51,10 +51,6 @@ class FormSettings extends Model
     public mixed $errorMessage = null;
     public string $errorMessagePosition = 'top-form';
 
-    // Behaviour - Availability
-    public ?string $availabilityMessage = null;
-    public ?string $availabilityMessageDate = null;
-    public ?string $availabilityMessageSubmissions = null;
     // Behaviour - Restrictions
     public bool $requireUser = false;
     public mixed $requireUserMessage = null;
@@ -117,6 +113,18 @@ class FormSettings extends Model
 
         if (array_key_exists('userDeletedAction', $config)) {
             unset($config['userDeletedAction']);
+        }
+
+        if (array_key_exists('availabilityMessage', $config)) {
+            unset($config['availabilityMessage']);
+        }
+
+        if (array_key_exists('availabilityMessageDate', $config)) {
+            unset($config['availabilityMessageDate']);
+        }
+
+        if (array_key_exists('availabilityMessageSubmissions', $config)) {
+            unset($config['availabilityMessageSubmissions']);
         }
 
         if (array_key_exists('scheduleFormStart', $config)) {

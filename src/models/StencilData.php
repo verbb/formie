@@ -11,11 +11,6 @@ class StencilData extends Model
     // Properties
     // =========================================================================
 
-    public bool $requireUser = false;
-    public string $availability = 'always';
-    public ?DateTime $availabilityFrom = null;
-    public ?DateTime $availabilityTo = null;
-    public ?string $availabilitySubmissions = null;
     public string $dataRetention = 'forever';
     public ?string $dataRetentionValue = null;
     public string $userDeletedAction = 'retain';
@@ -27,6 +22,31 @@ class StencilData extends Model
 
     // Public Methods
     // =========================================================================
+
+    public function __construct($config = [])
+    {
+        if (array_key_exists('requireUser', $config)) {
+            unset($config['requireUser']);
+        }
+
+        if (array_key_exists('availability', $config)) {
+            unset($config['availability']);
+        }
+
+        if (array_key_exists('availabilityFrom', $config)) {
+            unset($config['availabilityFrom']);
+        }
+
+        if (array_key_exists('availabilityTo', $config)) {
+            unset($config['availabilityTo']);
+        }
+
+        if (array_key_exists('availabilitySubmissions', $config)) {
+            unset($config['availabilitySubmissions']);
+        }
+
+        parent::__construct($config);
+    }
 
     /**
      * @inheritDoc

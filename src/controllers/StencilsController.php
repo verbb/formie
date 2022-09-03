@@ -172,21 +172,10 @@ class StencilsController extends Controller
 
             // Set form data.
             $stencil->data = new StencilData(compact('settings', 'pages', 'notifications'));
-            $stencil->data->requireUser = $request->getParam('requireUser', $stencil->data->requireUser);
-            $stencil->data->availability = $request->getParam('availability', $stencil->data->availability);
             $stencil->data->userDeletedAction = $request->getParam('userDeletedAction', $stencil->data->userDeletedAction);
             $stencil->data->fileUploadsAction = $request->getParam('fileUploadsAction', $stencil->data->fileUploadsAction);
             $stencil->data->dataRetention = $request->getParam('dataRetention', $stencil->data->dataRetention);
             $stencil->data->dataRetentionValue = $request->getParam('dataRetentionValue', $stencil->data->dataRetentionValue);
-            $stencil->data->availabilitySubmissions = $request->getParam('availabilitySubmissions', $stencil->data->availabilitySubmissions);
-
-            if (($availabilityFrom = $request->getParam('availabilityFrom')) !== null) {
-                $stencil->data->availabilityFrom = DateTimeHelper::toDateTime($availabilityFrom);
-            }
-
-            if (($availabilityTo = $request->getParam('availabilityTo')) !== null) {
-                $stencil->data->availabilityTo = DateTimeHelper::toDateTime($availabilityTo);
-            }
 
             // Build temp form for validation.
             $form = Formie::$plugin->getForms()->buildFormFromPost();

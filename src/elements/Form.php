@@ -302,11 +302,6 @@ class Form extends Element
     public ?string $fieldContentTable = null;
     public ?int $templateId = null;
     public ?int $submitActionEntryId = null;
-    public bool $requireUser = false;
-    public string $availability = 'always';
-    public ?string $availabilityFrom = null;
-    public ?string $availabilityTo = null;
-    public ?string $availabilitySubmissions = null;
     public ?int $defaultStatusId = null;
     public string $dataRetention = 'forever';
     public ?string $dataRetentionValue = null;
@@ -1786,10 +1781,6 @@ class Form extends Element
         }
     }
 
-
-    // Events
-    // =========================================================================
-
     public function setFieldSettings($handle, $settings, $updateSnapshot = true): void
     {
         $field = null;
@@ -2023,11 +2014,6 @@ class Form extends Element
         $record->settings = $this->settings;
         $record->templateId = $this->templateId;
         $record->submitActionEntryId = $this->submitActionEntryId;
-        $record->requireUser = $this->requireUser;
-        $record->availability = $this->availability;
-        $record->availabilityFrom = $this->availabilityFrom;
-        $record->availabilityTo = $this->availabilityTo;
-        $record->availabilitySubmissions = $this->availabilitySubmissions;
         $record->defaultStatusId = $this->defaultStatusId;
         $record->dataRetention = $this->dataRetention;
         $record->dataRetentionValue = $this->dataRetentionValue;

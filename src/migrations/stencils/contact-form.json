@@ -1,8 +1,4 @@
 {
-    "availability":"always",
-    "availabilityFrom":null,
-    "availabilitySubmissions":null,
-    "availabilityTo":null,
     "dataRetention":"forever",
     "dataRetentionValue":"",
     "fileUploadsAction":"retain",
@@ -167,11 +163,7 @@
             "sortOrder":0
         }
     ],
-    "requireUser":false,
     "settings":{
-        "availabilityMessage":null,
-        "availabilityMessageDate":null,
-        "availabilityMessageSubmissions":null,
         "collectIp":"",
         "defaultInstructionsPosition":"verbb\\formie\\positions\\AboveInput",
         "collectUser":"",
@@ -191,7 +183,6 @@
         "progressPosition":"end",
         "redirectUrl":null,
         "scrollToTop":"1",
-        "storeData":null,
         "submissionTitleFormat":"{timestamp}",
         "submitAction":"message",
         "submitActionFormHide":"",

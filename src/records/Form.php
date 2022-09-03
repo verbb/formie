@@ -16,11 +16,6 @@ use yii\db\ActiveQueryInterface;
  * @property string $settings
  * @property int $templateId
  * @property int $submitActionEntryId
- * @property boolean $requireUser
- * @property string $availability
- * @property DateTime $availabilityFrom
- * @property DateTime $availabilityTo
- * @property int $availabilitySubmissions
  * @property int $defaultStatusId
  * @property string $dataRetention
  * @property int $dataRetentionValue

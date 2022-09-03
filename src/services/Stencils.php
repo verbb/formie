@@ -368,23 +368,10 @@ class Stencils extends Component
     public function applyStencil(Form $form, Stencil $stencil): void
     {
         $form->settings = $stencil->data->settings;
-        $form->requireUser = $stencil->data->requireUser;
-        $form->availability = $stencil->data->availability;
         $form->userDeletedAction = $stencil->data->userDeletedAction;
         $form->fileUploadsAction = $stencil->data->fileUploadsAction;
         $form->dataRetention = $stencil->data->dataRetention;
         $form->dataRetentionValue = $stencil->data->dataRetentionValue;
-        $form->availabilitySubmissions = $stencil->data->availabilitySubmissions;
-
-        try {
-            $form->availabilityFrom = $stencil->data->availabilityFrom ? DateTimeHelper::toDateTime($stencil->data->availabilityFrom) : null;
-        } catch (Exception $e) {
-        }
-
-        try {
-            $form->availabilityTo = $stencil->data->availabilityTo ? DateTimeHelper::toDateTime($stencil->data->availabilityTo) : null;
-        } catch (Exception $e) {
-        }
 
         $form->setTemplate($stencil->getTemplate());
         $form->setDefaultStatus($stencil->getDefaultStatus());

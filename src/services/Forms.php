@@ -396,22 +396,11 @@ class Forms extends Component
         $form->siteId = $siteId ?? $form->siteId;
         $form->handle = $request->getParam('handle', $form->handle);
         $form->templateId = \verbb\formie\helpers\StringHelper::toId($request->getParam('templateId', $form->templateId));
-        $form->requireUser = (bool)$request->getParam('requireUser', $form->requireUser);
-        $form->availability = $request->getParam('availability', $form->availability);
         $form->defaultStatusId = \verbb\formie\helpers\StringHelper::toId($request->getParam('defaultStatusId', $form->defaultStatusId));
         $form->userDeletedAction = $request->getParam('userDeletedAction', $form->userDeletedAction);
         $form->fileUploadsAction = $request->getParam('fileUploadsAction', $form->fileUploadsAction);
         $form->dataRetention = $request->getParam('dataRetention', $form->dataRetention);
         $form->dataRetentionValue = $request->getParam('dataRetentionValue', $form->dataRetentionValue);
-        $form->availabilitySubmissions = $request->getParam('availabilitySubmissions', $form->availabilitySubmissions);
-
-        if (($availabilityFrom = $request->getParam('availabilityFrom')) !== null) {
-            $form->availabilityFrom = DateTimeHelper::toDateTime($availabilityFrom);
-        }
-
-        if (($availabilityTo = $request->getParam('availabilityTo')) !== null) {
-            $form->availabilityTo = DateTimeHelper::toDateTime($availabilityTo);
-        }
 
         $entryId = $request->getParam('submitActionEntryId', $form->submitActionEntryId);
         $form->submitActionEntryId = is_array($entryId) && !empty($entryId) ? $entryId[0] : null;
