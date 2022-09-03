@@ -84,6 +84,7 @@ class Install extends Migration
             'settings' => $this->mediumText(),
             'templateId' => $this->integer(),
             'submitActionEntryId' => $this->integer(),
+            'submitActionEntrySiteId' => $this->integer(),
             'defaultStatusId' => $this->integer(),
             'dataRetention' => $this->enum('dataRetention', ['forever', 'minutes', 'hours', 'days', 'weeks', 'months', 'years'])
                 ->defaultValue('forever')
@@ -350,6 +351,7 @@ class Install extends Migration
             'data' => $this->mediumText(),
             'templateId' => $this->integer(),
             'submitActionEntryId' => $this->integer(),
+            'submitActionEntrySiteId' => $this->integer(),
             'defaultStatusId' => $this->integer(),
             'dateDeleted' => $this->dateTime(),
             'dateCreated' => $this->dateTime()->notNull(),
@@ -411,6 +413,7 @@ class Install extends Migration
         $this->createIndex(null, '{{%formie_forms}}', 'templateId', false);
         $this->createIndex(null, '{{%formie_forms}}', 'defaultStatusId', false);
         $this->createIndex(null, '{{%formie_forms}}', 'submitActionEntryId', false);
+        $this->createIndex(null, '{{%formie_forms}}', 'submitActionEntrySiteId', false);
         $this->createIndex(null, '{{%formie_forms}}', 'fieldLayoutId', false);
         $this->createIndex(null, '{{%formie_formtemplates}}', 'fieldLayoutId', false);
         $this->createIndex(null, '{{%formie_nested}}', 'fieldId', true);

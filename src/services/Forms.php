@@ -401,9 +401,8 @@ class Forms extends Component
         $form->fileUploadsAction = $request->getParam('fileUploadsAction', $form->fileUploadsAction);
         $form->dataRetention = $request->getParam('dataRetention', $form->dataRetention);
         $form->dataRetentionValue = $request->getParam('dataRetentionValue', $form->dataRetentionValue);
-
-        $entryId = $request->getParam('submitActionEntryId', $form->submitActionEntryId);
-        $form->submitActionEntryId = is_array($entryId) && !empty($entryId) ? $entryId[0] : null;
+        $form->submitActionEntryId = $request->getParam('submitActionEntryId.id');
+        $form->submitActionEntrySiteId = $request->getParam('submitActionEntryId.siteId');
 
         // Set the settings.
         if (!$form->settings) {

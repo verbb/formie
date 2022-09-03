@@ -302,6 +302,7 @@ class Form extends Element
     public ?string $fieldContentTable = null;
     public ?int $templateId = null;
     public ?int $submitActionEntryId = null;
+    public ?int $submitActionEntrySiteId = null;
     public ?int $defaultStatusId = null;
     public string $dataRetention = 'forever';
     public ?string $dataRetentionValue = null;
@@ -1240,7 +1241,9 @@ class Form extends Element
         }
 
         if (!$this->_submitActionEntry) {
-            $this->_submitActionEntry = Craft::$app->getEntries()->getEntryById($this->submitActionEntryId, '*');
+            $siteId = $this->submitActionEntrySiteId ?: '*';
+
+            $this->_submitActionEntry = Craft::$app->getEntries()->getEntryById($this->submitActionEntryId, $siteId);
         }
 
         return $this->_submitActionEntry;
@@ -2014,6 +2017,7 @@ class Form extends Element
         $record->settings = $this->settings;
         $record->templateId = $this->templateId;
         $record->submitActionEntryId = $this->submitActionEntryId;
+        $record->submitActionEntrySiteId = $this->submitActionEntrySiteId;
         $record->defaultStatusId = $this->defaultStatusId;
         $record->dataRetention = $this->dataRetention;
         $record->dataRetentionValue = $this->dataRetentionValue;
@@ -2135,7 +2139,7 @@ class Form extends Element
 
         $rules[] = [['title', 'handle'], 'required'];
         $rules[] = [['title'], 'string', 'max' => 255];
-        $rules[] = [['templateId', 'submitActionEntryId', 'defaultStatusId', 'fieldLayoutId'], 'number', 'integerOnly' => true];
+        $rules[] = [['templateId', 'submitActionEntryId', 'submitActionEntrySiteId', 'defaultStatusId', 'fieldLayoutId'], 'number', 'integerOnly' => true];
 
         // Make sure the column name is under the database’s maximum allowed column length
         $rules[] = [['handle'], 'string', 'max' => HandleHelper::getMaxFormHandle()];

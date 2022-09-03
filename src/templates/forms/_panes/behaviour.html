@@ -1,4 +1,5 @@
 {% import '_includes/forms' as forms %}
+{% import 'formie/_macros' as formieMacros %}
 {% import 'verbb-base/_macros' as macros %}
 
 <h2>{{ 'Form Submission' | t('formie') }}</h2>
@@ -158,7 +159,7 @@
     </div>
 
     <div id="submit-action-entry" class="{{ submitAction != 'entry' ? 'hidden' }}">
-        {{ forms.elementSelectField({
+        {{ formieMacros.siteElementSelectField({
             label: 'Redirect Entry' | t('formie'),
             instructions: 'Select an entry for the user to be redirected to.' | t('formie'),
             id: 'submitActionEntryId',
@@ -167,6 +168,7 @@
             elementType: 'craft\\elements\\Entry',
             elements: form.redirectEntry ? [ form.redirectEntry ] : [],
             showSiteMenu: true,
+            jsClass: 'Craft.Formie.SiteElementSelect',
         }) }}
 
         {{ forms.selectField({

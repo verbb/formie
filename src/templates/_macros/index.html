@@ -1,0 +1,7 @@
+{% macro siteElementSelectField(config) %}
+    {% import '_includes/forms' as forms %}
+    
+    {% set config = config|merge({id: config.id ?? "elementselect#{random()}"}) %}
+
+    {{ forms.field(config, 'template:formie/_includes/element-select-site-input') }}
+{% endmacro %}

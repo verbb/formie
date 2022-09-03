@@ -65,6 +65,7 @@ class FormQuery extends ElementQuery
             'formie_forms.settings',
             'formie_forms.templateId',
             'formie_forms.submitActionEntryId',
+            'formie_forms.submitActionEntrySiteId',
             'formie_forms.defaultStatusId',
             'formie_forms.dataRetention',
             'formie_forms.dataRetentionValue',

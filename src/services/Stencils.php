@@ -418,6 +418,7 @@ class Stencils extends Component
                 'handle',
                 'data',
                 'templateId',
+                'submitActionEntryId',
                 'defaultStatusId',
                 'dateDeleted',
                 'uid',
@@ -427,13 +428,6 @@ class Stencils extends Component
 
         if (!$withTrashed) {
             $query->where(['dateDeleted' => null]);
-        }
-
-        $projectConfig = Craft::$app->getProjectConfig();
-        $schemaVersion = $projectConfig->get('plugins.formie.schemaVersion', true);
-
-        if (version_compare($schemaVersion, '1.2.8', '>=')) {
-            $query->addSelect(['submitActionEntryId']);
         }
 
         return $query;

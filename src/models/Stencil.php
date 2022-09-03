@@ -41,6 +41,7 @@ class Stencil extends Model
 
     public ?int $templateId = null;
     public ?int $submitActionEntryId = null;
+    public ?int $submitActionEntrySiteId = null;
     public ?int $defaultStatusId = null;
     public ?DateTime $dateDeleted = null;
     public ?string $uid = null;
@@ -289,7 +290,9 @@ class Stencil extends Model
         }
 
         if (!$this->_submitActionEntry) {
-            $this->_submitActionEntry = Craft::$app->getEntries()->getEntryById($this->submitActionEntryId, '*');
+            $siteId = $this->submitActionEntrySiteId ?: '*';
+
+            $this->_submitActionEntry = Craft::$app->getEntries()->getEntryById($this->submitActionEntryId, $siteId);
         }
 
         return $this->_submitActionEntry;

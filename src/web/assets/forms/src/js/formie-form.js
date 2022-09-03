@@ -487,6 +487,33 @@ Craft.Formie.SaveButton = Garnish.Base.extend({
     },
 });
 
+
+// Create a site-aware element select input
+Craft.Formie.SiteElementSelect = Craft.BaseElementSelectInput.extend({
+    createNewElement(elementInfo) {
+        const $element = elementInfo.$element.clone();
+        const removeText = Craft.t('app', 'Remove {label}', {
+            label: Craft.escapeHtml(elementInfo.label),
+        });
+
+        // Make a couple tweaks
+        Craft.setElementSize(
+            $element,
+            this.settings.viewMode === 'large' ? 'large' : 'small',
+        );
+
+        $element.addClass('removable');
+        $element.prepend(`
+            <input type="hidden" name="${this.settings.name}[id]" value="${elementInfo.id}">
+            <input type="hidden" name="${this.settings.name}[siteId]" value="${elementInfo.siteId}">
+            <button type="button" class="delete icon" title="${Craft.t('app', 'Remove')}" aria-label="${removeText}"></button>
+        `);
+
+        return $element;
+    },
+});
+
+
 // Re-broadcast the custom `vite-script-loaded` event so that we know that this module has loaded
 // Needed because when <script> tags are appended to the DOM, the `onload` handlers
 // are not executed, which happens in the field Settings page, and in slideouts
