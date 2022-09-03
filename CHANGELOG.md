@@ -1,5 +1,33 @@
 # Changelog
 
+## 2.0.9 - 2022-09-04
+
+### Added
+- Added Westpac PayWay Payment integration.
+- Added `prune-content-table-fields` console command.
+- Added “Empty Value Placeholder” plugin setting to manage the “No response” text for email notifications.
+- Added support for setting the `siteId` for entries selected as redirects.
+- Added Form settings to "Require Logged-in User”, “Schedule Form”, “Limit Submissions”.
+
+### Changed
+- Payment fields can now use Calculations, Dropdown, Radio and Single-Line Text fields for dynamic amounts.
+
+### Fixed
+- Fixed Microsoft Dynamics not using `SchemaName` for custom field handles.
+- Fixed serialization of element fields when being sent via Webhooks.
+- Fixed an error with HubSpot CRM integration.
+- Fixed File Upload fields including some allowed extensions that they shouldn’t.
+- Fixed an issue where setting “Alert Emails” created multiple rows.
+- Fixed an error with PayPal payments and dynamic amounts.
+- Fixed submission titles not being correct when creating submissions in the control panel.
+- Fixed an error when deleting a submission.
+- Fixed an error with the Campaign email marketing integration.
+- Fixed an error running `resave` console commands.
+- Fixed an error when processing PayPal payments.
+
+### Removed
+- Removed unused form settings for availability (never implemented).
+
 ## 2.0.8 - 2022-08-27
 
 ### Changed
