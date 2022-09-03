@@ -310,93 +310,139 @@
     value: form.settings.errorMessagePosition ?? 'top-form',
 }) }}
 
-
-
-
-{# TODO
 <hr>
 
-<h2>{{ 'Security' | t('formie') }}</h2>
+<h2>{{ 'Restrictions' | t('formie') }}</h2>
 
 {{ forms.lightswitchField({
     label: 'Require Logged-in User' | t('formie'),
-    instructions: 'Whether this form can only be submitted by a logged-in user. The form will still appear, but will only submit for logged-in users.' | t('formie'),
+    instructions: 'Whether this form can be viewed only by logged-in users.' | t('formie'),
     id: 'requireUser',
-    name: 'requireUser',
-    on: form.requireUser ?? false,
+    name: 'settings[requireUser]',
+    toggle: '#require-user',
+    on: form.settings.requireUser ?? false,
 }) }}
 
-<hr>
+<div id="require-user" class="hidden">
+    <form-kit
+        type="richText"
+        label="{{ 'Message' | t('formie') }}"
+        help="{{ 'The message displayed to users who are not logged in.' | t('formie') }}"
+        name="settings[requireUserMessage]"
+        v-model="form.settings.requireUserMessage"
+        v-bind="{{ getRichTextConfig('forms.requireUserMessage') | json_encode }}"
+    ></form-kit>
+</div>
 
-<h2>{{ 'Availability' | t('formie') }}</h2>
-
-{{ forms.selectField({
-    label: 'Form Availability' | t('formie'),
-    instructions: 'Whether this form should be available for submissions.' | t('formie'),
-    id: 'availability',
-    name: 'availability',
-    options: [{
-        label: 'Always' | t('formie'),
-        value: 'always',
-    },
-    {
-        label: 'Until a date' | t('formie'),
-        value: 'date',
-    },
-    {
-        label: 'Up to a number of submissions' | t('formie'),
-        value: 'submissions',
-    }],
-    toggle: true,
-    targetPrefix: 'availability-',
-    value: form.availability ?? 'always',
+{{ forms.lightswitchField({
+    label: 'Schedule Form' | t('formie'),
+    instructions: 'Whether this form should only be available on a schedule.' | t('formie'),
+    id: 'scheduleForm',
+    name: 'settings[scheduleForm]',
+    toggle: '#schedule-form',
+    on: form.settings.scheduleForm ?? false,
 }) }}
 
-<div id="availability-date" class="hidden">
+<div id="schedule-form" class="hidden">
     {{ forms.dateTimeField({
-        label: 'From Date' | t('formie'),
-        instructions: 'The minimum date required to enabled form submissions.' | t('formie'),
-        id: 'availabilityFrom',
-        name: 'availabilityFrom',
-        value: form.availabilityFrom ?? null,
+        label: 'Schedule Start Date' | t('formie'),
+        instructions: 'Set when the form should be available from.' | t('formie'),
+        id: 'scheduleFormStart',
+        name: 'settings[scheduleFormStart]',
+        value: form.settings.scheduleFormStart ?? null,
     }) }}
 
     {{ forms.dateTimeField({
-        label: 'To Date' | t('formie'),
-        instructions: 'The maximum date required to enabled form submissions.' | t('formie'),
-        id: 'availabilityTo',
-        name: 'availabilityTo',
-        value: form.availabilityTo ?? null,
+        label: 'Schedule End Date' | t('formie'),
+        instructions: 'Set when the form should be available until.' | t('formie'),
+        id: 'scheduleFormEnd',
+        name: 'settings[scheduleFormEnd]',
+        value: form.settings.scheduleFormEnd ?? null,
     }) }}
 
-    {{ forms.textareaField({
-        label: 'Message' | t('formie'),
-        instructions: 'Text to be shown when this condition is met.' | t('formie'),
-        id: 'availabilityMessageDate',
-        name: 'settings[availabilityMessageDate]',
-        value: form.settings.availabilityMessage ?? null,
-    }) }}
+    <form-kit
+        type="richText"
+        label="{{ 'Pending Message' | t('formie') }}"
+        help="{{ 'The message displayed when the current time is before the scheduled start date.' | t('formie') }}"
+        name="settings[scheduleFormPendingMessage]"
+        v-model="form.settings.scheduleFormPendingMessage"
+        v-bind="{{ getRichTextConfig('forms.scheduleFormPendingMessage') | json_encode }}"
+    ></form-kit>
+
+    <form-kit
+        type="richText"
+        label="{{ 'Expired Message' | t('formie') }}"
+        help="{{ 'The message displayed when the current time is after the scheduled start date.' | t('formie') }}"
+        name="settings[scheduleFormExpiredMessage]"
+        v-model="form.settings.scheduleFormExpiredMessage"
+        v-bind="{{ getRichTextConfig('forms.scheduleFormExpiredMessage') | json_encode }}"
+    ></form-kit>
 </div>
 
-<div id="availability-submissions" class="hidden">
-    {{ forms.textField({
-        label: 'Submissions' | t('formie'),
-        instructions: 'The number of submissions to allow before disabling submissions.' | t('formie'),
-        id: 'availabilitySubmissions',
-        name: 'availabilitySubmissions',
-        type: 'number',
-        value: form.availabilitySubmissions ?? null,
-    }) }}
+{{ forms.lightswitchField({
+    label: 'Limit Submissions' | t('formie'),
+    instructions: 'Whether submissions for this form should be limited to a number.' | t('formie'),
+    id: 'limitSubmissions',
+    name: 'settings[limitSubmissions]',
+    toggle: '#limit-submissions',
+    on: form.settings.limitSubmissions ?? false,
+}) }}
 
-    {{ forms.textareaField({
-        label: 'Message' | t('formie'),
-        instructions: 'Text to be shown when this condition is met.' | t('formie'),
-        id: 'availabilityMessageSubmissions',
-        name: 'settings[availabilityMessageSubmissions]',
-        value: form.settings.availabilityMessage ?? null,
-    }) }}
+<div id="limit-submissions" class="hidden">
+    {% set limitInput %}
+        <div class="flex">
+            <div>
+                {{ forms.text({
+                    name: 'settings[limitSubmissionsNumber]',
+                    value: form.settings.limitSubmissionsNumber ?? null,
+                }) }}
+            </div>
+
+            <div class="flex-grow">
+                {{ forms.select({
+                    name: 'settings[limitSubmissionsType]',
+                    options: [
+                        {
+                            label: 'total' | t('formie'),
+                            value: 'total',
+                        },
+                        {
+                            label: 'per day' | t('formie'),
+                            value: 'day',
+                        },
+                        {
+                            label: 'per week' | t('formie'),
+                            value: 'week',
+                        },
+                        {
+                            label: 'per month' | t('formie'),
+                            value: 'month',
+                        },
+                        {
+                            label: 'per year' | t('formie'),
+                            value: 'year',
+                        },
+                    ],
+                    value: form.settings.limitSubmissionsType ?? null,
+                }) }}
+            </div>
+        </div>
+    {% endset %}
+
+    {{ forms.field({
+        label: 'Number of Submissions' | t('formie'),
+        instructions: 'The number of submissions to allow.' | t('formie'),
+    }, limitInput) }}
+
+    <form-kit
+        type="richText"
+        label="{{ 'Message' | t('formie') }}"
+        help="{{ 'The message displayed to once the limit has been reached.' | t('formie') }}"
+        name="settings[limitSubmissionsMessage]"
+        v-model="form.settings.limitSubmissionsMessage"
+        v-bind="{{ getRichTextConfig('forms.limitSubmissionsMessage') | json_encode }}"
+    ></form-kit>
 </div>
-#}
 
 {% js %}
 

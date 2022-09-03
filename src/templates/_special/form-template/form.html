@@ -15,7 +15,7 @@
     #}
 
     {% formtag 'formWrapper' %}
-        {% set showForm = true %}
+        {% set showForm = form.isAvailable() %}
         {% set currentPage = form.getCurrentPage() %}
         {% set errors = submission.getErrors('form') ?? null %}
 
@@ -32,6 +32,8 @@
                 {{ formieInclude('_includes/alert-error') }}
             {% endif %}
         {% endif %}
+
+        {{ formieInclude('_includes/messages') }}
 
         {% if submitted and form.settings.submitAction == 'message' and form.settings.submitActionFormHide %}
             {% set showForm = false %}

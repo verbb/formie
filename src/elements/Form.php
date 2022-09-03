@@ -32,6 +32,7 @@ use craft\elements\actions\Delete;
 use craft\elements\actions\Restore;
 use craft\errors\MissingComponentException;
 use craft\helpers\ArrayHelper;
+use craft\helpers\DateTimeHelper;
 use craft\helpers\Db;
 use craft\helpers\Json;
 use craft\helpers\StringHelper;
@@ -45,6 +46,7 @@ use yii\base\InvalidConfigException;
 use yii\validators\Validator;
 
 use Throwable;
+use DateTime;
 
 use Twig\Error\SyntaxError;
 use Twig\Error\LoaderError;
@@ -1852,6 +1854,90 @@ class Form extends Element
         }
 
         Craft::$app->getSession()->remove($this->_getSessionKey('snapshot'));
+    }
+
+    public function isAvailable(): bool
+    {
+        if ($this->settings->requireUser) {
+            if (!Craft::$app->getUser()->getIdentity()) {
+                return false;
+            }
+        }
+
+        if ($this->settings->scheduleForm) {
+            if (!$this->isScheduleActive()) {
+                return false;
+            }
+        }
+
+        if ($this->settings->limitSubmissions) {
+            if (!$this->isWithinSubmissionsLimit()) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    public function isScheduleActive(): bool
+    {
+        return !$this->isBeforeSchedule() && !$this->isAfterSchedule();
+    }
+
+    public function isBeforeSchedule(): bool
+    {
+        if ($this->settings->scheduleForm) {
+            return !DateTimeHelper::isInThePast($this->settings->scheduleFormStart);
+        }
+        
+        return false;
+    }
+
+    public function isAfterSchedule(): bool
+    {
+        if ($this->settings->scheduleForm) {
+            return DateTimeHelper::isInThePast($this->settings->scheduleFormEnd);
+        }
+        
+        return false;
+    }
+
+    public function isWithinSubmissionsLimit(): bool
+    {
+        if ($this->settings->limitSubmissions) {
+            $query = Submission::find()->formId($this->id);
+
+            if ($this->settings->limitSubmissionsType === 'total') {
+                $submissions = $query->count();
+            } else if ($this->settings->limitSubmissionsType === 'day') {
+                $startDate = DateTimeHelper::toDateTime(new DateTime('today'));
+                $endDate = DateTimeHelper::toDateTime(new DateTime('tomorrow'));
+
+                $submissions = $query->dateCreated(['and', '>= ' . Db::prepareDateForDb($startDate), '<= ' . Db::prepareDateForDb($endDate)])->count();
+            } else if ($this->settings->limitSubmissionsType === 'week') {
+                // PHP dates start on a Monday, but we assume to backtrack to Sunday
+                $startDate = DateTimeHelper::toDateTime(new DateTime('monday this week'))->modify('-1 day');
+                $endDate = DateTimeHelper::toDateTime(new DateTime('monday next week'))->modify('-1 day');
+
+                $submissions = $query->dateCreated(['and', '>= ' . Db::prepareDateForDb($startDate), '<= ' . Db::prepareDateForDb($endDate)])->count();
+            } else if ($this->settings->limitSubmissionsType === 'month') {
+                $startDate = DateTimeHelper::toDateTime(new DateTime('first day of this month'))->setTime(0, 0, 0);
+                $endDate = DateTimeHelper::toDateTime(new DateTime('first day of next month'))->setTime(0, 0, 0);
+
+                $submissions = $query->dateCreated(['and', '>= ' . Db::prepareDateForDb($startDate), '<= ' . Db::prepareDateForDb($endDate)])->count();
+            } else if ($this->settings->limitSubmissionsType === 'year') {
+                $startDate = DateTimeHelper::toDateTime(new DateTime('first day of January'))->setTime(0, 0, 0);
+                $endDate = DateTimeHelper::toDateTime(new DateTime('first day of January next year'))->setTime(0, 0, 0);
+
+                $submissions = $query->dateCreated(['and', '>= ' . Db::prepareDateForDb($startDate), '<= ' . Db::prepareDateForDb($endDate)])->count();
+            }
+
+            if ($submissions >= $this->settings->limitSubmissionsNumber) {
+                return false;
+            }
+        }
+        
+        return true;
     }
 
     /**

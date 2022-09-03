@@ -10,9 +10,13 @@ use Craft;
 use craft\base\Model;
 use craft\elements\Entry;
 use craft\helpers\ArrayHelper;
+use craft\helpers\DateTimeHelper;
 use craft\helpers\Json;
+
 use Twig\Error\SyntaxError;
 use Twig\Error\LoaderError;
+
+use DateTime;
 
 class FormSettings extends Model
 {
@@ -51,6 +55,18 @@ class FormSettings extends Model
     public ?string $availabilityMessage = null;
     public ?string $availabilityMessageDate = null;
     public ?string $availabilityMessageSubmissions = null;
+    // Behaviour - Restrictions
+    public bool $requireUser = false;
+    public mixed $requireUserMessage = null;
+    public bool $scheduleForm = false;
+    public ?DateTime $scheduleFormStart = null;
+    public ?DateTime $scheduleFormEnd = null;
+    public mixed $scheduleFormPendingMessage = null;
+    public mixed $scheduleFormExpiredMessage = null;
+    public bool $limitSubmissions = false;
+    public ?int $limitSubmissionsNumber = null;
+    public ?string $limitSubmissionsType = null;
+    public mixed $limitSubmissionsMessage = null;
 
     // Integrations
     public array $integrations = [];
@@ -101,6 +117,18 @@ class FormSettings extends Model
 
         if (array_key_exists('userDeletedAction', $config)) {
             unset($config['userDeletedAction']);
+        }
+
+        if (array_key_exists('scheduleFormStart', $config)) {
+            if (is_array($config['scheduleFormStart'])) {
+                $config['scheduleFormStart'] = DateTimeHelper::toDateTime($config['scheduleFormStart']);
+            }
+        }
+
+        if (array_key_exists('scheduleFormEnd', $config)) {
+            if (is_array($config['scheduleFormEnd'])) {
+                $config['scheduleFormEnd'] = DateTimeHelper::toDateTime($config['scheduleFormEnd']);
+            }
         }
 
         parent::__construct($config);
@@ -167,6 +195,46 @@ class FormSettings extends Model
     public function getErrorMessageHtml(): string
     {
         return $this->_getHtmlContent($this->errorMessage);
+    }
+
+    public function getRequireUserMessage(): string
+    {
+        return Craft::t('formie', $this->_getHtmlContent($this->requireUserMessage));
+    }
+
+    public function getRequireUserMessageHtml(): string
+    {
+        return $this->_getHtmlContent($this->requireUserMessage);
+    }
+
+    public function getScheduleFormPendingMessage(): string
+    {
+        return Craft::t('formie', $this->_getHtmlContent($this->scheduleFormPendingMessage));
+    }
+
+    public function getScheduleFormPendingMessageHtml(): string
+    {
+        return $this->_getHtmlContent($this->scheduleFormPendingMessage);
+    }
+
+    public function getScheduleFormExpiredMessage(): string
+    {
+        return Craft::t('formie', $this->_getHtmlContent($this->scheduleFormExpiredMessage));
+    }
+
+    public function getScheduleFormExpiredMessageHtml(): string
+    {
+        return $this->_getHtmlContent($this->scheduleFormExpiredMessage);
+    }
+
+    public function getLimitSubmissionsMessage(): string
+    {
+        return Craft::t('formie', $this->_getHtmlContent($this->limitSubmissionsMessage));
+    }
+
+    public function getLimitSubmissionsMessageHtml(): string
+    {
+        return $this->_getHtmlContent($this->limitSubmissionsMessage);
     }
 
     public function getEnabledIntegrations(): array

@@ -79,6 +79,22 @@ class RichTextHelper
                     'buttons' => ['bold', 'italic'],
                     'rows' => 3,
                 ],
+                'requireUserMessage' => [
+                    'buttons' => ['bold', 'italic'],
+                    'rows' => 3,
+                ],
+                'scheduleFormPendingMessage' => [
+                    'buttons' => ['bold', 'italic'],
+                    'rows' => 3,
+                ],
+                'scheduleFormExpiredMessage' => [
+                    'buttons' => ['bold', 'italic'],
+                    'rows' => 3,
+                ],
+                'limitSubmissionsMessage' => [
+                    'buttons' => ['bold', 'italic'],
+                    'rows' => 3,
+                ],
             ],
             'fields' => [
                 'agree' => [

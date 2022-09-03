@@ -1,0 +1,25 @@
+{% if not form.isAvailable %}
+    {% set message = null %}
+
+    {% if form.settings.requireUser and not currentUser %}
+        {% set message = form.settings.getRequireUserMessageHtml() %}
+    {% endif %}
+
+    {% if form.settings.scheduleForm and form.isBeforeSchedule() %}
+        {% set message = form.settings.getScheduleFormPendingMessageHtml() %}
+    {% endif %}
+
+    {% if form.settings.scheduleForm and form.isAfterSchedule() %}
+        {% set message = form.settings.getScheduleFormExpiredMessageHtml() %}
+    {% endif %}
+
+    {% if form.settings.limitSubmissions and not form.isWithinSubmissionsLimit() %}
+        {% set message = form.settings.getLimitSubmissionsMessageHtml() %}
+    {% endif %}
+
+    {% if message %}
+        {{ formtag('alertError', {
+            text: message | t('formie') | raw,
+        }) }}
+    {% endif %}
+{% endif %}
