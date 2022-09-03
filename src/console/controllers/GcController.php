@@ -79,4 +79,17 @@ class GcController extends Controller
 
         return ExitCode::OK;
     }
+
+    /**
+     * Delete leftover content tables, for deleted forms.
+     *
+     * @return int
+     * @throws Throwable
+     */
+    public function actionPruneContentTableFields()
+    {
+        Formie::$plugin->getForms()->pruneContentTableFields($this);
+
+        return ExitCode::OK;
+    }
 }

@@ -245,6 +245,26 @@
 - Removed `forms`, `form` and `formCount` from GraphQL queries. Please use `formieForms`, `formieForm` and `formieFormCount`.
 - Removed `submissions`, `submission` and `submissionCount` from GraphQL queries. Please use `formieSubmissions`, `formieSubmission` and `formieSubmissionCount`.
 
+## 1.6.11 - 2022-09-04
+
+### Added
+- Add `prune-content-table-fields` console command.
+
+### Fixed
+- Fix Microsoft Dynamics not using `SchemaName` for custom field handles.
+- Fix serialization of element fields when being sent via Webhooks.
+- Fix an error with HubSpot CRM integration.
+- Fix File Upload fields including some allowed extensions that they shouldn’t.
+
+## 1.6.10 - 2022-08-27
+
+### Added
+- Added new HubSpot CRM integration due to [API changes](https://developers.hubspot.com/changelog/upcoming-api-key-sunset).
+
+### Fixed
+- Fixed check for malicious file upload checks, causing submissions with File Upload fields not to save.
+- Fixed File Upload `inputTypeName` not returning correctly for GraphQL queries.
+
 ## 1.6.9 - 2022-08-22
 
 ### Added

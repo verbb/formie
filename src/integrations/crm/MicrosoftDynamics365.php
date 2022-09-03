@@ -371,7 +371,7 @@ class MicrosoftDynamics365 extends Crm
 
         foreach ($attributes as $field) {
             $label = $field['DisplayName']['UserLocalizedLabel']['Label'] ?? '';
-            $handle = $field['LogicalName'] ?? '';
+            $handle = $field['SchemaName'] ?? '';
             $canCreate = $field['IsValidForCreate'] ?? false;
             $requiredLevel = $field['RequiredLevel']['Value'] ?? 'None';
             $type = $field['AttributeType'] ?? '';
@@ -404,11 +404,11 @@ class MicrosoftDynamics365 extends Crm
         }
 
         // Do another call for PickList fields, to populate any set options to pick from
-        $response = $this->request('GET', "EntityDefinitions(LogicalName='$entity')/Attributes/Microsoft.Dynamics.CRM.PicklistAttributeMetadata?\$select=LogicalName&\$expand=GlobalOptionSet(\$select=Options)");
+        $response = $this->request('GET', "EntityDefinitions(LogicalName='$entity')/Attributes/Microsoft.Dynamics.CRM.PicklistAttributeMetadata?\$select=SchemaName&\$expand=GlobalOptionSet(\$select=Options)");
         $pickListFields = $response['value'] ?? [];
 
         foreach ($pickListFields as $pickListField) {
-            $handle = $pickListField['LogicalName'] ?? '';
+            $handle = $pickListField['SchemaName'] ?? '';
             $pickList = $pickListField['GlobalOptionSet']['Options'] ?? [];
             $options = [];
 
@@ -452,7 +452,7 @@ class MicrosoftDynamics365 extends Crm
     private function _getEntityOwnerOptions($entityName, $fields): void
     {
         // Get all the fields that are relational
-        $response = $this->request('GET', "EntityDefinitions(LogicalName='$entityName')/Attributes/Microsoft.Dynamics.CRM.LookupAttributeMetadata?\$select=LogicalName,Targets");
+        $response = $this->request('GET', "EntityDefinitions(LogicalName='$entityName')/Attributes/Microsoft.Dynamics.CRM.LookupAttributeMetadata?\$select= SchemaName,Targets");
         $relationFields = $response['value'] ?? [];
 
         // Define a schema so that we can query each entity according to the target (index)
@@ -546,7 +546,7 @@ class MicrosoftDynamics365 extends Crm
 
         // With all possible options populated, add the options into the fields
         foreach ($relationFields as $relationField) {
-            $handle = $relationField['LogicalName'] ?? '';
+            $handle = $relationField['SchemaName'] ?? '';
             $targets = $relationField['Targets'] ?? [];
             $options = [];
 

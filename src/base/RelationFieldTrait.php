@@ -457,20 +457,19 @@ trait RelationFieldTrait
 
     private function _elementToArray($element)
     {
-        // Watch out for nested element queries
-        foreach ($element as $key => $value) {
-            if ($value instanceof ElementQuery) {
-                $elements = [];
+        // Get the attributes for the element
+        $reflection = new \ReflectionClass(get_class($element));
 
-                foreach ($value->all() as $nestedElement) {
-                    $elements = $this->_elementToArray($nestedElement);
-                }
+        $attributes = array_map(function($prop) {
+            return $prop->name;
+        }, $reflection->getProperties(\ReflectionProperty::IS_PUBLIC));
 
-                $element[$key] = $elements;
-            }
-        }
+        $array = $element->getAttributes($attributes);
 
-        return Json::decode(Json::encode($element));
+        // Get the custom fields
+        $array = array_merge($array, $element->serializedFieldValues);
+
+        return Json::decode(Json::encode($array));
     }
 
 }
