@@ -114,6 +114,7 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
     public string $maxDateOffsetType = 'days';
     public int $minYearRange = 100;
     public int $maxYearRange = 100;
+    public mixed $availableDaysOfWeek = '*';
 
 
     // Public Methods
@@ -318,6 +319,7 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
             'ampmPlaceholder' => '',
             'useDatePicker' => true,
             'datePickerOptions' => [],
+            'availableDaysOfWeek' => '*',
         ];
     }
 
@@ -787,11 +789,23 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
                     'locale' => $locale,
                     'minDate' => $minDate,
                     'maxDate' => $maxDate,
+                    'availableDaysOfWeek' => $this->availableDaysOfWeek,
                 ],
             ];
         }
 
         return null;
+    }
+
+    public function getWeekDayNamesOptions()
+    {
+        $options = [['label' => Craft::t('formie', 'All'), 'value' => '*']];
+
+        foreach (Craft::$app->getLocale()->getWeekDayNames(Locale::LENGTH_FULL) as $key => $value) {
+            $options[] = ['label' => $value, 'value' => $key];
+        }
+
+        return $options;
     }
 
     /**
@@ -1005,6 +1019,13 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
                     ],
                 ],
             ],
+            SchemaHelper::checkboxSelectField([
+                'label' => Craft::t('formie', 'Available Days'),
+                'help' => Craft::t('formie', 'Choose which days of the week should be available.'),
+                'name' => 'availableDaysOfWeek',
+                'options' => $this->getWeekDayNamesOptions(),
+                'showAllOption' => true,
+            ]),
             [
                 '$formkit' => 'fieldWrap',
                 'label' => Craft::t('formie', 'Year Range'),

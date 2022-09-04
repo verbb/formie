@@ -74,7 +74,7 @@ export default {
                 return true;
             }
 
-            if (Array.isArray(this.context._value) && this.context._value.includes(value)) {
+            if (Array.isArray(this.context._value) && this.context._value.includes(value.toString())) {
                 return true;
             }
 

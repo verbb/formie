@@ -22,6 +22,7 @@ export class FormieDatePicker {
         this.locale = settings.locale;
         this.minDate = settings.minDate;
         this.maxDate = settings.maxDate;
+        this.availableDaysOfWeek = settings.availableDaysOfWeek;
 
         // Resolve the correct, full date-time format
         if (this.getIsDate) {
@@ -46,6 +47,7 @@ export class FormieDatePicker {
             minuteIncrement: 1,
             minDate: this.minDate,
             maxDate: this.maxDate,
+            disable: [this.getDisabledWeekdays.bind(this)],
         };
 
         // Include time for time-only and datetime
@@ -138,6 +140,14 @@ export class FormieDatePicker {
         // Convert date format from PHP to Flatpickr
         // https://flatpickr.js.org/formatting/
         return this.dateTimeFormat.replace('A', 'K').replace('a', 'K').replace('s', 'S').replace('g', 'h').replace('h', 'G');
+    }
+
+    getDisabledWeekdays(date) {
+        if (this.availableDaysOfWeek !== '*') {
+            return (this.availableDaysOfWeek.includes(date.getDay().toString())) ? false : true;
+        }
+
+        return false;
     }
 }
 
