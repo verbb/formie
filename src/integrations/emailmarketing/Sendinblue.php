@@ -154,7 +154,7 @@ class Sendinblue extends EmailMarketing
     // Private Methods
     // =========================================================================
 
-    private function _getPaginated($endpoint, $param, $limit = 50, $offset = 0, $items = [])
+    private function _getPaginated($endpoint, $collection, $limit = 50, $offset = 0, $items = [])
     {
         $response = $this->request('GET', $endpoint, [
             'query' => [
@@ -163,15 +163,13 @@ class Sendinblue extends EmailMarketing
             ],
         ]);
 
-        $newItems = $response[$param] ?? [];
+        $newItems = $response[$collection] ?? [];
         $total = $response['count'] ?? 0;
 
-        if ($newItems) {
-            $items = array_merge($items, $newItems);
+        $items = array_merge($items, $newItems);
 
-            if (count($items) < $total) {
-                $items = $this->_getPaginated($endpoint, $param, $limit, $offset + $limit, $items);
-            }
+        if (count($items) < $total) {
+            $items = $this->_getPaginated($endpoint, $collection, $limit, $offset + $limit, $items);
         }
 
         return $items;
