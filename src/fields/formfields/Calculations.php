@@ -42,6 +42,10 @@ class Calculations extends FormField implements PreviewableFieldInterface
     // =========================================================================
 
     public ?array $formula = [];
+    public string $formatting = '';
+    public string $prefix = '';
+    public string $suffix = '';
+    public int $decimals = 0;
 
     private ?array $_renderedFormula = null;
 
@@ -78,6 +82,10 @@ class Calculations extends FormField implements PreviewableFieldInterface
             'module' => 'FormieCalculations',
             'settings' => [
                 'formula' => $this->getFormula(),
+                'formatting' => $this->formatting,
+                'prefix' => $this->prefix,
+                'suffix' => $this->suffix,
+                'decimals' => $this->decimals,
             ],
         ];
     }
@@ -170,6 +178,33 @@ class Calculations extends FormField implements PreviewableFieldInterface
             ]),
             SchemaHelper::matchField([
                 'fieldTypes' => [self::class],
+            ]),
+            SchemaHelper::selectField([
+                'label' => Craft::t('formie', 'Formatting'),
+                'help' => Craft::t('formie', 'Select how to format the value calculated for this field.'),
+                'name' => 'formatting',
+                'options' => [
+                    ['label' => Craft::t('formie', 'None'), 'value' => ''],
+                    ['label' => Craft::t('formie', 'Number'), 'value' => 'number'],
+                ],
+            ]),
+            SchemaHelper::textField([
+                'label' => Craft::t('formie', 'Prefix'),
+                'help' => Craft::t('formie', 'Add a prefix to the number.'),
+                'name' => 'prefix',
+                'if' => '$get(formatting).value == number',
+            ]),
+            SchemaHelper::textField([
+                'label' => Craft::t('formie', 'Suffix'),
+                'help' => Craft::t('formie', 'Add a suffix to the number.'),
+                'name' => 'suffix',
+                'if' => '$get(formatting).value == number',
+            ]),
+            SchemaHelper::numberField([
+                'label' => Craft::t('formie', 'Decimal Rounding'),
+                'help' => Craft::t('formie', 'How many decimals to round the number to.'),
+                'name' => 'decimals',
+                'if' => '$get(formatting).value == number',
             ]),
         ];
     }

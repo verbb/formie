@@ -10,6 +10,10 @@ export class FormieCalculations {
         this.$input = this.$field.querySelector('input');
         this.formula = settings.formula.formula;
         this.variables = settings.formula.variables;
+        this.formatting = settings.formatting;
+        this.prefix = settings.prefix;
+        this.suffix = settings.suffix;
+        this.decimals = settings.decimals;
 
         this.fieldsStore = {};
         this.expressionLanguage = new ExpressionLanguage();
@@ -88,6 +92,9 @@ export class FormieCalculations {
             });
         });
 
+        // See if we need to format some variables depending on formatting
+        variables = this.formatVariables(variables);
+
         // Allow events to modify the data before evaluation
         const beforeEvaluateEvent = new CustomEvent('beforeEvaluate', {
             bubbles: true,
@@ -109,6 +116,9 @@ export class FormieCalculations {
 
         try {
             let result = this.expressionLanguage.evaluate(formula, variables);
+
+            // Format the result, if required
+            result = this.formatValue(result);
 
             // Allow events to modify the data after evaluation
             const afterEvaluateEvent = new CustomEvent('afterEvaluate', {
@@ -159,6 +169,37 @@ export class FormieCalculations {
         }
 
         return 'keyup';
+    }
+
+    formatVariables(variables) {
+        if (this.formatting === 'number') {
+            Object.keys(variables).forEach((index) => {
+                variables[index] = Number(variables[index]);
+            });
+        }
+
+        return variables;
+    }
+
+    formatValue(value) {
+        if (this.formatting === 'number') {
+            // Assume no rounding if not providing decimals, but formatting as number
+            if (this.decimals) {
+                value = Number(value).toFixed(this.decimals);
+            } else {
+                value = Number(value).toFixed(0);
+            }
+
+            if (this.prefix) {
+                value = this.prefix + value;
+            }
+
+            if (this.suffix) {
+                value = value + this.suffix;
+            }
+        }
+
+        return value;
     }
 }
 
