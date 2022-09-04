@@ -446,6 +446,8 @@ class Variables
             }
         } else if ($field instanceof formfields\Repeater) {
             $values["{$prefix}{$field->handle}"] = $parsedContent;
+        } else if ($field instanceof formfields\Signature) {
+            $values["{$prefix}{$field->handle}"] = $parsedContent;
         }
 
         return $values;
