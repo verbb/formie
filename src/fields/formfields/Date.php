@@ -112,6 +112,8 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
     public string $maxDateOffset = 'add';
     public int $maxDateOffsetNumber = 0;
     public string $maxDateOffsetType = 'days';
+    public int $minYearRange = 100;
+    public int $maxYearRange = 100;
 
 
     // Public Methods
@@ -1003,6 +1005,44 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
                     ],
                 ],
             ],
+            [
+                '$formkit' => 'fieldWrap',
+                'label' => Craft::t('formie', 'Year Range'),
+                'help' => Craft::t('formie', 'Set the range of years relative to this year that are available to select.'),
+                'if' => '$get(displayType).value == dropdowns',
+                'children' => [
+                    [
+                        '$el' => 'div',
+                        'attrs' => [
+                            'class' => 'flex',
+                        ],
+                        'children' => [
+                            SchemaHelper::numberField([
+                                'name' => 'minYearRange',
+                                'inputClass' => 'text flex-grow',
+                                'sections-schema' => [
+                                    'prefix' => [
+                                        '$el' => 'span',
+                                        'attrs' => ['class' => 'fui-prefix-text'],
+                                        'children' => Craft::t('formie', 'Start'),
+                                    ],
+                                ],
+                            ]),
+                            SchemaHelper::numberField([
+                                'name' => 'maxYearRange',
+                                'inputClass' => 'text flex-grow',
+                                'sections-schema' => [
+                                    'prefix' => [
+                                        '$el' => 'span',
+                                        'attrs' => ['class' => 'fui-prefix-text'],
+                                        'children' => Craft::t('formie', 'End'),
+                                    ],
+                                ],
+                            ]),
+                        ],
+                    ],
+                ],
+            ],
         ];
     }
 
@@ -1285,8 +1325,8 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
     {
         $defaultValue = $this->defaultValue ?: new DateTime();
         $year = (int)$defaultValue->format('Y');
-        $minYear = $year - 100;
-        $maxYear = $year + 100;
+        $minYear = $year - $this->minYearRange;
+        $maxYear = $year + $this->maxYearRange;
 
         $options = [['value' => '', 'label' => '', 'disabled' => true]];
 
