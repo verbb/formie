@@ -334,7 +334,7 @@ class ActiveCampaign extends EmailMarketing
         $items = array_merge($items, $newItems);
 
         if (count($items) < $total) {
-            $items = array_merge($items, $this->_getPaginated($endpoint, $limit, $offset + $limit, $items));
+            $items = $this->_getPaginated($endpoint, $limit, $offset + $limit, $items);
         }
 
         return $items;
