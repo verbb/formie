@@ -142,23 +142,12 @@ class Slack extends Miscellaneous
         $settings = [];
 
         try {
-            $response = $this->request('GET', 'conversations.list', [
-                'query' => [
-                    'exclude_archived' => true,
-                    'types' => 'public_channel',
-                    'limit' => 100,
-                ],
-            ]);
+            $channels = $this->_getPaginated('conversations.list', 'channels', [
+                'exclude_archived' => true,
+                'types' => 'public_channel',
+            ], 200);
 
-            $channels = $response['channels'] ?? [];
-
-            $response = $this->request('GET', 'users.list', [
-                'query' => [
-                    'limit' => 50,
-                ],
-            ]);
-
-            $members = $response['members'] ?? [];
+            $members = $this->_getPaginated('users.list', 'members', [], 200);
 
             // Sort the results alphabetically
             $sort = function(array $a, array $b): int {
@@ -292,5 +281,26 @@ class Slack extends Miscellaneous
 
         // Some extra work to get it to play with Slack's mrkdwn
         return str_replace(['*', '__'], ['_', '*'], $markdown);
+    }
+
+    private function _getPaginated($endpoint, $collection, $params, $limit = 100, $cursor = null, $items = []): array
+    {
+        $response = $this->request('GET', $endpoint, [
+            'query' => array_merge($params, [
+                'limit' => $limit,
+                'cursor' => $cursor,
+            ]),
+        ]);
+
+        $newItems = $response[$collection] ?? [];
+        $cursor = $response['response_metadata']['next_cursor'] ?? null;
+
+        $items = array_merge($items, $newItems);
+
+        if ($cursor) {
+            $items = $this->_getPaginated($endpoint, $collection, $params, $limit, $cursor, $items);
+        }
+
+        return $items;
     }
 }
