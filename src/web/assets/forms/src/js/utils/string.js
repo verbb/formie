@@ -105,7 +105,7 @@ export const getDisplayName = function(type) {
 
 export const parseDate = function(date) {
     if (date === null) {
-        return date;
+        return '';
     }
 
     if (typeof date === 'object') {

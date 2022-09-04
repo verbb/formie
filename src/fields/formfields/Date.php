@@ -102,12 +102,33 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
     public ?string $ampmPlaceholder = null;
     public bool $useDatePicker = true;
     public array $datePickerOptions = [];
-    public mixed $minDate = null;
-    public mixed $maxDate = null;
+    public string $minDateOption = '';
+    public ?DateTime $minDate = null;
+    public string $minDateOffset = 'add';
+    public int $minDateOffsetNumber = 0;
+    public string $minDateOffsetType = 'days';
+    public string $maxDateOption = '';
+    public ?DateTime $maxDate = null;
+    public string $maxDateOffset = 'add';
+    public int $maxDateOffsetNumber = 0;
+    public string $maxDateOffsetType = 'days';
 
 
     // Public Methods
     // =========================================================================
+
+    public function __construct($config = [])
+    {
+        if (isset($config['minDate'])) {
+            $config['minDate'] = self::toDateTime($config['minDate']) ?: null;
+        }
+
+        if (isset($config['maxDate'])) {
+            $config['maxDate'] = self::toDateTime($config['maxDate']) ?: null;
+        }
+
+        parent::__construct($config);
+    }
 
     public function init(): void
     {
@@ -120,11 +141,13 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
                 if ($defaultValue) {
                     $this->defaultValue = $defaultValue;
                 }
+            } else {
+                $this->defaultValue = null;
             }
         } else if ($this->defaultOption === 'today') {
             $this->defaultValue = self::toDateTime(new DateTime());
         } else {
-            $this->defaultValue = '';
+            $this->defaultValue = null;
         }
     }
 
@@ -189,6 +212,14 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
         }
 
         return '';
+    }
+
+    public function getDefaultValue($attributePrefix = '')
+    {
+        $defaultValue = parent::getDefaultValue($attributePrefix);
+
+        // Ensure default values are treated the same way as normal values
+        return $this->normalizeValue($defaultValue);
     }
 
     /**
@@ -583,13 +614,83 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
         ];
     }
 
+    public function getMinDate()
+    {
+        if ($this->minDateOption === 'today') {
+            $operator = $this->minDateOffset === 'add' ? '+' : '-';
+            $interval = "{$operator}{$this->minDateOffsetNumber} {$this->minDateOffsetType}";
+
+            return self::toDateTime(DateTimeHelper::now())->modify($interval)->setTime(0, 0, 0);
+        }
+
+        if ($this->minDateOption === 'date' && $this->minDate) {
+            return $this->minDate->setTime(0, 0, 0);
+        }
+
+        return null;
+    }
+
+    public function getMaxDate()
+    {
+        if ($this->maxDateOption === 'today') {
+            $operator = $this->maxDateOffset === 'add' ? '+' : '-';
+            $interval = "{$operator}{$this->maxDateOffsetNumber} {$this->maxDateOffsetType}";
+
+            return self::toDateTime(DateTimeHelper::now())->modify($interval)->setTime(23, 59, 59);
+        }
+
+        if ($this->maxDateOption === 'date' && $this->maxDate) {
+            return $this->maxDate->setTime(23, 59, 59);
+        }
+
+        return null;
+    }
+
     /**
      * @inheritdoc
      */
     public function getElementValidationRules(): array
     {
         // Keep to disable trait validation on subfields.
-        return parent::getElementValidationRules();
+        $rules = parent::getElementValidationRules();
+        $rules[] = [$this->handle, 'validateDateValues'];
+
+        return $rules;
+    }
+
+    public function validateDateValues(ElementInterface $element): void
+    {
+        $value = $element->getFieldValue($this->handle);
+
+        if ($normalized = (!$value instanceof DateTime)) {
+            $value = DateTimeHelper::toDateTime($value);
+        }
+
+        if (!$value) {
+            $element->addError($this->handle, Craft::t('formie', 'Value must be a date.'));
+            return;
+        }
+
+        if ($min = $this->getMinDate()) {
+            if ($value < $min) {
+                $element->addError($this->handle, Craft::t('formie', 'Value must be no earlier than {min}.', [
+                    'min' => Craft::$app->getFormatter()->asDate($min, Locale::LENGTH_SHORT),
+                ]));
+            }
+        }
+
+        if ($max = $this->getMaxDate()) {
+            if ($value > $max) {
+                $element->addError($this->handle, Craft::t('formie', 'Value must be no later than {max}.', [
+                    'max' => Craft::$app->getFormatter()->asDate($max, Locale::LENGTH_SHORT),
+                ]));
+            }
+        }
+
+        if ($normalized) {
+            // Update the value on the model to the DateTime object
+            $model->$attribute = $value;
+        }
     }
 
     public function getIsDate(): bool
@@ -651,14 +752,14 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
                 $locale = strtolower($locale);
             }
 
-            $minDate = null;
-            $maxDate = null;
+            $minDate = $this->getMinDate();
+            $maxDate = $this->getMaxDate();
 
-            if ($minDate = DateTimeHelper::toDateTime($this->minDate)) {
+            if ($minDate) {
                 $minDate = $minDate->format('Y-m-d');
             }
 
-            if ($maxDate = DateTimeHelper::toDateTime($this->maxDate)) {
+            if ($maxDate) {
                 $maxDate = $maxDate->format('Y-m-d');
             }
 
@@ -796,18 +897,112 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
                 'if' => '$get(required).value',
             ]),
             SchemaHelper::prePopulate(),
+            SchemaHelper::selectField([
+                'label' => Craft::t('formie', 'Min Date'),
+                'help' => Craft::t('formie', 'Set a minimum date for dates to be picked from.'),
+                'name' => 'minDateOption',
+                'if' => '$get(displayType).value == calendar',
+                'options' => [
+                    ['label' => Craft::t('formie', 'None'), 'value' => ''],
+                    ['label' => Craft::t('formie', 'Today‘s Date/Time'), 'value' => 'today'],
+                    ['label' => Craft::t('formie', 'Specific Date/Time'), 'value' => 'date'],
+                ],
+            ]),
             SchemaHelper::dateField([
                 'label' => Craft::t('formie', 'Min Date'),
                 'help' => Craft::t('formie', 'Set a minimum date for dates to be picked from.'),
                 'name' => 'minDate',
+                'if' => '$get(minDateOption).value == date',
+            ]),
+            [
+                '$formkit' => 'fieldWrap',
+                'label' => Craft::t('formie', 'Offset'),
+                'help' => Craft::t('formie', 'Enter an optional offset for today‘s date.'),
+                'if' => '$get(minDateOption).value == today',
+                'children' => [
+                    [
+                        '$el' => 'div',
+                        'attrs' => [
+                            'class' => 'flex',
+                        ],
+                        'children' => [
+                            SchemaHelper::selectField([
+                                'name' => 'minDateOffset',
+                                'options' => [
+                                    ['label' => Craft::t('formie', 'Add'), 'value' => 'add'],
+                                    ['label' => Craft::t('formie', 'Subtract'), 'value' => 'subtract'],
+                                ],
+                            ]),
+                            SchemaHelper::numberField([
+                                'name' => 'minDateOffsetNumber',
+                                'inputClass' => 'text flex-grow',
+                            ]),
+                            SchemaHelper::selectField([
+                                'name' => 'minDateOffsetType',
+                                'options' => [
+                                    ['label' => Craft::t('formie', 'Days'), 'value' => 'days'],
+                                    ['label' => Craft::t('formie', 'Weeks'), 'value' => 'weeks'],
+                                    ['label' => Craft::t('formie', 'Months'), 'value' => 'months'],
+                                    ['label' => Craft::t('formie', 'Years'), 'value' => 'years'],
+                                ],
+                            ]),
+                        ],
+                    ],
+                ],
+            ],
+            SchemaHelper::selectField([
+                'label' => Craft::t('formie', 'Max Date'),
+                'help' => Craft::t('formie', 'Set a maximum date for dates to be picked up to.'),
+                'name' => 'maxDateOption',
                 'if' => '$get(displayType).value == calendar',
+                'options' => [
+                    ['label' => Craft::t('formie', 'None'), 'value' => ''],
+                    ['label' => Craft::t('formie', 'Today‘s Date/Time'), 'value' => 'today'],
+                    ['label' => Craft::t('formie', 'Specific Date/Time'), 'value' => 'date'],
+                ],
             ]),
             SchemaHelper::dateField([
                 'label' => Craft::t('formie', 'Max Date'),
                 'help' => Craft::t('formie', 'Set a maximum date for dates to be picked up to.'),
                 'name' => 'maxDate',
-                'if' => '$get(displayType).value == calendar',
+                'if' => '$get(maxDateOption).value == date',
             ]),
+            [
+                '$formkit' => 'fieldWrap',
+                'label' => Craft::t('formie', 'Offset'),
+                'help' => Craft::t('formie', 'Enter an optional offset for today‘s date.'),
+                'if' => '$get(maxDateOption).value == today',
+                'children' => [
+                    [
+                        '$el' => 'div',
+                        'attrs' => [
+                            'class' => 'flex',
+                        ],
+                        'children' => [
+                            SchemaHelper::selectField([
+                                'name' => 'maxDateOffset',
+                                'options' => [
+                                    ['label' => Craft::t('formie', 'Add'), 'value' => 'add'],
+                                    ['label' => Craft::t('formie', 'Subtract'), 'value' => 'subtract'],
+                                ],
+                            ]),
+                            SchemaHelper::numberField([
+                                'name' => 'maxDateOffsetNumber',
+                                'inputClass' => 'text flex-grow',
+                            ]),
+                            SchemaHelper::selectField([
+                                'name' => 'maxDateOffsetType',
+                                'options' => [
+                                    ['label' => Craft::t('formie', 'Days'), 'value' => 'days'],
+                                    ['label' => Craft::t('formie', 'Weeks'), 'value' => 'weeks'],
+                                    ['label' => Craft::t('formie', 'Months'), 'value' => 'months'],
+                                    ['label' => Craft::t('formie', 'Years'), 'value' => 'years'],
+                                ],
+                            ]),
+                        ],
+                    ],
+                ],
+            ],
         ];
     }
 

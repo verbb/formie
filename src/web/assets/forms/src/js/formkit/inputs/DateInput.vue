@@ -43,6 +43,17 @@ export default {
         },
     },
 
+    data() {
+        return {
+            savedDate: null,
+            proxyValue: {
+                date: '',
+                time: '',
+                timezone: Craft.timezone,
+            },
+        };
+    },
+
     computed: {
         ...mapState({
             editingField: (state) => { return state.formie.editingField; },
@@ -58,8 +69,8 @@ export default {
     },
 
     created() {
-        // Ensure this model is set to a reactive object, not a single value like other fields
-        // this.context._value = Object.assign({}, this.context._value);
+        // Store to populate the picker fields
+        this.savedDate = parseDate(this.clone(this.context._value));
     },
 
     mounted() {
@@ -67,33 +78,20 @@ export default {
 
         // Init jQuery datepicker
         if (dateInput) {
-            this.$datePicker = $(dateInput).datepicker($.extend({
-                altFormat: 'yy-mm-dd',
-                onSelect: (dateText, inst) => {
-                    const dateFormatted = `${inst.selectedYear}-${inst.selectedMonth + 1}-${inst.selectedDay}`;
-
-                    this.context.node.input({
-                        date: dateText,
-                        jsDate: dateFormatted,
-                        timezone: Craft.timezone,
-                    });
-                },
-            }, Craft.datepickerOptions));
+            this.$datePicker = $(dateInput).datepicker($.extend({}, Craft.datepickerOptions));
 
             this.$datePicker.on('change', (e) => {
-                // Update the model if the date is removed
-                if (!$(e.target).val()) {
-                    this.context.node.input({
-                        date: '',
-                        jsDate: '',
-                        timezone: Craft.timezone,
-                    });
-                }
+                this.proxyValue.date = e.target.value;
+
+                this.context.node.input(this.proxyValue);
             });
 
-            if (this.context._value && this.context._value.date) {
-                this.$datePicker.datepicker('setDate', new Date(parseDate(this.context._value)));
+            if (this.savedDate) {
+                this.$datePicker.datepicker('setDate', new Date(parseDate(this.savedDate)));
             }
+
+            // Trigger a change now to update the model
+            this.$datePicker.trigger('change');
         }
 
         // The time input is always available so we have a ref - but is hidden
@@ -101,15 +99,17 @@ export default {
             this.$timePicker = $(timeInput).timepicker($.extend({}, Craft.timepickerOptions));
 
             this.$timePicker.on('change', (e) => {
-                this.context.node.input({
-                    time: e.target.value,
-                    timezone: Craft.timezone,
-                });
+                this.proxyValue.time = e.target.value;
+
+                this.context.node.input(this.proxyValue);
             });
 
-            if (this.context._value && this.context._value.date) {
-                this.$timePicker.timepicker('setTime', new Date(this.context._value.date));
+            if (this.savedDate) {
+                this.$timePicker.timepicker('setTime', new Date(parseDate(this.savedDate)));
             }
+
+            // Trigger a change now to update the model
+            this.$timePicker.trigger('change');
         }
     },
 };
