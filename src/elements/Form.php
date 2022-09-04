@@ -846,12 +846,12 @@ class Form extends Element
     }
 
     /**
-     * Returns the index of the current page in the array of all pages.
+     * Returns the zero-based index of the current page in the array of all pages.
      *
      * @param FieldLayoutPage|null $currentPage
-     * @return int|null
+     * @return int
      */
-    public function getCurrentPageIndex(FieldLayoutPage $currentPage = null): ?int
+    public function getCurrentPageIndex(FieldLayoutPage $currentPage = null): int
     {
         $pages = $this->getPages();
 
@@ -868,7 +868,7 @@ class Form extends Element
             }
         }
 
-        return null;
+        return 0;
     }
 
     /**
