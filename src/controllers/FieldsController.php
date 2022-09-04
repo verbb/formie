@@ -3,6 +3,7 @@ namespace verbb\formie\controllers;
 
 use verbb\formie\Formie;
 use verbb\formie\elements\Submission;
+use verbb\formie\fields\formfields\Signature;
 
 use Craft;
 use craft\web\Controller;
@@ -16,7 +17,7 @@ class FieldsController extends Controller
     // Properties
     // =========================================================================
 
-    protected array|bool|int $allowAnonymous = ['get-summary-html'];
+    protected array|bool|int $allowAnonymous = ['get-summary-html', 'get-signature-image'];
 
 
     // Public Methods
@@ -93,6 +94,35 @@ class FieldsController extends Controller
         }
 
         return '';
+    }
+
+    public function actionGetSignatureImage(): ?Response
+    {
+        $fieldId = Craft::$app->getRequest()->getParam('fieldId');
+        $submissionUid = Craft::$app->getRequest()->getParam('submissionUid');
+
+        // Use UID to prevent easy-guessing of submission to scrape data
+        if ($submissionUid && $fieldId) {
+            $submission = Submission::find()->uid($submissionUid)->one();
+
+            if ($submission && $form = $submission->getForm()) {
+                $field = $form->getFieldById($fieldId);
+
+                if ($field instanceof Signature) {
+                    $value = $field->getFieldValue($submission);
+                    $base64 = explode('base64,', $value);
+                    $image = base64_decode(end($base64));
+
+                    $response = Craft::$app->getResponse();
+                    $response->setCacheHeaders();
+                    $response->getHeaders()->set('Content-Type', 'image/png');
+                    
+                    return $this->asRaw($image);
+                }
+            }
+        }
+
+        return null;
     }
 
 }

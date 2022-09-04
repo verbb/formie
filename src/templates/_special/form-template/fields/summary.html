@@ -1,3 +1,4 @@
+{# Only show values if there's a current submission, to prevent abuse #}
 {% set submission = submission ?? form.getCurrentSubmission() %}
 
 {% fieldtag 'fieldSummaryBlocks' %}

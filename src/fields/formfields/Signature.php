@@ -2,6 +2,7 @@
 namespace verbb\formie\fields\formfields;
 
 use verbb\formie\base\FormField;
+use verbb\formie\elements\Submission;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\HtmlTag;
 
@@ -9,8 +10,10 @@ use Craft;
 use craft\base\ElementInterface;
 use craft\base\PreviewableFieldInterface;
 use craft\db\mysql\Schema;
+use craft\helpers\App;
 use craft\helpers\Html;
 use craft\helpers\Template;
+use craft\helpers\UrlHelper;
 
 class Signature extends FormField implements PreviewableFieldInterface
 {
@@ -94,6 +97,20 @@ class Signature extends FormField implements PreviewableFieldInterface
             'penColor' => '#000000',
             'penWeight' => '2',
         ];
+    }
+
+    public function getImageUrl(Submission $submission, mixed $value)
+    {
+        // If `devMode` is on, assume local development, and use base64 as image
+        if (App::devMode()) {
+            return $value;
+        }
+
+        // On non-dev sites, use a proxy to serve the "image" so web-based clients work
+        return UrlHelper::actionUrl('formie/fields/get-signature-image', [
+            'submissionUid' => $submission->uid,
+            'fieldId' => $this->id,
+        ]);
     }
 
     /**
