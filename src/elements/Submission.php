@@ -397,6 +397,14 @@ class Submission extends Element
     }
 
     /**
+     * @inheritdoc
+     */
+    public function getStatus(): ?string
+    {
+        return $this->getStatusModel(true)->handle ?? null;
+    }
+
+    /**
      * @inheritDoc
      */
     public function validate($attributeNames = null, $clearErrors = true): bool
@@ -1133,16 +1141,15 @@ class Submission extends Element
                 $user = $this->getUser();
                 return $user ? Cp::elementHtml($user) : '';
             case 'status':
-                $statusHandle = $this->getStatus();
-                $status = self::statuses()[$statusHandle] ?? null;
-
+                $status = $this->getStatusModel(true);
+                
                 return Html::tag('span', Html::tag('span', '', [
                         'class' => array_filter([
                             'status',
-                            $statusHandle,
-                            ($status ? $status['color'] : null),
+                            $status->handle ?? null,
+                            $status->color ?? null,
                         ]),
-                    ]) . ($status ? $status['label'] : null), [
+                    ]) . ($status->name ?? null), [
                     'style' => [
                         'display' => 'flex',
                         'align-items' => 'center',
