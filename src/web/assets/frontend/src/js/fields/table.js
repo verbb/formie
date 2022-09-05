@@ -5,7 +5,7 @@ export class FormieTable {
         this.$form = settings.$form;
         this.form = this.$form.form;
         this.$field = settings.$field;
-        this.disabledClass = 'fui-disabled';
+        this.disabledClass = this.form.getClasses('disabled');
         this.rowCounter = 0;
 
         this.static = settings.static;

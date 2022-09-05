@@ -11,7 +11,7 @@ export class FormieRecaptchaV2Checkbox {
         this.language = settings.language;
         this.loadingMethod = settings.loadingMethod;
         this.recaptchaScriptId = 'FORMIE_RECAPTCHA_SCRIPT';
-        this.errorMessageClass = 'fui-error-message';
+        this.errorMessageClass = this.form.getClasses('errorMessage');
 
         // Fetch and attach the script only once - this is in case there are multiple forms on the page.
         // They all go to a single callback which resolves its loaded state

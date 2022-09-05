@@ -2,10 +2,12 @@ import { eventKey } from '../utils/utils';
 
 export class FormiePaymentProvider {
     constructor(settings = {}) {
-        this.successClass = 'fui-success';
-        this.successMessageClass = 'fui-success-message';
-        this.errorClass = 'fui-error';
-        this.errorMessageClass = 'fui-error-message';
+        this.$form = settings.$form;
+        this.form = this.$form.form;
+        this.successClass = this.form.getClasses('success');
+        this.successMessageClass = this.form.getClasses('successMessage');
+        this.errorClass = this.form.getClasses('error');
+        this.errorMessageClass = this.form.getClasses('errorMessage');
     }
 
     removeSuccess() {

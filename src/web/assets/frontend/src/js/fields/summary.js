@@ -6,7 +6,7 @@ export class FormieSummary {
         this.form = this.$form.form;
         this.$field = settings.$field;
         this.fieldId = settings.fieldId;
-        this.loadingClass = 'fui-loading';
+        this.loadingClass = this.form.getClasses('loading');
 
         // For ajax forms, we want to refresh the field when the page is toggled
         if (this.form.settings.submitMethod === 'ajax') {

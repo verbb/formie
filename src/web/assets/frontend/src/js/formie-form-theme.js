@@ -7,15 +7,6 @@ export class FormieFormTheme {
         this.settings = config.settings;
         this.validationOnSubmit = !!this.settings.validationOnSubmit;
         this.validationOnFocus = !!this.settings.validationOnFocus;
-        this.loadingClass = 'fui-loading';
-        this.tabErrorClass = 'fui-tab-error';
-        this.tabActiveClass = 'fui-tab-active';
-        this.errorMessageClass = 'fui-error-message';
-        this.successMessageClass = 'fui-alert-success';
-        this.alertClass = 'fui-alert';
-        this.pageClass = 'fui-page';
-        this.progressClass = 'fui-progress-bar';
-        this.tabClass = 'fui-tab';
 
         this.setCurrentPage(this.settings.currentPageId);
 
@@ -25,6 +16,19 @@ export class FormieFormTheme {
 
         this.$form.formTheme = this;
         this.form = this.$form.form;
+
+        // Setup classes according to theme config
+        this.loadingClass = this.form.getClasses('loading');
+        this.tabErrorClass = this.form.getClasses('tabError');
+        this.tabActiveClass = this.form.getClasses('tabActive');
+        this.errorMessageClass = this.form.getClasses('errorMessage');
+        this.successMessageClass = this.form.getClasses('successMessage');
+        this.alertClass = this.form.getClasses('alert');
+        this.alertErrorClass = this.form.getClasses('alertError');
+        this.alertSuccessClass = this.form.getClasses('alertSuccess');
+        this.pageClass = this.form.getClasses('page');
+        this.progressClass = this.form.getClasses('progress');
+        this.tabClass = this.form.getClasses('tab');
 
         this.initValidator();
 
@@ -382,7 +386,7 @@ export class FormieFormTheme {
     }
 
     showFormAlert(text, type) {
-        let $alert = this.$form.parentNode.querySelector(`.${this.alertClass}`);
+        let $alert = this.$form.parentNode.querySelector('[role="alert"]');
 
         // Strip <p> tags
         text = text.replace(/<p[^>]*>/g, '').replace(/<\/p>/g, '');
@@ -394,13 +398,13 @@ export class FormieFormTheme {
             }
         } else {
             $alert = document.createElement('div');
-            $alert.className = `${this.alertClass} ${this.alertClass}-${type}`;
+            $alert.className = `${this.alertClass}`;
             $alert.setAttribute('role', 'alert');
             $alert.innerHTML = text;
 
             // For error notices, we have potential special handling on position
             if (type == 'error') {
-                $alert.className += ` ${this.alertClass}-${this.settings.errorMessagePosition}`;
+                $alert.className += ` ${this.alertErrorClass} ${this.alertClass}-${this.settings.errorMessagePosition}`;
 
                 if (this.settings.errorMessagePosition == 'bottom-form') {
                     this.$submitBtn.parentNode.parentNode.insertBefore($alert, this.$submitBtn.parentNode);
@@ -408,7 +412,7 @@ export class FormieFormTheme {
                     this.$form.parentNode.insertBefore($alert, this.$form);
                 }
             } else {
-                $alert.className += ` ${this.alertClass}-${this.settings.submitActionMessagePosition}`;
+                $alert.className += ` ${this.alertSuccessClass} ${this.alertClass}-${this.settings.submitActionMessagePosition}`;
 
                 if (this.settings.submitActionMessagePosition == 'bottom-form') {
                     // An even further special case when hiding the form!

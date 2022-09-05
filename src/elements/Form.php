@@ -1430,14 +1430,15 @@ class Form extends Element
 
         if ($key === 'pageTab') {
             $submission = $context['submission'] ?? null;
-            $currentPage = $context['currentPage'] ?? null;
+            $currentPageId = $context['currentPage']->id ?? null;
             $page = $context['page'] ?? null;
+            $pageId = $page->id ?? null;
 
             return new HtmlTag('div', [
-                'id' => 'fui-tab-' . $page->id,
+                'id' => 'fui-tab-' . $ppageId,
                 'class' => [
                     'fui-tab',
-                    ($page->id == $currentPage->id) ? 'fui-tab-active' : false,
+                    ($pageId == $currentPageId) ? 'fui-tab-active' : false,
                     $page->getFieldErrors($submission) ? 'fui-tab-error' : false,
                 ],
                 'data-fui-page-tab' => true,
@@ -1448,27 +1449,29 @@ class Form extends Element
         if ($key === 'pageTabLink') {
             $params = $context['params'] ?? null;
             $page = $context['page'] ?? null;
+            $pageId = $page->id ?? null;
             $pageIndex = $context['pageIndex'] ?? null;
 
             return new HtmlTag('a', [
                 'href' => UrlHelper::actionUrl('formie/submissions/set-page', $params),
                 'data-fui-page-tab-anchor' => true,
                 'data-fui-page-index' => $pageIndex,
-                'data-fui-page-id' => $page->id ?? false,
+                'data-fui-page-id' => $pageId ?? false,
             ]);
         }
 
         if ($key === 'page') {
             $page = $context['page'] ?? null;
-            $currentPage = $this->getCurrentPage();
+            $pageId = $page->id ?? null;
+            $currentPageId = $context['currentPage']->id ?? null;
 
             return new HtmlTag('div', [
-                'id' => "{$this->getFormId()}-p-{$page->id}",
+                'id' => "{$this->getFormId()}-p-{$pageId}",
                 'class' => 'fui-page',
                 'data' => [
-                    'index' => $page->sortOrder,
-                    'id' => $page->id,
-                    'fui-page-hidden' => $this->hasMultiplePages() && $page->id != $currentPage->id ? true : false,
+                    'index' => $page->sortOrder ?? null,
+                    'id' => $pageId,
+                    'fui-page-hidden' => $this->hasMultiplePages() && $pageId != $currentPageId ? true : false,
                 ],
             ]);
         }
@@ -1678,7 +1681,7 @@ class Form extends Element
             'scrollToTop' => $this->settings->scrollToTop,
             'hasMultiplePages' => $this->hasMultiplePages(),
             'pages' => $this->getPages(),
-
+            'classes' => $this->getFrontEndClasses(),
             'redirectUrl' => $this->getRedirectUrl(),
             'currentPageId' => $this->getCurrentPage()->id ?: '',
             'outputJsTheme' => $this->getFrontEndTemplateOption('outputJsTheme'),
@@ -1740,6 +1743,53 @@ class Form extends Element
     public function addFrontEndJsEvents($value): void
     {
         $this->_frontEndJsEvents[] = $value;
+    }
+
+    public function getFrontEndClasses()
+    {
+        $allClasses = [];
+
+        // Provide defaults to fallback on, which aren't in Theme Config
+        $configKeys = [
+            'loading' => 'fui-loading',
+            'errorMessage' => 'fui-error-message',
+            'disabled' => 'fui-disabled',
+            'tabError' => 'fui-tab-error',
+            'tabActive' => 'fui-tab-active',
+            'successMessage' => 'fui-alert-success',
+            'alert' => 'fui-alert',
+            'alertError' => 'fui-alert-error',
+            'alertSuccess' => 'fui-alert-success',
+            'page' => 'fui-page',
+            'progress' => 'fui-progress-bar',
+            'tab' => 'fui-tab',
+            'success' => 'fui-success',
+            'successMessage' => 'fui-success-message',
+            'error' => 'fui-error',
+        ];
+
+        $context = [
+            'form' => $this,
+        ];
+
+        // Get all the classes JS components require from Theme Config
+        foreach ($configKeys as $configKey => $fallback) {
+            $tag = $this->renderHtmlTag($configKey, $context);
+
+            if ($tag) {
+                $classes = $tag->attributes['class'] ?? $fallback;
+
+                if (!is_array($classes)) {
+                    $classes = [$classes];
+                }
+
+                $allClasses[$configKey] = implode(' ', $classes);
+            } else {
+                $allClasses[$configKey] = $fallback;
+            }
+        }
+
+        return $allClasses;
     }
 
     public function getFrontEndTemplateOption($option): bool

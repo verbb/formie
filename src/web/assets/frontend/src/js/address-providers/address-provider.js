@@ -6,7 +6,7 @@ export class FormieAddressProvider {
         this.form = this.$form.form;
         this.$field = settings.$field;
         this.$locationBtn = this.$field.querySelector('[data-fui-address-location-btn]');
-        this.loadingClass = 'fui-loading';
+        this.loadingClass = this.form.getClasses('loading');
 
         this.initLocationBtn();
     }

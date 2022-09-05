@@ -189,4 +189,10 @@ export class FormieFormBase {
             detail,
         });
     }
+
+    getClasses(key) {
+        const classes = this.settings.classes || {};
+
+        return classes[key];
+    }
 }
