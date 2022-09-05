@@ -8,11 +8,14 @@ use verbb\formie\base\SubfieldInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\fields\formfields\Group;
+use verbb\formie\fields\formfields\Repeater;
+use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\models\FakeElementQuery;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
+use craft\fields\BaseRelationField;
 use craft\helpers\App;
 
 use GuzzleHttp\Client;
@@ -324,27 +327,33 @@ class SharpSpring extends Crm
     {
         $formUrl = App::parseEnv($this->formUrl);
 
+        // Serialize the field values in a SharpSpring-specific fashion
+        $serializedValues = $this->_serializeValuesForForm($submission);
+
+        // Send the payload to SharpSpring to tell them what fields are available
+        // Create a new client because this isn't the same API as the rest of the integration.
+        $request = Craft::createGuzzleClient()->request('GET', "$formUrl/$endpoint/jsonp", [
+            'verify' => false,
+            'query' => $serializedValues,
+        ]);
+
+        return (string)$request->getBody();
+    }
+
+    private function _serializeValuesForForm($element)
+    {
         $serializedValues = [];
 
-        // Convert the subscription fields into a format SharpSpring can handle
-        // This is unfortunately very specialised...
-        foreach ($submission->getFieldLayout()->getCustomFields() as $field) {
-            $value = $submission->getFieldValue($field->handle);
-
-            if (method_exists($field, 'serializeValueForIntegration')) {
-                $value = $field->serializeValueForIntegration($value, $submission);
-            } else {
-                $value = $field->serializeValue($value, $submission);
+        foreach ($element->getFieldLayout()->getCustomFields() as $field) {
+            if ($field->getIsCosmetic()) {
+                continue;
             }
 
-            // Handle when generating a fake submission to set up mapping, this doesn't mess
-            // up group fields (repeaters technically work, but aren't supported in SharpSpring)
-            if (($value instanceof FakeElementQuery) && $row = $value->one()) {
-                $value = $row->getSerializedFieldValues();
-            }
+            $rawValue = $element->getFieldValue($field->handle);
 
-            // Handle subfields and group fields
-            if ($field instanceof SubfieldInterface || $field instanceof Group) {
+            if ($field instanceof SubfieldInterface) {
+                $value = $field->getValueAsJson($rawValue, $element);
+
                 if (is_array($value)) {
                     foreach ($value as $k => $v) {
                         $serializedValues[$field->handle . '.' . $k] = $v;
@@ -352,19 +361,21 @@ class SharpSpring extends Crm
                 } else {
                     $serializedValues[$field->handle] = $value;
                 }
-            } else if (is_array($value)) {
-                $serializedValues[$field->handle] = implode(',', $value);
+            } else if ($field instanceof Group) {
+                $nestedValues = $this->_serializeValuesForForm($rawValue->one());
+
+                foreach ($nestedValues as $k => $v) {
+                    $serializedValues[$field->handle . '.' . $k] = $v;
+                }
+            } else if ($field instanceof Repeater) {
+                // Not supported by SharpSpring
             } else {
+                $value = $field->getValueAsString($rawValue, $element);
+
                 $serializedValues[$field->handle] = $value;
             }
         }
 
-        // Send the payload to SharpSpring to tell them what fields are available
-        // Create a new client because this isn't the same API as the rest of the integration.
-        $request = Craft::createGuzzleClient()->request('GET', "$formUrl/$endpoint/jsonp", [
-            'query' => $serializedValues,
-        ]);
-
-        return (string)$request->getBody();
+        return $serializedValues;
     }
 }
