@@ -245,6 +245,7 @@ class Formie extends Plugin
                             ],
                         ],
                         "formie-manageFormIntegrations{$suffix}" => ['label' => Craft::t('formie', 'Manage form integrations')],
+                        "formie-manageFormUsage{$suffix}" => ['label' => Craft::t('formie', 'View form usage')],
                         "formie-manageFormSettings{$suffix}" => ['label' => Craft::t('formie', 'Manage form settings')],
                     ],
                 ];

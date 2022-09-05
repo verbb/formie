@@ -501,6 +501,7 @@ class FormsController extends Controller
         $variables['reservedHandles'] = Formie::$plugin->getFields()->getReservedHandles();
         $variables['groupedIntegrations'] = Formie::$plugin->getIntegrations()->getAllIntegrationsForForm();
         $variables['formHandles'] = $this->_getFormHandles($form->id);
+        $variables['formUsage'] = Formie::$plugin->getForms()->getFormUsage($form);
 
         $variables['maxFormHandleLength'] = HandleHelper::getMaxFormHandle();
         $variables['maxFieldHandleLength'] = HandleHelper::getMaxFieldHandle();

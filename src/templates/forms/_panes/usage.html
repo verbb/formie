@@ -1,0 +1,65 @@
+{% macro tableColumns(element, field) %}
+    {% set class = 'element-row' %}
+
+    {% if element is instance of('craft\\elements\\MatrixBlock') or element is instance of('verbb\supertable\\elements\\SuperTableBlockElement') or element is instance of('benf\\neo\\elements\\Block') %}
+        {% set owner = element.getOwner() %}
+        {% set ownerField = craft.app.getFields().getFieldById(element.fieldId) %}
+
+        {% if owner %}
+            {{ _self.tableColumns(owner, ownerField) }}
+
+            {% set class = 'owner-row' %}
+        {% endif %}
+    {% endif %}
+
+    <tr class="{{ class }}">
+        <th>
+            {%- include '_elements/element' with { element: element, single: true } -%}
+        </th>
+
+        <td>{{ element.displayName() }}</td>
+
+        <td>
+            {% if field %}
+                <code>{{ field.handle }}</code>
+            {% else %}
+                <i>{{ 'Unknown field' | t('formie') }}</i>
+            {% endif %}
+        </td>
+    </tr>
+{% endmacro %}
+
+{% if formUsage %}
+    <table id="formie-audit" class="data fullwidth collapsible formie-table">
+        <thead>
+            <th>{{ 'Element' | t('formie') }}</th>
+            <th>{{ 'Type' | t('formie') }}</th>
+            <th>{{ 'Field' | t('formie') }}</th>
+        </thead>
+        <tbody>
+            {% for info in formUsage %}
+                {% set element = craft.app.getElements().getElementById(info.id, info.type) %}
+                {% set field = craft.app.getFields().getFieldById(info.fieldId) %}
+
+                {% if element %}
+                    {{ _self.tableColumns(element, field) }}
+                {% endif %}
+            {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <p>{{ 'This form has not been referenced by another element.' }}</p>
+{% endif %}
+
+{% css %}
+
+#formie-audit .element.small {
+    padding-top: 3px !important;
+    padding-bottom: 3px !important;
+}
+
+#formie-audit .owner-row > :first-child {
+    padding-left: 40px !important;
+}
+
+{% endcss %}

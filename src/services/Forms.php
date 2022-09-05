@@ -17,6 +17,7 @@ use verbb\formie\records\Form as FormRecord;
 use Craft;
 use craft\base\Component;
 use craft\db\Query;
+use craft\db\Table;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Console;
 use craft\helpers\Db;
@@ -864,6 +865,14 @@ class Forms extends Component
             ];
         }
 
+        if ($user->checkPermission('formie-manageFormUsage') || $user->checkPermission("formie-manageFormUsage{$suffix}")) {
+            $tabs[] = [
+                'label' => Craft::t('formie', 'Usage'),
+                'value' => 'usage',
+                'url' => '#tab-usage',
+            ];
+        }
+
         if ($user->checkPermission('formie-manageFormSettings') || $user->checkPermission("formie-manageFormSettings{$suffix}")) {
             $tabs[] = [
                 'label' => Craft::t('formie', 'Settings'),
@@ -910,6 +919,20 @@ class Forms extends Component
         }
 
         return $tabs;
+    }
+
+    public function getFormUsage(Form $form = null): array
+    {
+        if ($form) {
+            return (new Query())
+                ->select(['elements.id', 'elements.type', 'relations.fieldId'])
+                ->from(['relations' => Table::RELATIONS])
+                ->innerJoin(['elements' => Table::ELEMENTS], '[[elements.id]] = [[relations.sourceId]]')
+                ->where(['relations.targetId' => $form->id])
+                ->all();
+        }
+
+        return [];
     }
 
 
