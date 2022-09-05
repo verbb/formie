@@ -16,6 +16,7 @@ use verbb\formie\events\ModifyFieldRowConfigEvent;
 use verbb\formie\events\RegisterFieldsEvent;
 use verbb\formie\events\RegisterFieldOptionsEvent;
 use verbb\formie\fields\formfields;
+use verbb\formie\integrations\feedme\elementfields as FeedMeElementField;
 use verbb\formie\integrations\feedme\fields as FeedMeField;
 use verbb\formie\models\FieldLayout;
 use verbb\formie\models\FieldLayoutPage;
@@ -335,6 +336,9 @@ class Fields extends Component
             $fields[] = FeedMeField\Products::class;
             $fields[] = FeedMeField\Variants::class;
         }
+
+        // Include Formie's element fields
+        $fields[] = FeedMeElementField\Forms::class;
 
         return $fields;
     }
