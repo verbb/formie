@@ -1230,16 +1230,8 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
         }
 
         if ($key === 'fieldInput' && $this->useDatePicker && $this->displayType == 'calendar') {
-            $type = 'datetime-local';
-
-            if ($this->getIsDate()) {
-                $type = 'date';
-            } else if ($this->getIsTime()) {
-                $type = 'time';
-            }
-
             return new HtmlTag('input', array_merge([
-                'type' => $type,
+                'type' => 'date',
                 'id' => $id,
                 'class' => [
                     'fui-input',
