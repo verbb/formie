@@ -760,11 +760,11 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
             $maxDate = $this->getMaxDate();
 
             if ($minDate) {
-                $minDate = $minDate->format('Y-m-d');
+                $minDate = $minDate->format('Y-m-d H:i:s');
             }
 
             if ($maxDate) {
-                $maxDate = $maxDate->format('Y-m-d');
+                $maxDate = $maxDate->format('Y-m-d H:i:s');
             }
 
             // Ensure date picker option values are parsed for JSON
