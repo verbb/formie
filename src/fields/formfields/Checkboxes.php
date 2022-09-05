@@ -75,7 +75,17 @@ class Checkboxes extends BaseOptionsField implements FormFieldInterface
 
     public function getFieldOptions(): array
     {
-        return $this->options;
+        $options = [];
+
+        foreach ($this->options as $option) {
+            $disabled = $option['disabled'] ?? false;
+
+            if (!$disabled) {
+                $options[] = $option;
+            }
+        }
+
+        return $options;
     }
 
     /**
@@ -140,7 +150,12 @@ class Checkboxes extends BaseOptionsField implements FormFieldInterface
                     ],
                     [
                         'type' => 'default',
-                        'label' => Craft::t('formie', 'Default?'),
+                        'label' => Craft::t('formie', 'Default'),
+                        'class' => 'thin checkbox-cell',
+                    ],
+                    [
+                        'type' => 'disabled',
+                        'label' => Craft::t('formie', 'Disabled'),
                         'class' => 'thin checkbox-cell',
                     ],
                 ],

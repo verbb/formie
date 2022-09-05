@@ -28,7 +28,7 @@
                         }, {
                             type: 'default',
                             name: 'default',
-                            label: t('formie', 'Default?'),
+                            label: t('formie', 'Default'),
                             class: 'thin checkbox-cell',
                         }]"
                     />

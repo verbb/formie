@@ -77,7 +77,11 @@ class Dropdown extends BaseOptionsField implements FormFieldInterface
 
         // Add a placeholder first, if it exists
         if ($this->placeholder) {
-            $options[] = ['label' => $this->placeholder, 'value' => ''];
+            $disabled = $option['disabled'] ?? false;
+
+            if (!$disabled) {
+                $options[] = ['label' => $this->placeholder, 'value' => ''];
+            }
         }
 
         return array_merge($options, $this->options);
@@ -188,7 +192,12 @@ class Dropdown extends BaseOptionsField implements FormFieldInterface
                     ],
                     [
                         'type' => 'default',
-                        'label' => Craft::t('formie', 'Default?'),
+                        'label' => Craft::t('formie', 'Default'),
+                        'class' => 'thin checkbox-cell',
+                    ],
+                    [
+                        'type' => 'disabled',
+                        'label' => Craft::t('formie', 'Disabled'),
                         'class' => 'thin checkbox-cell',
                     ],
                 ],

@@ -1149,7 +1149,7 @@ return [
     'Radio Button Options' => 'Radio Button Options',
     'Define the available options for users to select from.' => 'Define the available options for users to select from.',
     'Option Label' => 'Option Label',
-    'Default?' => 'Default?',
+    'Default' => 'Default',
     'Layout' => 'Layout',
     'Select which layout to use for these fields.' => 'Select which layout to use for these fields.',
     'Vertical' => 'Vertical',

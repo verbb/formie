@@ -46,6 +46,18 @@
                 </div>
             </td>
 
+            <td v-if="col.type === 'disabled'" :key="i" :class="col.class">
+                <div class="checkbox-wrapper">
+                    <input
+                        :id="'disabled-' + index"
+                        v-model="model.disabled"
+                        type="checkbox"
+                        class="checkbox"
+                    >
+                    <label :for="'disabled-' + index"></label>
+                </div>
+            </td>
+
             <td v-if="col.type === 'width'" :key="i" :class="col.class" :width="col.width">
                 <input v-model="model.width" type="text" class="text fullwidth" autocomplete="off">
             </td>

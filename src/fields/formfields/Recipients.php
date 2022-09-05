@@ -424,7 +424,7 @@ class Recipients extends FormField
                     ],
                     [
                         'type' => 'default',
-                        'label' => Craft::t('formie', 'Default?'),
+                        'label' => Craft::t('formie', 'Default'),
                         'class' => 'thin checkbox-cell',
                     ],
                 ],
