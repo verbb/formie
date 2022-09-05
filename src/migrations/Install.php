@@ -130,7 +130,7 @@ class Install extends Migration
             'handle' => $this->string(64)->notNull(),
             'type' => $this->string()->notNull(),
             'sortOrder' => $this->smallInteger()->unsigned(),
-            'enabled' => $this->boolean()->notNull()->defaultValue(true),
+            'enabled' => $this->string()->notNull()->defaultValue('true'),
             'settings' => $this->text(),
             'cache' => $this->longText(),
             'tokenId' => $this->integer(),

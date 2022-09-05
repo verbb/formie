@@ -942,7 +942,7 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
         $addressProviders = Formie::$plugin->getIntegrations()->getAllIntegrationsForType(Integration::TYPE_ADDRESS_PROVIDER);
 
         foreach ($addressProviders as $addressProvider) {
-            if ($addressProvider->enabled) {
+            if ($addressProvider->getEnabled()) {
                 $addressProviderOptions[] = ['label' => $addressProvider->getName(), 'value' => $addressProvider->getHandle()];
             }
         }

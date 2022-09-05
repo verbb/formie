@@ -205,7 +205,7 @@ class Forms extends Component
                 $captchas = Formie::$plugin->getIntegrations()->getAllCaptchas();
 
                 foreach ($captchas as $captcha) {
-                    if ($captcha->enabled) {
+                    if ($captcha->getEnabled()) {
                         $form->settings->integrations[$captcha->handle]['enabled'] = true;
                     }
                 }

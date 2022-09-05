@@ -17,6 +17,7 @@ use verbb\formie\records\Integration as IntegrationRecord;
 
 use Craft;
 use craft\base\SavableComponent;
+use craft\helpers\App;
 use craft\helpers\ArrayHelper;
 use craft\helpers\DateTimeHelper;
 use craft\helpers\Json;
@@ -175,7 +176,6 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     public ?string $name = null;
     public ?string $handle = null;
     public ?string $type = null;
-    public ?bool $enabled = null;
     public ?int $sortOrder = null;
     public array $cache = [];
     public ?string $tokenId = null;
@@ -191,6 +191,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
 
     // Keep track of whether run in the context of a queue job
     private ?JobInterface $_queueJob = null;
+    private bool|string $_enabled = true;
 
 
     // Public Methods
@@ -217,6 +218,20 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     public function getHandle(): string
     {
         return $this->handle ?? '';
+    }
+
+    public function getEnabled(bool $parse = true): bool|string
+    {
+        if ($parse) {
+            return App::parseBooleanEnv($this->_enabled) ?? true;
+        }
+
+        return $this->_enabled;
+    }
+
+    public function setEnabled(bool|string $name): void
+    {
+        $this->_enabled = $name;
     }
 
     public function getIconUrl(): string

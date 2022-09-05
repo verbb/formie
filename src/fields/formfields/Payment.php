@@ -259,7 +259,7 @@ class Payment extends FormField
         $paymentProviders = Formie::$plugin->getIntegrations()->getAllIntegrationsForType(Integration::TYPE_PAYMENT);
 
         foreach ($paymentProviders as $paymentProvider) {
-            if ($paymentProvider->enabled) {
+            if ($paymentProvider->getEnabled()) {
                 $paymentProviderOptions[] = ['label' => $paymentProvider->getName(), 'value' => $paymentProvider->getHandle()];
             }
         }

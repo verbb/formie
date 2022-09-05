@@ -29,7 +29,7 @@
         title: integration.getName() | t('formie'),
         url: integration.cpEditUrl,
         name: integration.getName() | t('formie') | e,
-        enabled: integration.enabled,
+        enabled: integration.getEnabled(),
         connected: integration.getIsConnected(),
         type: {
             isMissing: integrationIsMissing,

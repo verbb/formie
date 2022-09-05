@@ -260,7 +260,7 @@ class FormSettings extends Model
             $integration = ArrayHelper::firstWhere($integrations, 'handle', $handle);
 
             // If this disabled globally? Then don't include it, otherwise populate the settings
-            if ($integration && $integration->enabled) {
+            if ($integration && $integration->getEnabled()) {
                 $integration->setAttributes($formSettings, false);
 
                 $enabledIntegrations[] = $integration;

@@ -114,7 +114,7 @@
         label: 'Enabled' | t('formie'),
         id: 'enabled',
         name: 'enabled',
-        on: isNewIntegration ? true : integration.enabled,
+        on: isNewIntegration ? true : integration.getEnabled(),
     }) }}
 
     {% if not isNewIntegration and integration.supportsConnection() %}

@@ -39,7 +39,7 @@
 
                                         <span class="label">{{ integration.getName() }}</span>
 
-                                        {% set enabled = form.settings.integrations[handle].enabled ?? integration.enabled ?? false %}
+                                        {% set enabled = form.settings.integrations[handle].enabled ?? integration.getEnabled() ?? false %}
 
                                         {% if enabled %}
                                             <span class="status green"></span>
@@ -75,14 +75,13 @@
 
                             {{ hiddenInput('integrations[' ~ handle ~ '][type]', className(integration)) }}
 
-                            {{ forms.lightswitchField({
+                            {{ forms.booleanMenuField({
                                 first: true,
                                 label: 'Enabled' | t('formie'),
                                 instructions: 'Whether to enable this integration.' | t('formie'),
-                                id: 'enabled',
                                 name: 'integrations[' ~ handle ~ '][enabled]',
-                                value: 1,
-                                on: integration.enabled ?? false,
+                                includeEnvVars: true,
+                                value: integration.getEnabled(false) ?? false,
                                 warning: macros.configWarning('enabled', 'formie'),
                             }) }}
 

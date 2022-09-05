@@ -306,7 +306,7 @@ class Integrations extends Component
             'name' => $integration->name,
             'handle' => $integration->handle,
             'type' => get_class($integration),
-            'enabled' => (bool)$integration->enabled,
+            'enabled' => $integration->getEnabled(false),
             'sortOrder' => (int)$integration->sortOrder,
             'settings' => ProjectConfigHelper::packAssociativeArrays($integration->getSettings()),
 
@@ -594,13 +594,13 @@ class Integrations extends Component
         $grouped = [];
 
         foreach ($this->getAllCaptchas() as $key => $captcha) {
-            if ($captcha->enabled && $captcha->hasFormSettings()) {
+            if ($captcha->getEnabled() && $captcha->hasFormSettings()) {
                 $grouped[$captcha->typeName()][] = $captcha;
             }
         }
 
         foreach ($this->getAllIntegrations() as $key => $integration) {
-            if ($integration->enabled && $integration->hasFormSettings()) {
+            if ($integration->getEnabled() && $integration->hasFormSettings()) {
                 $grouped[$integration->typeName()][] = $integration;
             }
         }
@@ -631,7 +631,7 @@ class Integrations extends Component
             $integration = ArrayHelper::firstWhere($integrations, 'handle', $handle);
 
             // If this disabled globally? Then don't include it, otherwise populate the settings
-            if ($integration && $integration->enabled) {
+            if ($integration && $integration->getEnabled()) {
                 $integration->setAttributes($formSettings, false);
 
                 $enabledIntegrations[] = $integration;
@@ -780,7 +780,7 @@ class Integrations extends Component
 
         $settings->captchas[$integration->getHandle()] = [
             'type' => get_class($integration),
-            'enabled' => $integration->enabled,
+            'enabled' => $integration->getEnabled(false),
             'settings' => $integration->getSettings(),
         ];
 
