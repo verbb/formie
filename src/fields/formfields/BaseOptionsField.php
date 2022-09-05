@@ -17,12 +17,15 @@ use GraphQL\Type\Definition\Type;
 
 use Throwable;
 
+use LitEmoji\LitEmoji;
+
 abstract class BaseOptionsField extends CraftBaseOptionsField
 {
     // Traits
     // =========================================================================
 
     use FormFieldTrait {
+        getSavedFieldConfig as traitGetSavedFieldConfig;
         getFrontEndInputOptions as traitGetFrontendInputOptions;
         getDefaultValue as traitGetDefaultValue;
         defineValueForIntegration as traitDefineValueForIntegration;
@@ -62,8 +65,21 @@ abstract class BaseOptionsField extends CraftBaseOptionsField
         parent::init();
 
         foreach ($this->options as &$option) {
+            // Cleanup any values set in Vue
             unset($option['isNew']);
         }
+
+        // Decode any emoji's in options
+        $this->_normalizeOptions();
+    }
+
+    public function getSavedFieldConfig(): array
+    {
+        // Normalize options when generating the field config for the form builder.
+        // Otherwise, the shortcodes will be shown after saving and refreshing the form builder.
+        $this->_normalizeOptions();
+
+        return $this->traitGetSavedFieldConfig();
     }
 
     /**
@@ -213,6 +229,13 @@ abstract class BaseOptionsField extends CraftBaseOptionsField
         // Can eventually remove this!
         $this->defaultValue = null;
 
+        // Convert labels that contain emojis
+        foreach ($this->options as &$option) {
+            if (isset($option['label'])) {
+                $option['label'] = LitEmoji::unicodeToShortcode($option['label']);
+            }
+        }
+
         return parent::beforeSave($isNew);
     }
 
@@ -277,5 +300,20 @@ abstract class BaseOptionsField extends CraftBaseOptionsField
     protected function getPredefinedOptions(): array
     {
         return Formie::$plugin->getPredefinedOptions()->getPredefinedOptions();
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    private function _normalizeOptions()
+    {
+        foreach ($this->options as &$option) {
+            // Decode any emoji's in options
+            if (isset($option['label'])) {
+                $option['label'] = LitEmoji::shortcodeToUnicode($option['label']);
+                $option['label'] = trim(preg_replace('/\R/u', "\n", $option['label']));
+            }
+        }
     }
 }
