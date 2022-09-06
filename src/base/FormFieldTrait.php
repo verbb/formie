@@ -1364,6 +1364,7 @@ trait FormFieldTrait
             formfields\Entries::class,
             formfields\FileUpload::class,
             formfields\MultiLineText::class,
+            formfields\Number::class,
             formfields\Products::class,
             formfields\SingleLineText::class,
             formfields\Tags::class,
