@@ -134,9 +134,17 @@ export class FormieFormTheme {
         // Override error messages defined in DOM - Bouncer only uses these as a last resort
         // In future updates, we can probably remove this
         this.form.addEventListener(this.$form, 'bouncerShowError', (e) => {
+            let message = null;
             const $field = e.target;
             const $fieldContainer = $field.closest('[data-field-type]');
-            let message = $field.getAttribute('data-fui-message');
+
+            // Get the error message as defined on the input element. Use the parent to find the element
+            // just to cater for some edge-cases where there might be multiple inputs (Datepicker).
+            const $message = $field.parentNode.querySelector('[data-fui-message]');
+
+            if ($message) {
+                message = $message.getAttribute('data-fui-message');
+            }
 
             // If there's a server error, it takes priority.
             if (e.detail && e.detail.errors && e.detail.errors.serverMessage) {

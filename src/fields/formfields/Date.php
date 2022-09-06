@@ -356,6 +356,9 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
                     'name' => $this->name,
                     'handle' => 'date',
                     'required' => $this->required,
+                    'placeholder' => $this->placeholder,
+                    'errorMessage' => $this->errorMessage,
+                    'defaultValue' => $this->defaultValue,
                     'labelPosition' => $this->subfieldLabelPosition,
                     'inputAttributes' => [
                         [
@@ -376,6 +379,9 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
                     'name' => $this->timeLabel,
                     'handle' => 'time',
                     'required' => $this->required,
+                    'placeholder' => $this->placeholder,
+                    'errorMessage' => $this->errorMessage,
+                    'defaultValue' => $this->defaultValue,
                     'labelPosition' => $this->subfieldLabelPosition,
                     'inputAttributes' => [
                         [
@@ -1023,6 +1029,7 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
                 'label' => Craft::t('formie', 'Available Days'),
                 'help' => Craft::t('formie', 'Choose which days of the week should be available.'),
                 'name' => 'availableDaysOfWeek',
+                'if' => '$get(displayType).value == calendar',
                 'options' => $this->getWeekDayNamesOptions(),
                 'showAllOption' => true,
             ]),
