@@ -229,6 +229,9 @@ trait RelationFieldTrait
             }
         }
 
+        // Manually add in some compatible properties for options fields
+        $config['multiple'] = $this->multiple;
+
         return $config;
     }
 
