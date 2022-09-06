@@ -730,8 +730,9 @@ trait FormFieldTrait
             $labelPosition = $context['labelPosition'] ?? null;
             $subfieldLabelPosition = $context['subfieldLabelPosition'] ?? null;
             $instructionsPosition = $context['instructionsPosition'] ?? null;
+            $containerAttributes = $this->getContainerAttributes() ?? [];
 
-            return new HtmlTag('div', [
+            return new HtmlTag('div', array_merge([
                 'class' => [
                     'fui-field',
                     'fui-type-' . StringHelper::toKebabCase($this->displayName()),
@@ -750,7 +751,7 @@ trait FormFieldTrait
                     'field-config' => $this->getConfigJson(),
                     'field-conditions' => $this->getConditionsJson($submission),
                 ],
-            ], $context);
+            ], $containerAttributes), $context);
         }
 
         if ($key === 'fieldContainer') {
