@@ -13,6 +13,7 @@ use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
+use craft\helpers\App;
 use craft\helpers\ArrayHelper;
 use craft\helpers\DateTimeHelper;
 use craft\helpers\Json;
@@ -99,7 +100,7 @@ class Salesforce extends Crm
      */
     public function getUseSandbox(): string
     {
-        return Craft::parseEnv($this->useSandbox);
+        return App::parseBooleanEnv($this->useSandbox);
     }
 
     /**
@@ -107,7 +108,7 @@ class Salesforce extends Crm
      */
     public function getUseCredentials(): string
     {
-        return Craft::parseEnv($this->useCredentials);
+        return App::parseBooleanEnv($this->useCredentials);
     }
 
     /**

@@ -13,6 +13,7 @@ use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
+use craft\helpers\App;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 use craft\web\View;
@@ -90,7 +91,7 @@ class Zoho extends Crm
      */
     public function getUseDeveloper(): string
     {
-        return Craft::parseEnv($this->useDeveloper);
+        return App::parseBooleanEnv($this->useDeveloper);
     }
 
     /**
