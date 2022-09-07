@@ -46,8 +46,8 @@ class Salesforce extends Crm
     public ?string $clientSecret = null;
     public ?string $apiDomain = null;
     public ?string $matchLead = null;
-    public bool $useSandbox = false;
-    public bool $useCredentials = false;
+    public bool|string $useSandbox = false;
+    public bool|string $useCredentials = false;
     public ?string $username = null;
     public ?string $password = null;
     public bool $mapToContact = false;

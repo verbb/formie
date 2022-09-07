@@ -35,7 +35,7 @@ class Mercury extends Crm
     public ?string $apiToken = null;
     public ?string $uatKey = null;
     public ?string $uatToken = null;
-    public bool $useUat = false;
+    public bool|string $useUat = false;
     public bool $mapToContact = false;
     public bool $mapToOpportunity = false;
     public ?array $contactFieldMapping = null;

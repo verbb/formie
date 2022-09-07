@@ -42,7 +42,7 @@ class Pardot extends Crm
     public ?string $clientId = null;
     public ?string $clientSecret = null;
     public ?string $businessUnitId = null;
-    public bool $useSandbox = false;
+    public bool|string $useSandbox = false;
     public bool $mapToProspect = false;
     public bool $mapToOpportunity = false;
     public ?array $prospectFieldMapping = null;

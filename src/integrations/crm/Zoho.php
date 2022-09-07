@@ -44,7 +44,7 @@ class Zoho extends Crm
     public ?string $apiServer = null;
     public ?string $apiLocation = null;
     public ?string $apiDomain = null;
-    public bool $useDeveloper = false;
+    public bool|string $useDeveloper = false;
     public bool $mapToContact = false;
     public bool $mapToDeal = false;
     public bool $mapToLead = false;
