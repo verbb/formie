@@ -1435,7 +1435,7 @@ class Form extends Element
             $pageId = $page->id ?? null;
 
             return new HtmlTag('div', [
-                'id' => 'fui-tab-' . $ppageId,
+                'id' => 'fui-tab-' . $pageId,
                 'class' => [
                     'fui-tab',
                     ($pageId == $currentPageId) ? 'fui-tab-active' : false,
