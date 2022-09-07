@@ -45,7 +45,7 @@
     instructions: 'Whether to use the {name} sandbox.' | t('formie', { name: integration.displayName() }),
     name: 'useSandbox',
     includeEnvVars: true,
-    on: integration.settings.useSandbox ?? '',
+    value: integration.settings.useSandbox ?? false,
     warning: macros.configWarning('useSandbox', 'formie'),
     errors: integration.getErrors('useSandbox'),
 }) }}
