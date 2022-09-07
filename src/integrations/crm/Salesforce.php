@@ -96,7 +96,7 @@ class Salesforce extends Crm
      */
     public function getUseSandbox(): string
     {
-        return App::parseEnv($this->useSandbox);
+        return App::parseBooleanEnv($this->useSandbox);
     }
 
     /**
@@ -104,7 +104,7 @@ class Salesforce extends Crm
      */
     public function getUseCredentials(): string
     {
-        return App::parseEnv($this->useCredentials);
+        return App::parseBooleanEnv($this->useCredentials);
     }
 
     /**

@@ -55,7 +55,7 @@ class Mercury extends Crm
      */
     public function getUseUat(): string
     {
-        return App::parseEnv($this->useUat);
+        return App::parseBooleanEnv($this->useUat);
     }
 
     /**

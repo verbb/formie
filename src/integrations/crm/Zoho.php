@@ -87,7 +87,7 @@ class Zoho extends Crm
      */
     public function getUseDeveloper(): string
     {
-        return App::parseEnv($this->useDeveloper);
+        return App::parseBooleanEnv($this->useDeveloper);
     }
 
     /**

@@ -100,7 +100,7 @@ class PayPal extends Payment
 
         $settings = [
             'clientId' => App::parseEnv($this->clientId),
-            'useSandbox' => App::parseEnv($this->useSandbox),
+            'useSandbox' => App::parseBooleanEnv($this->useSandbox),
             'currency' => $this->getFieldSetting('currency'),
             'amountType' => $this->getFieldSetting('amountType'),
             'amountFixed' => $this->getFieldSetting('amountFixed'),
@@ -240,7 +240,7 @@ class PayPal extends Payment
             $options['verify'] = false;
         }
 
-        $useSandbox = App::parseEnv($this->useSandbox);
+        $useSandbox = App::parseBooleanEnv($this->useSandbox);
         $clientId = App::parseEnv($this->clientId);
         $clientSecret = App::parseEnv($this->clientSecret);
         $token = base64_encode($clientId . ':' . $clientSecret);

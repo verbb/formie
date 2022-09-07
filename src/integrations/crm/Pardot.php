@@ -74,7 +74,7 @@ class Pardot extends Crm
 
     public function getUseSandbox(): string
     {
-        return App::parseEnv($this->useSandbox);
+        return App::parseBooleanEnv($this->useSandbox);
     }
 
     public function getDescription(): string
