@@ -3,13 +3,13 @@
 ## 1.6.11 - 2022-09-04
 
 ### Added
-- Add `prune-content-table-fields` console command.
+- Added `prune-content-table-fields` console command.
 
 ### Fixed
-- Fix Microsoft Dynamics not using `SchemaName` for custom field handles.
-- Fix serialization of element fields when being sent via Webhooks.
-- Fix an error with HubSpot CRM integration.
-- Fix File Upload fields including some allowed extensions that they shouldn’t.
+- Fixed Microsoft Dynamics not using `SchemaName` for custom field handles.
+- Fixed serialization of element fields when being sent via Webhooks.
+- Fixed an error with HubSpot CRM integration.
+- Fixed File Upload fields including some allowed extensions that they shouldn’t.
 
 ## 1.6.10 - 2022-08-27
 
