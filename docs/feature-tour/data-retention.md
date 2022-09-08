@@ -23,7 +23,7 @@ Finally, you'll want to set up an ongoing process that ensures submissions are p
 
 The easiest method is to set up a cron job on your server to ensure submissions are pruned:
 
-```
+```shell
 */1 * * * * ./craft formie/gc/prune-data-retention-submissions
 ```
 
