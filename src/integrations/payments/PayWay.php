@@ -173,7 +173,7 @@ class PayWay extends Payment
                 'transactionType' => 'payment',
                 'customerNumber' => $submission->id,
                 'orderNumber' => $submission->id,
-                'merchantId' => $this->merchantId,
+                'merchantId' => App::parseEnv($this->merchantId),
                 'customerIpAddress' => Craft::$app->getRequest()->getUserIP(),
             ];
 
