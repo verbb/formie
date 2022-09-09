@@ -187,15 +187,29 @@ class PayWay extends Payment
 
             $response = $this->request('POST', 'transactions', ['form_params' => $event->payload]);
 
+            $status = $response['status'] ?? null;
+            $responseText = $response['responseText'] ?? null;
+
+            if ($status !== 'approved' && $status !== 'approved*' && $status !== 'pending') {
+                throw new Exception(StringHelper::titleize($status) . ': ' . $responseText);
+            }
+
             $payment = new PaymentModel();
             $payment->integrationId = $this->id;
             $payment->submissionId = $submission->id;
             $payment->fieldId = $field->id;
             $payment->amount = $amount;
             $payment->currency = $currency;
-            $payment->status = PaymentModel::STATUS_SUCCESS;
             $payment->reference = $response['transactionId'] ?? '';
             $payment->response = $response;
+
+            if ($status === 'pending') {
+                $payment->status = PaymentModel::STATUS_PENDING;
+            }
+
+            if ($status === 'approved' || $status === 'approved*') {
+                $payment->status = PaymentModel::STATUS_SUCCESS;
+            }
 
             Formie::$plugin->getPayments()->savePayment($payment);
 
