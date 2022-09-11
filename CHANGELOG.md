@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.6.12 - 2022-09-11
+
+### Added
+- Added `formie/sent-notifications/delete` console command.
+
 ## 1.6.11 - 2022-09-04
 
 ### Added
