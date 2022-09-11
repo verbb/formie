@@ -321,6 +321,22 @@
 - Fix an error with HubSpot CRM integration.
 - Fix File Upload fields including some allowed extensions that they shouldn’t.
 
+## 1.6.12 - 2022-09-11
+
+### Added
+- Added `formie/sent-notifications/delete` console command.
+
+## 1.6.11 - 2022-09-04
+
+### Added
+- Added `prune-content-table-fields` console command.
+
+### Fixed
+- Fixed Microsoft Dynamics not using `SchemaName` for custom field handles.
+- Fixed serialization of element fields when being sent via Webhooks.
+- Fixed an error with HubSpot CRM integration.
+- Fixed File Upload fields including some allowed extensions that they shouldn’t.
+
 ## 1.6.10 - 2022-08-27
 
 ### Added

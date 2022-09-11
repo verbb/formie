@@ -104,6 +104,18 @@ Option | Description
 ./craft formie/submissions/delete --form-handle=form1,anotherForm
 ```
 
+## Delete Sent Notifications
+You can bulk delete sent notifications with this command.
+
+Option | Description
+--- | ---
+`--form-handle` | The form handle(s) to delete sent notifications for. Can be set to multiple comma-separated handles.
+`--form-id` | The form ID(s) to delete sent notifications for. Can be set to multiple comma-separated IDs.
+
+```shell
+./craft formie/sent-notifications/delete --form-handle=form1,anotherForm
+```
+
 ## Migration
 You can run the migrations from either Sprout Forms or Freeform via the command line. This would be an ideal approach if you have a large number of submissions or complex forms to migrate.
 
