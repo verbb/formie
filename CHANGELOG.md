@@ -1,5 +1,42 @@
 # Changelog
 
+## 2.0.10 - 2022-09-11
+
+### Added
+- Added support for emoji’s in option fields’ labels.
+- Added Forms element select field support for Feed Me.
+- Added a “disabled” option to Dropdown, Checkboxes and Radio Button field options, to hide options from the front-end, but still retain their values in past submissions.
+- Added “Usage” tab to the form builder, to see which elements reference a form.
+- Added support for Captchas to use .env variables for their enabled state.
+- Added formatting options for Calculations field to better handle numbers.
+- Added support for paginated requests for Slack integration.
+- Added “Available Days” setting to Date fields to control which days of the week are enabled.
+- Added “Year Range” setting for Date fields to control the min/max years when shown as Dropdowns.
+- Added limits to Date fields for offset by today.
+
+### Changed
+- Updated to use `App::parseBooleanEnv` where applicable.
+- Refactored SharpSpring form object serialization.
+
+### Fixed
+- Fixed PayWay unsuccessful payments not being marked as failed.
+- Fixed PayWay merchant ID not working with .env variables.
+- Fixed an error where boolean integration settings couldn’t be set to an .env variable.
+- Fixed “Use Sandbox” setting for PayPal not saving correctly.
+- Fixed an error when rendering Element fields with multiple options enabled.
+- Fixed container attributes for field settings not rendering.
+- Fixed Date fields not having their custom error message text shown.
+- Fixed limit settings not saving correctly for Number fields.
+- Fixed dropdown option labels not correctly set to `formie` as the translation category.
+- Fixed min/max date settings not taking into account time for Date fields.
+- Fixed browser warnings for some Date fields for invalid formatted values.
+- Fixed submissions not showing the correct status details.
+- Fixed JS classes not taking into account Theme Config.
+- Fixed `getCurrentPageIndex()` returning `null`, when it should return `0` to represent the first page’s index.
+- Fixed duplicated lists for Active Campaign integration.
+- Fixed Signature fields outputting their raw base64-encoded value when output in email notifications.
+- Fixed Signature fields not generating images correctly for some email clients (web-based Gmail) in email notifications.
+
 ## 2.0.9 - 2022-09-04
 
 ### Added
