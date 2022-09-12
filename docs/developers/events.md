@@ -827,7 +827,6 @@ Event::on(Date::class, Date::EVENT_REGISTER_DATE_FORMAT_OPTIONS, function(Regist
     $event->options[] = ['label' => 'Standard Formatting', 'value' => 'Y-m-d'];
 });
 ```
-```
 
 ### The `registerTimeFormatOptions` event
 The event that is triggered to register the available options to select for time formatting.
