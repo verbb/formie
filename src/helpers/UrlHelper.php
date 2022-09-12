@@ -27,6 +27,9 @@ class UrlHelper
             $redirectUri = str_replace('/index.php', '', $redirectUri);
         }
 
+        // Stip the site query string
+        $redirectUri = explode('?', $redirectUri)[0];
+
         return $redirectUri;
     }
 }
