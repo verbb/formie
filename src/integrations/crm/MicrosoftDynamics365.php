@@ -371,11 +371,19 @@ class MicrosoftDynamics365 extends Crm
 
         foreach ($attributes as $field) {
             $label = $field['DisplayName']['UserLocalizedLabel']['Label'] ?? '';
-            $handle = $field['SchemaName'] ?? '';
+            $customField = $field['IsCustomAttribute'] ?? false;
             $canCreate = $field['IsValidForCreate'] ?? false;
             $requiredLevel = $field['RequiredLevel']['Value'] ?? 'None';
             $type = $field['AttributeType'] ?? '';
             $odataType = $field['@odata.type'] ?? '';
+
+            // Pick the correct field handle, depending on custom fields
+            if ($customField) {
+                $handle = $field['SchemaName'] ?? '';
+            } else {
+                $handle = $field['LogicalName'] ?? '';
+            }
+
             $key = $handle;
 
             $excludedTypes = [
@@ -404,13 +412,20 @@ class MicrosoftDynamics365 extends Crm
         }
 
         // Do another call for PickList fields, to populate any set options to pick from
-        $response = $this->request('GET', "EntityDefinitions(LogicalName='$entity')/Attributes/Microsoft.Dynamics.CRM.PicklistAttributeMetadata?\$select=SchemaName&\$expand=GlobalOptionSet(\$select=Options)");
+        $response = $this->request('GET', "EntityDefinitions(LogicalName='$entity')/Attributes/Microsoft.Dynamics.CRM.PicklistAttributeMetadata?\$select=IsCustomAttribute,LogicalName,SchemaName&\$expand=GlobalOptionSet(\$select=Options)");
         $pickListFields = $response['value'] ?? [];
 
         foreach ($pickListFields as $pickListField) {
-            $handle = $pickListField['SchemaName'] ?? '';
+            $customField = $pickListField['IsCustomAttribute'] ?? false;
             $pickList = $pickListField['GlobalOptionSet']['Options'] ?? [];
             $options = [];
+
+            // Pick the correct field handle, depending on custom fields
+            if ($customField) {
+                $handle = $pickListField['SchemaName'] ?? '';
+            } else {
+                $handle = $pickListField['LogicalName'] ?? '';
+            }
 
             // Get the field to add options to
             $field = $fields[$handle] ?? null;
@@ -452,7 +467,7 @@ class MicrosoftDynamics365 extends Crm
     private function _getEntityOwnerOptions($entityName, $fields): void
     {
         // Get all the fields that are relational
-        $response = $this->request('GET', "EntityDefinitions(LogicalName='$entityName')/Attributes/Microsoft.Dynamics.CRM.LookupAttributeMetadata?\$select= SchemaName,Targets");
+        $response = $this->request('GET', "EntityDefinitions(LogicalName='$entityName')/Attributes/Microsoft.Dynamics.CRM.LookupAttributeMetadata?\$select=IsCustomAttribute,LogicalName,SchemaName,Targets");
         $relationFields = $response['value'] ?? [];
 
         // Define a schema so that we can query each entity according to the target (index)
@@ -546,9 +561,16 @@ class MicrosoftDynamics365 extends Crm
 
         // With all possible options populated, add the options into the fields
         foreach ($relationFields as $relationField) {
-            $handle = $relationField['SchemaName'] ?? '';
+            $customField = $relationField['IsCustomAttribute'] ?? false;
             $targets = $relationField['Targets'] ?? [];
             $options = [];
+
+            // Pick the correct field handle, depending on custom fields
+            if ($customField) {
+                $handle = $relationField['SchemaName'] ?? '';
+            } else {
+                $handle = $relationField['LogicalName'] ?? '';
+            }
 
             foreach ($targets as $target) {
                 // Get the options for this field
