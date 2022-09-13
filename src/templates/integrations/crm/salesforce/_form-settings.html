@@ -8,6 +8,7 @@
 {% set mapToLead = form.settings.integrations[handle].mapToLead ?? '' %}
 {% set mapToOpportunity = form.settings.integrations[handle].mapToOpportunity ?? '' %}
 {% set mapToAccount = form.settings.integrations[handle].mapToAccount ?? '' %}
+{% set mapToCase = form.settings.integrations[handle].mapToCase ?? '' %}
 
 {% set duplicateLeadTask = form.settings.integrations[handle].duplicateLeadTask ?? '' %}
 {% set duplicateLeadTaskSubject = form.settings.integrations[handle].duplicateLeadTaskSubject ?? '' %}
@@ -154,6 +155,33 @@
 
             <ul v-if="!isEmpty(get(form, 'settings.integrations.{{ handle }}.errors.accountFieldMapping'))" class="errors" v-cloak>
                 <li v-for="(error, index) in get(form, 'settings.integrations.{{ handle }}.errors.accountFieldMapping')" :key="index">
+                    ${ error }
+                </li>
+            </ul>
+        </div>
+
+        {{ forms.lightswitchField({
+            label: 'Map to Case' | t('formie'),
+            instructions: 'Whether to map form data to {name} Cases.' | t('formie', { name: integration.displayName() }),
+            id: 'mapToCase',
+            name: 'mapToCase',
+            on: mapToCase,
+            toggle: 'map-to-case',
+        }) }}
+
+        <div id="map-to-case" class="{{ not mapToCase ? 'hidden' }}">
+            <integration-field-mapping
+                label="{{ 'Case Field Mapping' | t('formie') }}"
+                instructions="{{ 'Choose how your form fields should map to your {name} Case fields.' | t('formie', { name: integration.displayName() }) }}"
+                name-label="{{ integration.displayName() }}"
+                id="case-field-mapping"
+                name="caseFieldMapping"
+                :value="get(form, 'settings.integrations.{{ handle }}.caseFieldMapping')"
+                :rows="get(settings, 'case')"
+            ></integration-field-mapping>
+
+            <ul v-if="!isEmpty(get(form, 'settings.integrations.{{ handle }}.errors.caseFieldMapping'))" class="errors" v-cloak>
+                <li v-for="(error, index) in get(form, 'settings.integrations.{{ handle }}.errors.caseFieldMapping')" :key="index">
                     ${ error }
                 </li>
             </ul>

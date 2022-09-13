@@ -54,10 +54,12 @@ class Salesforce extends Crm
     public bool $mapToLead = false;
     public bool $mapToOpportunity = false;
     public bool $mapToAccount = false;
+    public bool $mapToCase = false;
     public ?array $contactFieldMapping = null;
     public ?array $leadFieldMapping = null;
     public ?array $opportunityFieldMapping = null;
     public ?array $accountFieldMapping = null;
+    public ?array $caseFieldMapping = null;
     public bool $duplicateLeadTask = false;
     public string $duplicateLeadTaskSubject = 'Task';
 
@@ -165,6 +167,7 @@ class Salesforce extends Crm
         $lead = $this->getFormSettingValue('lead');
         $opportunity = $this->getFormSettingValue('opportunity');
         $account = $this->getFormSettingValue('account');
+        $case = $this->getFormSettingValue('case');
 
         // Validate the following when saving form settings
         $rules[] = [
@@ -188,6 +191,12 @@ class Salesforce extends Crm
         $rules[] = [
             ['accountFieldMapping'], 'validateFieldMapping', 'params' => $account, 'when' => function($model) {
                 return $model->enabled && $model->mapToAccount;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
+
+        $rules[] = [
+            ['caseFieldMapping'], 'validateFieldMapping', 'params' => $case, 'when' => function($model) {
+                return $model->enabled && $model->mapToCase;
             }, 'on' => [Integration::SCENARIO_FORM],
         ];
 
@@ -233,11 +242,17 @@ class Salesforce extends Crm
             $fields = $response['fields'] ?? [];
             $accountFields = $this->_getCustomFields($fields);
 
+            // Get Case fields
+            $response = $this->request('GET', 'sobjects/Case/describe');
+            $fields = $response['fields'] ?? [];
+            $caseFields = $this->_getCustomFields($fields);
+
             $settings = [
                 'contact' => $contactFields,
                 'lead' => $leadFields,
                 'opportunity' => $opportunityFields,
                 'account' => $accountFields,
+                'case' => $caseFields,
             ];
         } catch (Throwable $e) {
             Integration::apiError($this, $e);
@@ -265,6 +280,7 @@ class Salesforce extends Crm
             $leadValues = $this->getFieldMappingValues($submission, $this->leadFieldMapping, 'lead');
             $opportunityValues = $this->getFieldMappingValues($submission, $this->opportunityFieldMapping, 'opportunity');
             $accountValues = $this->getFieldMappingValues($submission, $this->accountFieldMapping, 'account');
+            $caseValues = $this->getFieldMappingValues($submission, $this->caseFieldMapping, 'case');
 
             $accountId = null;
             $accountOwnerId = null;
@@ -455,6 +471,35 @@ class Salesforce extends Crm
                     Integration::error($this, Craft::t('formie', 'Missing return “opportunityId” {response}. Sent payload {payload}', [
                         'response' => Json::encode($response),
                         'payload' => Json::encode($opportunityPayload),
+                    ]), true);
+
+                    return false;
+                }
+            }
+
+            if ($this->mapToCase) {
+                $casePayload = $this->_prepPayload($caseValues);
+
+                if ($contactId) {
+                    $casePayload['ContactId'] = $contactId;
+                }
+
+                if ($accountId) {
+                    $casePayload['AccountId'] = $accountId;
+                }
+
+                $response = $this->deliverPayload($submission, 'sobjects/Case', $casePayload);
+
+                if ($response === false) {
+                    return true;
+                }
+
+                $caseId = $response['id'] ?? '';
+
+                if (!$caseId) {
+                    Integration::error($this, Craft::t('formie', 'Missing return “caseId” {response}. Sent payload {payload}', [
+                        'response' => Json::encode($response),
+                        'payload' => Json::encode($casePayload),
                     ]), true);
 
                     return false;
