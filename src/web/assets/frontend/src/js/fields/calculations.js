@@ -114,6 +114,11 @@ export class FormieCalculations {
         // eslint-disable-next-line
         variables = beforeEvaluateEvent.detail.variables;
 
+        // Prevent evaluating empty data
+        if (!formula || !variables) {
+            return;
+        }
+
         try {
             let result = this.expressionLanguage.evaluate(formula, variables);
 
