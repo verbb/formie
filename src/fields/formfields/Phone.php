@@ -178,8 +178,12 @@ class Phone extends FormField implements SubfieldInterface, PreviewableFieldInte
     {
         return [
             [
-                'label' => Craft::t('formie', 'Country'),
+                'label' => Craft::t('formie', 'Country (ISO)'),
                 'handle' => 'country',
+            ],
+            [
+                'label' => Craft::t('formie', 'Country (Full)'),
+                'handle' => 'countryName',
             ],
             [
                 'label' => Craft::t('formie', 'Country Code'),

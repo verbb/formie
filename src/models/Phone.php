@@ -74,4 +74,13 @@ class Phone extends Model
         return '';
     }
 
+    public function getCountryName(): string
+    {
+        if ($this->country) {
+            return Craft::$app->getAddresses()->getCountryRepository()->get($this->country)->getName();
+        }
+
+        return '';
+    }
+
 }
