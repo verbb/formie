@@ -416,6 +416,10 @@ Follow the below steps to connect to the Connective Mercury API.
 ## Microsoft Dynamics 365
 Follow the below steps to connect to the Microsoft Dynamics 365 API.
 
+:::warning
+Ensure you have Azure administrator access or an Azure administrator is able to grant permissions to the application. This is required to approve the application in Microsoft Dynamics 365.
+:::
+
 ### Step 1. Create the Integration
 1. Navigate to **Formie** → **Settings** → **CRM**.
 1. Click the **New Integration** button.

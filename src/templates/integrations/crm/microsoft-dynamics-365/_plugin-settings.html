@@ -1,7 +1,12 @@
 {% import '_includes/forms' as forms %}
 {% import 'verbb-base/_macros' as macros %}
 
+<span class="warning with-icon">
+    {{ 'Ensure you have Azure administrator access or an Azure administrator is able to grant permissions to the application. This is required to approve the application in {name}.' | t('formie', { name: integration.displayName() }) }}<br><br>
+</span>
+
 {% set instructions %}
+
 ### Step 1. Connect to the {name} API
 1. Go to <a href="https://aad.portal.azure.com/" target="_blank">Azure Active Directory Admin Center</a> and login to your account.
 1. Click on the **Azure Active Directory** in the left-hand sidebar, **App Registrations** then **New Registration**.
