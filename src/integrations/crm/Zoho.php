@@ -49,10 +49,12 @@ class Zoho extends Crm
     public bool $mapToDeal = false;
     public bool $mapToLead = false;
     public bool $mapToAccount = false;
+    public bool $mapToQuote = false;
     public ?array $contactFieldMapping = null;
     public ?array $dealFieldMapping = null;
     public ?array $leadFieldMapping = null;
     public ?array $accountFieldMapping = null;
+    public ?array $quoteFieldMapping = null;
 
 
     // Public Methods
@@ -147,6 +149,7 @@ class Zoho extends Crm
         $deal = $this->getFormSettingValue('deal');
         $lead = $this->getFormSettingValue('lead');
         $account = $this->getFormSettingValue('account');
+        $quote = $this->getFormSettingValue('quote');
 
         // Validate the following when saving form settings
         $rules[] = [
@@ -173,6 +176,12 @@ class Zoho extends Crm
             }, 'on' => [Integration::SCENARIO_FORM],
         ];
 
+        $rules[] = [
+            ['quoteFieldMapping'], 'validateFieldMapping', 'params' => $quote, 'when' => function($model) {
+                return $model->enabled && $model->mapToQuote;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
+
         return $rules;
     }
 
@@ -181,27 +190,18 @@ class Zoho extends Crm
         $settings = [];
 
         try {
-            $response = $this->request('GET', 'settings/fields', ['query' => ['module' => 'Contacts']]);
-            $fields = $response['fields'] ?? [];
-            $contactFields = $this->_getCustomFields($fields);
-
-            $response = $this->request('GET', 'settings/fields', ['query' => ['module' => 'Deals']]);
-            $fields = $response['fields'] ?? [];
-            $dealFields = $this->_getCustomFields($fields);
-
-            $response = $this->request('GET', 'settings/fields', ['query' => ['module' => 'Leads']]);
-            $fields = $response['fields'] ?? [];
-            $leadsFields = $this->_getCustomFields($fields);
-
-            $response = $this->request('GET', 'settings/fields', ['query' => ['module' => 'Accounts']]);
-            $fields = $response['fields'] ?? [];
-            $accountFields = $this->_getCustomFields($fields);
+            $contactFields = $this->_getModuleFields('Contacts');
+            $dealFields = $this->_getModuleFields('Deals');
+            $leadsFields = $this->_getModuleFields('Leads');
+            $accountFields = $this->_getModuleFields('Accounts');
+            $quoteFields = $this->_getModuleFields('Quotes');
 
             $settings = [
                 'contact' => $contactFields,
                 'deal' => $dealFields,
                 'lead' => $leadsFields,
                 'account' => $accountFields,
+                'quote' => $quoteFields,
             ];
         } catch (Throwable $e) {
             Integration::apiError($this, $e);
@@ -217,6 +217,7 @@ class Zoho extends Crm
             $dealValues = $this->getFieldMappingValues($submission, $this->dealFieldMapping, 'deal');
             $leadValues = $this->getFieldMappingValues($submission, $this->leadFieldMapping, 'lead');
             $accountValues = $this->getFieldMappingValues($submission, $this->accountFieldMapping, 'account');
+            $quoteValues = $this->getFieldMappingValues($submission, $this->quoteFieldMapping, 'quote');
 
             $contactId = null;
 
@@ -262,6 +263,30 @@ class Zoho extends Crm
                     Integration::error($this, Craft::t('formie', 'Missing return “accountId” {response}. Sent payload {payload}', [
                         'response' => Json::encode($response),
                         'payload' => Json::encode($accountPayload),
+                    ]), true);
+
+                    return false;
+                }
+            }
+
+            if ($this->mapToQuote) {
+                $quotePayload = [
+                    'data' => [$quoteValues],
+                    'duplicate_check_fields' => ['Account_Name'],
+                ];
+
+                $response = $this->deliverPayload($submission, 'Quotes/upsert', $quotePayload);
+
+                if ($response === false) {
+                    return true;
+                }
+
+                $quoteId = $response['data'][0]['details']['id'] ?? '';
+
+                if (!$quoteId) {
+                    Integration::error($this, Craft::t('formie', 'Missing return “quoteId” {response}. Sent payload {payload}', [
+                        'response' => Json::encode($response),
+                        'payload' => Json::encode($quotePayload),
                     ]), true);
 
                     return false;
@@ -455,5 +480,21 @@ class Zoho extends Crm
         }
 
         return $customFields;
+    }
+
+    private function _getModuleFields($module): array
+    {
+        // Ignore any errors like 'the module name given seems to be invalid' - just means the module is hidden.
+        try {
+            $response = $this->request('GET', 'settings/fields', ['query' => ['module' => $module]]);
+            $fields = $response['fields'] ?? [];
+
+            return $this->_getCustomFields($fields);
+        } catch (Throwable $e) {
+            // Just log the error, and keep going with other modules
+            Integration::apiError($this, $e, false);
+        }
+
+        return [];
     }
 }

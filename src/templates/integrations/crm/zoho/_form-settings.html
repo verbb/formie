@@ -6,6 +6,7 @@
 {% set mapToDeal = form.settings.integrations[handle].mapToDeal ?? '' %}
 {% set mapToLead = form.settings.integrations[handle].mapToLead ?? '' %}
 {% set mapToAccount = form.settings.integrations[handle].mapToAccount ?? '' %}
+{% set mapToQuote = form.settings.integrations[handle].mapToQuote ?? '' %}
 {% set mapToCompany = form.settings.integrations[handle].mapToCompany ?? '' %}
 
 <field-select
@@ -132,6 +133,33 @@
 
             <ul v-if="!isEmpty(get(form, 'settings.integrations.{{ handle }}.errors.accountFieldMapping'))" class="errors" v-cloak>
                 <li v-for="(error, index) in get(form, 'settings.integrations.{{ handle }}.errors.accountFieldMapping')" :key="index">
+                    ${ error }
+                </li>
+            </ul>
+        </div>
+
+        {{ forms.lightswitchField({
+            label: 'Map to Quote' | t('formie'),
+            instructions: 'Whether to map form data to {name} Quotes.' | t('formie', { name: integration.displayName() }),
+            id: 'mapToQuote',
+            name: 'mapToQuote',
+            on: mapToQuote,
+            toggle: 'map-to-quote',
+        }) }}
+
+        <div id="map-to-quote" class="{{ not mapToQuote ? 'hidden' }}">
+            <integration-field-mapping
+                label="{{ 'Quote Field Mapping' | t('formie') }}"
+                instructions="{{ 'Choose how your form fields should map to your {name} Quote fields.' | t('formie', { name: integration.displayName() }) }}"
+                name-label="{{ integration.displayName() }}"
+                id="quote-field-mapping"
+                name="quoteFieldMapping"
+                :value="get(form, 'settings.integrations.{{ handle }}.quoteFieldMapping')"
+                :rows="get(settings, 'quote')"
+            ></integration-field-mapping>
+
+            <ul v-if="!isEmpty(get(form, 'settings.integrations.{{ handle }}.errors.quoteFieldMapping'))" class="errors" v-cloak>
+                <li v-for="(error, index) in get(form, 'settings.integrations.{{ handle }}.errors.quoteFieldMapping')" :key="index">
                     ${ error }
                 </li>
             </ul>
