@@ -3,16 +3,28 @@ Formie comes with a number of command line utilities that can be run on-demand, 
 
 ## Forms
 
-### Re-save forms
+### Re-save Forms
 Refer to the [Craft docs](https://craftcms.com/docs/4.x/console-commands.html#resave) on available options.
 
 ```shell
 ./craft formie/resave/formie-forms --update-search-index=1
 ```
 
+## Delete Forms
+You can bulk delete forms with this command.
+
+Option | Description
+--- | ---
+`--form-handle` | The form handle(s) to delete. Can be set to multiple comma-separated handles.
+`--form-id` | The form ID(s) to delete. Can be set to multiple comma-separated IDs.
+
+```shell
+./craft formie/forms/delete --form-handle=form1,anotherForm
+```
+
 ## Submissions
 
-### Re-save submissions
+### Re-save Submissions
 Refer to the [Craft docs](https://craftcms.com/docs/4.x/console-commands.html#resave) on available options.
 
 ```shell
@@ -81,7 +93,7 @@ A cleanup task to ensure deleted forms have their content tables also deleted. N
 ./craft formie/gc/prune-content-tables
 ```
 
-## Prune Content Table Fields
+### Prune Content Table Fields
 A cleanup task for content tables to ensure unnecessary field columns are removed. Not normally required.
 
 ```shell
