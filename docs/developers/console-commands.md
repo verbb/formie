@@ -7,7 +7,7 @@ Formie comes with a number of command line utilities that can be run on-demand, 
 Refer to the [Craft docs](https://craftcms.com/docs/4.x/console-commands.html#resave) on available options.
 
 ```shell
-./craft formie/resave/formie-forms --update-search-index=1
+./craft resave/formie-forms --update-search-index=1
 ```
 
 ## Delete Forms
@@ -28,7 +28,7 @@ Option | Description
 Refer to the [Craft docs](https://craftcms.com/docs/4.x/console-commands.html#resave) on available options.
 
 ```shell
-./craft formie/resave/formie-submissions --form-id=1234 --update-search-index=1
+./craft resave/formie-submissions --form-id=1234 --update-search-index=1
 ```
 
 ### Run Integrations
