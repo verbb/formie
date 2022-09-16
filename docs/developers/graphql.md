@@ -747,7 +747,7 @@ This is the interface to fetch enabled captchas for the form.
 :::code
 ```graphql GraphQL
 {
-    submissions (form: "contactForm") {
+    formieSubmissions (form: "contactForm") {
         title
 
         ... on contactForm_Submission {
@@ -762,7 +762,7 @@ This is the interface to fetch enabled captchas for the form.
 ```json JSON Response
 {
     "data": {
-        "submissions": [
+        "formieSubmissions": [
             {
                 "title": "2020-07-24 22:01:59",
                 "yourName": "Peter Sherman",
@@ -930,7 +930,7 @@ mutation saveSubmission($yourAddress:contactForm_yourAddress_FormieAddressInput)
 }
 ```
 
-### File Upload Field
+#### File Upload Field
 When uploading a file, you must provide an array of upload data with a `base64` encoded data, so that Formie can create the asset element. Provide this as `fileData`, and you can also supply an optional `filename` variable to name the asset correctly. If you do not supply this, a filename will be generated for you.
 
 ```graphql
@@ -1078,7 +1078,7 @@ You can add the following to your GQL form query to fetch tokens generated serve
 
 ```graphql
 {
-    form (handle: "contactForm") {
+    formieForm (handle: "contactForm") {
         ...
 
         captchas {
