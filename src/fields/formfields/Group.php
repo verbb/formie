@@ -14,7 +14,6 @@ use craft\base\EagerLoadingFieldInterface;
 use craft\base\Element;
 use craft\base\ElementInterface;
 use craft\gql\GqlEntityRegistry;
-use craft\gql\types\elements\Element as ElementType;
 use craft\helpers\Gql;
 
 use GraphQL\Type\Definition\ObjectType;
@@ -196,7 +195,7 @@ class Group extends FormField implements NestedFieldInterface, EagerLoadingField
                 $groupFields[$field->handle] = $field->getContentGqlType();
             }
 
-            $inputType = GqlEntityRegistry::createEntity($typeName, new ElementType([
+            $inputType = GqlEntityRegistry::createEntity($typeName, new ObjectType([
                 'name' => $typeName,
                 'fields' => function() use ($groupFields, $typeName) {
                     return Craft::$app->getGql()->prepareFieldDefinitions($groupFields, $typeName);
