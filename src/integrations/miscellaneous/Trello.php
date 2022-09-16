@@ -12,8 +12,9 @@ use craft\helpers\App;
 use craft\helpers\Json;
 
 use League\HTMLToMarkdown\HtmlConverter;
-use League\OAuth2\Client\Provider\AbstractProvider;
+use League\OAuth1\Client\Server\Server as Oauth1Provider;
 use League\OAuth1\Client\Server\Trello as TrelloProvider;
+use League\OAuth2\Client\Provider\AbstractProvider;
 
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Subscriber\Oauth\Oauth1;
@@ -71,7 +72,7 @@ class Trello extends Miscellaneous
         ];
     }
 
-    public function getOauthProvider(): AbstractProvider
+    public function getOauthProvider(): AbstractProvider|Oauth1Provider
     {
         /** @noinspection PhpIncompatibleReturnTypeInspection */
         return new TrelloProvider($this->getOauthProviderConfig());

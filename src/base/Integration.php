@@ -27,6 +27,7 @@ use craft\validators\HandleValidator;
 use craft\validators\UniqueValidator;
 use craft\web\Response;
 
+use League\OAuth1\Client\Server\Server as Oauth1Provider;
 use League\OAuth2\Client\Provider\AbstractProvider;
 use League\OAuth2\Client\Provider\GenericProvider;
 
@@ -479,7 +480,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         ];
     }
 
-    public function getOauthProvider(): AbstractProvider
+    public function getOauthProvider(): AbstractProvider|Oauth1Provider
     {
         return new GenericProvider($this->getOauthProviderConfig());
     }

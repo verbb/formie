@@ -12,6 +12,8 @@ use Craft;
 use craft\helpers\App;
 use craft\helpers\Json;
 
+use League\OAuth1\Client\Server\Server as Oauth1Provider;
+use League\OAuth2\Client\Provider\AbstractProvider;
 use TheNetworg\OAuth2\Client\Provider\Azure;
 
 use Throwable;
@@ -79,7 +81,7 @@ class MicrosoftDynamics365 extends Crm
         ];
     }
 
-    public function getOauthProvider(): Azure
+    public function getOauthProvider(): AbstractProvider|Oauth1Provider
     {
         return new Azure($this->getOauthProviderConfig());
     }

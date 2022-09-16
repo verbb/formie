@@ -11,6 +11,8 @@ use verbb\formie\models\IntegrationFormSettings;
 use Craft;
 use craft\helpers\App;
 
+use League\OAuth1\Client\Server\Server as Oauth1Provider;
+use League\OAuth2\Client\Provider\AbstractProvider;
 use League\OAuth2\Client\Provider\Google as GoogleProvider;
 
 use Throwable;
@@ -107,7 +109,7 @@ class GoogleSheets extends Miscellaneous
     // Public Methods
     // =========================================================================
 
-    public function getOauthProvider(): GoogleProvider
+    public function getOauthProvider(): AbstractProvider|Oauth1Provider
     {
         return new GoogleProvider($this->getOauthProviderConfig());
     }
