@@ -29,19 +29,13 @@ class RepeaterInputType extends InputObjectType
             return $inputType;
         }
 
-        // Array of block types.
-        /** @var FormField[] $fields */
-        $fields = $context->getCustomFields();
-
         $repeaterFields = [];
 
-
-        foreach ($fields as $field) {
+        foreach ($context->getCustomFields() as $field) {
             $field->isNested = true;
             $field->setContainer($context);
 
-            $fieldInput = $field->getContentGqlMutationArgumentType();
-            $repeaterFields[$field->handle] = $fieldInput;
+            $repeaterFields[$field->handle] = $field->getContentGqlMutationArgumentType();
         }
 
         // All the different field block types now get wrapped in a container input.
@@ -53,7 +47,6 @@ class RepeaterInputType extends InputObjectType
                 return $repeaterFields;
             },
         ]));
-
 
         return GqlEntityRegistry::createEntity($typeName, new InputObjectType([
             'name' => $typeName,

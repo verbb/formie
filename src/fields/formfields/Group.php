@@ -4,6 +4,7 @@ namespace verbb\formie\fields\formfields;
 use verbb\formie\base\FormField;
 use verbb\formie\base\NestedFieldInterface;
 use verbb\formie\base\NestedFieldTrait;
+use verbb\formie\gql\resolvers\elements\NestedFieldRowResolver;
 use verbb\formie\gql\types\input\GroupInputType;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\HtmlTag;
@@ -13,6 +14,7 @@ use craft\base\EagerLoadingFieldInterface;
 use craft\base\Element;
 use craft\base\ElementInterface;
 use craft\gql\GqlEntityRegistry;
+use craft\gql\types\elements\Element as ElementType;
 use craft\helpers\Gql;
 
 use GraphQL\Type\Definition\ObjectType;
@@ -187,26 +189,31 @@ class Group extends FormField implements NestedFieldInterface, EagerLoadingField
     {
         $typeName = ($this->getForm()->handle ?? '') . '_' . $this->handle . '_FormieGroupField';
 
-        if ($inputType = GqlEntityRegistry::getEntity($typeName)) {
-            return $inputType;
+        if (!($inputType = GqlEntityRegistry::getEntity($typeName))) {
+            $groupFields = [];
+
+            foreach ($this->getCustomFields() as $field) {
+                $groupFields[$field->handle] = $field->getContentGqlType();
+            }
+
+            $inputType = GqlEntityRegistry::createEntity($typeName, new ElementType([
+                'name' => $typeName,
+                'fields' => function() use ($groupFields, $typeName) {
+                    return Craft::$app->getGql()->prepareFieldDefinitions($groupFields, $typeName);
+                },
+                'resolveField' => function($source, $args, $context, $info) {
+                    $fieldName = Gql::getFieldNameWithAlias($info, $source, $context);
+                    
+                    return $source[0][$fieldName] ?? null;
+                },
+            ]));
         }
 
-        $groupFields = [];
-
-        foreach ($this->getCustomFields() as $field) {
-            $groupFields[$field->handle] = $field->getContentGqlType();
-        }
-
-        return GqlEntityRegistry::createEntity($typeName, new ObjectType([
-            'name' => $typeName,
-            'fields' => function() use ($groupFields) {
-                return $groupFields;
-            },
-            'resolveField' => function($source, $args, $context, $info) {
-                $fieldName = Gql::getFieldNameWithAlias($info, $source, $context);
-                return $source[0][$fieldName] ?? null;
-            },
-        ]));
+        return [
+            'name' => $this->handle,
+            'type' => $inputType,
+            'resolve' => NestedFieldRowResolver::class . '::resolve',
+        ];
     }
 
     public function defineHtmlTag(string $key, array $context = []): ?HtmlTag

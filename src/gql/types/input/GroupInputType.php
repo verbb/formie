@@ -27,16 +27,13 @@ class GroupInputType extends InputObjectType
             return $inputType;
         }
 
-        // Array of block types.
-        $fields = $context->getCustomFields();
-
         $groupFields = [];
-        foreach ($fields as $field) {
+
+        foreach ($context->getCustomFields() as $field) {
             $field->isNested = true;
             $field->setContainer($context);
 
-            $fieldInput = $field->getContentGqlMutationArgumentType();
-            $groupFields[$field->handle] = $fieldInput;
+            $groupFields[$field->handle] = $field->getContentGqlMutationArgumentType();
         }
 
         return GqlEntityRegistry::createEntity($typeName, new InputObjectType([
@@ -54,7 +51,7 @@ class GroupInputType extends InputObjectType
      * @param $value
      * @return mixed
      */
-    public static function normalizeValue($value): mixed
+    public static function normalizeValue(mixed $value): mixed
     {
         return [
             'rows' => [
