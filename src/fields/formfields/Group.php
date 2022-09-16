@@ -5,6 +5,7 @@ use verbb\formie\base\FormField;
 use verbb\formie\base\NestedFieldInterface;
 use verbb\formie\base\NestedFieldTrait;
 use verbb\formie\gql\resolvers\elements\NestedFieldRowResolver;
+use verbb\formie\gql\types\generators\NestedFieldGenerator;
 use verbb\formie\gql\types\input\GroupInputType;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\HtmlTag;
@@ -52,6 +53,14 @@ class Group extends FormField implements NestedFieldInterface, EagerLoadingField
     public static function hasContentColumn(): bool
     {
         return false;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public static function gqlTypeNameByContext(mixed $context): string
+    {
+        return ($context->getForm()->handle ?? '') . '_' . $context->handle . '_FormieGroupField';
     }
 
 
@@ -186,32 +195,14 @@ class Group extends FormField implements NestedFieldInterface, EagerLoadingField
      */
     public function getContentGqlType(): array|Type
     {
-        $typeName = ($this->getForm()->handle ?? '') . '_' . $this->handle . '_FormieGroupField';
-
-        if (!($inputType = GqlEntityRegistry::getEntity($typeName))) {
-            $groupFields = [];
-
-            foreach ($this->getCustomFields() as $field) {
-                $groupFields[$field->handle] = $field->getContentGqlType();
-            }
-
-            $inputType = GqlEntityRegistry::createEntity($typeName, new ObjectType([
-                'name' => $typeName,
-                'fields' => function() use ($groupFields, $typeName) {
-                    return Craft::$app->getGql()->prepareFieldDefinitions($groupFields, $typeName);
-                },
-                'resolveField' => function($source, $args, $context, $info) {
-                    $fieldName = Gql::getFieldNameWithAlias($info, $source, $context);
-                    
-                    return $source[0][$fieldName] ?? null;
-                },
-            ]));
-        }
+        $typeArray = NestedFieldGenerator::generateTypes($this);
+        $typeName = self::gqlTypeNameByContext($this);
 
         return [
             'name' => $this->handle,
-            'type' => $inputType,
+            'type' => Type::nonNull(Gql::getUnionType($typeName, $typeArray)),
             'resolve' => NestedFieldRowResolver::class . '::resolve',
+            'complexity' => Gql::eagerLoadComplexity(),
         ];
     }
 

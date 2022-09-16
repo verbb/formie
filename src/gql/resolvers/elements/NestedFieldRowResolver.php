@@ -11,6 +11,9 @@ use GraphQL\Type\Definition\ResolveInfo;
 
 class NestedFieldRowResolver extends ElementResolver
 {
+    // Static Methods
+    // =========================================================================
+
     /**
      * @inheritdoc
      */
