@@ -111,7 +111,11 @@ class Webhook extends BaseWebhook
         try {
             $payload = $this->generatePayloadValues($submission);
 
-            $response = $this->getClient()->request('POST', $this->getWebhookUrl($this->webhook, $submission), $payload);
+            $response = $this->deliverPayload($submission, $this->getWebhookUrl($this->webhook, $submission), $payload);
+
+            if ($response === false) {
+                return true;
+            }
         } catch (Throwable $e) {
             // Save a different payload to logs
             Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}. Payload: “{payload}”. Response: “{response}”', [

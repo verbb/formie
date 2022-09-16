@@ -97,7 +97,11 @@ class Zapier extends Webhook
         try {
             $payload = $this->generatePayloadValues($submission);
 
-            $response = $this->getClient()->request('POST', $this->getWebhookUrl($this->webhook, $submission), $payload);
+            $response = $this->deliverPayload($submission, $this->getWebhookUrl($this->webhook, $submission), $payload);
+
+            if ($response === false) {
+                return true;
+            }
         } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
