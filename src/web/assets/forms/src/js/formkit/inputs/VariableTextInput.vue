@@ -194,7 +194,7 @@ export default {
                 }
 
                 return param;
-            }).join(' ');
+            }).join('');
         },
 
         contentToValue(content) {
