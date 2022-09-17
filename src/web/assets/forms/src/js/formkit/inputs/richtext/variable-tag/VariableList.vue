@@ -6,10 +6,10 @@
             role="option"
             :class="{ 'fui-list-item-heading': variable.heading }"
             :data-value="variable.value"
-            :data-label="truncate(variable.label, { length: 42 })"
+            :data-label="truncate(variable.label, { length: 60 })"
             @click.prevent="addVariable"
         >
-            {{ truncate(variable.label, { length: 42 }) }}
+            {{ truncate(variable.label, { length: 60 }) }}
         </li>
     </ul>
 </template>

@@ -346,7 +346,7 @@ export default {
                                 field,
                                 subfield,
                                 type: field.type,
-                                label: `${truncate(field.label, { length: 42 })}: ${truncate(subfield.label, { length: 42 })}`,
+                                label: `${truncate(field.label, { length: 60 })}: ${truncate(subfield.label, { length: 60 })}`,
                                 value: `{${field.handle}.${subfield.handle}}`,
                             });
                         });
@@ -358,7 +358,7 @@ export default {
                                     field,
                                     subfield,
                                     type: field.type,
-                                    label: `${truncate(field.label, { length: 42 })}: ${truncate(subfield.label, { length: 42 })}`,
+                                    label: `${truncate(field.label, { length: 60 })}: ${truncate(subfield.label, { length: 60 })}`,
                                     value: `{${field.handle}.rows.new1.fields.${subfield.handle}}`,
                                 });
                             });
@@ -368,14 +368,14 @@ export default {
                         customFields.push({
                             field,
                             type: field.type,
-                            label: truncate(field.label, { length: 42 }),
+                            label: truncate(field.label, { length: 60 }),
                             value: `{${field.handle}.date}`,
                         });
                     } else {
                         customFields.push({
                             field,
                             type: field.type,
-                            label: truncate(field.label, { length: 42 }),
+                            label: truncate(field.label, { length: 60 }),
                             value: `{${field.handle}}`,
                         });
                     }

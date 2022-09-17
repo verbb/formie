@@ -1,38 +1,38 @@
 {
   "src/js/formie-integration-settings.js": {
-    "file": "assets/formie-integration-settings.38a38798.js",
+    "file": "assets/formie-integration-settings.4c590fcf.js",
     "src": "src/js/formie-integration-settings.js",
     "isEntry": true,
     "imports": [
-      "_config.40fbac3a.js"
+      "_config.0f027376.js"
     ],
     "css": [
       "assets/formie-integration-settings.fb842a8a.css"
     ]
   },
   "src/js/formie-form-new.js": {
-    "file": "assets/formie-form-new.b0c3efc3.js",
+    "file": "assets/formie-form-new.76742dd6.js",
     "src": "src/js/formie-form-new.js",
     "isEntry": true,
     "imports": [
-      "_config.40fbac3a.js"
+      "_config.0f027376.js"
     ]
   },
   "src/js/formie-form.js": {
-    "file": "assets/formie-form.2c288c88.js",
+    "file": "assets/formie-form.fa8f50e1.js",
     "src": "src/js/formie-form.js",
     "isEntry": true,
     "imports": [
-      "_config.40fbac3a.js"
+      "_config.0f027376.js"
     ],
     "css": [
       "assets/formie-form.1e5d7022.css"
     ]
   },
-  "_config.40fbac3a.js": {
-    "file": "assets/config.40fbac3a.js",
+  "_config.0f027376.js": {
+    "file": "assets/config.0f027376.js",
     "css": [
-      "assets/config.b5784cad.css"
+      "assets/config.d8ecb6ab.css"
     ],
     "assets": [
       "assets/fa-regular-400.86cbcb46.eot",

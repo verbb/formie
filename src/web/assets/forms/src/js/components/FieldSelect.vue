@@ -85,12 +85,12 @@ export default {
                 // If this field is nested itself, don't show. The outer field takes care of that below
                 if (!toBoolean(field.isNested)) {
                     // Don't show a nested field on its own
-                    customFields.push({ label: truncate(field.label, { length: 42 }), value: `{${field.handle}}` });
+                    customFields.push({ label: truncate(field.label, { length: 60 }), value: `{${field.handle}}` });
 
                     if (field.subfieldOptions && field.hasSubfields) {
                         field.subfieldOptions.forEach((subfield) => {
                             customFields.push({
-                                label: `${truncate(field.label, { length: 42 })}: ${truncate(subfield.label, { length: 42 })}`,
+                                label: `${truncate(field.label, { length: 60 })}: ${truncate(subfield.label, { length: 60 })}`,
                                 value: `{${field.handle}[${subfield.handle}]}`,
                             });
                         });
@@ -101,14 +101,14 @@ export default {
                         field.rows.forEach((row) => {
                             row.fields.forEach((subfield) => {
                                 customFields.push({
-                                    label: `${truncate(field.label, { length: 42 })}: ${truncate(subfield.label, { length: 42 })}`,
+                                    label: `${truncate(field.label, { length: 60 })}: ${truncate(subfield.label, { length: 60 })}`,
                                     value: `{${field.handle}[${subfield.handle}]}`,
                                 });
 
                                 if (subfield.subfieldOptions && subfield.hasSubfields) {
                                     subfield.subfieldOptions.forEach((subsubfield) => {
                                         customFields.push({
-                                            label: `${truncate(field.label, { length: 42 })}: ${truncate(subfield.label, { length: 42 })}: ${truncate(subsubfield.label, { length: 42 })}`,
+                                            label: `${truncate(field.label, { length: 60 })}: ${truncate(subfield.label, { length: 60 })}: ${truncate(subsubfield.label, { length: 60 })}`,
                                             value: `{${field.handle}[${subfield.handle}[${subsubfield.handle}]]}`,
                                         });
                                     });
