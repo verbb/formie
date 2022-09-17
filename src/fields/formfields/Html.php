@@ -191,6 +191,11 @@ class Html extends FormField
             $purifierConfig->set($option, $value);
         }
 
+        // Add some extra, modern elements to be supported `<details>`, `<summary>`
+        $def = $purifierConfig->getHTMLDefinition(true);
+        $def->addElement('details', 'Block', 'Flow', 'Common', [ 'open' => new \HTMLPurifier_AttrDef_HTML_Bool(true)]);
+        $def->addElement('summary', 'Inline', 'Inline', 'Common');
+
         // Give plugins a chance to modify the HTML Purifier config, or add new ones
         $event = new ModifyPurifierConfigEvent([
             'config' => $purifierConfig,
