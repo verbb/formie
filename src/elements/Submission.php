@@ -912,7 +912,7 @@ class Submission extends Element
             if (is_array($valueForExport)) {
                 $values = array_merge($values, $valueForExport);
             } else {
-                $values[$field->name] = $valueForExport;
+                $values[$field->getExportLabel($this)] = $valueForExport;
             }
         }
 

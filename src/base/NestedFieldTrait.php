@@ -660,9 +660,9 @@ trait NestedFieldTrait
                 $valueForExport = $field->getValueForExport($subValue, $row);
 
                 if ($this instanceof Group) {
-                    $key = $this->name;
+                    $key = $this->getExportLabel($element);
                 } else {
-                    $key = $this->name . ': ' . ($rowId + 1);
+                    $key = $this->getExportLabel($element) . ': ' . ($rowId + 1);
                 }
 
                 if (is_array($valueForExport)) {
@@ -670,7 +670,7 @@ trait NestedFieldTrait
                         $values[$key . ': ' . $i] = $j;
                     }
                 } else {
-                    $values[$key . ': ' . $field->name] = $valueForExport;
+                    $values[$key . ': ' . $field->getExportLabel($row)] = $valueForExport;
                 }
             }
         }

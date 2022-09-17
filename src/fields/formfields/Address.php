@@ -925,7 +925,7 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
 
         foreach ($this->getSubfieldOptions() as $subField) {
             if ($this->{$subField['handle'] . 'Enabled'}) {
-                $values[$this->name . ': ' . $subField['label']] = $value[$subField['handle']] ?? '';
+                $values[$this->getExportLabel($element) . ': ' . $subField['label']] = $value[$subField['handle']] ?? '';
             }
         }
 

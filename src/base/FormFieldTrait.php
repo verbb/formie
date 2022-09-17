@@ -1271,6 +1271,24 @@ trait FormFieldTrait
         return $validates;
     }
 
+    public function getExportLabel(ElementInterface $element): string
+    {
+        // Check to see if there's another field with the same label
+        if ($fieldLayout = $element->getFieldLayout()) {
+            foreach ($fieldLayout->getCustomFields() as $field) {
+                if ($field->id === $this->id) {
+                    continue;
+                }
+
+                if ($field->name === $this->name) {
+                    return $this->name . ' (' . $this->handle . ')';
+                }
+            }
+        }
+
+        return $this->name;
+    }
+
 
     // Protected Methods
     // =========================================================================

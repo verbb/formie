@@ -604,7 +604,7 @@ class Table extends CraftTable implements FormFieldInterface
                 $cellValue = $row[$col['handle']] ?? null;
                 $cellValue = $this->_normalizeCellValue($col['type'], $cellValue);
 
-                $values[$this->name . ': ' . ($rowId + 1) . ': ' . $col['heading']] = $cellValue;
+                $values[$this->getExportLabel($element) . ': ' . ($rowId + 1) . ': ' . $col['heading']] = $cellValue;
             }
         }
 
