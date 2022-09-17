@@ -85,6 +85,16 @@
                                 warning: macros.configWarning('enabled', 'formie'),
                             }) }}
 
+                            {% if craft.formie.getPlugin().settings.saveSpam %}
+                                {{ forms.lightswitchField({
+                                    label: 'Save Spam Submissions' | t('formie'),
+                                    instructions: 'Whether to save spam submissions, so they can be viewed in the control panel. Otherwise, spam submissions will be discarded.' | t('formie'),
+                                    name: 'integrations[' ~ handle ~ '][saveSpam]',
+                                    on: integration.saveSpam ?? craft.formie.getPlugin().settings.saveSpam,
+                                    warning: macros.configWarning('saveSpam', 'formie'),
+                                }) }}
+                            {% endif %}
+
                             {% namespace 'integrations[' ~ handle ~ '][settings]' %}
                                 {{ integration.getSettingsHtml() | raw }}
                             {% endnamespace %}

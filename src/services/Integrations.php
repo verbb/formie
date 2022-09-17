@@ -781,6 +781,7 @@ class Integrations extends Component
         $settings->captchas[$integration->getHandle()] = [
             'type' => get_class($integration),
             'enabled' => $integration->getEnabled(false),
+            'saveSpam' => $integration->saveSpam,
             'settings' => $integration->getSettings(),
         ];
 

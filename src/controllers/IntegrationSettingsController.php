@@ -37,6 +37,11 @@ class IntegrationSettingsController extends Controller
         $errors = [];
 
         foreach ($request->getParam('integrations') as $handle => $integrationConfig) {
+            // Force the `saveSpam` setting to be boolean, to allow us to check for backward compatibility
+            if (isset($integrationConfig['saveSpam'])) {
+                $integrationConfig['saveSpam'] = (bool)$integrationConfig['saveSpam'];
+            }
+
             $integration = $integrationsService->createIntegration($integrationConfig);
 
             if (!Formie::$plugin->getIntegrations()->saveCaptcha($integration)) {

@@ -32,6 +32,7 @@ abstract class Captcha extends Integration
 
     public bool $showAllPages = false;
     public ?string $spamReason = null;
+    public ?bool $saveSpam = null;
 
 
     // Public Methods

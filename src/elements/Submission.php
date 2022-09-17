@@ -1017,7 +1017,7 @@ class Submission extends Element
             if (!$event->isValid) {
                 // Check if we should be saving spam. We actually want to return as if
                 // there's an error if we don't want to save the element
-                if (!$settings->saveSpam) {
+                if (!$settings->shouldSaveSpam($this)) {
                     return false;
                 }
             }

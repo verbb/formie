@@ -2,6 +2,7 @@
 namespace verbb\formie\models;
 
 use verbb\formie\Formie;
+use verbb\formie\elements\Submission;
 use verbb\formie\positions\AboveInput;
 
 use Craft;
@@ -139,6 +140,22 @@ class Settings extends Model
         }
 
         return null;
+    }
+
+    public function shouldSaveSpam(Submission $submission): bool
+    {
+        if ($this->saveSpam) {
+            if ($captcha = $submission->getSpamCaptcha()) {
+                // Check only if explicitly set to `false` for backward compatibility
+                if ($captcha->saveSpam === false) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        return false;
     }
 
     /**
