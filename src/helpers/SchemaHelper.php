@@ -315,7 +315,7 @@ class SchemaHelper
     {
         return self::lightswitchField(array_merge([
             'label' => Craft::t('formie', 'Enable Content Encryption'),
-            'help' => Craft::t('formie', 'Whether to encrypt for content saved for this field for data-security purposes.'),
+            'help' => Craft::t('formie', 'Whether to encrypt the value saved for this field for data-security purposes.'),
             'name' => 'enableContentEncryption',
         ], $config));
     }
@@ -364,7 +364,7 @@ class SchemaHelper
         return array_merge([
             '$formkit' => 'fieldSelect',
             'label' => Craft::t('formie', 'Match Field'),
-            'help' => Craft::t('formie', 'Select a field of the same type where its content must match this field.'),
+            'help' => Craft::t('formie', 'Select a field of the same type where its value must match this field.'),
             'name' => 'matchField',
             'excludeSelf' => true,
         ], $config);

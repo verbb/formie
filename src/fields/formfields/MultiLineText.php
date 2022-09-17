@@ -240,8 +240,8 @@ class MultiLineText extends FormField implements PreviewableFieldInterface
                 'if' => '$get(required).value',
             ]),
             SchemaHelper::lightswitchField([
-                'label' => Craft::t('formie', 'Limit Field Content'),
-                'help' => Craft::t('formie', 'Whether to limit the content of this field.'),
+                'label' => Craft::t('formie', 'Limit Field Value'),
+                'help' => Craft::t('formie', 'Whether to limit the value of this field.'),
                 'name' => 'limit',
             ]),
             [
@@ -287,7 +287,7 @@ class MultiLineText extends FormField implements PreviewableFieldInterface
             SchemaHelper::visibility(),
             SchemaHelper::lightswitchField([
                 'label' => Craft::t('formie', 'Use Rich Text Field'),
-                'help' => Craft::t('formie', 'Whether to display this field with a rich text editor for users to enter their content with.'),
+                'help' => Craft::t('formie', 'Whether to display this field with a rich text editor for users to enter values with.'),
                 'name' => 'useRichText',
             ]),
             SchemaHelper::checkboxSelectField([

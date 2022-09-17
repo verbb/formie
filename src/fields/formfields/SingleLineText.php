@@ -235,8 +235,8 @@ class SingleLineText extends FormField implements PreviewableFieldInterface
                 'if' => '$get(required).value',
             ]),
             SchemaHelper::lightswitchField([
-                'label' => Craft::t('formie', 'Limit Field Content'),
-                'help' => Craft::t('formie', 'Whether to limit the content of this field.'),
+                'label' => Craft::t('formie', 'Limit Field Value'),
+                'help' => Craft::t('formie', 'Whether to limit the value of this field.'),
                 'name' => 'limit',
             ]),
             [
