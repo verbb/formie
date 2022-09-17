@@ -57,6 +57,7 @@ class SubmissionExport extends ElementExporter
                 'isIncomplete' => Craft::t('site', 'Is Incomplete?'),
                 'isSpam' => Craft::t('site', 'Is Spam?'),
                 'spamReason' => Craft::t('site', 'Spam Reason'),
+                'spamClass' => Craft::t('site', 'Spam Type'),
                 'title' => Craft::t('site', 'Title'),
                 'dateCreated' => Craft::t('site', 'Date Created'),
                 'dateUpdated' => Craft::t('site', 'Date Updated'),

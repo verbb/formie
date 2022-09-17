@@ -2,6 +2,7 @@
 namespace verbb\formie\elements;
 
 use verbb\formie\Formie;
+use verbb\formie\base\Captcha;
 use verbb\formie\base\FormField;
 use verbb\formie\base\FormFieldInterface;
 use verbb\formie\base\FormFieldTrait;
@@ -364,6 +365,7 @@ class Submission extends Element
     public bool $isIncomplete = false;
     public bool $isSpam = false;
     public ?string $spamReason = null;
+    public ?string $spamClass = null;
     public array $snapshot = [];
     public ?bool $validateCurrentPageOnly = null;
 
@@ -972,6 +974,24 @@ class Submission extends Element
     }
 
     /**
+     * @inheritdoc
+     */
+    public function getSpamCaptcha(): ?Captcha
+    {
+        if ($this->spamClass) {
+            $captchas = Formie::$plugin->getIntegrations()->getAllCaptchas();
+
+            foreach ($captchas as $captcha) {
+                if ($captcha instanceof $this->spamClass) {
+                    return $captcha;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * @inheritDoc
      */
     public function beforeSave(bool $isNew): bool
@@ -1029,9 +1049,10 @@ class Submission extends Element
         $record->userId = $this->userId;
         $record->isIncomplete = $this->isIncomplete;
         $record->isSpam = $this->isSpam;
-        $record->ipAddress = $this->ipAddress;
         $record->spamReason = $this->spamReason;
+        $record->spamClass = $this->spamClass;
         $record->snapshot = $this->snapshot;
+        $record->ipAddress = $this->ipAddress;
         $record->dateCreated = $this->dateCreated;
         $record->dateUpdated = $this->dateUpdated;
 

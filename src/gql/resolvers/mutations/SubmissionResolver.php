@@ -124,6 +124,7 @@ class SubmissionResolver extends ElementMutationResolver
             if (!$valid) {
                 $submission->isSpam = true;
                 $submission->spamReason = Craft::t('formie', 'Failed Captcha “{c}”: “{m}”', ['c' => $captcha::displayName(), 'm' => $captcha->spamReason]);
+                $submission->spamClass = get_class($captcha);
             }
         }
 

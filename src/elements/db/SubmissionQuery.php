@@ -245,6 +245,7 @@ class SubmissionQuery extends ElementQuery
             'formie_submissions.isIncomplete',
             'formie_submissions.isSpam',
             'formie_submissions.spamReason',
+            'formie_submissions.spamClass',
             'formie_submissions.snapshot',
             'formie_submissions.ipAddress',
         ]);

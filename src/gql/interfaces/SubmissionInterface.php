@@ -79,6 +79,11 @@ class SubmissionInterface extends Element
                 'type' => Type::string(),
                 'description' => 'The submission’s spam reason.',
             ],
+            'spamClass' => [
+                'name' => 'spamClass',
+                'type' => Type::string(),
+                'description' => 'The submission’s spam type.',
+            ],
         ]), self::getName());
     }
 }

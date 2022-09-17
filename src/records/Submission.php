@@ -16,7 +16,8 @@ use yii\db\ActiveQueryInterface;
  * @property int $userId
  * @property boolean $isIncomplete
  * @property boolean $isSpam
- * @property boolean $spamReason
+ * @property string $spamReason
+ * @property string $spamClass
  * @property Element $element
  *
  * @package Formie

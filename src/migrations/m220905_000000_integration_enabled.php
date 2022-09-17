@@ -8,15 +8,17 @@ class m220905_000000_integration_enabled extends Migration
     /**
      * @inheritdoc
      */
-    public function safeUp()
+    public function safeUp(): bool
     {
         $this->alterColumn('{{%formie_integrations}}', 'enabled', $this->string()->notNull()->defaultValue('true'));
+
+        return true;
     }
 
     /**
      * @inheritdoc
      */
-    public function safeDown()
+    public function safeDown(): bool
     {
         echo "m220905_000000_integration_enabled cannot be reverted.\n";
         return false;

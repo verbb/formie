@@ -195,7 +195,17 @@
             </div>
 
             <div class="input ltr">
-                <div id="status-value" class="value"><span class="status red"></span>{{ 'Spam' | t('formie') }} <span class="info">{{ submission.spamReason }}</span></div>
+                <div id="status-value" class="value flex">
+                    {% set captcha = submission.getSpamCaptcha() %}
+                    
+                    {% if captcha %}
+                        <img src="{{ captcha.getIconUrl() }}" alt="{{ captcha.displayName() }}" style="width: 15px; height: 15px;">
+                    {% else %}
+                        <span class="status red"></span>
+                    {% endif %}
+
+                    {{ 'Spam' | t('formie') }} <span class="info">{{ submission.spamReason }}</span>
+                </div>
             </div>
         </div>
 

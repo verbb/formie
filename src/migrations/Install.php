@@ -369,6 +369,7 @@ class Install extends Migration
             'isIncomplete' => $this->boolean()->defaultValue(false),
             'isSpam' => $this->boolean()->defaultValue(false),
             'spamReason' => $this->text(),
+            'spamClass' => $this->string(),
             'snapshot' => $this->text(),
             'ipAddress' => $this->string(),
             'dateCreated' => $this->dateTime()->notNull(),
