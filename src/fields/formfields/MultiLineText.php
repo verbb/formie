@@ -42,14 +42,36 @@ class MultiLineText extends FormField implements PreviewableFieldInterface
     // =========================================================================
 
     public bool $limit = false;
-    public ?string $limitType = null;
-    public ?int $limitAmount = null;
+    public ?int $min = null;
+    public ?string $minType = null;
+    public ?int $max = null;
+    public ?string $maxType = null;
     public bool $useRichText = false;
     public ?array $richTextButtons = null;
 
 
     // Public Methods
     // =========================================================================
+
+    /**
+     * @inheritDoc
+     */
+    public function __construct(array $config = [])
+    {
+        // Migrate legacy settings - remove at the next breakpoint
+        if (array_key_exists('limitType', $config)) {
+            $config['maxType'] = $config['limitType'];
+            unset($config['limitType']);
+        }
+        
+        // Migrate legacy settings - remove at the next breakpoint
+        if (array_key_exists('limitAmount', $config)) {
+            $config['max'] = $config['limitAmount'];
+            unset($config['limitAmount']);
+        }
+
+        parent::__construct($config);
+    }
 
     /**
      * @inheritDoc
@@ -118,7 +140,7 @@ class MultiLineText extends FormField implements PreviewableFieldInterface
     {
         $modules = [];
 
-        if ($this->limit) {
+        if ($this->limit && $this->max) {
             $modules[] = [
                 'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/fields/text-limit.js', true),
                 'module' => 'FormieTextLimit',
@@ -163,6 +185,8 @@ class MultiLineText extends FormField implements PreviewableFieldInterface
     public function getFieldDefaults(): array
     {
         return [
+            'minType' => 'characters',
+            'maxType' => 'characters',
             'richTextButtons' => ['bold', 'italic'],
         ];
     }
@@ -240,33 +264,83 @@ class MultiLineText extends FormField implements PreviewableFieldInterface
                 'if' => '$get(required).value',
             ]),
             SchemaHelper::lightswitchField([
-                'label' => Craft::t('formie', 'Limit Field Value'),
+                'label' => Craft::t('formie', 'Limit Value'),
                 'help' => Craft::t('formie', 'Whether to limit the value of this field.'),
                 'name' => 'limit',
             ]),
             [
-                '$formkit' => 'fieldWrap',
-                'label' => Craft::t('formie', 'Limit'),
-                'help' => Craft::t('formie', 'Enter the number of characters or words to limit this field by.'),
+                '$el' => 'div',
+                'attrs' => [
+                    'class' => 'fui-row',
+                ],
                 'if' => '$get(limit).value',
                 'children' => [
                     [
                         '$el' => 'div',
                         'attrs' => [
-                            'class' => 'flex',
+                            'class' => 'fui-col-6',
                         ],
                         'children' => [
-                            SchemaHelper::numberField([
-                                'name' => 'limitAmount',
-                                'inputClass' => 'text flex-grow',
-                            ]),
-                            SchemaHelper::selectField([
-                                'name' => 'limitType',
-                                'options' => [
-                                    ['label' => Craft::t('formie', 'Characters'), 'value' => 'characters'],
-                                    ['label' => Craft::t('formie', 'Words'), 'value' => 'words'],
+                            [
+                                '$formkit' => 'fieldWrap',
+                                'label' => Craft::t('formie', 'Min Value'),
+                                'help' => Craft::t('formie', 'Set a minimum value that users must enter.'),
+                                'children' => [
+                                    [
+                                        '$el' => 'div',
+                                        'attrs' => [
+                                            'class' => 'flex',
+                                        ],
+                                        'children' => [
+                                            SchemaHelper::numberField([
+                                                'name' => 'min',
+                                                'inputClass' => 'text flex-grow',
+                                            ]),
+                                            SchemaHelper::selectField([
+                                                'name' => 'minType',
+                                                'options' => [
+                                                    ['label' => Craft::t('formie', 'Characters'), 'value' => 'characters'],
+                                                    ['label' => Craft::t('formie', 'Words'), 'value' => 'words'],
+                                                ],
+                                            ]),
+                                        ],
+                                    ],
                                 ],
-                            ]),
+                            ],
+                        ],
+                    ],
+                    [
+                        '$el' => 'div',
+                        'attrs' => [
+                            'class' => 'fui-col-6',
+                        ],
+                        'children' => [
+                            [
+                                '$formkit' => 'fieldWrap',
+                                'label' => Craft::t('formie', 'Max Value'),
+                                'help' => Craft::t('formie', 'Set a maximum value that users must enter.'),
+                                'children' => [
+                                    [
+                                        '$el' => 'div',
+                                        'attrs' => [
+                                            'class' => 'flex',
+                                        ],
+                                        'children' => [
+                                            SchemaHelper::numberField([
+                                                'name' => 'max',
+                                                'inputClass' => 'text flex-grow',
+                                            ]),
+                                            SchemaHelper::selectField([
+                                                'name' => 'maxType',
+                                                'options' => [
+                                                    ['label' => Craft::t('formie', 'Characters'), 'value' => 'characters'],
+                                                    ['label' => Craft::t('formie', 'Words'), 'value' => 'words'],
+                                                ],
+                                            ]),
+                                        ],
+                                    ],
+                                ],
+                            ],
                         ],
                     ],
                 ],
@@ -335,12 +409,6 @@ class MultiLineText extends FormField implements PreviewableFieldInterface
         $dataId = $this->getHtmlDataId($form);
 
         if ($key === 'fieldInput') {
-            $limitType = $this->limitType ?? '';
-            $limitAmount = $this->limitAmount ?? null;
-            $limit = ($this->limit ?? null) && $limitAmount;
-            $maxLength = ($limit && $limitType === 'characters') ? $limitAmount : null;
-            $wordLimit = ($limit && $limitType === 'words') ? $limitAmount : null;
-
             return new HtmlTag('textarea', array_merge([
                 'id' => $id,
                 'class' => [
@@ -353,8 +421,10 @@ class MultiLineText extends FormField implements PreviewableFieldInterface
                 'data' => [
                     'fui-id' => $dataId,
                     'fui-message' => Craft::t('formie', $this->errorMessage) ?: null,
-                    'maxlength' => $maxLength ?: null,
-                    'wordlimit' => $wordLimit ?: null,
+                    'min-chars' => ($this->limit && $this->minType === 'characters' && $this->min) ? $this->min : null,
+                    'max-chars' => ($this->limit && $this->maxType === 'characters' && $this->max) ? $this->max : null,
+                    'min-words' => ($this->limit && $this->minType === 'words' && $this->min) ? $this->min : null,
+                    'max-words' => ($this->limit && $this->maxType === 'words' && $this->max) ? $this->max : null,
                 ],
                 'aria-describedby' => $this->instructions ? "{$id}-instructions" : null,
             ], $this->getInputAttributes()));
@@ -363,7 +433,7 @@ class MultiLineText extends FormField implements PreviewableFieldInterface
         if ($key === 'fieldLimit') {
             return new HtmlTag('div', [
                 'class' => 'fui-limit-text',
-                'data-max-limit' => true,
+                'data-limit' => true,
             ]);
         }
 
@@ -387,8 +457,8 @@ class MultiLineText extends FormField implements PreviewableFieldInterface
     {
         $rules = parent::defineRules();
 
-        $rules[] = [['limitAmount'], 'number', 'integerOnly' => true];
-        $rules[] = [['limitType'], 'in', 'range' => ['characters', 'words']];
+        $rules[] = [['min', 'max'], 'number', 'integerOnly' => true];
+        $rules[] = [['minType', 'maxType'], 'in', 'range' => ['characters', 'words']];
 
         return $rules;
     }

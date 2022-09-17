@@ -742,8 +742,8 @@ class MigrateFreeform extends Migration
 
                 if ($field->getMaxLength()) {
                     $newField->limit = true;
-                    $newField->limitType = 'characters';
-                    $newField->limitAmount = $field->getMaxLength();
+                    $newField->maxType = 'characters';
+                    $newField->max = $field->getMaxLength();
                 }
 
                 $this->_applyFieldDefaults($newField);
@@ -755,8 +755,8 @@ class MigrateFreeform extends Migration
 
                 if ($field->getMaxLength()) {
                     $newField->limit = true;
-                    $newField->limitType = 'characters';
-                    $newField->limitAmount = $field->getMaxLength();
+                    $newField->maxType = 'characters';
+                    $newField->max = $field->getMaxLength();
                 }
 
                 $this->_applyFieldDefaults($newField);

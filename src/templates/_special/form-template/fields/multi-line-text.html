@@ -1,8 +1,5 @@
-{% set limitType = field.limitType ?? '' %}
-{% set limitAmount = field.limitAmount ?? false %}
-{% set limit = (field.limit ?? false) and limitAmount %}
-{% set maxlength = limit and limitType == 'characters' ? limitAmount %}
-{% set wordlimit = limit and limitType == 'words' ? limitAmount %}
+{% set maxChars = (field.limit and field.maxType == 'characters' and field.max) ? field.max : null %}
+{% set maxWords = (field.limit and field.maxType == 'words' and field.max) ? field.max : null %}
 
 {% if field.useRichText %}
     {{ fieldtag('fieldRichText') }}
@@ -18,21 +15,27 @@
     }) }}
 {% endif %}
 
-{% if maxlength or wordlimit %}
-    {% if maxlength %}
-        {% fieldtag 'fieldLimit' with { 'data-max-chars': maxlength } %}
+{% if field.limit %}
+    {% if maxChars %}
+        {% fieldtag 'fieldLimit' with {
+            'data-limit': true,
+            'data-max-chars': maxChars,
+        } %}
             {{- '{startTag}{num}{endTag} characters left' | t('formie', {
-                num: maxlength,
+                num: maxChars,
                 startTag: '<span class="fui-limit-number">',
                 endTag: '</span>',
             }) | raw -}}
         {% endfieldtag %}
     {% endif %}
 
-    {% if wordlimit %}
-        {% fieldtag 'fieldLimit' with { 'data-max-words': wordlimit } %}
+    {% if maxWords %}
+        {% fieldtag 'fieldLimit' with {
+            'data-limit': true,
+            'data-max-words': maxWords,
+        } %}
             {{- '{startTag}{num}{endTag} words left' | t('formie', {
-                num: wordlimit,
+                num: maxWords,
                 startTag: '<span class="fui-limit-number">',
                 endTag: '</span>',
             }) | raw -}}

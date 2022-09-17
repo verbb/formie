@@ -534,7 +534,6 @@ trait FormFieldTrait
         $defaults = [
             'labelPosition' => '',
             'instructionsPosition' => '',
-            'limitType' => 'characters',
         ];
 
         // Combine any class-specified defaults

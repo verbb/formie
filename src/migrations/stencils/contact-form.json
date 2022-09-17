@@ -85,7 +85,7 @@
                                 "lastNameLabel":"Last Name",
                                 "lastNamePlaceholder":"e.g. Sherman",
                                 "lastNameRequired":true,
-                                "limitType":"characters",
+                                "maxType":"characters",
                                 "middleNameCollapsed":true,
                                 "middleNameDefaultValue":"",
                                 "middleNameEnabled":false,
@@ -118,7 +118,7 @@
                                 "instructionsPosition":"",
                                 "label":"Email Address",
                                 "labelPosition":"",
-                                "limitType":"characters",
+                                "maxType":"characters",
                                 "placeholder":"e.g. psherman@wallaby.com",
                                 "required":true
                             },
@@ -142,7 +142,7 @@
                                 "instructionsPosition":"",
                                 "label":"Message",
                                 "labelPosition":"",
-                                "limitType":"characters",
+                                "maxType":"characters",
                                 "placeholder":"e.g. The reason for my enquiry is...",
                                 "required":true,
                                 "visibility":""

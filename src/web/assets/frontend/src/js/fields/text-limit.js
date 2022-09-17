@@ -5,17 +5,17 @@ export class FormieTextLimit {
         this.$form = settings.$form;
         this.form = this.$form.form;
         this.$field = settings.$field;
-        this.$text = this.$field.querySelector('[data-max-limit]');
+        this.$text = this.$field.querySelector('[data-limit]');
         this.$input = this.$field.querySelector('input, textarea');
 
         if (this.$text) {
-            this.initTextMax();
+            this.initTextLimits();
         } else {
-            console.error('Unable to find rich text field “[data-max-limit]”');
+            console.error('Unable to find rich text field “[data-limit]”');
         }
     }
 
-    initTextMax() {
+    initTextLimits() {
         this.maxChars = this.$text.getAttribute('data-max-chars');
         this.maxWords = this.$text.getAttribute('data-max-words');
 
