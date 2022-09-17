@@ -1864,6 +1864,27 @@ class Form extends Element
         $this->_appliedFieldSettings = true;
     }
 
+    public function setIntegrationSettings(string $handle, array $settings, $updateSnapshot = true): void
+    {
+        // Get the integration settings so we only override what we want
+        $integrationSettings = $this->settings->integrations[$handle] ?? [];
+        
+        // Update the integration settings
+        $this->settings->integrations[$handle] = array_merge($integrationSettings, $settings);
+
+        // Save just the integrations (all integrations)
+        $this->settings->setAttributes(['integrations' => $this->settings->integrations], false);
+
+        // Set snapshot data to ensure it's persisted
+        if ($updateSnapshot) {
+            // We have to save _all_ integration settings due to how it's applied later by `setAttributes()`
+            $this->setSnapshotData('form', ['integrations' => $this->settings->integrations]);
+
+            // Save this, so we know when we're applying form settings later
+            $this->_appliedFormSettings = true;
+        }
+    }
+
     public function getSnapshotData($key = null)
     {
         if (Craft::$app->getRequest()->getIsConsoleRequest()) {
