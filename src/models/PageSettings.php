@@ -68,10 +68,30 @@ class PageSettings extends Model
         return ArrayHelper::map($this->inputAttributes, 'label', 'value');
     }
 
+    public function hasConditions(): bool
+    {
+        return ($this->enableNextButtonConditions && $this->getConditions());
+    }
+
+    public function getConditions(): array
+    {
+        // Filter out any un-set conditions
+        $conditions = $this->nextButtonConditions ?? [];
+        $conditionRows = $conditions['conditions'] ?? [];
+
+        foreach ($conditionRows as $key => $condition) {
+            if (!($condition['condition'] ?? null)) {
+                unset($conditions['conditions'][$key]);
+            }
+        }
+
+        return $conditions;
+    }
+
     public function getConditionsJson(): ?string
     {
-        if ($this->enableNextButtonConditions) {
-            $conditionSettings = $this->nextButtonConditions ?? [];
+        if ($this->hasConditions()) {
+            $conditionSettings = $this->getConditions();
             $conditions = $conditionSettings['conditions'] ?? [];
 
             // Prep the conditions for JS

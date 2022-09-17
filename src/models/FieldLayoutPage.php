@@ -144,8 +144,8 @@ class FieldLayoutPage extends CraftFieldLayoutTab
 
     public function isConditionallyHidden(Submission $submission): bool
     {
-        if ($this->settings->enablePageConditions) {
-            $conditionSettings = $this->settings->pageConditions ?? [];
+        if ($this->hasConditions()) {
+            $conditionSettings = $this->getConditions();
             $conditions = $conditionSettings['conditions'] ?? [];
 
             if ($conditionSettings && $conditions) {
@@ -164,10 +164,30 @@ class FieldLayoutPage extends CraftFieldLayoutTab
         return false;
     }
 
+    public function hasConditions(): bool
+    {
+        return ($this->settings->enablePageConditions && $this->getConditions());
+    }
+
+    public function getConditions(): array
+    {
+        // Filter out any un-set conditions
+        $conditions = $this->settings->pageConditions ?? [];
+        $conditionRows = $conditions['conditions'] ?? [];
+
+        foreach ($conditionRows as $key => $condition) {
+            if (!($condition['condition'] ?? null)) {
+                unset($conditions['conditions'][$key]);
+            }
+        }
+
+        return $conditions;
+    }
+
     public function getConditionsJson(): ?string
     {
-        if ($this->settings->enablePageConditions) {
-            $conditionSettings = $this->settings->pageConditions ?? [];
+        if ($this->hasConditions()) {
+            $conditionSettings = $this->getConditions();
             $conditions = $conditionSettings['conditions'] ?? [];
 
             // Prep the conditions for JS

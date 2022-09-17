@@ -1012,13 +1012,28 @@ trait FormFieldTrait
 
     public function hasConditions(): bool
     {
-        return ($this->enableConditions && $this->conditions);
+        return ($this->enableConditions && $this->getConditions());
+    }
+
+    public function getConditions(): array
+    {
+        // Filter out any un-set conditions
+        $conditions = $this->conditions ?? [];
+        $conditionRows = $conditions['conditions'] ?? [];
+
+        foreach ($conditionRows as $key => $condition) {
+            if (!($condition['condition'] ?? null)) {
+                unset($conditions['conditions'][$key]);
+            }
+        }
+
+        return $conditions;
     }
 
     public function getConditionsJson($element = null): ?string
     {
-        if ($this->enableConditions) {
-            $conditionSettings = $this->conditions;
+        if ($this->hasConditions()) {
+            $conditionSettings = $this->getConditions();
             $conditions = $conditionSettings['conditions'] ?? [];
 
             $namespace = $this->getNamespace();
@@ -1067,7 +1082,7 @@ trait FormFieldTrait
 
         // Check if the field itself is hidden
         if ($this->enableConditions) {
-            $conditionSettings = $this->conditions;
+            $conditionSettings = $this->getConditions();
             $conditions = $conditionSettings['conditions'] ?? [];
 
             if ($conditionSettings && $conditions) {
