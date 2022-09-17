@@ -10,6 +10,7 @@ use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\gql\types\input\FileUploadInputType;
 use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\helpers\Variables;
 use verbb\formie\models\HtmlTag;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\Settings;
@@ -78,6 +79,7 @@ class FileUpload extends CraftAssets implements FormFieldInterface
     public ?string $uploadLocationSource = null;
     public ?string $uploadLocationSubpath = null;
     public bool $restrictLocation = true;
+    public mixed $filenameFormat = null;
 
     protected string $inputTemplate = 'formie/_includes/element-select-input';
 
@@ -407,6 +409,12 @@ class FileUpload extends CraftAssets implements FormFieldInterface
                     ],
                 ],
             ]),
+            SchemaHelper::variableTextField([
+                'label' => Craft::t('formie', 'Filename Format'),
+                'help' => Craft::t('formie', 'Enter the format for uploaded files to be renamed as. Do not include the extension.'),
+                'name' => 'filenameFormat',
+                'variables' => 'plainTextVariables',
+            ]),
             SchemaHelper::checkboxField([
                 'label' => Craft::t('formie', 'Restrict allowed file types?'),
                 'name' => 'restrictFiles',
@@ -506,14 +514,31 @@ class FileUpload extends CraftAssets implements FormFieldInterface
     {
         parent::afterElementSave($element, $isNew);
 
+        $elementService = Craft::$app->getElements();
+
         // Were any assets marked as to be deleted?
         if ($this->_assetsToDelete) {
             $assets = Asset::find()->id($this->_assetsToDelete)->all();
 
-            $elementService = Craft::$app->getElements();
-
             foreach ($assets as $asset) {
                 $elementService->deleteElement($asset, true);
+            }
+        }
+
+        // Rename files, if enabled
+        $filenameFormat = Variables::getParsedValue($this->filenameFormat, $element);
+
+        if ($filenameFormat) {
+            $assets = $element->getFieldValue($this->handle)->all();
+
+            foreach ($assets as $key => $asset) {
+                $suffix = ($key > 0) ? '_' . $key : '';
+
+                $filename = $filenameFormat . $suffix;
+                $asset->newFilename = Assets::prepareAssetName($filename . '.' . $asset->getExtension());
+                $asset->title = Assets::filename2Title($filename);
+
+                $elementService->saveElement($asset);
             }
         }
     }
