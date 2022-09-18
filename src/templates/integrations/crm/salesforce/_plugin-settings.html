@@ -39,7 +39,6 @@
     label: 'Redirect URI' | t('formie'),
     instructions: 'Use this URI when setting up your {name} app.' | t('formie', { name: integration.displayName() }),
     value: integration.getRedirectUri(),
-    warning: not craft.app.config.general.usePathInfo ? 'Some providers disallow query strings in the Redirect URI. Consider setting `usePathInfo = true` in your general config.' | t('formie') | md(inlineOnly=true),
 }) }}
 
 {% if not craft.app.config.general.allowAdminChanges %}

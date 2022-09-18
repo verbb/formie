@@ -133,6 +133,10 @@ class Formie extends Plugin
             $this->_registerResaveCommand();
         }
 
+        if (Craft::$app->getRequest()->getIsSiteRequest()) {
+            $this->_registerSiteRoutes();
+        }
+
         if (Craft::$app->getEdition() === Craft::Pro) {
             $this->_registerPermissions();
         }

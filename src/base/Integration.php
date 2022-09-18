@@ -9,7 +9,6 @@ use verbb\formie\events\IntegrationFormSettingsEvent;
 use verbb\formie\events\ModifyFieldIntegrationValuesEvent;
 use verbb\formie\events\SendIntegrationPayloadEvent;
 use verbb\formie\fields\formfields\Agree;
-use verbb\formie\helpers\UrlHelper as FormieUrlHelper;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 use verbb\formie\models\Token;
@@ -22,6 +21,7 @@ use craft\helpers\ArrayHelper;
 use craft\helpers\DateTimeHelper;
 use craft\helpers\Json;
 use craft\helpers\StringHelper;
+use craft\helpers\UrlHelper;
 use craft\queue\JobInterface;
 use craft\validators\HandleValidator;
 use craft\validators\UniqueValidator;
@@ -464,7 +464,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
 
     public function getRedirectUri(): string
     {
-        return FormieUrlHelper::siteActionUrl('formie/integrations/callback');
+        return UrlHelper::siteUrl('formie/integrations/callback');
     }
 
     public function getOauthProviderConfig(): array

@@ -7,7 +7,6 @@ use verbb\formie\events\ModifyPaymentCurrencyOptionsEvent;
 use verbb\formie\events\PaymentIntegrationProcessEvent;
 use verbb\formie\events\PaymentWebhookEvent;
 use verbb\formie\fields\formfields\Payment as PaymentField;
-use verbb\formie\helpers\UrlHelper as FormieUrlHelper;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\Notification;
 
@@ -211,7 +210,7 @@ abstract class Payment extends Integration
      */
     public function getRedirectUri(): string
     {
-        return FormieUrlHelper::siteActionUrl('formie/payment-webhooks/process-webhook', ['handle' => $this->handle]);
+        return UrlHelper::siteUrl('formie/payment-webhooks/process-webhook', ['handle' => $this->handle]);
     }
 
     /**
