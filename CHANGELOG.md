@@ -310,6 +310,11 @@
 - Removed `forms`, `form` and `formCount` from GraphQL queries. Please use `formieForms`, `formieForm` and `formieFormCount`.
 - Removed `submissions`, `submission` and `submissionCount` from GraphQL queries. Please use `formieSubmissions`, `formieSubmission` and `formieSubmissionCount`.
 
+## 1.6.13 - 2022-09-18
+
+### Fixed
+- Fix (again) Microsoft Dynamics not using `SchemaName` for custom field handles.
+
 ## 1.6.11 - 2022-09-04
 
 ### Added
