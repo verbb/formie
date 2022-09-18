@@ -91,6 +91,7 @@ class SentNotificationQuery extends ElementQuery
             'formie_sentnotifications.replyToName',
             'formie_sentnotifications.from',
             'formie_sentnotifications.fromName',
+            'formie_sentnotifications.sender',
             'formie_sentnotifications.body',
             'formie_sentnotifications.htmlBody',
             'formie_sentnotifications.info',

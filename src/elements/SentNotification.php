@@ -264,6 +264,7 @@ class SentNotification extends Element
     public ?string $replyToName = null;
     public ?string $from = null;
     public ?string $fromName = null;
+    public ?string $sender = null;
     public ?string $body = null;
     public ?string $htmlBody = null;
     public ?array $info = null;
@@ -373,6 +374,7 @@ class SentNotification extends Element
         $record->replyToName = $this->replyToName;
         $record->from = $this->from;
         $record->fromName = $this->fromName;
+        $record->sender = $this->sender;
         $record->body = $this->body;
         $record->htmlBody = $this->htmlBody;
         $record->info = $this->info;

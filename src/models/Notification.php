@@ -43,6 +43,7 @@ class Notification extends Model
     public ?string $replyToName = null;
     public ?string $from = null;
     public ?string $fromName = null;
+    public ?string $sender = null;
     public ?string $content = null;
     public ?bool $attachFiles = null;
     public ?string $attachPdf = null;
@@ -99,7 +100,7 @@ class Notification extends Model
         $rules = parent::defineRules();
 
         $rules[] = [['name', 'subject'], 'required'];
-        $rules[] = [['name', 'subject', 'to', 'cc', 'bcc', 'replyTo', 'replyToName', 'from', 'fromName'], 'string'];
+        $rules[] = [['name', 'subject', 'to', 'cc', 'bcc', 'replyTo', 'replyToName', 'from', 'fromName', 'sender'], 'string'];
         $rules[] = [['formId', 'templateId', 'pdfTemplateId'], 'number', 'integerOnly' => true];
 
         $rules[] = [

@@ -126,6 +126,7 @@ class Notifications extends Component
             $notificationRecord->replyToName = $notification->replyToName;
             $notificationRecord->from = $notification->from;
             $notificationRecord->fromName = $notification->fromName;
+            $notificationRecord->sender = $notification->sender;
             $notificationRecord->content = $notification->content;
             $notificationRecord->attachFiles = $notification->attachFiles;
             $notificationRecord->attachPdf = $notification->attachPdf;
@@ -613,6 +614,13 @@ class Notifications extends Component
                 'name' => 'bcc',
                 'variables' => 'emailVariables',
             ]),
+            SchemaHelper::variableTextField([
+                'label' => Craft::t('formie', 'Sender Email'),
+                'help' => Craft::t('formie', 'The email address for the notification email "sender" header, for advanced usage. Leave empty to use the "From Email".'),
+                'name' => 'sender',
+                'validation' => '?emailOrVariable',
+                'variables' => 'emailVariables',
+            ]),
             SchemaHelper::lightswitchField([
                 'label' => Craft::t('formie', 'Attach File Uploads'),
                 'help' => Craft::t('formie', 'Whether to attach file uploads to this email notification.'),
@@ -766,6 +774,7 @@ class Notifications extends Component
                 'replyToName',
                 'from',
                 'fromName',
+                'sender',
                 'content',
                 'attachFiles',
                 'attachPdf',

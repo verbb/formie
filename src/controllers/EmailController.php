@@ -51,6 +51,7 @@ class EmailController extends Controller
             'to' => $email->getTo(),
             'bcc' => $email->getBcc(),
             'cc' => $email->getCc(),
+            'sender' => $email->getSender(),
             'replyTo' => $email->getReplyTo(),
             'subject' => $email->getSubject(),
             'body' => $email->getHtmlBody(),

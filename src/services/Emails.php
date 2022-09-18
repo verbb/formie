@@ -116,6 +116,27 @@ class Emails extends Component
             return ['error' => $error, 'email' => $newEmail];
         }
 
+        // Sender: 
+        if ($notification->sender) {
+            try {
+                $sender = Variables::getParsedValue((string)$notification->sender, $submission, $form, $notification);
+                $sender = $this->_getParsedEmails($sender);
+
+                if ($sender) {
+                    $newEmail->setSender($sender);
+                }
+            } catch (Throwable $e) {
+                $error = Craft::t('formie', 'Notification email parse error for “Sender: {value}”. Template error: “{message}” {file}:{line}', [
+                    'value' => $notification->sender,
+                    'message' => $e->getMessage(),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                ]);
+
+                return ['error' => $error, 'email' => $newEmail, 'exception' => $e];
+            }
+        }
+
         // BCC:
         if ($notification->bcc) {
             try {
@@ -584,6 +605,7 @@ class Emails extends Component
             'to' => $email->getTo(),
             'cc' => $email->getCc(),
             'bcc' => $email->getBcc(),
+            'sender' => $email->getSender(),
             'subject' => $email->getSubject(),
             'body' => $email->getHtmlBody(),
         ];

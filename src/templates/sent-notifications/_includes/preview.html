@@ -50,6 +50,13 @@
         {% endif %}
     {% endif %}
 
+    {% if sentNotification.sender %}
+        <div class="fui-email-meta">
+            <div class="fui-email-meta-label">{{ 'Sender:' | t('formie') }}</div>
+            <div class="fui-email-meta-value">{{ sentNotification.sender }}</div>
+        </div>
+    {% endif %}
+
     <div class="fui-email-body">
         <iframe
             class="email-iframe"

@@ -84,6 +84,10 @@ class SentNotifications extends Component
             $sentNotification->bcc = implode(',', array_keys($bcc));
         }
 
+        if ($sender = $email->getSender()) {
+            $sentNotification->sender = implode(',', array_keys($sender));
+        }
+
         $sentNotification->htmlBody = $email->getHtmlBody();
         $sentNotification->body = $email->getTextBody();
 

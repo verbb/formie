@@ -19,6 +19,7 @@ use craft\db\ActiveRecord;
  * @property string $replyToName
  * @property string $from
  * @property string $fromName
+ * @property string $sender
  * @property string $content
  * @property boolean $attachFiles
  * @property string $uid
