@@ -86,7 +86,7 @@ export class Formie {
                                 });
                             }
 
-                            // Handle captchas that have global settings, instead of per-field
+                            // Handle integrations that have global settings, instead of per-field
                             if (config.settings) {
                                 this.initJsClass(config.module, {
                                     $form,

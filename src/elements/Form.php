@@ -2,8 +2,11 @@
 namespace verbb\formie\elements;
 
 use verbb\formie\Formie;
+use verbb\formie\base\AddressProvider;
+use verbb\formie\base\Captcha;
 use verbb\formie\base\FormFieldInterface;
 use verbb\formie\base\NestedFieldInterface;
+use verbb\formie\base\Payment;
 use verbb\formie\behaviors\FieldLayoutBehavior;
 use verbb\formie\elements\actions\DuplicateForm;
 use verbb\formie\elements\db\FormQuery;
@@ -1709,6 +1712,20 @@ class Form extends Element
                 if ($js = $captcha->getFrontEndJsVariables($this)) {
                     $registeredJs[] = [$js];
                 }
+            }
+        }
+
+        // Add any JS for other integrations (that don't handle things themselves)
+        $integrations = Formie::$plugin->getIntegrations()->getAllEnabledIntegrationsForForm($this);
+
+        foreach ($integrations as $integration) {
+            // Some integration types take care of front-end JS in other ways
+            if ($integration instanceof Captcha || $integration instanceof AddressProvider || $integration instanceof Payment) {
+                continue;
+            }
+
+            if ($js = $integration->getFrontEndJsVariables($this)) {
+                $registeredJs[] = [$js];
             }
         }
 
