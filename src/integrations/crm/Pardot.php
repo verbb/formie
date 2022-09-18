@@ -7,18 +7,28 @@ use verbb\formie\base\Integration;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\errors\IntegrationException;
+use verbb\formie\events\ModifyPayloadEvent;
 use verbb\formie\events\SendIntegrationPayloadEvent;
 use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
+use craft\helpers\App;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 use craft\web\View;
 
+use GuzzleHttp\Client;
+
 class Pardot extends Crm
 {
+    // Constants
+    // =========================================================================
+
+    public const EVENT_MODIFY_FORM_HANDLER_PAYLOAD = 'modifyFormHandlerPayload';
+
+
     // Properties
     // =========================================================================
 
@@ -28,8 +38,10 @@ class Pardot extends Crm
     public $useSandbox = false;
     public $mapToProspect = false;
     public $mapToOpportunity = false;
+    public $enableFormHandler = false;
     public $prospectFieldMapping;
     public $opportunityFieldMapping;
+    public $endpointUrl;
 
 
     // OAuth Methods
@@ -42,10 +54,8 @@ class Pardot extends Crm
     {
         return true;
     }
+    
 
-    /**
-     * @inheritDoc
-     */
     public function getAuthorizeUrl(): string
     {
         return 'https://login.salesforce.com/services/oauth2/authorize';
@@ -118,11 +128,20 @@ class Pardot extends Crm
         // Validate the following when saving form settings
         $rules[] = [['prospectFieldMapping'], 'validateFieldMapping', 'params' => $prospect, 'when' => function($model) {
             return $model->enabled && $model->mapToProspect;
-        }, 'on' => [Integration::SCENARIO_FORM]];
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
 
-        $rules[] = [['opportunityFieldMapping'], 'validateFieldMapping', 'params' => $opportunity, 'when' => function($model) {
-            return $model->enabled && $model->mapToOpportunity;
-        }, 'on' => [Integration::SCENARIO_FORM]];
+        $rules[] = [
+            ['opportunityFieldMapping'], 'validateFieldMapping', 'params' => $opportunity, 'when' => function($model) {
+                return $model->enabled && $model->mapToOpportunity;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
+
+        $rules[] = [
+            ['endpointUrl'], 'required', 'when' => function($model) {
+                return $model->enabled && $model->enableFormHandler;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
 
         return $rules;
     }
@@ -451,6 +470,29 @@ class Pardot extends Crm
                     return false;
                 }
             }
+
+            if ($this->enableFormHandler) {
+                // Generate flat payload values to send
+                $payload = $this->generatePayloadValues($submission);
+
+                // Send a raw request to the endpoint
+                $client = Craft::createGuzzleClient();
+                $request = $client->request('POST', $this->endpointUrl, [
+                    'form_params' => $payload,
+                ]);
+
+                // Parse the response, which will be plain text
+                $response = (string)$request->getBody();
+
+                if (str_contains($response, 'Please correct the following errors')) {
+                    Integration::error($this, Craft::t('formie', 'Error in form handler response {response}. Sent payload {payload}', [
+                        'response' => $response,
+                        'payload' => Json::encode($payload),
+                    ]), true);
+
+                    return false;
+                }
+            }
         } catch (\Throwable $e) {
             Integration::apiError($this, $e);
 
@@ -485,7 +527,12 @@ class Pardot extends Crm
         }
 
         $token = $this->getToken();
-        $baseUrl = $this->getUseSandbox() ? 'https://pi.demo.pardot.com/api/' : 'https://pi.pardot.com/api/';
+
+        if (!$token) {
+            Integration::apiError($this, 'Token not found for integration.', true);
+        }
+
+        $baseUrl = $this->useSandbox ? 'https://pi.demo.pardot.com/api/' : 'https://pi.pardot.com/api/';
         $businessUnitId = Craft::parseEnv($this->businessUnitId);
 
         $this->_client = Craft::createGuzzleClient([
@@ -525,6 +572,29 @@ class Pardot extends Crm
         }
 
         return $this->_client;
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
+    protected function generatePayloadValues(Submission $submission): array
+    {
+        $payloadData = $this->generateSubmissionPayloadValues($submission);
+
+        $payload = $payloadData['json']['submission'] ?? [];
+
+        // Flatten array to dot-notation
+        $payload = ArrayHelper::flatten($payload);
+
+        // Fire a 'modifyPayload' event
+        $event = new ModifyPayloadEvent([
+            'submission' => $submission,
+            'payload' => $payload,
+        ]);
+        $this->trigger(self::EVENT_MODIFY_FORM_HANDLER_PAYLOAD, $event);
+
+        return $event->payload;
     }
 
 

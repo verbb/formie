@@ -5,6 +5,7 @@
 
 {% set mapToProspect = form.settings.integrations[handle].mapToProspect ?? '' %}
 {% set mapToOpportunity = form.settings.integrations[handle].mapToOpportunity ?? '' %}
+{% set enableFormHandler = form.settings.integrations[handle].enableFormHandler ?? '' %}
 
 <field-select
     label="{{ 'Opt-In Field' | t('formie') }}"
@@ -79,6 +80,26 @@
                     ${ error }
                 </li>
             </ul>
+        </div>
+
+        {{ forms.lightswitchField({
+            label: 'Enable Form Handler' | t('formie'),
+            instructions: 'Whether to send form data to a {name} Form Handler endpoint.' | t('formie', { name: integration.displayName() }),
+            id: 'enableFormHandler',
+            name: 'enableFormHandler',
+            on: enableFormHandler,
+            toggle: 'enable-form-handler',
+        }) }}
+
+        <div id="enable-form-handler" class="{{ not enableFormHandler ? 'hidden' }}">
+            {{ forms.textField({
+                label: 'Endpoint URL' | t('formie'),
+                instructions: 'Enter the {name} Endpoint URL that will be triggered when a submission is made.' | t('formie', { name: integration.displayName() }),
+                name: 'endpointUrl',
+                required: true,
+                value: integration.settings.endpointUrl ?? '',
+                errors: integration.getErrors('endpointUrl'),
+            }) }}
         </div>
     </div>
 </integration-form-settings>
