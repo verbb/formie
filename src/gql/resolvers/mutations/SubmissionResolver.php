@@ -51,12 +51,14 @@ class SubmissionResolver extends ElementMutationResolver
                 throw new Error('Unable to perform the action.');
             }
 
+            $query = $elementService->createElementQuery(Submission::class)->status(null)->isSpam(null)->isIncomplete(null);
+
             if (!empty($arguments['uid'])) {
                 /* @var Submission $submission */
-                $submission = $elementService->createElementQuery(Submission::class)->uid($arguments['uid'])->one();
+                $submission = $query->uid($arguments['uid'])->one();
             } else {
                 /* @var Submission $submission */
-                $submission = $elementService->getElementById($arguments['id'], Submission::class);
+                $submission = $query->id($arguments['id'])->one();
             }
 
             if (!$submission) {
@@ -104,10 +106,8 @@ class SubmissionResolver extends ElementMutationResolver
             }
         }
 
-        // Only handle single-pages in GQL for now
         $submission->setScenario(Element::SCENARIO_LIVE);
-        $submission->isIncomplete = false;
-        $submission->validateCurrentPageOnly = false;
+        $submission->validateCurrentPageOnly = (bool)$submission->isIncomplete;
 
         $submission->validate();
 
@@ -158,7 +158,14 @@ class SubmissionResolver extends ElementMutationResolver
             throw new Error(Json::encode($submission->getErrors()));
         }
 
-        return $elementService->getElementById($submission->id, Submission::class, $submission->siteId);
+        // Refresh data from the DB
+        return Craft::$app->getElements()->createElementQuery(Submission::class)
+            ->id($submission->id)
+            ->siteId($submission->siteId)
+            ->status(null)
+            ->isSpam(null)
+            ->isIncomplete(null)
+            ->one();
     }
 
     public function deleteSubmission($source, array $arguments, $context, ResolveInfo $resolveInfo): bool

@@ -843,6 +843,7 @@ To create or update a submission use the form-specific mutation, which will have
 | `title`| `String` | Set the element’s title.
 | `status`| `String` | Set the element’s status as its handle.
 | `statusId`| `Int` | Set the element’s statusId.
+| `isIncomplete`| `Boolean` | Set the element’s incomplete state.
 | `...`|  | More arguments depending on the field layout for the form
 
 <!-- END SUBMISSION MUTATION ARGS -->

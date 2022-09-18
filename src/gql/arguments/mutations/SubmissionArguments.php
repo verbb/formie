@@ -28,6 +28,11 @@ class SubmissionArguments extends ElementMutationArguments
                 'type' => Type::int(),
                 'description' => 'The submission’s site ID.',
             ],
+            'isIncomplete' => [
+                'name' => 'isIncomplete',
+                'type' => Type::boolean(),
+                'description' => 'The submission’s incomplete state.',
+            ],
         ]);
     }
 }
