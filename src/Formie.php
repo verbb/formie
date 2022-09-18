@@ -107,6 +107,7 @@ class Formie extends Plugin
         $this->_setPluginComponents();
         $this->_setLogging();
         $this->_registerCpRoutes();
+        $this->_registerSiteRoutes();
         $this->_registerTwigExtensions();
         $this->_registerFieldsEvents();
         $this->_registerFieldTypes();

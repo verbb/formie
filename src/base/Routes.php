@@ -11,6 +11,18 @@ trait Routes
     // =========================================================================
 
     /**
+     * Site routes.
+     *
+     * @return void
+     */
+    public function _registerSiteRoutes(): void
+    {
+        Event::on(UrlManager::class, UrlManager::EVENT_REGISTER_SITE_URL_RULES, function(RegisterUrlRulesEvent $event) {
+            $event->rules['formie/integrations/callback'] = 'formie/integrations/callback';
+        });
+    }
+    
+    /**
      * Control Panel routes.
      *
      * @return void
