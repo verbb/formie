@@ -106,4 +106,12 @@ abstract class Miscellaneous extends Integration
 
         return $event->payload;
     }
+
+    /**
+     * Returns the front-end JS variables.
+     */
+    public function getFrontEndJsVariables($field = null): ?array
+    {
+        return null;
+    }
 }

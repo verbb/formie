@@ -131,6 +131,14 @@ abstract class EmailMarketing extends Integration
         return $event->isValid;
     }
 
+    /**
+     * Returns the front-end JS variables.
+     */
+    public function getFrontEndJsVariables($field = null): ?array
+    {
+        return null;
+    }
+
 
     // Private Methods
     // =========================================================================

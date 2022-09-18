@@ -2,11 +2,11 @@
 namespace verbb\formie\elements;
 
 use verbb\formie\Formie;
-use verbb\formie\base\AddressProvider;
-use verbb\formie\base\Captcha;
+use verbb\formie\base\Crm;
+use verbb\formie\base\EmailMarketing;
 use verbb\formie\base\FormFieldInterface;
+use verbb\formie\base\Miscellaneous;
 use verbb\formie\base\NestedFieldInterface;
-use verbb\formie\base\Payment;
 use verbb\formie\behaviors\FieldLayoutBehavior;
 use verbb\formie\elements\actions\DuplicateForm;
 use verbb\formie\elements\db\FormQuery;
@@ -1720,12 +1720,10 @@ class Form extends Element
 
         foreach ($integrations as $integration) {
             // Some integration types take care of front-end JS in other ways
-            if ($integration instanceof Captcha || $integration instanceof AddressProvider || $integration instanceof Payment) {
-                continue;
-            }
-
-            if ($js = $integration->getFrontEndJsVariables($this)) {
-                $registeredJs[] = [$js];
+            if ($integration instanceof Crm || $integration instanceof EmailMarketing || $integration instanceof Miscellaneous) {
+                if ($js = $integration->getFrontEndJsVariables($this)) {
+                    $registeredJs[] = [$js];
+                }
             }
         }
 

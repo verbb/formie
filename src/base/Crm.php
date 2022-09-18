@@ -108,4 +108,12 @@ abstract class Crm extends Integration
 
         return $event->isValid;
     }
+
+    /**
+     * Returns the front-end JS variables.
+     */
+    public function getFrontEndJsVariables($field = null): ?array
+    {
+        return null;
+    }
 }
