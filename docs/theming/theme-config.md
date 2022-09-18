@@ -561,7 +561,7 @@ Event::on(SingleLineText::class, SingleLineText::EVENT_MODIFY_HTML_TAG, function
 ```
 
 ### Plugin Configuration (PHP)
-You can also define your config at the global plugin level through the [plugin configuration](docs:getting-started/configuration) file. Because this has the least priority, all other methods can override your definition here. This allows you to create sane defaults at the plugin level - even across multiple projects - and tweak them as needed.
+You can also define your config at the global plugin level through the [plugin configuration](docs:get-started/configuration) file. Because this has the least priority, all other methods can override your definition here. This allows you to create sane defaults at the plugin level - even across multiple projects - and tweak them as needed.
 
 ```php
 <?php
