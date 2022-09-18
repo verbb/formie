@@ -1,5 +1,42 @@
 # Changelog
 
+## 2.0.11 - 2022-09-18
+
+### Added
+- Added email notification preview support for Repeater fields.
+- Added `isIncomplete` argument to GraphQL mutations for submissions, allowing partial payloads to be saved via GraphQL.
+- Added support for all integrations to define front-end JS via `getFrontEndJsVariables()`.
+- Added `form.setIntegrationSettings` function to set integration settings in Twig.
+- Added “Filename Format” setting to File Upload fields to allow for renaming of files on upload to a given format.
+- Added handle to duplicate fields when exporting submissions, to prevent ambiguity for same-named fields.
+- Added min/max field value support for Single-Line and Multi-Line Text fields.
+- Added “Save Spam Submissions” setting to captchas to control whether to save spam submissions as the captcha level.
+- Added `spamClass` to submissions to record the captcha that marked the submission as spam.
+- Added support for `<details>` and `<summary>` tags in HTML field.
+- Added warning message for “Redirect URI” setting for OAuth integrations about `usePathInfo = false`.
+- Added before/after events when sending payloads for Webhook & Zapier integration.
+- Added Azure admin note to Microsoft Dynamics 365 integration.
+- Added `formie/forms/delete` console command.
+- Added support for Zoho CRM integration to map to a Quote object.
+- Added support for Salesforce CRM integration to map to a Case object.
+- Added support for Phone fields have their country ISO and country full name be able to be picked when mapping to integrations.
+
+### Changed
+- Changed conditions builder’s field column to show 60 characters of field labels.
+
+### Fixed
+- Fixed field, page and button conditionals evaluating for blank conditions.
+- Fixed an error with Redirect URI’s for integrations that have `usePathInfo = false`.
+- Fixed an error being thrown when Trello didn’t have a OAuth token.
+- Fixed an error when querying some fields on a Group field with GraphQL.
+- Fixed space characters being added to variable picker field values.
+- Fixed a type error for integration’s `getOauthProvider()` function, not supporting OAuth1 providers.
+- Fixed an error when querying some fields on a Group field with GraphQL.
+- Fixed Calculations field evaluating empty formulas.
+- Fixed (again) Microsoft Dynamics not using `SchemaName` for custom field handles.
+- Fixed Redirect URI for some providers containing the `site` query param.
+- Fixed Repeater field and inner-field JS registration.
+
 ## 2.0.10 - 2022-09-11
 
 ### Added
