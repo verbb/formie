@@ -5,12 +5,13 @@ use verbb\formie\Formie;
 use verbb\formie\base\Crm;
 use verbb\formie\base\Integration;
 use verbb\formie\elements\Submission;
+use verbb\formie\events\ModifyPayloadEvent;
+use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
 use craft\helpers\App;
-use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 
 use Throwable;
@@ -19,6 +20,12 @@ use GuzzleHttp\Client;
 
 class Pardot extends Crm
 {
+    // Constants
+    // =========================================================================
+
+    public const EVENT_MODIFY_FORM_HANDLER_PAYLOAD = 'modifyFormHandlerPayload';
+
+
     // Static Methods
     // =========================================================================
 
@@ -45,8 +52,10 @@ class Pardot extends Crm
     public bool|string $useSandbox = false;
     public bool $mapToProspect = false;
     public bool $mapToOpportunity = false;
+    public bool $enableFormHandler = false;
     public ?array $prospectFieldMapping = null;
     public ?array $opportunityFieldMapping = null;
+    public ?string $endpointUrl = null;
 
 
     // Public Methods
@@ -104,6 +113,12 @@ class Pardot extends Crm
         $rules[] = [
             ['opportunityFieldMapping'], 'validateFieldMapping', 'params' => $opportunity, 'when' => function($model) {
                 return $model->enabled && $model->mapToOpportunity;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
+
+        $rules[] = [
+            ['endpointUrl'], 'required', 'when' => function($model) {
+                return $model->enabled && $model->enableFormHandler;
             }, 'on' => [Integration::SCENARIO_FORM],
         ];
 
@@ -428,6 +443,29 @@ class Pardot extends Crm
                     return false;
                 }
             }
+
+            if ($this->enableFormHandler) {
+                // Generate flat payload values to send
+                $payload = $this->generatePayloadValues($submission);
+
+                // Send a raw request to the endpoint
+                $client = Craft::createGuzzleClient();
+                $request = $client->request('POST', $this->endpointUrl, [
+                    'form_params' => $payload,
+                ]);
+
+                // Parse the response, which will be plain text
+                $response = (string)$request->getBody();
+
+                if (str_contains($response, 'Please correct the following errors')) {
+                    Integration::error($this, Craft::t('formie', 'Error in form handler response {response}. Sent payload {payload}', [
+                        'response' => $response,
+                        'payload' => Json::encode($payload),
+                    ]), true);
+
+                    return false;
+                }
+            }
         } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
@@ -503,6 +541,29 @@ class Pardot extends Crm
         }
 
         return $this->_client;
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
+    protected function generatePayloadValues(Submission $submission): array
+    {
+        $payloadData = $this->generateSubmissionPayloadValues($submission);
+
+        $payload = $payloadData['json']['submission'] ?? [];
+
+        // Flatten array to dot-notation
+        $payload = ArrayHelper::flatten($payload);
+
+        // Fire a 'modifyPayload' event
+        $event = new ModifyPayloadEvent([
+            'submission' => $submission,
+            'payload' => $payload,
+        ]);
+        $this->trigger(self::EVENT_MODIFY_FORM_HANDLER_PAYLOAD, $event);
+
+        return $event->payload;
     }
 
 
