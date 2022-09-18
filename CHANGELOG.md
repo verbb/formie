@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.6.13 - 2022-09-18
+
+### Fixed
+- Fix (again) Microsoft Dynamics not using `SchemaName` for custom field handles.
+
 ## 1.6.12 - 2022-09-11
 
 ### Added
