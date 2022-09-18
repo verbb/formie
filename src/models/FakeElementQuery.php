@@ -39,4 +39,9 @@ class FakeElementQuery extends ElementQuery
         return $this->_fieldValues;
     }
 
+    public function exists($db = null): bool
+    {
+        return (bool)count($this->_fieldValues);
+    }
+
 }

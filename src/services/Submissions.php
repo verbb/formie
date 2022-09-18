@@ -711,6 +711,7 @@ class Submissions extends Component
 
                     break;
                 case formfields\Group::class:
+                case formfields\Repeater::class:
                     // Create a fake object to query. Maybe one day I'll figure out how to generate a fake elementQuery.
                     // The fields rely on a NestedRowQuery for use in emails, so we need some similar.
                     $query = new FakeElementQuery(FakeElement::class);
