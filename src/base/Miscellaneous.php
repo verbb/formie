@@ -81,38 +81,20 @@ abstract class Miscellaneous extends Integration implements IntegrationInterface
     }
 
     /**
-     * @inheritDoc
+     * Returns the front-end JS variables.
      */
+    public function getFrontEndJsVariables($field = null): ?array
+    {
+        return null;
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
     protected function generatePayloadValues(Submission $submission): array
     {
-        $submissionContent = $submission->getValuesAsJson();
-        $formAttributes = Json::decode(Json::encode($submission->getForm()->getAttributes()));
-
-        $submissionAttributes = $submission->toArray([
-            'id',
-            'formId',
-            'status',
-            'userId',
-            'ipAddress',
-            'isIncomplete',
-            'isSpam',
-            'spamReason',
-            'title',
-            'dateCreated',
-            'dateUpdated',
-            'dateDeleted',
-            'trashed',
-        ]);
-
-        // Trim the form settings a little
-        unset($formAttributes['settings']['integrations']);
-
-        $payload = [
-            'json' => [
-                'submission' => array_merge($submissionAttributes, $submissionContent),
-                'form' => $formAttributes,
-            ],
-        ];
+        $payload = $this->generateSubmissionPayloadValues($submission);
 
         // Fire a 'modifyMiscellaneousPayload' event
         $event = new ModifyMiscellaneousPayloadEvent([

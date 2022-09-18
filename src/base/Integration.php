@@ -971,6 +971,38 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     /**
      * @inheritDoc
      */
+    protected function generateSubmissionPayloadValues(Submission $submission): array
+    {
+        $submissionContent = $submission->getValuesAsJson();
+        $formAttributes = Json::decode(Json::encode($submission->getForm()->getAttributes()));
+
+        $submissionAttributes = $submission->toArray([
+            'id',
+            'formId',
+            'status',
+            'userId',
+            'ipAddress',
+            'isIncomplete',
+            'isSpam',
+            'spamReason',
+            'title',
+            'dateCreated',
+            'dateUpdated',
+            'dateDeleted',
+            'trashed',
+        ]);
+
+        // Trim the form settings a little
+        unset($formAttributes['settings']['integrations']);
+
+        return [
+            'json' => [
+                'submission' => array_merge($submissionAttributes, $submissionContent),
+                'form' => $formAttributes,
+            ],
+        ];
+    }
+    
     private function setCache($values)
     {
         if ($this->cache === null) {
