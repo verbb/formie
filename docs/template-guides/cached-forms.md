@@ -159,17 +159,17 @@ Which we can use in our callback to find the hidden `<input>` elements, and upda
                 // Find the JavaScript captcha hidden input, so we can update it
                 if (result.captchas && result.captchas.javascript) {
                     // JavaScript captcha
-                    let jsCaptcha = result.captchas.javascript.value;
+                    let jsCaptcha = result.captchas.javascript;
 
-                    $form.querySelector('input[name="' + jsCaptcha.sessionKey + '"]').value = jsCaptcha;
+                    $form.querySelector('input[name="' + jsCaptcha.sessionKey + '"]').value = jsCaptcha.value;
                 }
 
                 // Find the Duplicate captcha hidden input, so we can update it
                 if (result.captchas && result.captchas.duplicate) {
                     // Duplicate captcha
-                    let duplicateCaptcha = result.captchas.duplicate.value;
+                    let duplicateCaptcha = result.captchas.duplicate;
 
-                    $form.querySelector('input[name="' + duplicateCaptcha.sessionKey + '"]').value = duplicateCaptcha;
+                    $form.querySelector('input[name="' + duplicateCaptcha.sessionKey + '"]').value = duplicateCaptcha.value;
                 }
             });
     });
