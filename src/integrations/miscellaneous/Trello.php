@@ -22,6 +22,8 @@ use GuzzleHttp\Client;
 
 use Throwable;
 
+use LitEmoji\LitEmoji;
+
 class Trello extends Miscellaneous
 {
     // Static Methods
@@ -132,13 +134,13 @@ class Trello extends Miscellaneous
                 foreach ($allLists as $list) {
                     $lists[] = [
                         'id' => $list['id'],
-                        'name' => $list['name'],
+                        'name' => LitEmoji::unicodeToShortcode($list['name']),
                     ];
                 }
 
                 $boards[$board['id']] = [
                     'id' => $board['id'],
-                    'name' => $board['name'],
+                    'name' => LitEmoji::unicodeToShortcode($board['name']),
                     'lists' => $lists,
                 ];
             }
@@ -151,6 +153,27 @@ class Trello extends Miscellaneous
         }
 
         return new IntegrationFormSettings($settings);
+    }
+
+    public function getFormSettings($useCache = true): bool|IntegrationFormSettings
+    {
+        $settings = parent::getFormSettings($useCache);
+        $boards = $settings->getSettingsByKey('boards');
+
+        // Parse any Emoji's in board/list titles from the saved cache
+        foreach ($boards as $boardKey => $board) {
+            $boards[$boardKey]['name'] = LitEmoji::shortcodeToUnicode($board['name']);
+
+            $lists = $board['lists'] ?? [];
+
+            foreach ($lists as $listKey => $list) {
+                $boards[$boardKey]['lists'][$listKey]['name'] = LitEmoji::shortcodeToUnicode($list['name']);
+            }
+        }
+
+        $settings->setSettingsByKey('boards', $boards);
+
+        return $settings;
     }
 
     public function sendPayload(Submission $submission): bool

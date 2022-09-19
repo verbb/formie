@@ -44,6 +44,11 @@ class IntegrationFormSettings extends Model
         return array_merge($this->collections, $collections);
     }
 
+    public function setSettingsByKey($key, $value): void
+    {
+        ArrayHelper::setValue($this->collections, $key, $value);
+    }
+
     public function serialize()
     {
         return $this->classToArray($this->collections);
