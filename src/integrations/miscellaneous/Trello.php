@@ -116,7 +116,12 @@ class Trello extends Miscellaneous
         $settings = [];
 
         try {
-            $allBoards = $this->request('GET', 'members/me/boards');
+            $allBoards = $this->request('GET', 'members/me/boards', [
+                'query' => [
+                    'filter' => 'open,members,organization,public',
+                    'fields' => 'id,name',
+                ],
+            ]);
             $boards = [];
 
             foreach ($allBoards as $key => $board) {
