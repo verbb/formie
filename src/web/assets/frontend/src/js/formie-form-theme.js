@@ -26,8 +26,6 @@ export class FormieFormTheme {
         this.alertClass = this.form.getClasses('alert');
         this.alertErrorClass = this.form.getClasses('alertError');
         this.alertSuccessClass = this.form.getClasses('alertSuccess');
-        this.pageClass = this.form.getClasses('page');
-        this.progressClass = this.form.getClasses('progress');
         this.tabClass = this.form.getClasses('tab');
 
         this.initValidator();
@@ -739,7 +737,7 @@ export class FormieFormTheme {
         }));
 
         // Hide all pages
-        const $allPages = this.$form.querySelectorAll(`.${this.pageClass}`);
+        const $allPages = this.$form.querySelectorAll('[data-fui-page]');
 
         if (data.nextPageId) {
             $allPages.forEach(($page) => {
@@ -764,7 +762,7 @@ export class FormieFormTheme {
             $progress.textContent = `${progress}%`;
         }
 
-        const $tabs = this.$form.querySelectorAll(`.${this.tabClass}`);
+        const $tabs = this.$form.querySelectorAll('[data-fui-page-tab]');
 
         if (data.nextPageId) {
             $tabs.forEach(($tab) => {

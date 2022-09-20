@@ -1474,6 +1474,7 @@ class Form extends Element
                 'data' => [
                     'index' => $page->sortOrder ?? null,
                     'id' => $pageId,
+                    'fui-page' => true,
                     'fui-page-hidden' => $this->hasMultiplePages() && $pageId != $currentPageId ? true : false,
                 ],
             ]);
