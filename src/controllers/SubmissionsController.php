@@ -205,16 +205,22 @@ class SubmissionsController extends Controller
 
         $request = Craft::$app->getRequest();
 
+        /* @var Settings $settings */
+        $formieSettings = Formie::$plugin->getSettings();
+
         // Ensure we validate some params here to prevent potential malicious-ness
-        $formHandle = $this->_getTypedParam('handle', 'string');
+        $handle = $this->_getTypedParam('handle', 'string');
+        $pageIndex = $this->_getTypedParam('pageIndex', 'int');
+        $goToPageId = $this->_getTypedParam('goToPageId', 'id');
+        $completeSubmission = $this->_getTypedParam('completeSubmission', 'boolean');
         $submitAction = $this->_getTypedParam('submitAction', 'string', 'submit');
 
-        $form = Form::find()->handle($formHandle)->one();
+        /* @var Form $form */
+        $form = Form::find()->handle($handle)->one();
 
-        // Get the submission, or create a new one
-        $submission = $this->_populateSubmission($form, null);
-        $form = $submission->form;
-        $nextPage = null;
+        if (!$form) {
+            throw new BadRequestHttpException("No form exists with the handle \"$handle\"");
+        }
 
         // Check against permissions to save at all, or per-form
         if (!Craft::$app->getUser()->checkPermission('formie-editSubmissions')) {
@@ -222,6 +228,14 @@ class SubmissionsController extends Controller
                 throw new ForbiddenHttpException('User is not permitted to perform this action');
             }
         }
+
+        // Get the submission, or create a new one
+        $submission = $this->_populateSubmission($form, null);
+
+        $pages = $form->getPages();
+        $settings = $form->settings;
+        $defaultStatus = $form->getDefaultStatus();
+        $errorMessage = $form->settings->getErrorMessage();
 
         // Now populate the rest of it from the post data
         $submission->enabled = true;
@@ -242,32 +256,65 @@ class SubmissionsController extends Controller
             // multipage forms, separate to "new" submissions
             $form->setSubmission($submission);
 
-            // Check for the next page - if there is one
-            $nextPage = $form->getNextPage(null, $submission);
+            // If we're going back, and want to  navigate without saving
+            if ($submitAction === 'back' && !$formieSettings->enableBackSubmission) {
+                $nextPage = $form->getPreviousPage(null, $submission);
 
-            // Or, if we've passed in a specific page to go to
-            if ($goToPageId = $request->getParam('goToPageId')) {
+                // Update the current page to reflect the next page
+                $form->setCurrentPage($nextPage);
+
+                if ($request->getAcceptsJson()) {
+                    return $this->_returnJsonResponse(true, $submission, $form, $nextPage);
+                }
+
+                return $this->refresh();
+            }
+
+            // Set a specific page as the current page. This will override the session-based
+            // current page, but is useful for headless setups, or template overrides.
+            if (is_numeric($pageIndex)) {
+                $currentPage = $pages[$pageIndex] ?? null;
+
+                if ($currentPage) {
+                    $form->setCurrentPage($currentPage);
+                }
+            }
+
+            // Allow full submission payload to be provided for multipage forms.
+            // Skip straight to the last page.
+            if ($completeSubmission) {
+                $currentPage = $pages[(is_countable($pages) ? count($pages) : 0) - 1] ?? null;
+
+                if ($currentPage) {
+                    $form->setCurrentPage($currentPage);
+                }
+            }
+
+            // Determine the next page to navigate to
+            if (is_numeric($goToPageId)) {
                 $nextPage = ArrayHelper::firstWhere($form->getPages(), 'id', $goToPageId);
             } else if ($submitAction === 'back') {
                 $nextPage = $form->getPreviousPage(null, $submission);
+            } else if ($submitAction === 'save') {
+                $nextPage = $form->getCurrentPage();
+            } else {
+                $nextPage = $form->getNextPage(null, $submission);
             }
 
             // Only validate when submitting
             if ($submitAction === 'submit') {
                 // Turn on validation, but set a flag to only validate the current page.
+                $submission->setScenario(Element::SCENARIO_LIVE);
                 $submission->validateCurrentPageOnly = true;
-            }
-
-            // Check if we're on the last page of the form, or need to keep going
-            if (empty($nextPage)) {
+            } else {
                 $submission->validateCurrentPageOnly = false;
-
-                // Always ensure the submission is completed at the end
-                $submission->isIncomplete = false;
             }
         }
 
-        $submission->validate();
+        // Only validate for submitting.
+        if ($submitAction === 'submit') {
+            $submission->validate();
+        }
 
         if ($submission->hasErrors()) {
             $errors = $submission->getErrors();
@@ -292,7 +339,10 @@ class SubmissionsController extends Controller
             return null;
         }
 
-        if (!Craft::$app->getElements()->saveElement($submission)) {
+        // Save the submission
+        $success = Craft::$app->getElements()->saveElement($submission, false);
+
+        if (!$success || $submission->getErrors()) {
             $errors = $submission->getErrors();
 
             Formie::error(Craft::t('app', 'Couldn’t save submission - {e}.', ['e' => Json::encode($errors)]));
