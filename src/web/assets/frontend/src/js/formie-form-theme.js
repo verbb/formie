@@ -753,7 +753,7 @@ export class FormieFormTheme {
         }
 
         // Update tabs and progress bar if we're using them
-        const $progress = this.$form.querySelector('[data-fui-progress]');
+        const $progress = this.$form.querySelector('[data-fui-progress-bar]');
 
         if ($progress && data.nextPageIndex) {
             const pageIndex = parseInt(data.nextPageIndex, 10) + 1;
