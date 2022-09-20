@@ -1588,12 +1588,14 @@ class Form extends Element
         if ($key === 'progressWrapper') {
             return new HtmlTag('div', [
                 'class' => 'fui-progress-container',
+                'data-fui-progress-container' => true,
             ]);
         }
 
         if ($key === 'progress') {
             return new HtmlTag('div', [
                 'class' => 'fui-progress',
+                'data-fui-progress' => true,
             ]);
         }
 
@@ -1604,6 +1606,7 @@ class Form extends Element
                 'style' => "width: {$progress}%",
                 'class' => 'fui-progress-bar',
                 'role' => 'progressbar',
+                'data-fui-progress-bar' => true,
                 'aria' => [
                     'valuenow' => $progress,
                     'valuemin' => 0,
