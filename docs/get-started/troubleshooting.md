@@ -23,3 +23,8 @@ But you can also disable queue processing altogether, so long as you understand 
 For the same reason as above for email notifications, Integrations use the queue for sending information to third-parties.
 
 Follow the same steps as above to fix this.
+
+### My form submission was successful, but no submission in the control panel
+The most common case of this happening is when your submission has been marked as spam. By default, Formie will act upon a spam submission like it was a successful form submission. Otherwise, sending a failed response to bots and attackers show that their attack didn't work, and they need to adapt and continue their attack.
+
+You can view spam submissions in the control panel by navigating to Formie → Submissions, and selecting the "Spam" status from the status dropdown (next to the search field) at the top of the page.
