@@ -306,6 +306,7 @@ class SubmissionsController extends Controller
                 // Turn on validation, but set a flag to only validate the current page.
                 $submission->setScenario(Element::SCENARIO_LIVE);
                 $submission->validateCurrentPageOnly = true;
+                $submission->isIncomplete = false;
             } else {
                 $submission->validateCurrentPageOnly = false;
             }
