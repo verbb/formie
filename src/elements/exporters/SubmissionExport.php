@@ -6,8 +6,11 @@ use verbb\formie\events\ModifySubmissionExportDataEvent;
 use Craft;
 use craft\base\EagerLoadingFieldInterface;
 use craft\base\ElementExporter;
+use craft\base\ElementInterface;
+use craft\db\Query;
 use craft\elements\db\ElementQuery;
 use craft\elements\db\ElementQueryInterface;
+use craft\helpers\ElementHelper;
 
 class SubmissionExport extends ElementExporter
 {
@@ -80,6 +83,11 @@ class SubmissionExport extends ElementExporter
 
                 $row = array_combine(array_values($attributes), $values);
 
+                // Because Craft doesn't suppport querying elements across multiple content tables in one go, 
+                // we need to do some extra work to handle custom fields across multiple forms (and content tables).
+                // This can be a little un-performant.
+                $this->_populateElementContent($element);
+
                 // Fetch the custom field content, already prepped
                 $fieldValues = $element->getValuesForExport();
 
@@ -96,54 +104,6 @@ class SubmissionExport extends ElementExporter
             // Now we have the largest row in columns, normalise all other rows, filling in blanks
             $keys = array_keys($largestRow);
             $template = array_fill_keys($keys, '');
-
-            // We might have to do some post-processing for CSV's and nested fields like Table/Repeater
-            // We want to split the rows of these fields into new lines, which is a bit tedious..
-            // Comment out for the moment...
-            // $format = Craft::$app->getRequest()->getBodyParam('format', 'csv');
-
-            // if ($format === 'csv') {
-            //     $csvData = [];
-            //     $rowIndex = 0;
-
-            //     foreach ($data as $i => $column) {
-            //         $extraRows = [];
-
-            //         foreach ($column as $j => $value) {
-            //             if (is_array($value)) {
-            //                 // Split out each row into extra rows to add later.
-            //                 foreach ($value as $k => $v) {
-            //                     // Add this first value here though.
-            //                     if ($k === 0) {
-            //                         $csvData[$rowIndex][$j] = $v;
-            //                     } else {
-            //                         $extraRows[$k][$j] = $v;
-            //                     }
-            //                 }
-            //             } else {
-            //                 $csvData[$rowIndex][$j] = $value;
-            //             }
-            //         }
-
-            //         if ($extraRows) {
-            //             $rowIndex++;
-
-            //             // We have to loop through each existing column to add blank column values
-            //             foreach ($extraRows as $ii => $extraRow) {
-            //                 foreach ($column as $j => $value) {
-            //                     $csvData[$rowIndex][$j] = isset($extraRow[$j]) ? $extraRow[$j] : '';
-            //                 }
-
-            //                 // Increment to cater for all the new rows
-            //                 $rowIndex++;
-            //             }
-            //         }
-
-            //         $rowIndex++;
-            //     }
-
-            //     return $csvData;
-            // }
 
             $exportData = array_map(function($item) use ($template) {
                 return array_merge($template, $item);
@@ -165,5 +125,86 @@ class SubmissionExport extends ElementExporter
         }
 
         return [];
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    private function _populateElementContent(ElementInterface $element)
+    {
+        // Make sure the element has content
+        if (!$element->hasContent()) {
+            return;
+        }
+
+        if ($row = $this->_getContentRow($element)) {
+            $element->contentId = $row['id'];
+
+            if ($element->hasTitles() && isset($row['title'])) {
+                $element->title = $row['title'];
+            }
+
+            if ($fieldLayout = $element->getFieldLayout()) {
+                foreach ($fieldLayout->getCustomFields() as $field) {
+                    if ($field::hasContentColumn()) {
+                        $type = $field->getContentColumnType();
+
+                        if (is_array($type)) {
+                            $value = [];
+
+                            foreach (array_keys($type) as $i => $key) {
+                                $column = ElementHelper::fieldColumn('', $field->handle, $field->columnSuffix, $i !== 0 ? $key : null);
+                                $value[$key] = $row[$column];
+                            }
+
+                            $element->setFieldValue($field->handle, $value);
+                        } else {
+                            $column = ElementHelper::fieldColumn('', $field->handle, $field->columnSuffix);
+                            $element->setFieldValue($field->handle, $row[$column]);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private function _getContentRow(ElementInterface $element)
+    {
+        if (!$element->id || !$element->siteId) {
+            return null;
+        }
+
+        $contentTable = $element->getContentTable();
+        $fieldColumnPrefix = $element->getFieldColumnPrefix();
+
+        $row = (new Query())
+            ->from([$contentTable])
+            ->where([
+                'elementId' => $element->id,
+                'siteId' => $element->siteId,
+            ])
+            ->one();
+
+        if ($row) {
+            $row = $this->_removeColumnPrefixesFromRow($row, $fieldColumnPrefix);
+        }
+
+        return $row;
+    }
+
+    private function _removeColumnPrefixesFromRow(array $row, $fieldColumnPrefix): array
+    {
+        foreach ($row as $column => $value) {
+            if (strpos($column, $fieldColumnPrefix) === 0) {
+                $fieldHandle = substr($column, strlen($fieldColumnPrefix));
+                $row[$fieldHandle] = $value;
+                unset($row[$column]);
+            } elseif (!in_array($column, ['id', 'elementId', 'title', 'dateCreated', 'dateUpdated', 'uid', 'siteId'], true)) {
+                unset($row[$column]);
+            }
+        }
+
+        return $row;
     }
 }
