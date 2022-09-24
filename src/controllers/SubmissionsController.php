@@ -301,6 +301,13 @@ class SubmissionsController extends Controller
                 $nextPage = $form->getNextPage(null, $submission);
             }
 
+            // Only validate when submitting
+            if ($submitAction === 'submit') {
+                // Turn on validation, but set a flag to only validate the current page.
+                $submission->setScenario(Element::SCENARIO_LIVE);
+                $submission->validateCurrentPageOnly = true;
+            }
+
             // Check if we're on the last page of the form, or need to keep going
             if (empty($nextPage)) {
                 $submission->isIncomplete = false;
@@ -368,9 +375,6 @@ class SubmissionsController extends Controller
             if (!empty($nextPage)) {
                 // Update the current page to reflect the next page
                 $form->setCurrentPage($nextPage);
-
-                // Set the active submission so we can keep going
-                $form->setCurrentSubmission($submission);
             } else {
                 // Reset pages, now we're on the last step
                 $form->resetCurrentPage();
