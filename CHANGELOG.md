@@ -1,5 +1,27 @@
 # Changelog
 
+## 2.0.12 - 2022-09-25
+
+### Added
+- Added support for Emoji’s in Trello boards and lists.
+- Added “Form Handler” endpoint settings to Pardot CRM integration.
+- Added “sender” email header setting for email notifications to control email deliverability.
+
+### Changed
+- Changed integration Redirect URI’s to no longer rely on `usePathInfo`, instead use a site route.
+- Changed Trello integration to not include closed boards.
+- Consolidate payload-creation for Webhook/Miscellaneous integrations.
+
+### Fixed
+- Fixed an error when editing a submission from the front-end
+- Fixed when exporting submissions from “All” custom field values were missing.
+- Fixed submitting an incomplete submission from the front not being marked as incomplete.
+- Allow non-inline Markdown to be included in field instructions.
+- Fixed when editing a submission from the front-end, submission actions weren’t being applied (`enableBackSubmission`, `submitAction`).
+- Fixed toggling pages for Ajax-based forms without standard `fui-*` classes.
+- Fixed progress bar not working correctly when switch tabs on Ajax-based forms.
+- Fixed a visual issue for progress bars when Ajax-based forms failed validation.
+
 ## 2.0.11 - 2022-09-18
 
 ### Added
