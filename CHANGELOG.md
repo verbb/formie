@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.6.14 - 2022-09-25
+
+### Added
+- Add “Form Handler” endpoint settings to Pardot CRM integration.
+
+### Changed
+- Consolidate payload-creation for Webhook/Miscellaneous integrations.
+
 ## 1.6.13 - 2022-09-18
 
 ### Fixed
