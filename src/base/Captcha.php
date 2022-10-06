@@ -136,9 +136,7 @@ abstract class Captcha extends Integration implements IntegrationInterface
 
         $value = call_user_func($callable, $this);
 
-        if (!Craft::$app->getSession()->set($key, $value)) {
-            Craft::warning('Failed to set cache value for key ' . json_encode($key), __METHOD__);
-        }
+        Craft::$app->getSession()->set($key, $value);
 
         return $value;
     }
