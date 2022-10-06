@@ -22,11 +22,13 @@
 
         <div class="fui-sidebar-wrapper">
             <div class="fui-sidebar-scroll">
-                <h6 class="sidebar-title">{{ t('formie', 'Existing fields') }}</h6>
+                <div v-if="!isStencil">
+                    <h6 class="sidebar-title">{{ t('formie', 'Existing fields') }}</h6>
 
-                <existing-field-modal />
+                    <existing-field-modal />
 
-                <hr>
+                    <hr>
+                </div>
 
                 <div v-for="(group, index) in enabledFieldGroups" :key="index">
                     <h6 class="sidebar-title">{{ group.label }}</h6>
@@ -105,6 +107,10 @@ export default {
             return this.fieldGroups.filter((group) => {
                 return (group.label !== 'Internal') ? group : false;
             });
+        },
+
+        isStencil() {
+            return this.$store.state.form.isStencil;
         },
     },
 
