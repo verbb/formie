@@ -27,7 +27,23 @@ class SendNotification extends BaseJob
      */
     public function getDescription(): string
     {
-        return Craft::t('formie', 'Sending form notification.');
+        $formName = '';
+        $notificationName = '';
+
+        if ($submission = Formie::$plugin->getSubmissions()->getSubmissionById($this->submissionId)) {
+            if ($form = $submission->getForm()) {
+                $formName = $form->title;
+            }
+        }
+
+        if ($notification = Formie::$plugin->getNotifications()->getNotificationById($this->notificationId)) {
+            $notificationName = $notification->name;
+        }
+
+        return Craft::t('formie', 'Sending email notification “{notification}” for form “{form}”.', [
+            'form' => $formName,
+            'notification' => $notificationName,
+        ]);
     }
 
     /**

@@ -29,7 +29,18 @@ class TriggerIntegration extends BaseJob
      */
     public function getDescription(): string
     {
-        return Craft::t('formie', 'Triggering form “{handle}” integration.', ['handle' => $this->integration->handle]);
+        $formName = '';
+
+        if ($submission = Formie::$plugin->getSubmissions()->getSubmissionById($this->submissionId)) {
+            if ($form = $submission->getForm()) {
+                $formName = $form->title;
+            }
+        }
+
+        return Craft::t('formie', 'Triggering “{integration}” integration for form “{form}”.', [
+            'form' => $formName,
+            'integration' => $this->integration->getName(),
+        ]);
     }
 
     /**
