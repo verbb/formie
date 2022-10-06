@@ -180,6 +180,7 @@ class Stencil extends Model
     public function getFormConfig(): array
     {
         return ArrayHelper::merge($this->data->getAttributes(), [
+            'id' => $this->id,
             'title' => $this->getTitle(),
             'handle' => $this->handle,
             'templateId' => $this->templateId,
