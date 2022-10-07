@@ -44,6 +44,7 @@ use craft\console\controllers\ResaveController;
 use craft\elements\User as UserElement;
 use craft\events\DefineConsoleActionsEvent;
 use craft\events\FieldLayoutEvent;
+use craft\events\PluginEvent;
 use craft\events\RebuildConfigEvent;
 use craft\events\RegisterComponentTypesEvent;
 use craft\events\RegisterElementExportersEvent;
@@ -60,6 +61,7 @@ use craft\services\Elements;
 use craft\services\Fields;
 use craft\services\Gc;
 use craft\services\Gql;
+use craft\services\Plugins;
 use craft\services\ProjectConfig;
 use craft\services\SystemMessages;
 use craft\services\UserPermissions;
@@ -419,6 +421,12 @@ class Formie extends Plugin
         Event::on(Queue::class, Queue::EVENT_AFTER_ERROR, function(ExecEvent $event) {
             if ($event->error && $event->job instanceof BaseJob) {
                 $event->job->updatePayload($event);
+            }
+        });
+
+        Event::on(Plugins::class, Plugins::EVENT_BEFORE_SAVE_PLUGIN_SETTINGS, function(PluginEvent $event) {
+            if ($event->plugin === $this) {
+                $this->getService()->onBeforeSavePluginSettings($event);
             }
         });
     }

@@ -94,4 +94,14 @@ class Service extends Component
 
         return Craft::$app->getView()->namespaceInputName($namespace, $scriptNamespace);
     }
+
+    public function onBeforeSavePluginSettings($event): void
+    {
+        $settings = $event->plugin->getSettings();
+
+        // Reset the theme config if storing in project config
+        $settings->themeConfig = [];
+
+        $event->plugin->setSettings($settings->toArray());
+    }
 }
