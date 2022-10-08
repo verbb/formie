@@ -7,6 +7,7 @@ use verbb\formie\base\FormFieldInterface;
 use verbb\formie\base\FormFieldTrait;
 use verbb\formie\base\RelationFieldTrait;
 use verbb\formie\elements\Form;
+use verbb\formie\elements\NestedFieldRow;
 use verbb\formie\elements\Submission;
 use verbb\formie\gql\types\input\FileUploadInputType;
 use verbb\formie\helpers\SchemaHelper;
@@ -523,6 +524,11 @@ class FileUpload extends CraftAssets implements FormFieldInterface
             foreach ($assets as $asset) {
                 $elementService->deleteElement($asset, true);
             }
+        }
+
+        // Watch out for Group/Repeater
+        if ($element instanceof NestedFieldRow) {
+            $element = $element->getOwner();
         }
 
         // Rename files, if enabled
