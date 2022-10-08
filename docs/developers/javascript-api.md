@@ -206,8 +206,7 @@ In this scenario, you should listen to the `onFormieInit` event, which is fired 
 
 :::code
 ```js JavaScript
-let $form = document.querySelector('#formie-form-1');
-$form.addEventListener('onFormieInit', (e) => {
+document.addEventListener('onFormieInit', (e) => {
     let Formie = e.detail.formie;
 
     // ...
@@ -215,7 +214,7 @@ $form.addEventListener('onFormieInit', (e) => {
 ```
 
 ```js jQuery
-$('#formie-form-1').on('onFormieInit', function(e) {
+$(document).on('onFormieInit', function(e) {
     let Formie = e.detail.formie;
 
     // ...
