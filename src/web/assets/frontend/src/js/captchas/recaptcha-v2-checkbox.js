@@ -81,7 +81,9 @@ export class FormieRecaptchaV2Checkbox {
         if (this.$placeholder === null) {
             // This is okay in some instances - notably for multi-page forms where the captcha
             // should only be shown on the last step. But its nice to log this anyway
-            console.log('Unable to find ReCAPTCHA placeholder for [data-recaptcha-placeholder]');
+            if ($currentPage === null) {
+                console.log('Unable to find ReCAPTCHA placeholder for [data-recaptcha-placeholder]');
+            }
 
             return;
         }

@@ -50,9 +50,7 @@ export class FormieRecaptchaEnterprise {
     }
 
     renderCaptcha() {
-        // Default to the first placeholder available.
-        // eslint-disable-next-line
-        this.$placeholder = this.$placeholders[0];
+        this.$placeholder = null;
 
         // Get the active page
         let $currentPage = null;
@@ -62,6 +60,8 @@ export class FormieRecaptchaEnterprise {
             $currentPage = this.$form.form.formTheme.$currentPage;
         }
 
+        const { hasMultiplePages } = this.$form.form.settings;
+
         // Get the current page's captcha - find the first placeholder that's non-invisible
         this.$placeholders.forEach(($placeholder) => {
             if ($currentPage && $currentPage.contains($placeholder)) {
@@ -69,10 +69,18 @@ export class FormieRecaptchaEnterprise {
             }
         });
 
+        // If a single-page form, get the first placeholder
+        if (!hasMultiplePages && this.$placeholder === null) {
+            // eslint-disable-next-line
+            this.$placeholder = this.$placeholders[0];
+        }
+
         if (this.$placeholder === null) {
             // This is okay in some instances - notably for multi-page forms where the captcha
             // should only be shown on the last step. But its nice to log this anyway
-            console.log('Unable to find ReCAPTCHA placeholder for [data-recaptcha-placeholder]');
+            if ($currentPage === null) {
+                console.log('Unable to find ReCAPTCHA placeholder for [data-recaptcha-placeholder]');
+            }
 
             return;
         }
