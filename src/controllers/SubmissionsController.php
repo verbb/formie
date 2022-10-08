@@ -223,9 +223,11 @@ class SubmissionsController extends Controller
         }
 
         // Check against permissions to save at all, or per-form
-        if (!Craft::$app->getUser()->checkPermission('formie-editSubmissions')) {
-            if (!Craft::$app->getUser()->checkPermission('formie-manageSubmission:' . $form->uid)) {
-                throw new ForbiddenHttpException('User is not permitted to perform this action');
+        if (!$request->getIsSiteRequest()) {
+            if (!Craft::$app->getUser()->checkPermission('formie-editSubmissions')) {
+                if (!Craft::$app->getUser()->checkPermission('formie-manageSubmission:' . $form->uid)) {
+                    throw new ForbiddenHttpException('User is not permitted to perform this action');
+                }
             }
         }
 
