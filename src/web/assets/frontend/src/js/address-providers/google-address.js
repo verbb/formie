@@ -38,7 +38,8 @@ export class FormieGoogleAddress extends FormieAddressProvider {
             script.async = true;
             script.id = this.scriptId;
             script.onload = () => {
-                this.initAutocomplete();
+                // Just in case there's a small delay in initializing the scripts after loaded
+                this.waitForLoad();
             };
 
             document.body.appendChild(script);
