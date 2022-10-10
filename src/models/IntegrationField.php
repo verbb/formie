@@ -4,6 +4,8 @@ namespace verbb\formie\models;
 use Craft;
 use craft\base\Model;
 
+use LitEmoji\LitEmoji;
+
 class IntegrationField extends Model
 {
     // Constants
@@ -22,14 +24,23 @@ class IntegrationField extends Model
     // =========================================================================
 
     public $handle;
-    public $name;
     public $type;
     public $required;
     public $options = [];
 
+    private $_name;
+
 
     // Public Methods
     // =========================================================================
+
+    public function attributes()
+    {
+        $attributes = parent::attributes();
+        $attributes[] = 'name';
+
+        return $attributes;
+    }
 
     public function getType()
     {
@@ -40,4 +51,13 @@ class IntegrationField extends Model
         return self::TYPE_STRING;
     }
 
+    public function setName($value): void
+    {
+        $this->_name = LitEmoji::unicodeToShortcode($value);
+    }
+
+    public function getName(): string
+    {
+        return LitEmoji::shortcodeToUnicode($this->_name);
+    }
 }
