@@ -635,6 +635,7 @@ class Notifications extends Component
                     'jsClass' => 'Craft.AssetSelectInput',
                     'elementType' => Asset::class,
                     'limit' => false,
+                    'sources' => '*',
                 ],
             ]),
         ];

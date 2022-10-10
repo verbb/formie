@@ -42,7 +42,7 @@ export default {
                 return this.editingField.field.settings.sources;
             }
 
-            return [];
+            return get(this.context.attrs, 'sources');
         },
 
         source() {
