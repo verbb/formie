@@ -740,7 +740,6 @@ trait FormFieldTrait
                     'fui-instructions-' . $instructionsPosition,
                     $errors ? 'fui-field-error fui-error' : null,
                     $this->required ? 'fui-field-required' : null,
-                    $this->cssClasses ?? null,
                     $this->getIsHidden() ? 'fui-hidden' : null,
                     $this->getParentField() ? 'fui-' . StringHelper::toKebabCase($this->getParentField()->displayName() . ' ' . $this->handle) : 'fui-page-field',
                 ],
@@ -750,7 +749,7 @@ trait FormFieldTrait
                     'field-config' => $this->getConfigJson(),
                     'field-conditions' => $this->getConditionsJson($submission),
                 ],
-            ], $containerAttributes), $context);
+            ], $containerAttributes), $this->cssClasses);
         }
 
         if ($key === 'fieldContainer') {

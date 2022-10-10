@@ -14,16 +14,18 @@ class HtmlTag extends Model
 
     public string $tag = 'div';
     public array $attributes = [];
+    public string|array|null $extraClasses = null;
 
 
     // Public Methods
     // =========================================================================
 
-    public function __construct($tag, $attributes = [])
+    public function __construct($tag, $attributes = [], $extraClasses = null)
     {
         parent::__construct();
 
         $this->tag = $tag;
+        $this->extraClasses = $extraClasses;
 
         // Filter nested arrays like classes
         $this->attributes = ArrayHelper::filterEmptyValues($attributes);
@@ -43,6 +45,11 @@ class HtmlTag extends Model
         // Check if we're wanting to reset classes.
         if ($resetClass) { 
             $this->attributes['class'] = [];
+
+            // Any custom classes set at the field settings should be retained and not reset
+            if ($this->extraClasses) {
+                $this->attributes['class'] = $this->extraClasses;
+            }
         }
 
         $this->attributes = Html::mergeAttributes($this->attributes, $attributes);

@@ -1525,9 +1525,8 @@ class Form extends Element
                 'class' => [
                     'fui-btn-wrapper',
                     "fui-btn-{$page->settings->buttonsPosition}",
-                    $page->settings->cssClasses,
                 ],
-            ], $containerAttributes));
+            ], $containerAttributes), $page->settings->cssClasses);
         }
 
         if ($key === 'buttonContainer') {
