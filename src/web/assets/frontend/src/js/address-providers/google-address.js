@@ -56,7 +56,8 @@ export class FormieGoogleAddress extends FormieAddressProvider {
             return;
         }
 
-        if (typeof google === 'undefined') {
+        // Ensure that Google places is ready
+        if (typeof google === 'undefined' || typeof google.maps === 'undefined' || typeof google.maps.places === 'undefined') {
             this.retryTimes += 1;
 
             setTimeout(this.waitForLoad.bind(this), this.waitTimeout);
