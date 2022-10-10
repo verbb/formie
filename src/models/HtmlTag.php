@@ -45,11 +45,6 @@ class HtmlTag extends Model
         // Check if we're wanting to reset classes.
         if ($resetClass) { 
             $this->attributes['class'] = [];
-
-            // Any custom classes set at the field settings should be retained and not reset
-            if ($this->extraClasses) {
-                $this->attributes['class'] = $this->extraClasses;
-            }
         }
 
         $this->attributes = Html::mergeAttributes($this->attributes, $attributes);
@@ -68,6 +63,11 @@ class HtmlTag extends Model
                     $this->attributes['class'][$key] = $parsed;
                 }
             }
+        }
+
+        // Any custom classes set at the field settings should be retained and not reset
+        if ($this->extraClasses) {
+            $this->attributes['class'][] = $this->extraClasses;
         }
     }
 
