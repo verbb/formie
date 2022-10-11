@@ -279,9 +279,13 @@ class SentNotificationsController extends Controller
         $newEmail = new Message();
         $newEmail->setSubject($sentNotification->subject);
         $newEmail->setFrom([$sentNotification->from => $sentNotification->fromName]);
-        $newEmail->setSender($sentNotification->sender);
         $newEmail->setTextBody($sentNotification->body);
         $newEmail->setHtmlBody($sentNotification->htmlBody);
+
+        // Sender may be blank, which is not allowed
+        if ($sentNotification->sender) {
+            $newEmail->setSender($sentNotification->sender);
+        }
 
         return $newEmail;
     }
