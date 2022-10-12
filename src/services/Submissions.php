@@ -668,7 +668,7 @@ class Submissions extends Component
                 case formfields\Tags::class:
                 case formfields\Users::class:
                 case formfields\Variants::class:
-                    $fieldContent[$field->handle] = $field->getElementsQuery();
+                    $fieldContent[$field->handle] = $field->getElementsQuery()->orderBy('RAND()');
 
                     break;
                 case formfields\Address::class:
