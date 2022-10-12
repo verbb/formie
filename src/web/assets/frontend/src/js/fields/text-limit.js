@@ -62,7 +62,7 @@ export class FormieTextLimit {
             // If we're using a rich text editor, treat it a little differently
             var isRichText = e.target.hasAttribute('contenteditable');
             var value = isRichText ? e.target.innerHTML : e.target.value;
-            var wordCount = value.split(/\S+/);
+            var wordCount = value.split(/\S+/).length - 1;
             var wordsLeft = this.maxWords - wordCount;
             var extraClasses = ['fui-limit-number'];
             var type = wordsLeft == 1 || wordsLeft == -1 ? 'word' : 'words';
