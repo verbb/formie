@@ -418,11 +418,6 @@ class Entries extends CraftEntries implements FormFieldInterface
             ]),
             SchemaHelper::prePopulate(),
             SchemaHelper::numberField([
-                'label' => Craft::t('formie', 'Limit'),
-                'help' => Craft::t('formie', 'Limit the number of selectable entries.'),
-                'name' => 'limit',
-            ]),
-            SchemaHelper::numberField([
                 'label' => Craft::t('formie', 'Limit Options'),
                 'help' => Craft::t('formie', 'Limit the number of available entries.'),
                 'name' => 'limitOptions',
