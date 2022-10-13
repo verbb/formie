@@ -101,6 +101,10 @@ export default {
             // Not amazing, but provide/inject won't work
             return this.$parent.$parent.$parent.$parent.$parent.node._value;
         },
+
+        isStencil() {
+            return this.$store.state.form.isStencil;
+        },
     },
 
     created() {
@@ -130,10 +134,14 @@ export default {
             this.loading = true;
 
             const data = {
-                formId: this.form.id,
                 handle: this.form.handle,
                 notification: this.notification,
             };
+
+            // Only add the Form ID if not a stencil
+            if (!this.isStencil) {
+                data.formId = this.form.id;
+            }
 
             Craft.sendActionRequest('POST', 'formie/email/preview', { data }).then((response) => {
                 this.loading = false;

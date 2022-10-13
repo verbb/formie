@@ -619,12 +619,14 @@ trait NestedFieldTrait
         $values = [];
 
         foreach ($value->all() as $rowId => $row) {
-            foreach ($row->getFieldLayout()->getCustomFields() as $field) {
-                $subValue = $row->getFieldValue($field->handle);
-                $valueAsString = $field->getValueAsString($subValue, $row);
+            if ($fieldLayout = $row->getFieldLayout()) {
+                foreach ($fieldLayout->getCustomFields() as $field) {
+                    $subValue = $row->getFieldValue($field->handle);
+                    $valueAsString = $field->getValueAsString($subValue, $row);
 
-                if ($valueAsString) {
-                    $values[] = $valueAsString;
+                    if ($valueAsString) {
+                        $values[] = $valueAsString;
+                    }
                 }
             }
         }
@@ -637,12 +639,14 @@ trait NestedFieldTrait
         $values = [];
 
         foreach ($value->all() as $rowId => $row) {
-            foreach ($row->getFieldLayout()->getCustomFields() as $field) {
-                $subValue = $row->getFieldValue($field->handle);
-                $valueAsJson = $field->getValueAsJson($subValue, $row);
+            if ($fieldLayout = $row->getFieldLayout()) {
+                foreach ($fieldLayout->getCustomFields() as $field) {
+                    $subValue = $row->getFieldValue($field->handle);
+                    $valueAsJson = $field->getValueAsJson($subValue, $row);
 
-                if ($valueAsJson) {
-                    $values[$rowId][$field->handle] = $valueAsJson;
+                    if ($valueAsJson) {
+                        $values[$rowId][$field->handle] = $valueAsJson;
+                    }
                 }
             }
         }
@@ -655,22 +659,24 @@ trait NestedFieldTrait
         $values = [];
 
         foreach ($value->all() as $rowId => $row) {
-            foreach ($row->getFieldLayout()->getCustomFields() as $field) {
-                $subValue = $row->getFieldValue($field->handle);
-                $valueForExport = $field->getValueForExport($subValue, $row);
+            if ($fieldLayout = $row->getFieldLayout()) {
+                foreach ($fieldLayout->getCustomFields() as $field) {
+                    $subValue = $row->getFieldValue($field->handle);
+                    $valueForExport = $field->getValueForExport($subValue, $row);
 
-                if ($this instanceof Group) {
-                    $key = $this->getExportLabel($element);
-                } else {
-                    $key = $this->getExportLabel($element) . ': ' . ($rowId + 1);
-                }
-
-                if (is_array($valueForExport)) {
-                    foreach ($valueForExport as $i => $j) {
-                        $values[$key . ': ' . $i] = $j;
+                    if ($this instanceof Group) {
+                        $key = $this->getExportLabel($element);
+                    } else {
+                        $key = $this->getExportLabel($element) . ': ' . ($rowId + 1);
                     }
-                } else {
-                    $values[$key . ': ' . $field->getExportLabel($row)] = $valueForExport;
+
+                    if (is_array($valueForExport)) {
+                        foreach ($valueForExport as $i => $j) {
+                            $values[$key . ': ' . $i] = $j;
+                        }
+                    } else {
+                        $values[$key . ': ' . $field->getExportLabel($row)] = $valueForExport;
+                    }
                 }
             }
         }
@@ -683,15 +689,17 @@ trait NestedFieldTrait
         $values = '';
 
         foreach ($value->all() as $rowId => $row) {
-            foreach ($row->getFieldLayout()->getCustomFields() as $field) {
-                if ($field->getIsCosmetic() || $field->getIsHidden() || $field->isConditionallyHidden($element)) {
-                    continue;
+            if ($fieldLayout = $row->getFieldLayout()) {
+                foreach ($fieldLayout->getCustomFields() as $field) {
+                    if ($field->getIsCosmetic() || $field->getIsHidden() || $field->isConditionallyHidden($element)) {
+                        continue;
+                    }
+
+                    $subValue = $row->getFieldValue($field->handle);
+                    $html = $field->getValueForSummary($subValue, $row);
+
+                    $values .= '<strong>' . $field->name . '</strong> ' . $html . '<br>';
                 }
-
-                $subValue = $row->getFieldValue($field->handle);
-                $html = $field->getValueForSummary($subValue, $row);
-
-                $values .= '<strong>' . $field->name . '</strong> ' . $html . '<br>';
             }
         }
 
