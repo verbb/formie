@@ -6,7 +6,9 @@ use craft\base\Model;
 
 use LitEmoji\LitEmoji;
 
-class IntegrationField extends Model
+use JsonSerializable;
+
+class IntegrationField extends Model implements JsonSerializable
 {
     // Constants
     // =========================================================================
@@ -59,5 +61,10 @@ class IntegrationField extends Model
     public function getName(): string
     {
         return LitEmoji::shortcodeToUnicode($this->_name);
+    }
+
+    public function jsonSerialize(): array
+    {
+        return $this->toArray();
     }
 }
