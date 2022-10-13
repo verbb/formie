@@ -67,4 +67,13 @@ class IntegrationField extends Model implements JsonSerializable
     {
         return $this->toArray();
     }
+
+    public function serialize(): array
+    {
+        // Ensure that we serialize the encoded value for name
+        $data = $this->toArray();
+        $data['name'] = $this->_name;
+
+        return $data;
+    }
 }
