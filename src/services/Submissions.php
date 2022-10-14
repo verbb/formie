@@ -668,7 +668,14 @@ class Submissions extends Component
                 case formfields\Tags::class:
                 case formfields\Users::class:
                 case formfields\Variants::class:
-                    $fieldContent[$field->handle] = $field->getElementsQuery()->orderBy('RAND()');
+                    $query = $field->getElementsQuery()->orderBy('RAND()');
+
+                    // Check if we should limit to 1 if a (single) dropdown or radio
+                    if ($field->displayType === 'radio' || ($field->displayType === 'dropdown' && !$field->multiple)) {
+                        $query->limit(1);
+                    }
+
+                    $fieldContent[$field->handle] = $query;
 
                     break;
                 case formfields\Address::class:
