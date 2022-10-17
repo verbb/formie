@@ -56,7 +56,7 @@ export class FormieFormTheme {
         // so we can use a nice API handle server-side errprs
         const validatorSettings = {
             fieldClass: 'fui-error',
-            errorClass: 'fui-error-message',
+            errorClass: this.form.getClasses('fieldError'),
             fieldPrefix: 'fui-field-',
             errorPrefix: 'fui-error-',
             messageAfterField: true,

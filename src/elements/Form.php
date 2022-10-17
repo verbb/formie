@@ -11,6 +11,7 @@ use verbb\formie\behaviors\FieldLayoutBehavior;
 use verbb\formie\elements\actions\DuplicateForm;
 use verbb\formie\elements\db\FormQuery;
 use verbb\formie\events\ModifyFormHtmlTagEvent;
+use verbb\formie\fields\formfields\SingleLineText;
 use verbb\formie\gql\interfaces\FieldInterface;
 use verbb\formie\helpers\HandleHelper;
 use verbb\formie\helpers\Html;
@@ -1784,18 +1785,32 @@ class Form extends Element
             'success' => 'fui-success',
             'successMessage' => 'fui-success-message',
             'error' => 'fui-error',
+            'fieldErrors' => 'fui-errors',
+            'fieldError' => 'fui-error-message',
         ];
 
         $context = [
             'form' => $this,
         ];
 
+        // Create a generic field in case we want to grab some generic field theme config
+        $field = new SingleLineText();
+
         // Get all the classes JS components require from Theme Config
         foreach ($configKeys as $configKey => $fallback) {
             $tag = $this->renderHtmlTag($configKey, $context);
+            $fieldTag = $field->renderHtmlTag($configKey, $context);
 
             if ($tag) {
                 $classes = $tag->attributes['class'] ?? $fallback;
+
+                if (!is_array($classes)) {
+                    $classes = [$classes];
+                }
+
+                $allClasses[$configKey] = implode(' ', $classes);
+            } else if ($fieldTag) {
+                $classes = $fieldTag->attributes['class'] ?? $fallback;
 
                 if (!is_array($classes)) {
                     $classes = [$classes];
