@@ -277,8 +277,14 @@ class Variables
     {
         $fieldItems = $asArray ? [] : '';
 
-        if (!$form || !$submission || !$notification) {
+        if (!$form || !$submission) {
             return $fieldItems;
+        }
+
+        // If a specific notification isn't passed in, use a new instance of one. This is for times where we don't really mind
+        // _which_ notification is used, like when a submission is made on the front-end, with a submit message.
+        if (!$notification) {
+            $notification = new Notification();
         }
 
         // Need to switch back to the CP to render our fields email HTML
