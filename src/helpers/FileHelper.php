@@ -27,6 +27,7 @@ class FileHelper
 
         try {
             $templates = Craft::$app->getPath()->getSiteTemplatesPath();
+
             if (!StringHelper::contains($to, $templates)) {
                 $to = CraftFileHelper::normalizePath($templates . DIRECTORY_SEPARATOR . $to);
             }
@@ -41,5 +42,31 @@ class FileHelper
         }
 
         return true;
+    }
+
+    public static function doesSitePathExist(string $path): bool
+    {
+        $templatesPath = Craft::$app->getPath()->getSiteTemplatesPath();
+
+        $basePaths = [$templatesPath];
+
+        // Should we be looking for a localized version of the template?
+        foreach (Craft::$app->getSites()->getAllSites() as $site) {
+            $sitePath = $templatesPath . DIRECTORY_SEPARATOR . $site->handle;
+            
+            if (is_dir($sitePath)) {
+                $basePaths[] = $sitePath;
+            }
+        }
+
+        foreach ($basePaths as $basePath) {
+            $fullPath = CraftFileHelper::normalizePath($basePath . DIRECTORY_SEPARATOR . $path);
+
+            if (is_dir($fullPath) || file_exists($fullPath)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

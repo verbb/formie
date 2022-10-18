@@ -1,13 +1,17 @@
 <?php
 namespace verbb\formie\models;
 
+use verbb\formie\helpers\FileHelper;
+
 use Craft;
 use craft\base\Model;
 use craft\db\SoftDeleteTrait;
-use craft\helpers\FileHelper;
+use craft\helpers\ArrayHelper;
 use craft\validators\HandleValidator;
 use craft\validators\UniqueValidator;
+
 use yii\validators\Validator;
+
 use DateTime;
 
 abstract class BaseTemplate extends Model
@@ -87,27 +91,15 @@ abstract class BaseTemplate extends Model
                 // Check how to validate templates
                 if ($this->hasSingleTemplate) {
                     if (!$view->doesTemplateExist($this->$attribute)) {
-                        $path = Craft::$app->getPath()->getSiteTemplatesPath() . DIRECTORY_SEPARATOR . $this->$attribute;
-                        $path = FileHelper::normalizePath($path);
-
-                        if (!is_dir($path)) {
-                            $validator->addError(
-                                $this,
-                                $attribute,
-                                Craft::t('formie', 'The template does not exist.')
-                            );
+                        // Check for the template across multiple base paths
+                        if (!FileHelper::doesSitePathExist($this->$attribute)) {
+                            $validator->addError($this, $attribute, Craft::t('formie', 'The template does not exist.'));
                         }
                     }
                 } else {
-                    $path = Craft::$app->getPath()->getSiteTemplatesPath() . DIRECTORY_SEPARATOR . $this->$attribute;
-                    $path = FileHelper::normalizePath($path);
-
-                    if (!is_dir($path)) {
-                        $validator->addError(
-                            $this,
-                            $attribute,
-                            Craft::t('formie', 'The template directory does not exist.')
-                        );
+                    // Check for the template across multiple base paths
+                    if (!FileHelper::doesSitePathExist($this->$attribute)) {
+                        $validator->addError($this, $attribute, Craft::t('formie', 'The template directory does not exist.'));
                     }
                 }
 
