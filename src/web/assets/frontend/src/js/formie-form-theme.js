@@ -658,7 +658,10 @@ export class FormieFormTheme {
         }
 
         if (this.settings.submitAction === 'message') {
-            this.showFormAlert(data.submitActionMessage, 'success');
+            // Allow the submit action message to be sent from the response, or fallback to static.
+            const submitActionMessage = data.submitActionMessage || this.settings.submitActionMessage;
+
+            this.showFormAlert(submitActionMessage, 'success');
 
             // Check if we need to remove the success message
             this.hideSuccess();
