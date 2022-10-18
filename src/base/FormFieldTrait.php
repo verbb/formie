@@ -1299,6 +1299,16 @@ trait FormFieldTrait
     {
         $rules = parent::defineRules();
 
+        // Find the existing handle validation rules from the base field and remove some options
+        foreach ($rules as $ruleKey => $rule) {
+            $attribute = $rule[0][0] ?? '';
+            $reservedWords = $rule['reservedWords'] ?? null;
+
+            if ($attribute === 'handle' && $reservedWords) {
+                ArrayHelper::removeValue($rules[$ruleKey]['reservedWords'], 'username');
+            }
+        }
+
         $rules[] = [['placeholder', 'errorMessage', 'cssClasses'], 'string', 'max' => 255];
 
         $rules[] = [
