@@ -203,6 +203,11 @@ class Entries extends CraftEntries implements FormFieldInterface
 
             $criteria = array_merge_recursive(...$criteria);
 
+            // Some criteria doesn't support array-syntax, which will happen with merging recursively
+            if (isset($criteria['editable'])) {
+                $criteria['editable'] = $criteria['editable'][0] ?? false;
+            }
+
             // Apply the criteria on our query
             Craft::configure($query, $criteria);
         }
