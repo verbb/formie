@@ -139,7 +139,8 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
 
         if ($this->defaultOption === 'date') {
             if ($this->defaultValue && !$this->defaultValue instanceof DateTime) {
-                $defaultValue = self::toDateTime($this->defaultValue);
+                // Assume setting to system time for this instance
+                $defaultValue = DateTimeHelper::toDateTime($this->defaultValue, false, true);
 
                 if ($defaultValue) {
                     $this->defaultValue = $defaultValue;
@@ -148,7 +149,8 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
                 $this->defaultValue = null;
             }
         } else if ($this->defaultOption === 'today') {
-            $this->defaultValue = self::toDateTime(new DateTime());
+            // Assume setting to system time for this instance
+            $this->defaultValue = DateTimeHelper::toDateTime(new DateTime(), false, true);
         } else {
             $this->defaultValue = null;
         }
