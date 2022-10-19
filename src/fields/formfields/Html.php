@@ -18,6 +18,8 @@ use yii\base\Exception;
 
 use HTMLPurifier_Config;
 
+use LitEmoji\LitEmoji;
+
 class Html extends FormField
 {
     // Constants
@@ -68,6 +70,15 @@ class Html extends FormField
         return true;
     }
 
+    public function getSavedFieldConfig(): array
+    {
+        // Add emoji support when generating the field config for the form builder.
+        // Otherwise, the shortcodes will be shown after saving and refreshing the form builder.
+        $this->htmlContent = LitEmoji::shortcodeToUnicode($this->htmlContent);
+
+        return parent::getSavedFieldConfig();
+    }
+
     public function getRenderedHtmlContent(): string
     {
         $htmlContent = trim($this->htmlContent);
@@ -76,6 +87,9 @@ class Html extends FormField
         if ($htmlContent) {
             $htmlContent = Craft::$app->getView()->renderString($this->htmlContent);
         }
+
+        // Add emoji support
+        $htmlContent = LitEmoji::shortcodeToUnicode($htmlContent);
 
         // Ensure we run it all through purifier
         return HTMLPurifier::process($htmlContent, $this->_getPurifierConfig());
@@ -89,6 +103,17 @@ class Html extends FormField
         return [
             'labelPosition' => HiddenPosition::class,
         ];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function beforeSave(bool $isNew): bool
+    {
+        // Add emoji support to HTML content
+        $this->htmlContent = LitEmoji::unicodeToShortcode($this->htmlContent);
+
+        return parent::beforeSave($isNew);
     }
 
     /**
