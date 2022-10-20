@@ -45,9 +45,29 @@ class Agree extends FormField implements PreviewableFieldInterface
     public $checkedValue;
     public $uncheckedValue;
 
+    // Private due to parsing done at render-time, not before
+    private $_descriptionHtml;
+
 
     // Public Methods
     // =========================================================================
+
+    /**
+     * @inheritdoc
+     */
+    public function attributes()
+    {
+        $names = parent::attributes();
+        
+        // Define `descriptionHtml` as an extra attribute, rather than a property.
+        // It's not a public property to ensure it's not saved to the field settings. 
+        // Without this, `setDescriptionHtml()` would not be called, and this settings could not be manipulated
+        // from the front-end `setFieldSettings()`. We also cannot set this value in `init()` due to when containing a Link mark
+        // `parseRefTags()` causes an infinite loop.
+        $names[] = 'descriptionHtml';
+
+        return $names;
+    }
 
     /**
      * @inheritdoc
@@ -74,14 +94,19 @@ class Agree extends FormField implements PreviewableFieldInterface
         return $value === null || $value === [] || $value === '' || $value === false;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getDescriptionHtml()
+    public function getDescriptionHtml(): Markup
     {
-        $html = $this->_getHtmlContent($this->description);
+        // Allow the HTML to be overridden in templates with `setFieldSettings()`.
+        if (!$this->_descriptionHtml) {
+            $this->_descriptionHtml = $this->_getHtmlContent($this->description);
+        }
 
-        return Template::raw(Craft::t('site', $html));
+        return Template::raw(Craft::t('site', (string)$this->_descriptionHtml));
+    }
+
+    public function setDescriptionHtml($value)
+    {
+        $this->_descriptionHtml = $value;
     }
 
     /**
