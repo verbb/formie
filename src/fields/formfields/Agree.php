@@ -14,7 +14,10 @@ use craft\helpers\Json;
 use craft\helpers\Template;
 
 use yii\db\Schema;
+
 use GraphQL\Type\Definition\Type;
+
+use Twig\Markup;
 
 class Agree extends FormField implements PreviewableFieldInterface
 {
