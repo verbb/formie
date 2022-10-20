@@ -4,11 +4,7 @@ namespace verbb\formie\models;
 use Craft;
 use craft\base\Model;
 
-use LitEmoji\LitEmoji;
-
-use JsonSerializable;
-
-class IntegrationField extends Model implements JsonSerializable
+class IntegrationField extends Model
 {
     // Constants
     // =========================================================================
@@ -25,24 +21,15 @@ class IntegrationField extends Model implements JsonSerializable
     // Properties
     // =========================================================================
 
+    public $name;
     public $handle;
     public $type;
     public $required;
     public $options = [];
 
-    private $_name;
-
 
     // Public Methods
     // =========================================================================
-
-    public function attributes()
-    {
-        $attributes = parent::attributes();
-        $attributes[] = 'name';
-
-        return $attributes;
-    }
 
     public function getType()
     {
@@ -51,29 +38,5 @@ class IntegrationField extends Model implements JsonSerializable
         }
 
         return self::TYPE_STRING;
-    }
-
-    public function setName($value): void
-    {
-        $this->_name = LitEmoji::unicodeToShortcode($value);
-    }
-
-    public function getName(): string
-    {
-        return LitEmoji::shortcodeToUnicode($this->_name);
-    }
-
-    public function jsonSerialize(): array
-    {
-        return $this->toArray();
-    }
-
-    public function serialize(): array
-    {
-        // Ensure that we serialize the encoded value for name
-        $data = $this->toArray();
-        $data['name'] = $this->_name;
-
-        return $data;
     }
 }

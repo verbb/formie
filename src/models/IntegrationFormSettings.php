@@ -78,17 +78,14 @@ class IntegrationFormSettings extends Model
         if (is_object($data)) {
             $result = [$this->classKey => get_class($data)];
 
-            // If an IntegrationField, ensure we call `serialize()`, otherwise just use the objects public properties
-            $array = ($data instanceof IntegrationField) ? $data->serialize() :  get_object_vars($data);
-
-            foreach ($array as $property => $value) {
+            foreach (get_object_vars($data) as $property => $value) {
                 if ($property === $this->classKey) {
                     throw new InvalidConfigException("Object cannot contain $this->classKey property.");
                 }
 
                 $result[$property] = $this->classToArray($value);
             }
-
+ 
             return $result;
         }
 
