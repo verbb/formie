@@ -887,6 +887,19 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
 
     public function defineHtmlTag(string $key, array $context = []): ?HtmlTag
     {
+        if ($key === 'fieldContainer') {
+            return new HtmlTag('fieldset', [
+                'class' => 'fui-fieldset',
+                'aria-describedby' => $this->instructions ? "{$id}-instructions" : null,
+            ]);
+        }
+
+        if ($key === 'fieldLabel') {
+            return new HtmlTag('legend', [
+                'class' => 'fui-legend',
+            ]);
+        }
+
         if ($key === 'locationLink') {
             return new HtmlTag('a', [
                 'href' => 'javascript:;',
