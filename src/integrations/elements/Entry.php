@@ -307,7 +307,7 @@ class Entry extends Element
 
             Formie::error($error);
 
-            return new IntegrationResponse(false, $error);
+            return new IntegrationResponse(false, [$error]);
         }
 
         return true;
