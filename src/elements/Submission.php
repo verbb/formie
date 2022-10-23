@@ -376,7 +376,7 @@ class Submission extends Element
     private ?string $_fieldContext = null;
     private ?string $_contentTable = null;
     private ?array $_pagesForField = null;
-    private ?array $_assetsToDelete = null;
+    private ?array $_assetsToDelete = [];
 
 
     // Public Methods
@@ -1085,7 +1085,7 @@ class Submission extends Element
             foreach ($form->getCustomFields() as $field) {
                 if ($field instanceof FileUpload) {
                     // Store them now while we still have access to them, to delete in `afterDelete()`
-                    $this->_assetsToDelete = $this->getFieldValue($field->handle)->all();
+                    $this->_assetsToDelete = array_merge($this->_assetsToDelete, $this->getFieldValue($field->handle)->all());
                 }
             }
         }
@@ -1101,7 +1101,7 @@ class Submission extends Element
         $elementsService = Craft::$app->getElements();
 
         // Check if we have any assets to delete
-        if (isset($this->_assetsToDelete)) {
+        if ($this->_assetsToDelete) {
             foreach ($this->_assetsToDelete as $asset) {
                 if (!$elementsService->deleteElement($asset)) {
                     Formie::error("Unable to delete file ”{$asset->id}” for submission ”{$this->id}”: " . Json::encode($asset->getErrors()) . ".");
