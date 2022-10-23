@@ -12,6 +12,8 @@ use craft\elements\db\ElementQuery;
 use craft\elements\db\ElementQueryInterface;
 use craft\helpers\ElementHelper;
 
+use DateTime;
+
 class SubmissionExport extends ElementExporter
 {
     // Constants
@@ -34,6 +36,14 @@ class SubmissionExport extends ElementExporter
 
     // Public Methods
     // =========================================================================
+    
+    /**
+     * @inheritdoc
+     */
+    public function getFilename(): string
+    {
+        return 'formie-submissions-' . (new DateTime())->format('Y-m-d-H-i');
+    }
 
     /**
      * @inheritdoc
