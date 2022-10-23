@@ -68,22 +68,26 @@ class IntegrationFormSettings extends Model
     {
         if (is_object($data)) {
             $result = [$this->classKey => get_class($data)];
+
             foreach (get_object_vars($data) as $property => $value) {
                 if ($property === $this->classKey) {
                     throw new InvalidConfigException("Object cannot contain $this->classKey property.");
                 }
+
                 $result[$property] = $this->classToArray($value);
             }
-
+ 
             return $result;
         }
 
         if (is_array($data)) {
             $result = [];
+
             foreach ($data as $key => $value) {
                 if ($key === $this->classKey) {
                     throw new InvalidConfigException("Array cannot contain $this->classKey key.");
                 }
+
                 $result[$key] = $this->classToArray($value);
             }
 

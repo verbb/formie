@@ -369,6 +369,23 @@
 - Removed `forms`, `form` and `formCount` from GraphQL queries. Please use `formieForms`, `formieForm` and `formieFormCount`.
 - Removed `submissions`, `submission` and `submissionCount` from GraphQL queries. Please use `formieSubmissions`, `formieSubmission` and `formieSubmissionCount`.
 
+## 1.6.15 - 2022-10-23
+
+### Added
+- Added `descriptionHtml` attribute to Agree fields.
+- Added support for integration fields to contain emojis.
+
+### Changed
+- Changed integration Redirect URI’s to no longer rely on `usePathInfo`, instead use a site route.
+
+### Fixed
+- Fixed cached integration settings containing emojis.
+- Fixed Pardot Endpoint URL setting not persisting correctly.
+- Fixed integration settings not persisting on page load.
+- Fixed word limits of text fields not showing words left correctly.
+- Fixed Category fields where children of the selected Root Category weren't returned. (thanks @taylordaughtry).
+- Fixed `Captcha::getOrSet` always throws unnecessary warning in logs. (thanks @leevigraham).
+
 ## 1.6.14 - 2022-09-25
 
 ### Added

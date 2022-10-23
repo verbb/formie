@@ -97,7 +97,7 @@
                 instructions: 'Enter the {name} Endpoint URL that will be triggered when a submission is made.' | t('formie', { name: integration.displayName() }),
                 name: 'endpointUrl',
                 required: true,
-                value: integration.settings.endpointUrl ?? '',
+                value: form.settings.integrations[handle].endpointUrl ?? '',
                 errors: integration.getErrors('endpointUrl'),
             }) }}
         </div>

@@ -281,11 +281,11 @@ class Categories extends CraftCategories implements FormFieldInterface
             if ($this->rootCategory instanceof ElementQueryInterface) {
                 $ids = $this->rootCategory->id;
             } else {
-                $ids = ArrayHelper::getColumn($this->rootCategory, 'id');
+                $ids = ArrayHelper::getValue($this->rootCategory, '0.id');
             }
 
             if ($ids) {
-                $query->id($ids);
+                $query->descendantOf($ids);
             }
         }
 

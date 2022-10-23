@@ -36,6 +36,8 @@ use GuzzleHttp\Client;
 
 use Throwable;
 
+use LitEmoji\LitEmoji;
+
 abstract class Integration extends SavableComponent implements IntegrationInterface
 {
     // Constants
@@ -327,6 +329,9 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         // If using the cache (the default), don't fetch it automatically. Just save API requests a tad.
         if ($useCache) {
             $settings = $this->getCache('settings') ?: [];
+
+            // Add support for emoji in cached content
+            $settings = Json::decode(LitEmoji::shortcodeToUnicode(Json::encode($settings)));
 
             // De-serialize it from the cache back into full, nested class objects
             $formSettings = new IntegrationFormSettings();
@@ -877,9 +882,13 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
 
         $this->cache = array_merge($this->cache, $values);
 
+        // Add support for emoji in cached content
+        $data = Json::encode($this->cache);
+        $data = LitEmoji::unicodeToShortcode($data);
+
         // Direct DB update to keep it out of PC, plus speed
         Craft::$app->getDb()->createCommand()
-            ->update('{{%formie_integrations}}', ['cache' => Json::encode($this->cache)], ['id' => $this->id])
+            ->update('{{%formie_integrations}}', ['cache' => $data], ['id' => $this->id])
             ->execute();
     }
 
