@@ -1,5 +1,44 @@
 # Changelog
 
+## 2.0.13 - 2022-10-23
+
+### Added
+- Added emoji support to the HTML field.
+- Added better descriptions to integration and email notification queue jobs.
+
+### Changed
+- Email notification previews now limit element field values depending on their display type for accurate results.
+- Update exported submission filename to `formie-submissions-{date}` format.
+- When previewing element fields in email notifications, random elements are now shown.
+- Updated some bouncer.js classes to remove the reliance on `fui-*` classes.
+- Editing a submission from the front-end now does not require user permissions on editing/managing submissions.
+- Fields with the handle `username` are now allowed.
+
+### Fixed
+- Fixed an issue deleting assets when a form contained multiple File Upload fields.
+- Fixed an issue when logging errors for Element integrations.
+- Fixed Address field not using `fieldset` and `legend` elements for accessibility.
+- Fixed an error with Entries, Products and Users fields when selecting multiple sources.
+- Fixed an error with Date fields and their default date in some timezones.
+- Fixed an error when saving email/form templates when selecting multi-site specific templates.
+- Fixed an error for Ajax forms using Craft native forms.
+- Fixed lack of `fieldError` theme config support for client-side validation.
+- Fixed some variables not working for the “Submission Message” setting.
+- Fixed email notification previews not working for stencils.
+- Fixed word limits of text fields not showing words left correctly.
+- Fixed duplicate “Limit” settings for entries field.
+- Fixed an error when re-sending a sent notification.
+- Fixed CSS Classes field settings being removed when applying `resetClasses` via Theme Config.
+- Fixed “Attach Assets” setting for email notifications not working correctly.
+- Fixed edge-cases for Google places autocomplete fields not working in some instances due to loading times.
+- Fixed CSS Classes field settings being removed when applying `resetClasses` via Theme Config.
+- Fixed an error when submitting forms with File Upload fields in a Repeater or Group field.
+- Fixed captchas incorrectly rendering multiple times for multi-page forms.
+- Fixed edge-cases for Google places autocomplete fields not working in some instances due to loading times.
+- Fixed theme config being stored in project config.
+- Fixed an error when trying to select existing notifications for a stencil.
+- Fixed showing existing fields when editing stencils.
+
 ## 2.0.12 - 2022-09-25
 
 ### Added
