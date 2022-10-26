@@ -154,6 +154,11 @@ class Salesforce extends Crm
         return Craft::t('formie', 'Manage your Salesforce customers by providing important information on their conversion on your site.');
     }
 
+    public function extraAttributes(): array
+    {
+        return ['apiDomain'];
+    }
+
     /**
      * @inheritDoc
      */

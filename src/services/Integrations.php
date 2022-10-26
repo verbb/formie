@@ -397,7 +397,14 @@ class Integrations extends Component
             $integrationRecord = $this->_getIntegrationRecord($integrationUid, true);
             $isNewIntegration = $integrationRecord->getIsNewRecord();
 
+            $integration = $this->getIntegrationById($integrationRecord->id);
+
             $settings = $data['settings'] ?? [];
+
+            // Don't merge any attributes in `extraAttributes()` which are environment-specific
+            foreach ($integration->extraAttributes() as $attribute) {
+                $settings[$attribute] = $settings[$attribute] ?? $integration->$attribute;
+            }
 
             $integrationRecord->name = $data['name'];
             $integrationRecord->handle = $data['handle'];

@@ -131,6 +131,11 @@ class Zoho extends Crm
         }
     }
 
+    public function extraAttributes(): array
+    {
+        return ['apiDomain'];
+    }
+
     public function getDescription(): string
     {
         return Craft::t('formie', 'Manage your Zoho customers by providing important information on their conversion on your site.');

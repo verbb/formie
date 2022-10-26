@@ -275,6 +275,11 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         $this->_client = $value;
     }
 
+    public function extraAttributes(): array
+    {
+        return [];
+    }
+
     public function checkConnection($useCache = true): bool
     {
         if ($useCache && $status = $this->getCache('connection')) {
