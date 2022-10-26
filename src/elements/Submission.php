@@ -445,7 +445,7 @@ class Submission extends Element
         if (Craft::$app->getIsInstalled() && $fieldLayout = $this->getFieldLayout()) {
             $scenario = $this->getScenario();
 
-            $fields = $fieldLayout->getVisibleCustomFields($this);
+            $fields = $fieldLayout->getCustomFields();
 
             // Check when we're doing a submission from the front-end, and we choose to validate the current page only
             // Remove any custom fields that aren't in the current page. These are added by default
