@@ -1071,7 +1071,7 @@ class Submission extends Element
     {
         $form = $this->getForm();
 
-        if (!Craft::$app->getRequest()->getIsConsoleRequest()) {
+        if (!Craft::$app->getRequest()->getIsConsoleRequest() && !Craft::$app->getResponse()->isSent) {
             if ($form && ($submission = $form->getCurrentSubmission()) && $submission->id == $this->id) {
                 $form->resetCurrentSubmission();
             }
