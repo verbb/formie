@@ -93,7 +93,8 @@ class SetSubmissionStatus extends SetStatus
      */
     protected function defineRules(): array
     {
-        $rules = parent::defineRules();
+        // Don't include the parent rules from `SetStatus`
+        $rules = [];
 
         $statusIds = ArrayHelper::getColumn($this->statuses, 'id');
 
