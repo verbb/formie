@@ -21,6 +21,14 @@
 
 {% block actionButton %}
 
+{% set submissions = craft.formie.submissions.form(form.handle).limit(1).exists() %}
+
+{% if submissions %}
+    <a href="{{ cpUrl('formie/submissions', { source: 'form:' ~ form.id }) }}" class="btn" target="_blank" rel="noopener" data-icon-after="external">
+        {{ 'View Submissions' | t('formie') }}
+    </a>
+{% endif %}
+
 {% if currentUser.can('formie-editForms') or currentUser.can('formie-manageForm:' ~ form.uid) %}
     <div id="fui-save-form-button">
         <div class="btngroup submit first">
