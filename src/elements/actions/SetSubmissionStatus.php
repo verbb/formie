@@ -27,7 +27,8 @@ class SetSubmissionStatus extends ElementAction
      */
     protected function defineRules(): array
     {
-        $rules = parent::defineRules();
+        // Don't include the parent rules from `SetStatus`
+        $rules = [];
 
         $statusIds = ArrayHelper::getColumn($this->statuses, 'id');
 
