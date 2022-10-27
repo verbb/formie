@@ -82,6 +82,12 @@ class Notification extends Model
         $this->attachFiles = (bool)$this->attachFiles;
         $this->enableConditions = (bool)$this->enableConditions;
         $this->attachPdf = (bool)$this->attachPdf;
+
+        // Normalise TipTap v1 nodes
+        // TODO: can be removed at the next breakpoint
+        if (is_string($this->content)) {
+            $this->content = RichTextHelper::normalizeNodes($this->content);
+        }
     }
 
     /**

@@ -67,6 +67,15 @@ class RichTextHelper
         return html_entity_decode($html);
     }
 
+    public static function normalizeNodes($content)
+    {
+        return str_replace(['bullet_list', 'code_block', 'hard_break', 'horizontal_rule', 'list_item', 'ordered_list'], ['bulletList', 'codeBlock', 'hardBreak', 'horizontalRule', 'listItem', 'orderedList'], $content);
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
     private static function _getDefaultConfig(): array
     {
         return [
