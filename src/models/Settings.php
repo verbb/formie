@@ -33,6 +33,8 @@ class Settings extends Model
     public bool $enableUnloadWarning = true;
     public bool $enableBackSubmission = true;
     public int $ajaxTimeout = 10;
+    public bool $includeDraftElementUsage = false;
+    public bool $includeRevisionElementUsage = false;
 
     // General Fields
     public array $disabledFields = [];

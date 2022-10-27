@@ -81,6 +81,28 @@
             errors: settings.getErrors('ajaxTimeout'),
             warning: macros.configWarning('ajaxTimeout', 'formie'),
         }) }}
+
+        <hr>
+
+        <h3>{{ 'Form Usage' | t('formie') }}</h3>
+
+        {{ forms.lightswitchField({
+            label: 'Include Draft Elements' | t('formie'),
+            instructions: 'Whether the "Usage" tab in the form builder should include draft elements.' | t('formie'),
+            name: 'includeDraftElementUsage',
+            on: settings.includeDraftElementUsage,
+            errors: settings.getErrors('includeDraftElementUsage'),
+            warning: macros.configWarning('includeDraftElementUsage', 'formie'),
+        }) }}
+
+        {{ forms.lightswitchField({
+            label: 'Include Revision Elements' | t('formie'),
+            instructions: 'Whether the "Usage" tab in the form builder should include revision elements.' | t('formie'),
+            name: 'includeRevisionElementUsage',
+            on: settings.includeRevisionElementUsage,
+            errors: settings.getErrors('includeRevisionElementUsage'),
+            warning: macros.configWarning('includeRevisionElementUsage', 'formie'),
+        }) }}
     {% endnamespace %}
 
     <hr>
