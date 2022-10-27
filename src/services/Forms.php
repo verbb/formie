@@ -923,13 +923,26 @@ class Forms extends Component
 
     public function getFormUsage(Form $form = null): array
     {
+        $settings = Formie::$plugin->getSettings();
+        $includeDrafts = $settings->includeDraftElementUsage;
+        $includeRevisions = $settings->includeRevisionElementUsage;
+
         if ($form) {
-            return (new Query())
+            $query = (new Query())
                 ->select(['elements.id', 'elements.type', 'relations.fieldId'])
                 ->from(['relations' => Table::RELATIONS])
                 ->innerJoin(['elements' => Table::ELEMENTS], '[[elements.id]] = [[relations.sourceId]]')
-                ->where(['relations.targetId' => $form->id])
-                ->all();
+                ->where(['relations.targetId' => $form->id]);
+
+            if (!$includeDrafts) {
+                $query->andWhere(['elements.draftId' => null]);
+            }
+
+            if (!$includeRevisions) {
+                $query->andWhere(['elements.revisionId' => null]);
+            }
+
+            return $query->all();
         }
 
         return [];

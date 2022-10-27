@@ -1,39 +1,63 @@
-{% macro tableColumns(element, field) %}
+{% macro tableColumns(element, field, options) %}
     {% set class = 'element-row' %}
+    {% set showDrafts = options.showDrafts ?? false %}
+    {% set showRevisions = options.showRevisions ?? false %}
 
     {% if element is instance of('craft\\elements\\MatrixBlock') or element is instance of('verbb\supertable\\elements\\SuperTableBlockElement') or element is instance of('benf\\neo\\elements\\Block') %}
         {% set owner = element.getOwner() %}
         {% set ownerField = craft.app.getFields().getFieldById(element.fieldId) %}
 
         {% if owner %}
-            {{ _self.tableColumns(owner, ownerField) }}
+            {{ _self.tableColumns(owner, ownerField, options) }}
 
             {% set class = 'owner-row' %}
         {% endif %}
     {% endif %}
 
-    <tr class="{{ class }}">
-        <th>
-            {%- include '_elements/element' with { element: element, single: true } -%}
-        </th>
+    {% set render = true %}
+    {% set render = not showDrafts and element.isDraft() ? false : render %}
+    {% set render = not showRevisions and element.isRevision() ? false : render %}
 
-        <td>{{ element.displayName() }}</td>
+    {% if render %}
+        <tr class="{{ class }}">
+            <th>
+                {%- include '_elements/element' with { element: element, single: true } -%}
+            </th>
 
-        <td>
-            {% if field %}
-                <code>{{ field.handle }}</code>
+            <td>{{ element.displayName() }}</td>
+
+            {% if element.isRevision() %}
+                <td>{{ 'Revision' | t('app') }}</td>
+            {% elseif element.isDraft() %}
+                <td>{{ 'Draft' | t('app') }}</td>
             {% else %}
-                <i>{{ 'Unknown field' | t('formie') }}</i>
+                <td>{{ element.getStatus() | title }}</td>
             {% endif %}
-        </td>
-    </tr>
+
+            <td>
+                {% if field %}
+                    <code>{{ field.handle }}</code>
+                {% else %}
+                    <i>{{ 'Unknown field' | t('formie') }}</i>
+                {% endif %}
+            </td>
+        </tr>
+    {% endif %}
 {% endmacro %}
+
+{% set settings = craft.formie.plugin.settings %}
+
+{% set options = {
+    showDrafts: settings.includeDraftElementUsage,
+    showRevisions: settings.includeRevisionElementUsage,
+} %}
 
 {% if formUsage %}
     <table id="formie-audit" class="data fullwidth collapsible formie-table">
         <thead>
             <th>{{ 'Element' | t('formie') }}</th>
             <th>{{ 'Type' | t('formie') }}</th>
+            <th>{{ 'Status' | t('formie') }}</th>
             <th>{{ 'Field' | t('formie') }}</th>
         </thead>
         <tbody>
@@ -42,7 +66,7 @@
                 {% set field = craft.app.getFields().getFieldById(info.fieldId) %}
 
                 {% if element %}
-                    {{ _self.tableColumns(element, field) }}
+                    {{ _self.tableColumns(element, field, options) }}
                 {% endif %}
             {% endfor %}
         </tbody>
