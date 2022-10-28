@@ -426,6 +426,11 @@
 - Removed `forms`, `form` and `formCount` from GraphQL queries. Please use `formieForms`, `formieForm` and `formieFormCount`.
 - Removed `submissions`, `submission` and `submissionCount` from GraphQL queries. Please use `formieSubmissions`, `formieSubmission` and `formieSubmissionCount`.
 
+## 1.6.16 - 2022-10-29
+
+### Fixed
+Fixed an error when setting the submission status from the submission element index action.
+
 ## 1.6.15 - 2022-10-23
 
 ### Added
