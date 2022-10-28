@@ -46,7 +46,7 @@ Renders a single field, taking into account custom [Form Templates](docs:feature
 
 {% for field in form.getCustomFields() %}
     {{ craft.formie.renderField(form, field) }}
-{% endif %}
+{% endfor %}
 ```
 
 
