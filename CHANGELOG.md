@@ -1,5 +1,23 @@
 # Changelog
 
+## 2.0.14 - 2022-10-29
+
+### Added
+- Added `includeDraftElementUsage` and `includeRevisionElementUsage`.
+- Added a “View Submissions” button to the form builder.
+
+### Changed
+- Form usage now excludes draft and revision elements.
+
+### Fixed
+- Fixed an error when saving new integrations.
+- Fixed email notification content using Formie 1 nodes in some cases (hard break, list items, etc).
+- Fixed `setFieldSettings` not applying correctly before submission validation.
+- Fixed an edge-case error where deleting submissions through custom code and in a queue job would trigger a session error.
+- Fixed Salesforce and Zoho integrations resetting their `apiDomain` after project config changes.
+- Fixed an error when setting the submission status from the submission element index action.
+- Fixed Mailjet integration not working correctly.
+
 ## 2.0.13 - 2022-10-23
 
 ### Added
