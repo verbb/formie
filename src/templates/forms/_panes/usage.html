@@ -3,20 +3,23 @@
     {% set showDrafts = options.showDrafts ?? false %}
     {% set showRevisions = options.showRevisions ?? false %}
 
+    {% set render = true %}
+    {% set render = not showDrafts and element.isDraft() ? false : render %}
+    {% set render = not showRevisions and element.isRevision() ? false : render %}
+
     {% if element is instance of('craft\\elements\\MatrixBlock') or element is instance of('verbb\supertable\\elements\\SuperTableBlockElement') or element is instance of('benf\\neo\\elements\\Block') %}
-        {% set owner = element.getOwner() %}
+        {# Add a check here to ensure there's a valid owner (`getOwner()` will throw a hard-error) #}
+        {% set owner = craft.app.getElements().getElementById(element.ownerId, null, element.siteId) %}
         {% set ownerField = craft.app.getFields().getFieldById(element.fieldId) %}
 
         {% if owner %}
             {{ _self.tableColumns(owner, ownerField, options) }}
 
             {% set class = 'owner-row' %}
+        {% else %}
+            {% set render = false %}
         {% endif %}
     {% endif %}
-
-    {% set render = true %}
-    {% set render = not showDrafts and element.isDraft() ? false : render %}
-    {% set render = not showRevisions and element.isRevision() ? false : render %}
 
     {% if render %}
         <tr class="{{ class }}">
