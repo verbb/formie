@@ -1,0 +1,60 @@
+{% import '_includes/forms' as forms %}
+{% import 'verbb-base/_macros' as macros %}
+
+{% set instructions %}
+### Step 1. Connect to the {name} API
+1. Go to <a href="https://dotdigital.com/" target="_blank">Dotdigital</a> and login to your account.
+1. Click the more-options (triple dots) in the bottom left corner and go to **Access** > **API users**.
+1. Click the **New user** button.
+1. Copy the **Email Address** from {name} and paste in the **Username** field below.
+1. Create a password and copy this from {name} and paste in the **Password** field below.
+1. Click the **Save** button.
+1. Copy the **API Endpoint** from {name} and paste in the **API Endpoint** field below.
+
+### Step 2. Test Connection
+1. Save this integration.
+1. Click on the **Refresh** button in the right-hand sidebar.
+{% endset %}
+
+<div class="fui-settings-block">
+    {{ instructions | t('formie', { name: integration.displayName() }) | md }}
+</div>
+
+{% if not craft.app.config.general.allowAdminChanges %}
+    <span class="warning with-icon">
+        {{ 'Integration settings can only be editable on an environment with `allowAdminChanges` enabled.' | t('formie') | md(inlineOnly=true) }}
+    </span>
+{% endif %}
+
+{{ forms.autosuggestField({
+    label: 'Username' | t('formie'),
+    instructions: 'Enter your {name} Username here.' | t('formie', { name: integration.displayName() }),
+    name: 'username',
+    required: true,
+    suggestEnvVars: true,
+    value: integration.settings.username ?? '',
+    warning: macros.configWarning('username', 'formie'),
+    errors: integration.getErrors('username'),
+}) }}
+
+{{ forms.autosuggestField({
+    label: 'Password' | t('formie'),
+    instructions: 'Enter your {name} Password here.' | t('formie', { name: integration.displayName() }),
+    name: 'password',
+    required: true,
+    suggestEnvVars: true,
+    value: integration.settings.password ?? '',
+    warning: macros.configWarning('password', 'formie'),
+    errors: integration.getErrors('password'),
+}) }}
+
+{{ forms.autosuggestField({
+    label: 'API Endpoint' | t('formie'),
+    instructions: 'Enter your full {name} API Endpoint here. e.g. `https://r3-api.dotdigital.com`' | t('formie', { name: integration.displayName() }) | md,
+    name: 'apiDomain',
+    required: true,
+    suggestEnvVars: true,
+    value: integration.settings.apiDomain ?? '',
+    warning: macros.configWarning('apiDomain', 'formie'),
+    errors: integration.getErrors('apiDomain'),
+}) }}
