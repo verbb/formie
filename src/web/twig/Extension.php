@@ -7,14 +7,14 @@ use verbb\formie\helpers\RichTextHelper;
 use Craft;
 use craft\web\View;
 
-use Twig_Extension;
-use Twig_SimpleFunction;
-use Twig_SimpleFilter;
-use Twig_Environment;
+use Twig\Extension\AbstractExtension;
+use Twig\TwigFunction;
+use Twig\TwigFilter;
+use Twig\Environment;
 
 use yii\helpers\Inflector;
 
-class Extension extends Twig_Extension
+class Extension extends AbstractExtension
 {
     // Public Methods
     // =========================================================================
