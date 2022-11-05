@@ -89,7 +89,7 @@ class Subscriptions extends Component
      * @param submission $submission
      * @return Subscription|null
      */
-    public function getSubmissionSubscriptions(submission $submission): array
+    public function getSubmissionSubscriptions(Submission $submission): array
     {
         return $this->_subscriptions()->where('submissionId', $submission->id)->all();
     }
