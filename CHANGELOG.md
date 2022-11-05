@@ -1,5 +1,16 @@
 # Changelog
 
+## 2.0.15 - 2022-11-06
+
+### Added
+- Add Dotdigital CRM integration.
+- Add more clarity to Freeform/Sprout Forms migrations when a submission failed to migrate.
+
+### Fixed
+- Fix the “View Submissions” link when editing a form not being correct for Craft 4.3+.
+- Fix an error when viewing form usage for soft deleted entries that contained a Formie form relation.
+- Fix visibly disabled fields not having their default value used when populating a submission content.
+
 ## 2.0.14 - 2022-10-29
 
 ### Added
@@ -429,10 +440,10 @@
 ## 1.6.17 - 2022-11-06
 
 ### Added
-- Add more clarity to Freeform/Sprout Forms migrations when a submission failed to migrate.
+- Added more clarity to Freeform/Sprout Forms migrations when a submission failed to migrate.
 
 ### Fixed
-- Fix visibly disabled fields not having their default value used when populating a submission content.
+- Fixed visibly disabled fields not having their default value used when populating a submission content.
 
 ## 1.6.16 - 2022-10-29
 
