@@ -24,7 +24,7 @@
 {% set submissions = craft.formie.submissions.form(form.handle).limit(1).exists() %}
 
 {% if submissions %}
-    <a href="{{ cpUrl('formie/submissions/' ~ form.handle) }}" class="btn" target="_blank" rel="noopener" data-icon-after="external">
+    <a href="{{ cpUrl('formie/submissions/' ~ form.handle, { source: 'form:' ~ form.id }) }}" class="btn" target="_blank" rel="noopener" data-icon-after="external">
         {{ 'View Submissions' | t('formie') }}
     </a>
 {% endif %}
