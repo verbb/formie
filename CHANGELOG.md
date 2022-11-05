@@ -426,6 +426,14 @@
 - Removed `forms`, `form` and `formCount` from GraphQL queries. Please use `formieForms`, `formieForm` and `formieFormCount`.
 - Removed `submissions`, `submission` and `submissionCount` from GraphQL queries. Please use `formieSubmissions`, `formieSubmission` and `formieSubmissionCount`.
 
+## 1.6.17 - 2022-11-06
+
+### Added
+- Add more clarity to Freeform/Sprout Forms migrations when a submission failed to migrate.
+
+### Fixed
+- Fix visibly disabled fields not having their default value used when populating a submission content.
+
 ## 1.6.16 - 2022-10-29
 
 ### Fixed

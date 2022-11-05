@@ -286,7 +286,7 @@ class MigrateSproutForms extends Migration
             }
 
             if (!Craft::$app->getElements()->saveElement($event->submission)) {
-                $this->stdout("    > Failed to save submission “{$event->submission->id}”.", Console::FG_RED);
+                $this->stdout("    > Failed to save Formie submission for Sprout Forms entry “{$entry->id}”.", Console::FG_RED);
 
                 foreach ($event->submission->getErrors() as $attr => $errors) {
                     foreach ($errors as $error) {
@@ -294,7 +294,7 @@ class MigrateSproutForms extends Migration
                     }
                 }
             } else {
-                $this->stdout("    > Migrated submission “{$event->submission->id}”.", Console::FG_GREEN);
+                $this->stdout("    > Migrated Sprout Forms entry “{$entry->id}” to Formie submission “{$event->submission->id}”.", Console::FG_GREEN);
             }
         }
 
