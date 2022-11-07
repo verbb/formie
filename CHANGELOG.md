@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.0.16 - 2022-11-08
+
+### Fixed
+- Fix an error introduced in 2.0.15.
+
 ## 2.0.15 - 2022-11-06
 
 ### Added
