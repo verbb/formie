@@ -840,7 +840,7 @@ class Submission extends Element
 
         // If the final page, populate any visibly disabled fields with empty values with their default
         if ($this->getFieldLayout() && !$this->isIncomplete) {
-            foreach ($this->getFieldLayout()->getFields() as $field) {
+            foreach ($this->getFieldLayout()->getCustomFields() as $field) {
                 if ($field->visibility === 'disabled') {
                     $value = $this->getFieldValue($field->handle);
 
