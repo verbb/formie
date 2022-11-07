@@ -370,7 +370,7 @@ class Phone extends FormField implements SubfieldInterface, PreviewableFieldInte
         $errors = $context['errors'] ?? null;
 
         if ($key === 'fieldInput') {
-            $id = $this->getHtmlId($form, 'number');
+            $id = $this->getHtmlId($form, '');
             $dataId = $this->getHtmlDataId($form, 'number');
 
             return new HtmlTag('input', array_merge([
