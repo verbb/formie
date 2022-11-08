@@ -104,7 +104,7 @@ class Rendering extends Component
         ]);
         $this->trigger(self::EVENT_MODIFY_RENDER_FORM, $event);
 
-        $output = $event->html;
+        $output = TemplateHelper::raw($event->html);
 
         // We might want to explicitly disable JS/CSS for just this render call
         $renderCss = $renderOptions['renderCss'] ?? true;
