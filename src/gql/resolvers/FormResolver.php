@@ -4,8 +4,11 @@ namespace verbb\formie\gql\resolvers;
 use verbb\formie\elements\Form;
 use verbb\formie\helpers\Gql as GqlHelper;
 
+use craft\elements\db\ElementQuery;
 use craft\gql\base\ElementResolver;
 use craft\helpers\Db;
+
+use Illuminate\Support\Collection;
 
 class FormResolver extends ElementResolver
 {
@@ -20,7 +23,7 @@ class FormResolver extends ElementResolver
             $query = $source->$fieldName;
         }
 
-        if (is_array($query)) {
+        if (!$query instanceof ElementQuery) {
             return $query;
         }
 
@@ -31,7 +34,7 @@ class FormResolver extends ElementResolver
         $pairs = GqlHelper::extractAllowedEntitiesFromSchema('read');
 
         if (!GqlHelper::canQueryForms()) {
-            return [];
+            return Collection::empty();
         }
 
         if (!GqlHelper::canSchema('formieForms.all')) {
