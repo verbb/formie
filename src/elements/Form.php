@@ -1791,6 +1791,8 @@ class Form extends Element
 
         $context = [
             'form' => $this,
+            'page' => $this->getPages()[0] ?? null,
+            'currentPage' => $this->getCurrentPage(),
         ];
 
         // Create a generic field in case we want to grab some generic field theme config
