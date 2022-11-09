@@ -14,6 +14,7 @@ use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
+use craft\helpers\App;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 use craft\web\View;
@@ -458,7 +459,7 @@ class Pipedrive extends Crm
 
         return $this->_client = Craft::createGuzzleClient([
             'base_uri' => 'https://api.pipedrive.com/v1/',
-            'query' => ['api_token' => Craft::parseEnv($this->apiKey)],
+            'query' => ['api_token' => App::parseEnv($this->apiKey)],
         ]);
     }
 

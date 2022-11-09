@@ -13,6 +13,7 @@ use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
+use craft\helpers\App;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 use craft\helpers\StringHelper;
@@ -56,7 +57,7 @@ class MicrosoftDynamics365 extends Crm
      */
     public function getClientId(): string
     {
-        return Craft::parseEnv($this->clientId);
+        return App::parseEnv($this->clientId);
     }
 
     /**
@@ -64,7 +65,7 @@ class MicrosoftDynamics365 extends Crm
      */
     public function getClientSecret(): string
     {
-        return Craft::parseEnv($this->clientSecret);
+        return App::parseEnv($this->clientSecret);
     }
 
     /**
@@ -96,7 +97,7 @@ class MicrosoftDynamics365 extends Crm
     {
         return array_merge(parent::getOauthProviderConfig(), [
             'defaultEndPointVersion' => '1.0',
-            'resource' => Craft::parseEnv($this->apiDomain),
+            'resource' => App::parseEnv($this->apiDomain),
         ]);
     }
 
@@ -329,7 +330,7 @@ class MicrosoftDynamics365 extends Crm
         }
 
         $token = $this->getToken();
-        $url = rtrim(Craft::parseEnv($this->apiDomain), '/');
+        $url = rtrim(App::parseEnv($this->apiDomain), '/');
 
         $this->_client = Craft::createGuzzleClient([
             'base_uri' => "$url/api/data/v9.0/",

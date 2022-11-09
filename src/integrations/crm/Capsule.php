@@ -12,6 +12,7 @@ use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
+use craft\helpers\App;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 use craft\helpers\StringHelper;
@@ -452,7 +453,7 @@ class Capsule extends Crm
         return $this->_client = Craft::createGuzzleClient([
             'base_uri' => 'https://api.capsulecrm.com/api/v2/',
             'headers' => [
-                'Authorization' => 'Bearer ' . Craft::parseEnv($this->apiKey),
+                'Authorization' => 'Bearer ' . App::parseEnv($this->apiKey),
             ],
         ]);
     }

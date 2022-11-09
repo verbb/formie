@@ -12,6 +12,7 @@ use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
+use craft\helpers\App;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 use craft\web\View;
@@ -67,7 +68,7 @@ class EmailOctopus extends EmailMarketing
         try {
             $response = $this->request('GET', 'lists', [
                 'query' => [
-                    'api_key' => Craft::parseEnv($this->apiKey),
+                    'api_key' => App::parseEnv($this->apiKey),
                 ],
             ]);
 
@@ -103,7 +104,7 @@ class EmailOctopus extends EmailMarketing
             $emailHash = md5(strtolower($email));
 
             $payload = [
-                'api_key' => Craft::parseEnv($this->apiKey),
+                'api_key' => App::parseEnv($this->apiKey),
                 'email_address' => $email,
                 'status' => 'SUBSCRIBED',
                 'fields' => $fieldValues,
@@ -155,7 +156,7 @@ class EmailOctopus extends EmailMarketing
         try {
             $response = $this->request('GET', 'lists', [
                 'query' => [
-                    'api_key' => Craft::parseEnv($this->apiKey),
+                    'api_key' => App::parseEnv($this->apiKey),
                 ],
             ]);
         } catch (\Throwable $e) {

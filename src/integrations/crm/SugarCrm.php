@@ -14,6 +14,7 @@ use verbb\formie\models\IntegrationFormSettings;
 use verbb\formie\models\Token;
 
 use Craft;
+use craft\helpers\App;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 use craft\helpers\StringHelper;
@@ -71,7 +72,7 @@ class SugarCrm extends Crm
      */
     public function getAccessTokenUrl(): string
     {
-        $apiDomain = rtrim(Craft::parseEnv($this->apiDomain), '/');
+        $apiDomain = rtrim(App::parseEnv($this->apiDomain), '/');
 
         return "{$apiDomain}/rest/v11/oauth2/token";;
     }
@@ -103,8 +104,8 @@ class SugarCrm extends Crm
 
         // Get a password grant, which is different from normal
         $token = $provider->getAccessToken('password', [
-            'username' => Craft::parseEnv($this->username),
-            'password' => Craft::parseEnv($this->password),
+            'username' => App::parseEnv($this->username),
+            'password' => App::parseEnv($this->password),
             'platform' => 'formie',
         ]);
 
@@ -340,7 +341,7 @@ class SugarCrm extends Crm
             return $this->_client;
         }
 
-        $apiDomain = rtrim(Craft::parseEnv($this->apiDomain), '/');
+        $apiDomain = rtrim(App::parseEnv($this->apiDomain), '/');
         $token = $this->getToken();
 
         $this->_client = Craft::createGuzzleClient([

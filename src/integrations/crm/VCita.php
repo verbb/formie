@@ -12,6 +12,7 @@ use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
+use craft\helpers\App;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 use craft\helpers\StringHelper;
@@ -216,7 +217,7 @@ class VCita extends Crm
         return $this->_client = Craft::createGuzzleClient([
             'base_uri' => 'https://api.vcita.biz/platform/v1/',
             'headers' => [
-                'Authorization' => 'Bearer ' . Craft::parseEnv($this->apiKey),
+                'Authorization' => 'Bearer ' . App::parseEnv($this->apiKey),
                 'Content-Type' => 'application/json',
             ],
         ]);

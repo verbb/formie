@@ -11,6 +11,7 @@ use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
+use craft\helpers\App;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 use craft\web\View;
@@ -70,7 +71,7 @@ class GoogleSheets extends Miscellaneous
      */
     public function getClientId(): string
     {
-        return Craft::parseEnv($this->clientId);
+        return App::parseEnv($this->clientId);
     }
 
     /**
@@ -78,7 +79,7 @@ class GoogleSheets extends Miscellaneous
      */
     public function getClientSecret(): string
     {
-        return Craft::parseEnv($this->clientSecret);
+        return App::parseEnv($this->clientSecret);
     }
 
     /**
@@ -100,7 +101,7 @@ class GoogleSheets extends Miscellaneous
         $uri = parent::getRedirectUri();
 
         // Allow a proxy to our server to forward on the request - just for local dev ease
-        if (Craft::parseEnv($this->proxyRedirect)) {
+        if (App::parseEnv($this->proxyRedirect)) {
             return "https://formie.verbb.io?return=$uri";
         }
 
@@ -137,7 +138,7 @@ class GoogleSheets extends Miscellaneous
     {
         // Allow an .env var to override the proxy state. Due to it being a lightswitch
         // we can't set an override any other way.
-        $proxyRedirect = Craft::parseEnv('$FORMIE_INTEGRATION_PROXY_REDIRECT');
+        $proxyRedirect = App::parseEnv('$FORMIE_INTEGRATION_PROXY_REDIRECT');
 
         if (!is_null($proxyRedirect)) {
             $this->proxyRedirect = $proxyRedirect;
@@ -282,7 +283,7 @@ class GoogleSheets extends Miscellaneous
 
         $token = $this->getToken();
 
-        $spreadsheetId = Craft::parseEnv($this->spreadsheetId);
+        $spreadsheetId = App::parseEnv($this->spreadsheetId);
 
         $this->_client = Craft::createGuzzleClient([
             'base_uri' => "https://sheets.googleapis.com/v4/spreadsheets/{$spreadsheetId}/",

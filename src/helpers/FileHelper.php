@@ -2,6 +2,7 @@
 namespace verbb\formie\helpers;
 
 use Craft;
+use craft\helpers\App;
 use craft\helpers\FileHelper as CraftFileHelper;
 use craft\helpers\StringHelper;
 
@@ -21,8 +22,8 @@ class FileHelper
      */
     public static function copyTemplateDirectory(string $from, string $to): bool
     {
-        $from = Craft::parseEnv($from);
-        $to = Craft::parseEnv($to);
+        $from = App::parseEnv($from);
+        $to = App::parseEnv($to);
 
         try {
             $templates = Craft::$app->getPath()->getSiteTemplatesPath();

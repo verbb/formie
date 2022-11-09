@@ -471,13 +471,13 @@ class Mercury extends Crm
         }
 
         $url = 'https://apis.connective.com.au/mercury/v1';
-        $apiToken = Craft::parseEnv($this->apiToken);
-        $apiKey = Craft::parseEnv($this->apiKey);
+        $apiToken = App::parseEnv($this->apiToken);
+        $apiKey = App::parseEnv($this->apiKey);
 
         if ($this->getUseUat()) {
             $url = 'https://uatapis.connective.com.au/mercury-v1';
-            $apiToken = Craft::parseEnv($this->uatToken);
-            $apiKey = Craft::parseEnv($this->uatKey);
+            $apiToken = App::parseEnv($this->uatToken);
+            $apiKey = App::parseEnv($this->uatKey);
         }
 
         return $this->_client = Craft::createGuzzleClient([

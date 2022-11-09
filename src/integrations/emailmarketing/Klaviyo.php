@@ -12,6 +12,7 @@ use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
+use craft\helpers\App;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 use craft\web\View;
@@ -134,7 +135,7 @@ class Klaviyo extends EmailMarketing
 
             // Create the profile first, with the Public API
             $payload = [
-                'token' => Craft::parseEnv($this->publicApiKey),
+                'token' => App::parseEnv($this->publicApiKey),
                 'properties' => $fieldValues,
             ];
 
@@ -193,7 +194,7 @@ class Klaviyo extends EmailMarketing
         return $this->_client = Craft::createGuzzleClient([
             'base_uri' => 'https://a.klaviyo.com/api/',
             'query' => [
-                'api_key' => Craft::parseEnv($this->privateApiKey),
+                'api_key' => App::parseEnv($this->privateApiKey),
             ],
         ]);
     }

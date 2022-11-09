@@ -12,6 +12,7 @@ use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
+use craft\helpers\App;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 use craft\web\View;
@@ -65,7 +66,7 @@ class Adestra extends EmailMarketing
         $settings = [];
 
         try {
-            $response = $this->request('GET', '/core_tables/' . Craft::parseEnv($this->coreTableId));
+            $response = $this->request('GET', '/core_tables/' . App::parseEnv($this->coreTableId));
             $fields = $response['table_columns'] ?? [];
 
             $listFields = [];
@@ -80,8 +81,8 @@ class Adestra extends EmailMarketing
 
             $response = $this->request('GET', 'lists', [
                 'query' => [
-                    'search:workspace_id' => Craft::parseEnv($this->workspaceId),
-                    'search:table_id' => Craft::parseEnv($this->coreTableId),
+                    'search:workspace_id' => App::parseEnv($this->workspaceId),
+                    'search:table_id' => App::parseEnv($this->coreTableId),
                     'paging:page_size' => 250,
                 ],
             ]);
@@ -112,11 +113,11 @@ class Adestra extends EmailMarketing
             $contactData = [];
 
             foreach ($fieldValues as $name => $value) {
-                $contactData[Craft::parseEnv($this->coreTableId) . '.' . $name] = $value;
+                $contactData[App::parseEnv($this->coreTableId) . '.' . $name] = $value;
             }
 
             $payload = [
-                'table_id' => (int)Craft::parseEnv($this->coreTableId),
+                'table_id' => (int)App::parseEnv($this->coreTableId),
                 'dedupe_field' => 'email',
                 'options' => [
                     'list_id' => (int)$this->listId,
@@ -144,7 +145,7 @@ class Adestra extends EmailMarketing
     public function fetchConnection(): bool
     {
         try {
-            $response = $this->request('GET', '/workspaces/' . Craft::parseEnv($this->workspaceId));
+            $response = $this->request('GET', '/workspaces/' . App::parseEnv($this->workspaceId));
             $workspaceName = $response['name'] ?? '';
 
             if (!$workspaceName) {
@@ -172,7 +173,7 @@ class Adestra extends EmailMarketing
         return $this->_client = Craft::createGuzzleClient([
             'base_uri' => 'https://app.adestra.com/api/rest/1/',
             'headers' => [
-                'Authorization' => 'TOKEN ' . Craft::parseEnv($this->apiKey),
+                'Authorization' => 'TOKEN ' . App::parseEnv($this->apiKey),
             ],
         ]);
     }

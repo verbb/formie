@@ -12,6 +12,7 @@ use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
+use craft\helpers\App;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 use craft\web\View;
@@ -301,7 +302,7 @@ class Autopilot extends EmailMarketing
 
         return $this->_client = Craft::createGuzzleClient([
             'base_uri' => 'https://api2.autopilothq.com/v1/',
-            'headers' => ['autopilotapikey' => Craft::parseEnv($this->apiKey)],
+            'headers' => ['autopilotapikey' => App::parseEnv($this->apiKey)],
         ]);
     }
 

@@ -154,7 +154,7 @@ class Variables
         }
 
         // Parse aliases and env variables
-        $value = Craft::parseEnv($value);
+        $value = App::parseEnv($value);
 
         // Use a cache key based on the submission, or few unsaved submissions, the formId
         // This helps to only cache it per-submission, when being run in queues.

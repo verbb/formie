@@ -12,6 +12,7 @@ use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
+use craft\helpers\App;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 use craft\web\View;
@@ -213,8 +214,8 @@ class Ontraport extends EmailMarketing
         return $this->_client = Craft::createGuzzleClient([
             'base_uri' => 'https://api.ontraport.com/1/',
             'headers' => [
-                'Api-Key' => Craft::parseEnv($this->apiKey),
-                'Api-Appid' => Craft::parseEnv($this->appId),
+                'Api-Key' => App::parseEnv($this->apiKey),
+                'Api-Appid' => App::parseEnv($this->appId),
             ],
         ]);
     }

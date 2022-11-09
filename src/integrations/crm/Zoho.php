@@ -75,7 +75,7 @@ class Zoho extends Crm
      */
     public function getClientId(): string
     {
-        return Craft::parseEnv($this->clientId);
+        return App::parseEnv($this->clientId);
     }
 
     /**
@@ -83,7 +83,7 @@ class Zoho extends Crm
      */
     public function getClientSecret(): string
     {
-        return Craft::parseEnv($this->clientSecret);
+        return App::parseEnv($this->clientSecret);
     }
 
     /**

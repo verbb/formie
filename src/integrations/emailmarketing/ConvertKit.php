@@ -12,6 +12,7 @@ use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
+use craft\helpers\App;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 use craft\web\View;
@@ -169,7 +170,7 @@ class ConvertKit extends EmailMarketing
 
         return $this->_client = Craft::createGuzzleClient([
             'base_uri' => 'https://api.convertkit.com/v3/',
-            'query' => ['api_secret' => Craft::parseEnv($this->apiSecret)],
+            'query' => ['api_secret' => App::parseEnv($this->apiSecret)],
         ]);
     }
 }

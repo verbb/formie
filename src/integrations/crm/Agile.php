@@ -12,6 +12,7 @@ use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
+use craft\helpers\App;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 use craft\helpers\StringHelper;
@@ -503,11 +504,11 @@ class Agile extends Crm
             return $this->_client;
         }
 
-        $url = rtrim(Craft::parseEnv($this->apiDomain), '/');
+        $url = rtrim(App::parseEnv($this->apiDomain), '/');
 
         return $this->_client = Craft::createGuzzleClient([
             'base_uri' => "$url/dev/api/",
-            'auth' => [Craft::parseEnv($this->apiEmail), Craft::parseEnv($this->apiKey)],
+            'auth' => [App::parseEnv($this->apiEmail), App::parseEnv($this->apiKey)],
             'headers' => [
                 'Accept' => 'application/json',
             ],

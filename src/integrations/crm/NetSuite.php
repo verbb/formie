@@ -12,6 +12,7 @@ use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
+use craft\helpers\App;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 use craft\web\View;
@@ -114,7 +115,7 @@ class NetSuite extends Crm
 
         return $this->_client = Craft::createGuzzleClient([
             'base_uri' => '',
-            'headers' => ['Api-Token' => Craft::parseEnv($this->apiKey)],
+            'headers' => ['Api-Token' => App::parseEnv($this->apiKey)],
         ]);
     }
 }

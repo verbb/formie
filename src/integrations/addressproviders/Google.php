@@ -7,6 +7,7 @@ use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyAddressProviderHtmlEvent;
 
 use Craft;
+use craft\helpers\App;
 use craft\helpers\Json;
 use craft\helpers\Template;
 use craft\web\View;
@@ -107,8 +108,8 @@ class Google extends AddressProvider
         }
 
         $settings = [
-            'apiKey' => Craft::parseEnv($this->apiKey),
-            'geocodingApiKey' => Craft::parseEnv($this->geocodingApiKey),
+            'apiKey' => App::parseEnv($this->apiKey),
+            'geocodingApiKey' => App::parseEnv($this->geocodingApiKey),
             'options' => $this->_getOptions(),
         ];
 

@@ -6,6 +6,7 @@ use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 
 use Craft;
+use craft\helpers\App;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 use craft\web\View;
@@ -79,7 +80,7 @@ class Hcaptcha extends Captcha
     public function getFrontEndJsVariables(Form $form, $page = null)
     {
         $settings = [
-            'siteKey' => Craft::parseEnv($this->siteKey),
+            'siteKey' => App::parseEnv($this->siteKey),
             'formId' => $form->getFormId(),
             'theme' => $this->theme,
             'size' => $this->size,
@@ -112,7 +113,7 @@ class Hcaptcha extends Captcha
 
         $response = $client->post('https://hcaptcha.com/siteverify', [
             'form_params' => [
-                'secret' => Craft::parseEnv($this->secretKey),
+                'secret' => App::parseEnv($this->secretKey),
                 'response' => $response,
                 'remoteip' => Craft::$app->getRequest()->getRemoteIP(),
             ],

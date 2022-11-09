@@ -84,7 +84,7 @@ class Salesforce extends Crm
      */
     public function getClientId(): string
     {
-        return Craft::parseEnv($this->clientId);
+        return App::parseEnv($this->clientId);
     }
 
     /**
@@ -92,7 +92,7 @@ class Salesforce extends Crm
      */
     public function getClientSecret(): string
     {
-        return Craft::parseEnv($this->clientSecret);
+        return App::parseEnv($this->clientSecret);
     }
 
     /**
@@ -126,8 +126,8 @@ class Salesforce extends Crm
             $token = $provider->getAccessToken('password', [
                 'client_id' => $this->getClientId(),
                 'client_secret' => $this->getClientSecret(),
-                'username' => Craft::parseEnv($this->username),
-                'password' => Craft::parseEnv($this->password),
+                'username' => App::parseEnv($this->username),
+                'password' => App::parseEnv($this->password),
             ]);
 
             $this->afterFetchAccessToken($token);

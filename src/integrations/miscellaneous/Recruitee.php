@@ -12,6 +12,7 @@ use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
+use craft\helpers\App;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 use craft\helpers\StringHelper;
@@ -206,7 +207,7 @@ class Recruitee extends Miscellaneous
             return $this->_client;
         }
 
-        $subdomain = Craft::parseEnv($this->subdomain);
+        $subdomain = App::parseEnv($this->subdomain);
 
         return $this->_client = Craft::createGuzzleClient([
             'base_uri' => "https://{$subdomain}.recruitee.com/api/",

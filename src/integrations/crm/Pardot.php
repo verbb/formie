@@ -74,7 +74,7 @@ class Pardot extends Crm
      */
     public function getClientId(): string
     {
-        return Craft::parseEnv($this->clientId);
+        return App::parseEnv($this->clientId);
     }
 
     /**
@@ -82,7 +82,7 @@ class Pardot extends Crm
      */
     public function getClientSecret(): string
     {
-        return Craft::parseEnv($this->clientSecret);
+        return App::parseEnv($this->clientSecret);
     }
 
     /**
@@ -533,7 +533,7 @@ class Pardot extends Crm
         }
 
         $baseUrl = $this->useSandbox ? 'https://pi.demo.pardot.com/api/' : 'https://pi.pardot.com/api/';
-        $businessUnitId = Craft::parseEnv($this->businessUnitId);
+        $businessUnitId = App::parseEnv($this->businessUnitId);
 
         $this->_client = Craft::createGuzzleClient([
             'base_uri' => $baseUrl,

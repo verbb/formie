@@ -12,6 +12,7 @@ use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
+use craft\helpers\App;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 use craft\web\View;
@@ -64,7 +65,7 @@ class CampaignMonitor extends EmailMarketing
         $settings = [];
 
         try {
-            $clientId = Craft::parseEnv($this->clientId);
+            $clientId = App::parseEnv($this->clientId);
             $lists = $this->request('GET', "clients/{$clientId}/lists.json");
 
             foreach ($lists as $list) {
@@ -156,7 +157,7 @@ class CampaignMonitor extends EmailMarketing
     public function fetchConnection(): bool
     {
         try {
-            $clientId = Craft::parseEnv($this->clientId);
+            $clientId = App::parseEnv($this->clientId);
             $response = $this->request('GET', "clients/{$clientId}.json");
             $error = $response['error'] ?? '';
             $apiKey = $response['ApiKey'] ?? '';
@@ -190,7 +191,7 @@ class CampaignMonitor extends EmailMarketing
 
         return $this->_client = Craft::createGuzzleClient([
             'base_uri' => 'https://api.createsend.com/api/v3.2/',
-            'auth' => [Craft::parseEnv($this->apiKey), 'formie'],
+            'auth' => [App::parseEnv($this->apiKey), 'formie'],
         ]);
     }
 

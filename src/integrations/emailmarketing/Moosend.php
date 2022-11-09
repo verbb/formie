@@ -12,6 +12,7 @@ use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
+use craft\helpers\App;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 use craft\web\View;
@@ -187,7 +188,7 @@ class Moosend extends EmailMarketing
 
         return $this->_client = Craft::createGuzzleClient([
             'base_uri' => 'http://api.moosend.com/v3/',
-            'query' => ['apikey' => Craft::parseEnv($this->apiKey)],
+            'query' => ['apikey' => App::parseEnv($this->apiKey)],
         ]);
     }
 }

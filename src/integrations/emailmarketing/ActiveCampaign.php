@@ -12,6 +12,7 @@ use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
+use craft\helpers\App;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 use craft\web\View;
@@ -255,8 +256,8 @@ class ActiveCampaign extends EmailMarketing
         }
 
         return $this->_client = Craft::createGuzzleClient([
-            'base_uri' => trim(Craft::parseEnv($this->apiUrl), '/') . '/api/3/',
-            'headers' => ['Api-Token' => Craft::parseEnv($this->apiKey)],
+            'base_uri' => trim(App::parseEnv($this->apiUrl), '/') . '/api/3/',
+            'headers' => ['Api-Token' => App::parseEnv($this->apiKey)],
         ]);
     }
 

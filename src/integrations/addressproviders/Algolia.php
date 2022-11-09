@@ -7,6 +7,7 @@ use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyAddressProviderHtmlEvent;
 
 use Craft;
+use craft\helpers\App;
 use craft\helpers\Json;
 use craft\helpers\Template;
 use craft\web\View;
@@ -100,8 +101,8 @@ class Algolia extends AddressProvider
 
         // These are reversed on purpose!
         $settings = [
-            'appId' => Craft::parseEnv($this->apiKey),
-            'apiKey' => Craft::parseEnv($this->appId),
+            'appId' => App::parseEnv($this->apiKey),
+            'apiKey' => App::parseEnv($this->appId),
             'reconfigurableOptions' => $this->_getOptions(),
         ];
 

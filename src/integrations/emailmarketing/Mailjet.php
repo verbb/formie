@@ -9,6 +9,7 @@ use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
+use craft\helpers\App;
 use craft\helpers\ArrayHelper;
 use craft\helpers\StringHelper;
 
@@ -164,7 +165,7 @@ class Mailjet extends EmailMarketing
 
         return $this->_client = Craft::createGuzzleClient([
             'base_uri' => 'https://api.mailjet.com/v3/REST/',
-            'auth' => [Craft::parseEnv($this->apiKey), Craft::parseEnv($this->secretKey)],
+            'auth' => [App::parseEnv($this->apiKey), App::parseEnv($this->secretKey)],
         ]);
     }
 

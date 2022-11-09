@@ -12,6 +12,7 @@ use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
+use craft\helpers\App;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 use craft\web\View;
@@ -161,7 +162,7 @@ class MailerLite extends EmailMarketing
 
         return $this->_client = Craft::createGuzzleClient([
             'base_uri' => 'https://api.mailerlite.com/api/v2/',
-            'headers' => ['X-MailerLite-ApiKey' => Craft::parseEnv($this->apiKey)],
+            'headers' => ['X-MailerLite-ApiKey' => App::parseEnv($this->apiKey)],
         ]);
     }
 
