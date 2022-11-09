@@ -77,6 +77,11 @@ class GoogleSheets extends Miscellaneous
         return App::parseEnv($this->clientSecret);
     }
 
+    public function getProxyRedirect(): string
+    {
+        return App::parseBooleanEnv($this->proxyRedirect);
+    }
+
     public function getOauthScope(): array
     {
         return [
@@ -90,7 +95,7 @@ class GoogleSheets extends Miscellaneous
         $uri = parent::getRedirectUri();
 
         // Allow a proxy to our server to forward on the request - just for local dev ease
-        if ($this->proxyRedirect) {
+        if ($this->getProxyRedirect()) {
             return "https://formie.verbb.io?return=$uri";
         }
 
@@ -105,29 +110,9 @@ class GoogleSheets extends Miscellaneous
         ]);
     }
 
-
-    // Public Methods
-    // =========================================================================
-
     public function getOauthProvider(): AbstractProvider|Oauth1Provider
     {
         return new GoogleProvider($this->getOauthProviderConfig());
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function init(): void
-    {
-        // Allow an .env var to override the proxy state. Due to it being a lightswitch
-        // we can't set an override any other way.
-        $proxyRedirect = App::parseBooleanEnv('$FORMIE_INTEGRATION_PROXY_REDIRECT');
-
-        if (!is_null($proxyRedirect)) {
-            $this->proxyRedirect = $proxyRedirect;
-        }
-
-        parent::init();
     }
 
     public function getDescription(): string
