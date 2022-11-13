@@ -13,7 +13,7 @@
 - Fixed phone field input having the incorrect id attribute.
 - Fixed missing `descriptionHtml` attribute for Agree fields for GraphQL queries.
 - Fixed an error when rendering an Address field containing instruction text.
-- Fixed an error when saving a draft submision from the front-end.
+- Fixed an error when saving a draft submission from the front-end.
 
 ## 2.0.16 - 2022-11-08
 
