@@ -24,6 +24,7 @@ abstract class Element extends Integration implements IntegrationInterface
     public $fieldMapping;
     public $updateElement = false;
     public $updateElementMapping;
+    public $overwriteValues = false;
 
 
     // Static Methods

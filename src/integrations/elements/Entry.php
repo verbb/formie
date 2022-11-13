@@ -28,7 +28,7 @@ class Entry extends Element
 
     public $entryTypeId;
     public $defaultAuthorId;
-    public $createDraft;
+    public $createDraft = false;
 
 
     // Public Methods
@@ -232,7 +232,9 @@ class Entry extends Element
             $attributeValues = $this->getFieldMappingValues($submission, $this->attributeMapping, $this->getElementAttributes());
 
             // Filter null values
-            $attributeValues = $this->filterNullValues($attributeValues);
+            if (!$this->overwriteValues) {
+                $attributeValues = $this->filterNullValues($attributeValues);
+            }
 
             foreach ($attributeValues as $entryFieldHandle => $fieldValue) {
                 if ($entryFieldHandle === 'author') {
@@ -248,7 +250,9 @@ class Entry extends Element
             $fieldValues = $this->getFieldMappingValues($submission, $this->fieldMapping, $fields);
 
             // Filter null values
-            $fieldValues = $this->filterNullValues($fieldValues);
+            if (!$this->overwriteValues) {
+                $fieldValues = $this->filterNullValues($fieldValues);
+            }
 
             $entry->setFieldValues($fieldValues);
             $entry->updateTitle();
