@@ -1,5 +1,20 @@
 # Changelog
 
+## 2.0.17 - 2022-11-13
+
+### Added
+- Added “Overwrite Content” setting for Element integrations to control whether null values should be applied to element content.
+
+### Fixed
+- Fixed the “Proxy Redirect URI” for Google Sheets not saving correctly when using .env variables.
+- Fixed an error when using `page` variables in Theme Config settings.
+- Fixed an error when rendering a form with both `renderJs` and `renderCss` set to `false`.
+- Fixed PHP errors that could occur when executing GraphQL queries.
+- Fixed phone field input having the incorrect id attribute.
+- Fixed missing `descriptionHtml` attribute for Agree fields for GraphQL queries.
+- Fixed an error when rendering an Address field containing instruction text.
+- Fixed an error when saving a draft submision from the front-end.
+
 ## 2.0.16 - 2022-11-08
 
 ### Fixed
