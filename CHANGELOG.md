@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.6.18 - 2022-11-13
+
+### Added
+- Added “Overwrite Content” setting for Element integrations to control whether null values should be applied to element content.
+
+### Changed
+- Updated to use `App::parseBooleanEnv` where applicable for integration settings.
+
+### Fixed
+- Fixed the “Proxy Redirect URI” for Google Sheets not saving correctly when using .env variables.
+
 ## 1.6.17 - 2022-11-06
 
 ### Added
