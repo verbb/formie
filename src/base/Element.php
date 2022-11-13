@@ -37,6 +37,7 @@ abstract class Element extends Integration
     public bool $updateElement = false;
     public ?array $updateElementMapping = null;
     public bool $updateSearchIndexes = true;
+    public bool $overwriteValues = false;
 
 
     // Public Methods

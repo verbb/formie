@@ -79,6 +79,13 @@
     </template>
 </integration-form-settings>
 
+{{ forms.lightswitchField({
+    label: 'Overwrite Content' | t('formie'),
+    instructions: 'Whether to overwrite existing content, even if empty values are provided.' | t('formie'),
+    name: 'overwriteValues',
+    on: form.settings.integrations[handle].overwriteValues ?? false,
+}) }}
+
 {% set createDraft = form.settings.integrations[handle].createDraft ?? false %}
 {% set updateElement = form.settings.integrations[handle].updateElement ?? false %}
 

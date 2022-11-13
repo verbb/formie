@@ -208,7 +208,9 @@ class User extends Element
             $attributeValues = $this->getFieldMappingValues($submission, $this->attributeMapping, $this->getElementAttributes());
 
             // Filter null values
-            $attributeValues = ArrayHelper::filterNullValues($attributeValues);
+            if (!$this->overwriteValues) {
+                $attributeValues = ArrayHelper::filterNullValues($attributeValues);
+            }
 
             // Check if the password was mapped, as if the source field was a Password field.
             // The value will already be hashed, and we need to do a manual DB-level update
@@ -226,7 +228,9 @@ class User extends Element
             $fieldValues = $this->getFieldMappingValues($submission, $this->fieldMapping, $fields);
 
             // Filter null values
-            $fieldValues = ArrayHelper::filterNullValues($fieldValues);
+            if (!$this->overwriteValues) {
+                $fieldValues = ArrayHelper::filterNullValues($fieldValues);
+            }
 
             $user->setFieldValues($fieldValues);
 
