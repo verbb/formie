@@ -181,6 +181,10 @@ class Agree extends FormField implements PreviewableFieldInterface
                 'name' => 'defaultState',
                 'type' => Type::boolean(),
             ],
+            'descriptionHtml' => [
+                'name' => 'descriptionHtml',
+                'type' => Type::string(),
+            ],
         ]);
     }
 
