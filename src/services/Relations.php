@@ -85,6 +85,6 @@ class Relations extends Component
             ];
         }
 
-        Db::batchInsert('{{%formie_relations}}', ['type', 'sourceId', 'sourceSiteId', 'targetId'], $values, true);
+        Db::batchInsert('{{%formie_relations}}', ['type', 'sourceId', 'sourceSiteId', 'targetId'], $values, $db);
     }
 }
