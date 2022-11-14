@@ -770,10 +770,12 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
                 // Get the value of the mapped field, from the submission.
                 $fieldValue = $this->getMappedFieldValue($fieldKey, $submission, $integrationField);
 
-                if (!$this->overwriteValues) {
-                    // Be sure the check against empty values and not map them. '', null and [] are all empty
-                    // but 0 is a totally valid value.
-                    if (!self::isEmpty($fieldValue)) {
+                // Be sure the check against empty values and not map them. '', null and [] are all empty
+                // but 0 is a totally valid value.
+                if (self::isEmpty($fieldValue)) {
+                    // Check if an element integration, where we can check against overwrite values.
+                    // If it's empty, and we're overwriting values, we don't care
+                    if ($this instanceof Element && $this->overwriteValues) {
                         $fieldValues[$tag] = $fieldValue;
                     }
                 } else {
