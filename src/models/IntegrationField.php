@@ -15,6 +15,7 @@ class IntegrationField extends Model
     const TYPE_BOOLEAN = 'boolean';
     const TYPE_DATE = 'date';
     const TYPE_DATETIME = 'datetime';
+    const TYPE_DATECLASS = 'dateclass';
     const TYPE_ARRAY = 'array';
 
 

@@ -193,6 +193,12 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
             }
         }
 
+        if ($integrationField->getType() === IntegrationField::TYPE_DATECLASS) {
+            if ($date = DateTimeHelper::toDateTime($value)) {
+                return $date;
+            }
+        }
+
         if ($integrationField->getType() === IntegrationField::TYPE_NUMBER) {
             return intval($value);
         }

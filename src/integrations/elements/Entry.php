@@ -136,12 +136,12 @@ class Entry extends Element
             new IntegrationField([
                 'name' => Craft::t('app', 'Post Date'),
                 'handle' => 'postDate',
-                'type' => IntegrationField::TYPE_DATETIME,
+                'type' => IntegrationField::TYPE_DATECLASS,
             ]),
             new IntegrationField([
                 'name' => Craft::t('app', 'Expiry Date'),
                 'handle' => 'expiryDate',
-                'type' => IntegrationField::TYPE_DATETIME,
+                'type' => IntegrationField::TYPE_DATECLASS,
             ]),
             new IntegrationField([
                 'name' => Craft::t('app', 'Enabled'),
@@ -151,12 +151,12 @@ class Entry extends Element
             new IntegrationField([
                 'name' => Craft::t('app', 'Date Created'),
                 'handle' => 'dateCreated',
-                'type' => IntegrationField::TYPE_DATETIME,
+                'type' => IntegrationField::TYPE_DATECLASS,
             ]),
             new IntegrationField([
                 'name' => Craft::t('app', 'Date Updated'),
                 'handle' => 'dateUpdated',
-                'type' => IntegrationField::TYPE_DATETIME,
+                'type' => IntegrationField::TYPE_DATECLASS,
             ]),
         ];
     }
