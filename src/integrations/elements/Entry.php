@@ -131,12 +131,12 @@ class Entry extends Element
             new IntegrationField([
                 'name' => Craft::t('app', 'Post Date'),
                 'handle' => 'postDate',
-                'type' => IntegrationField::TYPE_DATETIME,
+                'type' => IntegrationField::TYPE_DATECLASS,
             ]),
             new IntegrationField([
                 'name' => Craft::t('app', 'Expiry Date'),
                 'handle' => 'expiryDate',
-                'type' => IntegrationField::TYPE_DATETIME,
+                'type' => IntegrationField::TYPE_DATECLASS,
             ]),
             new IntegrationField([
                 'name' => Craft::t('app', 'Enabled'),
@@ -146,12 +146,12 @@ class Entry extends Element
             new IntegrationField([
                 'name' => Craft::t('app', 'Date Created'),
                 'handle' => 'dateCreated',
-                'type' => IntegrationField::TYPE_DATETIME,
+                'type' => IntegrationField::TYPE_DATECLASS,
             ]),
             new IntegrationField([
                 'name' => Craft::t('app', 'Date Updated'),
                 'handle' => 'dateUpdated',
-                'type' => IntegrationField::TYPE_DATETIME,
+                'type' => IntegrationField::TYPE_DATECLASS,
             ]),
         ];
     }
@@ -210,7 +210,7 @@ class Entry extends Element
             return false;
         }
 
-        try {
+        // try {
             $entryType = Craft::$app->getSections()->getEntryTypeById($this->entryTypeId);
 
             $entry = $this->getElementForPayload(EntryElement::class, $submission);
@@ -301,18 +301,18 @@ class Entry extends Element
             if (!$this->afterSendPayload($submission, '', $entry, '', [])) {
                 return true;
             }
-        } catch (Throwable $e) {
-            $error = Craft::t('formie', 'Element integration failed for submission “{submission}”. Error: {error} {file}:{line}', [
-                'error' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-                'submission' => $submission->id,
-            ]);
+        // } catch (Throwable $e) {
+        //     $error = Craft::t('formie', 'Element integration failed for submission “{submission}”. Error: {error} {file}:{line}', [
+        //         'error' => $e->getMessage(),
+        //         'file' => $e->getFile(),
+        //         'line' => $e->getLine(),
+        //         'submission' => $submission->id,
+        //     ]);
 
-            Formie::error($error);
+        //     Formie::error($error);
 
-            return new IntegrationResponse(false, [$error]);
-        }
+        //     return new IntegrationResponse(false, [$error]);
+        // }
 
         return true;
     }
