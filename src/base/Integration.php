@@ -156,7 +156,8 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         }
 
         if ($integrationField->getType() === IntegrationField::TYPE_DATECLASS) {
-            if ($date = DateTimeHelper::toDateTime($value)) {
+            // Always set the timezone to the system time, so it's properly saves as UTC
+            if ($date = DateTimeHelper::toDateTime($value, true)) {
                 return $date;
             }
         }
