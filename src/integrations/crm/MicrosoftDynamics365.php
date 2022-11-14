@@ -570,8 +570,21 @@ class MicrosoftDynamics365 extends Crm
                     continue;
                 }
 
-                // Fetch the entities and use the schema options to store
-                $response = $this->request('GET', $targetSchema['entity']);
+                // We don't really need that much from the entities
+                $select = [$targetSchema['label'], $targetSchema['value']];
+
+                if ($target === 'systemuser') {
+                    $select[] = 'applicationid';
+                }
+
+                // Fetch the entities and use the schema options to store. Be sure to limit and be performant.
+                $response = $this->request('GET', $targetSchema['entity'], [
+                    'query' => [
+                        '$top' => '100',
+                        '$select' => implode(',', $select),
+                    ],
+                ]);
+
                 $entities = $response['value'] ?? [];
 
                 foreach ($entities as $entity) {
