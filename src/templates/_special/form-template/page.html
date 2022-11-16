@@ -7,7 +7,7 @@
 
         {% if form.settings.displayCurrentPageTitle %}
             {{ formtag('pageTitle', {
-                text: page.name | t,
+                text: page.name | t('formie'),
             }) }}
         {% endif %}
 

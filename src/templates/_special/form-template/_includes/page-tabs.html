@@ -10,7 +10,7 @@
                 {%- endif -%}
 
                 {{ formtag('pageTabLink', {
-                    text: page.name | t,
+                    text: page.name | t('formie'),
                 }) }}
             {% endformtag %}
         {% endfor %}
