@@ -85,7 +85,7 @@ class GoogleSheets extends Miscellaneous
     /**
      * @inheritDoc
      */
-    public function getProxyRedirect(): string
+    public function getProxyRedirect(): ?bool
     {
         return App::parseBooleanEnv($this->proxyRedirect);
     }
