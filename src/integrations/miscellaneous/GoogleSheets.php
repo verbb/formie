@@ -77,7 +77,7 @@ class GoogleSheets extends Miscellaneous
         return App::parseEnv($this->clientSecret);
     }
 
-    public function getProxyRedirect(): string
+    public function getProxyRedirect(): ?bool
     {
         return App::parseBooleanEnv($this->proxyRedirect);
     }
