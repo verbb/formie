@@ -397,6 +397,14 @@ class Form extends Element
 
         return $behaviors;
     }
+    
+    /**
+     * @inheritdoc
+     */
+    public function canView(User $user): bool
+    {
+        return true;
+    }
 
     /**
      * @inheritdoc

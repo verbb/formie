@@ -389,6 +389,14 @@ class Submission extends Element
     {
         return (string)$this->title;
     }
+    
+    /**
+     * @inheritdoc
+     */
+    public function canView(User $user): bool
+    {
+        return true;
+    }
 
     /**
      * @inheritdoc

@@ -11,6 +11,7 @@ use Craft;
 use craft\base\Element;
 use craft\base\ElementInterface;
 use craft\db\Query;
+use craft\elements\User;
 use craft\elements\actions\Delete;
 use craft\elements\actions\Restore;
 use craft\helpers\ArrayHelper;
@@ -297,6 +298,14 @@ class SentNotification extends Element
     public function __toString(): string
     {
         return $this->dateCreated->format('M j, Y H:i:s A');
+    }
+    
+    /**
+     * @inheritdoc
+     */
+    public function canView(User $user): bool
+    {
+        return true;
     }
 
     /**
