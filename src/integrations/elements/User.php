@@ -356,10 +356,13 @@ class User extends Element
         foreach ($attributes as $userFieldHandle => $fieldValue) {
             // Special handling for photo - must be an asset. Actually provided as an Asset ID.
             if ($userFieldHandle === 'photo') {
-                // Fetch the asset, if it exists
-                $asset = Craft::$app->getAssets()->getAssetById($fieldValue);
+                // If explicitly null, that's okay, we might be overwriting values
+                if ($fieldValue !== null) {
+                    // Fetch the asset, if it exists
+                    $asset = Craft::$app->getAssets()->getAssetById($fieldValue);
 
-                $fieldValue = $asset ?? null;
+                    $fieldValue = $asset ?? null;
+                }
             }
 
             $user->{$userFieldHandle} = $fieldValue;
