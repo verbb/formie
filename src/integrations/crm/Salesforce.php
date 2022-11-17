@@ -266,7 +266,7 @@ class Salesforce extends Crm
         return new IntegrationFormSettings($settings);
     }
 
-    public function getMappedFieldValue($mappedFieldValue, $submission, $integrationField): ?string
+    public function getMappedFieldValue($mappedFieldValue, $submission, $integrationField): mixed
     {
         $value = parent::getMappedFieldValue($mappedFieldValue, $submission, $integrationField);
 
