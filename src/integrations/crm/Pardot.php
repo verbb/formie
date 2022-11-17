@@ -475,7 +475,7 @@ class Pardot extends Crm
         return true;
     }
 
-    public function getMappedFieldValue($mappedFieldValue, $submission, $integrationField): ?string
+    public function getMappedFieldValue($mappedFieldValue, $submission, $integrationField): mixed
     {
         $value = parent::getMappedFieldValue($mappedFieldValue, $submission, $integrationField);
 
