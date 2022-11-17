@@ -83,6 +83,20 @@ class Table extends CraftTable implements FormFieldInterface
     // Public Methods
     // =========================================================================
 
+    public function __construct(array $config = [])
+    {
+        // TODO: fixes an issue with dropdown options and FormKit nested form.
+        // Can be removed once we implement proper FormKit repeater.
+        if (array_key_exists('tableDropdownOptions', $config)) {
+            unset($config['tableDropdownOptions']);
+        }
+
+        // Pick up any config upstream (can be removed with the above)
+        self::normalizeConfig($config);
+
+        parent::__construct($config);
+    }
+
     /**
      * @inheritDoc
      */
