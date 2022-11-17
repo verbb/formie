@@ -75,32 +75,7 @@ class Monday extends Miscellaneous
         $settings = [];
 
         try {
-            $response = $this->request('POST', '/', [
-                'form_params' => [
-                    'query' => '
-                        query {
-                            boards {
-                                name
-                                id
-
-                                groups {
-                                    id
-                                    title
-                                }
-
-                                columns {
-                                    id
-                                    title
-                                    type
-                                    settings_str
-                                }
-                            }
-                        }
-                    ',
-                ],
-            ]);
-
-            $boards = $response['data']['boards'] ?? [];
+            $boards = $this->_getPaginated();
             $boardOptions = [];
 
             foreach ($boards as $key => $board) {
@@ -359,5 +334,46 @@ class Monday extends Miscellaneous
         }
 
         return [];
+    }
+
+    private function _getPaginated($limit = 100, $page = 1, $items = [])
+    {
+        $response = $this->request('POST', '/', [
+            'form_params' => [
+                'query' => '
+                    query {
+                        boards (limit:' . $limit . ', page:' . $page . ') {
+                            name
+                            id
+
+                            groups {
+                                id
+                                title
+                            }
+
+                            columns {
+                                id
+                                title
+                                type
+                                settings_str
+                            }
+                        }
+                    }
+                ',
+            ],
+        ]);
+
+        $newItems = $response['data']['boards'] ?? [];
+        $nextPage = $page + 1;
+
+        if ($newItems) {
+            $items = array_merge($items, $newItems);
+
+            if (count($newItems) === $limit) {
+                $items = $this->_getPaginated($limit, $nextPage, $items);
+            }
+        }
+
+        return $items;
     }
 }
