@@ -2,6 +2,7 @@
 namespace verbb\formie\helpers;
 
 use verbb\formie\Formie;
+use verbb\formie\elements\Submission;
 use verbb\formie\fields\formfields\Group;
 use verbb\formie\fields\formfields\Password;
 use verbb\formie\fields\formfields\Recipients;
@@ -80,7 +81,7 @@ class ConditionsHelper
         return "field {$operator} value";
     }
 
-    public static function evaluateConditions($conditions, $submission, $callback = null): array
+    public static function evaluateConditions(array $conditions, Submission $submission, $callback = null): array
     {
         $results = [];
         $evaluator = ConditionsHelper::getEvaluator();
@@ -160,7 +161,7 @@ class ConditionsHelper
         return $results;
     }
 
-    public static function getConditionalTestResult($conditionSettings, $submission): bool
+    public static function getConditionalTestResult(array $conditionSettings, Submission $submission): bool
     {
         $conditions = $conditionSettings['conditions'] ?? [];
 
@@ -175,7 +176,7 @@ class ConditionsHelper
         return in_array(true, $results);
     }
 
-    public static function getSerializedFieldValues($submission): array
+    public static function getSerializedFieldValues(Submission $submission): array
     {
         $serializedValues = [];
 

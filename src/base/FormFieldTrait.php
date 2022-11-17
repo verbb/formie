@@ -1074,10 +1074,15 @@ trait FormFieldTrait
     /**
      * Returns whether the field has passed conditional evaluation and is hidden.
      */
-    public function isConditionallyHidden(Submission $submission): bool
+    public function isConditionallyHidden(Submission|NestedFieldRow $element): bool
     {
         $isFieldHidden = false;
         $isPageHidden = false;
+
+        // Always use the submission as the context for element data
+        if ($element instanceof NestedFieldRow) {
+            $element = $element->getOwner();
+        }
 
         // Check if the field itself is hidden
         if ($this->enableConditions) {
@@ -1087,7 +1092,7 @@ trait FormFieldTrait
             if ($conditionSettings && $conditions) {
                 // A `true` result means the field passed the evaluation and that it has a value, whilst a `false` result means
                 // it didn't (for instance the field doesn't have a value)
-                $result = ConditionsHelper::getConditionalTestResult($conditionSettings, $submission);
+                $result = ConditionsHelper::getConditionalTestResult($conditionSettings, $element);
 
                 // Depending on if we show or hide the field when evaluating. If `false` and set to show, it means
                 // the field is hidden and the conditions to show it isn't met. Therefore, report back that this field is hidden.
@@ -1098,8 +1103,8 @@ trait FormFieldTrait
         }
 
         // Also check if the field is in a hidden page
-        if (!$isFieldHidden && $page = $this->getPage($submission)) {
-            $isPageHidden = $page->isConditionallyHidden($submission);
+        if (!$isFieldHidden && $page = $this->getPage($element)) {
+            $isPageHidden = $page->isConditionallyHidden($element);
         }
 
         return $isFieldHidden || $isPageHidden;

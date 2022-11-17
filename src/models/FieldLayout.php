@@ -1,8 +1,15 @@
 <?php
 namespace verbb\formie\models;
 
-use craft\models\FieldLayout as CraftFieldLayout;
 use verbb\formie\Formie;
+use verbb\formie\elements\Submission;
+
+use Craft;
+use craft\base\ElementInterface;
+use craft\base\FieldLayoutElement;
+use craft\fieldlayoutelements\CustomField;
+use craft\helpers\ArrayHelper;
+use craft\models\FieldLayout as CraftFieldLayout;
 
 class FieldLayout extends CraftFieldLayout
 {
@@ -35,6 +42,44 @@ class FieldLayout extends CraftFieldLayout
     public function setCustomFields(array $fields = null): void
     {
         $this->_fields = $fields;
+    }
+
+    public function getVisibleCustomFieldElements(ElementInterface $element): array
+    {
+        $elements = [];
+
+        foreach ($this->getTabs() as $tab) {
+            foreach ($tab->getElements() as $layoutElement) {
+                if ($layoutElement instanceof CustomField) {
+                    $isVisible = true;
+                    $field = $layoutElement->getField();
+
+                    // Check if this is a conditionally-hidden field
+                    if ($field->isConditionallyHidden($element)) {
+                        $isVisible = false;
+                    }
+
+                    // Check when we're doing a submission from the front-end, and we choose to validate the current page only
+                    // Remove any custom fields that aren't in the current page. These are added by default
+                    if ($element instanceof Submission && $element->validateCurrentPageOnly) {
+                        $currentPageFields = $element->getForm()->getCurrentPage()->getCustomFields();
+
+                        // Organise fields, so they're easier to check against
+                        $currentPageFieldHandles = ArrayHelper::getColumn($currentPageFields, 'handle');
+
+                        if (!in_array($field->handle, $currentPageFieldHandles)) {
+                            $isVisible = false;
+                        }
+                    }
+
+                    if ($isVisible) {
+                        $elements[] = $layoutElement;
+                    }
+                }
+            }
+        }
+
+        return $elements;
     }
 
     /**
