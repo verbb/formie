@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.6.19 - 2022-11-19
+
+### Added
+- Added pagination to Monday integration to fetch boards over 100.
+- Added `IntegrationField::TYPE_DATECLASS` to handle mapping to Date fields and date attributes for Entry element integrations.
+
+### Changed
+- Improve performance of Microsoft Dynamics CRM integration when fetching entity definitions.
+
+### Fixed
+- Fixed "Overwrite Values" for element integrations for User photos.
+- Fixed return type for Google Sheets integration for `getProxyRedirect()`.
+
 ## 1.6.18 - 2022-11-13
 
 ### Added
