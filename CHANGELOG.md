@@ -1,5 +1,29 @@
 # Changelog
 
+## 2.0.18 - 2022-11-19
+
+### Added
+- Added pagination to Monday integration to fetch boards over 100.
+- Added `IntegrationField::TYPE_DATECLASS` to handle mapping to Date fields and date attributes for Entry element integrations.
+- Added `aria-hidden="true"` to required field asterisk indicator for screen readers.
+
+### Changed
+- Improve performance of Microsoft Dynamics CRM integration when fetching entity definitions.
+
+### Fixed
+- Fixed "Overwrite Values" for element integrations for User photos.
+- Fixed return type for Google Sheets integration for `getProxyRedirect()`.
+- Fixed an issue where `setFieldSettings()` snapshot data was being removed upon a successful Ajax-based submission.
+- Fixed an error with custom filename formats for File Upload fields in Group fields.
+- Fixed `setFieldSettings` not applying correctly before submission validation.
+- Fixed a recursive loop error when trying to determine whether hidden fields were conditionally hidden or not.
+- Fixed being unable to edit Submissions, Forms and Sent Notifications due to Craft 4.3.x changes.
+- Fixed nested fields and conditionally-hidden field validation, and implement `FieldLayout::getVisibleCustomFieldElements()`.
+- Fixed Table field with Dropdown column saving incorrect values.
+- Fixed Agree field’s not converting correctly to boolean values for integrations.
+- Fixed return type for Google Sheets integration for `getProxyRedirect()`.
+- Fixed some field translations still in the `site` category instead of `formie`.
+
 ## 2.0.17 - 2022-11-13
 
 ### Added
