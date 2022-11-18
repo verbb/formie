@@ -3,6 +3,7 @@ namespace verbb\formie\helpers;
 
 use verbb\formie\Formie;
 use verbb\formie\elements\Submission;
+use verbb\formie\fields\formfields\Hidden;
 use verbb\formie\fields\formfields\Group;
 use verbb\formie\fields\formfields\Password;
 use verbb\formie\fields\formfields\Recipients;
@@ -204,6 +205,9 @@ class ConditionsHelper
                 } else if ($field instanceof Recipients) {
                     // Recipients fields should use encoded values, because they can't be exposed in HTML source
                     $value = $field->getValueAsString($field->getFakeValue($value), $submission);
+                } else if ($field instanceof Hidden) {
+                    // Prevent an infinite loop with hidden fields, as their `serializeValue()` will call this
+                    $value = $field->getValueAsString($value, $submission);
                 } else if (method_exists($field, 'serializeValueForIntegration')) {
                     $value = $field->serializeValueForIntegration($value, $submission);
                 } else {
