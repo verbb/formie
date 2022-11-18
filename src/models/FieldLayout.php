@@ -48,10 +48,19 @@ class FieldLayout extends CraftFieldLayout
     {
         $elements = [];
 
+        // When using `setFieldSettings()` settings are only applied for `getCustomFields()` and not
+        // for individual field layout elements. Fetch them here so we update shortly.
+        $customFields = ArrayHelper::index($this->getCustomFields(), 'handle');
+
         foreach ($this->getTabs() as $tab) {
             foreach ($tab->getElements() as $layoutElement) {
                 if ($layoutElement instanceof CustomField) {
                     $isVisible = true;
+
+                    // Update the custom field for this field layout element, with any overridden settings applied
+                    $field = $layoutElement->getField();
+                    $customField = ArrayHelper::getValue($customFields, $field->handle, $field);
+                    $layoutElement->setField($customField);
                     $field = $layoutElement->getField();
 
                     // Check if this is a conditionally-hidden field
