@@ -526,13 +526,15 @@ class FileUpload extends CraftAssets implements FormFieldInterface
             }
         }
 
+        $submission = $element;
+
         // Watch out for Group/Repeater
         if ($element instanceof NestedFieldRow) {
-            $element = $element->getOwner();
+            $submission = $element->getOwner();
         }
 
         // Rename files, if enabled
-        $filenameFormat = Variables::getParsedValue($this->filenameFormat, $element);
+        $filenameFormat = Variables::getParsedValue($this->filenameFormat, $submission);
 
         if ($filenameFormat) {
             $assets = $element->getFieldValue($this->handle)->all();
