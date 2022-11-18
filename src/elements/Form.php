@@ -962,10 +962,6 @@ class Form extends Element
      */
     public function getCurrentSubmission(): ?Submission
     {
-        if ($this->_currentSubmission) {
-            return $this->_currentSubmission;
-        }
-
         // Check to see if we have any field settings applied. Because field settings are applied before
         // render, we don't have an easy way to check when we _don't_ set field settings. This function is
         // called most commonly for rendering a form without relying on `formie.renderForm()`.
@@ -975,6 +971,10 @@ class Form extends Element
         // when we _haven't_ set settings via `setFieldSettings()` and reset the session.
         if (!$this->_appliedFieldSettings && !$this->_appliedFormSettings) {
             $this->resetSnapshotData();
+        }
+
+        if ($this->_currentSubmission) {
+            return $this->_currentSubmission;
         }
 
         // See if there's a submission on routeParams - an error has occurred.
@@ -1042,9 +1042,6 @@ class Form extends Element
 
         $this->resetCurrentPage();
         Craft::$app->getSession()->remove($this->_getSessionKey('submissionId'));
-
-        // Also remove any snapshots set for the form
-        $this->resetSnapshotData();
 
         $this->_currentSubmission = null;
     }
