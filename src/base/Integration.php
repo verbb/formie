@@ -981,6 +981,11 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         return null;
     }
 
+    public function allowedGqlSettings(): array
+    {
+        return [];
+    }
+
     // Private Methods
     // =========================================================================
 

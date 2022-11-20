@@ -40,33 +40,11 @@ class FormIntegrationsType extends ObjectType
                     'name' => 'settings',
                     'type' => Type::string(),
                     'resolve' => function($source, $arguments) {
-                        $json = Json::decode(Json::encode($source));
-
-                        // Cleanup some settings that don't need to be included
-                        unset($json['cache']);
-                        unset($json['formId']);
-                        unset($json['optInField']);
-                        unset($json['type']);
-                        unset($json['sortOrder']);
-                        unset($json['uid']);
-                        unset($json['referrer']);
-                        unset($json['dateCreated']);
-                        unset($json['dateUpdated']);
-
-                        // Remove all field mapping (different for each provider)
-                        foreach ($json as $key => $value) {
-                            if (strstr($key, 'mapTo') || strstr($key, 'FieldMapping')) {
-                                unset($json[$key]);
-                                continue;
-                            }
-
-                            // Parse any .env variables
-                            if (is_string($value) && strstr($value, '$')) {
-                                $json[$key] = App::parseEnv($value);
-                            }
+                        if ($settings = $source->allowedGqlSettings()) {
+                            return Json::encode($settings);
                         }
 
-                        return Json::encode($json);
+                        return null;
                     },
                 ],
             ],
