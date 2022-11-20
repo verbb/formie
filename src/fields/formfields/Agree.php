@@ -169,7 +169,7 @@ class Agree extends FormField implements PreviewableFieldInterface
     public function getSettingGqlTypes(): array
     {
         return array_merge(parent::getSettingGqlTypes(), [
-            // We're force to use a string-representation of the default value, due to the parent `defaultValue` definition
+            // We're forced to use a string-representation of the default value, due to the parent `defaultValue` definition
             // So cast it properly here as a string, but also provide `defaultState` as the proper type.
             'defaultValue' => [
                 'name' => 'defaultValue',

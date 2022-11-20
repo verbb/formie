@@ -300,6 +300,42 @@ class Number extends FormField implements PreviewableFieldInterface
         ];
     }
 
+    public function getSettingGqlTypes(): array
+    {
+        return array_merge(parent::getSettingGqlTypes(), [
+            // We're forced to use a int-representation of the min/max values, due to the parent `min/max` definition
+            // So cast it properly here as an int, but also provide `minValue/maxValue` as the proper type.
+            'min' => [
+                'name' => 'min',
+                'type' => Type::int(),
+                'resolve' => function($field) {
+                    return (int)$field->min;
+                },
+            ],
+            'max' => [
+                'name' => 'max',
+                'type' => Type::int(),
+                'resolve' => function($field) {
+                    return (int)$field->max;
+                },
+            ],
+            'minValue' => [
+                'name' => 'minValue',
+                'type' => Type::float(),
+                'resolve' => function($field) {
+                    return $field->min;
+                },
+            ],
+            'maxValue' => [
+                'name' => 'maxValue',
+                'type' => Type::float(),
+                'resolve' => function($field) {
+                    return $field->max;
+                },
+            ],
+        ]);
+    }
+
     public function defineHtmlTag(string $key, array $context = []): ?HtmlTag
     {
         $form = $context['form'] ?? null;
