@@ -1946,8 +1946,10 @@ class Form extends Element
             return;
         }
 
+        // Get any existing snapshot data and merge, in case we set multiple times
         $snapshotData = $this->getSnapshotData();
-        $snapshotData[$key] = $data;
+        $currentData = $snapshotData[$key] ?? [];
+        $snapshotData[$key] = array_merge($currentData, $data);
 
         Craft::$app->getSession()->set($this->_getSessionKey('snapshot'), $snapshotData);
     }
