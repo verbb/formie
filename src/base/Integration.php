@@ -754,7 +754,13 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
                 'line' => $e->getLine(),
             ]));
         }
+
         return null;
+    }
+
+    public function allowedGqlSettings(): array
+    {
+        return [];
     }
 
 

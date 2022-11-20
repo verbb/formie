@@ -210,6 +210,19 @@ class Recaptcha extends Captcha
         return $this->siteKey && $this->secretKey;
     }
 
+    public function allowedGqlSettings(): array
+    {
+        return [
+            'siteKey' => $this->siteKey,
+            'type' => $this->type,
+            'size' => $this->size,
+            'theme' => $this->theme,
+            'badge' => $this->badge,
+            'language' => $this->language,
+            'scriptLoadingMethod' => $this->scriptLoadingMethod,
+        ];
+    }
+
 
     // Private Methods
     // =========================================================================
