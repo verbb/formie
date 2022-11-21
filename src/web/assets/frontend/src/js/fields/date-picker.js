@@ -4,6 +4,28 @@ import flatpickr from 'flatpickr';
 
 require('flatpickr/dist/flatpickr.min.css');
 
+// A Flatpickr plugin to copy all attributes on the input to the `altInput` for accessibility
+function attributesPlugin() {
+    return function(fp) {
+        return {
+            onReady() {
+                const excludedAttributes = ['type', 'name'];
+
+                // Copy all attributes from normal input to `altInput` - except some
+                fp.input.getAttributeNames().forEach(attribute => {
+                    if (!excludedAttributes.includes(attribute)) {
+                        fp.altInput.setAttribute(attribute, fp.input.getAttribute(attribute));
+
+                        fp.input.removeAttribute(attribute);
+                    }
+                });
+
+                fp.loadedPlugins.push('labelPlugin');
+            },
+        };
+    };
+}
+
 export class FormieDatePicker {
     constructor(settings = {}) {
         this.$form = settings.$form;
@@ -48,6 +70,7 @@ export class FormieDatePicker {
             minDate: this.minDate,
             maxDate: this.maxDate,
             disable: [this.getDisabledWeekdays.bind(this)],
+            plugins: [new attributesPlugin({})],
         };
 
         // Include time for time-only and datetime

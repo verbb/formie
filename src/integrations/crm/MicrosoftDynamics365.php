@@ -512,7 +512,7 @@ class MicrosoftDynamics365 extends Crm
             ],
             'campaign' => [
                 'entity' => 'campaigns',
-                'label' => 'fullname',
+                'label' => 'name',
                 'value' => 'campaignid',
             ],
             'pricelevel' => [
