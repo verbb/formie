@@ -193,7 +193,8 @@ class Forms extends Component
             foreach ($integrations as $integration) {
                 $integration->setScenario(Integration::SCENARIO_FORM);
 
-                if (!$integration->validate()) {
+                // Only validate integrations for non-new forms
+                if (!$integration->validate() && !$isNewForm) {
                     // Add any errors to the form's settings - maybe move this to the form settings model?
                     $form->settings->integrations[$integration->handle]['errors'] = $integration->getErrors();
 
@@ -206,7 +207,10 @@ class Forms extends Component
                 $captchas = Formie::$plugin->getIntegrations()->getAllCaptchas();
 
                 foreach ($captchas as $captcha) {
-                    if ($captcha->getEnabled()) {
+                    // Check to see if we have any data already applied from a stencil
+                    $integrationEnabled = $form->settings->integrations[$captcha->handle]['enabled'] ?? null;
+                    
+                    if ($captcha->getEnabled() && $integrationEnabled === null) {
                         $form->settings->integrations[$captcha->handle]['enabled'] = true;
                     }
                 }
