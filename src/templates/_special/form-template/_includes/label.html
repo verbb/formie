@@ -3,7 +3,7 @@
         {{- field.name | t('formie') | raw -}}
 
         {%- if field.required ?? required ?? false -%}
-            &nbsp;<span class="fui-required" aria-hidden="true">*</span>
+            &nbsp;{{ fieldtag('fieldRequired', { text: '*' | t('formie') }) }}
         {%- endif -%}
 
         {# Allow extra content to be passed in #}

@@ -769,6 +769,13 @@ trait FormFieldTrait
             ]);
         }
 
+        if ($key === 'fieldRequired') {
+            return new HtmlTag('span', [
+                'class' => 'fui-required',
+                'aria-hidden' => true,
+            ]);
+        }
+
         if ($key === 'fieldInstructions') {
             return new HtmlTag('div', [
                 'id' => "{$id}-instructions",
