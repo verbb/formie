@@ -179,7 +179,6 @@ class Repeater extends FormField implements NestedFieldInterface, EagerLoadingFi
         foreach ($value as $i => $fieldContent) {
             try {
                 $row = new NestedFieldRow();
-                $row->id = 'new' . ($i + 1);
                 $row->fieldId = $this->id;
                 $row->setFieldValues($fieldContent);
 
