@@ -151,7 +151,7 @@ export class FormieFormTheme {
 
             // Check if we need to move the error out of the .fui-input-container node.
             // Only the input itself should be in here.
-            const $errorToMove = $field.parentNode.querySelector(`.${this.errorMessageClass}`);
+            const $errorToMove = $field.parentNode.querySelector('[data-error-message]');
 
             if ($errorToMove && $errorToMove.parentNode.parentNode) {
                 $errorToMove.parentNode.parentNode.appendChild($errorToMove);
@@ -159,7 +159,7 @@ export class FormieFormTheme {
 
             // The error has been moved, find it again
             if ($fieldContainer) {
-                const $error = $fieldContainer.querySelector(`.${this.errorMessageClass}`);
+                const $error = $fieldContainer.querySelector('[data-error-message]');
 
                 if ($error && message) {
                     $error.textContent = message;

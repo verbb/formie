@@ -443,8 +443,7 @@ export const Bouncer = function(formElement, options) {
         // }
 
         if (field.type === 'checkbox' || field.type === 'radio') {
-            // TODO: think of a way to make this less opinionated
-            field = field.closest('.fui-field-container');
+            field = field.closest('[data-field-handle]');
         }
 
         return field;
@@ -502,6 +501,7 @@ export const Bouncer = function(formElement, options) {
         // Create the error message
         var error = document.createElement('div');
         error.className = settings.errorClass;
+        error.setAttribute('data-error-message', '');
         error.id = settings.errorPrefix + getFieldID(field, settings, true);
 
         // If the field is a radio button or checkbox, grab the last field label
