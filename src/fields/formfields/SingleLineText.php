@@ -137,7 +137,7 @@ class SingleLineText extends FormField implements PreviewableFieldInterface
             return;
         }
 
-        $value = $element->getFieldValue($this->handle);
+        $value = (string)$element->getFieldValue($this->handle);
 
         // Convert multibyte text to HTML entities, so we can properly check string length
         // exactly as it'll be saved in the database.
@@ -164,7 +164,7 @@ class SingleLineText extends FormField implements PreviewableFieldInterface
             return;
         }
 
-        $value = $element->getFieldValue($this->handle);
+        $value = (string)$element->getFieldValue($this->handle);
 
         // Convert multibyte text to HTML entities, so we can properly check string length
         // exactly as it'll be saved in the database.
