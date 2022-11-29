@@ -174,6 +174,11 @@ class Forms extends Component
                 // Ensure fields retain a formId
                 $field->formId = $form->id;
 
+                // Ensure inner fields have a UID, which will throw issues with field-creation from a Stencil
+                if ($field->uid === null) {
+                    $field->uid = StringHelper::UUID();
+                }
+
                 $fieldsService->saveField($field);
 
                 if ($refId) {
