@@ -469,6 +469,15 @@ trait FormFieldTrait
         return static::class;
     }
 
+    public function getDisplayType(): ?string
+    {
+        if (property_exists($this, 'displayType')) {
+            return $this->displayType;
+        }
+
+        return null;
+    }
+
     /**
      * @inheritDoc
      */
@@ -746,6 +755,7 @@ trait FormFieldTrait
                 'data' => [
                     'field-handle' => $this->handle,
                     'field-type' => StringHelper::toKebabCase($this->displayName()),
+                    'field-display-type' => $this->getDisplayType(),
                     'field-config' => $this->getConfigJson(),
                     'field-conditions' => $this->getConditionsJson($submission),
                 ],
