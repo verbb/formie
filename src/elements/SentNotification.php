@@ -328,18 +328,18 @@ class SentNotification extends Element
         return self::STATUS_SUCCESS;
     }
 
-    public function getForm(): ElementInterface|Model|array|null
+    public function getForm(): ?Form
     {
-        if (!$this->_form) {
+        if (!$this->_form && $this->formId) {
             $this->_form = Form::find()->id($this->formId)->one();
         }
 
         return $this->_form;
     }
 
-    public function getSubmission(): ElementInterface|Model|array|null
+    public function getSubmission(): ?Submission
     {
-        if (!$this->_submission) {
+        if (!$this->_submission && $this->submissionId) {
             $this->_submission = Submission::find()->id($this->submissionId)->one();
         }
 
@@ -348,7 +348,7 @@ class SentNotification extends Element
 
     public function getNotification(): ?Notification
     {
-        if (!$this->_notification) {
+        if (!$this->_notification && $this->notificationId) {
             $this->_notification = Formie::$plugin->getNotifications()->getNotificationById($this->notificationId);
         }
 
@@ -411,9 +411,9 @@ class SentNotification extends Element
     protected function tableAttributeHtml(string $attribute): string
     {
         return match ($attribute) {
-            'form' => $this->getForm()->title ?? '',
-            'submission' => $this->getSubmission()->title ?? '',
-            'notification' => $this->getNotification()->title ?? '',
+            'form' => $this->getForm()->title ?? '-',
+            'submission' => $this->getSubmission()->title ?? '-',
+            'notification' => $this->getNotification()->title ?? '-',
             'resend' => Html::a(Craft::t('formie', 'Resend'), '#', [
                 'class' => 'btn small formsubmit js-fui-notification-modal-resend-btn',
                 'data-id' => $this->id,
