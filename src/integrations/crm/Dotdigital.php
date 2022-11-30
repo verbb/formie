@@ -187,7 +187,7 @@ class Dotdigital extends Crm
                         'email' => $email,
                         'emailType' => $emailType,
                         'optInType' => $optInType,
-                        'dataFields' => $tdataFields,
+                        'dataFields' => $dataFields,
                     ],
                 ];
 
