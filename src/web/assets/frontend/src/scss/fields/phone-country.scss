@@ -29,7 +29,11 @@
     .iti--separate-dial-code .iti__selected-dial-code {
         font-size: 14px;
     }
+}
 
+// Load the flag sprites even when removing classes.
+.field[data-type="verbb\\\\formie\\\\fields\\\\formfields\\\\Phone"],
+[data-field-type="phone-number"] {
     .iti__flag {
         background-image: url("https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/img/flags.png");
     }
