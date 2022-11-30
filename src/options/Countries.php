@@ -1176,7 +1176,7 @@ class Countries extends PredefinedOption
                 '3-letter' => 'TUN',
             ],
             [
-                'name' => Craft::t('formie', 'Turkey'),
+                'name' => Craft::t('formie', 'Turkiye'),
                 '2-letter' => 'TR',
                 '3-letter' => 'TUR',
             ],

@@ -2559,7 +2559,7 @@ return [
     'Sindhi' => 'Sindhi',
     'Successfully synced with SharpSpring' => 'Successfully synced with SharpSpring',
     'Bengali' => 'Bengali',
-    'Turkey' => 'Turkey',
+    'Turkiye' => 'Turkiye',
     'Changing this may result in data loss.' => 'Changing this may result in data loss.',
     'Unable to save integration - {errors}.' => 'Unable to save integration - {errors}.',
     'Belgium' => 'Belgium',
