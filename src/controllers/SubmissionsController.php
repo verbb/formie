@@ -396,6 +396,11 @@ class SubmissionsController extends Controller
             if ($form->settings->submitAction == 'message') {
                 Formie::$plugin->getService()->setNotice($form->id, $form->settings->getSubmitActionMessage($submission));
 
+                // When reloading the page, provide a `submission` variable to pick up on the finalise submission
+                Craft::$app->getUrlManager()->setRouteParams([
+                    'submission' => $submission,
+                ]);
+
                 return $this->refresh();
             }
 
@@ -683,6 +688,11 @@ class SubmissionsController extends Controller
 
         if ($form->settings->submitAction == 'message') {
             Formie::$plugin->getService()->setNotice($form->id, $form->settings->getSubmitActionMessage($submission));
+
+            // When reloading the page, provide a `submission` variable to pick up on the finalise submission
+            Craft::$app->getUrlManager()->setRouteParams([
+                'submission' => $submission,
+            ]);
 
             return $this->refresh();
         }
