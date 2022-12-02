@@ -101,7 +101,7 @@ class NestedFieldRow extends Element implements BlockElementInterface
      */
     public static function eagerLoadingMap(array $sourceElements, string $handle): array|null|false
     {
-        /* @var NestedFieldInterface $nestedField */
+        /* @var ElementInterface $nestedField */
         $nestedField = ArrayHelper::firstValue($sourceElements);
 
         // Set the field context
