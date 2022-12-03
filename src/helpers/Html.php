@@ -65,9 +65,9 @@ class Html extends CraftHtmlHelper
 
         // Add back and merge the complex attributes
         $merged['class'] = array_unique(array_merge($class, $extraClass));
-        $merged['data'] = array_unique(array_merge($data, $extraData));
-        $merged['style'] = array_unique(array_merge($style, $extraStyle));
-        $merged['aria'] = array_unique(array_merge($aria, $extraAria));
+        $merged['data'] = array_merge($data, $extraData);
+        $merged['style'] = array_merge($style, $extraStyle);
+        $merged['aria'] = array_merge($aria, $extraAria);
 
         return array_filter($merged);
     }
