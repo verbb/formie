@@ -792,6 +792,12 @@ export class FormieFormTheme {
         this.$currentPage = this.$form.querySelector(`#${this.getPageId(pageId)}`);
     }
 
+    getCurrentPage() {
+        return this.settings.pages.find((page) => {
+            return page.id == this.settings.currentPageId;
+        });
+    }
+
     getPageId(pageId) {
         return `${this.config.formHashId}-p-${pageId}`;
     }
@@ -809,9 +815,7 @@ export class FormieFormTheme {
     }
 
     triggerJsEvents() {
-        const currentPage = this.settings.pages.find((page) => {
-            return page.id == this.settings.currentPageId;
-        });
+        const currentPage = this.getCurrentPage();
 
         // Find any JS events for the current page and fire
         if (currentPage && currentPage.settings.enableJsEvents) {
