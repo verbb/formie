@@ -798,6 +798,16 @@ export class FormieFormTheme {
         });
     }
 
+    getCurrentPageIndex() {
+        const currentPage = this.getCurrentPage();
+
+        if (currentPage) {
+            return this.settings.pages.indexOf(currentPage);
+        }
+
+        return 0;
+    }
+
     getPageId(pageId) {
         return `${this.config.formHashId}-p-${pageId}`;
     }
