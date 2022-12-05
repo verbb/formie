@@ -161,6 +161,13 @@ class ConstantContact extends EmailMarketing
             Integration::apiError($this, $e);
         }
 
+        // Sort alphabetically by label
+        if (isset($settings['lists']) && is_array($settings['lists'])) {
+            usort($settings['lists'], function($a, $b) {
+                return strcmp($a->name, $b->name);
+            });
+        }
+
         return new IntegrationFormSettings($settings);
     }
 
