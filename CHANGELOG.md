@@ -2,7 +2,7 @@
 
 ## 2.0.19 - 2022-12-06
 
-#### Added
+### Added
 - Added `fieldRequired` Theme Config setting for fields.
 - Added `getCurrentPageIndex()` to Formie Theme JS.
 - Added `getCurrentPage()` to Formie Theme JS.
