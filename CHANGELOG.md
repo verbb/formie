@@ -1,5 +1,43 @@
 # Changelog
 
+## 2.0.19 - 2022-12-06
+
+#### Added
+- Added `fieldRequired` Theme Config setting for fields.
+- Added `getCurrentPageIndex()` to Formie Theme JS.
+- Added `getCurrentPage()` to Formie Theme JS.
+- Added `data-field-display-type` to default field container HTML.
+- When submitting a form, a `submission` variable is now available for Page Reload forms that display a success message.
+
+### Changed
+- Now requires Craft 4.3.2+.
+- Integration settings for forms now only return settings for ReCAPTCHA and hCaptcha captchas when querying via GraphQL.
+- Constant Contact lists are now sorted alphabetically.
+- Changed interface type of nested field. (thanks @kunz1412).
+- Changed countries option “Turkey” to “Turkiye”.
+- Sent Notifications are now retained after a Form, Submission or Email Notification has been deleted.
+- Update Microsoft Dynamics CRM integration connection to use a limited query for performance.
+
+### Fixed
+- Fixed sync fields creating duplicate content columns.
+- Fixed an error when toggling status, spam and incomplete submissions in the submissions index for the control panel.
+- Fixed an issue where single-page, Ajax forms would be hidden when encountering a server-side error (like a timeout request).
+- Fixed a JS error with empty calculation fields.
+- Fixed an error when some data attributes were being stripped out of rendering.
+- Fixed an error for eager loading nested field rows.
+- Fixed a typo in DotDigital integration.
+- Fixed Phone Number country dropdown not working correctly with Theme Config and `resetClasses` enabled.
+- Fixed an duplicated attributes when using Theme Config.
+- Fixed an error when creating a new From from a Stencil containing Group/Repeater fields.
+- Fixed an error when validating min-values for Single-Line/Multi-Line Text fields.
+- Fixed custom error messages not working correctly with Theme Config and `resetClasses`.
+- Fixed disabled captchas being enabled when creating a new form from a stencil.
+- Fixed an error when populating Repeater fields with `populateFormValues()`.
+- Fixed accessibility issues for Flatpickr-based Date/Time fields.
+- Fixed a type error for Gatsby/GraphQL for Number fields with `min/max` settings being a float.
+- Fixed an issue when calling `form.setFieldSettings()` multiple times, and settings not applying.
+- Fixed an issue with Microsoft Dynamics when mapping to campaigns.
+
 ## 2.0.18 - 2022-11-19
 
 ### Added
