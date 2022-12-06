@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.6.20 - 2022-12-06
+
+### Changed
+- Updated Microsoft Dynamics CRM integration connection to use a limited query for performance.
+
+### Fixed
+- Fixed an issue where single-page, Ajax forms would be hidden when encountering a server-side error (like a timeout request).
+- Fixed a JS error with empty calculation fields.
+- Fixed accessibility issues for Flatpickr-based Date/Time fields.
+- Fixed an issue with Microsoft Dynamics when mapping to campaigns.
+
 ## 1.6.19 - 2022-11-19
 
 ### Added
