@@ -688,14 +688,16 @@ export class FormieFormTheme {
         // Hide all pages
         var $allPages = this.$form.querySelectorAll('.fui-page');
 
-        $allPages.forEach($page => {
-            // Show the current page
-            if ($page.id === `${this.getPageId(data.nextPageId)}`) {
-                $page.classList.remove('fui-hidden');
-            } else {
-                $page.classList.add('fui-hidden');
-            }
-        });
+        if (data.nextPageId) {
+            $allPages.forEach($page => {
+                // Show the current page
+                if ($page.id === `${this.getPageId(data.nextPageId)}`) {
+                    $page.classList.remove('fui-hidden');
+                } else {
+                    $page.classList.add('fui-hidden');
+                }
+            });
+        }
 
         // Update tabs and progress bar if we're using them
         var $progress = this.$form.querySelector('.fui-progress-bar');
