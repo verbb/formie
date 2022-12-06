@@ -66,22 +66,31 @@ Craft.Formie.SubmissionIndex = Craft.BaseElementIndex.extend({
         this.status = null;
         this.settings.criteria.isIncomplete = false;
         this.settings.criteria.isSpam = false;
+        let queryParam = null;
 
         if (Garnish.hasAttr($option, 'data-spam')) {
             this.settings.criteria.isSpam = true;
+            queryParam = 'spam';
         } else if (Garnish.hasAttr($option, 'data-incomplete')) {
             this.settings.criteria.isIncomplete = true;
+            queryParam = 'incomplete';
         } else if (Garnish.hasAttr($option, 'data-trashed')) {
             this.trashed = true;
             this.settings.criteria.isIncomplete = null;
             this.settings.criteria.isSpam = null;
+            queryParam = 'trashed';
         } else if (Garnish.hasAttr($option, 'data-drafts')) {
             this.drafts = true;
+            queryParam = 'drafts';
         } else {
             this.status = $option.data('status');
         }
 
-        this._updateStructureSortOption();
+        if (this.activeViewMenu) {
+            this.activeViewMenu.updateSortField();
+        }
+
+        Craft.setQueryParam('status', queryParam);
         this.updateElements();
     },
     
