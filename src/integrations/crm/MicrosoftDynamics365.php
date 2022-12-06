@@ -322,7 +322,11 @@ class MicrosoftDynamics365 extends Crm
         // Always provide an authenticated client - so check first.
         // We can't always rely on the EOL of the token.
         try {
-            $response = $this->request('GET', 'contacts');
+            $response = $this->request('GET', 'contacts', [
+                'query' => [
+                    '$top' => '1',
+                ],
+            ]);
         } catch (Throwable $e) {
             if ($e->getCode() === 401) {
                 // Force-refresh the token
