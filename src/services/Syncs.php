@@ -163,16 +163,39 @@ class Syncs extends Component
             return;
         }
 
+        $fieldsService = Craft::$app->getFields();
+        $contentService = Craft::$app->getContent();
+
         foreach ($sync->getCustomFields() as $fieldSync) {
             $otherField = $fieldSync->getField();
 
             /* @var FormField $otherField */
-
             if ($otherField->id == $field->id) {
                 continue;
             }
 
+            // We need to get the field's form in order to get the correct content table context
+            // because when saving a field, the current context should be correct, and as we're
+            // dealing with other form fields, we need to switch each time.
+            $form = $otherField->getForm();
+
+            if (!$form) {
+                continue;
+            }
+
+            // Save the current content table
+            $originalFieldContext = $contentService->fieldContext;
+            $originalContentTable = $contentService->contentTable;
+
+            // Set the field context.
+            $contentService->fieldContext = $form->getFormFieldContext();
+            $contentService->contentTable = $form->fieldContentTable;
+
             $settings = $field->getSettings();
+
+            // Don't overwrite some values
+            unset($settings['formId']);
+
             Craft::configure($otherField, $settings);
 
             $attributes = $field->getAttributes([
@@ -197,6 +220,10 @@ class Syncs extends Component
                     'field' => $otherField,
                 ]));
             }
+
+            // Set content table back to original value.
+            $contentService->fieldContext = $originalFieldContext;
+            $contentService->contentTable = $originalContentTable;
         }
     }
 
