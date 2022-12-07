@@ -52,7 +52,7 @@ class Html extends CraftHtmlHelper
         $extraAria = ArrayHelper::remove($extraAttrs, 'aria', []);
 
         // Merge the two arrays now complex values are removed
-        $merged = array_unique(array_merge($attrs, $extraAttrs));
+        $merged = array_merge($attrs, $extraAttrs);
 
         // Check if we're resetting classes in either array
         if (isset($options['resetClassA'])) {
