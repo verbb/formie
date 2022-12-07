@@ -551,7 +551,7 @@ class Pardot extends Crm
     {
         $payloadData = $this->generateSubmissionPayloadValues($submission);
 
-        $payload = $payloadData['json']['submission'] ?? [];
+        $payload = $payloadData['submission'] ?? [];
 
         // Flatten array to dot-notation
         $payload = ArrayHelper::flatten($payload);

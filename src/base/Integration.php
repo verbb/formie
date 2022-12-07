@@ -817,10 +817,8 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         unset($formAttributes['settings']['integrations']);
 
         return [
-            'json' => [
-                'submission' => array_merge($submissionAttributes, $submissionContent),
-                'form' => $formAttributes,
-            ],
+            'submission' => array_merge($submissionAttributes, $submissionContent),
+            'form' => $formAttributes,
         ];
     }
 
