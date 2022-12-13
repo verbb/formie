@@ -69,6 +69,12 @@ export class FormieDatePicker {
             minDate: this.minDate,
             maxDate: this.maxDate,
             plugins: [new attributesPlugin({})],
+            onReady: (dateObj, dateStr, instance) => {
+                // Update the form hash, so we don't get change warnings
+                if (this.form.formTheme) {
+                    this.form.formTheme.updateFormHash();
+                }
+            },
         };
 
         // Include time for time-only and datetime
@@ -112,11 +118,6 @@ export class FormieDatePicker {
 
         // Load in the locale as required
         this.loadLocale();
-
-        // Update the form hash, so we don't get change warnings
-        if (this.form.formTheme) {
-            this.form.formTheme.updateFormHash();
-        }
     }
 
     loadLocale() {
