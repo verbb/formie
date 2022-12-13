@@ -27,8 +27,8 @@ use yii\base\Event;
 
 Event::on(Form::class, Form::EVENT_BEFORE_SAVE, function(ModelEvent $event) {
     $form = $event->sender;
-
     $event->isValid = false;
+    // ...
 });
 ```
 
@@ -42,6 +42,7 @@ use yii\base\Event;
 
 Event::on(Form::class, Form::EVENT_AFTER_SAVE, function(ModelEvent $event) {
     $form = $event->sender;
+    // ...
 });
 ```
 
@@ -57,6 +58,7 @@ use yii\base\Event;
 Event::on(Form::class, Form::EVENT_BEFORE_DELETE, function(Event $event) {
     $form = $event->sender;
     $event->isValid = false;
+    // ...
 });
 ```
 
@@ -69,6 +71,7 @@ use yii\base\Event;
 
 Event::on(Form::class, Form::EVENT_AFTER_DELETE, function(Event $event) {
     $form = $event->sender;
+    // ...
 });
 ```
 
