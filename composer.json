@@ -37,7 +37,7 @@
         "league/html-to-markdown": "^4.10",
         "league/oauth1-client": "^1.9",
         "league/oauth2-client": "^2.6.0",
-        "league/oauth2-google": "^4.0",
+        "league/oauth2-google": "^3.0 || ^4.0",
         "moneyphp/money": "^4.0",
         "nystudio107/craft-plugin-vite": "^4.0.0-beta.4",
         "stripe/stripe-php": "^7.0",
