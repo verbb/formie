@@ -132,6 +132,11 @@ export class FormieDatePicker {
             $script.async = false;
             $script.onload = () => {
                 this.datepicker.set('locale', this.locale);
+
+                // Update the form hash, so we don't get change warnings
+                if (this.form.formTheme) {
+                    this.form.formTheme.updateFormHash();
+                }
             };
             
             document.body.appendChild($script);
