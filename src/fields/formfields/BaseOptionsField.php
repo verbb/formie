@@ -302,6 +302,15 @@ abstract class BaseOptionsField extends CraftBaseOptionsField
         return Formie::$plugin->getPredefinedOptions()->getPredefinedOptions();
     }
 
+    protected function setPrePopulatedValue($value)
+    {
+        if ($this->multi) {
+            return explode(',', $value);
+        }
+
+        return parent::setPrePopulatedValue($value);
+    }
+
 
     // Private Methods
     // =========================================================================
