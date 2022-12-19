@@ -6,6 +6,7 @@ use verbb\formie\base\IntegrationInterface;
 use verbb\formie\elements\Submission;
 use verbb\formie\fields\formfields\Payment as PaymentField;
 
+use Craft;
 use craft\base\Model;
 
 use DateTime;
