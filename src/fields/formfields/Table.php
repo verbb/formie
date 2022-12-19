@@ -524,6 +524,7 @@ class Table extends CraftTable implements FormFieldInterface
         if ($key === 'fieldTableBodyColumn') {
             return new HtmlTag('td', [
                 'data-col' => $context['colId'] ?? false,
+                'data-col-handle' => $context['col']['handle'] ?? false,
             ]);
         }
 
