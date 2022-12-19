@@ -26,9 +26,20 @@ export class FormieCalculations {
         Object.keys(this.variables).forEach((variableKey) => {
             const variable = this.variables[variableKey];
 
-            const $targets = this.$form.querySelectorAll(`[name="${variable.name}"]`);
+            let $targets = this.$form.querySelectorAll(`[name="${variable.name}"]`);
 
-            if (!$targets) {
+            // Special handling for Repeater/Groups that have `new1` in their name but for page reload forms
+            // this will be replaced by the blockId, and will fail to match the conditions settings.
+            if ((!$targets || !$targets.length) && variable.name.includes('[new1]')) {
+                // Get tricky with Regex. Find the element that matches everything except `[new1]` for `[1234]`.
+                // Escape special characters `[]` in the string, and swap `[new1]` with `[\d+]`.
+                const regexString = variable.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/new1/g, '\\d+');
+
+                // Find all targets via Regex.
+                $targets = this.querySelectorAllRegex(new RegExp(regexString), 'name');
+            }
+
+            if (!$targets || !$targets.length) {
                 return;
             }
 
@@ -205,6 +216,18 @@ export class FormieCalculations {
         }
 
         return value;
+    }
+
+    querySelectorAllRegex(regex, attributeToSearch) {
+        const output = [];
+
+        for (const element of this.$form.querySelectorAll(`[${attributeToSearch}]`)) {
+            if (regex.test(element.getAttribute(attributeToSearch))) {
+                output.push(element);
+            }
+        }
+
+        return output;
     }
 }
 
