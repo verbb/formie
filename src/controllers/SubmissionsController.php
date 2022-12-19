@@ -442,7 +442,7 @@ class SubmissionsController extends Controller
         $pageIndex = $this->_getTypedParam('pageIndex', 'int');
         $goToPageId = $this->_getTypedParam('goToPageId', 'id');
         $completeSubmission = $this->_getTypedParam('completeSubmission', 'boolean');
-        $submitAction = $this->_getTypedParam('submitAction', 'string');
+        $submitAction = $this->_getTypedParam('submitAction', 'string', 'submit');
 
         Formie::log("Submission triggered for ${handle}.");
 
