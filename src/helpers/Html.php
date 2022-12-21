@@ -2,9 +2,9 @@
 namespace verbb\formie\helpers;
 
 use verbb\formie\Formie;
+use verbb\formie\helpers\ArrayHelper;
 
 use Craft;
-use craft\helpers\ArrayHelper;
 use craft\helpers\Html as CraftHtmlHelper;
 
 class Html extends CraftHtmlHelper
@@ -69,7 +69,8 @@ class Html extends CraftHtmlHelper
         $merged['style'] = array_merge($style, $extraStyle);
         $merged['aria'] = array_merge($aria, $extraAria);
 
-        return array_filter($merged);
+        // Filter just `null` and `false` values
+        return ArrayHelper::filterEmptyValues($merged); 
     }
 
     public static function getFieldClassKey($class): string
