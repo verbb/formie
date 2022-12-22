@@ -22,6 +22,7 @@ export class FormieTextLimit {
         if (this.maxChars) {
             this.form.addEventListener(this.$input, eventKey('paste'), this.characterCheck.bind(this), false);
             this.form.addEventListener(this.$input, eventKey('keydown'), this.characterCheck.bind(this), false);
+            this.form.addEventListener(this.$input, eventKey('populate'), this.characterCheck.bind(this), false);
 
             // Fire immediately
             this.$input.dispatchEvent(new Event('keydown', { bubbles: true }));
@@ -30,6 +31,7 @@ export class FormieTextLimit {
         if (this.maxWords) {
             this.form.addEventListener(this.$input, eventKey('paste'), this.wordCheck.bind(this), false);
             this.form.addEventListener(this.$input, eventKey('keydown'), this.wordCheck.bind(this), false);
+            this.form.addEventListener(this.$input, eventKey('populate'), this.wordCheck.bind(this), false);
 
             // Fire immediately
             this.$input.dispatchEvent(new Event('keydown', { bubbles: true }));
