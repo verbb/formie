@@ -955,13 +955,11 @@
   font-size: 14px;
 }
 
-.field[data-type=verbb\\formie\\fields\\formfields\\Phone] .iti__flag,
-[data-field-type=phone-number] .iti__flag {
+.iti__flag {
   background-image: url("https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/img/flags.png");
 }
 @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
-  .field[data-type=verbb\\formie\\fields\\formfields\\Phone] .iti__flag,
-[data-field-type=phone-number] .iti__flag {
+  .iti__flag {
     background-image: url("https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/img/flags@2x.png");
   }
 }
