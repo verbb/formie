@@ -42,6 +42,7 @@ class HandleHelper
         // The max length for the database engine, `field_`, and the suffix for fields (10 chars extra to be safe)
         $maxHandleLength = Craft::$app->getDb()->getSchema()->maxObjectNameLength;
         $maxHandleLength -= strlen(Craft::$app->getContent()->fieldColumnPrefix);
+        $maxHandleLength -= 8;
         $maxHandleLength -= 10;
 
         return $maxHandleLength;
