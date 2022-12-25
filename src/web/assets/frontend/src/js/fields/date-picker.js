@@ -71,6 +71,12 @@ export class FormieDatePicker {
             maxDate: this.maxDate,
             disable: [this.getDisabledWeekdays.bind(this)],
             plugins: [new attributesPlugin({})],
+            onReady: (dateObj, dateStr, instance) => {
+                // Update the form hash, so we don't get change warnings
+                if (this.form.formTheme) {
+                    this.form.formTheme.updateFormHash();
+                }
+            },
         };
 
         // Include time for time-only and datetime
@@ -114,11 +120,6 @@ export class FormieDatePicker {
 
         // Load in the locale as required
         this.loadLocale();
-
-        // Update the form hash, so we don't get change warnings
-        if (this.form.formTheme) {
-            this.form.formTheme.updateFormHash();
-        }
     }
 
     loadLocale() {
@@ -133,6 +134,11 @@ export class FormieDatePicker {
             $script.async = false;
             $script.onload = () => {
                 this.datepicker.set('locale', this.locale);
+
+                // Update the form hash, so we don't get change warnings
+                if (this.form.formTheme) {
+                    this.form.formTheme.updateFormHash();
+                }
             };
 
             document.body.appendChild($script);

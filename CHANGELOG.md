@@ -544,6 +544,16 @@
 - Removed `forms`, `form` and `formCount` from GraphQL queries. Please use `formieForms`, `formieForm` and `formieFormCount`.
 - Removed `submissions`, `submission` and `submissionCount` from GraphQL queries. Please use `formieSubmissions`, `formieSubmission` and `formieSubmissionCount`.
 
+## 1.6.21 - 2022-12-15
+
+### Changed
+- Move `updateFormHash` to Flatpickr `onReady` to ensure the form hash is updated when Flatpickr is ready.
+
+### Fixed
+- Fix an issue with MySQL 8 and field handle column lengths.
+- Fix Flatpickr triggering unload warnings for non-English locale sites.
+- Fix Email fields when marked as unique, not validating correctly when editing a submission.
+
 ## 1.6.20 - 2022-12-06
 
 ### Changed
