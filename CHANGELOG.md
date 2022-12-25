@@ -1,5 +1,30 @@
 # Changelog
 
+## 2.0.20 - 2022-12-15
+
+### Added
+- Added `data-col-handle` attribute to Table field columns.
+- Added support to set Checkboxes and Multi-Dropdown fields with comma-delimited values from a query params.
+
+### Changed
+- Moved `updateFormHash` to Flatpickr `onReady` to ensure the form hash is updated when Flatpickr is ready.
+- Allow `league/oauth2-google` `^3.0` to fix a conflict with `dukt/analytics`.
+
+### Fixed
+- Fixed an issue with MySQL 8 and field handle column lengths.
+- Fixed Flatpickr triggering unload warnings for non-English locale sites.
+- Fixed Email fields when marked as unique, not validating correctly when editing a submission.
+- Fixed an error with flags throwing an error for the Phone field with countries enabled.
+- Fixed text limits not working correctly for Rich Text-enabled Multi-Line fields.
+- Fixed an error initializing field JS for inner Repeater fields.
+- Fixed HTML attributes not allowing `0` as values.
+- Fixed a potential error with `submitAction` not being set.
+- Fixed Payment model `getField()` throwing an error. (thanks @JeroenOnstuimig).
+- Fixed Calculations fields not working on multi-page forms with Group/Repeater fields.
+- Fixed hCaptcha triggering an unload warning.
+- Fixed webhook integrations testing and live payload not being the same (removed an extra `json` key).
+- Fixed an issue where `password` (and other fields) may have some non-unique attributes stripped.
+
 ## 2.0.19 - 2022-12-06
 
 ### Added
