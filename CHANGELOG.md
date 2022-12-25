@@ -3,12 +3,12 @@
 ## 1.6.21 - 2022-12-15
 
 ### Changed
-- Move `updateFormHash` to Flatpickr `onReady` to ensure the form hash is updated when Flatpickr is ready.
+- Moved `updateFormHash` to Flatpickr `onReady` to ensure the form hash is updated when Flatpickr is ready.
 
 ### Fixed
-- Fix an issue with MySQL 8 and field handle column lengths.
-- Fix Flatpickr triggering unload warnings for non-English locale sites.
-- Fix Email fields when marked as unique, not validating correctly when editing a submission.
+- Fixed an issue with MySQL 8 and field handle column lengths.
+- Fixed Flatpickr triggering unload warnings for non-English locale sites.
+- Fixed Email fields when marked as unique, not validating correctly when editing a submission.
 
 ## 1.6.20 - 2022-12-06
 
