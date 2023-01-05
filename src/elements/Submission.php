@@ -587,10 +587,15 @@ class Submission extends Element
         $this->_form = $form;
         $this->formId = $form->id;
 
-        // When setting the form, see if there's a in-session snapshot, or if there's a saved 
+        // When setting the form, see if there's an in-session snapshot, or if there's a saved
         // snapshot from the database. This will be field settings set via templates which we want
-        // to apply to fields in our form, for the this submission.
-        $this->snapshot = $form->getSnapshotData() ?: $this->snapshot;
+        // to apply to fields in our form, for this submission. Only do this for front-end checks
+        // and if there's no already-saved snapshot data
+        if (Craft::$app->getRequest()->getIsSiteRequest() && !$this->snapshot) {
+            if ($snapshotData = $form->getSnapshotData()) {
+                $this->snapshot = $snapshotData;
+            }
+        }
 
         $fields = $this->snapshot['fields'] ?? [];
 
