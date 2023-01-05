@@ -1366,7 +1366,8 @@ trait FormFieldTrait
 
     protected function defineValueAsString($value, ElementInterface $element = null): string
     {
-        return (string)$value;
+        // Escape any HTML in field content for good measure
+        return StringHelper::escape((string)$value);
     }
 
     protected function defineValueAsJson($value, ElementInterface $element = null): mixed

@@ -448,7 +448,7 @@ class Variables
             if ($field->useRichText) {
                 $values["{$prefix}{$field->handle}"] = $parsedContent;
             } else {
-                $values["{$prefix}{$field->handle}"] = nl2br($submissionValue);
+                $values["{$prefix}{$field->handle}"] = nl2br($field->getValueAsString($submissionValue, $submission));
             }
         } else if ($field instanceof formfields\Repeater) {
             $values["{$prefix}{$field->handle}"] = $parsedContent;
