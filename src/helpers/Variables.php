@@ -457,7 +457,7 @@ class Variables
             if ($field->useRichText) {
                 $values["{$prefix}{$field->handle}"] = $parsedContent;
             } else {
-                $values["{$prefix}{$field->handle}"] = nl2br($submissionValue);
+                $values["{$prefix}{$field->handle}"] = nl2br($field->getValueAsString($submissionValue, $submission));
             }
         } else if ($field instanceof Repeater) {
             $values["{$prefix}{$field->handle}"] = $parsedContent;
@@ -474,7 +474,7 @@ class Variables
         } else {
             // Try to convert as a simple string value, if not, fall back on email template
             try {
-                $values["{$prefix}{$field->handle}"] = (string)$submissionValue;
+                $values["{$prefix}{$field->handle}"] = $field->getValueAsString($submissionValue, $submission);
             } catch (\Throwable $e) {
                 if ($parsedContent) {
                     $values["{$prefix}{$field->handle}"] = $parsedContent;
