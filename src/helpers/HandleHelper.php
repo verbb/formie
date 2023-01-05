@@ -39,7 +39,9 @@ class HandleHelper
         $maxHandleLength = Craft::$app->getDb()->getSchema()->maxObjectNameLength;
         $maxHandleLength -= strlen(Craft::$app->getContent()->fieldColumnPrefix);
         $maxHandleLength -= 8;
-        $maxHandleLength -= 10;
+
+        // MySQL 8 struggles with 53+ column names https://github.com/verbb/formie/issues/1219
+        $maxHandleLength -= 12;
 
         return $maxHandleLength;
     }
