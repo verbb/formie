@@ -45,6 +45,7 @@ class SubmissionsController extends Controller
         'api' => self::ALLOW_ANONYMOUS_LIVE,
         'submit' => self::ALLOW_ANONYMOUS_LIVE,
         'set-page' => self::ALLOW_ANONYMOUS_LIVE,
+        'save-submission' => self::ALLOW_ANONYMOUS_LIVE,
         'clear-submission' => self::ALLOW_ANONYMOUS_LIVE,
     ];
 
@@ -233,6 +234,11 @@ class SubmissionsController extends Controller
 
         // Get the submission, or create a new one
         $submission = $this->_populateSubmission($form, null);
+
+        // For site requests, we can only edit existing ones, not create, due to this being potentially anonymous
+        if ($request->getIsSiteRequest() && !$submission->id) {
+            throw new ForbiddenHttpException('User is not permitted to perform this action');
+        }
 
         $pages = $form->getPages();
         $settings = $form->settings;
