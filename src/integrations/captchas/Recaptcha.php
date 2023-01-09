@@ -249,7 +249,6 @@ class Recaptcha extends Captcha
             'theme' => $this->theme,
             'badge' => $this->badge,
             'language' => $this->language,
-            'scriptLoadingMethod' => $this->scriptLoadingMethod,
         ];
     }
 

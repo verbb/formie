@@ -153,7 +153,6 @@ class Hcaptcha extends Captcha
             'size' => $this->size,
             'theme' => $this->theme,
             'language' => $this->language,
-            'scriptLoadingMethod' => $this->scriptLoadingMethod,
         ];
     }
 
