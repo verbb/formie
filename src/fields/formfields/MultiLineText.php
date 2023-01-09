@@ -90,7 +90,9 @@ class MultiLineText extends FormField implements PreviewableFieldInterface
             $value = LitEmoji::entitiesToUnicode($value);
         }
 
-        return $value !== '' ? $value : null;
+        $value = $value !== '' ? $value : null;
+
+        return parent::normalizeValue($value, $element);
     }
 
     /**
@@ -104,7 +106,7 @@ class MultiLineText extends FormField implements PreviewableFieldInterface
             $value = LitEmoji::encodeHtml($value);
         }
 
-        return $value;
+        return parent::serializeValue($value, $element);
     }
 
     /**
