@@ -60,6 +60,11 @@ class Honeypot extends Captcha
             return false;
         }
 
+        // If the honeypot param has been stripped out of the request altogether
+        if ($this->getRequestParam(self::HONEYPOT_INPUT_NAME) === null) {
+            return false;
+        }
+
         return true;
     }
 
