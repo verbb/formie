@@ -90,15 +90,17 @@ class Integrations extends Component
         ];
 
         if (Formie::$plugin->getService()->isPluginInstalledAndEnabled('snaptcha')) {
-            $captchas = array_merge($captchas, [
-                captchas\Snaptcha::class,
-            ]);
+            $captchas[] = captchas\Snaptcha::class;
         }
 
         $elements = [
             elements\Entry::class,
             elements\User::class,
         ];
+
+        if (Formie::$plugin->getService()->isPluginInstalledAndEnabled('calendar')) {
+            $elements[] = elements\CalendarEvent::class;
+        }
 
         $emailMarketing = [
             emailmarketing\ActiveCampaign::class,
@@ -125,9 +127,7 @@ class Integrations extends Component
         ];
 
         if (Formie::$plugin->getService()->isPluginInstalledAndEnabled('campaign')) {
-            $emailMarketing = array_merge($emailMarketing, [
-                emailmarketing\Campaign::class,
-            ]);
+            $emailMarketing[] = emailmarketing\Campaign::class;
         }
 
         $crm = [
