@@ -13,6 +13,8 @@ use craft\fields\data\MultiOptionsFieldData;
 use craft\fields\data\OptionData;
 use craft\fields\data\SingleOptionFieldData;
 
+use yii\db\Schema;
+
 use GraphQL\Type\Definition\Type;
 
 use Throwable;
@@ -71,6 +73,18 @@ abstract class BaseOptionsField extends CraftBaseOptionsField
 
         // Decode any emoji's in options
         $this->_normalizeOptions();
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getContentColumnType(): string
+    {
+        if (Formie::$plugin->getSettings()->enableLargeFieldStorage) {
+            return Schema::TYPE_TEXT;
+        }
+        
+        return parent::getContentColumnType();
     }
 
     public function getSavedFieldConfig(): array

@@ -82,6 +82,10 @@ class Phone extends FormField implements SubfieldInterface, PreviewableFieldInte
             return Schema::TYPE_TEXT;
         }
 
+        if (Formie::$plugin->getSettings()->enableLargeFieldStorage) {
+            return Schema::TYPE_TEXT;
+        }
+
         return Schema::TYPE_STRING;
     }
 

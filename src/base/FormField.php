@@ -7,6 +7,7 @@ use Craft;
 use craft\base\Field;
 
 use yii\base\UnknownPropertyException;
+use yii\db\Schema;
 
 abstract class FormField extends Field implements FormFieldInterface
 {
@@ -48,6 +49,18 @@ abstract class FormField extends Field implements FormFieldInterface
                 'line' => $e->getLine(),
             ]));
         }
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getContentColumnType(): string
+    {
+        if (Formie::$plugin->getSettings()->enableLargeFieldStorage) {
+            return Schema::TYPE_TEXT;
+        }
+
+        return parent::getContentColumnType();
     }
 
     /**

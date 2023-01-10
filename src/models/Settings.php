@@ -46,6 +46,7 @@ class Settings extends Model
     public string $defaultDateDisplayType = 'calendar';
     public string $defaultDateValueOption = '';
     public ?DateTime $defaultDateTime = null;
+    public bool $enableLargeFieldStorage = false;
 
     // Submissions
     public int $maxIncompleteSubmissionAge = 30;
