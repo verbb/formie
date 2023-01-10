@@ -88,7 +88,7 @@ class Agree extends FormField implements PreviewableFieldInterface
     /**
      * @inheritdoc
      */
-    public function getContentColumnType(): array|string
+    public function getContentColumnType(): string
     {
         return Schema::TYPE_BOOLEAN;
     }

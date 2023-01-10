@@ -159,7 +159,7 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
     /**
      * @inheritDoc
      */
-    public function getContentColumnType(): array|string
+    public function getContentColumnType(): string
     {
         if ($this->getIsTime()) {
             return Schema::TYPE_TIME;

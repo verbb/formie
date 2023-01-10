@@ -51,7 +51,7 @@ class Signature extends FormField implements PreviewableFieldInterface
     /**
      * @inheritDoc
      */
-    public function getContentColumnType(): array|string
+    public function getContentColumnType(): string
     {
         return Schema::TYPE_MEDIUMTEXT;
     }

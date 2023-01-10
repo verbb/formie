@@ -93,7 +93,7 @@ class Hidden extends FormField implements PreviewableFieldInterface
     /**
      * @inheritdoc
      */
-    public function getContentColumnType(): array|string
+    public function getContentColumnType(): string
     {
         if ($this->columnType) {
             return $this->columnType;

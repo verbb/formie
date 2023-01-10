@@ -87,7 +87,7 @@ class Number extends FormField implements PreviewableFieldInterface
     /**
      * @inheritDoc
      */
-    public function getContentColumnType(): array|string
+    public function getContentColumnType(): string
     {
         return Db::getNumericalColumnType($this->min, $this->max, $this->decimals);
     }

@@ -189,7 +189,7 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
     /**
      * @inheritDoc
      */
-    public function getContentColumnType(): array|string
+    public function getContentColumnType(): string
     {
         return Schema::TYPE_TEXT;
     }

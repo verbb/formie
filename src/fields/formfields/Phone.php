@@ -76,7 +76,7 @@ class Phone extends FormField implements SubfieldInterface, PreviewableFieldInte
     /**
      * @inheritDoc
      */
-    public function getContentColumnType(): array|string
+    public function getContentColumnType(): string
     {
         if ($this->countryEnabled) {
             return Schema::TYPE_TEXT;
