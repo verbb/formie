@@ -68,12 +68,8 @@ class Rendering extends Component
     public function renderForm(Form|string|null $form, array $renderOptions = []): ?Markup
     {
         // Allow an empty form to fail silently
-        if (!$form) {
+        if (!($form = $this->_getFormFromTemplate($form))) {
             return null;
-        }
-
-        if (is_string($form)) {
-            $form = Form::find()->handle($form)->one();
         }
 
         // Fire a 'modifyFormRenderOptions' event
@@ -147,12 +143,8 @@ class Rendering extends Component
     public function renderPage(Form|string|null $form, FieldLayoutPage|null $page = null, array $renderOptions = []): ?Markup
     {
         // Allow an empty form to fail silently
-        if (!$form) {
+        if (!($form = $this->_getFormFromTemplate($form))) {
             return null;
-        }
-
-        if (is_string($form)) {
-            $form = Form::find()->handle($form)->one();
         }
 
         if (!$page) {
@@ -192,12 +184,8 @@ class Rendering extends Component
     public function renderField(Form|string|null $form, FormFieldInterface|string $field, array $renderOptions = []): ?Markup
     {
         // Allow an empty form to fail silently
-        if (!$form) {
+        if (!($form = $this->_getFormFromTemplate($form))) {
             return null;
-        }
-
-        if (is_string($form)) {
-            $form = Form::find()->handle($form)->one();
         }
 
         $view = Craft::$app->getView();
@@ -272,12 +260,8 @@ class Rendering extends Component
     public function renderFormAssets(Form|string|null $form, string $type = null, bool $forceInline = false, array $attributes = []): ?Markup
     {
         // Allow an empty form to fail silently
-        if (!$form) {
+        if (!($form = $this->_getFormFromTemplate($form))) {
             return null;
-        }
-
-        if (is_string($form)) {
-            $form = Form::find()->handle($form)->one();
         }
 
         $view = Craft::$app->getView();
@@ -627,5 +611,20 @@ class Rendering extends Component
         }
 
         return $strings;
+    }
+
+    private function _getFormFromTemplate(Form|string|null $form): ?Form
+    {
+        if ($form instanceof Form) {
+            return $form;
+        }
+        
+        if ($form && is_string($form)) {
+            if ($form = Form::find()->handle($form)->one()) {
+                return $form;
+            }
+        }
+
+        return null;
     }
 }
