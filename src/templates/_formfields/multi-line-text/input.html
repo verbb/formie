@@ -11,10 +11,10 @@
         <div class="fui-rich-text" data-rich-text></div>
 
         <div style="display: none !important;">
-            {% include '_includes/forms/textarea' %}
+            {% include '_includes/forms/textarea' with { rows: 5 } %}
         </div>
     {% else %}
-        {% include '_includes/forms/textarea' %}
+        {% include '_includes/forms/textarea' with { rows: 5 } %}
     {% endif %}
 
     {% if maxlength or wordlimit %}
