@@ -55,6 +55,7 @@ class Settings extends Model
     public $defaultDateDisplayType = '';
     public $defaultDateValueOption = '';
     public $defaultDateTime = null;
+    public $enableLargeFieldStorage = false;
 
     /**
      * The maximum age of an incomplete submission in days
