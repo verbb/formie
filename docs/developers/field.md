@@ -428,9 +428,11 @@ Another example could be limiting a field to be numeric, and a maximum length.
 
 ```php
 Event::on(Submission::class, Submission::EVENT_DEFINE_RULES, function(SubmissionRulesEvent $event) {
-    $event->rules[] = [[‘field:accountNumber'], 'number', 'integerOnly' => true, ‘max’ => 9];
+    $event->rules[] = [['field:accountNumber'], 'number', 'integerOnly' => true, 'max' => 9];
 });
 ```
+
+You can also customise the validation message with number validation when using min/max with `tooSmall` and `tooBig`.
 
 **However**, the above rules are applied to _every_ submission, which will throw an error if you set a rule for a field that doesn't exist on the form for the submission you're creating. The above example assumes you have a field with the handle `emailAddress` for every form, which may not always be the case, especially if you have multiple forms.
 
