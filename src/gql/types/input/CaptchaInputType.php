@@ -1,8 +1,6 @@
 <?php
 namespace verbb\formie\gql\types\input;
 
-// use verbb\formie\models\Name as NameModel;
-
 use craft\gql\GqlEntityRegistry;
 
 use GraphQL\Type\Definition\InputObjectType;
