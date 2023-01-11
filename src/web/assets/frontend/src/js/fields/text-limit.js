@@ -40,9 +40,8 @@ export class FormieTextLimit {
 
     characterCheck(e) {
         setTimeout(() => {
-            // If we're using a rich text editor, treat it a little differently
-            const isRichText = e.target.hasAttribute('contenteditable');
-            const value = isRichText ? e.target.innerHTML : e.target.value;
+            // Strip HTML tags
+            const value = this.stripTags(e.target.value);
             const charactersLeft = this.maxChars - this.count(value);
             const extraClasses = ['fui-limit-number'];
             const type = charactersLeft == 1 || charactersLeft == -1 ? 'character' : 'characters';
@@ -61,9 +60,8 @@ export class FormieTextLimit {
 
     wordCheck(e) {
         setTimeout(() => {
-            // If we're using a rich text editor, treat it a little differently
-            const isRichText = e.target.hasAttribute('contenteditable');
-            const value = isRichText ? e.target.innerHTML : e.target.value;
+            // Strip HTML tags
+            const value = this.stripTags(e.target.value);
             const wordCount = value.split(/\S+/).length - 1;
             const wordsLeft = this.maxWords - wordCount;
             const extraClasses = ['fui-limit-number'];
@@ -84,7 +82,16 @@ export class FormieTextLimit {
     count(value) {
         // Convert any multibyte characters to their HTML entity equivalent to match server-side processing
         // https://dev.to/nikkimk/converting-utf-including-emoji-to-html-x1f92f-4951
-        return [...value].map((char) => { return (char.codePointAt() > 127 ? `&#${char.codePointAt()};` : char); }).join('').length;
+        return [...value].map((char) => {
+            // Check for space characters to exclude
+            return char.codePointAt() > 127 && !/\s/.test(char) ? `&#${char.codePointAt()};` : char;
+        }).join('').length;
+    }
+
+    stripTags(string) {
+        const doc = new DOMParser().parseFromString(string, 'text/html');
+
+        return doc.body.textContent || '';
     }
 }
 
