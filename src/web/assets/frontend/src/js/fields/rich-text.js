@@ -148,6 +148,9 @@ export class FormieRichText {
             actions: this.getButtons(),
             onChange: html => {
                 this.$field.textContent = html;
+
+                // Fire a custom event on the input
+                this.$field.dispatchEvent(new CustomEvent('populate', { bubbles: true }));
             },
             classes: {
                 actionbar: 'fui-rich-text-toolbar',

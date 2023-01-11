@@ -22,6 +22,7 @@ export class FormieTextLimit {
         if (this.maxChars) {
             this.form.addEventListener(this.$input, eventKey('paste'), this.characterCheck.bind(this), false);
             this.form.addEventListener(this.$input, eventKey('keydown'), this.characterCheck.bind(this), false);
+            this.form.addEventListener(this.$input, eventKey('populate'), this.characterCheck.bind(this), false);
 
             // Fire immediately
             this.$input.dispatchEvent(new Event('keydown', { bubbles: true }));
@@ -30,6 +31,7 @@ export class FormieTextLimit {
         if (this.maxWords) {
             this.form.addEventListener(this.$input, eventKey('paste'), this.wordCheck.bind(this), false);
             this.form.addEventListener(this.$input, eventKey('keydown'), this.wordCheck.bind(this), false);
+            this.form.addEventListener(this.$input, eventKey('populate'), this.wordCheck.bind(this), false);
 
             // Fire immediately
             this.$input.dispatchEvent(new Event('keydown', { bubbles: true }));
@@ -38,9 +40,8 @@ export class FormieTextLimit {
 
     characterCheck(e) {
         setTimeout(() => {
-            // If we're using a rich text editor, treat it a little differently
-            var isRichText = e.target.hasAttribute('contenteditable');
-            var value = isRichText ? e.target.innerHTML : e.target.value;
+            // Strip HTML tags
+            var value = this.stripTags(e.target.value);
             var charactersLeft = this.maxChars - this.count(value);
             var extraClasses = ['fui-limit-number'];
             var type = charactersLeft == 1 || charactersLeft == -1 ? 'character' : 'characters';
@@ -59,9 +60,8 @@ export class FormieTextLimit {
 
     wordCheck(e) {
         setTimeout(() => {
-            // If we're using a rich text editor, treat it a little differently
-            var isRichText = e.target.hasAttribute('contenteditable');
-            var value = isRichText ? e.target.innerHTML : e.target.value;
+            // Strip HTML tags
+            var value = this.stripTags(e.target.value);
             var wordCount = value.split(/\S+/).length - 1;
             var wordsLeft = this.maxWords - wordCount;
             var extraClasses = ['fui-limit-number'];
@@ -82,7 +82,16 @@ export class FormieTextLimit {
     count(value) {
         // Convert any multibyte characters to their HTML entity equivalent to match server-side processing
         // https://dev.to/nikkimk/converting-utf-including-emoji-to-html-x1f92f-4951
-        return [...value].map((char) => char.codePointAt() > 127 ? `&#${char.codePointAt()};` : char).join('').length;
+        return [...value].map(char => {
+            // Check for space characters to exclude
+            return char.codePointAt() > 127 && !/\s/.test(char) ? `&#${char.codePointAt()};` : char;
+        }).join('').length;
+    }
+
+    stripTags(string) {
+        const doc = new DOMParser().parseFromString(string, 'text/html');
+        
+        return doc.body.textContent || '';
     }
 }
 
